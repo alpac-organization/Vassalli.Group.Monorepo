@@ -17,5 +17,12 @@ export default defineConfig({
       '@alpac/routers': path.resolve(__dirname, './src/routers'),
       '@alpac': path.resolve(__dirname, './src')
     }
+  },
+  server: {
+    allowedHosts: [
+      "erp-web-08eg.onrender.com",
+      "localhost",
+      "127.0.0.1"
+    ]
   }
 })
