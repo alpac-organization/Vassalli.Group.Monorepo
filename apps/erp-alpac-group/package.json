@@ -4,8 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node server.js",
-    "build": "tsc -b && vite build",
+    "start":  "node dist/server/server.js",
+    "dev":    "node server.js",
+    "build":  "pnpm run build:client && pnpm run build:server",
+    "build:client": "vite build --outDir dist/client",
+    "build:server": "vite build --ssr server.js --outDir dist/server",
     "lint": "eslint .",
     "preview": "vite preview"
   },
