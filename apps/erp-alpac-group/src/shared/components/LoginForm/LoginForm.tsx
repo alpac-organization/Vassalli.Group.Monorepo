@@ -26,8 +26,8 @@ export const LoginForm = function () {
 
                 <h1>Acceso</h1>
 
-                <InputField label="Correo" name="email" placeholder="Correo" type="email"/>
-                <InputField label="Contraseña" name="password" placeholder="Password" type="password"/>
+                <InputField label="Correo" name="email" placeholder="Ingresa tu correo electrónico" type="email"/>
+                <InputField label="Contraseña" name="password" placeholder="Ingresa tu contraseña" type="password"/>
 
                 <div>
                     <Button type="submit" label="Acceder" variant="primary" onClick={handleClickEvent}/>
