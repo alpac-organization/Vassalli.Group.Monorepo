@@ -8,7 +8,6 @@ export const Button = function(props: ButtonClassicProps){
    const {
       label    = "label",
       disabled = false,
-      size     = "Gian",
       onPress  = () => {}
    } = props;
 

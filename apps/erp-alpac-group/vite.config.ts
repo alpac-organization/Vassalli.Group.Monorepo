@@ -15,9 +15,7 @@ export default defineConfig({
       '@alpac/modules': path.resolve(__dirname, './src/modules'),
       '@alpac/shared': path.resolve(__dirname, './src/shared'),
       '@alpac/routers': path.resolve(__dirname, './src/routers'),
-      '@alpac': path.resolve(__dirname, './src'),
-      '@design-system': path.resolve(__dirname, '../../packages/ui/src'),
-
+      '@alpac': path.resolve(__dirname, './src')
     }
   }
 })

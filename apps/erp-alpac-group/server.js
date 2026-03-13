@@ -8,6 +8,8 @@ import { fileURLToPath } from "node:url"
 import express from "express"
 import { createServer as createViteServer } from "vite"
 
+const port = process.env.PORT || 4000 
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 async function createServer(){
@@ -56,8 +58,8 @@ async function createServer(){
       }
    })
 
-   app.listen(5173, () => {
-      console.log("server: http://localhost:5173");
+   app.listen(port, () => {
+      console.log("server: http://localhost:" + port);
    })
 }
 

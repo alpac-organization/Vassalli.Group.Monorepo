@@ -30,7 +30,6 @@
       "@alpac/shared/*":  ["src/shared/*"],
       "@alpac/routers/*": ["src/routers/*"],
       "@alpac/*":         ["src/*"],
-      "@design-system/*": ["../../packages/ui/src/*"],
     }
   },
   "include": ["src"]

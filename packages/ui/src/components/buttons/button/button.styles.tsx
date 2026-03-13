@@ -1,7 +1,7 @@
 import { spacings } from "../../../constants/spacing";
 import { fontSizes } from "../../../constants/typography";
 import { companyTokens, neutralTokens } from "../../../constants/colors";
-import { ButtonClassicProps, ButtonSize, Company } from "./button.type";
+import type { ButtonClassicProps, ButtonSize, Company } from "./button.type";
 
 interface Properties {
    paddingVertical:   string;
@@ -9,21 +9,6 @@ interface Properties {
    
    fontSize: string;
    fontWeight: number;
-}
-
-const typographyProperties: Record<ButtonSize, Pick<Properties, "fontSize" | "fontWeight">> = {
-   Gian: {
-      fontSize: fontSizes["2xl"],
-      fontWeight: 500
-   },
-   Medium: {
-      fontSize: fontSizes["2xl"],
-      fontWeight: 500
-   },
-   Small: {
-      fontSize: fontSizes["2xl"],
-      fontWeight: 500
-   }
 }
 
 const sizeProperties: Record<ButtonSize, Pick<Properties, "paddingVertical" | "paddinghorizontal">> = {
