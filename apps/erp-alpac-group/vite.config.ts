@@ -54,4 +54,9 @@ export default defineConfig(({ isSsrBuild }) => ({
       ],
     },
   },
+  server: {
+    allowedHosts: [
+      'web-server-dev-ycks.onrender.com',
+    ]
+  }
 }));

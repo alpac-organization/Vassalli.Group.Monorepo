@@ -1,3 +1,4 @@
+import { Login } from "@alpac/modules/auth/login";
 import { Dashboard } from "@alpac/modules/dashboard/dashboard";
 import type { RouteObject } from "react-router-dom";
 
@@ -12,11 +13,11 @@ export const MainRoutes: RouteObject[] = [
       children: [
          {
             path: "auth",
-            element: <h3>Componente de login para esta empresa</h3>,
+            element: <Login />,
          },
          {
-            path:     "dashboard",
-            element:  <Dashboard />,
+            path: "dashboard",
+            element: <Dashboard />,
          },
       ],
    },
