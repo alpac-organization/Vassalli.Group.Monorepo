@@ -9,19 +9,19 @@ export const LoginForm = function () {
     }
 
     const styles: CSSProperties = {
-        border: "1px solid black",
+        border: "0.05em solid #6e6e6e",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         padding: "20px",
         borderRadius: "20px",
-        width: "300px",
-        gap: "10px",
+        width: "350px",
+        gap: "20px",
     }
 
     const buttonSubmitStyles: CSSProperties = {
-        width: "100%"
+        width: "100%",
     } 
 
     return (

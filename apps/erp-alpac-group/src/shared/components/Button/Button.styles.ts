@@ -13,7 +13,8 @@ export const getButtonStyles = (variant: ButtonVariant = "primary"): CSSProperti
         backgroundColor: variants[variant],
         color: colors.white,
         border: "none",
-        padding: "10px 16px",
+        padding: "7px 12px",
         borderRadius: "6px",
+        fontSize: "100%"
     };
 };

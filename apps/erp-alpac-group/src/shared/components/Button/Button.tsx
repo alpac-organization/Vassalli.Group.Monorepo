@@ -11,9 +11,12 @@ export const Button = function ({
 }: ButtonProps) {
 
     const mergedStyles = {
-        styles,
+        ...styles,
         ...getButtonStyles(variant)
     }
+
+    console.log(mergedStyles)
+
     return (
         <Fragment>
             <button type={type} style={mergedStyles} onClick={onClick}>

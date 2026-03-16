@@ -12,9 +12,13 @@ export const InputField = function ({
         width: "100%",
     }
 
+    const labelStyles: CSSProperties = {
+        fontWeight: "500"
+    }
+
     return (
         <div style={styles}>
-            <label htmlFor={name}>{label}</label>
+            <label htmlFor={name} style={labelStyles}>{label}</label>
             <InputText id={name} type={type} {...props} />
             {error && <span>{error}</span>}
         </div>

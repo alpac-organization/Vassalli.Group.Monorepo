@@ -8,11 +8,14 @@ export const InputText = function ({
 }: InputTextProps) {
 
     const styles: CSSProperties = {
-        outline: "none",
-        borderWidth: 1,
+        font: "inherit",
+        appearance: "none",
+        lineHeight: "normal",
+        outline: "none !important",
+        border: "1px solid white",
         borderRadius: 6,
         padding: 10,
-        fontSize: 16,
+        fontSize: "100%"
     };
 
     return (
