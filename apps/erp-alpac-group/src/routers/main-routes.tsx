@@ -1,4 +1,4 @@
-import { Login } from "@alpac/modules/auth/login";
+import { Login } from "@alpac/modules/auth/login/login";
 import { Dashboard } from "@alpac/modules/dashboard/dashboard";
 import type { RouteObject } from "react-router-dom";
 

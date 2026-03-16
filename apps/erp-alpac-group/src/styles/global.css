@@ -1,50 +1,16 @@
+@import url(./normalize.css);
+@import url(./fonts.css);
+
 /* Default variables */
 :root {
   --bg-color: #ffffff;
   --text-color: #333333;
-}
-
-/* geist-regular - latin */
-@font-face {
-  font-display: swap;
-  font-family: 'Geist';
-  font-style: normal;
-  font-weight: 400;
-  src: url('../../public/fonts/geist/geist-v4-latin-regular.woff2') format('woff2');
-}
-
-/* geist-500 - latin */
-@font-face {
-  font-display: swap;
-  font-family: 'Geist';
-  font-style: normal;
-  font-weight: 500;
-  src: url('../../public/fonts/geist/geist-v4-latin-500.woff2') format('woff2');
-}
-
-/* geist-700 - latin */
-@font-face {
-  font-display: swap;
-  font-family: 'Geist';
-  font-style: normal;
-  font-weight: 700;
-  src: url('../../public/fonts/geist/geist-v4-latin-700.woff2') format('woff2');
-}
-
-/* geist-900 - latin */
-@font-face {
-  font-display: swap;
-  font-family: 'Geist';
-  font-style: normal;
-  font-weight: 900;
-  src: url('../../public/fonts/geist/geist-v4-latin-900.woff2') format('woff2');
+  --form-color: #ffffff;
 }
 
 * {
   box-sizing: border-box;
 }
-
-/* src/index.css */
 
 /* Fallback source */
 body {
@@ -52,11 +18,8 @@ body {
   color: var(--text-color);
   font-family: 'Geist', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
-  /* Tamaño base */
   line-height: 1.5;
-  /* Altura de línea legible */
   color: #333;
-  /* Color de texto estándar */
   margin: 0;
   padding: 0;
 }
@@ -168,4 +131,5 @@ textarea {
 [data-theme="dark"] {
   --bg-color: #000000;
   --text-color: #e0e0e0;
+  --form-color: #1e1e1e;
 }
