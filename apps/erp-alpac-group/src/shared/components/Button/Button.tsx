@@ -5,14 +5,18 @@ import { getButtonStyles } from "./Button.styles"
 export const Button = function ({
     label,
     type,
+    styles,
     variant,
     onClick,
 }: ButtonProps) {
 
-    const styles = getButtonStyles(variant)
+    const mergedStyles = {
+        styles,
+        ...getButtonStyles(variant)
+    }
     return (
         <Fragment>
-            <button type={type} style={styles} onClick={onClick}>
+            <button type={type} style={mergedStyles} onClick={onClick}>
                 {label}
             </button>
         </Fragment>

@@ -4,7 +4,7 @@ import { InputField } from "../InputField/InputField"
 
 export const LoginForm = function () {
 
-     const handleClickEvent = () => {
+    const handleClickEvent = () => {
         console.log("Testing")
     }
 
@@ -20,18 +20,17 @@ export const LoginForm = function () {
         gap: "10px",
     }
 
+    const buttonSubmitStyles: CSSProperties = {
+        width: "100%"
+    } 
+
     return (
         <Fragment>
             <form style={styles}>
-
                 <h1>Acceso</h1>
-
-                <InputField label="Correo" name="email" placeholder="Ingresa tu correo electrónico" type="email"/>
-                <InputField label="Contraseña" name="password" placeholder="Ingresa tu contraseña" type="password"/>
-
-                <div>
-                    <Button type="submit" label="Acceder" variant="primary" onClick={handleClickEvent}/>
-                </div>
+                <InputField label="Correo" name="email" placeholder="Ingresa tu correo electrónico" type="email" />
+                <InputField label="Contraseña" name="password" placeholder="Ingresa tu contraseña" type="password" />
+                <Button type="submit" label="Acceder" styles={buttonSubmitStyles} variant="primary" onClick={handleClickEvent} />
             </form>
         </Fragment>
     )

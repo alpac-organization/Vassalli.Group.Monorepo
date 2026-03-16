@@ -10,7 +10,7 @@ export const InputText = function ({
     const styles: CSSProperties = {
         outline: "none",
         borderWidth: 1,
-        borderRadius: 5,
+        borderRadius: 6,
         padding: 10,
         fontSize: 16,
     };
