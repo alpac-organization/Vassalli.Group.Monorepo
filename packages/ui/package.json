@@ -1,7 +1,13 @@
 {
   "name": "@alpac/design-system",
   "version": "0.0.0",
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css",
+    "**/*.woff2"
+  ],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
