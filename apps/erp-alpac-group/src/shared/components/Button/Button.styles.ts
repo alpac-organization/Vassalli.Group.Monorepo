@@ -1,4 +1,4 @@
-import { colors } from "@alpac/theme/color";
+import { colors } from "@app/theme/color";
 import type { ButtonVariant } from "./ButtonProps";
 import type { CSSProperties } from "react";
 

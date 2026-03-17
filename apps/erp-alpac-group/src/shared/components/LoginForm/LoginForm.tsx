@@ -1,7 +1,8 @@
-import { Button } from "@alpac/shared/components/Button/Button"
+import { Button } from "@app/shared/components/Button/Button"
+// import { Button } from "@alpac/design-system"
 import { type CSSProperties } from "react"
 import { InputField } from "../InputField/InputField"
-import { FormLayout } from "@alpac/shared/layouts/FormLayout/FormLayout"
+import { FormLayout } from "@app/shared/layouts/FormLayout/FormLayout"
 
 export const LoginForm = function () {
 

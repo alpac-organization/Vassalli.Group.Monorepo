@@ -1,5 +1,5 @@
-import { Login } from "@alpac/modules/auth/login/login";
-import { Dashboard } from "@alpac/modules/dashboard/dashboard";
+import { Login } from "@app/modules/auth/login/login";
+import { Dashboard } from "@app/modules/dashboard/dashboard";
 import type { RouteObject } from "react-router-dom";
 
 //Configuraciones de rutas del sistema.
