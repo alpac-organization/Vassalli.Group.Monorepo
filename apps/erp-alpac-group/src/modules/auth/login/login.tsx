@@ -1,4 +1,4 @@
-import { LoginForm } from "@alpac/shared/components/LoginForm/LoginForm"
+import { LoginForm } from "@app/shared/components/login-form/login-form"
 import { Fragment } from "react"
 
 export const Login = function () {

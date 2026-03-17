@@ -1,26 +1,31 @@
 import { Fragment } from "react"
-import { getStylesButton } from "./button.styles";
+import type { ButtonProps } from "./button.type"
+import { getButtonStyles } from "./button.styles"
 
-import type { ButtonClassicProps } from "./button.type"
-
-export const Button = function(props: ButtonClassicProps){
+export const Button = function (props: ButtonProps): JSX.Element {
 
    const {
-      label    = "label",
+      type,
+      label = "label",
       disabled = false,
-      onPress  = () => {}
+      styles,
+      onClick = () => { }
    } = props;
 
-   const styles = getStylesButton({... props});
+   const mergedStyles = {
+      ...styles,
+      ...getButtonStyles({ ...props })
+   }
 
    return (
       <Fragment>
-         <button 
-            style={styles}
-            disabled={ disabled }
-            onClick={() => onPress()}
+         <button
+            type={type}
+            style={mergedStyles}
+            disabled={disabled}
+            onClick={onClick}
          >
-            { label }
+            {label}
          </button>
       </Fragment>
    )

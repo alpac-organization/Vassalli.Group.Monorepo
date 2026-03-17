@@ -19,13 +19,12 @@ body {
   font-family: 'Geist', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #333;
   margin: 0;
   padding: 0;
 }
 
 /* Header with text color  */
-h1, h2, h3, h4, h5, h6, p, li, label {
+h1, h2, h3, h4, h5, h6, p, li, label, small {
   color: var(--text-color);
 }
 

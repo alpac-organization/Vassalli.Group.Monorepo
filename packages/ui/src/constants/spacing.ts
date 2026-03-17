@@ -2,15 +2,15 @@
 export const spacings = {
   none:  '0',
   xs:    '8px',   
-  sm:    '10px',  
-  md:    '12px',  
-  lg:    '14px',  
-  xl:    '16px',  
-  '2xl': '18px',
-  '3xl': '20px',
-  '4xl': '22px', 
-  '5xl': '24px',
-  huge:  '32px' 
+  sm:    '8.5px',  
+  md:    '10px',  
+  lg:    '12px',  
+  xl:    '14px',  
+  '2xl': '16px',
+  '3xl': '18px',
+  '4xl': '20px', 
+  '5xl': '22px',
+  huge:  '30px' 
 } as const;
 
 export type SpacingSize = keyof typeof spacings;

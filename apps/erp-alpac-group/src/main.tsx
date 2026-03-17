@@ -1,5 +1,4 @@
-import "./styles/global.css"
-// import "@alpac/design-system"
+import "@alpac/design-system/styles/global.css"
 import { RouterProvider } from "react-router-dom"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"

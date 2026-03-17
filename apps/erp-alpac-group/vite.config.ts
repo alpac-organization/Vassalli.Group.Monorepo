@@ -9,10 +9,10 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@alpac/modules': path.resolve(__dirname, './src/modules'),
-      '@alpac/shared': path.resolve(__dirname, './src/shared'),
-      '@alpac/routers': path.resolve(__dirname, './src/routers'),
-      '@alpac': path.resolve(__dirname, './src'),
+      '@app/modules': path.resolve(__dirname, './src/modules'),
+      '@app/shared': path.resolve(__dirname, './src/shared'),
+      '@app/routers': path.resolve(__dirname, './src/routers'),
+      '@app': path.resolve(__dirname, './src'),
     },
   },
 });

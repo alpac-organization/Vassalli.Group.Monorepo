@@ -26,10 +26,10 @@
 
     "baseUrl": ".", 
     "paths": {
-      "@alpac/modules/*": ["src/modules/*"],
-      "@alpac/shared/*":  ["src/shared/*"],
-      "@alpac/routers/*": ["src/routers/*"],
-      "@alpac/*":         ["src/*"],
+      "@app/modules/*": ["src/modules/*"],
+      "@app/shared/*":  ["src/shared/*"],
+      "@app/routers/*": ["src/routers/*"],
+      "@app/*":         ["src/*"],
     }
   },
   "include": ["src"]
