@@ -2,7 +2,7 @@ import { spacings } from "../../../constants/spacing";
 import { companyTokens, neutralTokens } from "../../../constants";
 import type { ButtonProps, ButtonSize, Company } from "./button.type";
 import type { CSSProperties } from "react";
-import { Padding } from "../../interfaces/sizes";
+import { Padding } from "../../../interfaces/sizes";
 
 const paddingProperties: Record<ButtonSize, Pick<Padding, "paddingVertical" | "paddingHorizontal">> = {
     giant: {

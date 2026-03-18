@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react"
 import { TextFieldProps, TextFieldSize } from "./text-field.type"
-import { Padding } from "../../interfaces/sizes"
+import { Padding } from "../../../interfaces/sizes"
 import { spacings } from "../../../constants"
 
 const paddingProperties: Record<TextFieldSize, Pick<Padding, "paddingVertical" | "paddingHorizontal">> = {

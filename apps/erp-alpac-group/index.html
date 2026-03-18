@@ -16,17 +16,18 @@
   <!-- favicon (opcional) -->
   <link rel="icon" href="/favicon.ico" />
 
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+
 </head>
 
 <body>
-  <!-- React SSR mount -->
-  <div id="root"><!--ssr-outlet--></div>
-
-  <!--ssr-state-->
-
-  <!-- cliente -->
+  <div id="root"></div>
   <script type="module" src="/src/App.tsx"></script>
-
 </body>
 
 </html>
