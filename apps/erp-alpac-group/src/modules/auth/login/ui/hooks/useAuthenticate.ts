@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
-import { httpHandler } from "@app/shared/http/adapters";
-import { AuthRepositoryImpl } from "../../infraestructure/repositories/AuthRespositoryImpl";
+import { httpHandler } from "@app/core/adapters";
+import { AuthRepositoryImpl } from "../../infrastructure/repositories/AuthRepositoryImpl";
 import { LoginCommandHandler } from "../../application/handlers/AuthCommandHandler";
 import { LoginCommand } from "../../application/commands/AuthCommand";
 
