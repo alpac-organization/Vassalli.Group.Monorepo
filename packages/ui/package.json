@@ -1,11 +1,25 @@
 {
   "name": "@alpac/design-system",
   "version": "0.0.0",
-  "sideEffects": false,
-  "license": "MIT",
+  "sideEffects": [
+    "**/*.css",
+    "**/*.woff2"
+  ],
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./styles/global.css": "./src/styles/global.css"
   },
+  "license": "MIT",
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -18,9 +32,9 @@
     "tsup": "^8.0.2",
     "typescript": "5.5.4"
   },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.2.0"
+  "peerDependencies": {
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
   },
   "publishConfig": {
     "access": "public"

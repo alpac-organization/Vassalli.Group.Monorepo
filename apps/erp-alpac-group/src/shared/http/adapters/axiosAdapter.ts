@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance } from 'axios';
-import type { IHttpHandler } from '@alpac/shared/http/ports';
+import type { IHttpHandler } from '@app/shared/http/ports';
 
 export class AxiosHttpAdapter implements IHttpHandler {
    private instance: AxiosInstance;

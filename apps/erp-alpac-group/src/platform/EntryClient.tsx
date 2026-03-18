@@ -1,12 +1,13 @@
-import { hydrateRoot } from "react-dom/client"
-import { dehydrate, QueryClient } from "@tanstack/react-query"
+import { createRoot } from "react-dom/client"
+import { QueryClient } from "@tanstack/react-query"
 import { createBrowserRouter } from "react-router-dom"
 
-import Main from "@alpac/main"
-import { MainRoutes } from "@alpac/routers/main-routes"
+import Main from "@app/main"
+import { MainRoutes } from "@app/routers/main-routes"
 
 const queryClient = new QueryClient()
 const router = createBrowserRouter(MainRoutes)
 const container = document.getElementById("root")!
 
-hydrateRoot(container, <Main router={router} queryClient={queryClient} dehydratedState={dehydrate(queryClient)} />)
+const root = createRoot(container)
+root.render(<Main router={router} queryClient={queryClient} />)

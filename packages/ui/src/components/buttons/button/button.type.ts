@@ -1,12 +1,13 @@
-export type ButtonSize = "Gian"  | "Medium" | "Small"
-export type Company    = 'ALPAC' | 'AMINSA' | 'AVASA' | 'VIGEMSA' | 'TMN';
+export type ButtonSize = "giant" | "medium" | "small"
+export type Company = 'ALPAC' | 'AMINSA' | 'AVASA' | 'VIGEMSA' | 'TMN'
 
-export interface ButtonClassicProps {
-    readonly label : string;
-
-    readonly size    ?:  ButtonSize;
-    readonly company ?:  Company;
-    readonly disabled?:  boolean;
-    readonly isDynamic?: boolean;
-    readonly onPress?:   () => void;
+export type ButtonProps = {
+    label: string,
+    type: "button" | "submit" | "reset",
+    size?: ButtonSize,
+    company?: Company,
+    disabled?: boolean,
+    isDynamic?: boolean,
+    styles?: React.CSSProperties,
+    onClick?: (evt: React.MouseEvent<HTMLButtonElement>) => void;
 }

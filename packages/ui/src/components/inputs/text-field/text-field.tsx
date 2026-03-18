@@ -1,22 +1,34 @@
-import { Fragment } from "react"
-import { TextFieldProps } from "./text-field.type"
+import { forwardRef } from "react";
+import type { TextFieldProps, TextFieldSize } from "./text-field.type"
+import { getTextFieldStyles } from "./text-field.styles";
 
-export const TextField = function(props: TextFieldProps): JSX.Element {
+export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField(props, ref) {
 
-   const {
-      type = "text",
-      placeholder = "Enter your placehoder here!",
-      disabled
-   } = props;
-   
-   return (
-      <Fragment>
-         <input 
+    const {
+        name,
+        type = "text",
+        placeholder = "Enter your placeholder here!",
+        disabled = false,
+        styles,
+        size,
+        ...rest
+    } = props
+
+    const mergedStyles = {
+        ...styles,
+        ...getTextFieldStyles(props)
+    }
+
+    return (
+        <input
+            ref={ref}
+            id={name}
+            name={name}
             type={type}
             placeholder={placeholder}
-            disabled={ disabled }
-                        
-         />
-      </Fragment>
-   )
-}
+            disabled={disabled}
+            style={mergedStyles}
+            {...rest}
+        />
+    )
+})

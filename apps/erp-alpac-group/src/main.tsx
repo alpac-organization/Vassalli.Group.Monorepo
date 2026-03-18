@@ -1,29 +1,30 @@
-
+import "@alpac/design-system/styles/global.css"
 import { RouterProvider } from "react-router-dom"
-import { QueryClient } from "@tanstack/react-query"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
-import { QueryClientProvider, Hydrate } from "@tanstack/react-query"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
-import type { DehydratedState } from "@tanstack/react-query"
+import { useEffect } from "react"
 
 interface MainProps {
    router: any
    queryClient: QueryClient
-   dehydratedState?: DehydratedState
 }
 
-export default function Main({ router, queryClient, dehydratedState }: MainProps) {
+export default function Main({ router, queryClient }: MainProps) {
+
+   useEffect(() => {
+      document.body.setAttribute('data-theme', 'dark')
+   }, [])
+
    return (
+
       <QueryClientProvider client={queryClient}>
-         
-         <Hydrate state={dehydratedState}>
 
-            <RouterProvider router={router} />
+         <RouterProvider router={router} />
 
-            <ReactQueryDevtools initialIsOpen={false} />
-            
-         </Hydrate>
+         <ReactQueryDevtools initialIsOpen={false} />
 
       </QueryClientProvider>
+
    )
 }
