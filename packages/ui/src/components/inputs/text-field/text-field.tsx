@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import type { TextFieldProps, TextFieldSize } from "./text-field.type"
+import type { TextFieldProps } from "./text-field.type"
 import { getTextFieldStyles } from "./text-field.styles";
 
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField(props, ref) {
@@ -11,13 +11,12 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
         disabled = false,
         styles,
         size,
+        company,
+        isDynamic,
         ...rest
     } = props
 
-    const mergedStyles = {
-        ...styles,
-        ...getTextFieldStyles(props)
-    }
+    const classes = getTextFieldStyles(props);
 
     return (
         <input
@@ -27,7 +26,12 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
             type={type}
             placeholder={placeholder}
             disabled={disabled}
-            style={mergedStyles}
+            className={classes}
+            style={styles}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
             {...rest}
         />
     )

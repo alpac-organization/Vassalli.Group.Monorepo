@@ -1,5 +1,5 @@
 import { Button, InputGroup } from "@alpac/design-system"
-import { FormLayout } from "@app/shared/layouts/FormLayout/FormLayout"
+import { FormLayout } from "@app/shared/layouts/form-layout/form-layout"
 import { useAuthenticate } from "@app/modules/auth/login/ui/hooks/useAuthenticate"
 import { useForm } from "react-hook-form"
 import type { LoginFormData } from "./login-form.type"
@@ -13,7 +13,6 @@ export const LoginForm = function () {
         }
     })
     const onSubmit = (data: LoginFormData) => {
-        console.log(data);
         mutate(data)
     }
 
@@ -25,6 +24,7 @@ export const LoginForm = function () {
                     label="Correo"
                     placeholder="Ingresa tu correo electrónico o nombre de usuario"
                     type="text"
+                    isDynamic={true}
                     error={errors.username?.message}
                     {...register("username", {
                         required: "El correo o nombre de usuario requerido",
@@ -34,6 +34,8 @@ export const LoginForm = function () {
                     label="Contraseña"
                     placeholder="Ingresa tu contraseña"
                     type="password"
+                    isDynamic={true}
+                    className="mb-2.5"
                     error={errors.password?.message}
                     {...register("password", {
                         required: "La contraseña es requerida",
@@ -44,6 +46,7 @@ export const LoginForm = function () {
                     label={isPending ? "Cargando..." : "Acceder"}
                     disabled={isPending}
                     size="small"
+                    company="ALPAC"
                     isDynamic={true}
                 />
             </form>

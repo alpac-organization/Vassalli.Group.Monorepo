@@ -1,21 +1,13 @@
-import { CSSProperties } from "react"
 import { feedbackTokens } from "../../../constants"
 
-export const getLabelStyles = (): CSSProperties => {
-    return { fontWeight: "500" }
+export const getLabelStyles = (): string => {
+    return "text-sm"
 }
 
-export const getInputGroupStyles = (): CSSProperties => {
-
-    return {
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-    }
+export const getInputGroupStyles = (): string => {
+    return "flex flex-col w-full"
 }
 
-export const getErrorStyles = (): CSSProperties => {
-    return {
-        color: feedbackTokens.error
-    }
+export const getErrorStyles = (): string => {
+    return `text-xs dark:text-[#D54144] text-[${feedbackTokens.error.light}]`
 }

@@ -1,0 +1,1 @@
+export type Company = 'ALPAC' | 'AMINSA' | 'AVASA' | 'VIGEMSA' | 'TMN'

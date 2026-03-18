@@ -12,28 +12,31 @@ export const InputGroup = forwardRef<HTMLInputElement, InputGroupProps>(function
         disabled,
         error,
         value,
+        isDynamic,
+        className,
         onChange,
         onBlur
     } = props;
 
-    const styles = getInputGroupStyles()
+    const inputGroupStyles = getInputGroupStyles() + " " + className
     const labelStyles = getLabelStyles()
     const errorStyles = getErrorStyles()
 
     return (
-        <div style={styles}>
-            <label htmlFor={name} style={labelStyles}>{label}</label>
+        <div className={inputGroupStyles}>
+            <label htmlFor={name} className={labelStyles}>{label}</label>
             <TextField
                 name={name}
                 type={type}
                 placeholder={placeholder}
                 disabled={disabled}
                 value={value}
+                isDynamic={isDynamic}
                 ref={ref}
                 onChange={onChange}
                 onBlur={onBlur}
             />
-            {error && <span style={errorStyles}>{error}</span>}
+            {error && <span className={errorStyles}>{error}</span>}
         </div>
     );
 }) 

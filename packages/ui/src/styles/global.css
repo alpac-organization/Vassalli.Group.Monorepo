@@ -1,6 +1,7 @@
 @import url(./normalize.css);
 @import url(./fonts.css);
 @import "tailwindcss";
+@source "../**/*.{ts,tsx}";
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
@@ -11,7 +12,6 @@
 /* Fallback source */
 body {
   font-family: 'Geist', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-  font-size: 14px;
   line-height: 1.5;
   margin: 0;
   padding: 0;

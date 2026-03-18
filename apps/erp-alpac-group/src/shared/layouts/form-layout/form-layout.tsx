@@ -1,4 +1,4 @@
-import './FormLayout.css'
+import './form-layout.css'
 
 export type FormLayoutProps = {
     title?: string,
@@ -7,8 +7,8 @@ export type FormLayoutProps = {
 
 export const FormLayout = ({ title, children }: FormLayoutProps) => {
     return (
-        <div className="form-layout-container">
-            <div className="form-layout-box">
+        <div className="form-layout-container dark:bg-[#181818] dark:text-white">
+            <div className="form-layout-box dark:bg-[#202020]">
                 {title && <h2 className="form-layout-title">{title}</h2>}
                 <div className="form-layout-content">
                     {children}
