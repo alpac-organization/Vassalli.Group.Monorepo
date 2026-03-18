@@ -1,4 +1,4 @@
-import type { IHttpHandler } from "@app/shared/http/ports";
+import type { IHttpHandler } from "@app/core/ports";
 import { User } from "../../domain/entities/User";
 import type { IAuthRepository } from "../../domain/interfaces/IAuthRepository";
 

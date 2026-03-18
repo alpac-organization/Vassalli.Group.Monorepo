@@ -1,5 +1,5 @@
 import axios, { type AxiosInstance } from 'axios';
-import type { IHttpHandler } from '@app/shared/http/ports';
+import type { IHttpHandler } from '../ports';
 
 export class AxiosHttpAdapter implements IHttpHandler {
    private instance: AxiosInstance;
@@ -11,7 +11,7 @@ export class AxiosHttpAdapter implements IHttpHandler {
             'Content-Type': 'application/json',
          },
       });
-      
+
       this.instance.interceptors.request.use((config) => {
          return config;
       });
