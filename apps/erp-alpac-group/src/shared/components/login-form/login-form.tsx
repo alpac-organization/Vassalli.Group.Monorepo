@@ -1,6 +1,6 @@
 import { Button, InputGroup } from "@alpac/design-system"
 import { FormLayout } from "@app/shared/layouts/FormLayout/FormLayout"
-import { useAuthenticate } from "@app/modules/auth/login/presentation/hooks/useAuthenticate"
+import { useAuthenticate } from "@app/modules/auth/login/ui/hooks/useAuthenticate"
 import { useForm } from "react-hook-form"
 import type { LoginFormData } from "./login-form.type"
 

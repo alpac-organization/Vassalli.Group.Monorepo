@@ -1,4 +1,4 @@
-import { Login } from "@app/modules/auth/login/login";
+import { LoginPage } from "@app/modules/auth/login/ui/LoginPage";
 import { SelectCompany } from "@app/modules/auth/select-company/select-company";
 import { Dashboard } from "@app/modules/dashboard/dashboard";
 import type { RouteObject } from "react-router-dom";
@@ -14,7 +14,7 @@ export const MainRoutes: RouteObject[] = [
       children: [
          {
             path: "auth",
-            element: <Login />,
+            element: <LoginPage />,
          },
          {
             path: "dashboard",
