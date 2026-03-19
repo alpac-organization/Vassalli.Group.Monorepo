@@ -1,8 +1,23 @@
 @import url(./normalize.css);
 @import url(./fonts.css);
 @import "tailwindcss";
+@source "../**/*.{ts,tsx}";
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme {
+  --animate-scroll: scroll 30s linear infinite;
+
+  @keyframes scroll {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
 
 * {
   box-sizing: border-box;
@@ -11,10 +26,17 @@
 /* Fallback source */
 body {
   font-family: 'Geist', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-  font-size: 14px;
   line-height: 1.5;
   margin: 0;
   padding: 0;
+  background-color: white;
+  color: black;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-theme='dark'] body {
+  background-color: #181818;
+  color: white;
 }
 
 /* Header with scaled sizes */

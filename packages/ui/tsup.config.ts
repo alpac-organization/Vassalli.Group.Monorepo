@@ -7,11 +7,12 @@ export default defineConfig((options) => ({
   external: ["react", "react-dom"],
   clean: true,
   minify: !options.watch,
-  assets: ["./src/fonts/**/*"],
+  assets: ["./src/fonts/**/*", "./src/assets/**/*"],
   bundle: true,
   loader: {
     ".woff2": "file",
     ".woff": "file",
+    ".svg": "dataurl",
   },
   ...options,
 }));
