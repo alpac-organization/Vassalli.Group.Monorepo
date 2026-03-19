@@ -17,7 +17,7 @@ export const LoginForm = function () {
     }
 
     return (
-        <FormLayout>
+        <FormLayout className="h-dvh">
             <form onSubmit={handleSubmit(onSubmit)}>
                 <h2>Acceso</h2>
                 <InputGroup

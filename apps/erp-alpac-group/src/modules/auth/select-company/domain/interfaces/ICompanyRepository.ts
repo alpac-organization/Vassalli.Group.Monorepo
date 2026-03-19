@@ -1,5 +1,5 @@
-//import { CompanyProps } from "./CompanyProps";
+import type { CompanyProps } from "./CompanyProps";
 
-/* export interface ICompanyRepository {
+export interface ICompanyRepository {
     getCompanies(): Promise<CompanyProps[]>;
-} */
+}
