@@ -12,16 +12,14 @@ export const Button = function (props: ButtonProps): JSX.Element {
       onClick = () => { }
    } = props;
 
-   const mergedStyles = {
-      ...styles,
-      ...getButtonStyles({ ...props })
-   }
+   const classes = getButtonStyles({ ...props })
 
    return (
       <Fragment>
          <button
             type={type}
-            style={mergedStyles}
+            style={styles}
+            className={`${classes}`}
             disabled={disabled}
             onClick={onClick}
          >

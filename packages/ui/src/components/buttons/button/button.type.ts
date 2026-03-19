@@ -1,9 +1,10 @@
+import type { Company } from "../../../types/company";
+
 export type ButtonSize = "giant" | "medium" | "small"
-export type Company = 'ALPAC' | 'AMINSA' | 'AVASA' | 'VIGEMSA' | 'TMN'
 
 export type ButtonProps = {
-    label: string,
-    type: "button" | "submit" | "reset",
+    label?: string,
+    type?: "button" | "submit" | "reset",
     size?: ButtonSize,
     company?: Company,
     disabled?: boolean,

@@ -1,38 +1,30 @@
-import type { CSSProperties } from "react"
 import { TextFieldProps, TextFieldSize } from "./text-field.type"
-import { Padding } from "../../../interfaces/sizes"
-import { spacings } from "../../../constants"
 
-const paddingProperties: Record<TextFieldSize, Pick<Padding, "paddingVertical" | "paddingHorizontal">> = {
-    giant: {
-        paddingHorizontal: spacings.md,
-        paddingVertical: spacings.lg
-    },
-    medium: {
-        paddingHorizontal: spacings.xs,
-        paddingVertical: spacings.md
-    },
-    small: {
-        paddingHorizontal: spacings.xs,
-        paddingVertical: spacings.sm
-    }
+const sizes: Record<TextFieldSize, string> = {
+    giant: "px-5 py-3.5 text-lg leading-7 rounded-xl",
+    medium: "px-4 py-2.5 text-base leading-6 rounded-lg",
+    small: "px-3 py-2 text-sm leading-5 rounded-md",
 }
 
-export const getTextFieldStyles = (props: TextFieldProps): CSSProperties => {
+export const getTextFieldStyles = (props: TextFieldProps): string => {
 
-    const sizeProperty = paddingProperties[props.size || "giant"]
+    const sizeClasses = sizes[props.size || "small"];
 
-    return {
-        font: "inherit",
-        appearance: "none",
-        lineHeight: "normal",
-        outline: "none !important",
-        border: "1px solid white",
-        borderRadius: 6,
-        fontSize: "100%",
-        paddingTop: sizeProperty.paddingHorizontal,
-        paddingBottom: sizeProperty.paddingHorizontal,
-        paddingLeft: sizeProperty.paddingVertical,
-        paddingRight: sizeProperty.paddingVertical,
-    }
+    const baseClasses = `
+            bg-gray-50
+            text-gray-900 
+            border-none
+            placeholder:text-gray-500 
+            focus:outline-1 
+            focus:-outline-offset-1
+            focus:outline-indigo-600
+            dark:bg-[#2e2e2e]
+            dark:text-white
+            dark:placeholder:text-zinc-400
+            transition-all
+        `.trim();
+
+    const widthClasses = props.isDynamic ? "w-full" : "w-[300px]";
+    const disabledClasses = props.disabled ? "opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800" : "";
+    return `${baseClasses} ${sizeClasses} ${widthClasses} ${disabledClasses}`;
 }
