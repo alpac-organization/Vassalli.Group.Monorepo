@@ -7,9 +7,9 @@ export const FormLayout = ({ title, className, imageUrl, children }: FormLayoutP
 
     return (
         <div className={`${baseClasses} ${className}`}>
-            <div className="form-layout-box dark:bg-[#202020]">
+            <div className="form-layout-box dark:bg-[#eeeeee]">
                 {imageUrl && <img src={imageUrl} className="w-32 h-32 mx-auto mb-4" alt="Logo" />}
-                {title && <h2 className="form-layout-title">{title}</h2>}
+                {title && <h2 className="form-layout-title dark:text-[#2e2e2e]!">{title}</h2>}
                 <div className="form-layout-content">
                     {children}
                 </div>

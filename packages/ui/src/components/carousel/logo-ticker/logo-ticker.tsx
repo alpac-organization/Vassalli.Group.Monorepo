@@ -18,7 +18,7 @@ export const LogoTicker = function (props: LogoTickerProps): JSX.Element {
     return (
         <div className={baseClasses}>
             <div className="mx-auto px-6 lg:px-8">
-                <h2 className="text-center text-lg font-semibold my-[30px]! bg-transparent dark:bg-transparent dark:text-white text-gray-900">
+                <h2 className="text-center text-[20px]! font-semibold my-[30px]! bg-transparent dark:bg-transparent dark:text-white text-gray-900">
                     {props.title}
                 </h2>
                 <div className="flex animate-scroll w-max items-center">

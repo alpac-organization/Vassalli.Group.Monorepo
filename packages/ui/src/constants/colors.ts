@@ -4,7 +4,7 @@ export const companyTokens = {
          base50: '#E6EDF5',
          base100: '#CDDCEB',
          base500: '#004f9e',
-         base700: '#003A75',
+         base700: '#2B3D89',
          base900: '#00254B',
       },
       secondary: {
