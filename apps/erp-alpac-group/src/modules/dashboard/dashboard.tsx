@@ -1,4 +1,4 @@
-import { useTheme } from "@alpac/design-system";
+import { useTheme } from "../../../../../packages/ui/src/providers/theme-provider";
 import { DashBoardCard } from "../../../../../packages/ui/src/components/cardDashboard/DashboardCard";
 import { templatesData } from "./data/templates.data";
 import { useId } from "react";
