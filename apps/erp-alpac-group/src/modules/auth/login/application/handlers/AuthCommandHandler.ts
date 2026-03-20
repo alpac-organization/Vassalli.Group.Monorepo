@@ -1,6 +1,6 @@
 import type { IAuthRepository } from "../../domain/interfaces/IAuthRepository";
-import { LoginCommand } from "../commands/AuthCommand";
-import type { LoginResponse } from "../dto/AuthRequest";
+import { LoginCommand } from "../commands/LoginCommand";
+import type { LoginResponse } from "../dto/LoginRequest";
 
 export class LoginCommandHandler {
 
@@ -13,13 +13,14 @@ export class LoginCommandHandler {
     async execute(command: LoginCommand): Promise<LoginResponse> {
         const user = await this._authRepository.login(
             command.getUsername(),
-            command.getPassword()
+            command.getPassword(),
+            command.getCompanyId()
         );
 
         return {
-            id: user.getId(),
             username: user.getUsername(),
-            token: user.getToken(),
+            companyId: user.getCompanyId(),
+            token: user.getToken()
         };
     }
 }

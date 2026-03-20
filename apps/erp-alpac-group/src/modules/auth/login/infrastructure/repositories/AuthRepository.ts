@@ -2,7 +2,7 @@ import type { IHttpHandler } from "@app/core/ports";
 import { User } from "../../domain/entities/User";
 import type { IAuthRepository } from "../../domain/interfaces/IAuthRepository";
 
-export class AuthRepositoryImpl implements IAuthRepository {
+export class AuthRepository implements IAuthRepository {
 
     private api: IHttpHandler
 
@@ -10,18 +10,17 @@ export class AuthRepositoryImpl implements IAuthRepository {
         this.api = httpHandler;
     }
 
-    async login(username: string, password: string): Promise<User> {
-        const response = await this.api.post<any>("/auth/login", {
+    async login(username: string, password: string, companyId: string): Promise<User> {
+
+        const url = `/companies/${companyId}/auth/login`
+
+        const response = await this.api.post<any>(url, {
             username,
             password,
         });
 
-        return new User(response);
-    }
+        const user = new User(response)
 
-    async getCurrentUser(): Promise<User | null> {
-        const response = await this.api.get<any>("/auth/me");
-        if (!response) return null;
-        return new User(response);
+        return user;
     }
 }

@@ -1,4 +1,3 @@
-import { companyTokens } from "../../../constants";
 import { TextFieldProps, TextFieldSize } from "./text-field.type"
 
 const sizes: Record<TextFieldSize, string> = {
@@ -9,21 +8,29 @@ const sizes: Record<TextFieldSize, string> = {
 
 export const getTextFieldStyles = (props: TextFieldProps): string => {
 
+    const focusClasses = props.hasError
+        ? "focus:outline-2 focus:-outline-offset-2 focus:outline-error-light!"
+        : "focus:outline-2 focus:-outline-offset-2 focus:outline-alpac-primary-700!";
+
+    const errorClasses = props.hasError
+        ? "border-2! border-error-light!"
+        : "border-2 border-transparent";
+
     const sizeClasses = sizes[props.size || "small"];
-    const focusClasses = `focus:outline-1 focus:-outline-offset-1 focus:outline-[${companyTokens.ALPAC.primary.base700}]!`;
+
     const baseClasses = `
             bg-gray-50
-            text-gray-900 
-            border-none
-            placeholder:text-gray-500 
+            text-gray-900
+            placeholder:text-gray-500
             dark:bg-[#2e2e2e]
             dark:text-white
             dark:placeholder:text-zinc-400
             transition-all
+            border-2 border-transparent
         `.trim();
 
     const widthClasses = props.isDynamic ? "w-full" : "w-[300px]";
     const disabledClasses = props.disabled ? "opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-800" : "";
 
-    return `${baseClasses} ${focusClasses} ${sizeClasses} ${widthClasses} ${disabledClasses}`;
+    return `${baseClasses} ${errorClasses} ${focusClasses} ${sizeClasses} ${widthClasses} ${disabledClasses}`;
 }

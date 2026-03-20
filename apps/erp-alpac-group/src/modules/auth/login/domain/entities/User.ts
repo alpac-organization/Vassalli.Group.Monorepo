@@ -1,17 +1,18 @@
 import type { UserProps } from "../interfaces/UserProps"
 
 export class User {
-    public readonly id: string
+
     private readonly _username: string
+    private readonly _companyId: string
     private readonly _token: string
 
     constructor(props: UserProps) {
-        this.id = props.id
-        this._username = props.username
-        this._token = props.token
+        this._username = props.user_name
+        this._companyId = props.company_information.company_id.toString()
+        this._token = props.access_token
     }
 
-    getId(): string { return this.id; }
     getUsername(): string { return this._username; }
+    getCompanyId(): string { return this._companyId }
     getToken(): string { return this._token }
 }

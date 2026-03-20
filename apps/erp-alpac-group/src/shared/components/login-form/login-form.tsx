@@ -19,7 +19,7 @@ export const LoginForm = function () {
     return (
         <FormLayout className="h-dvh">
             <form onSubmit={handleSubmit(onSubmit)}>
-                <h2>Acceso</h2>
+                <h2 className="dark:text-[#2e2e2e]!">Acceso</h2>
                 <InputGroup
                     label="Correo"
                     placeholder="Ingresa tu correo electrónico o nombre de usuario"

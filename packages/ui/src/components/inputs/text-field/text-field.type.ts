@@ -13,6 +13,7 @@ export type TextFieldProps = {
     value?: string,
     company?: Company,
     isDynamic?: boolean,
+    hasError?: boolean,
     ref?: React.Ref<HTMLInputElement>,
     onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void,
     onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void,
