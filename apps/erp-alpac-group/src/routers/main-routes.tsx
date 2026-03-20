@@ -5,21 +5,21 @@ import type { RouteObject } from "react-router-dom";
 
 //Configuraciones de rutas del sistema.
 export const MainRoutes: RouteObject[] = [
-   {
-      path: "/",
-      element: <SelectCompany />,
-   },
-   {
-      path: ":company_id/",
-      children: [
-         {
-            path: "auth",
-            element: <LoginPage />,
-         },
-         {
-            path: "dashboard",
-            element: <Dashboard />,
-         },
-      ],
-   },
+  {
+    path: "/",
+    element: <SelectCompany />,
+  },
+  {
+    path: ":company_id/",
+    children: [
+      {
+        path: "auth",
+        element: <LoginPage />,
+      },
+      {
+        path: "dashboard",
+        element: <Dashboard />,
+      },
+    ],
+  },
 ];
