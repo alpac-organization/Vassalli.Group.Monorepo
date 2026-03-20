@@ -1,5 +1,5 @@
 import { useTheme } from "../../providers/theme-provider";
-import { Card } from "./card/Card";
+import { Card } from "../cardDashboard/card/Card";
 import { CardDasboardProps } from "./card/card.dashboard.type";
 import { CardContent } from "./card/CardContent";
 import { CardHeader } from "./card/CardHeader";
