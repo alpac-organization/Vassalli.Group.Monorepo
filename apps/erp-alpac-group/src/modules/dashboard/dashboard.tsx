@@ -1,9 +1,8 @@
-import { useTheme } from "../../../../../packages/ui/src/providers/theme-provider";
-import { DashBoardCard } from "../../../../../packages/ui/src/components/cardDashboard/DashboardCard";
+import { useTheme, DashBoardCard } from "@alpac/design-system";
 import { templatesData } from "./data/templates.data";
 import { useId } from "react";
 
-export const Dashboard = function () {
+const Dashboard = function () {
   const { theme } = useTheme();
   const uniqueId = useId();
   return (
@@ -32,3 +31,4 @@ export const Dashboard = function () {
     </div>
   );
 };
+export default Dashboard;
