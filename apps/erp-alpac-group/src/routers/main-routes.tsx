@@ -1,9 +1,8 @@
 import { LoginPage } from "@app/modules/auth/login/ui/login-page";
 import { SelectCompany } from "@app/modules/auth/select-company/ui/select-company";
-import { Dashboard } from "@app/modules/dashboard/dashboard";
+import { Dashboard } from "@app/modules/dashboard/Dashboard";
 import type { RouteObject } from "react-router-dom";
 
-//Configuraciones de rutas del sistema.
 export const MainRoutes: RouteObject[] = [
   {
     path: "/",
