@@ -1,4 +1,4 @@
-import { useTheme } from "@alpac/design-system";
+import { useTheme } from "../../../../../packages/ui/src/providers/theme-provider";
 import { Card } from "./card/Card";
 import { CardDasboardProps } from "./card/card.dashboard.type";
 import { CardContent } from "./card/CardContent";
