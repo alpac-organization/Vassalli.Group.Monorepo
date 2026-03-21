@@ -4,7 +4,8 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-    id: string,
     username: string,
-    token: string,
+    companyId: string,
+    accessToken: string,
+    refreshToken: string
 }

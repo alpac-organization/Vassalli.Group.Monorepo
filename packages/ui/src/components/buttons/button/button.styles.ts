@@ -1,13 +1,12 @@
-import { companyTokens } from "../../../constants";
 import type { ButtonProps, ButtonSize } from "./button.type";
 import type { Company } from "../../../types/company";
 
 const backgroundProperties: Record<Company, string> = {
-    ALPAC: `bg-[${companyTokens.ALPAC.primary.base500}]! dark:bg-[${companyTokens.ALPAC.primary.base700}]!`,
-    AMINSA: `bg-[${companyTokens.AMINSA.primary.base500}]! dark:bg-[${companyTokens.AMINSA.primary.base900}]!`,
-    AVASA: `bg-[${companyTokens.AVASA.primary.base500}]! dark:bg-[${companyTokens.AVASA.primary.base700}]!`,
-    VIGEMSA: `bg-[${companyTokens.VIGEMSA.primary.base500}]! dark:bg-[${companyTokens.VIGEMSA.primary.base700}]!`,
-    TMN: `bg-[${companyTokens.TMN.primary.base500}]! dark:bg-[${companyTokens.TMN.primary.base700}]!`,
+    ALPAC: `bg-alpac-primary-500! dark:bg-alpac-primary-700!`,
+    AMINSA: `bg-aminsa-primary-500! dark:bg-aminsa-primary-900!`,
+    AVASA: `bg-avasa-primary-500! dark:bg-avasa-primary-700!`,
+    VIGEMSA: `bg-vigemsa-primary-500! dark:bg-vigemsa-primary-700!`,
+    TMN: `bg-tmn-primary-500! dark:bg-tmn-primary-700!`,
 }
 
 const sizes: Record<ButtonSize, string> = {
@@ -20,8 +19,6 @@ export const getButtonStyles = (props: ButtonProps): string => {
     const sizeClasses = sizes[props.size || "small"];
     const backgroundClasses = backgroundProperties[props.company || "ALPAC"];
 
-    console.log(backgroundClasses);
-
     const baseClasses = `
         rounded-md 
         text-white 
@@ -30,11 +27,9 @@ export const getButtonStyles = (props: ButtonProps): string => {
         shadow-sm
         transition-all 
         active:scale-95
-        bg-[#004f9e]! dark:bg-[#2B3D89]!
     `.trim();
 
     const widthClasses = props.isDynamic ? "w-full" : "w-auto";
-    const disabledClasses = props.disabled ? "opacity-50 cursor-not-allowed" : "";
-    const all = `${baseClasses} ${backgroundClasses} ${sizeClasses} ${widthClasses} ${disabledClasses}`;
-    return all;
+    const disabledClasses = props.disabled ? "opacity-20 cursor-not-allowed pointer-events-none" : "";
+    return `${baseClasses} ${backgroundClasses} ${sizeClasses} ${widthClasses} ${disabledClasses}`;
 };

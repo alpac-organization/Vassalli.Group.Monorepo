@@ -3,16 +3,31 @@ import type { IHttpHandler } from '../ports';
 
 export class AxiosHttpAdapter implements IHttpHandler {
    private instance: AxiosInstance;
+   private apiKey = import.meta.env.VITE_API_KEY;
 
    constructor() {
       this.instance = axios.create({
          baseURL: import.meta.env.VITE_API_URL || '/api',
          headers: {
             'Content-Type': 'application/json',
+            "x-api-key": this.apiKey,
+            "x-device-name": "Google Chrome"
          },
       });
 
+      // Interceptor to request
       this.instance.interceptors.request.use((config) => {
+         const token = localStorage.getItem('accessToken');
+         const apiKey = import.meta.env.VITE_API_KEY;
+
+         if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+         }
+
+         if (apiKey) {
+            config.headers['x-api-key'] = apiKey;
+         }
+
          return config;
       });
    }

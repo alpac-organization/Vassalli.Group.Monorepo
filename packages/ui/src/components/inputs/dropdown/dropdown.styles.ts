@@ -1,4 +1,3 @@
-import { companyTokens } from "../../../constants";
 import type { SelectProps, DropdownSize } from "./dropdown.type";
 
 const sizes: Record<DropdownSize, string> = {
@@ -10,7 +9,7 @@ const sizes: Record<DropdownSize, string> = {
 export const getDropdownStyles = (props: SelectProps): string => {
 
     const sizeClasses = sizes[props.size || "small"];
-    const focusClasses = `focus:outline-1 focus:-outline-offset-1 focus:outline-[${companyTokens.ALPAC.primary.base700}]!`;
+    const focusClasses = `focus:outline-1 focus:-outline-offset-1 focus:outline-alpac-primary-700!`;
     const baseClasses = `
         bg-gray-50
         text-gray-900 

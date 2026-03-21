@@ -1,7 +1,5 @@
-import { feedbackTokens } from "../../../constants"
-
 export const getLabelStyles = (): string => {
-    return "text-sm"
+    return "text-sm dark:text-[#2e2e2e]!"
 }
 
 export const getInputGroupStyles = (): string => {
@@ -9,5 +7,5 @@ export const getInputGroupStyles = (): string => {
 }
 
 export const getErrorStyles = (): string => {
-    return `text-xs dark:text-[#D54144] text-[${feedbackTokens.error.light}]`
+    return `text-xs dark:text-[#D54144] text-error-light`
 }

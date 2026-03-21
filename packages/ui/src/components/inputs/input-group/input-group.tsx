@@ -35,6 +35,7 @@ export const InputGroup = forwardRef<HTMLInputElement, InputGroupProps>(function
                 ref={ref}
                 onChange={onChange}
                 onBlur={onBlur}
+                hasError={!!error}
             />
             {error && <span className={errorStyles}>{error}</span>}
         </div>

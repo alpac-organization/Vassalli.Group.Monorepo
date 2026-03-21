@@ -13,6 +13,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
         size,
         company,
         isDynamic,
+        hasError,
         ...rest
     } = props
 
