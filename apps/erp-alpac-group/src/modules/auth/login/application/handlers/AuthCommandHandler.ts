@@ -20,7 +20,8 @@ export class LoginCommandHandler {
         return {
             username: user.getUsername(),
             companyId: user.getCompanyId(),
-            token: user.getToken()
+            accessToken: user.getAccessToken(),
+            refreshToken: user.getRefreshToken()
         };
     }
 }

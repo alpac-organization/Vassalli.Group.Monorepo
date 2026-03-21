@@ -18,8 +18,8 @@ export function useAuthenticate() {
             return await handler.execute(command);
         },
         onSuccess: (data) => {
-            localStorage.setItem("accessToken", data.token)
-            console.log("testing", data)
+            localStorage.setItem("accessToken", data.accessToken)
+            localStorage.setItem("refreshToken", data.refreshToken)
             navigate(`/${companyId}/dashboard`)
         }
     });
