@@ -1,6 +1,6 @@
 import { LoginPage } from "@app/modules/auth/login/ui/login-page";
 import { SelectCompany } from "@app/modules/auth/select-company/ui/select-company";
-import { Dashboard } from "@app/modules/dashboard/dashboard";
+import Dashboard from "@app/modules/dashboard/DashboardComponent";
 import { AuthGuard } from "@app/shared/guards/auth-guard";
 import { CompanyGuard } from "@app/shared/guards/router-guard";
 import type { RouteObject } from "react-router-dom";
