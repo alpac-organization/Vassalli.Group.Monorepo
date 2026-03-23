@@ -1,15 +1,38 @@
-import { Fragment, useState } from "react"
+import { Fragment, useEffect, useState } from "react"
 import { DashBoardCard, InputText, Modal } from "@alpac/design-system"
 import { Navbar } from "@app/shared/components/navbar/navbar"
+import { useModules } from "../../hooks/useModules";
+import type { ModulesAvailableResponse } from "@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response";
+import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 
 export const HomePage = function(){
 
-   
+   const [showModal, setShowModal] = useState(false);
 
-   const [showModal, setShowModal] = useState(false)
+   const [modulesAvailables, setModulesAvailables] = useState<ModulesAvailableResponse[]>([]);
+
+   const { ObtainActiveModulesByCompanyId } = useModules();
+
+   const handleModulesAvailables = async function(){
+      try {
+        const company_id =  CookieStorageAdapter.getCompanyAlias();
+         const modules = await ObtainActiveModulesByCompanyId.mutateAsync( Number( company_id ) )
+
+         console.log(JSON.stringify(modules, null, 2))
+
+      }
+      catch(error){
+         console.log(error)
+      }
+   }
 
    const userName = "Andrés"; 
    const companyName = "Alpac Group Nicaragua";
+
+
+   useEffect(() => {
+      handleModulesAvailables();
+   },[])
 
    return (
       <Fragment>
@@ -80,7 +103,7 @@ export const HomePage = function(){
          </div>
 
          <Modal 
-            isOpen
+            isOpen={ showModal }
             title="Ha ocurrido un error"
             variant="warning"
             description="Descripcion"
