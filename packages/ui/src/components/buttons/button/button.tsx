@@ -3,7 +3,7 @@ import type { ButtonProps } from "./button.type"
 import { getButtonStyles } from "./button.styles"
 import { Spinner } from "../../spinners";
 
-export const Button = function (props: ButtonProps): JSX.Element {
+export const Button = function (props: ButtonProps): React.ReactElement {
 
   const {
     type,

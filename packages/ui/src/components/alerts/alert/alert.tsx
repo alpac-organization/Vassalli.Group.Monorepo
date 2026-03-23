@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import { AlertProps } from "./alert.types";
 
-export function Alert(props: AlertProps): JSX.Element | null {
+export function Alert(props: AlertProps): React.ReactElement | null {
 
     const [isVisible, setIsVisible] = useState(true);
 
