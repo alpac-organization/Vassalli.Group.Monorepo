@@ -1,15 +1,20 @@
-name: Release
+name: Release & Validation
 
 on:
   push:
     branches:
-      - main
+      - master
+      - develop
+  pull_request:
+    branches:
+      - master
+      - develop
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  release:
-    name: Release
+  validate-and-release:
+    name: Build & Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -19,21 +24,34 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'yarn'
 
       - name: Install Dependencies
-        run: yarn
+        run: yarn install --frozen-lockfile
 
-      - name: Create Release Pull Request or Publish to npm
+      # --- PASOS DE VALIDACIÓN (Corren siempre: PRs y Pushes) --- #
+      
+      - name: Build UI Package
+        run: yarn workspace @alpac/ui build
+        # Ajusta @alpac/ui al nombre exacto en su package.json
+
+      - name: Build ERP App
+        run: yarn workspace erp-alpac-group build
+
+      # --- PROCESO DE RELEASE (Solo en Push a ramas principales, NO en PRs) --- #
+
+      - name: Create Release Pull Request or Publish
         id: changesets
+        if: |
+          github.event_name == 'push' && 
+          (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         uses: changesets/action@v1
         with:
-          # This expects you to have a script called release which does a build for your packages and calls changeset publish
           publish: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Send a Slack notification if a publish happens
+      - name: Notification on Publish
         if: steps.changesets.outputs.published == 'true'
-        # You can do something when a publish happens.
-        run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
+        run: echo "Se ha publicado una nueva versión de ${GITHUB_REPOSITORY}!"
