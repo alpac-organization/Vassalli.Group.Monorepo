@@ -1,6 +1,7 @@
+import type { ReactNode } from "react";
+
 export type FormLayoutProps = {
-    title?: string,
-    className?: string,
-    imageUrl?: string,
-    children: React.ReactNode,
+    title?:      string,
+    imageUrl?:   string,
+    children?:   ReactNode,
 }
