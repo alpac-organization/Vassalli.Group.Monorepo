@@ -36,13 +36,19 @@ jobs:
 
       # --- PASOS DE VALIDACIÓN --- #
 
-      # Ejecutamos los tests primero. Si fallan, el proceso se detiene aquí.
-      - name: Run Tests
-        run: pnpm run test
-
+      # 1. Construimos el Design System primero para que los tipos/archivos existan
       - name: Build Design System (@alpac/design-system)
         run: pnpm --filter @alpac/design-system build
 
+      # 2. Re-instalamos para que la App ERP reconozca los artefactos del Build
+      - name: Re-install App Dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 3. Ahora corremos los tests con las dependencias vinculadas correctamente
+      - name: Run Tests ERP App (erp-alpac-group)
+        run: pnpm --filter erp-alpac-group test
+
+      # 4. Finalmente el Build de la App
       - name: Build ERP App (erp-alpac-group)
         run: pnpm --filter erp-alpac-group build
 
@@ -58,7 +64,6 @@ jobs:
           publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Asegúrate de tener este secreto en tu repo si publicas en un registro
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Notification on Publish
