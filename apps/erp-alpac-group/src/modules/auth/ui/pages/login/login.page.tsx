@@ -8,7 +8,7 @@ import type { LoginRequest } from "./login.types";
 import { ContentLoaded } from "@app/shared/components/content-loaded/content-loaded";
 import { useAuth } from "../../hooks/useAuth";
 
-export const LoginPage = function (){
+export const LoginPage = function () {
    const { GetCompaniesQuery } = useCompanies();
    const { startLoginProcess } = useAuth();
 
@@ -26,16 +26,16 @@ export const LoginPage = function (){
       }
    });
 
-   const handleLogin = async function(state: LoginRequest){
+   const handleLogin = async function (state: LoginRequest) {
       try {
 
-         if(state.company_id === 0){
+         if (state.company_id === 0) {
             setError("company_id", {
                type: "value",
                message: "Debe seleccionar la empresa de origen",
             });
          }
-         
+
          await startLoginProcess.mutateAsync({
             password: state.password,
             username: state.username,
@@ -43,7 +43,7 @@ export const LoginPage = function (){
          });
 
       }
-      catch(error){
+      catch (error) {
          console.error(error);
       }
       finally {
@@ -51,7 +51,8 @@ export const LoginPage = function (){
       }
    }
 
-   if(isLoading || startLoginProcess.isPending){
+   // Principal loading screen
+   if (isLoading || startLoginProcess.isPending) {
       return (
          <ContentLoaded />
       )
@@ -59,66 +60,68 @@ export const LoginPage = function (){
 
    return (
       <Fragment>
-         <FormLayout>
-            <form 
-               onSubmit={handleSubmit(handleLogin)}
-               className="h-full flex flex-col justify-center gap-2"
-            >
-               <Controller 
-                  name="company_id"
-                  control={control}
-                  rules={{ 
-                     required: "Debe seleccionar una empresa",
-                     validate: (val) => val !== 0 || "Selección inválida" 
-                  }}
-                  render={({ field }) => (
-                     <Dropdown 
-                        label="Empresas"
-                        options={companyOptions}
-                        placeholder="Seleccione su empresa"
-                        onChange={(value) => {   
-                           field.onChange(value)
-                        }}
-                        error={errors.company_id && errors.company_id.message}
-                        value={field.value}
-                     />
-                  )}
-               />
-
-               <InputText 
-                  type="text" 
-                  label="Usuario / Correo"
-                  placeholder="Ingrese su usuario o correo"
-                  { 
-                     ...register("username",{
-                        required:"El usuario o correo es requerido"
-                     }) 
-                  }
-                  error={ errors.username && errors.username.message }
-               />
-
-               <InputText
-                  label="Contraseña" 
-                  type="password" 
-                  placeholder="Ingrese su contraseña"
-                  isPassword
-                  { 
-                     ...register("password", {
-                        required:"La contraseña es requerida"
-                     }) 
-                  }
-                  error={ errors.password && errors.password.message }
-               />
-
-               <div className="w-full flex flex-col mt-5">
-                  <Button 
-                     disabled={!isDirty || !isValid}
-                     label="Iniciar sesión" 
-                     size="medium" 
+         <div className="h-full ">
+            <FormLayout>
+               <form
+                  onSubmit={handleSubmit(handleLogin)}
+                  className="h-full flex flex-col justify-center gap-2"
+               >
+                  <Controller
+                     name="company_id"
+                     control={control}
+                     rules={{
+                        required: "Debe seleccionar una empresa",
+                        validate: (val) => val !== 0 || "Selección inválida"
+                     }}
+                     render={({ field }) => (
+                        <Dropdown
+                           label="Empresas"
+                           options={companyOptions}
+                           placeholder="Seleccione su empresa"
+                           onChange={(value) => {
+                              field.onChange(value)
+                           }}
+                           error={errors.company_id && errors.company_id.message}
+                           value={field.value}
+                        />
+                     )}
                   />
-               </div>
-            </form>
-         </FormLayout>
+
+                  <InputText
+                     type="text"
+                     label="Usuario / Correo"
+                     placeholder="Ingrese su usuario o correo"
+                     {
+                     ...register("username", {
+                        required: "El usuario o correo es requerido"
+                     })
+                     }
+                     error={errors.username && errors.username.message}
+                  />
+
+                  <InputText
+                     label="Contraseña"
+                     type="password"
+                     placeholder="Ingrese su contraseña"
+                     isPassword
+                     {
+                     ...register("password", {
+                        required: "La contraseña es requerida"
+                     })
+                     }
+                     error={errors.password && errors.password.message}
+                  />
+
+                  <div className="w-full flex flex-col mt-5">
+                     <Button
+                        disabled={!isDirty || !isValid}
+                        label="Iniciar sesión"
+                        size="medium"
+                     />
+                  </div>
+               </form>
+            </FormLayout>
+         </div>
       </Fragment>
    )
 }
