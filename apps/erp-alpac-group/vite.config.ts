@@ -13,7 +13,8 @@ export default defineConfig({
       '@app/modules': path.resolve(__dirname, './src/modules'),
       '@app/shared': path.resolve(__dirname, './src/shared'),
       '@app/routers': path.resolve(__dirname, './src/routers'),
-      '@app': path.resolve(__dirname, './src'),
+      '@app/assets': path.resolve(__dirname, './src/assets'),
+      '@app': path.resolve(__dirname, './src')
     },
   },
 });

@@ -1,6 +1,7 @@
 import { Fragment } from "react"
 import type { ButtonProps } from "./button.type"
 import { getButtonStyles } from "./button.styles"
+import { Spinner } from "../../spinners";
 
 export const Button = function (props: ButtonProps): JSX.Element {
 
@@ -9,6 +10,7 @@ export const Button = function (props: ButtonProps): JSX.Element {
       label = "label",
       disabled = false,
       styles,
+      isLoading = false,
       onClick = () => { }
    } = props;
 
@@ -23,7 +25,7 @@ export const Button = function (props: ButtonProps): JSX.Element {
             disabled={disabled}
             onClick={onClick}
          >
-            {label}
+            {isLoading ? <Spinner color="white" size={props.size === "giant" ? "medium" : "small"} /> : label}
          </button>
       </Fragment>
    )

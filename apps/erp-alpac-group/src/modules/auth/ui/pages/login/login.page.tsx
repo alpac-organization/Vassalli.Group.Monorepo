@@ -1,16 +1,19 @@
-import { Fragment, useMemo } from "react"
+import { Fragment, useEffect, useMemo, useState } from "react"
 import { FormLayout } from "@app/shared/layouts"
 import { Controller, useForm } from "react-hook-form";
 import { useCompanies } from "../../hooks/useCompanies"
-import { Button, Dropdown, InputText } from "@alpac/design-system";
+import { Alert, Button, Dropdown, InputText } from "@alpac/design-system";
 
 import type { LoginRequest } from "./login.types";
 import { ContentLoaded } from "@app/shared/components/content-loaded/content-loaded";
 import { useAuth } from "../../hooks/useAuth";
+import { useImage } from "../../hooks/useImage";
 
 export const LoginPage = function () {
    const { GetCompaniesQuery } = useCompanies();
    const { startLoginProcess } = useAuth();
+   const [showAuthError, setShowAuthError] = useState(false);
+   const [isExiting, setIsExiting] = useState(false);
 
    const { data, isLoading } = GetCompaniesQuery
 
@@ -18,7 +21,9 @@ export const LoginPage = function () {
       return data?.map((c) => ({ label: c.alias, value: c.company_id })) || [];
    }, [data]);
 
-   const { handleSubmit, register, setError, reset, control, formState: { errors, isDirty, isValid } } = useForm<LoginRequest>({
+
+   const { handleSubmit, register, setError, reset, control, watch, formState: { errors, isDirty, isValid } } = useForm<LoginRequest>({
+      mode: "onChange",
       defaultValues: {
          password: "",
          username: "",
@@ -26,9 +31,17 @@ export const LoginPage = function () {
       }
    });
 
+   const selectedCompanyId = watch("company_id");
+
+   const currentCompany = useMemo(() => {
+      return data?.find((c) => c.company_id === selectedCompanyId);
+   }, [data, selectedCompanyId]);
+
+   const { urlImage } = useImage(currentCompany?.alias || "alpac");
+
    const handleLogin = async function (state: LoginRequest) {
       try {
-
+         setShowAuthError(false);
          if (state.company_id === 0) {
             setError("company_id", {
                type: "value",
@@ -44,12 +57,31 @@ export const LoginPage = function () {
 
       }
       catch (error) {
-         console.error(error);
+         setShowAuthError(true);
+         setIsExiting(false);
       }
       finally {
          reset();
       }
    }
+
+   const handleDismiss = () => {
+      setIsExiting(true);
+      setTimeout(() => {
+         setShowAuthError(false);
+         setIsExiting(false);
+      }, 800);
+   };
+
+   useEffect(() => {
+      if (showAuthError) {
+         const timer = setTimeout(() => {
+            handleDismiss();
+         }, 5000);
+
+         return () => clearTimeout(timer);
+      }
+   }, [showAuthError]);
 
    // Principal loading screen
    if (isLoading || startLoginProcess.isPending) {
@@ -60,8 +92,8 @@ export const LoginPage = function () {
 
    return (
       <Fragment>
-         <div className="h-full ">
-            <FormLayout>
+         <div className="h-dvh flex items-center justify-center">
+            <FormLayout imageUrl={urlImage}>
                <form
                   onSubmit={handleSubmit(handleLogin)}
                   className="h-full flex flex-col justify-center gap-2"
@@ -106,7 +138,11 @@ export const LoginPage = function () {
                      isPassword
                      {
                      ...register("password", {
-                        required: "La contraseña es requerida"
+                        required: "La contraseña es requerida",
+                        minLength: {
+                           value: 6,
+                           message: "La contraseña debe tener al menos 6 caracteres"
+                        }
                      })
                      }
                      error={errors.password && errors.password.message}
@@ -116,9 +152,25 @@ export const LoginPage = function () {
                      <Button
                         disabled={!isDirty || !isValid}
                         label="Iniciar sesión"
-                        size="medium"
+                        isLoading={startLoginProcess.isPending}
+                        size="giant"
                      />
                   </div>
+
+                  {
+                     showAuthError && (
+                        <div className={`w-full flex flex-col mt-5 animate-fade-alert ${isExiting ? "hide" : ""}`}>
+                           <Alert
+                              title="Error"
+                              message="Usuario o contraseña incorrectos"
+                              type="error"
+                              showCloseButton
+                              onClose={handleDismiss}
+                           />
+                        </div>
+                     )
+                  }
+
                </form>
             </FormLayout>
          </div>
