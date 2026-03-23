@@ -4,7 +4,7 @@ import { CopyRight } from "@app/shared/components/copy-right/copy-right";
 export const ContainerCopyright = () => {
    return (
       <div className="flex flex-col min-h-screen w-full">         
-         <main className="flex-grow flex flex-col w-full">
+         <main className="grow flex flex-col w-full">
             <Outlet />
          </main>
 
