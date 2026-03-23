@@ -1,14 +1,13 @@
 import { ReactNode } from "react";
-
 export type ModalVariant = "default" | "error" | "warning" | "success" | "info";
-
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   variant?: ModalVariant;
-  children: ReactNode;
+  title?: string;
+  description?: string | ReactNode;
+  children?: ReactNode;
 }
-
 export type ModalVariantConfig = {
   icon?: {
     Icon: ReactNode;
@@ -16,4 +15,6 @@ export type ModalVariantConfig = {
   };
   bgClass: string;
   textClass: string;
+  borderClass: string;
+  iconTextClass: string;
 };

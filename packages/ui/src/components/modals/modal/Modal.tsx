@@ -9,6 +9,8 @@ export const Modal = ({
   isOpen,
   onClose,
   variant = "default",
+  title,
+  description,
   children,
 }: ModalProps): any => {
   const [isMounted, setIsMounted] = useState(false);
@@ -35,7 +37,7 @@ export const Modal = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -43,32 +45,50 @@ export const Modal = ({
           <motion.div
             role="dialog"
             aria-modal="true"
-            className={`relative p-6 rounded-2xl shadow-xl max-w-lg w-full mx-4 ${config.bgClass} ${config.textClass}`}
+            className={`relative p-6 rounded-2xl shadow-xl max-w-lg w-full mx-4 ${config.bgClass}`}
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
             {config.icon && (
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="flex items-center justify-center p-1.5 border border-gray-300 rounded-full text-gray-500">
+              <div className="flex items-center gap-2.5 mb-5">
+                <div
+                  className={`flex items-center justify-center p-1.5 border rounded-full ${config.borderClass} ${config.iconTextClass}`}
+                >
                   {config.icon.Icon}
                 </div>
-
-                <span className="font-medium text-sm text-gray-600">
+                <span
+                  className={`font-semibold text-sm ${config.iconTextClass}`}
+                >
                   {config.icon.label}
                 </span>
               </div>
             )}
 
-            <div className="mb-4">{children}</div>
+            {(title || description) && (
+              <div className="mb-6">
+                {title && (
+                  <h2 className={`text-xl font-bold mb-2 ${config.textClass}`}>
+                    {title}
+                  </h2>
+                )}
+                {description && (
+                  <div className="text-slate-500 text-[15px] leading-relaxed">
+                    {description}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {children && <div className="mt-4">{children}</div>}
 
             <button
-              className="absolute top-4 right-4 p-1.5 text-current opacity-50 hover:opacity-100 hover:bg-black/5 rounded-full transition-all"
+              className="absolute top-5 right-5 p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-all"
               onClick={onClose}
               aria-label="Cerrar modal"
             >
-              <X size={18} />
+              <X size={20} />
             </button>
           </motion.div>
         </motion.div>
