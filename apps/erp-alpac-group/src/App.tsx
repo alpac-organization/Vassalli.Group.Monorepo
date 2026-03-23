@@ -12,7 +12,7 @@ const container = document.getElementById("root")!
 
 const root = createRoot(container)
 root.render(
-    <ThemeProvider>
-        <Main router={router} queryClient={queryClient} />
-    </ThemeProvider>
+   <ThemeProvider>
+      <Main router={router} queryClient={queryClient} />
+   </ThemeProvider>
 )

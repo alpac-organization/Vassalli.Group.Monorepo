@@ -1,20 +1,52 @@
-import axios, { type AxiosInstance } from 'axios';
+import axios, { AxiosError, type AxiosInstance } from 'axios';
 import type { IHttpHandler } from '../ports';
+import type { ApiErrorResponse } from '../interfaces/ErrorResponse';
+import { CookieStorageAdapter } from './cookie-storage-adapter';
 
 export class AxiosHttpAdapter implements IHttpHandler {
+   
    private instance: AxiosInstance;
-
+   private apiKey = import.meta.env.VITE_API_KEY;
+   
    constructor() {
       this.instance = axios.create({
          baseURL: import.meta.env.VITE_API_URL || '/api',
          headers: {
-            'Content-Type': 'application/json',
+            "Content-Type":  "application/json",
+            "x-api-key":     this.apiKey,
+            "x-device-name": "Google Chrome"
          },
       });
 
+      // Interceptor to request
       this.instance.interceptors.request.use((config) => {
+         const token = CookieStorageAdapter.getToken();
+
+         if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+         }
+
          return config;
       });
+
+      this.instance.interceptors.response.use(
+         (response) => response, (error: AxiosError<ApiErrorResponse>) => {
+            const customError: ApiErrorResponse = {
+               status: error.response?.status || 500,
+               error: {
+                  typeError: error.response?.data?.error?.typeError || 'INTERNAL_CLIENT_ERROR',
+                  description: error.response?.data?.error?.description || 'Ocurrió un error inesperado en la comunicación.'
+               },
+               createdAt: error.response?.data?.createdAt || new Date().toISOString()
+            };
+
+            if (customError.status === 401) {
+               console.warn("Sesión expirada o inválida detectada por el interceptor.");
+            }
+
+            return Promise.reject(customError);
+         }
+      );
    }
 
    async get<T>(url: string, config?: object): Promise<T> {

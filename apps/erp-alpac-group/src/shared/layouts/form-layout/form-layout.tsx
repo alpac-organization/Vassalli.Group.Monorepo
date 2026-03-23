@@ -1,19 +1,28 @@
-import './form-layout.css'
 import type { FormLayoutProps } from './form-layout.type';
 
-export const FormLayout = ({ title, className, imageUrl, children }: FormLayoutProps) => {
+import Logo from "../../../assets/logos/color/alpac.png"
+import { CopyRight } from '@app/shared/components/copy-right/copy-right';
 
-    const baseClasses = `form-layout-container dark:bg-[#181818] dark:text-white`
+export const FormLayout = ({ children, imageUrl = Logo }: FormLayoutProps) => {
+   return (
+      <div className="flex flex-col w-full min-h-dvh md:min-h-auto items-center justify-center">
 
-    return (
-        <div className={`${baseClasses} ${className}`}>
-            <div className="form-layout-box dark:bg-[#eeeeee]">
-                {imageUrl && <img src={imageUrl} className="w-32 h-32 mx-auto mb-4" alt="Logo" />}
-                {title && <h2 className="form-layout-title dark:text-[#2e2e2e]!">{title}</h2>}
-                <div className="form-layout-content">
-                    {children}
-                </div>
+         <div className="flex flex-col w-full min-h-dvh md:min-h-70 md:w-108 bg-white md:rounded-2xl transition-all duration-300 px-5 py-8 md:px-8 md:py-9">
+
+            <div className="mb-8 flex justify-center w-full max-w-25 md:max-w-25 mx-auto">
+               <img src={imageUrl} alt="Logo" className="w-full h-auto object-contain" />
             </div>
-        </div>
-    );
+
+            <div className="flex flex-col flex-1 w-full text-zinc-900 md:justify-center mt-10 md:mt-0 md:items-center items-start">
+               <div className="w-full">
+                  { children }
+               </div>
+            </div>
+
+            <footer className="mt-8">
+               <CopyRight />
+            </footer>
+         </div>
+      </div>
+   );
 }
