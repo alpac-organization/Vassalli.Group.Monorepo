@@ -3,12 +3,10 @@ name: Release & Validation
 on:
   push:
     branches:
-      - main
       - master
       - develop
   pull_request:
     branches:
-      - main
       - master
       - develop
 
@@ -25,7 +23,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 9 # O la versión que estés usando actualmente
+          version: 9
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
@@ -37,10 +35,20 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # --- PASOS DE VALIDACIÓN --- #
-      
+
+      # 1. Construimos el Design System primero para que los tipos/archivos existan
       - name: Build Design System (@alpac/design-system)
         run: pnpm --filter @alpac/design-system build
 
+      # 2. Re-instalamos para que la App ERP reconozca los artefactos del Build
+      - name: Re-install App Dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 3. Ahora corremos los tests con las dependencias vinculadas correctamente
+      - name: Run Tests ERP App (erp-alpac-group)
+        run: pnpm --filter erp-alpac-group test
+
+      # 4. Finalmente el Build de la App
       - name: Build ERP App (erp-alpac-group)
         run: pnpm --filter erp-alpac-group build
 
