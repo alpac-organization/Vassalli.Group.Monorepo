@@ -3,18 +3,21 @@ import { MODAL_VARIANTS } from "./modal.constants";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { ModalProps } from "./modal.type";
-import { useState, useEffect, ReactElement } from "react";
+import { useState, useEffect } from "react";
+
 export const Modal = ({
   isOpen,
   onClose,
   variant = "default",
   children,
-}: ModalProps) => {
+}: ModalProps): any => {
   const [isMounted, setIsMounted] = useState(false);
   const config = MODAL_VARIANTS[variant];
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -25,7 +28,9 @@ export const Modal = ({
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
+
   if (!isMounted) return null;
+
   return createPortal(
     <AnimatePresence>
       {isOpen && (
@@ -45,9 +50,12 @@ export const Modal = ({
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
             {config.icon && (
-              <div className="flex items-center gap-3 mb-4">
-                <config.icon.Icon size={28} />
-                <span className="font-semibold text-lg">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="flex items-center justify-center p-1.5 border border-gray-300 rounded-full text-gray-500">
+                  {config.icon.Icon}
+                </div>
+
+                <span className="font-medium text-sm text-gray-600">
                   {config.icon.label}
                 </span>
               </div>
@@ -56,11 +64,11 @@ export const Modal = ({
             <div className="mb-4">{children}</div>
 
             <button
-              className="absolute top-4 right-4 p-1.5 text-current opacity-70 hover:opacity-100 hover:bg-black/5 rounded-full transition-all"
+              className="absolute top-4 right-4 p-1.5 text-current opacity-50 hover:opacity-100 hover:bg-black/5 rounded-full transition-all"
               onClick={onClose}
               aria-label="Cerrar modal"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           </motion.div>
         </motion.div>
