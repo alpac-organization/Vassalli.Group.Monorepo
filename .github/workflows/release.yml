@@ -3,12 +3,10 @@ name: Release & Validation
 on:
   push:
     branches:
-      - main
       - master
       - develop
   pull_request:
     branches:
-      - main
       - master
       - develop
 
@@ -25,7 +23,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 9 # O la versión que estés usando actualmente
+          version: 9
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
@@ -37,7 +35,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # --- PASOS DE VALIDACIÓN --- #
-      
+
+      # Ejecutamos los tests primero. Si fallan, el proceso se detiene aquí.
+      - name: Run Tests
+        run: pnpm run test
+
       - name: Build Design System (@alpac/design-system)
         run: pnpm --filter @alpac/design-system build
 
@@ -56,6 +58,7 @@ jobs:
           publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Asegúrate de tener este secreto en tu repo si publicas en un registro
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Notification on Publish
