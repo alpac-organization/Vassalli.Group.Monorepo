@@ -1,39 +1,63 @@
-name: Release
+name: Release & Validation
 
 on:
   push:
     branches:
       - main
+      - master
+      - develop
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  release:
-    name: Release
+  validate-and-release:
+    name: Build & Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9 # O la versión que estés usando actualmente
+
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'pnpm'
 
       - name: Install Dependencies
-        run: yarn
+        run: pnpm install --frozen-lockfile
 
-      - name: Create Release Pull Request or Publish to npm
+      # --- PASOS DE VALIDACIÓN --- #
+      
+      - name: Build Design System (@alpac/design-system)
+        run: pnpm --filter @alpac/design-system build
+
+      - name: Build ERP App (erp-alpac-group)
+        run: pnpm --filter erp-alpac-group build
+
+      # --- PROCESO DE RELEASE (Solo en Push a ramas principales) --- #
+
+      - name: Create Release Pull Request or Publish
         id: changesets
+        if: |
+          github.event_name == 'push' && 
+          (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
         uses: changesets/action@v1
         with:
-          # This expects you to have a script called release which does a build for your packages and calls changeset publish
-          publish: yarn release
+          publish: pnpm release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Send a Slack notification if a publish happens
+      - name: Notification on Publish
         if: steps.changesets.outputs.published == 'true'
-        # You can do something when a publish happens.
-        run: my-slack-bot send-notification --message "A new version of ${GITHUB_REPOSITORY} was published!"
+        run: echo "Nueva versión de ${GITHUB_REPOSITORY} publicada."
