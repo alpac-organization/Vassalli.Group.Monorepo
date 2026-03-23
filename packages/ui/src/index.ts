@@ -4,6 +4,7 @@ export * from "./components/carousel"
 export * from "./components/spinners"
 export * from "./components/alerts"
 
+export * from "./components/cardDashboard"
 export * from "./providers/theme-provider";
-export * from "./components/cardDashboard/DashboardCard";
 export * from "./constants";
+export * from "./components/modals";
