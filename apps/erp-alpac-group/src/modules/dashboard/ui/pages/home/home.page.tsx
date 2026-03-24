@@ -45,10 +45,6 @@ export const HomePage = function () {
    const userName = "Andrés";
    const companyName = "Alpac Group Nicaragua";
 
-   useEffect(() => {
-      handleModulesAvailables();
-   }, []);
-
    return (
       <Fragment>
 
