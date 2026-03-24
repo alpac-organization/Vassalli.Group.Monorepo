@@ -1,31 +1,38 @@
 /**
  * Respuesta del servidor que detalla los módulos disponibles para una empresa.
- * @interface ModulesAvailableResponse
+ * Se utiliza para mapear la oferta de servicios contratados en el frontend.
+ * * @interface ModulesAvailableResponse
  */
 export interface ModulesAvailableResponse {
     /**
-     * Identificador único del módulo en el sistema.
+     * Identificador único del módulo en la base de datos.
      * @example 101
      */
     module_id: number;
 
     /**
-     * Nombre descriptivo del módulo (ej. "Nómina", "Contabilidad").
-     * @example "Payroll"
+     * Nombre comercial o descriptivo del módulo.
+     * @example "Nómina"
      */
     module_name: string;
 
     /**
-     * Identificador de la empresa a la que pertenece el módulo. 
-     * Se maneja como string para soportar identificadores UUID o alfanuméricos del multi-tenant.
-     * @example "ERP-ALPAC-01"
+     * Identificador único de la empresa (Tenant). 
+     * Nota: Si el sistema soporta UUID, asegúrate de que el tipo coincida con la implementación.
+     * @example 550
      */
-    company_id: string;
+    company_id: number;
 
     /**
-     * Explicación detallada de las funcionalidades o el propósito del módulo.
-     * Útil para mostrar tooltips o descripciones extendidas en el panel de control.
+     * Breve explicación de las funcionalidades incluidas en el módulo.
+     * Ideal para componentes de UI como Tooltips o Cards informativas.
      * @example "Gestión integral de salarios, prestaciones y seguridad social."
      */
     description: string;
+
+    /**
+     * Código interno alfanumérico para validaciones de permisos o lógica de negocio.
+     * @example "MOD-PAY-001"
+     */
+    module_code: string;
 }
