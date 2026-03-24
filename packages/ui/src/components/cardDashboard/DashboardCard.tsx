@@ -5,19 +5,19 @@ import { CardContent } from "./card/CardContent";
 import { CardHeader } from "./card/CardHeader";
 import imageDark from "../../assets/image-dark.svg";
 import imageLigth from "../../assets/image-dark.svg";
+
 export const DashBoardCard = ({
    title,
    image,
+   description,
    onClick,
 }: CardDasboardProps) => {
    const { theme } = useTheme();
    const defaultImage = theme === "dark" ? imageDark : imageLigth;
 
    const handleKeyEvent = (e: React.KeyboardEvent<HTMLDivElement>) => {
-
       if (e.key === "Enter" || e.key === " ") {
          e.preventDefault();
-
          if (onClick) {
             onClick();
          }
@@ -26,7 +26,7 @@ export const DashBoardCard = ({
 
    return (
       <Card
-         className="cursor-pointer group"
+         className="cursor-pointer group flex flex-col h-full"
          onClick={onClick}
          role="button"
          tabIndex={0}
@@ -42,8 +42,19 @@ export const DashBoardCard = ({
             />
          </CardHeader>
 
-         <CardContent>
-            <h3 className="text-sm font-semibold text-neutral-200">{title}</h3>
+         <CardContent className="flex flex-col gap-1"> 
+
+            <h3 className="text-sm font-semibold text-neutral-200 group-hover:text-white transition-colors">
+               {title}
+            </h3>
+
+            {  
+               description && (
+                  <p className="text-xs text-neutral-400 leading-relaxed line-clamp-2">
+                     {description}
+                  </p>
+               )
+            }
          </CardContent>
       </Card>
    );

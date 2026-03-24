@@ -12,7 +12,7 @@ export const ContainerCopyright = () => {
             <Outlet />
          </main>
 
-         <footer className="w-full py-4 hidden md:block mt-auto">
+         <footer className="w-full py-4 block mt-auto border-t border-t-slate-600">
             <div className="container mx-auto px-4 text-center">
                <CopyRight />
             </div>

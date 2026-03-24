@@ -5,6 +5,7 @@ import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter"
 import { AuthenticationServices } from "../../infrastructure/services/AuthenticationServices";
 
 import type { LoginRequest } from "../../domain/ApiContract/Requests/login.request"
+import type { LogoutRequest } from "../../domain/ApiContract/Requests/logout.request";
 
 const authService = new AuthenticationServices(httpHandler);
 
@@ -30,7 +31,27 @@ export const useAuth = function(){
       }
    });
 
+   const startProcessToCloseSession = useMutation({
+      mutationKey: ["logout"],
+      mutationFn:  (payload: LogoutRequest) => authService.StartProcessToCloseSession(payload),
+      onSuccess:   () => {
+         CookieStorageAdapter.clearAuth()
+
+         navigate("/auth", {
+            replace: true
+         });
+      },
+      onError: () => {
+         CookieStorageAdapter.clearAuth()
+         
+         navigate("/auth", {
+            replace: true
+         });
+      }
+   });
+
    return {
-      startLoginProcess
+      startLoginProcess,
+      startProcessToCloseSession
    }
 }
