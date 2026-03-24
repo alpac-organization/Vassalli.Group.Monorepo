@@ -24,13 +24,5 @@ export default defineConfig({
     css: true,
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     exclude: ["node_modules", "dist"],
-  },
-  test: {
-    globals: true,
-    environment: "jsdom",
-    setupFiles: "./setupTests.ts",
-    css: true,
-    include: ["src/**/*.{test,spec}.{ts,tsx}"],
-    exclude: ["node_modules", "dist"],
-  },
+  }
 });
