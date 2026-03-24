@@ -1,5 +1,6 @@
 export type CardDasboardProps = {
-  title: string;
-  image: string;
+  title:       string;
+  image:       string;
+  description: string;
   onClick: () => void;
 };

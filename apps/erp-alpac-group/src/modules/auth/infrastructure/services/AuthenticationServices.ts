@@ -35,7 +35,7 @@ export class AuthenticationServices implements IAuthenticationServices {
 
    public async StartProcessToCloseSession(payload: LogoutRequest): Promise<void> {
       try {
-         await this.apiHandler.post("/auth/logout", payload);
+         await this.apiHandler.post(`companies/${payload.company_id}/auth/logout`, payload);
       }
       catch (error) {
          throw error;
