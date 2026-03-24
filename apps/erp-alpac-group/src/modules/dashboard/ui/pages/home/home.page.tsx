@@ -5,7 +5,7 @@ import { useModules } from "../../hooks/useModules";
 import type { ModulesAvailableResponse } from "@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 
-export const HomePage = function(){
+export const HomePage = function () {
 
    const [showModal, setShowModal] = useState(false);
 
@@ -13,26 +13,26 @@ export const HomePage = function(){
 
    const { ObtainActiveModulesByCompanyId } = useModules();
 
-   const handleModulesAvailables = async function(){
+   const handleModulesAvailables = async function () {
       try {
-        const company_id =  CookieStorageAdapter.getCompanyAlias();
-         const modules = await ObtainActiveModulesByCompanyId.mutateAsync( Number( company_id ) )
+         const company_id = CookieStorageAdapter.getCompanyAlias();
+         const modules = await ObtainActiveModulesByCompanyId.mutateAsync(Number(company_id))
 
          console.log(JSON.stringify(modules, null, 2))
 
       }
-      catch(error){
+      catch (error) {
          console.log(error)
       }
    }
 
-   const userName = "Andrés"; 
+   const userName = "Andrés";
    const companyName = "Alpac Group Nicaragua";
 
 
    useEffect(() => {
       handleModulesAvailables();
-   },[])
+   }, [])
 
    return (
       <Fragment>
@@ -51,7 +51,7 @@ export const HomePage = function(){
                   Gestionando: <span className="font-medium text-slate-700 dark:text-slate-200">{companyName}</span>
                </p>
             </div>
-            
+
 
             <div className="mt-4 md:mt-0 text-right">
                <div className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">
@@ -70,40 +70,40 @@ export const HomePage = function(){
 
 
          <div className="max-w-330 m-auto mt-2 p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full">
-            
-            <DashBoardCard  
-               title="Nómina" 
-               image="https://" 
-               onClick={() => {}} 
+
+            <DashBoardCard
+               title="Nómina"
+               image="https://"
+               onClick={() => { }}
             />
 
-            <DashBoardCard  
-               title="Contabilidad" 
-               image="https://" 
-               onClick={() => {}} 
+            <DashBoardCard
+               title="Contabilidad"
+               image="https://"
+               onClick={() => { }}
             />
 
-            <DashBoardCard  
-               title="Facturación" 
-               image="https://" 
-               onClick={() => {}} 
+            <DashBoardCard
+               title="Facturación"
+               image="https://"
+               onClick={() => { }}
             />
 
-            <DashBoardCard  
-               title="Inventario" 
-               image="https://" 
-               onClick={() => {}} 
+            <DashBoardCard
+               title="Inventario"
+               image="https://"
+               onClick={() => { }}
             />
 
-            <DashBoardCard  
-               title="Nómina" 
-               image="https://" 
-               onClick={() => {}} 
+            <DashBoardCard
+               title="Nómina"
+               image="https://"
+               onClick={() => { }}
             />
          </div>
 
-         <Modal 
-            isOpen={ showModal }
+         <Modal
+            isOpen={showModal}
             title="Ha ocurrido un error"
             variant="warning"
             description="Descripcion"
@@ -111,7 +111,7 @@ export const HomePage = function(){
 
             }}
             children={
-               <InputText label="Indica tu error" placeholder="placeholder"/>
+               <InputText label="Indica tu error" placeholder="placeholder" />
             }
          />
 
