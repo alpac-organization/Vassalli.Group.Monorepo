@@ -1,78 +1,96 @@
-import { Fragment, useEffect, useState } from "react"
+import { Fragment, useState } from "react"
 import { DashBoardCard, Modal } from "@alpac/design-system"
-import { Navbar } from "@app/shared/components/navbar/navbar"
 import { useModules } from "../../hooks/useModules";
-import type { ModulesAvailableResponse } from "@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response";
-import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import { HeaderHome } from "./hearder/header";
-import { EmptyModulesState } from "./empty-modules-state/empty-modules-state";
-import { Loader } from "@app/shared/components/loaders/loader";
 
-export const HomePage = function(){
+import { useAuth } from "@app/modules/auth/ui/hooks/useAuth";
+import { Loader } from "@app/shared/components/loaders/loader";
+import { Navbar } from "@app/shared/components/navbar/navbar"
+import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
+import { EmptyModulesState } from "./empty-modules-state/empty-modules-state";
+
+export const HomePage = function () {
 
    const [showModal, setShowModal] = useState(false);
+   const [isLogout, setLogout] = useState(false);
 
-   const [modulesAvailables, setModulesAvailables] = useState<ModulesAvailableResponse[]>([]);
+   const company_id = CookieStorageAdapter.getCompanyAlias() ?? '';
 
-   const { ObtainActiveModulesByCompanyId } = useModules();
+   const { startProcessToCloseSession } = useAuth();
+   const { obtainActiveModulesByCompanyId } = useModules(parseInt(company_id));
+   const { data: modulesAvailables } = obtainActiveModulesByCompanyId
 
-   const handleModulesAvailables = async function(){
+   const handleLogout = async function () {
       try {
-        const company_id =  CookieStorageAdapter.getCompanyAlias();
-         const modules = await ObtainActiveModulesByCompanyId.mutateAsync( Number( company_id ) )
+         //Iniciar proceso para cerrar sesión
+         setLogout(true);
 
-         setModulesAvailables(modules);
+         const companyId = CookieStorageAdapter.getCompanyAlias() ?? ""
+         const refreshToken = CookieStorageAdapter.getRefreshToken() ?? ""
+
+         await startProcessToCloseSession.mutateAsync({
+            company_id: parseInt(companyId),
+            refresh_token: refreshToken
+         });
       }
-      catch(error){
-         console.log(error)
+      catch (error) {
+         console.error(error);
+      }
+      finally {
+         setLogout(false);
       }
    }
 
-   const userName = "Andrés"; 
+   //Quitar esto obtenerlo de zustand store
+   const userName = "Andrés";
    const companyName = "Alpac Group Nicaragua";
-
-   useEffect(() => {
-      handleModulesAvailables();
-   },[]);
 
    return (
       <Fragment>
 
-         { 
-            ObtainActiveModulesByCompanyId.isPending && (
-               <Loader  />
+         {
+            (obtainActiveModulesByCompanyId.isLoading || startProcessToCloseSession.isPending) && (
+               <Loader
+                  title={isLogout ? "Cerrando Sesión..." : "Cargando Modulos..."}
+               />
             )
          }
 
-         <Navbar />
+         <Navbar
+            onLogout={handleLogout}
+            user_name={userName}
+            email="example@gmail.com"
+         />
 
-         <HeaderHome 
-            company_name={ companyName }
-            username={ userName }
+         <HeaderHome
+            company_name={companyName}
+            username={userName}
          />
 
          <div className="max-w-330 m-auto mt-2 p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full">
             {
-               modulesAvailables.length === 0  ? <EmptyModulesState />
-               : modulesAvailables.map(module => (
-                  <DashBoardCard  
-                     key={ module.module_name }
-                     title={ module.module_name } 
-                     image="https://" 
-                     onClick={() => setShowModal(true)} 
-                  />
-               ))
+               (modulesAvailables || []).length === 0 ? <EmptyModulesState />
+                  : (modulesAvailables || []).map(module => (
+                     <DashBoardCard
+                        key={module.module_name}
+                        title={module.module_name}
+                        image="https://"
+                        onClick={() => setShowModal(true)}
+                        description={module.description}
+                     />
+                  ))
             }
          </div>
 
-         <Modal 
-            isOpen={ showModal }
+         <Modal
+            isOpen={showModal}
             title="Ha ocurrido un error"
             variant="warning"
             description="Descripcion"
             onClose={() => {
                setShowModal(false);
             }}
+
          />
 
       </Fragment>
