@@ -1,9 +1,13 @@
 import { Outlet } from "react-router-dom";
 import { CopyRight } from "@app/shared/components/copy-right/copy-right";
+import { useInactivityGuard } from "@app/shared/hooks/useInactivityGuard";
 
 export const ContainerCopyright = () => {
+
+   useInactivityGuard();
+
    return (
-      <div className="flex flex-col min-h-screen w-full">         
+      <div className="flex flex-col min-h-screen w-full">
          <main className="grow flex flex-col w-full">
             <Outlet />
          </main>
