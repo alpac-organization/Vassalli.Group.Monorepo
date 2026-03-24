@@ -1,2 +1,2 @@
-export * from "./input-spinner/input-spinner";
-export * from "./input-spinner/input-spinner.type";
+export * from "./spinner/spinner";
+export * from "./spinner/spinner.type";

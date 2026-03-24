@@ -10,20 +10,25 @@ const backgroundProperties: Record<Company, string> = {
 }
 
 const sizes: Record<ButtonSize, string> = {
-    giant: "px-8! py-3.5! text-lg! leading-7! rounded-xl!",
-    medium: "px-6! py-[0.5rem]! text-base! leading-6! rounded-lg!",
-    small: "px-4! py-[0.625rem]! text-sm! leading-5! rounded-md!",
+    giant: "px-4! md:px-8! py-2.5! md:py-2.5! text-lg! leading-7! rounded-xl!",
+    medium: "px-2! md:px-6! py-1.5! md:py-1.5! text-base! leading-6! rounded-lg!",
+    small: "px-1! md:px-4! py-1! md:py-1! text-sm! leading-5! rounded-md!",
 }
+
 
 export const getButtonStyles = (props: ButtonProps): string => {
     const sizeClasses = sizes[props.size || "small"];
     const backgroundClasses = backgroundProperties[props.company || "ALPAC"];
 
     const baseClasses = `
+        flex
+        items-center
+        justify-center
+        gap-2
         rounded-md 
         text-white 
         font-normal 
-        text-[14px]! 
+        text-[14px]! md:text-[16px]
         shadow-sm
         transition-all 
         active:scale-95

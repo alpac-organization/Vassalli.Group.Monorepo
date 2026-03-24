@@ -4,13 +4,13 @@ import { CompanyServices } from "../../infrastructure/services/CompanyServices";
 
 const companyServices = new CompanyServices(httpHandler);
 
-export const useCompanies = function(){
+export const useCompanies = function () {
 
    const GetCompaniesQuery = useQuery({
       queryKey: ["companies"],
       queryFn: () => companyServices.GetCompaniesAvailable(),
       staleTime: 1000 * 60 * 10,
-      retry: 2
+      retry: 1
    });
 
    return {

@@ -1,9 +1,9 @@
 import { InputProps } from "./input-text.types";
 import { forwardRef, useState } from "react";
 
-export const InputText = forwardRef<HTMLInputElement, InputProps>(({ label, error, icon, className, isPassword, type,...rest }, ref) => {
+export const InputText = forwardRef<HTMLInputElement, InputProps>(({ label, error, icon, className, isPassword, type, ...rest }, ref) => {
    const [showPassword, setShowPassword] = useState(false);
-   
+
    const inputType = isPassword ? (showPassword ? "text" : "password") : type;
 
    return (
@@ -32,8 +32,8 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(({ label, erro
                type={inputType}
                className={`
                   w-full box-border bg-white border rounded-[10px] outline-none transition-all
-                  h-12.5 md:h-12.25 
-                  py-2 md:py-3.5 
+                  h-12 md:h-12 
+                  py-2 md:py-2.5
                   text-[14px] md:text-[16px]                  
                   ${icon ? 'pl-11 md:pl-12' : 'pl-4'} 
                   ${isPassword ? 'pr-11 md:pr-12' : 'pr-4'}
@@ -68,11 +68,11 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(({ label, erro
                )
             }
 
-         </div>         
-            {
-               error && <span className="text-xs text-red-500 font-medium ml-1 mt-0.5">{error}</span>
-            }
          </div>
-      );
-   }
+         {
+            error && <span className="text-xs text-red-500 font-medium ml-1 mt-0.5">{error}</span>
+         }
+      </div>
+   );
+}
 );

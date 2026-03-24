@@ -37,7 +37,7 @@ export const Modal = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 "
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -52,7 +52,7 @@ export const Modal = ({
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
             {config.icon && (
-              <div className="flex items-center gap-2.5 mb-5">
+              <div className="flex items-center gap-2.5 mb-5 border-b border-slate-100">
                 <div
                   className={`flex items-center justify-center p-1.5 border rounded-full ${config.borderClass} ${config.iconTextClass}`}
                 >
@@ -67,7 +67,7 @@ export const Modal = ({
             )}
 
             {(title || description) && (
-              <div className="mb-6">
+              <div className="mb-6 border-t border-t-slate-300">
                 {title && (
                   <h2 className={`text-xl font-bold mb-2 ${config.textClass}`}>
                     {title}
@@ -84,7 +84,7 @@ export const Modal = ({
             {children && <div className="mt-4">{children}</div>}
 
             <button
-              className="absolute top-5 right-5 p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-all"
+              className="absolute top-5 right-5 p-1.5 text-slate-700 hover:text-slate-900 hover:bg-slate-300 rounded-full transition-all"
               onClick={onClose}
               aria-label="Cerrar modal"
             >

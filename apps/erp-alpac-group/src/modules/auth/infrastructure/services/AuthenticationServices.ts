@@ -1,5 +1,5 @@
 import type { IHttpHandler } from "@app/core/ports";
-import type { IAuthenticationServices } from "../../application/interfaces/IAuthentication.services";
+import type { IAuthenticationServices } from "../../application/interfaces/IAuthenticationServices";
 import type { LoginRequest } from "../../domain/ApiContract/Requests/login.request";
 import type { LoginResponse } from "../../domain/ApiContract/Responses/login.response";
 import type { LogoutRequest } from "../../domain/ApiContract/Requests/logout.request";

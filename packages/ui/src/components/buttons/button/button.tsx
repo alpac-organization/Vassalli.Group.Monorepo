@@ -1,14 +1,17 @@
-import { Fragment } from "react";
-import type { ButtonProps } from "./button.type";
-import { getButtonStyles } from "./button.styles";
+import { Fragment } from "react"
+import type { ButtonProps } from "./button.type"
+import { getButtonStyles } from "./button.styles"
+import { Spinner } from "../../spinners";
 
-export const Button = function (props: ButtonProps) {
+export const Button = function (props: ButtonProps): React.ReactElement {
+
   const {
     type,
     label = "label",
     disabled = false,
     styles,
-    onClick = () => {},
+    isLoading = false,
+    onClick = () => { }
   } = props;
 
   const classes = getButtonStyles({ ...props });
@@ -22,8 +25,8 @@ export const Button = function (props: ButtonProps) {
         disabled={disabled}
         onClick={onClick}
       >
-        {label}
+        {isLoading ? <Spinner color="white" size={props.size === "giant" ? "medium" : "small"} /> : label}
       </button>
     </Fragment>
-  );
-};
+  )
+}
