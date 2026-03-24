@@ -2,19 +2,20 @@ import axios, { AxiosError, type AxiosInstance } from 'axios';
 import type { IHttpHandler } from '../ports';
 import type { ApiErrorResponse } from '../interfaces/ErrorResponse';
 import { CookieStorageAdapter } from './cookie-storage-adapter';
+import { getBrowserName } from '../enums/user-agent.enum';
 
 export class AxiosHttpAdapter implements IHttpHandler {
-   
+
    private instance: AxiosInstance;
    private apiKey = import.meta.env.VITE_API_KEY;
-   
+
    constructor() {
       this.instance = axios.create({
          baseURL: import.meta.env.VITE_API_URL || '/api',
          headers: {
-            "Content-Type":  "application/json",
-            "x-api-key":     this.apiKey,
-            "x-device-name": "Google Chrome"
+            "Content-Type": "application/json",
+            "x-api-key": this.apiKey,
+            "x-device-name": getBrowserName(navigator.userAgent)
          },
       });
 
