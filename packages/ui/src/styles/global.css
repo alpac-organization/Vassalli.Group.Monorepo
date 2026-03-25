@@ -9,76 +9,79 @@
   --animate-scroll: scroll 30s linear infinite;
 
   /* Company: ALPAC */
-  --color-alpac-primary-50: #E6EDF5;
-  --color-alpac-primary-100: #CDDCEB;
+  --color-alpac-primary-50: #e6edf5;
+  --color-alpac-primary-100: #cddceb;
   --color-alpac-primary-500: #004f9e;
-  --color-alpac-primary-700: #2B3D89;
-  --color-alpac-primary-900: #00254B;
-  --color-alpac-secondary-50: #FCE6E7;
+  --color-alpac-primary-700: #2b3d89;
+  --color-alpac-primary-900: #00254b;
+  --color-alpac-secondary-50: #fce6e7;
   --color-alpac-secondary-500: #e20612;
-  --color-alpac-secondary-700: #B3050E;
+  --color-alpac-secondary-700: #b3050e;
 
   /* Company: AMINSA */
-  --color-aminsa-primary-50: #E6F0EB;
-  --color-aminsa-primary-100: #CDE1D7;
+  --color-aminsa-primary-50: #e6f0eb;
+  --color-aminsa-primary-100: #cde1d7;
   --color-aminsa-primary-500: #006837;
-  --color-aminsa-primary-700: #004D29;
-  --color-aminsa-primary-900: #00331B;
-  --color-aminsa-secondary-50: #F3F9EC;
-  --color-aminsa-secondary-500: #8CC63F;
-  --color-aminsa-secondary-700: #6FA12F;
+  --color-aminsa-primary-700: #004d29;
+  --color-aminsa-primary-900: #00331b;
+  --color-aminsa-secondary-50: #f3f9ec;
+  --color-aminsa-secondary-500: #8cc63f;
+  --color-aminsa-secondary-700: #6fa12f;
 
   /* Company: AVASA */
-  --color-avasa-primary-50: #E6F3EC;
+  --color-avasa-primary-50: #e6f3ec;
   --color-avasa-primary-500: #008542;
   --color-avasa-primary-700: #006633;
-  --color-avasa-secondary-50: #E6F6EE;
-  --color-avasa-secondary-500: #00A651;
-  --color-avasa-secondary-700: #00803E;
+  --color-avasa-secondary-50: #e6f6ee;
+  --color-avasa-secondary-500: #00a651;
+  --color-avasa-secondary-700: #00803e;
 
   /* Company: VIGEMSA */
-  --color-vigemsa-primary-50: #E8EAEE;
-  --color-vigemsa-primary-500: #1B2C56;
+  --color-vigemsa-primary-50: #e8eaee;
+  --color-vigemsa-primary-500: #1b2c56;
   --color-vigemsa-primary-700: #142141;
-  --color-vigemsa-secondary-50: #F7F3EC;
-  --color-vigemsa-secondary-500: #B38D45;
-  --color-vigemsa-secondary-700: #8A6D35;
-  --color-vigemsa-accent-50: #FCE8E9;
-  --color-vigemsa-accent-500: #E31E24;
-  --color-vigemsa-accent-700: #B3181D;
+  --color-vigemsa-secondary-50: #f7f3ec;
+  --color-vigemsa-secondary-500: #b38d45;
+  --color-vigemsa-secondary-700: #8a6d35;
+  --color-vigemsa-accent-50: #fce8e9;
+  --color-vigemsa-accent-500: #e31e24;
+  --color-vigemsa-accent-700: #b3181d;
 
   /* Company: TMN */
-  --color-tmn-primary-50: #E6F6EE;
-  --color-tmn-primary-500: #00A651;
-  --color-tmn-primary-700: #00803E;
-  --color-tmn-secondary-50: #FDE8E9;
-  --color-tmn-secondary-500: #ED1C24;
-  --color-tmn-secondary-700: #BA161C;
-  --color-tmn-accent-50: #E8E8E8;
+  --color-tmn-primary-50: #e6f6ee;
+  --color-tmn-primary-500: #00a651;
+  --color-tmn-primary-700: #00803e;
+  --color-tmn-secondary-50: #fde8e9;
+  --color-tmn-secondary-500: #ed1c24;
+  --color-tmn-secondary-700: #ba161c;
+  --color-tmn-accent-50: #e8e8e8;
   --color-tmn-accent-500: #000000;
-  --color-tmn-accent-700: #1A1A1A;
+  --color-tmn-accent-700: #1a1a1a;
 
   /* Neutral Tokens */
-  --color-neutral-white: #FFFFFF;
-  --color-neutral-50: #F9FAFB;
-  --color-neutral-100: #F3F4F6;
-  --color-neutral-200: #E5E7EB;
-  --color-neutral-300: #D1D5DB;
-  --color-neutral-400: #9CA3AF;
-  --color-neutral-500: #6B7280;
-  --color-neutral-600: #4B5563;
+  --color-neutral-white: #ffffff;
+  --color-neutral-50: #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  --color-neutral-200: #e5e7eb;
+  --color-neutral-300: #d1d5db;
+  --color-neutral-400: #9ca3af;
+  --color-neutral-500: #6b7280;
+  --color-neutral-600: #4b5563;
   --color-neutral-700: #374151;
-  --color-neutral-800: #1F2937;
+  --color-neutral-800: #1f2937;
   --color-neutral-900: #111827;
   --color-neutral-950: #030712;
   --color-neutral-black: #000000;
 
+  /* ERP shell — scroll surfaces (sidebar track ≈ #1E1E2D @ 90%) */
+  --erp-scrollbar-track: rgb(30 30 45 / 0.9);
+
   /* Feedback Tokens */
-  --color-error-light: #D32F2F;
-  --color-error-dark: #D54144;
-  --color-success: #2E7D32;
-  --color-warning: #ED6C02;
-  --color-info: #0288D1;
+  --color-error-light: #d32f2f;
+  --color-error-dark: #d54144;
+  --color-success: #2e7d32;
+  --color-warning: #ed6c02;
+  --color-info: #0288d1;
 
   @keyframes scroll {
     from {
@@ -109,16 +112,19 @@
 
 /* Fallback source */
 body {
-  font-family: 'Geist', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-family: "Geist", "Roboto", "Segoe UI", "Helvetica Neue", Arial,
+    sans-serif;
   line-height: 1.5;
   margin: 0;
   padding: 0;
   background-color: white;
   color: black;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
-[data-theme='dark'] body {
+[data-theme="dark"] body {
   background-color: #363a45;
   color: white;
 }
@@ -222,7 +228,8 @@ textarea {
   display: block;
   max-height: 200px;
   overflow: hidden;
-  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
     max-height 0.8s cubic-bezier(0.4, 0, 0.2, 1),
     display 0.8s cubic-bezier(0.4, 0, 0.2, 1) allow-discrete;
 }
@@ -263,7 +270,7 @@ textarea {
 .loader::before {
   border-color: #f03355 #0000;
   animation: inherit;
-  animation-duration: .5s;
+  animation-duration: 0.5s;
   animation-direction: reverse;
 }
 
@@ -273,6 +280,38 @@ textarea {
 
 @keyframes l16 {
   100% {
-    transform: rotate(1turn)
+    transform: rotate(1turn);
+  }
+}
+
+@layer utilities {
+  .scrollbar-dashboard {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-neutral-600) var(--erp-scrollbar-track);
+    -ms-overflow-style: auto;
+  }
+
+  .scrollbar-dashboard::-webkit-scrollbar {
+    width: 0.5rem;
+  }
+
+  .scrollbar-dashboard::-webkit-scrollbar-track {
+    border-radius: 9999px;
+    background-color: var(--erp-scrollbar-track);
+  }
+
+  .scrollbar-dashboard::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    background-color: var(--color-neutral-600);
+  }
+
+  .scrollbar-dashboard::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-neutral-500);
+  }
+
+  .scrollbar-dashboard::-webkit-scrollbar-thumb:active {
+    background-color: var(--color-neutral-400);
   }
 }
