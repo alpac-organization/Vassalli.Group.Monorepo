@@ -8,8 +8,10 @@ export class AxiosHttpAdapter implements IHttpHandler {
 
    private instance: AxiosInstance;
    private apiKey = import.meta.env.VITE_API_KEY;
+   private isRefreshing = false;
 
    constructor() {
+
       this.instance = axios.create({
          baseURL: import.meta.env.VITE_API_URL || '/api',
          headers: {
@@ -30,8 +32,12 @@ export class AxiosHttpAdapter implements IHttpHandler {
          return config;
       });
 
+      // Interceptor to response
       this.instance.interceptors.response.use(
-         (response) => response, (error: AxiosError<ApiErrorResponse>) => {
+         (response) => response,
+         async (error: AxiosError<ApiErrorResponse>) => {
+
+            // Map the error to a custom error
             const customError: ApiErrorResponse = {
                status: error.response?.status || 500,
                error: {
@@ -41,8 +47,48 @@ export class AxiosHttpAdapter implements IHttpHandler {
                createdAt: error.response?.data?.createdAt || new Date().toISOString()
             };
 
-            if (customError.status === 401) {
+
+            const originalRequest = error.config
+
+            if (customError.status === 401 && originalRequest) {
+
+               if (this.isRefreshing) {
+                  return new Promise(() => {
+                     console.log("Entrando al refresh")
+                  })
+                     .then((token) => {
+                        originalRequest.headers['Authorization'] = `Bearer ${token}`;
+                        return this.instance(originalRequest);
+                     })
+                     .catch((error) => {
+                        return Promise.reject(error);
+                     })
+               }
+
                console.warn("Sesión expirada o inválida detectada por el interceptor.");
+            }
+
+            this.isRefreshing = true
+            const refreshToken = CookieStorageAdapter.getRefreshToken();
+            const companyId = CookieStorageAdapter.getCompanyAlias();
+
+            if (refreshToken) {
+               try {
+                  const { AuthenticationServices } = await import("@app/modules/auth/infrastructure/services/AuthenticationServices")
+                  const authService = new AuthenticationServices(this);
+                  const response = await authService.StartProcessToRefreshToken({
+                     company_id: Number(companyId), refresh_token: refreshToken
+                  });
+
+                  CookieStorageAdapter.setToken(response.access_token);
+
+                  console.log(response)
+
+               } catch (refreshError) {
+                  this.isRefreshing = false;
+                  CookieStorageAdapter.clearAuth();
+                  return Promise.reject(refreshError);
+               }
             }
 
             return Promise.reject(customError);

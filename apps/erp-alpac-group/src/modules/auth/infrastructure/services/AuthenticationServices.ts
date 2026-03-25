@@ -3,6 +3,7 @@ import type { IAuthenticationServices } from "../../application/interfaces/IAuth
 import type { LoginRequest } from "../../domain/ApiContract/Requests/login.request";
 import type { LoginResponse } from "../../domain/ApiContract/Responses/login.response";
 import type { LogoutRequest } from "../../domain/ApiContract/Requests/logout.request";
+import type { RefreshTokenRequest } from "../../domain/ApiContract/Requests/refresh.token.request";
 
 export class AuthenticationServices implements IAuthenticationServices {
 
@@ -42,9 +43,9 @@ export class AuthenticationServices implements IAuthenticationServices {
       }
    }
 
-   public async RefreshToken(refreshToken: string): Promise<LoginResponse> {
+   public async StartProcessToRefreshToken(payload: RefreshTokenRequest): Promise<any> {
       try {
-         const response = await this.apiHandler.post<LoginResponse>("/auth/refresh-token", { refresh_token: refreshToken });
+         const response = await this.apiHandler.post<any>(`/companies/${payload.company_id}/auth/refresh-token`, payload);
          return response;
       }
       catch (error) {

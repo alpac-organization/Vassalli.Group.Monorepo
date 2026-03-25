@@ -34,5 +34,5 @@ export interface IAuthenticationServices {
      * @returns {Promise<LoginResponse>} Un nuevo par de tokens (access y refresh).
      * @throws {Error} Si el refresh_token es inválido o ha expirado.
      */
-    RefreshToken(refreshToken: string): Promise<LoginResponse>;
+    StartProcessToRefreshToken(payload?: any): Promise<any>;
 }

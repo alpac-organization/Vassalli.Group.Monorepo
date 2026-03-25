@@ -9,15 +9,17 @@ import type { LogoutRequest } from "../../domain/ApiContract/Requests/logout.req
 
 const authService = new AuthenticationServices(httpHandler);
 
-export const useAuth = function(){
+export const useAuth = function () {
    const queryClient = new QueryClient();
    const navigate = useNavigate();
 
    const startLoginProcess = useMutation({
       mutationKey: ["Login"],
-      mutationFn:  (payload: LoginRequest) => authService.StartLoginProcess(payload),
-      onSuccess:   (response) => {
-         
+      mutationFn: (payload: LoginRequest) => authService.StartLoginProcess(payload),
+      onSuccess: (response) => {
+
+         console.log("response", response)
+
          //Guardamos los token que recibimos de backend.
          CookieStorageAdapter.setToken(response.access_token);
          CookieStorageAdapter.setRefreshToken(response.refresh_token);
@@ -33,8 +35,8 @@ export const useAuth = function(){
 
    const startProcessToCloseSession = useMutation({
       mutationKey: ["logout"],
-      mutationFn:  (payload: LogoutRequest) => authService.StartProcessToCloseSession(payload),
-      onSuccess:   () => {
+      mutationFn: (payload: LogoutRequest) => authService.StartProcessToCloseSession(payload),
+      onSuccess: () => {
          CookieStorageAdapter.clearAuth()
 
          navigate("/auth", {
@@ -43,7 +45,7 @@ export const useAuth = function(){
       },
       onError: () => {
          CookieStorageAdapter.clearAuth()
-         
+
          navigate("/auth", {
             replace: true
          });
