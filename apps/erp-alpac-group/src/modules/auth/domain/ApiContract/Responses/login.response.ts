@@ -55,6 +55,11 @@ export interface CompanyInformation {
     company_id: number;
 
     /** 
+     * Alias de la empresa en la base de datos centralizada.
+     */
+    alias: string;
+
+    /** 
      * URL absoluta del logotipo de la empresa para mostrar en el Header o reportes.
      * @optional Puede ser nulo si la empresa no tiene una imagen configurada.
      */

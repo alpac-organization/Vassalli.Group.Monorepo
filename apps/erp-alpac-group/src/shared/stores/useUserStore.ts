@@ -6,6 +6,7 @@ interface UserState {
     email: string;
     userName: string;
     companyName: string;
+    companyAlias: string;
 }
 
 export const useUserStore = create<UserState>()(
@@ -14,6 +15,7 @@ export const useUserStore = create<UserState>()(
         email: "",
         userName: "",
         companyName: "",
+        companyAlias: ""
     }), {
         name: "user-data",
     })

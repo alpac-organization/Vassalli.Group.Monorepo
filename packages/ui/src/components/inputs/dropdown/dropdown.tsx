@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { forwardRef, useState, useRef, useEffect } from "react";
 
 export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(({ label, options, placeholder, error, onChange, value }, ref) => {
-    
+
    const [isOpen, setIsOpen] = useState(false);
    const containerRef = useRef<HTMLDivElement>(null);
 
@@ -15,7 +15,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(({ label, opti
             setIsOpen(false);
          }
       };
-      
+
       document.addEventListener("mousedown", handleClickOutside);
 
       return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -26,18 +26,18 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(({ label, opti
       setIsOpen(false);
    };
 
-    return (
+   return (
       <div className="flex flex-col gap-1.5 w-full" ref={containerRef}>
          {
             label && (
                <label className="text-[14px] font-medium text-slate-600 ml-0.5">
                   {label}
                </label>
-            )   
+            )
          }
 
-         <div 
-            className="relative w-full" 
+         <div
+            className="relative w-full"
             ref={ref}
          >
             <button
@@ -80,7 +80,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(({ label, opti
                                  onClick={() => handleSelect(option.value)}
                                  className={`
                                     px-4 py-2.5 cursor-pointer text-[14px] flex items-center justify-between transition-colors
-                                    ${value === option.value ? "text-blue-200 bg-blue-50 font-medium" : "text-slate-600 hover:bg-slate-200"}
+                                    ${value === option.value ? "text-blue-600 bg-blue-50 font-medium" : "text-slate-600 hover:bg-slate-200"}
                                  `}
                               >
                                  <span className="truncate">{option.label}</span>
@@ -101,6 +101,6 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(({ label, opti
          </div>
          {error && <span className="text-xs text-red-500 font-medium ml-1">{error}</span>}
       </div>
-    );
-  }
+   );
+}
 );
