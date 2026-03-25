@@ -1,14 +1,15 @@
 import axios, { AxiosError, type AxiosInstance } from 'axios';
-import type { IHttpHandler } from '../ports';
-import type { ApiErrorResponse } from '../interfaces/ErrorResponse';
-import { CookieStorageAdapter } from './cookie-storage-adapter';
-import { getBrowserName } from '../enums/user-agent.enum';
+import type { IHttpHandler } from '@app/core/ports';
+import type { ApiErrorResponse } from '@app/core/interfaces/ErrorResponse';
+import { CookieStorageAdapter } from '@app/core/adapters/cookie-storage-adapter';
+import { getBrowserName } from '@app/core/enums/user-agent.enum';
+import type { CustomInternalAxiosRequestConfig } from '../interfaces/CustomInternalAxiosRequestConfig';
 
 export class AxiosHttpAdapter implements IHttpHandler {
 
    private instance: AxiosInstance;
    private apiKey = import.meta.env.VITE_API_KEY;
-   private isRefreshing = false;
+   private refreshIntervalId?: NodeJS.Timeout;
 
    constructor() {
 
@@ -20,6 +21,9 @@ export class AxiosHttpAdapter implements IHttpHandler {
             "x-device-name": getBrowserName(navigator.userAgent)
          },
       });
+
+      // Inicia el refresh token cada 20 minutos
+      this.startRefreshToken(20 * 60 * 1000);
 
       // Interceptor to request
       this.instance.interceptors.request.use((config) => {
@@ -47,53 +51,98 @@ export class AxiosHttpAdapter implements IHttpHandler {
                createdAt: error.response?.data?.createdAt || new Date().toISOString()
             };
 
+            // Obtengo la configuración de la petición original
+            // Adicionno el tipo CustomInternalAxiosRequestConfig para poder acceder a la propiedad _retry
+            const originalRequest = error.config as CustomInternalAxiosRequestConfig
 
-            const originalRequest = error.config
+            // Reviso el estado de la petición
+            if (
+               customError.status === 401 &&
+               originalRequest &&
+               !originalRequest._retry &&
+               !originalRequest.url?.includes('auth/refresh-token')
+            ) {
 
-            if (customError.status === 401 && originalRequest) {
+               // Marcar que ya se está intentando renovar el token
+               originalRequest._retry = true
 
-               if (this.isRefreshing) {
-                  return new Promise(() => {
-                     console.log("Entrando al refresh")
-                  })
-                     .then((token) => {
-                        originalRequest.headers['Authorization'] = `Bearer ${token}`;
-                        return this.instance(originalRequest);
-                     })
-                     .catch((error) => {
-                        return Promise.reject(error);
-                     })
-               }
-
-               console.warn("Sesión expirada o inválida detectada por el interceptor.");
-            }
-
-            this.isRefreshing = true
-            const refreshToken = CookieStorageAdapter.getRefreshToken();
-            const companyId = CookieStorageAdapter.getCompanyAlias();
-
-            if (refreshToken) {
                try {
-                  const { AuthenticationServices } = await import("@app/modules/auth/infrastructure/services/AuthenticationServices")
-                  const authService = new AuthenticationServices(this);
-                  const response = await authService.StartProcessToRefreshToken({
-                     company_id: Number(companyId), refresh_token: refreshToken
-                  });
 
-                  CookieStorageAdapter.setToken(response.access_token);
+                  // Intento renovar el token
+                  const response = await this.refreshToken()
 
-                  console.log(response)
+                  if (response) {
 
-               } catch (refreshError) {
-                  this.isRefreshing = false;
-                  CookieStorageAdapter.clearAuth();
-                  return Promise.reject(refreshError);
+                     // Actualizo el token en el header
+                     originalRequest.headers['Authorization'] = `Bearer ${response.access_token}`
+
+                     // Reintento la petición original con el nuevo token
+                     return this.instance(originalRequest)
+                  }
+
+               } catch (refreshTokenError) {
+
+                  // Borro las cookies de autenticación
+                  CookieStorageAdapter.clearAuth()
+
+                  // Redirijo al usuario a la página de inicio de sesión
+                  window.location.href = "/auth"
+
+                  // Rechazo la promesa para que el código que llamó al servicio pueda manejar el error
+                  return Promise.reject(refreshTokenError)
                }
             }
 
             return Promise.reject(customError);
          }
       );
+   }
+
+   private startRefreshToken(miliseconds: number) {
+      if (this.refreshIntervalId) clearInterval(this.refreshIntervalId)
+
+      this.refreshIntervalId = setInterval(async () => {
+         await this.refreshToken()
+      }, miliseconds)
+   }
+
+   private async refreshToken(): Promise<any> {
+      try {
+
+         // Obtengo el refreshToken actual
+         const refreshToken = CookieStorageAdapter.getRefreshToken()
+
+         // Obtengo el alias de la empresa
+         const companyAlias = CookieStorageAdapter.getCompanyAlias()
+
+         // Verifico que el refreshToken y el companyAlias no sean nulos
+         if (refreshToken && companyAlias) {
+
+            // Uso el servicio de autenticación para obtener el nuevo token
+            const { AuthenticationServices } = await import("@app/modules/auth/infrastructure/services/AuthenticationServices")
+
+            // Instancio el servicio de autenticación
+            const authService = new AuthenticationServices(this)
+
+            // Obtengo el nuevo token
+            const response = await authService.StartProcessToRefreshToken({
+               company_id: Number(companyAlias),
+               refresh_token: refreshToken
+            })
+
+            // Actualizo los tokens en las cookies
+            CookieStorageAdapter.setToken(response.access_token);
+            CookieStorageAdapter.setRefreshToken(response.refresh_token);
+
+            return response
+         }
+
+      } catch (refreshTokenError) {
+
+         console.error("[Proactive Refresh] Error renovando tokens:", refreshTokenError);
+      }
+
+      return null
    }
 
    async get<T>(url: string, config?: object): Promise<T> {

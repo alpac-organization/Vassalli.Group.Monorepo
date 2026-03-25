@@ -18,8 +18,6 @@ export const useAuth = function () {
       mutationFn: (payload: LoginRequest) => authService.StartLoginProcess(payload),
       onSuccess: (response) => {
 
-         console.log("response", response)
-
          //Guardamos los token que recibimos de backend.
          CookieStorageAdapter.setToken(response.access_token);
          CookieStorageAdapter.setRefreshToken(response.refresh_token);
