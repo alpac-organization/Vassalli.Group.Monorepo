@@ -4,12 +4,12 @@ import { Controller, useForm } from "react-hook-form";
 import { useCompanies } from "../../hooks/useCompanies";
 import { Alert, Button, Dropdown, InputText } from "@alpac/design-system";
 import fondoLogin from "@app/assets/login/fondoLogin.webp";
-import type { LoginRequest } from "./login.types";
 import { ContentLoaded } from "@app/shared/components/content-loaded/content-loaded";
 import { useAuth } from "../../hooks/useAuth";
 import { useImage } from "@app/shared/hooks/useImage";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import type { LoginRequest } from "@app/modules/auth/domain/ApiContract/Requests/login.request";
 
 export const LoginPage = function () {
   const { getMappedError } = useMappedError();
@@ -38,7 +38,7 @@ export const LoginPage = function () {
     defaultValues: {
       password: "",
       username: "",
-      company_id: 0,
+      company_id: "",
     },
   });
 
@@ -53,7 +53,7 @@ export const LoginPage = function () {
   const handleLogin = async function (state: LoginRequest) {
     try {
       setShowAuthError(false);
-      if (state.company_id === 0) {
+      if (state.company_id === "") {
         setError("company_id", {
           type: "value",
           message: "Debe seleccionar la empresa de origen",
@@ -118,7 +118,7 @@ export const LoginPage = function () {
                 control={control}
                 rules={{
                   required: "Debe seleccionar una empresa",
-                  validate: (val) => val !== 0 || "Selección inválida",
+                  validate: (val) => val !== "" || "Selección inválida",
                 }}
                 render={({ field }) => (
                   <Dropdown
