@@ -7,8 +7,8 @@ import type { LogoutRequest } from "../../domain/ApiContract/Requests/logout.req
 export class AuthenticationServices implements IAuthenticationServices {
 
    private apiHandler: IHttpHandler;
-   
-   public constructor(httpHandler: IHttpHandler){
+
+   public constructor(httpHandler: IHttpHandler) {
       this.apiHandler = httpHandler;
    }
 
@@ -17,7 +17,7 @@ export class AuthenticationServices implements IAuthenticationServices {
          const response = await this.apiHandler.post<LoginResponse>(`/companies/${payload.company_id}/auth/login`, payload);
          return response
       }
-      catch(error){
+      catch (error) {
          throw error;
       }
    }
@@ -26,7 +26,7 @@ export class AuthenticationServices implements IAuthenticationServices {
       try {
          await this.apiHandler.post(`companies/${payload.company_id}/auth/logout`, payload);
       }
-      catch(error){
+      catch (error) {
          throw error;
       }
    }

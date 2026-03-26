@@ -8,6 +8,9 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { Navbar } from "@app/shared/components/navbar/navbar"
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import { EmptyModulesState } from "./empty-modules-state/empty-modules-state";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { validateNameAndLastName } from "@app/shared/utils/format-name";
+import { useImage } from "@app/shared/hooks/useImage";
 
 export const HomePage = function () {
 
@@ -19,6 +22,15 @@ export const HomePage = function () {
    const { startProcessToCloseSession } = useAuth();
    const { obtainActiveModulesByCompanyId } = useModules(parseInt(company_id));
    const { data: modulesAvailables } = obtainActiveModulesByCompanyId
+   const { userName, fullName, email, companyName, companyAlias } = useUserStore();
+
+   const firstName = fullName ? fullName.split(" ")[0] : userName;
+   const validatedEmail = email ? email : userName;
+   const validatedName = validateNameAndLastName(fullName);
+
+   const companyAliasWhite = companyAlias.toLowerCase().concat(".white")
+
+   const { urlImage } = useImage(companyAliasWhite);
 
    const handleLogout = async function () {
       try {
@@ -41,10 +53,6 @@ export const HomePage = function () {
       }
    }
 
-   //Quitar esto obtenerlo de zustand store
-   const userName = "Andrés";
-   const companyName = "Alpac Group Nicaragua";
-
    return (
       <Fragment>
 
@@ -58,13 +66,14 @@ export const HomePage = function () {
 
          <Navbar
             onLogout={handleLogout}
-            user_name={userName}
-            email="example@gmail.com"
+            user_name={firstName}
+            email={validatedEmail}
+            urlImage={urlImage}
          />
 
          <HeaderHome
             company_name={companyName}
-            username={userName}
+            username={validatedName}
          />
 
          <div className="max-w-330 m-auto mt-2 p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full">

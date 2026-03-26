@@ -16,6 +16,16 @@ export interface LoginResponse {
     user_name: string;
 
     /** 
+     * Correo electrónico del usuario.
+     */
+    email: string;
+
+    /**
+     * Nombre completo del usuario.
+     */
+    full_name: string;
+
+    /** 
      * Token de acceso (JWT) necesario para autorizar peticiones al Backend.
      * Debe enviarse en el header 'Authorization: Bearer <token>'.
      */
@@ -42,13 +52,18 @@ export interface CompanyInformation {
     /** 
      * ID numérico de la empresa en la base de datos centralizada.
      */
-    company_id:   number;
+    company_id: number;
+
+    /** 
+     * Alias de la empresa en la base de datos centralizada.
+     */
+    alias: string;
 
     /** 
      * URL absoluta del logotipo de la empresa para mostrar en el Header o reportes.
      * @optional Puede ser nulo si la empresa no tiene una imagen configurada.
      */
-    image_url?:   string;
+    image_url?: string;
 
     /** 
      * Razón social o nombre comercial de la unidad de negocio.

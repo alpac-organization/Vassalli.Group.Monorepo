@@ -7,13 +7,17 @@ import fondoLogin from "@app/assets/login/fondoLogin.webp";
 import type { LoginRequest } from "./login.types";
 import { ContentLoaded } from "@app/shared/components/content-loaded/content-loaded";
 import { useAuth } from "../../hooks/useAuth";
-import { useImage } from "../../hooks/useImage";
+import { useImage } from "@app/shared/hooks/useImage";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
 export const LoginPage = function () {
+  const { getMappedError } = useMappedError();
   const { GetCompaniesQuery } = useCompanies();
   const { startLoginProcess } = useAuth();
   const [showAuthError, setShowAuthError] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { data, isLoading } = GetCompaniesQuery;
 
@@ -61,8 +65,12 @@ export const LoginPage = function () {
         company_id: state.company_id,
       });
     } catch (error) {
+
+      const mappedError = getMappedError(error as ApiErrorResponse)
       setShowAuthError(true);
       setIsExiting(false);
+      setErrorMessage(mappedError.description)
+
     } finally {
       reset();
     }
@@ -166,9 +174,8 @@ export const LoginPage = function () {
                 >
                   <Alert
                     title="Error"
-                    message="Usuario o contraseña incorrectos"
+                    message={errorMessage || "Ocurrio un error inesperado"}
                     type="error"
-                    showCloseButton
                     onClose={handleDismiss}
                   />
                 </div>
