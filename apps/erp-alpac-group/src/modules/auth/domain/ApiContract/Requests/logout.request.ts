@@ -7,7 +7,7 @@ export interface LogoutRequest {
     * Identificador único de la compañía a la que pertenece el usuario.
     * @example 101
     */
-   company_id: number;
+   company_id: string;
 
    /**
     * El token de refresco (Refresh Token) que se desea invalidar en el servidor 
