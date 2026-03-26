@@ -52,7 +52,7 @@ export interface CompanyInformation {
     /** 
      * ID numérico de la empresa en la base de datos centralizada.
      */
-    company_id: number;
+    company_id: string;
 
     /** 
      * Alias de la empresa en la base de datos centralizada.

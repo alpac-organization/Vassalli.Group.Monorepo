@@ -7,7 +7,7 @@ import type { CustomInternalAxiosRequestConfig } from '../interfaces/CustomInter
 import type { IAuthenticationServices } from '@app/modules/auth/application/interfaces/IAuthenticationServices';
 import { useInactivityStore } from '@app/shared/stores/useInactivityStore';
 
-export class AxiosHttpAdapter implements IHttpHandler {
+class AxiosHttpAdapter implements IHttpHandler {
 
    private instance: AxiosInstance;
    private apiKey = import.meta.env.VITE_API_KEY;
@@ -128,7 +128,7 @@ export class AxiosHttpAdapter implements IHttpHandler {
 
             // Obtengo el nuevo token
             const response = await this.authenticationService.StartProcessToRefreshToken({
-               company_id: Number(companyAlias),
+               company_id: companyAlias,
                refresh_token: refreshToken
             })
 

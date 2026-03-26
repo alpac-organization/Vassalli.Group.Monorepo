@@ -16,7 +16,7 @@ export interface LoginRequest {
      * Importante: El sistema de transporte (AxiosHttpAdapter) garantiza que este dato 
      * viaje cifrado mediante el protocolo HTTPS.
      */
-    password:  string;
+    password: string;
 
     /** 
      * Identificador único de la entidad o empresa a la que el usuario intenta acceder.
