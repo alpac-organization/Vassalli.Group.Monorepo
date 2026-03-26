@@ -4,12 +4,19 @@ import type { ApiErrorResponse } from '@app/core/interfaces/ErrorResponse';
 import { CookieStorageAdapter } from '@app/core/adapters/cookie-storage-adapter';
 import { getBrowserName } from '@app/core/enums/user-agent.enum';
 import type { CustomInternalAxiosRequestConfig } from '../interfaces/CustomInternalAxiosRequestConfig';
+import type { ITokenRefresh } from '@app/core/ports/ITokenRefresh';
+import { useInactivityStore } from '@app/shared/stores/useInactivityStore';
 
 export class AxiosHttpAdapter implements IHttpHandler {
 
    private instance: AxiosInstance;
    private apiKey = import.meta.env.VITE_API_KEY;
    private refreshIntervalId?: NodeJS.Timeout;
+   private refresher?: ITokenRefresh;
+
+   public setRefreshTokenService(refresher: ITokenRefresh) {
+      this.refresher = refresher;
+   }
 
    constructor() {
 
@@ -78,15 +85,14 @@ export class AxiosHttpAdapter implements IHttpHandler {
 
                      // Reintento la petición original con el nuevo token
                      return this.instance(originalRequest)
+
+                  } else {
+                     throw new Error("No se pudo renovar el token")
                   }
 
                } catch (refreshTokenError) {
 
-                  // Borro las cookies de autenticación
-                  CookieStorageAdapter.clearAuth()
-
-                  // Redirijo al usuario a la página de inicio de sesión
-                  window.location.href = "/auth"
+                  this.logout()
 
                   // Rechazo la promesa para que el código que llamó al servicio pueda manejar el error
                   return Promise.reject(refreshTokenError)
@@ -102,6 +108,8 @@ export class AxiosHttpAdapter implements IHttpHandler {
       if (this.refreshIntervalId) clearInterval(this.refreshIntervalId)
 
       this.refreshIntervalId = setInterval(async () => {
+         const { isInactive } = useInactivityStore.getState()
+         if (isInactive) return
          await this.refreshToken()
       }, miliseconds)
    }
@@ -115,17 +123,11 @@ export class AxiosHttpAdapter implements IHttpHandler {
          // Obtengo el alias de la empresa
          const companyAlias = CookieStorageAdapter.getCompanyAlias()
 
-         // Verifico que el refreshToken y el companyAlias no sean nulos
-         if (refreshToken && companyAlias) {
-
-            // Uso el servicio de autenticación para obtener el nuevo token
-            const { AuthenticationServices } = await import("@app/modules/auth/infrastructure/services/AuthenticationServices")
-
-            // Instancio el servicio de autenticación
-            const authService = new AuthenticationServices(this)
+         // Verifico que el refreshToken y el companyAlias y el refresher no sean nulos
+         if (refreshToken && companyAlias && this.refresher) {
 
             // Obtengo el nuevo token
-            const response = await authService.StartProcessToRefreshToken({
+            const response = await this.refresher.StartProcessToRefreshToken({
                company_id: Number(companyAlias),
                refresh_token: refreshToken
             })
@@ -139,11 +141,19 @@ export class AxiosHttpAdapter implements IHttpHandler {
 
       } catch (refreshTokenError) {
 
-         console.error("[Proactive Refresh] Error renovando tokens:", refreshTokenError);
+         this.logout()
+         throw refreshTokenError
       }
-
-      return null
    }
+
+   private logout() {
+      // Borro las cookies de autenticación
+      CookieStorageAdapter.clearAuth();
+
+      // Redirijo al inicio de sesión
+      window.location.href = "/auth";
+   }
+
 
    async get<T>(url: string, config?: object): Promise<T> {
       const response = await this.instance.get<T>(url, config);

@@ -4,8 +4,9 @@ import type { LoginRequest } from "../../domain/ApiContract/Requests/login.reque
 import type { LoginResponse } from "../../domain/ApiContract/Responses/login.response";
 import type { LogoutRequest } from "../../domain/ApiContract/Requests/logout.request";
 import type { RefreshTokenRequest } from "../../domain/ApiContract/Requests/refresh.token.request";
+import type { ITokenRefresh } from "@app/core/ports/ITokenRefresh";
 
-export class AuthenticationServices implements IAuthenticationServices {
+export class AuthenticationServices implements IAuthenticationServices, ITokenRefresh {
 
    private apiHandler: IHttpHandler;
    private isEmail = (value: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);

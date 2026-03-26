@@ -9,6 +9,8 @@ import type { LogoutRequest } from "../../domain/ApiContract/Requests/logout.req
 
 const authService = new AuthenticationServices(httpHandler);
 
+httpHandler.setRefreshTokenService(authService);
+
 export const useAuth = function () {
    const queryClient = new QueryClient();
    const navigate = useNavigate();
