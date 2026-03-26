@@ -20,7 +20,7 @@ export const HomePage = function () {
    const company_id = CookieStorageAdapter.getCompanyAlias() ?? '';
 
    const { startProcessToCloseSession } = useAuth();
-   const { obtainActiveModulesByCompanyId } = useModules(parseInt(company_id));
+   const { obtainActiveModulesByCompanyId } = useModules(company_id);
    const { data: modulesAvailables } = obtainActiveModulesByCompanyId
    const { userName, fullName, email, companyName, companyAlias } = useUserStore();
 

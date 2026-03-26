@@ -14,5 +14,5 @@ export interface IModuleServices {
      * * @example
      * const modules = await service.ObtainActiveModulesByCompanyId(1);
      */
-    ObtainActiveModulesByCompanyId(company_id: number): Promise<ModulesAvailableResponse[]>
+    ObtainActiveModulesByCompanyId(company_id: string): Promise<ModulesAvailableResponse[]>
 }
