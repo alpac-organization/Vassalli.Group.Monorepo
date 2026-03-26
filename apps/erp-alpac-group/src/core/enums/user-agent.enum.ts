@@ -1,12 +1,16 @@
-
 export const UserAgentEnum = {
-    FIREFOX: "Mozilla Firefox",
-    SAMSUNG_BROWSER: "Samsung Browser",
-    OPERA: "Opera",
-    INTERNET_EXPLORER: "Internet Explorer",
-    MICROSOFT_EDGE: "Microsoft Edge",
-    GOOGLE_CHROME: "Google Chrome",
-    APPLE_SAFARI: "Apple Safari",
+    ["SamsungBrowser"]: "Samsung Browser",
+    ["OPR"]: "Opera",
+    ["MSIE"]: "Internet Explorer",
+    ["Edge"]: "Microsoft Edge",
+    ["Chrome"]: "Google Chrome",
+    ["Safari"]: "Apple Safari",
+    ["Firefox"]: "Mozilla Firefox",
 } as const;
 
 export type UserAgentType = (typeof UserAgentEnum)[keyof typeof UserAgentEnum];
+
+export const getBrowserName = (keyUserAgent: string): any => {
+    const [browserName] = Object.keys(UserAgentEnum).filter((key) => keyUserAgent.includes(key))
+    return UserAgentEnum[browserName as keyof typeof UserAgentEnum];
+}
