@@ -56,7 +56,6 @@ export const HomePage = function () {
       const [response] = await Promise.all([requestPromise, minimumDelay]);
       if (response.has_Access) {
         console.log(response.has_Access);
-        //navigate(`/modulo/${moduleCode}`);
         navigate("dashboard");
       } else {
         console.log(response.has_Access);
@@ -112,7 +111,7 @@ export const HomePage = function () {
         ) : (
           (modulesAvailables || []).map((module) => (
             <DashBoardCard
-              key={module.module_code || module.module_name} // Ideal usar un identificador único
+              key={module.module_code || module.module_name}
               title={module.module_name}
               image="https://"
               onClick={() => handleCardClick(module.module_code)}
