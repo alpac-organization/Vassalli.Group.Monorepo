@@ -8,7 +8,7 @@ export interface GetCompaniesResponse {
      * Identificador único de la entidad legal en la base de datos central.
      * @example 101
      */
-    company_id: number;
+    company_id: string;
 
     /** 
      * Razón social completa y oficial de la empresa.
