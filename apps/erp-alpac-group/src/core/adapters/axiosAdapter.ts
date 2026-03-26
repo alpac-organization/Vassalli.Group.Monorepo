@@ -4,7 +4,7 @@ import type { ApiErrorResponse } from '@app/core/interfaces/ErrorResponse';
 import { CookieStorageAdapter } from '@app/core/adapters/cookie-storage-adapter';
 import { getBrowserName } from '@app/core/enums/user-agent.enum';
 import type { CustomInternalAxiosRequestConfig } from '../interfaces/CustomInternalAxiosRequestConfig';
-import type { ITokenRefresh } from '@app/core/ports/ITokenRefresh';
+import type { IAuthenticationServices } from '@app/modules/auth/application/interfaces/IAuthenticationServices';
 import { useInactivityStore } from '@app/shared/stores/useInactivityStore';
 
 export class AxiosHttpAdapter implements IHttpHandler {
@@ -12,10 +12,10 @@ export class AxiosHttpAdapter implements IHttpHandler {
    private instance: AxiosInstance;
    private apiKey = import.meta.env.VITE_API_KEY;
    private refreshIntervalId?: NodeJS.Timeout;
-   private refresher?: ITokenRefresh;
+   private authenticationService?: IAuthenticationServices;
 
-   public setRefreshTokenService(refresher: ITokenRefresh) {
-      this.refresher = refresher;
+   public setAuthenticationService(authenticationService: IAuthenticationServices) {
+      this.authenticationService = authenticationService;
    }
 
    constructor() {
@@ -124,10 +124,10 @@ export class AxiosHttpAdapter implements IHttpHandler {
          const companyAlias = CookieStorageAdapter.getCompanyAlias()
 
          // Verifico que el refreshToken y el companyAlias y el refresher no sean nulos
-         if (refreshToken && companyAlias && this.refresher) {
+         if (refreshToken && companyAlias && this.authenticationService) {
 
             // Obtengo el nuevo token
-            const response = await this.refresher.StartProcessToRefreshToken({
+            const response = await this.authenticationService.StartProcessToRefreshToken({
                company_id: Number(companyAlias),
                refresh_token: refreshToken
             })
