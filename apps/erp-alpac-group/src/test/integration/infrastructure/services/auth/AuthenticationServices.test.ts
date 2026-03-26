@@ -11,7 +11,8 @@ describe('authentication_services_infrastructure', () => {
    const mock_login_resonse: LoginResponse = {
       access_token: "accesst_token",
       company_information: {
-         company_id: 1,
+         company_id: "",
+         alias: "",
          company_name: "almacenadora",
          image_url: "https://"
       },
@@ -23,17 +24,17 @@ describe('authentication_services_infrastructure', () => {
    beforeEach(() => {
       http_handler_mock = {
          post: vi.fn().mockResolvedValue(mock_login_resonse),
-         get:  vi.fn(),
+         get: vi.fn(),
       } as unknown as IHttpHandler;
 
       service = new AuthenticationServices(http_handler_mock);
    });
 
    it('should_call_the_correct_endpoint_including_company_id', async () => {
-      const login_payload = { 
-         username: 'test_user', 
-         password: 'password123', 
-         company_id: 101 
+      const login_payload = {
+         username: 'test_user',
+         password: 'password123',
+         company_id: 101
       };
 
       const result = await service.StartLoginProcess(login_payload);

@@ -43,9 +43,9 @@ export class AuthenticationServices implements IAuthenticationServices {
       }
    }
 
-   public async StartProcessToRefreshToken(payload: RefreshTokenRequest): Promise<any> {
+   public async StartProcessToRefreshToken(payload: RefreshTokenRequest): Promise<LoginResponse> {
       try {
-         const response = await this.apiHandler.post<any>(`/companies/${payload.company_id}/auth/refresh-token`, payload);
+         const response = await this.apiHandler.post<LoginResponse>(`/companies/${payload.company_id}/auth/refresh-token`, payload);
          return response;
       }
       catch (error) {
