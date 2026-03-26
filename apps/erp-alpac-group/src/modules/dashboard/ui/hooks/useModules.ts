@@ -4,7 +4,7 @@ import { ModuleServices } from "../../infrastructure/services/ModuleServices"
 
 const moduleServices = new ModuleServices(httpHandler);
 
-export const useModules = function(company_id: number){
+export const useModules = function (company_id: string) {
 
    const obtainActiveModulesByCompanyId = useQuery({
       queryKey: ["modules"],
@@ -12,7 +12,7 @@ export const useModules = function(company_id: number){
       retry: 1,
       refetchOnWindowFocus: false
    })
-   
+
    return {
       obtainActiveModulesByCompanyId
    }

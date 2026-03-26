@@ -5,17 +5,17 @@ import type { ModulesAvailableResponse } from "../../domain/ApiContract/Response
 export class ModuleServices implements IModuleServices {
 
    private apiHandler: IHttpHandler;
-   
-   public constructor(httpHandler: IHttpHandler){
+
+   public constructor(httpHandler: IHttpHandler) {
       this.apiHandler = httpHandler;
    }
 
-   public async ObtainActiveModulesByCompanyId(company_id: number): Promise<ModulesAvailableResponse[]>{
+   public async ObtainActiveModulesByCompanyId(company_id: string): Promise<ModulesAvailableResponse[]> {
       try {
          const modules = await this.apiHandler.get<ModulesAvailableResponse[]>(`/companies/${company_id}/modules`);
          return modules;
       }
-      catch(error){
+      catch (error) {
          throw error;
       }
    }
