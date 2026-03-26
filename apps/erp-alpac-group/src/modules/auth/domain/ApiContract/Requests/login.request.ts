@@ -25,5 +25,5 @@ export interface LoginRequest {
      * @example 101
      * @required
      */
-    company_id: number;
+    company_id: string;
 }
