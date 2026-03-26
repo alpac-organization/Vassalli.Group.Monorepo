@@ -1,21 +1,20 @@
-import AlpacLogo from "../../../assets/logos/blanco/alpac.png"
 import { LogOut } from "lucide-react";
 
-export const Navbar = function({ user_name, email, onLogout  }: { user_name: string, email: string, onLogout: () => {} }){
+export const Navbar = function ({ user_name, email, urlImage, onLogout }: { user_name: string, email: string, urlImage: string, onLogout: () => {} }) {
    return (
       <nav className="bg-[#272b34] h-25 border-b border-slate-600">
          <div className="max-w-330 flex h-full justify-between m-auto">
             <div>
-               <img className="h-full p-3" src={AlpacLogo} alt="logo alpac" />
+               <img className="h-full p-3" src={urlImage} alt="logo alpac" />
             </div>
 
             <div className="flex items-center gap-6 pr-3">
                <div className="text-right flex flex-col items-end mr-2">
                   <span className="text-white font-medium text-sm">{user_name}</span>
-                  <span className="text-[#89909E] text-xs">{ email }</span>
+                  <span className="text-[#89909E] text-xs">{email}</span>
                </div>
 
-               <button 
+               <button
                   onClick={() => onLogout()}
                   className="group flex items-center gap-2 px-5 py-2.5 
                               bg-transparent border border-[#3E4552] rounded-full

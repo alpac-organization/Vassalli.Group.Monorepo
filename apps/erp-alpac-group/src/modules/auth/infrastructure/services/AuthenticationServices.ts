@@ -3,21 +3,33 @@ import type { IAuthenticationServices } from "../../application/interfaces/IAuth
 import type { LoginRequest } from "../../domain/ApiContract/Requests/login.request";
 import type { LoginResponse } from "../../domain/ApiContract/Responses/login.response";
 import type { LogoutRequest } from "../../domain/ApiContract/Requests/logout.request";
+import type { RefreshTokenRequest } from "../../domain/ApiContract/Requests/refresh.token.request";
 
 export class AuthenticationServices implements IAuthenticationServices {
 
    private apiHandler: IHttpHandler;
-   
-   public constructor(httpHandler: IHttpHandler){
+   private isEmail = (value: string): boolean => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+
+   public constructor(httpHandler: IHttpHandler) {
       this.apiHandler = httpHandler;
    }
 
    public async StartLoginProcess(payload: LoginRequest): Promise<LoginResponse> {
       try {
-         const response = await this.apiHandler.post<LoginResponse>(`/companies/${payload.company_id}/auth/login`, payload);
+
+         const key = this.isEmail(payload.username) ? "email" : "username";
+
+         const filteredPayload =
+         {
+            password: payload.password,
+            [key]: payload.username,
+            company_id: payload.company_id
+         }
+
+         const response = await this.apiHandler.post<LoginResponse>(`/companies/${payload.company_id}/auth/login`, filteredPayload);
          return response
       }
-      catch(error){
+      catch (error) {
          throw error;
       }
    }
@@ -26,8 +38,18 @@ export class AuthenticationServices implements IAuthenticationServices {
       try {
          await this.apiHandler.post(`companies/${payload.company_id}/auth/logout`, payload);
       }
-      catch(error){
+      catch (error) {
          throw error;
+      }
+   }
+
+   public async StartProcessToRefreshToken(payload: RefreshTokenRequest): Promise<any> {
+      try {
+         const response = await this.apiHandler.post<any>(`/companies/${payload.company_id}/auth/refresh-token`, payload);
+         return response;
+      }
+      catch (error) {
+         throw error
       }
    }
 }
