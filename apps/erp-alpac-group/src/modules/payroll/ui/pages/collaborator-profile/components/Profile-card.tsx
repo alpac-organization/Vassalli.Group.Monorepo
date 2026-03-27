@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { TabId } from "@app/modules/payroll/ui/pages/collaborator-profile/types/profile-details.types";
-import PersonalInformation from "@app/modules/payroll/ui/pages/collaborator-profile/Personal-info";
-import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborator-profile/Work-info";
+import type { TabId } from "@app/modules/payroll/ui/pages/collaborator-profile/types/tabs.type";
+import { PersonalInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Personal-info";
+import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Work-info";
 
 export const ProfileCard = () => {
   const [activeTab, setActiveTab] = useState<TabId>("personal");

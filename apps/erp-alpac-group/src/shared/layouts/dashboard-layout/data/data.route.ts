@@ -1,4 +1,4 @@
-import { Settings, UsersRound } from "lucide-react";
+import { Settings, UsersRound, User } from "lucide-react";
 
 export const sidebarData = {
   logoUrl:
@@ -18,6 +18,12 @@ export const sidebarData = {
       path: "settings",
       icon: Settings,
       isFooter: true,
+    },
+    {
+      id: "Perfil",
+      label: "Perfil",
+      path: "payroll/collaborator-profile",
+      icon: User,
     },
   ],
 };
