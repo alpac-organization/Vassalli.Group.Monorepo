@@ -2,7 +2,7 @@ import { LogOut } from "lucide-react";
 
 export const Navbar = function ({ user_name, email, urlImage, onLogout }: { user_name: string, email: string, urlImage: string, onLogout: () => {} }) {
    return (
-      <nav className="bg-[#272b34] h-25 border-b border-slate-600">
+      <nav className="dark:bg-[#272b34] h-25 border-b border-slate-600">
          <div className="max-w-330 flex h-full justify-between m-auto">
             <div>
                <img className="h-full p-3" src={urlImage} alt="logo alpac" />

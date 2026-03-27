@@ -12,7 +12,7 @@ export class ModuleServices implements IModuleServices {
 
    public async ObtainActiveModulesByCompanyId(company_id: string): Promise<ModulesAvailableResponse[]> {
       try {
-         const modules = await this.apiHandler.get<ModulesAvailableResponse[]>(`/companies/${company_id}/modules`);
+         const modules = await this.apiHandler.get<ModulesAvailableResponse[]>(`/companies/${company_id}/users/modules`);
          return modules;
       }
       catch (error) {

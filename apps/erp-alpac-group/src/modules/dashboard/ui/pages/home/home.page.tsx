@@ -1,4 +1,4 @@
-import { Fragment, useState } from "react"
+import { useState } from "react"
 import { DashBoardCard, Modal } from "@alpac/design-system"
 import { useModules } from "../../hooks/useModules";
 import { HeaderHome } from "./hearder/header";
@@ -11,11 +11,15 @@ import { EmptyModulesState } from "./empty-modules-state/empty-modules-state";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { validateNameAndLastName } from "@app/shared/utils/format-name";
 import { useImage } from "@app/shared/hooks/useImage";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 export const HomePage = function () {
 
    const [showModal, setShowModal] = useState(false);
    const [isLogout, setLogout] = useState(false);
+
+   const navigate = useNavigate();
 
    const company_id = CookieStorageAdapter.getCompanyAlias() ?? '';
 
@@ -41,7 +45,7 @@ export const HomePage = function () {
          const refreshToken = CookieStorageAdapter.getRefreshToken() ?? ""
 
          await startProcessToCloseSession.mutateAsync({
-            company_id: parseInt(companyId),
+            company_id: companyId,
             refresh_token: refreshToken
          });
       }
@@ -54,7 +58,12 @@ export const HomePage = function () {
    }
 
    return (
-      <Fragment>
+      <motion.div
+         initial={{ opacity: 0, y: 20 }}
+         animate={{ opacity: 1, y: 0 }}
+         exit={{ opacity: 0, y: -20 }}
+         transition={{ duration: 0.5 }}
+      >
 
          {
             (obtainActiveModulesByCompanyId.isLoading || startProcessToCloseSession.isPending) && (
@@ -84,7 +93,13 @@ export const HomePage = function () {
                         key={module.module_name}
                         title={module.module_name}
                         image="https://"
-                        onClick={() => setShowModal(true)}
+                        onClick={() => {
+                           if (module.module_name === "Nomina") {
+                              navigate("payroll/collaborators")
+                           } else {
+                              setShowModal(true)
+                           }
+                        }}
                         description={module.description}
                      />
                   ))
@@ -99,9 +114,8 @@ export const HomePage = function () {
             onClose={() => {
                setShowModal(false);
             }}
-
          />
 
-      </Fragment>
+      </motion.div>
    )
 }

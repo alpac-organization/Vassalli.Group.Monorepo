@@ -34,7 +34,7 @@ export const DashBoardCard = ({
       >
          <CardHeader>
             <div className="absolute inset-0 bg-size-[24px_24px] bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
-            
+
             <img
                src={image || defaultImage}
                alt={title}
@@ -42,13 +42,13 @@ export const DashBoardCard = ({
             />
          </CardHeader>
 
-         <CardContent className="flex flex-col gap-1"> 
+         <CardContent className="flex flex-col gap-1">
 
             <h3 className="text-sm font-semibold text-neutral-200 group-hover:text-white transition-colors">
                {title}
             </h3>
 
-            {  
+            {
                description && (
                   <p className="text-xs text-neutral-400 leading-relaxed line-clamp-2">
                      {description}

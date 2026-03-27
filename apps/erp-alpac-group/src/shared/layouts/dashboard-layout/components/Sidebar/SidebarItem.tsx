@@ -23,7 +23,7 @@ export const SidebarItem = ({ item, isOpen, setIsOpen }: SidebarItemsProps) => {
   return (
     <div
       ref={itemRootRef}
-      className="relative group rounded-lg transition-all ease-in-out hover:bg-neutral-700/70"
+      className="relative group transition-all ease-in-out hover:bg-neutral-700/70"
       onMouseEnter={() => {
         if (!isOpen) setTooltipOpen(true);
       }}
@@ -35,18 +35,16 @@ export const SidebarItem = ({ item, isOpen, setIsOpen }: SidebarItemsProps) => {
         onClick={handleClick}
         className={({ isActive }) =>
           `
-          relative flex items-center w-full overflow-hidden rounded-lg px-3 py-2.5
+          relative flex items-center w-full overflow-hidden px-3 py-2.5
           text-sm font-medium leading-none
           transition-all duration-200 ease-in-out
           focus-visible:none no-underline! hover:hover:no-underline! focus:no-underline! focus-visible:focus-visible:no-underline!
           outline-none focus:outline-none focus-visible:outline-none ring-0 focus:ring-0 focus-visible:ring-0
-          ${
-            isActive
-              ? `
+          ${isActive
+            ? `
               bg-blue-500/12 text-blue-100
-              shadow-[inset_0_0_0_1px_rgba(59,130,246,0.25)]
               `
-              : `
+            : `
               text-neutral-400
               bg-transparent
               hover:bg-neutral-700/50 hover:text-white
@@ -60,7 +58,7 @@ export const SidebarItem = ({ item, isOpen, setIsOpen }: SidebarItemsProps) => {
             {isActive && (
               <span
                 aria-hidden
-                className="pointer-events-none absolute left-0 top-1/2 h-9 w-[3px] -translate-y-1/2 rounded-full bg-linear-to-b from-sky-400 via-blue-500 to-blue-600 shadow-[3px_0_16px_rgba(59,130,246,0.45)]"
+                className="pointer-events-none absolute left-0 top-1/2 h-9 w-[3px] -translate-y-1/2 rounded-full bg-linear-to-b from-sky-400 via-blue-500 to-blue-600"
               />
             )}
 

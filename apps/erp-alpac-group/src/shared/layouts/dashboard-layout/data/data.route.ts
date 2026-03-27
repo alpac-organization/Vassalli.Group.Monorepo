@@ -1,4 +1,4 @@
-import { Users, Box, Settings, UsersRound } from "lucide-react";
+import { Settings, UsersRound } from "lucide-react";
 
 export const sidebarData = {
   logoUrl:
@@ -7,21 +7,9 @@ export const sidebarData = {
 
   items: [
     {
-      id: "products",
-      label: "Products",
-      path: "products",
-      icon: Box,
-    },
-    {
-      id: "clients",
-      label: "Clients",
-      path: "clients",
-      icon: Users,
-    },
-    {
-      id: "colaboradores",
+      id: "collaborators",
       label: "Colaboradores",
-      path: "colaboradores",
+      path: "payroll/collaborators",
       icon: UsersRound,
     },
     {

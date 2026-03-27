@@ -14,7 +14,7 @@ export default function Sidebarlayout({
 
   return (
     <aside
-      className={`bg-neutral-800 border-r border-neutral-700 flex flex-col transition-all duration-300 ease-in-out z-50 h-screen shrink-0 fixed md:relative top-0 left-0
+      className={`dark:bg-[#272b34] border-r border-neutral-700 flex flex-col transition-all duration-300 ease-in-out z-50 h-screen shrink-0 fixed md:relative top-0 left-0
         ${isOpen ? "translate-x-0 w-full md:w-64" : "-translate-x-full md:translate-x-0 md:w-20"}
       `}
     >
@@ -27,9 +27,8 @@ export default function Sidebarlayout({
               className="h-8 w-8 rounded-lg shrink-0"
             />
             <span
-              className={`ml-3 text-sm font-bold text-white whitespace-nowrap transition-all duration-300 ${
-                isOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
-              }`}
+              className={`ml-3 text-sm font-bold text-white whitespace-nowrap transition-all duration-300 ${isOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
+                }`}
             >
               {nameCompany}
             </span>
@@ -39,7 +38,7 @@ export default function Sidebarlayout({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="md:hidden shrink-0 p-2 text-neutral-400 hover:text-white bg-[#1E1E2D] rounded-lg border border-neutral-700"
+              className="md:hidden shrink-0 p-2 hover:text-white rounded-lg cursor-pointer hover:bg-neutral-800"
             >
               <X size={20} />
             </button>
@@ -47,7 +46,8 @@ export default function Sidebarlayout({
         </div>
       </header>
 
-      <div className="scrollbar-dashboard flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-4 pt-5 pb-4">
+      {/* <div className="scrollbar-dashboard flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-4 pt-5 pb-4"> */}
+      <div className="scrollbar-dashboard flex min-h-0 flex-1 flex-col gap-2 py-5 overflow-y-auto">
         {mainItems.map((item) => (
           <SidebarItem
             key={item.id}
@@ -59,7 +59,7 @@ export default function Sidebarlayout({
       </div>
 
       {footerItems.length > 0 && (
-        <footer className="shrink-0 border-t border-neutral-700 px-4 pt-3 pb-4 space-y-2">
+        <footer className="shrink-0 border-t border-neutral-700 px-3 py-3 space-y-2">
           {footerItems.map((item) => (
             <SidebarItem
               key={item.id}

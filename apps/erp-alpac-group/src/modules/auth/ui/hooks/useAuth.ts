@@ -21,10 +21,12 @@ export const useAuth = function () {
       mutationFn: (payload: LoginRequest) => authService.StartLoginProcess(payload),
       onSuccess: (response) => {
 
+         const companyAlias = response.company_information.alias.toLowerCase();
+
          //Guardamos los token que recibimos de backend.
          CookieStorageAdapter.setToken(response.access_token);
          CookieStorageAdapter.setRefreshToken(response.refresh_token);
-         CookieStorageAdapter.setCompanyAlias(response.company_information.company_id.toString());
+         CookieStorageAdapter.setCompanyAlias(companyAlias);
 
          useUserStore.setState({
             fullName: response.full_name,
@@ -34,7 +36,7 @@ export const useAuth = function () {
             companyAlias: response.company_information.alias
          })
 
-         navigate(`/${response.company_information.company_id}/dashboard`, {
+         navigate(`/${companyAlias}/dashboard`, {
             replace: true
          });
 
