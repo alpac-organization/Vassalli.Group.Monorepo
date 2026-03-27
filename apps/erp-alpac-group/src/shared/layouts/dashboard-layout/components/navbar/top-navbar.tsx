@@ -10,11 +10,11 @@ export const TopNavbar = ({ isOpen, setIsOpen }: TopNavbarProps) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
-    <header className="h-16 bg-neutral-800 border-b border-neutral-700 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30 relative">
+    <header className="h-16 dark:bg-[#272b34] border-b border-neutral-700 flex items-center justify-between px-4 sm:px-6 shrink-0 z-30 relative">
       <div className="flex items-center gap-4">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="p-2 bg-[#1E1E2D] hover:bg-[#2A2A3D] text-white rounded-lg transition-colors border border-neutral-700"
+          className="p-2 cursor-pointer hover:bg-neutral-800 text-white rounded-lg transition-colors "
         >
           {isOpen ? <X size={20} /> : <Menu size={20} />}
         </button>

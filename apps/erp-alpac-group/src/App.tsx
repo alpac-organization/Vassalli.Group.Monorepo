@@ -6,6 +6,7 @@ import Main from "@app/main"
 import { MainRoutes } from "@app/routers/main-routes"
 import { ThemeProvider } from "@alpac/design-system"
 import { InactivityProvider } from "@app/shared/providers/inactivity-provider"
+import { MotionConfig } from "framer-motion"
 
 const queryClient = new QueryClient()
 const router = createBrowserRouter(MainRoutes)
@@ -18,10 +19,12 @@ root.render(
    <ThemeProvider>
       <InactivityProvider />
 
-      <Main
-         router={router}
-         queryClient={queryClient}
-      />
+      <MotionConfig reducedMotion="user">
+         <Main
+            router={router}
+            queryClient={queryClient}
+         />
+      </MotionConfig>
 
    </ThemeProvider>
 )

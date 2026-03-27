@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { CopyRight } from "@app/shared/components/copy-right/copy-right";
 import { useInactivityGuard } from "@app/shared/hooks/useInactivityGuard";
+import { AnimatePresence } from "framer-motion";
 
 export const ContainerCopyright = () => {
 
@@ -9,7 +10,9 @@ export const ContainerCopyright = () => {
    return (
       <div className="flex flex-col min-h-screen w-full">
          <main className="grow flex flex-col w-full">
-            <Outlet />
+            <AnimatePresence mode="wait">
+               <Outlet />
+            </AnimatePresence>
          </main>
 
          <footer className="w-full py-4 block mt-auto border-t border-t-slate-600">
