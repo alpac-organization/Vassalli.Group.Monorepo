@@ -1,7 +1,7 @@
 import { InputProps } from "./input-text.types";
 import { forwardRef, useState } from "react";
 
-export const InputText = forwardRef<HTMLInputElement, InputProps>(({ label, error, icon, className, isPassword, type, ...rest }, ref) => {
+export const InputText = forwardRef<HTMLInputElement, InputProps>(({ label, error, icon, className, labelClassName, isPassword, type, ...rest }, ref) => {
    const [showPassword, setShowPassword] = useState(false);
 
    const inputType = isPassword ? (showPassword ? "text" : "password") : type;
@@ -11,7 +11,7 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(({ label, erro
 
          {
             label && (
-               <label className="text-[14px] font-medium text-slate-600 ml-0.5">
+               <label className={`text-[14px] font-medium ml-0.5 ${labelClassName || "text-slate-600"}`}>
                   {label}
                </label>
             )

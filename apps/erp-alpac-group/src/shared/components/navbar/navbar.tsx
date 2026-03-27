@@ -2,12 +2,12 @@ import { LogOut } from "lucide-react";
 
 export const Navbar = function ({ user_name, email, urlImage, onLogout }: { user_name: string, email: string, urlImage: string, onLogout: () => {} }) {
    return (
-      <nav className="dark:bg-[#272b34] h-16 md:h-20 border-b border-slate-600">
-         <div className="container px-4 py-4 max-w-330 flex h-full justify-between m-auto">
+      <nav className="dark:bg-[#272b34] h-24 md:h-28 border-b border-slate-600 flex items-center px-4">
+         <div className="container max-w-330 flex h-full justify-between items-center m-auto">
 
             {/* Logo area */}
             <div className="shrink-0 flex items-center">
-               <img className="h-25 p-3" src={urlImage} alt="logo" />
+               <img className="h-18 md:h-20 object-contain" src={urlImage} alt="logo" />
             </div>
 
             {/*Right side actions*/}
@@ -26,7 +26,7 @@ export const Navbar = function ({ user_name, email, urlImage, onLogout }: { user
                {/* Logout button */}
                <button
                   onClick={() => onLogout()}
-                  className="group flex items-center gap-2 px-3 py-2 md:px-5 md:py-2.5 
+                  className="group flex items-center justify-center gap-2 h-12 w-20 md:w-55 px-3 md:px-5 
                               bg-transparent border border-[#3E4552] rounded-full
                               text-[#89909E] font-medium text-sm
                               hover:bg-alpac-secondary-500 
@@ -43,7 +43,7 @@ export const Navbar = function ({ user_name, email, urlImage, onLogout }: { user
                               focus:ring-offset-[#1A1D24]"
                >
                   <LogOut className="text-[#89909E] group-hover:text-white transition-colors" size={18} />
-                  <span className="hidden lg:block">Cerrar Sesión</span>
+                  <span className="hidden md:block">Cerrar Sesión</span>
                </button>
             </div>
          </div>
