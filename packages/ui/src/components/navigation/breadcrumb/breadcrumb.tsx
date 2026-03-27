@@ -15,7 +15,7 @@ export const Breadcrumb = function (props: BreadcrumbProps): React.ReactElement 
                             <li key={item.label + index} className="flex items-center">
                                 {index > 0 && (
                                     <svg
-                                        className="w-3 h-3 mx-1"
+                                        className="w-2.5 h-2.5 mx-1"
                                         aria-hidden="true"
                                         xmlns="http://www.w3.org/2000/svg"
                                         fill="none"

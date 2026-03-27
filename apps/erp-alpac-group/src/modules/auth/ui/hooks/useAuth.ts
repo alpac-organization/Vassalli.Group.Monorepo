@@ -32,6 +32,7 @@ export const useAuth = function () {
             fullName: response.full_name,
             email: response.email,
             userName: response.user_name,
+            companyId: response.company_information.company_id,
             companyName: response.company_information.company_name.toString(),
             companyAlias: response.company_information.alias
          })

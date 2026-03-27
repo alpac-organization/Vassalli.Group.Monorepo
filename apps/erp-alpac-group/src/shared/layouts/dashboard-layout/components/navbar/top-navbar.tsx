@@ -28,7 +28,7 @@ export const TopNavbar = ({ isOpen, setIsOpen }: TopNavbarProps) => {
           onClick={() => setDropdownOpen(!dropdownOpen)}
           className="flex items-center gap-2 hover:bg-[#1E1E2D] p-2 rounded-lg transition-colors"
         >
-          <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-500 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-[#2962ff] text-white flex items-center justify-center">
             <User size={16} />
           </div>
           <span className="text-sm font-medium hidden sm:block">Mi cuenta</span>
