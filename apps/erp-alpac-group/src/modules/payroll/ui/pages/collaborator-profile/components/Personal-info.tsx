@@ -57,8 +57,8 @@ export const PersonalInformation = () => {
       console.log(`Campo actualizado -> ${name}: ${value}`);
 
       setAlertInfo({
-        type: "error",
-        title: "¡no Actualizado!",
+        type: "success",
+        title: "¡Actualizado!",
         message: "El campo se ha guardado correctamente.",
       });
     } catch (error) {
