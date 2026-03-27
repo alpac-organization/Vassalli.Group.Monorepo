@@ -21,12 +21,10 @@ export const HomePage = function () {
 
    const navigate = useNavigate();
 
-   const company_id = CookieStorageAdapter.getCompanyAlias() ?? '';
-
+   const { userName, fullName, email, companyId, companyName, companyAlias } = useUserStore();
    const { startProcessToCloseSession } = useAuth();
-   const { obtainActiveModulesByCompanyId } = useModules(company_id);
+   const { obtainActiveModulesByCompanyId } = useModules(companyId);
    const { data: modulesAvailables } = obtainActiveModulesByCompanyId
-   const { userName, fullName, email, companyName, companyAlias } = useUserStore();
 
    const firstName = fullName ? fullName.split(" ")[0] : userName;
    const validatedEmail = email ? email : userName;

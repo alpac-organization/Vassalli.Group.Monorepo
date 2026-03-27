@@ -2,7 +2,7 @@ import { Breadcrumb, StatsCard } from "@alpac/design-system"
 import { useImage } from "@app/shared/hooks/useImage"
 import { useUserStore } from "@app/shared/stores/useUserStore"
 import { motion } from "framer-motion"
-import { UserIcon } from "lucide-react"
+import { HospitalIcon, TreePalmIcon, UserIcon, UserRoundPlusIcon } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 export const CollaboratorPage = function () {
@@ -36,16 +36,16 @@ export const CollaboratorPage = function () {
                         <h3 className="p-0! m-0!">Colaboradores</h3>
                         <small className="text-gray-500 dark:text-gray-300">Descripcion de colaboradores y sus estadisticas</small>
                     </div>
-                    <img className="h-10 sm:h-14 md:h-16 w-auto object-contain" src={urlImage} alt="logo alpac" />
+                    <img className="h-12 sm:h-16 md:h-20 w-auto object-contain" src={urlImage} alt="logo alpac" />
                 </div>
             </div>
 
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatsCard title="Collaborator" value="100" icon={<UserIcon size={30} />} />
-                <StatsCard title="Collaborator" value="100" icon={<UserIcon size={30} />} />
-                <StatsCard title="Collaborator" value="100" icon={<UserIcon size={30} />} />
-                <StatsCard title="Collaborator" value="100" icon={<UserIcon size={30} />} />
+                <StatsCard title="Activos" value="100" trend="Incremento del 10%" trendType="up" icon={<UserIcon size={30} />} />
+                <StatsCard title="Vacaciones" value="100" trend="Decremento del 10%" trendType="down" icon={<TreePalmIcon size={30} />} />
+                <StatsCard title="Subsidios" value="100" trend="Incremento del 10%" trendType="up" icon={<HospitalIcon size={30} />} />
+                <StatsCard title="Total" value="100" trend="Decremento del 10%" trendType="down" icon={<UserRoundPlusIcon size={30} />} />
             </div>
         </motion.div>
     )

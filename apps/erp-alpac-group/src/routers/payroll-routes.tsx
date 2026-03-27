@@ -1,5 +1,5 @@
 import type { RouteObject } from "react-router-dom";
-import { CollaboratorPage } from "@app/modules/payroll/ui/pages/collaborator.page";
+import { CollaboratorPage } from "@app/modules/payroll/ui/pages/collaborator-index/collaborator.page";
 
 
 export const PayrollRoutes: RouteObject[] = [
