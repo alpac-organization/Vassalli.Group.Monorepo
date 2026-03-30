@@ -19,15 +19,18 @@ import { useNavigate } from "react-router-dom";
 import { useForm, type SubmitHandler, Controller } from "react-hook-form";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
-import { ContentLoaded } from "@app/shared/components/content-loaded/content-loaded";
 import { useState } from "react";
+import { Loader } from "@app/shared/components/loaders/loader";
+import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
 
 export const CollaboratorPage = function () {
   const [filters, setFilters] = useState<CollaboratorRequest>({
+    identification_number: "",
+    branch_id: 0,
+    area_id: 0,
+    page_number: 1,
+    page_size: 10,
     status: "",
-    identification: "",
-    position: "",
-    area: "",
   } as CollaboratorRequest);
 
   const navigate = useNavigate();
@@ -38,32 +41,48 @@ export const CollaboratorPage = function () {
 
   const { urlImage } = useImage(companyAliasWhite);
 
-  const { register, handleSubmit, control } = useForm<CollaboratorRequest>({
-    defaultValues: {
-      identification: "",
-      position: "",
-      area: "",
-      status: "",
-    },
-  });
+  const { register, handleSubmit, control } = useForm<CollaboratorRequest>();
 
   const { companyId, moduleCode } = useUserStore();
 
   const { GetCollaboratorsQuery } = useCollaborators({
+    ...filters,
     company_id: companyId,
     module_code: moduleCode,
   });
 
-  const { data: collaborators = [] } = GetCollaboratorsQuery;
-
-  // Principal loading screen
-  if (GetCollaboratorsQuery.isPending) {
-    return <ContentLoaded />;
-  }
+  const { data: collaborators = { data: [] } } = GetCollaboratorsQuery;
 
   const onSubmit: SubmitHandler<CollaboratorRequest> = async (data) => {
-    setFilters(data);
+    setFilters((prev) => ({ ...prev, ...data }));
   };
+
+  const columnConfig = [
+    { key: "collaborator_code", label: "Código" },
+    { key: "identification_number", label: "Identificación" },
+    { key: "full_name", label: "Nombre Completo" },
+    { key: "work_area", label: "Área" },
+    { key: "work_position", label: "Posición" },
+    { key: "status", label: "Estado" },
+    {
+      key: "actions",
+      label: "Acciones",
+      render: (value: GetCollaboratorsResponse) => (
+        <Button
+          label="Ver Perfil"
+          size="small"
+          className="text-[13px]! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+          onClick={() => {
+            navigate("/payroll/collaborator-profile", {
+              state: {
+                identification_number: value.identification_number,
+              },
+            });
+          }}
+        />
+      ),
+    },
+  ];
 
   return (
     <motion.div
@@ -73,6 +92,10 @@ export const CollaboratorPage = function () {
       transition={{ duration: 0.5 }}
       className="flex flex-col gap-4"
     >
+      {GetCollaboratorsQuery.isPending && (
+        <Loader title={"Cargando Colaboradores..."} />
+      )}
+
       <div className="flex justify-start">
         <Breadcrumb
           items={[
@@ -158,13 +181,13 @@ export const CollaboratorPage = function () {
               labelClassName="text-black! dark:text-white!"
               type="text"
               placeholder="Ingrese la identificación"
-              {...register("identification", { required: false })}
+              {...register("identification_number", { required: false })}
             />
           </div>
 
           <div className="flex flex-col">
             <Controller
-              name="position"
+              name="branch_id"
               control={control}
               rules={{
                 required: false,
@@ -191,7 +214,7 @@ export const CollaboratorPage = function () {
 
           <div className="flex flex-col">
             <Controller
-              name="area"
+              name="area_id"
               control={control}
               rules={{
                 required: false,
@@ -269,8 +292,8 @@ export const CollaboratorPage = function () {
       <div className="flex flex-col">
         <DataTable
           title="Lista de colaboradores"
-          data={collaborators ?? []}
-          columns={[{ key: "full_name", label: "Nombre Completo" }]}
+          data={collaborators.data ?? []}
+          columns={columnConfig}
         />
       </div>
     </motion.div>

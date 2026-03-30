@@ -1,4 +1,4 @@
-import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
+import type { GetCollaboratorsListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
 
 /**
@@ -12,10 +12,10 @@ export interface ICollaboratorServices {
    * @method GetCollaborators
    * @description Obtiene el listado de colaboradores.
    * @param {CollaboratorRequest} payload Datos de filtro para la solicitud.
-   * @returns {Promise<GetCollaboratorsResponse[]>} Promesa con el listado de colaboradores.
+   * @returns {Promise<GetCollaboratorsListResponse>} Promesa con el listado de colaboradores.
    * @throws {Error} Si hay un error en la solicitud.
    */
   GetCollaborators(
     payload: CollaboratorRequest,
-  ): Promise<GetCollaboratorsResponse[]>;
+  ): Promise<GetCollaboratorsListResponse>;
 }
