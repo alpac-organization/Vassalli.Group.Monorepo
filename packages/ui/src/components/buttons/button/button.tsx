@@ -10,6 +10,7 @@ export const Button = function (props: ButtonProps): React.ReactElement {
     label = "label",
     disabled = false,
     styles,
+    className,
     isLoading = false,
     onClick = () => { }
   } = props;
@@ -21,7 +22,7 @@ export const Button = function (props: ButtonProps): React.ReactElement {
       <button
         type={type}
         style={styles}
-        className={`${classes}`}
+        className={`${classes} ${className}`}
         disabled={disabled}
         onClick={onClick}
       >

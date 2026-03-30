@@ -10,6 +10,7 @@ export type ButtonProps = {
     disabled?: boolean,
     isDynamic?: boolean,
     styles?: React.CSSProperties,
+    className?: string,
     isLoading?: boolean,
     onClick?: (evt: React.MouseEvent<HTMLButtonElement>) => void;
 }

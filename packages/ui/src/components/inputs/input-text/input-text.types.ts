@@ -5,4 +5,7 @@ export interface InputProps
   icon?: React.ReactNode;
   isPassword?: boolean;
   editable?: boolean;
+  icon?: React.ReactNode;
+  isPassword?: boolean;
+  labelClassName?: string;
 }

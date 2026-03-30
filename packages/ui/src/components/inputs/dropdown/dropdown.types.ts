@@ -11,4 +11,7 @@ export interface DropdownProps {
    name?: string;
    onChange?: (value: any) => void;
    value?: any;
+   className?: string;
+   labelClassName?: string;
+   valueClassName?: string;
 }
