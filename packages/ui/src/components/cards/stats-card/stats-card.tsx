@@ -5,8 +5,6 @@ import { TrendingDown, TrendingUp } from "lucide-react";
 export const StatsCard = function (props: StatsCardProps): React.ReactElement {
     const { title, value, icon, trend, trendType } = props;
 
-    const trendColor = trendType === "up" ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400";
-
     return (
         <Fragment>
             <div className="relative p-6 rounded-lg overflow-hidden border border-slate-600 hover:border-neutral-600 bg-white dark:bg-[#272b34]">
@@ -17,7 +15,7 @@ export const StatsCard = function (props: StatsCardProps): React.ReactElement {
                             items-center 
                             space-x-2 
                             rtl:space-x-reverse 
-                            text-lg 
+                            text-lg! 
                             font-semibold 
                             text-gray-500 
                             dark:text-gray-300">
@@ -53,7 +51,7 @@ export const StatsCard = function (props: StatsCardProps): React.ReactElement {
                                 flex items-center 
                                 justify-between 
                                 text-sm 
-                                font-medium ${trendColor}`}>
+                                font-medium`}>
                                 <span>{trend}</span>
                                 {trendType === "up" ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
                             </div>

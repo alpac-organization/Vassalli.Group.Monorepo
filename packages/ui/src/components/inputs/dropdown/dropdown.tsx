@@ -2,7 +2,15 @@ import { DropdownProps } from "./dropdown.types";
 import { motion, AnimatePresence } from "framer-motion";
 import { forwardRef, useState, useRef, useEffect } from "react";
 
-export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(({ label, options, placeholder, error, onChange, value }, ref) => {
+export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(({
+   label,
+   options,
+   placeholder,
+   error, onChange,
+   value, className,
+   labelClassName,
+   valueClassName
+}, ref) => {
 
    const [isOpen, setIsOpen] = useState(false);
    const containerRef = useRef<HTMLDivElement>(null);
@@ -30,7 +38,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(({ label, opti
       <div className="flex flex-col gap-1.5 w-full" ref={containerRef}>
          {
             label && (
-               <label className="text-[14px] font-medium text-slate-600 ml-0.5">
+               <label className={`text-[14px] font-medium ml-0.5 ${labelClassName || "text-slate-600"}`}>
                   {label}
                </label>
             )
@@ -48,9 +56,10 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(({ label, opti
                   bg-white transition-all duration-200 text-[15px] outline-none
                   ${isOpen ? "border-blue-500 ring-2 ring-blue-50" : "border-blue-200 hover:border-blue-300"}
                   ${error ? "border-red-400 ring-red-50" : ""}
+                  ${className}
                `}
             >
-               <span className={`truncate ${!selectedOption ? "text-slate-500" : "text-zinc-900"}`}>
+               <span className={`truncate ${!selectedOption ? "text-slate-500" : (valueClassName || "text-zinc-900")}`}>
                   {selectedOption ? selectedOption.label : placeholder}
                </span>
 
