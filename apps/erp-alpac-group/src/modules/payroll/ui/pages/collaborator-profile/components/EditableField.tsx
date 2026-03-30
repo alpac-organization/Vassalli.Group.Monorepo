@@ -5,8 +5,9 @@ import type { EditableFieldProps } from "../types/utils.type";
 
 const customInputClasses = `
   !h-[42px] !transition-all !duration-200
-  dark:!bg-[#1a1c20] dark:!text-white dark:!border-transparent focus:dark:!border-blue-500/50
-  disabled:dark:!bg-transparent disabled:dark:!text-slate-300 disabled:dark:!border-transparent disabled:!px-0 disabled:!opacity-100 disabled:!shadow-none
+  dark:!bg-[#1e2229] dark:!text-white dark:!border-slate-600/50 dark:!px-3
+  focus:dark:!border-cyan-500/60 focus:dark:!ring-2 focus:dark:!ring-cyan-500/20
+  disabled:dark:!bg-[#1e2229] disabled:dark:!text-slate-200 disabled:dark:!border-slate-700/50 disabled:!px-3 disabled:!opacity-100 disabled:!shadow-none disabled:!font-medium
 `;
 
 export const EditableField = ({
@@ -60,12 +61,13 @@ export const EditableField = ({
     !currentValue || String(currentValue).trim() === "" || isUpdating;
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
-      <label className="text-[12px] font-medium text-slate-500 dark:text-slate-400 ml-0.5 uppercase tracking-wider">
+    <div className="flex flex-col gap-2 w-full">
+      <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+        <span className="w-1 h-1 rounded-full bg-blue-500" />
         {label}
       </label>
-      <div className="flex items-start gap-2">
-        <div className="flex-1">
+      <div className="flex items-start gap-2.5">
+        <div className="flex-1 relative">
           <InputText
             type={type}
             disabled={!isEditing || isUpdating}
@@ -74,6 +76,9 @@ export const EditableField = ({
             className={customInputClasses}
             {...register(name, validation)}
           />
+          {isEditing && (
+            <div className="absolute -top-2 -right-2 w-2 h-2 bg-cyan-500 rounded-full animate-pulse shadow-lg shadow-cyan-500/50" />
+          )}
         </div>
         <div className="flex gap-2 shrink-0">
           {!isEditing ? (
@@ -81,9 +86,9 @@ export const EditableField = ({
               type="button"
               onClick={handleStart}
               title="Editar campo"
-              className="h-[42px] w-[42px] flex items-center justify-center rounded-[10px] border-transparent bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-[#1a1c20] dark:text-slate-400 dark:hover:text-white dark:hover:bg-[#25282e] transition-colors"
+              className="h-[42px] w-[42px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:border-cyan-300 dark:hover:border-cyan-500/50 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
             >
-              <Pencil size={18} />
+              <Pencil size={16} />
             </button>
           ) : (
             <>
@@ -92,9 +97,9 @@ export const EditableField = ({
                 onClick={handleCancel}
                 disabled={isUpdating}
                 title="Cancelar edición"
-                className="h-[42px] w-[42px] flex items-center justify-center rounded-[10px] border-transparent bg-red-50 text-red-500 hover:bg-red-100 dark:bg-red-500/20 dark:text-red-400 dark:hover:bg-red-500/30 disabled:opacity-50 transition-colors"
+                className="h-[42px] w-[42px] flex items-center justify-center rounded-lg border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-300 dark:hover:border-red-500/50 disabled:opacity-50 transition-all duration-200"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
 
               <button
@@ -102,12 +107,12 @@ export const EditableField = ({
                 onClick={handleConfirm}
                 disabled={isConfirmDisabled}
                 title="Confirmar"
-                className="h-[42px] w-[42px] flex items-center justify-center rounded-[10px] border-transparent bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="h-[42px] w-[42px] flex items-center justify-center rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:border-emerald-300 dark:hover:border-emerald-500/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200"
               >
                 {isUpdating ? (
-                  <Loader2 size={18} className="animate-spin" />
+                  <Loader2 size={16} className="animate-spin" />
                 ) : (
-                  <Check size={18} />
+                  <Check size={16} />
                 )}
               </button>
             </>

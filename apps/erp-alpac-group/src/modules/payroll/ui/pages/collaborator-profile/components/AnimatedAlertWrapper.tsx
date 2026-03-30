@@ -1,29 +1,80 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 
+const TRANSITION_MS = 320;
+
+const boxTransition =
+  "transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none motion-reduce:duration-0";
+
 export const AnimatedAlertWrapper = ({
+  open,
   children,
 }: {
+  open: boolean;
   children: React.ReactNode;
 }) => {
-  const [show, setShow] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState(!!open);
+  const [visible, setVisible] = useState(false);
+  const savedRef = useRef<React.ReactNode>(null);
+
+  if (children) {
+    savedRef.current = children;
+  }
 
   useEffect(() => {
-    setMounted(true);
-    const timer = setTimeout(() => setShow(true), 50);
-    return () => clearTimeout(timer);
-  }, []);
+    if (open) {
+      if (children) {
+        savedRef.current = children;
+      }
+      setMounted(true);
+      setVisible(false);
+      let innerRaf = 0;
+      const outerRaf = requestAnimationFrame(() => {
+        innerRaf = requestAnimationFrame(() => setVisible(true));
+      });
+      return () => {
+        cancelAnimationFrame(outerRaf);
+        if (innerRaf) cancelAnimationFrame(innerRaf);
+      };
+    }
 
-  if (!mounted || typeof document === "undefined") return null;
+    setVisible(false);
+    const timer = window.setTimeout(() => {
+      setMounted(false);
+      savedRef.current = null;
+    }, TRANSITION_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [open, children]);
+
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  if (!mounted && !open) {
+    return null;
+  }
+
+  const content = children ?? savedRef.current;
+
+  if (!content) {
+    return null;
+  }
+
+  const motionClass = visible
+    ? "translate-y-0 opacity-100"
+    : "-translate-y-full opacity-0";
 
   return createPortal(
     <div
-      className={`fixed top-20 right-6 z-9999 w-full max-w-sm transition-all duration-400 ease-out transform ${
-        show ? "translate-x-0 opacity-100" : "translate-x-12 opacity-0"
-      }`}
+      className="pointer-events-none fixed inset-x-0 top-0 z-[10000] flex justify-center px-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] sm:justify-end sm:px-6 sm:pt-6"
+      role="presentation"
     >
-      {children}
+      <div
+        className={`pointer-events-auto w-full min-w-0 max-w-md md:max-w-lg ${boxTransition} ${motionClass} drop-shadow-xl`}
+      >
+        {content}
+      </div>
     </div>,
     document.body,
   );

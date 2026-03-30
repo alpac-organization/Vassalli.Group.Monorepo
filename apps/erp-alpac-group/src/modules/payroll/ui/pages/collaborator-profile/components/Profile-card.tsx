@@ -40,23 +40,25 @@ export const ProfileCard = () => {
           </button>
         </div>
 
-        <div className="relative grid">
+        <div className="relative w-full min-h-0 overflow-hidden">
           <div
-            className={`col-start-1 row-start-1 w-full transition-all duration-500 ease-in-out transform ${
+            className={`w-full transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
               activeTab === "personal"
-                ? "opacity-100 translate-y-0 z-10 pointer-events-auto"
-                : "opacity-0 translate-y-8 z-0 pointer-events-none"
+                ? "relative z-10 translate-y-0 opacity-100"
+                : "pointer-events-none absolute inset-0 z-0 -translate-y-2 overflow-hidden opacity-0"
             }`}
+            aria-hidden={activeTab !== "personal"}
           >
             <PersonalInformation />
           </div>
 
           <div
-            className={`col-start-1 row-start-1 w-full transition-all duration-500 ease-in-out transform ${
+            className={`w-full transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
               activeTab === "work"
-                ? "opacity-100 translate-y-0 z-10 pointer-events-auto"
-                : "opacity-0 translate-y-8 z-0 pointer-events-none"
+                ? "relative z-10 translate-y-0 opacity-100"
+                : "pointer-events-none absolute inset-0 z-0 -translate-y-2 overflow-hidden opacity-0"
             }`}
+            aria-hidden={activeTab !== "work"}
           >
             <WorkManagementSection />
           </div>
