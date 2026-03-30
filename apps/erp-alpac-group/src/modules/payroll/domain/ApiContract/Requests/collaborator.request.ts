@@ -6,36 +6,7 @@
 
 export interface CollaboratorRequest {
   /**
-   * Puede ser cedula nicaraguense, cedula de residencia o pasaporte
-   * @example "001-120395-0000X"
-   * @optional
-   */
-  identification?: string;
-
-  /**
-   * Cargo que desempeña el colaborador
-   * @example "Contador"
-   * @optional
-   */
-  position?: string;
-
-  /**
-   * Area a la que pertenece el colaborador
-   * @example "Tecnología"
-   * @optional
-   */
-  area?: string;
-
-  /**
-   * Estado del colaborador
-   * @example "Activo"
-   * @optional
-   */
-  status?: string;
-
-  /**
    * Id de la empresa
-   * @example "123e4567-e89b-12d3-a456-426614174000"
    * @required
    */
   company_id: string;
@@ -45,4 +16,41 @@ export interface CollaboratorRequest {
    * @required
    */
   module_code: string;
+
+  /**
+   * Numero de identificación del colaborador
+   * @example "001-120395-0000X"
+   * @optional
+   */
+  identification_number?: string;
+
+  /**
+   * Id de la sucursal
+   * @required
+   */
+  branch_id: number;
+
+  /**
+   * Id del area
+   */
+  area_id: number;
+
+  /**
+   * Numero de la pagina
+   * @required
+   */
+  page_number: number;
+
+  /**
+   * Tamaño de la pagina
+   * @required
+   */
+  page_size: number;
+
+  /**
+   * Estado del colaborador
+   * @example "Activo"
+   * @optional
+   */
+  status?: string;
 }

@@ -5,7 +5,7 @@ import { PersonalInformation } from "@app/modules/payroll/ui/pages/collaborator-
 import { ProfileSummary } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Profile-summary";
 import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Work-info";
 
-export default function CollaboratorProfilePage() {
+export function CollaboratorProfilePage() {
   const [activeTab, setActiveTab] = useState<TabId>("personal");
 
   const TABS: TabOption<TabId>[] = [
@@ -30,7 +30,6 @@ export default function CollaboratorProfilePage() {
         >
           <PersonalInformation />
         </div>
-
         <div
           className={`w-full transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
             activeTab === "work"
