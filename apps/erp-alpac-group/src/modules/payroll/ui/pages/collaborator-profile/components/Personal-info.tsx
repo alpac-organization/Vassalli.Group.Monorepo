@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { CreditCard, User, Mail, MapPin } from "lucide-react";
 import { InputText, Alert } from "@alpac/design-system";
 import { EditableField } from "./EditableField";
 import { AnimatedAlertWrapper } from "./AnimatedAlertWrapper";
@@ -58,9 +57,9 @@ export const PersonalInformation = () => {
       console.log(`Campo actualizado -> ${name}: ${value}`);
 
       setAlertInfo({
-        type: "success",
-        title: "¡Actualizado!",
-        message: "El campo se ha guardado correctamente.",
+        type: "error",
+        title: "¡error!",
+        message: "el campo no se actualio",
       });
     } catch (error) {
       setAlertInfo({
@@ -86,28 +85,13 @@ export const PersonalInformation = () => {
         ) : null}
       </AnimatedAlertWrapper>
 
-      <div className="w-full max-w-full space-y-6 mb-8">
-        <section className="w-full dark:bg-[#272b34] border-b  rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-800/30">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-cyan-500/10 dark:bg-cyan-500/10 ">
-                <CreditCard className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
-              </div>
-              <div>
-                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                  Identificación Oficial
-                </h3> */}
-                <p className="text-xs text-slate-00 dark:text-slate-400">
-                  Identificación Oficial
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="p-6 space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="flex flex-col gap-2 w-full">
-                <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-cyan-500" />
+      <div className="w-full max-w-full mb-8">
+        <section className="w-full dark:bg-[#272b34] bg-white rounded-xl border border-slate-200 dark:border-neutral-700 shadow-sm overflow-hidden">
+          <div className="p-6">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="flex min-w-0 w-full flex-col gap-2">
+                <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  <span className="h-1 w-1 shrink-0 rounded-full bg-cyan-500" />
                   Tipo de Identificación
                 </label>
                 <InputText
@@ -117,9 +101,9 @@ export const PersonalInformation = () => {
                   {...register("identificationType")}
                 />
               </div>
-              <div className="flex flex-col gap-2 w-full">
-                <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-cyan-500" />
+              <div className="flex min-w-0 w-full flex-col gap-2">
+                <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  <span className="h-1 w-1 shrink-0 rounded-full bg-cyan-500" />
                   Número de Identificación
                 </label>
                 <InputText
@@ -129,44 +113,24 @@ export const PersonalInformation = () => {
                   {...register("identificationNumber")}
                 />
               </div>
-            </div>
-            <div className="flex flex-col gap-2 w-full pt-1 border-t border-slate-200 dark:border-slate-700/30">
-              <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-emerald-500" />
-                Registrado por
-              </label>
-              <div className="flex items-center gap-2">
-                <InputText
-                  disabled
-                  editable={false}
-                  className={readOnlyInputClasses}
-                  {...register("registeredBy")}
-                />
-                <span className="px-3 py-1.5 text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-lg border border-emerald-500/20 whitespace-nowrap">
-                  Verificado
-                </span>
+              <div className="flex min-w-0 w-full flex-col gap-2">
+                <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  <span className="h-1 w-1 shrink-0 rounded-full bg-emerald-500" />
+                  Registrado por
+                </label>
+                <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+                  <InputText
+                    disabled
+                    editable={false}
+                    className={`${readOnlyInputClasses} min-w-0 flex-1`}
+                    {...register("registeredBy")}
+                  />
+                  <span className="shrink-0 self-start rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-600 whitespace-nowrap sm:self-center dark:text-emerald-400">
+                    Verificado
+                  </span>
+                </div>
               </div>
-            </div>
-          </div>
-        </section>
 
-        <section className="w-full dark:bg-[#1a1d24] bg-white rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-800/30">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/10 dark:bg-blue-500/10">
-                <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                </h3> */}
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Datos Personales
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <EditableField
                 name="firstName"
                 label="Primer Nombre"
@@ -196,28 +160,6 @@ export const PersonalInformation = () => {
                 onEditEnd={handleEditEnd}
                 onConfirmUpdate={handleFieldUpdate}
               />
-            </div>
-          </div>
-        </section>
-
-        <section className="w-full dark:bg-[#1a1d24] bg-white rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-800/30">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-teal-500/10 dark:bg-teal-500/10">
-                <Mail className="w-5 h-5 text-teal-600 dark:text-teal-400" />
-              </div>
-              <div>
-                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                  Información de Contacto
-                </h3> */}
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Información de Contacto
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <EditableField
                 name="personalEmail"
                 label="Correo Personal"
@@ -239,28 +181,6 @@ export const PersonalInformation = () => {
                 onEditEnd={handleEditEnd}
                 onConfirmUpdate={handleFieldUpdate}
               />
-            </div>
-          </div>
-        </section>
-
-        <section className="w-full dark:bg-[#1a1d24] bg-white rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-800/30">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-500/10 dark:bg-amber-500/10">
-                <MapPin className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-              </div>
-              <div>
-                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                  Ubicación
-                </h3> */}
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Dirección y localización geográfica
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <EditableField
                 name="department"
                 label="Departamento"
@@ -270,15 +190,17 @@ export const PersonalInformation = () => {
                 onEditEnd={handleEditEnd}
                 onConfirmUpdate={handleFieldUpdate}
               />
-              <EditableField
-                name="address"
-                label="Dirección Exacta"
-                formMethods={formMethods}
-                isEditing={editingFields.address}
-                onEditStart={handleEditStart}
-                onEditEnd={handleEditEnd}
-                onConfirmUpdate={handleFieldUpdate}
-              />
+              <div className="min-w-0 sm:col-span-2 lg:col-span-2">
+                <EditableField
+                  name="address"
+                  label="Dirección Exacta"
+                  formMethods={formMethods}
+                  isEditing={editingFields.address}
+                  onEditStart={handleEditStart}
+                  onEditEnd={handleEditEnd}
+                  onConfirmUpdate={handleFieldUpdate}
+                />
+              </div>
             </div>
           </div>
         </section>

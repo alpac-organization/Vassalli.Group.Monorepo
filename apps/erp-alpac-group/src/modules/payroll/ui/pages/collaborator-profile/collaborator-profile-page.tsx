@@ -1,10 +1,8 @@
 import { useState } from "react";
-import type {
-  TabId,
-  TabOption,
-} from "@app/modules/payroll/ui/pages/collaborator-profile/types/tabs.type";
-import { TabHeader } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Tabs-header";
+import { TabHeader, type TabOption } from "@alpac/design-system";
+import type { TabId } from "@app/modules/payroll/ui/pages/collaborator-profile/types/tabs.type";
 import { PersonalInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Personal-info";
+import { ProfileSummary } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Profile-summary";
 import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Work-info";
 
 export default function CollaboratorProfilePage() {
@@ -16,19 +14,12 @@ export default function CollaboratorProfilePage() {
   ];
 
   return (
-    <div className="dark w-full max-w-full flex flex-col font-sans p-6 sm:p-8 dark:bg-[#363a45] text-slate-100 min-h-0">
-      <div className="mb-8 border-b border-slate-600/40 pb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
-          Tu Perfil
-        </h1>
-        <p className="text-sm md:text-base text-slate-400">
-          Gestiona tu información personal y verifica tus datos laborales.
-        </p>
-      </div>
+    <div className="dark w-full max-w-full min-h-0 flex flex-col font-sans px-4 py-5 text-slate-100 sm:px-6 sm:py-7 md:px-8 md:py-8 dark:bg-[#363a45]">
+      <ProfileSummary />
 
       <TabHeader tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
 
-      <div className="relative mt-6 w-full min-h-0 overflow-hidden">
+      <div className="relative mt-4 w-full min-w-0 overflow-hidden sm:mt-6">
         <div
           className={`w-full transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
             activeTab === "personal"

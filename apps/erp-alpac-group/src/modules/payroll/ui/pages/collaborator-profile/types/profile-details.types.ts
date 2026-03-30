@@ -22,3 +22,9 @@ export interface WorkFormData {
   inssNumber?: string;
   bankAccountNumber?: string;
 }
+export interface ProfileSummary {
+  displayName: string;
+  logoSrc: string;
+  companyName?: string;
+  className?: string;
+}

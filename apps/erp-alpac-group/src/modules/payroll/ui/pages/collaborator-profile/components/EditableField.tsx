@@ -61,7 +61,7 @@ export const EditableField = ({
     !currentValue || String(currentValue).trim() === "" || isUpdating;
 
   return (
-    <div className="flex flex-col gap-2 w-full">
+    <div className="flex min-w-0 flex-col gap-2 w-full">
       <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
         <span className="w-1 h-1 rounded-full bg-blue-500" />
         {label}
@@ -86,7 +86,7 @@ export const EditableField = ({
               type="button"
               onClick={handleStart}
               title="Editar campo"
-              className="h-[42px] w-[42px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 hover:border-cyan-300 dark:hover:border-cyan-500/50 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
+              className="h-[42px] w-[42px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
             >
               <Pencil size={16} />
             </button>

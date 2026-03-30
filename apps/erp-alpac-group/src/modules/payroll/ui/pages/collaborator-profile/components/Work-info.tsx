@@ -1,7 +1,6 @@
 import { useForm } from "react-hook-form";
 import {
   Briefcase,
-  Mail,
   Calendar,
   CreditCard,
   Building,
@@ -27,27 +26,13 @@ export const WorkManagementSection = () => {
 
   return (
     <div className="flex flex-col w-full max-w-full min-h-0">
-      <div className="w-full max-w-full space-y-6 mb-8">
-        <section className="w-full dark:bg-[#1a1d24] bg-white rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-800/30">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-blue-500/10 dark:bg-blue-500/10">
-                <Briefcase className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                </h3> */}
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Información Laboral
-                </p>
-              </div>
-            </div>
-          </div>
+      <div className="w-full max-w-full mb-8">
+        <section className="w-full dark:bg-[#272b34] bg-white rounded-xl border border-slate-200 dark:border-neutral-700 shadow-sm overflow-hidden">
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="flex flex-col gap-2 w-full">
-                <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Building className="w-3 h-3 text-blue-500" />
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="flex min-w-0 w-full flex-col gap-2">
+                <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  <Building className="h-3 w-3 shrink-0 text-blue-500" />
                   Área de Trabajo
                 </label>
                 <InputText
@@ -57,9 +42,9 @@ export const WorkManagementSection = () => {
                   {...register("workArea")}
                 />
               </div>
-              <div className="flex flex-col gap-2 w-full">
-                <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Briefcase className="w-3 h-3 text-blue-500" />
+              <div className="flex min-w-0 w-full flex-col gap-2">
+                <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  <Briefcase className="h-3 w-3 shrink-0 text-blue-500" />
                   Posición / Cargo
                 </label>
                 <InputText
@@ -69,9 +54,9 @@ export const WorkManagementSection = () => {
                   {...register("jobPosition")}
                 />
               </div>
-              <div className="flex flex-col gap-2 w-full">
-                <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Calendar className="w-3 h-3 text-blue-500" />
+              <div className="flex min-w-0 w-full flex-col gap-2">
+                <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  <Calendar className="h-3 w-3 shrink-0 text-blue-500" />
                   Fecha de Inicio
                 </label>
                 <InputText
@@ -82,95 +67,57 @@ export const WorkManagementSection = () => {
                   {...register("startDate")}
                 />
               </div>
-            </div>
-          </div>
-        </section>
 
-        <section className="w-full dark:bg-[#1a1d24] bg-white rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-800/30">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-teal-500/10 dark:bg-teal-500/10">
-                <Mail className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+              <div className="flex min-w-0 w-full flex-col gap-2 lg:col-span-2">
+                <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  <span className="h-1 w-1 shrink-0 rounded-full bg-teal-500" />
+                  Correo de Trabajo
+                </label>
+                <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+                  <InputText
+                    type="email"
+                    disabled
+                    editable={false}
+                    className={`${readOnlyInputClasses} min-w-0 flex-1`}
+                    {...register("workEmail")}
+                  />
+                  <span className="shrink-0 self-start rounded-lg border border-teal-500/20 bg-teal-500/10 px-3 py-1.5 text-xs font-medium text-teal-600 whitespace-nowrap sm:self-center dark:text-teal-400">
+                    Activo
+                  </span>
+                </div>
               </div>
-              <div>
-                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                </h3> */}
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Contacto Corporativo
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="flex flex-col gap-2 w-full">
-              <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-teal-500" />
-                Correo de Trabajo
-              </label>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full min-w-0">
-                <InputText
-                  type="email"
-                  disabled
-                  editable={false}
-                  className={`${readOnlyInputClasses} w-full min-w-0 flex-1`}
-                  {...register("workEmail")}
-                />
-                <span className="px-3 py-1.5 text-xs font-medium bg-teal-500/10 text-teal-600 dark:text-teal-400 rounded-lg border border-teal-500/20 whitespace-nowrap shrink-0 self-start sm:self-center">
-                  Activo
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        <section className="w-full dark:bg-[#1a1d24] bg-white rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-800/30">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/10">
-                <CreditCard className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <div>
-                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                </h3> */}
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Información Financiera y Seguridad Social
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="flex flex-col gap-2 w-full">
-                <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <Shield className="w-3 h-3 text-emerald-500" />
+              <div className="flex min-w-0 w-full flex-col gap-2">
+                <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  <Shield className="h-3 w-3 shrink-0 text-emerald-500" />
                   Número de INSS
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   <InputText
                     disabled
                     editable={false}
-                    className={readOnlyInputClasses}
+                    className={`${readOnlyInputClasses} min-w-0 flex-1`}
                     {...register("inssNumber")}
                   />
-                  <div className="p-2 rounded-lg bg-emerald-500/10 shrink-0">
-                    <Shield className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <div className="shrink-0 rounded-lg bg-emerald-500/10 p-2">
+                    <Shield className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col gap-2 w-full">
-                <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                  <CreditCard className="w-3 h-3 text-emerald-500" />
+              <div className="flex min-w-0 w-full flex-col gap-2">
+                <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                  <CreditCard className="h-3 w-3 shrink-0 text-emerald-500" />
                   Cuenta Bancaria (Nómina)
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   <InputText
                     disabled
                     editable={false}
-                    className={readOnlyInputClasses}
+                    className={`${readOnlyInputClasses} min-w-0 flex-1`}
                     {...register("bankAccountNumber")}
                   />
-                  <div className="p-2 rounded-lg bg-blue-500/10 shrink-0">
-                    <Building className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <div className="shrink-0 rounded-lg bg-blue-500/10 p-2">
+                    <Building className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
               </div>

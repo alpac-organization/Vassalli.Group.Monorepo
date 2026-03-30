@@ -1,11 +1,2 @@
-export interface TabOption<T extends string> {
-  id: T;
-  label: string;
-}
-
+/** Tab keys for the collaborator profile page (domain-specific). */
 export type TabId = "personal" | "work";
-export interface TabHeaderProps<T extends string> {
-  tabs: TabOption<T>[];
-  activeTab: T;
-  onTabChange: (id: T) => void;
-}
