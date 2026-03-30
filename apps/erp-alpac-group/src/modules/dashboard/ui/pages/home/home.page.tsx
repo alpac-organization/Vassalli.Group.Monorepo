@@ -9,7 +9,7 @@ import { Navbar } from "@app/shared/components/navbar/navbar";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import { EmptyModulesState } from "./empty-modules-state/empty-modules-state";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { validateNameAndLastName } from "@app/shared/utils/format-name";
+import { validateNameAndLastName } from "@app/shared/utils/string.utils";
 import { useImage } from "@app/shared/hooks/useImage";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";

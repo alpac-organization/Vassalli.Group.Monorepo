@@ -22,6 +22,9 @@ import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators
 import { useState } from "react";
 import { Loader } from "@app/shared/components/loaders/loader";
 import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
+import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
+import { CatalogEnum } from "@app/core/enums/catalog.enum";
+import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
 
 export const CollaboratorPage = function () {
   const [filters, setFilters] = useState<CollaboratorRequest>({
@@ -35,7 +38,7 @@ export const CollaboratorPage = function () {
 
   const navigate = useNavigate();
 
-  const { companyAlias } = useUserStore();
+  const { companyId, moduleCode, companyAlias } = useUserStore();
 
   const companyAliasWhite = companyAlias.toLowerCase().concat(".white");
 
@@ -43,7 +46,10 @@ export const CollaboratorPage = function () {
 
   const { register, handleSubmit, control } = useForm<CollaboratorRequest>();
 
-  const { companyId, moduleCode } = useUserStore();
+  const { GetCatalogListQuery } = useCatalog({
+    company_id: companyId,
+    catalog_type: CatalogEnum.WORK_AREAS,
+  });
 
   const { GetCollaboratorsQuery } = useCollaborators({
     ...filters,
@@ -51,7 +57,10 @@ export const CollaboratorPage = function () {
     module_code: moduleCode,
   });
 
+  const { data: workAreas = [] } = GetCatalogListQuery;
   const { data: collaborators = { data: [] } } = GetCollaboratorsQuery;
+
+  const optionsWorkAreas = mapCatalogToOptions(workAreas);
 
   const onSubmit: SubmitHandler<CollaboratorRequest> = async (data) => {
     setFilters((prev) => ({ ...prev, ...data }));
@@ -201,12 +210,7 @@ export const CollaboratorPage = function () {
                   labelClassName="text-black! dark:text-white!"
                   valueClassName="text-black! dark:text-white!"
                   className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                  options={[
-                    { label: "Filter 1", value: "filter1" },
-                    { label: "Filter 2", value: "filter2" },
-                    { label: "Filter 3", value: "filter3" },
-                    { label: "Filter 4", value: "filter4" },
-                  ]}
+                  options={optionsWorkAreas}
                 />
               )}
             />
