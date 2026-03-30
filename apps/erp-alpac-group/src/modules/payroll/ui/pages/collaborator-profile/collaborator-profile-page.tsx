@@ -16,7 +16,7 @@ export default function CollaboratorProfilePage() {
   ];
 
   return (
-    <div className="dark w-full max-w-full flex flex-col font-sans p-6 sm:p-8 bg-[#373b44] text-slate-100 min-h-0">
+    <div className="dark w-full max-w-full flex flex-col font-sans p-6 sm:p-8 dark:bg-[#363a45] text-slate-100 min-h-0">
       <div className="mb-8 border-b border-slate-600/40 pb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
           Tu Perfil

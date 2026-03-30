@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from "framer-motion";
 export const DashboardLayout = () => {
   const { isOpenSidebar, setIsOpenSidebar } = useSessionStorageSidebar();
   const location = useLocation();
-  console.log(useLocation());
   //const filterData = sidebarData.items.filter(i=>i.path ===)
   return (
     <motion.div

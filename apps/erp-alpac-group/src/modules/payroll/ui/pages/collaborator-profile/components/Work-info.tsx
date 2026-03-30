@@ -35,11 +35,10 @@ export const WorkManagementSection = () => {
                 <Briefcase className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                  Información Laboral
-                </h3>
+                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+                </h3> */}
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Cargo y área de desempeño
+                  Información Laboral
                 </p>
               </div>
             </div>
@@ -94,11 +93,10 @@ export const WorkManagementSection = () => {
                 <Mail className="w-5 h-5 text-teal-600 dark:text-teal-400" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                  Contacto Corporativo
-                </h3>
+                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+                </h3> */}
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Correo electrónico institucional
+                  Contacto Corporativo
                 </p>
               </div>
             </div>
@@ -132,11 +130,10 @@ export const WorkManagementSection = () => {
                 <CreditCard className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                  Información Financiera y Seguridad Social
-                </h3>
+                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+                </h3> */}
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Datos bancarios y afiliación al INSS
+                  Información Financiera y Seguridad Social
                 </p>
               </div>
             </div>

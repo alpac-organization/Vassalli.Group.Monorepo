@@ -96,6 +96,13 @@ export const HomePage = function () {
             />
           ))
         )}
+        <DashBoardCard
+          key={"test"}
+          title={"testing"}
+          image="https://"
+          onClick={() => navigate("payroll/collaborator-profile")}
+          description={"description"}
+        />
       </div>
 
       <Modal

@@ -87,18 +87,18 @@ export const PersonalInformation = () => {
       </AnimatedAlertWrapper>
 
       <div className="w-full max-w-full space-y-6 mb-8">
-        <section className="w-full dark:bg-[#1a1d24] bg-white rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm overflow-hidden">
+        <section className="w-full dark:bg-[#272b34] border-b  rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-800/30">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-cyan-500/10 dark:bg-cyan-500/10">
+              <div className="p-2 rounded-lg bg-cyan-500/10 dark:bg-cyan-500/10 ">
                 <CreditCard className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
                   Identificación Oficial
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Información de registro y documentación
+                </h3> */}
+                <p className="text-xs text-slate-00 dark:text-slate-400">
+                  Identificación Oficial
                 </p>
               </div>
             </div>
@@ -157,11 +157,10 @@ export const PersonalInformation = () => {
                 <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-                  Datos Personales
-                </h3>
+                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+                </h3> */}
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Nombre completo y datos básicos
+                  Datos Personales
                 </p>
               </div>
             </div>
@@ -208,11 +207,11 @@ export const PersonalInformation = () => {
                 <Mail className="w-5 h-5 text-teal-600 dark:text-teal-400" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
                   Información de Contacto
-                </h3>
+                </h3> */}
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  Medios de comunicación personal
+                  Información de Contacto
                 </p>
               </div>
             </div>
@@ -251,9 +250,9 @@ export const PersonalInformation = () => {
                 <MapPin className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
+                {/* <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">
                   Ubicación
-                </h3>
+                </h3> */}
                 <p className="text-xs text-slate-600 dark:text-slate-400">
                   Dirección y localización geográfica
                 </p>
