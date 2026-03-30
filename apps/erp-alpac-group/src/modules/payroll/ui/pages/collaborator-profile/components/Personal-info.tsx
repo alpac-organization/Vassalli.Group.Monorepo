@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { InputText, Alert } from "@alpac/design-system";
+import { InputText, Alert, AnimatedAlertWrapper } from "@alpac/design-system";
 import { EditableField } from "./EditableField";
-import { AnimatedAlertWrapper } from "./AnimatedAlertWrapper";
 import type { PersonalFormData } from "../types/profile-details.types";
 
 const readOnlyInputClasses =

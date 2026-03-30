@@ -7,7 +7,6 @@ import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborato
 
 export function CollaboratorProfilePage() {
   const [activeTab, setActiveTab] = useState<TabId>("personal");
-
   const TABS: TabOption<TabId>[] = [
     { id: "personal", label: "Información Personal" },
     { id: "work", label: "Gestiones de Trabajo" },

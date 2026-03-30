@@ -87,8 +87,10 @@ export const HomePage = function () {
               image="https://"
               onClick={() => {
                 if (module.module_name === "Nomina") {
+                  console.log(module.module_name);
                   navigate("payroll/collaborators");
                 } else {
+                  console.log(module.module_name);
                   setShowModal(true);
                 }
               }}

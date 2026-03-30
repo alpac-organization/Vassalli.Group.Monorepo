@@ -1,21 +1,20 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+
+import type { AnimatedAlertWrapperProps } from "./animated-alert-wrapper.types";
 
 const TRANSITION_MS = 320;
 
 const boxTransition =
   "transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none motion-reduce:duration-0";
 
-export const AnimatedAlertWrapper = ({
+export function AnimatedAlertWrapper({
   open,
   children,
-}: {
-  open: boolean;
-  children: React.ReactNode;
-}) => {
+}: AnimatedAlertWrapperProps) {
   const [mounted, setMounted] = useState(!!open);
   const [visible, setVisible] = useState(false);
-  const savedRef = useRef<React.ReactNode>(null);
+  const savedRef = useRef<ReactNode | null>(null);
 
   if (children) {
     savedRef.current = children;
@@ -78,4 +77,4 @@ export const AnimatedAlertWrapper = ({
     </div>,
     document.body,
   );
-};
+}
