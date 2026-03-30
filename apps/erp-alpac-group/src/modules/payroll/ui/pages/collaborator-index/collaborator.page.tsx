@@ -26,8 +26,7 @@ export const CollaboratorPage = function () {
 
   const { companyAlias } = useUserStore();
 
-  const companyAliasWhite = companyAlias.toLowerCase().concat(".white");
-
+  const navigate = useNavigate();
   const companyAliasWhite = companyAlias.toLowerCase().concat(".white");
 
   const { urlImage } = useImage(companyAliasWhite);

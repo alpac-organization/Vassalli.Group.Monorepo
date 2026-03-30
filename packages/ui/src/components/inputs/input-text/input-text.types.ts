@@ -3,9 +3,7 @@ export interface InputProps
   label?: string;
   error?: string;
   icon?: React.ReactNode;
-  isPassword?: boolean;
   editable?: boolean;
-  icon?: React.ReactNode;
   isPassword?: boolean;
   labelClassName?: string;
 }
