@@ -1,11 +1,11 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { FormLayout } from "@app/shared/layouts";
 import { Controller, useForm } from "react-hook-form";
-import { useCompanies } from "../../hooks/useCompanies";
+import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { Alert, Button, Dropdown, InputText } from "@alpac/design-system";
 import fondoLogin from "@app/assets/login/fondoLogin.webp";
 import { ContentLoaded } from "@app/shared/components/content-loaded/content-loaded";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuth } from "@app/modules/auth/ui/hooks/useAuth";
 import { useImage } from "@app/shared/hooks/useImage";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
@@ -65,12 +65,10 @@ export const LoginPage = function () {
         company_id: state.company_id,
       });
     } catch (error) {
-
-      const mappedError = getMappedError(error as ApiErrorResponse)
+      const mappedError = getMappedError(error as ApiErrorResponse);
       setShowAuthError(true);
       setIsExiting(false);
-      setErrorMessage(mappedError.description)
-
+      setErrorMessage(mappedError.description);
     } finally {
       reset();
     }

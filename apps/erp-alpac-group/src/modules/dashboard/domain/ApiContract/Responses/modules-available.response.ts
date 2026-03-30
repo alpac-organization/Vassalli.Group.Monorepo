@@ -4,35 +4,35 @@
  * * @interface ModulesAvailableResponse
  */
 export interface ModulesAvailableResponse {
-    /**
-     * Identificador único del módulo en la base de datos.
-     * @example 101
-     */
-    module_id: number;
+  /**
+   * Identificador único del módulo en la base de datos.
+   * @example 101
+   */
+  module_id: number;
 
-    /**
-     * Nombre comercial o descriptivo del módulo.
-     * @example "Nómina"
-     */
-    module_name: string;
+  /**
+   * Nombre comercial o descriptivo del módulo.
+   * @example "Nómina"
+   */
+  module_name: string;
 
-    /**
-     * Identificador único de la empresa (Tenant). 
-     * Nota: Si el sistema soporta UUID, asegúrate de que el tipo coincida con la implementación.
-     * @example 550
-     */
-    company_id: number;
+  /**
+   * Identificador único de la empresa (Tenant).
+   * Nota: Si el sistema soporta UUID, asegúrate de que el tipo coincida con la implementación.
+   * @example 550
+   */
+  company_id: number;
 
-    /**
-     * Breve explicación de las funcionalidades incluidas en el módulo.
-     * Ideal para componentes de UI como Tooltips o Cards informativas.
-     * @example "Gestión integral de salarios, prestaciones y seguridad social."
-     */
-    description: string;
+  /**
+   * Breve explicación de las funcionalidades incluidas en el módulo.
+   * Ideal para componentes de UI como Tooltips o Cards informativas.
+   * @example "Gestión integral de salarios, prestaciones y seguridad social."
+   */
+  description: string;
 
-    /**
-     * Código interno alfanumérico para validaciones de permisos o lógica de negocio.
-     * @example "MOD-PAY-001"
-     */
-    module_code: string;
+  /**
+   * Código interno alfanumérico para validaciones de permisos o lógica de negocio.
+   * @example "XXX-XXXX"
+   */
+  module_code: string;
 }
