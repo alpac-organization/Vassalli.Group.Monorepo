@@ -14,10 +14,13 @@ export const DashboardLayout = ({}) => {
 
   const { moduleCode, userRole } = useUserStore();
 
-  const sections =
-    sidebarDataTesting.navigationRegistry[
-      moduleCode as keyof typeof sidebarDataTesting.navigationRegistry
-    ] ?? [];
+  const registry = sidebarDataTesting.navigationRegistry;
+  const sections = registry[moduleCode as keyof typeof registry] ?? [];
+
+  const authorizedItems = sections.filter((section) => {
+    if (!("roles" in section)) return true;
+    return (section.roles as string[]).includes(userRole);
+  });
 
   return (
     <motion.div
