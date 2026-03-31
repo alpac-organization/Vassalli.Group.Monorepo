@@ -66,6 +66,13 @@ export interface GetCollaboratorsResponse {
    * @required
    */
   work_position: string;
+
+  /**
+   * Nombre de la sucursal
+   * @example "Sucursal 1"
+   * @required
+   */
+  branch_name: string;
 }
 
 /**
@@ -74,4 +81,10 @@ export interface GetCollaboratorsResponse {
  */
 export interface GetCollaboratorsListResponse {
   data: GetCollaboratorsResponse[];
+  total_records: number;
+  page_size: number;
+  total_active: number;
+  total_on_vacation: number;
+  total_on_subsidy: number;
+  total_collaborators: number;
 }

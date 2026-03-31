@@ -1,3 +1,4 @@
+import { cleanParams } from "@app/shared/utils/object.utils";
 import type { ICollaboratorServices } from "@app/modules/payroll/application/interfaces/ICollaboratorServices";
 import type { GetCollaboratorsListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
 import type { IHttpHandler } from "@app/core/ports";
@@ -14,9 +15,13 @@ export class CollaboratorServices implements ICollaboratorServices {
     payload: CollaboratorRequest,
   ): Promise<GetCollaboratorsListResponse> {
     try {
+      const { company_id, module_code, ...rest } = payload;
       const collaborators =
         await this.apiHandler.get<GetCollaboratorsListResponse>(
-          `/companies/${payload.company_id}/modules/${payload.module_code}/collaborators`,
+          `/companies/${company_id}/modules/${module_code}/collaborators`,
+          {
+            params: cleanParams(rest),
+          },
         );
       return collaborators;
     } catch (error) {

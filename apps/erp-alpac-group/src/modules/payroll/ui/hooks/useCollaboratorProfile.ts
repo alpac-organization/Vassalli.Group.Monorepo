@@ -10,11 +10,19 @@ const collaboratorProfileServices = new CollaboratorProfileServices(
 
 export const useCollaboratorProfileDetails = (
   payload: CollaboratorProfileDetailsRequest,
+  enabled = true,
 ) => {
+  const canFetch = Boolean(
+    payload.company_id?.trim() &&
+      payload.module_code?.trim() &&
+      payload.identification_number?.trim(),
+  );
+
   const GetProfileDetails = useQuery({
     queryKey: ["collaboratorProfileDetails", payload],
     queryFn: () =>
       collaboratorProfileServices.GetCollaboratorProfileDetails(payload),
+    enabled: enabled && canFetch,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 10,

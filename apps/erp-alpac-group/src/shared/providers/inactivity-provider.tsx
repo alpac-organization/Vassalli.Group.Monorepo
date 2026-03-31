@@ -1,45 +1,51 @@
+import { useCallback, useEffect, useRef } from "react";
+import { useInactivityStore } from "@app/shared/stores/useInactivityStore";
 
-import { useCallback, useEffect, useRef } from "react"
-import { useInactivityStore } from "@app/shared/stores/useInactivityStore"
+/**
+ * Provider que se encarga de manejar el tiempo de inactividad del usuario.
+ * @param timeout Tiempo en milisegundos para que el usuario sea considerado inactivo.
+ * @default 1_200_000 (20 minutos)
+ * @returns
+ */
+export const InactivityProvider = ({ timeout = 1_200_000 }) => {
+  const { setIsInactive } = useInactivityStore();
 
-export const InactivityProvider = ({ timeout = 600_000 }) => {
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    const { setIsInactive } = useInactivityStore()
+  const resetTimer = useCallback(() => {
+    setIsInactive(false, 0);
 
-    const timerRef = useRef<NodeJS.Timeout | null>(null)
+    if (timerRef.current) clearTimeout(timerRef.current);
 
-    const resetTimer = useCallback(() => {
+    timerRef.current = setTimeout(() => {
+      setIsInactive(true, timeout);
+    }, timeout);
+  }, [setIsInactive, timeout]);
 
-        setIsInactive(false, 0)
+  useEffect(() => {
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keydown",
+      "scroll",
+      "touchstart",
+      "wheel",
+    ];
 
-        if (timerRef.current) clearTimeout(timerRef.current)
+    const handleActivity = () => resetTimer();
 
-        timerRef.current = setTimeout(() => {
+    events.forEach((event) => window.addEventListener(event, handleActivity));
 
-            setIsInactive(true, timeout)
+    resetTimer();
 
-        }, timeout)
+    return () => {
+      events.forEach((event) =>
+        window.removeEventListener(event, handleActivity),
+      );
 
-    }, [setIsInactive, timeout])
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [resetTimer]);
 
-    useEffect(() => {
-
-        const events = ["mousedown", "mousemove", "keydown", "scroll", "touchstart", "wheel"]
-
-        const handleActivity = () => resetTimer()
-
-        events.forEach(event => window.addEventListener(event, handleActivity))
-
-        resetTimer()
-
-        return () => {
-
-            events.forEach(event => window.removeEventListener(event, handleActivity))
-
-            if (timerRef.current) clearTimeout(timerRef.current)
-        }
-
-    }, [resetTimer])
-
-    return null
-}
+  return null;
+};

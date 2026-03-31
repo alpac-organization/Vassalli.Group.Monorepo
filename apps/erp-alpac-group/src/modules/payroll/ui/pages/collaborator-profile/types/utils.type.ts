@@ -13,4 +13,6 @@ export interface EditableFieldProps {
     name: keyof PersonalFormData,
     value: string,
   ) => Promise<void>;
+  /** Si el valor está vacío y no se está editando, se muestra dentro del input. */
+  missingMessage?: string;
 }

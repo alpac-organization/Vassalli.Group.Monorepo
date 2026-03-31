@@ -46,18 +46,21 @@ export interface CollaboratorProfilePersonalInformation {
   address: string;
   personal_email: string;
   personal_phone_number: string;
-  departament: string;
+  /** Variante que algunos entornos envían */
+  departament?: string;
+  /** Variante alineada a Postman / API actual */
+  department?: string;
 }
 export interface CollaboratorProfileWorkingInformation {
-  inss_number: string;
-  bank_account_number: string;
-  bank_name: string;
-  work_area: string;
-  work_position: string;
+  inss_number: string | null;
+  bank_account_number: string | null;
+  bank_name: string | null;
+  work_area: string | null;
+  work_position: string | null;
   branch_name: string | null;
 }
 export interface CollaboratorProfileSalaryInformation {
-  salary: number;
-  currency: string;
-  salary_type: string;
+  salary: number | null;
+  currency: string | null;
+  salary_type: string | null;
 }

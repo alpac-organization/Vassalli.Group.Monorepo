@@ -9,11 +9,12 @@ export const PayrollRoutes: RouteObject[] = [
   {
     path: "collaborators",
     element: <CollaboratorPage />,
-    children: [
-      {
-        path: "collaboratorId:collaborator-profile",
-        element: <CollaboratorProfilePage />,
-      },
-    ],
+
+    // children: [
+    // ],
+  },
+  {
+    path: "collaborator-profile",
+    element: <CollaboratorProfilePage />,
   },
 ];

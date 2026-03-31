@@ -1,17 +1,25 @@
 import { UserRound } from "lucide-react";
 import { useImage } from "@app/shared/hooks/useImage";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { validateNameAndLastName } from "@app/shared/utils/format-name";
+import { validateNameAndLastName } from "@app/shared/utils/string.utils";
+import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
 
-export const ProfileSummary = () => {
+export type ProfileSummaryProps = {
+  profile?: GetCollaboratorProfileDetailsResponse | null;
+};
+
+export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
   const { fullName, companyName, companyAlias, userName } = useUserStore();
   const companyAliasWhite = String(companyAlias ?? "")
     .toLowerCase()
     .concat(".white");
   const { urlImage } = useImage(companyAliasWhite);
-  const displayName = fullName
-    ? validateNameAndLastName(fullName)
-    : userName || "Usuario";
+
+  const displayName = profile?.full_name
+    ? validateNameAndLastName(profile.full_name)
+    : fullName
+      ? validateNameAndLastName(fullName)
+      : userName || "Usuario";
 
   const textBlock = (
     <div className="min-w-0 flex-1 text-left">
@@ -24,6 +32,31 @@ export const ProfileSummary = () => {
         </p>
       ) : null}
     </div>
+  );
+
+  const avatarContent =
+    profile?.profile_picture_url ? (
+      <img
+        src={profile.profile_picture_url}
+        alt=""
+        className="h-full w-full rounded-full object-cover"
+        loading="lazy"
+        decoding="async"
+      />
+    ) : (
+      <UserRound className="h-7 w-7 text-cyan-400 sm:h-8 sm:w-8" strokeWidth={1.75} />
+    );
+
+  const avatarContentLarge = profile?.profile_picture_url ? (
+    <img
+      src={profile.profile_picture_url}
+      alt=""
+      className="h-full w-full rounded-full object-cover"
+      loading="lazy"
+      decoding="async"
+    />
+  ) : (
+    <UserRound className="h-10 w-10 text-cyan-400" strokeWidth={1.75} />
   );
 
   return (
@@ -45,13 +78,10 @@ export const ProfileSummary = () => {
         <div className="flex w-full justify-center px-1">
           <div className="flex min-w-0 max-w-full flex-row items-center gap-3">
             <div
-              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15 sm:h-16 sm:w-16"
+              className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/10 ring-1 ring-white/15 sm:h-16 sm:w-16"
               aria-hidden
             >
-              <UserRound
-                className="h-7 w-7 text-cyan-400 sm:h-8 sm:w-8"
-                strokeWidth={1.75}
-              />
+              {avatarContent}
             </div>
             <p className="max-w-[min(100%,16rem)] wrap-break-word text-left text-lg font-semibold leading-snug text-white sm:text-xl">
               {displayName}
@@ -68,10 +98,10 @@ export const ProfileSummary = () => {
       <div className="hidden min-w-0 flex-col gap-4 sm:flex sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div className="flex min-w-0 flex-1 items-center gap-4">
           <div
-            className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15"
+            className="flex h-[72px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white/10 ring-1 ring-white/15"
             aria-hidden
           >
-            <UserRound className="h-10 w-10 text-cyan-400" strokeWidth={1.75} />
+            {avatarContentLarge}
           </div>
           {textBlock}
         </div>
