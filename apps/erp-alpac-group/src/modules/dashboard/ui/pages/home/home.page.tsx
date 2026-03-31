@@ -15,8 +15,8 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 export const HomePage = function () {
-  const [showModal, setShowModal] = useState(false);
   const [isLogout, setLogout] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const navigate = useNavigate();
 
@@ -26,9 +26,9 @@ export const HomePage = function () {
   const { obtainActiveModulesByCompanyId } = useModules(companyId);
   const { data: modulesAvailables } = obtainActiveModulesByCompanyId;
 
+  const validatedName = validateNameAndLastName(fullName);
   const firstName = fullName ? fullName.split(" ")[0] : userName;
   const validatedEmail = email ? email : userName;
-  const validatedName = validateNameAndLastName(fullName);
 
   const companyAliasWhite = companyAlias.toLowerCase().concat(".white");
 
@@ -36,7 +36,7 @@ export const HomePage = function () {
 
   const handleLogout = async function () {
     try {
-      //Iniciar proceso para cerrar sesión
+      // Iniciar proceso para cerrar sesión
       setLogout(true);
 
       const companyId = CookieStorageAdapter.getCompanyAlias() ?? "";
@@ -86,8 +86,13 @@ export const HomePage = function () {
               title={module.module_name}
               image="https://"
               onClick={() => {
-                useUserStore.setState({ moduleCode: module.module_code });
-                navigate("payroll/collaborators");
+                if (module.module_name === "Nomina") {
+                  console.log(module.module_name);
+                  navigate("payroll/collaborators");
+                } else {
+                  console.log(module.module_name);
+                  setShowModal(true);
+                }
               }}
               description={module.description}
             />
