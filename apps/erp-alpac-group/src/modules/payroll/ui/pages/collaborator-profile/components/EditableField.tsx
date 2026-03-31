@@ -4,11 +4,13 @@ import { InputText } from "@alpac/design-system";
 import type { EditableFieldProps } from "../types/utils.type";
 
 const customInputClasses = `
-  !h-[42px] !transition-all !duration-200
+  !transition-all !duration-200
   dark:!bg-[#1e2229] dark:!text-white dark:!border-slate-600/50 dark:!px-3
   focus:dark:!border-cyan-500/60 focus:dark:!ring-2 focus:dark:!ring-cyan-500/20
   disabled:dark:!bg-[#1e2229] disabled:dark:!text-slate-200 disabled:dark:!border-slate-700/50 disabled:!px-3 disabled:!opacity-100 disabled:!shadow-none disabled:!font-medium
 `;
+const labelClasses =
+  "text-[14px]! font-medium! text-white! ml-0.5!";
 
 export const EditableField = ({
   name,
@@ -62,13 +64,11 @@ export const EditableField = ({
 
   return (
     <div className="flex min-w-0 flex-col gap-2 w-full">
-      <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-        <span className="w-1 h-1 rounded-full bg-blue-500" />
-        {label}
-      </label>
-      <div className="flex items-start gap-2.5">
+      <div className="flex items-end gap-2.5">
         <div className="flex-1 relative">
           <InputText
+            label={label}
+            labelClassName={labelClasses}
             type={type}
             disabled={!isEditing || isUpdating}
             editable={false}
@@ -76,9 +76,6 @@ export const EditableField = ({
             className={customInputClasses}
             {...register(name, validation)}
           />
-          {isEditing && (
-            <div className="absolute -top-2 -right-2 w-2 h-2 bg-cyan-500 rounded-full animate-pulse shadow-lg shadow-cyan-500/50" />
-          )}
         </div>
         <div className="flex gap-2 shrink-0">
           {!isEditing ? (

@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from "react";
+import React, { forwardRef, useId, useState } from "react";
 import { Check, Pencil } from "lucide-react";
 
 import { InputProps } from "./input-text.types";
@@ -6,6 +6,7 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
   (
     {
       label,
+      labelClassName,
       error,
       icon,
       className,
@@ -19,6 +20,8 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
   ) => {
     const [showPassword, setShowPassword] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const generatedId = useId();
+    const inputId = rest.id ?? generatedId;
 
     const inputType = isPassword ? (showPassword ? "text" : "password") : type;
     const isInputDisabled = editable ? !isEditing : disabled;
@@ -26,7 +29,10 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-1.5 w-full max-w-full box-border">
         {label && (
-          <label className="text-[14px] font-medium text-slate-600 ml-0.5">
+          <label
+            htmlFor={inputId}
+            className={`text-[14px] font-medium  ml-0.5 ${labelClassName || "text-slate-600"}`}
+          >
             {label}
           </label>
         )}
@@ -41,6 +47,7 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
 
             <input
               ref={ref}
+              id={inputId}
               {...rest}
               disabled={isInputDisabled}
               type={inputType}
