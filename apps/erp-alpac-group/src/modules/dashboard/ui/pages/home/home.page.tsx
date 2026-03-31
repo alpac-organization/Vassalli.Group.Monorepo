@@ -20,9 +20,6 @@ export const HomePage = function () {
   const [isLogout, setLogout] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const { userName, fullName, email, companyId, companyName, companyAlias } =
-    useUserStore();
-
   const {
     userName,
     fullName,
