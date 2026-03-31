@@ -1,7 +1,7 @@
 import { UserRound } from "lucide-react";
 import { useImage } from "@app/shared/hooks/useImage";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { validateNameAndLastName } from "@app/shared/utils/format-name";
+import { validateNameAndLastName } from "@app/shared/utils/string.utils";
 
 export const ProfileSummary = () => {
   const { fullName, companyName, companyAlias, userName } = useUserStore();

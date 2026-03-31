@@ -35,4 +35,10 @@ export interface ModulesAvailableResponse {
    * @example "XXX-XXXX"
    */
   module_code: string;
+
+  /**
+   * Ruta de redirección del módulo.
+   * @example "/payroll/collaborators"
+   */
+  path_redirect: string;
 }

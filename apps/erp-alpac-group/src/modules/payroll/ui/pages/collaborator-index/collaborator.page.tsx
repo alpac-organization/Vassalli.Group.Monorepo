@@ -19,9 +19,15 @@ import { useNavigate } from "react-router-dom";
 import { useForm, type SubmitHandler, Controller } from "react-hook-form";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Loader } from "@app/shared/components/loaders/loader";
 import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
+import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
+import {
+  CatalogEnum,
+  CollaboratorStatusEnum,
+} from "@app/core/enums/catalog.enum";
+import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
 
 export const CollaboratorPage = function () {
   
@@ -36,15 +42,24 @@ export const CollaboratorPage = function () {
 
   const navigate = useNavigate();
 
-  const { companyAlias } = useUserStore();
+  const { companyId, moduleCode, companyAlias } = useUserStore();
 
   const companyAliasWhite = companyAlias.toLowerCase().concat(".white");
 
   const { urlImage } = useImage(companyAliasWhite);
 
-  const { register, handleSubmit, control } = useForm<CollaboratorRequest>();
+  const { register, handleSubmit, control, reset } =
+    useForm<CollaboratorRequest>();
 
-  const { companyId, moduleCode } = useUserStore();
+  const { GetCatalogListQuery: workAreasQuery } = useCatalog({
+    company_id: companyId,
+    catalog_type: CatalogEnum.WORK_AREAS,
+  });
+
+  const { GetCatalogListQuery: jobPositionsQuery } = useCatalog({
+    company_id: companyId,
+    catalog_type: CatalogEnum.JOB_POSITIONS,
+  });
 
   const { GetCollaboratorsQuery } = useCollaborators({
     ...filters,
@@ -52,7 +67,26 @@ export const CollaboratorPage = function () {
     module_code: moduleCode,
   });
 
-  const { data: collaborators = { data: [] } } = GetCollaboratorsQuery;
+  const { data: workAreas = [] } = workAreasQuery;
+  const { data: jobPositions = [] } = jobPositionsQuery;
+  const {
+    data: collaborators = {
+      data: [],
+      total_records: 0,
+      page_size: 0,
+      total_active: 0,
+      total_on_vacation: 0,
+      total_on_subsidy: 0,
+      total_collaborators: 0,
+    },
+  } = GetCollaboratorsQuery;
+
+  const optionsWorkAreas = mapCatalogToOptions(workAreas);
+  const optionsJobPositions = mapCatalogToOptions(jobPositions);
+  const optionsStatus = Object.values(CollaboratorStatusEnum).map((value) => ({
+    label: value,
+    value,
+  }));
 
   const onSubmit: SubmitHandler<CollaboratorRequest> = async (data) => {
     setFilters((prev) => ({ ...prev, ...data }));
@@ -60,8 +94,9 @@ export const CollaboratorPage = function () {
 
   const columnConfig = [
     { key: "collaborator_code", label: "Código" },
-    { key: "identification_number", label: "Identificación" },
     { key: "full_name", label: "Nombre Completo" },
+    { key: "identification_number", label: "Identificación" },
+    { key: "branch_name", label: "Sucursal" },
     { key: "work_area", label: "Área" },
     { key: "work_position", label: "Posición" },
     { key: "status", label: "Estado" },
@@ -84,6 +119,18 @@ export const CollaboratorPage = function () {
       ),
     },
   ];
+
+  const handleClearFilters = useCallback(() => {
+    reset();
+    setFilters({
+      identification_number: "",
+      branch_id: 0,
+      area_id: 0,
+      page_number: 1,
+      page_size: 10,
+      status: "",
+    } as CollaboratorRequest);
+  }, [reset]);
 
   return (
     <motion.div
@@ -129,7 +176,7 @@ export const CollaboratorPage = function () {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="Activos"
-          value="100"
+          value={collaborators.total_active.toString()}
           trend="Incremento del 10%"
           trendType="up"
           icon={<UserIcon size={30} />}
@@ -137,7 +184,7 @@ export const CollaboratorPage = function () {
         />
         <StatsCard
           title="Vacaciones"
-          value="100"
+          value={collaborators.total_on_vacation.toString()}
           trend="Decremento del 10%"
           trendType="down"
           icon={<TreePalmIcon size={30} />}
@@ -145,7 +192,7 @@ export const CollaboratorPage = function () {
         />
         <StatsCard
           title="Subsidios"
-          value="100"
+          value={collaborators.total_on_subsidy.toString()}
           trend="Incremento del 10%"
           trendType="up"
           icon={<HospitalIcon size={30} />}
@@ -153,7 +200,7 @@ export const CollaboratorPage = function () {
         />
         <StatsCard
           title="Total"
-          value="100"
+          value={collaborators.total_collaborators.toString()}
           trend="Decremento del 10%"
           trendType="down"
           icon={<UserRoundPlusIcon size={30} />}
@@ -188,33 +235,6 @@ export const CollaboratorPage = function () {
 
           <div className="flex flex-col">
             <Controller
-              name="branch_id"
-              control={control}
-              rules={{
-                required: false,
-              }}
-              render={({ field }) => (
-                <Dropdown
-                  onChange={(value) => field.onChange(value)}
-                  value={field.value}
-                  label="Posición de trabajo"
-                  placeholder="Seleccione una posición de trabajo"
-                  labelClassName="text-black! dark:text-white!"
-                  valueClassName="text-black! dark:text-white!"
-                  className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                  options={[
-                    { label: "Filter 1", value: "filter1" },
-                    { label: "Filter 2", value: "filter2" },
-                    { label: "Filter 3", value: "filter3" },
-                    { label: "Filter 4", value: "filter4" },
-                  ]}
-                />
-              )}
-            />
-          </div>
-
-          <div className="flex flex-col">
-            <Controller
               name="area_id"
               control={control}
               rules={{
@@ -230,15 +250,32 @@ export const CollaboratorPage = function () {
                     labelClassName="text-black! dark:text-white!"
                     valueClassName="text-black! dark:text-white!"
                     className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                    options={[
-                      { label: "Filter 1", value: "filter1" },
-                      { label: "Filter 2", value: "filter2" },
-                      { label: "Filter 3", value: "filter3" },
-                      { label: "Filter 4", value: "filter4" },
-                    ]}
+                    options={optionsWorkAreas}
                   />
                 );
               }}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <Controller
+              name="branch_id"
+              control={control}
+              rules={{
+                required: false,
+              }}
+              render={({ field }) => (
+                <Dropdown
+                  onChange={(value) => field.onChange(value)}
+                  value={field.value}
+                  label="Posición de trabajo"
+                  placeholder="Seleccione una posición de trabajo"
+                  labelClassName="text-black! dark:text-white!"
+                  valueClassName="text-black! dark:text-white!"
+                  className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+                  options={optionsJobPositions}
+                />
+              )}
             />
           </div>
 
@@ -258,13 +295,7 @@ export const CollaboratorPage = function () {
                   labelClassName="text-black! dark:text-white!"
                   valueClassName="text-black! dark:text-white!"
                   className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                  options={[
-                    { label: "Filter 0", value: "filter0" },
-                    { label: "Filter 1", value: "filter1" },
-                    { label: "Filter 2", value: "filter2" },
-                    { label: "Filter 3", value: "filter3" },
-                    { label: "Filter 4", value: "filter4" },
-                  ]}
+                  options={optionsStatus}
                 />
               )}
             />
@@ -281,10 +312,11 @@ export const CollaboratorPage = function () {
 
           <div className="flex flex-col">
             <Button
-              type="reset"
+              type="button"
               size="giant"
               className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
               label="Limpiar filtros"
+              onClick={handleClearFilters}
             />
           </div>
         </form>

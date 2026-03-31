@@ -1,6 +1,6 @@
 import type { CatalogRequest } from "@app/modules/catalog/domain/ApiContract/Requests/catalog.request";
-import type { CatalogListResponse } from "@app/modules/catalog/domain/ApiContract/Responses/catalog.response";
+import type { CatalogResponse } from "@app/modules/catalog/domain/ApiContract/Responses/catalog.response";
 
 export interface ICatalogServices {
-  getCatalogList(payload: CatalogRequest): Promise<CatalogListResponse>;
+  getCatalogList(payload: CatalogRequest): Promise<CatalogResponse[]>;
 }
