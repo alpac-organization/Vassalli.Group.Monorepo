@@ -36,10 +36,13 @@ class AxiosHttpAdapter implements IHttpHandler {
     this.instance.interceptors.request.use((config) => {
       const token = CookieStorageAdapter.getToken();
 
+      // Verifico si la petición es para iniciar sesión
+      const isLoginRequest = config.url?.includes("/auth/login");
+
       // Verifico si la petición es para renovar el token
       const isRefreshTokenRequest = config.url?.includes("/auth/refresh-token");
 
-      if (token && !isRefreshTokenRequest) {
+      if (token && !isLoginRequest && !isRefreshTokenRequest) {
         config.headers["Authorization"] = `Bearer ${token}`;
       }
 
@@ -74,6 +77,7 @@ class AxiosHttpAdapter implements IHttpHandler {
           customError.status === 401 &&
           originalRequest &&
           !originalRequest._retry &&
+          !originalRequest.url?.includes("auth/login") &&
           !originalRequest.url?.includes("auth/refresh-token")
         ) {
           // Marcar que ya se está intentando renovar el token

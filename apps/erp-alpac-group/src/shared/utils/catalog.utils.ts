@@ -3,6 +3,6 @@ import type { CatalogResponse } from "@app/modules/catalog/domain/ApiContract/Re
 export const mapCatalogToOptions = (catalog: CatalogResponse[]) => {
   return catalog.map((item) => ({
     label: item.catalog_name,
-    value: item.catalog_id,
+    value: item.sub_catalog_id,
   }));
 };

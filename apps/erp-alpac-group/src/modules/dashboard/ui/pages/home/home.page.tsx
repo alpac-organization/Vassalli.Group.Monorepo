@@ -20,8 +20,16 @@ export const HomePage = function () {
 
   const navigate = useNavigate();
 
-  const { userName, fullName, email, companyId, companyName, companyAlias } =
-    useUserStore();
+  const {
+    userName,
+    fullName,
+    email,
+    companyId,
+    companyName,
+    companyAlias,
+    identificationNumber,
+  } = useUserStore();
+
   const { startProcessToCloseSession } = useAuth();
   const { obtainActiveModulesByCompanyId } = useModules(companyId);
   const { data: modulesAvailables } = obtainActiveModulesByCompanyId;
@@ -86,12 +94,21 @@ export const HomePage = function () {
               title={module.module_name}
               image="https://"
               onClick={() => {
-                if (module.module_name === "Nomina") {
-                  console.log(module.module_name);
-                  navigate("payroll/collaborators");
-                } else {
-                  console.log(module.module_name);
+                useUserStore.setState({ moduleCode: module.module_code });
+
+                if (!module.module_code || !identificationNumber) {
                   setShowModal(true);
+                  return;
+                }
+
+                if (module.module_code === "GES-M86T") {
+                  navigate(
+                    module.path_redirect
+                      .concat("/")
+                      .concat(identificationNumber),
+                  );
+                } else {
+                  navigate(module.path_redirect);
                 }
               }}
               description={module.description}
@@ -104,7 +121,7 @@ export const HomePage = function () {
         isOpen={showModal}
         title="Ha ocurrido un error"
         variant="warning"
-        description="Descripcion"
+        description="No se ha podido cargar el modulo seleccionado."
         onClose={() => {
           setShowModal(false);
         }}
