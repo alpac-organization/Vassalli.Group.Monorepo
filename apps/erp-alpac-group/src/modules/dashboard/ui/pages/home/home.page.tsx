@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DashBoardCard, Modal } from "@alpac/design-system";
-import { useModules } from "../../hooks/useModules";
-import { HeaderHome } from "./hearder/header";
+import { useModules } from "@app/modules/dashboard/ui/hooks/useModules";
+import { HeaderHome } from "@app/modules/dashboard/ui/pages/home/hearder/header";
 
 import { useAuth } from "@app/modules/auth/ui/hooks/useAuth";
 import { Loader } from "@app/shared/components/loaders/loader";

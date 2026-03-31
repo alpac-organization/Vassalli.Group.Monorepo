@@ -11,7 +11,7 @@ export const CatalogEnum = {
   BRANCHES: "Branches",
 } as const;
 
-export type CatalogId = (typeof CatalogEnum)[keyof typeof CatalogEnum];
+export type CatalogEnum = (typeof CatalogEnum)[keyof typeof CatalogEnum];
 
 export const CollaboratorStatusEnum = {
   ACTIVE: "Activo",
@@ -26,5 +26,5 @@ export const CollaboratorStatusEnum = {
   DECEASED: "Fallecido",
 } as const;
 
-export type CollaboratorStatusId =
+export type CollaboratorStatusEnum =
   (typeof CollaboratorStatusEnum)[keyof typeof CollaboratorStatusEnum];
