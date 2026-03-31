@@ -23,7 +23,7 @@ export const SidebarItem = ({ item, isOpen, setIsOpen }: SidebarItemsProps) => {
   return (
     <div
       ref={itemRootRef}
-      className="relative group transition-all ease-in-out hover:bg-neutral-700/70"
+      className="relative group transition-all ease-in-out hover:bg-blue-600"
       onMouseEnter={() => {
         if (!isOpen) setTooltipOpen(true);
       }}
@@ -55,25 +55,28 @@ export const SidebarItem = ({ item, isOpen, setIsOpen }: SidebarItemsProps) => {
       >
         {({ isActive }) => (
           <>
-            {isActive && (
-              <span
-                aria-hidden
-                className="pointer-events-none absolute left-0 top-1/2 h-9 w-[3px] -translate-y-1/2 rounded-full bg-linear-to-b from-sky-400 via-blue-500 to-blue-600"
-              />
-            )}
+            {
+              isActive && (
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-0 top-1/2 h-9 w-0.75 -translate-y-1/2 rounded-r-full bg-blue-600"
+                />
+              )
+            }
 
             <div
               className={`
-            flex items-center justify-center shrink-0
-            transition-all duration-200
-            ${isOpen ? "mr-3" : "w-full"}
-          `}
-            >
+                flex items-center justify-center shrink-0
+                transition-all duration-200
+                ${isOpen ? "mr-3" : "w-full"}
+              `}
+              >
+
               <Icon
                 size="1.125em"
                 className={`
               shrink-0 transition-colors duration-200
-              ${isActive ? "text-sky-300" : "text-neutral-400 group-hover:text-white"}
+              text-neutral-200 group-hover:text-white
             `}
                 aria-hidden
               />
