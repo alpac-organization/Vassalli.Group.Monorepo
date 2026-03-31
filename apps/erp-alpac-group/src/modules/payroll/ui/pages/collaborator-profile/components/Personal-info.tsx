@@ -4,9 +4,6 @@ import { InputText, Alert, AnimatedAlertWrapper } from "@alpac/design-system";
 import { EditableField } from "./EditableField";
 import type { PersonalFormData } from "../types/profile-details.types";
 
-const readOnlyInputClasses =
-  "!h-[42px] disabled:dark:!bg-[#1e2229] disabled:dark:!text-slate-200 disabled:dark:!border-slate-700/50 disabled:!px-3 disabled:!opacity-100 disabled:!shadow-none disabled:!font-medium";
-
 export const PersonalInformation = () => {
   const formMethods = useForm<PersonalFormData>({
     mode: "onChange",
@@ -83,50 +80,40 @@ export const PersonalInformation = () => {
           />
         ) : null}
       </AnimatedAlertWrapper>
-
       <div className="w-full max-w-full mb-8">
         <section className="w-full dark:bg-[#272b34] bg-white rounded-xl border border-slate-200 dark:border-neutral-700 shadow-sm overflow-hidden">
           <div className="p-6">
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               <div className="flex min-w-0 w-full flex-col gap-2">
-                <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-                  <span className="h-1 w-1 shrink-0 rounded-full bg-cyan-500" />
-                  Tipo de Identificación
-                </label>
                 <InputText
+                  label="Tipo de Identificación"
+                  labelClassName="text-[14px] font-medium ml-0.5 text-white!"
                   disabled
                   editable={false}
-                  className={readOnlyInputClasses}
+                  className="disabled:dark:bg-[#1e2229]! disabled:dark:text-slate-200! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!"
                   {...register("identificationType")}
                 />
               </div>
               <div className="flex min-w-0 w-full flex-col gap-2">
-                <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-                  <span className="h-1 w-1 shrink-0 rounded-full bg-cyan-500" />
-                  Número de Identificación
-                </label>
                 <InputText
+                  label="Número de Identificación"
+                  labelClassName="text-[14px] font-medium ml-0.5 text-white!"
                   disabled
                   editable={false}
-                  className={readOnlyInputClasses}
+                  className="disabled:dark:bg-[#1e2229]! disabled:dark:text-slate-200! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!"
                   {...register("identificationNumber")}
                 />
               </div>
               <div className="flex min-w-0 w-full flex-col gap-2">
-                <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300">
-                  <span className="h-1 w-1 shrink-0 rounded-full bg-emerald-500" />
-                  Registrado por
-                </label>
                 <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
                   <InputText
+                    label="Registrado por"
+                    labelClassName="text-[14px] font-medium ml-0.5 text-white!"
                     disabled
                     editable={false}
-                    className={`${readOnlyInputClasses} min-w-0 flex-1`}
+                    className="disabled:dark:bg-[#1e2229]! disabled:dark:text-slate-200! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium! min-w-0 flex-1"
                     {...register("registeredBy")}
                   />
-                  <span className="shrink-0 self-start rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-600 whitespace-nowrap sm:self-center dark:text-emerald-400">
-                    Verificado
-                  </span>
                 </div>
               </div>
 
