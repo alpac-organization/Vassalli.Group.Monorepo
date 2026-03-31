@@ -12,13 +12,12 @@ export class CollaboratorProfileServices
   }
   public async GetCollaboratorProfileDetails(
     payload: CollaboratorProfileDetailsRequest,
-  ): Promise<GetCollaboratorProfileDetailsResponse[]> {
+  ): Promise<GetCollaboratorProfileDetailsResponse> {
     try {
-      const detailProfileCollaborator = await this.apiHandler.get<
-        GetCollaboratorProfileDetailsResponse[]
-      >(
-        `/companies/${payload.company_id}/modules/${payload.module_code}/collaborator-profile`,
-      );
+      const detailProfileCollaborator =
+        await this.apiHandler.get<GetCollaboratorProfileDetailsResponse>(
+          `/companies/${payload.company_id}/modules/${payload.module_code}/collaborators/${payload.identification_number}/details`,
+        );
       return detailProfileCollaborator;
     } catch (error) {
       console.log("error", error);

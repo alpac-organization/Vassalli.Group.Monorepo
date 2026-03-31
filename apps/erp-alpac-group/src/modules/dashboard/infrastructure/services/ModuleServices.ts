@@ -3,21 +3,23 @@ import type { IModuleServices } from "../../application/interfaces/IModuleServic
 import type { ModulesAvailableResponse } from "../../domain/ApiContract/Responses/modules-available.response";
 
 export class ModuleServices implements IModuleServices {
+  private apiHandler: IHttpHandler;
 
-   private apiHandler: IHttpHandler;
+  public constructor(httpHandler: IHttpHandler) {
+    this.apiHandler = httpHandler;
+  }
 
-   public constructor(httpHandler: IHttpHandler) {
-      this.apiHandler = httpHandler;
-   }
-
-   public async ObtainActiveModulesByCompanyId(company_id: string): Promise<ModulesAvailableResponse[]> {
-      try {
-         const modules = await this.apiHandler.get<ModulesAvailableResponse[]>(`/companies/${company_id}/users/modules`);
-         return modules;
-      }
-      catch (error) {
-         throw error;
-      }
-   }
-
+  public async ObtainActiveModulesByCompanyId(
+    company_id: string,
+  ): Promise<ModulesAvailableResponse[]> {
+    try {
+      const modules = await this.apiHandler.get<ModulesAvailableResponse[]>(
+        `/companies/${company_id}/users/modules`,
+      );
+      console.log(modules);
+      return modules;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

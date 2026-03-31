@@ -4,7 +4,6 @@ import type { TabId } from "@app/modules/payroll/ui/pages/collaborator-profile/t
 import { PersonalInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Personal-info";
 import { ProfileSummary } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Profile-summary";
 import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Work-info";
-
 export function CollaboratorProfilePage() {
   const [activeTab, setActiveTab] = useState<TabId>("personal");
   const TABS: TabOption<TabId>[] = [

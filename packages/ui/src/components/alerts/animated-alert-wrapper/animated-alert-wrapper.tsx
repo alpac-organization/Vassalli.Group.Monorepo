@@ -66,7 +66,7 @@ export function AnimatedAlertWrapper({
 
   return createPortal(
     <div
-      className="pointer-events-none fixed inset-x-0 top-0 z-[10000] flex justify-center px-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] sm:justify-end sm:px-6 sm:pt-6"
+      className="pointer-events-none fixed inset-x-0 top-0 z-10000 flex justify-center px-3 pt-[max(0.75rem,env(safe-area-inset-top,0px))] sm:justify-end sm:px-6 sm:pt-6"
       role="presentation"
     >
       <div
