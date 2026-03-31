@@ -24,6 +24,7 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
 
 export const CollaboratorPage = function () {
+  
   const [filters, setFilters] = useState<CollaboratorRequest>({
     identification_number: "",
     branch_id: 0,

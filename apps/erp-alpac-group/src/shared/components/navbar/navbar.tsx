@@ -1,3 +1,4 @@
+import { ButtonRounded } from "@alpac/design-system";
 import { LogOut } from "lucide-react";
 
 export const Navbar = function ({ user_name, email, urlImage, onLogout }: { user_name: string, email: string, urlImage: string, onLogout: () => {} }) {
@@ -15,36 +16,18 @@ export const Navbar = function ({ user_name, email, urlImage, onLogout }: { user
 
                {/* User info */}
                <div className="hidden md:flex flex-col text-right">
-
-                  {/*User name*/}
                   <span className="text-white font-medium text-sm">{user_name}</span>
-
-                  {/*User email*/}
                   <span className="text-[#89909E] text-xs">{email}</span>
                </div>
 
-               {/* Logout button */}
-               <button
-                  onClick={() => onLogout()}
-                  className="group flex items-center justify-center gap-2 h-12 w-20 md:w-55 px-3 md:px-5 
-                              bg-transparent border border-[#3E4552] rounded-full
-                              text-[#89909E] font-medium text-sm
-                              hover:bg-alpac-secondary-500 
-                              hover:border-alpac-secondary-700 
-                              hover:text-white 
-                              transition-all 
-                              duration-300 
-                              ease-out 
-                              shadow-sm
-                              focus:outline-none 
-                              focus:ring-2 
-                              focus:ring-[#EF4444] 
-                              focus:ring-offset-2 
-                              focus:ring-offset-[#1A1D24]"
-               >
-                  <LogOut className="text-[#89909E] group-hover:text-white transition-colors" size={18} />
-                  <span className="hidden md:block">Cerrar Sesión</span>
-               </button>
+
+               <ButtonRounded 
+                  hasIcon
+                  icon={ LogOut }
+                  label="Cerrar Sesión"
+                  onClick={ () => onLogout() }
+               />
+
             </div>
          </div>
       </nav>
