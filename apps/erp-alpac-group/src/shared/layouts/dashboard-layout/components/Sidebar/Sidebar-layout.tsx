@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { LayoutDashboard, X } from "lucide-react";
 import type { SidebarConfig } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 import { SidebarItem } from "@app/shared/layouts/dashboard-layout/components/Sidebar/SidebarItem";
 
@@ -47,7 +47,19 @@ export default function Sidebarlayout({
       </header>
 
       {/* <div className="scrollbar-dashboard flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-4 pt-5 pb-4"> */}
-      <div className="scrollbar-dashboard flex min-h-0 flex-1 flex-col gap-2 py-5 overflow-y-auto">
+      <div className="scrollbar-dashboard flex min-h-0 flex-1 flex-col py-5 overflow-y-auto">
+        <SidebarItem
+          item={{
+            icon: LayoutDashboard,
+            path: "dashboard",
+            label: "Dashboard",
+            isFooter: false,
+            id: "0"            
+          }}
+          isOpen={isOpen}
+          setIsOpen={setIsOpen}
+        />
+          
         {mainItems.map((item) => (
           <SidebarItem
             key={item.id}

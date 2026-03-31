@@ -1,4 +1,4 @@
-import { Menu, ChevronDown, LogOut, User, X } from "lucide-react";
+import { Menu, ChevronDown, LogOut, User, X, ArrowLeftRight } from "lucide-react";
 import { useState } from "react";
 
 interface TopNavbarProps {
@@ -16,11 +16,10 @@ export const TopNavbar = ({ isOpen, setIsOpen }: TopNavbarProps) => {
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 cursor-pointer hover:bg-neutral-800 text-white rounded-lg transition-colors "
         >
-          {isOpen ? <X size={20} /> : <Menu size={20} />}
+          <ArrowLeftRight />
+
         </button>
-        <span className="hidden sm:block text-sm font-medium text-white">
-          Hola
-        </span>
+        {/* De momento este hola no tiene relevancia */}
       </div>
 
       <div className="relative">
