@@ -30,6 +30,7 @@ import {
 import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
 
 export const CollaboratorPage = function () {
+  
   const [filters, setFilters] = useState<CollaboratorRequest>({
     identification_number: "",
     branch_id: 0,

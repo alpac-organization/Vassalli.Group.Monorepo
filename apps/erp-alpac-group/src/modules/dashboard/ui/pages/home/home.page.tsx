@@ -15,10 +15,13 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 export const HomePage = function () {
+  const navigate = useNavigate();
+
   const [isLogout, setLogout] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const navigate = useNavigate();
+  const { userName, fullName, email, companyId, companyName, companyAlias } =
+    useUserStore();
 
   const {
     userName,
@@ -34,9 +37,10 @@ export const HomePage = function () {
   const { obtainActiveModulesByCompanyId } = useModules(companyId);
   const { data: modulesAvailables } = obtainActiveModulesByCompanyId;
 
-  const validatedName = validateNameAndLastName(fullName);
   const firstName = fullName ? fullName.split(" ")[0] : userName;
+
   const validatedEmail = email ? email : userName;
+  const validatedName = validateNameAndLastName(fullName);
 
   const companyAliasWhite = companyAlias.toLowerCase().concat(".white");
 
@@ -44,7 +48,6 @@ export const HomePage = function () {
 
   const handleLogout = async function () {
     try {
-      // Iniciar proceso para cerrar sesión
       setLogout(true);
 
       const companyId = CookieStorageAdapter.getCompanyAlias() ?? "";
