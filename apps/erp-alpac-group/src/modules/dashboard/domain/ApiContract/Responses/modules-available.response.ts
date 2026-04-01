@@ -47,4 +47,10 @@ export interface ModulesAvailableResponse {
    * @example "/payroll/collaborators"
    */
   image_url: string;
+
+  /**
+   * Tipo de rol del módulo.
+   * @example "Administrator"
+   */
+  role_type: string;
 }

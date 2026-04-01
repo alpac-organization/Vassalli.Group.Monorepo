@@ -8,21 +8,18 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ModuleEnum } from "@app/core/enums/module.enum";
 
 export const DashboardLayout = ({}) => {
-  const { moduleCode, userType } = useUserStore();
+  const { moduleCode, role } = useUserStore();
   const { isOpenSidebar, setIsOpenSidebar } = useSessionStorageSidebar();
   const location = useLocation();
 
   // mapeas la secciones = []
   const registry = sidebarData.navigationRegistry;
-  const moduleItems = registry[moduleCode as keyof typeof registry] ?? [];
-  const genericItems = registry[ModuleEnum.GENERIC] ?? [];
+  const authorizedRoles = registry[moduleCode as keyof typeof registry] ?? [];
+  const publicItems = registry[ModuleEnum.PUBLIC] ?? [];
+  const moduleItems =
+    authorizedRoles[role as keyof typeof authorizedRoles] ?? [];
 
-  const allAvailableItems = [...moduleItems, ...genericItems];
-
-  const authorizedItems = allAvailableItems.filter((item) => {
-    if (!("user_types" in item)) return false;
-    return (item.user_types as string[]).includes(userType);
-  });
+  const authorizedItems = [...moduleItems, ...publicItems];
 
   const isAuthorizedPath = authorizedItems.some((item) => {
     return location.pathname.includes(item.path);

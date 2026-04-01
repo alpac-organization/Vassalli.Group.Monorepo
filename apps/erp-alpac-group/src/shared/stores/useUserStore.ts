@@ -10,7 +10,7 @@ interface UserState {
   companyName: string;
   companyAlias: string;
   moduleCode: string;
-  userType: string;
+  role: string;
 }
 
 export const useUserStore = create<UserState>()(
@@ -24,7 +24,7 @@ export const useUserStore = create<UserState>()(
       companyName: "",
       companyAlias: "",
       moduleCode: "",
-      userType: "",
+      role: "",
     }),
     {
       name: "user-data",
