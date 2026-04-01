@@ -1,5 +1,9 @@
-import type { PersonalFormData } from "@app/modules/payroll/ui/pages/collaborator-profile/types/profile-details.types";
-import type { UseFormReturn } from "react-hook-form";
+import type {
+  PersonalFormData,
+  WorkFormData,
+} from "@app/modules/payroll/ui/pages/collaborator-profile/types/profile-details.types";
+import type { Control, UseFormReturn } from "react-hook-form";
+
 export interface EditableFieldProps {
   name: keyof PersonalFormData;
   label: string;
@@ -16,3 +20,12 @@ export interface EditableFieldProps {
   /** Si el valor está vacío y no se está editando, se muestra dentro del input. */
   missingMessage?: string;
 }
+
+export type ReadonlyWorkFieldProps = {
+  name: keyof WorkFormData;
+  label: string;
+  missingLabel: string;
+  control: Control<WorkFormData>;
+  readOnlyInputClasses: string;
+  type?: "text" | "email" | "date" | "tel";
+};

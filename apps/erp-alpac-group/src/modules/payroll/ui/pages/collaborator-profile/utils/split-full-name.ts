@@ -1,5 +1,5 @@
 /**
- * Parte el nombre completo en campos de formulario (heurística para nombres comunes de 2–4+ partes).
+ * Parte el nombre completo en el formulario de perfil de colaborador.
  */
 export function splitFullNameForForm(fullName: string): {
   firstName: string;

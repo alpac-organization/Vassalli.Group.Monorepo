@@ -9,15 +9,7 @@ import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborato
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCollaboratorProfileDetails } from "@app/modules/payroll/ui/hooks/useCollaboratorProfile";
 import { Loader } from "@app/shared/components/loaders/loader";
-import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-
-function getErrorMessage(err: unknown): string {
-  if (err && typeof err === "object" && "error" in err) {
-    const e = err as ApiErrorResponse;
-    return e.error?.description ?? "Ocurrió un error al cargar el perfil.";
-  }
-  return "Ocurrió un error al cargar el perfil.";
-}
+import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
 
 export function CollaboratorProfilePage() {
   const [activeTab, setActiveTab] = useState<TabId>("personal");

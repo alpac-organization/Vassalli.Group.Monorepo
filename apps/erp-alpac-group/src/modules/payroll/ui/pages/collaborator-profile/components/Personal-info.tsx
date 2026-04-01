@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { InputText, Alert, AnimatedAlertWrapper } from "@alpac/design-system";
-import { EditableField } from "./EditableField";
+import { EditableField } from "@app/modules/payroll/ui/pages/collaborator-profile/components/EditablePersonalField";
 import {
   isValueMissing,
   missingDataInInputClassName,
-} from "./field-missing-message";
+} from "@app/modules/payroll/ui/pages/collaborator-profile/utils/field-missing-message";
 import type { PersonalFormData } from "../types/profile-details.types";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
-import { splitFullNameForForm } from "../utils/split-full-name";
+import { splitFullNameForForm } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/split-full-name";
 import { FormatIdentificationNumber } from "@app/shared/utils/format-identification-number";
 
 const defaultPersonalInformation: PersonalFormData = {
@@ -157,7 +157,9 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                       disabled
                       editable={false}
                       value={
-                        missing ? "Género no registrado" : String(field.value ?? "")
+                        missing
+                          ? "Género no registrado"
+                          : String(field.value ?? "")
                       }
                       onChange={field.onChange}
                       onBlur={field.onBlur}

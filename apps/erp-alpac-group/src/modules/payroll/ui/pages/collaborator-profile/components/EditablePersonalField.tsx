@@ -2,17 +2,11 @@ import { useState } from "react";
 import { Controller } from "react-hook-form";
 import { Pencil, Check, X, Loader2 } from "lucide-react";
 import { InputText } from "@alpac/design-system";
-import type { EditableFieldProps } from "../types/utils.type";
-import { isValueMissing, missingDataInInputClassName } from "./field-missing-message";
-
-const customInputClasses = `
-  !transition-all !duration-200
-  dark:!bg-[#1e2229] dark:!text-white dark:!border-slate-600/50 dark:!px-3
-  focus:dark:!border-cyan-500/60 focus:dark:!ring-2 focus:dark:!ring-cyan-500/20
-  disabled:dark:!bg-[#1e2229] disabled:dark:!text-slate-200 disabled:dark:!border-slate-700/50 disabled:!px-3 disabled:!opacity-100 disabled:!shadow-none disabled:!font-medium
-`;
-const labelClasses =
-  "text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!";
+import type { EditableFieldProps } from "@app/modules/payroll/ui/pages/collaborator-profile/types/utils.type";
+import {
+  isValueMissing,
+  missingDataInInputClassName,
+} from "@app/modules/payroll/ui/pages/collaborator-profile/utils/field-missing-message";
 
 export const EditableField = ({
   name,
@@ -26,11 +20,7 @@ export const EditableField = ({
   onConfirmUpdate,
   missingMessage,
 }: EditableFieldProps) => {
-  const {
-    control,
-    watch,
-    setValue,
-  } = formMethods;
+  const { control, watch, setValue } = formMethods;
 
   const [originalValue, setOriginalValue] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -79,18 +69,21 @@ export const EditableField = ({
                 isValueMissing(field.value);
               const displayValue = showMissingInline
                 ? (missingMessage as string)
-                : (field.value ?? "");
+                : field.value ?? "";
               const inputType = showMissingInline ? "text" : type;
 
               return (
                 <InputText
                   label={label}
-                  labelClassName={labelClasses}
+                  labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
                   type={inputType}
                   disabled={!isEditing || isUpdating}
                   editable={false}
                   error={fieldState.error?.message as string | undefined}
-                  className={`${customInputClasses} min-w-0 w-full max-w-full ${showMissingInline ? missingDataInInputClassName : ""}`}
+                  className={`transition-all! duration-200! dark:bg-[#1e2229]! dark:text-white! dark:border-slate-600/50! dark:px-3!
+                            focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!
+                            disabled:dark:bg-[#1e2229]! disabled:dark:text-slate-200! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
+                              min-w-0 w-full max-w-full ${showMissingInline ? missingDataInInputClassName : ""}`}
                   value={displayValue}
                   onChange={field.onChange}
                   onBlur={field.onBlur}
