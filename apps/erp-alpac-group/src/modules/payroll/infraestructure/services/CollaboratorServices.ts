@@ -23,6 +23,7 @@ export class CollaboratorServices implements ICollaboratorServices {
             params: cleanParams(rest),
           },
         );
+      console.log(collaborators);
       return collaborators;
     } catch (error) {
       throw error;

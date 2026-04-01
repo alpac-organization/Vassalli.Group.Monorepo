@@ -36,6 +36,7 @@ export const useAuth = function () {
         companyName: response.company_information.company_name.toString(),
         companyAlias: response.company_information.alias,
         identificationNumber: response.identification_number,
+        userType: response.user_type,
       });
 
       navigate(`/${companyAlias}/dashboard`, {
