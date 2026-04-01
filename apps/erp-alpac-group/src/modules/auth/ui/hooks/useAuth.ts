@@ -28,8 +28,6 @@ export const useAuth = function () {
       CookieStorageAdapter.setRefreshToken(response.refresh_token);
       CookieStorageAdapter.setCompanyAlias(companyAlias);
 
-      console.log(response);
-
       useUserStore.setState({
         fullName: response.full_name,
         email: response.email,
@@ -38,7 +36,7 @@ export const useAuth = function () {
         companyName: response.company_information.company_name.toString(),
         companyAlias: response.company_information.alias,
         identificationNumber: response.identification_number,
-        userRole: response.user_type,
+        userType: response.user_type,
       });
 
       navigate(`/${companyAlias}/dashboard`, {

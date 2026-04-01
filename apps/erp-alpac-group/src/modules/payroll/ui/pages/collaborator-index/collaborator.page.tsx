@@ -221,32 +221,23 @@ export const CollaboratorPage = function () {
         />
       </div>
 
-      <div className="flex justify-between items-center dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Button
-            size="giant"
-            label="Agregar Colaborador"
-            className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-          />
-          <Button
-            size="giant"
-            label="Otras acciones"
-            className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-          />
-          <Button
-            size="giant"
-            label="Otras acciones"
-            className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-          />
-        </div>
-      </div>
-
       <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
         <div className="flex flex-col justify-center">
           <h3 className="p-0! m-0!">Accesos Directos</h3>
           <small className="text-gray-500 dark:text-gray-300">
             Descripcion de accesos directos
           </small>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Button
+            size="giant"
+            label="Agregar Colaborador"
+            icon={<UserRoundPlusIcon size={20} />}
+            className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+          />
         </div>
       </div>
 

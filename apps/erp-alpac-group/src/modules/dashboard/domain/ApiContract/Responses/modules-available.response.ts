@@ -41,4 +41,10 @@ export interface ModulesAvailableResponse {
    * @example "/payroll/collaborators"
    */
   path_redirect: string;
+
+  /**
+   * Ruta de la imagen del módulo.
+   * @example "/payroll/collaborators"
+   */
+  image_url: string;
 }
