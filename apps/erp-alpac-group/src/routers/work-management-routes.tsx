@@ -1,5 +1,6 @@
 import type { RouteObject } from "react-router-dom";
 import { CollaboratorProfilePage } from "@app/modules/payroll/ui/pages/collaborator-profile/collaborator-profile-page";
+import VacationPage from "@app/modules/vacations/ui/vacation-page";
 export const WorkManagementRoutes: RouteObject[] = [
   {
     index: true,
@@ -8,5 +9,9 @@ export const WorkManagementRoutes: RouteObject[] = [
   {
     path: "collaborator-profile",
     element: <CollaboratorProfilePage />,
+  },
+  {
+    path: "gestion-vacations",
+    element: <VacationPage />,
   },
 ];

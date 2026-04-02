@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FormLayout } from "@app/shared/layouts";
 import { Controller, useForm } from "react-hook-form";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
@@ -8,10 +9,12 @@ import { ContentLoaded } from "@app/shared/components/content-loaded/content-loa
 import { useAuth } from "@app/modules/auth/ui/hooks/useAuth";
 import { useImage } from "@app/shared/hooks/useImage";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { applyDevMockSession, isDevMockLoginUiVisible } from "@app/core/config/dev-mock-auth";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { LoginRequest } from "@app/modules/auth/domain/ApiContract/Requests/login.request";
 
 export const LoginPage = function () {
+   const navigate = useNavigate();
    const { getMappedError } = useMappedError();
    const { GetCompaniesQuery } = useCompanies();
    const { startLoginProcess } = useAuth();
@@ -173,6 +176,20 @@ export const LoginPage = function () {
                            size="giant"
                         />
                      </div>
+
+                     {isDevMockLoginUiVisible() && (
+                        <div className="w-full flex flex-col mt-5 gap-2 border-t border-white/15 pt-5">
+                           <p className="text-center text-xs text-white/70">
+                              Sin API: inicia sesión local para desarrollo
+                           </p>
+                           <Button
+                              type="button"
+                              label="Entrar sin servidor (mock)"
+                              onClick={() => applyDevMockSession(navigate)}
+                              size="giant"
+                           />
+                        </div>
+                     )}
 
                      {
                         showAuthError && (

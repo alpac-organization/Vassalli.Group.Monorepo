@@ -1,6 +1,6 @@
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { ModuleEnum } from "@app/core/enums/module.enum";
-import { Settings, UsersRound, User } from "lucide-react";
+import { Settings, UsersRound, User, Calendar } from "lucide-react";
 import type { SidebarLink } from "../components/Sidebar/types/sidebar.types";
 
 const collboratorSection: SidebarLink = {
@@ -17,6 +17,12 @@ const collaboratorProfileSection: SidebarLink = {
   icon: User,
 };
 
+const gestionVacationsSection: SidebarLink = {
+  id: "gestion-vacations",
+  label: "vacaciones",
+  path: "work-management/gestion-vacations",
+  icon: Calendar,
+};
 const settingsSection: SidebarLink = {
   id: "settings",
   label: "Settings",
@@ -35,7 +41,10 @@ export const sidebarData = {
       [RoleEnum.ADMINISTRATOR]: [collboratorSection],
     },
     [ModuleEnum.WORK_MANAGEMENT]: {
-      [RoleEnum.OPERATOR]: [collaboratorProfileSection],
+      [RoleEnum.OPERATOR]: [
+        collaboratorProfileSection,
+        gestionVacationsSection,
+      ],
     },
     [ModuleEnum.PUBLIC]: [settingsSection],
   },
