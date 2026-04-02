@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { DashBoardCard, Modal } from "@alpac/design-system";
-import { useModules } from "../../hooks/useModules";
-import { HeaderHome } from "./hearder/header";
+import { useModules } from "@app/modules/dashboard/ui/hooks/useModules";
+import { HeaderHome } from "@app/modules/dashboard/ui/pages/home/hearder/header";
 
 import { useAuth } from "@app/modules/auth/ui/hooks/useAuth";
 import { Loader } from "@app/shared/components/loaders/loader";
@@ -20,15 +20,8 @@ export const HomePage = function () {
   const [isLogout, setLogout] = useState(false);
   const [showModal, setShowModal] = useState(false);
 
-  const {
-    userName,
-    fullName,
-    email,
-    companyId,
-    companyName,
-    companyAlias,
-    identificationNumber,
-  } = useUserStore();
+  const { userName, fullName, email, companyId, companyName, companyAlias } =
+    useUserStore();
 
   const { startProcessToCloseSession } = useAuth();
   const { obtainActiveModulesByCompanyId } = useModules(companyId);
@@ -47,7 +40,7 @@ export const HomePage = function () {
     try {
       setLogout(true);
 
-      const companyId = CookieStorageAdapter.getCompanyAlias() ?? "";
+      const companyId = useUserStore.getState().companyId ?? "";
       const refreshToken = CookieStorageAdapter.getRefreshToken() ?? "";
 
       await startProcessToCloseSession.mutateAsync({
@@ -92,21 +85,17 @@ export const HomePage = function () {
             <DashBoardCard
               key={module.module_name}
               title={module.module_name}
-              image="https://"
+              image={module.image_url}
               onClick={() => {
                 useUserStore.setState({ moduleCode: module.module_code });
 
-                if (!module.module_code || !identificationNumber) {
+                if (!module.module_code) {
                   setShowModal(true);
                   return;
                 }
 
                 if (module.module_code === "GES-M86T") {
-                  navigate(
-                    module.path_redirect
-                      .concat("/")
-                      .concat(identificationNumber),
-                  );
+                  navigate(`${module.path_redirect}/collaborator-profile`);
                 } else {
                   navigate(module.path_redirect);
                 }

@@ -1,8 +1,9 @@
-import { HomePage } from "@app/modules/dashboard/ui/pages/home/home.page";
-import { DashboardLayout } from "@app/shared/layouts";
 import type { RouteObject } from "react-router-dom";
-import { PayrollRoutes } from "./payroll-routes";
+import { HomePage } from "@app/modules/dashboard/ui/pages/home/home.page";
 import { ContainerCopyright } from "@app/shared/layouts/container-copyright/container-copyright";
+import { DashboardLayout } from "@app/shared/layouts/dashboard-layout/dashboard-layout";
+import { PayrollRoutes } from "@app/routers/payroll-routes";
+import { WorkManagementRoutes } from "@app/routers/work-management-routes";
 
 //Llamar su store de secciones aqui
 
@@ -14,11 +15,19 @@ export const DashboardRoutes: RouteObject[] = [
         index: true,
         element: <HomePage />,
       },
-    ]
+    ],
   },
   {
-    path: "payroll",
     element: <DashboardLayout />,
-    children: PayrollRoutes
-  }
-]
+    children: [
+      {
+        path: "payroll",
+        children: PayrollRoutes,
+      },
+      {
+        path: "work-management",
+        children: WorkManagementRoutes,
+      },
+    ],
+  },
+];

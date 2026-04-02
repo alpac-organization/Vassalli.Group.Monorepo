@@ -47,6 +47,11 @@ export interface LoginResponse {
    * Número de identificación de la persona.
    */
   identification_number: string;
+
+  /**
+   * Rol del usuario.
+   */
+  user_type: string;
 }
 
 /**
