@@ -54,27 +54,4 @@ export const CookieStorageAdapter = {
    clearAuth: () => {
       Object.values(STORAGE_KEYS).forEach(key => Cookies.remove(key));
    },
-
-   /**
-    * Solo en desarrollo: cookies legibles en http://localhost (sin refresh token).
-    */
-   setDevMockSession: (accessToken: string, companyAlias: string) => {
-      if (import.meta.env.DEV !== true) {
-         return;
-      }
-      const normalized = companyAlias.toLowerCase();
-      Cookies.set(STORAGE_KEYS.ACCESS_TOKEN, accessToken, {
-         expires: 1,
-         path: "/",
-         sameSite: "strict",
-         secure: false,
-      });
-      Cookies.set(STORAGE_KEYS.COMPANY_ALIAS, normalized, {
-         expires: 7,
-         path: "/",
-         sameSite: "strict",
-         secure: false,
-      });
-      Cookies.remove(STORAGE_KEYS.REFRESH_TOKEN);
-   },
 };

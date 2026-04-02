@@ -6,7 +6,6 @@ import { getBrowserName } from "@app/core/enums/user-agent.enum";
 import type { CustomInternalAxiosRequestConfig } from "../interfaces/CustomInternalAxiosRequestConfig";
 import type { IAuthenticationServices } from "@app/modules/auth/application/interfaces/IAuthenticationServices";
 import { useInactivityStore } from "@app/shared/stores/useInactivityStore";
-import { isDevMockSessionActive } from "@app/core/config/dev-mock-auth";
 
 class AxiosHttpAdapter implements IHttpHandler {
   private instance: AxiosInstance;
@@ -30,7 +29,7 @@ class AxiosHttpAdapter implements IHttpHandler {
       },
     });
 
-    // Inicia el refresh token cada 15 minutos (refreshToken no-op si hay sesión mock)
+    // Inicia el refresh token cada 15 minutos
     this.startRefreshToken(15 * 60 * 1000);
 
     // Interceptor to request
@@ -81,10 +80,6 @@ class AxiosHttpAdapter implements IHttpHandler {
           !originalRequest.url?.includes("auth/login") &&
           !originalRequest.url?.includes("auth/refresh-token")
         ) {
-          if (isDevMockSessionActive()) {
-            return Promise.reject(customError);
-          }
-
           // Marcar que ya se está intentando renovar el token
           originalRequest._retry = true;
 
@@ -126,10 +121,6 @@ class AxiosHttpAdapter implements IHttpHandler {
   }
 
   private async refreshToken(): Promise<any> {
-    if (isDevMockSessionActive()) {
-      return undefined;
-    }
-
     try {
       // Obtengo el refreshToken actual
       const refreshToken = CookieStorageAdapter.getRefreshToken();
