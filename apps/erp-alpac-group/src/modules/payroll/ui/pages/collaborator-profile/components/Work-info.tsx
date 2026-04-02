@@ -9,6 +9,7 @@ const defaultInformationWork: WorkFormData = {
   jobPosition: "",
   workArea: "",
   workEmail: "",
+  workPhoneNumber: "",
   inssNumber: "",
   bankAccountNumber: "",
   bankName: "",
@@ -37,10 +38,11 @@ export const WorkManagementSection = ({
     const w = profile.working_information;
     const s = profile.salary_information;
     reset({
-      startDate: "",
+      startDate: w.start_date ?? "",
       jobPosition: w.work_position ?? profile.work_position ?? "",
       workArea: w.work_area ?? "",
-      workEmail: "",
+      workEmail: w.work_email ?? "",
+      workPhoneNumber: w.work_phone_number ?? "",
       inssNumber: w.inss_number ?? "",
       bankAccountNumber: w.bank_account_number ?? "",
       bankName: w.bank_name ?? "",
@@ -73,6 +75,14 @@ export const WorkManagementSection = ({
                 control={control}
                 missingLabel="Cargo no registrado"
                 readOnlyInputClasses={readOnlyInputClasses}
+              />
+              <ReadonlyWorkField
+                name="workPhoneNumber"
+                label="Teléfono de Trabajo"
+                control={control}
+                missingLabel="Teléfono de trabajo no registrado"
+                readOnlyInputClasses={readOnlyInputClasses}
+                type="tel"
               />
               <ReadonlyWorkField
                 name="startDate"

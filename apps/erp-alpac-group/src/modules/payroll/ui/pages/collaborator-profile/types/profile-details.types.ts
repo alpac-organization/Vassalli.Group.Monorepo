@@ -18,6 +18,7 @@ export interface WorkFormData {
   jobPosition: string;
   workArea: string;
   workEmail?: string;
+  workPhoneNumber?: string;
   inssNumber?: string;
   bankAccountNumber?: string;
   bankName?: string;
