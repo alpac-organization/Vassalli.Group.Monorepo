@@ -1,7 +1,6 @@
 import { UserRound } from "lucide-react";
 import { useImage } from "@app/shared/hooks/useImage";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { validateNameAndLastName } from "@app/shared/utils/string.utils";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
 
 export type ProfileSummaryProps = {
@@ -16,9 +15,9 @@ export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
   const { urlImage } = useImage(companyAliasWhite);
 
   const displayName = profile?.full_name
-    ? validateNameAndLastName(profile.full_name)
+    ? profile.full_name
     : fullName
-      ? validateNameAndLastName(fullName)
+      ? fullName
       : userName || "Usuario";
 
   const textBlock = (
@@ -34,18 +33,20 @@ export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
     </div>
   );
 
-  const avatarContent =
-    profile?.profile_picture_url ? (
-      <img
-        src={profile.profile_picture_url}
-        alt=""
-        className="h-full w-full rounded-full object-cover"
-        loading="lazy"
-        decoding="async"
-      />
-    ) : (
-      <UserRound className="h-7 w-7 text-cyan-400 sm:h-8 sm:w-8" strokeWidth={1.75} />
-    );
+  const avatarContent = profile?.profile_picture_url ? (
+    <img
+      src={profile.profile_picture_url}
+      alt=""
+      className="h-full w-full rounded-full object-cover"
+      loading="lazy"
+      decoding="async"
+    />
+  ) : (
+    <UserRound
+      className="h-7 w-7 text-cyan-400 sm:h-8 sm:w-8"
+      strokeWidth={1.75}
+    />
+  );
 
   const avatarContentLarge = profile?.profile_picture_url ? (
     <img

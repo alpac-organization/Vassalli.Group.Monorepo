@@ -6,7 +6,7 @@ import {
   isValueMissing,
   missingDataInInputClassName,
 } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/field-missing-message";
-import type { PersonalFormData } from "../types/profile-details.types";
+import type { PersonalFormData } from "@app/modules/payroll/ui/pages/collaborator-profile/types/profile-details.types";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
 import { splitFullNameForForm } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/split-full-name";
 import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
@@ -83,12 +83,11 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
   ) => {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log(`Campo actualizado -> ${name}: ${value}`);
 
       setAlertInfo({
-        type: "error",
-        title: "¡error!",
-        message: "el campo no se actualio",
+        type: "success",
+        title: "¡exito!",
+        message: "el campo se actualio",
       });
     } catch (error) {
       setAlertInfo({

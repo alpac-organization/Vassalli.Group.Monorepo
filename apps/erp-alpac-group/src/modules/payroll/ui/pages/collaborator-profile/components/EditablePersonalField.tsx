@@ -45,7 +45,7 @@ export const EditableField = ({
       await onConfirmUpdate(name, String(currentValue));
       onEditEnd(name);
     } catch (error) {
-      console.error("Error actualizando campo:", error);
+      throw error;
     } finally {
       setIsUpdating(false);
     }
@@ -82,7 +82,8 @@ export const EditableField = ({
                   error={fieldState.error?.message as string | undefined}
                   className={`transition-all! duration-200! dark:bg-[#1e2229]! dark:text-white! dark:border-slate-600/50! dark:px-3!
                             focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!
-                            disabled:dark:bg-[#1e2229]! disabled:dark:text-slate-200! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
+                            disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
+                            ${!showMissingInline ? "disabled:dark:text-slate-200!" : ""}
                               min-w-0 w-full max-w-full ${showMissingInline ? missingDataInInputClassName : ""}`}
                   value={displayValue}
                   onChange={field.onChange}

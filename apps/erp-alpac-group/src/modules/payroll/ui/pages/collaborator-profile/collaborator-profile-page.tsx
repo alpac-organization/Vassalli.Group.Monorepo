@@ -10,16 +10,18 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCollaboratorProfileDetails } from "@app/modules/payroll/ui/hooks/useCollaboratorProfile";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
-
+import { useParams } from "react-router-dom";
 export function CollaboratorProfilePage() {
   const [activeTab, setActiveTab] = useState<TabId>("personal");
   const location = useLocation();
+  const { identification_number } = useParams();
   const state = location.state as CollaboratorProfileLocationState | null;
 
   const { companyId, moduleCode, identificationNumber } = useUserStore();
 
   const targetIdentification = (
     state?.identification_number ??
+    identification_number ??
     identificationNumber ??
     ""
   ).trim();
@@ -53,8 +55,8 @@ export function CollaboratorProfilePage() {
       <div className="dark w-full max-w-full min-h-0 flex flex-col px-4 py-8 text-slate-100 dark:bg-[#363a45]">
         <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
           No se pudo determinar la identificación del colaborador. Accede desde
-          la lista de colaboradores o asegúrate de tener sesión con identificación
-          registrada.
+          la lista de colaboradores o asegúrate de tener sesión con
+          identificación registrada.
         </p>
       </div>
     );

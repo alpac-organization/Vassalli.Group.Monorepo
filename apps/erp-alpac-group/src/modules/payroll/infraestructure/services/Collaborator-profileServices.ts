@@ -20,7 +20,6 @@ export class CollaboratorProfileServices
         );
       return detailProfileCollaborator;
     } catch (error) {
-      console.log("error", error);
       throw error;
     }
   }
