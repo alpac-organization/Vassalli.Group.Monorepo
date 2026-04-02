@@ -5,4 +5,5 @@ export const VACATION_STATUS_FILTER_OPTIONS: Option[] = [
   { label: "Pendiente", value: "Pendiente" },
   { label: "Aprobado", value: "Aprobado" },
   { label: "Rechazado", value: "Rechazado" },
+  { label: "Cancelled", value: "Cancelled" },
 ];

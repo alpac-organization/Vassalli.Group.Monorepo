@@ -1,6 +1,6 @@
 import { Badges, Button, DataTable } from "@alpac/design-system";
-import type { VacationRequestRow } from "@app/modules/vacations/domain/types/vacation-request.types";
-import { formatVacationDate } from "@app/modules/vacations/ui/utils/format-vacation-date";
+import type { VacationRequestRow } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-request.types";
+import { formatVacationDate } from "@app/modules/vacations/ui/pages/vacation-index/utils/format-vacation-date";
 
 type VacationRequestsTableProps = {
   data: VacationRequestRow[];
@@ -9,12 +9,14 @@ type VacationRequestsTableProps = {
 
 function statusBadgeColor(status: VacationRequestRow["status"]): string {
   switch (status) {
-    case "Aprobado":
+    case "Approved":
       return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200";
-    case "Pendiente":
+    case "Pending":
       return "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200";
-    case "Rechazado":
+    case "Rejected":
       return "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200";
+    case "Cancelled":
+      return "bg-red-200 text-red-800 dark:bg-red-900/40 dark:text-red-200";
     default:
       return "bg-slate-100 text-slate-800";
   }
@@ -75,6 +77,10 @@ export function VacationRequestsTable({
   ];
 
   return (
-    <DataTable title="Solicitudes de vacaciones" data={data} columns={columns} />
+    <DataTable
+      title="Solicitudes de vacaciones"
+      data={data}
+      columns={columns}
+    />
   );
 }

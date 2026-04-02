@@ -5,16 +5,17 @@ import { useNavigate } from "react-router-dom";
 import type {
   VacationRequestRow,
   VacationStatusFilterValue,
-} from "@app/modules/vacations/domain/types/vacation-request.types";
-import { MOCK_VACATION_REQUESTS } from "@app/modules/vacations/ui/mocks/vacation-requests.mock";
-import { VacationFiltersBar } from "@app/modules/vacations/ui/components/vacation-filters-bar";
-import { VacationPageHeader } from "@app/modules/vacations/ui/components/vacation-page-header";
-import { VacationRequestsTable } from "@app/modules/vacations/ui/components/vacation-requests-table";
-import { VacationStatsSection } from "@app/modules/vacations/ui/components/vacation-stats-section";
+} from "@app/modules/vacations/domain/ApiContract/Requests/vacation-request.types";
+import { MOCK_VACATION_REQUESTS } from "@app/modules/vacations/ui/pages/vacation-index/mocks/vacation-requests.mock";
+import { VacationFiltersBar } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-filters-bar";
+import { VacationPageHeader } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-page-header";
+import { VacationRequestsTable } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-requests-table";
+import { VacationStatsSection } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-stats-section";
 
 /** TODO: reemplazar por métricas desde API / usuario */
 const MOCK_DAYS_TAKEN = "12";
 const MOCK_DAYS_REMAINING = "8";
+const MOCK_DAYS_GENERATED = "5";
 
 export default function VacationPage() {
   const navigate = useNavigate();
@@ -39,7 +40,6 @@ export default function VacationPage() {
 
   const handleViewDetails = useCallback((row: VacationRequestRow) => {
     void row.id;
-    // TODO: navegar a detalle de solicitud cuando exista ruta
   }, []);
 
   return (
@@ -72,6 +72,7 @@ export default function VacationPage() {
       <VacationStatsSection
         daysTakenDisplay={MOCK_DAYS_TAKEN}
         daysRemainingDisplay={MOCK_DAYS_REMAINING}
+        daysGeneratedDisplay={MOCK_DAYS_GENERATED}
       />
 
       <VacationFiltersBar

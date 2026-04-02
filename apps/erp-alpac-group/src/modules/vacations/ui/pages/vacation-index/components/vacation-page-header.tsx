@@ -13,7 +13,7 @@ export function VacationPageHeader({ onNewRequest }: VacationPageHeaderProps) {
           Gestión de Vacaciones
         </h3>
         <small className="text-gray-500 dark:text-gray-300 mt-1">
-          Administra las solicitudes de vacaciones de los empleados
+          vacaciones de los empleados
         </small>
       </div>
       <Button
@@ -22,7 +22,7 @@ export function VacationPageHeader({ onNewRequest }: VacationPageHeaderProps) {
         icon={<CalendarPlus size={18} />}
         label="Nueva Solicitud"
         onClick={onNewRequest}
-        className="shrink-0 w-full sm:w-auto! text-[15px]! rounded-md! text-white! bg-neutral-900! hover:bg-neutral-800! dark:bg-neutral-100! dark:text-neutral-900! dark:hover:bg-white!"
+        className="shrink-0 w-full sm:w-auto! text-[15px]! rounded-md! hover:bg-neutral-800! dark:bg-blue-600! text-white!"
       />
     </div>
   );

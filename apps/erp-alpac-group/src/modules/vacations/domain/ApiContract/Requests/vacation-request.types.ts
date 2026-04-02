@@ -1,4 +1,8 @@
-export type VacationRequestStatus = "Pendiente" | "Aprobado" | "Rechazado";
+export type VacationRequestStatus =
+  | "Pending"
+  | "Approved"
+  | "Rejected"
+  | "Cancelled";
 
 export type VacationRequestRow = {
   id: string;
