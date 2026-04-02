@@ -9,7 +9,7 @@ import {
 import type { PersonalFormData } from "../types/profile-details.types";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
 import { splitFullNameForForm } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/split-full-name";
-import { FormatIdentificationNumber } from "@app/shared/utils/format-identification-number";
+import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 
 const defaultPersonalInformation: PersonalFormData = {
   identificationNumber: "",
@@ -41,7 +41,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
     const department = p.department ?? p.departament ?? "";
     const names = splitFullNameForForm(profile.full_name);
     reset({
-      identificationNumber: FormatIdentificationNumber(
+      identificationNumber: formatIdentificationNumber(
         p.identification_number ?? "",
       ),
       gender: p.gender ?? "",
