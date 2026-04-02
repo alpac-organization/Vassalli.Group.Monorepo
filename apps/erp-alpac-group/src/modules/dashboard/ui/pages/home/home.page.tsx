@@ -13,6 +13,7 @@ import { validateNameAndLastName } from "@app/shared/utils/string.utils";
 import { useImage } from "@app/shared/hooks/useImage";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { ModuleEnum } from "@app/core/enums/module.enum";
 
 export const HomePage = function () {
   const navigate = useNavigate();
@@ -87,14 +88,17 @@ export const HomePage = function () {
               title={module.module_name}
               image={module.image_url}
               onClick={() => {
-                useUserStore.setState({ moduleCode: module.module_code });
+                useUserStore.setState({
+                  moduleCode: module.module_code,
+                  role: module.role_type,
+                });
 
                 if (!module.module_code) {
                   setShowModal(true);
                   return;
                 }
 
-                if (module.module_code === "GES-M86T") {
+                if (module.module_code === ModuleEnum.WORK_MANAGEMENT) {
                   navigate(`${module.path_redirect}/collaborator-profile`);
                 } else {
                   navigate(module.path_redirect);
