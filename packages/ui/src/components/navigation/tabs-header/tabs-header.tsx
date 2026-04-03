@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import type { TabHeaderProps } from "./tabs-header.type";
 
@@ -10,9 +10,18 @@ function MobileTabSelect<T extends string>({
   const baseId = useId();
   const listboxId = `${baseId}-listbox`;
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const wasOpenRef = useRef(false);
   const [isOpen, setIsOpen] = useState(false);
 
   const activeLabel = tabs.find((t) => t.id === activeTab)?.label ?? "";
+
+  useLayoutEffect(() => {
+    if (wasOpenRef.current && !isOpen) {
+      triggerRef.current?.focus();
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -42,6 +51,7 @@ function MobileTabSelect<T extends string>({
   return (
     <div ref={rootRef} className="relative w-full min-w-0">
       <button
+        ref={triggerRef}
         id={`${baseId}-trigger`}
         type="button"
         aria-expanded={isOpen}
