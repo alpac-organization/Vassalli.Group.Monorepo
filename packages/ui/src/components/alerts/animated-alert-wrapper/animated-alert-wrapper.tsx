@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode, type ReactPortal } from "react";
 import { createPortal } from "react-dom";
 
 import type { AnimatedAlertWrapperProps } from "./animated-alert-wrapper.types";
@@ -11,7 +11,7 @@ const boxTransition =
 export function AnimatedAlertWrapper({
   open,
   children,
-}: AnimatedAlertWrapperProps) {
+}: AnimatedAlertWrapperProps): ReactPortal | null {
   const [mounted, setMounted] = useState(!!open);
   const [visible, setVisible] = useState(false);
   const savedRef = useRef<ReactNode | null>(null);

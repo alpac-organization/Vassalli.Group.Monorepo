@@ -1,6 +1,7 @@
-import { UserRound } from "lucide-react";
-import { useImage } from "@app/shared/hooks/useImage";
-import { useUserStore } from "@app/shared/stores/useUserStore";
+import { UserRound } from 'lucide-react';
+import { useTheme } from '@alpac/design-system';
+import { useUserStore } from '@app/shared/stores/useUserStore';
+import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
 
 export type ProfileSummaryProps = {
@@ -8,11 +9,11 @@ export type ProfileSummaryProps = {
 };
 
 export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
-  const { fullName, companyName, companyAlias, userName } = useUserStore();
-  const companyAliasWhite = String(companyAlias ?? "")
-    .toLowerCase()
-    .concat(".white");
-  const { urlImage } = useImage(companyAliasWhite);
+    const { fullName, companyName, userName } = useUserStore();
+    const { theme } = useTheme();
+    const { urlImage, neutralUrlImage } = useCompanyStore();
+
+    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
 
   const displayName = profile?.full_name
     ? profile.full_name
@@ -68,8 +69,8 @@ export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
       <div className="flex w-full min-w-0 flex-col gap-3 sm:hidden">
         <div className="flex w-full justify-center px-1 items-center ">
           <img
-            src={urlImage}
-            alt={companyName ? `Logo ${companyName}` : "Logo de la empresa"}
+            src={activeLogo}
+            alt={companyName ? `Logo ${companyName}` : 'Logo de la empresa'}
             className="h-auto max-h-16 w-auto max-w-64 object-contain object-center sm:max-h-20 sm:max-w-72"
             sizes="224px"
             loading="lazy"
@@ -108,8 +109,8 @@ export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
         </div>
         <div className="flex h-24 w-full max-w-[min(100%,16rem)] shrink-0 items-center justify-end sm:h-24 sm:max-w-[min(100%,17rem)]">
           <img
-            src={urlImage}
-            alt={companyName ? `Logo ${companyName}` : "Logo de la empresa"}
+            src={activeLogo}
+            alt={companyName ? `Logo ${companyName}` : 'Logo de la empresa'}
             className="max-h-20 max-w-full object-contain object-right"
             sizes="(max-width: 768px) 224px, 280px"
             loading="lazy"
