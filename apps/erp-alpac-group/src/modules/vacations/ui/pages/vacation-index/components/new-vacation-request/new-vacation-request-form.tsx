@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { Button, InputText } from "@alpac/design-system";
 import { countInclusiveCalendarDays } from "@app/modules/vacations/ui/pages/vacation-index/utils/count-inclusive-calendar-days";
-import { RequestedDaysField } from "./requested-days-field";
 import type { VacationRequestFormValues } from "./vacation-request-form.types";
 import type { CreateVacationRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-vacation-request";
 
@@ -17,8 +16,6 @@ type NewVacationRequestFormProps = {
   companyId: string;
   moduleCode: string;
   identificationNumber: string;
-  fullName: string;
-  cargo: string;
 };
 
 export function NewVacationRequestForm({
@@ -28,8 +25,6 @@ export function NewVacationRequestForm({
   companyId,
   moduleCode,
   identificationNumber,
-  fullName,
-  cargo,
 }: NewVacationRequestFormProps) {
   const {
     register,
@@ -39,14 +34,14 @@ export function NewVacationRequestForm({
     setError,
   } = useForm<VacationRequestFormValues>({
     defaultValues: {
-      startDate: "",
-      endDate: "",
+      start_date: "",
+      end_date: "",
       description: "",
     },
   });
 
-  const startDate = watch("startDate");
-  const endDate = watch("endDate");
+  const startDate = watch("start_date");
+  const endDate = watch("end_date");
 
   const requestedDays = useMemo(
     () => countInclusiveCalendarDays(startDate, endDate),
@@ -66,15 +61,8 @@ export function NewVacationRequestForm({
       });
       return;
     }
-    if (!fullName.trim()) {
-      setError("root", {
-        type: "manual",
-        message: "No se encontró el nombre del colaborador en la sesión.",
-      });
-      return;
-    }
     if (requestedDays === 0) {
-      setError("endDate", {
+      setError("end_date", {
         type: "manual",
         message: "La fecha de fin debe ser igual o posterior a la de inicio.",
       });
@@ -84,8 +72,8 @@ export function NewVacationRequestForm({
       company_id: companyId,
       module_code: moduleCode,
       identification_number: identificationNumber.trim(),
-      start_date: values.startDate,
-      end_date: values.endDate,
+      start_date: values.start_date,
+      end_date: values.end_date,
       description: values.description.trim(),
     };
     onSubmit(payload);
@@ -94,7 +82,7 @@ export function NewVacationRequestForm({
   return (
     <form
       onSubmit={handleSubmit(handleFormSubmit)}
-      className="flex flex-col gap-5"
+      className="flex min-w-0 flex-col gap-4 sm:gap-5"
     >
       {errors.root?.message && (
         <p className="text-[13px] text-red-500" role="alert">
@@ -102,34 +90,47 @@ export function NewVacationRequestForm({
         </p>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
+      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="min-w-0 flex flex-col gap-1.5">
           <InputText
             label="Fecha de inicio"
             labelClassName={labelClassName}
             type="date"
             className={inputClassName}
-            error={errors.startDate?.message}
-            {...register("startDate", {
+            error={errors.start_date?.message}
+            {...register("start_date", {
               required: "La fecha de inicio es requerida.",
             })}
           />
         </div>
-        <div className="flex flex-col gap-1.5">
+        <div className="min-w-0 flex flex-col gap-1.5">
           <InputText
             label="Fecha de fin"
             labelClassName={labelClassName}
             type="date"
             className={inputClassName}
-            error={errors.endDate?.message}
-            {...register("endDate", {
+            error={errors.end_date?.message}
+            {...register("end_date", {
               required: "La fecha de fin es requerida.",
             })}
           />
         </div>
       </div>
 
-      <RequestedDaysField days={requestedDays} />
+      <div className="flex flex-col gap-1">
+        <span className="text-[14px] font-medium text-slate-600 dark:text-slate-300 ml-0.5">
+          Días solicitados
+        </span>
+        <span
+          className={`text-2xl font-bold ${
+            requestedDays > 0
+              ? "text-alpac-primary-500 dark:text-alpac-primary-400"
+              : "text-slate-400 dark:text-slate-500"
+          }`}
+        >
+          {requestedDays}
+        </span>
+      </div>
 
       <div className="flex flex-col gap-1.5">
         <label className="text-[14px] font-medium text-slate-600 dark:text-slate-300 ml-0.5">
@@ -157,20 +158,20 @@ export function NewVacationRequestForm({
         )}
       </div>
 
-      <div className="flex justify-end gap-3 pt-2 border-t border-slate-200 dark:border-neutral-600">
+      <div className="flex min-w-0 flex-col-reverse gap-2.5 border-t border-slate-200 pt-2 sm:flex-row sm:justify-end sm:gap-3 dark:border-neutral-600">
         <Button
           type="button"
           size="giant"
           label="Cancelar"
           onClick={onCancel}
-          className="text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30!"
+          className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30! sm:w-auto!"
         />
         <Button
           type="submit"
           size="giant"
           label={isPending ? "Enviando..." : "Enviar solicitud"}
           disabled={isPending}
-          className="text-[15px]! rounded-md! bg-alpac-primary-500 text-white! disabled:opacity-60! disabled:cursor-not-allowed!"
+          className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! disabled:opacity-60! disabled:cursor-not-allowed! sm:w-auto!"
         />
       </div>
     </form>

@@ -3,7 +3,6 @@ import { CalendarPlus } from "lucide-react";
 
 type VacationPageHeaderProps = {
   onNewRequest?: () => void;
-  /** Nombre del colaborador (p. ej. desde el saldo de vacaciones). */
   collaboratorDisplayName?: string;
 };
 

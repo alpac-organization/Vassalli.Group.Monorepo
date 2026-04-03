@@ -13,12 +13,18 @@ import { VacationStatsSection } from "@app/modules/vacations/ui/pages/vacation-i
 import { NewVacationRequestModal } from "@app/modules/vacations/ui/pages/vacation-index/components/new-vacation-request/new-vacation-request-modal";
 import { useSaldoVacationRequest } from "@app/modules/vacations/ui/hooks/useSaldoVacationRequest";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useCollaboratorProfileDetails } from "@app/modules/payroll/ui/hooks/useCollaboratorProfile";
 
 export default function VacationPage() {
   const navigate = useNavigate();
-  const { companyId, moduleCode, identificationNumber } = useUserStore();
+  const { companyId, moduleCode, identificationNumber, fullName } =
+    useUserStore();
   const { GetVacationSaldoQuery } = useSaldoVacationRequest();
-
+  const { GetProfileDetails } = useCollaboratorProfileDetails({
+    company_id: companyId,
+    module_code: moduleCode,
+    identification_number: identificationNumber,
+  });
   const saldoContextReady = Boolean(
     companyId && moduleCode && identificationNumber,
   );
@@ -70,6 +76,56 @@ export default function VacationPage() {
     GetVacationSaldoQuery.isPending,
     GetVacationSaldoQuery.isError,
     GetVacationSaldoQuery.data?.full_name,
+  ]);
+
+  const newVacationModalFullName = useMemo(() => {
+    const fromSaldo = GetVacationSaldoQuery.data?.full_name?.trim();
+    if (fromSaldo) return fromSaldo;
+    const fromProfile = GetProfileDetails.data?.full_name?.trim();
+    if (fromProfile) return fromProfile;
+    return fullName?.trim() ?? "";
+  }, [
+    GetVacationSaldoQuery.data?.full_name,
+    GetProfileDetails.data?.full_name,
+    fullName,
+  ]);
+
+  const newVacationModalWorkPosition = useMemo(() => {
+    const p = GetProfileDetails.data;
+    return (
+      p?.work_position?.trim() ||
+      p?.working_information?.work_position?.trim() ||
+      ""
+    );
+  }, [GetProfileDetails.data]);
+
+  const newVacationModalFullNameLoading = useMemo(() => {
+    if (!saldoContextReady) return false;
+    const hasText =
+      Boolean(GetVacationSaldoQuery.data?.full_name?.trim()) ||
+      Boolean(GetProfileDetails.data?.full_name?.trim()) ||
+      Boolean(fullName?.trim());
+    if (hasText) return false;
+    return (
+      GetVacationSaldoQuery.isPending || GetProfileDetails.isPending
+    );
+  }, [
+    saldoContextReady,
+    GetVacationSaldoQuery.data?.full_name,
+    GetVacationSaldoQuery.isPending,
+    GetProfileDetails.data?.full_name,
+    GetProfileDetails.isPending,
+    fullName,
+  ]);
+
+  const newVacationModalWorkPositionLoading = useMemo(() => {
+    if (!saldoContextReady) return false;
+    if (newVacationModalWorkPosition) return false;
+    return GetProfileDetails.isPending;
+  }, [
+    saldoContextReady,
+    newVacationModalWorkPosition,
+    GetProfileDetails.isPending,
   ]);
 
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
@@ -126,6 +182,10 @@ export default function VacationPage() {
       <NewVacationRequestModal
         isOpen={isNewRequestOpen}
         onClose={() => setIsNewRequestOpen(false)}
+        collaboratorFullName={newVacationModalFullName}
+        collaboratorWorkPosition={newVacationModalWorkPosition}
+        isCollaboratorFullNameLoading={newVacationModalFullNameLoading}
+        isCollaboratorWorkPositionLoading={newVacationModalWorkPositionLoading}
       />
 
       <VacationStatsSection

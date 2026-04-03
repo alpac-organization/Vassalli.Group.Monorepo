@@ -1,5 +1,5 @@
 export interface VacationRequestFormValues {
-  startDate: string;
-  endDate: string;
+  start_date: string;
+  end_date: string;
   description: string;
 }
