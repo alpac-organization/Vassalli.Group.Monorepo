@@ -50,7 +50,7 @@ export interface CollaboratorProfilePersonalInformation {
   department?: string;
 }
 export interface CollaboratorProfileWorkingInformation {
-  start_date?: string;
+  entry_date?: string;
   inss_number?: string;
   bank_account_number?: string;
   bank_name?: string;

@@ -5,7 +5,7 @@ import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll
 import { ReadonlyWorkField } from "@app/modules/payroll/ui/pages/collaborator-profile/components/ReadonlyWorkField";
 
 const defaultInformationWork: WorkFormData = {
-  startDate: "",
+  entry_date: "",
   jobPosition: "",
   workArea: "",
   workEmail: "",
@@ -38,7 +38,7 @@ export const WorkManagementSection = ({
     const w = profile.working_information;
     const s = profile.salary_information;
     reset({
-      startDate: w.start_date ?? "",
+      entry_date: w.entry_date ?? "",
       jobPosition: w.work_position ?? profile.work_position ?? "",
       workArea: w.work_area ?? "",
       workEmail: w.work_email ?? "",
@@ -85,7 +85,7 @@ export const WorkManagementSection = ({
                 type="tel"
               />
               <ReadonlyWorkField
-                name="startDate"
+                name="entry_date"
                 label="Fecha de Inicio"
                 control={control}
                 missingLabel="Fecha de inicio no registrada"

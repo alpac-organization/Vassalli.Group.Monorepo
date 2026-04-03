@@ -14,7 +14,7 @@ export interface PersonalFormData {
   department: string;
 }
 export interface WorkFormData {
-  startDate: string;
+  entry_date: string;
   jobPosition: string;
   workArea: string;
   workEmail?: string;
