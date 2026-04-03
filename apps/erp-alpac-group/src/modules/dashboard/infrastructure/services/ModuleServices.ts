@@ -16,7 +16,6 @@ export class ModuleServices implements IModuleServices {
       const modules = await this.apiHandler.get<ModulesAvailableResponse[]>(
         `/companies/${company_id}/users/modules`,
       );
-      console.log(modules);
       return modules;
     } catch (error) {
       throw error;

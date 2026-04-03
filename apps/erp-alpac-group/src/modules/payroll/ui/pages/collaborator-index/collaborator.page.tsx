@@ -29,10 +29,9 @@ import {
 } from '@app/core/enums/catalog.enum';
 import { mapCatalogToOptions } from '@app/shared/utils/catalog.utils';
 import { formatIdentificationNumber } from '@app/shared/utils/string.utils';
-// import { AddCollaboratorModal } from './components/add-collaborator-modal/add-collaborator-modal';
+import { AddCollaboratorModal } from '@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal';
 import { useTheme } from '@alpac/design-system';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
-import { AddCollaboratorStepModal } from './components/add-collaborator-modal/add-collaborator-step-modal';
 
 export const CollaboratorPage = function () {
   const [filters, setFilters] = useState<CollaboratorRequest>({
@@ -63,6 +62,11 @@ export const CollaboratorPage = function () {
     catalog_type: CatalogEnum.WORK_AREAS,
   });
 
+  const { GetCatalogListQuery: jobPositionQuery } = useCatalog({
+    company_id: companyId,
+    catalog_type: CatalogEnum.JOB_POSITIONS,
+  });
+
   /* const { GetCatalogListQuery: branchesQuery } = useCatalog({
     company_id: companyId,
     catalog_type: CatalogEnum.BRANCHES,
@@ -75,7 +79,11 @@ export const CollaboratorPage = function () {
   });
 
   const { data: workAreas = [] } = workAreasQuery;
+  const { data: jobPositions = [] } = jobPositionQuery;
   // const { data: branches = [] } = branchesQuery;
+
+  console.log("job position:", jobPositions)
+
   const {
     data: collaborators = {
       data: [],
@@ -89,7 +97,8 @@ export const CollaboratorPage = function () {
   } = GetCollaboratorsQuery;
 
   const optionsWorkAreas = mapCatalogToOptions(workAreas);
-  const optionsBranches = mapCatalogToOptions(/*branches*/[]);
+  const optionsJobPositions = mapCatalogToOptions(jobPositions);
+  const optionsBranches = mapCatalogToOptions(/*branches*/ []);
   const optionsStatus = Object.values(CollaboratorStatusEnum).map((value) => ({
     label: value,
     value,
@@ -373,13 +382,10 @@ export const CollaboratorPage = function () {
           columns={columnConfig}
         />
       </div>
-      {/* <AddCollaboratorModal
+      <AddCollaboratorModal
         isOpen={showAddCollaboratorModal}
-        onClose={() => setShowAddCollaboratorModal(false)}
-        onSubmit={() => {}}
-      /> */}
-      <AddCollaboratorStepModal
-        isOpen={showAddCollaboratorModal}
+        optionsWorkAreas={optionsWorkAreas}
+        optionsJobPositions={optionsJobPositions}
         onClose={() => setShowAddCollaboratorModal(false)}
         onSubmit={() => {}}
       />

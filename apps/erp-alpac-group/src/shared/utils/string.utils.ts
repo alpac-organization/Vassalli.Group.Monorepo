@@ -4,11 +4,11 @@
  * @returns string
  */
 export const validateNameAndLastName = (fullName: string): string => {
-  if (!fullName) return "Usuario";
+  if (!fullName) return 'Usuario';
 
-  let result = "";
-  const firstName = fullName.toLowerCase().split(" ")[0];
-  const splitFullName = fullName.toLowerCase().split(" ");
+  let result = '';
+  const firstName = fullName.toLowerCase().split(' ')[0];
+  const splitFullName = fullName.toLowerCase().split(' ');
 
   if (splitFullName.length === 1) result = firstName;
 
@@ -20,9 +20,9 @@ export const validateNameAndLastName = (fullName: string): string => {
   if (splitFullName.length > 4) result = `${firstName} ${splitFullName[3]}`;
 
   return result
-    .split(" ")
+    .split(' ')
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+    .join(' ');
 };
 
 /**
@@ -31,9 +31,9 @@ export const validateNameAndLastName = (fullName: string): string => {
  * @returns La cédula formateada o el valor original si no cumple el mínimo
  */
 export const formatIdentificationNumber = (identification: string): string => {
-  if (!identification) return "";
+  if (!identification) return '';
 
-  const clean = identification.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  const clean = identification.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
   if (clean.length < 14) return clean;
 
@@ -44,3 +44,41 @@ export const formatIdentificationNumber = (identification: string): string => {
 
   return `${part1}-${part2}-${part3}${letter}`;
 };
+
+export const validateAge = (date?: string, minAge: number = 16): boolean | string => {
+  if (!date) return true;
+
+  const [year, month, day] = date.split('-').map(Number);
+  const birthDate = new Date(year, month - 1, day);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let age = today.getFullYear() - birthDate.getFullYear();
+
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+
+  return age >= minAge || `El colaborador debe ser mayor de ${minAge} años`;
+};
+
+
+export const validateToday = (date?: string): boolean | string => {
+  if (!date) return true;
+
+  const [year, month, day] = date.split('-').map(Number);
+  const birthDate = new Date(year, month - 1, day);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  if (birthDate > today) return 'La fecha no puede ser mayor a la fecha actual';
+
+  return true;
+}
