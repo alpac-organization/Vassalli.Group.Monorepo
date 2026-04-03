@@ -3,9 +3,17 @@ import { CalendarPlus } from "lucide-react";
 
 type VacationPageHeaderProps = {
   onNewRequest?: () => void;
+  /** Nombre del colaborador (p. ej. desde el saldo de vacaciones). */
+  collaboratorDisplayName?: string;
 };
 
-export function VacationPageHeader({ onNewRequest }: VacationPageHeaderProps) {
+export function VacationPageHeader({
+  onNewRequest,
+  collaboratorDisplayName,
+}: VacationPageHeaderProps) {
+  const subtitle =
+    collaboratorDisplayName?.trim() || "vacaciones de los empleados";
+
   return (
     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
       <div className="flex flex-col justify-center">
@@ -13,7 +21,7 @@ export function VacationPageHeader({ onNewRequest }: VacationPageHeaderProps) {
           Gestión de Vacaciones
         </h3>
         <small className="text-gray-500 dark:text-gray-300 mt-1">
-          vacaciones de los empleados
+          {subtitle}
         </small>
       </div>
       <Button
@@ -22,7 +30,7 @@ export function VacationPageHeader({ onNewRequest }: VacationPageHeaderProps) {
         icon={<CalendarPlus size={18} />}
         label="Nueva Solicitud"
         onClick={onNewRequest}
-        className="shrink-0 w-full sm:w-auto! text-[15px]! rounded-md! hover:bg-neutral-800! dark:bg-blue-600! text-white!"
+        className="shrink-0 w-full sm:w-auto! text-[15px]! rounded-md! bg-alpac-primary-500 text-white!"
       />
     </div>
   );

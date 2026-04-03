@@ -42,16 +42,16 @@ export function VacationFiltersBar({
           <Button
             type="button"
             size="giant"
-            label="Limpiar filtros"
-            onClick={onClear}
-            className="w-full sm:w-auto! text-[15px]! rounded-md! hover:bg-neutral-800! dark:bg-blue-600! text-white!"
+            label="Aplicar filtros"
+            onClick={onApply}
+            className="w-full sm:w-auto! text-[15px]! rounded-md! bg-alpac-primary-500 text-white!"
           />
           <Button
             type="button"
             size="giant"
-            label="Aplicar filtros"
-            onClick={onApply}
-            className="w-full sm:w-auto! text-[15px]! rounded-md! hover:bg-neutral-800! dark:bg-blue-600! text-white!"
+            label="Limpiar filtros"
+            onClick={onClear}
+            className="w-full sm:w-auto! text-[15px]! rounded-md! bg-slate-500! dark:bg-slate-700! text-white!"
           />
         </div>
       </div>

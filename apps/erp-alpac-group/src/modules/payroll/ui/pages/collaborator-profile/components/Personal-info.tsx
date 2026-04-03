@@ -50,7 +50,6 @@ export const PersonalInformation = () => {
   ) => {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log(`Campo actualizado -> ${name}: ${value}`);
 
       setAlertInfo({
         type: "error",

@@ -6,28 +6,79 @@ import type {
   VacationRequestRow,
   VacationStatusFilterValue,
 } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-request.types";
-import { MOCK_VACATION_REQUESTS } from "@app/modules/vacations/ui/pages/vacation-index/mocks/vacation-requests.mock";
 import { VacationFiltersBar } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-filters-bar";
 import { VacationPageHeader } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-page-header";
 import { VacationRequestsTable } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-requests-table";
 import { VacationStatsSection } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-stats-section";
-
-/** TODO: reemplazar por métricas desde API / usuario */
-const MOCK_DAYS_TAKEN = "12";
-const MOCK_DAYS_REMAINING = "8";
-const MOCK_DAYS_GENERATED = "5";
+import { NewVacationRequestModal } from "@app/modules/vacations/ui/pages/vacation-index/components/new-vacation-request/new-vacation-request-modal";
+import { useSaldoVacationRequest } from "@app/modules/vacations/ui/hooks/useSaldoVacationRequest";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 export default function VacationPage() {
   const navigate = useNavigate();
+  const { companyId, moduleCode, identificationNumber } = useUserStore();
+  const { GetVacationSaldoQuery } = useSaldoVacationRequest();
+
+  const saldoContextReady = Boolean(
+    companyId && moduleCode && identificationNumber,
+  );
+
+  const daysTakenDisplay = useMemo(() => {
+    if (!saldoContextReady) return "—";
+    if (GetVacationSaldoQuery.isPending) return "…";
+    if (GetVacationSaldoQuery.isError) return "—";
+    return String(GetVacationSaldoQuery.data?.enjoyed_vacation ?? "—");
+  }, [
+    saldoContextReady,
+    GetVacationSaldoQuery.isPending,
+    GetVacationSaldoQuery.isError,
+    GetVacationSaldoQuery.data?.enjoyed_vacation,
+  ]);
+
+  const daysRemainingDisplay = useMemo(() => {
+    if (!saldoContextReady) return "—";
+    if (GetVacationSaldoQuery.isPending) return "…";
+    if (GetVacationSaldoQuery.isError) return "—";
+    return String(GetVacationSaldoQuery.data?.available_vacations ?? "—");
+  }, [
+    saldoContextReady,
+    GetVacationSaldoQuery.isPending,
+    GetVacationSaldoQuery.isError,
+    GetVacationSaldoQuery.data?.available_vacations,
+  ]);
+
+  const daysGeneratedDisplay = useMemo(() => {
+    if (!saldoContextReady) return "—";
+    if (GetVacationSaldoQuery.isPending) return "…";
+    if (GetVacationSaldoQuery.isError) return "—";
+    return String(GetVacationSaldoQuery.data?.genered_vacation ?? "—");
+  }, [
+    saldoContextReady,
+    GetVacationSaldoQuery.isPending,
+    GetVacationSaldoQuery.isError,
+    GetVacationSaldoQuery.data?.genered_vacation,
+  ]);
+
+  const collaboratorDisplayName = useMemo(() => {
+    if (!saldoContextReady) return undefined;
+    if (GetVacationSaldoQuery.isPending || GetVacationSaldoQuery.isError)
+      return undefined;
+    const name = GetVacationSaldoQuery.data?.full_name?.trim();
+    return name !== "" ? name : undefined;
+  }, [
+    saldoContextReady,
+    GetVacationSaldoQuery.isPending,
+    GetVacationSaldoQuery.isError,
+    GetVacationSaldoQuery.data?.full_name,
+  ]);
+
+  const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
   const [filterDraft, setFilterDraft] =
     useState<VacationStatusFilterValue>("all");
   const [appliedStatus, setAppliedStatus] =
     useState<VacationStatusFilterValue>("all");
 
-  const filteredRows = useMemo(() => {
-    if (appliedStatus === "all") return MOCK_VACATION_REQUESTS;
-    return MOCK_VACATION_REQUESTS.filter((r) => r.status === appliedStatus);
-  }, [appliedStatus]);
+  const filteredRows = useMemo<VacationRequestRow[]>(() => [], []);
 
   const handleApplyFilters = useCallback(() => {
     setAppliedStatus(filterDraft);
@@ -67,12 +118,20 @@ export default function VacationPage() {
         />
       </div>
 
-      <VacationPageHeader />
+      <VacationPageHeader
+        onNewRequest={() => setIsNewRequestOpen(true)}
+        collaboratorDisplayName={collaboratorDisplayName}
+      />
+
+      <NewVacationRequestModal
+        isOpen={isNewRequestOpen}
+        onClose={() => setIsNewRequestOpen(false)}
+      />
 
       <VacationStatsSection
-        daysTakenDisplay={MOCK_DAYS_TAKEN}
-        daysRemainingDisplay={MOCK_DAYS_REMAINING}
-        daysGeneratedDisplay={MOCK_DAYS_GENERATED}
+        daysTakenDisplay={daysTakenDisplay}
+        daysRemainingDisplay={daysRemainingDisplay}
+        daysGeneratedDisplay={daysGeneratedDisplay}
       />
 
       <VacationFiltersBar

@@ -1,5 +1,6 @@
 import { createPortal } from "react-dom";
 import { MODAL_VARIANTS } from "./modal.constants";
+import type { ModalVariant } from "./modal.type";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { ModalProps } from "./modal.type";
@@ -8,13 +9,19 @@ import { useState, useEffect } from "react";
 export const Modal = ({
   isOpen,
   onClose,
-  variant = "default",
+  variant,
   title,
   description,
   children,
+  panelClassName = "",
 }: ModalProps): any => {
   const [isMounted, setIsMounted] = useState(false);
-  const config = MODAL_VARIANTS[variant];
+  const resolvedVariant: ModalVariant = variant ?? "default";
+  const config = MODAL_VARIANTS[resolvedVariant];
+  const titleSectionClass =
+    resolvedVariant === "default"
+      ? "mb-6"
+      : "mb-6 border-t border-t-slate-300";
 
   useEffect(() => {
     setIsMounted(true);
@@ -45,7 +52,7 @@ export const Modal = ({
           <motion.div
             role="dialog"
             aria-modal="true"
-            className={`relative p-6 rounded-2xl shadow-xl max-w-lg w-full mx-4 ${config.bgClass}`}
+            className={`relative p-6 rounded-2xl shadow-xl max-w-lg w-full mx-4 ${config.bgClass} ${panelClassName}`}
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -67,7 +74,7 @@ export const Modal = ({
             )}
 
             {(title || description) && (
-              <div className="mb-6 border-t border-t-slate-300">
+              <div className={titleSectionClass}>
                 {title && (
                   <h2 className={`text-xl font-bold mb-2 ${config.textClass}`}>
                     {title}
@@ -84,7 +91,7 @@ export const Modal = ({
             {children && <div className="mt-4">{children}</div>}
 
             <button
-              className="absolute top-5 right-5 p-1.5 text-slate-700 hover:text-slate-900 hover:bg-slate-300 rounded-full transition-all"
+              className="absolute top-5 right-5 p-1.5 text-slate-700 hover:text-slate-900 hover:bg-slate-300 dark:text-slate-200 dark:hover:text-white dark:hover:bg-slate-600 rounded-full transition-all"
               onClick={onClose}
               aria-label="Cerrar modal"
             >
