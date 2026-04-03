@@ -93,6 +93,8 @@ export const HomePage = function () {
                   role: module.role_type,
                 });
 
+                console.log(useUserStore.getState());
+
                 if (!module.module_code) {
                   setShowModal(true);
                   return;

@@ -1,5 +1,5 @@
-import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface UserState {
   fullName: string;
@@ -11,23 +11,25 @@ interface UserState {
   companyAlias: string;
   moduleCode: string;
   userType: string;
+  role: string;
 }
 
 export const useUserStore = create<UserState>()(
   persist(
     () => ({
-      fullName: "",
-      email: "",
-      userName: "",
-      identificationNumber: "",
-      companyId: "",
-      companyName: "",
-      companyAlias: "",
-      moduleCode: "",
-      userType: "",
+      fullName: '',
+      email: '',
+      userName: '',
+      identificationNumber: '',
+      companyId: '',
+      companyName: '',
+      companyAlias: '',
+      moduleCode: '',
+      userType: '',
+      role: '',
     }),
     {
-      name: "user-data",
+      name: 'user-data',
     },
   ),
 );

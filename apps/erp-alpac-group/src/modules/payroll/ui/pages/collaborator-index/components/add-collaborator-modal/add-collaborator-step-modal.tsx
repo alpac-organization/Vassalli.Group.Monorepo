@@ -21,7 +21,17 @@ export const AddCollaboratorStepModal = (
     control,
     trigger,
     formState: { errors },
-  } = useForm<AddCollaboratorRequest>({mode: 'onChange'});
+  } = useForm<AddCollaboratorRequest>({ mode: 'onChange' });
+
+  const fieldsToValidate: (keyof AddCollaboratorRequest)[] = [
+    'first_name',
+    'first_lastname',
+    'identification_number',
+    'identification_type',
+    'gender',
+  ];
+
+  // const testing: (keyof AddCollaboratorRequest)[] = Array.from(Object.keys(AddCollaboratorRequest));
 
   const handleCloseModal = () => {
     setCurrentStep(0);
@@ -31,15 +41,7 @@ export const AddCollaboratorStepModal = (
   const handleNext = async (e: React.MouseEvent) => {
     e.preventDefault();
 
-    const fieldsToValidate = [
-      'first_name',
-      'first_lastname',
-      'identification_number',
-      'identification_type',
-      'gender',
-    ];
-
-    const isValid = await trigger(fieldsToValidate as any);
+    const isValid = await trigger(fieldsToValidate);
 
     if (isValid && currentStep < steps.length - 1) {
       setCurrentStep((prev) => prev + 1);
@@ -72,7 +74,7 @@ export const AddCollaboratorStepModal = (
           {currentStep === 0 && (
             <section className="animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="flex items-center gap-2 mb-6">
-                <h3 className="text-[20px]! font-bold text-slate-800 dark:text-slate-800">
+                <h3 className="text-[16px]! font-bold text-slate-800 dark:text-slate-800">
                   Datos de Identidad
                 </h3>
               </div>
@@ -200,7 +202,7 @@ export const AddCollaboratorStepModal = (
           {currentStep === 1 && (
             <section className="animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="flex items-center gap-2 mb-6">
-                <h3 className="text-[20px]! font-bold text-slate-800 dark:text-slate-800">
+                <h3 className="text-[16px]! font-bold text-slate-800 dark:text-slate-800">
                   Información Personal
                 </h3>
               </div>
@@ -241,7 +243,7 @@ export const AddCollaboratorStepModal = (
           {currentStep === 2 && (
             <section className="animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="flex items-center gap-2 mb-6">
-                <h3 className="text-[20px]! font-bold text-slate-800 dark:text-slate-800">
+                <h3 className="text-[16px]! font-bold text-slate-800 dark:text-slate-800">
                   Información Laboral
                 </h3>
               </div>
@@ -295,7 +297,7 @@ export const AddCollaboratorStepModal = (
           {currentStep === 3 && (
             <section className="animate-in fade-in slide-in-from-right-4 duration-300">
               <div className="flex items-center gap-2 mb-6">
-                <h3 className="text-[20px]! font-bold text-slate-800 dark:text-slate-800">
+                <h3 className="text-[16px]! font-bold text-slate-800 dark:text-slate-800">
                   Información Salarial
                 </h3>
               </div>

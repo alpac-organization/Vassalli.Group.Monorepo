@@ -5,7 +5,6 @@ import {
   InputText,
   Dropdown,
   Button,
-  Modal,
 } from '@alpac/design-system';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 import { motion } from 'framer-motion';
@@ -64,10 +63,10 @@ export const CollaboratorPage = function () {
     catalog_type: CatalogEnum.WORK_AREAS,
   });
 
-  const { GetCatalogListQuery: branchesQuery } = useCatalog({
+  /* const { GetCatalogListQuery: branchesQuery } = useCatalog({
     company_id: companyId,
     catalog_type: CatalogEnum.BRANCHES,
-  });
+  }); */
 
   const { GetCollaboratorsQuery } = useCollaborators({
     ...filters,
@@ -76,7 +75,7 @@ export const CollaboratorPage = function () {
   });
 
   const { data: workAreas = [] } = workAreasQuery;
-  const { data: branches = [] } = branchesQuery;
+  // const { data: branches = [] } = branchesQuery;
   const {
     data: collaborators = {
       data: [],
@@ -90,7 +89,7 @@ export const CollaboratorPage = function () {
   } = GetCollaboratorsQuery;
 
   const optionsWorkAreas = mapCatalogToOptions(workAreas);
-  const optionsBranches = mapCatalogToOptions(branches);
+  const optionsBranches = mapCatalogToOptions(/*branches*/[]);
   const optionsStatus = Object.values(CollaboratorStatusEnum).map((value) => ({
     label: value,
     value,
