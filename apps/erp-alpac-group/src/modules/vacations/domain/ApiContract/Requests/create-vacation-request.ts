@@ -12,14 +12,6 @@ export interface CreateVacationRequest {
    */
   identification_number: string;
   /**
-   * Nombre completo del colaborador
-   */
-  full_name: string;
-  /**
-   * Cargo del colaborador
-   */
-  cargo: string;
-  /**
    * Fecha de inicio de las vacaciones
    */
   start_date: string;

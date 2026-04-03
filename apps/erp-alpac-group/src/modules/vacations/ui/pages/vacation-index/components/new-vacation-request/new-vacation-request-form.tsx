@@ -54,7 +54,11 @@ export function NewVacationRequestForm({
   );
 
   const handleFormSubmit = (values: VacationRequestFormValues) => {
-    if (!companyId.trim() || !moduleCode.trim() || !identificationNumber.trim()) {
+    if (
+      !companyId.trim() ||
+      !moduleCode.trim() ||
+      !identificationNumber.trim()
+    ) {
       setError("root", {
         type: "manual",
         message:
@@ -80,8 +84,6 @@ export function NewVacationRequestForm({
       company_id: companyId,
       module_code: moduleCode,
       identification_number: identificationNumber.trim(),
-      full_name: fullName.trim(),
-      cargo: cargo.trim(),
       start_date: values.startDate,
       end_date: values.endDate,
       description: values.description.trim(),
