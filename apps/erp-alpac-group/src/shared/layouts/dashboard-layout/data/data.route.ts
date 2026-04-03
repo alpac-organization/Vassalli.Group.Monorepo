@@ -33,7 +33,6 @@ export const sidebarData = {
     [ModuleEnum.PAYROLL]: {
       [RoleEnum.MANAGER]: [collboratorSection],
       [RoleEnum.ADMINISTRATOR]: [collboratorSection],
-      [RoleEnum.OPERATOR]: [collboratorSection],
     },
     [ModuleEnum.WORK_MANAGEMENT]: {
       [RoleEnum.OPERATOR]: [collaboratorProfileSection],
