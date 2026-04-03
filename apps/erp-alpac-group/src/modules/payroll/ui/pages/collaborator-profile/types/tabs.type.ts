@@ -1,2 +1,2 @@
-/** Tab keys for the collaborator profile page (domain-specific). */
+/** Tab keys para la pagina de colaborador  */
 export type TabId = "personal" | "work";

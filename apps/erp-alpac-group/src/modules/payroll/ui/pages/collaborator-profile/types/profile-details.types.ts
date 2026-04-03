@@ -1,8 +1,7 @@
 export interface PersonalFormData {
   //solo campos de lectura
   identificationNumber: string;
-  identificationType: string;
-  registeredBy: string;
+  gender: string;
 
   //campos editables
   firstName: string;
@@ -19,8 +18,14 @@ export interface WorkFormData {
   jobPosition: string;
   workArea: string;
   workEmail?: string;
+  workPhoneNumber?: string;
   inssNumber?: string;
   bankAccountNumber?: string;
+  bankName?: string;
+  branchName?: string;
+  salaryAmount?: string;
+  currency?: string;
+  salaryType?: string;
 }
 export interface ProfileSummary {
   displayName: string;

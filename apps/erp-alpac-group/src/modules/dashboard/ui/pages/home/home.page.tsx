@@ -49,7 +49,7 @@ export const HomePage = function () {
         refresh_token: refreshToken,
       });
     } catch (error) {
-      console.error(error);
+      throw error;
     } finally {
       setLogout(false);
     }
