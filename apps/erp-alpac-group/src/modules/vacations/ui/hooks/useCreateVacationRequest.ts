@@ -1,3 +1,7 @@
+/**
+ * Hook para crear una nueva solicitud de vacaciones.
+ * Utiliza React Query para manejar la mutación y la invalidación de la lista de solicitudes de vacaciones al crear una nueva.
+ */
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { httpHandler } from "@app/core/adapters";
 import { VacationServices } from "@app/modules/vacations/infrastructure/services/VacantionRequestServices";

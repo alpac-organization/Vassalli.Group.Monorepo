@@ -1,5 +1,5 @@
 import { Button, Dropdown } from "@alpac/design-system";
-import type { VacationStatusFilterValue } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-request.types";
+import type { VacationStatusFilterValue } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-history-request";
 import { VACATION_STATUS_FILTER_OPTIONS } from "@app/modules/vacations/ui/pages/vacation-index/constants/vacation-filters.constants";
 
 type VacationFiltersBarProps = {

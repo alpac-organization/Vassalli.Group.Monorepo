@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { Button, InputText } from "@alpac/design-system";
+import { Button, InputText, Textarea } from "@alpac/design-system";
 import { countInclusiveCalendarDays } from "@app/modules/vacations/ui/pages/vacation-index/utils/count-inclusive-calendar-days";
 import type { VacationRequestFormValues } from "./vacation-request-form.types";
 import type { CreateVacationRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-vacation-request";
@@ -132,31 +132,17 @@ export function NewVacationRequestForm({
         </span>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[14px] font-medium text-slate-600 dark:text-slate-300 ml-0.5">
-          Descripción <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          rows={3}
-          placeholder="Propósito o detalles de la solicitud..."
-          className={`
-            w-full box-border bg-white dark:bg-[#272b34] border rounded-[10px] outline-none transition-all
-            py-2.5 px-4 text-[14px] md:text-[15px]
-            placeholder:text-slate-500
-            focus:border-blue-600 focus:ring-2 focus:ring-green-50/50
-            resize-none
-            ${errors.description ? "border-red-400 ring-red-50" : "border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-neutral-600"}
-          `}
-          {...register("description", {
-            required: "La descripción es requerida.",
-          })}
-        />
-        {errors.description && (
-          <span className="text-[12px] text-red-500 ml-0.5">
-            {errors.description.message}
-          </span>
-        )}
-      </div>
+      <Textarea
+        label="Descripción *"
+        labelClassName={labelClassName}
+        rows={3}
+        placeholder="Propósito o detalles de la solicitud..."
+        className={`${inputClassName} resize-none`}
+        error={errors.description?.message}
+        {...register("description", {
+          required: "La descripción es requerida.",
+        })}
+      />
 
       <div className="flex min-w-0 flex-col-reverse gap-2.5 border-t border-slate-200 pt-2 sm:flex-row sm:justify-end sm:gap-3 dark:border-neutral-600">
         <Button

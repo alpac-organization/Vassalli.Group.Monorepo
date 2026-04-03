@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import type {
   VacationRequestRow,
   VacationStatusFilterValue,
-} from "@app/modules/vacations/domain/ApiContract/Requests/vacation-request.types";
+} from "@app/modules/vacations/domain/ApiContract/Requests/vacation-history-request";
 import { VacationFiltersBar } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-filters-bar";
 import { VacationPageHeader } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-page-header";
 import { VacationRequestsTable } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-requests-table";
@@ -106,9 +106,7 @@ export default function VacationPage() {
       Boolean(GetProfileDetails.data?.full_name?.trim()) ||
       Boolean(fullName?.trim());
     if (hasText) return false;
-    return (
-      GetVacationSaldoQuery.isPending || GetProfileDetails.isPending
-    );
+    return GetVacationSaldoQuery.isPending || GetProfileDetails.isPending;
   }, [
     saldoContextReady,
     GetVacationSaldoQuery.data?.full_name,

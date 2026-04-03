@@ -1,5 +1,5 @@
 import { Badges, Button, DataTable } from "@alpac/design-system";
-import type { VacationRequestRow } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-request.types";
+import type { VacationRequestRow } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-history-request";
 import { formatVacationDate } from "@app/modules/vacations/ui/pages/vacation-index/utils/format-vacation-date";
 
 type VacationRequestsTableProps = {
