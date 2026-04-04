@@ -5,6 +5,8 @@ export type AddCollaboratorModalProps = {
   isOpen: boolean;
   optionsWorkAreas: { label: string; value: number }[];
   optionsJobPositions: { label: string; value: number }[];
+  optionsBranches: { label: string; value: number }[];
+  optionsBanks: { label: string; value: number }[];
   onClose: () => void;
   onSubmit: (data: AddCollaboratorRequest) => void;
 };

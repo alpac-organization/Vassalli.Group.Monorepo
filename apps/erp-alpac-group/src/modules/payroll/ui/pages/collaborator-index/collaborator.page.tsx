@@ -13,20 +13,18 @@ import {
   TreePalmIcon,
   UserIcon,
   UserRoundPlusIcon,
-} from "lucide-react";
-import { Outlet, useNavigate } from "react-router-dom";
-import { useForm, type SubmitHandler, Controller } from "react-hook-form";
-import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
-import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
-import { useCallback, useState } from "react";
-import { Loader } from "@app/shared/components/loaders/loader";
-import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
-import type { CollaboratorProfileLocationState } from "@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types";
-import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
-import {
-  CatalogEnum,
-  CollaboratorStatusEnum,
-} from '@app/core/enums/catalog.enum';
+} from 'lucide-react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
+import type { CollaboratorRequest } from '@app/modules/payroll/domain/ApiContract/Requests/collaborator.request';
+import { useCollaborators } from '@app/modules/payroll/ui/hooks/useCollaborators';
+import { useCallback, useState } from 'react';
+import { Loader } from '@app/shared/components/loaders/loader';
+import type { GetCollaboratorsResponse } from '@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response';
+import type { CollaboratorProfileLocationState } from '@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types';
+import { useCatalog } from '@app/modules/catalog/ui/hooks/useCatalog';
+import { CatalogEnum } from '@app/core/enums/catalog.enum';
+import { CollaboratorStatusOptions } from '@app/modules/payroll/domain/enums/collaborator-status.enum';
 import { mapCatalogToOptions } from '@app/shared/utils/catalog.utils';
 import { formatIdentificationNumber } from '@app/shared/utils/string.utils';
 import { AddCollaboratorModal } from '@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal';
@@ -59,18 +57,23 @@ export const CollaboratorPage = function () {
 
   const { GetCatalogListQuery: workAreasQuery } = useCatalog({
     company_id: companyId,
-    catalog_type: CatalogEnum.WORK_AREAS,
+    catalog_type_id: CatalogEnum.WORK_AREAS,
   });
 
   const { GetCatalogListQuery: jobPositionQuery } = useCatalog({
     company_id: companyId,
-    catalog_type: CatalogEnum.JOB_POSITIONS,
+    catalog_type_id: CatalogEnum.JOB_POSITIONS,
   });
 
-  /* const { GetCatalogListQuery: branchesQuery } = useCatalog({
+  const { GetCatalogListQuery: branchesQuery } = useCatalog({
     company_id: companyId,
-    catalog_type: CatalogEnum.BRANCHES,
-  }); */
+    catalog_type_id: CatalogEnum.BRANCHES,
+  });
+
+  const { GetCatalogListQuery: banksQuery } = useCatalog({
+    company_id: companyId,
+    catalog_type_id: CatalogEnum.BANKS,
+  });
 
   const { GetCollaboratorsQuery } = useCollaborators({
     ...filters,
@@ -80,9 +83,8 @@ export const CollaboratorPage = function () {
 
   const { data: workAreas = [] } = workAreasQuery;
   const { data: jobPositions = [] } = jobPositionQuery;
-  // const { data: branches = [] } = branchesQuery;
-
-  console.log("job position:", jobPositions)
+  const { data: branches = [] } = branchesQuery;
+  const { data: banks = [] } = banksQuery;
 
   const {
     data: collaborators = {
@@ -98,11 +100,8 @@ export const CollaboratorPage = function () {
 
   const optionsWorkAreas = mapCatalogToOptions(workAreas);
   const optionsJobPositions = mapCatalogToOptions(jobPositions);
-  const optionsBranches = mapCatalogToOptions(/*branches*/ []);
-  const optionsStatus = Object.values(CollaboratorStatusEnum).map((value) => ({
-    label: value,
-    value,
-  }));
+  const optionsBranches = mapCatalogToOptions(branches);
+  const optionsBanks = mapCatalogToOptions(banks);
 
   const onSubmit: SubmitHandler<CollaboratorRequest> = async (data) => {
     setFilters((prev) => ({ ...prev, ...data }));
@@ -304,7 +303,7 @@ export const CollaboratorPage = function () {
                   labelClassName="text-black! dark:text-white!"
                   valueClassName="text-black! dark:text-white!"
                   className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                  options={optionsWorkAreas}
+                  options={optionsWorkAreas ?? []}
                 />
               );
             }}
@@ -327,7 +326,7 @@ export const CollaboratorPage = function () {
                 labelClassName="text-black! dark:text-white!"
                 valueClassName="text-black! dark:text-white!"
                 className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                options={optionsBranches}
+                options={optionsBranches ?? []}
               />
             )}
           />
@@ -349,7 +348,7 @@ export const CollaboratorPage = function () {
                 labelClassName="text-black! dark:text-white!"
                 valueClassName="text-black! dark:text-white!"
                 className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                options={optionsStatus}
+                options={CollaboratorStatusOptions ?? []}
               />
             )}
           />
@@ -386,6 +385,8 @@ export const CollaboratorPage = function () {
         isOpen={showAddCollaboratorModal}
         optionsWorkAreas={optionsWorkAreas}
         optionsJobPositions={optionsJobPositions}
+        optionsBranches={optionsBranches}
+        optionsBanks={optionsBanks}
         onClose={() => setShowAddCollaboratorModal(false)}
         onSubmit={() => {}}
       />

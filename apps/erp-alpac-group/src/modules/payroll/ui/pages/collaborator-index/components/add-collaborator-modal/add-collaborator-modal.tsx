@@ -10,7 +10,17 @@ import type { AddCollaboratorModalProps } from './add-collaborator-modal.types';
 import { Controller, useForm } from 'react-hook-form';
 import type { AddCollaboratorRequest } from '@app/modules/payroll/domain/ApiContract/Requests/add-collaborator.request';
 import { fieldsToValidate } from '@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal.types';
-import { validateAge, validateToday } from '@app/shared/utils/string.utils';
+import {
+  validateAge,
+  validateEmail,
+  validateToday,
+} from '@app/shared/utils/string.utils';
+import { GenderOptions } from '@app/core/enums/gender.enum';
+import { IdentificationOptions } from '@app/core/enums/identifcation.enum';
+import { CurrencyOptions } from '@app/core/enums/currency.enum';
+import { SalaryTypeOptions } from '@app/modules/payroll/domain/enums/salary-type.enum';
+import { ArrowLeftIcon, ArrowRightIcon, SaveIcon, XIcon } from 'lucide-react';
+import { formatAmount } from '@app/shared/utils/number.utils';
 
 export const AddCollaboratorModal = (
   props: AddCollaboratorModalProps,
@@ -70,11 +80,12 @@ export const AddCollaboratorModal = (
                   Datos de Identidad
                 </h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 <InputText
                   label="Primer Nombre"
                   placeholder="Ej. Juan"
-                  className="dark:text-black!"
+                  isRequired
+                  className="dark:text-black! rounded-md!"
                   {...register('first_name', {
                     required: 'El primer nombre es requerido',
                   })}
@@ -84,21 +95,22 @@ export const AddCollaboratorModal = (
                 <InputText
                   label="Segundo Nombre"
                   placeholder="Ej. Antonio"
-                  className="dark:text-black!"
+                  className="dark:text-black! rounded-md!"
                   {...register('second_name')}
                 />
 
                 <InputText
                   label="Tercer Nombre"
                   placeholder="Opcional"
-                  className="dark:text-black!"
+                  className="dark:text-black! rounded-md!"
                   {...register('third_name', { required: false })}
                 />
 
                 <InputText
                   label="Primer Apellido"
                   placeholder="Ej. Pérez"
-                  className="dark:text-black!"
+                  isRequired
+                  className="dark:text-black! rounded-md!"
                   {...register('first_lastname', {
                     required: 'El primer apellido es requerido',
                   })}
@@ -108,21 +120,31 @@ export const AddCollaboratorModal = (
                 <InputText
                   label="Segundo Apellido"
                   placeholder="Ej. García"
-                  className="dark:text-black!"
+                  className="dark:text-black! rounded-md!"
                   {...register('second_lastname', { required: false })}
                 />
 
-                <InputText
-                  label="No. Identificación"
-                  placeholder="001-010190-0001A"
-                  className="dark:text-black!"
-                  {...register('identification_number', {
-                    required: 'El número de identificación es requerido',
-                  })}
-                  error={
-                    errors.identification_number &&
-                    errors.identification_number.message
-                  }
+                <Controller
+                  name="gender"
+                  control={control}
+                  rules={{
+                    required: 'Debe seleccionar un género',
+                    validate: (val) => val !== 0 || 'Selección inválida',
+                  }}
+                  render={({ field }) => (
+                    <Dropdown
+                      label="Género"
+                      isRequired
+                      className="rounded-md!"
+                      options={GenderOptions}
+                      placeholder="Seleccione..."
+                      onChange={(value) => {
+                        field.onChange(value);
+                      }}
+                      error={errors.gender && errors.gender.message}
+                      value={field.value}
+                    />
+                  )}
                 />
 
                 <Controller
@@ -135,20 +157,9 @@ export const AddCollaboratorModal = (
                   render={({ field }) => (
                     <Dropdown
                       label="Tipo Identificación"
-                      options={[
-                        {
-                          value: 1,
-                          label: 'Cédula Niragüense',
-                        },
-                        {
-                          value: 2,
-                          label: 'Cédula de Residencia',
-                        },
-                        {
-                          value: 3,
-                          label: 'Pasaporte',
-                        },
-                      ]}
+                      isRequired
+                      className="rounded-md!"
+                      options={IdentificationOptions}
                       placeholder="Seleccione..."
                       onChange={(value) => {
                         field.onChange(value);
@@ -162,34 +173,18 @@ export const AddCollaboratorModal = (
                   )}
                 />
 
-                <Controller
-                  name="gender"
-                  control={control}
-                  rules={{
-                    required: 'Debe seleccionar un género',
-                    validate: (val) => val !== 0 || 'Selección inválida',
-                  }}
-                  render={({ field }) => (
-                    <Dropdown
-                      label="Género"
-                      options={[
-                        {
-                          value: 1,
-                          label: 'Masculino',
-                        },
-                        {
-                          value: 2,
-                          label: 'Femenino',
-                        },
-                      ]}
-                      placeholder="Seleccione..."
-                      onChange={(value) => {
-                        field.onChange(value);
-                      }}
-                      error={errors.gender && errors.gender.message}
-                      value={field.value}
-                    />
-                  )}
+                <InputText
+                  label="No. Identificación"
+                  placeholder="001-010190-0001A"
+                  isRequired
+                  className="dark:text-black! rounded-md!"
+                  {...register('identification_number', {
+                    required: 'El número de identificación es requerido',
+                  })}
+                  error={
+                    errors.identification_number &&
+                    errors.identification_number.message
+                  }
                 />
               </div>
             </section>
@@ -203,12 +198,13 @@ export const AddCollaboratorModal = (
                   Información Personal
                 </h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 <div className="lg:col-span-2">
                   <InputText
                     label="Dirección"
                     placeholder="Dirección completa"
-                    className="dark:text-black!"
+                    isRequired
+                    className="dark:text-black! rounded-md!"
                     {...register('personal_information.address', {
                       required: 'La dirección es requerida',
                     })}
@@ -222,7 +218,8 @@ export const AddCollaboratorModal = (
                 <InputText
                   label="Departamento"
                   placeholder="Ej. Managua"
-                  className="dark:text-black!"
+                  isRequired
+                  className="dark:text-black! rounded-md!"
                   {...register('personal_information.departament', {
                     required: 'El departamento es requerido',
                   })}
@@ -235,13 +232,13 @@ export const AddCollaboratorModal = (
                 <InputText
                   label="Correo Personal"
                   placeholder="correo@ejemplo.com"
+                  isRequired
                   type="email"
-                  className="dark:text-black!"
+                  className="dark:text-black! rounded-md!"
                   {...register('personal_information.personal_email', {
                     required: 'El correo personal es requerido',
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Correo electrónico inválido',
+                    validate: {
+                      validEmail: (value?: string) => validateEmail(value),
                     },
                   })}
                   error={
@@ -253,8 +250,9 @@ export const AddCollaboratorModal = (
                 <InputText
                   label="Teléfono Personal"
                   placeholder="8888-8888"
+                  isRequired
                   type="tel"
-                  className="dark:text-black!"
+                  className="dark:text-black! rounded-md!"
                   {...register('personal_information.personal_phone_number', {
                     required: 'El teléfono personal es requerido',
                   })}
@@ -266,8 +264,9 @@ export const AddCollaboratorModal = (
 
                 <InputText
                   label="Fecha de Nacimiento"
+                  isRequired
                   type="date"
-                  className="dark:text-black!"
+                  className="dark:text-black! rounded-md!"
                   {...register('personal_information.birthdate', {
                     required: 'La fecha de nacimiento es requerida',
                     validate: {
@@ -292,7 +291,7 @@ export const AddCollaboratorModal = (
                   Información Laboral
                 </h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                 <Controller
                   name="working_information.work_area_id"
                   control={control}
@@ -303,7 +302,9 @@ export const AddCollaboratorModal = (
                   render={({ field }) => (
                     <Dropdown
                       label="Área de Trabajo"
-                      options={props.optionsWorkAreas}
+                      isRequired
+                      className="rounded-md!"
+                      options={props.optionsWorkAreas ?? []}
                       placeholder="Seleccione..."
                       onChange={(value) => {
                         field.onChange(value);
@@ -317,47 +318,109 @@ export const AddCollaboratorModal = (
                   )}
                 />
 
-                <Dropdown
-                  label="Posición / Cargo"
-                  options={[]}
-                  placeholder="Seleccione..."
+                <Controller
+                  name="working_information.work_position_id"
+                  control={control}
+                  rules={{
+                    required: 'Debe seleccionar una posición',
+                    validate: (val) => val !== 0 || 'Selección inválida',
+                  }}
+                  render={({ field }) => (
+                    <Dropdown
+                      label="Posición / Cargo"
+                      isRequired
+                      options={props.optionsJobPositions ?? []}
+                      className="rounded-md!"
+                      placeholder="Seleccione..."
+                      onChange={(value) => {
+                        field.onChange(value);
+                      }}
+                      error={
+                        errors.working_information?.work_position_id &&
+                        errors.working_information?.work_position_id?.message
+                      }
+                      value={field.value}
+                    />
+                  )}
                 />
 
-                <Dropdown
-                  label="Sucursal / Sede"
-                  options={[]}
-                  placeholder="Seleccione..."
+                <Controller
+                  name="working_information.branch_id"
+                  control={control}
+                  rules={{
+                    required: 'Debe seleccionar una sucursal',
+                    validate: (val) => val !== 0 || 'Selección inválida',
+                  }}
+                  render={({ field }) => (
+                    <Dropdown
+                      label="Sucursal / Sede"
+                      isRequired
+                      options={props.optionsBranches ?? []}
+                      className="rounded-md!"
+                      placeholder="Seleccione..."
+                      onChange={(value) => {
+                        field.onChange(value);
+                      }}
+                      error={
+                        errors.working_information?.branch_id &&
+                        errors.working_information?.branch_id?.message
+                      }
+                      value={field.value}
+                    />
+                  )}
                 />
 
                 <InputText
                   label="Cuenta Bancaria"
                   placeholder="Ej. 123456789"
-                  className="dark:text-black!"
+                  className="dark:text-black! rounded-md!"
+                  inputMode="numeric"
+                  {...register('working_information.bank_account_number', {
+                    required: false,
+                  })}
                 />
 
                 <InputText
                   label="Correo Trabajo"
-                  placeholder="usuario@alpac.com"
+                  placeholder="correo@ejemplo.com"
+                  isRequired
                   type="email"
-                  className="dark:text-black!"
+                  className="dark:text-black! rounded-md!"
+                  {...register('working_information.work_email', {
+                    required: 'El correo de trabajo es requerido',
+                    validate: {
+                      validEmail: (value?: string) => validateEmail(value),
+                    },
+                  })}
+                  error={
+                    errors.working_information?.work_email &&
+                    errors.working_information?.work_email?.message
+                  }
                 />
 
                 <InputText
                   label="Teléfono Trabajo"
                   placeholder="2222-2222"
-                  className="dark:text-black!"
+                  className="dark:text-black! rounded-md!"
+                  {...register('working_information.work_phon_number', {
+                    required: false,
+                  })}
                 />
 
                 <InputText
                   label="Número INSS"
                   placeholder="Opcional"
-                  className="dark:text-black!"
+                  className="dark:text-black! rounded-md!"
+                  {...register('working_information.inss_number', {
+                    required: false,
+                  })}
                 />
 
                 <InputText
                   label="Fecha de Ingreso"
+                  isRequired
                   type="date"
-                  className="dark:text-black!"
+                  className="dark:text-black! rounded-md!"
                   {...register('working_information.entry_date', {
                     required: 'La fecha de ingreso es requerida',
                     validate: {
@@ -381,27 +444,109 @@ export const AddCollaboratorModal = (
                   Información Salarial
                 </h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Dropdown
-                  label="Moneda"
-                  options={[]}
-                  placeholder="Seleccione..."
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                <Controller
+                  name="salary_information.salary_type"
+                  control={control}
+                  rules={{
+                    required: 'Debe seleccionar una moneda',
+                    validate: (val) => val !== 0 || 'Selección inválida',
+                  }}
+                  render={({ field }) => (
+                    <Dropdown
+                      label="Moneda"
+                      isRequired
+                      options={CurrencyOptions ?? []}
+                      className="rounded-md!"
+                      placeholder="Seleccione..."
+                      onChange={(value) => {
+                        field.onChange(value);
+                      }}
+                      error={
+                        errors.salary_information?.salary_type &&
+                        errors.salary_information?.salary_type?.message
+                      }
+                      value={field.value}
+                    />
+                  )}
                 />
+
                 <InputText
                   label="Salario Mensual"
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   placeholder="0.00"
-                  className="text-black! dark:text-white!"
+                  className="dark:text-black! rounded-md!"
+                  {...register('salary_information.salary', {
+                    required: 'El salario es requerido',
+                    setValueAs: (value: string) =>
+                      value
+                        ? parseFloat(value.toString().replace(/,/g, ''))
+                        : 0,
+                    validate: (value?: number) =>
+                      (value !== undefined && value > 0) ||
+                      'El salario debe ser mayor a 0',
+                  })}
+                  error={
+                    errors.salary_information?.salary &&
+                    errors.salary_information?.salary?.message
+                  }
+                  onChange={(evt) => {
+                    evt.target.value = formatAmount(evt.target.value, 18, 3);
+                    register('salary_information.salary').onChange(evt);
+                  }}
                 />
-                <Dropdown
-                  label="Tipo de Pago"
-                  options={[]}
-                  placeholder="Seleccione..."
+
+                <Controller
+                  name="salary_information.salary_type"
+                  control={control}
+                  rules={{
+                    required: 'Debe seleccionar un tipo de pago',
+                    validate: (val) => val !== 0 || 'Selección inválida',
+                  }}
+                  render={({ field }) => (
+                    <Dropdown
+                      label="Tipo de Pago"
+                      isRequired
+                      options={SalaryTypeOptions ?? []}
+                      className="rounded-md!"
+                      placeholder="Seleccione..."
+                      onChange={(value) => {
+                        field.onChange(value);
+                      }}
+                      error={
+                        errors.salary_information?.salary_type &&
+                        errors.salary_information?.salary_type?.message
+                      }
+                      value={field.value}
+                    />
+                  )}
                 />
-                <Dropdown
-                  label="Institución Bancaria"
-                  options={[]}
-                  placeholder="Seleccione..."
+
+                <Controller
+                  name="salary_information.sub_catalog_bank_id"
+                  control={control}
+                  rules={{
+                    required: 'Debe seleccionar una institución bancaria',
+                    validate: (val) => val !== 0 || 'Selección inválida',
+                  }}
+                  render={({ field }) => (
+                    <Dropdown
+                      label="Institución Bancaria"
+                      isRequired
+                      options={props.optionsBanks ?? []}
+                      className="rounded-md!"
+                      placeholder="Seleccione..."
+                      onChange={(value) => {
+                        field.onChange(value);
+                      }}
+                      error={
+                        errors.salary_information?.sub_catalog_bank_id &&
+                        errors.salary_information?.sub_catalog_bank_id?.message
+                      }
+                      value={field.value}
+                    />
+                  )}
                 />
               </div>
             </section>
@@ -418,6 +563,8 @@ export const AddCollaboratorModal = (
                 label="Anterior"
                 size="giant"
                 onClick={handleBack}
+                isHiddenLabelOnMobile
+                icon={<ArrowLeftIcon size={20} />}
                 className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
               />
             )}
@@ -428,8 +575,10 @@ export const AddCollaboratorModal = (
               type="button"
               label="Descartar"
               size="giant"
-              className="text-[15px]! rounded-md! bg-slate-100! text-slate-500! hover:bg-slate-200!"
               onClick={handleCloseModal}
+              isHiddenLabelOnMobile
+              icon={<XIcon size={20} />}
+              className="text-[15px]! rounded-md! bg-slate-100! text-slate-500! hover:bg-slate-200!"
             />
             {currentStep < steps.length - 1 ? (
               <Button
@@ -437,6 +586,8 @@ export const AddCollaboratorModal = (
                 label="Siguiente"
                 size="giant"
                 onClick={handleNext}
+                isHiddenLabelOnMobile
+                icon={<ArrowRightIcon size={20} />}
                 className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
               />
             ) : (
@@ -444,6 +595,8 @@ export const AddCollaboratorModal = (
                 type="submit"
                 label="Finalizar y Guardar"
                 size="giant"
+                isHiddenLabelOnMobile
+                icon={<SaveIcon size={20} />}
                 className="text-[15px]! rounded-md! bg-emerald-600! hover:bg-emerald-700!"
               />
             )}

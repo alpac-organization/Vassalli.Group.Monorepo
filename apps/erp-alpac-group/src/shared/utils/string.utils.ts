@@ -45,7 +45,16 @@ export const formatIdentificationNumber = (identification: string): string => {
   return `${part1}-${part2}-${part3}${letter}`;
 };
 
-export const validateAge = (date?: string, minAge: number = 16): boolean | string => {
+/**
+ * Valida la edad del colaborador
+ * @param date - Fecha de nacimiento
+ * @param minAge - Edad mínima
+ * @returns True si la edad es válida, false si no
+ */
+export const validateAge = (
+  date?: string,
+  minAge: number = 16,
+): boolean | string => {
   if (!date) return true;
 
   const [year, month, day] = date.split('-').map(Number);
@@ -68,7 +77,11 @@ export const validateAge = (date?: string, minAge: number = 16): boolean | strin
   return age >= minAge || `El colaborador debe ser mayor de ${minAge} años`;
 };
 
-
+/**
+ * Valida que la fecha no sea mayor a la fecha actual
+ * @param date - Fecha a validar
+ * @returns True si la fecha es válida, false si no
+ */
 export const validateToday = (date?: string): boolean | string => {
   if (!date) return true;
 
@@ -81,4 +94,17 @@ export const validateToday = (date?: string): boolean | string => {
   if (birthDate > today) return 'La fecha no puede ser mayor a la fecha actual';
 
   return true;
-}
+};
+
+/**
+ * Valida que el correo sea válido
+ * @param email - Correo a validar
+ * @returns True si el correo es válido, false si no
+ */
+export const validateEmail = (email?: string): boolean | string => {
+  if (!email) return true;
+
+  const emailRegex =
+    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email) || 'Correo electrónico inválido';
+};

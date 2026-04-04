@@ -1,10 +1,10 @@
-import type { Company } from "../../../types/company";
+import type { Company } from '../../../types/company';
 
-export type ButtonSize = "giant" | "medium" | "small";
+export type ButtonSize = 'giant' | 'medium' | 'small';
 
 export type ButtonProps = {
   label?: string;
-  type?: "button" | "submit" | "reset";
+  type?: 'button' | 'submit' | 'reset';
   size?: ButtonSize;
   company?: Company;
   disabled?: boolean;
@@ -13,5 +13,6 @@ export type ButtonProps = {
   className?: string;
   isLoading?: boolean;
   icon?: React.ReactNode;
+  isHiddenLabelOnMobile?: boolean;
   onClick?: (evt: React.MouseEvent<HTMLButtonElement>) => void;
 };

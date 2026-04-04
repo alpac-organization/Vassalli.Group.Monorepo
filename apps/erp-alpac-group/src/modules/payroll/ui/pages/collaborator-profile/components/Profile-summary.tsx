@@ -2,24 +2,24 @@ import { UserRound } from 'lucide-react';
 import { useTheme } from '@alpac/design-system';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
-import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
+import type { GetCollaboratorProfileDetailsResponse } from '@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response';
 
 export type ProfileSummaryProps = {
   profile?: GetCollaboratorProfileDetailsResponse | null;
 };
 
 export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
-    const { fullName, companyName, userName } = useUserStore();
-    const { theme } = useTheme();
-    const { urlImage, neutralUrlImage } = useCompanyStore();
+  const { fullName, companyName, userName } = useUserStore();
+  const { theme } = useTheme();
+  const { urlImage, neutralUrlImage } = useCompanyStore();
 
-    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
+  const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
 
   const displayName = profile?.full_name
     ? profile.full_name
     : fullName
       ? fullName
-      : userName || "Usuario";
+      : userName || 'Usuario';
 
   const textBlock = (
     <div className="min-w-0 flex-1 text-left">
