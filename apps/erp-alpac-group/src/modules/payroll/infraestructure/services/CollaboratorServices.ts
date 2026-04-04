@@ -1,8 +1,8 @@
-import { cleanParams } from "@app/shared/utils/object.utils";
-import type { ICollaboratorServices } from "@app/modules/payroll/application/interfaces/ICollaboratorServices";
-import type { GetCollaboratorsListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
-import type { IHttpHandler } from "@app/core/ports";
-import type { CollaboratorRequest } from "../../domain/ApiContract/Requests/collaborator.request";
+import { cleanParams } from '@app/shared/utils/object.utils';
+import type { ICollaboratorServices } from '@app/modules/payroll/application/interfaces/ICollaboratorServices';
+import type { GetCollaboratorsListResponse } from '@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response';
+import type { IHttpHandler } from '@app/core/ports';
+import type { CollaboratorRequest } from '../../domain/ApiContract/Requests/collaborator.request';
 
 export class CollaboratorServices implements ICollaboratorServices {
   private apiHandler: IHttpHandler;

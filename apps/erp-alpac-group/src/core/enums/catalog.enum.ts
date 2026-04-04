@@ -5,26 +5,11 @@
  * y devolver la lista de sub-catálogos correspondientes.
  */
 export const CatalogEnum = {
-  BANKS: "Banks",
-  WORK_AREAS: "WorkAreas",
-  JOB_POSITIONS: "JobPositions",
-  BRANCHES: "Branches",
+  BRANCHES: 1,
+  WORK_AREAS: 2,
+  JOB_POSITIONS: 3,
+  BANKS: 5,
+  EXCHANGE_RATES: 6,
 } as const;
 
 export type CatalogEnum = (typeof CatalogEnum)[keyof typeof CatalogEnum];
-
-export const CollaboratorStatusEnum = {
-  ACTIVE: "Activo",
-  VACATION: "Vacaciones",
-  SUBSIDY: "Subsidio",
-  MATERNITY: "Maternidad",
-  SUSPENDED: "Suspendido",
-  LIQUIDATED: "Liquidado",
-  RESIGNED: "Renunciado",
-  RETIRED: "Jubilado",
-  DISMISSED: "Despedido",
-  DECEASED: "Fallecido",
-} as const;
-
-export type CollaboratorStatusEnum =
-  (typeof CollaboratorStatusEnum)[keyof typeof CollaboratorStatusEnum];

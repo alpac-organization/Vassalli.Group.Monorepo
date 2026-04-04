@@ -49,7 +49,7 @@ export interface LoginResponse {
   identification_number: string;
 
   /**
-   * Rol del usuario.
+   * Tipo de usuario.
    */
   user_type: string;
 }
