@@ -2,6 +2,21 @@ import { Fragment } from "react"
 import type { HeaderProps } from "./header.types"
 
 export const HeaderHome = function({ company_name, username }: HeaderProps){
+
+   const getGreeting = () => {
+      const hour = new Date().getHours();
+
+      if (hour >= 5 && hour < 12) {
+         return { text: "¡Buen día!", emoji: "☀️" };
+      } else if (hour >= 12 && hour < 18) {
+         return { text: "¡Buenas tardes!", emoji: "⛅" };
+      } else {
+         return { text: "¡Buenas noches!", emoji: "🌙" };
+      }
+   };
+
+   const { text, emoji } = getGreeting(); 
+
    return(
       <Fragment>
          <header className="max-w-330 m-auto p-3 mt-5 flex flex-col md:flex-row md:items-end justify-between">
@@ -11,7 +26,7 @@ export const HeaderHome = function({ company_name, username }: HeaderProps){
                   Panel de Control
                </span>
                <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
-                  Buen día, {username}
+                  {text} <span>{username}</span> {emoji}
                </h1>
                <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
                   Gestionando: <span className="font-medium text-slate-700 dark:text-slate-200">{company_name}</span>

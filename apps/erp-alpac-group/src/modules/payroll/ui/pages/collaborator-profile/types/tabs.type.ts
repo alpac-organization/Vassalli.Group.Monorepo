@@ -1,2 +1,1 @@
-/** Tab keys para la pagina de colaborador  */
-export type TabId = "personal" | "work";
+export type TabId = "Personal" | "Working" | "WorkManagement";

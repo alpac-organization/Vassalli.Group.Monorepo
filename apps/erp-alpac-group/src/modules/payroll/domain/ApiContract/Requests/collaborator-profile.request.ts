@@ -4,7 +4,7 @@
  * este contrato asegura que los datos enviados al backend cumplan con los requisitos del servidor
  */
 
-export interface CollaboratorProfileDetailsRequest {
+export interface CollaboratorDetailsRequest {
   /**
    * Puede ser cedula nicaraguense, cedula de residencia o pasaporte
    * @example "001-120395-0000X"
@@ -23,4 +23,11 @@ export interface CollaboratorProfileDetailsRequest {
    * @required
    */
   module_code: string;
+
+  /**
+   * Habilita o deshabilita la ejecución de la consulta para obtener los detalles del perfil del colaborador.
+   * Si es false, la consulta no se ejecutará incluso si se proporcionan los demás parámetros. 
+   * @default true
+   */
+  QueryEnabled?: boolean;
 }
