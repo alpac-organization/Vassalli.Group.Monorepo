@@ -1,14 +1,15 @@
 import { Briefcase } from "lucide-react";
-import { useImage } from "@app/shared/hooks/useImage";
-import { useUserStore } from "@app/shared/stores/useUserStore";
-import type { ProfileSummaryProps } from "./profile-summary.type";
-import { Badges } from "@alpac/design-system";
+import { Badges, useTheme } from "@alpac/design-system";
 import { labelsStatusColor, statusLabel } from "./profile-summary.variants";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import type { ProfileSummaryProps } from "./profile-summary.type";
 
 export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
-	const { companyAlias } = useUserStore();
-	const companyAliasWhite = `${companyAlias ?? ""}`.toLowerCase().concat(".white");
-	const { urlImage } = useImage(companyAliasWhite);
+
+	const { theme } = useTheme();
+	const { urlImage, neutralUrlImage } = useCompanyStore();
+
+  	const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
 
 	const defaultProfilePicture = "https://ui-avatars.com/api/?background=272b34&color=fff&name=Usuario";
 
@@ -17,9 +18,9 @@ export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
 			className="relative mb-8 w-full overflow-hidden border border-slate-600	 bg-[#272b34] p-6"
 			aria-label="Resumen de perfil"
 		>
-   	   <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-cyan-500/5 blur-[80px]" />
-      		<div className="relative flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
-       	 		<div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
+	   	   <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-cyan-500/5 blur-[80px]" />
+      			<div className="relative flex flex-col items-center gap-6 sm:flex-row sm:justify-between">
+       	 			<div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
 
 						<div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-slate-700 to-slate-800 ring-2 ring-cyan-500/20 sm:h-24 sm:w-24">
 							<img 
@@ -59,8 +60,8 @@ export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
 				<div className="flex w-full items-center justify-center border-t border-slate-700/50 pt-6 sm:w-auto sm:border-none sm:pt-0">
 					<div className="group relative flex items-center justify-center">
 						<img
-							src={urlImage}
-							alt={companyAlias ? `Logo ${companyAlias}` : "Logo Empresa"}
+							src={activeLogo}
+							alt={"Logo Empresa"}
 							className="h-auto max-h-16 w-auto max-w-50 object-contain opacity-95 transition-all duration-300 group-hover:scale-105 group-hover:opacity-100 sm:max-h-24 sm:max-w-[280px]"
 							loading="lazy"
 							decoding="async"

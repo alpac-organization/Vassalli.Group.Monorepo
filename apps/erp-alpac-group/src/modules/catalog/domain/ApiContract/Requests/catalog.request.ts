@@ -11,5 +11,5 @@ export interface CatalogRequest {
   /**
    * Tipo de catálogo
    */
-  catalog_type: string;
+  catalog_type_id: number;
 }

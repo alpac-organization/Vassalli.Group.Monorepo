@@ -13,6 +13,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
       value,
       className,
       labelClassName,
+      isRequired,
       valueClassName,
     },
     ref,
@@ -50,6 +51,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
             className={`text-[14px] font-medium ml-0.5 ${labelClassName || "text-slate-600"}`}
           >
             {label}
+            {isRequired && <span className="text-red-500 ml-1 font-bold">*</span>}
           </label>
         )}
 
