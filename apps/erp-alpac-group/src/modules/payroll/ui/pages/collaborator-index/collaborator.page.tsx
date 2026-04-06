@@ -76,9 +76,11 @@ export const CollaboratorPage = function () {
   });
 
   const { GetCollaboratorsQuery } = useCollaborators({
-    ...filters,
-    company_id: companyId,
-    module_code: moduleCode,
+    Collaboratorsfilters: {
+      ...filters,
+      company_id: companyId,
+      module_code: moduleCode,
+    },
   });
 
   const { data: workAreas = [] } = workAreasQuery;
