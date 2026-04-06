@@ -7,12 +7,10 @@ import {
   missingDataInInputClassName,
 } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/field-missing-message";
 import type { PersonalFormData } from "@app/modules/payroll/ui/pages/collaborator-profile/types/profile-details.types";
-import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import type { PersonalInformationProps } from "./types/personal-information.type";
-import { genderRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/genderRawToLabel";
-import { maritalRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/maritalRawToLabel";
-import { identificationRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/identificationRawToLabel";
-import { IdentificationEnum } from "@app/core/enums/identifcation.enum";
+import { genderRawToLabel } from "./utils/genderRawToLabel";
+import { maritalRawToLabel } from "./utils/maritalRawToLabel";
+import { mapPersonalInformationToForm } from "./utils/mapPersonalInformationToForm";
 
 const defaultPersonalInformation: PersonalFormData = {
   identification_number: "",
@@ -41,19 +39,8 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
     const personal_information = profile?.personal_information;
 
     reset({
-      identification_type:
-        identificationRawToLabel(personal_information?.identification_type) ||
-        IdentificationEnum.NATIONAL_ID.label,
-      identification_number: formatIdentificationNumber(
-        personal_information?.identification_number ?? "",
-      ),
-      gender: genderRawToLabel(personal_information?.gender) ?? "",
-      marital_status:
-        maritalRawToLabel(personal_information?.marital_status) ?? "",
-      address: personal_information?.address ?? "",
-      personalEmail: personal_information?.personal_email ?? "",
-      personalPhone: personal_information?.personal_phone_number ?? "",
-      departament: personal_information?.departament ?? "",
+      ...defaultPersonalInformation,
+      ...mapPersonalInformationToForm(personal_information),
     });
   }, [profile, reset]);
 
