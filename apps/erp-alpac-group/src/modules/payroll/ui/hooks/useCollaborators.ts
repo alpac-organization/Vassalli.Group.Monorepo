@@ -24,6 +24,7 @@ export const useCollaborators = function (filters: CollaboratorRequest) {
   const GetCollaboratorsQuery = useQuery({
     queryKey: ["collaboratorData", filters],
     queryFn: () => collaboratorServices.GetCollaborators(filters),
+    enabled: !!filters,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 10,
