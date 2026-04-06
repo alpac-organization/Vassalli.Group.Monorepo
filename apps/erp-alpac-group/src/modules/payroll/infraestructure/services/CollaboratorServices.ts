@@ -7,35 +7,43 @@ import type { CollaboratorDetailsRequest } from "../../domain/ApiContract/Reques
 import type { GetCollaboratorProfileDetailsResponse } from "../../domain/ApiContract/Responses/get-collaborator-profile.response";
 
 export class CollaboratorServices implements ICollaboratorServices {
-   private apiHandler: IHttpHandler;
+  private apiHandler: IHttpHandler;
 
-   constructor(httpHandler: IHttpHandler) {
-      this.apiHandler = httpHandler;
-   }
+  constructor(httpHandler: IHttpHandler) {
+    this.apiHandler = httpHandler;
+  }
 
-   public async GetCollaborators(payload: CollaboratorRequest): Promise<GetCollaboratorsListResponse> {
-      try {
-         const { company_id, module_code, ...rest } = payload;
+  public async GetCollaborators(
+    payload: CollaboratorRequest,
+  ): Promise<GetCollaboratorsListResponse> {
+    try {
+      const { company_id, module_code, ...rest } = payload;
 
-         const collaborators = await this.apiHandler.get<GetCollaboratorsListResponse>(`/companies/${company_id}/modules/${module_code}/collaborators`,
-            {
-               params: cleanParams(rest),
-            },
-         );
-         return collaborators;
-      } 
-      catch (error) {
-         throw error;
-      }
-   }
+      const collaborators =
+        await this.apiHandler.get<GetCollaboratorsListResponse>(
+          `/companies/${company_id}/modules/${module_code}/collaborators`,
+          {
+            params: cleanParams(rest),
+          },
+        );
+      return collaborators;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-   public async GetCollaboratorProfileDetails(payload: CollaboratorDetailsRequest): Promise<GetCollaboratorProfileDetailsResponse> {
-      try {
-         const detailProfileCollaborator = await this.apiHandler.get<GetCollaboratorProfileDetailsResponse>(`/companies/${payload.company_id}/modules/${payload.module_code}/collaborators/${payload.identification_number}/details`);
-         return detailProfileCollaborator;
-      }
-      catch (error) {
-         throw error;
-      }
-   }
+  public async GetCollaboratorProfileDetails(
+    payload: CollaboratorDetailsRequest,
+  ): Promise<GetCollaboratorProfileDetailsResponse> {
+    try {
+      const detailProfileCollaborator =
+        await this.apiHandler.get<GetCollaboratorProfileDetailsResponse>(
+          `/companies/${payload.company_id}/modules/${payload.module_code}/collaborators/${payload.identification_number}/details`,
+        );
+      console.log(detailProfileCollaborator);
+      return detailProfileCollaborator;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
