@@ -1,20 +1,18 @@
-import { useState, useMemo } from "react";
-import { useLocation } from "react-router-dom";
-import { Banner, TabHeader, type TabOption } from "@alpac/design-system";
-import type { TabId } from "@app/modules/payroll/ui/pages/collaborator-profile/types/tabs.type";
-import type { CollaboratorProfileLocationState } from "@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types";
-// import { ProfileSummary } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Profile-summary";
-// import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Work-info";
-import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
+import { useState, useMemo } from "react";
+import { useParams, useLocation } from "react-router-dom";
+import { Banner, TabHeader } from "@alpac/design-system";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
-import { useParams } from "react-router-dom";
 import { useCollaborators } from "../../hooks/useCollaborators";
 
 //Componentes seccionales del perfil del colaborador
 import { ProfileSummary } from "./components/profile-summary/profile-summary";
-import { PersonalInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Personal-info";
+import { PersonalInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/personal-information";
 
+import type { TabId } from "@app/modules/payroll/ui/pages/collaborator-profile/types/tabs.type";
+import type { TabOption } from "@alpac/design-system";
+import type { CollaboratorProfileLocationState } from "@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types";
 
 export function CollaboratorProfilePage() {
 	
@@ -39,9 +37,8 @@ export function CollaboratorProfilePage() {
 		module_code: moduleCode,
 		identification_number: targetIdentification,
 	}),
-	[companyId, moduleCode, targetIdentification]);
+	[companyId, moduleCode, targetIdentification]);	
 
-	//No lanzar la consulta si y solo si se cuenta con el número de identificación, id de empresa y código de módulo, esto para evitar llamadas innecesarias al backend y mejorar el rendimiento de la aplicación
 	const queryEnabled = Boolean(
 		targetIdentification && companyId?.trim() && moduleCode?.trim(),
 	);
@@ -55,12 +52,10 @@ export function CollaboratorProfilePage() {
   	
 	const { data: CollaboratorDetails, isPending, isError, error } = GetProfileDetails;
 
-	console.log(JSON.stringify(CollaboratorDetails, null, 2))
-
 	//Definición de las pestañas de navegación para el perfil del colaborador
 	const TABS: TabOption<TabId>[] = [
 		{ id: "Personal", 		label: "Información Personal" },
-		{ id: "Working", 			label: "Información de Trabajo" },
+		{ id: "Working", 		label: "Información de Trabajo" },
 		// { id: "WorkManagement", label: "Gestión de Trabajo" },
 	];
 
@@ -84,6 +79,10 @@ export function CollaboratorProfilePage() {
 		);
   }
 
+  	if (isPending) {
+		return <Loader title="Cargando perfil del colaborador..." />;
+	}
+
 	if (isError) {
 		return (
 			<Banner
@@ -93,10 +92,6 @@ export function CollaboratorProfilePage() {
 			/>
 		);	
 	}
-
-	if (isPending) {
-		return <Loader title="Cargando perfil del colaborador..." />;
-  	}
 
 	return (
 		<div className="dark w-full max-w-full min-h-0 flex flex-col font-sans text-slate-100 dark:bg-[#363a45]">
@@ -111,7 +106,7 @@ export function CollaboratorProfilePage() {
 				onTabChange={setActiveTab} 
 			/>
 
-			<div className="relative mt-4 w-full min-w-0 overflow-hidden sm:mt-6">
+			<div className="relative w-full min-w-0 overflow-hidden sm:mt-6">
 				<div
 					className={`w-full transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
 						activeTab === "Personal"

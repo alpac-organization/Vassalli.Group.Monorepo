@@ -7,12 +7,13 @@ import {
   missingDataInInputClassName,
 } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/field-missing-message";
 import type { PersonalFormData } from "@app/modules/payroll/ui/pages/collaborator-profile/types/profile-details.types";
-import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
 import { splitFullNameForForm } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/split-full-name";
 import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
+import type { PersonalInformationProps } from "./personal-information.type";
+import { GenderValues } from "./personal-information.variants";
 
 const defaultPersonalInformation: PersonalFormData = {
-  identificationNumber: "",
+  identification_number: "",
   gender: "",
   firstName: "",
   firstLastName: "",
@@ -23,86 +24,77 @@ const defaultPersonalInformation: PersonalFormData = {
   department: "",
 };
 
-export type PersonalInformationProps = {
-  profile?: GetCollaboratorProfileDetailsResponse | null;
-};
-
 export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
+   
    const formMethods = useForm<PersonalFormData>({
       mode: "onChange",
       defaultValues: defaultPersonalInformation,
    });
 
-   const { reset, control } = formMethods;
+   const { reset, control, register } = formMethods;
 
    useEffect(() => {
-      if (!profile) return;
 
-      const p = profile.personal_information;
-      const department = p.department ?? p.departament ?? "";
-      const names = splitFullNameForForm(profile.full_name);
+      const personal_information = profile?.personal_information;
+      // const department = personal_information.department ?? personal_information.departament ?? "";
+      // const names = splitFullNameForForm(profile.full_name);
       
       reset({
-         identificationNumber: formatIdentificationNumber(p.identification_number ?? ""),
-         gender: p.gender ?? "",
-         firstName: names.firstName,
-         secondName: names.secondName,
-         firstLastName: names.firstLastName,
-         secondLastName: names.secondLastName,
-         address: p.address ?? "",
-         personalEmail: p.personal_email ?? "",
-         personalPhone: p.personal_phone_number ?? "",
-         department,
-      });
+         identification_number: formatIdentificationNumber(personal_information?.identification_number ?? "No definido"),
+         gender: personal_information?.gender ?? "No definido",
+         address: personal_information?.address ?? "No definido",
+         personalEmail: personal_information?.personal_email ?? "No definido",
+         personalPhone: personal_information?.personal_phone_number ?? "No definido",
+         department: personal_information?.department ?? "No definido",});
 
    }, [profile, reset]);
 
-   const [editingFields, setEditingFields] = useState<Record<string, boolean>>({});
+   // const [editingFields, setEditingFields] = useState<Record<string, boolean>>({});
    
-   const [alertInfo, setAlertInfo] = useState<{
-      type: "success" | "error";
-      title: string;
-      message: string;
-   } | null>(null);
+   // const [alertInfo, setAlertInfo] = useState<{
+   //    type: "success" | "error";
+   //    title: string;
+   //    message: string;
+   // } | null>(null);
 
-  useEffect(() => {
-    if (alertInfo) {
-      const timer = setTimeout(() => setAlertInfo(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [alertInfo]);
+   // useEffect(() => {
+   //    if (alertInfo) {
+   //       const timer = setTimeout(() => setAlertInfo(null), 3000);
+   //       return () => clearTimeout(timer);
+   //    }
+   // }, [alertInfo]);
 
-   const handleEditStart = (name: string) => setEditingFields((prev) => ({ ...prev, [name]: true }));
-   const handleEditEnd = (name: string) =>   setEditingFields((prev) => ({ ...prev, [name]: false }));
+   // const handleEditStart = (name: string) => setEditingFields((prev) => ({ ...prev, [name]: true }));
+   // const handleEditEnd = (name: string) =>   setEditingFields((prev) => ({ ...prev, [name]: false }));
 
-  const handleFieldUpdate = async (
-    name: keyof PersonalFormData,
-    value: string,
-  ) => {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+   // const handleFieldUpdate = async (name: keyof PersonalFormData, value: string) => {
+   //    try {
+   //       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      setAlertInfo({
-        type: "success",
-        title: "¡exito!",
-        message: "el campo se actualio",
-      });
-    } catch (error) {
-      setAlertInfo({
-        type: "error",
-        title: "Error",
-        message: "No se pudo actualizar el campo.",
-      });
-      throw error;
-    }
-  };
+
+   //       setAlertInfo({
+   //          type: "success",
+   //          title: "¡exito!",
+   //          message: "el campo se actualio",
+   //       });
+   //    } 
+   //    catch (error) {
+   //       setAlertInfo({
+   //          type: "error",
+   //          title: "Error",
+   //          message: "No se pudo actualizar el campo.",
+   //       });
+   //       throw error;
+   //    }
+   // };
 
    const readOnlyInputClasses = "disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!";
+
 
    return (
       <div className="flex flex-col w-full max-w-full relative min-h-0">
 
-         <AnimatedAlertWrapper open={!!alertInfo}>
+         {/* <AnimatedAlertWrapper open={!!alertInfo}>
             {
                alertInfo ? (
                   <Alert
@@ -114,64 +106,40 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                   />
                ) : null
             }
-         </AnimatedAlertWrapper>
-
+         </AnimatedAlertWrapper> */}
+                     
          <div className="w-full max-w-full mb-8">
-         <section className="w-full dark:bg-[#272b34] bg-white border border-slate-200 dark:border-neutral-700 shadow-sm overflow-hidden">
-            <div className="p-4 sm:p-6">
-               <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
-               <Controller
-                  name="identificationNumber"
-                  control={control}
-                  render={({ field }) => {
-                     const missing = isValueMissing(field.value);
-                     return (
+            <section className="w-full dark:bg-[#272b34] bg-white border border-slate-200 dark:border-neutral-700 shadow-sm overflow-hidden">
+               <div className="p-4 sm:p-6">
+                  <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-4 ">
+
+                     <InputText
+                        label="Tipo de Identificación"
+                        labelClassName="text-white "
+                        disabled 
+                        value="Cédula  Nicaraguense"
+                        className={`${readOnlyInputClasses} min-w-0 w-full max-w-full` }
+                     />
+
                      <InputText
                         label="Número de Identificación"
-                        labelClassName="text-[13px] sm:text-[14px] font-medium ml-0.5 text-white!"
+                        labelClassName="text-white "
                         disabled
                         editable={false}
-                        value={
-                           missing
-                           ? "Número de identificación no registrado"
-                           : String(field.value ?? "")
-                        }
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
-                        className={`${readOnlyInputClasses} min-w-0 w-full max-w-full ${missing ? missingDataInInputClassName : ""}`}
+                        value={formMethods.getValues("identification_number")}
+                        className={`${readOnlyInputClasses} min-w-0 w-full max-w-full ${isValueMissing(formMethods.getValues("identification_number")) ? missingDataInInputClassName : ""}`}
                      />
-                     );
-                  }}
-               />
-               <Controller
-                  name="gender"
-                  control={control}
-                  render={({ field }) => {
-                     const missing = isValueMissing(field.value);
-                     return (
+
                      <InputText
                         label="Género"
                         labelClassName="text-[13px] sm:text-[14px] font-medium ml-0.5 text-white!"
                         disabled
                         editable={false}
-                        value={
-                           missing
-                           ? "Género no registrado"
-                           : String(field.value ?? "")
-                        }
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
-                        className={`${readOnlyInputClasses} min-w-0 w-full max-w-full ${missing ? missingDataInInputClassName : ""}`}
+                        value={GenderValues[formMethods.getValues("gender")] || formMethods.getValues("gender")}  
+                        className={`${readOnlyInputClasses} min-w-0 w-full max-w-full ${isValueMissing(formMethods.getValues("gender")) ? missingDataInInputClassName : ""}`}
                      />
-                     );
-                  }}
-               />
 
-                  <EditableField
+                  {/* <EditableField
                      name="firstName"
                      label="Primer Nombre"
                      missingMessage="Primer nombre no registrado"
@@ -181,9 +149,9 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                      onEditStart={handleEditStart}
                      onEditEnd={handleEditEnd}
                      onConfirmUpdate={handleFieldUpdate}
-                  />
+                  /> */}
 
-                  <EditableField
+                  {/* <EditableField
                      name="secondName"
                      label="Segundo Nombre"
                      missingMessage="Segundo nombre no registrado"
@@ -192,9 +160,9 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                      onEditStart={handleEditStart}
                      onEditEnd={handleEditEnd}
                      onConfirmUpdate={handleFieldUpdate}
-                  />
+                  /> */}
 
-                  <EditableField
+                  {/* <EditableField
                      name="firstLastName"
                      label="Primer Apellido"
                      missingMessage="Primer apellido no registrado"
@@ -204,9 +172,9 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                      onEditStart={handleEditStart}
                      onEditEnd={handleEditEnd}
                      onConfirmUpdate={handleFieldUpdate}
-                  />
+                  /> */}
 
-                  <EditableField
+                  {/* <EditableField
                      name="secondLastName"
                      label="Segundo Apellido"
                      missingMessage="Segundo apellido no registrado"
@@ -215,9 +183,9 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                      onEditStart={handleEditStart}
                      onEditEnd={handleEditEnd}
                      onConfirmUpdate={handleFieldUpdate}
-                  />
-               
-                  <EditableField
+                  /> */}
+                  
+                  {/* <EditableField
                      name="personalEmail"
                      label="Correo Personal"
                      missingMessage="Correo personal no registrado"
@@ -228,9 +196,9 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                      onEditStart={handleEditStart}
                      onEditEnd={handleEditEnd}
                      onConfirmUpdate={handleFieldUpdate}
-                  />
-               
-                  <EditableField
+                  /> */}
+                  
+                  {/* <EditableField
                      name="personalPhone"
                      label="Teléfono Personal"
                      missingMessage="Teléfono personal no registrado"
@@ -240,9 +208,9 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                      onEditStart={handleEditStart}
                      onEditEnd={handleEditEnd}
                      onConfirmUpdate={handleFieldUpdate}
-                  />
-               
-                  <EditableField
+                  /> */}
+                  
+                  {/* <EditableField
                      name="department"
                      label="Departamento"
                      missingMessage="Departamento no registrado"
@@ -251,23 +219,23 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                      onEditStart={handleEditStart}
                      onEditEnd={handleEditEnd}
                      onConfirmUpdate={handleFieldUpdate}
-                  />
-               
-                  <div className="min-w-0 sm:col-span-2 lg:col-span-2">
-                     <EditableField
-                        name="address"
-                        label="Dirección Exacta"
-                        missingMessage="Dirección no registrada"
-                        formMethods={formMethods}
-                        isEditing={editingFields.address}
-                        onEditStart={handleEditStart}
-                        onEditEnd={handleEditEnd}
-                        onConfirmUpdate={handleFieldUpdate}
-                     />
+                  /> */}
+                  
+                     {/* <div className="min-w-0 sm:col-span-2 lg:col-span-2">
+                        <EditableField
+                           name="address"
+                           label="Dirección Exacta"
+                           missingMessage="Dirección no registrada"
+                           formMethods={formMethods}
+                           isEditing={editingFields.address}
+                           onEditStart={handleEditStart}
+                           onEditEnd={handleEditEnd}
+                           onConfirmUpdate={handleFieldUpdate}
+                        />
+                     </div> */}
                   </div>
                </div>
-            </div>
-         </section>
+            </section>
          </div>
       </div>
    );

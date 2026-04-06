@@ -49,6 +49,8 @@ export interface CollaboratorProfilePersonalInformation {
 	personal_phone_number: string;
 	departament?: string;
 	department?: string;
+	birthdate: Date;
+	marital_status: string;
 }
 
 export interface CollaboratorProfileWorkingInformation {
