@@ -1,6 +1,6 @@
 export interface PersonalFormData {
   //solo campos de lectura
-  identification_number: string;
+  identificationNumber: string;
   gender: string;
 
   //campos editables
