@@ -1,13 +1,7 @@
 import { createPortal } from "react-dom";
 import { MODAL_SIZES, MODAL_VARIANTS } from "./modal.constants";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
-import { ModalProps } from "./modal.type";
-import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { MODAL_VARIANTS } from "./modal.constants";
 import type { ModalVariant } from "./modal.type";
-import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { ModalProps } from "./modal.type";
 import { useState, useEffect } from "react";

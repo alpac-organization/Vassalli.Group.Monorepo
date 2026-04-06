@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { Modal } from "@alpac/design-system";
-import { useCreateVacationRequest } from "@app/modules/vacations/ui/hooks/useCreateVacationRequest";
+import { useVacation } from "@app/modules/vacations/ui/hooks/useVacations";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { CreateVacationRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-vacation-request";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { NewVacationRequestCollaboratorSummary } from "./new-vacation-request-collaborator-summary";
 import { NewVacationRequestForm } from "./new-vacation-request-form";
 
@@ -13,6 +14,8 @@ type NewVacationRequestModalProps = {
   collaboratorWorkPosition: string;
   isCollaboratorFullNameLoading?: boolean;
   isCollaboratorWorkPositionLoading?: boolean;
+  onRequestSuccess?: () => void;
+  onRequestError?: (description: string) => void;
 };
 
 export function NewVacationRequestModal({
@@ -22,6 +25,8 @@ export function NewVacationRequestModal({
   collaboratorWorkPosition,
   isCollaboratorFullNameLoading = false,
   isCollaboratorWorkPositionLoading = false,
+  onRequestSuccess,
+  onRequestError,
 }: NewVacationRequestModalProps) {
   const { companyId, moduleCode, identificationNumber } = useUserStore();
 
@@ -36,12 +41,20 @@ export function NewVacationRequestModal({
     };
   }, [isOpen]);
 
-  const { createVacationRequestMutation } = useCreateVacationRequest();
+  const { createVacationRequestMutation } = useVacation();
 
   const handleSubmit = (payload: CreateVacationRequest) => {
     createVacationRequestMutation.mutate(payload, {
       onSuccess: () => {
         onClose();
+        onRequestSuccess?.();
+      },
+      onError: (err) => {
+        const apiError = err as unknown as ApiErrorResponse;
+        onClose();
+        onRequestError?.(
+          apiError.error?.description ?? "Ocurrió un error inesperado.",
+        );
       },
     });
   };

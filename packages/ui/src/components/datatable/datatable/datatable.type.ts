@@ -8,6 +8,7 @@ export type DataTableProps = {
     title?: string
     data: any[]
     columns: TableColumn[],
+    rowClassName?: string
     pagination?: {
         currentPage: number
         totalRecords: number

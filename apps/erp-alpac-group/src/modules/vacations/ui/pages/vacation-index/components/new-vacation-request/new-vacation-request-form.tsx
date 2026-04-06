@@ -124,7 +124,7 @@ export function NewVacationRequestForm({
         <span
           className={`text-2xl font-bold ${
             requestedDays > 0
-              ? "text-alpac-primary-500 dark:text-alpac-primary-400"
+              ? "text-slate-400 dark:text-alpac-primary-400"
               : "text-slate-400 dark:text-slate-500"
           }`}
         >

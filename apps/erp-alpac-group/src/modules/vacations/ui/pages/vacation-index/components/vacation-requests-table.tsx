@@ -5,6 +5,7 @@ import { formatVacationDate } from "@app/modules/vacations/ui/pages/vacation-ind
 type VacationRequestsTableProps = {
   data: VacationRequestRow[];
   onViewDetails?: (row: VacationRequestRow) => void;
+  onGenerateDocument?: (row: VacationRequestRow) => void;
 };
 
 function statusBadgeColor(status: VacationRequestRow["status"]): string {
@@ -25,6 +26,7 @@ function statusBadgeColor(status: VacationRequestRow["status"]): string {
 export function VacationRequestsTable({
   data,
   onViewDetails,
+  onGenerateDocument,
 }: VacationRequestsTableProps) {
   const columns = [
     {
@@ -65,13 +67,22 @@ export function VacationRequestsTable({
       key: "actions",
       label: "Acciones",
       render: (row: VacationRequestRow) => (
-        <Button
-          type="button"
-          size="small"
-          label="Ver detalles"
-          onClick={() => onViewDetails?.(row)}
-          className="text-[13px]! bg-white! text-neutral-900! border! border-neutral-900! dark:bg-transparent! dark:text-white! dark:border-neutral-400!"
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            type="button"
+            size="small"
+            label="Ver detalles"
+            onClick={() => onViewDetails?.(row)}
+            className="text-[13px]! bg-white! text-neutral-900! border! border-neutral-900! dark:bg-transparent! dark:text-white! dark:border-neutral-400! hover:scale-[1.03] transition-transform duration-150"
+          />
+          <Button
+            type="button"
+            size="small"
+            label="Generar documento"
+            onClick={() => onGenerateDocument?.(row)}
+            className="text-[13px]! bg-white! text-alpac-primary-600! border! border-alpac-primary-500! dark:bg-transparent! dark:text-alpac-primary-400! dark:border-alpac-primary-500! hover:scale-[1.03] transition-transform duration-150"
+          />
+        </div>
       ),
     },
   ];
@@ -81,6 +92,7 @@ export function VacationRequestsTable({
       title="Solicitudes de vacaciones"
       data={data}
       columns={columns}
+      rowClassName=""
     />
   );
 }
