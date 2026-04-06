@@ -1,42 +1,36 @@
 import { useQuery } from "@tanstack/react-query";
+import { CollaboratorServices } from "@app/modules/payroll/infraestructure/services/CollaboratorServices";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
-import type { CollaboratorDetailsRequest } from "../../domain/ApiContract/Requests/collaborator-profile.request";
-import { CollaboratorServices } from "@app/modules/payroll/infraestructure/services/CollaboratorServices";
 
 const collaboratorServices = new CollaboratorServices(httpHandler);
 
-export interface useCollaboratorsProps {
-  Collaboratorsfilters?: CollaboratorRequest;
-  ColllaboratorDetailsPayload?: CollaboratorDetailsRequest;
-}
+/**
+ * @hook useCollaborators
+ * @description Hook para obtener el listado de colaboradores filtrado desde el backend.
+ * Usa TanStack Query con el objeto `filters` como parte del `queryKey`, de modo que
+ * cualquier cambio en los filtros dispara automáticamente una nueva petición.
+ *
+ * @param filters - Objeto con los parámetros de filtro: `company_id`, `module_code`,
+ * `identification_number`, `branch_id`, `area_id`, `page_number`, `page_size` y `status`.
+ *
+ * @returns `GetCollaboratorsQuery` — query de TanStack con el estado y datos del listado.
+ *
+ * @example
+ * const { GetCollaboratorsQuery } = useCollaborators({ company_id, module_code, page_number: 1, page_size: 10 });
+ * const collaborators = GetCollaboratorsQuery.data?.data ?? [];
+ */
+export const useCollaborators = function (filters: CollaboratorRequest) {
+  const GetCollaboratorsQuery = useQuery({
+    queryKey: ["collaboratorData", filters],
+    queryFn: () => collaboratorServices.GetCollaborators(filters),
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 10,
+    retry: 1,
+  });
 
-export const useCollaborators = function (props: useCollaboratorsProps) {
-	
-	const { Collaboratorsfilters, ColllaboratorDetailsPayload } = props;
-
-	// Query para obtener el listado de colaboradores, si y solo si se proporcionan los filtros necesarios
-	const GetCollaboratorsQuery = useQuery({
-		queryKey: ["collaboratorData", Collaboratorsfilters],
-		queryFn: () => collaboratorServices.GetCollaborators(Collaboratorsfilters!),
-		refetchOnMount: false,
-		refetchOnWindowFocus: false,
-		staleTime: 1000 * 60 * 10,
-		retry: 1,
-	});
-
-	// Query para obtener los detalles del perfil del colaborador, si y solo si se proporciona el payload necesario
-	const GetProfileDetails = useQuery({
-		queryKey: ["collaboratorProfileDetails", ColllaboratorDetailsPayload],
-		queryFn: () => collaboratorServices.GetCollaboratorProfileDetails(ColllaboratorDetailsPayload!),
-		refetchOnMount: false,
-		refetchOnWindowFocus: false,
-		staleTime: 1000 * 60 * 10,
-		retry: 1,
-	});
-
-	return {
-		GetCollaboratorsQuery,
-		GetProfileDetails
-	};
+  return {
+    GetCollaboratorsQuery,
+  };
 };
