@@ -2,7 +2,7 @@ import type {
   PersonalFormData,
   WorkFormData,
 } from "@app/modules/payroll/ui/pages/collaborator-profile/types/profile-details.types";
-import type { Control, UseFormReturn } from "react-hook-form";
+import type { UseFormReturn, UseFormRegister, UseFormWatch } from "react-hook-form";
 
 export interface EditableFieldProps {
   name: keyof PersonalFormData;
@@ -25,7 +25,8 @@ export type ReadonlyWorkFieldProps = {
   name: keyof WorkFormData;
   label: string;
   missingLabel: string;
-  control: Control<WorkFormData>;
+  register: UseFormRegister<WorkFormData>;
+  watch: UseFormWatch<WorkFormData>;
   readOnlyInputClasses: string;
   type?: "text" | "email" | "date" | "tel";
 };

@@ -43,12 +43,13 @@ export interface GetCollaboratorProfileDetailsResponse {
 
 export interface CollaboratorProfilePersonalInformation {
   gender: string;
+  /** Id numérico, clave del enum o texto del backend. */
+  identification_type?: string | number;
   identification_number: string;
   address: string;
   personal_email: string;
   personal_phone_number: string;
   departament?: string;
-  department?: string;
   birthdate: Date;
   marital_status: string;
 }

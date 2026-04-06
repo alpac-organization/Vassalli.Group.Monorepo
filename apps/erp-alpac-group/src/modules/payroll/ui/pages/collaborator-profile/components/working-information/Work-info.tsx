@@ -1,11 +1,14 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { WorkFormData } from "@app/modules/payroll/ui/pages/collaborator-profile/types/profile-details.types";
-import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
+import type { WorkInformationProps } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/types/work-information.type";
 import { ReadonlyWorkField } from "@app/modules/payroll/ui/pages/collaborator-profile/components/ReadonlyWorkField";
 
+import { currencyRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/utils/currencyRawToLabel";
+import { salaryTypeRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/utils/salaryTypeRawToLabel";
+
 const defaultInformationWork: WorkFormData = {
-  startDate: "",
+  entry_date: undefined,
   jobPosition: "",
   workArea: "",
   workEmail: "",
@@ -19,27 +22,21 @@ const defaultInformationWork: WorkFormData = {
   salaryType: "",
 };
 
-export type WorkManagementSectionProps = {
-  profile?: GetCollaboratorProfileDetailsResponse | null;
-};
-
-export const WorkManagementSection = ({
-  profile,
-}: WorkManagementSectionProps) => {
+export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
   const formMethods = useForm<WorkFormData>({
     mode: "onChange",
     defaultValues: defaultInformationWork,
   });
 
-  const { reset, control } = formMethods;
+  const { reset, register, watch } = formMethods;
 
   useEffect(() => {
     if (!profile) return;
     const w = profile.working_information;
     const s = profile.salary_information;
     reset({
-      startDate: w.start_date ?? "",
-      jobPosition: w.work_position ?? profile.work_position ?? "",
+      entry_date: w.entry_date ?? undefined,
+      jobPosition: w.work_position ?? "",
       workArea: w.work_area ?? "",
       workEmail: w.work_email ?? "",
       workPhoneNumber: w.work_phone_number ?? "",
@@ -48,8 +45,8 @@ export const WorkManagementSection = ({
       bankName: w.bank_name ?? "",
       branchName: w.branch_name ?? "",
       salaryAmount: s.salary != null ? String(s.salary) : "",
-      currency: s.currency ?? "",
-      salaryType: s.salary_type ?? "",
+      currency: currencyRawToLabel(s.currency),
+      salaryType: salaryTypeRawToLabel(s.salary_type),
     });
   }, [profile, reset]);
 
@@ -65,29 +62,33 @@ export const WorkManagementSection = ({
               <ReadonlyWorkField
                 name="workArea"
                 label="Área de Trabajo"
-                control={control}
+                register={register}
+                watch={watch}
                 missingLabel="Área de trabajo no registrada"
                 readOnlyInputClasses={readOnlyInputClasses}
               />
               <ReadonlyWorkField
                 name="jobPosition"
                 label="Posición / Cargo"
-                control={control}
+                register={register}
+                watch={watch}
                 missingLabel="Cargo no registrado"
                 readOnlyInputClasses={readOnlyInputClasses}
               />
               <ReadonlyWorkField
                 name="workPhoneNumber"
                 label="Teléfono de Trabajo"
-                control={control}
+                register={register}
+                watch={watch}
                 missingLabel="Teléfono de trabajo no registrado"
                 readOnlyInputClasses={readOnlyInputClasses}
                 type="tel"
               />
               <ReadonlyWorkField
-                name="startDate"
+                name="entry_date"
                 label="Fecha de Inicio"
-                control={control}
+                register={register}
+                watch={watch}
                 missingLabel="Fecha de inicio no registrada"
                 type="date"
                 readOnlyInputClasses={readOnlyInputClasses}
@@ -96,7 +97,8 @@ export const WorkManagementSection = ({
                 <ReadonlyWorkField
                   name="workEmail"
                   label="Correo de Trabajo"
-                  control={control}
+                  register={register}
+                  watch={watch}
                   missingLabel="Correo de trabajo no registrado"
                   type="email"
                   readOnlyInputClasses={readOnlyInputClasses}
@@ -105,49 +107,56 @@ export const WorkManagementSection = ({
               <ReadonlyWorkField
                 name="inssNumber"
                 label="Número de INSS"
-                control={control}
+                register={register}
+                watch={watch}
                 missingLabel="INSS no registrado"
                 readOnlyInputClasses={readOnlyInputClasses}
               />
               <ReadonlyWorkField
                 name="bankAccountNumber"
                 label="Cuenta Bancaria (Nómina)"
-                control={control}
+                register={register}
+                watch={watch}
                 missingLabel="Cuenta bancaria no registrada"
                 readOnlyInputClasses={readOnlyInputClasses}
               />
               <ReadonlyWorkField
                 name="bankName"
                 label="Banco"
-                control={control}
+                register={register}
+                watch={watch}
                 missingLabel="Banco no registrado"
                 readOnlyInputClasses={readOnlyInputClasses}
               />
               <ReadonlyWorkField
                 name="branchName"
                 label="Sucursal"
-                control={control}
+                register={register}
+                watch={watch}
                 missingLabel="Sucursal no registrada"
                 readOnlyInputClasses={readOnlyInputClasses}
               />
               <ReadonlyWorkField
                 name="salaryAmount"
                 label="Salario"
-                control={control}
+                register={register}
+                watch={watch}
                 missingLabel="Salario no registrado"
                 readOnlyInputClasses={readOnlyInputClasses}
               />
               <ReadonlyWorkField
                 name="currency"
                 label="Moneda"
-                control={control}
+                register={register}
+                watch={watch}
                 missingLabel="Moneda no registrada"
                 readOnlyInputClasses={readOnlyInputClasses}
               />
               <ReadonlyWorkField
                 name="salaryType"
                 label="Tipo de salario"
-                control={control}
+                register={register}
+                watch={watch}
                 missingLabel="Tipo de salario no registrado"
                 readOnlyInputClasses={readOnlyInputClasses}
               />

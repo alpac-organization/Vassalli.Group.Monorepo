@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Controller } from "react-hook-form";
 import { Pencil, Check, X, Loader2 } from "lucide-react";
 import { InputText } from "@alpac/design-system";
-import type { EditableFieldProps } from "@app/modules/payroll/ui/pages/collaborator-profile/types/utils.type";
+import type { EditableFieldProps } from "@app/modules/payroll/ui/pages/collaborator-profile/types/fields.utils.type";
 import {
   isValueMissing,
   missingDataInInputClassName,
@@ -20,7 +19,12 @@ export const EditableField = ({
   onConfirmUpdate,
   missingMessage,
 }: EditableFieldProps) => {
-  const { control, watch, setValue } = formMethods;
+  const {
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = formMethods;
 
   const [originalValue, setOriginalValue] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -54,47 +58,38 @@ export const EditableField = ({
   const isConfirmDisabled =
     !currentValue || String(currentValue).trim() === "" || isUpdating;
 
+  const showMissingInline =
+    !isEditing && Boolean(missingMessage) && isValueMissing(currentValue);
+
+  const displayValue = showMissingInline
+    ? (missingMessage as string)
+    : currentValue ?? "";
+
+  const inputType = showMissingInline ? "text" : type;
+
+  const errorMessage = errors[name]?.message as string | undefined;
+
   return (
     <div className="flex min-w-0 flex-col gap-2 w-full max-w-full">
       <div className="flex min-w-0 items-end gap-2 sm:gap-2.5">
         <div className="min-w-0 flex-1 relative">
-          <Controller
-            name={name}
-            control={control}
-            rules={validation}
-            render={({ field, fieldState }) => {
-              const showMissingInline =
-                !isEditing &&
-                Boolean(missingMessage) &&
-                isValueMissing(field.value);
-              const displayValue = showMissingInline
-                ? (missingMessage as string)
-                : field.value ?? "";
-              const inputType = showMissingInline ? "text" : type;
-
-              return (
-                <InputText
-                  label={label}
-                  labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
-                  type={inputType}
-                  disabled={!isEditing || isUpdating}
-                  editable={false}
-                  error={fieldState.error?.message as string | undefined}
-                  className={`transition-all! duration-200! dark:bg-[#1e2229]! dark:text-white! dark:border-slate-600/50! dark:px-3!
-                            focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!
-                            disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
-                            ${!showMissingInline ? "disabled:dark:text-slate-200!" : ""}
-                              min-w-0 w-full max-w-full ${showMissingInline ? missingDataInInputClassName : ""}`}
-                  value={displayValue}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  name={field.name}
-                  ref={field.ref}
-                />
-              );
-            }}
+          <InputText
+            label={label}
+            labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
+            type={inputType}
+            disabled={!isEditing || isUpdating}
+            editable={false}
+            error={errorMessage}
+            className={`transition-all! duration-200! dark:bg-[#1e2229]! dark:text-white! dark:border-slate-600/50! dark:px-3!
+                        focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!
+                        disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
+                        ${!showMissingInline ? "disabled:dark:text-slate-200!" : ""}
+                          min-w-0 w-full max-w-full ${showMissingInline ? missingDataInInputClassName : ""}`}
+            value={displayValue}
+            {...register(name, validation)}
           />
         </div>
+
         <div className="flex shrink-0 gap-2">
           {!isEditing ? (
             <button

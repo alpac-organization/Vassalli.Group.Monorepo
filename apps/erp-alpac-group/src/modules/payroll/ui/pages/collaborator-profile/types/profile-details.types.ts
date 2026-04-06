@@ -1,7 +1,9 @@
 export interface PersonalFormData {
   //solo campos de lectura
+  identification_type: string;
   identification_number: string;
   gender: string;
+  marital_status: string;
 
   //campos editables
   firstName: string;
@@ -11,10 +13,10 @@ export interface PersonalFormData {
   address: string;
   personalEmail: string;
   personalPhone: string;
-  department: string;
+  departament: string;
 }
 export interface WorkFormData {
-  startDate: string;
+  entry_date?: Date;
   jobPosition: string;
   workArea: string;
   workEmail?: string;

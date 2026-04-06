@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ModuleEnum } from "@app/core/enums/module.enum";
 
-export const DashboardLayout = ({}) => {
+export const DashboardLayout = () => {
   const { moduleCode, role } = useUserStore();
   const { isOpenSidebar, setIsOpenSidebar } = useSessionStorageSidebar();
   const location = useLocation();
