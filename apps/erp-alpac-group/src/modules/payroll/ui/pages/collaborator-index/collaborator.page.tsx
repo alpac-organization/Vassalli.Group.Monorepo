@@ -5,61 +5,74 @@ import {
   InputText,
   Dropdown,
   Button,
-} from "@alpac/design-system";
-import { useImage } from "@app/shared/hooks/useImage";
-import { useUserStore } from "@app/shared/stores/useUserStore";
-import { motion } from "framer-motion";
+} from '@alpac/design-system';
+import { useUserStore } from '@app/shared/stores/useUserStore';
+import { motion } from 'framer-motion';
 import {
   HospitalIcon,
   TreePalmIcon,
   UserIcon,
   UserRoundPlusIcon,
-} from "lucide-react";
-import { Outlet, useNavigate } from "react-router-dom";
-import { useForm, type SubmitHandler, Controller } from "react-hook-form";
-import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
-import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
-import { useCallback, useState } from "react";
-import { Loader } from "@app/shared/components/loaders/loader";
-import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
-import type { CollaboratorProfileLocationState } from "@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types";
-import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
-import {
-  CatalogEnum,
-  CollaboratorStatusEnum,
-} from "@app/core/enums/catalog.enum";
-import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
-import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
+} from 'lucide-react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
+import type { CollaboratorRequest } from '@app/modules/payroll/domain/ApiContract/Requests/collaborator.request';
+import { useCollaborators } from '@app/modules/payroll/ui/hooks/useCollaborators';
+import { useCallback, useState } from 'react';
+import { Loader } from '@app/shared/components/loaders/loader';
+import type { GetCollaboratorsResponse } from '@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response';
+import type { CollaboratorProfileLocationState } from '@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types';
+import { useCatalog } from '@app/modules/catalog/ui/hooks/useCatalog';
+import { CatalogEnum } from '@app/core/enums/catalog.enum';
+import { CollaboratorStatusOptions } from '@app/modules/payroll/domain/enums/collaborator-status.enum';
+import { mapCatalogToOptions } from '@app/shared/utils/catalog.utils';
+import { formatIdentificationNumber } from '@app/shared/utils/string.utils';
+import { AddCollaboratorModal } from '@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal';
+import { useTheme } from '@alpac/design-system';
+import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 
 export const CollaboratorPage = function () {
   const [filters, setFilters] = useState<CollaboratorRequest>({
-    identification_number: "",
+    identification_number: '',
     branch_id: 0,
     area_id: 0,
     page_number: 1,
     page_size: 10,
-    status: "",
+    status: '',
   } as CollaboratorRequest);
+
+  const [showAddCollaboratorModal, setShowAddCollaboratorModal] =
+    useState(false);
 
   const navigate = useNavigate();
 
-  const { companyId, moduleCode, companyAlias } = useUserStore();
+  const { theme } = useTheme();
+  const { companyId, moduleCode } = useUserStore();
+  const { urlImage, neutralUrlImage } = useCompanyStore();
 
-  const companyAliasWhite = companyAlias.toLowerCase().concat(".white");
-
-  const { urlImage } = useImage(companyAliasWhite);
+  const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
 
   const { register, handleSubmit, control, reset } =
     useForm<CollaboratorRequest>();
 
   const { GetCatalogListQuery: workAreasQuery } = useCatalog({
     company_id: companyId,
-    catalog_type: CatalogEnum.WORK_AREAS,
+    catalog_type_id: CatalogEnum.WORK_AREAS,
+  });
+
+  const { GetCatalogListQuery: jobPositionQuery } = useCatalog({
+    company_id: companyId,
+    catalog_type_id: CatalogEnum.JOB_POSITIONS,
   });
 
   const { GetCatalogListQuery: branchesQuery } = useCatalog({
     company_id: companyId,
-    catalog_type: CatalogEnum.BRANCHES,
+    catalog_type_id: CatalogEnum.BRANCHES,
+  });
+
+  const { GetCatalogListQuery: banksQuery } = useCatalog({
+    company_id: companyId,
+    catalog_type_id: CatalogEnum.BANKS,
   });
 
   const { GetCollaboratorsQuery } = useCollaborators({
@@ -69,7 +82,10 @@ export const CollaboratorPage = function () {
   });
 
   const { data: workAreas = [] } = workAreasQuery;
+  const { data: jobPositions = [] } = jobPositionQuery;
   const { data: branches = [] } = branchesQuery;
+  const { data: banks = [] } = banksQuery;
+
   const {
     data: collaborators = {
       data: [],
@@ -83,39 +99,37 @@ export const CollaboratorPage = function () {
   } = GetCollaboratorsQuery;
 
   const optionsWorkAreas = mapCatalogToOptions(workAreas);
+  const optionsJobPositions = mapCatalogToOptions(jobPositions);
   const optionsBranches = mapCatalogToOptions(branches);
-  const optionsStatus = Object.values(CollaboratorStatusEnum).map((value) => ({
-    label: value,
-    value,
-  }));
+  const optionsBanks = mapCatalogToOptions(banks);
 
   const onSubmit: SubmitHandler<CollaboratorRequest> = async (data) => {
     setFilters((prev) => ({ ...prev, ...data }));
   };
 
   const columnConfig = [
-    { key: "collaborator_code", label: "Código" },
-    { key: "full_name", label: "Nombre Completo" },
+    { key: 'collaborator_code', label: 'Código' },
+    { key: 'full_name', label: 'Nombre Completo' },
     {
-      key: "identification_number",
-      label: "Identificación",
+      key: 'identification_number',
+      label: 'Identificación',
       render: (value: GetCollaboratorsResponse) =>
         formatIdentificationNumber(value.identification_number),
     },
-    { key: "branch_name", label: "Sucursal" },
-    { key: "work_area", label: "Área" },
-    { key: "work_position", label: "Posición" },
-    { key: "status", label: "Estado" },
+    { key: 'branch_name', label: 'Sucursal' },
+    { key: 'work_area', label: 'Área' },
+    { key: 'work_position', label: 'Posición' },
+    { key: 'status', label: 'Estado' },
     {
-      key: "actions",
-      label: "Acciones",
+      key: 'actions',
+      label: 'Acciones',
       render: (value: GetCollaboratorsResponse) => (
         <Button
           label="Ver Perfil"
           size="small"
           className="text-[13px]! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
           onClick={() => {
-            navigate("/payroll/collaborator-profile", {
+            navigate('/payroll/collaborator-profile', {
               state: {
                 identification_number: value.identification_number,
               } satisfies CollaboratorProfileLocationState,
@@ -129,14 +143,18 @@ export const CollaboratorPage = function () {
   const handleClearFilters = useCallback(() => {
     reset();
     setFilters({
-      identification_number: "",
+      identification_number: '',
       branch_id: 0,
       area_id: 0,
       page_number: 1,
       page_size: 10,
-      status: "",
+      status: '',
     } as CollaboratorRequest);
   }, [reset]);
+
+  const handleAddCollaborator = useCallback(() => {
+    setShowAddCollaboratorModal(true);
+  }, []);
 
   return (
     <motion.div
@@ -147,16 +165,16 @@ export const CollaboratorPage = function () {
       className="flex flex-col gap-4"
     >
       {GetCollaboratorsQuery.isPending && (
-        <Loader title={"Cargando Colaboradores..."} />
+        <Loader title={'Cargando Colaboradores...'} />
       )}
 
       <div className="flex justify-start">
         <Breadcrumb
           items={[
-            { label: "Dashboard", url: "/", onClick: (url) => navigate(url) },
+            { label: 'Dashboard', url: '/', onClick: (url) => navigate(url) },
             {
-              label: "Colaboradores",
-              url: "/payroll/collaborators",
+              label: 'Colaboradores',
+              url: '/payroll/collaborators',
               onClick: (url) => navigate(url),
             },
           ]}
@@ -173,7 +191,7 @@ export const CollaboratorPage = function () {
           </div>
           <img
             className="h-12 sm:h-16 md:h-20 w-auto object-contain"
-            src={urlImage}
+            src={activeLogo}
             alt="logo alpac"
           />
         </div>
@@ -185,7 +203,7 @@ export const CollaboratorPage = function () {
           value={
             collaborators.total_active
               ? collaborators.total_active.toString()
-              : "0"
+              : '0'
           }
           icon={<UserIcon size={30} />}
           borderColor="border-yellow-600! dark:border-yellow-500!"
@@ -195,7 +213,7 @@ export const CollaboratorPage = function () {
           value={
             collaborators.total_on_vacation
               ? collaborators.total_on_vacation.toString()
-              : "0"
+              : '0'
           }
           icon={<TreePalmIcon size={30} />}
           borderColor="border-blue-600! dark:border-blue-400!"
@@ -205,7 +223,7 @@ export const CollaboratorPage = function () {
           value={
             collaborators.total_on_subsidy
               ? collaborators.total_on_subsidy.toString()
-              : "0"
+              : '0'
           }
           icon={<HospitalIcon size={30} />}
           borderColor="border-red-800! dark:border-red-400!"
@@ -215,7 +233,7 @@ export const CollaboratorPage = function () {
           value={
             collaborators.total_collaborators
               ? collaborators.total_collaborators.toString()
-              : "0"
+              : '0'
           }
           icon={<UserRoundPlusIcon size={30} />}
           borderColor="border-green-800! dark:border-green-600!"
@@ -233,11 +251,13 @@ export const CollaboratorPage = function () {
 
       <div className="flex justify-between items-center dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* El boton de agregar colaborador debe llevar a la ruta /payroll/collaborator-profile */}
           <Button
             size="giant"
             label="Agregar Colaborador"
             icon={<UserRoundPlusIcon size={20} />}
             className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+            onClick={handleAddCollaborator}
           />
         </div>
       </div>
@@ -262,7 +282,7 @@ export const CollaboratorPage = function () {
             labelClassName="text-black! dark:text-white!"
             type="text"
             placeholder="Ingrese la identificación"
-            {...register("identification_number", { required: false })}
+            {...register('identification_number', { required: false })}
           />
         </div>
 
@@ -283,7 +303,7 @@ export const CollaboratorPage = function () {
                   labelClassName="text-black! dark:text-white!"
                   valueClassName="text-black! dark:text-white!"
                   className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                  options={optionsWorkAreas}
+                  options={optionsWorkAreas ?? []}
                 />
               );
             }}
@@ -306,7 +326,7 @@ export const CollaboratorPage = function () {
                 labelClassName="text-black! dark:text-white!"
                 valueClassName="text-black! dark:text-white!"
                 className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                options={optionsBranches}
+                options={optionsBranches ?? []}
               />
             )}
           />
@@ -328,7 +348,7 @@ export const CollaboratorPage = function () {
                 labelClassName="text-black! dark:text-white!"
                 valueClassName="text-black! dark:text-white!"
                 className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                options={optionsStatus}
+                options={CollaboratorStatusOptions ?? []}
               />
             )}
           />
@@ -361,6 +381,15 @@ export const CollaboratorPage = function () {
           columns={columnConfig}
         />
       </div>
+      <AddCollaboratorModal
+        isOpen={showAddCollaboratorModal}
+        optionsWorkAreas={optionsWorkAreas}
+        optionsJobPositions={optionsJobPositions}
+        optionsBranches={optionsBranches}
+        optionsBanks={optionsBanks}
+        onClose={() => setShowAddCollaboratorModal(false)}
+        onSubmit={() => {}}
+      />
       <Outlet />
     </motion.div>
   );

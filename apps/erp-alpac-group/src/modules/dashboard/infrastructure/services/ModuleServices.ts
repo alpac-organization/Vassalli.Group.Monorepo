@@ -1,6 +1,6 @@
-import type { IHttpHandler } from "@app/core/ports";
-import type { IModuleServices } from "@app/modules/dashboard/application/interfaces/IModuleServices";
-import type { ModulesAvailableResponse } from "@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response";
+import type { IHttpHandler } from '@app/core/ports';
+import type { IModuleServices } from '@app/modules/dashboard/application/interfaces/IModuleServices';
+import type { ModulesAvailableResponse } from '@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response';
 
 export class ModuleServices implements IModuleServices {
   private apiHandler: IHttpHandler;

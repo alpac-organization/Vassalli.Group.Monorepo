@@ -40,6 +40,7 @@ export const sidebarData = {
       [RoleEnum.MANAGER]: [collboratorSection],
       [RoleEnum.ADMINISTRATOR]: [collboratorSection],
       [RoleEnum.OPERATOR]: [collboratorSection],
+      [RoleEnum.OPERATOR]: [collboratorSection],
     },
     [ModuleEnum.WORK_MANAGEMENT]: {
       [RoleEnum.OPERATOR]: [

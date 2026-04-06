@@ -13,5 +13,6 @@ export interface DropdownProps {
    value?: any;
    className?: string;
    labelClassName?: string;
+   isRequired?: boolean;
    valueClassName?: string;
 }

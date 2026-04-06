@@ -1,4 +1,10 @@
 import { createPortal } from "react-dom";
+import { MODAL_SIZES, MODAL_VARIANTS } from "./modal.constants";
+import { AnimatePresence, motion } from "framer-motion";
+import { X } from "lucide-react";
+import { ModalProps } from "./modal.type";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { MODAL_VARIANTS } from "./modal.constants";
 import type { ModalVariant } from "./modal.type";
 import { AnimatePresence, motion } from "framer-motion";
@@ -19,9 +25,7 @@ export const Modal = ({
   const resolvedVariant: ModalVariant = variant ?? "default";
   const config = MODAL_VARIANTS[resolvedVariant];
   const titleSectionClass =
-    resolvedVariant === "default"
-      ? "mb-6"
-      : "mb-6 border-t border-t-slate-300";
+    resolvedVariant === "default" ? "mb-6" : "mb-6 border-t border-t-slate-300";
 
   useEffect(() => {
     setIsMounted(true);
@@ -88,7 +92,7 @@ export const Modal = ({
               </div>
             )}
 
-            {children && <div className="mt-4">{children}</div>}
+            {children && <div>{children}</div>}
 
             <button
               className="absolute top-5 right-5 p-1.5 text-slate-700 hover:text-slate-900 hover:bg-slate-300 dark:text-slate-200 dark:hover:text-white dark:hover:bg-slate-600 rounded-full transition-all"
