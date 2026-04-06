@@ -1,11 +1,13 @@
 import { Badges, Button, DataTable } from "@alpac/design-system";
 import type { VacationRequestRow } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-history-request";
+import { getVacationStatusUiLabel } from "@app/modules/vacations/ui/pages/vacation-index/constants/vacation-status.constants";
 import { formatVacationDate } from "@app/modules/vacations/ui/pages/vacation-index/utils/format-vacation-date";
 
 type VacationRequestsTableProps = {
   data: VacationRequestRow[];
   onViewDetails?: (row: VacationRequestRow) => void;
   onGenerateDocument?: (row: VacationRequestRow) => void;
+  onCancelRequest?: (row: VacationRequestRow) => void;
 };
 
 function statusBadgeColor(status: VacationRequestRow["status"]): string {
@@ -27,6 +29,7 @@ export function VacationRequestsTable({
   data,
   onViewDetails,
   onGenerateDocument,
+  onCancelRequest,
 }: VacationRequestsTableProps) {
   const columns = [
     {
@@ -52,7 +55,10 @@ export function VacationRequestsTable({
       key: "status",
       label: "Estado",
       render: (row: VacationRequestRow) => (
-        <Badges label={row.status} color={statusBadgeColor(row.status)} />
+        <Badges
+          label={getVacationStatusUiLabel(row.status)}
+          color={statusBadgeColor(row.status)}
+        />
       ),
     },
     {
@@ -64,32 +70,57 @@ export function VacationRequestsTable({
         ),
     },
     {
+      key: "rejected_by",
+      label: "Rechazado por",
+      render: (row: VacationRequestRow) =>
+        row.rejected_by ?? (
+          <span className="text-neutral-400 dark:text-neutral-500">—</span>
+        ),
+    },
+    {
       key: "actions",
       label: "Acciones",
-      render: (row: VacationRequestRow) => (
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            size="small"
-            label="Ver detalles"
-            onClick={() => onViewDetails?.(row)}
-            className="text-[13px]! bg-white! text-neutral-900! border! border-neutral-900! dark:bg-transparent! dark:text-white! dark:border-neutral-400! hover:scale-[1.03] transition-transform duration-150"
-          />
-          <Button
-            type="button"
-            size="small"
-            label="Generar documento"
-            onClick={() => onGenerateDocument?.(row)}
-            className="text-[13px]! bg-white! text-alpac-primary-600! border! border-alpac-primary-500! dark:bg-transparent! dark:text-alpac-primary-400! dark:border-alpac-primary-500! hover:scale-[1.03] transition-transform duration-150"
-          />
-        </div>
-      ),
+      render: (row: VacationRequestRow) => {
+        const canCancel = row.status === "Pending";
+        const canGenerateDocument = row.status === "Approved";
+        return (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              size="small"
+              label="Ver detalles"
+              onClick={() => onViewDetails?.(row)}
+              className="text-[13px]! bg-white! text-neutral-900! border! border-neutral-900! dark:bg-transparent! dark:text-white! dark:border-neutral-400! hover:scale-[1.03] transition-transform duration-150"
+            />
+            {canCancel && (
+              <Button
+                type="button"
+                size="small"
+                label="Cancelar solicitud"
+                disabled={!canCancel}
+                onClick={() => onCancelRequest?.(row)}
+                className="text-[13px]! bg-white! text-alpac-primary-600! border! border-alpac-primary-500! dark:bg-transparent! dark:text-alpac-primary-400! dark:border-alpac-primary-500! hover:scale-[1.03] transition-transform duration-150 disabled:opacity-50 disabled:pointer-events-none"
+              />
+            )}
+            {canGenerateDocument && (
+              <Button
+                type="button"
+                size="small"
+                label="Generar documento"
+                disabled={!canGenerateDocument}
+                onClick={() => onGenerateDocument?.(row)}
+                className="text-[13px]! bg-white! text-alpac-primary-600! border! border-alpac-primary-500! dark:bg-transparent! dark:text-alpac-primary-400! dark:border-alpac-primary-500! hover:scale-[1.03] transition-transform duration-150 disabled:opacity-50 disabled:pointer-events-none"
+              />
+            )}
+          </div>
+        );
+      },
     },
   ];
 
   return (
     <DataTable
-      title="Solicitudes de vacaciones"
+      title="Solicitudes de permisos"
       data={data}
       columns={columns}
       rowClassName=""

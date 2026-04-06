@@ -150,7 +150,8 @@ export default function VacationPage() {
       start_date: item.start_date,
       end_date: item.end_date,
       status: item.status,
-      approved_by: item.approved_by || null,
+      approved_by: item.approved_by || undefined,
+      rejected_by: item.rejected_by || undefined,
     }));
   }, [GetVacationHistory.data, GetVacationSaldoQuery.data, fullName]);
 
@@ -181,8 +182,13 @@ export default function VacationPage() {
 
   const handleGenerateDocument = useCallback((_row: VacationRequestRow) => {
     // lógica de generación de documento pendiente
+    console.log("generando documento");
   }, []);
 
+  const handleCancellVacation = useCallback((_row: VacationRequestRow) => {
+    console.log("cancelando documento");
+    // lógica de generación de documento pendiente
+  }, []);
   return (
     <>
       <motion.div
@@ -201,7 +207,7 @@ export default function VacationPage() {
                 onClick: (url) => navigate(url),
               },
               {
-                label: "Gestión de vacaciones",
+                label: "Gestión de permisos",
                 url: "/work-management/gestion-vacations",
                 onClick: (url) => navigate(url),
               },
@@ -255,6 +261,7 @@ export default function VacationPage() {
           data={filteredRows}
           onViewDetails={handleViewDetails}
           onGenerateDocument={handleGenerateDocument}
+          onCancelRequest={handleCancellVacation}
         />
       </motion.div>
 

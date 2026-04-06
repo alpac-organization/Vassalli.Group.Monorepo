@@ -15,7 +15,7 @@ export function VacationRequestDetailsContent({
             {details.fullName || "—"}
           </p>
           <p className="mt-0.5 text-[13px] text-slate-500 dark:text-slate-400">
-            ID: {details.collaboratorCode}
+            ID Colaborador: {details.collaboratorCode}
           </p>
         </div>
         <span
@@ -49,7 +49,7 @@ export function VacationRequestDetailsContent({
           <p
             className={`mt-1 text-2xl font-bold ${
               details.requestedDays > 0
-                ? "text-alpac-primary-500 dark:text-alpac-primary-400"
+                ? "text-white"
                 : "text-slate-400 dark:text-slate-500"
             }`}
           >
@@ -59,16 +59,16 @@ export function VacationRequestDetailsContent({
       </div>
 
       <div className="min-w-0">
-        <p className="mb-1.5 text-[13px] font-medium text-slate-600 dark:text-slate-300">
+        <p className="mb-1.5 text-[13px] font-medium text-slate-600 dark:text-slate-400">
           Descripción
         </p>
-        <div className="min-h-10 rounded-md bg-slate-100 px-3 py-2.5 text-[14px] leading-relaxed text-slate-700 dark:bg-[#272b34] dark:text-slate-300">
+        <div className="min-h-10 rounded-md py-2.5 text-[14px] leading-relaxed text-white">
           {details.description}
         </div>
       </div>
 
       <div className="border-t border-slate-200 pt-3 dark:border-neutral-600">
-        <p className="text-[13px] text-slate-500 dark:text-slate-400">
+        <p className="text-[13px] text-white">
           <span className="font-medium">Solicitado el:</span>{" "}
           {details.requestedAtFormatted}
         </p>

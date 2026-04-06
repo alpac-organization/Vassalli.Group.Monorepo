@@ -18,7 +18,7 @@ export function NewVacationRequestCollaboratorSummary({
     >
       <dl className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6">
         <div className="min-w-0">
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-white">
             Nombre
           </dt>
           <dd className="mt-1 min-h-5.5 text-[15px] font-semibold leading-snug text-slate-900 dark:text-white">
@@ -35,7 +35,7 @@ export function NewVacationRequestCollaboratorSummary({
           </dd>
         </div>
         <div className="min-w-0">
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-white">
             Cargo
           </dt>
           <dd className="mt-1 min-h-5.5 text-[15px] font-semibold leading-snug text-white dark:text-alpac-primary-400">

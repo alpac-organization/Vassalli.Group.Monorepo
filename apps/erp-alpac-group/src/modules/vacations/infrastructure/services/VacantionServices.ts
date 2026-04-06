@@ -44,6 +44,7 @@ export class VacationServices implements IVacationRequestServices {
         params: cleanParams(queryParams),
       },
     );
+    console.log(response);
     return response;
   }
 }

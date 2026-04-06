@@ -41,5 +41,6 @@ export type VacationRequestRow = {
   start_date: string;
   end_date: string;
   status: VacationRequestStatus;
-  approved_by: string | null;
+  approved_by?: string;
+  rejected_by?: string;
 };

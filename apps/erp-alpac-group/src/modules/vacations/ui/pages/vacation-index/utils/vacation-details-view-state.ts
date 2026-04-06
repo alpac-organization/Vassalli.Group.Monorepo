@@ -6,16 +6,10 @@
 
 import type { VacationRequestStatus } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-history-request";
 import type { VacationHistoryResponse } from "@app/modules/vacations/domain/ApiContract/Responses/vacation-history-response";
+import { getVacationStatusUiLabel } from "@app/modules/vacations/ui/pages/vacation-index/constants/vacation-status.constants";
 import { countInclusiveCalendarDays } from "@app/modules/vacations/ui/pages/vacation-index/utils/count-inclusive-calendar-days";
 
 // ─── Status helper
-
-const STATUS_LABEL: Record<VacationRequestStatus, string> = {
-  Pending: "Pendiente",
-  Approved: "Aprobada",
-  Rejected: "Rechazada",
-  Cancelled: "Cancelada",
-};
 
 const STATUS_COLOR: Record<VacationRequestStatus, string> = {
   Pending:
@@ -27,7 +21,7 @@ const STATUS_COLOR: Record<VacationRequestStatus, string> = {
 };
 
 export function getStatusLabel(status: VacationRequestStatus): string {
-  return STATUS_LABEL[status] ?? status;
+  return getVacationStatusUiLabel(status);
 }
 
 export function getStatusColorClass(status: VacationRequestStatus): string {

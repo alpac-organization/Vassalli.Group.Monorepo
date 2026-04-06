@@ -63,7 +63,7 @@ export function NewVacationRequestModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Nueva Solicitud de Vacaciones"
+      title="Nueva Solicitud de Permiso"
       panelClassName={[
         "!max-w-2xl w-full min-w-0",
         "max-h-[min(92dvh,44rem)] overflow-y-auto overflow-x-hidden overscroll-contain",
