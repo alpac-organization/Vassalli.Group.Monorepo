@@ -46,8 +46,8 @@ export type PermissionHistoryRow = {
   type: PermissionType;
   start_date: string;
   end_date: string;
-  start_time?: string;
-  end_time?: string;
+  start_time?: string | null;
+  end_time?: string | null;
   status: PermissionRequestStatus;
   approved_by?: string;
   rejected_by?: string;

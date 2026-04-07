@@ -22,11 +22,11 @@ export interface CreatePermissionRequest {
   /**
    * Hora de inicio
    */
-  start_time?: string;
+  start_time?: string | null;
   /**
    * Hora de fin
    */
-  end_time?: string;
+  end_time?: string | null;
   /**
    * Tipo de permiso (valor numérico del enum)
    */

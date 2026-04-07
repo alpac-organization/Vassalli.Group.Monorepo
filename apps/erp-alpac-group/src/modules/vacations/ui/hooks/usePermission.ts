@@ -7,6 +7,7 @@ import { PermissionServices } from "@app/modules/vacations/infrastructure/servic
 import type { CreatePermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
 import type { PermissionHistoryRequest } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
 import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
+import type { GeneratePermissionDocumentRequest } from "@app/modules/vacations/domain/ApiContract/Requests/generate-permission-docs-request";
 const permissionServices = new PermissionServices(httpHandler);
 export type UseVacationPayload = {
   company_id: string;
@@ -80,10 +81,19 @@ export const usePermission = (
     staleTime: 0,
     retry: 1,
   });
+  const generatePermissionDocumentMutation = useMutation({
+    mutationKey: ["generatePermissionDocument", payload],
+    mutationFn: (payload: GeneratePermissionDocumentRequest) =>
+      permissionServices.generatePermissionDocument(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });
+    },
+  });
   return {
     createPermissionRequestMutation,
     cancelPermissionRequestMutation,
     GetVacationSaldoQuery,
     GetPermissionHistory,
+    generatePermissionDocumentMutation,
   };
 };

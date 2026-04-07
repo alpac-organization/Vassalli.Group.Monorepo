@@ -69,6 +69,7 @@ export default function VacationPage() {
     GetVacationSaldoQuery,
     GetPermissionHistory,
     cancelPermissionRequestMutation,
+    generatePermissionDocumentMutation,
   } = usePermission(vacationSaldoPayload, historyFilters);
   const { GetProfileDetails } = useCollaboratorProfileDetails({
     company_id: companyId,
@@ -157,10 +158,8 @@ export default function VacationPage() {
       type: item.type,
       start_date: item.start_date,
       end_date: item.end_date,
-      start_time:
-        item.type !== "Vacation" ? item.start_time || undefined : undefined,
-      end_time:
-        item.type !== "Vacation" ? item.end_time || undefined : undefined,
+      start_time: item.type !== "Vacation" ? item.start_time || null : null,
+      end_time: item.type !== "Vacation" ? item.end_time || null : null,
       status: item.status,
       approved_by: item.approved_by || undefined,
       rejected_by: item.rejected_by || undefined,
@@ -196,19 +195,46 @@ export default function VacationPage() {
   }, []);
 
   const handleGenerateDocument = useCallback((_row: PermissionHistoryRow) => {
-    // lógica de generación de documento pendiente
-    console.log("generando documento");
+    if (!companyId || !moduleCode) return;
+    generatePermissionDocumentMutation.mutate(
+      {
+        company_id: companyId,
+        module_code: moduleCode,
+        permit_application_id: _row.id,
+      },
+      {
+        onSuccess: () => {
+          console.log("Documento generado exitosamente.");
+          // window.open(
+          //   generatePermissionDocumentMutation.data?.document_url,
+          //   "_blank",
+          // );
+          setAlertState({
+            open: true,
+            type: "success",
+            message: "Documento generado exitosamente.",
+          });
+        },
+        onError: () => {
+          setAlertState({
+            open: true,
+            type: "error",
+            message: "No se pudo generar el documento. Intente nuevamente.",
+          });
+        },
+      },
+    );
   }, []);
 
   const handleCancellVacation = useCallback(
     (row: PermissionHistoryRow) => {
-      if (!companyId || !moduleCode || !identificationNumber) return;
+      if (!companyId || !moduleCode) return;
       cancelPermissionRequestMutation.mutate(
         {
           company_id: companyId,
           module_code: moduleCode,
           identification_number: identificationNumber,
-          permit_apllication_id: row.id,
+          permit_application_id: row.id,
         },
         {
           onSuccess: () => {

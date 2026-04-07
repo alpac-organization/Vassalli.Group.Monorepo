@@ -90,15 +90,18 @@ export function NewPermissionRequestForm({
       return;
     }
 
+    const toIsoUtcZ = (ymd: string) =>
+      new Date(ymd).toISOString().split(".")[0] + "Z";
+
     const payload: CreatePermissionRequest = {
       company_id: companyId,
       module_code: moduleCode,
       identification_number: identificationNumber.trim(),
       permit_application_type: PERMISSION_TYPE_TO_ENUM_VALUE[values.type],
-      start_date: values.start_date,
-      end_date: values.end_date,
-      start_time: showTimeInputs ? values.start_time : "",
-      end_time: showTimeInputs ? values.end_time : "",
+      start_date: toIsoUtcZ(values.start_date),
+      end_date: toIsoUtcZ(values.end_date),
+      start_time: showTimeInputs ? values.start_time : null,
+      end_time: showTimeInputs ? values.end_time : null,
       description: values.description.trim(),
     };
     onSubmit(payload);

@@ -1,4 +1,4 @@
-export interface CancelPermissionRequest {
+export interface GeneratePermissionDocumentRequest {
   /**
    * Identificador único de la empresa
    */
@@ -7,10 +7,6 @@ export interface CancelPermissionRequest {
    * Codigo del modulo de vacaciones
    */
   module_code: string;
-  /**
-   * Numero de identificacion del colaborador
-   */
-  identification_number: string;
   /**
    * Identificador único de la solicitud de permiso
    */

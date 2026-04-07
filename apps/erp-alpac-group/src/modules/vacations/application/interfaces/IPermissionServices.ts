@@ -4,6 +4,7 @@ import type { GetVacationSaldoResponse } from "@app/modules/vacations/domain/Api
 import type { PermissionHistoryRequest } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
 import type { PermissionHistoryResponse } from "@app/modules/vacations/domain/ApiContract/Responses/permission-history-response";
 import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
+import type { GeneratePermissionDocumentRequest } from "@app/modules/vacations/domain/ApiContract/Requests/generate-permission-docs-request";
 export interface IPermissionRequestServices {
   /**
    * Crea una solicitud de permiso
@@ -35,4 +36,7 @@ export interface IPermissionRequestServices {
    * @returns void
    */
   cancelPermissionRequest(payload: CancelPermissionRequest): Promise<void>;
+  generatePermissionDocument(
+    payload: GeneratePermissionDocumentRequest,
+  ): Promise<void>;
 }
