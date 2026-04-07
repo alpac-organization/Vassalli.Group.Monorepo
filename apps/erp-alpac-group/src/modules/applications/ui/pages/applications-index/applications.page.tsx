@@ -13,11 +13,13 @@ export const ApplicationsPage = function () {
 
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
 
-   const { moduleCode } = useUserStore();
+   const { companyId, moduleCode } = useUserStore();
 
-   const { GetApplicationsQuery } = useApplications({ module_code: moduleCode });
+   const { GetApplicationsQuery } = useApplications({ company_id: companyId, module_code: moduleCode });
 
    const { data: applications = [] } = GetApplicationsQuery;
+
+   console.log(applications)
 
    const columnConfig = [
       { key: 'permit_apllication_id', label: 'Código' },
@@ -96,7 +98,7 @@ export const ApplicationsPage = function () {
          <div className="flex flex-col">
             <DataTable
                title="Lista de solicitudes"
-               data={[]}
+               data={applications}
                columns={columnConfig}
             />
          </div>

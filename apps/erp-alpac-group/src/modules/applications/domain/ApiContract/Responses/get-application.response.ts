@@ -97,15 +97,3 @@ export interface GetApplicationsResponse {
     */
    type: string;
 }
-
-/**
- * @interface GetApplicationsListResponse
- * @description Envuelve la respuesta paginada del listado de permisos
- */
-export interface GetApplicationsListResponse {
-   /**
-    * Lista de permisos
-    * @required
-    */
-   data: GetApplicationsResponse[];
-}

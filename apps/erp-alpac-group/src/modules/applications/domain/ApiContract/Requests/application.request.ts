@@ -6,6 +6,12 @@
 export interface ApplicationRequest {
 
    /**
+    * Identificador de la empresa
+    * @required
+    */
+
+   company_id: string;
+   /**
     * Codigo del modulo de Nomina, Contabilidad, Facturacion, Inventario, etc
     * @required
     */
