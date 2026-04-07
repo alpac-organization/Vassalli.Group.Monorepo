@@ -1,9 +1,4 @@
-import type { PermissionRequestDetailsUiState } from "@app/modules/vacations/ui/pages/vacation-index/utils/permission-details-view-state";
-
-type PermissionRequestDetailsContentProps = {
-  details: PermissionRequestDetailsUiState;
-};
-
+import type { PermissionRequestDetailsContentProps } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-details/types/permission-details-content.type";
 export function PermissionRequestDetailsContent({
   details,
 }: PermissionRequestDetailsContentProps) {

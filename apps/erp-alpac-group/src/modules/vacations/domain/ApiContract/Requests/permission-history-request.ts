@@ -4,12 +4,9 @@ export type PermissionRequestStatus =
   | "Rejected"
   | "Cancelled";
 
-import type { PermissionType } from "./create-permission-request";
+import type { PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
 
 export type PermissionHistoryRequest = {
-  /**
-   * Codigo del modulo de vacaciones
-   */
   module_code: string;
   /**
    * Identificador único de la empresa
@@ -28,7 +25,7 @@ export type PermissionHistoryRequest = {
    */
   page_number: number;
   /**
-   * Estado de la solicitud de vacaciones. Omitir para retornar todos.
+   * Estado de la solicitud de permisos. Omitir para retornar todos.
    */
   status?: PermissionRequestStatus;
   /**

@@ -6,8 +6,8 @@ import type { PermissionHistoryResponse } from "@app/modules/vacations/domain/Ap
 import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
 export interface IPermissionRequestServices {
   /**
-   * Crea una solicitud de vacaciones
-   * @param payload - Datos de la solicitud de vacaciones
+   * Crea una solicitud de permiso
+   * @param payload - Datos de la solicitud de permiso
    * @returns void
    */
   createPermissionRequest(payload: CreatePermissionRequest): Promise<void>;
@@ -21,9 +21,9 @@ export interface IPermissionRequestServices {
   ): Promise<GetVacationSaldoResponse>;
 
   /**
-   * Obtiene el historial de solicitudes de vacaciones
-   * @param payload - Datos de la solicitud de historial de solicitudes de vacaciones
-   * @returns VacationHistoryResponse
+   * Obtiene el historial de solicitudes de permisos
+   * @param payload - Datos de la solicitud de historial de solicitudes de permisos
+   * @returns PermissionHistoryResponse
    */
   getPermissionHistory(
     payload: PermissionHistoryRequest,

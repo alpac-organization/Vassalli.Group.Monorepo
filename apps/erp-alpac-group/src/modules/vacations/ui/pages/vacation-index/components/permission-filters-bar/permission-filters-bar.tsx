@@ -1,21 +1,13 @@
 import { Button, Dropdown } from "@alpac/design-system";
-import type {
-  VacationStatusFilterValue,
-  PermissionTypeFilterValue,
-} from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
 import {
   VACATION_STATUS_FILTER_OPTIONS,
   PERMISSION_TYPE_FILTER_OPTIONS,
 } from "@app/modules/vacations/ui/pages/vacation-index/constants/permission-filters.constants";
-
-type PermissionFiltersBarProps = {
-  filterDraft: VacationStatusFilterValue;
-  onFilterDraftChange: (value: VacationStatusFilterValue) => void;
-  typeDraft: PermissionTypeFilterValue;
-  onTypeDraftChange: (value: PermissionTypeFilterValue) => void;
-  onApply: () => void;
-  onClear: () => void;
-};
+import type { PermissionFiltersBarProps } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-filters-bar/types/PermissionFiltersBarProps";
+import type {
+  VacationStatusFilterValue,
+  PermissionTypeFilterValue,
+} from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
 
 const dropdownClassName =
   "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";

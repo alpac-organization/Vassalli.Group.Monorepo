@@ -4,7 +4,7 @@ export interface PermissionHistoryResponse {
   /**
    * Identificador único de la solicitud de vacaciones
    */
-  permit_application_id: string;
+  permit_apllication_id: string;
   /**
    * Identificador único del colaborador
    */
@@ -44,11 +44,11 @@ export interface PermissionHistoryResponse {
   /**
    * Hora de inicio de la solicitud de vacaciones
    */
-  start_time: string;
+  start_time?: string;
   /**
    * Hora de fin de la solicitud de vacaciones
    */
-  end_time: string;
+  end_time?: string;
   /**
    * Estado de la solicitud de vacaciones
    */

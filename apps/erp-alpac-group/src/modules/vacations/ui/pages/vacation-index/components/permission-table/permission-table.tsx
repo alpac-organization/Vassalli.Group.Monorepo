@@ -1,30 +1,10 @@
 import { Badges, Button, DataTable } from "@alpac/design-system";
-import type { PermissionHistoryRow } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
 import { getPermissionStatusUiLabel } from "@app/modules/vacations/ui/pages/vacation-index/constants/vacation-status.constants";
 import { PERMISSION_TYPE_LABEL } from "@app/modules/vacations/ui/pages/vacation-index/constants/permission-filters.constants";
 import { formatVacationDate } from "@app/modules/vacations/ui/pages/vacation-index/utils/format-vacation-date";
-
-type PermissionTableProps = {
-  data: PermissionHistoryRow[];
-  onViewDetails?: (row: PermissionHistoryRow) => void;
-  onGenerateDocument?: (row: PermissionHistoryRow) => void;
-  onCancelRequest?: (row: PermissionHistoryRow) => void;
-};
-
-function statusBadgeColor(status: PermissionHistoryRow["status"]): string {
-  switch (status) {
-    case "Approved":
-      return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200";
-    case "Pending":
-      return "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200";
-    case "Rejected":
-      return "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200";
-    case "Cancelled":
-      return "bg-red-200 text-red-800 dark:bg-red-900/40 dark:text-red-200";
-    default:
-      return "bg-slate-100 text-slate-800";
-  }
-}
+import type { PermissionTableProps } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-table/type/permission-table.type";
+import type { PermissionHistoryRow } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
+import { statusBadgeColor } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-table/utils/statusBadgeColor";
 
 export function PermissionTable({
   data,

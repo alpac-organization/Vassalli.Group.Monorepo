@@ -1,15 +1,8 @@
 import { useMemo } from "react";
 import { Modal } from "@alpac/design-system";
-import type { PermissionHistoryResponse } from "@app/modules/vacations/domain/ApiContract/Responses/permission-history-response";
 import { derivePermissionRequestDetails } from "@app/modules/vacations/ui/pages/vacation-index/utils/permission-details-view-state";
-import { PermissionRequestDetailsContent } from "./permission-details-content";
-
-type PermissionRequestDetailsModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  item: PermissionHistoryResponse | null;
-  collaboratorFullName: string;
-};
+import { PermissionRequestDetailsContent } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-details/permission-details-content";
+import type { PermissionRequestDetailsModalProps } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-details/types/permission-details-modal.type";
 
 export function PermissionRequestDetailsModal({
   isOpen,

@@ -4,19 +4,9 @@ import { usePermission } from "@app/modules/vacations/ui/hooks/usePermission";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { CreatePermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import { NewPermissionRequestCollaboratorSummary } from "./new-permission-request-collaborator-summary";
-import { NewPermissionRequestForm } from "./new-permission-request-form";
-
-type NewPermissionRequestModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  collaboratorFullName: string;
-  collaboratorWorkPosition: string;
-  isCollaboratorFullNameLoading?: boolean;
-  isCollaboratorWorkPositionLoading?: boolean;
-  onRequestSuccess?: () => void;
-  onRequestError?: (description: string) => void;
-};
+import { NewPermissionCollaboratorSummary } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/collaborator-summary";
+import { NewPermissionRequestForm } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-form";
+import type { NewPermissionRequestModalProps } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/permission-modal.types";
 
 export function NewPermissionRequestModal({
   isOpen,
@@ -73,7 +63,7 @@ export function NewPermissionRequestModal({
       ].join(" ")}
     >
       <div className="flex min-w-0 flex-col gap-4 sm:gap-5">
-        <NewPermissionRequestCollaboratorSummary
+        <NewPermissionCollaboratorSummary
           fullName={collaboratorFullName}
           workPosition={collaboratorWorkPosition}
           isFullNameLoading={isCollaboratorFullNameLoading}

@@ -1,10 +1,6 @@
 import { Button } from "@alpac/design-system";
 import { CalendarPlus } from "lucide-react";
-
-type PermissionPageHeaderProps = {
-  onNewRequest?: () => void;
-  collaboratorDisplayName?: string;
-};
+import type { PermissionPageHeaderProps } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-page-header/types/permission-header.type";
 
 export function PermissionPageHeader({
   onNewRequest,

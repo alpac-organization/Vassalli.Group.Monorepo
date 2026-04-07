@@ -1,12 +1,21 @@
 import type { IHttpHandler } from "@app/core/ports";
 import type { IPermissionRequestServices } from "@app/modules/vacations/application/interfaces/IPermissionServices";
-import type { CreatePermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
+import type { CreatePermissionRequest, PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
 import type { PermissionHistoryRequest } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
 import type { PermissionHistoryResponse } from "@app/modules/vacations/domain/ApiContract/Responses/permission-history-response";
 import type { GetVacationSaldoRequest } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-saldo-request";
 import type { GetVacationSaldoResponse } from "@app/modules/vacations/domain/ApiContract/Responses/vacation-saldo-response";
 import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
 import { cleanParams } from "@app/shared/utils/object.utils";
+
+const PERMISSION_TYPE_TO_NUMBER: Record<PermissionType, number> = {
+  Vacation: 1,
+  MedicalAppointment: 2,
+  CompensatoryTime: 3,
+  PaidLeave: 4,
+  UnpaidLeave: 5,
+  SpecialLeave: 6,
+};
 export class PermissionServices implements IPermissionRequestServices {
   private apiHandler: IHttpHandler;
 
@@ -39,11 +48,15 @@ export class PermissionServices implements IPermissionRequestServices {
   ): Promise<PermissionHistoryResponse[]> {
     const { companie_id, module_code, identification_number, ...queryParams } =
       payload;
+    const params = cleanParams({
+      ...queryParams,
+      ...(queryParams.type !== undefined && {
+        type: PERMISSION_TYPE_TO_NUMBER[queryParams.type],
+      }),
+    });
     const response = await this.apiHandler.get<PermissionHistoryResponse[]>(
       `/companies/${companie_id}/modules/${module_code}/collaborators/${identification_number}/permit-applications`,
-      {
-        params: cleanParams(queryParams),
-      },
+      { params },
     );
     return response;
   }
@@ -54,11 +67,12 @@ export class PermissionServices implements IPermissionRequestServices {
       company_id,
       module_code,
       identification_number,
-      permit_application_id,
+      permit_apllication_id,
     } = payload;
     const response = await this.apiHandler.get<void>(
-      `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}/permit-applications/${permit_application_id}/abort`,
+      `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}/permit-applications/${permit_apllication_id}/abort`,
     );
+    console.log(permit_apllication_id);
     return response;
   }
 }

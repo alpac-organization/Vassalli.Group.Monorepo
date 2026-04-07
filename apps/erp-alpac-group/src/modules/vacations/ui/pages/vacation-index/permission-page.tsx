@@ -9,11 +9,11 @@ import type {
   PermissionTypeFilterValue,
 } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
 import type { PermissionHistoryResponse } from "@app/modules/vacations/domain/ApiContract/Responses/permission-history-response";
-import { PermissionFiltersBar } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-filters-bar";
-import { PermissionPageHeader } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-page-header";
-import { PermissionTable } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-table";
+import { PermissionFiltersBar } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-filters-bar/permission-filters-bar";
+import { PermissionPageHeader } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-page-header/permission-page-header";
+import { PermissionTable } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-table/permission-table";
 import { VacationStatsSection } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-stats-section";
-import { NewPermissionRequestModal } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-request-modal";
+import { NewPermissionRequestModal } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal";
 import { PermissionRequestDetailsModal } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-details/permission-details-modal";
 import {
   usePermission,
@@ -152,7 +152,7 @@ export default function VacationPage() {
     const collaboratorName =
       GetVacationSaldoQuery.data?.full_name?.trim() || fullName || "";
     return items.map((item) => ({
-      id: item.permit_application_id,
+      id: item.permit_apllication_id,
       full_name: collaboratorName,
       type: item.type,
       start_date: item.start_date,
@@ -182,7 +182,7 @@ export default function VacationPage() {
   const handleViewDetails = useCallback(
     (row: PermissionHistoryRow) => {
       const item = GetPermissionHistory.data?.find(
-        (i) => String(i.permit_application_id) === String(row.id),
+        (i) => String(i.permit_apllication_id) === String(row.id),
       );
       if (!item) return;
       setSelectedVacationItem(item);
@@ -208,7 +208,7 @@ export default function VacationPage() {
           company_id: companyId,
           module_code: moduleCode,
           identification_number: identificationNumber,
-          permit_application_id: Number(row.id),
+          permit_apllication_id: row.id,
         },
         {
           onSuccess: () => {
@@ -222,8 +222,7 @@ export default function VacationPage() {
             setAlertState({
               open: true,
               type: "error",
-              message:
-                "No se pudo cancelar la solicitud. Intente nuevamente.",
+              message: "No se pudo cancelar la solicitud. Intente nuevamente.",
             });
           },
         },

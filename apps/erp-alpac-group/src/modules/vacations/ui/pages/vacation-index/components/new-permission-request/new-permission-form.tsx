@@ -2,33 +2,19 @@ import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { Button, Dropdown, InputText, Textarea } from "@alpac/design-system";
 import type { PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
-import type { CreatePermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
-import { PermissionTypeEnum } from "@app/modules/vacations/domain/enum/permissionType.enum";
+import type { NewPermissionRequestFormProps } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/new-permissionFormProps";
+import { validateSessionContextUtils } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/utils/validateSessionContext";
+import { validateDatesUtils } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/utils/validateDates";
+import { validateTimesUtils } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/utils/validateTimes";
 import { PERMISSION_TYPE_OPTIONS } from "@app/modules/vacations/ui/pages/vacation-index/constants/permission-filters.constants";
 import { countInclusiveCalendarDays } from "@app/modules/vacations/ui/pages/vacation-index/utils/count-inclusive-calendar-days";
-import type { PermissionRequestFormValues } from "./types/permission-request-form.types";
-
-const PERMISSION_TYPE_TO_ENUM_VALUE: Record<PermissionType, number> = {
-  Vacation: PermissionTypeEnum.VACATION.value,
-  MedicalAppointment: PermissionTypeEnum.MEDICAL_APPOINTMENT.value,
-  CompensatoryTime: PermissionTypeEnum.COMPENSATORY_TIME.value,
-  PaidLeave: PermissionTypeEnum.PAID_LEAVE.value,
-  UnpaidLeave: PermissionTypeEnum.UNPAID_LEAVE.value,
-  SpecialLeave: PermissionTypeEnum.SPECIAL_LEAVE.value,
-};
+import type { PermissionRequestFormValues } from "./types/permission-form.types";
+import type { CreatePermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
+import { PERMISSION_TYPE_TO_ENUM_VALUE } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/new-permissionFormProps";
 
 const inputClassName =
   "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
-
-type NewPermissionRequestFormProps = {
-  isPending: boolean;
-  onSubmit: (payload: CreatePermissionRequest) => void;
-  onCancel: () => void;
-  companyId: string;
-  moduleCode: string;
-  identificationNumber: string;
-};
 
 export function NewPermissionRequestForm({
   isPending,
@@ -88,40 +74,22 @@ export function NewPermissionRequestForm({
 
   const handleFormSubmit = (values: PermissionRequestFormValues) => {
     if (
-      !companyId.trim() ||
-      !moduleCode.trim() ||
-      !identificationNumber.trim()
+      !validateSessionContextUtils(
+        companyId,
+        moduleCode,
+        identificationNumber,
+        setError,
+      )
     ) {
-      setError("root", {
-        type: "manual",
-        message:
-          "Falta el contexto de sesión (empresa, módulo o identificación). Vuelve a iniciar sesión o selecciona un módulo.",
-      });
       return;
     }
-    if (requestedDays === 0) {
-      setError("end_date", {
-        type: "manual",
-        message: "La fecha de fin debe ser igual o posterior a la de inicio.",
-      });
+    if (!validateDatesUtils(requestedDays, setError)) {
       return;
     }
-    if (showTimeInputs) {
-      if (!values.start_time) {
-        setError("start_time", {
-          type: "manual",
-          message: "La hora de inicio es requerida.",
-        });
-        return;
-      }
-      if (!values.end_time) {
-        setError("end_time", {
-          type: "manual",
-          message: "La hora de fin es requerida.",
-        });
-        return;
-      }
+    if (!validateTimesUtils(showTimeInputs, setError, values)) {
+      return;
     }
+
     const payload: CreatePermissionRequest = {
       company_id: companyId,
       module_code: moduleCode,

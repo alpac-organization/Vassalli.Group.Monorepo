@@ -14,5 +14,5 @@ export interface CancelPermissionRequest {
   /**
    * Identificador único de la solicitud de permiso
    */
-  permit_application_id: number;
+  permit_apllication_id: string;
 }

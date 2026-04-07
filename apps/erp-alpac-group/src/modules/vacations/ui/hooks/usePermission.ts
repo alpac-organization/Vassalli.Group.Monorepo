@@ -77,7 +77,7 @@ export const usePermission = (
     enabled: historyQueryEnabled,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 10,
+    staleTime: 0,
     retry: 1,
   });
   return {
