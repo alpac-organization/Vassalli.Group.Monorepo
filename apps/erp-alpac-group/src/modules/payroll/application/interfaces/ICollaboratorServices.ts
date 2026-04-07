@@ -39,4 +39,5 @@ export interface ICollaboratorServices {
   GetCollaboratorProfileDetails(
     payload: CollaboratorProfileDetailsRequest,
   ): Promise<GetCollaboratorProfileDetailsResponse>;
+  // updateCollaboratorProfileDetails(paylod:)
 }

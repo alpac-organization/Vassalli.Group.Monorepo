@@ -21,7 +21,7 @@ import {
 } from "@app/modules/vacations/ui/hooks/usePermission";
 import { utilsPermissionPageInitialLoader } from "@app/modules/vacations/ui/pages/vacation-index/utils/utilsPermissionPageInitialLoader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { useCollaboratorProfileDetails } from "@app/modules/payroll/ui/hooks/useCollaboratorProfile";
+import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
 import {
   derivarUiModalNuevaPermission,
   derivarUiSaldoVacaciones,
@@ -73,10 +73,12 @@ export default function VacationPage() {
     cancelPermissionRequestMutation,
     generatePermissionDocumentMutation,
   } = usePermission(vacationSaldoPayload, historyFilters);
-  const { GetProfileDetails } = useCollaboratorProfileDetails({
-    company_id: companyId,
-    module_code: moduleCode,
-    identification_number: identificationNumber,
+  const { GetProfileDetails } = useCollaborators({
+    CollaboratorDetailsPayload: {
+      company_id: companyId,
+      module_code: moduleCode,
+      identification_number: identificationNumber ?? "",
+    },
   });
 
   const {

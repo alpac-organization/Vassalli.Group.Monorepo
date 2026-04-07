@@ -7,7 +7,7 @@ import { ProfileSummary } from "./components/profile-summary/profile-summary";
 import type { TabId } from "@app/modules/payroll/ui/pages/collaborator-profile/types/tabs.type";
 import type { CollaboratorProfileLocationState } from "@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types";
 import { PersonalInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Personal-info";
-import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaboratorProfile";
+import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
 import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/Work-info";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
@@ -43,7 +43,7 @@ export function CollaboratorProfilePage() {
   );
 
   const { GetProfileDetails } = useCollaborators({
-    ColllaboratorDetailsPayload: {
+    CollaboratorDetailsPayload: {
       ...payload,
       QueryEnabled: queryEnabled,
     },
@@ -82,9 +82,6 @@ export function CollaboratorProfilePage() {
     );
   }
 
-  if (isPending) {
-    return <Loader title="Cargando perfil del colaborador..." />;
-  }
   if (isPending) {
     return <Loader title="Cargando perfil del colaborador..." />;
   }
