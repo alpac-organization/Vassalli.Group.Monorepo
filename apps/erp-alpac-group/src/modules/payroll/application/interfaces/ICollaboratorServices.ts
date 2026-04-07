@@ -9,23 +9,21 @@ import type { AddCollaboratorRequest } from "../../domain/ApiContract/Requests/a
  * directamente de la implementación (Axios, Fetch, o Mocks).
  */
 export interface ICollaboratorServices {
-  /**
-   * @method GetCollaborators
-   * @description Obtiene el listado de colaboradores.
-   * @param {CollaboratorRequest} payload Datos de filtro para la solicitud.
-   * @returns {Promise<GetCollaboratorsListResponse>} Promesa con el listado de colaboradores.
-   * @throws {Error} Si hay un error en la solicitud.
-   */
-  GetCollaborators(
-    payload: CollaboratorRequest,
-  ): Promise<GetCollaboratorsListResponse>;
+   /**
+    * @method GetCollaborators
+    * @description Obtiene el listado de colaboradores.
+    * @param {CollaboratorRequest} payload Datos de filtro para la solicitud.
+    * @returns {Promise<GetCollaboratorsListResponse>} Promesa con el listado de colaboradores.
+    * @throws {Error} Si hay un error en la solicitud.
+    */
+   GetCollaborators(payload: CollaboratorRequest): Promise<GetCollaboratorsListResponse>;
 
-  /**
-   * @method PostCollaborator
-   * @description Agrega un nuevo colaborador.
-   * @param {AddCollaboratorRequest} payload Datos del nuevo colaborador.
-   * @returns {Promise<void>} Promesa que indica que la operación se completó exitosamente.
-   * @throws {Error} Si hay un error en la solicitud.
-   */
-  PostCollaborator(payload: AddCollaboratorRequest): Promise<void>;
+   /**
+    * @method PostCollaborator
+    * @description Agrega un nuevo colaborador.
+    * @param {AddCollaboratorRequest} payload Datos del nuevo colaborador.
+    * @returns {Promise<void>} Promesa que indica que la operación se completó exitosamente.
+    * @throws {Error} Si hay un error en la solicitud.
+    */
+   PostCollaborator(payload: AddCollaboratorRequest): Promise<void>;
 }

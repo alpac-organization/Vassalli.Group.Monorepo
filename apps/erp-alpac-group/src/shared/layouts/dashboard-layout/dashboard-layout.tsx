@@ -10,6 +10,7 @@ import { Modal } from "@alpac/design-system";
 import { useEffect, useState } from "react";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import { useAuth } from "@app/modules/auth/ui/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 export const DashboardLayout = ({ }) => {
    const [showModal, setShowModal] = useState(false);
@@ -18,6 +19,7 @@ export const DashboardLayout = ({ }) => {
    const { isOpenSidebar, setIsOpenSidebar } = useSessionStorageSidebar();
    const { startProcessToCloseSession } = useAuth();
    const location = useLocation();
+   const navigate = useNavigate();
 
    // mapeas la secciones = []
    const registry = sidebarData.navigationRegistry;
@@ -84,7 +86,17 @@ export const DashboardLayout = ({ }) => {
                <AnimatePresence mode="wait">
                   {isAuthorizedPath && <Outlet key={location.pathname} />}
                </AnimatePresence>
-               {!isAuthorizedPath && <Modal isOpen={showModal} variant="warning" title="Acceso denegado" description="No tienes permiso para acceder a esta ruta" onClose={() => { setShowModal(false) }} />}
+               {
+                  !isAuthorizedPath &&
+                  <Modal isOpen={showModal}
+                     variant="warning"
+                     title="Acceso denegado"
+                     description="No tienes permiso para acceder a esta ruta"
+                     onClose={() => {
+                        setShowModal(false)
+                        navigate("/dashboard")
+                     }} />
+               }
             </main>
          </div>
       </motion.div>

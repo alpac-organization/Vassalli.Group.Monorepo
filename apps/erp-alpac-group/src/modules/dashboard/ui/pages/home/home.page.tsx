@@ -98,8 +98,6 @@ export const HomePage = function () {
                            return;
                         }
 
-                        console.log(module)
-
                         if (module.module_code === ModuleEnum.WORK_MANAGEMENT) {
                            navigate(`${module.path_redirect}/collaborator-profile`);
                         } else {

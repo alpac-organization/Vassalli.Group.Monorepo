@@ -124,6 +124,26 @@ export const AddCollaboratorModal = (
       }
    };
 
+   const validateIdentificationNumber = (value: string) => {
+      if (!value) return "El número de identificación es requerido"
+
+      if (
+         identificationType === IdentificationEnum.NATIONAL_ID.value ||
+         identificationType === IdentificationEnum.RESIDENCE_ID.value) {
+
+         const regex = /^[0-9]{13}[A-Z]$/;
+
+         return regex.test(value ?? "") || "El número de identificación debe tener 14 caracteres y terminar con una letra mayúscula"
+      }
+
+      if (identificationType === IdentificationEnum.PASSPORT.value) {
+
+         return value.length > 4 || "El número de pasaporte debe tener al menos 5 caracteres"
+      }
+
+      return true
+   }
+
    return (
       <Modal
          isOpen={props.isOpen}
@@ -178,7 +198,7 @@ export const AddCollaboratorModal = (
                         label="Segundo Nombre"
                         placeholder="Ej. Antonio"
                         className="dark:text-black! rounded-md!"
-                        {...register("second_name")}
+                        {...register("second_name", { required: false })}
                      />
 
                      <InputText
@@ -272,26 +292,7 @@ export const AddCollaboratorModal = (
                                     ? value.toString().replace(/-/g, "").toUpperCase()
                                     : value.toString().toUpperCase()
                                  : "",
-                           validate: (value) => {
-                              if (!value) return "El número de identificación es requerido"
-
-                              if (
-                                 identificationType === IdentificationEnum.NATIONAL_ID.value ||
-                                 identificationType === IdentificationEnum.RESIDENCE_ID.value) {
-
-                                 const regex = /^[0-9]{13}[A-Z]$/;
-
-                                 return regex.test(value ?? "") || "El número de identificación debe tener 14 caracteres y terminar con una letra mayúscula"
-                              }
-
-                              if (identificationType === IdentificationEnum.PASSPORT.value) {
-
-                                 return value.length > 4 || "El número de pasaporte debe tener al menos 5 caracteres"
-                              }
-
-                              return true
-
-                           },
+                           validate: (value?: string) => validateIdentificationNumber(value ?? ""),
                         })}
                         error={
                            errors.identification_number &&
@@ -330,15 +331,10 @@ export const AddCollaboratorModal = (
                         <InputText
                            label="Dirección"
                            placeholder="Dirección completa"
-                           isRequired
                            className="dark:text-black! rounded-md!"
                            {...register("personal_information.address", {
-                              required: "La dirección es requerida",
+                              required: false,
                            })}
-                           error={
-                              errors.personal_information?.address &&
-                              errors.personal_information?.address?.message
-                           }
                         />
                      </div>
 
@@ -359,11 +355,10 @@ export const AddCollaboratorModal = (
                      <InputText
                         label="Correo Personal"
                         placeholder="correo@ejemplo.com"
-                        isRequired
                         type="email"
                         className="dark:text-black! rounded-md!"
                         {...register("personal_information.personal_email", {
-                           required: "El correo personal es requerido",
+                           required: false,
                            validate: {
                               validEmail: (value?: string) => validateEmail(value),
                            },
@@ -546,11 +541,10 @@ export const AddCollaboratorModal = (
                      <InputText
                         label="Correo Trabajo"
                         placeholder="correo@ejemplo.com"
-                        isRequired
                         type="email"
                         className="dark:text-black! rounded-md!"
                         {...register("working_information.work_email", {
-                           required: "El correo de trabajo es requerido",
+                           required: false,
                            validate: {
                               validEmail: (value?: string) => validateEmail(value),
                            },
@@ -663,6 +657,7 @@ export const AddCollaboratorModal = (
                         inputMode="decimal"
                         placeholder="0.00"
                         className="dark:text-black! rounded-md!"
+                        isRequired
                         {...register("salary_information.salary", {
                            required: "El salario es requerido",
                            setValueAs: (value: string) =>
