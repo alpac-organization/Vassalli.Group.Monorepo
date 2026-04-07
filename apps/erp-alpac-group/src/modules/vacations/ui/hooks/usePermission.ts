@@ -3,28 +3,38 @@
  */
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { httpHandler } from "@app/core/adapters";
-import { VacationServices } from "@app/modules/vacations/infrastructure/services/VacantionServices";
-import type { CreateVacationRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-vacation-request";
-import type { VacationHistoryRequest } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-history-request";
-const vacationServices = new VacationServices(httpHandler);
+import { PermissionServices } from "@app/modules/vacations/infrastructure/services/PermissionServices";
+import type { CreatePermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
+import type { PermissionHistoryRequest } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
+import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
+const permissionServices = new PermissionServices(httpHandler);
 export type UseVacationPayload = {
   company_id: string;
   module_code: string;
   identification_number: string;
 };
-export const useVacation = (
+export const usePermission = (
   payload?: UseVacationPayload,
-  filters?: VacationHistoryRequest,
+  filters?: PermissionHistoryRequest,
 ) => {
   const queryClient = useQueryClient();
 
-  const createVacationRequestMutation = useMutation({
+  const createPermissionRequestMutation = useMutation({
     mutationKey: ["createVacationRequest"],
-    mutationFn: (payload: CreateVacationRequest) =>
-      vacationServices.createVacationRequest(payload),
+    mutationFn: (payload: CreatePermissionRequest) =>
+      permissionServices.createPermissionRequest(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vacationRequests"] });
       queryClient.invalidateQueries({ queryKey: ["vacationSaldo"] });
+      queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });
+    },
+  });
+
+  const cancelPermissionRequestMutation = useMutation({
+    mutationKey: ["cancelPermissionRequest"],
+    mutationFn: (payload: CancelPermissionRequest) =>
+      permissionServices.cancelPermissionRequest(payload),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });
     },
   });
@@ -47,7 +57,7 @@ export const useVacation = (
       if (!payload) {
         throw new Error("getVacationSaldo: faltante payload");
       }
-      return vacationServices.getVacationSaldo(payload);
+      return permissionServices.getVacationSaldo(payload);
     },
     enabled: saldoQueryEnabled,
     refetchOnMount: false,
@@ -56,13 +66,13 @@ export const useVacation = (
     retry: 1,
   });
 
-  const GetVacationHistory = useQuery({
+  const GetPermissionHistory = useQuery({
     queryKey: ["vacationHistory", filters],
     queryFn: () => {
       if (!filters) {
         throw new Error("getVacationHistory: faltante filters");
       }
-      return vacationServices.getVacationHistory(filters);
+      return permissionServices.getPermissionHistory(filters);
     },
     enabled: historyQueryEnabled,
     refetchOnMount: false,
@@ -71,8 +81,9 @@ export const useVacation = (
     retry: 1,
   });
   return {
-    createVacationRequestMutation,
+    createPermissionRequestMutation,
+    cancelPermissionRequestMutation,
     GetVacationSaldoQuery,
-    GetVacationHistory,
+    GetPermissionHistory,
   };
 };

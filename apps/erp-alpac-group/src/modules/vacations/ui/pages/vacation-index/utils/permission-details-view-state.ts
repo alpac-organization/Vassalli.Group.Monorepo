@@ -4,20 +4,15 @@
  * Toda la lógica de presentación vive aquí, los componentes sólo renderizan.
  */
 
-import type { VacationRequestStatus } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-history-request";
-import type { VacationHistoryResponse } from "@app/modules/vacations/domain/ApiContract/Responses/vacation-history-response";
+import type { PermissionRequestStatus } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
+import type { PermissionHistoryResponse } from "@app/modules/vacations/domain/ApiContract/Responses/permission-history-response";
+import { getPermissionStatusUiLabel } from "@app/modules/vacations/ui/pages/vacation-index/constants/vacation-status.constants";
+import { PERMISSION_TYPE_LABEL } from "@app/modules/vacations/ui/pages/vacation-index/constants/permission-filters.constants";
 import { countInclusiveCalendarDays } from "@app/modules/vacations/ui/pages/vacation-index/utils/count-inclusive-calendar-days";
 
 // ─── Status helper
 
-const STATUS_LABEL: Record<VacationRequestStatus, string> = {
-  Pending: "Pendiente",
-  Approved: "Aprobada",
-  Rejected: "Rechazada",
-  Cancelled: "Cancelada",
-};
-
-const STATUS_COLOR: Record<VacationRequestStatus, string> = {
+const STATUS_COLOR: Record<PermissionRequestStatus, string> = {
   Pending:
     "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200",
   Approved:
@@ -26,11 +21,11 @@ const STATUS_COLOR: Record<VacationRequestStatus, string> = {
   Cancelled: "bg-red-200 text-red-800 dark:bg-red-900/40 dark:text-red-200",
 };
 
-export function getStatusLabel(status: VacationRequestStatus): string {
-  return STATUS_LABEL[status] ?? status;
+export function getStatusLabel(status: PermissionRequestStatus): string {
+  return getPermissionStatusUiLabel(status);
 }
 
-export function getStatusColorClass(status: VacationRequestStatus): string {
+export function getStatusColorClass(status: PermissionRequestStatus): string {
   return STATUS_COLOR[status] ?? "bg-slate-100 text-slate-800";
 }
 
@@ -52,33 +47,40 @@ function formatLongDate(isoDate: string | null | undefined): string {
   }).format(d);
 }
 
-// ─── Derived UI stateType
-export type VacationRequestDetailsUiState = {
+// ─── Derived UI state
+export type PermissionRequestDetailsUiState = {
   fullName: string;
   collaboratorCode: string;
+  permissionTypeLabel: string;
+  isVacationType: boolean;
   startDateFormatted: string;
   endDateFormatted: string;
   requestedDays: number;
+  /** Hora de inicio — solo presente para tipos que no son vacaciones */
+  startTime: string | null;
+  /** Hora de fin — solo presente para tipos que no son vacaciones */
+  endTime: string | null;
   statusLabel: string;
   statusColorClass: string;
   description: string;
   requestedAtFormatted: string;
 };
 
-/**
- * buenoa aqui lo Transformamos un `VacationHistoryResponse` y el nombre del colaborador
- * en un objeto listo para renderizar en el modal de detalles.
- */
-export function deriveVacationRequestDetails(
-  item: VacationHistoryResponse,
+export function derivePermissionRequestDetails(
+  item: PermissionHistoryResponse,
   fullName: string,
-): VacationRequestDetailsUiState {
+): PermissionRequestDetailsUiState {
+  const isVacationType = item.type === "Vacation";
   return {
     fullName,
     collaboratorCode: item.collaborator_code || item.collaborator_id,
+    permissionTypeLabel: PERMISSION_TYPE_LABEL[item.type] ?? item.type,
+    isVacationType,
     startDateFormatted: formatLongDate(item.start_date),
     endDateFormatted: formatLongDate(item.end_date),
     requestedDays: countInclusiveCalendarDays(item.start_date, item.end_date),
+    startTime: !isVacationType && item.start_time ? item.start_time : null,
+    endTime: !isVacationType && item.end_time ? item.end_time : null,
     statusLabel: getStatusLabel(item.status),
     statusColorClass: getStatusColorClass(item.status),
     description: item.description?.trim() || "—",

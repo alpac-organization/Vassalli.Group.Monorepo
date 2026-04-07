@@ -1,9 +1,10 @@
-import type { VacationRequestStatus } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-history-request";
-export interface VacationHistoryResponse {
+import type { PermissionRequestStatus } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
+import type { PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
+export interface PermissionHistoryResponse {
   /**
    * Identificador único de la solicitud de vacaciones
    */
-  vacation_request_id: string;
+  permit_application_id: string;
   /**
    * Identificador único del colaborador
    */
@@ -41,7 +42,19 @@ export interface VacationHistoryResponse {
    */
   created_at: string;
   /**
+   * Hora de inicio de la solicitud de vacaciones
+   */
+  start_time: string;
+  /**
+   * Hora de fin de la solicitud de vacaciones
+   */
+  end_time: string;
+  /**
    * Estado de la solicitud de vacaciones
    */
-  status: VacationRequestStatus;
+  status: PermissionRequestStatus;
+  /**
+   * Tipo de permiso
+   */
+  type: PermissionType;
 }

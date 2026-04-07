@@ -1,54 +1,92 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { Button, InputText, Textarea } from "@alpac/design-system";
+import { Button, Dropdown, InputText, Textarea } from "@alpac/design-system";
+import type { PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
+import type { CreatePermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
+import { PermissionTypeEnum } from "@app/modules/vacations/domain/enum/permissionType.enum";
+import { PERMISSION_TYPE_OPTIONS } from "@app/modules/vacations/ui/pages/vacation-index/constants/permission-filters.constants";
 import { countInclusiveCalendarDays } from "@app/modules/vacations/ui/pages/vacation-index/utils/count-inclusive-calendar-days";
-import type { VacationRequestFormValues } from "./vacation-request-form.types";
-import type { CreateVacationRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-vacation-request";
+import type { PermissionRequestFormValues } from "./types/permission-request-form.types";
+
+const PERMISSION_TYPE_TO_ENUM_VALUE: Record<PermissionType, number> = {
+  Vacation: PermissionTypeEnum.VACATION.value,
+  MedicalAppointment: PermissionTypeEnum.MEDICAL_APPOINTMENT.value,
+  CompensatoryTime: PermissionTypeEnum.COMPENSATORY_TIME.value,
+  PaidLeave: PermissionTypeEnum.PAID_LEAVE.value,
+  UnpaidLeave: PermissionTypeEnum.UNPAID_LEAVE.value,
+  SpecialLeave: PermissionTypeEnum.SPECIAL_LEAVE.value,
+};
 
 const inputClassName =
   "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
 
-type NewVacationRequestFormProps = {
+type NewPermissionRequestFormProps = {
   isPending: boolean;
-  onSubmit: (payload: CreateVacationRequest) => void;
+  onSubmit: (payload: CreatePermissionRequest) => void;
   onCancel: () => void;
   companyId: string;
   moduleCode: string;
   identificationNumber: string;
 };
 
-export function NewVacationRequestForm({
+export function NewPermissionRequestForm({
   isPending,
   onSubmit,
   onCancel,
   companyId,
   moduleCode,
   identificationNumber,
-}: NewVacationRequestFormProps) {
+}: NewPermissionRequestFormProps) {
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
     setError,
-  } = useForm<VacationRequestFormValues>({
+    clearErrors,
+  } = useForm<PermissionRequestFormValues>({
     defaultValues: {
+      type: "Vacation",
       start_date: "",
       end_date: "",
+      start_time: "",
+      end_time: "",
       description: "",
     },
   });
 
+  const selectedType = watch("type");
   const startDate = watch("start_date");
   const endDate = watch("end_date");
+  const isVacation = selectedType === "Vacation";
+  const isSameDay = Boolean(startDate && endDate && startDate === endDate);
+  const showTimeInputs = !isVacation && isSameDay;
 
   const requestedDays = useMemo(
     () => countInclusiveCalendarDays(startDate, endDate),
     [startDate, endDate],
   );
 
-  const handleFormSubmit = (values: VacationRequestFormValues) => {
+  useEffect(() => {
+    if (!isSameDay) {
+      setValue("start_time", "");
+      setValue("end_time", "");
+      clearErrors(["start_time", "end_time"]);
+    }
+  }, [isSameDay, setValue, clearErrors]);
+
+  const handleTypeChange = (value: string) => {
+    setValue("type", value as PermissionType);
+    if (value === "Vacation") {
+      setValue("start_time", "");
+      setValue("end_time", "");
+      clearErrors(["start_time", "end_time"]);
+    }
+  };
+
+  const handleFormSubmit = (values: PermissionRequestFormValues) => {
     if (
       !companyId.trim() ||
       !moduleCode.trim() ||
@@ -68,12 +106,31 @@ export function NewVacationRequestForm({
       });
       return;
     }
-    const payload: CreateVacationRequest = {
+    if (showTimeInputs) {
+      if (!values.start_time) {
+        setError("start_time", {
+          type: "manual",
+          message: "La hora de inicio es requerida.",
+        });
+        return;
+      }
+      if (!values.end_time) {
+        setError("end_time", {
+          type: "manual",
+          message: "La hora de fin es requerida.",
+        });
+        return;
+      }
+    }
+    const payload: CreatePermissionRequest = {
       company_id: companyId,
       module_code: moduleCode,
       identification_number: identificationNumber.trim(),
+      permit_application_type: PERMISSION_TYPE_TO_ENUM_VALUE[values.type],
       start_date: values.start_date,
       end_date: values.end_date,
+      start_time: showTimeInputs ? values.start_time : "",
+      end_time: showTimeInputs ? values.end_time : "",
       description: values.description.trim(),
     };
     onSubmit(payload);
@@ -89,6 +146,16 @@ export function NewVacationRequestForm({
           {errors.root.message}
         </p>
       )}
+
+      <Dropdown
+        placeholder="Tipo de permiso"
+        value={selectedType}
+        onChange={handleTypeChange}
+        options={PERMISSION_TYPE_OPTIONS}
+        labelClassName={labelClassName}
+        valueClassName={labelClassName}
+        className={inputClassName}
+      />
 
       <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="min-w-0 flex flex-col gap-1.5">
@@ -117,6 +184,31 @@ export function NewVacationRequestForm({
         </div>
       </div>
 
+      {showTimeInputs && (
+        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="min-w-0 flex flex-col gap-1.5">
+            <InputText
+              label="Hora de inicio"
+              labelClassName={labelClassName}
+              type="time"
+              className={inputClassName}
+              error={errors.start_time?.message}
+              {...register("start_time")}
+            />
+          </div>
+          <div className="min-w-0 flex flex-col gap-1.5">
+            <InputText
+              label="Hora de fin"
+              labelClassName={labelClassName}
+              type="time"
+              className={inputClassName}
+              error={errors.end_time?.message}
+              {...register("end_time")}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-1">
         <span className="text-[14px] font-medium text-slate-600 dark:text-slate-300 ml-0.5">
           Días solicitados
@@ -124,7 +216,7 @@ export function NewVacationRequestForm({
         <span
           className={`text-2xl font-bold ${
             requestedDays > 0
-              ? "text-slate-400 dark:text-alpac-primary-400"
+              ? "text-white dark:text-alpac-primary-400"
               : "text-slate-400 dark:text-slate-500"
           }`}
         >

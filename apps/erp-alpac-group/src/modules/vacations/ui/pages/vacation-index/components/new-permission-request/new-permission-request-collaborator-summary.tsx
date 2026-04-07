@@ -1,16 +1,16 @@
-type NewVacationRequestCollaboratorSummaryProps = {
+type NewPermissionRequestCollaboratorSummaryProps = {
   fullName: string;
   workPosition: string;
   isFullNameLoading?: boolean;
   isWorkPositionLoading?: boolean;
 };
 
-export function NewVacationRequestCollaboratorSummary({
+export function NewPermissionRequestCollaboratorSummary({
   fullName,
   workPosition,
   isFullNameLoading = false,
   isWorkPositionLoading = false,
-}: NewVacationRequestCollaboratorSummaryProps) {
+}: NewPermissionRequestCollaboratorSummaryProps) {
   return (
     <div
       className="mb-1 min-w-0 rounded-xl px-3 py-3 sm:px-4 sm:py-3.5 dark:bg-[#272b34]"
@@ -18,7 +18,7 @@ export function NewVacationRequestCollaboratorSummary({
     >
       <dl className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-6">
         <div className="min-w-0">
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-white">
             Nombre
           </dt>
           <dd className="mt-1 min-h-5.5 text-[15px] font-semibold leading-snug text-slate-900 dark:text-white">
@@ -35,7 +35,7 @@ export function NewVacationRequestCollaboratorSummary({
           </dd>
         </div>
         <div className="min-w-0">
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-slate-500 dark:text-slate-400">
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.06em] text-white">
             Cargo
           </dt>
           <dd className="mt-1 min-h-5.5 text-[15px] font-semibold leading-snug text-white dark:text-alpac-primary-400">

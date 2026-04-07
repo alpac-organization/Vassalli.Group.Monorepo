@@ -82,7 +82,7 @@ export type ConsultaPerfilColaboradorTipo = {
  * tambien lo transforma en un objeto con texto legibles y útiles para la UI
  * ( ej: nombre del colaborador, puesto de trabajo y estado de carga).
  */
-export function derivarUiModalNuevaVacacion(
+export function derivarUiModalNuevaPermission(
   contextoSaldoListo: boolean,
   saldo: ConsultaSaldoVacacionesTipo,
   perfil: ConsultaPerfilColaboradorTipo,
