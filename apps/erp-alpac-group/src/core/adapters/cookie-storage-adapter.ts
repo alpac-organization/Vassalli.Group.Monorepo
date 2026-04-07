@@ -53,5 +53,5 @@ export const CookieStorageAdapter = {
 
    clearAuth: () => {
       Object.values(STORAGE_KEYS).forEach(key => Cookies.remove(key));
-   }
+   },
 };

@@ -9,6 +9,7 @@ export interface ModalProps {
   title?: string;
   description?: string | ReactNode;
   children?: ReactNode;
+  panelClassName?: string;
 }
 export type ModalVariantConfig = {
   icon?: {

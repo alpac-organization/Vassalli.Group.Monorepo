@@ -1,19 +1,19 @@
-import { RoleEnum } from '@app/core/enums/role.enum';
-import { ModuleEnum } from '@app/core/enums/module.enum';
-import { Settings, UsersRound, User, FileClock } from 'lucide-react';
-import type { SidebarLink } from '../components/Sidebar/types/sidebar.types';
+import { RoleEnum } from "@app/core/enums/role.enum";
+import { ModuleEnum } from "@app/core/enums/module.enum";
+import { Settings, UsersRound, User, UserKey } from "lucide-react";
+import type { SidebarLink } from "../components/Sidebar/types/sidebar.types";
 
 const collboratorSection: SidebarLink = {
-   id: 'collaborators',
-   label: 'Colaboradores',
-   path: 'payroll/collaborators',
+   id: "collaborators",
+   label: "Colaboradores",
+   path: "payroll/collaborators",
    icon: UsersRound,
 };
 
 const collaboratorProfileSection: SidebarLink = {
-   id: 'collaborator-profile',
-   label: 'Perfil',
-   path: 'work-management/collaborator-profile',
+   id: "collaborator-profile",
+   label: "Perfil",
+   path: "work-management/collaborator-profile",
    icon: User,
 };
 
@@ -24,18 +24,31 @@ const applicationSection: SidebarLink = {
    icon: FileClock,
 };
 
+const applicationSection: SidebarLink = {
+   id: 'applications',
+   label: 'Solicitudes',
+   path: 'applications',
+   icon: FileClock,
+};
+
+const gestionVacationsSection: SidebarLink = {
+   id: "gestion-permisos",
+   label: "Permisos",
+   path: "work-management/gestion-permisos",
+   icon: UserKey,
+};
 const settingsSection: SidebarLink = {
-   id: 'settings',
-   label: 'Settings',
-   path: 'settings',
+   id: "settings",
+   label: "Settings",
+   path: "settings",
    icon: Settings,
    isFooter: true,
 };
 
 export const sidebarData = {
    logoUrl:
-      'https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true',
-   nameCompany: 'CORE PANEL',
+      "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
+   nameCompany: "CORE PANEL",
    navigationRegistry: {
       [ModuleEnum.PAYROLL]: {
          [RoleEnum.MANAGER]: [collboratorSection],
@@ -43,10 +56,10 @@ export const sidebarData = {
          [RoleEnum.OPERATOR]: [collboratorSection],
       },
       [ModuleEnum.WORK_MANAGEMENT]: {
-         [RoleEnum.OPERATOR]: [collaboratorProfileSection],
-      },
-      [ModuleEnum.APPLICATIONS]: {
-         [RoleEnum.MANAGER]: [applicationSection]
+         [RoleEnum.OPERATOR]: [
+            collaboratorProfileSection,
+            gestionVacationsSection,
+         ],
       },
       [ModuleEnum.PUBLIC]: [settingsSection],
    },

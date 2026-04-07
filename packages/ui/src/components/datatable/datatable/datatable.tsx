@@ -1,6 +1,6 @@
 import { DataTableProps } from "./datatable.type"
 
-export function DataTable({ title, data, columns }: DataTableProps): React.ReactElement {
+export function DataTable({ title, data, columns, rowClassName }: DataTableProps): React.ReactElement {
     return (
         <div className="w-full 
             rounded-lg 
@@ -51,7 +51,7 @@ export function DataTable({ title, data, columns }: DataTableProps): React.React
                                 {
                                     data.map((item, index) => {
                                         return (
-                                            <tr key={index} className="hover:bg-neutral-50/80 dark:hover:bg-[#363a45]">
+                                            <tr key={index} className={rowClassName !== undefined ? rowClassName : "hover:bg-neutral-50/80 dark:hover:bg-[#363a45]"}>
                                                 {columns.map((column) => (
                                                     <td key={column.key} className="px-6 py-4 text-sm text-neutral-900 dark:text-white">
                                                         {
