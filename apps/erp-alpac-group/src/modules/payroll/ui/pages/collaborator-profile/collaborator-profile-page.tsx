@@ -1,13 +1,10 @@
 import { useState, useMemo } from "react";
 import { useParams, useLocation } from "react-router-dom";
-import { Banner, TabHeader } from "@alpac/design-system";
+import { Banner, TabHeader, type TabOption } from "@alpac/design-system";
 
 //Componentes seccionales del perfil del colaborador
 import { ProfileSummary } from "./components/profile-summary/profile-summary";
-import type {
-  TabId,
-  TabOption,
-} from "@app/modules/payroll/ui/pages/collaborator-profile/types/tabs.type";
+import type { TabId } from "@app/modules/payroll/ui/pages/collaborator-profile/types/tabs.type";
 import type { CollaboratorProfileLocationState } from "@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types";
 import { PersonalInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/Personal-info";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaboratorProfile";
@@ -106,7 +103,6 @@ export function CollaboratorProfilePage() {
     <div className="dark w-full max-w-full min-h-0 flex flex-col font-sans text-slate-100 dark:bg-[#363a45]">
       <ProfileSummary profile={CollaboratorDetails} />
 
-      <TabHeader tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
       <TabHeader tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
 
       <div className="relative w-full min-w-0 overflow-hidden sm:mt-6">
