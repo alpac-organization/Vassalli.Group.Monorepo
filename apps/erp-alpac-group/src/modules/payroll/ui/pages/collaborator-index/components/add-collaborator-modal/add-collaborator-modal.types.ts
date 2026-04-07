@@ -26,7 +26,7 @@ export const fieldsToValidate: Path<AddCollaboratorRequest>[][] = [
     'personal_information.address',
     'personal_information.personal_email',
     'personal_information.personal_phone_number',
-    'personal_information.departament',
+    // 'personal_information.departament',
     'personal_information.birthdate',
   ],
   [
