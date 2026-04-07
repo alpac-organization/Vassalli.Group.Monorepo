@@ -9,11 +9,10 @@ import { useCollaborators } from "../../hooks/useCollaborators";
 //Componentes seccionales del perfil del colaborador
 import { ProfileSummary } from "./components/profile-summary/profile-summary";
 import { PersonalInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/personal-information";
-import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/Work-info";
 import type { TabId } from "@app/modules/payroll/ui/pages/collaborator-profile/types/tabs.type";
 import type { TabOption } from "@alpac/design-system";
 import type { CollaboratorProfileLocationState } from "@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types";
-import { WorkManagementSection } from "./components/Work-info";
+import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/Work-info";
 
 export function CollaboratorProfilePage() {
   //Tabs De navegación
@@ -130,19 +129,4 @@ export function CollaboratorProfilePage() {
       </div>
     </div>
   );
-				<div
-					className={`w-full transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
-						activeTab === "Working"
-						? "relative z-10 translate-y-0 opacity-100"
-						: "pointer-events-none absolute inset-0 z-0 -translate-y-2 overflow-hidden opacity-0"
-					}`}
-					aria-hidden={activeTab !== "Working"}
-				>
-					<WorkManagementSection 
-                  profile={CollaboratorDetails} 
-               />
-				</div>
-			</div>
-		</div>
-	);
 }
