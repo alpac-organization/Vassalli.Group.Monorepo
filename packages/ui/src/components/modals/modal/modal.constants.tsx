@@ -1,16 +1,20 @@
 import { ModalSize, ModalVariant, ModalVariantConfig } from "./modal.type";
-import { CheckCircle2, AlertTriangle, XCircle, Info, Bell, Form } from "lucide-react";
+import {
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Info,
+  Bell,
+  Form,
+} from "lucide-react";
 
 export const MODAL_VARIANTS: Record<ModalVariant, ModalVariantConfig> = {
+  /** Base: sin franja de icono; se usa cuando no se pasa `variant`. */
   default: {
-    icon: {
-      Icon: <Bell size={26} strokeWidth={1.8} />,
-      label: "Notificación",
-    },
-    bgClass: "bg-white",
-    textClass: "text-slate-800",
+    bgClass: "bg-white dark:bg-[#272b34]",
+    textClass: "text-slate-900 dark:text-white",
     borderClass: "border-slate-200",
-    iconTextClass: "text-slate-500",
+    iconTextClass: "text-slate-600",
   },
   success: {
     icon: {
