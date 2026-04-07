@@ -1,4 +1,4 @@
-export interface CreateVacationRequest {
+export interface CreatePermissionRequest {
   /**
    * Identificador único de la empresa
    */
@@ -16,11 +16,30 @@ export interface CreateVacationRequest {
    */
   start_date: string;
   /**
-   * Fecha de fin de las vacaciones
+   * Fecha de fin
    */
   end_date: string;
+  /**
+   * Hora de inicio
+   */
+  start_time: string;
+  /**
+   * Hora de fin
+   */
+  end_time: string;
+  /**
+   * Tipo de permiso (valor numérico del enum)
+   */
+  permit_application_type: number;
   /**
    * Descripcion de la solicitud de vacaciones
    */
   description: string;
 }
+export type PermissionType =
+  | "Vacation"
+  | "MedicalAppointment"
+  | "CompensatoryTime"
+  | "PaidLeave"
+  | "UnpaidLeave"
+  | "SpecialLeave";

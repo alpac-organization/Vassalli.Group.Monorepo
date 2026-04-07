@@ -1,12 +1,12 @@
-import type { VacationRequestDetailsUiState } from "@app/modules/vacations/ui/pages/vacation-index/utils/vacation-details-view-state";
+import type { PermissionRequestDetailsUiState } from "@app/modules/vacations/ui/pages/vacation-index/utils/permission-details-view-state";
 
-type VacationRequestDetailsContentProps = {
-  details: VacationRequestDetailsUiState;
+type PermissionRequestDetailsContentProps = {
+  details: PermissionRequestDetailsUiState;
 };
 
-export function VacationRequestDetailsContent({
+export function PermissionRequestDetailsContent({
   details,
-}: VacationRequestDetailsContentProps) {
+}: PermissionRequestDetailsContentProps) {
   return (
     <div className="flex min-w-0 flex-col gap-5">
       <div className="flex min-w-0 items-start justify-between gap-3">
@@ -17,6 +17,9 @@ export function VacationRequestDetailsContent({
           <p className="mt-0.5 text-[13px] text-slate-500 dark:text-slate-400">
             ID Colaborador: {details.collaboratorCode}
           </p>
+          <span className="mt-1.5 inline-block rounded-md bg-slate-100 px-2.5 py-0.5 text-[12px] font-medium text-slate-700 dark:bg-slate-700/50 dark:text-slate-300">
+            {details.permissionTypeLabel}
+          </span>
         </div>
         <span
           className={`shrink-0 rounded-md px-2.5 py-1 text-[13px] font-semibold ${details.statusColorClass}`}
@@ -57,6 +60,27 @@ export function VacationRequestDetailsContent({
           </p>
         </div>
       </div>
+
+      {!details.isVacationType && (
+        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="min-w-0">
+            <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+              Hora de inicio
+            </p>
+            <p className="mt-1 text-[14px] font-bold leading-snug text-slate-900 dark:text-white">
+              {details.startTime ?? "—"}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+              Hora de fin
+            </p>
+            <p className="mt-1 text-[14px] font-bold leading-snug text-slate-900 dark:text-white">
+              {details.endTime ?? "—"}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="min-w-0">
         <p className="mb-1.5 text-[13px] font-medium text-slate-600 dark:text-slate-400">

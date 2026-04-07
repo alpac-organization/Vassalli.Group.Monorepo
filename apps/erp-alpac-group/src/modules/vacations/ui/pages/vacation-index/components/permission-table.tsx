@@ -1,16 +1,17 @@
 import { Badges, Button, DataTable } from "@alpac/design-system";
-import type { VacationRequestRow } from "@app/modules/vacations/domain/ApiContract/Requests/vacation-history-request";
-import { getVacationStatusUiLabel } from "@app/modules/vacations/ui/pages/vacation-index/constants/vacation-status.constants";
+import type { PermissionHistoryRow } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
+import { getPermissionStatusUiLabel } from "@app/modules/vacations/ui/pages/vacation-index/constants/vacation-status.constants";
+import { PERMISSION_TYPE_LABEL } from "@app/modules/vacations/ui/pages/vacation-index/constants/permission-filters.constants";
 import { formatVacationDate } from "@app/modules/vacations/ui/pages/vacation-index/utils/format-vacation-date";
 
-type VacationRequestsTableProps = {
-  data: VacationRequestRow[];
-  onViewDetails?: (row: VacationRequestRow) => void;
-  onGenerateDocument?: (row: VacationRequestRow) => void;
-  onCancelRequest?: (row: VacationRequestRow) => void;
+type PermissionTableProps = {
+  data: PermissionHistoryRow[];
+  onViewDetails?: (row: PermissionHistoryRow) => void;
+  onGenerateDocument?: (row: PermissionHistoryRow) => void;
+  onCancelRequest?: (row: PermissionHistoryRow) => void;
 };
 
-function statusBadgeColor(status: VacationRequestRow["status"]): string {
+function statusBadgeColor(status: PermissionHistoryRow["status"]): string {
   switch (status) {
     case "Approved":
       return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200";
@@ -25,38 +26,67 @@ function statusBadgeColor(status: VacationRequestRow["status"]): string {
   }
 }
 
-export function VacationRequestsTable({
+export function PermissionTable({
   data,
   onViewDetails,
   onGenerateDocument,
   onCancelRequest,
-}: VacationRequestsTableProps) {
+}: PermissionTableProps) {
   const columns = [
     {
       key: "full_name",
       label: "Nombre completo",
-      render: (row: VacationRequestRow) => (
+      render: (row: PermissionHistoryRow) => (
         <span className="font-semibold text-neutral-900 dark:text-white">
           {row.full_name}
         </span>
       ),
     },
     {
+      key: "type",
+      label: "Tipo",
+      render: (row: PermissionHistoryRow) => (
+        <span className="text-neutral-700 dark:text-neutral-300">
+          {PERMISSION_TYPE_LABEL[row.type] ?? row.type}
+        </span>
+      ),
+    },
+    {
       key: "start_date",
       label: "Fecha inicio",
-      render: (row: VacationRequestRow) => formatVacationDate(row.start_date),
+      render: (row: PermissionHistoryRow) => formatVacationDate(row.start_date),
     },
     {
       key: "end_date",
       label: "Fecha fin",
-      render: (row: VacationRequestRow) => formatVacationDate(row.end_date),
+      render: (row: PermissionHistoryRow) => formatVacationDate(row.end_date),
+    },
+    {
+      key: "start_time",
+      label: "Hora inicio",
+      render: (row: PermissionHistoryRow) =>
+        row.type === "Vacation" ? (
+          <span className="text-neutral-400 dark:text-neutral-500">—</span>
+        ) : (
+          <span>{row.start_time ?? "—"}</span>
+        ),
+    },
+    {
+      key: "end_time",
+      label: "Hora fin",
+      render: (row: PermissionHistoryRow) =>
+        row.type === "Vacation" ? (
+          <span className="text-neutral-400 dark:text-neutral-500">—</span>
+        ) : (
+          <span>{row.end_time ?? "—"}</span>
+        ),
     },
     {
       key: "status",
       label: "Estado",
-      render: (row: VacationRequestRow) => (
+      render: (row: PermissionHistoryRow) => (
         <Badges
-          label={getVacationStatusUiLabel(row.status)}
+          label={getPermissionStatusUiLabel(row.status)}
           color={statusBadgeColor(row.status)}
         />
       ),
@@ -64,7 +94,7 @@ export function VacationRequestsTable({
     {
       key: "approved_by",
       label: "Aprobado por",
-      render: (row: VacationRequestRow) =>
+      render: (row: PermissionHistoryRow) =>
         row.approved_by ?? (
           <span className="text-neutral-400 dark:text-neutral-500">—</span>
         ),
@@ -72,7 +102,7 @@ export function VacationRequestsTable({
     {
       key: "rejected_by",
       label: "Rechazado por",
-      render: (row: VacationRequestRow) =>
+      render: (row: PermissionHistoryRow) =>
         row.rejected_by ?? (
           <span className="text-neutral-400 dark:text-neutral-500">—</span>
         ),
@@ -80,7 +110,7 @@ export function VacationRequestsTable({
     {
       key: "actions",
       label: "Acciones",
-      render: (row: VacationRequestRow) => {
+      render: (row: PermissionHistoryRow) => {
         const canCancel = row.status === "Pending";
         const canGenerateDocument = row.status === "Approved";
         return (

@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { Modal } from "@alpac/design-system";
-import { useVacation } from "@app/modules/vacations/ui/hooks/useVacations";
+import { usePermission } from "@app/modules/vacations/ui/hooks/usePermission";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import type { CreateVacationRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-vacation-request";
+import type { CreatePermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import { NewVacationRequestCollaboratorSummary } from "./new-vacation-request-collaborator-summary";
-import { NewVacationRequestForm } from "./new-vacation-request-form";
+import { NewPermissionRequestCollaboratorSummary } from "./new-permission-request-collaborator-summary";
+import { NewPermissionRequestForm } from "./new-permission-request-form";
 
-type NewVacationRequestModalProps = {
+type NewPermissionRequestModalProps = {
   isOpen: boolean;
   onClose: () => void;
   collaboratorFullName: string;
@@ -18,7 +18,7 @@ type NewVacationRequestModalProps = {
   onRequestError?: (description: string) => void;
 };
 
-export function NewVacationRequestModal({
+export function NewPermissionRequestModal({
   isOpen,
   onClose,
   collaboratorFullName,
@@ -27,7 +27,7 @@ export function NewVacationRequestModal({
   isCollaboratorWorkPositionLoading = false,
   onRequestSuccess,
   onRequestError,
-}: NewVacationRequestModalProps) {
+}: NewPermissionRequestModalProps) {
   const { companyId, moduleCode, identificationNumber } = useUserStore();
 
   useEffect(() => {
@@ -41,10 +41,10 @@ export function NewVacationRequestModal({
     };
   }, [isOpen]);
 
-  const { createVacationRequestMutation } = useVacation();
+  const { createPermissionRequestMutation } = usePermission();
 
-  const handleSubmit = (payload: CreateVacationRequest) => {
-    createVacationRequestMutation.mutate(payload, {
+  const handleSubmit = (payload: CreatePermissionRequest) => {
+    createPermissionRequestMutation.mutate(payload, {
       onSuccess: () => {
         onClose();
         onRequestSuccess?.();
@@ -73,14 +73,14 @@ export function NewVacationRequestModal({
       ].join(" ")}
     >
       <div className="flex min-w-0 flex-col gap-4 sm:gap-5">
-        <NewVacationRequestCollaboratorSummary
+        <NewPermissionRequestCollaboratorSummary
           fullName={collaboratorFullName}
           workPosition={collaboratorWorkPosition}
           isFullNameLoading={isCollaboratorFullNameLoading}
           isWorkPositionLoading={isCollaboratorWorkPositionLoading}
         />
-        <NewVacationRequestForm
-          isPending={createVacationRequestMutation.isPending}
+        <NewPermissionRequestForm
+          isPending={createPermissionRequestMutation.isPending}
           onSubmit={handleSubmit}
           onCancel={onClose}
           companyId={companyId}

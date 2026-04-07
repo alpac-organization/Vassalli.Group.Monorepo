@@ -3,27 +3,28 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import type {
-  VacationHistoryRequest,
-  VacationRequestRow,
+  PermissionHistoryRequest,
+  PermissionHistoryRow,
   VacationStatusFilterValue,
-} from "@app/modules/vacations/domain/ApiContract/Requests/vacation-history-request";
-import { VacationFiltersBar } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-filters-bar";
-import { VacationPageHeader } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-page-header";
-import { VacationRequestsTable } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-requests-table";
+  PermissionTypeFilterValue,
+} from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
+import type { PermissionHistoryResponse } from "@app/modules/vacations/domain/ApiContract/Responses/permission-history-response";
+import { PermissionFiltersBar } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-filters-bar";
+import { PermissionPageHeader } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-page-header";
+import { PermissionTable } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-table";
 import { VacationStatsSection } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-stats-section";
-import { NewVacationRequestModal } from "@app/modules/vacations/ui/pages/vacation-index/components/new-vacation-request/new-vacation-request-modal";
-import { VacationRequestDetailsModal } from "@app/modules/vacations/ui/pages/vacation-index/components/vacation-request-details/vacation-request-details-modal";
-import type { VacationHistoryResponse } from "@app/modules/vacations/domain/ApiContract/Responses/vacation-history-response";
+import { NewPermissionRequestModal } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-request-modal";
+import { PermissionRequestDetailsModal } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-details/permission-details-modal";
 import {
-  useVacation,
+  usePermission,
   type UseVacationPayload,
-} from "@app/modules/vacations/ui/hooks/useVacations";
+} from "@app/modules/vacations/ui/hooks/usePermission";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCollaboratorProfileDetails } from "@app/modules/payroll/ui/hooks/useCollaboratorProfile";
 import {
-  derivarUiModalNuevaVacacion,
+  derivarUiModalNuevaPermission,
   derivarUiSaldoVacaciones,
-} from "@app/modules/vacations/ui/pages/vacation-index/utils/vacation-view-state";
+} from "@app/modules/vacations/ui/pages/vacation-index/utils/permission-view-state";
 
 export default function VacationPage() {
   const navigate = useNavigate();
@@ -34,6 +35,10 @@ export default function VacationPage() {
     useState<VacationStatusFilterValue>("all");
   const [appliedStatus, setAppliedStatus] =
     useState<VacationStatusFilterValue>("all");
+
+  const [typeDraft, setTypeDraft] = useState<PermissionTypeFilterValue>("all");
+  const [appliedType, setAppliedType] =
+    useState<PermissionTypeFilterValue>("all");
 
   // se obtiene aqui los datos necesarios para consultar el saldo de vacaciones del colaborador actual,
   const vacationSaldoPayload = useMemo<UseVacationPayload | undefined>(() => {
@@ -47,7 +52,7 @@ export default function VacationPage() {
 
   const saldoContextReady = Boolean(vacationSaldoPayload);
 
-  const historyFilters = useMemo<VacationHistoryRequest | undefined>(() => {
+  const historyFilters = useMemo<PermissionHistoryRequest | undefined>(() => {
     if (!companyId || !moduleCode || !identificationNumber) return undefined;
     return {
       companie_id: companyId,
@@ -56,13 +61,15 @@ export default function VacationPage() {
       page_size: 10,
       page_number: 1,
       ...(appliedStatus !== "all" && { status: appliedStatus }),
+      ...(appliedType !== "all" && { type: appliedType }),
     };
-  }, [companyId, moduleCode, identificationNumber, appliedStatus]);
+  }, [companyId, moduleCode, identificationNumber, appliedStatus, appliedType]);
 
-  const { GetVacationSaldoQuery, GetVacationHistory } = useVacation(
-    vacationSaldoPayload,
-    historyFilters,
-  );
+  const {
+    GetVacationSaldoQuery,
+    GetPermissionHistory,
+    cancelPermissionRequestMutation,
+  } = usePermission(vacationSaldoPayload, historyFilters);
   const { GetProfileDetails } = useCollaboratorProfileDetails({
     company_id: companyId,
     module_code: moduleCode,
@@ -71,7 +78,7 @@ export default function VacationPage() {
 
   const {
     uiSaldoVacaciones: balanceVacation,
-    uiModalNuevaVacacion: profileCollaborator,
+    uiModalNuevaPermission: profileCollaborator,
   } = useMemo(() => {
     const querySaldoVacation = {
       isLoading: GetVacationSaldoQuery.isPending,
@@ -89,7 +96,7 @@ export default function VacationPage() {
         saldoContextReady,
         querySaldoVacation,
       ),
-      uiModalNuevaVacacion: derivarUiModalNuevaVacacion(
+      uiModalNuevaPermission: derivarUiModalNuevaPermission(
         saldoContextReady,
         querySaldoVacation,
         queryPerfilVacation,
@@ -109,7 +116,7 @@ export default function VacationPage() {
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
 
   const [selectedVacationItem, setSelectedVacationItem] =
-    useState<VacationHistoryResponse | null>(null);
+    useState<PermissionHistoryResponse | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const [alertState, setAlertState] = useState<{
@@ -139,56 +146,96 @@ export default function VacationPage() {
     setAlertState({ open: true, type: "error", message: description });
   }, []);
 
-  const filteredRows = useMemo<VacationRequestRow[]>(() => {
-    const items = GetVacationHistory.data;
+  const filteredRows = useMemo<PermissionHistoryRow[]>(() => {
+    const items = GetPermissionHistory.data;
     if (!Array.isArray(items) || items.length === 0) return [];
     const collaboratorName =
       GetVacationSaldoQuery.data?.full_name?.trim() || fullName || "";
     return items.map((item) => ({
-      id: item.vacation_request_id,
+      id: item.permit_application_id,
       full_name: collaboratorName,
+      type: item.type,
       start_date: item.start_date,
       end_date: item.end_date,
+      start_time:
+        item.type !== "Vacation" ? item.start_time || undefined : undefined,
+      end_time:
+        item.type !== "Vacation" ? item.end_time || undefined : undefined,
       status: item.status,
       approved_by: item.approved_by || undefined,
       rejected_by: item.rejected_by || undefined,
     }));
-  }, [GetVacationHistory.data, GetVacationSaldoQuery.data, fullName]);
+  }, [GetPermissionHistory.data, GetVacationSaldoQuery.data, fullName]);
 
   const handleApplyFilters = useCallback(() => {
     setAppliedStatus(filterDraft);
-  }, [filterDraft]);
+    setAppliedType(typeDraft);
+  }, [filterDraft, typeDraft]);
 
   const handleClearFilters = useCallback(() => {
     setFilterDraft("all");
     setAppliedStatus("all");
+    setTypeDraft("all");
+    setAppliedType("all");
   }, []);
 
   const handleViewDetails = useCallback(
-    (row: VacationRequestRow) => {
-      const item = GetVacationHistory.data?.find(
-        (i) => i.vacation_request_id === row.id,
+    (row: PermissionHistoryRow) => {
+      const item = GetPermissionHistory.data?.find(
+        (i) => String(i.permit_application_id) === String(row.id),
       );
       if (!item) return;
       setSelectedVacationItem(item);
       setIsDetailsOpen(true);
     },
-    [GetVacationHistory.data],
+    [GetPermissionHistory.data],
   );
 
   const handleCloseDetails = useCallback(() => {
     setIsDetailsOpen(false);
   }, []);
 
-  const handleGenerateDocument = useCallback((_row: VacationRequestRow) => {
+  const handleGenerateDocument = useCallback((_row: PermissionHistoryRow) => {
     // lógica de generación de documento pendiente
     console.log("generando documento");
   }, []);
 
-  const handleCancellVacation = useCallback((_row: VacationRequestRow) => {
-    console.log("cancelando documento");
-    // lógica de generación de documento pendiente
-  }, []);
+  const handleCancellVacation = useCallback(
+    (row: PermissionHistoryRow) => {
+      if (!companyId || !moduleCode || !identificationNumber) return;
+      cancelPermissionRequestMutation.mutate(
+        {
+          company_id: companyId,
+          module_code: moduleCode,
+          identification_number: identificationNumber,
+          permit_application_id: Number(row.id),
+        },
+        {
+          onSuccess: () => {
+            setAlertState({
+              open: true,
+              type: "success",
+              message: "Su solicitud ha sido cancelada exitosamente.",
+            });
+          },
+          onError: () => {
+            setAlertState({
+              open: true,
+              type: "error",
+              message:
+                "No se pudo cancelar la solicitud. Intente nuevamente.",
+            });
+          },
+        },
+      );
+    },
+    [
+      companyId,
+      moduleCode,
+      identificationNumber,
+      cancelPermissionRequestMutation,
+    ],
+  );
   return (
     <>
       <motion.div
@@ -215,12 +262,12 @@ export default function VacationPage() {
           />
         </div>
 
-        <VacationPageHeader
+        <PermissionPageHeader
           onNewRequest={() => setIsNewRequestOpen(true)}
           collaboratorDisplayName={balanceVacation.nombreColaboradorParaMostrar}
         />
 
-        <NewVacationRequestModal
+        <NewPermissionRequestModal
           isOpen={isNewRequestOpen}
           onClose={() => setIsNewRequestOpen(false)}
           collaboratorFullName={profileCollaborator.nombreCompletoColaborador}
@@ -237,7 +284,7 @@ export default function VacationPage() {
           onRequestError={handleRequestError}
         />
 
-        <VacationRequestDetailsModal
+        <PermissionRequestDetailsModal
           isOpen={isDetailsOpen}
           onClose={handleCloseDetails}
           item={selectedVacationItem}
@@ -250,14 +297,16 @@ export default function VacationPage() {
           daysGeneratedDisplay={balanceVacation.mostrarDiasGenerados}
         />
 
-        <VacationFiltersBar
+        <PermissionFiltersBar
           filterDraft={filterDraft}
           onFilterDraftChange={setFilterDraft}
+          typeDraft={typeDraft}
+          onTypeDraftChange={setTypeDraft}
           onApply={handleApplyFilters}
           onClear={handleClearFilters}
         />
 
-        <VacationRequestsTable
+        <PermissionTable
           data={filteredRows}
           onViewDetails={handleViewDetails}
           onGenerateDocument={handleGenerateDocument}

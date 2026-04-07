@@ -1,15 +1,15 @@
 import { Button } from "@alpac/design-system";
 import { CalendarPlus } from "lucide-react";
 
-type VacationPageHeaderProps = {
+type PermissionPageHeaderProps = {
   onNewRequest?: () => void;
   collaboratorDisplayName?: string;
 };
 
-export function VacationPageHeader({
+export function PermissionPageHeader({
   onNewRequest,
   collaboratorDisplayName,
-}: VacationPageHeaderProps) {
+}: PermissionPageHeaderProps) {
   const subtitle =
     collaboratorDisplayName?.trim() || "permisos de los empleados";
 

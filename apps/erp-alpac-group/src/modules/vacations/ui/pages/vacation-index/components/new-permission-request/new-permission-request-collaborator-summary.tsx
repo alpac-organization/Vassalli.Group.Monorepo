@@ -1,16 +1,16 @@
-type NewVacationRequestCollaboratorSummaryProps = {
+type NewPermissionRequestCollaboratorSummaryProps = {
   fullName: string;
   workPosition: string;
   isFullNameLoading?: boolean;
   isWorkPositionLoading?: boolean;
 };
 
-export function NewVacationRequestCollaboratorSummary({
+export function NewPermissionRequestCollaboratorSummary({
   fullName,
   workPosition,
   isFullNameLoading = false,
   isWorkPositionLoading = false,
-}: NewVacationRequestCollaboratorSummaryProps) {
+}: NewPermissionRequestCollaboratorSummaryProps) {
   return (
     <div
       className="mb-1 min-w-0 rounded-xl px-3 py-3 sm:px-4 sm:py-3.5 dark:bg-[#272b34]"

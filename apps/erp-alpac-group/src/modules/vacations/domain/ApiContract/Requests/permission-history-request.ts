@@ -1,10 +1,12 @@
-export type VacationRequestStatus =
+export type PermissionRequestStatus =
   | "Pending"
   | "Approved"
   | "Rejected"
   | "Cancelled";
 
-export type VacationHistoryRequest = {
+import type { PermissionType } from "./create-permission-request";
+
+export type PermissionHistoryRequest = {
   /**
    * Codigo del modulo de vacaciones
    */
@@ -28,19 +30,28 @@ export type VacationHistoryRequest = {
   /**
    * Estado de la solicitud de vacaciones. Omitir para retornar todos.
    */
-  status?: VacationRequestStatus;
+  status?: PermissionRequestStatus;
+  /**
+   * Tipo de permiso. Omitir para retornar todos.
+   */
+  type?: PermissionType;
 };
 
 /** Valor del filtro de estado en UI: "all" = todos */
-export type VacationStatusFilterValue = "all" | VacationRequestStatus;
+export type VacationStatusFilterValue = "all" | PermissionRequestStatus;
+/** Valor del filtro de tipo de permiso en UI: "all" = todos */
+export type PermissionTypeFilterValue = "all" | PermissionType;
 
 /** Fila de la tabla de solicitudes de vacaciones (vista UI) */
-export type VacationRequestRow = {
+export type PermissionHistoryRow = {
   id: string;
   full_name: string;
+  type: PermissionType;
   start_date: string;
   end_date: string;
-  status: VacationRequestStatus;
+  start_time?: string;
+  end_time?: string;
+  status: PermissionRequestStatus;
   approved_by?: string;
   rejected_by?: string;
 };

@@ -1,25 +1,25 @@
 import { useMemo } from "react";
 import { Modal } from "@alpac/design-system";
-import type { VacationHistoryResponse } from "@app/modules/vacations/domain/ApiContract/Responses/vacation-history-response";
-import { deriveVacationRequestDetails } from "@app/modules/vacations/ui/pages/vacation-index/utils/vacation-details-view-state";
-import { VacationRequestDetailsContent } from "./vacation-request-details-content";
+import type { PermissionHistoryResponse } from "@app/modules/vacations/domain/ApiContract/Responses/permission-history-response";
+import { derivePermissionRequestDetails } from "@app/modules/vacations/ui/pages/vacation-index/utils/permission-details-view-state";
+import { PermissionRequestDetailsContent } from "./permission-details-content";
 
-type VacationRequestDetailsModalProps = {
+type PermissionRequestDetailsModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  item: VacationHistoryResponse | null;
+  item: PermissionHistoryResponse | null;
   collaboratorFullName: string;
 };
 
-export function VacationRequestDetailsModal({
+export function PermissionRequestDetailsModal({
   isOpen,
   onClose,
   item,
   collaboratorFullName,
-}: VacationRequestDetailsModalProps) {
+}: PermissionRequestDetailsModalProps) {
   const details = useMemo(() => {
     if (!item) return null;
-    return deriveVacationRequestDetails(item, collaboratorFullName);
+    return derivePermissionRequestDetails(item, collaboratorFullName);
   }, [item, collaboratorFullName]);
 
   return (
@@ -27,7 +27,7 @@ export function VacationRequestDetailsModal({
       isOpen={isOpen}
       onClose={onClose}
       variant="default"
-      title="Detalles de la Solicitud de Vacaciones"
+      title="Detalles de la Solicitud de Permiso"
       panelClassName={[
         "!max-w-2xl w-full min-w-0",
         "max-h-[min(92dvh,44rem)] overflow-y-auto overflow-x-hidden overscroll-contain",
@@ -36,7 +36,7 @@ export function VacationRequestDetailsModal({
         "[scrollbar-gutter:stable]",
       ].join(" ")}
     >
-      {details && <VacationRequestDetailsContent details={details} />}
+      {details && <PermissionRequestDetailsContent details={details} />}
     </Modal>
   );
 }
