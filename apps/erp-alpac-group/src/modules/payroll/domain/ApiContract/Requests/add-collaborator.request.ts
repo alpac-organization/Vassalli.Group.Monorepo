@@ -1,4 +1,6 @@
 export interface AddCollaboratorRequest {
+  company_id: string;
+  module_code: string;
   first_name?: string;
   second_name?: string;
   third_name?: string;
@@ -18,6 +20,7 @@ export interface AddPersonalInformationRequest {
   personal_phone_number?: string;
   departament?: string;
   birthdate?: string;
+  marital_status?: number;
 }
 
 export interface AddWorkingInformationRequest {

@@ -6,10 +6,17 @@ import useSessionStorageSidebar from "@app/shared/layouts/dashboard-layout/hooks
 import { AnimatePresence, motion } from "framer-motion";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ModuleEnum } from "@app/core/enums/module.enum";
+import { Modal } from "@alpac/design-system";
+import { useEffect, useState } from "react";
+import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
+import { useAuth } from "@app/modules/auth/ui/hooks/useAuth";
 
-export const DashboardLayout = () => {
+export const DashboardLayout = ({}) => {
+  const [showModal, setShowModal] = useState(false);
+  const [isLogout, setLogout] = useState(false);
   const { moduleCode, role } = useUserStore();
   const { isOpenSidebar, setIsOpenSidebar } = useSessionStorageSidebar();
+  const { startProcessToCloseSession } = useAuth();
   const location = useLocation();
 
   // mapeas la secciones = []
@@ -24,6 +31,30 @@ export const DashboardLayout = () => {
   const isAuthorizedPath = authorizedItems.some((item) => {
     return location.pathname.includes(item.path);
   });
+
+  const handleLogout = async function () {
+    try {
+      setLogout(true);
+
+      const companyId = useUserStore.getState().companyId ?? "";
+      const refreshToken = CookieStorageAdapter.getRefreshToken() ?? "";
+
+      await startProcessToCloseSession.mutateAsync({
+        company_id: companyId,
+        refresh_token: refreshToken,
+      });
+    } catch (error) {
+      throw error;
+    } finally {
+      setLogout(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isAuthorizedPath) {
+      setShowModal(true);
+    }
+  }, [isAuthorizedPath]);
 
   return (
     <motion.div
@@ -42,11 +73,27 @@ export const DashboardLayout = () => {
       />
 
       <div className="flex flex-col flex-1 w-full overflow-hidden transition-all duration-300">
-        <TopNavbar isOpen={isOpenSidebar} setIsOpen={setIsOpenSidebar} />
+        <TopNavbar
+          isOpen={isOpenSidebar}
+          setIsOpen={setIsOpenSidebar}
+          onLogout={handleLogout}
+          isLoadingLogout={isLogout && startProcessToCloseSession.isPending}
+        />
         <main className="flex-1 overflow-y-auto p-5 md:p-7.5 relative ">
           <AnimatePresence mode="wait">
             {isAuthorizedPath && <Outlet key={location.pathname} />}
           </AnimatePresence>
+          {!isAuthorizedPath && (
+            <Modal
+              isOpen={showModal}
+              variant="warning"
+              title="Acceso denegado"
+              description="No tienes permiso para acceder a esta ruta"
+              onClose={() => {
+                setShowModal(false);
+              }}
+            />
+          )}
         </main>
       </div>
     </motion.div>

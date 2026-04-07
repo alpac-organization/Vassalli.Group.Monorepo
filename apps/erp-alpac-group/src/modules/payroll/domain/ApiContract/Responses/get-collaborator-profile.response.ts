@@ -53,7 +53,6 @@ export interface CollaboratorProfilePersonalInformation {
   birthdate: Date;
   marital_status: string;
 }
-
 export interface CollaboratorProfileWorkingInformation {
   inss_number?: string;
   bank_account_number?: string;
@@ -65,7 +64,6 @@ export interface CollaboratorProfileWorkingInformation {
   branch_name?: string;
   entry_date?: Date;
 }
-
 export interface CollaboratorProfileSalaryInformation {
   salary?: number;
   currency?: string;

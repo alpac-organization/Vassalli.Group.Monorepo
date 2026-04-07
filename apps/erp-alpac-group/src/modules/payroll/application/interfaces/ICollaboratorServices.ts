@@ -1,8 +1,8 @@
 import type { GetCollaboratorsListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
-import type { CollaboratorDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-profile.request";
-import type { GetCollaboratorProfileDetailsResponse } from "../../domain/ApiContract/Responses/get-collaborator-profile.response";
-
+import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-profile.request";
+import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
+import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/add-collaborator.request";
 /**
  * @interface ICollaboratorServices
  * @description Define el contrato para los servicios de colaboradores.
@@ -20,6 +20,15 @@ export interface ICollaboratorServices {
   GetCollaborators(
     payload: CollaboratorRequest,
   ): Promise<GetCollaboratorsListResponse>;
+
+  /**
+   * @method PostCollaborator
+   * @description Agrega un nuevo colaborador.
+   * @param {AddCollaboratorRequest} payload Datos del nuevo colaborador.
+   * @returns {Promise<void>} Promesa que indica que la operación se completó exitosamente.
+   * @throws {Error} Si hay un error en la solicitud.
+   */
+  PostCollaborator(payload: AddCollaboratorRequest): Promise<void>;
   /**
    * @method GetCollaboratorProfileDetails
    * @description Obtiene los detalles del perfil de colaboradores.
@@ -28,6 +37,6 @@ export interface ICollaboratorServices {
    * @throws {Error} Si hay un error en la solicitud.
    */
   GetCollaboratorProfileDetails(
-    payload: CollaboratorDetailsRequest,
+    payload: CollaboratorProfileDetailsRequest,
   ): Promise<GetCollaboratorProfileDetailsResponse>;
 }

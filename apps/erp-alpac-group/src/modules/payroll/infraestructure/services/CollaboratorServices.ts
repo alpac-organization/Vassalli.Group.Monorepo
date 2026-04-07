@@ -2,10 +2,10 @@ import { cleanParams } from "@app/shared/utils/object.utils";
 import type { ICollaboratorServices } from "@app/modules/payroll/application/interfaces/ICollaboratorServices";
 import type { GetCollaboratorsListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
 import type { IHttpHandler } from "@app/core/ports";
-import type { CollaboratorRequest } from "../../domain/ApiContract/Requests/collaborator.request";
-import type { CollaboratorDetailsRequest } from "../../domain/ApiContract/Requests/collaborator-profile.request";
-import type { GetCollaboratorProfileDetailsResponse } from "../../domain/ApiContract/Responses/get-collaborator-profile.response";
-
+import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
+import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/add-collaborator.request";
+import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-profile.request";
+import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
 export class CollaboratorServices implements ICollaboratorServices {
   private apiHandler: IHttpHandler;
 
@@ -32,8 +32,21 @@ export class CollaboratorServices implements ICollaboratorServices {
     }
   }
 
+  public async PostCollaborator(
+    payload: AddCollaboratorRequest,
+  ): Promise<void> {
+    try {
+      const { company_id, module_code, ...rest } = payload;
+      await this.apiHandler.post<void>(
+        `/companies/${company_id}/modules/${module_code}/collaborators`,
+        rest,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
   public async GetCollaboratorProfileDetails(
-    payload: CollaboratorDetailsRequest,
+    payload: CollaboratorProfileDetailsRequest,
   ): Promise<GetCollaboratorProfileDetailsResponse> {
     try {
       const detailProfileCollaborator =
