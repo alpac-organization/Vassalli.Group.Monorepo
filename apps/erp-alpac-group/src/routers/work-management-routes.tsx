@@ -11,7 +11,7 @@ export const WorkManagementRoutes: RouteObject[] = [
     element: <CollaboratorProfilePage />,
   },
   {
-    path: "gestion-vacations",
+    path: "gestion-permisos",
     element: <VacationPage />,
   },
 ];

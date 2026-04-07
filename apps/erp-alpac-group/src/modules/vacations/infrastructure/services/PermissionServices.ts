@@ -24,7 +24,6 @@ export class PermissionServices implements IPermissionRequestServices {
       `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}/permit-applications`,
       body,
     );
-    console.log(response);
     return response;
   }
 
@@ -47,7 +46,6 @@ export class PermissionServices implements IPermissionRequestServices {
       `/companies/${companie_id}/modules/${module_code}/collaborators/${identification_number}/permit-applications`,
       { params },
     );
-    console.log(response);
     return response;
   }
   public async cancelPermissionRequest(

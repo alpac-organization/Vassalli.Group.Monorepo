@@ -19,12 +19,14 @@ import {
   usePermission,
   type UseVacationPayload,
 } from "@app/modules/vacations/ui/hooks/usePermission";
+import { utilsPermissionPageInitialLoader } from "@app/modules/vacations/ui/pages/vacation-index/utils/utilsPermissionPageInitialLoader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCollaboratorProfileDetails } from "@app/modules/payroll/ui/hooks/useCollaboratorProfile";
 import {
   derivarUiModalNuevaPermission,
   derivarUiSaldoVacaciones,
 } from "@app/modules/vacations/ui/pages/vacation-index/utils/permission-view-state";
+import { Loader } from "@app/shared/components/loaders/loader";
 
 export default function VacationPage() {
   const navigate = useNavigate();
@@ -40,7 +42,7 @@ export default function VacationPage() {
   const [appliedType, setAppliedType] =
     useState<PermissionTypeFilterValue>("all");
 
-  // se obtiene aqui los datos necesarios para consultar el saldo de vacaciones del colaborador actual,
+  // aqui se obtiene aqui los datos necesarios para consultar el saldo de vacaciones del colaborador actual,
   const vacationSaldoPayload = useMemo<UseVacationPayload | undefined>(() => {
     if (!companyId || !moduleCode || !identificationNumber) return undefined;
     return {
@@ -90,7 +92,7 @@ export default function VacationPage() {
       isLoading: GetProfileDetails.isPending,
       datos: GetProfileDetails.data,
     };
-    // Retorna el estado listo para usar en la UI para las secciones de saldo de vacaciones
+    // aqui se Retorna el estado listo para usar en la UI para las secciones de saldo de vacaciones
     // y detalles del colaborador en el modal de nueva solicitud, como nombre y puesto de trabajo.
     return {
       uiSaldoVacaciones: derivarUiSaldoVacaciones(
@@ -261,6 +263,18 @@ export default function VacationPage() {
       cancelPermissionRequestMutation,
     ],
   );
+
+  const showInitialPageLoader = utilsPermissionPageInitialLoader({
+    contextReady: saldoContextReady,
+    isSaldoPending: GetVacationSaldoQuery.isPending,
+    isProfilePending: GetProfileDetails.isPending,
+    isHistoryPending: GetPermissionHistory.isPending,
+  });
+
+  if (showInitialPageLoader) {
+    return <Loader title="Cargando gestión de permisos..." />;
+  }
+
   return (
     <>
       <motion.div
