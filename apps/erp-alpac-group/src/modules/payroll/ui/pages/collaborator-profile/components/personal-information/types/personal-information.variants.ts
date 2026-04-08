@@ -1,17 +1,21 @@
 import { GenderEnum } from "@app/core/enums/gender.enum";
-import { MaritalStatusEnum } from "@app/core/enums/marital-status.enum";
+import { MaritalStatus } from "@app/core/enums/marital-status.enum";
 
 export const GenderApiAliases: Record<string, keyof typeof GenderEnum> = {
-  Man: "MALE",
-  Woman: "FEMALE",
+  Man: "Male",
+  Woman: "Female",
 };
 
-export const MaritalApiAliases: Record<string, keyof typeof MaritalStatusEnum> =
-  {
-    Single: "SINGLE",
-    Married: "MARRIED",
-    Divorced: "DIVORCED",
-    Widowed: "WIDOWED",
-    "Free union": "FREE_UNION",
-    "Union libre": "FREE_UNION",
-  };
+/** Texto del API (inglés u otros) → clave del objeto `MaritalStatus` en core. */
+export const MaritalApiAliases: Record<string, keyof typeof MaritalStatus> = {
+  None: "None",
+  Single: "Single",
+  Married: "Married",
+  Divorced: "Divorced",
+  Widowed: "Widowed",
+  Domestic_Partner: "Domestic_Partner",
+  Separated: "Separated",
+  Other: "Other",
+  "Free union": "Domestic_Partner",
+  "Union libre": "Domestic_Partner",
+};

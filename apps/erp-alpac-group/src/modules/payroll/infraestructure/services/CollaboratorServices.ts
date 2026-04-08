@@ -6,7 +6,7 @@ import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContrac
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/add-collaborator.request";
 import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-profile.request";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
-import type { UpdateCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/update-collaborator-request";
+import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/update-collaborator-request";
 export class CollaboratorServices implements ICollaboratorServices {
   private apiHandler: IHttpHandler;
 
@@ -54,17 +54,20 @@ export class CollaboratorServices implements ICollaboratorServices {
         await this.apiHandler.get<GetCollaboratorProfileDetailsResponse>(
           `/companies/${payload.company_id}/modules/${payload.module_code}/collaborators/${payload.identification_number}/details`,
         );
+      console.log(detailProfileCollaborator);
       return detailProfileCollaborator;
     } catch (error) {
       throw error;
     }
   }
   public async UpdateCollaboratorProfileDetails(
-    payload: UpdateCollaboratorRequest,
+    payload: UpdateCollaboratorProfileDetailsRequest,
   ): Promise<void> {
+    const { company_id, module_code, identification_number, ...body } = payload;
     try {
       await this.apiHandler.patch<void>(
-        `/companies/${payload.company_id}/modules/${payload.module_code}/collaborators/${payload.identification_number}/details`,
+        `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}/details`,
+        body,
       );
     } catch (error) {
       throw error;

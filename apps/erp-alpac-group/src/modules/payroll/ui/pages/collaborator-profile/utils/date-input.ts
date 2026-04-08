@@ -3,10 +3,10 @@ export function toHtmlDateInputValue(
   value: string | Date | null | undefined,
 ): string {
   if (value == null || value === "") return "";
-  if (value instanceof Date) {
-    if (Number.isNaN(value.getTime())) return "";
-    return value.toISOString().slice(0, 10);
-  }
+  if (value instanceof Date)
+    return Number.isNaN(value.getTime())
+      ? ""
+      : value.toISOString().slice(0, 10);
   const s = String(value).trim();
   if (!s) return "";
   const d = new Date(s);

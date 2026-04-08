@@ -3,22 +3,17 @@ import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
 import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-profile.request";
 import { CollaboratorServices } from "@app/modules/payroll/infraestructure/services/CollaboratorServices";
-import type { UpdateCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/update-collaborator-request";
+import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/update-collaborator-request";
 import { useMutation } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 const collaboratorServices = new CollaboratorServices(httpHandler);
 export interface useCollaboratorsProps {
   Collaboratorsfilters?: CollaboratorRequest;
   CollaboratorDetailsPayload?: CollaboratorProfileDetailsRequest;
-  UpdateCollaboratorDetailsPayload?: UpdateCollaboratorRequest;
 }
 
 export const useCollaborators = function (props: useCollaboratorsProps) {
-  const {
-    Collaboratorsfilters,
-    CollaboratorDetailsPayload,
-    UpdateCollaboratorDetailsPayload,
-  } = props;
+  const { Collaboratorsfilters, CollaboratorDetailsPayload } = props;
   const queryClient = useQueryClient();
 
   const collaboratorsListEnabled = Boolean(
@@ -60,11 +55,8 @@ export const useCollaborators = function (props: useCollaboratorsProps) {
     retry: 1,
   });
   const UpdateCollaboratorProfileDetails = useMutation({
-    mutationKey: [
-      "updateCollaboratorProfileDetails",
-      UpdateCollaboratorDetailsPayload,
-    ],
-    mutationFn: (payload: UpdateCollaboratorRequest) => {
+    mutationKey: ["updateCollaboratorProfileDetails"],
+    mutationFn: (payload: UpdateCollaboratorProfileDetailsRequest) => {
       return collaboratorServices.UpdateCollaboratorProfileDetails(payload);
     },
     onSuccess: () => {

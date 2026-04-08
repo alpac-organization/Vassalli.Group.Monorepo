@@ -3,6 +3,7 @@ import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContrac
 import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-profile.request";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/add-collaborator.request";
+import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/update-collaborator-request";
 /**
  * @interface ICollaboratorServices
  * @description Define el contrato para los servicios de colaboradores.
@@ -39,5 +40,14 @@ export interface ICollaboratorServices {
   GetCollaboratorProfileDetails(
     payload: CollaboratorProfileDetailsRequest,
   ): Promise<GetCollaboratorProfileDetailsResponse>;
-  // updateCollaboratorProfileDetails(paylod:)
+  /**
+   * @method UpdateCollaboratorProfileDetails
+   * @description Actualiza los detalles del perfil de colaboradores.
+   * @param {UpdateCollaboratorProfileDetailsRequest} payload Datos de actualizacion para la solicitud.
+   * @returns {Promise<void>} Promesa que indica que la operación se completó exitosamente.
+   * @throws {Error} Si hay un error en la solicitud.
+   */
+  UpdateCollaboratorProfileDetails(
+    paylod: UpdateCollaboratorProfileDetailsRequest,
+  ): Promise<void>;
 }

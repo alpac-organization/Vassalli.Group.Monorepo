@@ -1,4 +1,4 @@
-export interface UpdateCollaboratorRequest {
+export interface UpdateCollaboratorProfileDetailsRequest {
   /**
    * Id de la empresa
    * @example "123e4567-e89b-12d3-a456-426614174000"
@@ -30,12 +30,15 @@ interface UpdatePersonalInformationRequest {
   address?: string;
   personal_email?: string;
   personal_phone_number?: string;
-  marital_status?: number;
-  departament?: string;
+  marital_status?: string;
+  departament_id?: number;
 }
 interface UpdateWorkingInformationRequest {
   work_email?: string;
   work_phone_number?: string;
   inss_number?: string;
   bank_account_number?: string;
+  work_area_id?: number;
+  work_position_id?: number;
+  branch_id?: number;
 }

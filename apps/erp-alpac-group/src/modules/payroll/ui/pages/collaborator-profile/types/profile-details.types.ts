@@ -1,11 +1,10 @@
 export interface PersonalFormData {
-  //solo campos de lectura
-  identification_type: string;
   identification_number: string;
+  /** Valor crudo del API (p. ej. Man, Woman). */
   gender: string;
+  /** Código numérico 0–7 como string para estado civil. */
   marital_status: string;
-
-  //campos editables
+  birthdate: string;
   firstName: string;
   secondName?: string;
   firstLastName: string;
@@ -13,6 +12,9 @@ export interface PersonalFormData {
   address: string;
   personalEmail: string;
   personalPhone: string;
+  /** `sub_catalog_id` del catálogo departamentos, string para RHF. */
+  department_id: string;
+  /** Nombre departamento desde API (fallback de etiqueta). */
   departament: string;
 }
 export interface WorkFormData {
