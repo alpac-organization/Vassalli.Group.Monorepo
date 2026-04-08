@@ -5,6 +5,7 @@ import {
    InputText,
    Dropdown,
    Button,
+   Pagination,
 } from '@alpac/design-system';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 import { motion } from 'framer-motion';
@@ -32,12 +33,15 @@ import { useTheme } from '@alpac/design-system';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 
 export const CollaboratorPage = function () {
+
+   const maxPageSize = 10;
+
    const [filters, setFilters] = useState<CollaboratorRequest>({
       identification_number: '',
       branch_id: 0,
       area_id: 0,
       page_number: 1,
-      page_size: 10,
+      page_size: maxPageSize,
       status: '',
    } as CollaboratorRequest);
 
@@ -89,6 +93,7 @@ export const CollaboratorPage = function () {
    const {
       data: collaborators = {
          data: [],
+         page_number: 0,
          total_records: 0,
          page_size: 0,
          total_active: 0,
@@ -106,6 +111,10 @@ export const CollaboratorPage = function () {
    const onSubmit: SubmitHandler<CollaboratorRequest> = async (data) => {
       setFilters((prev) => ({ ...prev, ...data }));
    };
+
+   const handlePageChange = useCallback((page: number) => {
+      setFilters((prev) => ({ ...prev, page_number: page }));
+   }, []);
 
    const columnConfig = [
       { key: 'collaborator_code', label: 'Código' },
@@ -131,7 +140,7 @@ export const CollaboratorPage = function () {
                size="small"
                className="text-[13px]! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                onClick={() => {
-                  navigate('/payroll/collaborator-profile', {
+                  navigate('collaborator-profile', {
                      state: {
                         identification_number: value.identification_number,
                      } satisfies CollaboratorProfileLocationState,
@@ -149,7 +158,7 @@ export const CollaboratorPage = function () {
          branch_id: 0,
          area_id: 0,
          page_number: 1,
-         page_size: 10,
+         page_size: maxPageSize,
          status: '',
       } as CollaboratorRequest);
    }, [reset]);
@@ -253,7 +262,6 @@ export const CollaboratorPage = function () {
 
          <div className="flex justify-between items-center dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-               {/* El boton de agregar colaborador debe llevar a la ruta /payroll/collaborator-profile */}
                <Button
                   size="giant"
                   label="Agregar Colaborador"
@@ -381,6 +389,15 @@ export const CollaboratorPage = function () {
                title="Lista de colaboradores"
                data={collaborators.data ?? []}
                columns={columnConfig}
+               pagination={
+                  <Pagination
+                     currentPage={collaborators.page_number}
+                     pageSize={collaborators.page_size}
+                     totalRecords={collaborators.total_records}
+                     onPageChange={handlePageChange}
+                     disabled={GetCollaboratorsQuery.isPending}
+                  />
+               }
             />
          </div>
          <AddCollaboratorModal
@@ -390,7 +407,6 @@ export const CollaboratorPage = function () {
             optionsBranches={optionsBranches}
             optionsBanks={optionsBanks}
             onClose={() => setShowAddCollaboratorModal(false)}
-            onSubmit={() => { }}
          />
          <Outlet />
       </motion.div>

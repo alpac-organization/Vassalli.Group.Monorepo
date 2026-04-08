@@ -6,41 +6,37 @@ import type { CollaboratorRequest } from "../../domain/ApiContract/Requests/coll
 import type { AddCollaboratorRequest } from "../../domain/ApiContract/Requests/add-collaborator.request";
 
 export class CollaboratorServices implements ICollaboratorServices {
-  private apiHandler: IHttpHandler;
+   private apiHandler: IHttpHandler;
 
-  constructor(httpHandler: IHttpHandler) {
-    this.apiHandler = httpHandler;
-  }
+   constructor(httpHandler: IHttpHandler) {
+      this.apiHandler = httpHandler;
+   }
 
-  public async GetCollaborators(
-    payload: CollaboratorRequest,
-  ): Promise<GetCollaboratorsListResponse> {
-    try {
-      const { company_id, module_code, ...rest } = payload;
-      const collaborators =
-        await this.apiHandler.get<GetCollaboratorsListResponse>(
-          `/companies/${company_id}/modules/${module_code}/collaborators`,
-          {
-            params: cleanParams(rest),
-          },
-        );
-      return collaborators;
-    } catch (error) {
-      throw error;
-    }
-  }
+   public async GetCollaborators(payload: CollaboratorRequest): Promise<GetCollaboratorsListResponse> {
+      try {
+         const { company_id, module_code, ...rest } = payload;
+         const collaborators =
+            await this.apiHandler.get<GetCollaboratorsListResponse>(
+               `/companies/${company_id}/modules/${module_code}/collaborators`,
+               {
+                  params: cleanParams(rest),
+               },
+            );
+         return collaborators;
+      } catch (error) {
+         throw error;
+      }
+   }
 
-  public async PostCollaborator(
-    payload: AddCollaboratorRequest,
-  ): Promise<void> {
-    try {
-      const { company_id, module_code, ...rest } = payload;
-      await this.apiHandler.post<void>(
-        `/companies/${company_id}/modules/${module_code}/collaborators`,
-        rest,
-      );
-    } catch (error) {
-      throw error;
-    }
-  }
+   public async PostCollaborator(payload: AddCollaboratorRequest): Promise<void> {
+      try {
+         const { company_id, module_code, ...rest } = payload;
+         await this.apiHandler.post<void>(
+            `/companies/${company_id}/modules/${module_code}/collaborators`,
+            rest,
+         );
+      } catch (error) {
+         throw error;
+      }
+   }
 }

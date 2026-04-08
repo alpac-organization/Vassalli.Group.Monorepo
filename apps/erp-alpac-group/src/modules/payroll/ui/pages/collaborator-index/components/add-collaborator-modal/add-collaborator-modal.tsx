@@ -69,7 +69,7 @@ export const AddCollaboratorModal = (
 
    const handleCloseModal = () => {
       setCurrentStep(0);
-      props.onClose();
+      props.onClose?.();
       reset();
    };
 

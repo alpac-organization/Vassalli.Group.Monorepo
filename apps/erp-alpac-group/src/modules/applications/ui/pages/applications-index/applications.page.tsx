@@ -1,15 +1,23 @@
-import { Breadcrumb, DataTable, InputText } from "@alpac/design-system";
+import { Breadcrumb, Button, Dropdown, InputText, Pagination } from "@alpac/design-system";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useTheme } from "@alpac/design-system";
 import { useApplications } from "@app/modules/applications/ui/hooks/useApplications";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { ApplicationsTable } from "./components/application-table/applications-table";
+import { Loader } from "@app/shared/components/loaders/loader";
+import { Controller, useForm } from "react-hook-form";
+import { PermitApplicationTypeOptions } from "@app/modules/applications/domain/enums/permit-application-type.enum";
+import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
+import { PermitApplicationStatusOptions } from "@app/modules/applications/domain/enums/permit-application-status.enum";
+import { useCallback } from "react";
 
 export const ApplicationsPage = function () {
+   const navigate = useNavigate();
    const { theme } = useTheme();
    const { urlImage, neutralUrlImage } = useCompanyStore();
-   const navigate = useNavigate();
+   const { control, reset } = useForm<ApplicationRequest>()
 
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
 
@@ -21,19 +29,9 @@ export const ApplicationsPage = function () {
 
    console.log(applications)
 
-   const columnConfig = [
-      { key: 'permit_apllication_id', label: 'Código' },
-      { key: 'type', label: 'Tipo' },
-      { key: 'status', label: 'Estado' },
-      { key: 'start_date', label: 'Fecha' },
-      { key: 'description', label: 'Descripción' },
-      { key: 'requested_by', label: 'Solicitado por' },
-      { key: 'approved_by', label: 'Aprobado por' },
-      { key: 'rejected_by', label: 'Rechazado por' },
-      { key: 'created_at', label: 'Fecha de creación' },
-      { key: 'start_time', label: 'Hora de inicio' },
-      { key: 'end_time', label: 'Hora de fin' },
-   ]
+   const handleClearFilters = useCallback(() => {
+      reset();
+   }, [reset]);
 
    return (
       <motion.div
@@ -43,6 +41,10 @@ export const ApplicationsPage = function () {
          transition={{ duration: 0.5 }}
          className="flex flex-col gap-4"
       >
+
+         {GetApplicationsQuery.isPending && (
+            <Loader title={'Cargando Solicitudes...'} />
+         )}
 
          <div className="flex justify-start">
             <Breadcrumb
@@ -93,14 +95,86 @@ export const ApplicationsPage = function () {
 
                />
             </div>
+
+            <div className="flex flex-col">
+               <Controller
+                  name="permit_application_type_id"
+                  control={control}
+                  rules={{
+                     required: false,
+                  }}
+                  render={({ field }) => {
+                     return (
+                        <Dropdown
+                           value={field.value}
+                           onChange={(value) => field.onChange(value)}
+                           label="Tipo de Solicitud"
+                           placeholder="Seleccione un tipo de solicitud"
+                           labelClassName="text-black! dark:text-white!"
+                           valueClassName="text-black! dark:text-white!"
+                           className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+                           options={PermitApplicationTypeOptions ?? []}
+                        />
+                     );
+                  }}
+               />
+            </div>
+
+            <div className="flex flex-col">
+               <Controller
+                  name="permit_application_status_id"
+                  control={control}
+                  rules={{
+                     required: false,
+                  }}
+                  render={({ field }) => {
+                     return (
+                        <Dropdown
+                           value={field.value}
+                           onChange={(value) => field.onChange(value)}
+                           label="Estado de Solicitud"
+                           placeholder="Seleccione un estado de solicitud"
+                           labelClassName="text-black! dark:text-white!"
+                           valueClassName="text-black! dark:text-white!"
+                           className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+                           options={PermitApplicationStatusOptions ?? []}
+                        />
+                     );
+                  }}
+               />
+            </div>
+
+            <div className="flex flex-col">
+               <Button
+                  type="submit"
+                  size="giant"
+                  className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                  label="Aplicar filtros"
+               />
+            </div>
+
+            <div className="flex flex-col">
+               <Button
+                  type="button"
+                  size="giant"
+                  className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+                  label="Limpiar filtros"
+                  onClick={handleClearFilters}
+               />
+            </div>
+
          </form>
 
          <div className="flex flex-col">
-            <DataTable
-               title="Lista de solicitudes"
+            <ApplicationsTable
                data={applications}
-               columns={columnConfig}
-            />
+               pagination={
+                  <Pagination currentPage={0}
+                     pageSize={0}
+                     totalRecords={0}
+                     onPageChange={() => { }}
+                     disabled={true} />
+               } />
          </div>
 
       </motion.div>

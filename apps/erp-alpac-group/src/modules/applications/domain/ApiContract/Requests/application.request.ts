@@ -16,4 +16,22 @@ export interface ApplicationRequest {
     * @required
     */
    module_code: string;
+
+   /**
+    * Identificación del colaborador
+    * @optional
+    */
+   identification_number?: string;
+
+   /**
+    * Identificador del tipo de solicitud
+    * @optional
+    */
+   permit_application_type_id?: number;
+
+   /**
+    * Identificador del estado de la solicitud
+    * @optional
+    */
+   permit_application_status_id?: number;
 }

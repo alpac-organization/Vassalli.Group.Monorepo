@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { ModuleEnum } from '@app/core/enums/module.enum';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 import { useTheme } from '@alpac/design-system';
+import { NotificationSidebar } from '@app/shared/components/notification/notification-sidebar/notification-sidebar';
 
 export const HomePage = function () {
    const navigate = useNavigate();
@@ -119,6 +120,8 @@ export const HomePage = function () {
                setShowModal(false);
             }}
          />
+
+         <NotificationSidebar />
       </motion.div>
    );
 };
