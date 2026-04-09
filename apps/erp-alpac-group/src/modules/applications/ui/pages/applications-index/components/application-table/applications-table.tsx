@@ -46,10 +46,8 @@ export const ApplicationsTable = ({ data, pagination }: { data: GetApplicationsR
                size="small"
                className="text-[13px]! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                onClick={() => {
-                  navigate('/applications/appliction-detail', {
-                     state: {
-                        data: value,
-                     },
+                  navigate('application-detail', {
+                     state: { ...value } satisfies GetApplicationsResponse,
                   });
                }}
             />
