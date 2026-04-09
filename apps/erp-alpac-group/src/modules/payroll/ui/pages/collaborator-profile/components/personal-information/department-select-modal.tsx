@@ -65,12 +65,14 @@ export function DepartmentSelectModal({
         module_code: moduleCode,
         identification_number: identificationNumber,
         personal_information: {
-          department_id: selected,
+          departament_id: selected,
         },
       },
       {
         onSuccess: () => {
-          const fromCatalog = rawList.find((r) => r.sub_catalog_id === selected);
+          const fromCatalog = rawList.find(
+            (r) => r.sub_catalog_id === selected,
+          );
           const label =
             fromCatalog?.catalog_name?.trim() ??
             options.find((o) => o.value === selected)?.label ??
@@ -105,7 +107,9 @@ export function DepartmentSelectModal({
           onChange={(v) => setSelected(Number(v))}
           className="w-full"
           error={
-            GetCatalogListQuery.isError ? "No se pudo cargar el catálogo." : undefined
+            GetCatalogListQuery.isError
+              ? "No se pudo cargar el catálogo."
+              : undefined
           }
         />
         <div className="flex justify-end gap-3">

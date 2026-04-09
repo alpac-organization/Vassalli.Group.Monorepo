@@ -49,13 +49,9 @@ export interface CollaboratorProfilePersonalInformation {
   address: string;
   personal_email: string;
   personal_phone_number: string;
-  /** Texto legado / nombre mostrado si existe. */
-  departament?: string;
-  /** Id de sub-catálogo (catálogo tipo departamentos). */
-  department_id?: number;
-  birthdate?: Date | string;
-  /** Clave enum (`Separated`), id numérico o etiqueta según backend. */
-  marital_status: string | number | null;
+  departament_id?: number;
+  birthdate?: string;
+  marital_status: string;
 }
 export interface CollaboratorProfileWorkingInformation {
   inss_number?: string;

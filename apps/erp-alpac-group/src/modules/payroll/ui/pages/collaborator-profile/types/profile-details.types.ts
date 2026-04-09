@@ -14,7 +14,7 @@ export interface PersonalFormData {
   personalPhone: string;
   /** `sub_catalog_id` del catálogo departamentos, string para RHF. */
   department_id: string;
-  /** Nombre departamento desde API (fallback de etiqueta). */
+  /** Nombre departamento desde API o tras guardar en modal (fallback de etiqueta). */
   departament: string;
 }
 export interface WorkFormData {

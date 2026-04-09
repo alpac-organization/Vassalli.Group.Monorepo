@@ -11,12 +11,7 @@ export interface UpdateCollaboratorProfileDetailsRequest {
    * @required
    */
   module_code: string;
-  /**
-   * Numero de identificación del colaborador
-   * @example "001-120395-0000X"
-   * @required
-   */
-  /**
+  /*
    * Numero de identificación del colaborador
    * @example "001-120395-0000X"
    * @required
@@ -25,12 +20,11 @@ export interface UpdateCollaboratorProfileDetailsRequest {
   personal_information?: UpdatePersonalInformationRequest;
   working_information?: UpdateWorkingInformationRequest;
 }
-
 interface UpdatePersonalInformationRequest {
   address?: string;
   personal_email?: string;
   personal_phone_number?: string;
-  marital_status?: string;
+  marital_status?: number;
   departament_id?: number;
 }
 interface UpdateWorkingInformationRequest {

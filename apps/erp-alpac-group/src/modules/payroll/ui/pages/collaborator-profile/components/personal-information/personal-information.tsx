@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useLocation, useParams } from "react-router-dom";
 import { InputText, Alert, AnimatedAlertWrapper } from "@alpac/design-system";
 import { Pencil } from "lucide-react";
@@ -9,15 +9,16 @@ import type { PersonalFormData } from "@app/modules/payroll/ui/pages/collaborato
 import type { PersonalInformationProps } from "./types/personal-information.type";
 import { mapPersonalInformationToForm } from "./utils/mapPersonalInformationToForm";
 import { splitFullNameForForm } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/split-full-name";
-import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { CollaboratorProfileLocationState } from "@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
 import { DepartmentSelectModal } from "./department-select-modal";
+import { MaritalStatusSelectModal } from "./marital-status-select-modal";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
 import { maritalRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/maritalRawToLabel";
+import { isValidMaritalStatusCode } from "./utils/normalizeMaritalStatusFromApi";
 
 const defaultPersonalInformation: PersonalFormData = {
   identification_number: "",
@@ -34,11 +35,6 @@ const defaultPersonalInformation: PersonalFormData = {
   department_id: "",
   departament: "",
 };
-
-const maritalSelectOptions = MaritalStatusOptions.map((o) => ({
-  value: String(o.value),
-  label: o.label,
-}));
 
 export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
   const { identification_number: routeIdentification } = useParams();
@@ -58,7 +54,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
     defaultValues: defaultPersonalInformation,
   });
 
-  const { reset, watch, control, setValue, getValues } = formMethods;
+  const { reset, watch, setValue, getValues } = formMethods;
   const values = watch();
 
   const lastCollaboratorIdRef = useRef<string | undefined>(undefined);
@@ -125,6 +121,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
     {},
   );
   const [departmentModalOpen, setDepartmentModalOpen] = useState(false);
+  const [maritalModalOpen, setMaritalModalOpen] = useState(false);
   const [alertInfo, setAlertInfo] = useState<{
     type: "success" | "error";
     title: string;
@@ -161,9 +158,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
       if (name === "personalEmail") personal.personal_email = value;
       else if (name === "personalPhone") personal.personal_phone_number = value;
       else if (name === "address") personal.address = value;
-      else if (name === "marital_status") {
-        personal.marital_status = Number.parseInt(value, 10);
-      } else return;
+      else return;
 
       await UpdateCollaboratorProfileDetails.mutateAsync({
         company_id: companyId,
@@ -188,18 +183,23 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
   };
 
   const readOnlyInputClasses =
-    "disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!";
+    "disabled:dark:bg-[#1e2229]! text-[14px]! font-medium! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!";
 
-  /** Misma base que `EditableField` para que tipografía/bordes coincidan (p. ej. Departamento). */
-  const profileInputClassBase = `transition-all! duration-200! dark:bg-[#1e2229]! dark:text-white! dark:border-slate-600/50! dark:px-3!
-    focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!
+  const editableFieldInputClasses = `
+    transition-all! duration-200! dark:bg-[#1e2229]! dark:text-white! dark:border-slate-600/50! dark:px-3! focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!
     disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
-    min-w-0 w-full max-w-full`;
-
+    min-w-0 w-full max-w-full text-[14px]! font-medium! text-white! ml-0.5!
+  `;
   const currentDeptSubId = useMemo(() => {
     const n = Number(departmentId);
     return n > 0 ? n : null;
   }, [departmentId]);
+
+  const maritalStatusCode = useMemo(() => {
+    const n = Number.parseInt(String(values.marital_status ?? ""), 10);
+    if (Number.isNaN(n) || !isValidMaritalStatusCode(n)) return 0;
+    return n;
+  }, [values.marital_status]);
 
   const isMissing = (val: unknown) =>
     val === undefined || val === null || String(val).trim() === "";
@@ -248,6 +248,32 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
         }
       />
 
+      <MaritalStatusSelectModal
+        isOpen={maritalModalOpen}
+        onClose={() => setMaritalModalOpen(false)}
+        companyId={companyId ?? ""}
+        currentMaritalStatus={maritalStatusCode}
+        identificationNumber={targetIdentification}
+        moduleCode={moduleCode ?? ""}
+        updateMutation={UpdateCollaboratorProfileDetails}
+        onMaritalSaved={(status) => {
+          setValue("marital_status", String(status), {
+            shouldDirty: true,
+            shouldTouch: true,
+          });
+        }}
+        onSuccessMessage={() =>
+          setAlertInfo({
+            type: "success",
+            title: "¡Éxito!",
+            message: "Estado civil actualizado correctamente.",
+          })
+        }
+        onErrorMessage={(msg) =>
+          setAlertInfo({ type: "error", title: "Error", message: msg })
+        }
+      />
+
       <div className="w-full max-w-full mb-8">
         <section className="w-full dark:bg-[#272b34] bg-white border border-slate-200 dark:border-neutral-700 shadow-sm overflow-hidden">
           <div className="p-4 sm:p-6">
@@ -278,27 +304,37 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 className={`${readOnlyInputClasses} min-w-0 w-full max-w-full ${isMissing(values.gender) ? missingDataInInputClassName : ""}`}
               />
 
-              <EditableField
-                name="marital_status"
-                label="Estado civil"
-                fieldVariant="select"
-                selectOptions={maritalSelectOptions}
-                formatDisplayValue={(val) =>
-                  isMissing(val)
-                    ? "Estado civil no registrado"
-                    : maritalRawToLabel(val) ?? ""
-                }
-                formMethods={formMethods}
-                isEditing={editingFields.marital_status}
-                onEditStart={handleEditStart}
-                onEditEnd={handleEditEnd}
-                onConfirmUpdate={handleFieldUpdate}
-                className={
-                  isMissing(values.marital_status)
-                    ? missingDataInInputClassName
-                    : ""
-                }
-              />
+              <div className="flex min-w-0 flex-col gap-2 w-full max-w-full">
+                <div className="flex min-w-0 items-end gap-2 sm:gap-2.5">
+                  <div className="min-w-0 flex-1 relative">
+                    <InputText
+                      label="Estado civil"
+                      labelClassName="text-[14px]! font-medium! text-white! ml-0.5!"
+                      disabled
+                      value={
+                        isMissing(values.marital_status)
+                          ? "Estado civil no registrado"
+                          : maritalRawToLabel(values.marital_status) ?? ""
+                      }
+                      className={`
+    transition-all! duration-200! dark:bg-[#1e2229]! dark:text-white! dark:border-slate-600/50! dark:px-3! focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!
+    disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
+    min-w-0 w-full max-w-full text-[14px]! font-medium! text-white! ml-0.5!
+    ${!isMissing(values.marital_status) ? "disabled:dark:text-slate-200!" : ""}
+    ${isMissing(values.marital_status) ? missingDataInInputClassName : ""}
+  `}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    title="Cambiar estado civil"
+                    onClick={() => setMaritalModalOpen(true)}
+                    className="h-[42px] w-[42px] sm:h-12 sm:w-12 flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                </div>
+              </div>
 
               <InputText
                 name="firstName"
@@ -342,7 +378,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
               <InputText
                 name="secondLastName"
                 label="Segundo apellido"
-                labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
+                labelClassName="text-[14px]! font-medium! text-white! ml-0.5!"
                 value={
                   isMissing(values.secondLastName)
                     ? "Segundo apellido no registrado"
@@ -355,7 +391,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
               <InputText
                 name="birthdate"
                 label="Fecha de nacimiento"
-                labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
+                labelClassName="text-[14px]! font-medium! text-white! ml-0.5!"
                 type="date"
                 value={
                   isMissing(values.birthdate)
@@ -379,9 +415,10 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                   isMissing(val) ? "Correo personal no registrado" : val
                 }
                 className={
-                  isMissing(values.personalEmail)
-                    ? missingDataInInputClassName
-                    : ""
+                  editableFieldInputClasses +
+                  (isMissing(values.personalEmail)
+                    ? ` ${missingDataInInputClassName}`
+                    : "")
                 }
               />
 
@@ -398,37 +435,32 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                   isMissing(val) ? "Teléfono personal no registrado" : val
                 }
                 className={
-                  isMissing(values.personalPhone)
-                    ? missingDataInInputClassName
-                    : ""
+                  editableFieldInputClasses +
+                  (isMissing(values.personalPhone)
+                    ? ` ${missingDataInInputClassName}`
+                    : "")
                 }
               />
 
               <div className="flex min-w-0 flex-col gap-2 w-full max-w-full">
                 <div className="flex min-w-0 items-end gap-2 sm:gap-2.5">
                   <div className="min-w-0 flex-1 relative">
-                    <Controller
-                      name="department_id"
-                      control={control}
-                      render={({ field }) => (
-                        <InputText
-                          label="Departamento"
-                          labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
-                          disabled
-                          editable={false}
-                          name={field.name}
-                          ref={field.ref}
-                          onBlur={field.onBlur}
-                          value={
-                            departmentMissing
-                              ? "Departamento no registrado"
-                              : departmentDisplayLabel
-                          }
-                          className={`${profileInputClassBase} ${
-                            !departmentMissing ? "disabled:dark:text-slate-200!" : ""
-                          } ${departmentMissing ? missingDataInInputClassName : ""}`}
-                        />
-                      )}
+                    <InputText
+                      label="Departamento"
+                      labelClassName="text-[14px]! font-medium! text-white! ml-0.5!"
+                      disabled
+                      value={
+                        departmentMissing
+                          ? "Departamento no registrado"
+                          : departmentDisplayLabel
+                      }
+                      className={`
+    transition-all! duration-200! dark:bg-[#1e2229]! dark:text-white! dark:border-slate-600/50! dark:px-3! focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!
+    disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
+    min-w-0 w-full max-w-full text-[14px]! font-medium! text-white! ml-0.5!
+    ${!departmentMissing ? "disabled:dark:text-slate-200!" : ""}
+    ${departmentMissing ? missingDataInInputClassName : ""}
+  `}
                     />
                   </div>
                   <button
@@ -455,7 +487,10 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                     isMissing(val) ? "Dirección no registrada" : val
                   }
                   className={
-                    isMissing(values.address) ? missingDataInInputClassName : ""
+                    editableFieldInputClasses +
+                    (isMissing(values.address)
+                      ? ` ${missingDataInInputClassName}`
+                      : "")
                   }
                 />
               </div>

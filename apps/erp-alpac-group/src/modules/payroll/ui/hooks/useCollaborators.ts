@@ -59,9 +59,16 @@ export const useCollaborators = function (props: useCollaboratorsProps) {
     mutationFn: (payload: UpdateCollaboratorProfileDetailsRequest) => {
       return collaboratorServices.UpdateCollaboratorProfileDetails(payload);
     },
-    onSuccess: () => {
+    onSuccess: (_, _variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["collaboratorProfileDetails"],
+        queryKey: [
+          "collaboratorProfileDetails",
+          {
+            company_id: _variables.company_id,
+            module_code: _variables.module_code,
+            identification_number: _variables.identification_number,
+          },
+        ],
       });
     },
   });

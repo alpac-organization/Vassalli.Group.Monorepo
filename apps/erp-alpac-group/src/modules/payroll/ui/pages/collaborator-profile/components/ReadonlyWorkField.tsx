@@ -4,7 +4,7 @@ import {
   isValueMissing,
   missingDataInInputClassName,
 } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/field-missing-message";
-import { toHtmlDateInputValue } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/date-input";
+import { formatIsoString } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/date-input";
 
 export const ReadonlyWorkField = ({
   name,
@@ -22,7 +22,7 @@ export const ReadonlyWorkField = ({
   const displayValue = missing
     ? missingLabel
     : type === "date"
-      ? toHtmlDateInputValue(value as string | Date)
+      ? formatIsoString(value as string | null)
       : String(value ?? "");
 
   return (
