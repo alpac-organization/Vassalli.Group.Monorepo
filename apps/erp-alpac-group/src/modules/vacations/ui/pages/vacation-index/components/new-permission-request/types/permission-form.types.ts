@@ -5,14 +5,15 @@ import type { UseFormSetError } from "react-hook-form";
  * Valores capturados y gestionados dentro del formulario de permiso.
  */
 export interface PermissionRequestFormValues {
-  type: PermissionType;
-  start_date: string;
-  end_date: string;
-  start_time?: string;
-  end_time?: string;
-  description: string;
+   type: PermissionType;
+   start_date: string;
+   end_date: string;
+   start_time?: string;
+   end_time?: string;
+   donated_vacation_days?: number;
+   description: string;
 }
 
 /** Tipo de `setError` de react-hook-form alineado con los campos del formulario. */
 export type PermissionFormSetError =
-  UseFormSetError<PermissionRequestFormValues>;
+   UseFormSetError<PermissionRequestFormValues>;
