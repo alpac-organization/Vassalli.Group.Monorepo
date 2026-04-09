@@ -19,3 +19,14 @@ export function currencyRawToLabel(
 
   return s;
 }
+
+/** De etiqueta mostrada en formulario al código de moneda (clave o valor de enum). */
+export function currencyLabelToApiCode(
+  label: string,
+): string | number | undefined {
+  const t = label.trim();
+  if (!t) return undefined;
+  const hit = Object.entries(CurrencyEnum).find(([, v]) => v.label === t);
+  if (!hit) return undefined;
+  return hit[1].value;
+}

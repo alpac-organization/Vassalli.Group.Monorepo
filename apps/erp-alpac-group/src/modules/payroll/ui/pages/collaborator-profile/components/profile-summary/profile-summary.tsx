@@ -45,7 +45,7 @@ export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
               <Briefcase size={14} className="shrink-0" />
 
               <p className="text-sm font-semibold uppercase tracking-wider sm:text-base">
-                {profile?.working_information.work_position ||
+                {profile?.working_information?.work_position ||
                   "Cargo no disponible"}
               </p>
             </div>

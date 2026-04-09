@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldPath } from "react-hook-form";
 import { useLocation, useParams } from "react-router-dom";
 import { InputText, Alert, AnimatedAlertWrapper } from "@alpac/design-system";
 import { Pencil } from "lucide-react";
@@ -141,7 +141,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
     setEditingFields((prev) => ({ ...prev, [name]: false }));
 
   const handleFieldUpdate = async (
-    name: keyof PersonalFormData,
+    name: FieldPath<PersonalFormData>,
     value: string,
   ) => {
     if (!companyId?.trim() || !moduleCode?.trim() || !targetIdentification) {
@@ -186,10 +186,10 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
     "disabled:dark:bg-[#1e2229]! text-[14px]! font-medium! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!";
 
   const editableFieldInputClasses = `
-    transition-all! duration-200! dark:bg-[#1e2229]! dark:text-white! dark:border-slate-600/50! dark:px-3! focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!
-    disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
-    min-w-0 w-full max-w-full text-[14px]! font-medium! text-white! ml-0.5!
-  `;
+         transition-all! duration-200! dark:bg-[#1e2229]! dark:border-slate-600/50! dark:px-3! focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!
+         disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
+         min-w-0 w-full max-w-full text-[14px]! font-medium! ml-0.5!
+      `;
   const currentDeptSubId = useMemo(() => {
     const n = Number(departmentId);
     return n > 0 ? n : null;
@@ -203,7 +203,6 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
 
   const isMissing = (val: unknown) =>
     val === undefined || val === null || String(val).trim() === "";
-
   return (
     <div className="flex flex-col w-full max-w-full relative min-h-0">
       <AnimatedAlertWrapper open={!!alertInfo}>
@@ -274,7 +273,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
         }
       />
 
-      <div className="w-full max-w-full mb-8">
+      <div className="w-full max-w-full mb-8  dark:border-neutral-700">
         <section className="w-full dark:bg-[#272b34] bg-white border border-slate-200 dark:border-neutral-700 shadow-sm overflow-hidden">
           <div className="p-4 sm:p-6">
             <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -316,13 +315,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                           ? "Estado civil no registrado"
                           : maritalRawToLabel(values.marital_status) ?? ""
                       }
-                      className={`
-    transition-all! duration-200! dark:bg-[#1e2229]! dark:text-white! dark:border-slate-600/50! dark:px-3! focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!
-    disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
-    min-w-0 w-full max-w-full text-[14px]! font-medium! text-white! ml-0.5!
-    ${!isMissing(values.marital_status) ? "disabled:dark:text-slate-200!" : ""}
-    ${isMissing(values.marital_status) ? missingDataInInputClassName : ""}
-  `}
+                      className={`transition-all! duration-200! dark:bg-[#1e2229]! dark:border-slate-600/50! dark:px-3! focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20! disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium! min-w-0 w-full max-w-full text-[14px]! font-medium! ml-0.5! ${!isMissing(values.marital_status) ? "text-white! dark:text-white! disabled:dark:text-slate-200!" : ""} ${isMissing(values.marital_status) ? missingDataInInputClassName : ""}`}
                     />
                   </div>
                   <button
@@ -414,12 +407,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 formatDisplayValue={(val) =>
                   isMissing(val) ? "Correo personal no registrado" : val
                 }
-                className={
-                  editableFieldInputClasses +
-                  (isMissing(values.personalEmail)
-                    ? ` ${missingDataInInputClassName}`
-                    : "")
-                }
+                className={editableFieldInputClasses}
               />
 
               <EditableField
@@ -434,12 +422,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 formatDisplayValue={(val) =>
                   isMissing(val) ? "Teléfono personal no registrado" : val
                 }
-                className={
-                  editableFieldInputClasses +
-                  (isMissing(values.personalPhone)
-                    ? ` ${missingDataInInputClassName}`
-                    : "")
-                }
+                className={editableFieldInputClasses}
               />
 
               <div className="flex min-w-0 flex-col gap-2 w-full max-w-full">
@@ -454,23 +437,17 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                           ? "Departamento no registrado"
                           : departmentDisplayLabel
                       }
-                      className={`
-    transition-all! duration-200! dark:bg-[#1e2229]! dark:text-white! dark:border-slate-600/50! dark:px-3! focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!
-    disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
-    min-w-0 w-full max-w-full text-[14px]! font-medium! text-white! ml-0.5!
-    ${!departmentMissing ? "disabled:dark:text-slate-200!" : ""}
-    ${departmentMissing ? missingDataInInputClassName : ""}
-  `}
+                      className={`transition-all! duration-200! dark:bg-[#1e2229]! dark:border-slate-600/50! dark:px-3! focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium! min-w-0 w-full max-w-full text-[14px]! font-medium! ml-0.5! ${!departmentMissing ? "text-white! dark:text-white! disabled:dark:text-slate-200!" : ""} ${departmentMissing ? missingDataInInputClassName : ""}`}
                     />
                   </div>
-                  <button
-                    type="button"
-                    title="Cambiar departamento"
-                    onClick={() => setDepartmentModalOpen(true)}
-                    className="h-[42px] w-[42px] sm:h-12 sm:w-12 flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
-                  >
-                    <Pencil size={16} />
-                  </button>
+                  {/* <button
+                       type="button"
+                      title="Cambiar departamento"
+                      onClick={() => setDepartmentModalOpen(true)}
+                       className="h-[42px] w-[42px] sm:h-12 sm:w-12 flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
+                              >
+                      <Pencil size={16} />
+                      </button> */}
                 </div>
               </div>
 
@@ -486,12 +463,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                   formatDisplayValue={(val) =>
                     isMissing(val) ? "Dirección no registrada" : val
                   }
-                  className={
-                    editableFieldInputClasses +
-                    (isMissing(values.address)
-                      ? ` ${missingDataInInputClassName}`
-                      : "")
-                  }
+                  className={editableFieldInputClasses}
                 />
               </div>
             </div>

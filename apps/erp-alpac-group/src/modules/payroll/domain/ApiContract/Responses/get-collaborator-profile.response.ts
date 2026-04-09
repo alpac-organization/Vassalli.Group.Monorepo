@@ -62,7 +62,7 @@ export interface CollaboratorProfileWorkingInformation {
   work_phone_number?: string;
   work_position?: string;
   branch_name?: string;
-  entry_date?: Date;
+  entry_date?: string;
 }
 export interface CollaboratorProfileSalaryInformation {
   salary?: number;

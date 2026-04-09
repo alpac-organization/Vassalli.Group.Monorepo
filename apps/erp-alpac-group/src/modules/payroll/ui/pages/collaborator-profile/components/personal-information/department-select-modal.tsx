@@ -3,27 +3,7 @@ import { Modal, Button, Dropdown } from "@alpac/design-system";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
 import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
-import type { UseMutationResult } from "@tanstack/react-query";
-import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/update-collaborator-request";
-
-export type DepartmentSelectModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  companyId: string;
-  currentDepartmentSubId: number | null;
-  identificationNumber: string;
-  moduleCode: string;
-  updateMutation: UseMutationResult<
-    void,
-    Error,
-    UpdateCollaboratorProfileDetailsRequest,
-    unknown
-  >;
-  /** Actualiza el formulario al instante; el GET del perfil a veces no trae `department_id`. */
-  onDepartmentSaved: (subCatalogId: number, departmentName: string) => void;
-  onSuccessMessage: () => void;
-  onErrorMessage: (msg: string) => void;
-};
+import type { DepartmentSelectModalProps } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/types/DepartmentSelectModalProps";
 
 export function DepartmentSelectModal({
   isOpen,
@@ -92,12 +72,17 @@ export function DepartmentSelectModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      size="lg"
       title="Seleccionar departamento"
-      description="Elige el departamento asignado al colaborador."
-      panelClassName="!max-w-md w-full dark:bg-[#272b34] dark:border dark:border-neutral-700"
+      panelClassName="!max-w-md w-full dark:border dark:border-neutral-700"
     >
-      <div className="flex flex-col gap-5">
+      <span className="text-slate-700 dark:text-slate-300">
+        Elige el departamento asignado al colaborador.
+      </span>
+      <div className="flex flex-col gap-5 pt-8 items-center justify-between">
         <Dropdown
+          appearance="dark"
+          labelClassName="text-white"
           label="Departamento"
           placeholder={
             GetCatalogListQuery.isPending ? "Cargando…" : "Seleccione…"
@@ -118,7 +103,7 @@ export function DepartmentSelectModal({
             size="giant"
             label="Cancelar"
             onClick={onClose}
-            className="min-w-0 text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600!"
+            className="min-w-0 text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-white! dark:text-slate-300! border! border-slate-300! dark:border-slate-600!"
           />
           <Button
             type="button"

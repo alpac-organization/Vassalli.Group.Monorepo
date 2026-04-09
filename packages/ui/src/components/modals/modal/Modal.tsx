@@ -13,6 +13,8 @@ export const Modal = ({
   title,
   description,
   children,
+  panelClassName,
+  closeButtonClassName,
 }: ModalProps): React.ReactNode => {
   const [isMounted, setIsMounted] = useState(false);
   const configVariant = MODAL_VARIANTS[variant];
@@ -54,7 +56,7 @@ export const Modal = ({
               <motion.div
                 role="dialog"
                 aria-modal="true"
-                className={`relative p-6 rounded-2xl shadow-xl ${configSize} w-full m-auto ${configVariant.bgClass}`}
+                className={`relative p-6 rounded-2xl shadow-xl ${configSize} w-full m-auto ${configVariant.bgClass} ${panelClassName ?? ""}`}
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -75,7 +77,9 @@ export const Modal = ({
                   </div>
                 )}
 
-                <div className="border-t border-t-slate-300 -mx-6 mb-6"></div>
+                {configVariant.icon && (
+                  <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6 mb-6" />
+                )}
 
                 {(title || description) && (
                   <div className="mb-4">
@@ -87,7 +91,7 @@ export const Modal = ({
                       </h2>
                     )}
                     {description && (
-                      <small className="text-slate-500 text-[14px]! leading-relaxed">
+                      <small className="text-slate-500 dark:text-slate-400 text-[14px]! leading-relaxed">
                         {description}
                       </small>
                     )}
@@ -97,7 +101,11 @@ export const Modal = ({
                 {children && <div>{children}</div>}
 
                 <button
-                  className="absolute top-5 right-5 p-1.5 text-slate-700 hover:text-slate-900 hover:bg-slate-300 rounded-full transition-all"
+                  type="button"
+                  className={`absolute top-5 right-5 p-1.5 rounded-full transition-all ${
+                    closeButtonClassName ??
+                    "text-slate-700 hover:text-slate-900 hover:bg-slate-300 dark:text-white dark:hover:text-white dark:hover:bg-white/15"
+                  }`}
                   onClick={onClose}
                   aria-label="Cerrar modal"
                 >

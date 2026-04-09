@@ -1,30 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Button, Dropdown } from "@alpac/design-system";
 import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
-import type { UseMutationResult } from "@tanstack/react-query";
-import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/update-collaborator-request";
 import {
   isValidMaritalStatusCode,
   MARITAL_STATUS_MIN,
-} from "./utils/normalizeMaritalStatusFromApi";
-
-export type MaritalStatusSelectModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  companyId: string;
-  currentMaritalStatus: number;
-  identificationNumber: string;
-  moduleCode: string;
-  updateMutation: UseMutationResult<
-    void,
-    Error,
-    UpdateCollaboratorProfileDetailsRequest,
-    unknown
-  >;
-  onMaritalSaved: (maritalStatus: number) => void;
-  onSuccessMessage: () => void;
-  onErrorMessage: (msg: string) => void;
-};
+} from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/normalizeMaritalStatusFromApi";
+import type { MaritalStatusSelectModalProps } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/types/MaritalStatusSelectModalProps";
 
 const dropdownOptions = MaritalStatusOptions.map((o) => ({
   value: o.value as number,
@@ -102,13 +83,16 @@ export function MaritalStatusSelectModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      size="lg"
       title="Seleccionar estado civil"
       description="Elige el estado civil registrado para el colaborador."
-      panelClassName="!max-w-md w-full dark:bg-[#272b34] dark:border dark:border-neutral-700"
+      panelClassName="!max-w-md w-full dark:border dark:border-neutral-700"
     >
       <div className="flex flex-col gap-5">
         <Dropdown
+          appearance="dark"
           label="Estado civil"
+          labelClassName="text-white"
           placeholder="Seleccione…"
           options={dropdownOptions}
           value={selected}

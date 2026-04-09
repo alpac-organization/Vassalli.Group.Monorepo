@@ -19,3 +19,13 @@ export function salaryTypeRawToLabel(
 
   return s;
 }
+
+/** De etiqueta de formulario al valor numérico del API (tipo de salario). */
+export function salaryTypeLabelToApiValue(
+  label: string,
+): number | undefined {
+  const t = label.trim();
+  if (!t) return undefined;
+  const entry = Object.values(SalaryTypeEnum).find((e) => e.label === t);
+  return entry?.value;
+}
