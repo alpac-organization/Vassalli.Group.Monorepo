@@ -63,11 +63,11 @@ export class CollaboratorServices implements ICollaboratorServices {
   public async UpdateCollaboratorProfileDetails(
     payload: UpdateCollaboratorProfileDetailsRequest,
   ): Promise<void> {
-    const { company_id, module_code, identification_number, ...body } = payload;
+    const { company_id, module_code, identification_number, ...rest } = payload;
     try {
       await this.apiHandler.patch<void>(
         `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}/details`,
-        body,
+        rest,
       );
     } catch (error) {
       throw error;
