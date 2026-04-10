@@ -3,6 +3,8 @@ export interface Option {
    value: string | number;
 }
 
+export type DropdownAppearance = "default" | "dark";
+
 export interface DropdownProps {
    label?: string;
    options: Option[];
@@ -15,4 +17,6 @@ export interface DropdownProps {
    labelClassName?: string;
    isRequired?: boolean;
    valueClassName?: string;
+   /** Dark panel surface (#272b34); matches dark modals. */
+   appearance?: DropdownAppearance;
 }
