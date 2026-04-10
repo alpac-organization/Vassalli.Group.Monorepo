@@ -9,14 +9,7 @@ import {
   isValueMissing,
   missingDataInInputClassName,
 } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/field-missing-message";
-
-// function formatDateLikeValue(value: unknown): string {
-//   if (value == null || value === "") return "";
-//   if (value instanceof Date && !Number.isNaN(value.getTime())) {
-//     return value.toISOString().slice(0, 10);
-//   }
-//   return String(value);
-// }
+import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 
 function formatValueForSubmit(value: unknown): string {
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
@@ -37,6 +30,7 @@ export function EditableField<TFieldValues extends FieldValues>({
   onConfirmUpdate,
   missingMessage = "No registrado",
   allowEdit = true,
+  displayFormat,
 }: EditableFieldProps<TFieldValues>) {
   const {
     register,
@@ -74,12 +68,15 @@ export function EditableField<TFieldValues extends FieldValues>({
         : isValueMissing(currentValue);
     if (empty) return;
 
+    const isValid = await formMethods.trigger(name);
+    if (!isValid) return;
+
     setIsUpdating(true);
     try {
       await onConfirmUpdate(name, formatValueForSubmit(currentValue));
       onEditEnd(name);
     } catch (error) {
-      console.error(error);
+      throw error;
     } finally {
       setIsUpdating(false);
     }
@@ -97,18 +94,24 @@ export function EditableField<TFieldValues extends FieldValues>({
   const valueToneClasses = showMissingStyle
     ? missingDataInInputClassName
     : "text-slate-800 dark:text-white!";
+
+  const formattedSubmitValue = formatValueForSubmit(currentValue);
   const displayValue = showMissingStyle
     ? missingMessage
-    : formatValueForSubmit(currentValue);
+    : type === "date" && !isEditing
+      ? formatDateToSpanishWords(formattedSubmitValue)
+      : displayFormat && !isEditing
+        ? displayFormat(formattedSubmitValue)
+        : formattedSubmitValue;
 
   return (
     <div className="flex min-w-0 flex-col gap-2 w-full max-w-full">
-      <div className="flex min-w-0 items-end gap-2 sm:gap-2.5">
+      <div className="flex min-w-0 items-start gap-2 sm:gap-2.5">
         <div className="min-w-0 flex-1 relative">
           <InputText
             label={label}
             labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
-            type={showMissingStyle ? "text" : type}
+            type={!isEditing || showMissingStyle ? "text" : type}
             disabled={!isEditing || !allowEdit || isUpdating}
             editable={false}
             error={errorMessage}
@@ -119,13 +122,13 @@ export function EditableField<TFieldValues extends FieldValues>({
         </div>
 
         {allowEdit && (
-          <div className="flex shrink-0 gap-2">
+          <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
             {!isEditing ? (
               <button
                 type="button"
                 onClick={handleStart}
                 title="Editar campo"
-                className="h-[42px] w-[42px] sm:h-12 sm:w-12 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
+                className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
               >
                 <Pencil size={16} />
               </button>
@@ -136,7 +139,7 @@ export function EditableField<TFieldValues extends FieldValues>({
                   onClick={handleCancel}
                   disabled={isUpdating}
                   title="Cancelar"
-                  className="h-[42px] w-[42px] sm:h-12 sm:w-12 flex items-center justify-center rounded-lg border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-300 transition-all duration-200"
+                  className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex items-center justify-center rounded-lg border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-300 transition-all duration-200"
                 >
                   <X size={16} />
                 </button>
@@ -145,7 +148,7 @@ export function EditableField<TFieldValues extends FieldValues>({
                   onClick={handleConfirm}
                   disabled={isConfirmDisabled}
                   title="Confirmar"
-                  className="h-[42px] w-[42px] sm:h-12 sm:w-12 flex items-center justify-center rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 disabled:opacity-40 transition-all duration-200"
+                  className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex items-center justify-center rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 disabled:opacity-40 transition-all duration-200"
                 >
                   {isUpdating ? (
                     <Loader2 size={16} className="animate-spin" />

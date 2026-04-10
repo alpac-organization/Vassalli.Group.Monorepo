@@ -22,16 +22,20 @@ import {
 import { useUpdatePersonalInformation } from "./utils/updateInformation";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
+import {
+  validateIdentificationNumber,
+  formatIdentificationNumber,
+  validateEmail,
+  validateNicaraguaPhone,
+  validateTextNoDigits,
+  formatPhone,
+} from "@app/shared/utils/string.utils";
 
 const defaultPersonalInformation: PersonalFormData = {
   identification_number: "",
   gender: "",
   marital_status: "",
   birthdate: "",
-  firstName: "",
-  secondName: "",
-  firstLastName: "",
-  secondLastName: "",
   address: "",
   personalEmail: "",
   personalPhone: "",
@@ -170,10 +174,30 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 isEditing={editingFields.identification_number}
                 onEditStart={handleEditStart}
                 onEditEnd={handleEditEnd}
-                onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "Administrator"}
+                onConfirmUpdate={async (name, value) => {
+                  const cleanValue = value.replace(/-/g, "");
+                  await handleFieldUpdate(name, cleanValue);
+                }}
+                allowEdit={false}
                 missingMessage="Número de identificación no registrado"
                 className={baseInputClasses}
+                validation={{
+                  onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                    const formatted = formatIdentificationNumber(
+                      e.target.value,
+                    );
+                    setValue("identification_number", formatted, {
+                      shouldValidate: true,
+                    });
+                  },
+                  validate: (value: string) =>
+                    validateIdentificationNumber(
+                      value,
+                      Number(
+                        profile?.personal_information?.identification_type,
+                      ),
+                    ),
+                }}
               />
 
               <EditableField
@@ -184,17 +208,18 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 onEditStart={handleEditStart}
                 onEditEnd={handleEditEnd}
                 onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "Administrator"}
+                allowEdit={false}
                 missingMessage="Género no registrado"
                 className={baseInputClasses}
+                validation={{ validate: validateTextNoDigits }}
               />
 
               <div className="flex min-w-0 flex-col gap-2 w-full max-w-full">
-                <div className="flex min-w-0 items-end gap-2 sm:gap-2.5">
+                <div className="flex min-w-0 items-start gap-2 sm:gap-2.5">
                   <div className="min-w-0 flex-1 relative">
                     <InputText
                       label="Estado civil"
-                      labelClassName="text-[14px]! font-medium! text-white! ml-0.5!"
+                      labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
                       disabled
                       value={
                         maritalMissing
@@ -206,71 +231,21 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                       className={`${baseInputClasses} ${maritalMissing ? missingDataInInputClassName : "text-white! dark:text-white!"}`}
                     />
                   </div>
-                  {currentRole === "Administrator" ||
-                    (currentRole === "Operator" && (
+                  {(currentRole === "Administrator" ||
+                    currentRole === "Operator") && (
+                    <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
                       <button
                         type="button"
                         title="Cambiar estado civil"
                         onClick={() => setMaritalModalOpen(true)}
-                        className="h-[42px] w-[42px] sm:h-12 sm:w-12 flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
+                        className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
                       >
                         <Pencil size={16} />
                       </button>
-                    ))}
+                    </div>
+                  )}
                 </div>
               </div>
-
-              <EditableField
-                name="firstName"
-                label="Primer nombre"
-                formMethods={formMethods}
-                isEditing={editingFields.firstName}
-                onEditStart={handleEditStart}
-                onEditEnd={handleEditEnd}
-                onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "Administrator"}
-                missingMessage="Primer nombre no registrado"
-                className={baseInputClasses}
-              />
-
-              <EditableField
-                name="secondName"
-                label="Segundo nombre"
-                formMethods={formMethods}
-                isEditing={editingFields.secondName}
-                onEditStart={handleEditStart}
-                onEditEnd={handleEditEnd}
-                onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "Administrator"}
-                missingMessage="Segundo nombre no registrado"
-                className={baseInputClasses}
-              />
-
-              <EditableField
-                name="firstLastName"
-                label="Primer apellido"
-                formMethods={formMethods}
-                isEditing={editingFields.firstLastName}
-                onEditStart={handleEditStart}
-                onEditEnd={handleEditEnd}
-                onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "admin"}
-                missingMessage="Primer apellido no registrado"
-                className={baseInputClasses}
-              />
-
-              <EditableField
-                name="secondLastName"
-                label="Segundo apellido"
-                formMethods={formMethods}
-                isEditing={editingFields.secondLastName}
-                onEditStart={handleEditStart}
-                onEditEnd={handleEditEnd}
-                onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "Administrator"}
-                missingMessage="Segundo apellido no registrado"
-                className={baseInputClasses}
-              />
 
               <EditableField
                 name="birthdate"
@@ -281,7 +256,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 onEditStart={handleEditStart}
                 onEditEnd={handleEditEnd}
                 onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "Administrator"}
+                allowEdit={false}
                 missingMessage="Fecha de nacimiento no registrada"
                 className={baseInputClasses}
               />
@@ -300,6 +275,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 }
                 missingMessage="Correo personal no registrado"
                 className={baseInputClasses}
+                validation={{ validate: validateEmail }}
               />
 
               <EditableField
@@ -310,12 +286,28 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 isEditing={editingFields.personalPhone}
                 onEditStart={handleEditStart}
                 onEditEnd={handleEditEnd}
-                onConfirmUpdate={handleFieldUpdate}
+                onConfirmUpdate={async (name, value) => {
+                  const cleanValue = value.replace(/-/g, "");
+                  await handleFieldUpdate(name, cleanValue);
+                }}
                 allowEdit={
                   currentRole === "Administrator" || currentRole === "Operator"
                 }
                 missingMessage="Teléfono personal no registrado"
                 className={baseInputClasses}
+                validation={{
+                  onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                    const formatted = formatPhone(e.target.value);
+                    setValue("personalPhone", formatted, {
+                      shouldValidate: true,
+                    });
+                  },
+                  maxLength: {
+                    value: 9,
+                    message: "El teléfono no puede exceder 8 dígitos",
+                  },
+                  validate: validateNicaraguaPhone,
+                }}
               />
 
               <div className="flex min-w-0 flex-col gap-2 w-full max-w-full">
@@ -323,7 +315,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                   <div className="min-w-0 flex-1 relative">
                     <InputText
                       label="Departamento"
-                      labelClassName="text-[14px]! font-medium! text-white! ml-0.5!"
+                      labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
                       disabled
                       value={
                         departmentMissing
@@ -333,17 +325,19 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                       className={`${baseInputClasses} ${departmentMissing ? missingDataInInputClassName : "text-white! dark:text-white!"}`}
                     />
                   </div>
-                  {/* {currentRole === "Administrator" ||
-                    (currentRole === "Operator" && (
+                  {/* {(currentRole === "Administrator" ||
+                    currentRole === "Operator") && (
+                    <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
                       <button
                         type="button"
                         title="Cambiar departamento"
                         onClick={() => setDepartmentModalOpen(true)}
-                        className="h-[42px] w-[42px] sm:h-12 sm:w-12 flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
+                        className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
                       >
                         <Pencil size={16} />
                       </button>
-                    ))} */}
+                    </div>
+                  )} */}
                 </div>
               </div>
 
@@ -362,6 +356,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                   }
                   missingMessage="Dirección no registrada"
                   className={baseInputClasses}
+                  validation={{ validate: validateTextNoDigits }}
                 />
               </div>
             </div>

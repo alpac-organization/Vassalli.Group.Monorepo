@@ -3,10 +3,6 @@ export interface PersonalFormData {
   gender?: string;
   marital_status?: string;
   birthdate?: string;
-  firstName?: string;
-  secondName?: string;
-  firstLastName?: string;
-  secondLastName?: string;
   address?: string;
   personalEmail?: string;
   personalPhone?: string;
@@ -23,9 +19,6 @@ export interface WorkFormData {
   bankAccountNumber?: string;
   bankName?: string;
   branchName?: string;
-  salary_information?: SalaryFormData;
-}
-export interface SalaryFormData {
   salaryAmount?: string;
   currency?: string;
   salaryType?: string;
