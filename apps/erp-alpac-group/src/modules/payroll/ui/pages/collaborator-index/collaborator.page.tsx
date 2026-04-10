@@ -113,7 +113,7 @@ export const CollaboratorPage = function () {
    const optionsBanks = mapCatalogToOptions(banks);
 
    const onSubmit: SubmitHandler<CollaboratorRequest> = async (data) => {
-      setFilters((prev) => ({ ...prev, ...data }));
+      setFilters((prev) => ({ ...prev, ...data, page_number: 1 }));
    };
 
    const handlePageChange = useCallback((page: number) => {
@@ -127,6 +127,7 @@ export const CollaboratorPage = function () {
          key: 'identification_number',
          label: 'Identificación',
          render: (value: GetCollaboratorsResponse) => {
+            if (!value.identification_number) return '—'
             if (value.identification_number.length !== 14) return value.identification_number
             return formatIdentificationNumber(value.identification_number)
          },
@@ -137,10 +138,15 @@ export const CollaboratorPage = function () {
       { key: 'vacations', label: 'Vacaciones' },
       {
          key: 'status', label: 'Estado', render: (value: GetCollaboratorsResponse) => (
-            <Badges
-               label={CollaboratorStatusEnum[value.status].label}
-               color={CollaboratorStatusBadgeColor[value.status]}
-            />
+            !value.status || !CollaboratorStatusEnum[value.status] ? '—' : (
+               <Badges
+                  label={CollaboratorStatusEnum[value.status].label}
+                  color={
+                     CollaboratorStatusBadgeColor[value.status] ??
+                     'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                  }
+               />
+            )
          )
       },
       {
@@ -155,7 +161,7 @@ export const CollaboratorPage = function () {
                   navigate('collaborator-profile', {
                      state: {
                         identification_number: value.identification_number,
-                     }
+                     },
                   });
                }}
             />
@@ -318,7 +324,17 @@ export const CollaboratorPage = function () {
                            labelClassName="text-black! dark:text-white!"
                            type="text"
                            placeholder="Ingrese la identificación"
-                           {...register('identification_number', { required: false })}
+                           {...register('identification_number',
+                              {
+                                 setValueAs: (value: string) =>
+                                    value ? value.toString().replace(/-/g, "").toUpperCase()
+                                       : "",
+                                 required: false,
+                                 onChange: (e) => {
+                                    e.target.value = formatIdentificationNumber(e.target.value)
+                                    register("identification_number").onChange(e);
+                                 }
+                              })}
                         />
                      </div>
 

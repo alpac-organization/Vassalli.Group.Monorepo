@@ -26,12 +26,12 @@ export const Modal = ({
 
    useEffect(() => {
       if (isOpen) {
-         document.body.style.overflow = 'hidden';
+         document.body.style.overflow = "hidden";
       } else {
-         document.body.style.overflow = 'unset';
+         document.body.style.overflow = "unset";
       }
       return () => {
-         document.body.style.overflow = 'unset';
+         document.body.style.overflow = "unset";
       };
    }, [isOpen]);
 
@@ -53,7 +53,7 @@ export const Modal = ({
                      <motion.div
                         role="dialog"
                         aria-modal="true"
-                        className={`relative p-6 rounded-2xl shadow-xl ${configSize} w-full m-auto ${configVariant.bgClass} ${panelClassName ?? ""}`}
+                        className={`relative p-6 rounded-2xl shadow-xl dark:shadow-[0_0_50px_-12px_rgba(0,0,0,0.7)] ${configSize} w-full m-auto ${configVariant.bgClass} ${panelClassName ?? ""}`}
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
