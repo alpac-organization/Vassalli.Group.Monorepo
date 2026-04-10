@@ -5,6 +5,7 @@ import {
    InputText,
    Dropdown,
    Button,
+   Badges,
 } from '@alpac/design-system';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 import { motion } from 'framer-motion';
@@ -24,7 +25,7 @@ import type { GetCollaboratorsResponse } from '@app/modules/payroll/domain/ApiCo
 import type { CollaboratorProfileLocationState } from '@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types';
 import { useCatalog } from '@app/modules/catalog/ui/hooks/useCatalog';
 import { CatalogEnum } from '@app/core/enums/catalog.enum';
-import { CollaboratorStatusOptions } from '@app/modules/payroll/domain/enums/collaborator-status.enum';
+import { CollaboratorStatusBadgeColor, CollaboratorStatusEnum, CollaboratorStatusOptions } from '@app/modules/payroll/domain/enums/collaborator-status.enum';
 import { mapCatalogToOptions } from '@app/shared/utils/catalog.utils';
 import { formatIdentificationNumber } from '@app/shared/utils/string.utils';
 import { AddCollaboratorModal } from '@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal';
@@ -121,7 +122,15 @@ export const CollaboratorPage = function () {
       { key: 'branch_name', label: 'Sucursal' },
       { key: 'work_area', label: 'Área' },
       { key: 'work_position', label: 'Posición' },
-      { key: 'status', label: 'Estado' },
+      { key: 'vacations', label: 'Vacaciones' },
+      {
+         key: 'status', label: 'Estado', render: (value: GetCollaboratorsResponse) => (
+            <Badges
+               label={CollaboratorStatusEnum[value.status].label}
+               color={CollaboratorStatusBadgeColor[value.status]}
+            />
+         )
+      },
       {
          key: 'actions',
          label: 'Acciones',
