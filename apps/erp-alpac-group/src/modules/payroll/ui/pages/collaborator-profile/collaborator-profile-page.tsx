@@ -3,7 +3,7 @@ import { useParams, useLocation } from "react-router-dom";
 import { Banner, TabHeader, type TabOption } from "@alpac/design-system";
 
 //Componentes seccionales del perfil del colaborador
-import { ProfileSummary } from "./components/profile-summary/profile-summary";
+import { ProfileSummary } from "@app/modules/payroll/ui/pages/collaborator-profile/components/profile-summary/profile-summary";
 import type { TabId } from "@app/modules/payroll/ui/pages/collaborator-profile/types/tabs.type";
 import type { CollaboratorProfileLocationState } from "@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types";
 import { PersonalInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/personal-information";

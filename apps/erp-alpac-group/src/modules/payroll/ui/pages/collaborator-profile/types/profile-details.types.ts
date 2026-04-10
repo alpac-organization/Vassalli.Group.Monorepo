@@ -18,7 +18,8 @@ export interface PersonalFormData {
   departament: string;
 }
 export interface WorkFormData {
-  entry_date?: Date;
+  /** Valor `yyyy-MM-dd` para inputs tipo date. */
+  entry_date?: string;
   jobPosition: string;
   workArea: string;
   workEmail?: string;

@@ -10,23 +10,21 @@ export type MaritalStatusSource = string | number | null | undefined;
  * - etiqueta en español (`"Separado"`)
  */
 export function maritalRawToLabel(raw: MaritalStatusSource): string | null {
-  if (raw === null || raw === undefined) return null;
-
-  const s = String(raw).trim();
-  if (s === "") return null;
+  if (raw === null || raw === "") return null;
 
   const code = normalizeMaritalStatusFromApi(raw);
   if (code !== "") {
+    console.log("code", code);
     const n = Number(code);
     const hit = Object.values(MaritalStatus).find((m) => m.value === n);
     return hit?.label ?? null;
   }
 
-  const byExactKey = MaritalStatus[s as keyof typeof MaritalStatus];
+  const byExactKey = MaritalStatus[raw as keyof typeof MaritalStatus];
   if (byExactKey && typeof byExactKey === "object" && "label" in byExactKey) {
     return byExactKey.label;
   }
 
-  const byLabel = Object.values(MaritalStatus).find((m) => m.label === s);
+  const byLabel = Object.values(MaritalStatus).find((m) => m.label === raw);
   return byLabel?.label ?? null;
 }
