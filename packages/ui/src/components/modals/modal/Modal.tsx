@@ -23,9 +23,6 @@ export const Modal = ({
    useEffect(() => {
       setIsMounted(true);
    }, []);
-   useEffect(() => {
-      setIsMounted(true);
-   }, []);
 
    useEffect(() => {
       if (isOpen) {
@@ -37,18 +34,7 @@ export const Modal = ({
          document.body.style.overflow = 'unset';
       };
    }, [isOpen]);
-   useEffect(() => {
-      if (isOpen) {
-         document.body.style.overflow = 'hidden';
-      } else {
-         document.body.style.overflow = 'unset';
-      }
-      return () => {
-         document.body.style.overflow = 'unset';
-      };
-   }, [isOpen]);
 
-   if (!isMounted) return null;
    if (!isMounted) return null;
 
    return createPortal(
@@ -109,7 +95,6 @@ export const Modal = ({
                            </div>
                         )}
 
-                        {children && <div>{children}</div>}
                         {children && <div>{children}</div>}
 
                         <button
