@@ -3,37 +3,31 @@ import type { PersonalFormData } from "@app/modules/payroll/ui/pages/collaborato
 import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import { genderRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/genderRawToLabel";
 import { formatIsoString } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/date-input";
-import { normalizeMaritalStatusFromApi } from "./normalizeMaritalStatusFromApi";
+import { maritalRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/marital-status.utils";
 
 export function mapPersonalInformationToForm(
-  personal: CollaboratorProfilePersonalInformation | undefined,
+  personal: CollaboratorProfilePersonalInformation | null,
 ): Pick<
   PersonalFormData,
   | "identification_number"
   | "gender"
   | "marital_status"
-  | "birthdate"
   | "address"
   | "personalEmail"
+  | "birthdate"
   | "personalPhone"
-  | "department_id"
-  | "departament"
+  | "department"
 > {
   return {
     identification_number: formatIdentificationNumber(
       personal?.identification_number ?? "",
     ),
-    gender: genderRawToLabel(personal?.gender) ?? "",
-    marital_status: normalizeMaritalStatusFromApi(personal?.marital_status),
+    gender: genderRawToLabel(personal?.gender ?? null) ?? "",
+    marital_status: maritalRawToLabel(personal?.marital_status ?? null) ?? "",
     birthdate: formatIsoString(personal?.birthdate as string | null),
     address: personal?.address ?? "",
     personalEmail: personal?.personal_email ?? "",
     personalPhone: personal?.personal_phone_number ?? "",
-    department_id:
-      personal?.departament_id !== undefined &&
-      personal?.departament_id !== null
-        ? String(personal.departament_id)
-        : "",
-    departament: "",
+    department: personal?.department ?? "",
   };
 }

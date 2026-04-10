@@ -1,10 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal, Button, Dropdown } from "@alpac/design-system";
 import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
-import {
-  isValidMaritalStatusCode,
-  MARITAL_STATUS_MIN,
-} from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/normalizeMaritalStatusFromApi";
+import { isValidMaritalStatusCode } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/marital-status.utils";
 import type { MaritalStatusSelectModalProps } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/types/MaritalStatusSelectModalProps";
 
 const dropdownOptions = MaritalStatusOptions.map((o) => ({
@@ -15,69 +12,28 @@ const dropdownOptions = MaritalStatusOptions.map((o) => ({
 export function MaritalStatusSelectModal({
   isOpen,
   onClose,
-  companyId,
   currentMaritalStatus,
-  identificationNumber,
-  moduleCode,
-  updateMutation,
-  onMaritalSaved,
-  onSuccessMessage,
-  onErrorMessage,
+  isSaving,
+  onConfirm,
 }: MaritalStatusSelectModalProps) {
-  const [selected, setSelected] = useState<number>(MARITAL_STATUS_MIN);
+  const [selected, setSelected] = useState<number>(currentMaritalStatus);
 
-  const initialSelection = useMemo(() => {
-    if (!isValidMaritalStatusCode(currentMaritalStatus)) {
-      return MARITAL_STATUS_MIN;
-    }
-    return currentMaritalStatus;
+  // Sincronizar si cambia el valor desde afuera
+  useEffect(() => {
+    setSelected(currentMaritalStatus);
   }, [currentMaritalStatus]);
 
-  useEffect(() => {
-    if (isOpen) {
-      setSelected(initialSelection);
-    }
-  }, [isOpen, initialSelection]);
-
-  const contextMissing =
-    !companyId.trim() || !moduleCode.trim() || !identificationNumber.trim();
-
-  const handleConfirm = () => {
-    if (contextMissing) {
-      onErrorMessage("Falta contexto de empresa o identificación.");
-      return;
-    }
-    if (!isValidMaritalStatusCode(selected)) {
-      onErrorMessage("Seleccione un estado civil válido.");
-      return;
-    }
-
-    updateMutation.mutate(
-      {
-        company_id: companyId,
-        module_code: moduleCode,
-        identification_number: identificationNumber,
-        personal_information: {
-          marital_status: selected,
-        },
-      },
-      {
-        onSuccess: () => {
-          onMaritalSaved(selected);
-          onSuccessMessage();
-          onClose();
-        },
-        onError: () => {
-          onErrorMessage("No se pudo actualizar el estado civil.");
-        },
-      },
-    );
+  const handleConfirm = async () => {
+    if (!isValidMaritalStatusCode(selected)) return;
+    await onConfirm(selected);
+    onClose();
   };
 
-  const confirmDisabled =
-    updateMutation.isPending ||
-    !isValidMaritalStatusCode(selected) ||
-    contextMissing;
+  // ✅ LA SOLUCIÓN: El botón se deshabilita si está guardando, si el código no es válido,
+  // O si el usuario NO HA CAMBIADO el valor original.
+  const hasChanged = selected !== currentMaritalStatus;
+  const isConfirmDisabled =
+    isSaving || !isValidMaritalStatusCode(selected) || !hasChanged;
 
   return (
     <Modal
@@ -85,10 +41,9 @@ export function MaritalStatusSelectModal({
       onClose={onClose}
       size="lg"
       title="Seleccionar estado civil"
-      description="Elige el estado civil registrado para el colaborador."
       panelClassName="!max-w-md w-full dark:border dark:border-neutral-700"
     >
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-5 items-center justify-between">
         <Dropdown
           appearance="dark"
           label="Estado civil"
@@ -99,21 +54,21 @@ export function MaritalStatusSelectModal({
           onChange={(v) => setSelected(Number(v))}
           className="w-full"
         />
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 w-full">
           <Button
             type="button"
-            size="giant"
+            size="medium"
             label="Cancelar"
             onClick={onClose}
-            className="min-w-0 text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-white! border! border-slate-300! dark:border-neutral-400!"
+            className="..."
           />
           <Button
             type="button"
-            size="giant"
-            label={updateMutation.isPending ? "Guardando…" : "Confirmar"}
+            size="medium"
+            label={isSaving ? "Guardando…" : "Confirmar"}
             onClick={handleConfirm}
-            disabled={confirmDisabled}
-            className="min-w-0 text-[15px]! rounded-md! bg-alpac-primary-500! text-white! dark:bg-alpac-primary-500! dark:text-white! disabled:opacity-50!"
+            disabled={isConfirmDisabled}
+            className="..."
           />
         </div>
       </div>

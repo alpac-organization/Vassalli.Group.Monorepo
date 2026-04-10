@@ -19,8 +19,7 @@ export interface UpdateCollaboratorProfileDetailsRequest {
   identification_number: string;
   personal_information?: UpdatePersonalInformationRequest;
   working_information?: UpdateWorkingInformationRequest;
-  /** Nómina / salario; opcional según contrato del backend. */
-  salary_information?: UpdateSalaryInformationRequest;
+  // salary_information?: UpdateSalaryInformationRequest;
 }
 export interface UpdatePersonalInformationRequest {
   address?: string;
@@ -32,19 +31,9 @@ export interface UpdatePersonalInformationRequest {
 export interface UpdateWorkingInformationRequest {
   work_email?: string;
   work_phone_number?: string;
-  inss_number?: string;
-  bank_account_number?: string;
-  work_area_id?: number;
-  work_position_id?: number;
-  branch_id?: number;
-  bank_name?: string;
-  entry_date?: string;
-  work_area?: string;
-  work_position?: string;
-  branch_name?: string;
 }
-export interface UpdateSalaryInformationRequest {
-  salary?: number;
-  currency?: string | number;
-  salary_type?: number;
-}
+// export interface UpdateSalaryInformationRequest {
+//   salary?: number;
+//   currency?: string | number;
+//   salary_type?: number;
+// }

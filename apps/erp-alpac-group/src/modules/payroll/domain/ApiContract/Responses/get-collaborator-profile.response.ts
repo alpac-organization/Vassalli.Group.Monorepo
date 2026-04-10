@@ -42,16 +42,15 @@ export interface GetCollaboratorProfileDetailsResponse {
 }
 
 export interface CollaboratorProfilePersonalInformation {
-  gender: string;
-  /** Id numérico, clave del enum o texto del backend. */
-  identification_type?: string | number;
-  identification_number: string;
-  address: string;
-  personal_email: string;
-  personal_phone_number: string;
-  departament_id?: number;
+  gender?: string;
+  identification_type?: string | number | null;
+  identification_number?: string;
+  address?: string;
+  personal_email?: string;
+  personal_phone_number?: string;
   birthdate?: string;
-  marital_status: string;
+  marital_status?: string;
+  department?: string;
 }
 export interface CollaboratorProfileWorkingInformation {
   inss_number?: string;

@@ -1,24 +1,19 @@
 export interface PersonalFormData {
-  identification_number: string;
-  /** Valor crudo del API (p. ej. Man, Woman). */
-  gender: string;
-  /** Código numérico 0–7 como string para estado civil. */
-  marital_status: string;
-  birthdate: string;
-  firstName: string;
+  identification_number?: string;
+  gender?: string;
+  marital_status?: string;
+  birthdate?: string;
+  firstName?: string;
   secondName?: string;
-  firstLastName: string;
+  firstLastName?: string;
   secondLastName?: string;
-  address: string;
-  personalEmail: string;
-  personalPhone: string;
-  /** `sub_catalog_id` del catálogo departamentos, string para RHF. */
-  department_id: string;
-  /** Nombre departamento desde API o tras guardar en modal (fallback de etiqueta). */
-  departament: string;
+  address?: string;
+  personalEmail?: string;
+  personalPhone?: string;
+  department_id?: string;
+  department?: string;
 }
 export interface WorkFormData {
-  /** Valor `yyyy-MM-dd` para inputs tipo date. */
   entry_date?: string;
   jobPosition: string;
   workArea: string;
@@ -28,6 +23,9 @@ export interface WorkFormData {
   bankAccountNumber?: string;
   bankName?: string;
   branchName?: string;
+  salary_information?: SalaryFormData;
+}
+export interface SalaryFormData {
   salaryAmount?: string;
   currency?: string;
   salaryType?: string;
