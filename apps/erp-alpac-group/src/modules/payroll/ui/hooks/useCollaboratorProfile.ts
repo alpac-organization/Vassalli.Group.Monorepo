@@ -1,12 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { CollaboratorProfileServices } from "@app/modules/payroll/infrastructure/services/Collaborator-profileServices";
+import { CollaboratorServices } from "@app/modules/payroll/infrastructure/services/CollaboratorServices";
 
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-profile.request";
 
-const collaboratorProfileServices = new CollaboratorProfileServices(
-   httpHandler,
-);
+const collaboratorProfileServices = new CollaboratorServices(httpHandler);
 
 export const useCollaboratorProfileDetails = (
    payload: CollaboratorProfileDetailsRequest,
