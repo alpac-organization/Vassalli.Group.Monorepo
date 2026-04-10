@@ -372,11 +372,10 @@ export const AddCollaboratorModal = (
                      <InputText
                         label="Teléfono Personal"
                         placeholder="8888-8888"
-                        isRequired
                         type="tel"
                         className="dark:text-black! rounded-md!"
                         {...register("personal_information.personal_phone_number", {
-                           required: "El teléfono personal es requerido",
+                           required: false,
                            pattern: {
                               value: /^[2578]\d{7}$/,
                               message: "El número debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)",
@@ -386,10 +385,6 @@ export const AddCollaboratorModal = (
                                  ? value.toString().replace(/-/g, "")
                                  : "",
                         })}
-                        error={
-                           errors.personal_information?.personal_phone_number &&
-                           errors.personal_information?.personal_phone_number?.message
-                        }
                         onChange={(evt) => {
                            evt.target.value = formatPhone(evt.target.value);
                            register("personal_information.personal_phone_number").onChange(evt);
@@ -419,7 +414,7 @@ export const AddCollaboratorModal = (
                         control={control}
                         rules={{
                            required: "Debe seleccionar un estado civil",
-                           validate: (val) => val !== -1 || "Selección inválida",
+                           validate: (val) => val !== 0 || "Selección inválida",
                         }}
                         render={({ field }) => (
                            <Dropdown
@@ -549,10 +544,6 @@ export const AddCollaboratorModal = (
                               validEmail: (value?: string) => validateEmail(value),
                            },
                         })}
-                        error={
-                           errors.working_information?.work_email &&
-                           errors.working_information?.work_email?.message
-                        }
                      />
 
                      <InputText
@@ -570,10 +561,6 @@ export const AddCollaboratorModal = (
                                  ? value.toString().replace(/-/g, "")
                                  : "",
                         })}
-                        error={
-                           errors.working_information?.work_phon_number &&
-                           errors.working_information?.work_phon_number?.message
-                        }
                         onChange={(evt) => {
                            evt.target.value = formatPhone(evt.target.value);
                            register("working_information.work_phon_number").onChange(evt);
