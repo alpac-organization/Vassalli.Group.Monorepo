@@ -4,6 +4,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { ModalProps } from './modal.type';
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { MODAL_SIZES, MODAL_VARIANTS } from './modal.constants';
+import { AnimatePresence, motion } from 'framer-motion';
+import { X } from 'lucide-react';
+import { ModalProps } from './modal.type';
+import { useState, useEffect } from 'react';
 
 export const Modal = ({
    isOpen,
@@ -22,6 +28,9 @@ export const Modal = ({
    useEffect(() => {
       setIsMounted(true);
    }, []);
+   useEffect(() => {
+      setIsMounted(true);
+   }, []);
 
    useEffect(() => {
       if (isOpen) {
@@ -33,7 +42,18 @@ export const Modal = ({
          document.body.style.overflow = 'unset';
       };
    }, [isOpen]);
+   useEffect(() => {
+      if (isOpen) {
+         document.body.style.overflow = 'hidden';
+      } else {
+         document.body.style.overflow = 'unset';
+      }
+      return () => {
+         document.body.style.overflow = 'unset';
+      };
+   }, [isOpen]);
 
+   if (!isMounted) return null;
    if (!isMounted) return null;
 
    return createPortal(
@@ -94,7 +114,24 @@ export const Modal = ({
                               )}
                            </div>
                         )}
+                        {(title || description) && (
+                           <div className="mb-4">
+                              {title && (
+                                 <h2
+                                    className={`text-xl! font-bold m-0! ${configVariant.textClass}`}
+                                 >
+                                    {title}
+                                 </h2>
+                              )}
+                              {description && (
+                                 <small className="text-slate-500 text-[14px]! leading-relaxed">
+                                    {description}
+                                 </small>
+                              )}
+                           </div>
+                        )}
 
+                        {children && <div>{children}</div>}
                         {children && <div>{children}</div>}
 
                         <button
