@@ -20,7 +20,7 @@ export class CollaboratorServices implements ICollaboratorServices {
       try {
          const { company_id, module_code, ...rest } = payload;
 
-         let collaborators =
+         const collaborators =
             await this.apiHandler.get<GetCollaboratorsListResponse>(
                `/companies/${company_id}/modules/${module_code}/collaborators`,
                {
