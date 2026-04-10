@@ -12,4 +12,5 @@ export interface EditableFieldProps<TFieldValues extends FieldValues> {
   onConfirmUpdate: (name: Path<TFieldValues>, value: string) => Promise<void>;
   missingMessage?: string;
   allowEdit?: boolean;
+  displayFormat?: (value: string) => string;
 }

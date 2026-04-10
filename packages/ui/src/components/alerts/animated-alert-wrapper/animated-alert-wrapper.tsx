@@ -1,4 +1,10 @@
-import { useState, useEffect, useRef, type ReactNode, type ReactPortal } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  type ReactNode,
+  type ReactPortal,
+} from "react";
 import { createPortal } from "react-dom";
 
 import type { AnimatedAlertWrapperProps } from "./animated-alert-wrapper.types";

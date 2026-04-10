@@ -61,7 +61,7 @@ export const useUpdatePersonalInformation = ({
         default:
           return;
       }
-
+      console.log(payload);
       await UpdateCollaboratorProfileDetails.mutateAsync({
         company_id: companyId,
         module_code: moduleCode,
