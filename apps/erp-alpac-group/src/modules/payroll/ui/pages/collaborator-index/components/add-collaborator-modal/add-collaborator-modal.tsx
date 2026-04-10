@@ -178,7 +178,7 @@ export const AddCollaboratorModal = (
                {/* Paso 1: Datos de Identidad */}
                <section className={`transition-all duration-500 transform ${currentStep === 0 ? "opacity-100 translate-x-0 relative z-10" : currentStep > 0 ? "opacity-0 translate-x-8 absolute inset-0 -z-10 pointer-events-none" : "opacity-0 -translate-x-8 absolute inset-0 -z-10 pointer-events-none"}`}>
                   <div className="flex items-center gap-2 mb-6">
-                     <h3 className="text-[16px]! font-bold text-slate-800 dark:text-slate-800">
+                     <h3 className="text-[16px]! font-bold text-slate-800 dark:text-white!">
                         Datos de Identidad
                      </h3>
                   </div>
@@ -187,9 +187,15 @@ export const AddCollaboratorModal = (
                         label="Primer Nombre"
                         placeholder="Ej. Juan"
                         isRequired
-                        className="dark:text-black! rounded-md!"
+                        pattern="^[A-Za-z]*$"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
                         {...register("first_name", {
                            required: "El primer nombre es requerido",
+                           pattern: {
+                              value: /^[A-Za-z]*$/,
+                              message: "El primer nombre solo puede contener letras",
+                           }
                         })}
                         error={errors.first_name && errors.first_name.message}
                      />
@@ -197,24 +203,48 @@ export const AddCollaboratorModal = (
                      <InputText
                         label="Segundo Nombre"
                         placeholder="Ej. Antonio"
-                        className="dark:text-black! rounded-md!"
-                        {...register("second_name", { required: false })}
+                        pattern="^[A-Za-z]*$"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
+                        {...register("second_name", {
+                           required: false,
+                           pattern: {
+                              value: /^[A-Za-z]*$/,
+                              message: "El segundo nombre solo puede contener letras"
+                           }
+                        })}
+                        error={errors.second_name && errors.second_name.message}
                      />
 
                      <InputText
                         label="Tercer Nombre"
                         placeholder="Opcional"
-                        className="dark:text-black! rounded-md!"
-                        {...register("third_name", { required: false })}
+                        pattern="^[A-Za-z]*$"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
+                        {...register("third_name", {
+                           required: false,
+                           pattern: {
+                              value: /^[A-Za-z]*$/,
+                              message: "El tercer nombre solo puede contener letras"
+                           }
+                        })}
+                        error={errors.third_name && errors.third_name.message}
                      />
 
                      <InputText
                         label="Primer Apellido"
                         placeholder="Ej. Pérez"
                         isRequired
-                        className="dark:text-black! rounded-md!"
+                        pattern="^[A-Za-z]*$"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
                         {...register("first_lastname", {
                            required: "El primer apellido es requerido",
+                           pattern: {
+                              value: /^[A-Za-z]*$/,
+                              message: "El primer apellido solo puede contener letras"
+                           }
                         })}
                         error={errors.first_lastname && errors.first_lastname.message}
                      />
@@ -222,8 +252,17 @@ export const AddCollaboratorModal = (
                      <InputText
                         label="Segundo Apellido"
                         placeholder="Ej. García"
-                        className="dark:text-black! rounded-md!"
-                        {...register("second_lastname", { required: false })}
+                        pattern="^[A-Za-z]*$"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
+                        {...register("second_lastname", {
+                           required: false,
+                           pattern: {
+                              value: /^[A-Za-z]*$/,
+                              message: "El segundo apellido solo puede contener letras"
+                           }
+                        })}
+                        error={errors.second_lastname && errors.second_lastname.message}
                      />
 
                      <Controller
@@ -237,14 +276,17 @@ export const AddCollaboratorModal = (
                            <Dropdown
                               label="Género"
                               isRequired
-                              className="rounded-md!"
-                              options={GenderOptions ?? []}
                               placeholder="Seleccione..."
+                              options={GenderOptions ?? []}
                               onChange={(value) => {
                                  field.onChange(value);
                               }}
                               error={errors.gender && errors.gender.message}
                               value={field.value}
+                              appearance="dark"
+                              labelClassName="text-black! dark:text-white!"
+                              valueClassName="text-black! dark:text-white!"
+                              className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
                            />
                         )}
                      />
@@ -260,7 +302,6 @@ export const AddCollaboratorModal = (
                            <Dropdown
                               label="Tipo Identificación"
                               isRequired
-                              className="rounded-md!"
                               options={IdentificationOptions}
                               placeholder="Seleccione..."
                               onChange={(value) => {
@@ -273,6 +314,10 @@ export const AddCollaboratorModal = (
                                  errors.identification_type.message
                               }
                               value={field.value}
+                              appearance="dark"
+                              labelClassName="text-black! dark:text-white!"
+                              valueClassName="text-black! dark:text-white!"
+                              className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
                            />
                         )}
                      />
@@ -281,7 +326,8 @@ export const AddCollaboratorModal = (
                         label="No. Identificación"
                         placeholder={identificationType === IdentificationEnum.PASSPORT.value ? "Ej. AB123456" : "Ej. 001-010190-0001A"}
                         isRequired
-                        className="dark:text-black! rounded-md!"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
                         {...register("identification_number", {
                            required: "El número de identificación es requerido",
                            disabled: identificationType === 0,
@@ -322,7 +368,7 @@ export const AddCollaboratorModal = (
                {/* Paso 2: Información Personal */}
                <section className={`transition-all duration-500 transform ${currentStep === 1 ? "opacity-100 translate-x-0 relative z-10" : currentStep > 1 ? "opacity-0 translate-x-8 absolute inset-0 -z-10 pointer-events-none" : "opacity-0 -translate-x-8 absolute inset-0 -z-10 pointer-events-none"}`}>
                   <div className="flex items-center gap-2 mb-6">
-                     <h3 className="text-[16px]! font-bold text-slate-800 dark:text-slate-800">
+                     <h3 className="text-[16px]! font-bold text-slate-800 dark:text-white!">
                         Información Personal
                      </h3>
                   </div>
@@ -331,7 +377,8 @@ export const AddCollaboratorModal = (
                         <InputText
                            label="Dirección"
                            placeholder="Dirección completa"
-                           className="dark:text-black! rounded-md!"
+                           className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                           labelClassName="text-black! dark:text-white!"
                            {...register("personal_information.address", {
                               required: false,
                            })}
@@ -342,7 +389,8 @@ export const AddCollaboratorModal = (
                   label="Departamento"
                   placeholder="Ej. Managua"
                   isRequired
-                  className="dark:text-black! rounded-md!"
+                  className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                  labelClassName="text-black! dark:text-white!"
                   {...register("personal_information.departament", {
                     required: "El departamento es requerido",
                   })}
@@ -356,7 +404,8 @@ export const AddCollaboratorModal = (
                         label="Correo Personal"
                         placeholder="correo@ejemplo.com"
                         type="email"
-                        className="dark:text-black! rounded-md!"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
                         {...register("personal_information.personal_email", {
                            required: false,
                            validate: {
@@ -373,7 +422,8 @@ export const AddCollaboratorModal = (
                         label="Teléfono Personal"
                         placeholder="8888-8888"
                         type="tel"
-                        className="dark:text-black! rounded-md!"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
                         {...register("personal_information.personal_phone_number", {
                            required: false,
                            pattern: {
@@ -385,6 +435,10 @@ export const AddCollaboratorModal = (
                                  ? value.toString().replace(/-/g, "")
                                  : "",
                         })}
+                        error={
+                           errors.personal_information?.personal_phone_number &&
+                           errors.personal_information?.personal_phone_number?.message
+                        }
                         onChange={(evt) => {
                            evt.target.value = formatPhone(evt.target.value);
                            register("personal_information.personal_phone_number").onChange(evt);
@@ -395,7 +449,8 @@ export const AddCollaboratorModal = (
                         label="Fecha de Nacimiento"
                         isRequired
                         type="date"
-                        className="dark:text-black! rounded-md!"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
                         {...register("personal_information.birthdate", {
                            required: "La fecha de nacimiento es requerida",
                            validate: {
@@ -420,7 +475,6 @@ export const AddCollaboratorModal = (
                            <Dropdown
                               label="Estado Civil"
                               isRequired
-                              className="rounded-md!"
                               options={MaritalStatusOptions ?? []}
                               placeholder="Seleccione..."
                               onChange={(value) => {
@@ -431,6 +485,10 @@ export const AddCollaboratorModal = (
                                  errors.personal_information?.marital_status?.message
                               }
                               value={field.value}
+                              appearance="dark"
+                              labelClassName="text-black! dark:text-white!"
+                              valueClassName="text-black! dark:text-white!"
+                              className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
                            />
                         )}
                      />
@@ -440,7 +498,7 @@ export const AddCollaboratorModal = (
                {/* Paso 3: Información Laboral */}
                <section className={`transition-all duration-500 transform ${currentStep === 2 ? "opacity-100 translate-x-0 relative z-10" : currentStep > 2 ? "opacity-0 translate-x-8 absolute inset-0 -z-10 pointer-events-none" : "opacity-0 -translate-x-8 absolute inset-0 -z-10 pointer-events-none"}`}>
                   <div className="flex items-center gap-2 mb-6">
-                     <h3 className="text-[16px]! font-bold text-slate-800 dark:text-slate-800">
+                     <h3 className="text-[16px]! font-bold text-slate-800 dark:text-white!">
                         Información Laboral
                      </h3>
                   </div>
@@ -456,7 +514,6 @@ export const AddCollaboratorModal = (
                            <Dropdown
                               label="Área de Trabajo"
                               isRequired
-                              className="rounded-md!"
                               options={props.optionsWorkAreas ?? []}
                               placeholder="Seleccione..."
                               onChange={(value) => {
@@ -467,6 +524,10 @@ export const AddCollaboratorModal = (
                                  errors.working_information?.work_area_id?.message
                               }
                               value={field.value}
+                              appearance="dark"
+                              labelClassName="text-black! dark:text-white!"
+                              valueClassName="text-black! dark:text-white!"
+                              className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
                            />
                         )}
                      />
@@ -483,7 +544,6 @@ export const AddCollaboratorModal = (
                               label="Posición / Cargo"
                               isRequired
                               options={props.optionsJobPositions ?? []}
-                              className="rounded-md!"
                               placeholder="Seleccione..."
                               onChange={(value) => {
                                  field.onChange(value);
@@ -493,6 +553,10 @@ export const AddCollaboratorModal = (
                                  errors.working_information?.work_position_id?.message
                               }
                               value={field.value}
+                              appearance="dark"
+                              labelClassName="text-black! dark:text-white!"
+                              valueClassName="text-black! dark:text-white!"
+                              className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
                            />
                         )}
                      />
@@ -509,7 +573,6 @@ export const AddCollaboratorModal = (
                               label="Sucursal / Sede"
                               isRequired
                               options={props.optionsBranches ?? []}
-                              className="rounded-md!"
                               placeholder="Seleccione..."
                               onChange={(value) => {
                                  field.onChange(value);
@@ -519,6 +582,10 @@ export const AddCollaboratorModal = (
                                  errors.working_information?.branch_id?.message
                               }
                               value={field.value}
+                              appearance="dark"
+                              labelClassName="text-black! dark:text-white!"
+                              valueClassName="text-black! dark:text-white!"
+                              className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
                            />
                         )}
                      />
@@ -526,7 +593,8 @@ export const AddCollaboratorModal = (
                      <InputText
                         label="Cuenta Bancaria"
                         placeholder="Ej. 123456789"
-                        className="dark:text-black! rounded-md!"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
                         inputMode="numeric"
                         {...register("working_information.bank_account_number", {
                            required: false,
@@ -537,7 +605,8 @@ export const AddCollaboratorModal = (
                         label="Correo Trabajo"
                         placeholder="correo@ejemplo.com"
                         type="email"
-                        className="dark:text-black! rounded-md!"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
                         {...register("working_information.work_email", {
                            required: false,
                            validate: {
@@ -549,7 +618,8 @@ export const AddCollaboratorModal = (
                      <InputText
                         label="Teléfono Trabajo"
                         placeholder="2222-2222"
-                        className="dark:text-black! rounded-md!"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
                         {...register("working_information.work_phon_number", {
                            required: false,
                            pattern: {
@@ -561,6 +631,10 @@ export const AddCollaboratorModal = (
                                  ? value.toString().replace(/-/g, "")
                                  : "",
                         })}
+                        error={
+                           errors.working_information?.work_phon_number &&
+                           errors.working_information?.work_phon_number?.message
+                        }
                         onChange={(evt) => {
                            evt.target.value = formatPhone(evt.target.value);
                            register("working_information.work_phon_number").onChange(evt);
@@ -570,7 +644,8 @@ export const AddCollaboratorModal = (
                      <InputText
                         label="Número INSS"
                         placeholder="Opcional"
-                        className="dark:text-black! rounded-md!"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
                         inputMode="numeric"
                         {...register("working_information.inss_number", {
                            required: false,
@@ -589,7 +664,8 @@ export const AddCollaboratorModal = (
                         label="Fecha de Ingreso"
                         isRequired
                         type="date"
-                        className="dark:text-black! rounded-md!"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
                         {...register("working_information.entry_date", {
                            required: "La fecha de ingreso es requerida",
                            validate: {
@@ -607,7 +683,7 @@ export const AddCollaboratorModal = (
                {/* Paso 4: Información Salarial */}
                <section className={`transition-all duration-500 transform ${currentStep === 3 ? "opacity-100 translate-x-0 relative z-10" : currentStep > 3 ? "opacity-0 translate-x-8 absolute inset-0 -z-10 pointer-events-none" : "opacity-0 -translate-x-8 absolute inset-0 -z-10 pointer-events-none"}`}>
                   <div className="flex items-center gap-2 mb-6">
-                     <h3 className="text-[16px]! font-bold text-slate-800 dark:text-slate-800">
+                     <h3 className="text-[16px]! font-bold text-slate-800 dark:text-white!">
                         Información Salarial
                      </h3>
                   </div>
@@ -624,7 +700,6 @@ export const AddCollaboratorModal = (
                               label="Moneda"
                               isRequired
                               options={CurrencyOptions ?? []}
-                              className="rounded-md!"
                               placeholder="Seleccione..."
                               onChange={(value) => {
                                  field.onChange(value);
@@ -634,6 +709,10 @@ export const AddCollaboratorModal = (
                                  errors.salary_information?.currency?.message
                               }
                               value={field.value}
+                              appearance="dark"
+                              labelClassName="text-black! dark:text-white!"
+                              valueClassName="text-black! dark:text-white!"
+                              className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
                            />
                         )}
                      />
@@ -643,7 +722,8 @@ export const AddCollaboratorModal = (
                         type="text"
                         inputMode="decimal"
                         placeholder="0.00"
-                        className="dark:text-black! rounded-md!"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
                         isRequired
                         {...register("salary_information.salary", {
                            required: "El salario es requerido",
@@ -677,7 +757,6 @@ export const AddCollaboratorModal = (
                               label="Tipo de Pago"
                               isRequired
                               options={SalaryTypeOptions ?? []}
-                              className="rounded-md!"
                               placeholder="Seleccione..."
                               onChange={(value) => {
                                  field.onChange(value);
@@ -687,6 +766,10 @@ export const AddCollaboratorModal = (
                                  errors.salary_information?.salary_type?.message
                               }
                               value={field.value}
+                              appearance="dark"
+                              labelClassName="text-black! dark:text-white!"
+                              valueClassName="text-black! dark:text-white!"
+                              className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
                            />
                         )}
                      />
@@ -703,7 +786,6 @@ export const AddCollaboratorModal = (
                               label="Institución Bancaria"
                               isRequired
                               options={props.optionsBanks ?? []}
-                              className="rounded-md!"
                               placeholder="Seleccione..."
                               onChange={(value) => {
                                  field.onChange(value);
@@ -713,6 +795,10 @@ export const AddCollaboratorModal = (
                                  errors.salary_information?.sub_catalog_bank_id?.message
                               }
                               value={field.value}
+                              appearance="dark"
+                              labelClassName="text-black! dark:text-white!"
+                              valueClassName="text-black! dark:text-white!"
+                              className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
                            />
                         )}
                      />
@@ -720,7 +806,7 @@ export const AddCollaboratorModal = (
                </section>
             </div>
 
-            <div className="border-t border-t-slate-300 -mx-6 mb-6"></div>
+            <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6 mb-6"></div>
 
             <div className="flex flex-row justify-between items-center gap-4">
                <div>
@@ -745,7 +831,7 @@ export const AddCollaboratorModal = (
                      onClick={handleCloseModal}
                      isHiddenLabelOnMobile
                      icon={<XIcon size={20} />}
-                     className="text-[15px]! rounded-md! bg-slate-100! text-slate-500! hover:bg-slate-200!"
+                     className="text-[15px]! rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!"
                   />
                   {currentStep < steps.length - 1 ? (
                      <Button

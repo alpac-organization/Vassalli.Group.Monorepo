@@ -7,8 +7,8 @@ export type AddCollaboratorModalProps = {
    optionsJobPositions: { label: string; value: number }[];
    optionsBranches: { label: string; value: number }[];
    optionsBanks: { label: string; value: number }[];
-   onClose: () => void;
-   onSubmit: (data: AddCollaboratorRequest) => void;
+   onClose?: () => void;
+   onSubmit?: (data: AddCollaboratorRequest) => void;
 };
 
 export const fieldsToValidate: Path<AddCollaboratorRequest>[][] = [
@@ -23,12 +23,14 @@ export const fieldsToValidate: Path<AddCollaboratorRequest>[][] = [
       // 'personal_information.departament',
       'personal_information.birthdate',
       'personal_information.marital_status',
+      'personal_information.personal_phone_number',
    ],
    [
       'working_information.work_area_id',
       'working_information.work_position_id',
       'working_information.branch_id',
       'working_information.entry_date',
+      'working_information.work_phon_number',
    ],
    [
       'salary_information.currency',

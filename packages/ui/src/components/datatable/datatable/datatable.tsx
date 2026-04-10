@@ -58,7 +58,7 @@ export function DataTable<T>({ title, data, columns, rowClassName, pagination }:
                                     {columns.map((column) => (
                                        <td key={column.key as string} className="px-6 py-4 text-sm text-neutral-900 dark:text-white">
                                           {
-                                             column.render ? column.render(item) : (item as any)[column.key]
+                                             column.render ? column.render(item) : (item !== undefined ? (item as any)[column.key] : '—') || '—'
                                           }
                                        </td>
                                     ))}
