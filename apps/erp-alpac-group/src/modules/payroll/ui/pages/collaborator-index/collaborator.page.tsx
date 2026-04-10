@@ -22,7 +22,6 @@ import { useCollaborators } from '@app/modules/payroll/ui/hooks/useCollaborators
 import { useCallback, useState } from 'react';
 import { Loader } from '@app/shared/components/loaders/loader';
 import type { GetCollaboratorsResponse } from '@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response';
-import type { CollaboratorProfileLocationState } from '@app/modules/payroll/ui/pages/collaborator-profile/types/collaborator-profile-navigation.types';
 import { useCatalog } from '@app/modules/catalog/ui/hooks/useCatalog';
 import { CatalogEnum } from '@app/core/enums/catalog.enum';
 import { CollaboratorStatusBadgeColor, CollaboratorStatusEnum, CollaboratorStatusOptions } from '@app/modules/payroll/domain/enums/collaborator-status.enum';
@@ -145,7 +144,7 @@ export const CollaboratorPage = function () {
                   navigate('/payroll/collaborator-profile', {
                      state: {
                         identification_number: value.identification_number,
-                     } satisfies CollaboratorProfileLocationState,
+                     }
                   });
                }}
             />
