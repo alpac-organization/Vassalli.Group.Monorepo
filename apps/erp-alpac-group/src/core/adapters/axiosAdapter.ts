@@ -53,7 +53,7 @@ class AxiosHttpAdapter implements IHttpHandler {
     this.instance.interceptors.response.use(
       (response) => response,
       async (error: AxiosError<ApiErrorResponse>) => {
-        // Map the error to a custom error
+       
         const customError: ApiErrorResponse = {
           status: error.response?.status || 500,
           error: {
@@ -68,7 +68,6 @@ class AxiosHttpAdapter implements IHttpHandler {
         };
 
         // Obtengo la configuración de la petición original
-        // Adicionno el tipo CustomInternalAxiosRequestConfig para poder acceder a la propiedad _retry
         const originalRequest =
           error.config as CustomInternalAxiosRequestConfig;
 
@@ -159,18 +158,10 @@ class AxiosHttpAdapter implements IHttpHandler {
         CookieStorageAdapter.setRefreshToken(response.refresh_token);
 
         return response;
-      } else {
-        console.warn(
-          "Refresh Token abortado: faltan credenciales o servicio no inicializado",
-          {
-            hasService: !!this.authenticationService,
-            hasAlias: !!companyAlias,
-          },
-        );
       }
+      return null;
     } catch (refreshTokenError) {
-      console.error("Error crítico al refrescar token:", refreshTokenError);
-      this.logout();
+      // Solo propagamos el error para que el interceptor lo maneje
       throw refreshTokenError;
     }
   }

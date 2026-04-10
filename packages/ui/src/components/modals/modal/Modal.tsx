@@ -1,18 +1,20 @@
-import { createPortal } from 'react-dom';
-import { MODAL_SIZES, MODAL_VARIANTS } from './modal.constants';
-import { AnimatePresence, motion } from 'framer-motion';
-import { X } from 'lucide-react';
-import { ModalProps } from './modal.type';
-import { useState, useEffect } from 'react';
+import { createPortal } from "react-dom";
+import { MODAL_SIZES, MODAL_VARIANTS } from "./modal.constants";
+import { AnimatePresence, motion } from "framer-motion";
+import { X } from "lucide-react";
+import { ModalProps } from "./modal.type";
+import { useState, useEffect } from "react";
 
 export const Modal = ({
   isOpen,
   onClose,
-  variant = 'default',
-  size = 'md',
+  variant = "default",
+  size = "md",
   title,
   description,
   children,
+  panelClassName,
+  closeButtonClassName,
 }: ModalProps): React.ReactNode => {
   const [isMounted, setIsMounted] = useState(false);
   const configVariant = MODAL_VARIANTS[variant];
@@ -24,12 +26,12 @@ export const Modal = ({
 
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = "unset";
     };
   }, [isOpen]);
 
@@ -39,7 +41,6 @@ export const Modal = ({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50">
-          {/* 1. Backdrop layer */}
           <motion.div
             className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
             initial={{ opacity: 0 }}
@@ -47,18 +48,16 @@ export const Modal = ({
             exit={{ opacity: 0 }}
           />
 
-          {/* 2. Scroll & 3. Positioning layer */}
           <div className="fixed inset-0 overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-4">
-              {/* 4. Modal Content layer */}
               <motion.div
                 role="dialog"
                 aria-modal="true"
-                className={`relative p-6 rounded-2xl shadow-xl ${configSize} w-full m-auto ${configVariant.bgClass}`}
+                className={`relative p-6 rounded-2xl shadow-xl ${configSize} w-full m-auto ${configVariant.bgClass} ${panelClassName ?? ""}`}
                 initial={{ opacity: 0, scale: 0.95, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
               >
                 {configVariant.icon && (
                   <div className="flex items-center gap-2.5 mb-5">
@@ -75,7 +74,9 @@ export const Modal = ({
                   </div>
                 )}
 
-                <div className="border-t border-t-slate-300 -mx-6 mb-6"></div>
+                {configVariant.icon && (
+                  <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6 mb-6" />
+                )}
 
                 {(title || description) && (
                   <div className="mb-4">
@@ -87,7 +88,7 @@ export const Modal = ({
                       </h2>
                     )}
                     {description && (
-                      <small className="text-slate-500 text-[14px]! leading-relaxed">
+                      <small className="text-slate-500 dark:text-slate-400 text-[14px]! leading-relaxed">
                         {description}
                       </small>
                     )}
@@ -97,7 +98,11 @@ export const Modal = ({
                 {children && <div>{children}</div>}
 
                 <button
-                  className="absolute top-5 right-5 p-1.5 text-slate-700 hover:text-slate-900 hover:bg-slate-300 rounded-full transition-all"
+                  type="button"
+                  className={`absolute top-5 right-5 p-1.5 rounded-full transition-all ${
+                    closeButtonClassName ??
+                    "text-slate-700 hover:text-slate-900 hover:bg-slate-300 dark:text-white dark:hover:text-white dark:hover:bg-white/15"
+                  }`}
                   onClick={onClose}
                   aria-label="Cerrar modal"
                 >

@@ -6,5 +6,6 @@ export interface InputProps
   editable?: boolean;
   isPassword?: boolean;
   isRequired?: boolean;
+  missingLabel?: string;
   labelClassName?: string;
 }

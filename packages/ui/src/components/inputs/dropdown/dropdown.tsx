@@ -15,6 +15,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
       labelClassName,
       isRequired,
       valueClassName,
+      appearance = "default",
     },
     ref,
   ) => {
@@ -44,6 +45,38 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
       setIsOpen(false);
     };
 
+    const isDarkSurface = appearance === "dark";
+
+    const triggerBorderRing = error
+      ? "border-red-400 ring-red-50 dark:ring-red-900/40"
+      : isOpen
+        ? isDarkSurface
+          ? "border-blue-500 ring-2 ring-blue-500/25"
+          : "border-blue-500 ring-2 ring-blue-50"
+        : isDarkSurface
+          ? "border-slate-600 hover:border-slate-500"
+          : "border-blue-200 hover:border-blue-300";
+
+    const triggerSurface = isDarkSurface
+      ? `bg-[#272b34] border ${triggerBorderRing}`
+      : `bg-white border ${triggerBorderRing}`;
+
+    const placeholderClass = isDarkSurface ? "text-slate-400" : "text-slate-500";
+    const valueColorClass =
+      valueClassName ?? (isDarkSurface ? "text-white" : "text-zinc-900");
+
+    const menuSurface = isDarkSurface
+      ? "bg-[#272b34] border border-slate-600 shadow-xl"
+      : "bg-white border border-slate-200 shadow-xl";
+
+    const itemBase = isDarkSurface
+      ? "text-slate-200 hover:bg-slate-700/80"
+      : "text-slate-600 hover:bg-slate-200";
+    const itemSelected = isDarkSurface
+      ? "text-blue-400 bg-blue-500/15 font-medium"
+      : "text-blue-600 bg-blue-50 font-medium";
+    const checkIconClass = isDarkSurface ? "text-blue-400" : "text-blue-600";
+
     return (
       <div className="flex flex-col gap-1.5 w-full" ref={containerRef}>
         {label && (
@@ -60,15 +93,14 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
             type="button"
             onClick={() => setIsOpen(!isOpen)}
             className={`
-                  flex items-center justify-between w-full h-12 px-4 rounded-[10px] border 
-                  bg-white transition-all duration-200 text-[15px] outline-none
-                  ${isOpen ? "border-blue-500 ring-2 ring-blue-50" : "border-blue-200 hover:border-blue-300"}
-                  ${error ? "border-red-400 ring-red-50" : ""}
-                  ${className}
+                  flex items-center justify-between w-full h-12 px-4 rounded-[10px]
+                  transition-all duration-200 text-[15px] outline-none
+                  ${triggerSurface}
+                  ${className ?? ""}
                `}
           >
             <span
-              className={`truncate ${!selectedOption ? "text-slate-500" : valueClassName || "text-zinc-900"}`}
+              className={`truncate ${!selectedOption ? placeholderClass : valueColorClass}`}
             >
               {selectedOption ? selectedOption.label : placeholder}
             </span>
@@ -96,7 +128,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
                 animate={{ opacity: 1, y: 4 }}
                 exit={{ opacity: 0, y: 0 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
-                className="absolute inset-x-0 top-full z-100 mt-1 bg-white border border-slate-200 shadow-xl rounded-[12px] overflow-hidden"
+                className={`absolute inset-x-0 top-full z-100 mt-1 rounded-[12px] overflow-hidden ${menuSurface}`}
               >
                 <ul className="max-h-60 overflow-y-auto py-1.5 px-0 m-0!">
                   {options.map((option) => (
@@ -105,13 +137,13 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
                       onClick={() => handleSelect(option.value)}
                       className={`
                                     px-4 py-2.5 cursor-pointer text-[14px] flex items-center justify-between transition-colors
-                                    ${value === option.value ? "text-blue-600 bg-blue-50 font-medium" : "text-slate-600 hover:bg-slate-200"}
+                                    ${value === option.value ? itemSelected : itemBase}
                                  `}
                     >
                       <span className="truncate">{option.label}</span>
                       {value === option.value && (
                         <svg
-                          className="w-4 h-4 text-blue-600"
+                          className={`w-4 h-4 ${checkIconClass}`}
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"

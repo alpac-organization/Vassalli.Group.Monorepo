@@ -1,6 +1,25 @@
 import { ReactNode } from "react";
-export type ModalVariant = "default" | "error" | "warning" | "success" | "info" | "form";
-export type ModalSize = "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "6xl" | "7xl" | "8xl" | "9xl" | "full";
+export type ModalVariant =
+  | "default"
+  | "error"
+  | "warning"
+  | "success"
+  | "info"
+  | "form";
+export type ModalSize =
+  | "sm"
+  | "md"
+  | "lg"
+  | "xl"
+  | "2xl"
+  | "3xl"
+  | "4xl"
+  | "5xl"
+  | "6xl"
+  | "7xl"
+  | "8xl"
+  | "9xl"
+  | "full";
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -9,6 +28,8 @@ export interface ModalProps {
   title?: string;
   description?: string | ReactNode;
   children?: ReactNode;
+  panelClassName?: string;
+  closeButtonClassName?: string;
 }
 export type ModalVariantConfig = {
   icon?: {
@@ -17,6 +38,6 @@ export type ModalVariantConfig = {
   };
   bgClass: string;
   textClass: string;
-  borderClass: string;
+  borderClass?: string;
   iconTextClass: string;
 };

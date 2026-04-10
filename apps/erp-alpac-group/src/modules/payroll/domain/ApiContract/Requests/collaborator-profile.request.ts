@@ -23,4 +23,10 @@ export interface CollaboratorProfileDetailsRequest {
    * @required
    */
   module_code: string;
+
+  /**
+   * Indica si la consulta debe ser ejecutada o no
+   * @optional
+   */
+  QueryEnabled?: boolean;
 }

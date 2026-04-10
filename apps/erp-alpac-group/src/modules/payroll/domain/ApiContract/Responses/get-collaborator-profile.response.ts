@@ -30,6 +30,7 @@ export interface GetCollaboratorProfileDetailsResponse {
    * @required
    */
   work_position: string;
+
   /**
    * Imagen del colaborador
    * @required
@@ -41,16 +42,17 @@ export interface GetCollaboratorProfileDetailsResponse {
 }
 
 export interface CollaboratorProfilePersonalInformation {
-  gender: string;
-  identification_number: string;
-  address: string;
-  personal_email: string;
-  personal_phone_number: string;
-  departament?: string;
+  gender?: string;
+  identification_type?: string | number | null;
+  identification_number?: string;
+  address?: string;
+  personal_email?: string;
+  personal_phone_number?: string;
+  birthdate?: string;
+  marital_status?: string;
   department?: string;
 }
 export interface CollaboratorProfileWorkingInformation {
-  start_date?: string;
   inss_number?: string;
   bank_account_number?: string;
   bank_name?: string;
@@ -59,6 +61,7 @@ export interface CollaboratorProfileWorkingInformation {
   work_phone_number?: string;
   work_position?: string;
   branch_name?: string;
+  entry_date?: string;
 }
 export interface CollaboratorProfileSalaryInformation {
   salary?: number;

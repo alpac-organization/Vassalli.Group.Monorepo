@@ -4,30 +4,33 @@ import { ContainerCopyright } from "@app/shared/layouts/container-copyright/cont
 import { DashboardLayout } from "@app/shared/layouts/dashboard-layout/dashboard-layout";
 import { PayrollRoutes } from "@app/routers/payroll-routes";
 import { WorkManagementRoutes } from "@app/routers/work-management-routes";
-
-//Llamar su store de secciones aqui
+import { ApplicationRoutes } from "@app/routers/applications-routes";
 
 export const DashboardRoutes: RouteObject[] = [
-  {
-    element: <ContainerCopyright />,
-    children: [
-      {
-        index: true,
-        element: <HomePage />,
-      },
-    ],
-  },
-  {
-    element: <DashboardLayout />,
-    children: [
-      {
-        path: "payroll",
-        children: PayrollRoutes,
-      },
-      {
-        path: "work-management",
-        children: WorkManagementRoutes,
-      },
-    ],
-  },
+   {
+      element: <ContainerCopyright />,
+      children: [
+         {
+            index: true,
+            element: <HomePage />,
+         },
+      ],
+   },
+   {
+      element: <DashboardLayout />,
+      children: [
+         {
+            path: "payroll",
+            children: PayrollRoutes,
+         },
+         {
+            path: "work-management",
+            children: WorkManagementRoutes,
+         },
+         {
+            path: "applications",
+            children: ApplicationRoutes,
+         },
+      ],
+   },
 ];
