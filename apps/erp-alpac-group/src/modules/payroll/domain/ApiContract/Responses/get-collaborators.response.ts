@@ -73,6 +73,13 @@ export interface GetCollaboratorsResponse {
     * @required
     */
    branch_name: string;
+
+   /**
+    * Días de vacaciones del colaborador
+    * @example 15
+    * @required
+    */
+   vacations: number;
 }
 
 /**
