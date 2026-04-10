@@ -1,18 +1,13 @@
-export type TableColumn = {
-    key: string
-    label: string
-    render?: (item: any) => React.ReactNode
+export type TableColumn<T> = {
+   key: keyof T | string
+   label: string
+   render?: (item: T) => React.ReactNode
 }
 
-export type DataTableProps = {
-    title?: string
-    data: any[]
-    columns: TableColumn[],
-    rowClassName?: string
-    pagination?: {
-        currentPage: number
-        totalRecords: number
-        pageSize: number
-        onPageChange: (page: number) => void
-    }
+export type DataTableProps<T> = {
+   title?: string
+   data: T[]
+   columns: TableColumn<T>[]
+   rowClassName?: string
+   pagination?: React.ReactNode
 }

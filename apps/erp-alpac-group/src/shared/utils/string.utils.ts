@@ -125,3 +125,74 @@ export const validateEmail = (email?: string): boolean | string => {
       /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
    return emailRegex.test(email) || 'Correo electrónico inválido';
 };
+
+/**
+ * Formatea una fecha ISO a un formato legible para el usuario
+ * @param date - Fecha a formatear
+ * @returns Fecha formateada o "—" si la fecha es inválida
+ */
+export const formatDate = (date?: string): string => {
+   if (!date) return "—";
+
+   const dateOnly = date.split("T")[0];
+
+   const d = new Date(`${dateOnly}T12:00:00`);
+
+   if (isNaN(d.getTime())) return "—";
+
+   return new Intl.DateTimeFormat("es-NI", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+   }).format(d);
+};
+
+/**
+ * Formatea una fecha y hora ISO a un formato legible para el usuario
+ * @param date - Fecha a formatear
+ * @returns Fecha y hora formateada o "—" si la fecha es inválida
+ */
+export const formatDateTime = (date?: string): string => {
+   if (!date) return "—";
+
+   const dateOnly = date.split("T")[0];
+
+   const d = new Date(`${dateOnly}T12:00:00`);
+
+   if (isNaN(d.getTime())) return "—";
+
+   return new Intl.DateTimeFormat("es-NI", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+   }).format(d);
+};
+
+/**
+ * Formatea una fecha ISO a un formato legible para el usuario
+ * @param time - Fecha a formatear
+ * @returns Fecha formateada o "—" si la fecha es inválida
+ */
+export const formatTime = (time?: string): string => {
+   if (!time) return "--:-- --";
+
+   let validatedTime = new Date(time);
+
+   if (validatedTime.toString() === 'Invalid Date') {
+      const [hours, minutes] = time.split(":").map(Number);
+
+      if (isNaN(hours) || isNaN(minutes)) return "--:-- --";
+
+      validatedTime = new Date(0, 0, 0, hours, minutes, 0);
+   }
+
+   if (isNaN(validatedTime.getTime())) return "--:-- --";
+
+   return new Intl.DateTimeFormat("es-NI", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+   }).format(validatedTime);
+};
