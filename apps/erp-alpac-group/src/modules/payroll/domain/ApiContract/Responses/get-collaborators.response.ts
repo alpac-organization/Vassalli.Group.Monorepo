@@ -90,6 +90,7 @@ export interface GetCollaboratorsListResponse {
    data: GetCollaboratorsResponse[];
    total_records: number;
    page_size: number;
+   page_number: number;
    total_active: number;
    total_on_vacation: number;
    total_on_subsidy: number;

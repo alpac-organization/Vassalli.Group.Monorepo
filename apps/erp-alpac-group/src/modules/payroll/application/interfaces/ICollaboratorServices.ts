@@ -11,43 +11,41 @@ import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payro
  * directamente de la implementación (Axios, Fetch, o Mocks).
  */
 export interface ICollaboratorServices {
-  /**
-   * @method GetCollaborators
-   * @description Obtiene el listado de colaboradores.
-   * @param {CollaboratorRequest} payload Datos de filtro para la solicitud.
-   * @returns {Promise<GetCollaboratorsListResponse>} Promesa con el listado de colaboradores.
-   * @throws {Error} Si hay un error en la solicitud.
-   */
-  GetCollaborators(
-    payload: CollaboratorRequest,
-  ): Promise<GetCollaboratorsListResponse>;
+   /**
+    * @method GetCollaborators
+    * @description Obtiene el listado de colaboradores.
+    * @param {CollaboratorRequest} payload Datos de filtro para la solicitud.
+    * @returns {Promise<GetCollaboratorsListResponse>} Promesa con el listado de colaboradores.
+    * @throws {Error} Si hay un error en la solicitud.
+    */
+   GetCollaborators(payload: CollaboratorRequest): Promise<GetCollaboratorsListResponse>;
 
-  /**
-   * @method PostCollaborator
-   * @description Agrega un nuevo colaborador.
-   * @param {AddCollaboratorRequest} payload Datos del nuevo colaborador.
-   * @returns {Promise<void>} Promesa que indica que la operación se completó exitosamente.
-   * @throws {Error} Si hay un error en la solicitud.
-   */
-  PostCollaborator(payload: AddCollaboratorRequest): Promise<void>;
-  /**
-   * @method GetCollaboratorProfileDetails
-   * @description Obtiene los detalles del perfil de colaboradores.
-   * @param {CollaboratorDetailsRequest} payload Datos de obtencion para la solicitud.
-   * @returns {Promise<GetCollaboratorProfileDetailsResponse>} Promesa con los detalles de perfil de  colaborador.
-   * @throws {Error} Si hay un error en la solicitud.
-   */
-  GetCollaboratorProfileDetails(
-    payload: CollaboratorProfileDetailsRequest,
-  ): Promise<GetCollaboratorProfileDetailsResponse>;
-  /**
-   * @method UpdateCollaboratorProfileDetails
-   * @description Actualiza los detalles del perfil de colaboradores.
-   * @param {UpdateCollaboratorProfileDetailsRequest} payload Datos de actualizacion para la solicitud.
-   * @returns {Promise<void>} Promesa que indica que la operación se completó exitosamente.
-   * @throws {Error} Si hay un error en la solicitud.
-   */
-  UpdateCollaboratorProfileDetails(
-    paylod: UpdateCollaboratorProfileDetailsRequest,
-  ): Promise<void>;
+   /**
+    * @method PostCollaborator
+    * @description Agrega un nuevo colaborador.
+    * @param {AddCollaboratorRequest} payload Datos del nuevo colaborador.
+    * @returns {Promise<void>} Promesa que indica que la operación se completó exitosamente.
+    * @throws {Error} Si hay un error en la solicitud.
+    */
+   PostCollaborator(payload: AddCollaboratorRequest): Promise<void>;
+   /**
+    * @method GetCollaboratorProfileDetails
+    * @description Obtiene los detalles del perfil de colaboradores.
+    * @param {CollaboratorDetailsRequest} payload Datos de obtencion para la solicitud.
+    * @returns {Promise<GetCollaboratorProfileDetailsResponse>} Promesa con los detalles de perfil de  colaborador.
+    * @throws {Error} Si hay un error en la solicitud.
+    */
+   GetCollaboratorProfileDetails(
+      payload: CollaboratorProfileDetailsRequest,
+   ): Promise<GetCollaboratorProfileDetailsResponse>;
+   /**
+    * @method UpdateCollaboratorProfileDetails
+    * @description Actualiza los detalles del perfil de colaboradores.
+    * @param {UpdateCollaboratorProfileDetailsRequest} payload Datos de actualizacion para la solicitud.
+    * @returns {Promise<void>} Promesa que indica que la operación se completó exitosamente.
+    * @throws {Error} Si hay un error en la solicitud.
+    */
+   UpdateCollaboratorProfileDetails(
+      paylod: UpdateCollaboratorProfileDetailsRequest,
+   ): Promise<void>;
 }

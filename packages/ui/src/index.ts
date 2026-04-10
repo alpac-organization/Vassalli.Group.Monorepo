@@ -10,6 +10,6 @@ export * from "./components/datatable";
 export * from "./components/cardDashboard"
 export * from "./components/badges"
 export * from "./components/banners"
-
+export * from "./components/wrappers"
 export * from "./providers/theme-provider";
 export * from "./constants";

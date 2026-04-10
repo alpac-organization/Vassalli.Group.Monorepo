@@ -4,3 +4,5 @@ export * from "./tabs-header/tabs-header";
 export * from "./tabs-header/tabs-header.type";
 export * from "./stepper/stepper";
 export * from "./stepper/stepper.type";
+export * from "./pagination/pagination";
+export * from "./pagination/pagination.type";
