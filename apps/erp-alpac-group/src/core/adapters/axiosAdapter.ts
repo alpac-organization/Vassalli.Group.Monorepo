@@ -114,10 +114,27 @@ class AxiosHttpAdapter implements IHttpHandler {
     if (this.refreshIntervalId) clearInterval(this.refreshIntervalId);
 
     this.refreshIntervalId = setInterval(async () => {
-      const { isInactive } = useInactivityStore.getState();
-      if (isInactive) return;
+      const { isInactive, lastActivity } = useInactivityStore.getState();
+      const now = Date.now();
+      const inactivityThreshold = 20 * 60 * 1000; 
+
+      if (isInactive || (now - lastActivity) > inactivityThreshold) {
+        console.warn("Sesión en pausa por inactividad. El token expirará naturalmente.");
+        return;
+      }
+
       await this.refreshToken();
     }, miliseconds);
+  }
+
+  private logout() {
+    // MUY IMPORTANTE: Detener el intervalo al cerrar sesión
+    if (this.refreshIntervalId) {
+      clearInterval(this.refreshIntervalId);
+    }
+    
+    CookieStorageAdapter.clearAuth();
+    window.location.href = "/auth";
   }
 
   private async refreshToken(): Promise<any> {
@@ -156,14 +173,6 @@ class AxiosHttpAdapter implements IHttpHandler {
       this.logout();
       throw refreshTokenError;
     }
-  }
-
-  private logout() {
-    // Borro las cookies de autenticación
-    CookieStorageAdapter.clearAuth();
-
-    // Redirijo al inicio de sesión
-    window.location.href = "/auth";
   }
 
   async get<T>(url: string, config?: object): Promise<T> {
