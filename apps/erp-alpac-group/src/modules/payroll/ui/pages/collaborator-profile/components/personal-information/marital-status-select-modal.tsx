@@ -18,7 +18,6 @@ export function MaritalStatusSelectModal({
 }: MaritalStatusSelectModalProps) {
   const [selected, setSelected] = useState<number>(currentMaritalStatus);
 
-  // Sincronizar si cambia el valor desde afuera
   useEffect(() => {
     setSelected(currentMaritalStatus);
   }, [currentMaritalStatus]);
@@ -29,8 +28,6 @@ export function MaritalStatusSelectModal({
     onClose();
   };
 
-  // ✅ LA SOLUCIÓN: El botón se deshabilita si está guardando, si el código no es válido,
-  // O si el usuario NO HA CAMBIADO el valor original.
   const hasChanged = selected !== currentMaritalStatus;
   const isConfirmDisabled =
     isSaving || !isValidMaritalStatusCode(selected) || !hasChanged;

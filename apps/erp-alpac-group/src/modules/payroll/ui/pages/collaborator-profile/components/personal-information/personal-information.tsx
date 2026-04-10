@@ -171,7 +171,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 onEditStart={handleEditStart}
                 onEditEnd={handleEditEnd}
                 onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "admin"}
+                allowEdit={currentRole === "Administrator"}
                 missingMessage="Número de identificación no registrado"
                 className={baseInputClasses}
               />
@@ -184,7 +184,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 onEditStart={handleEditStart}
                 onEditEnd={handleEditEnd}
                 onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "admin"}
+                allowEdit={currentRole === "Administrator"}
                 missingMessage="Género no registrado"
                 className={baseInputClasses}
               />
@@ -228,7 +228,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 onEditStart={handleEditStart}
                 onEditEnd={handleEditEnd}
                 onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "admin"}
+                allowEdit={currentRole === "Administrator"}
                 missingMessage="Primer nombre no registrado"
                 className={baseInputClasses}
               />
@@ -241,7 +241,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 onEditStart={handleEditStart}
                 onEditEnd={handleEditEnd}
                 onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "admin"}
+                allowEdit={currentRole === "Administrator"}
                 missingMessage="Segundo nombre no registrado"
                 className={baseInputClasses}
               />
@@ -267,7 +267,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 onEditStart={handleEditStart}
                 onEditEnd={handleEditEnd}
                 onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "admin"}
+                allowEdit={currentRole === "Administrator"}
                 missingMessage="Segundo apellido no registrado"
                 className={baseInputClasses}
               />
@@ -281,7 +281,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                 onEditStart={handleEditStart}
                 onEditEnd={handleEditEnd}
                 onConfirmUpdate={handleFieldUpdate}
-                allowEdit={currentRole === "admin"}
+                allowEdit={currentRole === "Administrator"}
                 missingMessage="Fecha de nacimiento no registrada"
                 className={baseInputClasses}
               />
@@ -333,7 +333,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                       className={`${baseInputClasses} ${departmentMissing ? missingDataInInputClassName : "text-white! dark:text-white!"}`}
                     />
                   </div>
-                  {currentRole === "Administrator" ||
+                  {/* {currentRole === "Administrator" ||
                     (currentRole === "Operator" && (
                       <button
                         type="button"
@@ -343,7 +343,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                       >
                         <Pencil size={16} />
                       </button>
-                    ))}
+                    ))} */}
                 </div>
               </div>
 

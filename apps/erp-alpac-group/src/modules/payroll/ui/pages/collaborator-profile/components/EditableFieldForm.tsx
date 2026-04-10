@@ -94,7 +94,6 @@ export function EditableField<TFieldValues extends FieldValues>({
                           disabled:dark:bg-[#1e2229]! disabled:dark:border-slate-700/50! disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
                           min-w-0 w-full max-w-full`;
 
-  // Si falta el dato y NO estamos editando, texto rojo. Si no, blanco.
   const valueToneClasses = showMissingStyle
     ? missingDataInInputClassName
     : "text-slate-800 dark:text-white!";

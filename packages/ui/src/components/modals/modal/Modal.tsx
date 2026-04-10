@@ -41,7 +41,6 @@ export const Modal = ({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50">
-          {/* 1. Backdrop layer */}
           <motion.div
             className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
             initial={{ opacity: 0 }}
@@ -49,10 +48,8 @@ export const Modal = ({
             exit={{ opacity: 0 }}
           />
 
-          {/* 2. Scroll & 3. Positioning layer */}
           <div className="fixed inset-0 overflow-y-auto">
             <div className="flex min-h-full items-center justify-center p-4">
-              {/* 4. Modal Content layer */}
               <motion.div
                 role="dialog"
                 aria-modal="true"

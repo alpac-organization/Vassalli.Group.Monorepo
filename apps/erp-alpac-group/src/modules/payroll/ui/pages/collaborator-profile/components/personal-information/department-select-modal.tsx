@@ -3,16 +3,7 @@ import { Modal, Button, Dropdown } from "@alpac/design-system";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
 import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
-
-export interface DepartmentSelectModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  companyId: string;
-  currentDepartmentSubId: number | null;
-  isSaving: boolean;
-  onConfirm: (subId: number, departmentName: string) => Promise<void>;
-}
-
+import type { DepartmentSelectModalProps } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/types/DepartmentSelectModalProps";
 export function DepartmentSelectModal({
   isOpen,
   onClose,

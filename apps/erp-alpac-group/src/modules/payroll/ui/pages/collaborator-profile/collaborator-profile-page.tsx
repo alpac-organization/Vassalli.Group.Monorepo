@@ -11,7 +11,6 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
 export function CollaboratorProfilePage() {
-  //Tabs De navegación
   const [activeTab, setActiveTab] = useState<TabId>("Personal");
 
   const { identification_number } = useParams();

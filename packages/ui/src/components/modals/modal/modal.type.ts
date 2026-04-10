@@ -28,9 +28,7 @@ export interface ModalProps {
   title?: string;
   description?: string | ReactNode;
   children?: ReactNode;
-  /** Extra classes merged onto the dialog panel (e.g. max-width, border). */
   panelClassName?: string;
-  /** Overrides the default close button styles (icon color, hover). */
   closeButtonClassName?: string;
 }
 export type ModalVariantConfig = {
