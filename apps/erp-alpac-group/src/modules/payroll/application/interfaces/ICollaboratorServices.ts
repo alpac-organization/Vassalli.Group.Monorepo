@@ -1,7 +1,9 @@
 import type { GetCollaboratorsListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
-import type { AddCollaboratorRequest } from "../../domain/ApiContract/Requests/add-collaborator.request";
-
+import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-profile.request";
+import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
+import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/add-collaborator.request";
+import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/update-collaborator-request";
 /**
  * @interface ICollaboratorServices
  * @description Define el contrato para los servicios de colaboradores.
@@ -28,4 +30,24 @@ export interface ICollaboratorServices {
    * @throws {Error} Si hay un error en la solicitud.
    */
   PostCollaborator(payload: AddCollaboratorRequest): Promise<void>;
+  /**
+   * @method GetCollaboratorProfileDetails
+   * @description Obtiene los detalles del perfil de colaboradores.
+   * @param {CollaboratorDetailsRequest} payload Datos de obtencion para la solicitud.
+   * @returns {Promise<GetCollaboratorProfileDetailsResponse>} Promesa con los detalles de perfil de  colaborador.
+   * @throws {Error} Si hay un error en la solicitud.
+   */
+  GetCollaboratorProfileDetails(
+    payload: CollaboratorProfileDetailsRequest,
+  ): Promise<GetCollaboratorProfileDetailsResponse>;
+  /**
+   * @method UpdateCollaboratorProfileDetails
+   * @description Actualiza los detalles del perfil de colaboradores.
+   * @param {UpdateCollaboratorProfileDetailsRequest} payload Datos de actualizacion para la solicitud.
+   * @returns {Promise<void>} Promesa que indica que la operación se completó exitosamente.
+   * @throws {Error} Si hay un error en la solicitud.
+   */
+  UpdateCollaboratorProfileDetails(
+    paylod: UpdateCollaboratorProfileDetailsRequest,
+  ): Promise<void>;
 }

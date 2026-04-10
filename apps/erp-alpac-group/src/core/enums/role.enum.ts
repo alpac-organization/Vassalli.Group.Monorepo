@@ -1,3 +1,4 @@
+//no se toca , esta correcto el enum
 export const RoleEnum = {
   ADMINISTRATOR: "Administrator",
   SUPERVISOR: "Supervisor",

@@ -10,6 +10,8 @@ export const CatalogEnum = {
   JOB_POSITIONS: 3,
   BANKS: 5,
   EXCHANGE_RATES: 6,
+  /** Catálogo de departamentos (CatalogType.Departaments en backend). */
+  DEPARTMENTS: 7,
 } as const;
 
 export type CatalogEnum = (typeof CatalogEnum)[keyof typeof CatalogEnum];
