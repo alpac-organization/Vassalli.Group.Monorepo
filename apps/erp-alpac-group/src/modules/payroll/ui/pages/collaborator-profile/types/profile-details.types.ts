@@ -1,20 +1,20 @@
 export interface PersonalFormData {
-  //solo campos de lectura
-  identificationNumber: string;
-  gender: string;
-
-  //campos editables
-  firstName: string;
+  identification_number?: string;
+  gender?: string;
+  marital_status?: string;
+  birthdate?: string;
+  firstName?: string;
   secondName?: string;
-  firstLastName: string;
+  firstLastName?: string;
   secondLastName?: string;
-  address: string;
-  personalEmail: string;
-  personalPhone: string;
-  department: string;
+  address?: string;
+  personalEmail?: string;
+  personalPhone?: string;
+  department_id?: string;
+  department?: string;
 }
 export interface WorkFormData {
-  startDate: string;
+  entry_date?: string;
   jobPosition: string;
   workArea: string;
   workEmail?: string;
@@ -23,6 +23,9 @@ export interface WorkFormData {
   bankAccountNumber?: string;
   bankName?: string;
   branchName?: string;
+  salary_information?: SalaryFormData;
+}
+export interface SalaryFormData {
   salaryAmount?: string;
   currency?: string;
   salaryType?: string;
