@@ -31,10 +31,10 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
 
-export const AddCollaboratorModal = (
-   props: AddCollaboratorModalProps,
-): React.ReactNode => {
+export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.ReactNode => {
+
    const [currentStep, setCurrentStep] = useState(0);
+
    const [showAlert, setShowAlert] = useState<{
       show: boolean;
       type: "success" | "error" | "warning" | "info";
@@ -848,6 +848,7 @@ export const AddCollaboratorModal = (
                         type="submit"
                         label="Finalizar y Guardar"
                         size="giant"
+                        disabled={PostCollaboratorQuery.isPending}
                         isLoading={PostCollaboratorQuery.isPending}
                         isHiddenLabelOnMobile
                         icon={<SaveIcon size={20} />}

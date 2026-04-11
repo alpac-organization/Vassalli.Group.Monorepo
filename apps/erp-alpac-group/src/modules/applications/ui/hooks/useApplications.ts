@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request"
 import { ApplicationServices } from "@app/modules/applications/infrastructure/services/ApplicationServices"
 import { httpHandler } from "@app/core/adapters"
@@ -20,11 +20,11 @@ const applicationServices = new ApplicationServices(httpHandler)
  * const { GetApplicationsQuery } = useApplications({ company_id, module_code, page_number: 1, page_size: 10 });
  * const applications = GetApplicationsQuery.data?.data ?? [];
  */
-export const useApplications = (filters: ApplicationRequest) => {
+export const useApplications = (filters?: ApplicationRequest) => {
 
    const GetApplicationsQuery = useQuery({
       queryKey: ["applicationsData", filters],
-      queryFn: () => applicationServices.GetApplications(filters),
+      queryFn: () => applicationServices.GetApplications(filters!),
       enabled: !!filters,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
@@ -32,6 +32,19 @@ export const useApplications = (filters: ApplicationRequest) => {
       retry: 1,
    })
 
-   return { GetApplicationsQuery }
+   const ApproveApplication = useMutation({
+      mutationFn: (payload: any) => applicationServices.ApproveApplication(payload),
+      onSuccess: () => {
+         GetApplicationsQuery.refetch();
+      },
+   })
 
+   const RejectApplication = useMutation({
+      mutationFn: (payload: any) => applicationServices.RejectApplication(payload),
+      onSuccess: () => {
+         GetApplicationsQuery.refetch();
+      },
+   })
+
+   return { GetApplicationsQuery, ApproveApplication, RejectApplication }
 }

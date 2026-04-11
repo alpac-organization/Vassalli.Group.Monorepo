@@ -18,7 +18,30 @@ export class ApplicationServices implements IApplicationServices {
             `/companies/${company_id}/modules/${module_code}/permit-applications`,
             rest,
          );
+         console.log("Response:", response)
          return response;
+      } catch (error) {
+         throw error;
+      }
+   }
+
+   async ApproveApplication(payload: any): Promise<void> {
+      try {
+         await this.apiHandler.put(
+            `approve`,
+            payload,
+         );
+      } catch (error) {
+         throw error;
+      }
+   }
+
+   async RejectApplication(payload: any): Promise<void> {
+      try {
+         await this.apiHandler.put(
+            `reject`,
+            payload,
+         );
       } catch (error) {
          throw error;
       }

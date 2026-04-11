@@ -53,14 +53,14 @@ export interface GetApplicationsResponse {
     * @example "Roberto  Castellon"
     * @optional
     */
-   approved_by?: string;
+   // approved_by?: string;
 
    /**
     * Nombre del colaborador que rechazo el permiso
     * @example "Roberto  Castellon"
     * @optional
     */
-   rejected_by?: string;
+   // rejected_by?: string;
 
    /**
     * Fecha de creacion del permiso
