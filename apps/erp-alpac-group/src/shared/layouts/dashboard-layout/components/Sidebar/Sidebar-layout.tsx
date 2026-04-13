@@ -27,8 +27,9 @@ export default function Sidebarlayout({
               className="h-8 w-8 rounded-lg shrink-0"
             />
             <span
-              className={`ml-3 text-sm font-bold text-white whitespace-nowrap transition-all duration-300 ${isOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
-                }`}
+              className={`ml-3 text-sm font-bold text-white whitespace-nowrap transition-all duration-300 ${
+                isOpen ? "opacity-100 w-auto" : "opacity-0 w-0"
+              }`}
             >
               {nameCompany}
             </span>
@@ -46,7 +47,6 @@ export default function Sidebarlayout({
         </div>
       </header>
 
-      {/* <div className="scrollbar-dashboard flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto px-4 pt-5 pb-4"> */}
       <div className="scrollbar-dashboard flex min-h-0 flex-1 flex-col py-5 overflow-y-auto">
         <SidebarItem
           item={{
@@ -54,12 +54,12 @@ export default function Sidebarlayout({
             path: "dashboard",
             label: "Dashboard",
             isFooter: false,
-            id: "0"            
+            id: "0",
           }}
           isOpen={isOpen}
           setIsOpen={setIsOpen}
         />
-          
+
         {mainItems.map((item) => (
           <SidebarItem
             key={item.id}

@@ -1,4 +1,8 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { ControlVacationServices } from "@app/modules/payroll/infrastructure/services/VacationsServices";
@@ -21,6 +25,8 @@ export const useControlVacations = (props: useControlVacationsProps) => {
   const GetControlVacationHistoryQuery = useQuery({
     queryKey: ["vacationsHistory", filtersVacations],
     queryFn: () => vacationServices.GetVacations(filtersVacations!),
+    enabled: Boolean(filtersVacations),
+    placeholderData: keepPreviousData,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 10,
@@ -32,7 +38,7 @@ export const useControlVacations = (props: useControlVacationsProps) => {
     mutationFn: (payload: ControlVacationGenerateDocumentRequest) =>
       controlVacationServices.generateControlVacationDocument(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });
+      queryClient.invalidateQueries({ queryKey: ["vacationsHistory"] });
     },
   });
   return { GetControlVacationHistoryQuery, generateVacationDocumentMutation };

@@ -4,31 +4,14 @@ import { formatVacationDate } from "@app/modules/vacations/ui/pages/vacation-ind
 import { statusBadgeColor } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-table/utils/statusBadgeColor";
 import type { ControlVacationsTableProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-table/type/control-vacation.table";
 import type { GetVacationsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-vacations-response";
-import { useControlVacations } from "@app/modules/payroll/ui/hooks/useVacations";
-import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
-import { useState } from "react";
-import { useUserStore } from "@app/shared/stores/useUserStore";
+
 export function ControlVacationsTable({
   data,
+  onPageChange,
+  isPending,
   onViewDetails,
   onGenerateDocument,
 }: ControlVacationsTableProps) {
-  const [filters, setFilters] = useState<ControlVacationHistoryRequest>({
-   identification_number:'',
-   page_number:1; 
-   page_size:10;
-   status:''
-  }as ControlVacationHistoryRequest);
-
-  const { companyId, moduleCode } = useUserStore();
-  const { GetVacationsHistoryQuery } = useControlVacations(
-    {
-      ...filters,
-      company_id: companyId,
-      module_code: moduleCode,
-    }
-  );
-  const handlePageChange = (page: number) => {};
   const columns = [
     {
       key: "full_name",
@@ -93,7 +76,7 @@ export function ControlVacationsTable({
 
   return (
     <DataTable
-      title="Solicitudes de vacaciones"
+      title="Historial de vacaciones"
       data={data.data}
       columns={columns}
       pagination={
@@ -101,8 +84,8 @@ export function ControlVacationsTable({
           currentPage={data.page_number}
           pageSize={data.page_size}
           totalRecords={data.total_records}
-          onPageChange={handlePageChange}
-          disabled={GetVacationsHistoryQuery.isPending}
+          onPageChange={onPageChange}
+          disabled={isPending}
         />
       }
     />

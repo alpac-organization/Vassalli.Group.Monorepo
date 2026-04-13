@@ -1,38 +1,43 @@
-import { Button, Dropdown } from "@alpac/design-system";
-import { CONTROL_VACATION_STATUS_FILTER_OPTIONS } from "@app/modules/payroll/ui/pages/control-vacations/Constants/vacations-filter.constants";
+import { useState } from "react";
+import { Button, DatePicker, type DatePickerValue } from "@alpac/design-system";
 import type { ControlVacationFiltersBarProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/control-vacation-filter-bar";
-import type { ControlVacationStatusFilterValues } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
-const dropdownClassName =
-  "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
-const labelClassName = "text-black! dark:text-white!";
-const valueClassName = "text-black! dark:text-white!";
 
 export function ControlVacationFiltersBar({
-  filterDraft,
-  onFilterDraftChange,
   onApply,
   onClear,
 }: ControlVacationFiltersBarProps) {
+  const [startDate, setStartDate] = useState<DatePickerValue>(null);
+  const [endDate, setEndDate] = useState<DatePickerValue>(null);
+
+  const handleClear = () => {
+    setStartDate(null);
+    setEndDate(null);
+    onClear();
+  };
+
   return (
     <div className="rounded-lg border border-slate-600 dark:border-neutral-600 bg-white dark:bg-[#272b34] p-4 md:p-5">
       <h3 className="font-bold pb-2">Filtros</h3>
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
-        <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 md:flex-1">
-          <div className="min-w-0 flex-1">
-            <Dropdown
-              placeholder="Todos los estados"
-              value={filterDraft}
-              onChange={(v) =>
-                onFilterDraftChange(v as ControlVacationStatusFilterValues)
-              }
-              options={CONTROL_VACATION_STATUS_FILTER_OPTIONS}
-              labelClassName={labelClassName}
-              valueClassName={valueClassName}
-              className={dropdownClassName}
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-start sm:gap-3 md:gap-4">
+        <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:items-end sm:gap-2">
+          <div className="w-full shrink-0 sm:w-auto">
+            <DatePicker
+              fieldWidth="medium"
+              label="Fecha inicio"
+              value={startDate}
+              onChange={(v) => setStartDate(v)}
+            />
+          </div>
+          <div className="w-full shrink-0 sm:w-auto">
+            <DatePicker
+              fieldWidth="medium"
+              label="Fecha fin"
+              value={endDate}
+              onChange={(v) => setEndDate(v)}
             />
           </div>
         </div>
-        <div className="flex w-full shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-end md:w-auto">
+        <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
           <Button
             type="button"
             size="giant"
@@ -44,7 +49,7 @@ export function ControlVacationFiltersBar({
             type="button"
             size="giant"
             label="Limpiar filtros"
-            onClick={onClear}
+            onClick={handleClear}
             className="w-full sm:w-auto! text-[15px]! rounded-md! bg-slate-500! dark:bg-slate-700! text-white!"
           />
         </div>

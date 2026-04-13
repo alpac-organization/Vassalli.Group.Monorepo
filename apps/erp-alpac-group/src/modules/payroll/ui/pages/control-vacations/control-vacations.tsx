@@ -10,16 +10,18 @@ import { useNavigate } from "react-router-dom";
 import { ControlVacationPageHeader } from "./components/vacation-page-header/vacation-page-header";
 import { ControlVacationFiltersBar } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/filters-bar";
 import { useControlVacations } from "@app/modules/payroll/ui/hooks/useVacations";
-import type { ControlVacationHistoryRow } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
+import type {
+  GetVacationsHistoryResponse,
+  GetVacationsListResponse,
+} from "@app/modules/payroll/domain/ApiContract/Responses/get-vacations-response";
 import { ControlModalVacationDetails } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacations-details/control-vacacion.details.modal";
 import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
-import type { GetVacationsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-vacations-response";
 import { ControlVacationsTable } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-table/control-vacations-table";
-import type { ControlVacationStatusFilterValues } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
-import type { ControlVacationGenerateRequest } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-generate-request";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+
+const PAGE_SIZE = 10;
 
 export default function ControlVacationsPage() {
   const navigate = useNavigate();
@@ -30,27 +32,12 @@ export default function ControlVacationsPage() {
   const { urlImage, neutralUrlImage } = useCompanyStore();
 
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
-  const [filterDraft, setFilterDraft] =
-    useState<ControlVacationStatusFilterValues>("all");
-  const [appliedStatus, setAppliedStatus] =
-    useState<ControlVacationStatusFilterValues>("all");
+  const [pageNumber, setPageNumber] = useState(1);
   const [alertState, setAlertState] = useState<{
     open: boolean;
     type: "success" | "error";
     message: string;
   }>({ open: false, type: "success", message: "" });
-
-  // aqui se obtiene aqui los datos necesarios para consultar el saldo de vacaciones del colaborador actual,
-  // const vacationSaldoPayload = useMemo<UseVacationPayload | undefined>(() => {
-  //   if (!companyId || !moduleCode || !identificationNumber) return undefined;
-  //   return {
-  //     company_id: companyId,
-  //     module_code: moduleCode,
-  //     identification_number: identificationNumber,
-  //   };
-  // }, [companyId, moduleCode, identificationNumber]);
-
-  // const saldoContextReady = Boolean(vacationSaldoPayload);
 
   const historyFilters = useMemo<
     ControlVacationHistoryRequest | undefined
@@ -60,11 +47,11 @@ export default function ControlVacationsPage() {
       company_id: companyId,
       module_code: moduleCode,
       identification_number: identificationNumber,
-      page_size: 10,
-      page_number: 1,
-      ...(appliedStatus !== "all" && { status: appliedStatus }),
+      page_size: PAGE_SIZE,
+      page_number: pageNumber,
     };
-  }, [companyId, moduleCode, identificationNumber, appliedStatus]);
+  }, [companyId, moduleCode, identificationNumber, pageNumber]);
+
   const { GetControlVacationHistoryQuery, generateVacationDocumentMutation } =
     useControlVacations({
       filtersVacations: historyFilters,
@@ -74,32 +61,44 @@ export default function ControlVacationsPage() {
     useState<GetVacationsHistoryResponse | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  const filteredRows = useMemo<ControlVacationHistoryRow[]>(() => {
-    const items = GetControlVacationHistoryQuery.data;
-    if (!Array.isArray(items) || items.length === 0) return [];
-    const collaboratorName = fullName;
-    return items.map((item) => ({
-      full_name: collaboratorName,
-      start_date: item.start_date,
-      end_date: item.end_date,
-      status: item.status,
-      vacation_id: item.id_control_vacation,
-    }));
-  }, [fullName, GetControlVacationHistoryQuery.data]);
+  const tableData = useMemo<GetVacationsListResponse>(() => {
+    const raw = GetControlVacationHistoryQuery.data;
+    if (!raw) {
+      return {
+        data: [],
+        total_records: 0,
+        page_size: PAGE_SIZE,
+        page_number: pageNumber,
+        total_vacations: 0,
+      };
+    }
+    return {
+      ...raw,
+      page_number: pageNumber,
+      data: (raw.data ?? []).map((row) => ({
+        ...row,
+        full_name: fullName ?? row.full_name,
+      })),
+    };
+  }, [GetControlVacationHistoryQuery.data, fullName, pageNumber]);
 
   const handleApplyFilters = useCallback(() => {
-    setAppliedStatus(filterDraft);
-  }, [filterDraft]);
+    setPageNumber(1);
+  }, []);
 
   const handleClearFilters = useCallback(() => {
-    setFilterDraft("all");
-    setAppliedStatus("all");
+    setPageNumber(1);
+  }, []);
+
+  const handlePageChange = useCallback((page: number) => {
+    setPageNumber(page);
   }, []);
 
   const handleViewDetails = useCallback(
-    (row: ControlVacationHistoryRow) => {
-      const item = GetControlVacationHistoryQuery.data?.find(
-        (i) => String(i.id_control_vacation) === String(row.vacation_id),
+    (row: GetVacationsHistoryResponse) => {
+      const item = GetControlVacationHistoryQuery.data?.data?.find(
+        (i) =>
+          String(i.id_control_vacation) === String(row.id_control_vacation),
       );
       if (!item) return;
       setSelectedVacationItem(item);
@@ -113,21 +112,16 @@ export default function ControlVacationsPage() {
   }, []);
 
   const handleGenerateDocument = useCallback(
-    (_row: ControlVacationGenerateRequest) => {
+    (row: GetVacationsHistoryResponse) => {
       if (!companyId || !moduleCode) return;
       generateVacationDocumentMutation.mutate(
         {
           company_id: companyId,
           module_code: moduleCode,
-          id_control_vacation: _row.id_control_vacation,
+          id_control_vacation: row.id_control_vacation,
         },
         {
           onSuccess: () => {
-            console.log("Documento generado exitosamente.");
-            // window.open(
-            //   generatePermissionDocumentMutation.data?.document_url,
-            //   "_blank",
-            // );
             setAlertState({
               open: true,
               type: "success",
@@ -144,17 +138,14 @@ export default function ControlVacationsPage() {
         },
       );
     },
-    [],
+    [companyId, moduleCode, generateVacationDocumentMutation],
   );
 
-  // const showInitialPageLoader = utilsPermissionPageInitialLoader({
-  //   contextReady: saldoContextReady,
-  //   isSaldoPending: GetVacationSaldoQuery.isPending,
-  //   isProfilePending: GetProfileDetails.isPending,
-  //   isHistoryPending: GetPermissionHistory.isPending,
-  // });
-
-  if (GetControlVacationHistoryQuery.isPending) {
+  if (
+    historyFilters &&
+    GetControlVacationHistoryQuery.fetchStatus === "fetching" &&
+    GetControlVacationHistoryQuery.data === undefined
+  ) {
     return <Loader title="Cargando control de vacaciones..." />;
   }
 
@@ -183,32 +174,26 @@ export default function ControlVacationsPage() {
             ]}
           />
         </div>
-        <div className="flex justify-between items-center pb-2">
-          <ControlVacationPageHeader collaboratorDisplayName={fullName} />
-          <div className="flex justify-between items-center">
-            <img
-              className="h-12 sm:h-16 md:h-20 w-auto object-contain"
-              src={activeLogo}
-              alt="logo alpac"
-            />
-          </div>
-        </div>
+        <ControlVacationPageHeader
+          collaboratorDisplayName={fullName}
+          logoSrc={activeLogo}
+        />
         <ControlModalVacationDetails
           isOpen={isDetailsOpen}
           onClose={handleCloseDetails}
           item={selectedVacationItem}
-          collaboratorFullName={"Juan Perez"}
+          collaboratorFullName={fullName ?? ""}
         />
 
         <ControlVacationFiltersBar
-          filterDraft={filterDraft}
-          onFilterDraftChange={setFilterDraft}
           onApply={handleApplyFilters}
           onClear={handleClearFilters}
         />
 
         <ControlVacationsTable
-          data={filteredRows}
+          data={tableData}
+          onPageChange={handlePageChange}
+          isPending={GetControlVacationHistoryQuery.isFetching}
           onViewDetails={handleViewDetails}
           onGenerateDocument={handleGenerateDocument}
         />

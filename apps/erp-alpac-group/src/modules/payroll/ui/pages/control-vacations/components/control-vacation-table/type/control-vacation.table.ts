@@ -5,7 +5,8 @@ import type {
 
 export type ControlVacationsTableProps = {
   data: GetVacationsListResponse;
+  onPageChange: (page: number) => void;
+  isPending?: boolean;
   onViewDetails?: (row: GetVacationsHistoryResponse) => void;
   onGenerateDocument?: (row: GetVacationsHistoryResponse) => void;
-  handlePageChange?: (page: number) => void;
 };
