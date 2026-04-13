@@ -7,9 +7,15 @@ import { currencyRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-p
 import { salaryTypeRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/utils/salary-utils";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatIsoString } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/date-input";
-import { useUpdateWorkInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/utils/update-work-utils"; // <-- Importamos nuestro hook
+import { useUpdateWorkInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/utils/update-work-utils";
+import { formatCurrency } from "@app/shared/utils/currency.utils";
 import type { WorkFormData } from "@app/modules/payroll/ui/pages/collaborator-profile/types/profile-details.types";
 import type { WorkInformationProps } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/types/work-information.type";
+import {
+  validateEmail,
+  validateNicaraguaPhone,
+  formatPhone,
+} from "@app/shared/utils/string.utils";
 
 const defaultInformationWork: WorkFormData = {
   entry_date: "",
@@ -21,11 +27,9 @@ const defaultInformationWork: WorkFormData = {
   bankAccountNumber: "",
   bankName: "",
   branchName: "",
-  salary_information: {
-    salaryAmount: "",
-    currency: "",
-    salaryType: "",
-  },
+  salaryAmount: "",
+  currency: "",
+  salaryType: "",
 };
 
 export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
@@ -41,9 +45,6 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
     ""
   ).trim();
   const currentRole = useUserStore().role;
-  // const permissions = {
-  //   canEditWork: role === "admin" || role === "administrador", // Ajusta el string según tu base de datos
-  // };
 
   const formValuesWorkInformation = useMemo(() => {
     if (!profile) return defaultInformationWork;
@@ -55,7 +56,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
       jobPosition: w?.work_position ?? "",
       workArea: w?.work_area ?? "",
       workEmail: w?.work_email ?? "",
-      workPhoneNumber: w?.work_phone_number ?? "",
+      workPhoneNumber: formatPhone(w?.work_phone_number ?? ""),
       inssNumber: w?.inss_number ?? "",
       bankAccountNumber: w?.bank_account_number ?? "",
       bankName: w?.bank_name ?? "",
@@ -116,7 +117,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
+                  allowEdit={currentRole === "Administrator"}
                   missingMessage="Área de trabajo no registrada"
                   className={editableFieldInputClasses}
                 />
@@ -129,7 +130,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
+                  allowEdit={currentRole === "Administrator"}
                   missingMessage="Cargo no registrado"
                   className={editableFieldInputClasses}
                 />
@@ -142,10 +143,29 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   isEditing={Boolean(editingFields.workPhoneNumber)}
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
-                  onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={currentRole === "Operator"}
+                  onConfirmUpdate={async (name, value) => {
+                    const cleanValue = value.replace(/-/g, "");
+                    await handleFieldUpdate(name, cleanValue);
+                  }}
+                  allowEdit={
+                    currentRole === "Administrator" ||
+                    currentRole === "Operator"
+                  }
                   missingMessage="Teléfono de trabajo no registrado"
                   className={editableFieldInputClasses}
+                  validation={{
+                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+                      const formatted = formatPhone(e.target.value);
+                      formMethods.setValue("workPhoneNumber", formatted, {
+                        shouldValidate: true,
+                      });
+                    },
+                    maxLength: {
+                      value: 9,
+                      message: "El teléfono no puede exceder 8 dígitos",
+                    },
+                    validate: validateNicaraguaPhone,
+                  }}
                 />
 
                 <EditableField
@@ -172,9 +192,13 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                     onEditStart={handleEditStart}
                     onEditEnd={handleEditEnd}
                     onConfirmUpdate={handleFieldUpdate}
-                    allowEdit={currentRole === "Operator"}
+                    allowEdit={
+                      currentRole === "Operator" ||
+                      currentRole === "Administrator"
+                    }
                     missingMessage="Correo de trabajo no registrado"
                     className={editableFieldInputClasses}
+                    validation={{ validate: validateEmail }}
                   />
                 </div>
 
@@ -186,7 +210,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
+                  allowEdit={currentRole === "Administrator"}
                   missingMessage="INSS no registrado"
                   className={editableFieldInputClasses}
                 />
@@ -199,7 +223,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
+                  allowEdit={currentRole === "Administrator"}
                   missingMessage="Sucursal no registrada"
                   className={editableFieldInputClasses}
                 />
@@ -212,7 +236,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
+                  allowEdit={currentRole === "Administrator"}
                   missingMessage="Cuenta bancaria no registrada"
                   className={editableFieldInputClasses}
                 />
@@ -225,14 +249,13 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
+                  allowEdit={currentRole === "Administrator"}
                   missingMessage="Banco no registrado"
                   className={editableFieldInputClasses}
                 />
               </div>
             </div>
 
-            {/* SECCIÓN: INFORMACIÓN SALARIAL */}
             <div className="min-w-0 border-t border-slate-200 dark:border-neutral-600 pt-6 sm:pt-8">
               <h3 className="text-[18px]! font-semibold tracking-tight text-slate-800 dark:text-slate-100 mb-8 sm:mb-5">
                 Información salarial
@@ -246,20 +269,28 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
+                  allowEdit={currentRole === "Administrator"}
                   missingMessage="Salario no registrado"
                   className={editableFieldInputClasses}
+                  displayFormat={(value) => {
+                    if (!value) return "";
+                    const currencyLabel = formMethods.watch("currency");
+                    const currencyCode =
+                      currencyLabel === "Dólares" ? "USD" : "NIO";
+                    return formatCurrency(Number(value), currencyCode);
+                  }}
                 />
 
                 <EditableField
                   name="currency"
                   label="Moneda"
+                  type="text"
                   formMethods={formMethods}
                   isEditing={Boolean(editingFields.currency)}
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
+                  allowEdit={currentRole === "Administrator"}
                   missingMessage="Moneda no registrada"
                   className={editableFieldInputClasses}
                 />
@@ -272,7 +303,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
+                  allowEdit={currentRole === "Administrator"}
                   missingMessage="Tipo de salario no registrado"
                   className={editableFieldInputClasses}
                 />

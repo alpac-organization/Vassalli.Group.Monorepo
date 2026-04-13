@@ -4,25 +4,70 @@
  * @returns string
  */
 export const validateNameAndLastName = (fullName: string): string => {
-   if (!fullName) return 'Usuario';
+  if (!fullName) return "Usuario";
 
-   let result = '';
-   const firstName = fullName.toLowerCase().split(' ')[0];
-   const splitFullName = fullName.toLowerCase().split(' ');
+  let result = "";
+  const firstName = fullName.toLowerCase().split(" ")[0];
+  const splitFullName = fullName.toLowerCase().split(" ");
 
-   if (splitFullName.length === 1) result = firstName;
+  if (splitFullName.length === 1) result = firstName;
 
-   if (splitFullName.length === 2) result = `${firstName} ${splitFullName[1]}`;
+  if (splitFullName.length === 2) result = `${firstName} ${splitFullName[1]}`;
 
-   if (splitFullName.length === 3 || splitFullName.length === 4)
-      result = `${firstName} ${splitFullName[2]}`;
+  if (splitFullName.length === 3 || splitFullName.length === 4)
+    result = `${firstName} ${splitFullName[2]}`;
 
-   if (splitFullName.length > 4) result = `${firstName} ${splitFullName[3]}`;
+  if (splitFullName.length > 4) result = `${firstName} ${splitFullName[3]}`;
 
-   return result
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+  return result
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+import { IdentificationEnum } from "@app/core/enums/identifcation.enum";
+
+export const validateIdentificationNumber = (
+  value: string,
+  identificationType: number,
+) => {
+  if (!value) return "El número de identificación es requerido";
+
+  if (
+    identificationType === IdentificationEnum.NATIONAL_ID.value ||
+    identificationType === IdentificationEnum.RESIDENCE_ID.value
+  ) {
+    const regex = /^[0-9]{13}[A-Z]$/;
+    const cleanValue = value.replace(/-/g, "");
+
+    return (
+      regex.test(cleanValue ?? "") ||
+      "El número de identificación debe tener 14 caracteres y terminar con una letra mayúscula"
+    );
+  }
+
+  if (identificationType === IdentificationEnum.PASSPORT.value) {
+    return (
+      value.length > 4 ||
+      "El número de pasaporte debe tener al menos 5 caracteres"
+    );
+  }
+
+  return true;
+};
+export const validateNicaraguaPhone = (phone?: string): boolean | string => {
+  if (!phone) return true;
+  const cleanPhone = phone.replace(/-/g, "");
+  const regex = /^[2578]\d{7}$/;
+  return (
+    regex.test(cleanPhone) ||
+    "El número de teléfono debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)"
+  );
+};
+
+export const validateTextNoDigits = (text?: string): boolean | string => {
+  if (!text) return true;
+  const regex = /^\D*$/;
+  return regex.test(text) || "Este campo no debe contener números";
 };
 
 /**
@@ -31,20 +76,24 @@ export const validateNameAndLastName = (fullName: string): string => {
  * @returns La cédula formateada o el valor original si no cumple el mínimo
  */
 export const formatIdentificationNumber = (identification: string): string => {
-   if (!identification) return '';
+  if (!identification) return "";
 
-   const raw = identification.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 14);
+  const raw = identification
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase()
+    .slice(0, 14);
 
-   const numbers = raw.slice(0, 13).replace(/[^0-9]/g, '');
-   const letter = raw.slice(13, 14).replace(/[^A-Z]/g, '');
+  const numbers = raw.slice(0, 13).replace(/[^0-9]/g, "");
+  const letter = raw.slice(13, 14).replace(/[^A-Z]/g, "");
 
-   const clean = numbers + letter;
+  const clean = numbers + letter;
 
-   if (clean.length <= 3) return clean;
-   if (clean.length <= 9) return `${clean.slice(0, 3)}-${clean.slice(3)}`;
-   if (clean.length <= 13) return `${clean.slice(0, 3)}-${clean.slice(3, 9)}-${clean.slice(9)}`;
+  if (clean.length <= 3) return clean;
+  if (clean.length <= 9) return `${clean.slice(0, 3)}-${clean.slice(3)}`;
+  if (clean.length <= 13)
+    return `${clean.slice(0, 3)}-${clean.slice(3, 9)}-${clean.slice(9)}`;
 
-   return `${clean.slice(0, 3)}-${clean.slice(3, 9)}-${clean.slice(9, 13)}${clean.slice(13, 14)}`;
+  return `${clean.slice(0, 3)}-${clean.slice(3, 9)}-${clean.slice(9, 13)}${clean.slice(13, 14)}`;
 };
 
 /**
@@ -53,13 +102,37 @@ export const formatIdentificationNumber = (identification: string): string => {
  * @returns El teléfono formateado o el valor original si no cumple el mínimo
  */
 export const formatPhone = (phone: string): string => {
-   if (!phone) return '';
+  if (!phone) return "";
 
-   const raw = phone.replace(/[^0-9]/g, '').slice(0, 8);
+  const raw = phone.replace(/[^0-9]/g, "").slice(0, 8);
 
-   if (raw.length <= 4) return raw;
+  if (raw.length <= 4) return raw;
 
-   return `${raw.slice(0, 4)}-${raw.slice(4, 8)}`;
+  return `${raw.slice(0, 4)}-${raw.slice(4, 8)}`;
+};
+
+export const formatDateToSpanishWords = (dateString?: string): string => {
+  if (!dateString) return "";
+  const parts = dateString.split("-");
+  if (parts.length !== 3) return dateString;
+
+  const year = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const day = parseInt(parts[2], 10);
+
+  if (isNaN(year) || isNaN(month) || isNaN(day)) return dateString;
+
+  const date = new Date(Date.UTC(year, month, day, 12, 0, 0));
+
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "UTC",
+  };
+
+  return date.toLocaleDateString("es-NI", options);
 };
 
 /**
@@ -69,29 +142,29 @@ export const formatPhone = (phone: string): string => {
  * @returns True si la edad es válida, false si no
  */
 export const validateAge = (
-   date?: string,
-   minAge: number = 16,
+  date?: string,
+  minAge: number = 16,
 ): boolean | string => {
-   if (!date) return true;
+  if (!date) return true;
 
-   const [year, month, day] = date.split('-').map(Number);
-   const birthDate = new Date(year, month - 1, day);
+  const [year, month, day] = date.split("-").map(Number);
+  const birthDate = new Date(year, month - 1, day);
 
-   const today = new Date();
-   today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-   let age = today.getFullYear() - birthDate.getFullYear();
+  let age = today.getFullYear() - birthDate.getFullYear();
 
-   const monthDiff = today.getMonth() - birthDate.getMonth();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
 
-   if (
-      monthDiff < 0 ||
-      (monthDiff === 0 && today.getDate() < birthDate.getDate())
-   ) {
-      age--;
-   }
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
 
-   return age >= minAge || `El colaborador debe ser mayor de ${minAge} años`;
+  return age >= minAge || `El colaborador debe ser mayor de ${minAge} años`;
 };
 
 /**
@@ -100,30 +173,29 @@ export const validateAge = (
  * @returns True si la fecha es válida, false si no
  */
 export const validateToday = (date?: string): boolean | string => {
-   if (!date) return true;
+  if (!date) return true;
 
-   const [year, month, day] = date.split('-').map(Number);
-   const birthDate = new Date(year, month - 1, day);
+  const [year, month, day] = date.split("-").map(Number);
+  const birthDate = new Date(year, month - 1, day);
 
-   const today = new Date();
-   today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-   if (birthDate > today) return 'La fecha no puede ser mayor a la fecha actual';
+  if (birthDate > today) return "La fecha no puede ser mayor a la fecha actual";
 
-   return true;
+  return true;
 };
-
 /**
  * Valida que el correo sea válido
  * @param email - Correo a validar
  * @returns True si el correo es válido, false si no
  */
 export const validateEmail = (email?: string): boolean | string => {
-   if (!email) return true;
+  if (!email) return true;
 
-   const emailRegex =
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
-   return emailRegex.test(email) || 'Correo electrónico inválido';
+  const emailRegex =
+    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email) || "Correo electrónico inválido";
 };
 
 /**
@@ -132,19 +204,19 @@ export const validateEmail = (email?: string): boolean | string => {
  * @returns Fecha formateada o "—" si la fecha es inválida
  */
 export const formatDate = (date?: string): string => {
-   if (!date) return "—";
+  if (!date) return "—";
 
-   const dateOnly = date.split("T")[0];
+  const dateOnly = date.split("T")[0];
 
-   const d = new Date(`${dateOnly}T12:00:00`);
+  const d = new Date(`${dateOnly}T12:00:00`);
 
-   if (isNaN(d.getTime())) return "—";
+  if (isNaN(d.getTime())) return "—";
 
-   return new Intl.DateTimeFormat("es-NI", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-   }).format(d);
+  return new Intl.DateTimeFormat("es-NI", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(d);
 };
 
 /**
@@ -153,21 +225,21 @@ export const formatDate = (date?: string): string => {
  * @returns Fecha y hora formateada o "—" si la fecha es inválida
  */
 export const formatDateTime = (date?: string): string => {
-   if (!date) return "—";
+  if (!date) return "—";
 
-   const dateOnly = date.split("T")[0];
+  const dateOnly = date.split("T")[0];
 
-   const d = new Date(`${dateOnly}T12:00:00`);
+  const d = new Date(`${dateOnly}T12:00:00`);
 
-   if (isNaN(d.getTime())) return "—";
+  if (isNaN(d.getTime())) return "—";
 
-   return new Intl.DateTimeFormat("es-NI", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-   }).format(d);
+  return new Intl.DateTimeFormat("es-NI", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  }).format(d);
 };
 
 /**
@@ -176,23 +248,23 @@ export const formatDateTime = (date?: string): string => {
  * @returns Fecha formateada o "—" si la fecha es inválida
  */
 export const formatTime = (time?: string): string => {
-   if (!time) return "--:-- --";
+  if (!time) return "--:-- --";
 
-   let validatedTime = new Date(time);
+  let validatedTime = new Date(time);
 
-   if (validatedTime.toString() === 'Invalid Date') {
-      const [hours, minutes] = time.split(":").map(Number);
+  if (validatedTime.toString() === "Invalid Date") {
+    const [hours, minutes] = time.split(":").map(Number);
 
-      if (isNaN(hours) || isNaN(minutes)) return "--:-- --";
+    if (isNaN(hours) || isNaN(minutes)) return "--:-- --";
 
-      validatedTime = new Date(0, 0, 0, hours, minutes, 0);
-   }
+    validatedTime = new Date(0, 0, 0, hours, minutes, 0);
+  }
 
-   if (isNaN(validatedTime.getTime())) return "--:-- --";
+  if (isNaN(validatedTime.getTime())) return "--:-- --";
 
-   return new Intl.DateTimeFormat("es-NI", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-   }).format(validatedTime);
+  return new Intl.DateTimeFormat("es-NI", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(validatedTime);
 };

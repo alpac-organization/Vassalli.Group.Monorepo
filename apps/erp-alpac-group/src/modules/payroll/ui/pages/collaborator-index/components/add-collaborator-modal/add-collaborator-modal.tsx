@@ -20,7 +20,10 @@ import {
    validateToday,
 } from "@app/shared/utils/string.utils";
 import { GenderOptions } from "@app/core/enums/gender.enum";
-import { IdentificationOptions, IdentificationEnum } from "@app/core/enums/identifcation.enum";
+import {
+   IdentificationOptions,
+   IdentificationEnum,
+} from "@app/core/enums/identifcation.enum";
 import { CurrencyOptions } from "@app/core/enums/currency.enum";
 import { SalaryTypeOptions } from "@app/modules/payroll/domain/enums/salary-type.enum";
 import { ArrowLeftIcon, ArrowRightIcon, SaveIcon, XIcon } from "lucide-react";
@@ -92,7 +95,6 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
 
    const handleCreateCollaborator = async (data: AddCollaboratorRequest) => {
       try {
-
          await PostCollaboratorQuery.mutateAsync({
             ...data,
             company_id: companyId,
@@ -111,38 +113,43 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
             handleCloseModal();
             setShowAlert({ show: false, type: "info", title: "", message: "" });
          }, 1000);
-
       } catch (error) {
          const mappedError = getMappedError(error as ApiErrorResponse);
-         console.error(mappedError);
          setShowAlert({
             show: true,
             type: "error",
             title: "Error al guardar",
-            message: mappedError.description || "No se pudo crear el colaborador. Por favor, intente de nuevo.",
+            message:
+               mappedError.description ||
+               "No se pudo crear el colaborador. Por favor, intente de nuevo.",
          });
       }
    };
 
    const validateIdentificationNumber = (value: string) => {
-      if (!value) return "El número de identificación es requerido"
+      if (!value) return "El número de identificación es requerido";
 
       if (
          identificationType === IdentificationEnum.NATIONAL_ID.value ||
-         identificationType === IdentificationEnum.RESIDENCE_ID.value) {
-
+         identificationType === IdentificationEnum.RESIDENCE_ID.value
+      ) {
          const regex = /^[0-9]{13}[A-Z]$/;
 
-         return regex.test(value ?? "") || "El número de identificación debe tener 14 caracteres y terminar con una letra mayúscula"
+         return (
+            regex.test(value ?? "") ||
+            "El número de identificación debe tener 14 caracteres y terminar con una letra mayúscula"
+         );
       }
 
       if (identificationType === IdentificationEnum.PASSPORT.value) {
-
-         return value.length > 4 || "El número de pasaporte debe tener al menos 5 caracteres"
+         return (
+            value.length > 4 ||
+            "El número de pasaporte debe tener al menos 5 caracteres"
+         );
       }
 
-      return true
-   }
+      return true;
+   };
 
    return (
       <Modal
@@ -164,11 +171,17 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                   title={showAlert.title}
                   message={showAlert.message}
                   showCloseButton
-                  onClose={() => { setShowAlert({ show: false, type: "info", title: "", message: "" }) }}
+                  onClose={() => {
+                     setShowAlert({
+                        show: false,
+                        type: "info",
+                        title: "",
+                        message: "",
+                     });
+                  }}
                />
             )}
          </AnimatedAlertWrapper>
-
 
          <form
             className="min-h-[450px] flex flex-col"
@@ -176,7 +189,9 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
          >
             <div className="grow relative">
                {/* Paso 1: Datos de Identidad */}
-               <section className={`transition-all duration-500 transform ${currentStep === 0 ? "opacity-100 translate-x-0 relative z-10" : currentStep > 0 ? "opacity-0 translate-x-8 absolute inset-0 -z-10 pointer-events-none" : "opacity-0 -translate-x-8 absolute inset-0 -z-10 pointer-events-none"}`}>
+               <section
+                  className={`transition-all duration-500 transform ${currentStep === 0 ? "opacity-100 translate-x-0 relative z-10" : currentStep > 0 ? "opacity-0 translate-x-8 absolute inset-0 -z-10 pointer-events-none" : "opacity-0 -translate-x-8 absolute inset-0 -z-10 pointer-events-none"}`}
+               >
                   <div className="flex items-center gap-2 mb-6">
                      <h3 className="text-[16px]! font-bold text-slate-800 dark:text-white!">
                         Datos de Identidad
@@ -195,7 +210,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            pattern: {
                               value: /^[A-Za-z]*$/,
                               message: "El primer nombre solo puede contener letras",
-                           }
+                           },
                         })}
                         error={errors.first_name && errors.first_name.message}
                      />
@@ -210,8 +225,8 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            required: false,
                            pattern: {
                               value: /^[A-Za-z]*$/,
-                              message: "El segundo nombre solo puede contener letras"
-                           }
+                              message: "El segundo nombre solo puede contener letras",
+                           },
                         })}
                         error={errors.second_name && errors.second_name.message}
                      />
@@ -226,8 +241,8 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            required: false,
                            pattern: {
                               value: /^[A-Za-z]*$/,
-                              message: "El tercer nombre solo puede contener letras"
-                           }
+                              message: "El tercer nombre solo puede contener letras",
+                           },
                         })}
                         error={errors.third_name && errors.third_name.message}
                      />
@@ -243,8 +258,8 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            required: "El primer apellido es requerido",
                            pattern: {
                               value: /^[A-Za-z]*$/,
-                              message: "El primer apellido solo puede contener letras"
-                           }
+                              message: "El primer apellido solo puede contener letras",
+                           },
                         })}
                         error={errors.first_lastname && errors.first_lastname.message}
                      />
@@ -259,8 +274,8 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            required: false,
                            pattern: {
                               value: /^[A-Za-z]*$/,
-                              message: "El segundo apellido solo puede contener letras"
-                           }
+                              message: "El segundo apellido solo puede contener letras",
+                           },
                         })}
                         error={errors.second_lastname && errors.second_lastname.message}
                      />
@@ -324,7 +339,11 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
 
                      <InputText
                         label="No. Identificación"
-                        placeholder={identificationType === IdentificationEnum.PASSPORT.value ? "Ej. AB123456" : "Ej. 001-010190-0001A"}
+                        placeholder={
+                           identificationType === IdentificationEnum.PASSPORT.value
+                              ? "Ej. AB123456"
+                              : "Ej. 001-010190-0001A"
+                        }
                         isRequired
                         className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                         labelClassName="text-black! dark:text-white!"
@@ -333,12 +352,15 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            disabled: identificationType === 0,
                            setValueAs: (value: string) =>
                               value
-                                 ? (identificationType === IdentificationEnum.NATIONAL_ID.value ||
-                                    identificationType === IdentificationEnum.RESIDENCE_ID.value)
+                                 ? identificationType ===
+                                    IdentificationEnum.NATIONAL_ID.value ||
+                                    identificationType ===
+                                    IdentificationEnum.RESIDENCE_ID.value
                                     ? value.toString().replace(/-/g, "").toUpperCase()
                                     : value.toString().toUpperCase()
                                  : "",
-                           validate: (value?: string) => validateIdentificationNumber(value ?? ""),
+                           validate: (value?: string) =>
+                              validateIdentificationNumber(value ?? ""),
                         })}
                         error={
                            errors.identification_number &&
@@ -346,16 +368,15 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         }
                         onChange={(evt) => {
                            if (
-                              identificationType === IdentificationEnum.NATIONAL_ID.value ||
+                              identificationType ===
+                              IdentificationEnum.NATIONAL_ID.value ||
                               identificationType === IdentificationEnum.RESIDENCE_ID.value
                            ) {
-
-                              evt.target.value = formatIdentificationNumber(evt.target.value);
-
+                              evt.target.value = formatIdentificationNumber(
+                                 evt.target.value,
+                              );
                            } else {
-
                               evt.target.value = evt.target.value.toUpperCase();
-
                            }
 
                            register("identification_number").onChange(evt);
@@ -366,7 +387,9 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                </section>
 
                {/* Paso 2: Información Personal */}
-               <section className={`transition-all duration-500 transform ${currentStep === 1 ? "opacity-100 translate-x-0 relative z-10" : currentStep > 1 ? "opacity-0 translate-x-8 absolute inset-0 -z-10 pointer-events-none" : "opacity-0 -translate-x-8 absolute inset-0 -z-10 pointer-events-none"}`}>
+               <section
+                  className={`transition-all duration-500 transform ${currentStep === 1 ? "opacity-100 translate-x-0 relative z-10" : currentStep > 1 ? "opacity-0 translate-x-8 absolute inset-0 -z-10 pointer-events-none" : "opacity-0 -translate-x-8 absolute inset-0 -z-10 pointer-events-none"}`}
+               >
                   <div className="flex items-center gap-2 mb-6">
                      <h3 className="text-[16px]! font-bold text-slate-800 dark:text-white!">
                         Información Personal
@@ -428,12 +451,11 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            required: false,
                            pattern: {
                               value: /^[2578]\d{7}$/,
-                              message: "El número debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)",
+                              message:
+                                 "El número debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)",
                            },
                            setValueAs: (value: string) =>
-                              value
-                                 ? value.toString().replace(/-/g, "")
-                                 : "",
+                              value ? value.toString().replace(/-/g, "") : "",
                         })}
                         error={
                            errors.personal_information?.personal_phone_number &&
@@ -441,7 +463,9 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         }
                         onChange={(evt) => {
                            evt.target.value = formatPhone(evt.target.value);
-                           register("personal_information.personal_phone_number").onChange(evt);
+                           register(
+                              "personal_information.personal_phone_number",
+                           ).onChange(evt);
                         }}
                      />
 
@@ -496,7 +520,9 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                </section>
 
                {/* Paso 3: Información Laboral */}
-               <section className={`transition-all duration-500 transform ${currentStep === 2 ? "opacity-100 translate-x-0 relative z-10" : currentStep > 2 ? "opacity-0 translate-x-8 absolute inset-0 -z-10 pointer-events-none" : "opacity-0 -translate-x-8 absolute inset-0 -z-10 pointer-events-none"}`}>
+               <section
+                  className={`transition-all duration-500 transform ${currentStep === 2 ? "opacity-100 translate-x-0 relative z-10" : currentStep > 2 ? "opacity-0 translate-x-8 absolute inset-0 -z-10 pointer-events-none" : "opacity-0 -translate-x-8 absolute inset-0 -z-10 pointer-events-none"}`}
+               >
                   <div className="flex items-center gap-2 mb-6">
                      <h3 className="text-[16px]! font-bold text-slate-800 dark:text-white!">
                         Información Laboral
@@ -624,12 +650,11 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            required: false,
                            pattern: {
                               value: /^[2578]\d{7}$/,
-                              message: "El número debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)",
+                              message:
+                                 "El número debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)",
                            },
                            setValueAs: (value: string) =>
-                              value
-                                 ? value.toString().replace(/-/g, "")
-                                 : "",
+                              value ? value.toString().replace(/-/g, "") : "",
                         })}
                         error={
                            errors.working_information?.work_phon_number &&
@@ -637,7 +662,9 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         }
                         onChange={(evt) => {
                            evt.target.value = formatPhone(evt.target.value);
-                           register("working_information.work_phon_number").onChange(evt);
+                           register("working_information.work_phon_number").onChange(
+                              evt,
+                           );
                         }}
                      />
 
@@ -681,7 +708,9 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                </section>
 
                {/* Paso 4: Información Salarial */}
-               <section className={`transition-all duration-500 transform ${currentStep === 3 ? "opacity-100 translate-x-0 relative z-10" : currentStep > 3 ? "opacity-0 translate-x-8 absolute inset-0 -z-10 pointer-events-none" : "opacity-0 -translate-x-8 absolute inset-0 -z-10 pointer-events-none"}`}>
+               <section
+                  className={`transition-all duration-500 transform ${currentStep === 3 ? "opacity-100 translate-x-0 relative z-10" : currentStep > 3 ? "opacity-0 translate-x-8 absolute inset-0 -z-10 pointer-events-none" : "opacity-0 -translate-x-8 absolute inset-0 -z-10 pointer-events-none"}`}
+               >
                   <div className="flex items-center gap-2 mb-6">
                      <h3 className="text-[16px]! font-bold text-slate-800 dark:text-white!">
                         Información Salarial
@@ -728,9 +757,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         {...register("salary_information.salary", {
                            required: "El salario es requerido",
                            setValueAs: (value: string) =>
-                              value
-                                 ? parseFloat(value.toString().replace(/,/g, ""))
-                                 : 0,
+                              value ? parseFloat(value.toString().replace(/,/g, "")) : 0,
                            validate: (value?: number) =>
                               (value !== undefined && value > 0) ||
                               "El salario debe ser mayor a 0",
