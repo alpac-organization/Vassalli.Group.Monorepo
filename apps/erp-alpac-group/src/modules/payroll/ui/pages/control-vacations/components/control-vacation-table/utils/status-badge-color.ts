@@ -1,6 +1,6 @@
-import type { ControlVacationHistoryRow } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
+import type { GetVacationsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-vacations-response";
 export function statusBadgeColor(
-  status: ControlVacationHistoryRow["status"],
+  status: GetVacationsHistoryResponse["status"],
 ): string {
   switch (status) {
     case "Cancelled":

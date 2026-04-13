@@ -1,6 +1,6 @@
 import { Button, Dropdown } from "@alpac/design-system";
-import { CONTROL_VACATION_STATUS_FILTER_OPTIONS } from "../../Constants/vacations-filter.constants";
-import type { ControlVacationFiltersBarProps } from "./control-vacation-filter-bar";
+import { CONTROL_VACATION_STATUS_FILTER_OPTIONS } from "@app/modules/payroll/ui/pages/control-vacations/Constants/vacations-filter.constants";
+import type { ControlVacationFiltersBarProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/control-vacation-filter-bar";
 import type { ControlVacationStatusFilterValues } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
 const dropdownClassName =
   "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";

@@ -1,4 +1,4 @@
-export interface ControlVacationGenerateRequest {
+export interface ControlVacationGenerateDocumentRequest {
   /**
    * Identificador único de la empresa
    */

@@ -25,10 +25,3 @@ export interface ControlVacationHistoryRequest {
 
 export type ControlVacationStatusFilterValues = "all" | ControlVacationStatus;
 export type ControlVacationStatus = "Pending" | "Cancelled";
-// export interface ControlVacationHistoryRow {
-//   vacation_id: string;
-//   full_name: string;
-//   start_date: string;
-//   end_date: string;
-//   status: ControlVacationStatus;
-// }

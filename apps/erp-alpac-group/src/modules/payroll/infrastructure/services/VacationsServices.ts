@@ -1,9 +1,9 @@
 import type { IHttpHandler } from "@app/core/ports";
 import type { IVacationsServices } from "@app/modules/payroll/application/interfaces/IVacationServices";
 import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
-import type { GetVacationsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-vacations-response";
 import { cleanParams } from "@app/shared/utils/object.utils";
 import type { ControlVacationGenerateRequest } from "../../domain/ApiContract/Requests/vacation-generate-request";
+import type { GetVacationsListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-vacations-response";
 export class ControlVacationServices implements IVacationsServices {
   private apiHandler: IHttpHandler;
 
@@ -12,16 +12,16 @@ export class ControlVacationServices implements IVacationsServices {
   }
   public async GetVacations(
     payload: ControlVacationHistoryRequest,
-  ): Promise<GetVacationsHistoryResponse[]> {
+  ): Promise<GetVacationsListResponse> {
     try {
       const { company_id, module_code, ...rest } = payload;
-      const response = this.apiHandler.get<GetVacationsHistoryResponse[]>(
-        `/companies/${payload.company_id}/modules/${payload.module_code}/vacations`,
+      const vacations = this.apiHandler.get<GetVacationsListResponse>(
+        `/companies/${company_id}/modules/${module_code}/vacations`,
         {
           params: cleanParams(rest),
         },
       );
-      return response;
+      return vacations;
     } catch (error) {
       throw error;
     }

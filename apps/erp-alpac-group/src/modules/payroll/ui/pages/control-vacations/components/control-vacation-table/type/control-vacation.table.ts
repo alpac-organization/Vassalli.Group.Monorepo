@@ -1,6 +1,11 @@
-import type { ControlVacationHistoryRow } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
+import type {
+  GetVacationsHistoryResponse,
+  GetVacationsListResponse,
+} from "@app/modules/payroll/domain/ApiContract/Responses/get-vacations-response";
+
 export type ControlVacationsTableProps = {
-  data: ControlVacationHistoryRow[];
-  onViewDetails?: (row: ControlVacationHistoryRow) => void;
-  onGenerateDocument?: (row: ControlVacationHistoryRow) => void;
+  data: GetVacationsListResponse;
+  onViewDetails?: (row: GetVacationsHistoryResponse) => void;
+  onGenerateDocument?: (row: GetVacationsHistoryResponse) => void;
+  handlePageChange?: (page: number) => void;
 };

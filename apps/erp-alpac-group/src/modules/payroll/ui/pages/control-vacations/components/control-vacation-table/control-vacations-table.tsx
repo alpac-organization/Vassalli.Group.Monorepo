@@ -3,17 +3,37 @@ import { getPermissionStatusUiLabel } from "@app/modules/vacations/ui/pages/vaca
 import { formatVacationDate } from "@app/modules/vacations/ui/pages/vacation-index/utils/format-vacation-date";
 import { statusBadgeColor } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-table/utils/statusBadgeColor";
 import type { ControlVacationsTableProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-table/type/control-vacation.table";
-import type { ControlVacationHistoryRow } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
+import type { GetVacationsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-vacations-response";
+import { useControlVacations } from "@app/modules/payroll/ui/hooks/useVacations";
+import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
+import { useState } from "react";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 export function ControlVacationsTable({
   data,
   onViewDetails,
   onGenerateDocument,
 }: ControlVacationsTableProps) {
+  const [filters, setFilters] = useState<ControlVacationHistoryRequest>({
+   identification_number:'',
+   page_number:1; 
+   page_size:10;
+   status:''
+  }as ControlVacationHistoryRequest);
+
+  const { companyId, moduleCode } = useUserStore();
+  const { GetVacationsHistoryQuery } = useControlVacations(
+    {
+      ...filters,
+      company_id: companyId,
+      module_code: moduleCode,
+    }
+  );
+  const handlePageChange = (page: number) => {};
   const columns = [
     {
       key: "full_name",
       label: "Nombre completo",
-      render: (row: ControlVacationHistoryRow) => (
+      render: (row: GetVacationsHistoryResponse) => (
         <span className="font-semibold text-neutral-900 dark:text-white">
           {row.full_name}
         </span>
@@ -22,19 +42,19 @@ export function ControlVacationsTable({
     {
       key: "start_date",
       label: "Fecha inicio",
-      render: (row: ControlVacationHistoryRow) =>
+      render: (row: GetVacationsHistoryResponse) =>
         formatVacationDate(row.start_date),
     },
     {
       key: "end_date",
       label: "Fecha fin",
-      render: (row: ControlVacationHistoryRow) =>
+      render: (row: GetVacationsHistoryResponse) =>
         formatVacationDate(row.end_date),
     },
     {
       key: "status",
       label: "Estado",
-      render: (row: ControlVacationHistoryRow) => (
+      render: (row: GetVacationsHistoryResponse) => (
         <Badges
           label={getPermissionStatusUiLabel(row.status)}
           color={statusBadgeColor(row.status)}
@@ -44,7 +64,7 @@ export function ControlVacationsTable({
     {
       key: "actions",
       label: "Acciones",
-      render: (row: ControlVacationHistoryRow) => {
+      render: (row: GetVacationsHistoryResponse) => {
         const canGenerateDocument = row.status === "Pending";
         return (
           <div className="flex flex-wrap items-center gap-2">
@@ -74,15 +94,15 @@ export function ControlVacationsTable({
   return (
     <DataTable
       title="Solicitudes de vacaciones"
-      data={data}
+      data={data.data}
       columns={columns}
       pagination={
         <Pagination
           currentPage={data.page_number}
           pageSize={data.page_size}
-          totalRecords={collaborators.total_records}
+          totalRecords={data.total_records}
           onPageChange={handlePageChange}
-          disabled={GetCollaboratorsQuery.isPending}
+          disabled={GetVacationsHistoryQuery.isPending}
         />
       }
     />

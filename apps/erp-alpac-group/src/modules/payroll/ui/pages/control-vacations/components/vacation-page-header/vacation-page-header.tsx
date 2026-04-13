@@ -1,8 +1,8 @@
-import type { PermissionPageHeaderProps } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-page-header/types/permission-header.type";
+import type { VacationPageHeaderProps } from "@app/modules/payroll/ui/pages/control-vacations/components/vacation-page-header/type/vacation-page-header.props";
 
 export function ControlVacationPageHeader({
   collaboratorDisplayName,
-}: PermissionPageHeaderProps) {
+}: VacationPageHeaderProps) {
   const subtitle = collaboratorDisplayName?.trim() || "control de vacaciones";
 
   return (

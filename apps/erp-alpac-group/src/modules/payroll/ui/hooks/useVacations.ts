@@ -3,9 +3,7 @@ import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { ControlVacationServices } from "@app/modules/payroll/infrastructure/services/VacationsServices";
 import { useMutation } from "@tanstack/react-query";
-import type { GeneratePermissionDocumentRequest } from "@app/modules/vacations/domain/ApiContract/Requests/generate-permission-docs-request";
-import type { ControlVacationGenerateRequest } from "../../domain/ApiContract/Requests/vacation-generate-request";
-
+import type { ControlVacationGenerateDocumentRequest } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-generate-request";
 const controlVacationServices = new ControlVacationServices(httpHandler);
 export interface UserControlVacationPayload {
   company_id: string;
@@ -14,14 +12,14 @@ export interface UserControlVacationPayload {
 }
 interface useControlVacationsProps {
   filtersVacations?: ControlVacationHistoryRequest;
-  payloadVacations?: UserControlVacationPayload;
+  payload?: UserControlVacationPayload;
 }
 const vacationServices = new ControlVacationServices(httpHandler);
 export const useControlVacations = (props: useControlVacationsProps) => {
   const queryClient = useQueryClient();
-  const { filtersVacations, payloadVacations } = props;
+  const { filtersVacations } = props;
   const GetControlVacationHistoryQuery = useQuery({
-    queryKey: ["vacations", filtersVacations],
+    queryKey: ["vacationsHistory", filtersVacations],
     queryFn: () => vacationServices.GetVacations(filtersVacations!),
     refetchOnMount: false,
     refetchOnWindowFocus: false,
@@ -30,8 +28,8 @@ export const useControlVacations = (props: useControlVacationsProps) => {
   });
 
   const generateVacationDocumentMutation = useMutation({
-    mutationKey: ["generatePermissionDocument", payloadVacations],
-    mutationFn: (payload: ControlVacationGenerateRequest) =>
+    mutationKey: ["generateVacationDocument"],
+    mutationFn: (payload: ControlVacationGenerateDocumentRequest) =>
       controlVacationServices.generateControlVacationDocument(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });

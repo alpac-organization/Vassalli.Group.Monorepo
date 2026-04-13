@@ -11,9 +11,10 @@ export interface GetVacationsHistoryResponse {
   created_at: string;
 }
 
-export interface GetCollaboratorsListResponse {
+export interface GetVacationsListResponse {
   data: GetVacationsHistoryResponse[];
   total_records: number;
   page_size: number;
   page_number: number;
+  total_vacations: number;
 }
