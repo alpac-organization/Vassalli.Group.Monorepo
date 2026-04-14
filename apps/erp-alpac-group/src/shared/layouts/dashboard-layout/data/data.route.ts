@@ -62,10 +62,17 @@ const settingsSection: SidebarLink = {
 };
 
 const deduccionesSection: SidebarLink = {
+<<<<<<< Updated upstream
    id: "deducciones",
    label: "Deducciones",
    path: "payroll/deducciones",
    icon: CircleMinus,
+=======
+  id: "deducciones",
+  label: "Deducciones activas",
+  path: "payroll/deducciones",
+  icon: CircleMinus,
+>>>>>>> Stashed changes
 };
 const liquidacionSection: SidebarLink = {
    id: "liquidacion",

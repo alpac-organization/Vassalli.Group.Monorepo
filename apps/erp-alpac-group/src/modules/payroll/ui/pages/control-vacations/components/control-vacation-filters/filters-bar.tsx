@@ -16,10 +16,11 @@ export function ControlVacationFiltersBar({
   };
 
   return (
-    <div className="rounded-lg border border-slate-600 dark:border-neutral-600 bg-white dark:bg-[#272b34] p-4 md:p-5">
-      <h3 className="font-bold pb-2">Filtros</h3>
+    <div className="border-t  border-slate-600 dark:border-neutral-600 bg-white dark:bg-[#363a45] py-2">
+      <h3 className="font-bold">Filtros</h3>
+      <span className="text-gray-500 dark:text-gray-300 text-[12px]">Descripcion de filtros</span>
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-start sm:gap-3 md:gap-4">
-        <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:items-end sm:gap-2">
+        <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:items-end sm:gap-2 pt-4">
           <div className="w-full shrink-0 sm:w-auto">
             <DatePicker
               fieldWidth="medium"
