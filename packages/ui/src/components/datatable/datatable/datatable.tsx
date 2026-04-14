@@ -13,11 +13,13 @@ export function DataTable<T>({ title, data, columns, rowClassName, pagination }:
 
          {
             title && (
-               <div className="flex justify-between items-center p-6 border-b-2 border-slate-600 dark:border-neutral-600">
+               <div className="flex justify-between items-center gap-4 p-6 border-b-2 border-slate-600 dark:border-neutral-600">
                   <h2 className="
                             p-0!
                             m-0!
                             flex! 
+                            min-w-0
+                            flex-1
                             items-center! 
                             space-x-2! 
                             rtl:space-x-reverse! 
@@ -28,7 +30,11 @@ export function DataTable<T>({ title, data, columns, rowClassName, pagination }:
                      <span>{title}</span>
                   </h2>
                   {
-                     pagination !== undefined && pagination
+                     pagination !== undefined && (
+                        <div className="hidden md:flex shrink-0 items-center">
+                           {pagination}
+                        </div>
+                     )
                   }
                </div>
             )
@@ -73,6 +79,14 @@ export function DataTable<T>({ title, data, columns, rowClassName, pagination }:
                <div className="py-5 flex justify-center">
                   <small className="text-gray-500 dark:text-gray-300">No hay registros existentes</small>
                </div>
+         }
+
+         {
+            pagination !== undefined && (
+               <div className="md:hidden border-t-2 border-slate-600 dark:border-neutral-600 px-6 py-4 flex justify-center w-full">
+                  {pagination}
+               </div>
+            )
          }
       </div >
    )

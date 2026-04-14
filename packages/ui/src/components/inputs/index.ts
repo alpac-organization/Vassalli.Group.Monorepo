@@ -6,3 +6,7 @@ export * from "./textarea/textarea.types"
 
 export * from "./dropdown/dropdown"
 export * from "./dropdown/dropdown.types"
+
+export * from "./date-picker/date-picker-slot-props"
+export * from "./date-picker/date-picker.types"
+export * from "./date-picker/date-picker"
