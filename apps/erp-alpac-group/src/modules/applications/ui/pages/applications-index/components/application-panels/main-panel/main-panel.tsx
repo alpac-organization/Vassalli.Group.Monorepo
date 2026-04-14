@@ -7,7 +7,6 @@ import type { MainPanelProps } from "./main-panel.types";
 
 export const MainPanel = ({ application, children, className }: MainPanelProps) => {
 
-   // grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5
    const panelClassName = `grid gap-6 p-5 rounded-md border border-slate-600 bg-white dark:bg-[#272b34] ${className}`;
 
    return (

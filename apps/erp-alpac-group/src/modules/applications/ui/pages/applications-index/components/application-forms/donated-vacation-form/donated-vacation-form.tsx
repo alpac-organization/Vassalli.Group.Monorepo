@@ -1,24 +1,17 @@
 import { Button, InputText } from "@alpac/design-system";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/confirm-modal/confirm-modal";
 import { CheckIcon, XIcon } from "lucide-react";
 import { useApplications } from "@app/modules/applications/ui/hooks/useApplications";
-import { AdministratorPanel } from "../../application-panels/administrator-panel/administrator-panel";
-import { useUserStore } from "@app/shared/stores/useUserStore";
-import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
-import { RoleEnum } from "@app/core/enums/role.enum";
-import { PermitApplicationTypeEnum } from "@app/modules/applications/domain/enums/permit-application-type.enum";
 import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
 import type { DonatedVacationFormProps } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/donated-vacation-form/donated-vacation-form.types";
+import { MainPanel } from "../../application-panels/main-panel/main-panel";
+import { DonatedVacationPanel } from "../../application-panels/donated-vacation-panel/donated-vacation-panel";
 
 export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
 
    const { application } = props;
-   const { companyId, moduleCode, role } = useUserStore();
    const { ApproveApplication, RejectApplication } = useApplications();
-
-   const [isAdministrator, setIsAdministrator] = useState(false);
-
 
    const [confirmModal, setConfirmModal] = useState<{
       isOpen: boolean;
@@ -28,83 +21,12 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
       type: null
    });
 
-   const applicationType = PermitApplicationTypeEnum[application.type] ?? null;
-
-   const { GetProfileDetails: beneficiaryQuery } = useCollaborators({
-      CollaboratorDetailsPayload: {
-         company_id: companyId,
-         module_code: moduleCode,
-         identification_number: props.application.identification_collaborator_to_receive ?? '',
-         QueryEnabled: isAdministrator
-      }
-   })
-
-   useEffect(() => {
-      setIsAdministrator(role === RoleEnum.ADMINISTRATOR)
-   }, [applicationType]);
-
    return (
       <div className="flex flex-col gap-6">
 
-         <AdministratorPanel
-            application={application}
-         >
-            <div className="flex flex-col gap-1">
-               <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                  Colaborador a recibir
-               </span>
-               <div className="flex flex-col">
-                  <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
-                     {beneficiaryQuery.isLoading ? (
-                        <span className="text-slate-400 animate-pulse">Cargando...</span>
-                     ) : (
-                        beneficiaryQuery.data?.full_name || '—'
-                     )}
-                  </span>
-               </div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-               <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                  Área del Colaborador
-               </span>
-               <div className="flex flex-col">
-                  <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
-                     {beneficiaryQuery.isLoading ? (
-                        <span className="text-slate-400 animate-pulse">Cargando...</span>
-                     ) : (
-                        beneficiaryQuery.data?.working_information?.work_area || '—'
-                     )}
-                  </span>
-               </div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-               <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                  Cargo del Colaborador
-               </span>
-               <div className="flex flex-col">
-                  <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
-                     {beneficiaryQuery.isLoading ? (
-                        <span className="text-slate-400 animate-pulse">Cargando...</span>
-                     ) : (
-                        beneficiaryQuery.data?.work_position || '—'
-                     )}
-                  </span>
-               </div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-               <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                  Días a recibir
-               </span>
-               <div className="flex flex-col">
-                  <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100 uppercase">
-                     {application?.amount_days || '—'} {application?.amount_days === 1 ? 'Día' : 'Días'}
-                  </span>
-               </div>
-            </div>
-         </AdministratorPanel>
+         <MainPanel application={application} className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            <DonatedVacationPanel application={application} />
+         </MainPanel>
 
          {/* Resumen de Días Totales */}
          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 md:p-6 rounded-md flex flex-col md:flex-row justify-between items-center gap-4 border border-blue-100 dark:border-blue-800">

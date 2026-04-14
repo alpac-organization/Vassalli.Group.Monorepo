@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Breadcrumb, Button, Dropdown, InputText, Pagination } from "@alpac/design-system";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -14,10 +14,11 @@ import { PermitApplicationStatusOptions } from "@app/modules/applications/domain
 import { ApplicationModal } from "./components/application-modal/application-modal";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { formatCollaboratorCode } from "@app/shared/utils/collaborator.utils";
-import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
-import { ManagerPanel } from "./components/application-panels/manager-panel/manager-panel";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
+import { MainPanel } from "./components/application-panels/main-panel/main-panel";
+import { DonatedVacationPanel } from "./components/application-panels/donated-vacation-panel/donated-vacation-panel";
+import { CheckIcon, XIcon } from "lucide-react";
 
 export const ApplicationsPage = function () {
 
@@ -52,8 +53,6 @@ export const ApplicationsPage = function () {
    const {
       GetApplicationsQuery,
       GetApplicationDetailQuery,
-      ApproveApplication,
-      RejectApplication
    } = useApplications({
       ...filters,
       company_id: companyId,
@@ -68,28 +67,12 @@ export const ApplicationsPage = function () {
       ? (GetApplicationsQuery.data ?? [])
       : (GetApplicationDetailQuery.data ? [GetApplicationDetailQuery.data] : []);
 
-   const identification = isManager && data.length > 0 ? data[0].identification_collaborator_to_receive : '';
-
-   const { GetProfileDetails: beneficiaryQuery } = useCollaborators({
-      CollaboratorDetailsPayload: {
-         company_id: companyId,
-         module_code: moduleCode,
-         identification_number: identification ?? '',
-         QueryEnabled: isDetailEnabled
-      }
-   })
-
    const isLoading = GetApplicationsQuery.isLoading || GetApplicationDetailQuery.isLoading;
 
    useEffect(() => {
       setIsAdministrator(role === RoleEnum.ADMINISTRATOR)
       setIsManager(role === RoleEnum.MANAGER)
    }, [role]);
-
-   const beneficiary = useMemo(() => {
-      if (!beneficiaryQuery.data) return null
-      return beneficiaryQuery.data;
-   }, [beneficiaryQuery.data]);
 
    const onSubmit: SubmitHandler<ApplicationRequest> = async (data) => {
       setFilters((prev) => ({ ...prev, ...data }));
@@ -275,14 +258,35 @@ export const ApplicationsPage = function () {
          }
 
          {isManager && data.length > 0 && data.map((item) => (
-            <ManagerPanel
+            <MainPanel
                key={item.permit_apllication_id}
                application={item}
-               beneficiary={beneficiary}
-               isLoadingBeneficiary={beneficiaryQuery.isLoading}
-               onApprove={(id) => ApproveApplication.mutate({ permit_application_id: id ?? '' })}
-               onReject={(id) => RejectApplication.mutate({ permit_application_id: id ?? '' })}
-            />
+               className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+
+               {
+                  item.type === "DonatedVacations" && <DonatedVacationPanel application={item} />
+               }
+
+               <div className="flex flex-row col-span-full gap-4 border-t border-slate-200 dark:border-slate-800">
+                  <Button
+                     type="button"
+                     label="Rechazar Solicitud"
+                     className="rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200"
+                     onClick={() => { }}
+                     icon={<XIcon size={20} />}
+                     isHiddenLabelOnMobile
+                  />
+
+                  <Button
+                     type="button"
+                     label="Aprobar Solicitud"
+                     className="rounded-md! h-11 px-6! border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-40 shadow-sm transition-all duration-200"
+                     onClick={() => { }}
+                     icon={<CheckIcon size={20} />}
+                     isHiddenLabelOnMobile
+                  />
+               </div>
+            </MainPanel>
          ))}
 
          {isAdministrator && (
