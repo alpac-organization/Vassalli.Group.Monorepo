@@ -43,7 +43,7 @@ const gestionVacationsSection: SidebarLink = {
 
 const controlVacationsSection: SidebarLink = {
   id: "control-vacaciones",
-  label: "control de vacaciones",
+  label: "Control de vacaciones",
   path: "payroll/control-vacations",
   icon: CalendarCheck,
 };
@@ -55,8 +55,8 @@ const gestionPayrollSection: SidebarLink = {
 };
 const settingsSection: SidebarLink = {
    id: "settings",
-   label: "Settings",
-   path: "settings",
+   label: "Configuración",
+   path: "configuración ",
    icon: Settings,
    isFooter: true,
 };
@@ -69,7 +69,7 @@ const deduccionesSection: SidebarLink = {
 };
 const liquidacionSection: SidebarLink = {
   id: "liquidacion",
-  label: "Liquidación",
+  label: "Proceso de Liquidación",
   path: "payroll/liquidacion",
   icon: HandCoins,
 };

@@ -51,15 +51,18 @@ export const StatsCard = function (props: StatsCardProps): React.ReactElement {
                                 dark:bg-inherit
                                 flex items-center 
                                 justify-between 
+                                text-slate-500 dark:text-slate-400
                                 text-sm 
                                 font-medium`}
             >
               <span>{trend}</span>
-              {trendType === "up" ? (
-                <TrendingUp size={16} />
-              ) : (
-                <TrendingDown size={16} />
-              )}
+               {trendType && (
+               trendType === "up" ? (
+               <TrendingUp size={16} />
+               ) : (
+               <TrendingDown size={16} />
+               )
+               )} 
             </div>
           )}
         </div>

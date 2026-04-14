@@ -107,6 +107,7 @@ export const CollaboratorPage = function () {
          total_on_vacation: 0,
          total_on_subsidy: 0,
          total_collaborators: 0,
+         total_on_exit: 0,
       },
    } = GetCollaboratorsQuery;
 
@@ -255,8 +256,9 @@ export const CollaboratorPage = function () {
                               ? collaborators.total_active.toString()
                               : '0'
                         }
+                        trend='Total de colaboradores activos'
                         icon={<UserIcon size={30} />}
-                        borderColor="border-yellow-600! dark:border-yellow-500!"
+                        borderColor="border-green-800! dark:border-green-600!"
                      />
                      <StatsCard
                         title="Vacaciones"
@@ -265,8 +267,20 @@ export const CollaboratorPage = function () {
                               ? collaborators.total_on_vacation.toString()
                               : '0'
                         }
+                        trend='Total de colaboradores en vacaciones'
                         icon={<TreePalmIcon size={30} />}
-                        borderColor="border-blue-600! dark:border-blue-400!"
+                        borderColor="border-yellow-600! dark:border-yellow-500!"
+                     />
+                     <StatsCard
+                        title="Proceso de Baja"
+                        value={
+                           collaborators.total_on_exit
+                              ? collaborators.total_on_exit.toString()
+                              : '0'
+                        }
+                        trend='Total de colaboradores en proceso de baja'
+                        icon={<TreePalmIcon size={30} />}
+                        borderColor="border-red-600! dark:border-red-500!"
                      />
                      <StatsCard
                         title="Subsidios"
@@ -275,8 +289,9 @@ export const CollaboratorPage = function () {
                               ? collaborators.total_on_subsidy.toString()
                               : '0'
                         }
+                        trend='Total de colaboradores con subsidio'
                         icon={<HospitalIcon size={30} />}
-                        borderColor="border-red-800! dark:border-red-400!"
+                        borderColor="border-blue-600! dark:border-blue-400!"
                      />
                      <StatsCard
                         title="Total"
@@ -285,6 +300,7 @@ export const CollaboratorPage = function () {
                               ? collaborators.total_collaborators.toString()
                               : '0'
                         }
+                        trend='Total de colaboradores'
                         icon={<UserRoundPlusIcon size={30} />}
                         borderColor="border-green-800! dark:border-green-600!"
                      />
@@ -299,8 +315,8 @@ export const CollaboratorPage = function () {
                      </div>
                   </div>
 
-                  <div className="flex justify-between items-center dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+                     <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <Button
                            size="giant"
                            label="Agregar Colaborador"
