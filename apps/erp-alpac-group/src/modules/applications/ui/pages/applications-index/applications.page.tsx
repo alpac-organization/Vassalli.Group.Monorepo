@@ -14,9 +14,9 @@ import { PermitApplicationStatusOptions } from "@app/modules/applications/domain
 import { ApplicationModal } from "./components/application-modal/application-modal";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { formatCollaboratorCode } from "@app/shared/utils/collaborator.utils";
+import { ManagerForm } from "./components/application-forms/manager-form/manager-form";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
-import { ManagerForm } from "./components/application-forms/manager-form/manager-form";
 
 export const ApplicationsPage = function () {
 

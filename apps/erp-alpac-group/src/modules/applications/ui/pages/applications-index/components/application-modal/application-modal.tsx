@@ -1,4 +1,4 @@
-import { Modal, Textarea } from "@alpac/design-system"
+import { Modal } from "@alpac/design-system"
 import type { ApplicationModalProps } from "./application-modal.types"
 import { PermitApplicationTypeEnum } from "@app/modules/applications/domain/enums/permit-application-type.enum"
 import { DonatedVacationForm } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/donated-vacation-form/donated-vacation-form";
