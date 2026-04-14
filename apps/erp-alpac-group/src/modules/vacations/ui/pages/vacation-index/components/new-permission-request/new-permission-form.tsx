@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Button, Dropdown, InputText, Textarea } from "@alpac/design-system";
+import { Button, DatePicker, Dropdown, InputText, Textarea } from "@alpac/design-system";
+import dayjs from "@app/shared/dayjs";
 import type { PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
 import type { NewPermissionRequestFormProps } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/new-permissionFormProps";
 import { validateSessionContextUtils } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/utils/validateSessionContext";
@@ -155,27 +156,65 @@ export function NewPermissionRequestForm({
 
          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="min-w-0 flex flex-col gap-1.5">
-               <InputText
-                  label="Fecha de inicio"
-                  labelClassName={labelClassName}
-                  type="date"
-                  className={inputClassName}
-                  error={errors.start_date?.message}
-                  {...register("start_date", {
+               <Controller
+                  name="start_date"
+                  control={control}
+                  rules={{
                      required: "La fecha de inicio es requerida.",
-                  })}
+                  }}
+                  render={({ field }) => {
+                     const parsed = field.value ? dayjs(field.value) : null;
+                     const pickerValue = parsed?.isValid() ? parsed : null;
+                     return (
+                        <DatePicker
+                           fieldWidth="large"
+                           label="Fecha de inicio"
+                           value={pickerValue}
+                           onChange={(v) =>
+                              field.onChange(v && v.isValid() ? v.format("YYYY-MM-DD") : "")
+                           }
+                           slotProps={{
+                              textField: {
+                                 inputRef: field.ref,
+                                 onBlur: field.onBlur,
+                                 error: Boolean(errors.start_date),
+                                 helperText: errors.start_date?.message,
+                              },
+                           }}
+                        />
+                     );
+                  }}
                />
             </div>
             <div className="min-w-0 flex flex-col gap-1.5">
-               <InputText
-                  label="Fecha de fin"
-                  labelClassName={labelClassName}
-                  type="date"
-                  className={inputClassName}
-                  error={errors.end_date?.message}
-                  {...register("end_date", {
+               <Controller
+                  name="end_date"
+                  control={control}
+                  rules={{
                      required: "La fecha de fin es requerida.",
-                  })}
+                  }}
+                  render={({ field }) => {
+                     const parsed = field.value ? dayjs(field.value) : null;
+                     const pickerValue = parsed?.isValid() ? parsed : null;
+                     return (
+                        <DatePicker
+                           fieldWidth="large"
+                           label="Fecha de fin"
+                           value={pickerValue}
+                           onChange={(v) =>
+                              field.onChange(v && v.isValid() ? v.format("YYYY-MM-DD") : "")
+                           }
+                           slotProps={{
+                              textField: {
+                                 inputRef: field.ref,
+                                 onBlur: field.onBlur,
+                                 error: Boolean(errors.end_date),
+                                 helperText: errors.end_date?.message,
+                              },
+                           }}
+                        />
+                     );
+                  }}
                />
             </div>
          </div>
