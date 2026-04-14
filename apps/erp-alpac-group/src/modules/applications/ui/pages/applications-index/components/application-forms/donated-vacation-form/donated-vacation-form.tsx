@@ -1,16 +1,24 @@
 import { Button, InputText } from "@alpac/design-system";
-import { formatDate } from "@app/shared/utils/string.utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/confirm-modal/confirm-modal";
 import { CheckIcon, XIcon } from "lucide-react";
 import { useApplications } from "@app/modules/applications/ui/hooks/useApplications";
-
-import type { DonatedVacationFormProps } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/donated-vacation-form/donated-vacation-form.types";
+import { AdministratorPanel } from "../../application-panels/administrator-panel/administrator-panel";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
+import { RoleEnum } from "@app/core/enums/role.enum";
+import { PermitApplicationTypeEnum } from "@app/modules/applications/domain/enums/permit-application-type.enum";
 import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
+import type { DonatedVacationFormProps } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/donated-vacation-form/donated-vacation-form.types";
 
 export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
 
-   const { application, beneficiary, isLoadingBeneficiary } = props;
+   const { application } = props;
+   const { companyId, moduleCode, role } = useUserStore();
+   const { ApproveApplication, RejectApplication } = useApplications();
+
+   const [isAdministrator, setIsAdministrator] = useState(false);
+
 
    const [confirmModal, setConfirmModal] = useState<{
       isOpen: boolean;
@@ -20,57 +28,83 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
       type: null
    });
 
-   const { ApproveApplication, RejectApplication } = useApplications();
+   const applicationType = PermitApplicationTypeEnum[application.type] ?? null;
+
+   const { GetProfileDetails: beneficiaryQuery } = useCollaborators({
+      CollaboratorDetailsPayload: {
+         company_id: companyId,
+         module_code: moduleCode,
+         identification_number: props.application.identification_collaborator_to_receive ?? '',
+         QueryEnabled: isAdministrator
+      }
+   })
+
+   useEffect(() => {
+      setIsAdministrator(role === RoleEnum.ADMINISTRATOR)
+   }, [applicationType]);
 
    return (
       <div className="flex flex-col gap-6">
 
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-5 rounded-md border border-slate-600 bg-white dark:bg-[#272b34]">
-
-            {/* Colaborador Donante */}
+         <AdministratorPanel
+            application={application}
+         >
             <div className="flex flex-col gap-1">
                <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                  Colaborador Donante
+                  Colaborador a recibir
                </span>
                <div className="flex flex-col">
                   <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
-                     {application.requested_by || '—'}
-                  </span>
-                  <span className="text-[13px]! font-medium text-slate-500 dark:text-slate-400">
-                     Código: {application.collaborator_code || 'Pendiente'}
+                     {beneficiaryQuery.isLoading ? (
+                        <span className="text-slate-400 animate-pulse">Cargando...</span>
+                     ) : (
+                        beneficiaryQuery.data?.full_name || '—'
+                     )}
                   </span>
                </div>
             </div>
 
-            {/* Colaborador Beneficiario */}
             <div className="flex flex-col gap-1">
                <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                  Colaborador Beneficiario
+                  Área del Colaborador
                </span>
                <div className="flex flex-col">
                   <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
-                     Noraida Maria Espinoza Jaen
-                  </span>
-                  <span className="text-[13px]! font-medium text-slate-500 dark:text-slate-400">
-                     Código: Pendiente
+                     {beneficiaryQuery.isLoading ? (
+                        <span className="text-slate-400 animate-pulse">Cargando...</span>
+                     ) : (
+                        beneficiaryQuery.data?.working_information?.work_area || '—'
+                     )}
                   </span>
                </div>
             </div>
 
-            {/* Fecha de Creacion  */}
             <div className="flex flex-col gap-1">
                <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                  Fecha de Creación
+                  Cargo del Colaborador
                </span>
                <div className="flex flex-col">
                   <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
-                     {formatDate(application.created_at)}
+                     {beneficiaryQuery.isLoading ? (
+                        <span className="text-slate-400 animate-pulse">Cargando...</span>
+                     ) : (
+                        beneficiaryQuery.data?.work_position || '—'
+                     )}
                   </span>
                </div>
             </div>
 
-         </div>
-
+            <div className="flex flex-col gap-1">
+               <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                  Días a recibir
+               </span>
+               <div className="flex flex-col">
+                  <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100 uppercase">
+                     {application?.amount_days || '—'} {application?.amount_days === 1 ? 'Día' : 'Días'}
+                  </span>
+               </div>
+            </div>
+         </AdministratorPanel>
 
          {/* Resumen de Días Totales */}
          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 md:p-6 rounded-md flex flex-col md:flex-row justify-between items-center gap-4 border border-blue-100 dark:border-blue-800">
@@ -85,10 +119,12 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
                   className="w-[100px]! text-2xl! text-center! rounded-md! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                   labelClassName="text-black! dark:text-white!"
                   type="text"
-                  isRequired
+                  value={application?.amount_days || '—'}
                   autoComplete="off"
                   autoCapitalize="none"
                   spellCheck={false}
+                  isRequired
+                  readOnly
                />
                Días
             </span>

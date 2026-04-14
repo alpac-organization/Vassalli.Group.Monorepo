@@ -2,7 +2,7 @@ import type { GetApplicationsResponse } from "@app/modules/applications/domain/A
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response"
 
 export type ManagerPanelProps = {
-   item: GetApplicationsResponse
+   application: GetApplicationsResponse
    beneficiary?: GetCollaboratorProfileDetailsResponse | null
    isLoadingBeneficiary?: boolean
    onApprove?: (id: string) => void

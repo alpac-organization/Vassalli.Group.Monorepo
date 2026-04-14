@@ -12,12 +12,12 @@ import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { PermitApplicationTypeOptions } from "@app/modules/applications/domain/enums/permit-application-type.enum";
 import { PermitApplicationStatusOptions } from "@app/modules/applications/domain/enums/permit-application-status.enum";
 import { ApplicationModal } from "./components/application-modal/application-modal";
-import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
-import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { formatCollaboratorCode } from "@app/shared/utils/collaborator.utils";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
-import { ManagerPanel } from "./components/manager-panel/manager-panel";
+import { ManagerPanel } from "./components/application-panels/manager-panel/manager-panel";
+import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
+import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
 
 export const ApplicationsPage = function () {
 
@@ -30,51 +30,47 @@ export const ApplicationsPage = function () {
       collaborator_code: '',
    };
 
+   const navigate = useNavigate();
+
    const [isAdministrator, setIsAdministrator] = useState(false);
    const [isManager, setIsManager] = useState(false);
    const [filters, setFilters] = useState<ApplicationRequest>(initialFilters);
 
-   const navigate = useNavigate();
-
    const { theme } = useTheme();
    const { role } = useUserStore();
    const { urlImage, neutralUrlImage } = useCompanyStore();
+   const { companyId, moduleCode } = useUserStore();
 
    const { control, reset, handleSubmit } = useForm<ApplicationRequest>({
       defaultValues: initialFilters
    })
 
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
-
    const isListEnabled: boolean = isAdministrator
    const isDetailEnabled: boolean = isManager && !!filters.collaborator_code;
 
-   const { companyId, moduleCode } = useUserStore();
-
-    const { 
-       GetApplicationsQuery, 
-       GetApplicationDetailQuery,
-       ApproveApplication, 
-       RejectApplication 
-    } = useApplications({
-       ...filters,
-       company_id: companyId,
-       module_code: moduleCode,
-       user_role: role
-    }, {
-       enabled: isListEnabled,
-       enabledDetail: isDetailEnabled
-    });
+   const {
+      GetApplicationsQuery,
+      GetApplicationDetailQuery,
+      ApproveApplication,
+      RejectApplication
+   } = useApplications({
+      ...filters,
+      company_id: companyId,
+      module_code: moduleCode,
+      user_role: role
+   }, {
+      enabled: isListEnabled,
+      enabledDetail: isDetailEnabled
+   });
 
    const data = isAdministrator
       ? (GetApplicationsQuery.data ?? [])
       : (GetApplicationDetailQuery.data ? [GetApplicationDetailQuery.data] : []);
 
-
-
    const identification = isManager && data.length > 0 ? data[0].identification_collaborator_to_receive : '';
 
-   const { GetProfileDetails: BeneficiaryProfileQuery } = useCollaborators({
+   const { GetProfileDetails: beneficiaryQuery } = useCollaborators({
       CollaboratorDetailsPayload: {
          company_id: companyId,
          module_code: moduleCode,
@@ -91,9 +87,9 @@ export const ApplicationsPage = function () {
    }, [role]);
 
    const beneficiary = useMemo(() => {
-      if (!BeneficiaryProfileQuery.data) return null
-      return BeneficiaryProfileQuery.data;
-   }, [BeneficiaryProfileQuery.data]);
+      if (!beneficiaryQuery.data) return null
+      return beneficiaryQuery.data;
+   }, [beneficiaryQuery.data]);
 
    const onSubmit: SubmitHandler<ApplicationRequest> = async (data) => {
       setFilters((prev) => ({ ...prev, ...data }));
@@ -267,6 +263,28 @@ export const ApplicationsPage = function () {
 
          </form>
 
+
+         {
+            isManager && data.length === 0 && !isLoading && (
+               <div>
+                  <p className="h-[100px] rounded-xl border-2 border-dashed border-gray-400 dark:border-gray-600 flex items-center justify-center text-center text-gray-500 dark:text-gray-300">
+                     Debe ingresar el código del colaborador para ver las solicitudes
+                  </p>
+               </div>
+            )
+         }
+
+         {isManager && data.length > 0 && data.map((item) => (
+            <ManagerPanel
+               key={item.permit_apllication_id}
+               application={item}
+               beneficiary={beneficiary}
+               isLoadingBeneficiary={beneficiaryQuery.isLoading}
+               onApprove={(id) => ApproveApplication.mutate({ permit_application_id: id ?? '' })}
+               onReject={(id) => RejectApplication.mutate({ permit_application_id: id ?? '' })}
+            />
+         ))}
+
          {isAdministrator && (
             <div className="flex flex-col">
                <ApplicationsTable
@@ -285,32 +303,13 @@ export const ApplicationsPage = function () {
             </div>
          )}
 
-         {
-            isManager && data.length === 0 && !isLoading && (
-               <div>
-                  <p className="h-[100px] rounded-xl border-2 border-dashed border-gray-400 dark:border-gray-600 flex items-center justify-center text-center text-gray-500 dark:text-gray-300">
-                     Debe ingresar el código del colaborador para ver las solicitudes
-                  </p>
-               </div>
-            )
-         }
-
-         {isManager && data.length > 0 && data.map((item) => (
-            <ManagerPanel
-               key={item.permit_apllication_id}
-               item={item}
-               beneficiary={beneficiary}
-               isLoadingBeneficiary={BeneficiaryProfileQuery.isLoading}
-               onApprove={(id) => ApproveApplication.mutate({ permit_application_id: id ?? '' })}
-               onReject={(id) => RejectApplication.mutate({ permit_application_id: id ?? '' })}
+         {isAdministrator && (
+            <ApplicationModal
+               application={selectedApplication}
+               isOpen={isApplicationModalOpen}
+               onClose={() => setIsApplicationModalOpen(false)}
             />
-         ))}
-
-         <ApplicationModal
-            application={selectedApplication}
-            isOpen={isApplicationModalOpen}
-            onClose={() => setIsApplicationModalOpen(false)}
-         />
+         )}
 
       </motion.div >
    );
