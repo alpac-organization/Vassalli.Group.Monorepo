@@ -7,6 +7,8 @@ import type { ConfirmActionType } from "@app/modules/applications/ui/pages/appli
 import type { DonatedVacationFormProps } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/donated-vacation-form/donated-vacation-form.types";
 import { MainPanel } from "../../application-panels/main-panel/main-panel";
 import { DonatedVacationPanel } from "../../application-panels/donated-vacation-panel/donated-vacation-panel";
+import { useForm } from "react-hook-form";
+import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 
 export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
 
@@ -21,8 +23,15 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
       type: null
    });
 
+   const { handleSubmit } = useForm<ApplicationProcessRequest>();
+
+   const onSubmit = (data: ApplicationProcessRequest) => {
+      console.log(data);
+   }
+
    return (
-      <form className="flex flex-col gap-6">
+      <form onSubmit={handleSubmit(onSubmit)}
+         className="flex flex-col gap-6">
 
          <MainPanel application={application} className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <DonatedVacationPanel application={application} />

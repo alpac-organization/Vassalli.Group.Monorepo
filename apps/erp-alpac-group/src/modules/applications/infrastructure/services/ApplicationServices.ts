@@ -19,14 +19,13 @@ export class ApplicationServices implements IApplicationServices {
             `/companies/${company_id}/modules/${module_code}/permit-applications`,
             rest,
          );
-         console.log("Listado de solicitudes", response);
          return response;
       } catch (error) {
          throw error;
       }
    }
 
-   async ApproveApplication(payload: ApplicationProcessRequest): Promise<any> {
+   async ApproveApplication(payload: ApplicationProcessRequest): Promise<void> {
       try {
          const { company_id, module_code, permit_application_id, ...rest } = payload;
          await this.apiHandler.post(
@@ -38,7 +37,7 @@ export class ApplicationServices implements IApplicationServices {
       }
    }
 
-   async RejectApplication(payload: ApplicationProcessRequest): Promise<any> {
+   async RejectApplication(payload: ApplicationProcessRequest): Promise<void> {
       try {
          const { company_id, module_code, permit_application_id, ...rest } = payload;
          await this.apiHandler.post(
@@ -56,7 +55,6 @@ export class ApplicationServices implements IApplicationServices {
          const response = await this.apiHandler.get<GetApplicationsResponse>(
             `/companies/${company_id}/modules/${module_code}/permit-applications/${collaborator_code}/details`,
          );
-         console.log("Detalle de solicitud", response);
          return response;
       } catch (error) {
          throw error;
