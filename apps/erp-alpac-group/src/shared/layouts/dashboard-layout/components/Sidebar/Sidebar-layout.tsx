@@ -71,7 +71,7 @@ export default function Sidebarlayout({
       </div>
 
       {footerItems.length > 0 && (
-        <footer className="shrink-0 border-t border-neutral-700 px-3 py-3 space-y-2">
+        <footer className="shrink-0 border-t border-neutral-700 py-3 space-y-2">
           {footerItems.map((item) => (
             <SidebarItem
               key={item.id}

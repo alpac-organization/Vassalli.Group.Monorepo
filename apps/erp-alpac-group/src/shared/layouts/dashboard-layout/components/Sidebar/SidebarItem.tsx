@@ -23,7 +23,7 @@ export const SidebarItem = ({ item, isOpen, setIsOpen }: SidebarItemsProps) => {
   return (
     <div
       ref={itemRootRef}
-      className="relative group transition-all ease-in-out hover:bg-blue-600"
+      className="relative group transition-all ease-in-out hover:bg-blue-600 py-1"
       onMouseEnter={() => {
         if (!isOpen) setTooltipOpen(true);
       }}

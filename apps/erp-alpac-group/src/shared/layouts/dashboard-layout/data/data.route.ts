@@ -7,6 +7,9 @@ import {
   UserKey,
   FileClock,
   CalendarCheck,
+  DollarSign,
+  CircleMinus,
+  HandCoins
 } from "lucide-react";
 import type { SidebarLink } from "../components/Sidebar/types/sidebar.types";
 
@@ -40,18 +43,36 @@ const gestionVacationsSection: SidebarLink = {
 
 const controlVacationsSection: SidebarLink = {
   id: "control-vacaciones",
-  label: "control de vacaciones",
+  label: "Control de vacaciones",
   path: "payroll/control-vacations",
   icon: CalendarCheck,
 };
+const gestionPayrollSection: SidebarLink = {
+  id: "gestion-payroll",
+  label: "Gestion de nómina",
+  path: "payroll/gestion-nómina",
+  icon: DollarSign,
+};
 const settingsSection: SidebarLink = {
-  id: "settings",
-  label: "Settings",
-  path: "settings",
-  icon: Settings,
-  isFooter: true,
+   id: "settings",
+   label: "Configuración",
+   path: "configuración ",
+   icon: Settings,
+   isFooter: true,
 };
 
+const deduccionesSection: SidebarLink = {
+  id: "deducciones",
+  label: "Deducciones",
+  path: "payroll/deducciones",
+  icon: CircleMinus,
+};
+const liquidacionSection: SidebarLink = {
+  id: "liquidacion",
+  label: "Proceso de Liquidación",
+  path: "payroll/liquidacion",
+  icon: HandCoins,
+};
 export const sidebarData = {
   logoUrl:
     "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
@@ -59,7 +80,7 @@ export const sidebarData = {
   navigationRegistry: {
     [ModuleEnum.PAYROLL]: {
       [RoleEnum.MANAGER]: [collboratorSection],
-      [RoleEnum.ADMINISTRATOR]: [collboratorSection, controlVacationsSection],
+      [RoleEnum.ADMINISTRATOR]: [collboratorSection, controlVacationsSection, gestionPayrollSection, deduccionesSection, liquidacionSection],
       [RoleEnum.OPERATOR]: [collboratorSection],
     },
     [ModuleEnum.WORK_MANAGEMENT]: {
