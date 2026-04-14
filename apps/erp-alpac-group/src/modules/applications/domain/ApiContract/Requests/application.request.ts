@@ -18,10 +18,16 @@ export interface ApplicationRequest {
    module_code: string;
 
    /**
-    * Identificación del colaborador
+    * Código del colaborador
     * @optional
     */
-   identification_number?: string;
+   collaborator_code?: string;
+
+   /**
+    * Rol del usuario
+    * @required
+    */
+   user_role: string;
 
    /**
     * Identificador del tipo de solicitud
