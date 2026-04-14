@@ -62,10 +62,10 @@ const settingsSection: SidebarLink = {
 };
 
 const deduccionesSection: SidebarLink = {
-   id: "deducciones",
-   label: "Deducciones",
-   path: "payroll/deducciones",
-   icon: CircleMinus,
+  id: "deducciones",
+  label: "Deducciones activas",
+  path: "payroll/deducciones",
+  icon: CircleMinus,
 };
 const liquidacionSection: SidebarLink = {
    id: "liquidacion",

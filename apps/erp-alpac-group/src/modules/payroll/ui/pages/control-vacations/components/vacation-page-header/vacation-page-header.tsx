@@ -2,13 +2,12 @@ import { Button } from "@alpac/design-system";
 import type { VacationPageHeaderProps } from "@app/modules/payroll/ui/pages/control-vacations/components/vacation-page-header/type/vacation-page-header.props";
 
 export function ControlVacationPageHeader({
-  collaboratorDisplayName,
   logoSrc,
   logoAlt = "",
   onGenerateTableReportClick,
   isGenerateTableReportPending,
 }: VacationPageHeaderProps) {
-  const subtitle = collaboratorDisplayName?.trim() || "control de vacaciones";
+  const subtitle = "Descripción del control de vacaciones";
   const showRightColumn = Boolean(logoSrc) || Boolean(onGenerateTableReportClick);
 
   return (
