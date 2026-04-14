@@ -6,6 +6,7 @@
 
 import { countInclusiveCalendarDays } from "@app/modules/vacations/ui/pages/vacation-index/utils/count-inclusive-calendar-days";
 import type { GetVacationsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
+import { formatLongDate } from "@app/shared/utils/string.utils";
 // ─── Status helper
 
 
@@ -14,18 +15,6 @@ import type { GetVacationsHistoryResponse } from "@app/modules/payroll/domain/Ap
  * Formatea una fecha ISO a formato largo en español.
  * "2024-05-05" → "domingo, 5 de mayo de 2024"
  */
-function formatLongDate(isoDate: string | null | undefined): string {
-  if (!isoDate) return "—";
-  const dateOnly = isoDate.split("T")[0];
-  const d = new Date(`${dateOnly}T12:00:00`);
-  if (isNaN(d.getTime())) return "—";
-  return new Intl.DateTimeFormat("es", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(d);
-}
 
 // ─── Derived UI state
 export type VacationtDetailsUiState = {

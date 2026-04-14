@@ -268,3 +268,16 @@ export const formatTime = (time?: string): string => {
     hour12: true,
   }).format(validatedTime);
 };
+
+export function formatLongDate(isoDate: string | null | undefined): string {
+  if (!isoDate) return "—";
+  const dateOnly = isoDate.split("T")[0];
+  const d = new Date(`${dateOnly}T12:00:00`);
+  if (isNaN(d.getTime())) return "—";
+  return new Intl.DateTimeFormat("es", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(d);
+}
