@@ -1,4 +1,4 @@
-import { Button, InputText } from "@alpac/design-system";
+import { Button, InputText, Textarea } from "@alpac/design-system";
 import { useState } from "react";
 import { ConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/confirm-modal/confirm-modal";
 import { CheckIcon, XIcon } from "lucide-react";
@@ -22,23 +22,14 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
    });
 
    return (
-      <div className="flex flex-col gap-6">
+      <form className="flex flex-col gap-6">
 
          <MainPanel application={application} className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <DonatedVacationPanel application={application} />
-         </MainPanel>
 
-         {/* Resumen de Días Totales */}
-         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 md:p-6 rounded-md flex flex-col md:flex-row justify-between items-center gap-4 border border-blue-100 dark:border-blue-800">
-            <div className="flex flex-col text-center md:text-left">
-               <span className="text-blue-700 dark:text-blue-300 font-medium">
-                  Total de días a recibir
-               </span>
-            </div>
-
-            <span className="flex items-center gap-2 text-2xl font-bold text-blue-800 dark:text-white">
+            <MainPanel.Field label="Total de días a recibir" className="col-span-1">
                <InputText
-                  className="w-[100px]! text-2xl! text-center! rounded-md! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                  className="h-10! w-full! font-semibold! rounded-md! text-[15px] dark:text-slate-100 text-white! dark:bg-[#272b34]! dark:border-slate-600!"
                   labelClassName="text-black! dark:text-white!"
                   type="text"
                   value={application?.amount_days || '—'}
@@ -48,12 +39,17 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
                   isRequired
                   readOnly
                />
-               Días
-            </span>
-         </div>
+            </MainPanel.Field>
 
+            <MainPanel.Field label="Motivo o Descripción" className="col-span-full">
+               <Textarea
+                  className="rounded-md"
+                  value={application.description || 'Sin descripción'}
+                  readOnly
+               />
+            </MainPanel.Field>
 
-         <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6"></div>
+         </MainPanel>
 
          {/* Acciones de la Solicitud */}
          <div className="flex justify-end gap-3">
@@ -93,6 +89,6 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
                }
             }}
          />
-      </div>
+      </form>
    );
 };

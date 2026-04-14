@@ -258,16 +258,16 @@ export const ApplicationsPage = function () {
          }
 
          {isManager && data.length > 0 && data.map((item) => (
-            <MainPanel
-               key={item.permit_apllication_id}
-               application={item}
-               className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            <div key={item.permit_apllication_id} className="flex flex-col gap-4">
+               <MainPanel
+                  application={item}
+                  className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 
-               {
-                  item.type === "DonatedVacations" && <DonatedVacationPanel application={item} />
-               }
-
-               <div className="flex flex-row col-span-full gap-4 border-t border-slate-200 dark:border-slate-800">
+                  {
+                     item.type === "DonatedVacations" && <DonatedVacationPanel application={item} />
+                  }
+               </MainPanel>
+               <div className="flex flex-row col-span-full gap-4">
                   <Button
                      type="button"
                      label="Rechazar Solicitud"
@@ -286,7 +286,7 @@ export const ApplicationsPage = function () {
                      isHiddenLabelOnMobile
                   />
                </div>
-            </MainPanel>
+            </div>
          ))}
 
          {isAdministrator && (

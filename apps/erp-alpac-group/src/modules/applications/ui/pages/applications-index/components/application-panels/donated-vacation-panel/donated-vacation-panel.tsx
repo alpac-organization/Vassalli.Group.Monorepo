@@ -76,21 +76,6 @@ export const DonatedVacationPanel = ({ application }: DonatedVacationPanelProps)
                </div>
             )
          }
-
-         {
-            application.type === 'DonatedVacations' && (
-               <div className="flex flex-col gap-1">
-                  <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                     Días a recibir
-                  </span>
-                  <div className="flex flex-col">
-                     <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100 uppercase">
-                        {application.amount_days || '0'} {application.amount_days === 1 ? 'Día' : 'Días'}
-                     </span>
-                  </div>
-               </div>
-            )
-         }
       </>
    )
 }

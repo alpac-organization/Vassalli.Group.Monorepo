@@ -3,7 +3,7 @@ import { PermitApplicationStatusEnum } from "@app/modules/applications/domain/en
 import { statusBadgeColor } from "../../application-table/utils/status-badge.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { Badges } from "@alpac/design-system";
-import type { MainPanelProps } from "./main-panel.types";
+import type { MainPanelFieldProps, MainPanelProps } from "./main-panel.types";
 
 export const MainPanel = ({ application, children, className }: MainPanelProps) => {
 
@@ -71,19 +71,15 @@ export const MainPanel = ({ application, children, className }: MainPanelProps) 
             </div>
          </div>
 
-         <div className="flex flex-col gap-1">
-            <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-               Motivo o Descripción
-            </span>
-            <div className="flex flex-col">
-               <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
-                  {application.description || 'Sin descripción'}
-               </span>
-            </div>
-         </div>
-
          {children && (<>{children}</>)}
 
       </div>
    )
 }
+
+MainPanel.Field = ({ label, children, value, className }: MainPanelFieldProps) => (
+   <div className={`flex flex-col gap-1 ${className}`}>
+      <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">{label}</span>
+      {children || <span className="text-[15px] font-semibold">{value}</span>}
+   </div>
+);

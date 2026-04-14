@@ -2,6 +2,7 @@ import type { IHttpHandler } from "@app/core/ports";
 import type { IApplicationServices } from "@app/modules/applications/application/interfaces/IApplicationServices";
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
+import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 
 export class ApplicationServices implements IApplicationServices {
 
@@ -25,22 +26,24 @@ export class ApplicationServices implements IApplicationServices {
       }
    }
 
-   async ApproveApplication(payload: any): Promise<void> {
+   async ApproveApplication(payload: ApplicationProcessRequest): Promise<any> {
       try {
-         await this.apiHandler.put(
-            `approve`,
-            payload,
+         const { company_id, module_code, permit_application_id, ...rest } = payload;
+         await this.apiHandler.post(
+            `/companies/${company_id}/modules/${module_code}/permit-applications/${permit_application_id}/process`,
+            rest,
          );
       } catch (error) {
          throw error;
       }
    }
 
-   async RejectApplication(payload: any): Promise<void> {
+   async RejectApplication(payload: ApplicationProcessRequest): Promise<any> {
       try {
-         await this.apiHandler.put(
-            `reject`,
-            payload,
+         const { company_id, module_code, permit_application_id, ...rest } = payload;
+         await this.apiHandler.post(
+            `/companies/${company_id}/modules/${module_code}/permit-applications/${permit_application_id}/process`,
+            rest,
          );
       } catch (error) {
          throw error;

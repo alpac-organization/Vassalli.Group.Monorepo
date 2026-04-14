@@ -5,3 +5,10 @@ export interface MainPanelProps {
    children: React.ReactNode;
    className?: string;
 }
+
+export interface MainPanelFieldProps {
+   label: string;
+   children?: React.ReactNode;
+   value?: string;
+   className?: string;
+}
