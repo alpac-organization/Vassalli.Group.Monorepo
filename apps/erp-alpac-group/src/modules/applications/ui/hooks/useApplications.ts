@@ -20,12 +20,12 @@ const applicationServices = new ApplicationServices(httpHandler)
  * const { GetApplicationsQuery } = useApplications({ company_id, module_code, page_number: 1, page_size: 10 });
  * const applications = GetApplicationsQuery.data?.data ?? [];
  */
-export const useApplications = (filters?: ApplicationRequest) => {
+export const useApplications = (filters?: ApplicationRequest, config?: { enabled?: boolean, enabledDetail?: boolean }) => {
 
    const GetApplicationsQuery = useQuery({
       queryKey: ["applicationsData", filters],
       queryFn: () => applicationServices.GetApplications(filters!),
-      enabled: !!filters,
+      enabled: config?.enabled !== undefined ? config.enabled : !!filters,
       refetchOnMount: false,
       refetchOnWindowFocus: false,
       staleTime: 1000 * 60 * 10,
@@ -36,6 +36,7 @@ export const useApplications = (filters?: ApplicationRequest) => {
       mutationFn: (payload: any) => applicationServices.ApproveApplication(payload),
       onSuccess: () => {
          GetApplicationsQuery.refetch();
+         GetApplicationDetailQuery.refetch();
       },
    })
 
@@ -43,8 +44,19 @@ export const useApplications = (filters?: ApplicationRequest) => {
       mutationFn: (payload: any) => applicationServices.RejectApplication(payload),
       onSuccess: () => {
          GetApplicationsQuery.refetch();
+         GetApplicationDetailQuery.refetch();
       },
    })
 
-   return { GetApplicationsQuery, ApproveApplication, RejectApplication }
+   const GetApplicationDetailQuery = useQuery({
+      queryKey: ["applicationDetailData", filters],
+      queryFn: () => applicationServices.GetApplicationDetail(filters!),
+      enabled: config?.enabledDetail !== undefined ? config.enabledDetail : !!filters,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 10,
+      retry: 1,
+   })
+
+   return { GetApplicationsQuery, ApproveApplication, RejectApplication, GetApplicationDetailQuery }
 }

@@ -352,6 +352,7 @@ export const CollaboratorPage = function () {
                                     onChange={(value) => field.onChange(value)}
                                     label="Área de trabajo"
                                     placeholder="Seleccione un área de trabajo"
+                                    appearance="dark"
                                     labelClassName="text-black! dark:text-white!"
                                     valueClassName="text-black! dark:text-white!"
                                     className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
@@ -375,6 +376,7 @@ export const CollaboratorPage = function () {
                                  value={field.value}
                                  label="Sucursal"
                                  placeholder="Seleccione una sucursal"
+                                 appearance="dark"
                                  labelClassName="text-black! dark:text-white!"
                                  valueClassName="text-black! dark:text-white!"
                                  className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
@@ -397,6 +399,7 @@ export const CollaboratorPage = function () {
                                  onChange={(value) => field.onChange(value)}
                                  label="Estado"
                                  placeholder="Seleccione un estado"
+                                 appearance="dark"
                                  labelClassName="text-black! dark:text-white!"
                                  valueClassName="text-black! dark:text-white!"
                                  className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"

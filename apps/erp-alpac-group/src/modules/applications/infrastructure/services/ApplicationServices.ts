@@ -18,7 +18,7 @@ export class ApplicationServices implements IApplicationServices {
             `/companies/${company_id}/modules/${module_code}/permit-applications`,
             rest,
          );
-         console.log("Response:", response)
+         console.log("Listado de solicitudes", response);
          return response;
       } catch (error) {
          throw error;
@@ -42,6 +42,19 @@ export class ApplicationServices implements IApplicationServices {
             `reject`,
             payload,
          );
+      } catch (error) {
+         throw error;
+      }
+   }
+
+   async GetApplicationDetail(payload: ApplicationRequest): Promise<GetApplicationsResponse> {
+      try {
+         const { company_id, module_code, collaborator_code } = payload;
+         const response = await this.apiHandler.get<GetApplicationsResponse>(
+            `/companies/${company_id}/modules/${module_code}/permit-applications/${collaborator_code}/details`,
+         );
+         console.log("Detalle de solicitud", response);
+         return response;
       } catch (error) {
          throw error;
       }

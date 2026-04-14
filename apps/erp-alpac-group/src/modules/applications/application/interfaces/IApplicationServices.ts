@@ -27,4 +27,11 @@ export interface IApplicationServices {
     * @returns Promesa con la solicitud rechazada
     */
    RejectApplication(payload: any): Promise<void>;
+
+   /**
+    * Obtiene el detalle de una solicitud
+    * @param payload - Objeto con los parámetros de la solicitud
+    * @returns Promesa con el detalle de la solicitud
+    */
+   GetApplicationDetail(payload: ApplicationRequest): Promise<GetApplicationsResponse>;
 }

@@ -56,7 +56,8 @@ export const sidebarData = {
          ],
       },
       [ModuleEnum.APPLICATIONS]: {
-         [RoleEnum.MANAGER]: [applicationSection]
+         [RoleEnum.MANAGER]: [applicationSection],
+         [RoleEnum.ADMINISTRATOR]: [applicationSection],
       },
       [ModuleEnum.PUBLIC]: [settingsSection],
    },

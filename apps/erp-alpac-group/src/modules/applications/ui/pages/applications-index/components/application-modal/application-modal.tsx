@@ -1,19 +1,19 @@
-import { Alert, Modal, Textarea } from "@alpac/design-system"
+import { Modal, Textarea } from "@alpac/design-system"
 import type { ApplicationModalProps } from "./application-modal.types"
 import { PermitApplicationTypeEnum } from "@app/modules/applications/domain/enums/permit-application-type.enum"
 import { DonatedVacationForm } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/donated-vacation-form/donated-vacation-form";
-import { useUserStore } from "@app/shared/stores/useUserStore";
-import { RoleEnum } from "@app/core/enums/role.enum";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MedicalAppointmentForm } from "../application-forms/medical-appointment-form/medical-appointment-form";
+import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 
 export const ApplicationModal = (props: ApplicationModalProps): React.ReactNode => {
 
-   const { role } = useUserStore();
-   const [applicationData, setApplicationData] = useState(props.application);
+   const [applicationData, setApplicationData] = useState<GetApplicationsResponse>(props.application);
    const applicationType = PermitApplicationTypeEnum[applicationData.type] ?? null;
 
-   console.log("Administrador?", role === RoleEnum.ADMINISTRATOR, "Manager?", role === RoleEnum.MANAGER);
+   useEffect(() => {
+      setApplicationData(props.application);
+   }, [props.application]);
 
    return (
       <Modal
@@ -52,13 +52,6 @@ export const ApplicationModal = (props: ApplicationModalProps): React.ReactNode 
                   </span>
                </div>
             </div>
-
-            {/*             {applicationType === null && (
-               <Alert
-                  type="error"
-                  message="No se ha seleccionado un tipo de solicitud"
-               />
-            )} */}
 
             {
                applicationType === PermitApplicationTypeEnum.MedicalAppointment && (

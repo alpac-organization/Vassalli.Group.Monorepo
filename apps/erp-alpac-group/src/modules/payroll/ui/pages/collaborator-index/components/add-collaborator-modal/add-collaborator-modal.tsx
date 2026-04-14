@@ -207,6 +207,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         labelClassName="text-black! dark:text-white!"
                         {...register("first_name", {
                            required: "El primer nombre es requerido",
+                           setValueAs: (value: string) => value?.trim(),
                            pattern: {
                               value: /^[A-Za-z]*$/,
                               message: "El primer nombre solo puede contener letras",
@@ -223,6 +224,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         labelClassName="text-black! dark:text-white!"
                         {...register("second_name", {
                            required: false,
+                           setValueAs: (value: string) => value?.trim(),
                            pattern: {
                               value: /^[A-Za-z]*$/,
                               message: "El segundo nombre solo puede contener letras",
@@ -256,6 +258,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         labelClassName="text-black! dark:text-white!"
                         {...register("first_lastname", {
                            required: "El primer apellido es requerido",
+                           setValueAs: (value: string) => value?.trim(),
                            pattern: {
                               value: /^[A-Za-z]*$/,
                               message: "El primer apellido solo puede contener letras",
@@ -350,15 +353,20 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         {...register("identification_number", {
                            required: "El número de identificación es requerido",
                            disabled: identificationType === 0,
-                           setValueAs: (value: string) =>
-                              value
+                           setValueAs: (value: string) => {
+
+                              const trimmed = value?.trim();
+
+                              return trimmed
                                  ? identificationType ===
                                     IdentificationEnum.NATIONAL_ID.value ||
                                     identificationType ===
                                     IdentificationEnum.RESIDENCE_ID.value
-                                    ? value.toString().replace(/-/g, "").toUpperCase()
-                                    : value.toString().toUpperCase()
-                                 : "",
+                                    ? trimmed.replace(/-/g, "").toUpperCase()
+                                    : trimmed.toUpperCase()
+                                 : ""
+                           }
+                           ,
                            validate: (value?: string) =>
                               validateIdentificationNumber(value ?? ""),
                         })}
@@ -404,6 +412,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            labelClassName="text-black! dark:text-white!"
                            {...register("personal_information.address", {
                               required: false,
+                              setValueAs: (value: string) => value?.trim(),
                            })}
                         />
                      </div>
@@ -431,6 +440,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         labelClassName="text-black! dark:text-white!"
                         {...register("personal_information.personal_email", {
                            required: false,
+                           setValueAs: (value: string) => value?.trim(),
                            validate: {
                               validEmail: (value?: string) => validateEmail(value),
                            },
@@ -454,8 +464,10 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                               message:
                                  "El número debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)",
                            },
-                           setValueAs: (value: string) =>
-                              value ? value.toString().replace(/-/g, "") : "",
+                           setValueAs: (value: string) => {
+                              const trimmed = value?.trim();
+                              return trimmed ? trimmed.replace(/-/g, "") : ""
+                           },
                         })}
                         error={
                            errors.personal_information?.personal_phone_number &&
@@ -624,6 +636,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         inputMode="numeric"
                         {...register("working_information.bank_account_number", {
                            required: false,
+                           setValueAs: (value: string) => value?.trim(),
                         })}
                      />
 
@@ -635,6 +648,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         labelClassName="text-black! dark:text-white!"
                         {...register("working_information.work_email", {
                            required: false,
+                           setValueAs: (value: string) => value?.trim(),
                            validate: {
                               validEmail: (value?: string) => validateEmail(value),
                            },
@@ -653,8 +667,10 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                               message:
                                  "El número debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)",
                            },
-                           setValueAs: (value: string) =>
-                              value ? value.toString().replace(/-/g, "") : "",
+                           setValueAs: (value: string) => {
+                              const trimmed = value?.trim();
+                              return trimmed ? trimmed.replace(/-/g, "") : "";
+                           },
                         })}
                         error={
                            errors.working_information?.work_phon_number &&
@@ -676,6 +692,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         inputMode="numeric"
                         {...register("working_information.inss_number", {
                            required: false,
+                           setValueAs: (value: string) => value?.trim(),
                            pattern: {
                               value: /^[0-9]+$/,
                               message: "El número INSS debe contener solo dígitos",
@@ -695,6 +712,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         labelClassName="text-black! dark:text-white!"
                         {...register("working_information.entry_date", {
                            required: "La fecha de ingreso es requerida",
+                           setValueAs: (value: string) => value?.trim(),
                            validate: {
                               validToday: (value?: string) => validateToday(value),
                            },
@@ -756,8 +774,10 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         isRequired
                         {...register("salary_information.salary", {
                            required: "El salario es requerido",
-                           setValueAs: (value: string) =>
-                              value ? parseFloat(value.toString().replace(/,/g, "")) : 0,
+                           setValueAs: (value: string) => {
+                              const trimmed = value?.trim();
+                              return trimmed ? parseFloat(trimmed.replace(/,/g, "")) : 0;
+                           },
                            validate: (value?: number) =>
                               (value !== undefined && value > 0) ||
                               "El salario debe ser mayor a 0",

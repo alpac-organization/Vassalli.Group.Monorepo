@@ -96,4 +96,53 @@ export interface GetApplicationsResponse {
     * @required
     */
    type: string;
+
+   /**
+    * Nombre del manager que aprobo el permiso
+    * @example "Roberto  Castellon"
+    * @optional
+    */
+   manager_fullname: string;
+
+   /**
+    * Nombre del administrador que aprobo el permiso
+    * @example "Roberto  Castellon"
+    * @optional
+    */
+   administrator_full_name: string;
+
+   /**
+    * Estado del primer paso de aprobacion
+    * @example true
+    * @required
+    */
+   firts_step_approved: boolean;
+
+   /**
+    * Estado del segundo paso de aprobacion
+    * @example true
+    * @required
+    */
+   second_step_approved: boolean;
+
+   /**
+    * Colaborador a recibir donacion de vacaciones
+    * @example "Roberto  Castellon"
+    * @optional
+    */
+   identification_collaborator_to_receive?: string;
+
+   /**
+    * Cantidad de dias a recibir donacion de vacaciones
+    * @example 5
+    * @optional
+    */
+   amount_days?: number;
+
+   /**
+    * Fecha de solicitud del permiso
+    * @example "2026-04-07T20:17:40.347476Z"
+    * @required
+    */
+   request_date: string;
 }

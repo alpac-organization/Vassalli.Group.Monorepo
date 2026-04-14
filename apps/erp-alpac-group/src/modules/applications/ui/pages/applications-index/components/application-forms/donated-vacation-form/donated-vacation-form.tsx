@@ -10,7 +10,7 @@ import type { ConfirmActionType } from "@app/modules/applications/ui/pages/appli
 
 export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
 
-   const { application } = props;
+   const { application, beneficiary, isLoadingBeneficiary } = props;
 
    const [confirmModal, setConfirmModal] = useState<{
       isOpen: boolean;
@@ -82,9 +82,13 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
 
             <span className="flex items-center gap-2 text-2xl font-bold text-blue-800 dark:text-white">
                <InputText
-                  value={300}
-                  readOnly
                   className="w-[100px]! text-2xl! text-center! rounded-md! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                  labelClassName="text-black! dark:text-white!"
+                  type="text"
+                  isRequired
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
                />
                Días
             </span>
