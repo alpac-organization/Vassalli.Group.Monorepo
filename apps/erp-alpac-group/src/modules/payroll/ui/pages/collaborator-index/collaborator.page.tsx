@@ -7,6 +7,7 @@ import {
    Button,
    Badges,
    Pagination,
+   
 } from '@alpac/design-system';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,6 +16,8 @@ import {
    TreePalmIcon,
    UserIcon,
    UserRoundPlusIcon,
+   CircleMinus,
+   UserMinus
 } from 'lucide-react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
@@ -120,6 +123,10 @@ export const CollaboratorPage = function () {
       setFilters((prev) => ({ ...prev, page_number: page }));
    }, []);
 
+   const handleAddDeduction = useCallback(() => {
+   }, []);
+   const handleCollaboratorExit = useCallback(() => {
+   }, []);
    const columnConfig = [
       { key: 'collaborator_code', label: 'Código' },
       { key: 'full_name', label: 'Nombre Completo' },
@@ -300,6 +307,20 @@ export const CollaboratorPage = function () {
                            icon={<UserRoundPlusIcon size={20} />}
                            className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                            onClick={handleAddCollaborator}
+                        />
+                        <Button
+                           size="giant"
+                           label="Agregar Deducción "
+                           icon={<CircleMinus size={20} />}
+                           className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                           onClick={handleAddDeduction}
+                        />
+                        <Button
+                           size="giant"
+                           label="Iniciar Proceso de Baja  "
+                           icon={<UserMinus size={20} />}
+                           className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                           onClick={handleCollaboratorExit}
                         />
                      </div>
                   </div>

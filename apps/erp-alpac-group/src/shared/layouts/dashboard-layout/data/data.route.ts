@@ -1,6 +1,16 @@
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { ModuleEnum } from "@app/core/enums/module.enum";
-import { Settings, UsersRound, User, UserKey, FileClock } from "lucide-react";
+import {
+  Settings,
+  UsersRound,
+  User,
+  UserKey,
+  FileClock,
+  CalendarCheck,
+  DollarSign,
+  CircleMinus,
+  HandCoins
+} from "lucide-react";
 import type { SidebarLink } from "../components/Sidebar/types/sidebar.types";
 
 const collboratorSection: SidebarLink = {
@@ -31,6 +41,18 @@ const gestionVacationsSection: SidebarLink = {
    icon: UserKey,
 };
 
+const controlVacationsSection: SidebarLink = {
+  id: "control-vacaciones",
+  label: "control de vacaciones",
+  path: "payroll/control-vacations",
+  icon: CalendarCheck,
+};
+const gestionPayrollSection: SidebarLink = {
+  id: "gestion-payroll",
+  label: "Gestion de nómina",
+  path: "payroll/gestion-nómina",
+  icon: DollarSign,
+};
 const settingsSection: SidebarLink = {
    id: "settings",
    label: "Settings",
@@ -39,25 +61,37 @@ const settingsSection: SidebarLink = {
    isFooter: true,
 };
 
+const deduccionesSection: SidebarLink = {
+  id: "deducciones",
+  label: "Deducciones",
+  path: "payroll/deducciones",
+  icon: CircleMinus,
+};
+const liquidacionSection: SidebarLink = {
+  id: "liquidacion",
+  label: "Liquidación",
+  path: "payroll/liquidacion",
+  icon: HandCoins,
+};
 export const sidebarData = {
-   logoUrl:
-      "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
-   nameCompany: "CORE PANEL",
-   navigationRegistry: {
-      [ModuleEnum.PAYROLL]: {
-         [RoleEnum.MANAGER]: [collboratorSection],
-         [RoleEnum.ADMINISTRATOR]: [collboratorSection],
-         [RoleEnum.OPERATOR]: [collboratorSection],
-      },
-      [ModuleEnum.WORK_MANAGEMENT]: {
-         [RoleEnum.OPERATOR]: [
-            collaboratorProfileSection,
-            gestionVacationsSection,
-         ],
-      },
-      [ModuleEnum.APPLICATIONS]: {
-         [RoleEnum.MANAGER]: [applicationSection]
-      },
-      [ModuleEnum.PUBLIC]: [settingsSection],
-   },
+  logoUrl:
+    "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
+  nameCompany: "CORE PANEL",
+  navigationRegistry: {
+    [ModuleEnum.PAYROLL]: {
+      [RoleEnum.MANAGER]: [collboratorSection],
+      [RoleEnum.ADMINISTRATOR]: [collboratorSection, controlVacationsSection, gestionPayrollSection, deduccionesSection, liquidacionSection],
+      [RoleEnum.OPERATOR]: [collboratorSection],
+    },
+    [ModuleEnum.WORK_MANAGEMENT]: {
+      [RoleEnum.OPERATOR]: [
+        collaboratorProfileSection,
+        gestionVacationsSection,
+      ],
+    },
+    [ModuleEnum.APPLICATIONS]: {
+      [RoleEnum.MANAGER]: [applicationSection],
+    },
+    [ModuleEnum.PUBLIC]: [settingsSection],
+  },
 };
