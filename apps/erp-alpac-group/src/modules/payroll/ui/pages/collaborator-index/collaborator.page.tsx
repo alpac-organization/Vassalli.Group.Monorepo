@@ -248,7 +248,7 @@ export const CollaboratorPage = function () {
                      </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                      <StatsCard
                         title="Activos"
                         value={
@@ -279,7 +279,7 @@ export const CollaboratorPage = function () {
                               : '0'
                         }
                         trend='Total de colaboradores en proceso de baja'
-                        icon={<TreePalmIcon size={30} />}
+                        icon={<UserMinus size={30} />}
                         borderColor="border-red-600! dark:border-red-500!"
                      />
                      <StatsCard
@@ -316,26 +316,26 @@ export const CollaboratorPage = function () {
                   </div>
 
                   <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-                     <div className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                     <div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
                         <Button
                            size="giant"
                            label="Agregar Colaborador"
                            icon={<UserRoundPlusIcon size={20} />}
-                           className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                           className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                            onClick={handleAddCollaborator}
                         />
                         <Button
                            size="giant"
                            label="Agregar Deducción "
                            icon={<CircleMinus size={20} />}
-                           className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                           className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                            onClick={handleAddDeduction}
                         />
                         <Button
                            size="giant"
                            label="Iniciar Proceso de Baja  "
                            icon={<UserMinus size={20} />}
-                           className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                           className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                            onClick={handleCollaboratorExit}
                         />
                      </div>
