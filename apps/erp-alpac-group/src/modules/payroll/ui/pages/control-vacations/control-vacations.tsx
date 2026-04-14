@@ -4,18 +4,18 @@ import {
   Breadcrumb,
   useTheme,
 } from "@alpac/design-system";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ControlVacationPageHeader } from "./components/vacation-page-header/vacation-page-header";
+import { ControlVacationPageHeader } from "@app/modules/payroll/ui/pages/control-vacations/components/vacation-page-header/vacation-page-header";
 import { ControlVacationFiltersBar } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/filters-bar";
 import { useControlVacations } from "@app/modules/payroll/ui/hooks/useVacations";
 import type {
   GetVacationsHistoryResponse,
   GetVacationsListResponse,
-} from "@app/modules/payroll/domain/ApiContract/Responses/get-vacations-response";
+} from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
 import { ControlModalVacationDetails } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacations-details/control-vacacion.details.modal";
-import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
+import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/control-vacations-request";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { ControlVacationsTable } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-table/control-vacations-table";
@@ -39,6 +39,15 @@ export default function ControlVacationsPage() {
     message: string;
   }>({ open: false, type: "success", message: "" });
 
+  useEffect(() => {
+    if (!alertState.open) return;
+    const timer = window.setTimeout(
+      () => setAlertState((prev) => ({ ...prev, open: false })),
+      5000,
+    );
+    return () => window.clearTimeout(timer);
+  }, [alertState.open]);
+
   const historyFilters = useMemo<
     ControlVacationHistoryRequest | undefined
   >(() => {
@@ -52,10 +61,12 @@ export default function ControlVacationsPage() {
     };
   }, [companyId, moduleCode, identificationNumber, pageNumber]);
 
-  const { GetControlVacationHistoryQuery, generateVacationDocumentMutation } =
-    useControlVacations({
-      filtersVacations: historyFilters,
-    });
+  const {
+    GetControlVacationHistoryQuery,
+    generateVacationTableReportMutation,
+  } = useControlVacations({
+    filtersVacations: historyFilters,
+  });
 
   const [selectedVacationItem, setSelectedVacationItem] =
     useState<GetVacationsHistoryResponse | null>(null);
@@ -111,35 +122,35 @@ export default function ControlVacationsPage() {
     setIsDetailsOpen(false);
   }, []);
 
-  const handleGenerateDocument = useCallback(
-    (row: GetVacationsHistoryResponse) => {
-      if (!companyId || !moduleCode) return;
-      generateVacationDocumentMutation.mutate(
-        {
-          company_id: companyId,
-          module_code: moduleCode,
-          id_control_vacation: row.id_control_vacation,
+  const handleGenerateTableReport = useCallback(() => {
+    if (!companyId || !moduleCode) return;
+    generateVacationTableReportMutation.mutate(
+      {
+        company_id: companyId,
+        module_code: moduleCode,
+      },
+      {
+        onSuccess: (data) => {
+          const url = data?.document_url?.trim();
+          if (url) {
+            window.open(url, "_blank", "noopener,noreferrer");
+          }
+          setAlertState({
+            open: true,
+            type: "success",
+            message: "Documento generado exitosamente.",
+          });
         },
-        {
-          onSuccess: () => {
-            setAlertState({
-              open: true,
-              type: "success",
-              message: "Documento generado exitosamente.",
-            });
-          },
-          onError: () => {
-            setAlertState({
-              open: true,
-              type: "error",
-              message: "No se pudo generar el documento. Intente nuevamente.",
-            });
-          },
+        onError: () => {
+          setAlertState({
+            open: true,
+            type: "error",
+            message: "No se pudo generar el documento. Intente nuevamente.",
+          });
         },
-      );
-    },
-    [companyId, moduleCode, generateVacationDocumentMutation],
-  );
+      },
+    );
+  }, [companyId, moduleCode, generateVacationTableReportMutation]);
 
   if (
     historyFilters &&
@@ -158,26 +169,32 @@ export default function ControlVacationsPage() {
         transition={{ duration: 0.5 }}
         className="flex flex-col gap-6"
       >
-        <div className="flex justify-start">
-          <Breadcrumb
-            items={[
-              {
-                label: "Dashboard",
-                url: "/",
-                onClick: (url) => navigate(url),
-              },
-              {
-                label: "Control de vacaciones",
-                url: "/payroll/control-vacations",
-                onClick: (url) => navigate(url),
-              },
-            ]}
+        <div className="flex flex-col gap-0 sm:gap-1">
+          <div className="flex justify-start">
+            <Breadcrumb
+              items={[
+                {
+                  label: "Dashboard",
+                  url: "/",
+                  onClick: (url) => navigate(url),
+                },
+                {
+                  label: "Control de vacaciones",
+                  url: "/payroll/control-vacations",
+                  onClick: (url) => navigate(url),
+                },
+              ]}
+            />
+          </div>
+          <ControlVacationPageHeader
+            collaboratorDisplayName={fullName}
+            logoSrc={activeLogo}
+            onGenerateTableReportClick={handleGenerateTableReport}
+            isGenerateTableReportPending={
+              generateVacationTableReportMutation.isPending
+            }
           />
         </div>
-        <ControlVacationPageHeader
-          collaboratorDisplayName={fullName}
-          logoSrc={activeLogo}
-        />
         <ControlModalVacationDetails
           isOpen={isDetailsOpen}
           onClose={handleCloseDetails}
@@ -195,7 +212,6 @@ export default function ControlVacationsPage() {
           onPageChange={handlePageChange}
           isPending={GetControlVacationHistoryQuery.isFetching}
           onViewDetails={handleViewDetails}
-          onGenerateDocument={handleGenerateDocument}
         />
       </motion.div>
 

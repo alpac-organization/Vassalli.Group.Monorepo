@@ -13,11 +13,6 @@ export function ControlModalVacationDetailsContent({
             ID Colaborador: {details.collaboratorCode}
           </p>
         </div>
-        <span
-          className={`shrink-0 rounded-md px-2.5 py-1 text-[13px] font-semibold ${details.statusColorClass}`}
-        >
-          {details.statusLabel}
-        </span>
       </div>
 
       <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3">

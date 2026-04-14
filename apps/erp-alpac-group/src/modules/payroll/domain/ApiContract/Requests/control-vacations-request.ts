@@ -17,11 +17,5 @@ export interface ControlVacationHistoryRequest {
    * Numero de la pagina
    */
   page_number: number;
-  /**
-   * Estado de la solicitud de vacaciones. Omitir para retornar todos.
-   */
-  status?: ControlVacationStatusFilterValues;
 }
 
-export type ControlVacationStatusFilterValues = "all" | ControlVacationStatus;
-export type ControlVacationStatus = "Pending" | "Cancelled";

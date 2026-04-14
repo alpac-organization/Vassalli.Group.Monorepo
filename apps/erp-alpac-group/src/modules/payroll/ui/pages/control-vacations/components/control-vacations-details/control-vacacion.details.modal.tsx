@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Modal } from "@alpac/design-system";
 import { deriveVacationDetails } from "@app/modules/payroll/ui/pages/control-vacations/utils/vacations-details-view-state";
 import type { ControlVacationDetailsModalProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacations-details/type/control-vacation-details";
-import { ControlModalVacationDetailsContent } from "./vacationDetailsContent";
+import { ControlModalVacationDetailsContent } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacations-details/vacationDetailsContent";
 export function ControlModalVacationDetails({
   isOpen,
   onClose,
@@ -19,7 +19,7 @@ export function ControlModalVacationDetails({
       isOpen={isOpen}
       onClose={onClose}
       variant="default"
-      title="Detalles de la Solicitud de Permiso"
+      title="Detalles de la vacación"
       panelClassName={[
         "!max-w-2xl w-full min-w-0",
         "max-h-[min(92dvh,44rem)] overflow-y-auto overflow-x-hidden overscroll-contain",

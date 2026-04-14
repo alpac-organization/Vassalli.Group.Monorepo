@@ -4,20 +4,10 @@
  * Toda la lógica de presentación vive aquí, los componentes sólo renderizan.
  */
 
-import { getVacationControlStatusUiLabel } from "@app/modules/payroll/ui/pages/control-vacations/Constants/vacations-status.constants";
 import { countInclusiveCalendarDays } from "@app/modules/vacations/ui/pages/vacation-index/utils/count-inclusive-calendar-days";
-import { statusBadgeColor } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-table/utils/status-badge-color";
-import type { ControlVacationStatus } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
-import type { GetVacationsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-vacations-response";
+import type { GetVacationsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
 // ─── Status helper
 
-export function getStatusLabel(status: ControlVacationStatus): string {
-  return getVacationControlStatusUiLabel(status);
-}
-
-export function getStatusColorClass(status: ControlVacationStatus): string {
-  return statusBadgeColor(status);
-}
 
 // ─── Date formatting
 /**
@@ -44,8 +34,6 @@ export type VacationtDetailsUiState = {
   startDateFormatted: string;
   endDateFormatted: string;
   requestedDays: number;
-  statusLabel: string;
-  statusColorClass: string;
   description: string;
   requestedAtFormatted: string;
 };
@@ -60,8 +48,6 @@ export function deriveVacationDetails(
     startDateFormatted: formatLongDate(item.start_date),
     endDateFormatted: formatLongDate(item.end_date),
     requestedDays: countInclusiveCalendarDays(item.start_date, item.end_date),
-    statusLabel: getStatusLabel(item.status),
-    statusColorClass: getStatusColorClass(item.status),
     description: item.description?.trim() || "—",
     requestedAtFormatted: formatLongDate(item.created_at),
   };

@@ -1,15 +1,18 @@
 import type { IHttpHandler } from "@app/core/ports";
 import type { IVacationsServices } from "@app/modules/payroll/application/interfaces/IVacationServices";
-import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/vacation-request";
+import type { ControlVacationGenerateTableReportRequest } from "@app/modules/payroll/domain/ApiContract/Requests/control-vacation-generate-docs-request";
+import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/control-vacations-request";
 import { cleanParams } from "@app/shared/utils/object.utils";
-import type { ControlVacationGenerateRequest } from "../../domain/ApiContract/Requests/vacation-generate-request";
-import type { GetVacationsListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-vacations-response";
+import type { GetReportVacationDocResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-report-vacation.doc";
+import type { GetVacationsListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
+
 export class ControlVacationServices implements IVacationsServices {
   private apiHandler: IHttpHandler;
 
   constructor(httpHandler: IHttpHandler) {
     this.apiHandler = httpHandler;
   }
+
   public async GetVacations(
     payload: ControlVacationHistoryRequest,
   ): Promise<GetVacationsListResponse> {
@@ -26,11 +29,11 @@ export class ControlVacationServices implements IVacationsServices {
       throw error;
     }
   }
-  public async generateControlVacationDocument(
-    payload: ControlVacationGenerateRequest,
-  ): Promise<void> {
+  public async generateVacationTableReport(
+    payload: ControlVacationGenerateTableReportRequest,
+  ): Promise<GetReportVacationDocResponse> {
     const { company_id, module_code } = payload;
-    const response = this.apiHandler.get<void>(
+    const response = await this.apiHandler.get<GetReportVacationDocResponse>(
       `/companies/${company_id}/modules/${module_code}/vacations/generate-document`,
     );
     return response;

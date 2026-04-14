@@ -3,4 +3,6 @@ export type VacationPageHeaderProps = {
   collaboratorDisplayName?: string;
   logoSrc?: string;
   logoAlt?: string;
+  onGenerateTableReportClick?: () => void;
+  isGenerateTableReportPending?: boolean;
 };

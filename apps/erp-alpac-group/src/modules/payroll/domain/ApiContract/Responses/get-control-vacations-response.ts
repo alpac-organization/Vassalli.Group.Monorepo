@@ -1,4 +1,3 @@
-import type { ControlVacationStatus } from "../Requests/vacation-request";
 
 export interface GetVacationsHistoryResponse {
   id_control_vacation: string;
@@ -6,7 +5,6 @@ export interface GetVacationsHistoryResponse {
   collaborator_code: string;
   start_date: string;
   end_date: string;
-  status: ControlVacationStatus;
   description: string;
   created_at: string;
 }

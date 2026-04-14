@@ -1,4 +1,4 @@
-import type { GetVacationsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-vacations-response";
+import type { GetVacationsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
 export type ControlVacationDetailsModalProps = {
   isOpen: boolean;
   onClose: () => void;
