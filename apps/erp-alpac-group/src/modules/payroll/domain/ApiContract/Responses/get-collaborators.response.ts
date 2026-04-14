@@ -95,4 +95,5 @@ export interface GetCollaboratorsListResponse {
    total_on_vacation: number;
    total_on_subsidy: number;
    total_collaborators: number;
+   total_on_exit: number;
 }
