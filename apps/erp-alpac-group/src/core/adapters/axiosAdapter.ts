@@ -6,6 +6,7 @@ import { getBrowserName } from "@app/core/enums/user-agent.enum";
 import type { CustomInternalAxiosRequestConfig } from "../interfaces/CustomInternalAxiosRequestConfig";
 import type { IAuthenticationServices } from "@app/modules/auth/application/interfaces/IAuthenticationServices";
 import { useInactivityStore } from "@app/shared/stores/useInactivityStore";
+import { useServerErrorStore } from "@app/shared/stores/useServerErrorStore";
 
 class AxiosHttpAdapter implements IHttpHandler {
   private instance: AxiosInstance;
@@ -51,11 +52,15 @@ class AxiosHttpAdapter implements IHttpHandler {
 
     // Interceptor to response
     this.instance.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        useServerErrorStore.getState().clearServerError();
+        return response;
+      },
       async (error: AxiosError<ApiErrorResponse>) => {
-       
+        const httpStatus = error.response?.status;
+
         const customError: ApiErrorResponse = {
-          status: error.response?.status || 500,
+          status: httpStatus ?? 500,
           error: {
             typeError:
               error.response?.data?.error?.typeError || "INTERNAL_CLIENT_ERROR",
@@ -67,13 +72,11 @@ class AxiosHttpAdapter implements IHttpHandler {
             error.response?.data?.createdAt || new Date().toISOString(),
         };
 
-        // Obtengo la configuración de la petición original
         const originalRequest =
           error.config as CustomInternalAxiosRequestConfig;
 
-        // Reviso el estado de la petición
         if (
-          customError.status === 401 &&
+          httpStatus === 401 &&
           originalRequest &&
           !originalRequest._retry &&
           !originalRequest.url?.includes("auth/login") &&
@@ -102,6 +105,16 @@ class AxiosHttpAdapter implements IHttpHandler {
             // Rechazo la promesa para que el código que llamó al servicio pueda manejar el error
             return Promise.reject(refreshTokenError);
           }
+        }
+
+        if (
+          httpStatus !== undefined &&
+          httpStatus >= 500 &&
+          httpStatus < 600
+        ) {
+          useServerErrorStore.getState().showServerError({
+            status: httpStatus,
+          });
         }
 
         return Promise.reject(customError);
