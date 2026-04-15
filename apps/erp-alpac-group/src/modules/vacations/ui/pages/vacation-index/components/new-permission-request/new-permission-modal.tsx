@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Alert, Button, InputText, Modal } from "@alpac/design-system";
 import { usePermission } from "@app/modules/vacations/ui/hooks/usePermission";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -173,9 +174,20 @@ export function NewPermissionRequestModal({
                )
             }
 
-            {
-               GetProfileDetails.data && (
-                  <>
+            <AnimatePresence>
+               {GetProfileDetails.data && (
+                  <motion.div
+                     key="collaborator-result"
+                     initial={{ opacity: 0, y: 16, height: 0, overflow: 'hidden' }}
+                     animate={{ opacity: 1, y: 0, height: 'auto', overflow: 'visible' }}
+                     exit={{ opacity: 0, y: 8, height: 0, overflow: 'hidden' }}
+                     transition={{
+                        height: { duration: 0.3, ease: "easeInOut" },
+                        opacity: { duration: 0.45, ease: "easeOut", delay: 0.1 },
+                        y: { duration: 0.3, ease: "easeOut", delay: 0.1 },
+                     }}
+                     className="flex flex-col gap-4 sm:gap-5"
+                  >
                      <NewPermissionCollaboratorSummary
                         fullName={collaboratorFullName ?? collaborator?.full_name ?? ""}
                         workPosition={collaboratorWorkPosition ?? collaborator?.work_position ?? ""}
@@ -191,9 +203,9 @@ export function NewPermissionRequestModal({
                         moduleCode={moduleCode}
                         identificationNumber={identificationNumber}
                      />
-                  </>
-               )
-            }
+                  </motion.div>
+               )}
+            </AnimatePresence>
 
          </div>
       </Modal>

@@ -33,6 +33,8 @@ export const useCollaborators = function (props: useCollaboratorsProps) {
    const profileDetailsQueryEnabled = profileDetailsCanFetch &&
       (CollaboratorDetailsPayload?.QueryEnabled ?? true);
 
+   type CollaboratorProfileResponse = Awaited<ReturnType<typeof collaboratorServices.GetCollaboratorProfileDetails>>;
+
    // Query para obtener el listado de colaboradores, si y solo si se proporcionan los filtros necesarios
    const GetCollaboratorsQuery = useQuery({
       queryKey: ["collaboratorData", Collaboratorsfilters],
@@ -45,7 +47,7 @@ export const useCollaborators = function (props: useCollaboratorsProps) {
    });
 
    // Query para obtener los detalles del perfil del colaborador, si y solo si se proporciona el payload necesario
-   const GetProfileDetails = useQuery<Awaited<ReturnType<typeof collaboratorServices.GetCollaboratorProfileDetails>>, ApiErrorResponse>({
+   const GetProfileDetails = useQuery<CollaboratorProfileResponse, ApiErrorResponse>({
       queryKey: ["collaboratorProfileDetails", CollaboratorDetailsPayload],
       queryFn: () => {
          const { QueryEnabled: _qe, ...apiPayload } = CollaboratorDetailsPayload!;
