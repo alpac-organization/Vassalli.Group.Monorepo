@@ -1,5 +1,12 @@
-import { Alert, AnimatedAlertWrapper, Breadcrumb } from "@alpac/design-system";
+import {
+   Alert,
+   AnimatedAlertWrapper,
+   Banner,
+   Breadcrumb,
+   Button,
+} from "@alpac/design-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { CalendarPlus } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import type {
@@ -27,6 +34,7 @@ import {
    derivarUiSaldoVacaciones,
 } from "@app/modules/vacations/ui/pages/vacation-index/utils/permission-view-state";
 import { Loader } from "@app/shared/components/loaders/loader";
+import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
 
 export default function VacationPage() {
    const navigate = useNavigate();
@@ -275,8 +283,52 @@ export default function VacationPage() {
       isHistoryPending: GetPermissionHistory.isPending,
    });
 
+   const loadError =
+      GetVacationSaldoQuery.isError
+         ? GetVacationSaldoQuery.error
+         : GetProfileDetails.isError
+           ? GetProfileDetails.error
+           : GetPermissionHistory.isError
+             ? GetPermissionHistory.error
+             : undefined;
+
+   const isLoadError =
+      GetVacationSaldoQuery.isError ||
+      GetProfileDetails.isError ||
+      GetPermissionHistory.isError;
+
+   if (!identificationNumber?.trim()) {
+      return (
+         <Banner
+            variant="warning"
+            title="Número de identificación no proporcionado"
+            description="No se ha proporcionado un número de identificación para consultar tus permisos. Por favor, regresa al panel de inicio y selecciona un colaborador o vuelve a iniciar sesión."
+         />
+      );
+   }
+
+   if (!companyId?.trim() || !moduleCode?.trim()) {
+      return (
+         <Banner
+            variant="error"
+            title="Información de contexto insuficiente"
+            description="No se ha proporcionado la información de contexto necesaria (ID de empresa o código de módulo) para cargar la gestión de permisos. Por favor, regresa al panel de inicio e inténtalo de nuevo."
+         />
+      );
+   }
+
    if (showInitialPageLoader) {
       return <Loader title="Cargando gestión de permisos..." />;
+   }
+
+   if (isLoadError && loadError !== undefined) {
+      return (
+         <Banner
+            variant="error"
+            title="Error al cargar la gestión de permisos"
+            description={getErrorMessage(loadError)}
+         />
+      );
    }
 
    return (
@@ -306,7 +358,6 @@ export default function VacationPage() {
             </div>
 
             <PermissionPageHeader
-               onNewRequest={() => setIsNewRequestOpen(true)}
                collaboratorDisplayName={balanceVacation.nombreColaboradorParaMostrar}
             />
 
@@ -339,6 +390,36 @@ export default function VacationPage() {
                daysRemainingDisplay={balanceVacation.mostrarDiasDisponibles}
                daysGeneratedDisplay={balanceVacation.mostrarDiasGenerados}
             />
+
+            <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+               <div className="flex flex-col justify-center">
+                  <h3 className="p-0! m-0!">Acciones Directas</h3>
+                  <small className="text-gray-500 dark:text-gray-300">
+                     Acciones rápidas para gestionar tus permisos
+                  </small>
+               </div>
+            </div>
+
+            <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+               <div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
+                  <Button
+                     size="giant"
+                     label="Nueva Solicitud"
+                     icon={<CalendarPlus size={20} />}
+                     className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                     onClick={() => setIsNewRequestOpen(true)}
+                  />
+               </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+               <div className="flex flex-col justify-center">
+                  <h3 className="p-0! m-0!">Filtros</h3>
+                  <small className="text-gray-500 dark:text-gray-300">
+                     Descripcion de filtros
+                  </small>
+               </div>
+            </div>
 
             <PermissionFiltersBar
                filterDraft={filterDraft}
