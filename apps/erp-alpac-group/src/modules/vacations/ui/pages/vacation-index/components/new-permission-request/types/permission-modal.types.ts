@@ -1,6 +1,6 @@
 export type NewPermissionRequestModalProps = {
    isOpen: boolean;
-   onClose: () => void;
+   onClose?: () => void;
    collaboratorFullName?: string;
    collaboratorWorkPosition?: string;
    isCollaboratorFullNameLoading?: boolean;

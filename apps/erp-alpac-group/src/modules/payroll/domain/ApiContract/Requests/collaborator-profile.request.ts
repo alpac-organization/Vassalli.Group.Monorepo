@@ -8,7 +8,7 @@ export interface CollaboratorProfileDetailsRequest {
    /**
     * Puede ser cedula nicaraguense, cedula de residencia o pasaporte
     * @example "0011203950000X"
-    * @optional
+    * @required
     */
    identification_number: string;
    /**
@@ -29,4 +29,10 @@ export interface CollaboratorProfileDetailsRequest {
     * @optional
     */
    QueryEnabled?: boolean;
+
+   /**
+    * Indica el canal por el cual se realiza la solicitud
+    * @required
+    */
+   //channel: string;
 }

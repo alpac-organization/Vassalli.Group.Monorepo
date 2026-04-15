@@ -45,11 +45,9 @@ export class CollaboratorServices implements ICollaboratorServices {
 
    public async GetCollaboratorProfileDetails(payload: CollaboratorProfileDetailsRequest): Promise<GetCollaboratorProfileDetailsResponse> {
       try {
-         console.log(payload)
          const response = await this.apiHandler.get<GetCollaboratorProfileDetailsResponse>(
             `/companies/${payload.company_id}/modules/${payload.module_code}/collaborators/${payload.identification_number}/details`,
          );
-         console.log(response)
          return response;
       } catch (error) {
          throw error;

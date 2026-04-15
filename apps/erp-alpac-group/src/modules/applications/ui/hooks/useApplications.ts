@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request"
 import { ApplicationServices } from "@app/modules/applications/infrastructure/services/ApplicationServices"
 import { httpHandler } from "@app/core/adapters"
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse"
 
 const applicationServices = new ApplicationServices(httpHandler)
 
@@ -22,7 +23,11 @@ const applicationServices = new ApplicationServices(httpHandler)
  */
 export const useApplications = (filters?: ApplicationRequest, config?: { enabled?: boolean, enabledDetail?: boolean }) => {
 
-   const GetApplicationsQuery = useQuery({
+   type ApplicationResponse = Awaited<ReturnType<typeof applicationServices.GetApplications>>;
+
+   type ApplicationDetailResponse = Awaited<ReturnType<typeof applicationServices.GetApplicationDetail>>;
+
+   const GetApplicationsQuery = useQuery<ApplicationResponse, ApiErrorResponse>({
       queryKey: ["applicationsData", filters],
       queryFn: () => applicationServices.GetApplications(filters!),
       enabled: config?.enabled !== undefined ? config.enabled : !!filters,
@@ -48,7 +53,7 @@ export const useApplications = (filters?: ApplicationRequest, config?: { enabled
       },
    })
 
-   const GetApplicationDetailQuery = useQuery({
+   const GetApplicationDetailQuery = useQuery<ApplicationDetailResponse, ApiErrorResponse>({
       queryKey: ["applicationDetailData", filters],
       queryFn: () => applicationServices.GetApplicationDetail(filters!),
       enabled: config?.enabledDetail !== undefined ? config.enabledDetail : !!filters,

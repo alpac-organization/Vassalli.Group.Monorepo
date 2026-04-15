@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { Breadcrumb, Button, Dropdown, InputText, Pagination } from "@alpac/design-system";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Alert, AnimatedAlertWrapper, Breadcrumb, Button, Dropdown, InputText, Pagination } from "@alpac/design-system";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
@@ -17,6 +17,7 @@ import { formatCollaboratorCode } from "@app/shared/utils/collaborator.utils";
 import { ManagerForm } from "./components/application-forms/manager-form/manager-form";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
 
 export const ApplicationsPage = function () {
 
@@ -34,11 +35,23 @@ export const ApplicationsPage = function () {
    const [isAdministrator, setIsAdministrator] = useState(false);
    const [isManager, setIsManager] = useState(false);
    const [filters, setFilters] = useState<ApplicationRequest>(initialFilters);
+   const [showAlert, setShowAlert] = useState<{
+      show: boolean;
+      type: "success" | "error" | "warning" | "info";
+      title: string;
+      message: string;
+   }>({
+      show: false,
+      type: "info",
+      title: "",
+      message: "",
+   });
 
    const { theme } = useTheme();
    const { role } = useUserStore();
    const { urlImage, neutralUrlImage } = useCompanyStore();
    const { companyId, moduleCode } = useUserStore();
+   const { getMappedError } = useMappedError();
 
    const { control, reset, handleSubmit } = useForm<ApplicationRequest>({
       defaultValues: initialFilters
@@ -61,24 +74,88 @@ export const ApplicationsPage = function () {
       enabledDetail: isDetailEnabled
    });
 
-   const data = isAdministrator
-      ? (GetApplicationsQuery.data ?? [])
-      : (GetApplicationDetailQuery.data ? [GetApplicationDetailQuery.data] : []);
+   const applicationsData = useMemo(() =>
+      isAdministrator
+         ? (GetApplicationsQuery.data ?? [])
+         : (GetApplicationDetailQuery.data ? [GetApplicationDetailQuery.data] : []),
+      [isAdministrator, GetApplicationsQuery.data, GetApplicationDetailQuery.data]
+   );
+
+   const query = useMemo(() => {
+      return isAdministrator ? GetApplicationsQuery : GetApplicationDetailQuery;
+   }, [isAdministrator, GetApplicationsQuery, GetApplicationDetailQuery]);
 
    const isLoading = GetApplicationsQuery.isLoading || GetApplicationDetailQuery.isLoading;
+
+   const isFetching = GetApplicationsQuery.isFetching || GetApplicationDetailQuery.isFetching;
+
+   const isSuccess = GetApplicationsQuery.isSuccess || GetApplicationDetailQuery.isSuccess;
+
+   const isError = GetApplicationsQuery.isError || GetApplicationDetailQuery.isError;
+
+   const errors = GetApplicationsQuery.error || GetApplicationDetailQuery.error;
 
    useEffect(() => {
       setIsAdministrator(role === RoleEnum.ADMINISTRATOR)
       setIsManager(role === RoleEnum.MANAGER)
    }, [role]);
 
+   useEffect(() => {
+      if (isFetching) return;
+
+      if (isError && errors) {
+
+         const mappedError = getMappedError(errors);
+         setShowAlert({
+            show: true,
+            type: "error",
+            title: "Error al cargar",
+            message:
+               mappedError.description ||
+               "Error al cargar las solicitudes",
+         });
+      }
+
+      if (applicationsData.length === 0 && isSuccess && isManager) {
+         setShowAlert({
+            show: true,
+            type: "error",
+            title: "Error",
+            message: "No se encontraron solicitudes",
+         });
+      }
+
+      if (applicationsData.length > 0 && isSuccess) {
+         setShowAlert({
+            show: false,
+            type: "info",
+            title: "",
+            message: "",
+         });
+      }
+   }, [applicationsData, isFetching, isSuccess, isError, errors])
+
    const onSubmit: SubmitHandler<ApplicationRequest> = async (data) => {
+
+      const isSameQuery = filters.collaborator_code === data.collaborator_code;
+
+      if (isSameQuery) {
+         query.refetch();
+         return;
+      }
+
       setFilters((prev) => ({ ...prev, ...data }));
    };
 
    const handleClearFilters = useCallback(() => {
       reset(initialFilters);
       setFilters(initialFilters);
+      setShowAlert({
+         show: false,
+         type: "info",
+         title: "",
+         message: "",
+      });
    }, [reset]);
 
    const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
@@ -94,7 +171,7 @@ export const ApplicationsPage = function () {
          className="flex flex-col gap-4" >
 
          {
-            isLoading && (
+            isFetching && (
                <Loader title={isAdministrator ? 'Cargando Solicitudes...' : 'Cargando Solicitud...'} />
             )
          }
@@ -246,7 +323,7 @@ export const ApplicationsPage = function () {
 
 
          {
-            isManager && data.length === 0 && !isLoading && (
+            isManager && applicationsData.length === 0 && !isLoading && (
                <div>
                   <p className="h-[100px] rounded-xl border-2 border-dashed border-gray-400 dark:border-gray-600 flex items-center justify-center text-center text-gray-500 dark:text-gray-300">
                      Debe ingresar el código del colaborador para ver las solicitudes
@@ -255,16 +332,35 @@ export const ApplicationsPage = function () {
             )
          }
 
-         {isManager && data.length > 0 && data.map((item) => (
-            <div key={item.permit_apllication_id} className="flex flex-col gap-4">
-               <ManagerForm application={item} />
+         {isManager && applicationsData.length > 0 && applicationsData.map((application) => (
+            <div key={application.permit_apllication_id} className="flex flex-col gap-4">
+               <ManagerForm application={application} />
             </div>
          ))}
+
+         <AnimatedAlertWrapper open={showAlert.show}>
+            {showAlert.show && (
+               <Alert
+                  type={showAlert.type}
+                  title={showAlert.title}
+                  message={showAlert.message}
+                  showCloseButton
+                  onClose={() => {
+                     setShowAlert({
+                        show: false,
+                        type: "info",
+                        title: "",
+                        message: "",
+                     });
+                  }}
+               />
+            )}
+         </AnimatedAlertWrapper>
 
          {isAdministrator && (
             <div className="flex flex-col">
                <ApplicationsTable
-                  data={data}
+                  data={applicationsData}
                   onOpenApplicationDetailModal={(application) => {
                      setSelectedApplication(application);
                      setIsApplicationModalOpen(true);

@@ -41,8 +41,15 @@ export function NewPermissionRequestModal({
       QueryEnabled: false
    }
 
+   const searchErrorVariants = {
+      initial: { opacity: 0, y: 16, height: 0, overflow: 'hidden' },
+      animate: { opacity: 1, y: 0, height: 'auto', overflow: 'visible' },
+      exit: { opacity: 0, y: 8, height: 0, overflow: 'hidden' },
+   }
+
    const [isManager, setIsManager] = useState(false)
    const [isAdministrator, setIsAdministrator] = useState(false)
+   const [isOperator, setIsOperator] = useState(false)
    const [filters, setFilters] = useState<CollaboratorProfileDetailsRequest>(initialFilters);
    const [searchError, setSearchError] = useState<string | null>(null);
 
@@ -60,25 +67,10 @@ export function NewPermissionRequestModal({
    useEffect(() => {
       setIsManager(role === RoleEnum.MANAGER)
       setIsAdministrator(role === RoleEnum.ADMINISTRATOR)
+      setIsOperator(role === RoleEnum.OPERATOR)
    }, [role]);
 
-   const handleSubmit = (payload: CreatePermissionRequest) => {
-      createPermissionRequestMutation.mutate(payload, {
-         onSuccess: () => {
-            onClose();
-            onRequestSuccess?.();
-         },
-         onError: (err) => {
-            const apiError = err as unknown as ApiErrorResponse;
-            onClose();
-            onRequestError?.(
-               apiError.error?.description ?? "Ocurrió un error inesperado.",
-            );
-         },
-      });
-   };
-
-   const { handleSubmit: handleSearch, register } = useForm<CollaboratorProfileDetailsRequest>();
+   const { handleSubmit: handleSearch, register, reset } = useForm<CollaboratorProfileDetailsRequest>();
 
    const { GetProfileDetails } = useCollaborators({ CollaboratorDetailsPayload: filters });
 
@@ -103,12 +95,53 @@ export function NewPermissionRequestModal({
    }, [GetProfileDetails.isError, GetProfileDetails.error])
 
    const handleSearchSubmit = (data: CollaboratorProfileDetailsRequest) => {
+
       setSearchError(null);
-      setFilters({
+
+      const newFilters: CollaboratorProfileDetailsRequest = {
          company_id: companyId,
          module_code: moduleCode,
          identification_number: data.identification_number,
          QueryEnabled: true
+      };
+
+      if (identificationNumber === newFilters.identification_number) {
+         setSearchError(`
+            Por favor busca el perfil de otro colaborador o 
+            solicita tu permiso a través de los canales establecidos.`
+         );
+         return;
+      }
+
+      const isSameQuery = filters.identification_number === newFilters.identification_number;
+
+      if (isSameQuery) {
+         GetProfileDetails.refetch();
+      } else {
+         setFilters(newFilters);
+      }
+   };
+
+   const handleCloseModal = () => {
+      onClose?.();
+      setFilters(initialFilters);
+      setSearchError(null);
+      reset();
+   }
+
+   const handleSubmit = (payload: CreatePermissionRequest) => {
+      createPermissionRequestMutation.mutate(payload, {
+         onSuccess: () => {
+            onClose?.();
+            onRequestSuccess?.();
+         },
+         onError: (err) => {
+            const apiError = err as unknown as ApiErrorResponse;
+            onClose?.();
+            onRequestError?.(
+               apiError.error?.description ?? "Ocurrió un error inesperado.",
+            );
+         },
       });
    };
 
@@ -116,7 +149,7 @@ export function NewPermissionRequestModal({
       <Modal
          isOpen={isOpen}
          variant="form"
-         onClose={onClose}
+         onClose={handleCloseModal}
          title="Nueva Solicitud de Permiso"
          size="4xl"
          panelClassName={["dark:bg-[#272b34]"].join(" ")}>
@@ -124,58 +157,95 @@ export function NewPermissionRequestModal({
          {/* Formulario de busqueda */}
          <div className="flex min-w-0 flex-col gap-4 sm:gap-5">
             {
-               (isManager || isAdministrator) &&
+               (isManager || isAdministrator) && !GetProfileDetails.data && !isOperator &&
                (
-                  <form onSubmit={handleSearch(handleSearchSubmit)}
-                     className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                  <motion.div
+                     variants={searchErrorVariants}
+                     initial="initial"
+                     animate="animate"
+                     exit="exit"
+                     transition={{
+                        height: { duration: 0.3, ease: "easeInOut" },
+                        opacity: { duration: 0.45, ease: "easeOut", delay: 0.1 },
+                        y: { duration: 0.3, ease: "easeOut", delay: 0.1 },
+                     }}
+                     onAnimationComplete={(definition) => {
+                        if (definition === "animate") {
+                           setTimeout(() => setSearchError(null), 3000);
+                        }
+                     }}
+                  >
+                     <form onSubmit={handleSearch(handleSearchSubmit)}
+                        className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
 
-                     <div className="col-span-2">
-                        <InputText
-                           label="Buscar por número de cédula"
-                           placeholder="Ej. 001-010190-0001A"
-                           className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-                           labelClassName="text-black! dark:text-white!"
-                           {...register('identification_number', {
-                              setValueAs: (value: string) =>
-                                 value ? value.toString().replace(/-/g, "").toUpperCase()
-                                    : "",
-                              required: false,
-                              onChange: (e) => {
-                                 e.target.value = formatIdentificationNumber(e.target.value)
-                              }
-                           })}
-                        />
-                     </div>
+                        <div className="col-span-2">
+                           <InputText
+                              label="Buscar por número de cédula"
+                              placeholder="Ej. 001-010190-0001A"
+                              className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                              labelClassName="text-black! dark:text-white!"
+                              {...register('identification_number', {
+                                 setValueAs: (value: string) =>
+                                    value ? value.toString().replace(/-/g, "").toUpperCase()
+                                       : "",
+                                 required: false,
+                                 onChange: (e) => {
+                                    e.target.value = formatIdentificationNumber(e.target.value)
+                                 }
+                              })}
+                           />
+                        </div>
 
-                     <div className="col-span-1">
-                        <Button
-                           type="submit"
-                           label="Buscar"
-                           size="giant"
-                           disabled={GetProfileDetails.isLoading}
-                           isLoading={GetProfileDetails.isLoading}
-                           icon={<SearchIcon size={18} />}
-                           className="text-[15px]! w-full rounded-md!"
-                        />
-                     </div>
+                        <div className="col-span-1">
+                           <Button
+                              type="submit"
+                              label="Buscar"
+                              size="giant"
+                              disabled={GetProfileDetails.isLoading}
+                              isLoading={GetProfileDetails.isLoading}
+                              icon={<SearchIcon size={18} />}
+                              className="text-[15px]! w-full rounded-md!"
+                           />
+                        </div>
 
-                  </form>
-               )
-            }
-
-            {
-               searchError && (
-                  <Alert
-                     type="error"
-                     title="Error"
-                     message={searchError}
-                     onClose={() => setSearchError(null)}
-                  />
+                     </form>
+                  </motion.div>
                )
             }
 
             <AnimatePresence>
-               {GetProfileDetails.data && (
+               {
+                  searchError && (
+                     <motion.div
+                        key="search-error"
+                        variants={searchErrorVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        transition={{
+                           height: { duration: 0.3, ease: "easeInOut" },
+                           opacity: { duration: 0.45, ease: "easeOut", delay: 0.1 },
+                           y: { duration: 0.3, ease: "easeOut", delay: 0.1 },
+                        }}
+                        onAnimationComplete={(definition) => {
+                           if (definition === "animate") {
+                              setTimeout(() => setSearchError(null), 5000);
+                           }
+                        }}
+                     >
+                        <Alert
+                           type="error"
+                           title="Error"
+                           message={searchError}
+                        />
+                     </motion.div>
+                  )
+               }
+            </AnimatePresence>
+
+
+            <AnimatePresence initial={!isOperator}>
+               {(((isManager || isAdministrator) && !!GetProfileDetails.data) || isOperator) && (
                   <motion.div
                      key="collaborator-result"
                      initial={{ opacity: 0, y: 16, height: 0, overflow: 'hidden' }}
@@ -198,7 +268,7 @@ export function NewPermissionRequestModal({
                      <NewPermissionRequestForm
                         isPending={createPermissionRequestMutation.isPending}
                         onSubmit={handleSubmit}
-                        onCancel={onClose}
+                        onCancel={handleCloseModal}
                         companyId={companyId}
                         moduleCode={moduleCode}
                         identificationNumber={identificationNumber}
@@ -208,6 +278,6 @@ export function NewPermissionRequestModal({
             </AnimatePresence>
 
          </div>
-      </Modal>
+      </Modal >
    );
 }

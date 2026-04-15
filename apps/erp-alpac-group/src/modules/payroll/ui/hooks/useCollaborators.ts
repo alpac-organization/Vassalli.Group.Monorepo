@@ -7,7 +7,9 @@ import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payro
 import { useMutation } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+
 const collaboratorServices = new CollaboratorServices(httpHandler);
+
 export interface useCollaboratorsProps {
    Collaboratorsfilters?: CollaboratorRequest;
    CollaboratorDetailsPayload?: CollaboratorProfileDetailsRequest;

@@ -38,10 +38,10 @@ export interface CreatePermissionRequest {
 }
 
 export type PermissionType =
-   /* | "Vacation"
+   | "Vacation"
    | "MedicalAppointment"
-   | "CompensatoryTime"
-   | "PaidLeave"
-   | "UnpaidLeave"
-   | "SpecialLeave" |  */
-   "DonatedVacations";
+   // | "CompensatoryTime"
+   // | "PaidLeave"
+   // | "UnpaidLeave"
+   // | "SpecialLeave"
+   | "DonatedVacations";
