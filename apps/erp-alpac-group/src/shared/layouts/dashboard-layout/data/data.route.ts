@@ -14,31 +14,31 @@ import {
 import type { SidebarLink } from "../components/Sidebar/types/sidebar.types";
 
 const collboratorSection: SidebarLink = {
-  id: "collaborators",
-  label: "Colaboradores",
-  path: "payroll/collaborators",
-  icon: UsersRound,
+   id: "collaborators",
+   label: "Colaboradores",
+   path: "payroll/collaborators",
+   icon: UsersRound,
 };
 
 const collaboratorProfileSection: SidebarLink = {
-  id: "collaborator-profile",
-  label: "Perfil",
-  path: "work-management/collaborator-profile",
-  icon: User,
+   id: "collaborator-profile",
+   label: "Perfil",
+   path: "work-management/collaborator-profile",
+   icon: User,
 };
 
 const applicationSection: SidebarLink = {
-  id: "applications",
-  label: "Solicitudes",
-  path: "applications",
-  icon: FileClock,
+   id: "applications",
+   label: "Solicitudes",
+   path: "applications",
+   icon: FileClock,
 };
 
 const gestionVacationsSection: SidebarLink = {
-  id: "gestion-permisos",
-  label: "Permisos",
-  path: "work-management/gestion-permisos",
-  icon: UserKey,
+   id: "gestion-permisos",
+   label: "Permisos",
+   path: "work-management/gestion-permisos",
+   icon: UserKey,
 };
 
 const controlVacationsSection: SidebarLink = {
@@ -62,10 +62,10 @@ const settingsSection: SidebarLink = {
 };
 
 const deduccionesSection: SidebarLink = {
-  id: "deducciones",
-  label: "Deducciones activas",
-  path: "payroll/deducciones",
-  icon: CircleMinus,
+   id: "deducciones",
+   label: "Deducciones activas",
+   path: "payroll/deducciones",
+   icon: CircleMinus,
 };
 const liquidacionSection: SidebarLink = {
    id: "liquidacion",
@@ -92,6 +92,7 @@ export const sidebarData = {
       [ModuleEnum.APPLICATIONS]: {
          [RoleEnum.MANAGER]: [applicationSection],
          [RoleEnum.ADMINISTRATOR]: [applicationSection],
+         [RoleEnum.OPERATOR]: [applicationSection],
       },
       [ModuleEnum.PUBLIC]: [settingsSection],
    },
