@@ -7,7 +7,8 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ControlVacationPageHeader } from "@app/modules/payroll/ui/pages/control-vacations/components/vacation-page-header/vacation-page-header";
+import { ControlVacationPageHeader } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-page-header/control-vacation-page-header";
+import { ControlVacationDirectActions } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-direct-actions/control-vacation-direct-actions";
 import { ControlVacationFiltersBar } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/filters-bar";
 import { useControlVacations } from "@app/modules/payroll/ui/hooks/useVacations";
 import type {
@@ -167,34 +168,32 @@ export default function ControlVacationsPage() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.5 }}
-        className="flex flex-col gap-6"
+        className="flex flex-col gap-4"
       >
-        <div className="flex flex-col gap-0 sm:gap-1">
-          <div className="flex justify-start">
-            <Breadcrumb
-              items={[
-                {
-                  label: "Dashboard",
-                  url: "/",
-                  onClick: (url) => navigate(url),
-                },
-                {
-                  label: "Control de vacaciones",
-                  url: "/payroll/control-vacations",
-                  onClick: (url) => navigate(url),
-                },
-              ]}
-            />
-          </div>
-          <ControlVacationPageHeader
-            collaboratorDisplayName={fullName}
-            logoSrc={activeLogo}
-            onGenerateTableReportClick={handleGenerateTableReport}
-            isGenerateTableReportPending={
-              generateVacationTableReportMutation.isPending
-            }
+        <div className="flex justify-start">
+          <Breadcrumb
+            items={[
+              {
+                label: "Dashboard",
+                url: "/",
+                onClick: (url) => navigate(url),
+              },
+              {
+                label: "Control de vacaciones",
+                url: "/payroll/control-vacations",
+                onClick: (url) => navigate(url),
+              },
+            ]}
           />
         </div>
+
+        <ControlVacationPageHeader logoSrc={activeLogo} />
+
+        <ControlVacationDirectActions
+          onGenerateReport={handleGenerateTableReport}
+          isPending={generateVacationTableReportMutation.isPending}
+        />
+
         <ControlModalVacationDetails
           isOpen={isDetailsOpen}
           onClose={handleCloseDetails}
