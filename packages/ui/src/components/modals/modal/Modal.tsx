@@ -40,12 +40,17 @@ export const Modal = ({
    return createPortal(
       <AnimatePresence>
          {isOpen && (
-            <div className="fixed inset-0 z-50">
-               <motion.div
+            <motion.div
+               key="modal-overlay"
+               className="fixed inset-0 z-50"
+               initial={{ opacity: 0 }}
+               animate={{ opacity: 1 }}
+               exit={{ opacity: 0 }}
+               transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+            >
+               <div
                   className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                  aria-hidden
                />
 
                <div className="fixed inset-0 overflow-y-auto">
@@ -54,10 +59,10 @@ export const Modal = ({
                         role="dialog"
                         aria-modal="true"
                         className={`relative p-6 rounded-2xl shadow-xl dark:shadow-[0_0_50px_-12px_rgba(0,0,0,0.7)] ${configSize} w-full m-auto ${configVariant.bgClass} ${panelClassName ?? ""}`}
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        initial={{ opacity: 0, scale: 0.96, y: 16 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        transition={{ duration: 0.3, ease: "easeOut" }}
+                        exit={{ opacity: 0, scale: 0.96, y: 16 }}
+                        transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
                      >
                         {configVariant.icon && (
                            <div className="flex items-center gap-2.5 mb-5">
@@ -110,7 +115,7 @@ export const Modal = ({
                      </motion.div>
                   </div>
                </div>
-            </div>
+            </motion.div>
          )}
       </AnimatePresence>,
       document.body,

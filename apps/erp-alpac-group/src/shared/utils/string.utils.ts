@@ -3,6 +3,11 @@
  * @param fullName string
  * @returns string
  */
+import { IdentificationEnum } from "@app/core/enums/identifcation.enum";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 export const validateNameAndLastName = (fullName: string): string => {
   if (!fullName) return "Usuario";
 
@@ -24,7 +29,6 @@ export const validateNameAndLastName = (fullName: string): string => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 };
-import { IdentificationEnum } from "@app/core/enums/identifcation.enum";
 
 export const validateIdentificationNumber = (
   value: string,
@@ -280,4 +284,39 @@ export function formatLongDate(isoDate: string | null | undefined): string {
     month: "long",
     year: "numeric",
   }).format(d);
+}
+
+/**
+ * Devuelve el inicio del día (00:00:00) en formato ISO UTC a partir de una fecha en formato YYYY-MM-DD.
+ * @param ymd - Fecha en formato 'YYYY-MM-DD'
+ * @returns string - Fecha en formato ISO UTC del inicio del día
+ */
+export function utcDayStartIsoFromYmd(ymd: string): string {
+  return dayjs.utc(ymd, "YYYY-MM-DD").startOf("day").toISOString();
+}
+
+/**
+ * Devuelve el final del día (23:59:59.999) en formato ISO UTC a partir de una fecha en formato YYYY-MM-DD.
+ * @param ymd - Fecha en formato 'YYYY-MM-DD'
+ * @returns string - Fecha en formato ISO UTC del final del día
+ */
+export function utcDayEndIsoFromYmd(ymd: string): string {
+  return dayjs.utc(ymd, "YYYY-MM-DD").endOf("day").toISOString();
+}
+
+/**
+ * Devuelve un rango de fechas UTC en formato ISO, desde el inicio del día de la fecha inicial 
+ * hasta el final del día de la fecha final.
+ * @param startYmd - Fecha de inicio en formato 'YYYY-MM-DD'
+ * @param endYmd - Fecha de fin en formato 'YYYY-MM-DD'
+ * @returns { start_date: string; end_date: string } - Objeto con las fechas en formato ISO UTC
+ */
+export function toUtcDayRangeIsoFromYmd(
+  startYmd: string,
+  endYmd: string,
+): { start_date: string; end_date: string } {
+  return {
+    start_date: utcDayStartIsoFromYmd(startYmd),
+    end_date: utcDayEndIsoFromYmd(endYmd),
+  };
 }

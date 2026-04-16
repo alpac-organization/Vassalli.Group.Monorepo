@@ -1,156 +1,129 @@
-import {
-  Alert,
-  AnimatedAlertWrapper,
-  Breadcrumb,
-  useTheme,
-} from "@alpac/design-system";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Breadcrumb, Modal, useTheme } from "@alpac/design-system";
+import { useCallback, useMemo, useState } from "react";
+import { Construction } from "lucide-react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { ControlVacationPageHeader } from "@app/modules/payroll/ui/pages/control-vacations/components/vacation-page-header/vacation-page-header";
-import { ControlVacationFiltersBar } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/filters-bar";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { ControlVacationPageHeader } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-page-header/control-vacation-page-header";
+import { ControlVacationDirectActions } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-direct-actions/control-vacation-direct-actions";
 import { useControlVacations } from "@app/modules/payroll/ui/hooks/useVacations";
-import type {
-  GetVacationsHistoryResponse,
-  GetVacationsListResponse,
-} from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
-import { ControlModalVacationDetails } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacations-details/control-vacacion.details.modal";
 import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/control-vacations-request";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { ControlVacationsTable } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-table/control-vacations-table";
+import { ControlVacationDetailsModal } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-details/control-vacation-details-modal";
+import { ControlVacationFiltersBar } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/filters-bar";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import {
+  type AppliedDateRange,
+  estimateTotalRecordsForPagination,
+} from "@app/modules/payroll/ui/pages/control-vacations/utils/date-range";
+import type { VacationControlItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
 
 const PAGE_SIZE = 10;
 
 export default function ControlVacationsPage() {
   const navigate = useNavigate();
-  const { companyId, moduleCode, identificationNumber, fullName } =
-    useUserStore();
+  const { companyId, moduleCode } = useUserStore();
 
   const { theme } = useTheme();
   const { urlImage, neutralUrlImage } = useCompanyStore();
 
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
-  const [pageNumber, setPageNumber] = useState(1);
-  const [alertState, setAlertState] = useState<{
-    open: boolean;
-    type: "success" | "error";
-    message: string;
-  }>({ open: false, type: "success", message: "" });
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  useEffect(() => {
-    if (!alertState.open) return;
-    const timer = window.setTimeout(
-      () => setAlertState((prev) => ({ ...prev, open: false })),
-      5000,
-    );
-    return () => window.clearTimeout(timer);
-  }, [alertState.open]);
+  const pageNumber = parseInt(searchParams.get("page") || "1", 10);
+  const dateRange = useMemo<AppliedDateRange>(() => {
+    return {
+      start_date: searchParams.get("start_date"),
+      end_date: searchParams.get("end_date"),
+    };
+  }, [searchParams]);
 
   const historyFilters = useMemo<
     ControlVacationHistoryRequest | undefined
   >(() => {
-    if (!companyId || !moduleCode || !identificationNumber) return undefined;
+    if (!companyId || !moduleCode) return undefined;
+    if (!dateRange.start_date || !dateRange.end_date) return undefined;
     return {
       company_id: companyId,
       module_code: moduleCode,
-      identification_number: identificationNumber,
+      start_date: dateRange.start_date,
+      end_date: dateRange.end_date,
       page_size: PAGE_SIZE,
       page_number: pageNumber,
     };
-  }, [companyId, moduleCode, identificationNumber, pageNumber]);
+  }, [companyId, moduleCode, dateRange, pageNumber]);
 
-  const {
-    GetControlVacationHistoryQuery,
-    generateVacationTableReportMutation,
-  } = useControlVacations({
+  const hasAppliedDateRange = Boolean(
+    dateRange.start_date && dateRange.end_date,
+  );
+
+  const { GetControlVacationHistoryQuery } = useControlVacations({
     filtersVacations: historyFilters,
   });
 
-  const [selectedVacationItem, setSelectedVacationItem] =
-    useState<GetVacationsHistoryResponse | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [reportDevModalOpen, setReportDevModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<VacationControlItemResponse | null>(null);
 
-  const tableData = useMemo<GetVacationsListResponse>(() => {
-    const raw = GetControlVacationHistoryQuery.data;
-    if (!raw) {
-      return {
-        data: [],
-        total_records: 0,
-        page_size: PAGE_SIZE,
-        page_number: pageNumber,
-        total_vacations: 0,
-      };
-    }
-    return {
-      ...raw,
-      page_number: pageNumber,
-      data: (raw.data ?? []).map((row) => ({
-        ...row,
-        full_name: fullName ?? row.full_name,
-      })),
-    };
-  }, [GetControlVacationHistoryQuery.data, fullName, pageNumber]);
+  const historyPayload = GetControlVacationHistoryQuery.data;
 
-  const handleApplyFilters = useCallback(() => {
-    setPageNumber(1);
-  }, []);
+  const rows: VacationControlItemResponse[] = useMemo(() => {
+    if (!hasAppliedDateRange || !historyPayload) return [];
+    if (Array.isArray(historyPayload)) return historyPayload;
+    return historyPayload.data ?? [];
+  }, [hasAppliedDateRange, historyPayload]);
 
-  const handleClearFilters = useCallback(() => {
-    setPageNumber(1);
-  }, []);
-
-  const handlePageChange = useCallback((page: number) => {
-    setPageNumber(page);
-  }, []);
-
-  const handleViewDetails = useCallback(
-    (row: GetVacationsHistoryResponse) => {
-      const item = GetControlVacationHistoryQuery.data?.data?.find(
-        (i) =>
-          String(i.id_control_vacation) === String(row.id_control_vacation),
+  const totalRecords = useMemo(() => {
+    if (!hasAppliedDateRange) return 0;
+    if (Array.isArray(historyPayload)) {
+      return estimateTotalRecordsForPagination(
+        historyPayload.length,
+        pageNumber,
+        PAGE_SIZE,
       );
-      if (!item) return;
-      setSelectedVacationItem(item);
-      setIsDetailsOpen(true);
+    }
+    const total = historyPayload?.total_records;
+    if (typeof total === "number" && Number.isFinite(total)) {
+      return total;
+    }
+    return estimateTotalRecordsForPagination(
+      rows.length,
+      pageNumber,
+      PAGE_SIZE,
+    );
+  }, [hasAppliedDateRange, historyPayload, rows.length, pageNumber]);
+
+  const handleApplyDateFilters = useCallback(
+    (range: { start_date: string; end_date: string }) => {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("start_date", range.start_date);
+      nextParams.set("end_date", range.end_date);
+      nextParams.set("page", "1");
+      setSearchParams(nextParams);
     },
-    [GetControlVacationHistoryQuery.data],
+    [searchParams, setSearchParams],
   );
 
-  const handleCloseDetails = useCallback(() => {
-    setIsDetailsOpen(false);
-  }, []);
+  const handleClearFilters = useCallback(() => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("start_date");
+    nextParams.delete("end_date");
+    nextParams.delete("page");
+    setSearchParams(nextParams);
+  }, [searchParams, setSearchParams]);
 
-  const handleGenerateTableReport = useCallback(() => {
-    if (!companyId || !moduleCode) return;
-    generateVacationTableReportMutation.mutate(
-      {
-        company_id: companyId,
-        module_code: moduleCode,
-      },
-      {
-        onSuccess: (data) => {
-          const url = data?.document_url?.trim();
-          if (url) {
-            window.open(url, "_blank", "noopener,noreferrer");
-          }
-          setAlertState({
-            open: true,
-            type: "success",
-            message: "Documento generado exitosamente.",
-          });
-        },
-        onError: () => {
-          setAlertState({
-            open: true,
-            type: "error",
-            message: "No se pudo generar el documento. Intente nuevamente.",
-          });
-        },
-      },
-    );
-  }, [companyId, moduleCode, generateVacationTableReportMutation]);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("page", page.toString());
+      setSearchParams(nextParams);
+    },
+    [searchParams, setSearchParams],
+  );
+
+  const handleOpenReportDevModal = useCallback(() => {
+    setReportDevModalOpen(true);
+  }, []);
 
   if (
     historyFilters &&
@@ -167,63 +140,80 @@ export default function ControlVacationsPage() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.5 }}
-        className="flex flex-col gap-6"
+        className="flex flex-col gap-4"
       >
-        <div className="flex flex-col gap-0 sm:gap-1">
-          <div className="flex justify-start">
-            <Breadcrumb
-              items={[
-                {
-                  label: "Dashboard",
-                  url: "/",
-                  onClick: (url) => navigate(url),
-                },
-                {
-                  label: "Control de vacaciones",
-                  url: "/payroll/control-vacations",
-                  onClick: (url) => navigate(url),
-                },
-              ]}
-            />
-          </div>
-          <ControlVacationPageHeader
-            collaboratorDisplayName={fullName}
-            logoSrc={activeLogo}
-            onGenerateTableReportClick={handleGenerateTableReport}
-            isGenerateTableReportPending={
-              generateVacationTableReportMutation.isPending
-            }
+        <div className="flex justify-start">
+          <Breadcrumb
+            items={[
+              {
+                label: "Dashboard",
+                url: "/",
+                onClick: (url) => navigate(url),
+              },
+              {
+                label: "Control de vacaciones",
+                url: "/payroll/control-vacations",
+                onClick: (url) => navigate(url),
+              },
+            ]}
           />
         </div>
-        <ControlModalVacationDetails
-          isOpen={isDetailsOpen}
-          onClose={handleCloseDetails}
-          item={selectedVacationItem}
-          collaboratorFullName={fullName ?? ""}
+
+        <ControlVacationPageHeader logoSrc={activeLogo} />
+
+        <ControlVacationDirectActions
+          onGenerateReport={handleOpenReportDevModal}
         />
 
         <ControlVacationFiltersBar
-          onApply={handleApplyFilters}
+          initialStart={dateRange.start_date}
+          initialEnd={dateRange.end_date}
+          isApplyingFilters={
+            hasAppliedDateRange && GetControlVacationHistoryQuery.isFetching
+          }
+          onApply={handleApplyDateFilters}
           onClear={handleClearFilters}
         />
 
         <ControlVacationsTable
-          data={tableData}
+          rows={rows}
+          currentPage={pageNumber}
+          pageSize={PAGE_SIZE}
+          totalRecords={totalRecords}
           onPageChange={handlePageChange}
-          isPending={GetControlVacationHistoryQuery.isFetching}
-          onViewDetails={handleViewDetails}
+          isPending={
+            hasAppliedDateRange && GetControlVacationHistoryQuery.isFetching
+          }
+          onViewDetails={setSelectedItem}
         />
       </motion.div>
 
-      <AnimatedAlertWrapper open={alertState.open}>
-        <Alert
-          type={alertState.type}
-          title={alertState.type === "success" ? "Éxito" : "Error"}
-          message={alertState.message}
-          showCloseButton
-          onClose={() => setAlertState((prev) => ({ ...prev, open: false }))}
-        />
-      </AnimatedAlertWrapper>
+      <Modal
+        isOpen={reportDevModalOpen}
+        onClose={() => setReportDevModalOpen(false)}
+        variant="info"
+        size="md"
+        title="Generar reporte"
+      >
+        <div className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-neutral-600 dark:bg-neutral-800/60">
+          <Construction
+            className="shrink-0 text-amber-500 dark:text-amber-400"
+            size={28}
+            strokeWidth={1.75}
+            aria-hidden
+          />
+          <p className="m-0 text-sm leading-relaxed text-slate-700 dark:text-slate-200">
+            En este momento esta característica del sistema se encuentra en
+            desarrollo.
+          </p>
+        </div>
+      </Modal>
+
+      <ControlVacationDetailsModal
+        isOpen={selectedItem !== null}
+        onClose={() => setSelectedItem(null)}
+        item={selectedItem}
+      />
     </>
   );
 }
