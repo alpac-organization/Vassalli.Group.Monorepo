@@ -384,7 +384,6 @@ export const CollaboratorPage = function () {
                                  required: false,
                                  onChange: (e) => {
                                     e.target.value = formatIdentificationNumber(e.target.value)
-                                    register("identification_number").onChange(e);
                                  }
                               })
                            }

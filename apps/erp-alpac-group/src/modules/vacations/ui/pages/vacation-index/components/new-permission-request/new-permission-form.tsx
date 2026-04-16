@@ -10,6 +10,7 @@ import type { NewPermissionRequestFormProps } from "@app/modules/vacations/ui/pa
 import type { PermissionRequestFormValues } from "./types/permission-form.types";
 import type { CreatePermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
 import type { PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
+import { validateTime } from "@app/shared/utils/string.utils";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -68,7 +69,8 @@ export function NewPermissionRequestForm(
    };
 
    const {
-      register, handleSubmit, setError, control, formState: { errors }
+      register, handleSubmit, setError,
+      getValues, control, formState: { errors }
    } = useForm<PermissionRequestFormValues>({ defaultValues });
 
    const initialSelectedType: Record<PermissionType, boolean> = {
@@ -81,6 +83,8 @@ export function NewPermissionRequestForm(
    const [startDate, setStartDate] = useState<Date | null>(null);
    const [endDate, setEndDate] = useState<Date | null>(null);
    const [timeFormat, setTimeFormat] = useState<"halfDay" | "fullDay" | "rangeOfHours">("fullDay");
+   const [isEndDateDisabled, setIsEndDateDisabled] = useState(true);
+   const [isEndTimeDisabled, setIsEndTimeDisabled] = useState(true);
 
    const isSelectedAtLeastOneType = useMemo(
       () => Object.values(applicationType).some((value) => value === true),
@@ -188,6 +192,7 @@ export function NewPermissionRequestForm(
                                        className="w-full"
                                        value={field.value}
                                        onChange={(value) => {
+                                          setIsEndDateDisabled(false)
                                           setStartDate(value.$d)
                                           field.onChange(value)
                                        }}
@@ -211,8 +216,9 @@ export function NewPermissionRequestForm(
                                     <DatePicker
                                        fieldWidth="large"
                                        label="Fecha fin"
-                                       className="w-full"
+                                       className={`w-full ${isEndDateDisabled ? "cursor-not-allowed!" : ""}`}
                                        value={field.value}
+                                       disabled={isEndDateDisabled}
                                        onChange={(value) => {
                                           setEndDate(value.$d)
                                           field.onChange(value)
@@ -274,25 +280,52 @@ export function NewPermissionRequestForm(
 
                         <div className="min-w-0 flex flex-col gap-1.5">
                            <InputText
-                              label="Hora de inicio"
-                              labelClassName={labelClassName}
                               type="time"
-                              step={3600}
+                              label="Hora de inicio"
+                              isRequired
+                              labelClassName={labelClassName}
                               className={inputClassName}
+                              {...register("start_time", {
+                                 required: "La hora de inicio es requerida.",
+                                 validate: (value) => validateTime(value),
+                              })}
                               error={errors.start_time?.message}
-                              {...register("start_time")}
+                              onChange={() => {
+                                 setIsEndTimeDisabled(false);
+                              }}
                            />
                         </div>
 
                         <div className="min-w-0 flex flex-col gap-1.5">
                            <InputText
-                              label="Hora de fin"
-                              labelClassName={labelClassName}
                               type="time"
-                              step={3600}
-                              className={inputClassName}
+                              label="Hora de fin"
+                              isRequired
+                              disabled={isEndTimeDisabled}
+                              labelClassName={labelClassName}
+                              className={`${inputClassName} ${isEndTimeDisabled ? "cursor-not-allowed!" : ""}`}
+                              {...register("end_time", {
+                                 required: "La hora de fin es requerida.",
+                                 validate: {
+                                    validateTime: (value) => validateTime(value),
+                                    validateStartTimeIsBeforeEndTime: (value) => {
+                                       const startTime = getValues("start_time");
+                                       const endTime = value;
+
+                                       if (startTime && endTime) {
+                                          const [startHour, startMinute] = startTime.split(":").map(Number);
+                                          const [endHour, endMinute] = endTime.split(":").map(Number);
+
+                                          if (startHour > endHour || (startHour === endHour && startMinute >= endMinute)) {
+                                             return "La hora de inicio debe ser menor a la hora de fin.";
+                                          }
+                                       }
+
+                                       return true;
+                                    },
+                                 },
+                              })}
                               error={errors.end_time?.message}
-                              {...register("end_time")}
                            />
                         </div>
                      </motion.div>
