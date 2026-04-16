@@ -158,14 +158,11 @@ const sharedSlotProps = {
             color: "#ffffff",
             backgroundColor: "rgba(0, 79, 158, 0.35)",
          },
-         "&.Mui-disabled": {
-            color: "#94a3b8 !important",
-         },
          "&:hover": {
             backgroundColor: "rgba(255, 255, 255, 0.08)",
          },
          "& .MuiTypography-root": {
-            color: "inherit",
+            color: "#ffffff",
          },
       },
    },
@@ -181,6 +178,12 @@ const sharedSlotProps = {
          "& .MuiButton-root": {
             color: "#ffffff",
          },
+      },
+   },
+   popper: {
+      disablePortal: true,
+      sx: {
+         zIndex: 1600,
       },
    },
    desktopPaper: {

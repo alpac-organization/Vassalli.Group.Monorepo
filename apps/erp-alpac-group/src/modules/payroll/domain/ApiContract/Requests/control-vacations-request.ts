@@ -5,17 +5,19 @@ export interface ControlVacationHistoryRequest {
    */
   module_code: string;
   /**
-   * Numero de identificacion del colaborador
+   * Fecha de inicio de las vacaciones
    */
-  identification_number: string;
-
+  start_date: string;
+  /**
+   * Fecha de fin de las vacaciones
+   */
+  end_date: string;
   /**
    * Tamaño de la pagina
    */
-  page_size: number;
+  page_size?: number;
   /**
    * Numero de la pagina
    */
-  page_number: number;
+  page_number?: number;
 }
-

@@ -18,12 +18,13 @@ export class ControlVacationServices implements IVacationsServices {
   ): Promise<GetVacationsListResponse> {
     try {
       const { company_id, module_code, ...rest } = payload;
-      const vacations = this.apiHandler.get<GetVacationsListResponse>(
+      const vacations = await this.apiHandler.get<GetVacationsListResponse>(
         `/companies/${company_id}/modules/${module_code}/vacations`,
         {
           params: cleanParams(rest),
         },
       );
+      console.log(vacations);
       return vacations;
     } catch (error) {
       throw error;
