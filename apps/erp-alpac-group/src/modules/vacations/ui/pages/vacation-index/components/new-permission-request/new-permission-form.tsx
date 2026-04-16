@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Button, DatePicker, Dropdown, InputText, Textarea, type DatePickerValue } from "@alpac/design-system";
+import { Button, DatePicker, Dropdown, InputText, RadioButton, Textarea } from "@alpac/design-system";
 import { validateSessionContextUtils } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/utils/validateSessionContext";
 import { PERMISSION_TYPE_OPTIONS } from "@app/modules/vacations/ui/pages/vacation-index/constants/permission-filters.constants";
 import { PERMISSION_TYPE_TO_ENUM_VALUE } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/new-permissionFormProps";
@@ -20,8 +20,8 @@ export function NewPermissionRequestForm(
 
    const defaultValues = {
       type: undefined,
-      start_date: "",
-      end_date: "",
+      start_date: null,
+      end_date: null,
       start_time: "",
       end_time: "",
       description: "",
@@ -68,8 +68,7 @@ export function NewPermissionRequestForm(
    };
 
    const {
-      register, handleSubmit, setValue,
-      setError, control, formState: { errors }
+      register, handleSubmit, setError, control, formState: { errors }
    } = useForm<PermissionRequestFormValues>({ defaultValues });
 
    const initialSelectedType: Record<PermissionType, boolean> = {
@@ -79,21 +78,26 @@ export function NewPermissionRequestForm(
    };
 
    const [applicationType, setApplicationType] = useState(initialSelectedType);
-   const [startDate, setStartDate] = useState<DatePickerValue>(null);
-   const [endDate, setEndDate] = useState<DatePickerValue>(null);
+   const [startDate, setStartDate] = useState<Date | null>(null);
+   const [endDate, setEndDate] = useState<Date | null>(null);
+   const [timeFormat, setTimeFormat] = useState<"halfDay" | "fullDay" | "rangeOfHours">("fullDay");
 
    const isSelectedAtLeastOneType = useMemo(
       () => Object.values(applicationType).some((value) => value === true),
       [applicationType]
    );
 
+   const isSameDay = useMemo(() => {
+      if (!startDate || !endDate) return false;
+      return startDate.toDateString() === endDate.toDateString()
+   }, [startDate, endDate]);
+
    const handleTypeChange = (value: string) => {
 
       const type = value as PermissionType;
 
-      setApplicationType((prev) => ({ ...prev, [type]: !prev[type] }));
-
-      setValue("type", type);
+      // Solo un tipo puede estar activo a la vez — resetea los demás
+      setApplicationType({ ...initialSelectedType, [type]: true });
    };
 
    const handleFormSubmit = (values: PermissionRequestFormValues) => {
@@ -110,10 +114,10 @@ export function NewPermissionRequestForm(
          module_code: moduleCode,
          identification_number: identificationNumber.trim(),
          permit_application_type: PERMISSION_TYPE_TO_ENUM_VALUE[values.type],
-         start_date: toIsoUtcZ(values.start_date),
-         end_date: toIsoUtcZ(values.end_date),
-         /* start_time: showTimeInputs ? values.start_time : null,
-         end_time: showTimeInputs ? values.end_time : null, */
+         start_date: toIsoUtcZ(values.start_date.$d),
+         end_date: toIsoUtcZ(values.end_date.$d),
+         start_time: timeFormat === "rangeOfHours" ? values.start_time : null,
+         end_time: timeFormat === "rangeOfHours" ? values.end_time : null,
          description: values.description.trim(),
       };
 
@@ -140,6 +144,7 @@ export function NewPermissionRequestForm(
             render={({ field }) => (
                <Dropdown
                   placeholder="Tipo de permiso"
+                  appearance="dark"
                   value={field.value}
                   onChange={(value) => {
                      field.onChange(value);
@@ -162,55 +167,137 @@ export function NewPermissionRequestForm(
                exit="exit"
                className="flex flex-col gap-4 sm:gap-5">
 
-               {applicationType.Vacation && (
+               {
+                  (applicationType.Vacation || applicationType.MedicalAppointment) && (
+                     <motion.div
+                        variants={formFieldVariants}
+                        className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
 
-                  <motion.div variants={formFieldVariants}
-                     className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                        {(applicationType.Vacation || applicationType.MedicalAppointment) && (
+                           <div className="min-w-0 flex flex-col gap-1.5">
+                              <Controller
+                                 name="start_date"
+                                 control={control}
+                                 rules={{
+                                    required: "La fecha de inicio es requerida.",
+                                 }}
+                                 render={({ field }) => (
+                                    <DatePicker
+                                       fieldWidth="large"
+                                       label={`${applicationType.MedicalAppointment ? "Fecha de cita" : "Fecha inicio"}`}
+                                       className="w-full"
+                                       value={field.value}
+                                       onChange={(value) => {
+                                          setStartDate(value.$d)
+                                          field.onChange(value)
+                                       }}
+                                    />
+                                 )}
+                              />
+                           </div>
+                        )}
 
-                     <div className="min-w-0 flex flex-col gap-1.5">
-                        <DatePicker
-                           fieldWidth="large"
-                           label="Fecha inicio"
-                           className="w-full"
-                           value={startDate}
-                           onChange={(value) => setStartDate(value)}
-                        />
 
-                        {/* <InputText
-                           label="Fecha de inicio"
-                           labelClassName={labelClassName}
-                           type="date"
-                           className={inputClassName}
-                           error={errors.start_date?.message}
-                           {...register("start_date", {
-                              required: "La fecha de inicio es requerida.",
-                           })}
-                        /> */}
-                     </div>
+                        {applicationType.Vacation && (
+                           <div className="min-w-0 flex flex-col gap-1.5">
+                              <Controller
+                                 name="end_date"
+                                 control={control}
+                                 rules={{
+                                    required: "La fecha de fin es requerida.",
 
-                     <div className="min-w-0 flex flex-col gap-1.5">
+                                 }}
+                                 render={({ field }) => (
+                                    <DatePicker
+                                       fieldWidth="large"
+                                       label="Fecha fin"
+                                       className="w-full"
+                                       value={field.value}
+                                       onChange={(value) => {
+                                          setEndDate(value.$d)
+                                          field.onChange(value)
+                                       }}
+                                    />
+                                 )}
+                              />
+                           </div>
+                        )}
 
-                        <DatePicker
-                           fieldWidth="large"
-                           label="Fecha final"
-                           value={endDate}
-                           onChange={(value) => setEndDate(value)}
-                        />
+                     </motion.div>
+                  )
+               }
 
-                        {/* <InputText
-                           label="Fecha de fin"
-                           labelClassName={labelClassName}
-                           type="date"
-                           className={inputClassName}
-                           error={errors.end_date?.message}
-                           {...register("end_date", {
-                              required: "La fecha de fin es requerida.",
-                           })}
-                        /> */}
-                     </div>
+               {(applicationType.Vacation && isSameDay) && (
+                  <motion.div
+                     variants={formFieldVariants}
+                     className="flex flex-row gap-4">
+
+                     <RadioButton
+                        id="full-day"
+                        value="fullDay"
+                        label="Día completo"
+                        labelPosition="right"
+                        labelClassName={labelClassName}
+                        checked={timeFormat === "fullDay"}
+                        onChange={() => setTimeFormat("fullDay")}
+                     />
+
+                     <RadioButton
+                        id="half-day"
+                        value="halfDay"
+                        label="Medio día"
+                        labelPosition="right"
+                        labelClassName={labelClassName}
+                        checked={timeFormat === "halfDay"}
+                        onChange={() => setTimeFormat("halfDay")}
+                     />
+
+                     <RadioButton
+                        id="range-of-hours"
+                        value="rangeOfHours"
+                        label="Rango de horas"
+                        labelPosition="right"
+                        labelClassName={labelClassName}
+                        checked={timeFormat === "rangeOfHours"}
+                        onChange={() => setTimeFormat("rangeOfHours")}
+                     />
+
                   </motion.div>
-
                )}
+
+               {
+                  ((applicationType.Vacation && timeFormat === "rangeOfHours") || applicationType.MedicalAppointment) && (
+
+                     <motion.div
+                        variants={formFieldVariants}
+                        className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+
+                        <div className="min-w-0 flex flex-col gap-1.5">
+                           <InputText
+                              label="Hora de inicio"
+                              labelClassName={labelClassName}
+                              type="time"
+                              step={3600}
+                              className={inputClassName}
+                              error={errors.start_time?.message}
+                              {...register("start_time")}
+                           />
+                        </div>
+
+                        <div className="min-w-0 flex flex-col gap-1.5">
+                           <InputText
+                              label="Hora de fin"
+                              labelClassName={labelClassName}
+                              type="time"
+                              step={3600}
+                              className={inputClassName}
+                              error={errors.end_time?.message}
+                              {...register("end_time")}
+                           />
+                        </div>
+                     </motion.div>
+                  )
+               }
 
                {applicationType.DonatedVacations &&
                   (
@@ -219,9 +306,10 @@ export function NewPermissionRequestForm(
 
                         <div className="min-w-0 flex flex-col gap-1.5">
                            <InputText
-                              label="Dias a donar"
+                              label="Días a donar"
                               labelClassName={labelClassName}
                               type="number"
+                              isRequired
                               className={inputClassName}
                               error={errors.donated_vacation_days?.message}
                               {...register("donated_vacation_days", {
@@ -235,7 +323,8 @@ export function NewPermissionRequestForm(
                         </div>
 
                      </motion.div>
-                  )}
+                  )
+               }
 
                <motion.div variants={formFieldVariants}>
                   <Textarea

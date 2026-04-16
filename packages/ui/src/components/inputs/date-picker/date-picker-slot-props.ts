@@ -20,8 +20,11 @@ const calendarPaperSx = {
   "& .MuiPickersDay-root": {
     color: "#ffffff !important",
   },
+  "& .MuiPickersDay-root.Mui-disabled": {
+    color: "#94a3b8 !important",
+  },
   "& .MuiPickersDay-root .MuiTypography-root": {
-    color: "#ffffff !important",
+    color: "inherit !important",
   },
   "& .MuiPickersDay-root.Mui-selected": {
     color: "#ffffff !important",
@@ -45,6 +48,12 @@ const calendarPaperSx = {
   "& .MuiPickersCalendarHeader-switchViewButton .MuiSvgIcon-root": {
     color: "#ffffff",
     fill: "currentColor",
+  },
+  "& .MuiPickersYear-yearButton, & .MuiPickersMonth-monthButton": {
+    color: "#ffffff",
+  },
+  "& .MuiPickersYear-yearButton.Mui-disabled, & .MuiPickersMonth-monthButton.Mui-disabled": {
+    color: "#94a3b8 !important",
   },
 } as const;
 
@@ -135,11 +144,14 @@ const sharedSlotProps = {
         color: "#ffffff",
         backgroundColor: "rgba(0, 79, 158, 0.35)",
       },
+      "&.Mui-disabled": {
+        color: "#94a3b8 !important",
+      },
       "&:hover": {
         backgroundColor: "rgba(255, 255, 255, 0.08)",
       },
       "& .MuiTypography-root": {
-        color: "#ffffff",
+        color: "inherit",
       },
     },
   },
