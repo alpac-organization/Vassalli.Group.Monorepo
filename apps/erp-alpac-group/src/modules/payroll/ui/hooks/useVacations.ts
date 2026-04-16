@@ -29,11 +29,10 @@ export const useControlVacations = (props: useControlVacationsProps) => {
     queryFn: () => controlVacationServices.GetVacations(filtersVacations!),
     enabled: Boolean(
       filtersVacations?.start_date &&
-        filtersVacations?.end_date &&
-        filtersVacations.start_date.length > 0 &&
-        filtersVacations.end_date.length > 0,
+      filtersVacations?.end_date &&
+      filtersVacations.start_date.length > 0 &&
+      filtersVacations.end_date.length > 0,
     ),
-    placeholderData: keepPreviousData,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 10,

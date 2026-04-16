@@ -86,12 +86,7 @@ export default function ControlVacationsPage() {
       pageNumber,
       PAGE_SIZE,
     );
-  }, [
-    hasAppliedDateRange,
-    historyPayload,
-    rows.length,
-    pageNumber,
-  ]);
+  }, [hasAppliedDateRange, historyPayload, rows.length, pageNumber]);
 
   const handleApplyDateFilters = useCallback(
     (range: { start_date: string; end_date: string }) => {
@@ -162,6 +157,9 @@ export default function ControlVacationsPage() {
           key={filtersKey}
           initialStart={dateRange.start_date}
           initialEnd={dateRange.end_date}
+          isApplyingFilters={
+            hasAppliedDateRange && GetControlVacationHistoryQuery.isFetching
+          }
           onApply={handleApplyDateFilters}
           onClear={handleClearFilters}
         />

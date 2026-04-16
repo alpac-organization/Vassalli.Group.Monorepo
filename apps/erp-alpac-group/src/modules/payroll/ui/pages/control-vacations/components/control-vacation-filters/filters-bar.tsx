@@ -10,15 +10,18 @@ const datePickerFieldClassName =
 export function ControlVacationFiltersBar({
   initialStart,
   initialEnd,
+  isApplyingFilters = false,
   onApply,
   onClear,
 }: ControlVacationFiltersBarProps) {
-  const [startDate, setStartDate] = useState<DatePickerValue>(() =>
-    initialStart ? dayjs(initialStart) : null,
-  );
-  const [endDate, setEndDate] = useState<DatePickerValue>(() =>
-    initialEnd ? dayjs(initialEnd) : null,
-  );
+  const [startDate, setStartDate] = useState<DatePickerValue>(() => {
+    if (!initialStart) return null;
+    return dayjs(initialStart.split("T")[0]);
+  });
+  const [endDate, setEndDate] = useState<DatePickerValue>(() => {
+    if (!initialEnd) return null;
+    return dayjs(initialEnd.split("T")[0]);
+  });
   const [rangeError, setRangeError] = useState<string | null>(null);
 
   const handleApply = () => {
@@ -29,7 +32,9 @@ export function ControlVacationFiltersBar({
     const startStr = s.format("YYYY-MM-DD");
     const endStr = e.format("YYYY-MM-DD");
     if (startStr > endStr) {
-      setRangeError("La fecha inicial no puede ser posterior a la fecha final.");
+      setRangeError(
+        "La fecha inicial no puede ser posterior a la fecha final.",
+      );
       return;
     }
     const { start_date, end_date } = toUtcDayRangeIsoFromYmd(startStr, endStr);
@@ -95,6 +100,7 @@ export function ControlVacationFiltersBar({
             type="button"
             size="giant"
             label="Aplicar filtros"
+            isLoading={isApplyingFilters}
             onClick={handleApply}
             className="w-full! rounded-md! bg-alpac-primary-600! text-[15px]! text-white! sm:w-auto!"
           />
