@@ -17,7 +17,8 @@ import { formatCollaboratorCode } from "@app/shared/utils/collaborator.utils";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
 import { ManagerForm } from "./components/application-forms/manager-form/manager-form";
-
+import { Plus } from "lucide-react";
+import { NewPermissionRequestModal } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal";
 export const ApplicationsPage = function () {
 
    const initialFilters: ApplicationRequest = {
@@ -43,7 +44,7 @@ export const ApplicationsPage = function () {
    const { control, reset, handleSubmit } = useForm<ApplicationRequest>({
       defaultValues: initialFilters
    })
-
+   const [isNewPermissionRequestModalOpen, setIsNewPermissionRequestModalOpen] = useState(false);
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
    const isListEnabled: boolean = isAdministrator
    const isDetailEnabled: boolean = isManager && !!filters.collaborator_code;
@@ -85,6 +86,7 @@ export const ApplicationsPage = function () {
    const [selectedApplication, setSelectedApplication] = useState<GetApplicationsResponse>({} as GetApplicationsResponse);
 
    return (
+      <>
       <motion.div
          initial={{ opacity: 0, y: 20 }
          }
@@ -165,7 +167,6 @@ export const ApplicationsPage = function () {
 
                      )}
                   />
-
                </div>
             )}
 
@@ -244,6 +245,12 @@ export const ApplicationsPage = function () {
 
          </form>
 
+         <NewPermissionRequestModal
+            isOpen={isNewPermissionRequestModalOpen}
+            onClose={() => setIsNewPermissionRequestModalOpen(false)}
+            collaboratorFullName="John Doe"
+            collaboratorWorkPosition="Software Engineer"
+         />
 
          {
             isManager && data.length === 0 && !isLoading && (
@@ -254,13 +261,13 @@ export const ApplicationsPage = function () {
                </div>
             )
          }
-
+         
          {isManager && data.length > 0 && data.map((item) => (
             <div key={item.permit_apllication_id} className="flex flex-col gap-4">
                <ManagerForm application={item} />
             </div>
          ))}
-
+         
          {isAdministrator && (
             <div className="flex flex-col">
                <ApplicationsTable
@@ -287,6 +294,20 @@ export const ApplicationsPage = function () {
             />
          )}
 
-      </motion.div >
+      </motion.div>
+
+      {isManager && (
+         <Button
+            type="button"
+            size="small"
+            icon={<Plus size={18} />}
+            label=""
+            ariaLabel="Agregar Solicitud"
+            tooltip="Agregar Solicitud"
+            className="fixed! bottom-12! right-6! z-40! isolate! min-h-14! min-w-14! rounded-full! bg-alpac-primary-500! dark:bg-white! text-black! active:scale-100! md:hover:brightness-110! md:hover:shadow-2xl! md:hover:-translate-y-0.5! focus-visible:outline-none! focus-visible:ring-2! focus-visible:ring-alpac-primary-400! focus-visible:ring-offset-2! dark:focus-visible:ring-offset-[#0f172a]!"
+            onClick={() => setIsNewPermissionRequestModalOpen(true)}
+         />
+      )}
+      </>
    );
 };
