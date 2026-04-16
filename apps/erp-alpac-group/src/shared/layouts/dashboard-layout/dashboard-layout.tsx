@@ -83,7 +83,7 @@ export const DashboardLayout = () => {
         />
         <main className="flex-1 overflow-y-auto p-5 md:p-7.5 relative ">
           <AnimatePresence mode="wait">
-            {isAuthorizedPath && <Outlet key={location.pathname} />}
+            {isAuthorizedPath && <Outlet/>}
           </AnimatePresence>
           {!isAuthorizedPath && (
             <Modal

@@ -2,7 +2,7 @@ import { Breadcrumb, Modal, useTheme } from "@alpac/design-system";
 import { useCallback, useMemo, useState } from "react";
 import { Construction } from "lucide-react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ControlVacationPageHeader } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-page-header/control-vacation-page-header";
 import { ControlVacationDirectActions } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-direct-actions/control-vacation-direct-actions";
 import { useControlVacations } from "@app/modules/payroll/ui/hooks/useVacations";
@@ -10,11 +10,11 @@ import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { ControlVacationsTable } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-table/control-vacations-table";
+import { ControlVacationDetailsModal } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-details/control-vacation-details-modal";
 import { ControlVacationFiltersBar } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/filters-bar";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import {
   type AppliedDateRange,
-  emptyDateRange,
   estimateTotalRecordsForPagination,
 } from "@app/modules/payroll/ui/pages/control-vacations/utils/date-range";
 import type { VacationControlItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
@@ -29,11 +29,15 @@ export default function ControlVacationsPage() {
   const { urlImage, neutralUrlImage } = useCompanyStore();
 
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
-  const [pageNumber, setPageNumber] = useState(1);
-  const [dateRange, setDateRange] = useState<AppliedDateRange>(() =>
-    emptyDateRange(),
-  );
-  const [filtersKey, setFiltersKey] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const pageNumber = parseInt(searchParams.get("page") || "1", 10);
+  const dateRange = useMemo<AppliedDateRange>(() => {
+    return {
+      start_date: searchParams.get("start_date"),
+      end_date: searchParams.get("end_date"),
+    };
+  }, [searchParams]);
 
   const historyFilters = useMemo<
     ControlVacationHistoryRequest | undefined
@@ -59,6 +63,7 @@ export default function ControlVacationsPage() {
   });
 
   const [reportDevModalOpen, setReportDevModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<VacationControlItemResponse | null>(null);
 
   const historyPayload = GetControlVacationHistoryQuery.data;
 
@@ -90,24 +95,31 @@ export default function ControlVacationsPage() {
 
   const handleApplyDateFilters = useCallback(
     (range: { start_date: string; end_date: string }) => {
-      setDateRange({
-        start_date: range.start_date,
-        end_date: range.end_date,
-      });
-      setPageNumber(1);
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("start_date", range.start_date);
+      nextParams.set("end_date", range.end_date);
+      nextParams.set("page", "1");
+      setSearchParams(nextParams);
     },
-    [],
+    [searchParams, setSearchParams],
   );
 
   const handleClearFilters = useCallback(() => {
-    setDateRange(emptyDateRange());
-    setPageNumber(1);
-    setFiltersKey((k) => k + 1);
-  }, []);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete("start_date");
+    nextParams.delete("end_date");
+    nextParams.delete("page");
+    setSearchParams(nextParams);
+  }, [searchParams, setSearchParams]);
 
-  const handlePageChange = useCallback((page: number) => {
-    setPageNumber(page);
-  }, []);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("page", page.toString());
+      setSearchParams(nextParams);
+    },
+    [searchParams, setSearchParams],
+  );
 
   const handleOpenReportDevModal = useCallback(() => {
     setReportDevModalOpen(true);
@@ -154,7 +166,6 @@ export default function ControlVacationsPage() {
         />
 
         <ControlVacationFiltersBar
-          key={filtersKey}
           initialStart={dateRange.start_date}
           initialEnd={dateRange.end_date}
           isApplyingFilters={
@@ -173,6 +184,7 @@ export default function ControlVacationsPage() {
           isPending={
             hasAppliedDateRange && GetControlVacationHistoryQuery.isFetching
           }
+          onViewDetails={setSelectedItem}
         />
       </motion.div>
 
@@ -196,6 +208,12 @@ export default function ControlVacationsPage() {
           </p>
         </div>
       </Modal>
+
+      <ControlVacationDetailsModal
+        isOpen={selectedItem !== null}
+        onClose={() => setSelectedItem(null)}
+        item={selectedItem}
+      />
     </>
   );
 }

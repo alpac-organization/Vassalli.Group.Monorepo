@@ -1,11 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, DatePicker, type DatePickerValue } from "@alpac/design-system";
 import type { ControlVacationFiltersBarProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/type/control-vacation-filter-bar";
 import dayjs from "dayjs";
 import { toUtcDayRangeIsoFromYmd } from "@app/shared/utils/string.utils";
-
-const datePickerFieldClassName =
-  "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+import { datePickerFieldClassName, controlVacationCalendarDaySx } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/utils/styles.datepicker";
 
 export function ControlVacationFiltersBar({
   initialStart,
@@ -14,6 +12,7 @@ export function ControlVacationFiltersBar({
   onApply,
   onClear,
 }: ControlVacationFiltersBarProps) {
+  const today = dayjs().endOf("day");
   const [startDate, setStartDate] = useState<DatePickerValue>(() => {
     if (!initialStart) return null;
     return dayjs(initialStart.split("T")[0]);
@@ -24,11 +23,48 @@ export function ControlVacationFiltersBar({
   });
   const [rangeError, setRangeError] = useState<string | null>(null);
 
+  useEffect(() => {
+    setStartDate(initialStart ? dayjs(initialStart.split("T")[0]) : null);
+  }, [initialStart]);
+
+  useEffect(() => {
+    setEndDate(initialEnd ? dayjs(initialEnd.split("T")[0]) : null);
+  }, [initialEnd]);
+
+  const handleStartDateChange = (value: DatePickerValue) => {
+    setRangeError(null);
+    setStartDate(value);
+
+    const nextStart = value ? dayjs(value) : null;
+    if (!nextStart?.isValid()) {
+      setEndDate(null);
+      return;
+    }
+
+    if (endDate) {
+      const currentEnd = dayjs(endDate);
+      if (currentEnd.isValid() && currentEnd.isBefore(nextStart, "day")) {
+        setEndDate(null);
+      }
+    }
+  };
+
+  const handleEndDateChange = (value: DatePickerValue) => {
+    setRangeError(null);
+    setEndDate(value);
+  };
+
+  const canApplyFilters = Boolean(startDate && endDate);
+
   const handleApply = () => {
     setRangeError(null);
     const s = startDate ? dayjs(startDate) : null;
     const e = endDate ? dayjs(endDate) : null;
     if (!s?.isValid() || !e?.isValid()) return;
+    if (s.isAfter(today, "day") || e.isAfter(today, "day")) {
+      setRangeError("No se permiten fechas futuras.");
+      return;
+    }
     const startStr = s.format("YYYY-MM-DD");
     const endStr = e.format("YYYY-MM-DD");
     if (startStr > endStr) {
@@ -38,6 +74,7 @@ export function ControlVacationFiltersBar({
       return;
     }
     const { start_date, end_date } = toUtcDayRangeIsoFromYmd(startStr, endStr);
+    console.log(start_date, end_date);
     onApply({ start_date, end_date });
   };
 
@@ -67,10 +104,14 @@ export function ControlVacationFiltersBar({
                 fieldWidth="medium"
                 label="Fecha inicio"
                 value={startDate}
-                onChange={(v) => setStartDate(v)}
+                onChange={handleStartDateChange}
+                maxDate={today}
                 slotProps={{
                   textField: {
                     className: datePickerFieldClassName,
+                  },
+                  day: {
+                    sx: controlVacationCalendarDaySx,
                   },
                 }}
               />
@@ -80,10 +121,16 @@ export function ControlVacationFiltersBar({
                 fieldWidth="medium"
                 label="Fecha fin"
                 value={endDate}
-                onChange={(v) => setEndDate(v)}
+                onChange={handleEndDateChange}
+                disabled={!startDate}
+                minDate={startDate ? dayjs(startDate).startOf("day") : undefined}
+                maxDate={today}
                 slotProps={{
                   textField: {
                     className: datePickerFieldClassName,
+                  },
+                  day: {
+                    sx: controlVacationCalendarDaySx,
                   },
                 }}
               />
@@ -102,6 +149,7 @@ export function ControlVacationFiltersBar({
             label="Aplicar filtros"
             isLoading={isApplyingFilters}
             onClick={handleApply}
+            disabled={!canApplyFilters}
             className="w-full! rounded-md! bg-alpac-primary-600! text-[15px]! text-white! sm:w-auto!"
           />
           <Button

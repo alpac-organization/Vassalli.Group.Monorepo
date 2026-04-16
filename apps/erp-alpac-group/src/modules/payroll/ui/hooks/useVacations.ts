@@ -25,7 +25,10 @@ export const useControlVacations = (props: useControlVacationsProps) => {
     GetVacationsListResponse,
     Error
   >({
-    queryKey: ["vacationsHistory", filtersVacations],
+    queryKey: [
+      "vacationsHistory",
+      filtersVacations,
+    ],
     queryFn: () => controlVacationServices.GetVacations(filtersVacations!),
     enabled: Boolean(
       filtersVacations?.start_date &&
