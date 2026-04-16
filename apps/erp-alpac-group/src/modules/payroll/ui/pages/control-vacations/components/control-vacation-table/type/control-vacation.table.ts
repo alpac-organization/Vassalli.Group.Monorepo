@@ -1,11 +1,10 @@
-import type {
-  GetVacationsHistoryResponse,
-  GetVacationsListResponse,
-} from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
+import type { VacationControlItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
 
 export type ControlVacationsTableProps = {
-  data: GetVacationsListResponse;
+  rows: VacationControlItemResponse[];
+  currentPage: number;
+  pageSize: number;
+  totalRecords: number;
   onPageChange: (page: number) => void;
   isPending?: boolean;
-  onViewDetails?: (row: GetVacationsHistoryResponse) => void;
 };

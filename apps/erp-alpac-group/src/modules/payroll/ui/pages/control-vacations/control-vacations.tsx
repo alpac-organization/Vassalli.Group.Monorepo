@@ -1,157 +1,122 @@
-import {
-  Alert,
-  AnimatedAlertWrapper,
-  Breadcrumb,
-  useTheme,
-} from "@alpac/design-system";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Breadcrumb, Modal, useTheme } from "@alpac/design-system";
+import { useCallback, useMemo, useState } from "react";
+import { Construction } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ControlVacationPageHeader } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-page-header/control-vacation-page-header";
 import { ControlVacationDirectActions } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-direct-actions/control-vacation-direct-actions";
-import { ControlVacationFiltersBar } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/filters-bar";
 import { useControlVacations } from "@app/modules/payroll/ui/hooks/useVacations";
-import type {
-  GetVacationsHistoryResponse,
-  GetVacationsListResponse,
-} from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
-import { ControlModalVacationDetails } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacations-details/control-vacacion.details.modal";
 import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/control-vacations-request";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { ControlVacationsTable } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-table/control-vacations-table";
+import { ControlVacationFiltersBar } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/filters-bar";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import {
+  type AppliedDateRange,
+  emptyDateRange,
+  estimateTotalRecordsForPagination,
+} from "@app/modules/payroll/ui/pages/control-vacations/utils/date-range";
+import type { VacationControlItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
 
 const PAGE_SIZE = 10;
 
 export default function ControlVacationsPage() {
   const navigate = useNavigate();
-  const { companyId, moduleCode, identificationNumber, fullName } =
-    useUserStore();
+  const { companyId, moduleCode } = useUserStore();
 
   const { theme } = useTheme();
   const { urlImage, neutralUrlImage } = useCompanyStore();
 
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
   const [pageNumber, setPageNumber] = useState(1);
-  const [alertState, setAlertState] = useState<{
-    open: boolean;
-    type: "success" | "error";
-    message: string;
-  }>({ open: false, type: "success", message: "" });
-
-  useEffect(() => {
-    if (!alertState.open) return;
-    const timer = window.setTimeout(
-      () => setAlertState((prev) => ({ ...prev, open: false })),
-      5000,
-    );
-    return () => window.clearTimeout(timer);
-  }, [alertState.open]);
+  const [dateRange, setDateRange] = useState<AppliedDateRange>(() =>
+    emptyDateRange(),
+  );
+  const [filtersKey, setFiltersKey] = useState(0);
 
   const historyFilters = useMemo<
     ControlVacationHistoryRequest | undefined
   >(() => {
-    if (!companyId || !moduleCode || !identificationNumber) return undefined;
+    if (!companyId || !moduleCode) return undefined;
+    if (!dateRange.start_date || !dateRange.end_date) return undefined;
     return {
       company_id: companyId,
       module_code: moduleCode,
-      identification_number: identificationNumber,
+      start_date: dateRange.start_date,
+      end_date: dateRange.end_date,
       page_size: PAGE_SIZE,
       page_number: pageNumber,
     };
-  }, [companyId, moduleCode, identificationNumber, pageNumber]);
+  }, [companyId, moduleCode, dateRange, pageNumber]);
 
-  const {
-    GetControlVacationHistoryQuery,
-    generateVacationTableReportMutation,
-  } = useControlVacations({
+  const hasAppliedDateRange = Boolean(
+    dateRange.start_date && dateRange.end_date,
+  );
+
+  const { GetControlVacationHistoryQuery } = useControlVacations({
     filtersVacations: historyFilters,
   });
 
-  const [selectedVacationItem, setSelectedVacationItem] =
-    useState<GetVacationsHistoryResponse | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [reportDevModalOpen, setReportDevModalOpen] = useState(false);
 
-  const tableData = useMemo<GetVacationsListResponse>(() => {
-    const raw = GetControlVacationHistoryQuery.data;
-    if (!raw) {
-      return {
-        data: [],
-        total_records: 0,
-        page_size: PAGE_SIZE,
-        page_number: pageNumber,
-        total_vacations: 0,
-      };
+  const historyPayload = GetControlVacationHistoryQuery.data;
+
+  const rows: VacationControlItemResponse[] = useMemo(() => {
+    if (!hasAppliedDateRange || !historyPayload) return [];
+    if (Array.isArray(historyPayload)) return historyPayload;
+    return historyPayload.data ?? [];
+  }, [hasAppliedDateRange, historyPayload]);
+
+  const totalRecords = useMemo(() => {
+    if (!hasAppliedDateRange) return 0;
+    if (Array.isArray(historyPayload)) {
+      return estimateTotalRecordsForPagination(
+        historyPayload.length,
+        pageNumber,
+        PAGE_SIZE,
+      );
     }
-    return {
-      ...raw,
-      page_number: pageNumber,
-      data: (raw.data ?? []).map((row) => ({
-        ...row,
-        full_name: fullName ?? row.full_name,
-      })),
-    };
-  }, [GetControlVacationHistoryQuery.data, fullName, pageNumber]);
+    const total = historyPayload?.total_records;
+    if (typeof total === "number" && Number.isFinite(total)) {
+      return total;
+    }
+    return estimateTotalRecordsForPagination(
+      rows.length,
+      pageNumber,
+      PAGE_SIZE,
+    );
+  }, [
+    hasAppliedDateRange,
+    historyPayload,
+    rows.length,
+    pageNumber,
+  ]);
 
-  const handleApplyFilters = useCallback(() => {
-    setPageNumber(1);
-  }, []);
+  const handleApplyDateFilters = useCallback(
+    (range: { start_date: string; end_date: string }) => {
+      setDateRange({
+        start_date: range.start_date,
+        end_date: range.end_date,
+      });
+      setPageNumber(1);
+    },
+    [],
+  );
 
   const handleClearFilters = useCallback(() => {
+    setDateRange(emptyDateRange());
     setPageNumber(1);
+    setFiltersKey((k) => k + 1);
   }, []);
 
   const handlePageChange = useCallback((page: number) => {
     setPageNumber(page);
   }, []);
 
-  const handleViewDetails = useCallback(
-    (row: GetVacationsHistoryResponse) => {
-      const item = GetControlVacationHistoryQuery.data?.data?.find(
-        (i) =>
-          String(i.id_control_vacation) === String(row.id_control_vacation),
-      );
-      if (!item) return;
-      setSelectedVacationItem(item);
-      setIsDetailsOpen(true);
-    },
-    [GetControlVacationHistoryQuery.data],
-  );
-
-  const handleCloseDetails = useCallback(() => {
-    setIsDetailsOpen(false);
+  const handleOpenReportDevModal = useCallback(() => {
+    setReportDevModalOpen(true);
   }, []);
-
-  const handleGenerateTableReport = useCallback(() => {
-    if (!companyId || !moduleCode) return;
-    generateVacationTableReportMutation.mutate(
-      {
-        company_id: companyId,
-        module_code: moduleCode,
-      },
-      {
-        onSuccess: (data) => {
-          const url = data?.document_url?.trim();
-          if (url) {
-            window.open(url, "_blank", "noopener,noreferrer");
-          }
-          setAlertState({
-            open: true,
-            type: "success",
-            message: "Documento generado exitosamente.",
-          });
-        },
-        onError: () => {
-          setAlertState({
-            open: true,
-            type: "error",
-            message: "No se pudo generar el documento. Intente nuevamente.",
-          });
-        },
-      },
-    );
-  }, [companyId, moduleCode, generateVacationTableReportMutation]);
 
   if (
     historyFilters &&
@@ -190,39 +155,49 @@ export default function ControlVacationsPage() {
         <ControlVacationPageHeader logoSrc={activeLogo} />
 
         <ControlVacationDirectActions
-          onGenerateReport={handleGenerateTableReport}
-          isPending={generateVacationTableReportMutation.isPending}
-        />
-
-        <ControlModalVacationDetails
-          isOpen={isDetailsOpen}
-          onClose={handleCloseDetails}
-          item={selectedVacationItem}
-          collaboratorFullName={fullName ?? ""}
+          onGenerateReport={handleOpenReportDevModal}
         />
 
         <ControlVacationFiltersBar
-          onApply={handleApplyFilters}
+          key={filtersKey}
+          initialStart={dateRange.start_date}
+          initialEnd={dateRange.end_date}
+          onApply={handleApplyDateFilters}
           onClear={handleClearFilters}
         />
 
         <ControlVacationsTable
-          data={tableData}
+          rows={rows}
+          currentPage={pageNumber}
+          pageSize={PAGE_SIZE}
+          totalRecords={totalRecords}
           onPageChange={handlePageChange}
-          isPending={GetControlVacationHistoryQuery.isFetching}
-          onViewDetails={handleViewDetails}
+          isPending={
+            hasAppliedDateRange && GetControlVacationHistoryQuery.isFetching
+          }
         />
       </motion.div>
 
-      <AnimatedAlertWrapper open={alertState.open}>
-        <Alert
-          type={alertState.type}
-          title={alertState.type === "success" ? "Éxito" : "Error"}
-          message={alertState.message}
-          showCloseButton
-          onClose={() => setAlertState((prev) => ({ ...prev, open: false }))}
-        />
-      </AnimatedAlertWrapper>
+      <Modal
+        isOpen={reportDevModalOpen}
+        onClose={() => setReportDevModalOpen(false)}
+        variant="info"
+        size="md"
+        title="Generar reporte"
+      >
+        <div className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-neutral-600 dark:bg-neutral-800/60">
+          <Construction
+            className="shrink-0 text-amber-500 dark:text-amber-400"
+            size={28}
+            strokeWidth={1.75}
+            aria-hidden
+          />
+          <p className="m-0 text-sm leading-relaxed text-slate-700 dark:text-slate-200">
+            En este momento esta característica del sistema se encuentra en
+            desarrollo.
+          </p>
+        </div>
+      </Modal>
     </>
   );
 }

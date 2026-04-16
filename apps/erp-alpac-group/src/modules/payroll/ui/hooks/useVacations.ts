@@ -9,30 +9,30 @@ import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { ControlVacationServices } from "@app/modules/payroll/infrastructure/services/VacationsServices";
 import type { ControlVacationGenerateTableReportRequest } from "@app/modules/payroll/domain/ApiContract/Requests/control-vacation-generate-docs-request";
 import type { GetReportVacationDocResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-report-vacation.doc";
+import type { GetVacationsListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
 
 const controlVacationServices = new ControlVacationServices(httpHandler);
 
-export interface UserControlVacationPayload {
-  company_id: string;
-  module_code: string;
-  identification_number: string;
-}
-
 interface useControlVacationsProps {
   filtersVacations?: ControlVacationHistoryRequest;
-  payload?: UserControlVacationPayload;
 }
-
-const vacationServices = new ControlVacationServices(httpHandler);
 
 export const useControlVacations = (props: useControlVacationsProps) => {
   const queryClient = useQueryClient();
   const { filtersVacations } = props;
 
-  const GetControlVacationHistoryQuery = useQuery({
+  const GetControlVacationHistoryQuery = useQuery<
+    GetVacationsListResponse,
+    Error
+  >({
     queryKey: ["vacationsHistory", filtersVacations],
-    queryFn: () => vacationServices.GetVacations(filtersVacations!),
-    enabled: Boolean(filtersVacations),
+    queryFn: () => controlVacationServices.GetVacations(filtersVacations!),
+    enabled: Boolean(
+      filtersVacations?.start_date &&
+        filtersVacations?.end_date &&
+        filtersVacations.start_date.length > 0 &&
+        filtersVacations.end_date.length > 0,
+    ),
     placeholderData: keepPreviousData,
     refetchOnMount: false,
     refetchOnWindowFocus: false,

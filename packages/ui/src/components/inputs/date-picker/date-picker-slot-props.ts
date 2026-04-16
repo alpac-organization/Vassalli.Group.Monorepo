@@ -157,6 +157,12 @@ const sharedSlotProps = {
       },
     },
   },
+  popper: {
+    disablePortal: true,
+    sx: {
+      zIndex: 1600,
+    },
+  },
   desktopPaper: {
     className: "rounded-md shadow-lg dark:bg-[#272b34] dark:text-white",
     sx: calendarPaperSx,
