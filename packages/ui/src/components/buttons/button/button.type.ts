@@ -14,5 +14,7 @@ export type ButtonProps = {
   isLoading?: boolean;
   icon?: React.ReactNode;
   isHiddenLabelOnMobile?: boolean;
+  tooltip?: string;
+  ariaLabel?: string;
   onClick?: (evt: React.MouseEvent<HTMLButtonElement>) => void;
 };
