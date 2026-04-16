@@ -1,50 +1,59 @@
-import {Button, DataTable, Pagination } from "@alpac/design-system";
-import { formatVacationDate } from "@app/modules/vacations/ui/pages/vacation-index/utils/format-vacation-date";
+import { DataTable, Pagination } from "@alpac/design-system";
 import type { ControlVacationsTableProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-table/type/control-vacation.table";
-import type { GetVacationsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
+import type { VacationControlItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
+import { permitTypeLabel } from "@app/modules/payroll/ui/pages/control-vacations/utils/vacations.mapper";
 
 export function ControlVacationsTable({
-  data,
+  rows,
+  currentPage,
+  pageSize,
+  totalRecords,
   onPageChange,
   isPending,
-  onViewDetails,
 }: ControlVacationsTableProps) {
   const columns = [
     {
-      key: "full_name",
+      key: "collaborator_fullname",
       label: "Nombre completo",
-      render: (row: GetVacationsHistoryResponse) => (
+      render: (row: VacationControlItemResponse) => (
         <span className="font-semibold text-neutral-900 dark:text-white">
-          {row.full_name}
+          {row.collaborator_fullname ?? "—"}
         </span>
       ),
     },
     {
-      key: "start_date",
-      label: "Fecha inicio",
-      render: (row: GetVacationsHistoryResponse) =>
-        formatVacationDate(row.start_date),
+      key: "collaborator_code",
+      label: "Código",
+      render: (row: VacationControlItemResponse) => row.collaborator_code ?? "—",
     },
     {
-      key: "end_date",
-      label: "Fecha fin",
-      render: (row: GetVacationsHistoryResponse) =>
-        formatVacationDate(row.end_date),
+      key: "amount_days",
+      label: "Días",
+      render: (row: VacationControlItemResponse) => row.amount_days,
     },
     {
-      key: "actions",
-      label: "Acciones",
-      render: (row: GetVacationsHistoryResponse) => {
+      key: "permit_application_type",
+      label: "Tipo",
+      render: (row: VacationControlItemResponse) =>
+        permitTypeLabel(row.permit_application_type),
+    },
+    {
+      key: "work_position",
+      label: "Puesto",
+      render: (row: VacationControlItemResponse) => row.work_position ?? "—",
+    },
+    {
+      key: "description",
+      label: "Descripción",
+      render: (row: VacationControlItemResponse) => {
+        const text = row.description?.trim() ?? "";
+        if (!text) {
+          return "—";
+        }
         return (
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              size="small"
-              label="Ver detalles"
-              onClick={() => onViewDetails?.(row)}
-              className="text-[13px]! bg-white! text-neutral-900! border! border-neutral-900! dark:bg-transparent! dark:text-white! dark:border-neutral-400! hover:scale-[1.03] transition-transform duration-150"
-            />
-          </div>
+          <span className="text-neutral-800 dark:text-neutral-200">
+            {text}
+          </span>
         );
       },
     },
@@ -53,13 +62,13 @@ export function ControlVacationsTable({
   return (
     <DataTable
       title="Historial de vacaciones"
-      data={data.data}
+      data={rows}
       columns={columns}
       pagination={
         <Pagination
-          currentPage={data.page_number}
-          pageSize={data.page_size}
-          totalRecords={data.total_records}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          totalRecords={totalRecords}
           onPageChange={onPageChange}
           disabled={isPending}
         />
