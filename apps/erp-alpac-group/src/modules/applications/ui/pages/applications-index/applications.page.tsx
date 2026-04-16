@@ -160,6 +160,10 @@ export const ApplicationsPage = function () {
       });
    }, [reset]);
 
+   const handleRequestError = useCallback((description: string) => {
+      setShowAlert({ show: true, type: "error", title: "Error", message: description });
+   }, []);
+
    const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
    const [selectedApplication, setSelectedApplication] = useState<GetApplicationsResponse>({} as GetApplicationsResponse);
 
@@ -326,8 +330,7 @@ export const ApplicationsPage = function () {
             <NewPermissionRequestModal
                isOpen={isNewPermissionRequestModalOpen}
                onClose={() => setIsNewPermissionRequestModalOpen(false)}
-               collaboratorFullName="John Doe"
-               collaboratorWorkPosition="Software Engineer"
+               onRequestError={handleRequestError}
             />
 
             {

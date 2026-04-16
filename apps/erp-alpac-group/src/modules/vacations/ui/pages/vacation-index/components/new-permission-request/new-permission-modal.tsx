@@ -11,7 +11,7 @@ import { SearchIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
 
-import type { CreatePermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
+import type { CreatePermissionRequestBase } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { NewPermissionRequestModalProps } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/permission-modal.types";
 import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-profile.request";
@@ -129,11 +129,14 @@ export function NewPermissionRequestModal({
       reset();
    }
 
-   const handleSubmit = (payload: CreatePermissionRequest) => {
+   const handleSubmit = (payload: CreatePermissionRequestBase) => {
       createPermissionRequestMutation.mutate(payload, {
          onSuccess: () => {
             onClose?.();
             onRequestSuccess?.();
+            setFilters(initialFilters);
+            setSearchError(null);
+            reset();
          },
          onError: (err) => {
             const apiError = err as unknown as ApiErrorResponse;
@@ -271,7 +274,7 @@ export function NewPermissionRequestModal({
                         onCancel={handleCloseModal}
                         companyId={companyId}
                         moduleCode={moduleCode}
-                        identificationNumber={identificationNumber}
+                        identificationNumber={collaborator?.personal_information?.identification_number ?? ""}
                      />
                   </motion.div>
                )}

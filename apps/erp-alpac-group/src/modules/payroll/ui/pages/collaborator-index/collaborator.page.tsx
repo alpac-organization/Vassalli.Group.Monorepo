@@ -7,6 +7,8 @@ import {
    Button,
    Badges,
    Pagination,
+   AnimatedAlertWrapper,
+   Alert,
 
 } from '@alpac/design-system';
 import { useUserStore } from '@app/shared/stores/useUserStore';
@@ -52,6 +54,17 @@ export const CollaboratorPage = function () {
 
    const [showAddCollaboratorModal, setShowAddCollaboratorModal] = useState(false);
    const [showCreateApplicationModal, setShowCreateApplicationModal] = useState(false);
+   const [showAlert, setShowAlert] = useState<{
+      show: boolean;
+      type: "success" | "error" | "warning" | "info";
+      title: string;
+      message: string;
+   }>({
+      show: false,
+      type: "info",
+      title: "",
+      message: "",
+   });
 
    const navigate = useNavigate();
    const location = useLocation();
@@ -124,6 +137,14 @@ export const CollaboratorPage = function () {
 
    const handlePageChange = useCallback((page: number) => {
       setFilters((prev) => ({ ...prev, page_number: page }));
+   }, []);
+
+   const handleRequestError = useCallback((description: string) => {
+      setShowAlert({ show: true, type: "error", title: "Error", message: description });
+   }, []);
+
+   const handleRequestSuccess = useCallback(() => {
+      setShowAlert({ show: true, type: "success", title: "Éxito", message: "Solicitud creada exitosamente" });
    }, []);
 
    const columnConfig = [
@@ -510,7 +531,19 @@ export const CollaboratorPage = function () {
                   <NewPermissionRequestModal
                      isOpen={showCreateApplicationModal}
                      onClose={() => setShowCreateApplicationModal(false)}
+                     onRequestError={handleRequestError}
+                     onRequestSuccess={handleRequestSuccess}
                   />
+
+                  <AnimatedAlertWrapper open={showAlert.show}>
+                     <Alert
+                        type={showAlert.type}
+                        title={showAlert.title}
+                        message={showAlert.message}
+                        showCloseButton
+                        onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
+                     />
+                  </AnimatedAlertWrapper>
 
                </motion.div>
             )

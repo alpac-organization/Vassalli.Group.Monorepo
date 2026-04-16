@@ -3,14 +3,16 @@ import { useForm, Controller } from "react-hook-form";
 import { Button, DatePicker, Dropdown, InputText, RadioButton, Textarea } from "@alpac/design-system";
 import { validateSessionContextUtils } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/utils/validateSessionContext";
 import { PERMISSION_TYPE_OPTIONS } from "@app/modules/vacations/ui/pages/vacation-index/constants/permission-filters.constants";
-import { PERMISSION_TYPE_TO_ENUM_VALUE } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/new-permissionFormProps";
 import { motion, type Variants } from "framer-motion";
+import { validateTime } from "@app/shared/utils/string.utils";
+import { RoleEnum } from "@app/core/enums/role.enum";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { getChannelByRole } from "@app/shared/utils/channel.utils";
+import { generatePermissionPayload } from "./utils/generatePermissionPayload";
 
 import type { NewPermissionRequestFormProps } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/new-permissionFormProps";
 import type { PermissionRequestFormValues } from "./types/permission-form.types";
-import type { CreatePermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
 import type { PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
-import { validateTime } from "@app/shared/utils/string.utils";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -69,9 +71,11 @@ export function NewPermissionRequestForm(
    };
 
    const {
-      register, handleSubmit, setError,
+      register, handleSubmit, setError, reset,
       getValues, control, formState: { errors }
    } = useForm<PermissionRequestFormValues>({ defaultValues });
+
+   const { role } = useUserStore();
 
    const initialSelectedType: Record<PermissionType, boolean> = {
       Vacation: false,
@@ -82,7 +86,7 @@ export function NewPermissionRequestForm(
    const [applicationType, setApplicationType] = useState(initialSelectedType);
    const [startDate, setStartDate] = useState<Date | null>(null);
    const [endDate, setEndDate] = useState<Date | null>(null);
-   const [timeFormat, setTimeFormat] = useState<"halfDay" | "fullDay" | "rangeOfHours">("fullDay");
+   const [timeFormatType, setTimeFormatType] = useState<"halfDay" | "fullDay" | "rangeOfHours">("fullDay");
    const [isEndDateDisabled, setIsEndDateDisabled] = useState(true);
    const [isEndTimeDisabled, setIsEndTimeDisabled] = useState(true);
 
@@ -97,10 +101,7 @@ export function NewPermissionRequestForm(
    }, [startDate, endDate]);
 
    const handleTypeChange = (value: string) => {
-
       const type = value as PermissionType;
-
-      // Solo un tipo puede estar activo a la vez — resetea los demás
       setApplicationType({ ...initialSelectedType, [type]: true });
    };
 
@@ -110,22 +111,14 @@ export function NewPermissionRequestForm(
          return;
       }
 
-      const toIsoUtcZ = (ymd: string) =>
-         new Date(ymd).toISOString().split(".")[0] + "Z";
-
-      const payload: CreatePermissionRequest = {
-         company_id: companyId,
-         module_code: moduleCode,
-         identification_number: identificationNumber.trim(),
-         permit_application_type: PERMISSION_TYPE_TO_ENUM_VALUE[values.type],
-         start_date: toIsoUtcZ(values.start_date.$d),
-         end_date: toIsoUtcZ(values.end_date.$d),
-         start_time: timeFormat === "rangeOfHours" ? values.start_time : null,
-         end_time: timeFormat === "rangeOfHours" ? values.end_time : null,
-         description: values.description.trim(),
-      };
+      const payload = generatePermissionPayload(values, {
+         companyId, moduleCode, identificationNumber,
+         channel: getChannelByRole(role as RoleEnum) ?? -1,
+         timeFormatType, isSameDay
+      });
 
       onSubmit(payload);
+      reset();
    };
 
    return (
@@ -244,8 +237,8 @@ export function NewPermissionRequestForm(
                         label="Día completo"
                         labelPosition="right"
                         labelClassName={labelClassName}
-                        checked={timeFormat === "fullDay"}
-                        onChange={() => setTimeFormat("fullDay")}
+                        checked={timeFormatType === "fullDay"}
+                        onChange={() => setTimeFormatType("fullDay")}
                      />
 
                      <RadioButton
@@ -254,8 +247,8 @@ export function NewPermissionRequestForm(
                         label="Medio día"
                         labelPosition="right"
                         labelClassName={labelClassName}
-                        checked={timeFormat === "halfDay"}
-                        onChange={() => setTimeFormat("halfDay")}
+                        checked={timeFormatType === "halfDay"}
+                        onChange={() => setTimeFormatType("halfDay")}
                      />
 
                      <RadioButton
@@ -264,15 +257,15 @@ export function NewPermissionRequestForm(
                         label="Rango de horas"
                         labelPosition="right"
                         labelClassName={labelClassName}
-                        checked={timeFormat === "rangeOfHours"}
-                        onChange={() => setTimeFormat("rangeOfHours")}
+                        checked={timeFormatType === "rangeOfHours"}
+                        onChange={() => setTimeFormatType("rangeOfHours")}
                      />
 
                   </motion.div>
                )}
 
                {
-                  ((applicationType.Vacation && timeFormat === "rangeOfHours") || applicationType.MedicalAppointment) && (
+                  ((applicationType.Vacation && timeFormatType === "rangeOfHours") || applicationType.MedicalAppointment) && (
 
                      <motion.div
                         variants={formFieldVariants}
@@ -390,6 +383,7 @@ export function NewPermissionRequestForm(
                size="giant"
                label={isPending ? "Enviando..." : "Enviar solicitud"}
                disabled={isPending}
+               isLoading={isPending}
                className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! disabled:opacity-60! disabled:cursor-not-allowed! sm:w-auto!"
             />
          </div>

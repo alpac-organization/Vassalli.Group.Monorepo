@@ -206,8 +206,6 @@ export const validateTime = (time?: string): boolean | string => {
 
    const timeRegex = /^([01]?[0-9]|2[0-3]):00$/;
 
-   console.log(timeRegex.test(time) || "Formato de hora inválido. Ejemplo: 01:00")
-
    return timeRegex.test(time) || "Formato de hora inválido. Ejemplo: 01:00";
 };
 
@@ -294,3 +292,29 @@ export function formatLongDate(isoDate: string | null | undefined): string {
       year: "numeric",
    }).format(d);
 }
+
+/**
+ * Formatea una hora a formato HH:MM:SS solo con la hora
+ * @param time - Hora a formatear
+ * @returns Hora formateada o null si la hora es inválida
+ */
+export const formatTimeHoursOnly = (time: string | null | undefined) => {
+   if (!time) return null;
+   const parts = time.split(':');
+
+   if (parts.length < 2) return null;
+
+   const hoursTest = parseInt(parts[0], 10);
+
+   if (isNaN(hoursTest)) return null;
+
+   const aux = new Date(0, 0, 0, hoursTest, 0, 0);
+
+   if (isNaN(aux.getTime())) return null;
+
+   const hh = String(aux.getHours()).padStart(2, '0');
+   const mm = "00";
+   const ss = "00";
+
+   return `${hh}:${mm}:${ss}`;
+};
