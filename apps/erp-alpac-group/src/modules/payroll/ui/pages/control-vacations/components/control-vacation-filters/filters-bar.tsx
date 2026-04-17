@@ -3,7 +3,10 @@ import { Button, DatePicker, type DatePickerValue } from "@alpac/design-system";
 import type { ControlVacationFiltersBarProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/type/control-vacation-filter-bar";
 import dayjs from "dayjs";
 import { toUtcDayRangeIsoFromYmd } from "@app/shared/utils/string.utils";
-import { datePickerFieldClassName, controlVacationCalendarDaySx } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/utils/styles.datepicker";
+import {
+  datePickerFieldClassName,
+  controlVacationCalendarDaySx,
+} from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/utils/styles.datepicker";
 
 export function ControlVacationFiltersBar({
   initialStart,
@@ -74,7 +77,6 @@ export function ControlVacationFiltersBar({
       return;
     }
     const { start_date, end_date } = toUtcDayRangeIsoFromYmd(startStr, endStr);
-    console.log(start_date, end_date);
     onApply({ start_date, end_date });
   };
 
@@ -123,7 +125,9 @@ export function ControlVacationFiltersBar({
                 value={endDate}
                 onChange={handleEndDateChange}
                 disabled={!startDate}
-                minDate={startDate ? dayjs(startDate).startOf("day") : undefined}
+                minDate={
+                  startDate ? dayjs(startDate).startOf("day") : undefined
+                }
                 maxDate={today}
                 slotProps={{
                   textField: {
