@@ -25,7 +25,8 @@ export function ControlVacationsTable({
     {
       key: "collaborator_code",
       label: "Código",
-      render: (row: VacationControlItemResponse) => row.collaborator_code ?? "—",
+      render: (row: VacationControlItemResponse) =>
+        row.collaborator_code ?? "—",
     },
     {
       key: "amount_days",
@@ -53,9 +54,7 @@ export function ControlVacationsTable({
           return "—";
         }
         return (
-          <span className="text-neutral-800 dark:text-neutral-200">
-            {text}
-          </span>
+          <span className="text-neutral-800 dark:text-neutral-200">{text}</span>
         );
       },
     },

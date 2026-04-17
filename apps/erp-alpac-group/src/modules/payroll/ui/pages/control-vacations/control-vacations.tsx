@@ -13,13 +13,10 @@ import { ControlVacationsTable } from "@app/modules/payroll/ui/pages/control-vac
 import { ControlVacationDetailsModal } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-details/control-vacation-details-modal";
 import { ControlVacationFiltersBar } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/filters-bar";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import {
-  type AppliedDateRange,
-  estimateTotalRecordsForPagination,
-} from "@app/modules/payroll/ui/pages/control-vacations/utils/date-range";
+import type { AppliedDateRange } from "@app/modules/payroll/ui/pages/control-vacations/utils/date-range";
 import type { VacationControlItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
 
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 10;
 
 export default function ControlVacationsPage() {
   const navigate = useNavigate();
@@ -49,7 +46,7 @@ export default function ControlVacationsPage() {
       module_code: moduleCode,
       start_date: dateRange.start_date,
       end_date: dateRange.end_date,
-      page_size: PAGE_SIZE,
+      page_size: DEFAULT_PAGE_SIZE,
       page_number: pageNumber,
     };
   }, [companyId, moduleCode, dateRange, pageNumber]);
@@ -69,29 +66,22 @@ export default function ControlVacationsPage() {
 
   const rows: VacationControlItemResponse[] = useMemo(() => {
     if (!hasAppliedDateRange || !historyPayload) return [];
-    if (Array.isArray(historyPayload)) return historyPayload;
     return historyPayload.data ?? [];
   }, [hasAppliedDateRange, historyPayload]);
 
   const totalRecords = useMemo(() => {
-    if (!hasAppliedDateRange) return 0;
-    if (Array.isArray(historyPayload)) {
-      return estimateTotalRecordsForPagination(
-        historyPayload.length,
-        pageNumber,
-        PAGE_SIZE,
-      );
-    }
-    const total = historyPayload?.total_records;
-    if (typeof total === "number" && Number.isFinite(total)) {
-      return total;
-    }
-    return estimateTotalRecordsForPagination(
-      rows.length,
-      pageNumber,
-      PAGE_SIZE,
-    );
-  }, [hasAppliedDateRange, historyPayload, rows.length, pageNumber]);
+    if (!hasAppliedDateRange || !historyPayload) return 0;
+    const total = historyPayload.total;
+    return typeof total === "number" && Number.isFinite(total) ? total : 0;
+  }, [hasAppliedDateRange, historyPayload]);
+
+  const pageSizeForTable = useMemo(() => {
+    if (!hasAppliedDateRange || !historyPayload) return DEFAULT_PAGE_SIZE;
+    const size = historyPayload.page_size;
+    return typeof size === "number" && Number.isFinite(size) && size > 0
+      ? size
+      : DEFAULT_PAGE_SIZE;
+  }, [hasAppliedDateRange, historyPayload]);
 
   const handleApplyDateFilters = useCallback(
     (range: { start_date: string; end_date: string }) => {
@@ -178,7 +168,7 @@ export default function ControlVacationsPage() {
         <ControlVacationsTable
           rows={rows}
           currentPage={pageNumber}
-          pageSize={PAGE_SIZE}
+          pageSize={pageSizeForTable}
           totalRecords={totalRecords}
           onPageChange={handlePageChange}
           isPending={

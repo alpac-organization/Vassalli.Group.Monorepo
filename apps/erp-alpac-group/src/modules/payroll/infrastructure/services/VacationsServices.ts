@@ -24,7 +24,6 @@ export class ControlVacationServices implements IVacationsServices {
           params: cleanParams(rest),
         },
       );
-      console.log(vacations);
       return vacations;
     } catch (error) {
       throw error;
