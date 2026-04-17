@@ -26,7 +26,7 @@ export class PermissionServices implements IPermissionRequestServices {
          );
          return response;
       } catch (error) {
-         console.error(error);
+         throw error;
       }
    }
 
@@ -38,7 +38,6 @@ export class PermissionServices implements IPermissionRequestServices {
          );
          return response;
       } catch (error) {
-         console.error(error);
          throw error;
       }
    }
@@ -53,7 +52,6 @@ export class PermissionServices implements IPermissionRequestServices {
          );
          return response;
       } catch (error) {
-         console.error(error);
          throw error;
       }
    }
@@ -66,7 +64,7 @@ export class PermissionServices implements IPermissionRequestServices {
          );
          return response;
       } catch (error) {
-         console.error(error);
+         throw error;
       }
    }
 
@@ -78,7 +76,7 @@ export class PermissionServices implements IPermissionRequestServices {
          );
          return response;
       } catch (error) {
-         console.error(error);
+         throw error;
       }
    }
 }

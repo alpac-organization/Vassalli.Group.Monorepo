@@ -1,5 +1,5 @@
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
-import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
+import type { GetApplicationListResponse, GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 
 /**
  * @interface IApplicationServices
@@ -12,21 +12,14 @@ export interface IApplicationServices {
     * @param payload - Objeto con los parámetros de la solicitud
     * @returns Promesa con el listado de solicitudes
     */
-   GetApplications(payload: ApplicationRequest): Promise<GetApplicationsResponse[]>;
+   GetApplications(payload: ApplicationRequest): Promise<GetApplicationListResponse>;
 
    /**
-    * Aprueba una solicitud
+    * Aprueba y rechaza una solicitud
     * @param payload - Objeto con los parámetros de la solicitud
-    * @returns Promesa con la solicitud aprobada
+    * @returns Promesa con la solicitud aprobada o rechazada
     */
-   ApproveApplication(payload: any): Promise<void>;
-
-   /**
-    * Rechaza una solicitud
-    * @param payload - Objeto con los parámetros de la solicitud
-    * @returns Promesa con la solicitud rechazada
-    */
-   RejectApplication(payload: any): Promise<void>;
+   ProcessApplication(payload: any): Promise<void>;
 
    /**
     * Obtiene el detalle de una solicitud

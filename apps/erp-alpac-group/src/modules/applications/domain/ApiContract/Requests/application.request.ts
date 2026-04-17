@@ -40,4 +40,16 @@ export interface ApplicationRequest {
     * @optional
     */
    permit_application_status_id?: number;
+
+   /**
+    * Numero de la pagina
+    * @optional
+    */
+   page_number?: number;
+
+   /**
+    * Tamaño de la pagina
+    * @optional
+    */
+   page_size?: number;
 }

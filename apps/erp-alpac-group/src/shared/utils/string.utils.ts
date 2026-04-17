@@ -1,13 +1,15 @@
-/**
- * Valida el nombre y apellido del usuario
- * @param fullName string
- * @returns string
- */
+
 import { IdentificationEnum } from "@app/core/enums/identifcation.enum";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
 dayjs.extend(utc);
+
+/**
+ * Valida el nombre y apellido del usuario
+ * @param fullName string
+ * @returns string
+ */
 export const validateNameAndLastName = (fullName: string): string => {
    if (!fullName) return "Usuario";
 
@@ -30,7 +32,6 @@ export const validateNameAndLastName = (fullName: string): string => {
       .join(" ");
 };
 
-import { IdentificationEnum } from "@app/core/enums/identifcation.enum";
 
 export const validateIdentificationNumber = (
    value: string,
@@ -212,6 +213,38 @@ export const validateTime = (time?: string): boolean | string => {
    const timeRegex = /^([01]?[0-9]|2[0-3]):00$/;
 
    return timeRegex.test(time) || "Formato de hora inválido. Ejemplo: 01:00";
+};
+
+/**
+ * Valida que la hora sea laboral
+ * @param time - Hora a validar
+ * @returns True si la hora es laboral, false si no
+ */
+export const validateLaboralHours = (time?: string): boolean | string => {
+   if (!time) return true;
+
+   const amPmMatch = time.match(/\s?([Aa][Mm]|[Pp][Mm])$/);
+   let hours: number;
+   let minutes: number;
+
+   if (amPmMatch) {
+      const modifier = amPmMatch[1].toUpperCase();
+      const timePart = time.replace(amPmMatch[0], "").trim();
+      [hours, minutes] = timePart.split(":").map(Number);
+
+      if (modifier === "PM" && hours < 12) hours += 12;
+      if (modifier === "AM" && hours === 12) hours = 0;
+   } else {
+      [hours, minutes] = time.split(":").map(Number);
+   }
+
+   const totalMinutes = hours * 60 + minutes;
+   const start = 8 * 60;
+   const end = 17 * 60;
+
+   const isValid = totalMinutes >= start && totalMinutes <= end;
+
+   return isValid || "La hora laboral debe estar entre las 08:00 AM y las 05:00 PM";
 };
 
 /**

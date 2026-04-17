@@ -26,6 +26,7 @@ export function NewPermissionRequestModal({
    isCollaboratorWorkPositionLoading = false,
    onRequestSuccess,
    onRequestError,
+   channel,
 }: NewPermissionRequestModalProps) {
 
    const { companyId, moduleCode, identificationNumber, role } = useUserStore();
@@ -140,7 +141,6 @@ export function NewPermissionRequestModal({
          },
          onError: (err) => {
             const apiError = err as unknown as ApiErrorResponse;
-            onClose?.();
             onRequestError?.(
                apiError.error?.description ?? "Ocurrió un error inesperado.",
             );
@@ -275,6 +275,7 @@ export function NewPermissionRequestModal({
                         companyId={companyId}
                         moduleCode={moduleCode}
                         identificationNumber={collaborator?.personal_information?.identification_number ?? ""}
+                        channel={channel}
                      />
                   </motion.div>
                )}

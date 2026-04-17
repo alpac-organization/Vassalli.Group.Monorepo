@@ -4,10 +4,7 @@ import { Button, DatePicker, Dropdown, InputText, RadioButton, Textarea } from "
 import { validateSessionContextUtils } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/utils/validateSessionContext";
 import { PERMISSION_TYPE_OPTIONS } from "@app/modules/vacations/ui/pages/vacation-index/constants/permission-filters.constants";
 import { motion, type Variants } from "framer-motion";
-import { validateTime } from "@app/shared/utils/string.utils";
-import { RoleEnum } from "@app/core/enums/role.enum";
-import { useUserStore } from "@app/shared/stores/useUserStore";
-import { getChannelByRole } from "@app/shared/utils/channel.utils";
+import { validateLaboralHours, validateTime } from "@app/shared/utils/string.utils";
 import { generatePermissionPayload } from "./utils/generatePermissionPayload";
 
 import type { NewPermissionRequestFormProps } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/new-permissionFormProps";
@@ -19,7 +16,7 @@ const inputClassName =
 const labelClassName = "text-black! dark:text-white!";
 
 export function NewPermissionRequestForm(
-   { isPending, onSubmit, onCancel, companyId, moduleCode, identificationNumber }: NewPermissionRequestFormProps) {
+   { isPending, onSubmit, onCancel, companyId, moduleCode, identificationNumber, channel }: NewPermissionRequestFormProps) {
 
    const defaultValues = {
       type: undefined,
@@ -72,10 +69,12 @@ export function NewPermissionRequestForm(
 
    const {
       register, handleSubmit, setError, reset,
-      getValues, control, formState: { errors }
-   } = useForm<PermissionRequestFormValues>({ defaultValues });
-
-   const { role } = useUserStore();
+      getValues, control, //trigger,
+      formState: { errors }
+   } = useForm<PermissionRequestFormValues>({
+      defaultValues,
+      mode: "onChange"
+   });
 
    const initialSelectedType: Record<PermissionType, boolean> = {
       Vacation: false,
@@ -113,7 +112,7 @@ export function NewPermissionRequestForm(
 
       const payload = generatePermissionPayload(values, {
          companyId, moduleCode, identificationNumber,
-         channel: getChannelByRole(role as RoleEnum) ?? -1,
+         channel: channel.value,
          timeFormatType, isSameDay
       });
 
@@ -280,11 +279,15 @@ export function NewPermissionRequestForm(
                               className={inputClassName}
                               {...register("start_time", {
                                  required: "La hora de inicio es requerida.",
-                                 validate: (value) => validateTime(value),
+                                 validate: {
+                                    validateTime: (value?: string) => validateTime(value),
+                                    validateLaboralHours: (value?: string) => validateLaboralHours(value)
+                                 },
                               })}
                               error={errors.start_time?.message}
-                              onChange={() => {
+                              onChange={(e) => {
                                  setIsEndTimeDisabled(false);
+                                 register("start_time").onChange(e)
                               }}
                            />
                         </div>
@@ -301,6 +304,7 @@ export function NewPermissionRequestForm(
                                  required: "La hora de fin es requerida.",
                                  validate: {
                                     validateTime: (value) => validateTime(value),
+                                    validateLaboralHours: (value?: string) => validateLaboralHours(value),
                                     validateStartTimeIsBeforeEndTime: (value) => {
                                        const startTime = getValues("start_time");
                                        const endTime = value;
@@ -319,6 +323,9 @@ export function NewPermissionRequestForm(
                                  },
                               })}
                               error={errors.end_time?.message}
+                              onChange={(e) => {
+                                 register("end_time").onChange(e)
+                              }}
                            />
                         </div>
                      </motion.div>

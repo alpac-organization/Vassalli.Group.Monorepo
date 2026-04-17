@@ -38,6 +38,7 @@ import { AddCollaboratorModal } from '@app/modules/payroll/ui/pages/collaborator
 import { useTheme } from '@alpac/design-system';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 import { NewPermissionRequestModal } from '@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal';
+import { ChannelEnum } from '@app/core/enums/channel.enum';
 
 export const CollaboratorPage = function () {
 
@@ -202,7 +203,6 @@ export const CollaboratorPage = function () {
          identification_number: '',
          branch_id: 0,
          area_id: 0,
-         page_number: 1,
          page_size: maxPageSize,
          status: '',
       } as CollaboratorRequest);
@@ -513,7 +513,7 @@ export const CollaboratorPage = function () {
                               pageSize={collaborators.page_size}
                               totalRecords={collaborators.total_records}
                               onPageChange={handlePageChange}
-                              disabled={GetCollaboratorsQuery.isPending}
+                              disabled={GetCollaboratorsQuery.isFetching}
                            />
                         }
                      />
@@ -533,6 +533,7 @@ export const CollaboratorPage = function () {
                      onClose={() => setShowCreateApplicationModal(false)}
                      onRequestError={handleRequestError}
                      onRequestSuccess={handleRequestSuccess}
+                     channel={ChannelEnum.AdministrativePanel}
                   />
 
                   <AnimatedAlertWrapper open={showAlert.show}>

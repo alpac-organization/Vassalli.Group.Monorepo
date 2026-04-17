@@ -3,6 +3,7 @@ import type { ApplicationRequest } from "@app/modules/applications/domain/ApiCon
 import { ApplicationServices } from "@app/modules/applications/infrastructure/services/ApplicationServices"
 import { httpHandler } from "@app/core/adapters"
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse"
+import type { ApplicationProcessRequest } from "../../domain/ApiContract/Requests/application.process.request"
 
 const applicationServices = new ApplicationServices(httpHandler)
 
@@ -23,9 +24,11 @@ const applicationServices = new ApplicationServices(httpHandler)
  */
 export const useApplications = (filters?: ApplicationRequest, config?: { enabled?: boolean, enabledDetail?: boolean }) => {
 
-   type ApplicationResponse = Awaited<ReturnType<typeof applicationServices.GetApplications>>;
+   type ApplicationResponse = Awaited<ReturnType<ApplicationServices["GetApplications"]>>;
 
-   type ApplicationDetailResponse = Awaited<ReturnType<typeof applicationServices.GetApplicationDetail>>;
+   type ApplicationDetailResponse = Awaited<ReturnType<ApplicationServices["GetApplicationDetail"]>>;
+
+   type ProcessApplicationResponse = Awaited<ReturnType<ApplicationServices["ProcessApplication"]>>;
 
    const GetApplicationsQuery = useQuery<ApplicationResponse, ApiErrorResponse>({
       queryKey: ["applicationsData", filters],
@@ -37,16 +40,8 @@ export const useApplications = (filters?: ApplicationRequest, config?: { enabled
       retry: 1,
    })
 
-   const ApproveApplication = useMutation({
-      mutationFn: (payload: any) => applicationServices.ApproveApplication(payload),
-      onSuccess: () => {
-         GetApplicationsQuery.refetch();
-         GetApplicationDetailQuery.refetch();
-      },
-   })
-
-   const RejectApplication = useMutation({
-      mutationFn: (payload: any) => applicationServices.RejectApplication(payload),
+   const ProcessApplication = useMutation<ProcessApplicationResponse, ApiErrorResponse, ApplicationProcessRequest>({
+      mutationFn: (payload: ApplicationProcessRequest) => applicationServices.ProcessApplication(payload),
       onSuccess: () => {
          GetApplicationsQuery.refetch();
          GetApplicationDetailQuery.refetch();
@@ -63,5 +58,5 @@ export const useApplications = (filters?: ApplicationRequest, config?: { enabled
       retry: 1,
    })
 
-   return { GetApplicationsQuery, ApproveApplication, RejectApplication, GetApplicationDetailQuery }
+   return { GetApplicationsQuery, ProcessApplication, GetApplicationDetailQuery }
 }

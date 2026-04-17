@@ -20,8 +20,11 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { ManagerForm } from "./components/application-forms/manager-form/manager-form";
 import { Plus } from "lucide-react";
 import { NewPermissionRequestModal } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal";
+import { ChannelEnum } from "@app/core/enums/channel.enum";
 
 export const ApplicationsPage = function () {
+
+   const maxPageSize = 5;
 
    const initialFilters: ApplicationRequest = {
       company_id: '',
@@ -30,6 +33,7 @@ export const ApplicationsPage = function () {
       permit_application_type_id: 0,
       permit_application_status_id: 0,
       collaborator_code: '',
+      page_size: maxPageSize,
    };
 
    const navigate = useNavigate();
@@ -60,6 +64,9 @@ export const ApplicationsPage = function () {
    })
    const [isNewPermissionRequestModalOpen, setIsNewPermissionRequestModalOpen] = useState(false);
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
+   const channel = role === RoleEnum.ADMINISTRATOR ?
+      ChannelEnum.AdministrativePanel : role === RoleEnum.MANAGER ?
+         ChannelEnum.DirectManagerPanel : null;
    const isListEnabled: boolean = isAdministrator
    const isDetailEnabled: boolean = isManager && !!filters.collaborator_code;
 
@@ -78,7 +85,7 @@ export const ApplicationsPage = function () {
 
    const applicationsData = useMemo(() =>
       isAdministrator
-         ? (GetApplicationsQuery.data ?? [])
+         ? (GetApplicationsQuery.data?.data ?? [])
          : (GetApplicationDetailQuery.data ? [GetApplicationDetailQuery.data] : []),
       [isAdministrator, GetApplicationsQuery.data, GetApplicationDetailQuery.data]
    );
@@ -162,6 +169,14 @@ export const ApplicationsPage = function () {
 
    const handleRequestError = useCallback((description: string) => {
       setShowAlert({ show: true, type: "error", title: "Error", message: description });
+   }, []);
+
+   const handleRequestSuccess = useCallback(() => {
+      setShowAlert({ show: true, type: "success", title: "Éxito", message: "Solicitud creada exitosamente" });
+   }, []);
+
+   const handlePageChange = useCallback((page: number) => {
+      setFilters((prev) => ({ ...prev, page_number: page }));
    }, []);
 
    const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
@@ -331,6 +346,8 @@ export const ApplicationsPage = function () {
                isOpen={isNewPermissionRequestModalOpen}
                onClose={() => setIsNewPermissionRequestModalOpen(false)}
                onRequestError={handleRequestError}
+               onRequestSuccess={handleRequestSuccess}
+               channel={channel!}
             />
 
             {
@@ -377,11 +394,11 @@ export const ApplicationsPage = function () {
                         setIsApplicationModalOpen(true);
                      }}
                      pagination={
-                        <Pagination currentPage={0}
-                           pageSize={0}
-                           totalRecords={0}
-                           onPageChange={() => { }}
-                           disabled={true} />
+                        <Pagination currentPage={GetApplicationsQuery.data?.page_number ?? 0}
+                           pageSize={GetApplicationsQuery.data?.page_size ?? 0}
+                           totalRecords={GetApplicationsQuery.data?.total ?? 0}
+                           onPageChange={handlePageChange}
+                           disabled={GetApplicationsQuery.isFetching} />
                      } />
                </div>
             )}

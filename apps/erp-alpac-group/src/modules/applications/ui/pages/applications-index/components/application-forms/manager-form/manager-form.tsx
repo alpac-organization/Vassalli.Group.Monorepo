@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Button } from "@alpac/design-system";
+import { Alert, AnimatedAlertWrapper, Button } from "@alpac/design-system";
 import { MainPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/main-panel/main-panel";
 import { CheckIcon, XIcon } from "lucide-react";
 import { DonatedVacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/donated-vacation-panel/donated-vacation-panel";
@@ -10,11 +10,13 @@ import { ConfirmModal } from "../../confirm-modal/confirm-modal";
 import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 import type { ConfirmActionType } from "../../../types/confirm-action.types";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
 
 export const ManagerForm = ({ application }: { application: GetApplicationsResponse }) => {
 
    const { companyId, moduleCode } = useUserStore();
-   const { ApproveApplication, RejectApplication } = useApplications();
+   const { ProcessApplication } = useApplications();
+   const { getMappedError } = useMappedError();
 
    const [confirmModal, setConfirmModal] = useState<{
       isOpen: boolean;
@@ -22,6 +24,18 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
    }>({
       isOpen: false,
       type: null
+   });
+
+   const [showAlert, setShowAlert] = useState<{
+      show: boolean;
+      type: "success" | "error" | "warning" | "info";
+      title: string;
+      message: string;
+   }>({
+      show: false,
+      type: "info",
+      title: "",
+      message: "",
    });
 
    const { handleSubmit, setValue } = useForm<ApplicationProcessRequest>({
@@ -34,15 +48,19 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
    });
 
    const onInternalSubmit = (data: ApplicationProcessRequest) => {
-      if (data.is_approved) {
-         ApproveApplication.mutate(data, {
-            onSuccess: () => setConfirmModal({ isOpen: false, type: null })
-         });
-      } else {
-         RejectApplication.mutate(data, {
-            onSuccess: () => setConfirmModal({ isOpen: false, type: null })
-         });
-      }
+      ProcessApplication.mutate(data, {
+         onSuccess: () => setConfirmModal({ isOpen: false, type: null }),
+         onError: (error) => {
+            const mappedError = getMappedError(error);
+
+            setShowAlert({
+               show: true,
+               type: "error",
+               title: "Error",
+               message: mappedError.description
+            });
+         }
+      });
    };
 
    const openConfirm = (type: ConfirmActionType) => {
@@ -81,7 +99,7 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
                onClick={() => openConfirm("REJECT")}
                icon={<XIcon size={20} />}
                isHiddenLabelOnMobile
-               disabled={ApproveApplication.isPending || RejectApplication.isPending}
+               disabled={ProcessApplication.isPending}
             />
             <Button
                type="button"
@@ -90,16 +108,26 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
                onClick={() => openConfirm("APPROVE")}
                icon={<CheckIcon size={20} />}
                isHiddenLabelOnMobile
-               disabled={ApproveApplication.isPending || RejectApplication.isPending}
+               disabled={ProcessApplication.isPending}
             />
          </div>
+
+         <AnimatedAlertWrapper open={showAlert.show}>
+            <Alert
+               type={showAlert.type}
+               title={showAlert.title}
+               message={showAlert.message}
+               showCloseButton
+               onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
+            />
+         </AnimatedAlertWrapper>
 
          <ConfirmModal
             isOpen={confirmModal.isOpen}
             onClose={() => setConfirmModal({ isOpen: false, type: null })}
             type={confirmModal.type}
-            isLoading={ApproveApplication.isPending || RejectApplication.isPending}
-            disabled={ApproveApplication.isPending || RejectApplication.isPending}
+            isLoading={ProcessApplication.isPending}
+            disabled={ProcessApplication.isPending}
             handleFinalAction={() => handleSubmit(onInternalSubmit)()}
          />
       </form>

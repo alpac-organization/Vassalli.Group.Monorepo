@@ -26,7 +26,6 @@ export const ConfirmModal = ({
 
    const handleFinalActionInternal = (type: ConfirmActionType) => {
       handleFinalAction(type);
-      onClose?.();
    }
 
    return (
@@ -34,7 +33,7 @@ export const ConfirmModal = ({
          variant="warning"
          size="md"
          isOpen={isOpen}
-         onClose={() => onClose?.()}
+         onClose={() => !isLoading && onClose?.()}
       >
          <div className="flex flex-col gap-4 text-center">
             <p className="text-slate-600 dark:text-slate-300">
@@ -49,6 +48,7 @@ export const ConfirmModal = ({
                   size="giant"
                   className={`${classButtonCancel}`}
                   onClick={() => onClose?.()}
+                  disabled={isLoading || disabled}
                />
                <Button
                   type="button"
