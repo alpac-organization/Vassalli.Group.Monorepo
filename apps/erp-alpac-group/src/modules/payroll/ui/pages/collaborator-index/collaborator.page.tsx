@@ -7,7 +7,9 @@ import {
    Button,
    Badges,
    Pagination,
-   
+   AnimatedAlertWrapper,
+   Alert,
+
 } from '@alpac/design-system';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,7 +19,8 @@ import {
    UserIcon,
    UserRoundPlusIcon,
    CircleMinus,
-   UserMinus
+   UserMinus,
+   FileClock
 } from 'lucide-react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
@@ -34,6 +37,8 @@ import { formatIdentificationNumber } from '@app/shared/utils/string.utils';
 import { AddCollaboratorModal } from '@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal';
 import { useTheme } from '@alpac/design-system';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
+import { NewPermissionRequestModal } from '@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal';
+import { ChannelEnum } from '@app/core/enums/channel.enum';
 
 export const CollaboratorPage = function () {
 
@@ -48,8 +53,19 @@ export const CollaboratorPage = function () {
       status: '',
    } as CollaboratorRequest);
 
-   const [showAddCollaboratorModal, setShowAddCollaboratorModal] =
-      useState(false);
+   const [showAddCollaboratorModal, setShowAddCollaboratorModal] = useState(false);
+   const [showCreateApplicationModal, setShowCreateApplicationModal] = useState(false);
+   const [showAlert, setShowAlert] = useState<{
+      show: boolean;
+      type: "success" | "error" | "warning" | "info";
+      title: string;
+      message: string;
+   }>({
+      show: false,
+      type: "info",
+      title: "",
+      message: "",
+   });
 
    const navigate = useNavigate();
    const location = useLocation();
@@ -124,10 +140,14 @@ export const CollaboratorPage = function () {
       setFilters((prev) => ({ ...prev, page_number: page }));
    }, []);
 
-   const handleAddDeduction = useCallback(() => {
+   const handleRequestError = useCallback((description: string) => {
+      setShowAlert({ show: true, type: "error", title: "Error", message: description });
    }, []);
-   const handleCollaboratorExit = useCallback(() => {
+
+   const handleRequestSuccess = useCallback(() => {
+      setShowAlert({ show: true, type: "success", title: "Éxito", message: "Solicitud creada exitosamente" });
    }, []);
+
    const columnConfig = [
       { key: 'collaborator_code', label: 'Código' },
       { key: 'full_name', label: 'Nombre Completo' },
@@ -183,7 +203,6 @@ export const CollaboratorPage = function () {
          identification_number: '',
          branch_id: 0,
          area_id: 0,
-         page_number: 1,
          page_size: maxPageSize,
          status: '',
       } as CollaboratorRequest);
@@ -191,6 +210,16 @@ export const CollaboratorPage = function () {
 
    const handleAddCollaborator = useCallback(() => {
       setShowAddCollaboratorModal(true);
+   }, []);
+
+   const handleAddDeduction = useCallback(() => {
+   }, []);
+
+   const handleCollaboratorExit = useCallback(() => {
+   }, []);
+
+   const handleCreateApplication = useCallback(() => {
+      setShowCreateApplicationModal(true)
    }, []);
 
    return (
@@ -333,10 +362,17 @@ export const CollaboratorPage = function () {
                         />
                         <Button
                            size="giant"
-                           label="Iniciar Proceso de Baja  "
+                           label="Iniciar Proceso de Baja"
                            icon={<UserMinus size={20} />}
                            className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                            onClick={handleCollaboratorExit}
+                        />
+                        <Button
+                           size="giant"
+                           label="Crear Solicitud de Permiso"
+                           icon={<FileClock size={20} />}
+                           className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                           onClick={handleCreateApplication}
                         />
                      </div>
                   </div>
@@ -369,9 +405,9 @@ export const CollaboratorPage = function () {
                                  required: false,
                                  onChange: (e) => {
                                     e.target.value = formatIdentificationNumber(e.target.value)
-                                    register("identification_number").onChange(e);
                                  }
-                              })}
+                              })
+                           }
                         />
                      </div>
 
@@ -477,11 +513,12 @@ export const CollaboratorPage = function () {
                               pageSize={collaborators.page_size}
                               totalRecords={collaborators.total_records}
                               onPageChange={handlePageChange}
-                              disabled={GetCollaboratorsQuery.isPending}
+                              disabled={GetCollaboratorsQuery.isFetching}
                            />
                         }
                      />
                   </div>
+
                   <AddCollaboratorModal
                      isOpen={showAddCollaboratorModal}
                      optionsWorkAreas={optionsWorkAreas}
@@ -490,6 +527,24 @@ export const CollaboratorPage = function () {
                      optionsBanks={optionsBanks}
                      onClose={() => setShowAddCollaboratorModal(false)}
                   />
+
+                  <NewPermissionRequestModal
+                     isOpen={showCreateApplicationModal}
+                     onClose={() => setShowCreateApplicationModal(false)}
+                     onRequestError={handleRequestError}
+                     onRequestSuccess={handleRequestSuccess}
+                     channel={ChannelEnum.AdministrativePanel}
+                  />
+
+                  <AnimatedAlertWrapper open={showAlert.show}>
+                     <Alert
+                        type={showAlert.type}
+                        title={showAlert.title}
+                        message={showAlert.message}
+                        showCloseButton
+                        onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
+                     />
+                  </AnimatedAlertWrapper>
 
                </motion.div>
             )

@@ -14,12 +14,12 @@ type PermissionTypeEntry = {
    label: string;
 };
 const PERMISSION_TYPE_ENTRIES: Array<PermissionTypeEntry> = [
-   /* { value: "Vacation", label: "Vacaciones" },
+   { value: "Vacation", label: "Vacaciones" },
    { value: "MedicalAppointment", label: "Cita médica" },
-   { value: "CompensatoryTime", label: "Tiempo compensatorio" },
-   { value: "PaidLeave", label: "Permiso con goce" },
-   { value: "UnpaidLeave", label: "Permiso sin goce" },
-   { value: "SpecialLeave", label: "Permiso especial" }, */
+   // { value: "CompensatoryTime", label: "Tiempo compensatorio" },
+   // { value: "PaidLeave", label: "Permiso con goce" },
+   // { value: "UnpaidLeave", label: "Permiso sin goce" },
+   // { value: "SpecialLeave", label: "Permiso especial" }, 
    { value: "DonatedVacations", label: "Donación de vacaciones" },
 ];
 

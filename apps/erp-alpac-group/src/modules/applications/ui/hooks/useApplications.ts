@@ -1,7 +1,9 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request"
 import { ApplicationServices } from "@app/modules/applications/infrastructure/services/ApplicationServices"
 import { httpHandler } from "@app/core/adapters"
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse"
+import type { ApplicationProcessRequest } from "../../domain/ApiContract/Requests/application.process.request"
 
 const applicationServices = new ApplicationServices(httpHandler)
 
@@ -22,7 +24,15 @@ const applicationServices = new ApplicationServices(httpHandler)
  */
 export const useApplications = (filters?: ApplicationRequest, config?: { enabled?: boolean, enabledDetail?: boolean }) => {
 
-   const GetApplicationsQuery = useQuery({
+   const queryClient = useQueryClient();
+
+   type ApplicationResponse = Awaited<ReturnType<ApplicationServices["GetApplications"]>>;
+
+   type ApplicationDetailResponse = Awaited<ReturnType<ApplicationServices["GetApplicationDetail"]>>;
+
+   type ProcessApplicationResponse = Awaited<ReturnType<ApplicationServices["ProcessApplication"]>>;
+
+   const GetApplicationsQuery = useQuery<ApplicationResponse, ApiErrorResponse>({
       queryKey: ["applicationsData", filters],
       queryFn: () => applicationServices.GetApplications(filters!),
       enabled: config?.enabled !== undefined ? config.enabled : !!filters,
@@ -32,23 +42,15 @@ export const useApplications = (filters?: ApplicationRequest, config?: { enabled
       retry: 1,
    })
 
-   const ApproveApplication = useMutation({
-      mutationFn: (payload: any) => applicationServices.ApproveApplication(payload),
+   const ProcessApplication = useMutation<ProcessApplicationResponse, ApiErrorResponse, ApplicationProcessRequest>({
+      mutationFn: (payload: ApplicationProcessRequest) => applicationServices.ProcessApplication(payload),
       onSuccess: () => {
-         GetApplicationsQuery.refetch();
-         GetApplicationDetailQuery.refetch();
+         queryClient.invalidateQueries({ queryKey: ["applicationsData"] });
+         queryClient.invalidateQueries({ queryKey: ["applicationDetailData"] });
       },
    })
 
-   const RejectApplication = useMutation({
-      mutationFn: (payload: any) => applicationServices.RejectApplication(payload),
-      onSuccess: () => {
-         GetApplicationsQuery.refetch();
-         GetApplicationDetailQuery.refetch();
-      },
-   })
-
-   const GetApplicationDetailQuery = useQuery({
+   const GetApplicationDetailQuery = useQuery<ApplicationDetailResponse, ApiErrorResponse>({
       queryKey: ["applicationDetailData", filters],
       queryFn: () => applicationServices.GetApplicationDetail(filters!),
       enabled: config?.enabledDetail !== undefined ? config.enabledDetail : !!filters,
@@ -58,5 +60,5 @@ export const useApplications = (filters?: ApplicationRequest, config?: { enabled
       retry: 1,
    })
 
-   return { GetApplicationsQuery, ApproveApplication, RejectApplication, GetApplicationDetailQuery }
+   return { GetApplicationsQuery, ProcessApplication, GetApplicationDetailQuery }
 }

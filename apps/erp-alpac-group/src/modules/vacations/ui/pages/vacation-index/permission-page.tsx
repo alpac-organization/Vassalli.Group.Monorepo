@@ -35,6 +35,7 @@ import {
 } from "@app/modules/vacations/ui/pages/vacation-index/utils/permission-view-state";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
+import { ChannelEnum } from "@app/core/enums/channel.enum";
 
 export default function VacationPage() {
    const navigate = useNavigate();
@@ -287,10 +288,10 @@ export default function VacationPage() {
       GetVacationSaldoQuery.isError
          ? GetVacationSaldoQuery.error
          : GetProfileDetails.isError
-           ? GetProfileDetails.error
-           : GetPermissionHistory.isError
-             ? GetPermissionHistory.error
-             : undefined;
+            ? GetProfileDetails.error
+            : GetPermissionHistory.isError
+               ? GetPermissionHistory.error
+               : undefined;
 
    const isLoadError =
       GetVacationSaldoQuery.isError ||
@@ -376,6 +377,7 @@ export default function VacationPage() {
                }
                onRequestSuccess={handleRequestSuccess}
                onRequestError={handleRequestError}
+               channel={ChannelEnum.PersonalPanel}
             />
 
             <PermissionRequestDetailsModal

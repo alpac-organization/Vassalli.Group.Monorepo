@@ -1,10 +1,11 @@
-import { Modal, Textarea } from "@alpac/design-system"
+import { Modal } from "@alpac/design-system"
 import type { ApplicationModalProps } from "./application-modal.types"
 import { PermitApplicationTypeEnum } from "@app/modules/applications/domain/enums/permit-application-type.enum"
 import { DonatedVacationForm } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/donated-vacation-form/donated-vacation-form";
 import { useEffect, useState } from "react";
 import { MedicalAppointmentForm } from "../application-forms/medical-appointment-form/medical-appointment-form";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
+import { VacationForm } from "../application-forms/vacation-form/vacation-form";
 
 export const ApplicationModal = (props: ApplicationModalProps): React.ReactNode => {
 
@@ -24,6 +25,12 @@ export const ApplicationModal = (props: ApplicationModalProps): React.ReactNode 
          title="Detalle de Solicitud"
          description="Información detallada sobre la solicitud seleccionada">
          <div className="flex flex-col gap-6">
+
+            {
+               applicationType === PermitApplicationTypeEnum.Vacation && (
+                  <VacationForm application={applicationData} />
+               )
+            }
 
             {
                applicationType === PermitApplicationTypeEnum.MedicalAppointment && (

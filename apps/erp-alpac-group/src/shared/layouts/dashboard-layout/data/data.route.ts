@@ -14,31 +14,31 @@ import {
 import type { SidebarLink } from "../components/Sidebar/types/sidebar.types";
 
 const collboratorSection: SidebarLink = {
-  id: "collaborators",
-  label: "Colaboradores",
-  path: "payroll/collaborators",
-  icon: UsersRound,
+   id: "collaborators",
+   label: "Colaboradores",
+   path: "payroll/collaborators",
+   icon: UsersRound,
 };
 
 const collaboratorProfileSection: SidebarLink = {
-  id: "collaborator-profile",
-  label: "Perfil",
-  path: "work-management/collaborator-profile",
-  icon: User,
+   id: "collaborator-profile",
+   label: "Perfil",
+   path: "work-management/collaborator-profile",
+   icon: User,
 };
 
 const applicationSection: SidebarLink = {
-  id: "applications",
-  label: "Solicitudes",
-  path: "applications",
-  icon: FileClock,
+   id: "applications",
+   label: "Solicitudes",
+   path: "applications",
+   icon: FileClock,
 };
 
 const gestionVacationsSection: SidebarLink = {
-  id: "gestion-permisos",
-  label: "Permisos",
-  path: "work-management/gestion-permisos",
-  icon: UserKey,
+   id: "gestion-permisos",
+   label: "Permisos",
+   path: "work-management/gestion-permisos",
+   icon: UserKey,
 };
 
 const controlVacationsSection: SidebarLink = {
@@ -47,12 +47,14 @@ const controlVacationsSection: SidebarLink = {
    path: "payroll/control-vacations",
    icon: CalendarCheck,
 };
+
 const gestionPayrollSection: SidebarLink = {
    id: "gestion-payroll",
    label: "Gestion de nómina",
    path: "payroll/gestion-nómina",
    icon: DollarSign,
 };
+
 const settingsSection: SidebarLink = {
    id: "settings",
    label: "Configuración",
@@ -62,25 +64,40 @@ const settingsSection: SidebarLink = {
 };
 
 const deduccionesSection: SidebarLink = {
-  id: "deducciones",
-  label: "Deducciones activas",
-  path: "payroll/deducciones",
-  icon: CircleMinus,
+   id: "deducciones",
+   label: "Deducciones activas",
+   path: "payroll/deducciones",
+   icon: CircleMinus,
 };
+
 const liquidacionSection: SidebarLink = {
    id: "liquidacion",
    label: "Proceso de Liquidación",
    path: "payroll/liquidacion",
    icon: HandCoins,
 };
+
+const vacationPaymentSection: SidebarLink = {
+   id: "vacation-payment",
+   label: "Pago de Vacaciones",
+   path: "payroll/vacation-payment",
+   icon: HandCoins,
+};
+
 export const sidebarData = {
    logoUrl:
       "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
    nameCompany: "CORE PANEL",
    navigationRegistry: {
       [ModuleEnum.PAYROLL]: {
-         [RoleEnum.MANAGER]: [collboratorSection],
-         [RoleEnum.ADMINISTRATOR]: [collboratorSection, controlVacationsSection, gestionPayrollSection, deduccionesSection, liquidacionSection],
+         [RoleEnum.ADMINISTRATOR]: [
+            collboratorSection,
+            controlVacationsSection,
+            gestionPayrollSection,
+            deduccionesSection,
+            liquidacionSection,
+            vacationPaymentSection
+         ],
          [RoleEnum.OPERATOR]: [collboratorSection],
       },
       [ModuleEnum.WORK_MANAGEMENT]: {
