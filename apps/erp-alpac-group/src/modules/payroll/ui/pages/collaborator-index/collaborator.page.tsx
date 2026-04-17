@@ -327,6 +327,7 @@ export const CollaboratorPage = function () {
                         <Button
                            size="giant"
                            label="Agregar Deducción "
+                           disabled
                            icon={<CircleMinus size={20} />}
                            className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                            onClick={handleAddDeduction}
@@ -334,6 +335,7 @@ export const CollaboratorPage = function () {
                         <Button
                            size="giant"
                            label="Iniciar Proceso de Baja  "
+                           disabled
                            icon={<UserMinus size={20} />}
                            className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                            onClick={handleCollaboratorExit}
