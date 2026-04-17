@@ -8,9 +8,11 @@ import PayrollFiltersBar from "@app/modules/payroll/ui/pages/nomina/components/p
 import { PayrollTable } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/payroll-table";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { usePayrollProcessStatus } from "@app/shared/hooks/usePayrollStatus";
 import { Loader } from "@app/shared/components/loaders/loader";
 import PayrollPageHeader from "./components/payroll-page-header/payroll-page-header";
 import PayrollCycleFormalization from "./components/payroll-cycle-formalization/payroll-cycle-formalization";
+import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-process.request";
 
 export function PayrollPage() {
   const maxPageSize = 10;
@@ -37,6 +39,17 @@ export function PayrollPage() {
       module_code: moduleCode,
     },
   });
+
+  const payrollStatusQuery = usePayrollProcessStatus({
+    payload: {
+      companyId,
+      moduleCode,
+      payrol_type: "Ordinary",
+    } as PayrollProcessRequest,
+  });
+
+  const statusBusy =
+    payrollStatusQuery.isPending || payrollStatusQuery.isFetching;
 
   const {
     data: collaborators = {
@@ -88,7 +101,7 @@ export function PayrollPage() {
       className="flex flex-col gap-4"
     >
       {GetCollaboratorsQuery.isPending && (
-        <Loader title="Cargando colaboradores..." />
+        <Loader title="Cargando proceso de nomina..." />
       )}
 
       <div className="flex justify-start">
@@ -108,6 +121,12 @@ export function PayrollPage() {
       <PayrollCycleFormalization
         cicloInicial="16 de abril de 2026"
         cicloFinal="31 de abril de 2026"
+        existPayrollInProgress={
+          payrollStatusQuery.data?.exist_payroll_in_progress
+        }
+        statusLoading={statusBusy}
+        statusError={payrollStatusQuery.isError}
+        onRetryProcessStatus={() => payrollStatusQuery.refetch()}
       />
       <PayrollFiltersBar
         onApply={handleApplyFilters}
