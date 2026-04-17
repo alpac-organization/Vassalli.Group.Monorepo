@@ -1,8 +1,8 @@
 export interface GetVacationsListResponse {
-   data: VacationControlItemResponse[];
-   total_records: number;
-   page_size: number;
-   page_number: number;
+  data: VacationControlItemResponse[];
+  total: number;
+  page_size: number;
+  page_number: number;
 }
 
 export interface VacationControlItemResponse {
