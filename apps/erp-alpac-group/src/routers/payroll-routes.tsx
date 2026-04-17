@@ -30,25 +30,6 @@ export const PayrollRoutes: RouteObject[] = [
     element: <VacationPaymentPage />,
   },
   {
-    index: true,
-    element: <CollaboratorPage />,
-  },
-  {
-    path: "collaborators",
-    element: <CollaboratorPage />,
-    children: [
-      {
-        // path: ":identification_number/collaborator-profile",
-        path: "collaborator-profile",
-        element: <CollaboratorProfilePage />,
-      },
-    ],
-  },
-  {
-    path: "control-vacations",
-    element: <ControlVacationsPage />,
-  },
-  {
     path: "gestion-nomina",
     element: <PayrollPage />,
   },
