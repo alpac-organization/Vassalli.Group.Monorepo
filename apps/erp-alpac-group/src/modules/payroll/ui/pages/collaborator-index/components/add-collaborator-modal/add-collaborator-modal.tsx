@@ -17,6 +17,7 @@ import {
    formatPhone,
    validateAge,
    validateEmail,
+   validateNicaraguaPhone,
    validateToday,
 } from "@app/shared/utils/string.utils";
 import { GenderOptions } from "@app/core/enums/gender.enum";
@@ -386,8 +387,6 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            } else {
                               evt.target.value = evt.target.value.toUpperCase();
                            }
-
-                           register("identification_number").onChange(evt);
                         }}
                         disabled={identificationType === 0 || !identificationType}
                      />
@@ -459,11 +458,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         labelClassName="text-black! dark:text-white!"
                         {...register("personal_information.personal_phone_number", {
                            required: false,
-                           pattern: {
-                              value: /^[2578]\d{7}$/,
-                              message:
-                                 "El número debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)",
-                           },
+                           validate: (value) => validateNicaraguaPhone(value),
                            setValueAs: (value: string) => {
                               const trimmed = value?.trim();
                               return trimmed ? trimmed.replace(/-/g, "") : ""
@@ -475,9 +470,6 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         }
                         onChange={(evt) => {
                            evt.target.value = formatPhone(evt.target.value);
-                           register(
-                              "personal_information.personal_phone_number",
-                           ).onChange(evt);
                         }}
                      />
 
@@ -662,11 +654,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         labelClassName="text-black! dark:text-white!"
                         {...register("working_information.work_phon_number", {
                            required: false,
-                           pattern: {
-                              value: /^[2578]\d{7}$/,
-                              message:
-                                 "El número debe ser válido para Nicaragua (8 dígitos y empezar con 2, 5, 7 u 8)",
-                           },
+                           validate: (value) => validateNicaraguaPhone(value),
                            setValueAs: (value: string) => {
                               const trimmed = value?.trim();
                               return trimmed ? trimmed.replace(/-/g, "") : "";
@@ -678,9 +666,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         }
                         onChange={(evt) => {
                            evt.target.value = formatPhone(evt.target.value);
-                           register("working_information.work_phon_number").onChange(
-                              evt,
-                           );
+                           register("working_information.work_phon_number").onChange(evt);
                         }}
                      />
 
@@ -788,7 +774,6 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         }
                         onChange={(evt) => {
                            evt.target.value = formatAmount(evt.target.value, 18, 3);
-                           register("salary_information.salary").onChange(evt);
                         }}
                      />
 

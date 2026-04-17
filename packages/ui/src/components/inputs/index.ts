@@ -10,3 +10,6 @@ export * from "./dropdown/dropdown.types"
 export * from "./date-picker/date-picker-slot-props"
 export * from "./date-picker/date-picker.types"
 export * from "./date-picker/date-picker"
+
+export * from "./radio-button/radio-button"
+export * from "./radio-button/radio-button.types"

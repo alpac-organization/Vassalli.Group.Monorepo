@@ -6,15 +6,20 @@ import { CollaboratorServices } from "@app/modules/payroll/infrastructure/servic
 import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/update-collaborator-request";
 import { useMutation } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+
 const collaboratorServices = new CollaboratorServices(httpHandler);
+
 export interface useCollaboratorsProps {
    Collaboratorsfilters?: CollaboratorRequest;
    CollaboratorDetailsPayload?: CollaboratorProfileDetailsRequest;
 }
 
 export const useCollaborators = function (props: useCollaboratorsProps) {
-   const { Collaboratorsfilters, CollaboratorDetailsPayload } = props;
+
    const queryClient = useQueryClient();
+
+   const { Collaboratorsfilters, CollaboratorDetailsPayload } = props;
 
    const collaboratorsListEnabled = Boolean(
       Collaboratorsfilters?.company_id?.trim() &&
@@ -26,9 +31,11 @@ export const useCollaborators = function (props: useCollaboratorsProps) {
       CollaboratorDetailsPayload.module_code?.trim() &&
       CollaboratorDetailsPayload.identification_number?.trim(),
    );
-   const profileDetailsQueryEnabled =
-      profileDetailsCanFetch &&
+
+   const profileDetailsQueryEnabled = profileDetailsCanFetch &&
       (CollaboratorDetailsPayload?.QueryEnabled ?? true);
+
+   type CollaboratorProfileResponse = Awaited<ReturnType<typeof collaboratorServices.GetCollaboratorProfileDetails>>;
 
    // Query para obtener el listado de colaboradores, si y solo si se proporcionan los filtros necesarios
    const GetCollaboratorsQuery = useQuery({
@@ -42,7 +49,7 @@ export const useCollaborators = function (props: useCollaboratorsProps) {
    });
 
    // Query para obtener los detalles del perfil del colaborador, si y solo si se proporciona el payload necesario
-   const GetProfileDetails = useQuery({
+   const GetProfileDetails = useQuery<CollaboratorProfileResponse, ApiErrorResponse>({
       queryKey: ["collaboratorProfileDetails", CollaboratorDetailsPayload],
       queryFn: () => {
          const { QueryEnabled: _qe, ...apiPayload } = CollaboratorDetailsPayload!;
@@ -54,6 +61,7 @@ export const useCollaborators = function (props: useCollaboratorsProps) {
       staleTime: 1000 * 60 * 10,
       retry: 1,
    });
+
    const UpdateCollaboratorProfileDetails = useMutation({
       mutationKey: ["updateCollaboratorProfileDetails"],
       mutationFn: (payload: UpdateCollaboratorProfileDetailsRequest) => {
@@ -72,6 +80,7 @@ export const useCollaborators = function (props: useCollaboratorsProps) {
          });
       },
    });
+
    return {
       GetCollaboratorsQuery,
       GetProfileDetails,

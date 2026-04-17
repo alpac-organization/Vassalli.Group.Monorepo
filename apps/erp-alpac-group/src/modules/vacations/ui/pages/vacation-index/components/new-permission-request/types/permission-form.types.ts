@@ -1,3 +1,4 @@
+import type { DatePickerValue } from "@alpac/design-system";
 import type { PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
 import type { UseFormSetError } from "react-hook-form";
 
@@ -6,8 +7,8 @@ import type { UseFormSetError } from "react-hook-form";
  */
 export interface PermissionRequestFormValues {
    type: PermissionType;
-   start_date: string;
-   end_date: string;
+   start_date: DatePickerValue;
+   end_date: DatePickerValue;
    start_time?: string;
    end_time?: string;
    donated_vacation_days?: number;

@@ -1,47 +1,43 @@
-export interface CreatePermissionRequest {
-   /**
-    * Identificador único de la empresa
-    */
+
+export interface CreatePermissionRequestBase {
    company_id: string;
-   /**
-    * Codigo del modulo de vacaciones
-    */
    module_code: string;
-   /**
-    * Numero de identificacion del colaborador
-    */
    identification_number: string;
-   /**
-    * Fecha de inicio de las vacaciones
-    */
-   start_date: string;
-   /**
-    * Fecha de fin
-    */
-   end_date: string;
-   /**
-    * Hora de inicio
-    */
-   start_time?: string | null;
-   /**
-    * Hora de fin
-    */
-   end_time?: string | null;
-   /**
-    * Tipo de permiso (valor numérico del enum)
-    */
    permit_application_type: number;
-   /**
-    * Descripcion de la solicitud de vacaciones
-    */
    description: string;
+   channel: number;
+   permit_application_vacation?: CreateVacationPermissionRequest;
+   permit_application_donated_vacations?: CreateDonatedVacationPermissionRequest;
+   permit_application_medical_appointment?: CreateMedicalAppointmentPermissionRequest;
+}
+
+export interface CreateVacationPermissionRequest {
+   start_date: string;
+   end_date: string;
+   start_time?: string | null;
+   end_time?: string | null;
+   is_full_day: boolean;
+   is_it_midday: boolean;
+   with_range_hours: boolean;
+}
+
+export interface CreateDonatedVacationPermissionRequest {
+   amount_days: number;
+   identification_collaborator_to_receive: string;
+}
+
+export interface CreateMedicalAppointmentPermissionRequest {
+   is_full_day: boolean;
+   start_date: string;
+   start_time?: string | null;
+   end_time?: string | null;
 }
 
 export type PermissionType =
-   /* | "Vacation"
+   | "Vacation"
    | "MedicalAppointment"
-   | "CompensatoryTime"
-   | "PaidLeave"
-   | "UnpaidLeave"
-   | "SpecialLeave" |  */
-   "DonatedVacations";
+   // | "CompensatoryTime"
+   // | "PaidLeave"
+   // | "UnpaidLeave"
+   // | "SpecialLeave"
+   | "DonatedVacations";

@@ -146,3 +146,12 @@ export interface GetApplicationsResponse {
     */
    request_date: string;
 }
+
+export interface GetApplicationListResponse {
+   data: GetApplicationsResponse[];
+   page_number: number;
+   page_size: number;
+   total: number;
+}
+
+
