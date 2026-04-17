@@ -51,7 +51,7 @@ const controlVacationsSection: SidebarLink = {
 const gestionPayrollSection: SidebarLink = {
    id: "gestion-payroll",
    label: "Gestion de nómina",
-   path: "payroll/gestion-nómina",
+   path: "payroll/gestion-nomina",
    icon: DollarSign,
 };
 
