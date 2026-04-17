@@ -100,8 +100,11 @@ export function PayrollPage() {
       transition={{ duration: 0.5 }}
       className="flex flex-col gap-4"
     >
-      {GetCollaboratorsQuery.isPending && (
-        <Loader title="Cargando proceso de nomina..." />
+      {payrollStatusQuery.isPending && (
+        <Loader title="Consultando proceso de nómina..." />
+      )}
+      {!payrollStatusQuery.isPending && GetCollaboratorsQuery.isPending && (
+        <Loader title="Cargando colaboradores..." />
       )}
 
       <div className="flex justify-start">

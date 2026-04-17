@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, InputText, Modal } from "@alpac/design-system";
-import { AlertTriangle, CircleAlert, Info } from "lucide-react";
+import { CircleAlert, Info } from "lucide-react";
 import type { PayrollCycleFormalizationProps } from "@app/modules/payroll/ui/pages/nomina/components/payroll-cycle-formalization/types/payroll-cycle-formalization.types";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const readOnlyInputClassName = `
   transition-all! duration-200! dark:bg-[#272b34]! border-b border-neutral-700 dark:px-3! 
@@ -29,13 +29,13 @@ export default function PayrollCycleFormalization({
   onRetryProcessStatus,
 }: PayrollCycleFormalizationProps) {
   const [isFormalizeModalOpen, setIsFormalizeModalOpen] = useState(false);
-  const [showInProgressModal, setShowInProgressModal] = useState(false);
+  //   const [showInProgressModal, setShowInProgressModal] = useState(false);
   const [showCanProceedModal, setShowCanProceedModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
-  const navigate = useNavigate();
   const presentedRef = useRef<string | null>(null);
   const prevErrorRef = useRef(false);
-
+  const navigate = useNavigate();
+  const { alias_company: aliasCompany } = useParams();
   useEffect(() => {
     if (prevErrorRef.current && !statusError) {
       presentedRef.current = null;
@@ -58,13 +58,13 @@ export default function PayrollCycleFormalization({
       }
       return;
     }
-    if (existPayrollInProgress === true) {
-      if (presentedRef.current !== "in_progress") {
-        presentedRef.current = "in_progress";
-        setShowInProgressModal(true);
-      }
-      return;
-    }
+    //  if (existPayrollInProgress === true) {
+    //    if (presentedRef.current !== "in_progress") {
+    //      presentedRef.current = "in_progress";
+    //      setShowInProgressModal(true);
+    //    }
+    //    return;
+    //  }
     if (existPayrollInProgress === false) {
       if (presentedRef.current !== "can_proceed") {
         presentedRef.current = "can_proceed";
@@ -86,18 +86,21 @@ export default function PayrollCycleFormalization({
     setIsFormalizeModalOpen(false);
   }, [onConfirmFormalizacion]);
 
-  const handleCloseInProgressModal = useCallback(() => {
-    setShowInProgressModal(false);
-  }, []);
+  //   const handleCloseInProgressModal = useCallback(() => {
+  //     setShowInProgressModal(false);
+  //   }, []);
 
   const handleCloseCanProceedModal = useCallback(() => {
     setShowCanProceedModal(false);
-    navigate("/dashboard");
-  }, [navigate]);
+    if (aliasCompany) {
+      navigate(`/${aliasCompany}/dashboard/payroll/collaborators`);
+    } else {
+      navigate("../collaborators", { relative: "path" });
+    }
+  }, [aliasCompany, navigate]);
 
   const handleContinueCanProceed = useCallback(() => {
     setShowCanProceedModal(false);
-    setIsFormalizeModalOpen(true);
   }, []);
 
   const handleCloseErrorModal = useCallback(() => {
@@ -149,7 +152,7 @@ export default function PayrollCycleFormalization({
             />
             {statusError && !showErrorModal && (
               <p className="text-[13px] text-slate-600 dark:text-slate-400 flex flex-wrap items-center gap-2">
-                <span>No se pudo verificar el estado de la nómina.</span>
+                <span>No se pudo comprobar si hay una nómina en progreso.</span>
                 <button
                   type="button"
                   className="font-medium text-alpac-primary-600 dark:text-alpac-primary-400 underline underline-offset-2"
@@ -177,7 +180,8 @@ export default function PayrollCycleFormalization({
               strokeWidth={1.8}
             />
             <span>
-              No se pudo consultar si hay una nómina en curso. Intente de nuevo.
+              No se pudo comprobar si ya existe una nómina en progreso. Revise
+              su conexión e inténtelo nuevamente en unos minutos.
             </span>
           </span>
         }
@@ -199,13 +203,13 @@ export default function PayrollCycleFormalization({
           />
         </div>
       </Modal>
-
+      {/* 
       <Modal
         isOpen={showInProgressModal}
         onClose={handleCloseInProgressModal}
         variant="warning"
         size="md"
-        title="Ya hay una nómina en curso"
+        title="Nómina en progreso"
         description={
           <span className="flex gap-2.5 items-start text-left">
             <AlertTriangle
@@ -214,8 +218,8 @@ export default function PayrollCycleFormalization({
               strokeWidth={1.8}
             />
             <span>
-              Existe al menos una nómina en progreso para esta compañía. Debe
-              finalizarla antes de iniciar otra.
+              ya Existe una nómina en progreso para esta empresa 
+              y este tipo de nómina.Debe terminar o cancelar ese proceso antes de formalizar otra.
             </span>
           </span>
         }
@@ -229,7 +233,7 @@ export default function PayrollCycleFormalization({
             className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:w-auto!"
           />
         </div>
-      </Modal>
+      </Modal> */}
 
       <Modal
         isOpen={showCanProceedModal}
@@ -245,8 +249,8 @@ export default function PayrollCycleFormalization({
               strokeWidth={1.8}
             />
             <span>
-              No hay una nómina en proceso. ¿Desea continuar y formalizar la
-              nómina del ciclo actual?
+              No hay ninguna nómina en progreso. Puede formalizar la nómina del
+              ciclo actual. ¿Desea continuar?
             </span>
           </span>
         }
@@ -274,8 +278,8 @@ export default function PayrollCycleFormalization({
         onClose={handleCloseFormalizeModal}
         variant="warning"
         size="md"
-        title="Formalizar nómina"
-        description="Va a formalizar la nómina del ciclo actual. Esta acción requiere su confirmación. ¿Desea continuar?"
+        title="Confirmación de formalización"
+        description="Va a formalizar la nómina del ciclo actual. Esta acción no se puede deshacer. ¿Desea continuar?"
       >
         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Button

@@ -115,14 +115,6 @@ export default function ControlVacationsPage() {
     setReportDevModalOpen(true);
   }, []);
 
-  if (
-    historyFilters &&
-    GetControlVacationHistoryQuery.fetchStatus === "fetching" &&
-    GetControlVacationHistoryQuery.data === undefined
-  ) {
-    return <Loader title="Cargando control de vacaciones..." />;
-  }
-
   return (
     <>
       <motion.div
@@ -132,6 +124,11 @@ export default function ControlVacationsPage() {
         transition={{ duration: 0.5 }}
         className="flex flex-col gap-4"
       >
+        {hasAppliedDateRange &&
+          GetControlVacationHistoryQuery.isPending && (
+            <Loader title="Cargando control de vacaciones..." />
+          )}
+
         <div className="flex justify-start">
           <Breadcrumb
             items={[
