@@ -1,20 +1,19 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Alert, AnimatedAlertWrapper, Button } from "@alpac/design-system";
-import { MainPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/main-panel/main-panel";
+import { Alert, AnimatedAlertWrapper, Button, Textarea } from "@alpac/design-system";
+import { ConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/confirm-modal/confirm-modal";
 import { CheckIcon, XIcon } from "lucide-react";
-import { DonatedVacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/donated-vacation-panel/donated-vacation-panel";
 import { useApplications } from "@app/modules/applications/ui/hooks/useApplications";
-import { useUserStore } from "@app/shared/stores/useUserStore";
-import { ConfirmModal } from "../../confirm-modal/confirm-modal";
-import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
-import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
-import type { ConfirmActionType } from "../../../types/confirm-action.types";
+import { MainPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/main-panel/main-panel";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 
-export const ManagerForm = ({ application }: { application: GetApplicationsResponse }) => {
+import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
+import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
+import type { VacationFormProps } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/vacation-form/vacation-form.types";
 
-   const { companyId, moduleCode } = useUserStore();
+export const VacationForm = (props: VacationFormProps) => {
+
+   const { application } = props;
    const { ProcessApplication } = useApplications();
    const { getMappedError } = useMappedError();
 
@@ -38,16 +37,9 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
       message: "",
    });
 
-   const { handleSubmit, setValue } = useForm<ApplicationProcessRequest>({
-      defaultValues: {
-         company_id: companyId,
-         module_code: moduleCode,
-         permit_application_id: application.permit_apllication_id,
-         is_approved: null
-      }
-   });
+   const { handleSubmit } = useForm<ApplicationProcessRequest>();
 
-   const onInternalSubmit = (data: ApplicationProcessRequest) => {
+   const onSubmit = (data: ApplicationProcessRequest) => {
       ProcessApplication.mutate(data, {
          onSuccess: () => {
             const action = data.is_approved ? "Aprobada" : "Rechazada";
@@ -69,69 +61,41 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
             });
          }
       });
-   };
-
-   const openConfirm = (type: ConfirmActionType) => {
-      setValue("is_approved", type === "APPROVE");
-      setConfirmModal({ isOpen: true, type });
-   };
+   }
 
    return (
-      <form className="flex flex-col gap-4">
-         <MainPanel
-            application={application}
-            className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <form className="flex flex-col gap-6">
 
-            {
-               application.type === "DonatedVacations" && (
-                  <>
-                     <DonatedVacationPanel application={application} />
-                     <MainPanel.Field label="Días Donados" className="font-semibold! rounded-md! text-[15px]">
-                        {application.amount_days === 0 ? "Sin días donados" : application.amount_days}
-                     </MainPanel.Field>
-                  </>
-               )
-            }
+         <MainPanel application={application} className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
 
-
-            <MainPanel.Field label="Aprobación por el Jefe Directo" className="font-semibold! rounded-md! text-[15px]">
-               {application.firts_step_approved === null ? "Pendiente" : application.firts_step_approved ? "Aprobado" : "Rechazado"}
-            </MainPanel.Field>
-
-            {
-               application.firts_step_approved !== null && (
-                  <MainPanel.Field label="Nombre del Jefe Directo" className="font-semibold! rounded-md! text-[15px]">
-                     {application.manager_fullname || "Sin descripción"}
-                  </MainPanel.Field>
-               )
-            }
-
-            <MainPanel.Field label="Motivo o Descripción" className="font-semibold! rounded-md! text-[15px]">
-               {application.description || "Sin descripción"}
+            <MainPanel.Field label="Motivo o Descripción" className="col-span-full">
+               <Textarea
+                  className="rounded-md"
+                  value={application.description || 'Sin descripción'}
+                  readOnly
+               />
             </MainPanel.Field>
 
          </MainPanel>
 
          {
-            application.firts_step_approved === null && (
-               <div className="flex flex-row col-span-full gap-4">
+            application.second_step_approved === null && (
+               <div className="flex justify-end gap-3">
                   <Button
                      type="button"
                      label="Rechazar Solicitud"
                      className="rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200"
-                     onClick={() => openConfirm("REJECT")}
+                     onClick={() => setConfirmModal({ isOpen: true, type: 'REJECT' })}
                      icon={<XIcon size={20} />}
                      isHiddenLabelOnMobile
-                     disabled={ProcessApplication.isPending}
                   />
                   <Button
                      type="button"
                      label="Aprobar Solicitud"
                      className="rounded-md! h-11 px-6! border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-40 shadow-sm transition-all duration-200"
-                     onClick={() => openConfirm("APPROVE")}
+                     onClick={() => setConfirmModal({ isOpen: true, type: 'APPROVE' })}
                      icon={<CheckIcon size={20} />}
                      isHiddenLabelOnMobile
-                     disabled={ProcessApplication.isPending}
                   />
                </div>
             )
@@ -153,8 +117,8 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
             type={confirmModal.type}
             isLoading={ProcessApplication.isPending}
             disabled={ProcessApplication.isPending}
-            handleFinalAction={() => handleSubmit(onInternalSubmit)}
+            handleFinalAction={() => handleSubmit(onSubmit)}
          />
       </form>
    );
-}
+};

@@ -63,6 +63,7 @@ export const ApplicationsPage = function () {
       defaultValues: initialFilters
    })
    const [isNewPermissionRequestModalOpen, setIsNewPermissionRequestModalOpen] = useState(false);
+
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
    const channel = role === RoleEnum.ADMINISTRATOR ?
       ChannelEnum.AdministrativePanel : role === RoleEnum.MANAGER ?

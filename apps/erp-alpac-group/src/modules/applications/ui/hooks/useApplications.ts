@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request"
 import { ApplicationServices } from "@app/modules/applications/infrastructure/services/ApplicationServices"
 import { httpHandler } from "@app/core/adapters"
@@ -24,6 +24,8 @@ const applicationServices = new ApplicationServices(httpHandler)
  */
 export const useApplications = (filters?: ApplicationRequest, config?: { enabled?: boolean, enabledDetail?: boolean }) => {
 
+   const queryClient = useQueryClient();
+
    type ApplicationResponse = Awaited<ReturnType<ApplicationServices["GetApplications"]>>;
 
    type ApplicationDetailResponse = Awaited<ReturnType<ApplicationServices["GetApplicationDetail"]>>;
@@ -43,8 +45,8 @@ export const useApplications = (filters?: ApplicationRequest, config?: { enabled
    const ProcessApplication = useMutation<ProcessApplicationResponse, ApiErrorResponse, ApplicationProcessRequest>({
       mutationFn: (payload: ApplicationProcessRequest) => applicationServices.ProcessApplication(payload),
       onSuccess: () => {
-         GetApplicationsQuery.refetch();
-         GetApplicationDetailQuery.refetch();
+         queryClient.invalidateQueries({ queryKey: ["applicationsData"] });
+         queryClient.invalidateQueries({ queryKey: ["applicationDetailData"] });
       },
    })
 
