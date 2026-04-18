@@ -124,6 +124,8 @@ export const ApplicationsPage = function () {
                mappedError.description ||
                "Error al cargar las solicitudes",
          });
+
+         handleCloseAlert();
       }
 
       if (applicationsData.length === 0 && isSuccess && isManager) {
@@ -133,6 +135,8 @@ export const ApplicationsPage = function () {
             title: "Error",
             message: "No se encontraron solicitudes",
          });
+
+         handleCloseAlert();
       }
 
       if (applicationsData.length > 0 && isSuccess) {
@@ -144,6 +148,12 @@ export const ApplicationsPage = function () {
          });
       }
    }, [applicationsData, isFetching, isSuccess, isError, errors])
+
+   const handleCloseAlert = useCallback(() => {
+      setTimeout(() => {
+         setShowAlert({ show: false, type: "info", title: "", message: "" });
+      }, 3000);
+   }, []);
 
    const onSubmit: SubmitHandler<ApplicationRequest> = async (data) => {
 
@@ -368,22 +378,19 @@ export const ApplicationsPage = function () {
             ))}
 
             <AnimatedAlertWrapper open={showAlert.show}>
-               {showAlert.show && (
-                  <Alert
-                     type={showAlert.type}
-                     title={showAlert.title}
-                     message={showAlert.message}
-                     showCloseButton
-                     onClose={() => {
-                        setShowAlert({
-                           show: false,
-                           type: "info",
-                           title: "",
-                           message: "",
-                        });
-                     }}
-                  />
-               )}
+               <Alert
+                  type={showAlert.type}
+                  title={showAlert.title}
+                  message={showAlert.message}
+                  onClose={() => {
+                     setShowAlert({
+                        show: false,
+                        type: "info",
+                        title: "",
+                        message: "",
+                     });
+                  }}
+               />
             </AnimatedAlertWrapper>
 
             {isAdministrator && (

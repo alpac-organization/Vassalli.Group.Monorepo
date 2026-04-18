@@ -33,12 +33,13 @@ import { useCatalog } from '@app/modules/catalog/ui/hooks/useCatalog';
 import { CatalogEnum } from '@app/core/enums/catalog.enum';
 import { CollaboratorStatusBadgeColor, CollaboratorStatusEnum, CollaboratorStatusOptions } from '@app/modules/payroll/domain/enums/collaborator-status.enum';
 import { mapCatalogToOptions } from '@app/shared/utils/catalog.utils';
-import { formatIdentificationNumber } from '@app/shared/utils/string.utils';
+import { formatIdentificationNumber, validateIdentificationNumber } from '@app/shared/utils/string.utils';
 import { AddCollaboratorModal } from '@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal';
 import { useTheme } from '@alpac/design-system';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 import { NewPermissionRequestModal } from '@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal';
 import { ChannelEnum } from '@app/core/enums/channel.enum';
+import { IdentificationEnum } from '@app/core/enums/identifcation.enum';
 
 export const CollaboratorPage = function () {
 
@@ -77,8 +78,8 @@ export const CollaboratorPage = function () {
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
    const isProfileView = location.pathname.includes('collaborator-profile');
 
-   const { register, handleSubmit, control, reset } =
-      useForm<CollaboratorRequest>();
+   const { register, handleSubmit, control, reset, formState: { errors } } =
+      useForm<CollaboratorRequest>({ mode: "onChange" });
 
    const { GetCatalogListQuery: workAreasQuery } = useCatalog({
       company_id: companyId,
@@ -399,6 +400,9 @@ export const CollaboratorPage = function () {
                            placeholder="Ingrese la identificación"
                            {...register('identification_number',
                               {
+                                 validate: {
+                                    validateIdentification: (value?: string) => validateIdentificationNumber(value!, IdentificationEnum.NATIONAL_ID.value)
+                                 },
                                  setValueAs: (value: string) =>
                                     value ? value.toString().replace(/-/g, "").toUpperCase()
                                        : "",
@@ -408,6 +412,7 @@ export const CollaboratorPage = function () {
                                  }
                               })
                            }
+                           error={errors.identification_number?.message}
                         />
                      </div>
 

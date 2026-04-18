@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Alert, AnimatedAlertWrapper, Button } from "@alpac/design-system";
 import { MainPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/main-panel/main-panel";
@@ -58,6 +58,8 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
                title: "Solicitud procesada",
                message: `La solicitud ha sido ${action} exitosamente.`
             });
+
+            handleCloseAlert();
          },
          onError: (error) => {
             const mappedError = getMappedError(error);
@@ -67,6 +69,8 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
                title: "Error",
                message: mappedError.description
             });
+
+            handleCloseAlert();
          }
       });
    };
@@ -75,6 +79,12 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
       setValue("is_approved", type === "APPROVE");
       setConfirmModal({ isOpen: true, type });
    };
+
+   const handleCloseAlert = useCallback(() => {
+      setTimeout(() => {
+         setShowAlert({ show: false, type: "info", title: "", message: "" });
+      }, 3000);
+   }, []);
 
    return (
       <form className="flex flex-col gap-4">
@@ -142,7 +152,6 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
                type={showAlert.type}
                title={showAlert.title}
                message={showAlert.message}
-               showCloseButton
                onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
             />
          </AnimatedAlertWrapper>

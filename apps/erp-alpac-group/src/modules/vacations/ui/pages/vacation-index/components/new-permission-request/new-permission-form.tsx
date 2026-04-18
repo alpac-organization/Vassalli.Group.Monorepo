@@ -10,6 +10,7 @@ import { generatePermissionPayload } from "./utils/generatePermissionPayload";
 import type { NewPermissionRequestFormProps } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/new-permissionFormProps";
 import type { PermissionRequestFormValues } from "./types/permission-form.types";
 import type { PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
+import dayjs from "dayjs";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -188,6 +189,7 @@ export function NewPermissionRequestForm(
                                           setStartDate(value.$d)
                                           field.onChange(value)
                                        }}
+                                       error={errors.start_date?.message as string}
                                     />
                                  )}
                               />
@@ -202,7 +204,17 @@ export function NewPermissionRequestForm(
                                  control={control}
                                  rules={{
                                     required: "La fecha de fin es requerida.",
+                                    validate: {
+                                       afterStartDate: (value) => {
+                                          const startDate = getValues("start_date")
 
+                                          if (startDate && dayjs(value).isBefore(dayjs(startDate), 'day')) {
+                                             return "La fecha de fin no puede ser menor a la fecha de inicio."
+                                          }
+
+                                          return true
+                                       }
+                                    }
                                  }}
                                  render={({ field }) => (
                                     <DatePicker
@@ -215,6 +227,7 @@ export function NewPermissionRequestForm(
                                           setEndDate(value.$d)
                                           field.onChange(value)
                                        }}
+                                       error={errors.end_date?.message as string}
                                     />
                                  )}
                               />
