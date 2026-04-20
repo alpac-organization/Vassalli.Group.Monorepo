@@ -26,6 +26,15 @@ export function ControlVacationFiltersBar({
   });
   const [rangeError, setRangeError] = useState<string | null>(null);
 
+  const rangeOrderInvalid =
+    Boolean(startDate && endDate) &&
+    (() => {
+      const s = dayjs(startDate);
+      const e = dayjs(endDate);
+      if (!s.isValid() || !e.isValid()) return false;
+      return s.isAfter(e, "day");
+    })();
+
   useEffect(() => {
     setStartDate(initialStart ? dayjs(initialStart.split("T")[0]) : null);
   }, [initialStart]);
@@ -47,7 +56,7 @@ export function ControlVacationFiltersBar({
     if (endDate) {
       const currentEnd = dayjs(endDate);
       if (currentEnd.isValid() && currentEnd.isBefore(nextStart, "day")) {
-        setEndDate(null);
+        setRangeError("La fecha final no puede ser menor a la fecha inicial");
       }
     }
   };
@@ -55,9 +64,17 @@ export function ControlVacationFiltersBar({
   const handleEndDateChange = (value: DatePickerValue) => {
     setRangeError(null);
     setEndDate(value);
+
+    const nextEnd = value ? dayjs(value) : null;
+    if (!nextEnd?.isValid() || !startDate) return;
+
+    const nextStart = dayjs(startDate);
+    if (nextStart.isValid() && nextEnd.isBefore(nextStart, "day")) {
+      setRangeError("La fecha final no puede ser menor a la fecha inicial");
+    }
   };
 
-  const canApplyFilters = Boolean(startDate && endDate);
+  const canApplyFilters = Boolean(startDate && endDate) && !rangeOrderInvalid;
 
   const handleApply = () => {
     setRangeError(null);
@@ -71,9 +88,7 @@ export function ControlVacationFiltersBar({
     const startStr = s.format("YYYY-MM-DD");
     const endStr = e.format("YYYY-MM-DD");
     if (startStr > endStr) {
-      setRangeError(
-        "La fecha inicial no puede ser posterior a la fecha final.",
-      );
+      setRangeError("La fecha inicial no puede ser posterior a la fecha final");
       return;
     }
     const { start_date, end_date } = toUtcDayRangeIsoFromYmd(startStr, endStr);
@@ -140,9 +155,10 @@ export function ControlVacationFiltersBar({
               />
             </div>
           </div>
-          {rangeError ? (
+          {rangeError || rangeOrderInvalid ? (
             <p className="m-0 text-sm text-red-600 dark:text-red-400">
-              {rangeError}
+              {rangeError ??
+                "La fecha final no puede ser menor a la fecha inicial"}
             </p>
           ) : null}
         </div>
