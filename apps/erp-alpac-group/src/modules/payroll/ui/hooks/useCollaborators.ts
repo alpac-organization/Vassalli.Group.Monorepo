@@ -69,14 +69,20 @@ export const useCollaborators = function (props: useCollaboratorsProps) {
       },
       onSuccess: (_, _variables) => {
          queryClient.invalidateQueries({
-            queryKey: [
-               "collaboratorProfileDetails",
-               {
-                  company_id: _variables.company_id,
-                  module_code: _variables.module_code,
-                  identification_number: _variables.identification_number,
-               },
-            ],
+            predicate: (query) => {
+               if (query.queryKey[0] !== "collaboratorProfileDetails")
+                  return false;
+               const key = query.queryKey[1];
+               if (!key || typeof key !== "object") return false;
+               return (
+                  "company_id" in key &&
+                  "module_code" in key &&
+                  "identification_number" in key &&
+                  key.company_id === _variables.company_id &&
+                  key.module_code === _variables.module_code &&
+                  key.identification_number === _variables.identification_number
+               );
+            },
          });
       },
    });

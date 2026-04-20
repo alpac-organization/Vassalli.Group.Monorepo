@@ -6,7 +6,7 @@ import {
 } from "@app/shared/utils/string.utils";
 import { genderRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/genderRawToLabel";
 import { formatIsoString } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/date-input";
-import { maritalRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/marital-status.utils";
+import { normalizeMaritalStatusFromApi } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/marital-status.utils";
 
 export function mapPersonalInformationToForm(
   personal: CollaboratorProfilePersonalInformation | null,
@@ -26,7 +26,10 @@ export function mapPersonalInformationToForm(
       personal?.identification_number ?? "",
     ),
     gender: genderRawToLabel(personal?.gender ?? null) ?? "",
-    marital_status: maritalRawToLabel(personal?.marital_status ?? null) ?? "",
+    marital_status: (() => {
+      const code = normalizeMaritalStatusFromApi(personal?.marital_status ?? null);
+      return code !== null ? String(code) : "";
+    })(),
     birthdate: formatIsoString(personal?.birthdate as string | null),
     address: personal?.address ?? "",
     personalEmail: personal?.personal_email ?? "",

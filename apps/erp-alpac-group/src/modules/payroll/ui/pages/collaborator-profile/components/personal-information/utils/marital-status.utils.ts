@@ -25,9 +25,15 @@ function getMaritalStatusObj(raw: MaritalStatusSource) {
   }
 
   const normInput = s.toLowerCase();
+  const normInputCompact = normInput.replace(/_/g, "");
   for (const [key, obj] of Object.entries(MaritalStatus)) {
     const normKey = key.toLowerCase();
-    if (normInput === normKey || obj.label.toLowerCase() === s.toLowerCase())
+    const normKeyCompact = normKey.replace(/_/g, "");
+    if (
+      normInput === normKey ||
+      normInputCompact === normKeyCompact ||
+      obj.label.toLowerCase() === s.toLowerCase()
+    )
       return obj;
   }
   return null;

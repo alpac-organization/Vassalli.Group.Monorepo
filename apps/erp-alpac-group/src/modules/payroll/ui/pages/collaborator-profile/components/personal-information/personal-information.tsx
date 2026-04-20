@@ -17,6 +17,7 @@ import { DepartmentSelectModal } from "./department-select-modal";
 import { MaritalStatusSelectModal } from "./marital-status-select-modal";
 import {
   maritalRawToLabel,
+  normalizeMaritalStatusFromApi,
   type MaritalStatusSource,
 } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/marital-status.utils";
 import { useUpdatePersonalInformation } from "./utils/updateInformation";
@@ -81,11 +82,20 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
   const marital_status = watch("marital_status");
   const department_name_watched = watch("department");
 
+  const resolvedMaritalStatusCode = useMemo(() => {
+    const fromForm = normalizeMaritalStatusFromApi(marital_status ?? null);
+    if (fromForm !== null) return fromForm;
+    return normalizeMaritalStatusFromApi(
+      profile?.personal_information?.marital_status ?? null,
+    );
+  }, [marital_status, profile?.personal_information?.marital_status]);
+
   const { handleFieldUpdate, alertInfo, setAlertInfo, isUpdating } =
     useUpdatePersonalInformation({
       companyId,
       moduleCode,
       targetIdentification,
+      resolvedMaritalStatusCode,
     });
 
   const [editingFields, setEditingFields] = useState<Record<string, boolean>>(
@@ -155,7 +165,11 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
       <MaritalStatusSelectModal
         isOpen={maritalModalOpen}
         onClose={() => setMaritalModalOpen(false)}
-        currentMaritalStatus={Number(marital_status) || 0}
+        currentMaritalStatus={
+          String(marital_status ?? "").trim() === ""
+            ? 0
+            : Number(marital_status) || 0
+        }
         isSaving={isUpdating}
         onConfirm={async (status) => {
           await handleFieldUpdate("marital_status", status);
@@ -224,9 +238,9 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                       value={
                         maritalMissing
                           ? "Estado civil no registrado"
-                          : maritalRawToLabel(
+                          : (maritalRawToLabel(
                               marital_status as MaritalStatusSource,
-                            ) ?? ""
+                            ) ?? "")
                       }
                       className={`${baseInputClasses} ${maritalMissing ? missingDataInInputClassName : "text-white! dark:text-white!"}`}
                     />
