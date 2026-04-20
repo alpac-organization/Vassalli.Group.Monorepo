@@ -3,7 +3,7 @@ import { Modal, Button, Dropdown } from "@alpac/design-system";
 import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
 import { isValidMaritalStatusCode } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/marital-status.utils";
 import type { MaritalStatusSelectModalProps } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/types/MaritalStatusSelectModalProps";
-
+import { Spinner } from "@alpac/design-system";
 const dropdownOptions = MaritalStatusOptions.map((o) => ({
   value: o.value as number,
   label: o.label,
@@ -62,6 +62,7 @@ export function MaritalStatusSelectModal({
           <Button
             type="button"
             size="medium"
+            icon={isSaving ? <Spinner size="small" color="white" /> : undefined}
             label={isSaving ? "Guardando…" : "Confirmar"}
             onClick={handleConfirm}
             disabled={isConfirmDisabled}
