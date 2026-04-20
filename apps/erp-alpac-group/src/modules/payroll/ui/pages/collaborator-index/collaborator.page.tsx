@@ -41,6 +41,7 @@ import { AddCollaboratorModal } from "@app/modules/payroll/ui/pages/collaborator
 import { useTheme } from "@alpac/design-system";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { NewPermissionRequestModal } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal";
+import { AddDeductionModal } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-deduction/add-deduction-modal";
 import { ChannelEnum } from "@app/core/enums/channel.enum";
 
 export const CollaboratorPage = function () {
@@ -57,6 +58,7 @@ export const CollaboratorPage = function () {
 
   const [showAddCollaboratorModal, setShowAddCollaboratorModal] =
     useState(false);
+  const [showAddDeductionModal, setShowAddDeductionModal] = useState(false);
   const [showCreateApplicationModal, setShowCreateApplicationModal] =
     useState(false);
   const [showAlert, setShowAlert] = useState<{
@@ -162,6 +164,15 @@ export const CollaboratorPage = function () {
     });
   }, []);
 
+  const handleAddDeductionSuccess = useCallback(() => {
+    setShowAlert({
+      show: true,
+      type: "success",
+      title: "Éxito",
+      message: "Deducción agregada exitosamente",
+    });
+  }, []);
+
   const columnConfig = [
     { key: "collaborator_code", label: "Código" },
     { key: "full_name", label: "Nombre Completo" },
@@ -230,7 +241,9 @@ export const CollaboratorPage = function () {
     setShowAddCollaboratorModal(true);
   }, []);
 
-  const handleAddDeduction = useCallback(() => {}, []);
+  const handleAddDeduction = useCallback(() => {
+    setShowAddDeductionModal(true);
+  }, []);
 
   const handleCollaboratorExit = useCallback(() => {}, []);
 
@@ -374,8 +387,7 @@ export const CollaboratorPage = function () {
               />
               <Button
                 size="giant"
-                label="Agregar Deducción "
-                disabled
+                label="Agregar Deducción"
                 icon={<CircleMinus size={20} />}
                 className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                 onClick={handleAddDeduction}
@@ -546,6 +558,13 @@ export const CollaboratorPage = function () {
             optionsBranches={optionsBranches}
             optionsBanks={optionsBanks}
             onClose={() => setShowAddCollaboratorModal(false)}
+          />
+
+          <AddDeductionModal
+            isOpen={showAddDeductionModal}
+            onClose={() => setShowAddDeductionModal(false)}
+            onRequestError={handleRequestError}
+            onRequestSuccess={handleAddDeductionSuccess}
           />
 
           <NewPermissionRequestModal
