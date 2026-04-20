@@ -415,6 +415,7 @@ export const CollaboratorPage = function () {
                         labelClassName="text-black! dark:text-white!"
                         type="text"
                         placeholder="Ingrese la identificación"
+                        errorVariant="tooltip"
                         {...register('identification_number',
                            {
                               validate: {

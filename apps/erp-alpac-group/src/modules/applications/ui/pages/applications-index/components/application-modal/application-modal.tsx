@@ -28,19 +28,19 @@ export const ApplicationModal = (props: ApplicationModalProps): React.ReactNode 
 
             {
                applicationType === PermitApplicationTypeEnum.Vacation && (
-                  <VacationForm application={applicationData} />
+                  <VacationForm application={applicationData} onFinishProcess={() => props.onClose?.()} />
                )
             }
 
             {
                applicationType === PermitApplicationTypeEnum.MedicalAppointment && (
-                  <MedicalAppointmentForm application={applicationData} />
+                  <MedicalAppointmentForm application={applicationData} onFinishProcess={() => props.onClose?.()} />
                )
             }
 
             {
                applicationType === PermitApplicationTypeEnum.DonatedVacations && (
-                  <DonatedVacationForm application={applicationData} />
+                  <DonatedVacationForm application={applicationData} onFinishProcess={() => props.onClose?.()} />
                )
             }
 

@@ -6,11 +6,15 @@ import { CheckIcon, XIcon } from "lucide-react";
 import { DonatedVacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/donated-vacation-panel/donated-vacation-panel";
 import { useApplications } from "@app/modules/applications/ui/hooks/useApplications";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { ConfirmModal } from "../../confirm-modal/confirm-modal";
+import { ConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/confirm-modal/confirm-modal";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { ManagerPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/manager-panel/manager-panel";
+
 import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 import type { ConfirmActionType } from "../../../types/confirm-action.types";
-import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { AdministratorPanel } from "../../application-panels/administrator-panel/administrator-panel";
+import { MedicalAppointmentPanel } from "../../application-panels/medical-appointment-panel/medical-appointment-panel";
 
 export const ManagerForm = ({ application }: { application: GetApplicationsResponse }) => {
 
@@ -47,7 +51,7 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
       }
    });
 
-   const onInternalSubmit = (data: ApplicationProcessRequest) => {
+   const processApplication = (data: ApplicationProcessRequest) => {
       ProcessApplication.mutate(data, {
          onSuccess: () => {
             const action = data.is_approved ? "Aprobada" : "Rechazada";
@@ -86,6 +90,8 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
       }, 3000);
    }, []);
 
+   const handleConfirmAction = handleSubmit(processApplication);
+
    return (
       <form className="flex flex-col gap-4">
          <MainPanel
@@ -103,18 +109,15 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
                )
             }
 
-
-            <MainPanel.Field label="Aprobación por el Jefe Directo" className="font-semibold! rounded-md! text-[15px]">
-               {application.firts_step_approved === null ? "Pendiente" : application.firts_step_approved ? "Aprobado" : "Rechazado"}
-            </MainPanel.Field>
-
             {
-               application.firts_step_approved !== null && (
-                  <MainPanel.Field label="Nombre del Jefe Directo" className="font-semibold! rounded-md! text-[15px]">
-                     {application.manager_fullname || "Sin descripción"}
-                  </MainPanel.Field>
+               application.type === "MedicalAppointment" && (
+                  <MedicalAppointmentPanel application={application} />
                )
             }
+
+            <ManagerPanel application={application} />
+
+            <AdministratorPanel application={application} />
 
             <MainPanel.Field label="Motivo o Descripción" className="font-semibold! rounded-md! text-[15px]">
                {application.description || "Sin descripción"}
@@ -133,6 +136,7 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
                      icon={<XIcon size={20} />}
                      isHiddenLabelOnMobile
                      disabled={ProcessApplication.isPending}
+                     isLoading={ProcessApplication.isPending}
                   />
                   <Button
                      type="button"
@@ -142,6 +146,7 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
                      icon={<CheckIcon size={20} />}
                      isHiddenLabelOnMobile
                      disabled={ProcessApplication.isPending}
+                     isLoading={ProcessApplication.isPending}
                   />
                </div>
             )
@@ -162,7 +167,7 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
             type={confirmModal.type}
             isLoading={ProcessApplication.isPending}
             disabled={ProcessApplication.isPending}
-            handleFinalAction={() => handleSubmit(onInternalSubmit)}
+            handleFinalAction={() => handleConfirmAction()}
          />
       </form>
    );

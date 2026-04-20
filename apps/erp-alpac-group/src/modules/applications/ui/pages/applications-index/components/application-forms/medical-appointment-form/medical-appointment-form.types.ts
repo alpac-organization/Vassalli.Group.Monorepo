@@ -2,4 +2,5 @@ import type { GetApplicationsResponse } from "@app/modules/applications/domain/A
 
 export type MedicalAppointmentFormProps = {
    application: GetApplicationsResponse;
+   onFinishProcess?: () => void;
 }

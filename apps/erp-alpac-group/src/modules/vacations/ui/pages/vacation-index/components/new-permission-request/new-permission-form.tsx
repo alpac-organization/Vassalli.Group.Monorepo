@@ -1,16 +1,22 @@
 import { useMemo, useState } from "react";
+import { motion, type Variants } from "framer-motion";
 import { useForm, Controller } from "react-hook-form";
 import { Button, DatePicker, Dropdown, InputText, RadioButton, Textarea } from "@alpac/design-system";
 import { validateSessionContextUtils } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/utils/validateSessionContext";
 import { PERMISSION_TYPE_OPTIONS } from "@app/modules/vacations/ui/pages/vacation-index/constants/permission-filters.constants";
-import { motion, type Variants } from "framer-motion";
 import { validateLaboralHours, validateTime } from "@app/shared/utils/string.utils";
 import { generatePermissionPayload } from "./utils/generatePermissionPayload";
+import { validateIntegerNumber, validatePositiveNumber } from "@app/shared/utils/number.utils";
 
 import type { NewPermissionRequestFormProps } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/new-permissionFormProps";
 import type { PermissionRequestFormValues } from "./types/permission-form.types";
 import type { PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
 import dayjs from "dayjs";
+import { validateMaximumDonatedVacation } from "./utils/validateMaximumDonatedVacation";
+import { CollaboratorSearchForm } from "../collaborator-search-form/collaborator-search-form";
+import { NewPermissionCollaboratorSummary } from "./collaborator-summary";
+import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
+import { X } from "lucide-react";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -69,12 +75,9 @@ export function NewPermissionRequestForm(
    };
 
    const {
-      register, handleSubmit, setError, reset,
-      getValues, control, //trigger,
-      formState: { errors }
+      register, handleSubmit, setError, reset, getValues, setValue, control, formState: { errors }
    } = useForm<PermissionRequestFormValues>({
-      defaultValues,
-      mode: "onChange"
+      defaultValues, mode: "onChange"
    });
 
    const initialSelectedType: Record<PermissionType, boolean> = {
@@ -89,6 +92,8 @@ export function NewPermissionRequestForm(
    const [timeFormatType, setTimeFormatType] = useState<"halfDay" | "fullDay" | "rangeOfHours">("fullDay");
    const [isEndDateDisabled, setIsEndDateDisabled] = useState(true);
    const [isEndTimeDisabled, setIsEndTimeDisabled] = useState(true);
+
+   const [foundBeneficiary, setFoundBeneficiary] = useState<GetCollaboratorProfileDetailsResponse | null>(null);
 
    const isSelectedAtLeastOneType = useMemo(
       () => Object.values(applicationType).some((value) => value === true),
@@ -106,6 +111,8 @@ export function NewPermissionRequestForm(
    };
 
    const handleFormSubmit = (values: PermissionRequestFormValues) => {
+
+      console.log(companyId, moduleCode, String("Texto de la identificacion: ").concat(identificationNumber.toString()));
 
       if (!validateSessionContextUtils(companyId, moduleCode, identificationNumber, setError)) {
          return;
@@ -130,6 +137,35 @@ export function NewPermissionRequestForm(
             <p className="text-[13px] text-red-500 dark:text-red-400" role="alert">
                {errors.root.message}
             </p>
+         )}
+
+         {isSelectedAtLeastOneType && applicationType.DonatedVacations && foundBeneficiary && (
+            <div className="min-w-0 flex flex-row items-center gap-4 w-full">
+
+               <div className="min-w-0 flex-1">
+                  <NewPermissionCollaboratorSummary
+                     fullName={foundBeneficiary.full_name}
+                     workPosition={foundBeneficiary.work_position}
+                     title="Nombre del Beneficiario"
+                     subtitle="Cargo"
+                  />
+               </div>
+
+               <div className="flex-none">
+                  <Button
+                     label=""
+                     className="rounded-full p-0! shrink-0 text-[15px]! bg-alpac-primary-500 text-white! disabled:opacity-60! disabled:cursor-not-allowed! sm:w-auto!"
+                     type="button"
+                     size="giant"
+                     icon={<X />}
+                     onClick={() => {
+                        setFoundBeneficiary(null);
+                        setValue("beneficiary_identification", undefined);
+                     }}
+                  />
+               </div>
+
+            </div>
          )}
 
          <Controller
@@ -348,29 +384,51 @@ export function NewPermissionRequestForm(
                {applicationType.DonatedVacations &&
                   (
                      <motion.div variants={formFieldVariants}
-                        className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                        className="grid min-w-0 grid-cols-1 gap-4">
 
-                        <div className="min-w-0 flex flex-col gap-1.5">
-                           <InputText
-                              label="Días a donar"
-                              labelClassName={labelClassName}
-                              type="number"
-                              isRequired
-                              className={inputClassName}
-                              error={errors.donated_vacation_days?.message}
-                              {...register("donated_vacation_days", {
-                                 required: "Los dias a donar son requeridos.",
-                                 min: {
-                                    value: 1,
-                                    message: "Los dias a donar deben ser mayor a 0.",
-                                 }
-                              })}
-                           />
-                        </div>
+                        {!foundBeneficiary && (
+                           <div className="min-w-0">
+                              <CollaboratorSearchForm
+                                 label="Buscar colaborador beneficiario"
+                                 excludeIdentification={identificationNumber}
+                                 onSuccess={(collaborator) => {
+                                    setFoundBeneficiary(collaborator);
+                                    setValue("beneficiary_identification", collaborator.personal_information.identification_number);
+                                 }}
+                                 onError={(error) => console.log(error)}
+                                 onSearchStart={() => console.log("Buscando...")}
+                              />
+                           </div>
+                        )}
 
                      </motion.div>
                   )
                }
+            </motion.div>
+         )}
+
+         {((applicationType.DonatedVacations && foundBeneficiary) || applicationType.Vacation || applicationType.MedicalAppointment) && (
+            <motion.div variants={formFieldVariants}
+               className="grid min-w-0 grid-cols-1 gap-4">
+               <motion.div variants={formFieldVariants}>
+                  <InputText
+                     label="Días a donar"
+                     labelClassName={labelClassName}
+                     type="number"
+                     isRequired
+                     step={1}
+                     className={inputClassName}
+                     error={errors.donated_vacation_days?.message}
+                     {...register("donated_vacation_days", {
+                        required: "Los dias a donar son requeridos.",
+                        validate: {
+                           validateInteger: (value) => validateIntegerNumber(value),
+                           validatePositive: (value) => validatePositiveNumber(value),
+                           validateMaximum: (value) => validateMaximumDonatedVacation(value)
+                        },
+                     })}
+                  />
+               </motion.div>
 
                <motion.div variants={formFieldVariants}>
                   <Textarea
@@ -384,7 +442,6 @@ export function NewPermissionRequestForm(
                      {...register("description", { required: "La descripción es requerida." })}
                   />
                </motion.div>
-
             </motion.div>
          )}
 

@@ -8,4 +8,5 @@ export interface InputProps
   isRequired?: boolean;
   missingLabel?: string;
   labelClassName?: string;
+  errorVariant?: "text" | "tooltip";
 }

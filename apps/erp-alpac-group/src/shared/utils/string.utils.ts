@@ -32,7 +32,6 @@ export const validateNameAndLastName = (fullName: string): string => {
       .join(" ");
 };
 
-
 export const validateIdentificationNumber = (
    value: string,
    identificationType: number,
