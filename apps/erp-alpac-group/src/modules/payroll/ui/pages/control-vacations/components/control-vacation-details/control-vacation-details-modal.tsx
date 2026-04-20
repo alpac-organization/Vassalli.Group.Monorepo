@@ -14,7 +14,7 @@ import {
 } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-details/utils/validate.details-content";
 import type { ControlVacationDetailsModalProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-details/type/vacation-details.type";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-
+import { Loader } from "@app/shared/components/loaders/loader";
 const FIELD_GRID =
   "grid min-w-0 grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-3 sm:gap-y-4";
 
@@ -58,9 +58,7 @@ function RecipientCollaboratorSection({
 
   if (!shouldFetch) {
     const empty = mapRecipientProfile(undefined);
-    return (
-      <RecipientCollaboratorFields values={empty} />
-    );
+    return <RecipientCollaboratorFields values={empty} />;
   }
 
   const showLoading = isPending || isFetching;
@@ -69,13 +67,15 @@ function RecipientCollaboratorSection({
     return (
       <div className="rounded-lg border border-slate-200 bg-slate-50/50 px-3 py-3 dark:border-neutral-600 dark:bg-neutral-800/40">
         <p className="m-0 text-[13px] text-slate-500 dark:text-slate-400">
-          Cargando información del colaborador…
+          <Loader title="Cargando información del colaborador…" />
         </p>
       </div>
     );
   }
 
-  const values = isError ? mapRecipientProfile(undefined) : mapRecipientProfile(data);
+  const values = isError
+    ? mapRecipientProfile(undefined)
+    : mapRecipientProfile(data);
   return <RecipientCollaboratorFields values={values} />;
 }
 
@@ -189,8 +189,15 @@ function DonatedVacationDetails({
   );
 }
 
-function StandardVacationDetails({ item }: { item: VacationControlItemResponse }) {
-  const days = item.amount_days == null || Number.isNaN(item.amount_days) ? "—" : item.amount_days;
+function StandardVacationDetails({
+  item,
+}: {
+  item: VacationControlItemResponse;
+}) {
+  const days =
+    item.amount_days == null || Number.isNaN(item.amount_days)
+      ? "—"
+      : item.amount_days;
 
   return (
     <div className="flex min-w-0 flex-col gap-5">
@@ -300,12 +307,16 @@ function DetailsBody({
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="mt-1.5 wrap-break-word text-[13px] text-white">
-            <span className="font-medium text-slate-500 dark:text-slate-400 ">ID de solicitud:</span>{" "}
-             {dashOrText(item.permit_application_id)}
+            <span className="font-medium text-slate-500 dark:text-slate-400 ">
+              ID de solicitud:
+            </span>{" "}
+            {dashOrText(item.permit_application_id)}
           </p>
           <p className="mt-0.5 text-[13px] text-white  ">
-            <span className="font-medium text-slate-500 dark:text-slate-400">Codigo de Colaborador:</span>{" "}
-             {dashOrText(item.collaborator_code)}
+            <span className="font-medium text-slate-500 dark:text-slate-400">
+              Codigo de Colaborador:
+            </span>{" "}
+            {dashOrText(item.collaborator_code)}
           </p>
         </div>
         <div className="shrink-0 pt-0.5">
