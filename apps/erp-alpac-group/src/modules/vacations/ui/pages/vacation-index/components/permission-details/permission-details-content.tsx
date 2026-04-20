@@ -1,7 +1,15 @@
 import type { PermissionRequestDetailsContentProps } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-details/types/permission-details-content.type";
+import { Stepper } from "@alpac/design-system";
+import { mapApprovalToStepStatus } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-details/types/permission-steps.type";
+
 export function PermissionRequestDetailsContent({
   details,
 }: PermissionRequestDetailsContentProps) {
+  const approvalSteps = [
+    mapApprovalToStepStatus(details.firstStepApproved),
+    mapApprovalToStepStatus(details.secondStepApproved),
+  ] as const;
+
   return (
     <div className="flex min-w-0 flex-col gap-5">
       <div className="flex min-w-0 items-start justify-between gap-3">
@@ -83,6 +91,42 @@ export function PermissionRequestDetailsContent({
         </p>
         <div className="min-h-10 rounded-md py-2.5 text-[14px] leading-relaxed text-white">
           {details.description}
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-slate-200/70 p-3.5 dark:border-neutral-600">
+        <p className="text-[13px] font-semibold text-slate-200">
+          Seguimiento de aprobación
+        </p>
+
+        <div className="mt-3 grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="min-w-0">
+            <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+              Aprobación jefe inmediato
+            </p>
+            <p className="mt-1 text-[14px] font-bold leading-snug text-slate-100">
+              {details.managerFullname ?? "—"}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+              Aprobación administración
+            </p>
+            <p className="mt-1 text-[14px] font-bold leading-snug text-slate-100">
+              {details.administratorFullName ?? "—"}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-2 overflow-x-auto scrollbar-dashboard">
+          <div className="min-w-[18rem] pb-4">
+            <Stepper
+              className="py-4!"
+              steps={["Jefe inmediato", "Administración"]}
+              currentStep={0}
+              stepStatuses={[...approvalSteps]}
+            />
+          </div>
         </div>
       </div>
 

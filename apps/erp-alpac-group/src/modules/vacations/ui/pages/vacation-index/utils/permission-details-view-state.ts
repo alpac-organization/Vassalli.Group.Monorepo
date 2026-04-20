@@ -56,14 +56,16 @@ export type PermissionRequestDetailsUiState = {
   startDateFormatted: string;
   endDateFormatted: string;
   requestedDays: number;
-  /** Hora de inicio — solo presente para tipos que no son vacaciones */
   startTime: string | null;
-  /** Hora de fin — solo presente para tipos que no son vacaciones */
   endTime: string | null;
   statusLabel: string;
   statusColorClass: string;
   description: string;
   requestedAtFormatted: string;
+  managerFullname: string | null;
+  administratorFullName: string | null;
+  firstStepApproved: boolean | null;
+  secondStepApproved: boolean | null;
 };
 
 export function derivePermissionRequestDetails(
@@ -85,5 +87,9 @@ export function derivePermissionRequestDetails(
     statusColorClass: getStatusColorClass(item.status),
     description: item.description?.trim() || "—",
     requestedAtFormatted: formatLongDate(item.created_at),
+    managerFullname: item.manager_fullname,
+    administratorFullName: item.administrator_full_name,
+    firstStepApproved: item.firts_step_approved,
+    secondStepApproved: item.second_step_approved,
   };
 }
