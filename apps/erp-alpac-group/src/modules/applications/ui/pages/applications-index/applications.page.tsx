@@ -29,7 +29,6 @@ export const ApplicationsPage = function () {
    const initialFilters: ApplicationRequest = {
       company_id: '',
       module_code: '',
-      user_role: '',
       permit_application_type_id: 0,
       permit_application_status_id: 0,
       collaborator_code: '',
@@ -78,7 +77,6 @@ export const ApplicationsPage = function () {
       ...filters,
       company_id: companyId,
       module_code: moduleCode,
-      user_role: role
    }, {
       enabled: isListEnabled,
       enabledDetail: isDetailEnabled

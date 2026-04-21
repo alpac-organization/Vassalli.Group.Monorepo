@@ -13,7 +13,9 @@ export const ApplicationModal = (props: ApplicationModalProps): React.ReactNode 
    const applicationType = PermitApplicationTypeEnum[applicationData.type] ?? null;
 
    useEffect(() => {
-      setApplicationData(props.application);
+      if (props.application && props.application?.permit_apllication_id) {
+         setApplicationData(props.application);
+      }
    }, [props.application]);
 
    return (

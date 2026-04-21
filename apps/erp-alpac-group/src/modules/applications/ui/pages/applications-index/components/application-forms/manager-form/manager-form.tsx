@@ -100,13 +100,8 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
             className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
 
             {
-               application.type === "DonatedVacations" && (
-                  <>
-                     <DonatedVacationPanel application={application} />
-                     <MainPanel.Field label="Días Donados" className="font-semibold! rounded-md! text-[15px]">
-                        {application.amount_days === 0 ? "Sin días donados" : application.amount_days}
-                     </MainPanel.Field>
-                  </>
+               application.type === "Vacation" && (
+                  <VacationPanel application={application} />
                )
             }
 
@@ -117,8 +112,13 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
             }
 
             {
-               application.type === "Vacation" && (
-                  <VacationPanel application={application} />
+               application.type === "DonatedVacations" && (
+                  <>
+                     <DonatedVacationPanel application={application} />
+                     <MainPanel.Field label="Días Donados" className="font-semibold! rounded-md! text-[15px]">
+                        {application.amount_days === 0 ? "Sin días donados" : application.amount_days}
+                     </MainPanel.Field>
+                  </>
                )
             }
 

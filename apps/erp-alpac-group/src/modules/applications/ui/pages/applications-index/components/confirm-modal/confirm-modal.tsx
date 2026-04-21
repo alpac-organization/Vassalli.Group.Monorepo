@@ -25,7 +25,6 @@ export const ConfirmModal = ({
       'border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-40';
 
    const handleFinalActionInternal = (type: ConfirmActionType) => {
-      console.log("Testing click approve and reject application...", type)
       handleFinalAction(type);
    }
 

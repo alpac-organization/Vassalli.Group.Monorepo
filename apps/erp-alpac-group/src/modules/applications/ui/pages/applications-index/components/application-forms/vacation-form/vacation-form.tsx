@@ -18,6 +18,7 @@ import { VacationPanel } from "../../application-panels/vacation-panel/vacation-
 export const VacationForm = (props: VacationFormProps) => {
 
    const { application, onFinishProcess } = props;
+
    const { companyId, moduleCode } = useUserStore();
    const { ProcessApplication } = useApplications();
    const { getMappedError } = useMappedError();
@@ -63,7 +64,10 @@ export const VacationForm = (props: VacationFormProps) => {
                message: `La solicitud ha sido ${action} exitosamente.`
             });
 
-            onFinishProcess?.();
+            setTimeout(() => {
+               onFinishProcess?.();
+            }, 500);
+
             handleCloseAlert();
          },
          onError: (error) => {

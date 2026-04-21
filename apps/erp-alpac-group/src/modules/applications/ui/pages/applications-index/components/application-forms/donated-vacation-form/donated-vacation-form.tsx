@@ -68,8 +68,10 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
                message: `La solicitud ha sido ${action} exitosamente.`
             });
 
-            onFinishProcess?.();
-            handleCloseAlert();
+            setTimeout(() => {
+               onFinishProcess?.();
+               handleCloseAlert();
+            }, 2000);
          },
          onError: (error) => {
             const mappedError = getMappedError(error);

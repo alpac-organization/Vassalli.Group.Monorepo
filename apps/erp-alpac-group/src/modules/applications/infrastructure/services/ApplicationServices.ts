@@ -15,8 +15,7 @@ export class ApplicationServices implements IApplicationServices {
 
    async GetApplications(payload: ApplicationRequest): Promise<GetApplicationListResponse> {
       try {
-         const { company_id, module_code, ...rest } = payload;
-
+         const { company_id, module_code, ...rest } = payload
          const response = await this.apiHandler.get<GetApplicationListResponse>(
             `/companies/${company_id}/modules/${module_code}/permit-applications`,
             {

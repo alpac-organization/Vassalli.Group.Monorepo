@@ -132,8 +132,6 @@ export function NewPermissionRequestForm(
 
    const handleFormSubmit = (values: PermissionRequestFormValues) => {
 
-      console.log(companyId, moduleCode, String("Texto de la identificacion: ").concat(identificationNumber.toString()));
-
       if (!validateSessionContextUtils(companyId, moduleCode, identificationNumber, setError)) {
          return;
       }
@@ -145,7 +143,6 @@ export function NewPermissionRequestForm(
       });
 
       onSubmit(payload);
-      reset();
    };
 
    return (

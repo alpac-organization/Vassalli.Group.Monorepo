@@ -63,8 +63,10 @@ export const MedicalAppointmentForm = (props: MedicalAppointmentFormProps) => {
                message: `La solicitud ha sido ${action} exitosamente.`
             });
 
-            onFinishProcess?.();
-            handleCloseAlert();
+            setTimeout(() => {
+               onFinishProcess?.();
+               handleCloseAlert();
+            }, 2000);
          },
          onError: (error) => {
             const mappedError = getMappedError(error);
