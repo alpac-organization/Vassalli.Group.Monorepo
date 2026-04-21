@@ -1,7 +1,7 @@
-import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
+import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-payroll";
 
 export type PayrollTableProps = {
-  rows: GetCollaboratorsResponse[];
+  rows: PayrollItemResponse[];
   currentPage: number;
   pageSize: number;
   totalRecords: number;
