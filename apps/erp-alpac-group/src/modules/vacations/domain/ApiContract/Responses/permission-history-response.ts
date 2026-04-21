@@ -30,6 +30,22 @@ export interface PermissionHistoryResponse {
    */
   requested_by: string;
   /**
+   * Nombre completo del manager que aprueba el primer paso.
+   */
+  manager_fullname: string | null;
+  /**
+   * Nombre completo del administrador que aprueba el segundo paso.
+   */
+  administrator_full_name: string | null;
+  /**
+   * Indicador de aprobación del primer paso.
+   */
+  firts_step_approved: boolean | null;
+  /**
+   * Indicador de aprobación del segundo paso.
+   */
+  second_step_approved: boolean | null;
+  /**
    * Identificador único del usuario que aprobo la solicitud de vacaciones
    */
   approved_by: string;
