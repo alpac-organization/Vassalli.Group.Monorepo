@@ -10,12 +10,14 @@ interface UseUpdateWorkInformationProps {
   companyId?: string;
   moduleCode?: string;
   targetIdentification: string;
+  resolvedMaritalStatusCode: number | null;
 }
 
 export const useUpdateWorkInformation = ({
   companyId,
   moduleCode,
   targetIdentification,
+  resolvedMaritalStatusCode,
 }: UseUpdateWorkInformationProps) => {
   const { UpdateCollaboratorProfileDetails } = useCollaborators({});
 
@@ -62,6 +64,13 @@ export const useUpdateWorkInformation = ({
       module_code: moduleCode,
       identification_number: targetIdentification,
       working_information: working,
+      ...(resolvedMaritalStatusCode !== null
+        ? {
+            personal_information: {
+              marital_status: resolvedMaritalStatusCode,
+            },
+          }
+        : {}),
     };
 
     try {
