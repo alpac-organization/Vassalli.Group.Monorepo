@@ -20,7 +20,6 @@ export class PermissionServices implements IPermissionRequestServices {
    public async createPermissionRequest(payload: CreatePermissionRequestBase): Promise<void> {
       try {
          const { company_id, module_code, identification_number, ...body } = payload;
-         console.log("1. Revisando el payload:", payload);
          const response = await this.apiHandler.post<void>(
             `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}/permit-applications`,
             body,

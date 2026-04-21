@@ -170,6 +170,7 @@ export const ApplicationsPage = function () {
 
    const handleRequestError = useCallback((description: string) => {
       setShowAlert({ show: true, type: "error", title: "Error", message: description });
+      handleCloseAlert();
    }, []);
 
    const handleRequestSuccess = useCallback(() => {

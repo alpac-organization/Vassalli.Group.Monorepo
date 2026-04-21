@@ -13,6 +13,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
 import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 import type { VacationFormProps } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/vacation-form/vacation-form.types";
+import { VacationPanel } from "../../application-panels/vacation-panel/vacation-panel";
 
 export const VacationForm = (props: VacationFormProps) => {
 
@@ -96,6 +97,8 @@ export const VacationForm = (props: VacationFormProps) => {
       <form className="flex flex-col gap-6">
 
          <MainPanel application={application} className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+
+            <VacationPanel application={application} />
 
             <ManagerPanel application={application} />
 

@@ -148,6 +148,8 @@ export const CollaboratorPage = function () {
          title: "Error",
          message: description,
       });
+
+      handleCloseAlert();
    }, []);
 
    const handleRequestSuccess = useCallback(() => {
@@ -233,6 +235,12 @@ export const CollaboratorPage = function () {
 
    const handleCreateApplication = useCallback(() => {
       setShowCreateApplicationModal(true);
+   }, []);
+
+   const handleCloseAlert = useCallback(() => {
+      setTimeout(() => {
+         setShowAlert({ show: false, type: "info", title: "", message: "" });
+      }, 3000);
    }, []);
 
    return (

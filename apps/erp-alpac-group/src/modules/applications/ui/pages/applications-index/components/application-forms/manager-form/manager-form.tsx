@@ -15,6 +15,7 @@ import type { GetApplicationsResponse } from "@app/modules/applications/domain/A
 import type { ConfirmActionType } from "../../../types/confirm-action.types";
 import { AdministratorPanel } from "../../application-panels/administrator-panel/administrator-panel";
 import { MedicalAppointmentPanel } from "../../application-panels/medical-appointment-panel/medical-appointment-panel";
+import { VacationPanel } from "../../application-panels/vacation-panel/vacation-panel";
 
 export const ManagerForm = ({ application }: { application: GetApplicationsResponse }) => {
 
@@ -112,6 +113,12 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
             {
                application.type === "MedicalAppointment" && (
                   <MedicalAppointmentPanel application={application} />
+               )
+            }
+
+            {
+               application.type === "Vacation" && (
+                  <VacationPanel application={application} />
                )
             }
 
