@@ -16,6 +16,7 @@ import {
   validateNicaraguaPhone,
   formatPhone,
 } from "@app/shared/utils/string.utils";
+import { normalizeMaritalStatusFromApi } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/marital-status.utils";
 
 const defaultInformationWork: WorkFormData = {
   entry_date: "",
@@ -67,6 +68,14 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
     };
   }, [profile]);
 
+  const resolvedMaritalStatusCode = useMemo(
+    () =>
+      normalizeMaritalStatusFromApi(
+        profile?.personal_information?.marital_status ?? null,
+      ),
+    [profile?.personal_information?.marital_status],
+  );
+
   const formMethods = useForm<WorkFormData>({
     mode: "onChange",
     defaultValues: defaultInformationWork,
@@ -79,6 +88,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
       companyId,
       moduleCode,
       targetIdentification,
+      resolvedMaritalStatusCode,
     });
 
   const [editingFields, setEditingFields] = useState<Record<string, boolean>>(
