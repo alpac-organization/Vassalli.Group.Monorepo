@@ -407,7 +407,7 @@ export function NewPermissionRequestForm(
             </motion.div>
          )}
 
-         {((applicationType.DonatedVacations && foundBeneficiary) || applicationType.Vacation || applicationType.MedicalAppointment) && (
+         {((applicationType.DonatedVacations && foundBeneficiary)) && (
             <motion.div variants={formFieldVariants}
                className="grid min-w-0 grid-cols-1 gap-4">
                <motion.div variants={formFieldVariants}>
@@ -430,18 +430,22 @@ export function NewPermissionRequestForm(
                   />
                </motion.div>
 
-               <motion.div variants={formFieldVariants}>
-                  <Textarea
-                     label="Descripción"
-                     isRequired
-                     labelClassName={labelClassName}
-                     rows={3}
-                     placeholder="Propósito o detalles de la solicitud..."
-                     className={`${inputClassName} resize-none`}
-                     error={errors.description?.message}
-                     {...register("description", { required: "La descripción es requerida." })}
-                  />
-               </motion.div>
+
+            </motion.div>
+         )}
+
+         {((applicationType.DonatedVacations && foundBeneficiary) || applicationType.Vacation || applicationType.MedicalAppointment) && (
+            <motion.div variants={formFieldVariants}>
+               <Textarea
+                  label="Descripción"
+                  isRequired
+                  labelClassName={labelClassName}
+                  rows={3}
+                  placeholder="Propósito o detalles de la solicitud..."
+                  className={`${inputClassName} resize-none`}
+                  error={errors.description?.message}
+                  {...register("description", { required: "La descripción es requerida." })}
+               />
             </motion.div>
          )}
 
