@@ -8,12 +8,14 @@ interface UseUpdatePersonalInformationProps {
   companyId?: string;
   moduleCode?: string;
   targetIdentification: string;
+  resolvedMaritalStatusCode: number | null;
 }
 
 export const useUpdatePersonalInformation = ({
   companyId,
   moduleCode,
   targetIdentification,
+  resolvedMaritalStatusCode,
 }: UseUpdatePersonalInformationProps) => {
   const { UpdateCollaboratorProfileDetails } = useCollaborators({});
 
@@ -61,6 +63,11 @@ export const useUpdatePersonalInformation = ({
         default:
           return;
       }
+
+      if (name !== "marital_status" && resolvedMaritalStatusCode !== null) {
+        payload.marital_status = resolvedMaritalStatusCode;
+      }
+
       await UpdateCollaboratorProfileDetails.mutateAsync({
         company_id: companyId,
         module_code: moduleCode,
