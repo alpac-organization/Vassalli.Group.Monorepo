@@ -22,11 +22,10 @@ export function PermissionRequestDetailsModal({
       variant="default"
       title="Detalles de la Solicitud de Permiso"
       panelClassName={[
-        "!max-w-2xl w-full min-w-0",
-        "max-h-[min(92dvh,44rem)] overflow-y-auto overflow-x-hidden overscroll-contain",
-        "!mx-3 !my-4 sm:!mx-4 sm:!my-6",
+        "!max-w-2xl w-[min(calc(100vw-1rem),42rem)] min-w-0",
+        "max-h-[min(94dvh,46rem)] overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-dashboard",
+        "!mx-2 !my-2 sm:!mx-4 sm:!my-6",
         "rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
-        "[scrollbar-gutter:stable]",
       ].join(" ")}
     >
       {details && <PermissionRequestDetailsContent details={details} />}
