@@ -1,12 +1,12 @@
 import errorHandlerIllustration from "@app/assets/errors/errorHandler.webp";
 
 const MESSAGE =
-  "En estos momentos el servidor no se encuentra disponible por motivos técnicos. Intente nuevamente más tarde.";
+  "En estos momentos el servidor no se encuentra disponible por motivos técnicos. Por favor, inténtelo nuevamente más tarde.";
 
 export function ServerErrorFullscreen() {
   return (
     <div
-      className="fixed inset-0 z-[9999] min-h-dvh bg-alpac-primary-700 flex flex-col items-center justify-center px-6 text-center"
+      className="fixed inset-0 z-9999 min-h-dvh bg-alpac-primary-700 flex flex-col items-center justify-center px-6 text-center"
       role="alert"
       aria-live="assertive"
     >
