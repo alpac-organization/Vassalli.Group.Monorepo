@@ -18,6 +18,7 @@ import {
    validateAge,
    validateEmail,
    validateNicaraguaPhone,
+   validateOnlyLettersWithAccentsAndDiacritics,
    validateToday,
 } from "@app/shared/utils/string.utils";
 import { GenderOptions } from "@app/core/enums/gender.enum";
@@ -102,16 +103,20 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
             module_code: moduleCode,
          });
 
-         setShowAlert({
+         props.onRequestSuccess?.("Colaborador creado exitosamente");
+
+         /* setShowAlert({
             show: true,
             type: "success",
             title: "¡Colaborador creado!",
             message: "El registro se ha completado con éxito.",
-         });
+         }); */
 
-         reset();
+         // reset();
+         // handleCloseAlert();
+
          handleCloseModal();
-         handleCloseAlert();
+
       } catch (error) {
          const mappedError = getMappedError(error as ApiErrorResponse);
          setShowAlert({
@@ -207,15 +212,13 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         label="Primer Nombre"
                         placeholder="Ej. Juan"
                         isRequired
-                        pattern="^[A-Za-z]*$"
                         className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                         labelClassName="text-black! dark:text-white!"
                         {...register("first_name", {
                            required: "El primer nombre es requerido",
                            setValueAs: (value: string) => value?.trim(),
-                           pattern: {
-                              value: /^[A-Za-z]*$/,
-                              message: "El primer nombre solo puede contener letras",
+                           validate: {
+                              onlyLetters: (value: string) => validateOnlyLettersWithAccentsAndDiacritics(value)
                            },
                         })}
                         error={errors.first_name && errors.first_name.message}
@@ -224,15 +227,13 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                      <InputText
                         label="Segundo Nombre"
                         placeholder="Ej. Antonio"
-                        pattern="^[A-Za-z]*$"
                         className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                         labelClassName="text-black! dark:text-white!"
                         {...register("second_name", {
                            required: false,
                            setValueAs: (value: string) => value?.trim(),
-                           pattern: {
-                              value: /^[A-Za-z]*$/,
-                              message: "El segundo nombre solo puede contener letras",
+                           validate: {
+                              onlyLetters: (value?: string) => validateOnlyLettersWithAccentsAndDiacritics(value || "")
                            },
                         })}
                         error={errors.second_name && errors.second_name.message}
@@ -241,14 +242,13 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                      <InputText
                         label="Tercer Nombre"
                         placeholder="Opcional"
-                        pattern="^[A-Za-z]*$"
                         className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                         labelClassName="text-black! dark:text-white!"
                         {...register("third_name", {
                            required: false,
-                           pattern: {
-                              value: /^[A-Za-z]*$/,
-                              message: "El tercer nombre solo puede contener letras",
+                           setValueAs: (value: string) => value?.trim(),
+                           validate: {
+                              onlyLetters: (value?: string) => validateOnlyLettersWithAccentsAndDiacritics(value || "")
                            },
                         })}
                         error={errors.third_name && errors.third_name.message}
@@ -258,15 +258,13 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         label="Primer Apellido"
                         placeholder="Ej. Pérez"
                         isRequired
-                        pattern="^[A-Za-z]*$"
                         className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                         labelClassName="text-black! dark:text-white!"
                         {...register("first_lastname", {
                            required: "El primer apellido es requerido",
                            setValueAs: (value: string) => value?.trim(),
-                           pattern: {
-                              value: /^[A-Za-z]*$/,
-                              message: "El primer apellido solo puede contener letras",
+                           validate: {
+                              onlyLetters: (value: string) => validateOnlyLettersWithAccentsAndDiacritics(value)
                            },
                         })}
                         error={errors.first_lastname && errors.first_lastname.message}
@@ -275,14 +273,13 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                      <InputText
                         label="Segundo Apellido"
                         placeholder="Ej. García"
-                        pattern="^[A-Za-z]*$"
                         className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                         labelClassName="text-black! dark:text-white!"
                         {...register("second_lastname", {
                            required: false,
-                           pattern: {
-                              value: /^[A-Za-z]*$/,
-                              message: "El segundo apellido solo puede contener letras",
+                           setValueAs: (value: string) => value?.trim(),
+                           validate: {
+                              onlyLetters: (value?: string) => validateOnlyLettersWithAccentsAndDiacritics(value || "")
                            },
                         })}
                         error={errors.second_lastname && errors.second_lastname.message}

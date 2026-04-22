@@ -12,6 +12,7 @@ import type { CreatePermissionRequestBase } from "@app/modules/vacations/domain/
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { NewPermissionRequestModalProps } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/permission-modal.types";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
+import { ChannelEnum } from "@app/core/enums/channel.enum";
 
 export function NewPermissionRequestModal({
    isOpen,
@@ -22,7 +23,6 @@ export function NewPermissionRequestModal({
    isCollaboratorWorkPositionLoading = false,
    onRequestSuccess,
    onRequestError,
-   channel,
 }: NewPermissionRequestModalProps) {
 
    const { companyId, moduleCode, identificationNumber, role } = useUserStore();
@@ -40,6 +40,10 @@ export function NewPermissionRequestModal({
    const isManager = role === RoleEnum.MANAGER
    const isAdministrator = role === RoleEnum.ADMINISTRATOR
    const isOperator = role === RoleEnum.OPERATOR
+
+   const channel = role === RoleEnum.ADMINISTRATOR ?
+      ChannelEnum.AdministrativePanel : role === RoleEnum.MANAGER ?
+         ChannelEnum.DirectManagerPanel : ChannelEnum.PersonalPanel;
 
    useEffect(() => {
       if (isOpen) {

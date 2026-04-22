@@ -37,7 +37,6 @@ import { AddCollaboratorModal } from '@app/modules/payroll/ui/pages/collaborator
 import { useTheme } from '@alpac/design-system';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 import { NewPermissionRequestModal } from '@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal';
-import { ChannelEnum } from '@app/core/enums/channel.enum';
 import { IdentificationEnum } from '@app/core/enums/identifcation.enum';
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 
@@ -92,11 +91,6 @@ export const CollaboratorPage = function () {
       catalog_type_id: CatalogEnum.JOB_POSITIONS,
    });
 
-   /* const { GetCatalogListQuery: branchesQuery } = useCatalog({
-      company_id: companyId,
-      catalog_type_id: CatalogEnum.BRANCHES,
-   });*/
-
    const { GetCatalogListQuery: banksQuery } = useCatalog({
       company_id: companyId,
       catalog_type_id: CatalogEnum.BANKS,
@@ -149,25 +143,33 @@ export const CollaboratorPage = function () {
       setFilters((prev) => ({ ...prev, page_number: page }));
    }, []);
 
-   const handleRequestError = useCallback((description: string) => {
+   const handleCloseAlert = useCallback(() => {
+      setTimeout(() => {
+         setShowAlert({ show: false, type: "info", title: "", message: "" });
+      }, 3000);
+   }, []);
+
+   const handleRequestError = useCallback((message?: string) => {
       setShowAlert({
          show: true,
          type: "error",
          title: "Error",
-         message: description,
+         message: message || "Error al realizar la solicitud",
       });
 
       handleCloseAlert();
-   }, []);
+   }, [handleCloseAlert]);
 
-   const handleRequestSuccess = useCallback(() => {
+   const handleRequestSuccess = useCallback((message?: string) => {
       setShowAlert({
          show: true,
          type: "success",
          title: "Éxito",
-         message: "Solicitud creada exitosamente",
+         message: message || "Solicitud realizada exitosamente"
       });
-   }, []);
+
+      handleCloseAlert();
+   }, [handleCloseAlert]);
 
    const columnConfig = [
       { key: "collaborator_code", label: "Código" },
@@ -243,12 +245,6 @@ export const CollaboratorPage = function () {
 
    const handleCreateApplication = useCallback(() => {
       setShowCreateApplicationModal(true);
-   }, []);
-
-   const handleCloseAlert = useCallback(() => {
-      setTimeout(() => {
-         setShowAlert({ show: false, type: "info", title: "", message: "" });
-      }, 3000);
    }, []);
 
    return (
@@ -565,6 +561,8 @@ export const CollaboratorPage = function () {
                   optionsBranches={optionsBranches}
                   optionsBanks={optionsBanks}
                   onClose={() => setShowAddCollaboratorModal(false)}
+                  onRequestSuccess={handleRequestSuccess}
+                  onRequestError={handleRequestError}
                />
 
                <NewPermissionRequestModal
@@ -572,7 +570,6 @@ export const CollaboratorPage = function () {
                   onClose={() => setShowCreateApplicationModal(false)}
                   onRequestError={handleRequestError}
                   onRequestSuccess={handleRequestSuccess}
-                  channel={ChannelEnum.AdministrativePanel}
                />
 
                <AnimatedAlertWrapper open={showAlert.show}>
@@ -580,7 +577,6 @@ export const CollaboratorPage = function () {
                      type={showAlert.type}
                      title={showAlert.title}
                      message={showAlert.message}
-                     showCloseButton
                      onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
                   />
                </AnimatedAlertWrapper>

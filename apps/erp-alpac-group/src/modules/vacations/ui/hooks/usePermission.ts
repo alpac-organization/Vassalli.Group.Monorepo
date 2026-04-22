@@ -8,6 +8,7 @@ import type { CreatePermissionRequestBase } from "@app/modules/vacations/domain/
 import type { PermissionHistoryRequest } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
 import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
 import type { GeneratePermissionDocumentRequest } from "@app/modules/vacations/domain/ApiContract/Requests/generate-permission-docs-request";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 const permissionServices = new PermissionServices(httpHandler);
 export type UseVacationPayload = {
    company_id: string;
@@ -31,7 +32,7 @@ export const usePermission = (
       },
    });
 
-   const cancelPermissionRequestMutation = useMutation({
+   const cancelPermissionRequestMutation = useMutation<void, ApiErrorResponse, CancelPermissionRequest>({
       mutationKey: ["cancelPermissionRequest"],
       mutationFn: (payload: CancelPermissionRequest) =>
          permissionServices.cancelPermissionRequest(payload),

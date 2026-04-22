@@ -66,7 +66,7 @@ export const VacationForm = (props: VacationFormProps) => {
 
             setTimeout(() => {
                onFinishProcess?.();
-            }, 500);
+            }, 1000);
 
             handleCloseAlert();
          },
@@ -161,7 +161,6 @@ export const VacationForm = (props: VacationFormProps) => {
                type={showAlert.type}
                title={showAlert.title}
                message={showAlert.message}
-               showCloseButton
                onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
             />
          </AnimatedAlertWrapper>

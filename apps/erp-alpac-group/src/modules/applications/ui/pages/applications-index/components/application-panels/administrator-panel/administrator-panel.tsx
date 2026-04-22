@@ -15,23 +15,25 @@ export const AdministratorPanel = ({ application }: AdministratorPanelProps) => 
 
    return (
       <>
-         {(application.firts_step_approved || application.second_step_approved) && (
-            <div className="flex flex-col gap-1">
-               <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                  Aprobación por el Administrador
-               </span>
-               <div className="flex flex-col">
-                  <Badges
-                     label={label}
-                     color={statusBadgeColor(status)}
-                     className="w-fit"
-                  />
+         {
+            (application.firts_step_approved || application.second_step_approved) && (
+               <div className="flex flex-col gap-1">
+                  <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                     Aprobación por el Administrador
+                  </span>
+                  <div className="flex flex-col">
+                     <Badges
+                        label={label}
+                        color={statusBadgeColor(status)}
+                        className="w-fit"
+                     />
+                  </div>
                </div>
-            </div>
-         )}
+            )
+         }
 
          {
-            application.firts_step_approved || application.second_step_approved && (
+            (application.second_step_approved) && (
                <div className="flex flex-col gap-1">
                   <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                      Nombre del Administrador

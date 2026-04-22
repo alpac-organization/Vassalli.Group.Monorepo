@@ -36,9 +36,8 @@ export const useApplications = (filters?: ApplicationRequest, config?: { enabled
       queryKey: ["applicationsData", filters],
       queryFn: () => applicationServices.GetApplications(filters!),
       enabled: config?.enabled !== undefined ? config.enabled : !!filters,
-      refetchOnMount: false,
       refetchOnWindowFocus: false,
-      staleTime: 1000 * 60 * 10,
+      staleTime: 0,
       retry: 1,
    })
 

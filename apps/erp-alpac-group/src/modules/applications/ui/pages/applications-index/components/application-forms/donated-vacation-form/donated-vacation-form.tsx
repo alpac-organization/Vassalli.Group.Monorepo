@@ -70,7 +70,7 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
 
             setTimeout(() => {
                onFinishProcess?.();
-            }, 500);
+            }, 1000);
 
             handleCloseAlert();
          },
@@ -112,7 +112,7 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
 
             <AdministratorPanel application={application} />
 
-            <MainPanel.Field label="Total de días a recibir testing" className="col-span-1">
+            <MainPanel.Field label="Total de días a recibir" className="col-span-1">
                <InputText
                   className="h-10! w-full! font-semibold! rounded-md! text-[15px] dark:text-slate-100 text-white! dark:bg-[#272b34]! dark:border-slate-600!"
                   labelClassName="text-black! dark:text-white!"

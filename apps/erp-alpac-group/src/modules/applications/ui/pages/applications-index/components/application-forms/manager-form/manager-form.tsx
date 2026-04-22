@@ -16,11 +16,14 @@ import type { ConfirmActionType } from "../../../types/confirm-action.types";
 import { AdministratorPanel } from "../../application-panels/administrator-panel/administrator-panel";
 import { MedicalAppointmentPanel } from "../../application-panels/medical-appointment-panel/medical-appointment-panel";
 import { VacationPanel } from "../../application-panels/vacation-panel/vacation-panel";
+import { usePermission } from "@app/modules/vacations/ui/hooks/usePermission";
+import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
 
 export const ManagerForm = ({ application }: { application: GetApplicationsResponse }) => {
 
-   const { companyId, moduleCode } = useUserStore();
+   const { companyId, moduleCode, identificationNumber } = useUserStore();
    const { ProcessApplication } = useApplications();
+   const { cancelPermissionRequestMutation } = usePermission();
    const { getMappedError } = useMappedError();
 
    const [confirmModal, setConfirmModal] = useState<{
@@ -80,6 +83,33 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
       });
    };
 
+   const cancelApplication = (data: CancelPermissionRequest) => {
+      cancelPermissionRequestMutation.mutate(data, {
+         onSuccess: () => {
+            setConfirmModal({ isOpen: false, type: "CANCEL" });
+            setShowAlert({
+               show: true,
+               type: "success",
+               title: "Solicitud cancelada",
+               message: "La solicitud ha sido cancelada exitosamente."
+            });
+
+            handleCloseAlert();
+         },
+         onError: (error) => {
+            const mappedError = getMappedError(error);
+            setShowAlert({
+               show: true,
+               type: "error",
+               title: "Error",
+               message: mappedError.description
+            });
+
+            handleCloseAlert();
+         }
+      });
+   };
+
    const openConfirm = (type: ConfirmActionType) => {
       setValue("is_approved", type === "APPROVE");
       setConfirmModal({ isOpen: true, type });
@@ -91,7 +121,21 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
       }, 3000);
    }, []);
 
-   const handleConfirmAction = handleSubmit(processApplication);
+   const handleConfirmProcessApplication = handleSubmit(processApplication);
+
+   const handleConfirmAction = () => {
+      if (confirmModal.type === "CANCEL") {
+         cancelApplication({
+            company_id: companyId,
+            module_code: moduleCode,
+            identification_number: identificationNumber,
+            permit_application_id: application.permit_apllication_id,
+         });
+      } else {
+         handleConfirmProcessApplication();
+      }
+   };
+
 
    return (
       <form className="flex flex-col gap-4">
@@ -142,8 +186,8 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
                      onClick={() => openConfirm("CANCEL")}
                      icon={<BanIcon size={20} />}
                      isHiddenLabelOnMobile
-                     disabled={ProcessApplication.isPending}
-                     isLoading={ProcessApplication.isPending}
+                     disabled={cancelPermissionRequestMutation.isPending}
+                     isLoading={cancelPermissionRequestMutation.isPending}
                   />
                   <Button
                      type="button"
@@ -182,8 +226,8 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
             isOpen={confirmModal.isOpen}
             onClose={() => setConfirmModal({ isOpen: false, type: "CANCEL" })}
             type={confirmModal.type}
-            isLoading={ProcessApplication.isPending}
-            disabled={ProcessApplication.isPending}
+            isLoading={ProcessApplication.isPending || cancelPermissionRequestMutation.isPending}
+            disabled={ProcessApplication.isPending || cancelPermissionRequestMutation.isPending}
             handleFinalAction={() => handleConfirmAction()}
          />
       </form>

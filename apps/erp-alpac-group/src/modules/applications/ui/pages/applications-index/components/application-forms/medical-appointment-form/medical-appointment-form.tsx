@@ -65,7 +65,7 @@ export const MedicalAppointmentForm = (props: MedicalAppointmentFormProps) => {
 
             setTimeout(() => {
                onFinishProcess?.();
-            }, 500);
+            }, 1000);
 
             handleCloseAlert();
          },

@@ -356,7 +356,6 @@ export const ApplicationsPage = function () {
                onClose={() => setIsNewPermissionRequestModalOpen(false)}
                onRequestError={handleRequestError}
                onRequestSuccess={handleRequestSuccess}
-               channel={channel!}
             />
 
             {
