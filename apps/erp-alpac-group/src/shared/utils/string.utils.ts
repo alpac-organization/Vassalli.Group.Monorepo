@@ -36,7 +36,7 @@ export const validateIdentificationNumber = (
    value: string,
    identificationType: number,
 ) => {
-   if (!value) return "El número de identificación es requerido";
+   if (!value) return true;
 
    if (
       identificationType === IdentificationEnum.NATIONAL_ID.value ||

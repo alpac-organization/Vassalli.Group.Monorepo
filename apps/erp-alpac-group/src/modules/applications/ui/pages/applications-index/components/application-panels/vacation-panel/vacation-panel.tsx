@@ -1,5 +1,6 @@
 import { formatDateToSpanishWords, formatTime } from "@app/shared/utils/string.utils";
 import type { VacationPanelProps } from "./vacation-panel.types";
+import { formatRequestedDays } from "@app/shared/utils/vacation.utils";
 
 export const VacationPanel = ({ application }: VacationPanelProps) => {
 
@@ -56,11 +57,26 @@ export const VacationPanel = ({ application }: VacationPanelProps) => {
             application.type === 'Vacation' && !!end_time && (
                <div className="flex flex-col gap-1">
                   <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-                     Fecha de Fin
+                     Hora Final
                   </span>
                   <div className="flex flex-col">
                      <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
                         {end_time ? formatTime(end_time) : '—'}
+                     </span>
+                  </div>
+               </div>
+            )
+         }
+
+         {
+            application.type === 'Vacation' && !!application.amount_days && (
+               <div className="flex flex-col gap-1">
+                  <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                     Cantidad a Recibir
+                  </span>
+                  <div className="flex flex-col">
+                     <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
+                        {formatRequestedDays(application.amount_days)}
                      </span>
                   </div>
                </div>

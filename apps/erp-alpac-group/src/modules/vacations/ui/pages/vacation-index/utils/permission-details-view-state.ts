@@ -8,7 +8,7 @@ import type { PermissionRequestStatus } from "@app/modules/vacations/domain/ApiC
 import type { PermissionHistoryResponse } from "@app/modules/vacations/domain/ApiContract/Responses/permission-history-response";
 import { getPermissionStatusUiLabel } from "@app/modules/vacations/ui/pages/vacation-index/constants/vacation-status.constants";
 import { PERMISSION_TYPE_LABEL } from "@app/modules/vacations/ui/pages/vacation-index/constants/permission-filters.constants";
-import { countInclusiveCalendarDays } from "@app/modules/vacations/ui/pages/vacation-index/utils/count-inclusive-calendar-days";
+import { formatRequestedDays } from "@app/shared/utils/vacation.utils";
 
 // ─── Status helper
 
@@ -74,12 +74,6 @@ export function derivePermissionRequestDetails(
 ): PermissionRequestDetailsUiState {
    const isVacationType = item.type === "Vacation";
 
-   function formatDays(raw: number) {
-      if (!raw) return "—"
-      if (!Number.isInteger(raw) && raw < 1) return `${raw} horas`
-      return `${raw} ${raw === 1 ? "día" : "días"}`
-   }
-
    return {
       fullName,
       collaboratorCode: item.collaborator_code || item.collaborator_id,
@@ -87,7 +81,7 @@ export function derivePermissionRequestDetails(
       isVacationType,
       startDateFormatted: formatLongDate(item.start_date),
       endDateFormatted: formatLongDate(item.end_date),
-      requestedDays: formatDays(item.amount_days),
+      requestedDays: formatRequestedDays(item.amount_days),
       startTime: !isVacationType && item.start_time ? item.start_time : null,
       endTime: !isVacationType && item.end_time ? item.end_time : null,
       statusLabel: getStatusLabel(item.status),

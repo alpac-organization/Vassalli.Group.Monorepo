@@ -39,6 +39,7 @@ import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 import { NewPermissionRequestModal } from '@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal';
 import { ChannelEnum } from '@app/core/enums/channel.enum';
 import { IdentificationEnum } from '@app/core/enums/identifcation.enum';
+import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 
 export const CollaboratorPage = function () {
    const maxPageSize = 10;
@@ -91,15 +92,19 @@ export const CollaboratorPage = function () {
       catalog_type_id: CatalogEnum.JOB_POSITIONS,
    });
 
-   const { GetCatalogListQuery: branchesQuery } = useCatalog({
+   /* const { GetCatalogListQuery: branchesQuery } = useCatalog({
       company_id: companyId,
       catalog_type_id: CatalogEnum.BRANCHES,
-   });
+   });*/
 
    const { GetCatalogListQuery: banksQuery } = useCatalog({
       company_id: companyId,
       catalog_type_id: CatalogEnum.BANKS,
    });
+
+   const { GetBranchesQuery: branchesQuery } = useCompanies({
+      company_id: companyId,
+   })
 
    const { GetCollaboratorsQuery } = useCollaborators({
       Collaboratorsfilters: {
@@ -130,8 +135,11 @@ export const CollaboratorPage = function () {
 
    const optionsWorkAreas = mapCatalogToOptions(workAreas);
    const optionsJobPositions = mapCatalogToOptions(jobPositions);
-   const optionsBranches = mapCatalogToOptions(branches);
    const optionsBanks = mapCatalogToOptions(banks);
+   const optionsBranches = branches.map(b => ({
+      value: b.branch_id,
+      label: b.branch_name
+   }));
 
    const onSubmit: SubmitHandler<CollaboratorRequest> = async (data) => {
       setFilters((prev) => ({ ...prev, ...data, page_number: 1 }));
@@ -426,13 +434,13 @@ export const CollaboratorPage = function () {
                         errorVariant="tooltip"
                         {...register('identification_number',
                            {
+                              required: false,
                               validate: {
                                  validateIdentification: (value?: string) => validateIdentificationNumber(value!, IdentificationEnum.NATIONAL_ID.value)
                               },
                               setValueAs: (value: string) =>
                                  value ? value.toString().replace(/-/g, "").toUpperCase()
                                     : "",
-                              required: false,
                               onChange: (e) => {
                                  e.target.value = formatIdentificationNumber(e.target.value)
                               }
