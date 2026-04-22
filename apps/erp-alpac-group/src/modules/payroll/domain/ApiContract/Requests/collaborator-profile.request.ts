@@ -29,10 +29,4 @@ export interface CollaboratorProfileDetailsRequest {
     * @optional
     */
    QueryEnabled?: boolean;
-
-   /**
-    * Indica el canal por el cual se realiza la solicitud
-    * @required
-    */
-   //channel: string;
 }

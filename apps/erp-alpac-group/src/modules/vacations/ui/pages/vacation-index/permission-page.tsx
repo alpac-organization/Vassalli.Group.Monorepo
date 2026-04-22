@@ -158,6 +158,13 @@ export default function VacationPage() {
 
    const handleRequestError = useCallback((description: string) => {
       setAlertState({ open: true, type: "error", message: description });
+      handleCloseAlert();
+   }, []);
+
+   const handleCloseAlert = useCallback(() => {
+      setTimeout(() => {
+         setAlertState({ open: false, type: "success", message: "" });
+      }, 3000);
    }, []);
 
    const filteredRows = useMemo<PermissionHistoryRow[]>(() => {

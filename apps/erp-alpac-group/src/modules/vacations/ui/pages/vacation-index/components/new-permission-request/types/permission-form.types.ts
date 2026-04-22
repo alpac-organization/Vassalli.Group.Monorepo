@@ -12,6 +12,7 @@ export interface PermissionRequestFormValues {
    start_time?: string;
    end_time?: string;
    donated_vacation_days?: number;
+   beneficiary_identification?: string;
    description: string;
 }
 

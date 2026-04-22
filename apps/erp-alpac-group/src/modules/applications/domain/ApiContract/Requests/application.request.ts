@@ -24,12 +24,6 @@ export interface ApplicationRequest {
    collaborator_code?: string;
 
    /**
-    * Rol del usuario
-    * @required
-    */
-   user_role: string;
-
-   /**
     * Identificador del tipo de solicitud
     * @optional
     */

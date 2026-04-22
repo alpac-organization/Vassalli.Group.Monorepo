@@ -7,7 +7,7 @@ import {
    Modal,
    Stepper,
 } from "@alpac/design-system";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import type { AddCollaboratorModalProps } from "./add-collaborator-modal.types";
 import { Controller, useForm } from "react-hook-form";
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/add-collaborator.request";
@@ -109,11 +109,9 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
             message: "El registro se ha completado con éxito.",
          });
 
-         setTimeout(() => {
-            reset();
-            handleCloseModal();
-            setShowAlert({ show: false, type: "info", title: "", message: "" });
-         }, 1000);
+         reset();
+         handleCloseModal();
+         handleCloseAlert();
       } catch (error) {
          const mappedError = getMappedError(error as ApiErrorResponse);
          setShowAlert({
@@ -124,8 +122,16 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                mappedError.description ||
                "No se pudo crear el colaborador. Por favor, intente de nuevo.",
          });
+
+         handleCloseAlert();
       }
    };
+
+   const handleCloseAlert = useCallback(() => {
+      setTimeout(() => {
+         setShowAlert({ show: false, type: "info", title: "", message: "" });
+      }, 3000);
+   }, []);
 
    const validateIdentificationNumber = (value: string) => {
       if (!value) return "El número de identificación es requerido";
@@ -166,22 +172,20 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
          </div>
 
          <AnimatedAlertWrapper open={showAlert.show}>
-            {showAlert.show && (
-               <Alert
-                  type={showAlert.type}
-                  title={showAlert.title}
-                  message={showAlert.message}
-                  showCloseButton
-                  onClose={() => {
-                     setShowAlert({
-                        show: false,
-                        type: "info",
-                        title: "",
-                        message: "",
-                     });
-                  }}
-               />
-            )}
+            <Alert
+               type={showAlert.type}
+               title={showAlert.title}
+               message={showAlert.message}
+               showCloseButton
+               onClose={() => {
+                  setShowAlert({
+                     show: false,
+                     type: "info",
+                     title: "",
+                     message: "",
+                  });
+               }}
+            />
          </AnimatedAlertWrapper>
 
          <form

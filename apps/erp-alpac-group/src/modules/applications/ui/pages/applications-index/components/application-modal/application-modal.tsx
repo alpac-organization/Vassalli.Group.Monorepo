@@ -13,7 +13,9 @@ export const ApplicationModal = (props: ApplicationModalProps): React.ReactNode 
    const applicationType = PermitApplicationTypeEnum[applicationData.type] ?? null;
 
    useEffect(() => {
-      setApplicationData(props.application);
+      if (props.application && props.application?.permit_apllication_id) {
+         setApplicationData(props.application);
+      }
    }, [props.application]);
 
    return (
@@ -28,19 +30,19 @@ export const ApplicationModal = (props: ApplicationModalProps): React.ReactNode 
 
             {
                applicationType === PermitApplicationTypeEnum.Vacation && (
-                  <VacationForm application={applicationData} />
+                  <VacationForm application={applicationData} onFinishProcess={() => props.onClose?.()} />
                )
             }
 
             {
                applicationType === PermitApplicationTypeEnum.MedicalAppointment && (
-                  <MedicalAppointmentForm application={applicationData} />
+                  <MedicalAppointmentForm application={applicationData} onFinishProcess={() => props.onClose?.()} />
                )
             }
 
             {
                applicationType === PermitApplicationTypeEnum.DonatedVacations && (
-                  <DonatedVacationForm application={applicationData} />
+                  <DonatedVacationForm application={applicationData} onFinishProcess={() => props.onClose?.()} />
                )
             }
 
