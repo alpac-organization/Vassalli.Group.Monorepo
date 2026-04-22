@@ -2,6 +2,7 @@ import type { CreatePermissionRequestBase } from "@app/modules/vacations/domain/
 import type { PermissionRequestFormValues } from "../types/permission-form.types";
 import { PERMISSION_TYPE_TO_ENUM_VALUE } from "../types/new-permissionFormProps";
 import { formatTimeHoursOnly } from "@app/shared/utils/string.utils";
+import dayjs from "dayjs";
 
 interface PayloadContext {
    companyId: string;
@@ -16,9 +17,24 @@ export const generatePermissionPayload = (values: PermissionRequestFormValues, c
 
    const { companyId, moduleCode, identificationNumber, channel, timeFormatType, isSameDay } = context;
 
+   // Minimo de horas para que se considere un dia completo
+   const minHoursToFullDay = 5;
+
    // Helpers internos de conversión
    const convertToIsoUtcZ = (ymd: any) =>
       new Date(ymd).toISOString().split(".")[0] + "Z";
+
+   const startDate = dayjs(values.start_date);
+   const endDate = dayjs(values.end_date);
+
+   const hoursDiff = startDate && endDate ? (endDate.diff(startDate, 'hour', true)) : 0;
+
+   const isFullDay = () => {
+      if (timeFormatType === "fullDay" && isSameDay) return true;
+      if (timeFormatType === "halfDay" && isSameDay && hoursDiff > minHoursToFullDay) return true;
+      if (timeFormatType === "rangeOfHours" && isSameDay && hoursDiff > minHoursToFullDay) return true;
+      return false;
+   }
 
    // Estructura base
    const payload: CreatePermissionRequestBase = {
@@ -37,14 +53,14 @@ export const generatePermissionPayload = (values: PermissionRequestFormValues, c
          end_date: convertToIsoUtcZ(values.end_date.$d),
          start_time: timeFormatType === "rangeOfHours" ? formatTimeHoursOnly(values.start_time) : null,
          end_time: timeFormatType === "rangeOfHours" ? formatTimeHoursOnly(values.end_time) : null,
-         is_full_day: timeFormatType === "fullDay" && isSameDay,
-         is_it_midday: timeFormatType === "halfDay" && isSameDay,
-         with_range_hours: timeFormatType === "rangeOfHours" && isSameDay,
+         is_full_day: isFullDay(),
+         is_it_midday: timeFormatType === "halfDay" && isSameDay && hoursDiff <= minHoursToFullDay,
+         with_range_hours: timeFormatType === "rangeOfHours" && isSameDay && hoursDiff <= minHoursToFullDay,
       };
 
    } else if (values.type === "MedicalAppointment") {
       payload.permit_application_medical_appointment = {
-         is_full_day: timeFormatType === "fullDay",
+         is_full_day: isFullDay(),
          start_date: convertToIsoUtcZ(values.start_date.$d),
          start_time: formatTimeHoursOnly(values.start_time),
          end_time: formatTimeHoursOnly(values.end_time),
@@ -53,7 +69,7 @@ export const generatePermissionPayload = (values: PermissionRequestFormValues, c
    } else if (values.type === "DonatedVacations") {
       payload.permit_application_donated_vacations = {
          amount_days: values.donated_vacation_days || 0,
-         identification_collaborator_to_receive: identificationNumber.trim(),
+         identification_collaborator_to_receive: values.beneficiary_identification?.trim() || "",
       };
    }
 

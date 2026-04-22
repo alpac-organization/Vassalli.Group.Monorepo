@@ -13,7 +13,7 @@ import { PermitApplicationTypeOptions } from "@app/modules/applications/domain/e
 import { PermitApplicationStatusOptions } from "@app/modules/applications/domain/enums/permit-application-status.enum";
 import { ApplicationModal } from "./components/application-modal/application-modal";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import { formatCollaboratorCode } from "@app/shared/utils/collaborator.utils";
+import { formatCollaboratorCode, validateCollaboratorCode } from "@app/shared/utils/collaborator.utils";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -29,7 +29,6 @@ export const ApplicationsPage = function () {
    const initialFilters: ApplicationRequest = {
       company_id: '',
       module_code: '',
-      user_role: '',
       permit_application_type_id: 0,
       permit_application_status_id: 0,
       collaborator_code: '',
@@ -59,7 +58,7 @@ export const ApplicationsPage = function () {
    const { companyId, moduleCode } = useUserStore();
    const { getMappedError } = useMappedError();
 
-   const { control, reset, handleSubmit } = useForm<ApplicationRequest>({
+   const { control, reset, handleSubmit, formState: { errors } } = useForm<ApplicationRequest>({
       defaultValues: initialFilters
    })
    const [isNewPermissionRequestModalOpen, setIsNewPermissionRequestModalOpen] = useState(false);
@@ -78,7 +77,6 @@ export const ApplicationsPage = function () {
       ...filters,
       company_id: companyId,
       module_code: moduleCode,
-      user_role: role
    }, {
       enabled: isListEnabled,
       enabledDetail: isDetailEnabled
@@ -103,7 +101,7 @@ export const ApplicationsPage = function () {
 
    const isError = GetApplicationsQuery.isError || GetApplicationDetailQuery.isError;
 
-   const errors = GetApplicationsQuery.error || GetApplicationDetailQuery.error;
+   const queryErrors = GetApplicationsQuery.error || GetApplicationDetailQuery.error;
 
    useEffect(() => {
       setIsAdministrator(role === RoleEnum.ADMINISTRATOR)
@@ -113,9 +111,9 @@ export const ApplicationsPage = function () {
    useEffect(() => {
       if (isFetching) return;
 
-      if (isError && errors) {
+      if (isError && queryErrors) {
 
-         const mappedError = getMappedError(errors);
+         const mappedError = getMappedError(queryErrors);
          setShowAlert({
             show: true,
             type: "error",
@@ -135,15 +133,15 @@ export const ApplicationsPage = function () {
          });
       }
 
-      if (applicationsData.length > 0 && isSuccess) {
-         setShowAlert({
-            show: false,
-            type: "info",
-            title: "",
-            message: "",
-         });
-      }
-   }, [applicationsData, isFetching, isSuccess, isError, errors])
+      handleCloseAlert();
+
+   }, [applicationsData, isFetching, isSuccess, isError, queryErrors])
+
+   const handleCloseAlert = useCallback(() => {
+      setTimeout(() => {
+         setShowAlert({ show: false, type: "info", title: "", message: "" });
+      }, 3000);
+   }, []);
 
    const onSubmit: SubmitHandler<ApplicationRequest> = async (data) => {
 
@@ -170,10 +168,12 @@ export const ApplicationsPage = function () {
 
    const handleRequestError = useCallback((description: string) => {
       setShowAlert({ show: true, type: "error", title: "Error", message: description });
+      handleCloseAlert();
    }, []);
 
    const handleRequestSuccess = useCallback(() => {
       setShowAlert({ show: true, type: "success", title: "Éxito", message: "Solicitud creada exitosamente" });
+      handleCloseAlert();
    }, []);
 
    const handlePageChange = useCallback((page: number) => {
@@ -215,10 +215,9 @@ export const ApplicationsPage = function () {
             <div className="flex flex-col">
                <div className="flex justify-between items-center">
                   <div className="flex flex-col justify-center">
-                     <h3 className="p-0! m-0!">Solicitudes</h3>
-                     <small className="text-gray-500 dark:text-gray-300">
-                        Descripcion de solicitudes
-                     </small>
+                     <h3 className="p-0! m-0!">
+                        {isManager ? 'Búsqueda de Solicitudes' : 'Lista de Solicitudes'}
+                     </h3>
                   </div>
                   <img
                      className="h-12 sm:h-16 md:h-20 w-auto object-contain"
@@ -232,7 +231,7 @@ export const ApplicationsPage = function () {
                <div className="flex flex-col justify-center">
                   <h3 className="p-0! m-0!">Filtros</h3>
                   <small className="text-gray-500 dark:text-gray-300">
-                     Descripcion de filtros
+                     {isManager ? 'Filtre las solicitudes por código de colaborador.' : 'Filtre las solicitudes por tipo o estado para encontrar información específica.'}
                   </small>
                </div>
             </div>
@@ -247,23 +246,32 @@ export const ApplicationsPage = function () {
                      <Controller
                         name="collaborator_code"
                         control={control}
+                        rules={{
+                           required: "El código de colaborador es requerido",
+                           validate: {
+                              validateCode: (value?: string) => validateCollaboratorCode(value!)
+                           }
+                        }}
                         render={({ field }) => (
 
                            <InputText
                               {...field}
-                              label="Código del Colaborador"
+                              label="Código de Colaborador"
                               className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                               labelClassName="text-black! dark:text-white!"
                               type="text"
                               placeholder="Ingrese el código del colaborador"
+                              errorVariant="tooltip"
                               onChange={(evt) => {
                                  const value = evt.target.value;
                                  const formattedValue = formatCollaboratorCode(value);
                                  field.onChange(formattedValue);
                               }}
+                              error={errors.collaborator_code?.message}
                            />
 
                         )}
+
                      />
                   </div>
                )}
@@ -368,22 +376,11 @@ export const ApplicationsPage = function () {
             ))}
 
             <AnimatedAlertWrapper open={showAlert.show}>
-               {showAlert.show && (
-                  <Alert
-                     type={showAlert.type}
-                     title={showAlert.title}
-                     message={showAlert.message}
-                     showCloseButton
-                     onClose={() => {
-                        setShowAlert({
-                           show: false,
-                           type: "info",
-                           title: "",
-                           message: "",
-                        });
-                     }}
-                  />
-               )}
+               <Alert
+                  type={showAlert.type}
+                  title={showAlert.title}
+                  message={showAlert.message}
+               />
             </AnimatedAlertWrapper>
 
             {isAdministrator && (

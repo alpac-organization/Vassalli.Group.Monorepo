@@ -1,6 +1,5 @@
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 
-export type VacationFormProps = {
+export interface VacationPanelProps {
    application: GetApplicationsResponse;
-   onFinishProcess?: () => void;
 }

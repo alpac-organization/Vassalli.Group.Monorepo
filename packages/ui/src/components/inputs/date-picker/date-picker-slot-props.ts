@@ -18,10 +18,11 @@ const calendarPaperSx = {
    color: "#fff",
    border: "1px solid #3e4451",
    "& .MuiPickersDay-root": {
-      color: "#ffffff !important",
+      color: "#ffffff",
    },
    "& .MuiPickersDay-root.Mui-disabled": {
       color: "#94a3b8 !important",
+      opacity: 0.5,
    },
    "& .MuiPickersDay-root .MuiTypography-root": {
       color: "inherit !important",
@@ -154,6 +155,10 @@ const sharedSlotProps = {
    day: {
       sx: {
          color: "#ffffff",
+         "&.Mui-disabled": {
+            color: "#94a3b8 !important",
+            opacity: 0.5,
+         },
          "&.Mui-selected": {
             color: "#ffffff",
             backgroundColor: "rgba(0, 79, 158, 0.35)",
@@ -162,7 +167,7 @@ const sharedSlotProps = {
             backgroundColor: "rgba(255, 255, 255, 0.08)",
          },
          "& .MuiTypography-root": {
-            color: "#ffffff",
+            color: "inherit",
          },
       },
    },

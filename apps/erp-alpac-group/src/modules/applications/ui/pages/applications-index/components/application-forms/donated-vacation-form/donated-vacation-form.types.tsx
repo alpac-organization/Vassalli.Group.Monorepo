@@ -2,4 +2,5 @@ import type { GetApplicationsResponse } from "@app/modules/applications/domain/A
 
 export type DonatedVacationFormProps = {
    application: GetApplicationsResponse;
+   onFinishProcess?: () => void;
 }

@@ -62,7 +62,7 @@ export const MainPanel = ({ application, children, className }: MainPanelProps) 
 
          <div className="flex flex-col gap-1">
             <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-               Fecha de Solicitud
+               Fecha de Registro
             </span>
             <div className="flex flex-col">
                <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
