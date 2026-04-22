@@ -107,11 +107,7 @@ class AxiosHttpAdapter implements IHttpHandler {
           }
         }
 
-        if (
-          httpStatus !== undefined &&
-          httpStatus >= 500 &&
-          httpStatus < 600
-        ) {
+        if (httpStatus === 503) {
           useServerErrorStore.getState().showServerError({
             status: httpStatus,
           });
