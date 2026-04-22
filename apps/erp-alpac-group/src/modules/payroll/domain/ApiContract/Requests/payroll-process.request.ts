@@ -14,7 +14,7 @@ export interface PayrollProcessRequest {
   /**
    * Identificador de la sucursal
    */
-  branch_id: number;
+  branch_id: string;
 }
 export type PayrollType =
   | "None"

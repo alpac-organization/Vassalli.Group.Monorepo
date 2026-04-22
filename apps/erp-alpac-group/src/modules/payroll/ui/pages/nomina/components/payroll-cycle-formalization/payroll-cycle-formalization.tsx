@@ -5,15 +5,12 @@ import type { PayrollCycleFormalizationProps } from "@app/modules/payroll/ui/pag
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { useNavigate } from "react-router-dom";
 
-const readOnlyInputClassName = `
-  transition-all! duration-200! dark:bg-[#272b34]! border-b border-neutral-700 dark:px-3! 
-  disabled:dark:bg-[#272b34]! disabled:dark:border-slate-600 disabled:px-3! disabled:opacity-100! disabled:shadow-none! disabled:font-medium!
-  min-w-0 w-full max-w-full text-[14px]! font-medium! ml-0.5!
-  text-slate-900! dark:text-white!
+const cycleInputClassName = `
+  w-full! rounded-md! text-[15px]! text-white!
+  dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-white
 `.replace(/\s+/g, " ");
 
-const labelClassName =
-  "text-[13px]! sm:text-[14px]! font-medium! text-slate-800! dark:text-white! ml-0.5!";
+const labelClassName = "text-black! dark:text-white!";
 
 export default function PayrollCycleFormalization({
   cicloInicial,
@@ -23,7 +20,6 @@ export default function PayrollCycleFormalization({
   statusLoading = false,
   statusError = false,
   onRetryProcessStatus,
-  onRequestChangePayrollSelection,
 }: PayrollCycleFormalizationProps) {
   const [isFormalizeModalOpen, setIsFormalizeModalOpen] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -85,9 +81,9 @@ export default function PayrollCycleFormalization({
   return (
     <>
       <div className="w-full max-w-full">
-        <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-4">
-          <div className="grid min-w-0 flex-1 grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            <div className="flex min-w-0 flex-col sm:col-span-1">
+        <div className="flex w-full flex-col gap-5 sm:gap-4">
+          <div className="grid min-w-0 grid-cols-1 items-end gap-5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-4">
+            <div className="flex min-w-0 flex-col">
               <InputText
                 label="Inicio del ciclo"
                 labelClassName={labelClassName}
@@ -99,10 +95,10 @@ export default function PayrollCycleFormalization({
                     ? formatDateToSpanishWords(cicloInicial.trim())
                     : "—"
                 }
-                className={`${readOnlyInputClassName} w-full!`}
+                className={cycleInputClassName}
               />
             </div>
-            <div className="flex min-w-0 flex-col sm:col-span-1">
+            <div className="flex min-w-0 flex-col">
               <InputText
                 label="Fin del ciclo"
                 labelClassName={labelClassName}
@@ -113,10 +109,10 @@ export default function PayrollCycleFormalization({
                     ? formatDateToSpanishWords(cicloFinal.trim())
                     : "—"
                 }
-                className={`${readOnlyInputClassName} w-full!`}
+                className={cycleInputClassName}
               />
             </div>
-            <div className="flex min-w-0 flex-col gap-2 sm:col-span-2 lg:col-span-1">
+            <div className="flex min-w-0 flex-col">
               <Button
                 type="button"
                 size="giant"
@@ -125,33 +121,20 @@ export default function PayrollCycleFormalization({
                 disabled={formalizeDisabled}
                 className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
               />
-              {statusError && !showErrorModal && (
-                <p className="text-[13px] text-slate-600 dark:text-slate-400 flex flex-wrap items-center gap-2">
-                  <span>
-                    No se pudo comprobar si hay una nómina en progreso.
-                  </span>
-                  <button
-                    type="button"
-                    className="font-medium text-alpac-primary-600 dark:text-alpac-primary-400 underline underline-offset-2"
-                    onClick={() => void handleRetryProcessStatus()}
-                  >
-                    Reintentar
-                  </button>
-                </p>
-              )}
             </div>
           </div>
-          {onRequestChangePayrollSelection != null ? (
-            <div className="flex w-full shrink-0 lg:w-auto lg:max-w-[min(100%,20rem)]">
-              <Button
+          {statusError && !showErrorModal && (
+            <p className="text-[13px] text-slate-600 dark:text-slate-400 flex flex-wrap items-center gap-2">
+              <span>No se pudo comprobar si hay una nómina en progreso.</span>
+              <button
                 type="button"
-                size="giant"
-                label="Cambiar tipo de nómina y sucursal"
-                onClick={onRequestChangePayrollSelection}
-                className="w-full! min-h-[48px]! shrink-0 text-center! text-[14px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! lg:w-auto! lg:whitespace-nowrap!"
-              />
-            </div>
-          ) : null}
+                className="font-medium text-alpac-primary-600 dark:text-alpac-primary-400 underline underline-offset-2"
+                onClick={() => void handleRetryProcessStatus()}
+              >
+                Reintentar
+              </button>
+            </p>
+          )}
         </div>
       </div>
 

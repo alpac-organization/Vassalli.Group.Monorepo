@@ -29,7 +29,6 @@ export function PayrollTable({
       label: "Identificación",
       render: (item: PayrollItemResponse) => {
         const idNumber = item.collaborator?.identification_number;
-        console.log(idNumber);
         if (!idNumber) return "—";
         if (idNumber.length !== 14) return idNumber;
         return formatIdentificationNumber(idNumber);
@@ -40,16 +39,24 @@ export function PayrollTable({
       label: "Area de Trabajo",
     },
     {
-      key: "gross_salary",
-      label: "Salario Ordinario",
+      key: "biweekly_salary",
+      label: "Salario Quincenal",
       render: (item: PayrollItemResponse) =>
-        formatCurrency(item.gross_salary ?? 0, "NIO") ?? "—",
+        formatCurrency(item.biweekly_salary ?? 0, "NIO") ?? "—",
     },
     {
-      key: "ir",
-      label: "IR",
+      key: "overtime_salary",
+      label: "Horas Extras",
+    },
+    {
+      key: "bonos",
+      label: "Bonos",
+    },
+    {
+      key: "gross_salary",
+      label: "Ordinario",
       render: (item: PayrollItemResponse) =>
-        formatCurrency(item.ir ?? 0, "NIO") ?? "—",
+        formatCurrency(item.gross_salary ?? 0, "NIO") ?? "—",
     },
     {
       key: "inss",
@@ -58,22 +65,31 @@ export function PayrollTable({
         formatCurrency(item.inss ?? 0, "NIO") ?? "—",
     },
     {
-      key: "vacations",
-      label: "Vacaciones",
+      key: "ir",
+      label: "IR",
+      render: (item: PayrollItemResponse) =>
+        formatCurrency(item.ir ?? 0, "NIO") ?? "—",
     },
     {
-      key: "bonos",
-      label: "Bonos",
+      key: "total_legal_deductions",
+      label: "Total de Deducciones Legales",
+      render: (item: PayrollItemResponse) =>
+        formatCurrency(item.total_legal_deductions ?? 0, "NIO") ?? "—",
     },
     {
-      key: "deductions",
-      label: "Deducciones",
-      render: (item: PayrollItemResponse) => item.deductions ?? "—",
+      key: "other_deductions",
+      label: "otras deducciones",
     },
     {
       key: "total_deductions",
       label: "Total de Deducciones",
     },
+    //  {
+    //    key: "deductions",
+    //    label: "Deducciones",
+    //    render: (item: PayrollItemResponse) =>
+    //      formatCurrency(item.deductions ?? 0, "NIO") ?? "—",
+    //  },
     {
       key: "total_to_pay",
       label: "Pago total",

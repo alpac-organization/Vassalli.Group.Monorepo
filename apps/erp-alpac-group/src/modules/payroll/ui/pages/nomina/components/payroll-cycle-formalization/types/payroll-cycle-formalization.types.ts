@@ -6,5 +6,4 @@ export type PayrollCycleFormalizationProps = {
   statusLoading?: boolean;
   statusError?: boolean;
   onRetryProcessStatus?: () => void;
-  onRequestChangePayrollSelection?: () => void;
 };

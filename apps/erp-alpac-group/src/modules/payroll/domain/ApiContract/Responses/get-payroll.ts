@@ -18,6 +18,8 @@ export interface PayrollItemResponse {
   inss: number;
   gross_salary: number;
   deductions: number;
+  biweekly_salary: number;
+  total_legal_deductions: number;
   total_to_pay: number;
   collaborator: CollaboratorResponse | null;
 }
