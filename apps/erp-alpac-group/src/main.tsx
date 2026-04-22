@@ -2,7 +2,7 @@ import "@alpac/design-system/styles/global.css";
 import { RouterProvider } from "react-router-dom";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { GlobalServerErrorGate } from "@app/shared/components/global-server-error-gate/global-server-error-gate";
+import { GlobalServerErrorProvider } from "@app/shared/providers/global-server-error-provider";
 
 interface MainProps {
   router: any;
@@ -12,9 +12,9 @@ interface MainProps {
 export default function Main({ router, queryClient }: MainProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <GlobalServerErrorGate>
+      <GlobalServerErrorProvider>
         <RouterProvider router={router} />
-      </GlobalServerErrorGate>
+      </GlobalServerErrorProvider>
 
       <ReactQueryDevtools buttonPosition="bottom-right" initialIsOpen={false} />
     </QueryClientProvider>

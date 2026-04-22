@@ -7,11 +7,8 @@ import { MainRoutes } from "@app/routers/main-routes"
 import { DatePickerProvider, ThemeProvider } from "@alpac/design-system"
 import { InactivityProvider } from "@app/shared/providers/inactivity-provider"
 import { MotionConfig } from "framer-motion"
-import { registerQueryClientForServerRecovery } from "@app/shared/utils/server-error-recovery"
 
 const queryClient = new QueryClient()
-
-registerQueryClientForServerRecovery(queryClient)
 const router = createBrowserRouter(MainRoutes)
 const container = document.getElementById("root")!
 
