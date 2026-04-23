@@ -16,6 +16,7 @@ export interface GetCollaboratorProfileDetailsResponse {
    * @required
    */
   full_name: string;
+  collaborator_code?: string;
 
   /**
    * Estado del colaborador

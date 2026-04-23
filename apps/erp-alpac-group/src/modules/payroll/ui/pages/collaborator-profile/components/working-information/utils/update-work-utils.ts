@@ -53,6 +53,9 @@ export const useUpdateWorkInformation = ({
       case "workPhoneNumber":
         working.work_phone_number = value.trim();
         break;
+      case "branchId":
+        working.branch_id = value.trim();
+        break;
       default:
         return;
     }

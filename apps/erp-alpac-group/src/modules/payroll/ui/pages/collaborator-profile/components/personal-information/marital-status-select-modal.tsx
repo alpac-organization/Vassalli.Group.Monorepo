@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Modal, Button, Dropdown } from "@alpac/design-system";
 import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
 import { isValidMaritalStatusCode } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/marital-status.utils";
@@ -17,10 +17,6 @@ export function MaritalStatusSelectModal({
   onConfirm,
 }: MaritalStatusSelectModalProps) {
   const [selected, setSelected] = useState<number>(currentMaritalStatus);
-
-  useEffect(() => {
-    setSelected(currentMaritalStatus);
-  }, [currentMaritalStatus]);
 
   const handleConfirm = async () => {
     if (!isValidMaritalStatusCode(selected)) return;

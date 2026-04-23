@@ -9,18 +9,18 @@ import {
   isValueMissing,
 } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/field-missing-message";
 import type { PersonalFormData } from "@app/modules/payroll/ui/pages/collaborator-profile/types/profile-details.types";
-import type { PersonalInformationProps } from "./types/personal-information.type";
-import { mapPersonalInformationToForm } from "./utils/mapPersonalInformationToForm";
+import type { PersonalInformationProps } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/types/personal-information.type";
+import { mapPersonalInformationToForm } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/mapPersonalInformationToForm";
 import { splitFullNameForForm } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/split-full-name";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { DepartmentSelectModal } from "./department-select-modal";
-import { MaritalStatusSelectModal } from "./marital-status-select-modal";
+import { DepartmentSelectModal } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/department-select-modal";
+import { MaritalStatusSelectModal } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/marital-status-select-modal";
 import {
   maritalRawToLabel,
   normalizeMaritalStatusFromApi,
   type MaritalStatusSource,
 } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/marital-status.utils";
-import { useUpdatePersonalInformation } from "./utils/updateInformation";
+import { useUpdatePersonalInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/updateInformation";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
 import {
@@ -163,6 +163,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
       />
 
       <MaritalStatusSelectModal
+        key={marital_status}
         isOpen={maritalModalOpen}
         onClose={() => setMaritalModalOpen(false)}
         currentMaritalStatus={
