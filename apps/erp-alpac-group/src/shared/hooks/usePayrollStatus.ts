@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
-import { PayrollServices } from "@app/modules/payroll/infrastructure/services/PayrollServices";
-import type { GetPayrollProcessResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-payroll-process";
-import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-process.request";
+import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
+import type { GetPayrollProcessResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-process";
+import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
 
 const payrollServices = new PayrollServices(httpHandler);
 

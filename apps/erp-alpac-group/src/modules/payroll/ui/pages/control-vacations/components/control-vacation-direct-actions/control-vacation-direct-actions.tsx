@@ -1,6 +1,6 @@
 import { Button } from "@alpac/design-system";
 import { FileSpreadsheet } from "lucide-react";
-import type { ControlVacationDirectActionsProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-direct-actions/type/control-vacation-direct-actions.props";
+import type { ControlVacationDirectActionsProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-direct-actions/types/control-vacation-direct-actions.props";
 
 export function ControlVacationDirectActions({
   onGenerateReport,
