@@ -9,19 +9,19 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/confirm-modal/confirm-modal";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { ManagerPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/manager-panel/manager-panel";
-
+import { AdministratorPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/administrator-panel/administrator-panel";
+import { MedicalAppointmentPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/medical-appointment-panel/medical-appointment-panel";
+import { VacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/vacation-panel/vacation-panel";
+import { usePermission } from "@app/modules/vacations/ui/hooks/usePermission";
+import { PermitApplicationStatus } from "@app/modules/applications/domain/enums/permit-application-status.enum";
 import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
-import type { ConfirmActionType } from "../../../types/confirm-action.types";
-import { AdministratorPanel } from "../../application-panels/administrator-panel/administrator-panel";
-import { MedicalAppointmentPanel } from "../../application-panels/medical-appointment-panel/medical-appointment-panel";
-import { VacationPanel } from "../../application-panels/vacation-panel/vacation-panel";
-import { usePermission } from "@app/modules/vacations/ui/hooks/usePermission";
+import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
 import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
 
 export const ManagerForm = ({ application }: { application: GetApplicationsResponse }) => {
 
-   const { companyId, moduleCode, identificationNumber } = useUserStore();
+   const { companyId, moduleCode } = useUserStore();
    const { ProcessApplication } = useApplications();
    const { cancelPermissionRequestMutation } = usePermission();
    const { getMappedError } = useMappedError();
@@ -54,6 +54,8 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
          is_approved: null
       }
    });
+
+   const isPendingApplication = PermitApplicationStatus[application.status] === PermitApplicationStatus.Pending;
 
    const processApplication = (data: ApplicationProcessRequest) => {
       ProcessApplication.mutate(data, {
@@ -128,14 +130,12 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
          cancelApplication({
             company_id: companyId,
             module_code: moduleCode,
-            identification_number: identificationNumber,
             permit_application_id: application.permit_apllication_id,
          });
       } else {
          handleConfirmProcessApplication();
       }
    };
-
 
    return (
       <form className="flex flex-col gap-4">
@@ -177,7 +177,7 @@ export const ManagerForm = ({ application }: { application: GetApplicationsRespo
          </MainPanel>
 
          {
-            application.firts_step_approved === null && (
+            application.firts_step_approved === null && isPendingApplication && (
                <div className="flex flex-row col-span-full gap-4">
                   <Button
                      type="button"

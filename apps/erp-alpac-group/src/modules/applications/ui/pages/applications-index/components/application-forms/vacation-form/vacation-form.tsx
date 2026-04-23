@@ -9,11 +9,14 @@ import { ManagerPanel } from "@app/modules/applications/ui/pages/applications-in
 import { AdministratorPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/administrator-panel/administrator-panel";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-
 import { ConfirmActionValueMap, type ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
+import { VacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/vacation-panel/vacation-panel";
+import { usePermission } from "@app/modules/vacations/ui/hooks/usePermission";
+
 import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 import type { VacationFormProps } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/vacation-form/vacation-form.types";
-import { VacationPanel } from "../../application-panels/vacation-panel/vacation-panel";
+import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
+import { PermitApplicationStatus } from "@app/modules/applications/domain/enums/permit-application-status.enum";
 
 export const VacationForm = (props: VacationFormProps) => {
 
@@ -21,6 +24,7 @@ export const VacationForm = (props: VacationFormProps) => {
 
    const { companyId, moduleCode } = useUserStore();
    const { ProcessApplication } = useApplications();
+   const { cancelPermissionRequestMutation } = usePermission();
    const { getMappedError } = useMappedError();
 
    const [confirmModal, setConfirmModal] = useState<{
@@ -51,6 +55,8 @@ export const VacationForm = (props: VacationFormProps) => {
          is_approved: null
       }
    });
+
+   const isPendingApplication = PermitApplicationStatus[application.status] === PermitApplicationStatus.Pending;
 
    const processApplication = (data: ApplicationProcessRequest) => {
       ProcessApplication.mutate(data, {
@@ -84,6 +90,37 @@ export const VacationForm = (props: VacationFormProps) => {
       });
    }
 
+   const cancelApplication = (data: CancelPermissionRequest) => {
+      cancelPermissionRequestMutation.mutate(data, {
+         onSuccess: () => {
+            setConfirmModal({ isOpen: false, type: "CANCEL" });
+            setShowAlert({
+               show: true,
+               type: "success",
+               title: "Solicitud cancelada",
+               message: "La solicitud ha sido cancelada exitosamente."
+            });
+
+            setTimeout(() => {
+               onFinishProcess?.();
+            }, 1000);
+
+            handleCloseAlert();
+         },
+         onError: (error) => {
+            const mappedError = getMappedError(error);
+            setShowAlert({
+               show: true,
+               type: "error",
+               title: "Error",
+               message: mappedError.description
+            });
+
+            handleCloseAlert();
+         }
+      });
+   };
+
    const openConfirm = (type: ConfirmActionType) => {
       const value = type ? ConfirmActionValueMap[type] : null;
       setValue("is_approved", value);
@@ -96,7 +133,19 @@ export const VacationForm = (props: VacationFormProps) => {
       }, 3000);
    }, []);
 
-   const handleConfirmAction = handleSubmit(processApplication);
+   const handleConfirmProcessApplication = handleSubmit(processApplication);
+
+   const handleConfirmAction = () => {
+      if (confirmModal.type === "CANCEL") {
+         cancelApplication({
+            company_id: companyId,
+            module_code: moduleCode,
+            permit_application_id: application.permit_apllication_id,
+         });
+      } else {
+         handleConfirmProcessApplication();
+      }
+   };
 
    return (
       <form className="flex flex-col gap-6">
@@ -120,7 +169,7 @@ export const VacationForm = (props: VacationFormProps) => {
          </MainPanel>
 
          {
-            application.second_step_approved === null && (
+            application.second_step_approved === null && isPendingApplication && (
                <div className="flex justify-end gap-3">
                   <Button
                      type="button"
@@ -129,8 +178,8 @@ export const VacationForm = (props: VacationFormProps) => {
                      onClick={() => openConfirm("CANCEL")}
                      icon={<BanIcon size={20} />}
                      isHiddenLabelOnMobile
-                     disabled={ProcessApplication.isPending}
-                     isLoading={ProcessApplication.isPending}
+                     disabled={cancelPermissionRequestMutation.isPending}
+                     isLoading={cancelPermissionRequestMutation.isPending}
                   />
                   <Button
                      type="button"

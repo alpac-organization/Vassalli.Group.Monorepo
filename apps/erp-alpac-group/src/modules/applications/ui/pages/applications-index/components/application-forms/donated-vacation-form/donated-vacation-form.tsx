@@ -10,18 +10,22 @@ import { AdministratorPanel } from "@app/modules/applications/ui/pages/applicati
 import { DonatedVacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/donated-vacation-panel/donated-vacation-panel";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { validateIntegerNumber, validatePositiveNumber } from "@app/shared/utils/number.utils";
+import { validateMaximumDonatedVacation } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/utils/validateMaximumDonatedVacation";
+import { usePermission } from "@app/modules/vacations/ui/hooks/usePermission";
 
 import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
 import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 import type { DonatedVacationFormProps } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/donated-vacation-form/donated-vacation-form.types";
-import { validateIntegerNumber, validatePositiveNumber } from "@app/shared/utils/number.utils";
-import { validateMaximumDonatedVacation } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/utils/validateMaximumDonatedVacation";
+import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
+import { PermitApplicationStatus } from "@app/modules/applications/domain/enums/permit-application-status.enum";
 
 export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
 
    const { application, onFinishProcess } = props;
    const { companyId, moduleCode } = useUserStore();
    const { ProcessApplication } = useApplications();
+   const { cancelPermissionRequestMutation } = usePermission();
    const { getMappedError } = useMappedError();
 
    const [confirmModal, setConfirmModal] = useState<{
@@ -56,6 +60,8 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
       }
    });
 
+   const isPendingApplication = PermitApplicationStatus[application.status] === PermitApplicationStatus.Pending;
+
    const processApplication = (data: ApplicationProcessRequest) => {
       ProcessApplication.mutate(data, {
          onSuccess: () => {
@@ -88,6 +94,37 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
       });
    }
 
+   const cancelApplication = (data: CancelPermissionRequest) => {
+      cancelPermissionRequestMutation.mutate(data, {
+         onSuccess: () => {
+            setConfirmModal({ isOpen: false, type: "CANCEL" });
+            setShowAlert({
+               show: true,
+               type: "success",
+               title: "Solicitud cancelada",
+               message: "La solicitud ha sido cancelada exitosamente."
+            });
+
+            setTimeout(() => {
+               onFinishProcess?.();
+            }, 1000);
+
+            handleCloseAlert();
+         },
+         onError: (error) => {
+            const mappedError = getMappedError(error);
+            setShowAlert({
+               show: true,
+               type: "error",
+               title: "Error",
+               message: mappedError.description
+            });
+
+            handleCloseAlert();
+         }
+      });
+   };
+
    const openConfirm = (type: ConfirmActionType) => {
       setValue("is_approved", type === "APPROVE");
       setConfirmModal({ isOpen: true, type });
@@ -99,7 +136,19 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
       }, 3000);
    }, []);
 
-   const handleConfirmAction = handleSubmit(processApplication);
+   const handleConfirmProcessApplication = handleSubmit(processApplication);
+
+   const handleConfirmAction = () => {
+      if (confirmModal.type === "CANCEL") {
+         cancelApplication({
+            company_id: companyId,
+            module_code: moduleCode,
+            permit_application_id: application.permit_apllication_id,
+         });
+      } else {
+         handleConfirmProcessApplication();
+      }
+   };
 
    return (
       <form className="flex flex-col gap-6">
@@ -145,7 +194,7 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
          </MainPanel>
 
          {
-            application.second_step_approved === null && (
+            application.second_step_approved === null && isPendingApplication && (
                <div className="flex justify-end gap-3">
                   <Button
                      type="button"
@@ -154,8 +203,8 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
                      onClick={() => openConfirm("CANCEL")}
                      icon={<BanIcon size={20} />}
                      isHiddenLabelOnMobile
-                     disabled={ProcessApplication.isPending}
-                     isLoading={ProcessApplication.isPending}
+                     disabled={cancelPermissionRequestMutation.isPending}
+                     isLoading={cancelPermissionRequestMutation.isPending}
                   />
                   <Button
                      type="button"

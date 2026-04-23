@@ -35,8 +35,6 @@ import {
 } from "@app/modules/vacations/ui/pages/vacation-index/utils/permission-view-state";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
-import { ChannelEnum } from "@app/core/enums/channel.enum";
-import { RoleEnum } from "@app/core/enums/role.enum";
 
 export default function VacationPage() {
 
@@ -47,7 +45,6 @@ export default function VacationPage() {
       moduleCode,
       identificationNumber,
       fullName,
-      role
    } = useUserStore();
 
    const [filterDraft, setFilterDraft] =

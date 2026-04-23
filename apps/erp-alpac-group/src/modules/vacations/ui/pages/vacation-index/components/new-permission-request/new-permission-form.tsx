@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+import { X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { useForm, Controller, type ControllerRenderProps } from "react-hook-form";
@@ -7,16 +9,16 @@ import { PERMISSION_TYPE_OPTIONS } from "@app/modules/vacations/ui/pages/vacatio
 import { validateLaboralHours, validateTime } from "@app/shared/utils/string.utils";
 import { generatePermissionPayload } from "./utils/generatePermissionPayload";
 import { validateIntegerNumber, validatePositiveNumber } from "@app/shared/utils/number.utils";
-
-import type { NewPermissionRequestFormProps } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/new-permissionFormProps";
-import type { PermissionRequestFormValues } from "./types/permission-form.types";
-import type { PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
-import dayjs from "dayjs";
 import { validateMaximumDonatedVacation } from "./utils/validateMaximumDonatedVacation";
 import { CollaboratorSearchForm } from "../collaborator-search-form/collaborator-search-form";
 import { NewPermissionCollaboratorSummary } from "./collaborator-summary";
+
+import type { PermissionRequestFormValues } from "./types/permission-form.types";
+import type { PermissionType } from "@app/modules/vacations/domain/ApiContract/Requests/create-permission-request";
+import type { NewPermissionRequestFormProps } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/types/new-permissionFormProps";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
-import { X } from "lucide-react";
+import { RoleEnum } from "@app/core/enums/role.enum";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -80,10 +82,13 @@ export function NewPermissionRequestForm(
       exit: { opacity: 0, y: 8, height: 0, overflow: 'hidden' },
    }
 
+   const { role } = useUserStore();
+
    const endOfYear = dayjs().endOf('year');
+   const isOperator = role === RoleEnum.OPERATOR;
 
    const {
-      register, handleSubmit, setError, reset,
+      register, handleSubmit, setError,
       getValues, setValue, control, formState: { errors, isValid }
    } = useForm<PermissionRequestFormValues>({
       defaultValues, mode: "onChange"
@@ -105,6 +110,7 @@ export function NewPermissionRequestForm(
    const [foundBeneficiary, setFoundBeneficiary] = useState<GetCollaboratorProfileDetailsResponse | null>(null);
    const [searchError, setSearchError] = useState<string | null>(null);
    const [isSearching, setIsSearching] = useState(true);
+
 
    const isSelectedAtLeastOneType = useMemo(
       () => Object.values(applicationType).some((value) => value === true),
@@ -252,6 +258,7 @@ export function NewPermissionRequestForm(
                                              label={`${applicationType.MedicalAppointment ? "Fecha de cita" : "Fecha inicio"}`}
                                              className="w-full"
                                              value={field.value}
+                                             minDate={isOperator ? dayjs() : null}
                                              maxDate={endOfYear}
                                              shouldDisableDate={(date) => date.day() === 0}
                                              onChange={(value) => {

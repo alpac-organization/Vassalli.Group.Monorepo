@@ -14,13 +14,13 @@ import { PermitApplicationStatusOptions } from "@app/modules/applications/domain
 import { ApplicationModal } from "./components/application-modal/application-modal";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { formatCollaboratorCode, validateCollaboratorCode } from "@app/shared/utils/collaborator.utils";
-import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
-import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { ManagerForm } from "./components/application-forms/manager-form/manager-form";
 import { Plus } from "lucide-react";
 import { NewPermissionRequestModal } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal";
-import { ChannelEnum } from "@app/core/enums/channel.enum";
+
+import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
+import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
 
 export const ApplicationsPage = function () {
 
@@ -64,9 +64,6 @@ export const ApplicationsPage = function () {
    const [isNewPermissionRequestModalOpen, setIsNewPermissionRequestModalOpen] = useState(false);
 
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
-   const channel = role === RoleEnum.ADMINISTRATOR ?
-      ChannelEnum.AdministrativePanel : role === RoleEnum.MANAGER ?
-         ChannelEnum.DirectManagerPanel : null;
    const isListEnabled: boolean = isAdministrator
    const isDetailEnabled: boolean = isManager && !!filters.collaborator_code;
 

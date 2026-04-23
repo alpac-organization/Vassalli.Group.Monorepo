@@ -38,6 +38,8 @@ export const usePermission = (
          permissionServices.cancelPermissionRequest(payload),
       onSuccess: () => {
          queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });
+         queryClient.invalidateQueries({ queryKey: ["applicationsData"] });
+         queryClient.invalidateQueries({ queryKey: ["applicationDetailData"] });
       },
    });
 
