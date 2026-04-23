@@ -5,7 +5,7 @@ import { Banner, TabHeader, type TabOption } from "@alpac/design-system";
 import { ProfileSummary } from "@app/modules/payroll/ui/pages/collaborator-profile/components/profile-summary/profile-summary";
 import type { TabId } from "@app/modules/payroll/ui/pages/collaborator-profile/types/tabs.type";
 import { PersonalInformation } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/personal-information";
-import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
+import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
 import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/Work-info";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";

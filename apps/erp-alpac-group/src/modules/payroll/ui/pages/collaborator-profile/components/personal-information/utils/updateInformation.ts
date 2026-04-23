@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
+import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
 import { normalizeMaritalStatusFromApi } from "@app/modules/payroll/ui/pages/collaborator-profile/components/personal-information/utils/marital-status.utils";
-import type { UpdatePersonalInformationRequest } from "@app/modules/payroll/domain/ApiContract/Requests/update-collaborator-request";
+import type { UpdatePersonalInformationRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/update-collaborator-request";
 
 interface UseUpdatePersonalInformationProps {
   companyId?: string;

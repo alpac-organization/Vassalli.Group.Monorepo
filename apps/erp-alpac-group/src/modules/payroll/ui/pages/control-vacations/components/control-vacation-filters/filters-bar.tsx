@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button, DatePicker, type DatePickerValue } from "@alpac/design-system";
-import type { ControlVacationFiltersBarProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/type/control-vacation-filter-bar";
+import type { ControlVacationFiltersBarProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/types/control-vacation-filter-bar";
 import dayjs from "dayjs";
 import { toUtcDayRangeIsoFromYmd } from "@app/shared/utils/string.utils";
 import {

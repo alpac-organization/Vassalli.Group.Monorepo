@@ -1,4 +1,4 @@
-import type { CollaboratorProfilePersonalInformation } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
+import type { CollaboratorProfilePersonalInformation } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 import type { PersonalFormData } from "@app/modules/payroll/ui/pages/collaborator-profile/types/profile-details.types";
 import {
   formatIdentificationNumber,
@@ -27,7 +27,9 @@ export function mapPersonalInformationToForm(
     ),
     gender: genderRawToLabel(personal?.gender ?? null) ?? "",
     marital_status: (() => {
-      const code = normalizeMaritalStatusFromApi(personal?.marital_status ?? null);
+      const code = normalizeMaritalStatusFromApi(
+        personal?.marital_status ?? null,
+      );
       return code !== null ? String(code) : "";
     })(),
     birthdate: formatIsoString(personal?.birthdate as string | null),
