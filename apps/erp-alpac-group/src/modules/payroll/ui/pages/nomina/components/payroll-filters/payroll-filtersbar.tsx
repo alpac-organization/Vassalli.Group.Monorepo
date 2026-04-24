@@ -1,7 +1,7 @@
 import { InputText, Dropdown, Button } from "@alpac/design-system";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { useCallback } from "react";
-import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
+import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
 import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";

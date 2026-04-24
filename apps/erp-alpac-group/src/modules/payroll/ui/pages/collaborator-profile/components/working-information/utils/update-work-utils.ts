@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
+import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
 import type {
   UpdateCollaboratorProfileDetailsRequest,
   UpdateWorkingInformationRequest,
-} from "@app/modules/payroll/domain/ApiContract/Requests/update-collaborator-request";
+} from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/update-collaborator-request";
 
 interface UseUpdateWorkInformationProps {
   companyId?: string;

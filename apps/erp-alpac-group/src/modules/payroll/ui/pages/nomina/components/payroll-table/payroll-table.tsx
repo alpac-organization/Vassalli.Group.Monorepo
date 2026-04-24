@@ -1,5 +1,5 @@
 import { DataTable, Pagination } from "@alpac/design-system";
-import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
+import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborators.response";
 import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import type { PayrollTableProps } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/types/payroll-table.types";
 

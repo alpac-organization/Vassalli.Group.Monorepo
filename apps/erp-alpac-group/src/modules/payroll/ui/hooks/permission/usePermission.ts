@@ -1,0 +1,71 @@
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { httpHandler } from "@app/core/adapters";
+import { PermissionServices } from "@app/modules/payroll/infrastructure/services/permission-services/PermissionServices";
+import type { CreatePermissionRequestBase } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
+import type { PermissionHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-history-request";
+import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/cancel-permission-request";
+// import type { GeneratePermissionDocumentRequest } from "@app/modules/vacations/domain/ApiContract/Requests/permission-requests/generate-permission-docs-request";
+const permissionServices = new PermissionServices(httpHandler);
+export type UseVacationPayload = {
+  company_id: string;
+  module_code: string;
+  identification_number: string;
+};
+export const usePermission = (filters?: PermissionHistoryRequest) => {
+  const queryClient = useQueryClient();
+
+  const createPermissionRequestMutation = useMutation({
+    mutationKey: ["createVacationRequest"],
+    mutationFn: (payload: CreatePermissionRequestBase) =>
+      permissionServices.createPermissionRequest(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vacationRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["vacationSaldo"] });
+      queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });
+    },
+  });
+
+  const cancelPermissionRequestMutation = useMutation({
+    mutationKey: ["cancelPermissionRequest"],
+    mutationFn: (payload: CancelPermissionRequest) =>
+      permissionServices.cancelPermissionRequest(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });
+    },
+  });
+
+  const historyQueryEnabled = Boolean(
+    filters?.companie_id &&
+    filters?.module_code &&
+    filters?.identification_number,
+  );
+
+  const GetPermissionHistory = useQuery({
+    queryKey: ["vacationHistory", filters],
+    queryFn: () => {
+      if (!filters) {
+        throw new Error("getVacationHistory: faltante filters");
+      }
+      return permissionServices.getPermissionHistory(filters);
+    },
+    enabled: historyQueryEnabled,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 0,
+    retry: 1,
+  });
+  //   const generatePermissionDocumentMutation = useMutation({
+  //     mutationKey: ["generatePermissionDocument", payload],
+  //     mutationFn: (payload: GeneratePermissionDocumentRequest) =>
+  //       permissionServices.generatePermissionDocument(payload),
+  //     onSuccess: () => {
+  //       queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });
+  //     },
+  //   });
+  return {
+    createPermissionRequestMutation,
+    cancelPermissionRequestMutation,
+    GetPermissionHistory,
+    //  generatePermissionDocumentMutation,
+  };
+};

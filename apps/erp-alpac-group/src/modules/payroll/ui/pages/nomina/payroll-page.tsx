@@ -2,17 +2,17 @@ import { Breadcrumb, useTheme } from "@alpac/design-system";
 import { motion } from "framer-motion";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
-import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
+import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
+import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
 import PayrollFiltersBar from "@app/modules/payroll/ui/pages/nomina/components/payroll-filters/payroll-filtersbar";
 import { PayrollTable } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/payroll-table";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { usePayrollProcessStatus } from "@app/shared/hooks/usePayrollStatus";
 import { Loader } from "@app/shared/components/loaders/loader";
-import PayrollPageHeader from "./components/payroll-page-header/payroll-page-header";
-import PayrollCycleFormalization from "./components/payroll-cycle-formalization/payroll-cycle-formalization";
-import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-process.request";
+import PayrollPageHeader from "@app/modules/payroll/ui/pages/nomina/components/payroll-page-header/payroll-page-header";
+import PayrollCycleFormalization from "@app/modules/payroll/ui/pages/nomina/components/payroll-cycle-formalization/payroll-cycle-formalization";
+import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
 
 export function PayrollPage() {
   const maxPageSize = 10;

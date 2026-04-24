@@ -5,16 +5,16 @@ import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ControlVacationPageHeader } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-page-header/control-vacation-page-header";
 import { ControlVacationDirectActions } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-direct-actions/control-vacation-direct-actions";
-import { useControlVacations } from "@app/modules/payroll/ui/hooks/useVacations";
-import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/control-vacations-request";
+import { useControlVacations } from "@app/modules/payroll/ui/hooks/vacation/useControlVacations";
+import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/control-vacation-requests/control-vacations-request";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { ControlVacationsTable } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-table/control-vacations-table";
 import { ControlVacationDetailsModal } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-details/control-vacation-details-modal";
 import { ControlVacationFiltersBar } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/filters-bar";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import type { AppliedDateRange } from "@app/modules/payroll/ui/pages/control-vacations/utils/date-range";
-import type { VacationControlItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
+import type { AppliedDateRange } from "@app/modules/payroll/ui/pages/control-vacations/types/date.range";
+import type { VacationControlItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/control-vacation-responses/get-control-vacations-response";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -60,7 +60,8 @@ export default function ControlVacationsPage() {
   });
 
   const [reportDevModalOpen, setReportDevModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<VacationControlItemResponse | null>(null);
+  const [selectedItem, setSelectedItem] =
+    useState<VacationControlItemResponse | null>(null);
 
   const historyPayload = GetControlVacationHistoryQuery.data;
 
@@ -124,10 +125,9 @@ export default function ControlVacationsPage() {
         transition={{ duration: 0.5 }}
         className="flex flex-col gap-4"
       >
-        {hasAppliedDateRange &&
-          GetControlVacationHistoryQuery.isPending && (
-            <Loader title="Cargando control de vacaciones..." />
-          )}
+        {hasAppliedDateRange && GetControlVacationHistoryQuery.isPending && (
+          <Loader title="Cargando control de vacaciones..." />
+        )}
 
         <div className="flex justify-start">
           <Breadcrumb

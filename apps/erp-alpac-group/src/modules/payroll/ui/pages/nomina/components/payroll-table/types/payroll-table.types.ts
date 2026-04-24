@@ -1,4 +1,4 @@
-import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
+import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborators.response";
 
 export type PayrollTableProps = {
   rows: GetCollaboratorsResponse[];

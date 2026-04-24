@@ -1,4 +1,4 @@
-import { IdentificationEnum } from "@app/core/enums/identifcation.enum";
+import { IdentificationEnum } from "@app/core/enums/identification.enum";
 
 /** Mapea id numérico, clave del enum o texto del API al label de `IdentificationEnum`. */
 export function identificationRawToLabel(raw: string | null): string | null {
