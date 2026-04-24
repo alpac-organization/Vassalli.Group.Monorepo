@@ -3,12 +3,15 @@ import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContrac
 import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import type { PayrollTableProps } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/types/payroll-table.types";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
+
+const ClickableDataTable = DataTable as any;
 export function PayrollTable({
   rows,
   currentPage,
   pageSize,
   totalRecords,
   onPageChange,
+  onRowClick,
   isPending,
 }: PayrollTableProps) {
   const columns = [
@@ -99,10 +102,11 @@ export function PayrollTable({
   ];
 
   return (
-    <DataTable
+    <ClickableDataTable
       title="Listado de Nomina"
       data={rows}
       columns={columns}
+      onRowClick={onRowClick}
       pagination={
         <Pagination
           currentPage={currentPage}

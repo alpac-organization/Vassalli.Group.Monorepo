@@ -6,5 +6,6 @@ export type PayrollTableProps = {
   pageSize: number;
   totalRecords: number;
   onPageChange: (page: number) => void;
+  onRowClick?: (row: PayrollItemResponse) => void;
   isPending?: boolean;
 };

@@ -8,7 +8,7 @@ export default function PayrollPageHeader({
 }: PayrollPageHeaderProps) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center gap-3">
         <div className="flex flex-col justify-center">
           <h3 className="p-0! m-0!">Gestión de nómina</h3>
           <small className="text-gray-500 dark:text-gray-300">

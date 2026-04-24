@@ -9,7 +9,7 @@ import {
 import { motion } from "framer-motion";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileX, Undo2 } from "lucide-react";
+import { FileX } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { usePayroll } from "@app/modules/payroll/ui/hooks/usePayroll";
@@ -25,6 +25,8 @@ import type {
 } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-process.request";
 import type { PayrollRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-request";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
+import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-payroll";
+import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 
 export function PayrollPage() {
   const maxPageSize = 10;
@@ -46,6 +48,10 @@ export function PayrollPage() {
   const [pageNumber, setPageNumber] = useState(1);
   const [isPayrollSelectionModalOpen, setIsPayrollSelectionModalOpen] =
     useState(false);
+  const [selectedPayrollRow, setSelectedPayrollRow] =
+    useState<PayrollItemResponse | null>(null);
+  const [isPayrollDetailModalOpen, setIsPayrollDetailModalOpen] =
+    useState(false);
 
   const handleSelectionModalClose = useCallback(() => {
     if (selectedPayrollType === null || selectedBranch === null) {
@@ -62,6 +68,19 @@ export function PayrollPage() {
       setIsPayrollSelectionModalOpen(true);
     }
   }, [selectedPayrollType, selectedBranch]);
+
+  const handleOpenPayrollDetailModal = useCallback(
+    (row: PayrollItemResponse) => {
+      setSelectedPayrollRow(row);
+      setIsPayrollDetailModalOpen(true);
+    },
+    [],
+  );
+
+  const handleClosePayrollDetailModal = useCallback(() => {
+    setIsPayrollDetailModalOpen(false);
+    setSelectedPayrollRow(null);
+  }, []);
 
   const { GetBranchesQuery: branchesQuery } = useCompanies(
     companyId ? { company_id: companyId } : undefined,
@@ -203,6 +222,7 @@ export function PayrollPage() {
               pageSize={maxPageSize}
               totalRecords={totalRecords}
               onPageChange={handlePageChange}
+              onRowClick={handleOpenPayrollDetailModal}
               isPending={detailsFetchInFlight}
             />
           </div>
@@ -215,6 +235,68 @@ export function PayrollPage() {
 
   return (
     <>
+      <Modal
+        isOpen={isPayrollDetailModalOpen}
+        onClose={handleClosePayrollDetailModal}
+        variant="default"
+        size="7xl"
+        title={"Detalles especificos del colaborador"}
+      >
+        <div className="mt-2 flex flex-col gap-6">
+          <section
+            aria-labelledby="payroll-detail-collaborator-heading"
+            className="rounded-xl border border-slate-200 bg-slate-50/90 p-6 dark:border-neutral-600 dark:bg-[#1e2229]"
+          >
+            <h5
+              id="payroll-detail-collaborator-heading"
+              className="mb-5 border-b border-slate-200 pb-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:border-neutral-600 dark:text-slate-400"
+            >
+              Datos del colaborador
+            </h5>
+            {selectedPayrollRow?.collaborator ? (
+              <dl className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Código
+                  </dt>
+                  <dd className="truncate font-mono text-base font-semibold text-slate-900 dark:text-white">
+                    {selectedPayrollRow.collaborator.collaborator_code || "—"}
+                  </dd>
+                </div>
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Nombre completo
+                  </dt>
+                  <dd className="text-base font-semibold leading-snug text-slate-900 dark:text-white">
+                    {selectedPayrollRow.collaborator.full_name || "—"}
+                  </dd>
+                </div>
+                <div className="flex min-w-0 flex-col gap-1.5 md:col-span-2">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Identificación
+                  </dt>
+                  <dd className="wrap-break-word font-mono text-base font-semibold text-slate-900 dark:text-white">
+                    {(() => {
+                      const identificationNumber =
+                        selectedPayrollRow.collaborator.identification_number;
+                      if (!identificationNumber) return "—";
+                      if (identificationNumber.length !== 14)
+                        return identificationNumber;
+                      return formatIdentificationNumber(identificationNumber);
+                    })()}
+                  </dd>
+                </div>
+              </dl>
+            ) : (
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                No hay información del colaborador asociada a este registro de
+                nómina.
+              </p>
+            )}
+          </section>
+        </div>
+      </Modal>
+
       <Modal
         isOpen={
           selectedPayrollType === null ||

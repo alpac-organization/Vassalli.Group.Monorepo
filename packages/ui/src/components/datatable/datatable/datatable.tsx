@@ -1,6 +1,6 @@
 import { DataTableProps } from "./datatable.type"
 
-export function DataTable<T>({ title, data, columns, rowClassName, pagination }: DataTableProps<T>): React.ReactElement {
+export function DataTable<T>({ title, data, columns, rowClassName, onRowClick, pagination }: DataTableProps<T>): React.ReactElement {
    return (
       <div className="w-full 
             rounded-lg 
@@ -60,7 +60,13 @@ export function DataTable<T>({ title, data, columns, rowClassName, pagination }:
                         {
                            data.map((item, index) => {
                               return (
-                                 <tr key={index} className={rowClassName !== undefined ? rowClassName : "hover:bg-neutral-50/80 dark:hover:bg-[#363a45]"}>
+                                 <tr
+                                    key={index}
+                                    className={rowClassName !== undefined
+                                       ? rowClassName
+                                       : `hover:bg-neutral-50/80 dark:hover:bg-[#363a45] ${onRowClick !== undefined ? "cursor-pointer" : ""}`}
+                                    onClick={onRowClick !== undefined ? () => onRowClick(item) : undefined}
+                                 >
                                     {columns.map((column) => (
                                        <td key={column.key as string} className="px-6 py-4 text-sm text-neutral-900 dark:text-white">
                                           {
