@@ -1,5 +1,4 @@
-
-import { IdentificationEnum } from "@app/core/enums/identifcation.enum";
+import { IdentificationEnum } from "@app/core/enums/identification.enum";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
@@ -243,7 +242,9 @@ export const validateLaboralHours = (time?: string): boolean | string => {
 
    const isValid = totalMinutes >= start && totalMinutes <= end;
 
-   return isValid || "La hora laboral debe estar entre las 08:00 AM y las 05:00 PM";
+   return (
+      isValid || "La hora laboral debe estar entre las 08:00 AM y las 05:00 PM"
+   );
 };
 
 /**
@@ -349,7 +350,7 @@ export function utcDayEndIsoFromYmd(ymd: string): string {
 }
 
 /**
- * Devuelve un rango de fechas UTC en formato ISO, desde el inicio del día de la fecha inicial 
+ * Devuelve un rango de fechas UTC en formato ISO, desde el inicio del día de la fecha inicial
  * hasta el final del día de la fecha final.
  * @param startYmd - Fecha de inicio en formato 'YYYY-MM-DD'
  * @param endYmd - Fecha de fin en formato 'YYYY-MM-DD'
@@ -372,7 +373,7 @@ export function toUtcDayRangeIsoFromYmd(
  */
 export const formatTimeHoursOnly = (time: string | null | undefined) => {
    if (!time) return null;
-   const parts = time.split(':');
+   const parts = time.split(":");
 
    if (parts.length < 2) return null;
 
@@ -384,7 +385,7 @@ export const formatTimeHoursOnly = (time: string | null | undefined) => {
 
    if (isNaN(aux.getTime())) return null;
 
-   const hh = String(aux.getHours()).padStart(2, '0');
+   const hh = String(aux.getHours()).padStart(2, "0");
    const mm = "00";
    const ss = "00";
 

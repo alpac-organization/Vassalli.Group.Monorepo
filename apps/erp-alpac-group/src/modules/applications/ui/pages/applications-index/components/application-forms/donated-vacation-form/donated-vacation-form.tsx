@@ -1,6 +1,12 @@
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Alert, AnimatedAlertWrapper, Button, InputText, Textarea } from "@alpac/design-system";
+import {
+   Alert,
+   AnimatedAlertWrapper,
+   Button,
+   InputText,
+   Textarea,
+} from "@alpac/design-system";
 import { ConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/confirm-modal/confirm-modal";
 import { BanIcon, CheckIcon, XIcon } from "lucide-react";
 import { useApplications } from "@app/modules/applications/ui/hooks/useApplications";
@@ -17,8 +23,11 @@ import { usePermission } from "@app/modules/vacations/ui/hooks/usePermission";
 import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
 import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 import type { DonatedVacationFormProps } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/donated-vacation-form/donated-vacation-form.types";
-import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
-import { PermitApplicationStatus } from "@app/modules/applications/domain/enums/permit-application-status.enum";
+import {
+   validateIntegerNumber,
+   validatePositiveNumber,
+} from "@app/shared/utils/number.utils";
+import { validateMaximumDonatedVacation } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/utils/validateMaximumDonatedVacation";
 
 export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
 
@@ -33,7 +42,7 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
       type: ConfirmActionType;
    }>({
       isOpen: false,
-      type: "CANCEL"
+      type: "CANCEL",
    });
 
    const [showAlert, setShowAlert] = useState<{
@@ -71,7 +80,7 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
                show: true,
                type: "success",
                title: "Solicitud procesada",
-               message: `La solicitud ha sido ${action} exitosamente.`
+               message: `La solicitud ha sido ${action} exitosamente.`,
             });
 
             setTimeout(() => {
@@ -86,7 +95,7 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
                show: true,
                type: "error",
                title: "Error",
-               message: mappedError.description
+               message: mappedError.description,
             });
 
             handleCloseAlert();
@@ -152,9 +161,10 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
 
    return (
       <form className="flex flex-col gap-6">
-
-         <MainPanel application={application} className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-
+         <MainPanel
+            application={application}
+            className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
+         >
             <DonatedVacationPanel application={application} />
 
             <ManagerPanel application={application} />
@@ -186,11 +196,10 @@ export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
             <MainPanel.Field label="Motivo o Descripción" className="col-span-full">
                <Textarea
                   className="rounded-md"
-                  value={application.description || 'Sin descripción'}
+                  value={application.description || "Sin descripción"}
                   readOnly
                />
             </MainPanel.Field>
-
          </MainPanel>
 
          {

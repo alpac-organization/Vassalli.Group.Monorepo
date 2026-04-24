@@ -78,8 +78,13 @@ export const CollaboratorPage = function () {
    const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
    const isProfileView = location.pathname.includes("collaborator-profile");
 
-   const { register, handleSubmit, control, reset, formState: { errors } } =
-      useForm<CollaboratorRequest>({ mode: "onChange" });
+   const {
+      register,
+      handleSubmit,
+      control,
+      reset,
+      formState: { errors },
+   } = useForm<CollaboratorRequest>({ mode: "onChange" });
 
    const { GetCatalogListQuery: workAreasQuery } = useCatalog({
       company_id: companyId,
@@ -98,7 +103,7 @@ export const CollaboratorPage = function () {
 
    const { GetBranchesQuery: branchesQuery } = useCompanies({
       company_id: companyId,
-   })
+   });
 
    const { GetCollaboratorsQuery } = useCollaborators({
       Collaboratorsfilters: {
@@ -130,9 +135,9 @@ export const CollaboratorPage = function () {
    const optionsWorkAreas = mapCatalogToOptions(workAreas);
    const optionsJobPositions = mapCatalogToOptions(jobPositions);
    const optionsBanks = mapCatalogToOptions(banks);
-   const optionsBranches = branches.map(b => ({
+   const optionsBranches = branches.map((b) => ({
       value: b.branch_id,
-      label: b.branch_name
+      label: b.branch_name,
    }));
 
    const onSubmit: SubmitHandler<CollaboratorRequest> = async (data) => {
@@ -428,20 +433,23 @@ export const CollaboratorPage = function () {
                         type="text"
                         placeholder="Ingrese la identificación"
                         errorVariant="tooltip"
-                        {...register('identification_number',
-                           {
-                              required: false,
-                              validate: {
-                                 validateIdentification: (value?: string) => validateIdentificationNumber(value!, IdentificationEnum.NATIONAL_ID.value)
-                              },
-                              setValueAs: (value: string) =>
-                                 value ? value.toString().replace(/-/g, "").toUpperCase()
-                                    : "",
-                              onChange: (e) => {
-                                 e.target.value = formatIdentificationNumber(e.target.value)
-                              }
-                           })
-                        }
+                        {...register("identification_number", {
+                           required: false,
+                           validate: {
+                              validateIdentification: (value?: string) =>
+                                 validateIdentificationNumber(
+                                    value!,
+                                    IdentificationEnum.NATIONAL_ID.value,
+                                 ),
+                           },
+                           setValueAs: (value: string) =>
+                              value
+                                 ? value.toString().replace(/-/g, "").toUpperCase()
+                                 : "",
+                           onChange: (e) => {
+                              e.target.value = formatIdentificationNumber(e.target.value);
+                           },
+                        })}
                         error={errors.identification_number?.message}
                      />
                   </div>

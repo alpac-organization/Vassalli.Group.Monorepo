@@ -1,17 +1,23 @@
-import { Badges } from "@alpac/design-system"
-import { statusBadgeColor } from "@app/modules/vacations/ui/pages/vacation-index/components/permission-table/utils/statusBadgeColor"
-import type { PermissionRequestStatus } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request"
-import type { AdministratorPanelProps } from "./administrator-panel.types"
+import { Badges } from "@alpac/design-system";
+import { statusBadgeColor } from "@app/modules/payroll/ui/pages/permissions/components/permission-table/utils/statusBadgeColor";
+import type { PermissionRequestStatus } from "@app/modules/vacations/domain/ApiContract/Requests/permission-history-request";
+import type { AdministratorPanelProps } from "./administrator-panel.types";
 
-export const AdministratorPanel = ({ application }: AdministratorPanelProps) => {
-
+export const AdministratorPanel = ({
+   application,
+}: AdministratorPanelProps) => {
    const getStatus = (approved: boolean | null): PermissionRequestStatus => {
       if (approved === null) return "Pending";
       return approved ? "Approved" : "Rejected";
    };
 
    const status = getStatus(application.second_step_approved);
-   const label = status === "Pending" ? "Pendiente" : status === "Approved" ? "Aprobado" : "Rechazado";
+   const label =
+      status === "Pending"
+         ? "Pendiente"
+         : status === "Approved"
+            ? "Aprobado"
+            : "Rechazado";
 
    return (
       <>

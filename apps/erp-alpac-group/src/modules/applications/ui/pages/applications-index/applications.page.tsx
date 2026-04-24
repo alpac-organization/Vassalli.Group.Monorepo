@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, AnimatedAlertWrapper, Breadcrumb, Button, Dropdown, InputText, Pagination } from "@alpac/design-system";
+import {
+   Alert,
+   AnimatedAlertWrapper,
+   Breadcrumb,
+   Button,
+   Dropdown,
+   InputText,
+   Pagination,
+} from "@alpac/design-system";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
@@ -13,25 +21,28 @@ import { PermitApplicationTypeOptions } from "@app/modules/applications/domain/e
 import { PermitApplicationStatusOptions } from "@app/modules/applications/domain/enums/permit-application-status.enum";
 import { ApplicationModal } from "./components/application-modal/application-modal";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import { formatCollaboratorCode, validateCollaboratorCode } from "@app/shared/utils/collaborator.utils";
+import {
+   formatCollaboratorCode,
+   validateCollaboratorCode,
+} from "@app/shared/utils/collaborator.utils";
+import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
+import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { ManagerForm } from "./components/application-forms/manager-form/manager-form";
 import { Plus } from "lucide-react";
-import { NewPermissionRequestModal } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal";
 
-import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
-import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
+
+import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
 
 export const ApplicationsPage = function () {
-
    const maxPageSize = 5;
 
    const initialFilters: ApplicationRequest = {
-      company_id: '',
-      module_code: '',
+      company_id: "",
+      module_code: "",
       permit_application_type_id: 0,
       permit_application_status_id: 0,
-      collaborator_code: '',
+      collaborator_code: "",
       page_size: maxPageSize,
    };
 
@@ -58,66 +69,81 @@ export const ApplicationsPage = function () {
    const { companyId, moduleCode } = useUserStore();
    const { getMappedError } = useMappedError();
 
-   const { control, reset, handleSubmit, formState: { errors } } = useForm<ApplicationRequest>({
-      defaultValues: initialFilters
-   })
-   const [isNewPermissionRequestModalOpen, setIsNewPermissionRequestModalOpen] = useState(false);
+   const {
+      control,
+      reset,
+      handleSubmit,
+      formState: { errors },
+   } = useForm<ApplicationRequest>({
+      defaultValues: initialFilters,
+   });
+   const [isNewPermissionRequestModalOpen, setIsNewPermissionRequestModalOpen] =
+      useState(false);
 
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
    const isListEnabled: boolean = isAdministrator
    const isDetailEnabled: boolean = isManager && !!filters.collaborator_code;
 
-   const {
-      GetApplicationsQuery,
-      GetApplicationDetailQuery,
-   } = useApplications({
-      ...filters,
-      company_id: companyId,
-      module_code: moduleCode,
-   }, {
-      enabled: isListEnabled,
-      enabledDetail: isDetailEnabled
-   });
+   const { GetApplicationsQuery, GetApplicationDetailQuery } = useApplications(
+      {
+         ...filters,
+         company_id: companyId,
+         module_code: moduleCode,
+      },
+      {
+         enabled: isListEnabled,
+         enabledDetail: isDetailEnabled,
+      },
+   );
 
-   const applicationsData = useMemo(() =>
-      isAdministrator
-         ? (GetApplicationsQuery.data?.data ?? [])
-         : (GetApplicationDetailQuery.data ? [GetApplicationDetailQuery.data] : []),
-      [isAdministrator, GetApplicationsQuery.data, GetApplicationDetailQuery.data]
+   const applicationsData = useMemo(
+      () =>
+         isAdministrator
+            ? (GetApplicationsQuery.data?.data ?? [])
+            : GetApplicationDetailQuery.data
+               ? [GetApplicationDetailQuery.data]
+               : [],
+      [
+         isAdministrator,
+         GetApplicationsQuery.data,
+         GetApplicationDetailQuery.data,
+      ],
    );
 
    const query = useMemo(() => {
       return isAdministrator ? GetApplicationsQuery : GetApplicationDetailQuery;
    }, [isAdministrator, GetApplicationsQuery, GetApplicationDetailQuery]);
 
-   const isLoading = GetApplicationsQuery.isLoading || GetApplicationDetailQuery.isLoading;
+   const isLoading =
+      GetApplicationsQuery.isLoading || GetApplicationDetailQuery.isLoading;
 
-   const isFetching = GetApplicationsQuery.isFetching || GetApplicationDetailQuery.isFetching;
+   const isFetching =
+      GetApplicationsQuery.isFetching || GetApplicationDetailQuery.isFetching;
 
-   const isSuccess = GetApplicationsQuery.isSuccess || GetApplicationDetailQuery.isSuccess;
+   const isSuccess =
+      GetApplicationsQuery.isSuccess || GetApplicationDetailQuery.isSuccess;
 
-   const isError = GetApplicationsQuery.isError || GetApplicationDetailQuery.isError;
+   const isError =
+      GetApplicationsQuery.isError || GetApplicationDetailQuery.isError;
 
-   const queryErrors = GetApplicationsQuery.error || GetApplicationDetailQuery.error;
+   const queryErrors =
+      GetApplicationsQuery.error || GetApplicationDetailQuery.error;
 
    useEffect(() => {
-      setIsAdministrator(role === RoleEnum.ADMINISTRATOR)
-      setIsManager(role === RoleEnum.MANAGER)
+      setIsAdministrator(role === RoleEnum.ADMINISTRATOR);
+      setIsManager(role === RoleEnum.MANAGER);
    }, [role]);
 
    useEffect(() => {
       if (isFetching) return;
 
       if (isError && queryErrors) {
-
          const mappedError = getMappedError(queryErrors);
          setShowAlert({
             show: true,
             type: "error",
             title: "Error al cargar",
-            message:
-               mappedError.description ||
-               "Error al cargar las solicitudes",
+            message: mappedError.description || "Error al cargar las solicitudes",
          });
       }
 
@@ -131,8 +157,7 @@ export const ApplicationsPage = function () {
       }
 
       handleCloseAlert();
-
-   }, [applicationsData, isFetching, isSuccess, isError, queryErrors])
+   }, [applicationsData, isFetching, isSuccess, isError, queryErrors]);
 
    const handleCloseAlert = useCallback(() => {
       setTimeout(() => {
@@ -141,7 +166,6 @@ export const ApplicationsPage = function () {
    }, []);
 
    const onSubmit: SubmitHandler<ApplicationRequest> = async (data) => {
-
       const isSameQuery = filters.collaborator_code === data.collaborator_code;
 
       if (isSameQuery) {
@@ -164,12 +188,22 @@ export const ApplicationsPage = function () {
    }, [reset]);
 
    const handleRequestError = useCallback((description: string) => {
-      setShowAlert({ show: true, type: "error", title: "Error", message: description });
+      setShowAlert({
+         show: true,
+         type: "error",
+         title: "Error",
+         message: description,
+      });
       handleCloseAlert();
    }, []);
 
    const handleRequestSuccess = useCallback(() => {
-      setShowAlert({ show: true, type: "success", title: "Éxito", message: "Solicitud creada exitosamente" });
+      setShowAlert({
+         show: true,
+         type: "success",
+         title: "Éxito",
+         message: "Solicitud creada exitosamente",
+      });
       handleCloseAlert();
    }, []);
 
@@ -178,42 +212,46 @@ export const ApplicationsPage = function () {
    }, []);
 
    const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
-   const [selectedApplication, setSelectedApplication] = useState<GetApplicationsResponse>({} as GetApplicationsResponse);
+   const [selectedApplication, setSelectedApplication] =
+      useState<GetApplicationsResponse>({} as GetApplicationsResponse);
 
    return (
       <>
          <motion.div
-            initial={{ opacity: 0, y: 20 }
-            }
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col gap-4" >
+            className="flex flex-col gap-4"
+         >
+            {isFetching && (
+               <Loader
+                  title={
+                     isAdministrator
+                        ? "Cargando Solicitudes..."
+                        : "Cargando Solicitud..."
+                  }
+               />
+            )}
 
-            {
-               isFetching && (
-                  <Loader title={isAdministrator ? 'Cargando Solicitudes...' : 'Cargando Solicitud...'} />
-               )
-            }
-
-            < div className="flex justify-start" >
+            <div className="flex justify-start">
                <Breadcrumb
                   items={[
-                     { label: 'Dashboard', url: '/', onClick: (url) => navigate(url) },
+                     { label: "Dashboard", url: "/", onClick: (url) => navigate(url) },
                      {
-                        label: 'Solicitudes',
-                        url: '/applications',
+                        label: "Solicitudes",
+                        url: "/applications",
                         onClick: (url) => navigate(url),
                      },
                   ]}
                />
-            </div >
+            </div>
 
             <div className="flex flex-col">
                <div className="flex justify-between items-center">
                   <div className="flex flex-col justify-center">
                      <h3 className="p-0! m-0!">
-                        {isManager ? 'Búsqueda de Solicitudes' : 'Lista de Solicitudes'}
+                        {isManager ? "Búsqueda de Solicitudes" : "Lista de Solicitudes"}
                      </h3>
                   </div>
                   <img
@@ -228,29 +266,30 @@ export const ApplicationsPage = function () {
                <div className="flex flex-col justify-center">
                   <h3 className="p-0! m-0!">Filtros</h3>
                   <small className="text-gray-500 dark:text-gray-300">
-                     {isManager ? 'Filtre las solicitudes por código de colaborador.' : 'Filtre las solicitudes por tipo o estado para encontrar información específica.'}
+                     {isManager
+                        ? "Filtre las solicitudes por código de colaborador."
+                        : "Filtre las solicitudes por tipo o estado para encontrar información específica."}
                   </small>
                </div>
             </div>
 
             <form
                onSubmit={handleSubmit(onSubmit)}
-               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end">
-
+               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
+            >
                {isManager && (
                   <div className="flex flex-col">
-
                      <Controller
                         name="collaborator_code"
                         control={control}
                         rules={{
                            required: "El código de colaborador es requerido",
                            validate: {
-                              validateCode: (value?: string) => validateCollaboratorCode(value!)
-                           }
+                              validateCode: (value?: string) =>
+                                 validateCollaboratorCode(value!),
+                           },
                         }}
                         render={({ field }) => (
-
                            <InputText
                               {...field}
                               label="Código de Colaborador"
@@ -266,9 +305,7 @@ export const ApplicationsPage = function () {
                               }}
                               error={errors.collaborator_code?.message}
                            />
-
                         )}
-
                      />
                   </div>
                )}
@@ -345,7 +382,6 @@ export const ApplicationsPage = function () {
                      onClick={handleClearFilters}
                   />
                </div>
-
             </form>
 
             <NewPermissionRequestModal
@@ -355,21 +391,24 @@ export const ApplicationsPage = function () {
                onRequestSuccess={handleRequestSuccess}
             />
 
-            {
-               isManager && applicationsData.length === 0 && !isLoading && (
-                  <div>
-                     <p className="h-[100px] rounded-xl border-2 border-dashed border-gray-400 dark:border-gray-600 flex items-center justify-center text-center text-gray-500 dark:text-gray-300">
-                        Debe ingresar el código del colaborador para ver las solicitudes
-                     </p>
-                  </div>
-               )
-            }
-
-            {isManager && applicationsData.length > 0 && applicationsData.map((application) => (
-               <div key={application.permit_apllication_id} className="flex flex-col gap-4">
-                  <ManagerForm application={application} />
+            {isManager && applicationsData.length === 0 && !isLoading && (
+               <div>
+                  <p className="h-[100px] rounded-xl border-2 border-dashed border-gray-400 dark:border-gray-600 flex items-center justify-center text-center text-gray-500 dark:text-gray-300">
+                     Debe ingresar el código del colaborador para ver las solicitudes
+                  </p>
                </div>
-            ))}
+            )}
+
+            {isManager &&
+               applicationsData.length > 0 &&
+               applicationsData.map((application) => (
+                  <div
+                     key={application.permit_apllication_id}
+                     className="flex flex-col gap-4"
+                  >
+                     <ManagerForm application={application} />
+                  </div>
+               ))}
 
             <AnimatedAlertWrapper open={showAlert.show}>
                <Alert
@@ -388,12 +427,15 @@ export const ApplicationsPage = function () {
                         setIsApplicationModalOpen(true);
                      }}
                      pagination={
-                        <Pagination currentPage={GetApplicationsQuery.data?.page_number ?? 0}
+                        <Pagination
+                           currentPage={GetApplicationsQuery.data?.page_number ?? 0}
                            pageSize={GetApplicationsQuery.data?.page_size ?? 0}
                            totalRecords={GetApplicationsQuery.data?.total ?? 0}
                            onPageChange={handlePageChange}
-                           disabled={GetApplicationsQuery.isFetching} />
-                     } />
+                           disabled={GetApplicationsQuery.isFetching}
+                        />
+                     }
+                  />
                </div>
             )}
 
@@ -404,7 +446,6 @@ export const ApplicationsPage = function () {
                   onClose={() => setIsApplicationModalOpen(false)}
                />
             )}
-
          </motion.div>
 
          {isManager && (

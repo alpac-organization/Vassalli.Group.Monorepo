@@ -16,6 +16,7 @@ export const DashboardLayout = () => {
   const [showModal, setShowModal] = useState(false);
   const [isLogout, setLogout] = useState(false);
   const { moduleCode, role } = useUserStore();
+  console.log(role);
   const { isOpenSidebar, setIsOpenSidebar } = useSessionStorageSidebar();
   const { startProcessToCloseSession } = useAuth();
   const location = useLocation();
@@ -83,7 +84,7 @@ export const DashboardLayout = () => {
         />
         <main className="flex-1 overflow-y-auto p-5 md:p-7.5 relative ">
           <AnimatePresence mode="wait">
-            {isAuthorizedPath && <Outlet/>}
+            {isAuthorizedPath && <Outlet />}
           </AnimatePresence>
           {!isAuthorizedPath && (
             <Modal

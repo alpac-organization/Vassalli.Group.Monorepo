@@ -1,5 +1,5 @@
 import { Badges } from "@alpac/design-system";
-import type { VacationControlPermitType } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
+import type { VacationControlPermitType } from "@app/modules/payroll/domain/ApiContract/Responses/control-vacation-responses/get-control-vacations-response";
 
 export const vacationsMapper: Record<VacationControlPermitType, string> = {
    Vacation: "Vacaciones",

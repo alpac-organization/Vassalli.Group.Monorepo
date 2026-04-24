@@ -1,4 +1,4 @@
-import { SalaryTypeEnum } from "@app/modules/payroll/domain/enums/salary-type.enum";
+import { SalaryTypeEnum } from "@app/modules/payroll/domain/enums/salary-enums/salary-type.enum";
 
 type SalaryTypeSource = string | number | null;
 

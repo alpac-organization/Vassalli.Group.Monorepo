@@ -8,9 +8,9 @@ import {
    Stepper,
 } from "@alpac/design-system";
 import React, { useCallback, useState } from "react";
-import type { AddCollaboratorModalProps } from "./add-collaborator-modal.types";
+import type { AddCollaboratorModalProps } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal.types";
 import { Controller, useForm } from "react-hook-form";
-import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/add-collaborator.request";
+import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
 import { fieldsToValidate } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal.types";
 import {
    formatIdentificationNumber,
@@ -25,19 +25,20 @@ import { GenderOptions } from "@app/core/enums/gender.enum";
 import {
    IdentificationOptions,
    IdentificationEnum,
-} from "@app/core/enums/identifcation.enum";
+} from "@app/core/enums/identification.enum";
 import { CurrencyOptions } from "@app/core/enums/currency.enum";
-import { SalaryTypeOptions } from "@app/modules/payroll/domain/enums/salary-type.enum";
+import { SalaryTypeOptions } from "@app/modules/payroll/domain/enums/salary-enums/salary-type.enum";
 import { ArrowLeftIcon, ArrowRightIcon, SaveIcon, XIcon } from "lucide-react";
 import { formatAmount } from "@app/shared/utils/number.utils";
-import { useCreateCollaborators } from "@app/modules/payroll/ui/hooks/useCreateCollaborators";
+import { useCreateCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCreateCollaborators";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
 
-export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.ReactNode => {
-
+export const AddCollaboratorModal = (
+   props: AddCollaboratorModalProps,
+): React.ReactNode => {
    const [currentStep, setCurrentStep] = useState(0);
 
    const [showAlert, setShowAlert] = useState<{
@@ -356,7 +357,6 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            required: "El número de identificación es requerido",
                            disabled: identificationType === 0,
                            setValueAs: (value: string) => {
-
                               const trimmed = value?.trim();
 
                               return trimmed
@@ -366,9 +366,8 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                                     IdentificationEnum.RESIDENCE_ID.value
                                     ? trimmed.replace(/-/g, "").toUpperCase()
                                     : trimmed.toUpperCase()
-                                 : ""
-                           }
-                           ,
+                                 : "";
+                           },
                            validate: (value?: string) =>
                               validateIdentificationNumber(value ?? ""),
                         })}
@@ -462,7 +461,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            validate: (value) => validateNicaraguaPhone(value),
                            setValueAs: (value: string) => {
                               const trimmed = value?.trim();
-                              return trimmed ? trimmed.replace(/-/g, "") : ""
+                              return trimmed ? trimmed.replace(/-/g, "") : "";
                            },
                         })}
                         error={
@@ -667,7 +666,9 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         }
                         onChange={(evt) => {
                            evt.target.value = formatPhone(evt.target.value);
-                           register("working_information.work_phon_number").onChange(evt);
+                           register("working_information.work_phon_number").onChange(
+                              evt,
+                           );
                         }}
                      />
 
