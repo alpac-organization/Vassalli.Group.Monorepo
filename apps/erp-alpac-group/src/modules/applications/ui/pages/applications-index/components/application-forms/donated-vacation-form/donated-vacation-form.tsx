@@ -17,17 +17,15 @@ import { DonatedVacationPanel } from "@app/modules/applications/ui/pages/applica
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { validateIntegerNumber, validatePositiveNumber } from "@app/shared/utils/number.utils";
-import { validateMaximumDonatedVacation } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/utils/validateMaximumDonatedVacation";
-import { usePermission } from "@app/modules/vacations/ui/hooks/usePermission";
+
+import { usePermission } from "@app/modules/payroll/ui/hooks/permission/usePermission";
 
 import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
 import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 import type { DonatedVacationFormProps } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/donated-vacation-form/donated-vacation-form.types";
-import {
-   validateIntegerNumber,
-   validatePositiveNumber,
-} from "@app/shared/utils/number.utils";
 import { validateMaximumDonatedVacation } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/utils/validateMaximumDonatedVacation";
+import { PermitApplicationStatus } from "@app/modules/applications/domain/enums/permit-application-status.enum";
+import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/cancel-permission-request";
 
 export const DonatedVacationForm = (props: DonatedVacationFormProps) => {
 

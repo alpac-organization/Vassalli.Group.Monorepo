@@ -23,21 +23,21 @@ import {
 } from 'lucide-react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
-import type { CollaboratorRequest } from '@app/modules/payroll/domain/ApiContract/Requests/collaborator.request';
-import { useCollaborators } from '@app/modules/payroll/ui/hooks/useCollaborators';
+import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
+import { useCollaborators } from "../../hooks/collaborator/useCollaborators";
 import { useCallback, useState } from 'react';
 import { Loader } from '@app/shared/components/loaders/loader';
-import type { GetCollaboratorsResponse } from '@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response';
+import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborators.response";
 import { useCatalog } from '@app/modules/catalog/ui/hooks/useCatalog';
 import { CatalogEnum } from '@app/core/enums/catalog.enum';
-import { CollaboratorStatusBadgeColor, CollaboratorStatusEnum, CollaboratorStatusOptions } from '@app/modules/payroll/domain/enums/collaborator-status.enum';
+import { CollaboratorStatusBadgeColor, CollaboratorStatusEnum, CollaboratorStatusOptions } from "@app/modules/payroll/domain/enums/collaborator-enums/collaborator-status.enum";
 import { mapCatalogToOptions } from '@app/shared/utils/catalog.utils';
 import { formatIdentificationNumber, validateIdentificationNumber } from '@app/shared/utils/string.utils';
 import { AddCollaboratorModal } from '@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal';
 import { useTheme } from '@alpac/design-system';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
-import { NewPermissionRequestModal } from '@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal';
-import { IdentificationEnum } from '@app/core/enums/identifcation.enum';
+import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
+import { IdentificationEnum } from "@app/core/enums/identification.enum";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 
 export const CollaboratorPage = function () {

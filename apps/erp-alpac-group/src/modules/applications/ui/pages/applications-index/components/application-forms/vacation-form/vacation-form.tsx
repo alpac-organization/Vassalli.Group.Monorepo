@@ -11,11 +11,11 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ConfirmActionValueMap, type ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
 import { VacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/vacation-panel/vacation-panel";
-import { usePermission } from "@app/modules/vacations/ui/hooks/usePermission";
+import { usePermission } from "@app/modules/payroll/ui/hooks/permission/usePermission";
 
 import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 import type { VacationFormProps } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/vacation-form/vacation-form.types";
-import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
+import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/cancel-permission-request";
 import { PermitApplicationStatus } from "@app/modules/applications/domain/enums/permit-application-status.enum";
 
 export const VacationForm = (props: VacationFormProps) => {

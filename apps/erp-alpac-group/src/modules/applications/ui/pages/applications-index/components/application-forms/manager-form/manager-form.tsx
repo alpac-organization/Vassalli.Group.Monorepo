@@ -12,12 +12,12 @@ import { ManagerPanel } from "@app/modules/applications/ui/pages/applications-in
 import { AdministratorPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/administrator-panel/administrator-panel";
 import { MedicalAppointmentPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/medical-appointment-panel/medical-appointment-panel";
 import { VacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/vacation-panel/vacation-panel";
-import { usePermission } from "@app/modules/vacations/ui/hooks/usePermission";
+import { usePermission } from "@app/modules/payroll/ui/hooks/permission/usePermission";
 import { PermitApplicationStatus } from "@app/modules/applications/domain/enums/permit-application-status.enum";
 import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
-import type { CancelPermissionRequest } from "@app/modules/vacations/domain/ApiContract/Requests/cancel-permission-request";
+import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/cancel-permission-request";
 
 export const ManagerForm = ({ application }: { application: GetApplicationsResponse }) => {
 
