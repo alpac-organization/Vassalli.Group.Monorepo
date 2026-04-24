@@ -2,6 +2,7 @@ import {
    Alert,
    AnimatedAlertWrapper,
    Button,
+   DatePicker,
    Dropdown,
    InputText,
    Modal,
@@ -35,6 +36,7 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
+import dayjs from "dayjs";
 
 export const AddCollaboratorModal = (
    props: AddCollaboratorModalProps,
@@ -105,16 +107,6 @@ export const AddCollaboratorModal = (
          });
 
          props.onRequestSuccess?.("Colaborador creado exitosamente");
-
-         /* setShowAlert({
-            show: true,
-            type: "success",
-            title: "¡Colaborador creado!",
-            message: "El registro se ha completado con éxito.",
-         }); */
-
-         // reset();
-         // handleCloseAlert();
 
          handleCloseModal();
 
@@ -416,21 +408,6 @@ export const AddCollaboratorModal = (
                         />
                      </div>
 
-                     {/*   <InputText
-                  label="Departamento"
-                  placeholder="Ej. Managua"
-                  isRequired
-                  className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-                  labelClassName="text-black! dark:text-white!"
-                  {...register("personal_information.departament", {
-                    required: "El departamento es requerido",
-                  })}
-                  error={
-                    errors.personal_information?.departament &&
-                    errors.personal_information?.departament?.message
-                  }
-                /> */}
-
                      <InputText
                         label="Correo Personal"
                         placeholder="correo@ejemplo.com"
@@ -473,23 +450,30 @@ export const AddCollaboratorModal = (
                         }}
                      />
 
-                     <InputText
-                        label="Fecha de Nacimiento"
-                        isRequired
-                        type="date"
-                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-                        labelClassName="text-black! dark:text-white!"
-                        {...register("personal_information.birthdate", {
-                           required: "La fecha de nacimiento es requerida",
+                     <Controller
+                        name="personal_information.birthdate"
+                        control={control}
+                        rules={{
+                           required: "La fecha de nacimiento es requerida.",
                            validate: {
-                              validAge: (value?: string) => validateAge(value, 18),
-                              validToday: (value?: string) => validateToday(value),
-                           },
-                        })}
-                        error={
-                           errors.personal_information?.birthdate &&
-                           errors.personal_information?.birthdate?.message
-                        }
+                              validAge: (value?: string) => validateAge(dayjs(value).format('YYYY-MM-DD'), 18),
+                              validToday: (value?: string) => validateToday(dayjs(value).format('YYYY-MM-DD')),
+                           }
+                        }}
+                        render={({ field }) => (
+                           <DatePicker
+                              fieldWidth="large"
+                              label="Fecha de Nacimiento"
+                              value={field.value ?? null}
+                              onChange={(value) => {
+                                 field.onChange(value)
+                              }}
+                              error={
+                                 errors.personal_information?.birthdate &&
+                                 errors.personal_information?.birthdate?.message
+                              }
+                           />
+                        )}
                      />
 
                      <Controller
@@ -692,23 +676,29 @@ export const AddCollaboratorModal = (
                         }
                      />
 
-                     <InputText
-                        label="Fecha de Ingreso"
-                        isRequired
-                        type="date"
-                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-                        labelClassName="text-black! dark:text-white!"
-                        {...register("working_information.entry_date", {
-                           required: "La fecha de ingreso es requerida",
-                           setValueAs: (value: string) => value?.trim(),
+                     <Controller
+                        name="working_information.entry_date"
+                        control={control}
+                        rules={{
+                           required: "La fecha de ingreso es requerida.",
                            validate: {
-                              validToday: (value?: string) => validateToday(value),
-                           },
-                        })}
-                        error={
-                           errors.working_information?.entry_date &&
-                           errors.working_information?.entry_date?.message
-                        }
+                              validToday: (value?: string) => validateToday(dayjs(value).format('YYYY-MM-DD')),
+                           }
+                        }}
+                        render={({ field }) => (
+                           <DatePicker
+                              fieldWidth="large"
+                              label="Fecha de Ingreso"
+                              value={field.value ?? null}
+                              onChange={(value) => {
+                                 field.onChange(value)
+                              }}
+                              error={
+                                 errors.working_information?.entry_date &&
+                                 errors.working_information?.entry_date?.message
+                              }
+                           />
+                        )}
                      />
                   </div>
                </section>

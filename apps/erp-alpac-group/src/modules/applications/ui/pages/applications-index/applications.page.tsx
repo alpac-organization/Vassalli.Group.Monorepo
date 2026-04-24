@@ -21,10 +21,7 @@ import { PermitApplicationTypeOptions } from "@app/modules/applications/domain/e
 import { PermitApplicationStatusOptions } from "@app/modules/applications/domain/enums/permit-application-status.enum";
 import { ApplicationModal } from "./components/application-modal/application-modal";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import {
-   formatCollaboratorCode,
-   validateCollaboratorCode,
-} from "@app/shared/utils/collaborator.utils";
+import { formatCollaboratorCode, validateCollaboratorCode } from "@app/shared/utils/collaborator.utils";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -40,8 +37,8 @@ export const ApplicationsPage = function () {
    const initialFilters: ApplicationRequest = {
       company_id: "",
       module_code: "",
-      permit_application_type_id: 0,
-      permit_application_status_id: 0,
+      permit_application_type_id: undefined,
+      permit_application_status_id: undefined,
       collaborator_code: "",
       page_size: maxPageSize,
    };
@@ -51,6 +48,7 @@ export const ApplicationsPage = function () {
    const [isAdministrator, setIsAdministrator] = useState(false);
    const [isManager, setIsManager] = useState(false);
    const [filters, setFilters] = useState<ApplicationRequest>(initialFilters);
+   const [isNewPermissionRequestModalOpen, setIsNewPermissionRequestModalOpen] = useState(false);
    const [showAlert, setShowAlert] = useState<{
       show: boolean;
       type: "success" | "error" | "warning" | "info";
@@ -71,14 +69,14 @@ export const ApplicationsPage = function () {
 
    const {
       control,
+      register,
       reset,
       handleSubmit,
       formState: { errors },
    } = useForm<ApplicationRequest>({
       defaultValues: initialFilters,
+      shouldUnregister: false,
    });
-   const [isNewPermissionRequestModalOpen, setIsNewPermissionRequestModalOpen] =
-      useState(false);
 
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
    const isListEnabled: boolean = isAdministrator
@@ -109,10 +107,6 @@ export const ApplicationsPage = function () {
          GetApplicationDetailQuery.data,
       ],
    );
-
-   const query = useMemo(() => {
-      return isAdministrator ? GetApplicationsQuery : GetApplicationDetailQuery;
-   }, [isAdministrator, GetApplicationsQuery, GetApplicationDetailQuery]);
 
    const isLoading =
       GetApplicationsQuery.isLoading || GetApplicationDetailQuery.isLoading;
@@ -147,7 +141,7 @@ export const ApplicationsPage = function () {
          });
       }
 
-      if (applicationsData.length === 0 && isSuccess && isManager) {
+      if (applicationsData.length === 0 && isSuccess && isManager && !!filters.collaborator_code) {
          setShowAlert({
             show: true,
             type: "error",
@@ -166,13 +160,6 @@ export const ApplicationsPage = function () {
    }, []);
 
    const onSubmit: SubmitHandler<ApplicationRequest> = async (data) => {
-      const isSameQuery = filters.collaborator_code === data.collaborator_code;
-
-      if (isSameQuery) {
-         query.refetch();
-         return;
-      }
-
       setFilters((prev) => ({ ...prev, ...data }));
    };
 
@@ -279,39 +266,31 @@ export const ApplicationsPage = function () {
             >
                {isManager && (
                   <div className="flex flex-col">
-                     <Controller
-                        name="collaborator_code"
-                        control={control}
-                        rules={{
+
+                     <InputText
+                        label="Código de Colaborador"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
+                        type="text"
+                        placeholder="Ingrese el código del colaborador"
+                        errorVariant="tooltip"
+                        {...register("collaborator_code", {
                            required: "El código de colaborador es requerido",
                            validate: {
                               validateCode: (value?: string) =>
                                  validateCollaboratorCode(value!),
                            },
-                        }}
-                        render={({ field }) => (
-                           <InputText
-                              {...field}
-                              label="Código de Colaborador"
-                              className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-                              labelClassName="text-black! dark:text-white!"
-                              type="text"
-                              placeholder="Ingrese el código del colaborador"
-                              errorVariant="tooltip"
-                              onChange={(evt) => {
-                                 const value = evt.target.value;
-                                 const formattedValue = formatCollaboratorCode(value);
-                                 field.onChange(formattedValue);
-                              }}
-                              error={errors.collaborator_code?.message}
-                           />
-                        )}
+                           onChange: (evt) => {
+                              evt.target.value = formatCollaboratorCode(evt.target.value);
+                           },
+                        })}
+                        error={errors.collaborator_code?.message}
                      />
                   </div>
                )}
 
                {isAdministrator && (
-                  <div className="flex flex-col">
+                  < div className="flex flex-col">
                      <Controller
                         name="permit_application_type_id"
                         control={control}
@@ -446,7 +425,7 @@ export const ApplicationsPage = function () {
                   onClose={() => setIsApplicationModalOpen(false)}
                />
             )}
-         </motion.div>
+         </motion.div >
 
          {isManager && (
             <Button
@@ -459,7 +438,8 @@ export const ApplicationsPage = function () {
                className="fixed! bottom-12! right-6! z-40! isolate! min-h-14! min-w-14! rounded-full! bg-alpac-primary-500! dark:bg-white! text-black! active:scale-100! md:hover:brightness-110! md:hover:shadow-2xl! md:hover:-translate-y-0.5! focus-visible:outline-none! focus-visible:ring-2! focus-visible:ring-alpac-primary-400! focus-visible:ring-offset-2! dark:focus-visible:ring-offset-[#0f172a]!"
                onClick={() => setIsNewPermissionRequestModalOpen(true)}
             />
-         )}
+         )
+         }
       </>
    );
 };
