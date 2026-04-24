@@ -464,6 +464,8 @@ export const AddCollaboratorModal = (
                            <DatePicker
                               fieldWidth="large"
                               label="Fecha de Nacimiento"
+                              labelAbove
+                              isRequired
                               value={field.value ?? null}
                               onChange={(value) => {
                                  field.onChange(value)
@@ -690,6 +692,8 @@ export const AddCollaboratorModal = (
                               fieldWidth="large"
                               label="Fecha de Ingreso"
                               value={field.value ?? null}
+                              labelAbove
+                              isRequired
                               onChange={(value) => {
                                  field.onChange(value)
                               }}

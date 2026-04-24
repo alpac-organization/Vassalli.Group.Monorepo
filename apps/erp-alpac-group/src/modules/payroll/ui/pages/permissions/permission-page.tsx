@@ -151,7 +151,7 @@ export default function PermissionsPage() {
       setAlertState({
          open: true,
          type: "success",
-         message: "Solicitud de vacaciones enviada exitosamente.",
+         message: "Solicitud enviada exitosamente.",
       });
    }, []);
 

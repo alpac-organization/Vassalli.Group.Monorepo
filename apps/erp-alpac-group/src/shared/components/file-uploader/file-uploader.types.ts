@@ -1,4 +1,4 @@
-export type Extension = "xls" | "xlsx" | "csv";
+type Extension = "xls" | "xlsx" | "csv";
 
 export interface FileUploaderProps {
    title?: string;

@@ -249,50 +249,6 @@ export const validateLaboralHours = (time?: string): boolean | string => {
 
 /**
  * Formatea una fecha ISO a un formato legible para el usuario
- * @param date - Fecha a formatear
- * @returns Fecha formateada o "—" si la fecha es inválida
- */
-export const formatDate = (date?: string): string => {
-   if (!date) return "—";
-
-   const dateOnly = date.split("T")[0];
-
-   const d = new Date(`${dateOnly}T12:00:00`);
-
-   if (isNaN(d.getTime())) return "—";
-
-   return new Intl.DateTimeFormat("es-NI", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-   }).format(d);
-};
-
-/**
- * Formatea una fecha y hora ISO a un formato legible para el usuario
- * @param date - Fecha a formatear
- * @returns Fecha y hora formateada o "—" si la fecha es inválida
- */
-export const formatDateTime = (date?: string): string => {
-   if (!date) return "—";
-
-   const dateOnly = date.split("T")[0];
-
-   const d = new Date(`${dateOnly}T12:00:00`);
-
-   if (isNaN(d.getTime())) return "—";
-
-   return new Intl.DateTimeFormat("es-NI", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-   }).format(d);
-};
-
-/**
- * Formatea una fecha ISO a un formato legible para el usuario
  * @param time - Fecha a formatear
  * @returns Fecha formateada o "—" si la fecha es inválida
  */
@@ -318,25 +274,12 @@ export const formatTime = (time?: string): string => {
    }).format(validatedTime);
 };
 
-export function formatLongDate(isoDate: string | null | undefined): string {
-   if (!isoDate) return "—";
-   const dateOnly = isoDate.split("T")[0];
-   const d = new Date(`${dateOnly}T12:00:00`);
-   if (isNaN(d.getTime())) return "—";
-   return new Intl.DateTimeFormat("es", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-   }).format(d);
-}
-
 /**
  * Devuelve el inicio del día (00:00:00) en formato ISO UTC a partir de una fecha en formato YYYY-MM-DD.
  * @param ymd - Fecha en formato 'YYYY-MM-DD'
  * @returns string - Fecha en formato ISO UTC del inicio del día
  */
-export function utcDayStartIsoFromYmd(ymd: string): string {
+function utcDayStartIsoFromYmd(ymd: string): string {
    return dayjs.utc(ymd, "YYYY-MM-DD").startOf("day").toISOString();
 }
 
@@ -345,7 +288,7 @@ export function utcDayStartIsoFromYmd(ymd: string): string {
  * @param ymd - Fecha en formato 'YYYY-MM-DD'
  * @returns string - Fecha en formato ISO UTC del final del día
  */
-export function utcDayEndIsoFromYmd(ymd: string): string {
+function utcDayEndIsoFromYmd(ymd: string): string {
    return dayjs.utc(ymd, "YYYY-MM-DD").endOf("day").toISOString();
 }
 

@@ -4,8 +4,8 @@ export type DatePickerFieldWidth = "small" | "medium" | "large";
 
 type MuiSlotProps = NonNullable<MuiDatePickerProps["slotProps"]>;
 
-const outlineSlate600 = "#475569";
-const outlineNeutral600 = "#525252";
+const outlineSlate600 = "oklch(44.6% 0.043 257.281)";
+const outlineNeutral600 = "oklch(44.6% 0.043 257.281)";
 
 const fieldWidthClass: Record<DatePickerFieldWidth, string> = {
    small: "w-full max-w-[156px] sm:w-[156px]",

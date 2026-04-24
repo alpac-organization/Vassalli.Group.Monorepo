@@ -260,6 +260,8 @@ export function NewPermissionRequestForm(
                                              value={field.value}
                                              minDate={isOperator ? dayjs() : null}
                                              maxDate={endOfYear}
+                                             labelAbove
+                                             isRequired
                                              shouldDisableDate={(date) => date.day() === 0}
                                              onChange={(value) => {
                                                 setIsEndDateDisabled(false)
@@ -306,6 +308,8 @@ export function NewPermissionRequestForm(
                                              label="Fecha fin"
                                              className={`w-full ${isEndDateDisabled ? "cursor-not-allowed!" : ""}`}
                                              value={field.value}
+                                             labelAbove
+                                             isRequired
                                              referenceDate={startDate ? dayjs(startDate) : undefined}
                                              minDate={startDate ? dayjs(startDate) : undefined}
                                              maxDate={endOfYear}

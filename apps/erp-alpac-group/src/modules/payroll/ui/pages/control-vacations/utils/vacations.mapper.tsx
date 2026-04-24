@@ -1,12 +1,12 @@
 import { Badges } from "@alpac/design-system";
 import type { VacationControlPermitType } from "@app/modules/payroll/domain/ApiContract/Responses/control-vacation-responses/get-control-vacations-response";
 
-export const vacationsMapper: Record<VacationControlPermitType, string> = {
+const vacationsMapper: Record<VacationControlPermitType, string> = {
    Vacation: "Vacaciones",
    DonatedVacations: "Vacaciones donadas",
 };
 
-export function permitTypeLabel(
+function permitTypeLabel(
    type: VacationControlPermitType | string,
 ): string {
    if (type in vacationsMapper) {

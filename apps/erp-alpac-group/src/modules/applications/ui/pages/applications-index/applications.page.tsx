@@ -45,8 +45,6 @@ export const ApplicationsPage = function () {
 
    const navigate = useNavigate();
 
-   const [isAdministrator, setIsAdministrator] = useState(false);
-   const [isManager, setIsManager] = useState(false);
    const [filters, setFilters] = useState<ApplicationRequest>(initialFilters);
    const [isNewPermissionRequestModalOpen, setIsNewPermissionRequestModalOpen] = useState(false);
    const [showAlert, setShowAlert] = useState<{
@@ -78,6 +76,8 @@ export const ApplicationsPage = function () {
       shouldUnregister: false,
    });
 
+   const isManager = role === RoleEnum.MANAGER;
+   const isAdministrator = role === RoleEnum.ADMINISTRATOR;
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
    const isListEnabled: boolean = isAdministrator
    const isDetailEnabled: boolean = isManager && !!filters.collaborator_code;
@@ -122,11 +122,6 @@ export const ApplicationsPage = function () {
 
    const queryErrors =
       GetApplicationsQuery.error || GetApplicationDetailQuery.error;
-
-   useEffect(() => {
-      setIsAdministrator(role === RoleEnum.ADMINISTRATOR);
-      setIsManager(role === RoleEnum.MANAGER);
-   }, [role]);
 
    useEffect(() => {
       if (isFetching) return;

@@ -15,21 +15,21 @@ import type { GetVacationSaldoResponse } from "@app/modules/payroll/domain/ApiCo
  * "cargando.." si está cargando, o el valor numérico si está disponible.
  */
 function showBalanceVacationText(
-  readyContext: boolean,
-  isLoading: boolean,
-  isError: boolean,
-  valor: number | undefined,
+   readyContext: boolean,
+   isLoading: boolean,
+   isError: boolean,
+   valor: number | undefined,
 ): string {
-  if (!readyContext) return "—";
-  if (isLoading) return "cargando..";
-  if (isError) return "hubo un error vuelve pronto!";
-  return String(valor ?? "—");
+   if (!readyContext) return "—";
+   if (isLoading) return "cargando..";
+   if (isError) return "hubo un error vuelve pronto!";
+   return String(valor ?? "—");
 }
 
-export type ConsultaSaldoVacacionesTipo = {
-  isLoading: boolean;
-  isError: boolean;
-  datos: GetVacationSaldoResponse | undefined;
+type ConsultaSaldoVacacionesTipo = {
+   isLoading: boolean;
+   isError: boolean;
+   datos: GetVacationSaldoResponse | undefined;
 };
 
 /**
@@ -39,41 +39,41 @@ export type ConsultaSaldoVacacionesTipo = {
  * ( ejemplo: días disfrutados, disponibles, generados y nombre del colaborador).
  */
 export function derivarUiSaldoVacaciones(
-  contextoSaldoListo: boolean,
-  consulta: ConsultaSaldoVacacionesTipo,
+   contextoSaldoListo: boolean,
+   consulta: ConsultaSaldoVacacionesTipo,
 ) {
-  const datos = consulta.datos;
-  return {
-    mostrarDiasDisfrutados: showBalanceVacationText(
-      contextoSaldoListo,
-      consulta.isLoading,
-      consulta.isError,
-      datos?.enjoyed_vacation,
-    ),
-    mostrarDiasDisponibles: showBalanceVacationText(
-      contextoSaldoListo,
-      consulta.isLoading,
-      consulta.isError,
-      datos?.available_vacations,
-    ),
-    mostrarDiasGenerados: showBalanceVacationText(
-      contextoSaldoListo,
-      consulta.isLoading,
-      consulta.isError,
-      datos?.genered_vacation,
-    ),
-    nombreColaboradorParaMostrar: (() => {
-      if (!contextoSaldoListo) return undefined;
-      if (consulta.isLoading || consulta.isError) return undefined;
-      const nombre = datos?.full_name?.trim();
-      return nombre !== "" ? nombre : undefined;
-    })(),
-  };
+   const datos = consulta.datos;
+   return {
+      mostrarDiasDisfrutados: showBalanceVacationText(
+         contextoSaldoListo,
+         consulta.isLoading,
+         consulta.isError,
+         datos?.enjoyed_vacation,
+      ),
+      mostrarDiasDisponibles: showBalanceVacationText(
+         contextoSaldoListo,
+         consulta.isLoading,
+         consulta.isError,
+         datos?.available_vacations,
+      ),
+      mostrarDiasGenerados: showBalanceVacationText(
+         contextoSaldoListo,
+         consulta.isLoading,
+         consulta.isError,
+         datos?.genered_vacation,
+      ),
+      nombreColaboradorParaMostrar: (() => {
+         if (!contextoSaldoListo) return undefined;
+         if (consulta.isLoading || consulta.isError) return undefined;
+         const nombre = datos?.full_name?.trim();
+         return nombre !== "" ? nombre : undefined;
+      })(),
+   };
 }
 
-export type ConsultaPerfilColaboradorTipo = {
-  isLoading: boolean;
-  datos: GetCollaboratorProfileDetailsResponse | undefined;
+type ConsultaPerfilColaboradorTipo = {
+   isLoading: boolean;
+   datos: GetCollaboratorProfileDetailsResponse | undefined;
 };
 
 /**
@@ -83,44 +83,44 @@ export type ConsultaPerfilColaboradorTipo = {
  * ( ej: nombre del colaborador, puesto de trabajo y estado de carga).
  */
 export function derivarUiModalNuevaPermission(
-  contextoSaldoListo: boolean,
-  saldo: ConsultaSaldoVacacionesTipo,
-  perfil: ConsultaPerfilColaboradorTipo,
-  nombreCompletoInput: string | undefined,
+   contextoSaldoListo: boolean,
+   saldo: ConsultaSaldoVacacionesTipo,
+   perfil: ConsultaPerfilColaboradorTipo,
+   nombreCompletoInput: string | undefined,
 ) {
-  const nombreDesdeSaldo = saldo.datos?.full_name?.trim();
-  const nombreDesdePerfil = perfil.datos?.full_name?.trim();
-  const nombreCompletoColaborador =
-    nombreDesdeSaldo || nombreDesdePerfil || nombreCompletoInput?.trim() || "";
+   const nombreDesdeSaldo = saldo.datos?.full_name?.trim();
+   const nombreDesdePerfil = perfil.datos?.full_name?.trim();
+   const nombreCompletoColaborador =
+      nombreDesdeSaldo || nombreDesdePerfil || nombreCompletoInput?.trim() || "";
 
-  const datosPerfil = perfil.datos;
-  const puestoDeTrabajoColaborador =
-    datosPerfil?.work_position?.trim() ||
-    datosPerfil?.working_information?.work_position?.trim() ||
-    "";
+   const datosPerfil = perfil.datos;
+   const puestoDeTrabajoColaborador =
+      datosPerfil?.work_position?.trim() ||
+      datosPerfil?.working_information?.work_position?.trim() ||
+      "";
 
-  /**
-   * devuelve true si existe algún nombre de colaborador para mostrar,
-   * verificando primero en los datos de saldo, luego en el perfil
-   * y finalmente en el nombre completo proporcionado.
-   */
-  const hayTextoDeNombre =
-    Boolean(saldo.datos?.full_name?.trim()) ||
-    Boolean(perfil.datos?.full_name?.trim()) ||
-    Boolean(nombreCompletoInput?.trim());
+   /**
+    * devuelve true si existe algún nombre de colaborador para mostrar,
+    * verificando primero en los datos de saldo, luego en el perfil
+    * y finalmente en el nombre completo proporcionado.
+    */
+   const hayTextoDeNombre =
+      Boolean(saldo.datos?.full_name?.trim()) ||
+      Boolean(perfil.datos?.full_name?.trim()) ||
+      Boolean(nombreCompletoInput?.trim());
 
-  const nombreColaboradorCargando =
-    contextoSaldoListo &&
-    !hayTextoDeNombre &&
-    (saldo.isLoading || perfil.isLoading);
+   const nombreColaboradorCargando =
+      contextoSaldoListo &&
+      !hayTextoDeNombre &&
+      (saldo.isLoading || perfil.isLoading);
 
-  const puestoColaboradorCargando =
-    contextoSaldoListo && !puestoDeTrabajoColaborador && perfil.isLoading;
+   const puestoColaboradorCargando =
+      contextoSaldoListo && !puestoDeTrabajoColaborador && perfil.isLoading;
 
-  return {
-    nombreCompletoColaborador,
-    puestoDeTrabajoColaborador,
-    nombreColaboradorCargando,
-    puestoColaboradorCargando,
-  };
+   return {
+      nombreCompletoColaborador,
+      puestoDeTrabajoColaborador,
+      nombreColaboradorCargando,
+      puestoColaboradorCargando,
+   };
 }
