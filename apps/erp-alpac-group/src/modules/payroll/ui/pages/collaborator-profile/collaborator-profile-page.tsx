@@ -10,6 +10,9 @@ import { WorkManagementSection } from "@app/modules/payroll/ui/pages/collaborato
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
+import type { GeneratedDocumentType } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/generated-document.request";
+import { GenerateDocumentsSection } from "@app/modules/payroll/ui/pages/collaborator-profile/components/generate-documents/generate-documents-section";
+
 export function CollaboratorProfilePage() {
   const [activeTab, setActiveTab] = useState<TabId>("Personal");
 
@@ -39,12 +42,13 @@ export function CollaboratorProfilePage() {
     targetIdentification && companyId?.trim() && moduleCode?.trim(),
   );
 
-  const { GetProfileDetails } = useCollaborators({
-    CollaboratorDetailsPayload: {
-      ...payload,
-      QueryEnabled: queryEnabled,
-    },
-  });
+  const { GetProfileDetails, GenerateCollaboratorProfileDocument } =
+    useCollaborators({
+      CollaboratorDetailsPayload: {
+        ...payload,
+        QueryEnabled: queryEnabled,
+      },
+    });
 
   const {
     data: CollaboratorDetails,
@@ -52,6 +56,18 @@ export function CollaboratorProfilePage() {
     isError,
     error,
   } = GetProfileDetails;
+
+  const handleGenerateProfileDocument = (
+    documentType: GeneratedDocumentType,
+  ) => {
+    if (!companyId || !moduleCode || !targetIdentification) return;
+    GenerateCollaboratorProfileDocument.mutate({
+      company_id: companyId,
+      module_code: moduleCode,
+      identification_number: targetIdentification,
+      document_type: documentType,
+    });
+  };
 
   //Definición de las pestañas de navegación para el perfil del colaborador
   const TABS: TabOption<TabId>[] = [
@@ -121,6 +137,23 @@ export function CollaboratorProfilePage() {
           aria-hidden={activeTab !== "Working"}
         >
           <WorkManagementSection profile={CollaboratorDetails} />
+        </div>
+
+        <div
+          className={`w-full transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${
+            activeTab === "Generar-documentos"
+              ? "relative z-10 translate-y-0 opacity-100"
+              : "pointer-events-none absolute inset-0 z-0 -translate-y-2 overflow-hidden opacity-0"
+          }`}
+          aria-hidden={activeTab !== "Generar-documentos"}
+        >
+          <GenerateDocumentsSection
+            onGenerateDocument={handleGenerateProfileDocument}
+            isGenerating={GenerateCollaboratorProfileDocument.isPending}
+            isSuccess={GenerateCollaboratorProfileDocument.isSuccess}
+            isError={GenerateCollaboratorProfileDocument.isError}
+            error={GenerateCollaboratorProfileDocument.error}
+          />
         </div>
       </div>
     </div>

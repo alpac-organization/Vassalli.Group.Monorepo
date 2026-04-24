@@ -181,7 +181,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
       <div className="w-full max-w-full mb-8  dark:border-neutral-700">
         <section className="w-full dark:bg-[#272b34] bg-white border border-slate-200 dark:border-neutral-700 shadow-sm overflow-hidden">
           <div className="p-4 sm:p-6">
-            <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
               <EditableField
                 name="identification_number"
                 label="Número de Identificación"

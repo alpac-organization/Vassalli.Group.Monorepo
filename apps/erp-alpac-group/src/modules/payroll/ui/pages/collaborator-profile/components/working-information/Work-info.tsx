@@ -284,19 +284,19 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                         className={`${baseInputClasses} ${branchMissing ? missingDataInInputClassName : "text-white! dark:text-white!"}`}
                       />
                     </div>
-                    {/* {currentRole === "Administrator" ||
-                      (currentRole === "Manager" && (
-                        <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
-                          <button
-                            type="button"
-                            title="Cambiar sucursal"
-                            onClick={() => setBranchModalOpen(true)}
-                            className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                        </div>
-                      ))} */}
+                    {(currentRole === "Administrator" ||
+                      currentRole === "Manager") && (
+                      <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
+                        <button
+                          type="button"
+                          title="Cambiar sucursal"
+                          onClick={() => setBranchModalOpen(true)}
+                          className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 

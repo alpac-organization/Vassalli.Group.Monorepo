@@ -7,6 +7,7 @@ import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiCont
 import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator-profile.request";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/update-collaborator-request";
+import type { GetCollaboratorProfileGeneratedDocumentParams } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/generated-document.request";
 export class CollaboratorServices implements ICollaboratorServices {
   private apiHandler: IHttpHandler;
 
@@ -73,6 +74,21 @@ export class CollaboratorServices implements ICollaboratorServices {
         `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}/details`,
         rest,
       );
+    } catch (error) {
+      throw error;
+    }
+  }
+  public async GenerateCollaboratorProfileDocument(
+    payload: GetCollaboratorProfileGeneratedDocumentParams,
+  ): Promise<Blob> {
+    try {
+      const { company_id, module_code, identification_number, document_type } =
+        payload;
+      const blob = await this.apiHandler.get<Blob>(
+        `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}/documents/${document_type}/generator`,
+        { responseType: "blob" },
+      );
+      return blob;
     } catch (error) {
       throw error;
     }

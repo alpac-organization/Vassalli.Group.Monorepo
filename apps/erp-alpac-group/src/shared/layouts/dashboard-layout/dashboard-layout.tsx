@@ -16,7 +16,6 @@ export const DashboardLayout = () => {
   const [showModal, setShowModal] = useState(false);
   const [isLogout, setLogout] = useState(false);
   const { moduleCode, role } = useUserStore();
-  console.log(role);
   const { isOpenSidebar, setIsOpenSidebar } = useSessionStorageSidebar();
   const { startProcessToCloseSession } = useAuth();
   const location = useLocation();

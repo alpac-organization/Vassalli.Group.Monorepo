@@ -55,7 +55,7 @@ export const usePermission = (filters?: PermissionHistoryRequest) => {
     retry: 1,
   });
   //   const generatePermissionDocumentMutation = useMutation({
-  //     mutationKey: ["generatePermissionDocument", payload],
+  //     mutationKey: ["generatePermissionDocument"],
   //     mutationFn: (payload: GeneratePermissionDocumentRequest) =>
   //       permissionServices.generatePermissionDocument(payload),
   //     onSuccess: () => {

@@ -7,6 +7,8 @@ import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payro
 import { useMutation } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import type { GetCollaboratorProfileGeneratedDocumentParams } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/generated-document.request";
+import { CollaboratorProfileDocumentEnum } from "@app/modules/payroll/domain/enums/collaborator-enums/collaborator-profile-documents";
 
 const collaboratorServices = new CollaboratorServices(httpHandler);
 
@@ -91,9 +93,30 @@ export const useCollaborators = function (props: useCollaboratorsProps) {
     },
   });
 
+  const GenerateCollaboratorProfileDocument = useMutation({
+    mutationKey: ["generateCollaboratorProfileDocument"],
+    mutationFn: (payload: GetCollaboratorProfileGeneratedDocumentParams) => {
+      return collaboratorServices.GenerateCollaboratorProfileDocument(payload);
+    },
+    onSuccess: (
+      blob: Blob,
+      variables: GetCollaboratorProfileGeneratedDocumentParams,
+    ) => {
+      const fileUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = fileUrl;
+      link.download = `${CollaboratorProfileDocumentEnum[variables.document_type].label}_${variables.identification_number}.pdf`;
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(fileUrl), 60_000);
+    },
+  });
   return {
     GetCollaboratorsQuery,
     GetProfileDetails,
+    GenerateCollaboratorProfileDocument,
     UpdateCollaboratorProfileDetails,
   };
 };
