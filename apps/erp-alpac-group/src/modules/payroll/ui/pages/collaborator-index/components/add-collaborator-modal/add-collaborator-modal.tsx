@@ -2,15 +2,16 @@ import {
    Alert,
    AnimatedAlertWrapper,
    Button,
+   DatePicker,
    Dropdown,
    InputText,
    Modal,
    Stepper,
 } from "@alpac/design-system";
 import React, { useCallback, useState } from "react";
-import type { AddCollaboratorModalProps } from "./add-collaborator-modal.types";
+import type { AddCollaboratorModalProps } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal.types";
 import { Controller, useForm } from "react-hook-form";
-import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/add-collaborator.request";
+import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
 import { fieldsToValidate } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal.types";
 import {
    formatIdentificationNumber,
@@ -18,25 +19,28 @@ import {
    validateAge,
    validateEmail,
    validateNicaraguaPhone,
+   validateOnlyLettersWithAccentsAndDiacritics,
    validateToday,
 } from "@app/shared/utils/string.utils";
 import { GenderOptions } from "@app/core/enums/gender.enum";
 import {
    IdentificationOptions,
    IdentificationEnum,
-} from "@app/core/enums/identifcation.enum";
+} from "@app/core/enums/identification.enum";
 import { CurrencyOptions } from "@app/core/enums/currency.enum";
-import { SalaryTypeOptions } from "@app/modules/payroll/domain/enums/salary-type.enum";
+import { SalaryTypeOptions } from "@app/modules/payroll/domain/enums/salary-enums/salary-type.enum";
 import { ArrowLeftIcon, ArrowRightIcon, SaveIcon, XIcon } from "lucide-react";
 import { formatAmount } from "@app/shared/utils/number.utils";
-import { useCreateCollaborators } from "@app/modules/payroll/ui/hooks/useCreateCollaborators";
+import { useCreateCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCreateCollaborators";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
+import dayjs from "dayjs";
 
-export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.ReactNode => {
-
+export const AddCollaboratorModal = (
+   props: AddCollaboratorModalProps,
+): React.ReactNode => {
    const [currentStep, setCurrentStep] = useState(0);
 
    const [showAlert, setShowAlert] = useState<{
@@ -102,16 +106,10 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
             module_code: moduleCode,
          });
 
-         setShowAlert({
-            show: true,
-            type: "success",
-            title: "¡Colaborador creado!",
-            message: "El registro se ha completado con éxito.",
-         });
+         props.onRequestSuccess?.("Colaborador creado exitosamente");
 
-         reset();
          handleCloseModal();
-         handleCloseAlert();
+
       } catch (error) {
          const mappedError = getMappedError(error as ApiErrorResponse);
          setShowAlert({
@@ -207,15 +205,13 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         label="Primer Nombre"
                         placeholder="Ej. Juan"
                         isRequired
-                        pattern="^[A-Za-z]*$"
                         className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                         labelClassName="text-black! dark:text-white!"
                         {...register("first_name", {
                            required: "El primer nombre es requerido",
                            setValueAs: (value: string) => value?.trim(),
-                           pattern: {
-                              value: /^[A-Za-z]*$/,
-                              message: "El primer nombre solo puede contener letras",
+                           validate: {
+                              onlyLetters: (value: string) => validateOnlyLettersWithAccentsAndDiacritics(value)
                            },
                         })}
                         error={errors.first_name && errors.first_name.message}
@@ -224,15 +220,13 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                      <InputText
                         label="Segundo Nombre"
                         placeholder="Ej. Antonio"
-                        pattern="^[A-Za-z]*$"
                         className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                         labelClassName="text-black! dark:text-white!"
                         {...register("second_name", {
                            required: false,
                            setValueAs: (value: string) => value?.trim(),
-                           pattern: {
-                              value: /^[A-Za-z]*$/,
-                              message: "El segundo nombre solo puede contener letras",
+                           validate: {
+                              onlyLetters: (value?: string) => validateOnlyLettersWithAccentsAndDiacritics(value || "")
                            },
                         })}
                         error={errors.second_name && errors.second_name.message}
@@ -241,14 +235,13 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                      <InputText
                         label="Tercer Nombre"
                         placeholder="Opcional"
-                        pattern="^[A-Za-z]*$"
                         className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                         labelClassName="text-black! dark:text-white!"
                         {...register("third_name", {
                            required: false,
-                           pattern: {
-                              value: /^[A-Za-z]*$/,
-                              message: "El tercer nombre solo puede contener letras",
+                           setValueAs: (value: string) => value?.trim(),
+                           validate: {
+                              onlyLetters: (value?: string) => validateOnlyLettersWithAccentsAndDiacritics(value || "")
                            },
                         })}
                         error={errors.third_name && errors.third_name.message}
@@ -258,15 +251,13 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         label="Primer Apellido"
                         placeholder="Ej. Pérez"
                         isRequired
-                        pattern="^[A-Za-z]*$"
                         className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                         labelClassName="text-black! dark:text-white!"
                         {...register("first_lastname", {
                            required: "El primer apellido es requerido",
                            setValueAs: (value: string) => value?.trim(),
-                           pattern: {
-                              value: /^[A-Za-z]*$/,
-                              message: "El primer apellido solo puede contener letras",
+                           validate: {
+                              onlyLetters: (value: string) => validateOnlyLettersWithAccentsAndDiacritics(value)
                            },
                         })}
                         error={errors.first_lastname && errors.first_lastname.message}
@@ -275,14 +266,13 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                      <InputText
                         label="Segundo Apellido"
                         placeholder="Ej. García"
-                        pattern="^[A-Za-z]*$"
                         className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                         labelClassName="text-black! dark:text-white!"
                         {...register("second_lastname", {
                            required: false,
-                           pattern: {
-                              value: /^[A-Za-z]*$/,
-                              message: "El segundo apellido solo puede contener letras",
+                           setValueAs: (value: string) => value?.trim(),
+                           validate: {
+                              onlyLetters: (value?: string) => validateOnlyLettersWithAccentsAndDiacritics(value || "")
                            },
                         })}
                         error={errors.second_lastname && errors.second_lastname.message}
@@ -359,7 +349,6 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            required: "El número de identificación es requerido",
                            disabled: identificationType === 0,
                            setValueAs: (value: string) => {
-
                               const trimmed = value?.trim();
 
                               return trimmed
@@ -369,9 +358,8 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                                     IdentificationEnum.RESIDENCE_ID.value
                                     ? trimmed.replace(/-/g, "").toUpperCase()
                                     : trimmed.toUpperCase()
-                                 : ""
-                           }
-                           ,
+                                 : "";
+                           },
                            validate: (value?: string) =>
                               validateIdentificationNumber(value ?? ""),
                         })}
@@ -420,21 +408,6 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         />
                      </div>
 
-                     {/*   <InputText
-                  label="Departamento"
-                  placeholder="Ej. Managua"
-                  isRequired
-                  className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-                  labelClassName="text-black! dark:text-white!"
-                  {...register("personal_information.departament", {
-                    required: "El departamento es requerido",
-                  })}
-                  error={
-                    errors.personal_information?.departament &&
-                    errors.personal_information?.departament?.message
-                  }
-                /> */}
-
                      <InputText
                         label="Correo Personal"
                         placeholder="correo@ejemplo.com"
@@ -465,7 +438,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                            validate: (value) => validateNicaraguaPhone(value),
                            setValueAs: (value: string) => {
                               const trimmed = value?.trim();
-                              return trimmed ? trimmed.replace(/-/g, "") : ""
+                              return trimmed ? trimmed.replace(/-/g, "") : "";
                            },
                         })}
                         error={
@@ -477,23 +450,32 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         }}
                      />
 
-                     <InputText
-                        label="Fecha de Nacimiento"
-                        isRequired
-                        type="date"
-                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-                        labelClassName="text-black! dark:text-white!"
-                        {...register("personal_information.birthdate", {
-                           required: "La fecha de nacimiento es requerida",
+                     <Controller
+                        name="personal_information.birthdate"
+                        control={control}
+                        rules={{
+                           required: "La fecha de nacimiento es requerida.",
                            validate: {
-                              validAge: (value?: string) => validateAge(value, 18),
-                              validToday: (value?: string) => validateToday(value),
-                           },
-                        })}
-                        error={
-                           errors.personal_information?.birthdate &&
-                           errors.personal_information?.birthdate?.message
-                        }
+                              validAge: (value?: string) => validateAge(dayjs(value).format('YYYY-MM-DD'), 18),
+                              validToday: (value?: string) => validateToday(dayjs(value).format('YYYY-MM-DD')),
+                           }
+                        }}
+                        render={({ field }) => (
+                           <DatePicker
+                              fieldWidth="large"
+                              label="Fecha de Nacimiento"
+                              labelAbove
+                              isRequired
+                              value={field.value ?? null}
+                              onChange={(value) => {
+                                 field.onChange(value)
+                              }}
+                              error={
+                                 errors.personal_information?.birthdate &&
+                                 errors.personal_information?.birthdate?.message
+                              }
+                           />
+                        )}
                      />
 
                      <Controller
@@ -670,7 +652,9 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         }
                         onChange={(evt) => {
                            evt.target.value = formatPhone(evt.target.value);
-                           register("working_information.work_phon_number").onChange(evt);
+                           register("working_information.work_phon_number").onChange(
+                              evt,
+                           );
                         }}
                      />
 
@@ -694,23 +678,31 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                         }
                      />
 
-                     <InputText
-                        label="Fecha de Ingreso"
-                        isRequired
-                        type="date"
-                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-                        labelClassName="text-black! dark:text-white!"
-                        {...register("working_information.entry_date", {
-                           required: "La fecha de ingreso es requerida",
-                           setValueAs: (value: string) => value?.trim(),
+                     <Controller
+                        name="working_information.entry_date"
+                        control={control}
+                        rules={{
+                           required: "La fecha de ingreso es requerida.",
                            validate: {
-                              validToday: (value?: string) => validateToday(value),
-                           },
-                        })}
-                        error={
-                           errors.working_information?.entry_date &&
-                           errors.working_information?.entry_date?.message
-                        }
+                              validToday: (value?: string) => validateToday(dayjs(value).format('YYYY-MM-DD')),
+                           }
+                        }}
+                        render={({ field }) => (
+                           <DatePicker
+                              fieldWidth="large"
+                              label="Fecha de Ingreso"
+                              value={field.value ?? null}
+                              labelAbove
+                              isRequired
+                              onChange={(value) => {
+                                 field.onChange(value)
+                              }}
+                              error={
+                                 errors.working_information?.entry_date &&
+                                 errors.working_information?.entry_date?.message
+                              }
+                           />
+                        )}
                      />
                   </div>
                </section>

@@ -1,18 +1,19 @@
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { Modal } from "@alpac/design-system";
-import type { VacationControlItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-control-vacations-response";
-import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborator-profile.response";
-import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-profile.request";
-import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
+import type { VacationControlItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/control-vacation-responses/get-control-vacations-response";
+import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
+import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator-profile.request";
+import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
 import { PermitTypeBadge } from "@app/modules/payroll/ui/pages/control-vacations/utils/vacations.mapper";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import {
   dashOrText,
   EM_DASH,
   formatDateOrDash,
   formatTimeOrDash,
 } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-details/utils/validate.details-content";
-import type { ControlVacationDetailsModalProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-details/type/vacation-details.type";
+import type { ControlVacationDetailsModalProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-details/types/vacation-details.type";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 const FIELD_GRID =
@@ -51,7 +52,10 @@ function RecipientCollaboratorSection({
   profileQuery,
   shouldFetch,
 }: {
-  profileQuery: UseQueryResult<GetCollaboratorProfileDetailsResponse, Error>;
+  profileQuery: UseQueryResult<
+    GetCollaboratorProfileDetailsResponse,
+    ApiErrorResponse
+  >;
   shouldFetch: boolean;
 }) {
   const { data, isPending, isError, isFetching } = profileQuery;
@@ -141,7 +145,10 @@ function DonatedVacationDetails({
   shouldFetchRecipientProfile,
 }: {
   item: VacationControlItemResponse;
-  profileQuery: UseQueryResult<GetCollaboratorProfileDetailsResponse, Error>;
+  profileQuery: UseQueryResult<
+    GetCollaboratorProfileDetailsResponse,
+    ApiErrorResponse
+  >;
   shouldFetchRecipientProfile: boolean;
 }) {
   return (
@@ -297,7 +304,10 @@ function DetailsBody({
   shouldFetchRecipientProfile,
 }: {
   item: VacationControlItemResponse;
-  profileQuery: UseQueryResult<GetCollaboratorProfileDetailsResponse, Error>;
+  profileQuery: UseQueryResult<
+    GetCollaboratorProfileDetailsResponse,
+    ApiErrorResponse
+  >;
   shouldFetchRecipientProfile: boolean;
 }) {
   const isDonated = item.permit_application_type === "DonatedVacations";

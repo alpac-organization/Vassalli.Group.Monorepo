@@ -10,7 +10,8 @@ import {
   DollarSign,
   CircleMinus,
   HandCoins,
-  Palmtree,
+  ClockIcon,
+  Coins,
 } from "lucide-react";
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 
@@ -88,13 +89,20 @@ const vacationPaymentSection: SidebarLink = {
   id: "vacation-payment",
   label: "Pago de Vacaciones",
   path: "payroll/vacation-payment",
-  icon: Palmtree,
+  icon: Coins,
+};
+
+const attendanceControlSection: SidebarLink = {
+  id: "attendance-control",
+  label: "Control de asistencia",
+  path: "payroll/attendance-control",
+  icon: ClockIcon,
 };
 
 export const sidebarData = {
   logoUrl:
     "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
-  nameCompany: "PANEL DE CONTROL",
+  nameCompany: "CORE PANEL",
   navigationRegistry: {
     [ModuleEnum.PAYROLL]: {
       [RoleEnum.ADMINISTRATOR]: [
@@ -104,6 +112,7 @@ export const sidebarData = {
         deduccionesSection,
         liquidacionSection,
         vacationPaymentSection,
+        attendanceControlSection,
       ],
       [RoleEnum.OPERATOR]: [collboratorSection],
     },

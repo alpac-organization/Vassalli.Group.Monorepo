@@ -1,5 +1,4 @@
-
-import { IdentificationEnum } from "@app/core/enums/identifcation.enum";
+import { IdentificationEnum } from "@app/core/enums/identification.enum";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
@@ -243,51 +242,9 @@ export const validateLaboralHours = (time?: string): boolean | string => {
 
    const isValid = totalMinutes >= start && totalMinutes <= end;
 
-   return isValid || "La hora laboral debe estar entre las 08:00 AM y las 05:00 PM";
-};
-
-/**
- * Formatea una fecha ISO a un formato legible para el usuario
- * @param date - Fecha a formatear
- * @returns Fecha formateada o "—" si la fecha es inválida
- */
-export const formatDate = (date?: string): string => {
-   if (!date) return "—";
-
-   const dateOnly = date.split("T")[0];
-
-   const d = new Date(`${dateOnly}T12:00:00`);
-
-   if (isNaN(d.getTime())) return "—";
-
-   return new Intl.DateTimeFormat("es-NI", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-   }).format(d);
-};
-
-/**
- * Formatea una fecha y hora ISO a un formato legible para el usuario
- * @param date - Fecha a formatear
- * @returns Fecha y hora formateada o "—" si la fecha es inválida
- */
-export const formatDateTime = (date?: string): string => {
-   if (!date) return "—";
-
-   const dateOnly = date.split("T")[0];
-
-   const d = new Date(`${dateOnly}T12:00:00`);
-
-   if (isNaN(d.getTime())) return "—";
-
-   return new Intl.DateTimeFormat("es-NI", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-   }).format(d);
+   return (
+      isValid || "La hora laboral debe estar entre las 08:00 AM y las 05:00 PM"
+   );
 };
 
 /**
@@ -317,25 +274,12 @@ export const formatTime = (time?: string): string => {
    }).format(validatedTime);
 };
 
-export function formatLongDate(isoDate: string | null | undefined): string {
-   if (!isoDate) return "—";
-   const dateOnly = isoDate.split("T")[0];
-   const d = new Date(`${dateOnly}T12:00:00`);
-   if (isNaN(d.getTime())) return "—";
-   return new Intl.DateTimeFormat("es", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-   }).format(d);
-}
-
 /**
  * Devuelve el inicio del día (00:00:00) en formato ISO UTC a partir de una fecha en formato YYYY-MM-DD.
  * @param ymd - Fecha en formato 'YYYY-MM-DD'
  * @returns string - Fecha en formato ISO UTC del inicio del día
  */
-export function utcDayStartIsoFromYmd(ymd: string): string {
+function utcDayStartIsoFromYmd(ymd: string): string {
    return dayjs.utc(ymd, "YYYY-MM-DD").startOf("day").toISOString();
 }
 
@@ -344,12 +288,12 @@ export function utcDayStartIsoFromYmd(ymd: string): string {
  * @param ymd - Fecha en formato 'YYYY-MM-DD'
  * @returns string - Fecha en formato ISO UTC del final del día
  */
-export function utcDayEndIsoFromYmd(ymd: string): string {
+function utcDayEndIsoFromYmd(ymd: string): string {
    return dayjs.utc(ymd, "YYYY-MM-DD").endOf("day").toISOString();
 }
 
 /**
- * Devuelve un rango de fechas UTC en formato ISO, desde el inicio del día de la fecha inicial 
+ * Devuelve un rango de fechas UTC en formato ISO, desde el inicio del día de la fecha inicial
  * hasta el final del día de la fecha final.
  * @param startYmd - Fecha de inicio en formato 'YYYY-MM-DD'
  * @param endYmd - Fecha de fin en formato 'YYYY-MM-DD'
@@ -372,7 +316,7 @@ export function toUtcDayRangeIsoFromYmd(
  */
 export const formatTimeHoursOnly = (time: string | null | undefined) => {
    if (!time) return null;
-   const parts = time.split(':');
+   const parts = time.split(":");
 
    if (parts.length < 2) return null;
 
@@ -384,9 +328,20 @@ export const formatTimeHoursOnly = (time: string | null | undefined) => {
 
    if (isNaN(aux.getTime())) return null;
 
-   const hh = String(aux.getHours()).padStart(2, '0');
+   const hh = String(aux.getHours()).padStart(2, "0");
    const mm = "00";
    const ss = "00";
 
    return `${hh}:${mm}:${ss}`;
+};
+
+/**
+ * Valida que el string solo contenga letras, espacios y acentos
+ * @param value - String a validar
+ * @returns True si el string es válido, false si no
+ */
+export const validateOnlyLettersWithAccentsAndDiacritics = (value: string): boolean | string => {
+   if (!value) return true;
+   const regex = /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]*$/;
+   return regex.test(value) || "Solo se permiten letras";
 };

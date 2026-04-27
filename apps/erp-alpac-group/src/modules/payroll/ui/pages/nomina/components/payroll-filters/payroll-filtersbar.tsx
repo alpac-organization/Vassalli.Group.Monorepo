@@ -1,19 +1,19 @@
 import { InputText, Dropdown, Button } from "@alpac/design-system";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { useCallback } from "react";
-import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
+import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
 import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
 import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 
-export type PayrollCollaboratorFilterFields = Pick<
+type PayrollCollaboratorFilterFields = Pick<
   CollaboratorRequest,
   "identification_number" | "area_id" | "branch_id"
 >;
 
-export type PayrollFiltersBarProps = {
+type PayrollFiltersBarProps = {
   onApply: (filters: PayrollCollaboratorFilterFields) => void;
   onClear: () => void;
 };
@@ -40,9 +40,16 @@ export default function PayrollFiltersBar({
     catalog_type_id: CatalogEnum.WORK_AREAS,
   });
 
+  const { GetCatalogListQuery: branchesQuery } = useCatalog({
+    company_id: companyId,
+    catalog_type_id: CatalogEnum.BRANCHES,
+  });
+
   const { data: workAreas = [] } = workAreasQuery;
+  const { data: branches = [] } = branchesQuery;
 
   const optionsWorkAreas = mapCatalogToOptions(workAreas);
+  const optionsBranches = mapCatalogToOptions(branches);
 
   const onSubmit: SubmitHandler<PayrollCollaboratorFilterFields> = (data) => {
     onApply(data);
@@ -58,6 +65,9 @@ export default function PayrollFiltersBar({
       <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
         <div className="flex flex-col justify-center">
           <h3 className="p-0! m-0!">Filtros</h3>
+          <small className="text-gray-500 dark:text-gray-300">
+            Descripcion de filtros
+          </small>
         </div>
       </div>
       <form
@@ -105,6 +115,29 @@ export default function PayrollFiltersBar({
                 />
               );
             }}
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <Controller
+            name="branch_id"
+            control={control}
+            rules={{
+              required: false,
+            }}
+            render={({ field }) => (
+              <Dropdown
+                onChange={(value) => field.onChange(value)}
+                value={field.value}
+                label="Sucursal"
+                placeholder="Seleccione una sucursal"
+                appearance="dark"
+                labelClassName="text-black! dark:text-white!"
+                valueClassName="text-black! dark:text-white!"
+                className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+                options={optionsBranches ?? []}
+              />
+            )}
           />
         </div>
 
