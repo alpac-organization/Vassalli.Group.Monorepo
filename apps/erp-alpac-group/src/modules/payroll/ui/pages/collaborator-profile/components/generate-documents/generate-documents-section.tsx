@@ -29,7 +29,13 @@ export function GenerateDocumentsSection({
   const [feedbackAlert, setFeedbackAlert] = useState<FeedbackAlert | null>(
     null,
   );
-
+  useEffect(() => {
+    if (!feedbackAlert) return;
+    const timer = setTimeout(() => {
+      setFeedbackAlert(null);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [feedbackAlert]);
   useEffect(() => {
     if (isGenerating) {
       setFeedbackAlert(null);

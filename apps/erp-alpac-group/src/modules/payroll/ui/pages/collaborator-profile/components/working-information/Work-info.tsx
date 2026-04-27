@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useParams } from "react-router-dom";
 import { Alert, AnimatedAlertWrapper, InputText } from "@alpac/design-system";
-import { Pencil } from "lucide-react";
+// import { Pencil } from "lucide-react";
 import { EditableField } from "@app/modules/payroll/ui/pages/collaborator-profile/components/EditableFieldForm";
 import { currencyRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/utils/currency-utils";
 import { salaryTypeRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/utils/salary-utils";
@@ -284,7 +284,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                         className={`${baseInputClasses} ${branchMissing ? missingDataInInputClassName : "text-white! dark:text-white!"}`}
                       />
                     </div>
-                    {(currentRole === "Administrator" ||
+                    {/* {(currentRole === "Administrator" ||
                       currentRole === "Manager") && (
                       <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
                         <button
@@ -296,7 +296,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                           <Pencil size={16} />
                         </button>
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
 
