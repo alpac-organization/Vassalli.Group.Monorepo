@@ -1,3 +1,33 @@
+export interface CollaboratorProfilePersonalInformation {
+  gender?: string;
+  identification_type?: string | number | null;
+  identification_number?: string;
+  address?: string;
+  personal_email?: string;
+  personal_phone_number?: string;
+  birthdate?: string;
+  marital_status?: string;
+  department?: string;
+}
+
+interface CollaboratorProfileWorkingInformation {
+  inss_number?: string;
+  bank_account_number?: string;
+  bank_name?: string;
+  work_area?: string;
+  work_email?: string;
+  work_phone_number?: string;
+  work_position?: string;
+  branch_name?: string;
+  entry_date?: string;
+}
+
+interface CollaboratorProfileSalaryInformation {
+  salary?: number;
+  currency?: string;
+  salary_type?: string;
+}
+
 /**
  * @interface GetCollaboratorProfileDetailsResponse
  * @description Define la estructura de datos para la respuesta del perfil de detalles de colaboradores.
@@ -11,12 +41,18 @@ export interface GetCollaboratorProfileDetailsResponse {
   collaborator_id: string;
 
   /**
+   * Código del colaborador
+   * @example "XXX-XXXX"
+   * @required
+   */
+  collaborator_code?: string;
+
+  /**
    * Nombre completo del colaborador
    * @example "Juan Perez"
    * @required
    */
   full_name: string;
-  collaborator_code?: string;
 
   /**
    * Estado del colaborador
@@ -40,32 +76,4 @@ export interface GetCollaboratorProfileDetailsResponse {
   personal_information: CollaboratorProfilePersonalInformation;
   working_information: CollaboratorProfileWorkingInformation;
   salary_information: CollaboratorProfileSalaryInformation;
-}
-
-export interface CollaboratorProfilePersonalInformation {
-  gender?: string;
-  identification_type?: string | number | null;
-  identification_number?: string;
-  address?: string;
-  personal_email?: string;
-  personal_phone_number?: string;
-  birthdate?: string;
-  marital_status?: string;
-  department?: string;
-}
-export interface CollaboratorProfileWorkingInformation {
-  inss_number?: string;
-  bank_account_number?: string;
-  bank_name?: string;
-  work_area?: string;
-  work_email?: string;
-  work_phone_number?: string;
-  work_position?: string;
-  branch_name?: string;
-  entry_date?: string;
-}
-export interface CollaboratorProfileSalaryInformation {
-  salary?: number;
-  currency?: string;
-  salary_type?: string;
 }

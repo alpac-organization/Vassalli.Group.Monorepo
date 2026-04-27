@@ -1,3 +1,5 @@
+
+
 export interface GetApplicationsResponse {
    /**
     * Id del permiso

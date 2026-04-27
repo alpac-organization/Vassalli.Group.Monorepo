@@ -31,19 +31,27 @@ export default defineConfig({
          output: {
             manualChunks(id) {
                if (id.includes('node_modules')) {
-                  if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-                     return 'vendor-react';
+
+                  // 1. Agrupar todo el ecosistema de React junto para evitar ciclos internos
+                  if (
+                     id.includes('/react/') ||
+                     id.includes('/react-dom/') ||
+                     id.includes('/react-router/') ||
+                     id.includes('/scheduler/')
+                  ) {
+                     return 'vendor-core';
                   }
-                  if (id.includes('@tanstack')) {
-                     return 'vendor-query';
+
+
+                  // 2. Agrupar librerías pesadas o específicas
+                  if (id.includes('@tanstack')) return 'vendor-query';
+                  if (id.includes('framer-motion')) return 'vendor-motion';
+                  if (id.includes('lucide-react')) return 'vendor-ui';
+
+                  // 3. Agrupar utilidades comunes
+                  if (id.includes('axios') || id.includes('zustand')) {
+                     return 'vendor-utils';
                   }
-                  if (id.includes('framer-motion')) {
-                     return 'vendor-motion';
-                  }
-                  if (id.includes('lucide-react')) {
-                     return 'vendor-ui';
-                  }
-                  return 'vendor';
                }
             }
          }

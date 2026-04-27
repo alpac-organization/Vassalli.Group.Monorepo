@@ -4,7 +4,8 @@ import { PermissionServices } from "@app/modules/payroll/infrastructure/services
 import type { CreatePermissionRequestBase } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
 import type { PermissionHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-history-request";
 import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/cancel-permission-request";
-// import type { GeneratePermissionDocumentRequest } from "@app/modules/vacations/domain/ApiContract/Requests/permission-requests/generate-permission-docs-request";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+
 const permissionServices = new PermissionServices(httpHandler);
 export type UseVacationPayload = {
   company_id: string;
@@ -25,12 +26,18 @@ export const usePermission = (filters?: PermissionHistoryRequest) => {
     },
   });
 
-  const cancelPermissionRequestMutation = useMutation({
+  const cancelPermissionRequestMutation = useMutation<
+    void,
+    ApiErrorResponse,
+    CancelPermissionRequest
+  >({
     mutationKey: ["cancelPermissionRequest"],
     mutationFn: (payload: CancelPermissionRequest) =>
       permissionServices.cancelPermissionRequest(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });
+      queryClient.invalidateQueries({ queryKey: ["applicationsData"] });
+      queryClient.invalidateQueries({ queryKey: ["applicationDetailData"] });
     },
   });
 

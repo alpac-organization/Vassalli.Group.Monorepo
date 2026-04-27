@@ -6,22 +6,22 @@ import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContr
 
 const payrollServices = new PayrollServices(httpHandler);
 
-export interface UsePayrollStatusParams {
-  payload: PayrollProcessRequest;
-  enabled?: boolean;
+interface UsePayrollStatusParams {
+   payload: PayrollProcessRequest;
+   enabled?: boolean;
 }
 
 export function usePayrollProcessStatus({
-  payload,
-  enabled = true,
+   payload,
+   enabled = true,
 }: UsePayrollStatusParams) {
-  const { companyId, moduleCode, payrol_type } = payload;
-  return useQuery<GetPayrollProcessResponse, Error>({
-    queryKey: ["payrollsStatus", companyId, moduleCode, payrol_type],
-    queryFn: () => payrollServices.getPayrollsProcessStatus(payload),
-    enabled: enabled && Boolean(companyId && moduleCode),
-    staleTime: 1000 * 60 * 5,
-    retry: 1,
-    refetchOnWindowFocus: false,
-  });
+   const { companyId, moduleCode, payrol_type } = payload;
+   return useQuery<GetPayrollProcessResponse, Error>({
+      queryKey: ["payrollsStatus", companyId, moduleCode, payrol_type],
+      queryFn: () => payrollServices.getPayrollsProcessStatus(payload),
+      enabled: enabled && Boolean(companyId && moduleCode),
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+      refetchOnWindowFocus: false,
+   });
 }

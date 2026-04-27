@@ -1,5 +1,3 @@
-import type { ChannelEnum } from "@app/core/enums/channel.enum";
-
 export type NewPermissionRequestModalProps = {
    isOpen: boolean;
    onClose?: () => void;
@@ -7,7 +5,6 @@ export type NewPermissionRequestModalProps = {
    collaboratorWorkPosition?: string;
    isCollaboratorFullNameLoading?: boolean;
    isCollaboratorWorkPositionLoading?: boolean;
-   channel: ChannelEnum;
    onRequestSuccess?: () => void;
    onRequestError?: (description: string) => void;
 };

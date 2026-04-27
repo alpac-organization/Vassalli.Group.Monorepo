@@ -12,7 +12,7 @@ import { CollaboratorProfileDocumentEnum } from "@app/modules/payroll/domain/enu
 
 const collaboratorServices = new CollaboratorServices(httpHandler);
 
-export interface useCollaboratorsProps {
+interface useCollaboratorsProps {
   Collaboratorsfilters?: CollaboratorRequest;
   CollaboratorDetailsPayload?: CollaboratorProfileDetailsRequest;
 }
@@ -48,7 +48,7 @@ export const useCollaborators = function (props: useCollaboratorsProps) {
     enabled: collaboratorsListEnabled,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 10,
+    staleTime: 1000 * 60 * 2,
     retry: 1,
   });
 
@@ -65,7 +65,7 @@ export const useCollaborators = function (props: useCollaboratorsProps) {
     enabled: profileDetailsQueryEnabled,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 10,
+    staleTime: 1000 * 60 * 2,
     retry: 1,
   });
 

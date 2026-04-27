@@ -10,3 +10,8 @@ export const PermitApplicationStatusEnum: Record<string, EnumType> = {
 export type PermitApplicationStatusEnum = keyof typeof PermitApplicationStatusEnum;
 
 export const PermitApplicationStatusOptions = Object.values(PermitApplicationStatusEnum);
+
+export const PermitApplicationStatus = Object.keys(PermitApplicationStatusEnum).reduce((acc, key) => {
+   acc[key] = key;
+   return acc;
+}, {} as Record<string, string>);
