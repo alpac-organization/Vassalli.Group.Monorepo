@@ -11,7 +11,7 @@ export interface CreatePermissionRequestBase {
    permit_application_medical_appointment?: CreateMedicalAppointmentPermissionRequest;
 }
 
-export interface CreateVacationPermissionRequest {
+interface CreateVacationPermissionRequest {
    start_date: string;
    end_date: string;
    start_time?: string | null;
@@ -21,12 +21,12 @@ export interface CreateVacationPermissionRequest {
    with_range_hours: boolean;
 }
 
-export interface CreateDonatedVacationPermissionRequest {
+interface CreateDonatedVacationPermissionRequest {
    amount_days: number;
    identification_collaborator_to_receive: string;
 }
 
-export interface CreateMedicalAppointmentPermissionRequest {
+interface CreateMedicalAppointmentPermissionRequest {
    is_full_day: boolean;
    start_date: string;
    start_time?: string | null;

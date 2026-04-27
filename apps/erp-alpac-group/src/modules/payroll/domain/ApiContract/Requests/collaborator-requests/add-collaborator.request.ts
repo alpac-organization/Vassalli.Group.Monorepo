@@ -14,7 +14,7 @@ export interface AddCollaboratorRequest {
    salary_information: AddSalaryInformationRequest;
 }
 
-export interface AddPersonalInformationRequest {
+interface AddPersonalInformationRequest {
    address?: string;
    personal_email?: string;
    personal_phone_number: string;
@@ -23,7 +23,7 @@ export interface AddPersonalInformationRequest {
    marital_status: number;
 }
 
-export interface AddWorkingInformationRequest {
+interface AddWorkingInformationRequest {
    work_area_id: number;
    work_position_id: number;
    branch_id: number;
@@ -34,7 +34,7 @@ export interface AddWorkingInformationRequest {
    entry_date: string;
 }
 
-export interface AddSalaryInformationRequest {
+interface AddSalaryInformationRequest {
    currency: number;
    salary: number;
    salary_type: number;

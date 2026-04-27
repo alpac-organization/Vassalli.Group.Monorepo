@@ -5,6 +5,9 @@ import type { DatePickerFieldWidth } from "./date-picker-slot-props";
 export type DatePickerProps = MuiDatePickerProps & {
    fieldWidth?: DatePickerFieldWidth;
    error?: string;
+   labelAbove?: boolean;
+   isRequired?: boolean;
+   labelClassName?: string;
 };
 
 export type DatePickerValue = DatePickerProps["value"];
