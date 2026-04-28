@@ -12,7 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { FileX } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import { usePayroll } from "@app/modules/payroll/ui/hooks/usePayroll";
+import { usePayroll } from "@app/modules/payroll/ui/hooks/payroll/usePayroll";
 import { Loader } from "@app/shared/components/loaders/loader";
 import PayrollPageHeader from "@app/modules/payroll/ui/pages/nomina/components/payroll-page-header/payroll-page-header";
 import PayrollCycleFormalization from "@app/modules/payroll/ui/pages/nomina/components/payroll-cycle-formalization/payroll-cycle-formalization";
@@ -22,11 +22,17 @@ import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import type {
   PayrollProcessRequest,
   PayrollType,
-} from "@app/modules/payroll/domain/ApiContract/Requests/payroll-process.request";
-import type { PayrollRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-request";
-import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
-import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-payroll";
+} from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
+import type { PayrollRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-request";
+import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
+import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
 import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
+import { pdf } from "@react-pdf/renderer";
+import { PayrollPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/payroll-pdf-document";
+import { httpHandler } from "@app/core/adapters/axiosAdapter";
+import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
+import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
+import { fetchImageAsDataUri } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/fetch-image-as-data-uri";
 
 export function PayrollPage() {
   const maxPageSize = 10;
@@ -52,6 +58,10 @@ export function PayrollPage() {
     useState<PayrollItemResponse | null>(null);
   const [isPayrollDetailModalOpen, setIsPayrollDetailModalOpen] =
     useState(false);
+  const [visibleKeys, setVisibleKeys] = useState<string[]>(() =>
+    payrollColumns.map((col) => col.key as string),
+  );
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const handleSelectionModalClose = useCallback(() => {
     if (selectedPayrollType === null || selectedBranch === null) {
@@ -98,8 +108,8 @@ export function PayrollPage() {
   const payrollStatusQuery = usePayroll({
     mode: "status",
     payload: {
-      companyId,
-      moduleCode,
+      companie_id: companyId,
+      module_code: moduleCode,
       branch_id: selectedBranch ?? "",
       payrol_type: selectedPayrollType ?? "Ordinary",
     } as PayrollProcessRequest,
@@ -134,6 +144,8 @@ export function PayrollPage() {
     selectedBranch !== null &&
     existPayrollInProgress === true &&
     ordinaryPayrollQuery.isFetching;
+  const displayedBranchName =
+    ordinaryPayrollQuery.data?.branch_name?.trim() || selectedBranchName;
 
   const handleConfirmTypeSelection = useCallback(() => {
     if (tempSelectedType && tempSelectedBranch) {
@@ -147,6 +159,60 @@ export function PayrollPage() {
   const handlePageChange = useCallback((page: number) => {
     setPageNumber(page);
   }, []);
+
+  const handleGeneratePdf = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return;
+    try {
+      setIsGeneratingPdf(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const detailsData = ordinaryPayrollQuery.data;
+      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+      const payload = {
+        companie_id: companyId,
+        module_code: moduleCode,
+        type: selectedPayrollType,
+        branch_id: selectedBranch,
+        page_number: 1,
+        page_size: totalRecords > 0 ? totalRecords : 1000,
+      } as PayrollRequest;
+
+      const response = await payrollServices.getPayroll(payload);
+      const allItems = response.payroll_details?.items ?? [];
+
+      const logoDataUri = await fetchImageAsDataUri(activeLogo);
+
+      const blob = await pdf(
+        <PayrollPdfDocument
+          typePayroll={selectedPayrollType}
+          data={allItems}
+          branchName={displayedBranchName ?? ""}
+          startDate={ordinaryPayrollQuery.data?.start_date}
+          endDate={ordinaryPayrollQuery.data?.end_date}
+          visibleKeys={visibleKeys}
+          logoSrc={logoDataUri}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Error generando PDF", error);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    ordinaryPayrollQuery.data,
+    displayedBranchName,
+    visibleKeys,
+    activeLogo,
+  ]);
 
   const handleApplyFilters = useCallback(
     (
@@ -221,6 +287,8 @@ export function PayrollPage() {
               currentPage={pageNumber}
               pageSize={maxPageSize}
               totalRecords={totalRecords}
+              visibleKeys={visibleKeys}
+              onVisibleKeysChange={setVisibleKeys}
               onPageChange={handlePageChange}
               onRowClick={handleOpenPayrollDetailModal}
               isPending={detailsFetchInFlight}
@@ -390,7 +458,7 @@ export function PayrollPage() {
               <PayrollPageHeader
                 logoSrc={activeLogo}
                 logoAlt="logo grupo alpac"
-                branchName={selectedBranchName}
+                branchName={displayedBranchName}
                 onRequestChangePayrollSelection={
                   handleOpenChangePayrollSelection
                 }
@@ -402,6 +470,14 @@ export function PayrollPage() {
                 statusLoading={statusFetchInFlight}
                 statusError={payrollStatusQuery.isError}
                 onRetryProcessStatus={() => payrollStatusQuery.refetch()}
+              />
+              <Button
+                type="button"
+                size="giant"
+                label={isGeneratingPdf ? "Generando..." : "Generar Reporte"}
+                disabled={isGeneratingPdf || !existPayrollInProgress}
+                onClick={handleGeneratePdf}
+                className="w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
               />
             </div>
 
@@ -429,9 +505,9 @@ export function PayrollPage() {
                   src={activeLogo}
                   alt="logo grupo alpac"
                 />
-                {selectedBranchName ? (
+                {displayedBranchName ? (
                   <Badges
-                    label={`Nomina de ${selectedBranchName}`}
+                    label={`Nomina de ${displayedBranchName}`}
                     color="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
                     className="max-w-72 text-[12px]! font-semibold! leading-snug! wrap-break-word text-right"
                   />
@@ -441,6 +517,14 @@ export function PayrollPage() {
                   size="giant"
                   label="Cambiar tipo de nómina y sucursal"
                   onClick={handleOpenChangePayrollSelection}
+                  className="w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+                />
+                <Button
+                  type="button"
+                  size="giant"
+                  label={isGeneratingPdf ? "Generando..." : "Generar Reporte"}
+                  disabled={isGeneratingPdf || !existPayrollInProgress}
+                  onClick={handleGeneratePdf}
                   className="w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
                 />
               </div>

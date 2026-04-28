@@ -1,4 +1,4 @@
-import type { PayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-process.request";
+import type { PayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
 export interface PayrollRequest {
   /**
    * Identificador único de la empresa

@@ -16,9 +16,9 @@ export class PayrollServices implements IPayrollServices {
     payload: PayrollProcessRequest,
   ): Promise<GetPayrollProcessResponse> {
     try {
-      const { companyId, moduleCode, payrol_type, branch_id } = payload;
+      const { companie_id, module_code, payrol_type, branch_id } = payload;
       const x = this.apiHandler.get<GetPayrollProcessResponse>(
-        `/companies/${companyId}/modules/${moduleCode}/payrolls-status`,
+        `/companies/${companie_id}/modules/${module_code}/payrolls-status`,
         {
           params: { payrol_type, branch_id },
         },
@@ -40,12 +40,13 @@ export class PayrollServices implements IPayrollServices {
         page_number,
         page_size,
       } = payload;
-      return this.apiHandler.get<GetPayrollResponse>(
+      const response = await this.apiHandler.get<GetPayrollResponse>(
         `/companies/${companie_id}/modules/${module_code}/payrolls`,
         {
           params: { type, branch_id, page_number, page_size },
         },
       );
+      return response;
     } catch (error) {
       throw error;
     }

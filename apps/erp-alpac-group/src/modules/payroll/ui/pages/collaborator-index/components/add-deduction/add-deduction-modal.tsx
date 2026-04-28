@@ -6,14 +6,14 @@ import { RoleEnum } from "@app/core/enums/role.enum";
 import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import { SearchIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
+import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 
 import type {
   AddDeductionModalProps,
   AddDeductionRequestBase,
 } from "./types/add-deduction.types";
-import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-profile.request";
+import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator-profile.request";
 import { AddDeductionCollaboratorSummary } from "./collaborator-summary";
 import { AddDeductionForm } from "./add-deduction-form";
 

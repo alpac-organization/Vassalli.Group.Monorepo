@@ -11,4 +11,5 @@ export type DataTableProps<T> = {
    rowClassName?: string
    onRowClick?: (row: T) => void
    pagination?: React.ReactNode
+   toolbarEnd?: React.ReactNode
 }

@@ -24,7 +24,7 @@ export interface AddDeductionFormProps {
   isPending: boolean;
   onSubmit: (payload: AddDeductionRequestBase) => void;
   onCancel: () => void;
-  companyId: number;
+  companyId: string;
   moduleCode: string;
   identificationNumber: string;
 }

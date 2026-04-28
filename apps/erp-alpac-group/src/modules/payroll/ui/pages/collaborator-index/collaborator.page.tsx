@@ -13,31 +13,6 @@ import {
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-   HospitalIcon,
-   TreePalmIcon,
-   UserIcon,
-   UserRoundPlusIcon,
-   CircleMinus,
-   UserMinus,
-   FileClock
-} from 'lucide-react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
-import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
-import { useCollaborators } from "../../hooks/collaborator/useCollaborators";
-import { useCallback, useState } from 'react';
-import { Loader } from '@app/shared/components/loaders/loader';
-import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborators.response";
-import { useCatalog } from '@app/modules/catalog/ui/hooks/useCatalog';
-import { CatalogEnum } from '@app/core/enums/catalog.enum';
-import { CollaboratorStatusBadgeColor, CollaboratorStatusEnum, CollaboratorStatusOptions } from "@app/modules/payroll/domain/enums/collaborator-enums/collaborator-status.enum";
-import { mapCatalogToOptions } from '@app/shared/utils/catalog.utils';
-import { formatIdentificationNumber, validateIdentificationNumber } from '@app/shared/utils/string.utils';
-import { AddCollaboratorModal } from '@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal';
-import { useTheme } from '@alpac/design-system';
-import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
-import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
-import { IdentificationEnum } from "@app/core/enums/identification.enum";
   HospitalIcon,
   TreePalmIcon,
   UserIcon,
@@ -46,20 +21,14 @@ import { IdentificationEnum } from "@app/core/enums/identification.enum";
   UserMinus,
   FileClock,
 } from "lucide-react";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useForm, type SubmitHandler, Controller } from "react-hook-form";
-import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator.request";
-import { useCollaborators } from "@app/modules/payroll/ui/hooks/useCollaborators";
-import { useCallback, useState } from "react";
-import { Loader } from "@app/shared/components/loaders/loader";
-import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/get-collaborators.response";
-import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
-import { CatalogEnum } from "@app/core/enums/catalog.enum";
+import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
+import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
+import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborators.response";
 import {
   CollaboratorStatusBadgeColor,
   CollaboratorStatusEnum,
   CollaboratorStatusOptions,
-} from "@app/modules/payroll/domain/enums/collaborator-status.enum";
+} from "@app/modules/payroll/domain/enums/collaborator-enums/collaborator-status.enum";
 import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
 import {
   formatIdentificationNumber,
@@ -68,10 +37,15 @@ import {
 import { AddCollaboratorModal } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal";
 import { useTheme } from "@alpac/design-system";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import { NewPermissionRequestModal } from "@app/modules/vacations/ui/pages/vacation-index/components/new-permission-request/new-permission-modal";
+import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
+import { IdentificationEnum } from "@app/core/enums/identification.enum";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { useForm, type SubmitHandler, Controller } from "react-hook-form";
+import { useCallback, useState } from "react";
+import { Loader } from "@app/shared/components/loaders/loader";
+import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
+import { CatalogEnum } from "@app/core/enums/catalog.enum";
 import { AddDeductionModal } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-deduction/add-deduction-modal";
-import { ChannelEnum } from "@app/core/enums/channel.enum";
-import { IdentificationEnum } from "@app/core/enums/identifcation.enum";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 
 export const CollaboratorPage = function () {
@@ -113,32 +87,32 @@ export const CollaboratorPage = function () {
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
   const isProfileView = location.pathname.includes("collaborator-profile");
 
-   const {
-      register,
-      handleSubmit,
-      control,
-      reset,
-      formState: { errors },
-   } = useForm<CollaboratorRequest>({ mode: "onChange" });
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = useForm<CollaboratorRequest>({ mode: "onChange" });
 
   const { GetCatalogListQuery: workAreasQuery } = useCatalog({
     company_id: companyId,
     catalog_type_id: CatalogEnum.WORK_AREAS,
   });
 
-   const { GetCatalogListQuery: jobPositionQuery } = useCatalog({
-      company_id: companyId,
-      catalog_type_id: CatalogEnum.JOB_POSITIONS,
-   });
+  const { GetCatalogListQuery: jobPositionQuery } = useCatalog({
+    company_id: companyId,
+    catalog_type_id: CatalogEnum.JOB_POSITIONS,
+  });
 
   const { GetCatalogListQuery: banksQuery } = useCatalog({
     company_id: companyId,
     catalog_type_id: CatalogEnum.BANKS,
   });
 
-   const { GetBranchesQuery: branchesQuery } = useCompanies({
-      company_id: companyId,
-   });
+  const { GetBranchesQuery: branchesQuery } = useCompanies({
+    company_id: companyId,
+  });
 
   const { GetCollaboratorsQuery } = useCollaborators({
     Collaboratorsfilters: {
@@ -167,13 +141,13 @@ export const CollaboratorPage = function () {
     },
   } = GetCollaboratorsQuery;
 
-   const optionsWorkAreas = mapCatalogToOptions(workAreas);
-   const optionsJobPositions = mapCatalogToOptions(jobPositions);
-   const optionsBanks = mapCatalogToOptions(banks);
-   const optionsBranches = branches.map((b) => ({
-      value: b.branch_id,
-      label: b.branch_name,
-   }));
+  const optionsWorkAreas = mapCatalogToOptions(workAreas);
+  const optionsJobPositions = mapCatalogToOptions(jobPositions);
+  const optionsBanks = mapCatalogToOptions(banks);
+  const optionsBranches = branches.map((b) => ({
+    value: b.branch_id,
+    label: b.branch_name,
+  }));
 
   const onSubmit: SubmitHandler<CollaboratorRequest> = async (data) => {
     setFilters((prev) => ({ ...prev, ...data, page_number: 1 }));
@@ -183,41 +157,39 @@ export const CollaboratorPage = function () {
     setFilters((prev) => ({ ...prev, page_number: page }));
   }, []);
 
-   const handleCloseAlert = useCallback(() => {
-      setTimeout(() => {
-         setShowAlert({ show: false, type: "info", title: "", message: "" });
-      }, 3000);
-   }, []);
-
-   const handleRequestError = useCallback((message?: string) => {
-      setShowAlert({
-         show: true,
-         type: "error",
-         title: "Error",
-         message: message || "Error al realizar la solicitud",
-      });
-
-      handleCloseAlert();
-   }, [handleCloseAlert]);
-
-   const handleRequestSuccess = useCallback((message?: string) => {
-      setShowAlert({
-         show: true,
-         type: "success",
-         title: "Éxito",
-         message: message || "Solicitud realizada exitosamente"
-      });
-
-      handleCloseAlert();
-   }, [handleCloseAlert]);
-  const handleRequestSuccess = useCallback(() => {
-    setShowAlert({
-      show: true,
-      type: "success",
-      title: "Éxito",
-      message: "Solicitud creada exitosamente",
-    });
+  const handleCloseAlert = useCallback(() => {
+    setTimeout(() => {
+      setShowAlert({ show: false, type: "info", title: "", message: "" });
+    }, 3000);
   }, []);
+
+  const handleRequestError = useCallback(
+    (message?: string) => {
+      setShowAlert({
+        show: true,
+        type: "error",
+        title: "Error",
+        message: message || "Error al realizar la solicitud",
+      });
+
+      handleCloseAlert();
+    },
+    [handleCloseAlert],
+  );
+
+  const handleRequestSuccess = useCallback(
+    (message?: string) => {
+      setShowAlert({
+        show: true,
+        type: "success",
+        title: "Éxito",
+        message: message || "Solicitud realizada exitosamente",
+      });
+
+      handleCloseAlert();
+    },
+    [handleCloseAlert],
+  );
 
   const handleAddDeductionSuccess = useCallback(() => {
     setShowAlert({
@@ -302,9 +274,9 @@ export const CollaboratorPage = function () {
 
   const handleCollaboratorExit = useCallback(() => {}, []);
 
-   const handleCreateApplication = useCallback(() => {
-      setShowCreateApplicationModal(true);
-   }, []);
+  const handleCreateApplication = useCallback(() => {
+    setShowCreateApplicationModal(true);
+  }, []);
 
   return (
     <>
@@ -474,38 +446,38 @@ export const CollaboratorPage = function () {
             </div>
           </div>
 
-               <form
-                  onSubmit={handleSubmit(onSubmit)}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
-               >
-                  <div className="flex flex-col">
-                     <InputText
-                        label="Identificación"
-                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-                        labelClassName="text-black! dark:text-white!"
-                        type="text"
-                        placeholder="Ingrese la identificación"
-                        errorVariant="tooltip"
-                        {...register("identification_number", {
-                           required: false,
-                           validate: {
-                              validateIdentification: (value?: string) =>
-                                 validateIdentificationNumber(
-                                    value!,
-                                    IdentificationEnum.NATIONAL_ID.value,
-                                 ),
-                           },
-                           setValueAs: (value: string) =>
-                              value
-                                 ? value.toString().replace(/-/g, "").toUpperCase()
-                                 : "",
-                           onChange: (e) => {
-                              e.target.value = formatIdentificationNumber(e.target.value);
-                           },
-                        })}
-                        error={errors.identification_number?.message}
-                     />
-                  </div>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
+          >
+            <div className="flex flex-col">
+              <InputText
+                label="Identificación"
+                className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                labelClassName="text-black! dark:text-white!"
+                type="text"
+                placeholder="Ingrese la identificación"
+                errorVariant="tooltip"
+                {...register("identification_number", {
+                  required: false,
+                  validate: {
+                    validateIdentification: (value?: string) =>
+                      validateIdentificationNumber(
+                        value!,
+                        IdentificationEnum.NATIONAL_ID.value,
+                      ),
+                  },
+                  setValueAs: (value: string) =>
+                    value
+                      ? value.toString().replace(/-/g, "").toUpperCase()
+                      : "",
+                  onChange: (e) => {
+                    e.target.value = formatIdentificationNumber(e.target.value);
+                  },
+                })}
+                error={errors.identification_number?.message}
+              />
+            </div>
 
             <div className="flex flex-col">
               <Controller
@@ -615,16 +587,6 @@ export const CollaboratorPage = function () {
             />
           </div>
 
-               <AddCollaboratorModal
-                  isOpen={showAddCollaboratorModal}
-                  optionsWorkAreas={optionsWorkAreas}
-                  optionsJobPositions={optionsJobPositions}
-                  optionsBranches={optionsBranches}
-                  optionsBanks={optionsBanks}
-                  onClose={() => setShowAddCollaboratorModal(false)}
-                  onRequestSuccess={handleRequestSuccess}
-                  onRequestError={handleRequestError}
-               />
           <AddCollaboratorModal
             isOpen={showAddCollaboratorModal}
             optionsWorkAreas={optionsWorkAreas}
@@ -632,6 +594,8 @@ export const CollaboratorPage = function () {
             optionsBranches={optionsBranches}
             optionsBanks={optionsBanks}
             onClose={() => setShowAddCollaboratorModal(false)}
+            onRequestSuccess={handleRequestSuccess}
+            onRequestError={handleRequestError}
           />
 
           <AddDeductionModal
@@ -641,23 +605,23 @@ export const CollaboratorPage = function () {
             onRequestSuccess={handleAddDeductionSuccess}
           />
 
-               <NewPermissionRequestModal
-                  isOpen={showCreateApplicationModal}
-                  onClose={() => setShowCreateApplicationModal(false)}
-                  onRequestError={handleRequestError}
-                  onRequestSuccess={handleRequestSuccess}
-               />
+          <NewPermissionRequestModal
+            isOpen={showCreateApplicationModal}
+            onClose={() => setShowCreateApplicationModal(false)}
+            onRequestError={handleRequestError}
+            onRequestSuccess={handleRequestSuccess}
+          />
 
-               <AnimatedAlertWrapper open={showAlert.show}>
-                  <Alert
-                     type={showAlert.type}
-                     title={showAlert.title}
-                     message={showAlert.message}
-                     onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
-                  />
-               </AnimatedAlertWrapper>
-            </motion.div>
-         )}
-      </>
-   );
+          <AnimatedAlertWrapper open={showAlert.show}>
+            <Alert
+              type={showAlert.type}
+              title={showAlert.title}
+              message={showAlert.message}
+              onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
+            />
+          </AnimatedAlertWrapper>
+        </motion.div>
+      )}
+    </>
+  );
 };
