@@ -131,9 +131,9 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
                         className={`absolute inset-x-0 top-full z-100 mt-1 rounded-[12px] overflow-hidden ${menuSurface}`}
                      >
                         <ul className="max-h-60 overflow-y-auto py-1.5 px-0 m-0!">
-                           {options.map((option) => (
+                           {options.map((option, index) => (
                               <li
-                                 key={option.value}
+                                 key={option.value ?? index}
                                  onClick={() => handleSelect(option.value)}
                                  className={`
                                     px-4 py-2.5 cursor-pointer text-[14px] flex items-center justify-between transition-colors

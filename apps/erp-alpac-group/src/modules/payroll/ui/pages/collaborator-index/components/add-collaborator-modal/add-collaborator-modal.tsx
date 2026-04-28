@@ -8,7 +8,7 @@ import {
    Modal,
    Stepper,
 } from "@alpac/design-system";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import type { AddCollaboratorModalProps } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal.types";
 import { Controller, useForm } from "react-hook-form";
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
@@ -28,7 +28,7 @@ import {
    IdentificationEnum,
 } from "@app/core/enums/identification.enum";
 import { CurrencyOptions } from "@app/core/enums/currency.enum";
-import { SalaryTypeOptions } from "@app/modules/payroll/domain/enums/salary-enums/salary-type.enum";
+import { SalaryTypeEnum, SalaryTypeOptions } from "@app/modules/payroll/domain/enums/salary-enums/salary-type.enum";
 import { ArrowLeftIcon, ArrowRightIcon, SaveIcon, XIcon } from "lucide-react";
 import { formatAmount } from "@app/shared/utils/number.utils";
 import { useCreateCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCreateCollaborators";
@@ -37,11 +37,15 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
 import dayjs from "dayjs";
+import { CompanyEnum } from "@app/core/enums/company.enum";
+import { ServiceRatesTable } from "../service-rates-table/service-rates-table";
 
 export const AddCollaboratorModal = (
    props: AddCollaboratorModalProps,
 ): React.ReactNode => {
+
    const [currentStep, setCurrentStep] = useState(0);
+   const [selectedSalaryType, setSelectedSalaryType] = useState<SalaryTypeEnum | null>(null);
 
    const [showAlert, setShowAlert] = useState<{
       show: boolean;
@@ -57,7 +61,10 @@ export const AddCollaboratorModal = (
 
    const { PostCollaboratorQuery } = useCreateCollaborators();
    const { getMappedError } = useMappedError();
-   const { companyId, moduleCode } = useUserStore();
+   const { companyId, moduleCode, companyAlias } = useUserStore();
+
+   const isTmnCompany = companyAlias === CompanyEnum.TMN;
+   const isVigemsaCompany = companyAlias === CompanyEnum.VIGEMSA;
 
    const steps = ["Identidad", "Personal", "Laboral", "Salarial"];
 
@@ -155,6 +162,10 @@ export const AddCollaboratorModal = (
 
       return true;
    };
+
+   const isProfessionalServicesSalary = useMemo(() => {
+      return selectedSalaryType?.value === SalaryTypeEnum.PROFESSIONAL_SERVICES.value
+   }, [selectedSalaryType]);
 
    return (
       <Modal
@@ -717,61 +728,6 @@ export const AddCollaboratorModal = (
                      </h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-                     <Controller
-                        name="salary_information.currency"
-                        control={control}
-                        rules={{
-                           required: "Debe seleccionar una moneda",
-                           validate: (val) => val !== 0 || "Selección inválida",
-                        }}
-                        render={({ field }) => (
-                           <Dropdown
-                              label="Moneda"
-                              isRequired
-                              options={CurrencyOptions ?? []}
-                              placeholder="Seleccione..."
-                              onChange={(value) => {
-                                 field.onChange(value);
-                              }}
-                              error={
-                                 errors.salary_information?.currency &&
-                                 errors.salary_information?.currency?.message
-                              }
-                              value={field.value}
-                              appearance="dark"
-                              labelClassName="text-black! dark:text-white!"
-                              valueClassName="text-black! dark:text-white!"
-                              className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                           />
-                        )}
-                     />
-
-                     <InputText
-                        label="Salario Mensual"
-                        type="text"
-                        inputMode="decimal"
-                        placeholder="0.00"
-                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-                        labelClassName="text-black! dark:text-white!"
-                        isRequired
-                        {...register("salary_information.salary", {
-                           required: "El salario es requerido",
-                           setValueAs: (value: string) => {
-                              const trimmed = value?.trim();
-                              return trimmed ? parseFloat(trimmed.replace(/,/g, "")) : 0;
-                           },
-                           validate: (value?: number) =>
-                              (value !== undefined && value > 0) ||
-                              "El salario debe ser mayor a 0",
-                        })}
-                        error={
-                           errors.salary_information?.salary &&
-                           errors.salary_information?.salary?.message
-                        }
-                        onChange={(evt) => {
-                           evt.target.value = formatAmount(evt.target.value, 18, 3);
-                        }}
-                     />
 
                      <Controller
                         name="salary_information.salary_type"
@@ -788,6 +744,8 @@ export const AddCollaboratorModal = (
                               placeholder="Seleccione..."
                               onChange={(value) => {
                                  field.onChange(value);
+                                 const salaryType = Object.values(SalaryTypeEnum).find(type => type.value === value);
+                                 setSelectedSalaryType(salaryType as SalaryTypeEnum);
                               }}
                               error={
                                  errors.salary_information?.salary_type &&
@@ -802,35 +760,123 @@ export const AddCollaboratorModal = (
                         )}
                      />
 
-                     <Controller
-                        name="salary_information.sub_catalog_bank_id"
-                        control={control}
-                        rules={{
-                           required: "Debe seleccionar una institución bancaria",
-                           validate: (val) => val !== 0 || "Selección inválida",
-                        }}
-                        render={({ field }) => (
-                           <Dropdown
-                              label="Institución Bancaria"
-                              isRequired
-                              options={props.optionsBanks ?? []}
-                              placeholder="Seleccione..."
-                              onChange={(value) => {
-                                 field.onChange(value);
+                     {
+                        !isProfessionalServicesSalary && selectedSalaryType !== null && (
+                           <Controller
+                              name="salary_information.currency"
+                              control={control}
+                              rules={{
+                                 required: "Debe seleccionar una moneda",
+                                 validate: (val) => val !== 0 || "Selección inválida",
                               }}
-                              error={
-                                 errors.salary_information?.sub_catalog_bank_id &&
-                                 errors.salary_information?.sub_catalog_bank_id?.message
-                              }
-                              value={field.value}
-                              appearance="dark"
-                              labelClassName="text-black! dark:text-white!"
-                              valueClassName="text-black! dark:text-white!"
-                              className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+                              render={({ field }) => (
+                                 <Dropdown
+                                    label="Moneda"
+                                    isRequired
+                                    options={CurrencyOptions ?? []}
+                                    placeholder="Seleccione..."
+                                    onChange={(value) => {
+                                       field.onChange(value);
+                                    }}
+                                    error={
+                                       errors.salary_information?.currency &&
+                                       errors.salary_information?.currency?.message
+                                    }
+                                    value={field.value}
+                                    appearance="dark"
+                                    labelClassName="text-black! dark:text-white!"
+                                    valueClassName="text-black! dark:text-white!"
+                                    className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+                                 />
+                              )}
                            />
-                        )}
-                     />
+                        )
+                     }
+
+                     {
+                        !isProfessionalServicesSalary && selectedSalaryType !== null && (
+                           <InputText
+                              label="Salario Mensual"
+                              type="text"
+                              inputMode="decimal"
+                              placeholder="0.00"
+                              className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                              labelClassName="text-black! dark:text-white!"
+                              isRequired
+                              {...register("salary_information.salary", {
+                                 required: "El salario es requerido",
+                                 setValueAs: (value: any) => {
+                                    const stringValue = typeof value === "string" ? value : String(value || "");
+                                    const trimmed = stringValue.trim();
+                                    return trimmed ? parseFloat(trimmed.replace(/,/g, "")) : 0;
+                                 },
+                                 validate: (value?: number) =>
+                                    (value !== undefined && value > 0) ||
+                                    "El salario debe ser mayor a 0",
+                              })}
+                              error={
+                                 errors.salary_information?.salary &&
+                                 errors.salary_information?.salary?.message
+                              }
+                              onChange={(evt) => {
+                                 evt.target.value = formatAmount(evt.target.value, 18, 3);
+                              }}
+                           />
+                        )
+                     }
+
+                     {
+                        selectedSalaryType !== null && (
+                           <Controller
+                              name="salary_information.sub_catalog_bank_id"
+                              control={control}
+                              rules={{
+                                 required: "Debe seleccionar una institución bancaria",
+                                 validate: (val) => val !== 0 || "Selección inválida",
+                              }}
+                              render={({ field }) => (
+                                 <Dropdown
+                                    label="Institución Bancaria"
+                                    isRequired
+                                    options={props.optionsBanks ?? []}
+                                    placeholder="Seleccione..."
+                                    onChange={(value) => {
+                                       field.onChange(value);
+                                    }}
+                                    error={
+                                       errors.salary_information?.sub_catalog_bank_id &&
+                                       errors.salary_information?.sub_catalog_bank_id?.message
+                                    }
+                                    value={field.value}
+                                    appearance="dark"
+                                    labelClassName="text-black! dark:text-white!"
+                                    valueClassName="text-black! dark:text-white!"
+                                    className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+                                 />
+                              )}
+                           />
+                        )
+                     }
                   </div>
+                  {
+                     isProfessionalServicesSalary && selectedSalaryType && (isVigemsaCompany || isTmnCompany) && (
+                        <div className="mb-6">
+                           <ServiceRatesTable
+                              company={isVigemsaCompany ? "VIGEMSA" : "TMN"}
+                           />
+                        </div>
+                     )
+                  }
+
+                  {
+                     (isProfessionalServicesSalary && selectedSalaryType && (!isVigemsaCompany && !isTmnCompany)) && (
+                        <Alert
+                           type="info"
+                           title="Aviso"
+                           message="Esta función solo está disponible para las empresas: TMN y VIGEMSA"
+                        />
+                     )
+                  }
                </section>
             </div>
 
@@ -876,7 +922,7 @@ export const AddCollaboratorModal = (
                         type="submit"
                         label="Finalizar y Guardar"
                         size="giant"
-                        disabled={PostCollaboratorQuery.isPending}
+                        disabled={PostCollaboratorQuery.isPending || (isProfessionalServicesSalary && (!isVigemsaCompany && !isTmnCompany))}
                         isLoading={PostCollaboratorQuery.isPending}
                         isHiddenLabelOnMobile
                         icon={<SaveIcon size={20} />}
