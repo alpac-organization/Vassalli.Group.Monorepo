@@ -14,7 +14,7 @@ export function CheckPdfDocument({
   data,
   startDate,
   endDate,
-  //   logoSrc,
+  //logoSrc,
 }: CheckPdfProps) {
   const { urlImage } = useCompanyStore();
   const companyName = useUserStore.getState().companyName || "Alpac Group";

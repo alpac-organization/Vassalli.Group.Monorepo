@@ -1,8 +1,7 @@
 export const LETTER_PORTRAIT_SIZE: [number, number] = [612, 792];
 import { StyleSheet } from "@react-pdf/renderer";
-
 export const styles = StyleSheet.create({
-  page: { padding: 40, fontSize: 9, fontFamily: "Helvetica", color: "#000" },
+  page: { padding: 25, fontSize: 9, fontFamily: "Helvetica", color: "#000" },
   headerContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -87,8 +86,8 @@ export const styles = StyleSheet.create({
     backgroundColor: "#f0f0f0",
   },
   conceptContent: {
-    padding: 6,
-    minHeight: 40,
+    padding: 4,
+    minHeight: 25,
     borderBottomWidth: 1,
     borderBottomColor: "#000",
   },
@@ -100,7 +99,7 @@ export const styles = StyleSheet.create({
   checkListBox: {
     borderWidth: 1,
     borderColor: "#000",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   checkListHeaderRow: {
     flexDirection: "row",
@@ -110,7 +109,7 @@ export const styles = StyleSheet.create({
   },
   checkListHeaderCell1: {
     width: "10%",
-    padding: 4,
+    padding: 3,
     borderRightWidth: 1,
     borderRightColor: "#000",
     textAlign: "center",
@@ -119,7 +118,7 @@ export const styles = StyleSheet.create({
   },
   checkListHeaderCell2: {
     width: "70%",
-    padding: 4,
+    padding: 3,
     borderRightWidth: 1,
     borderRightColor: "#000",
     fontWeight: "bold",
@@ -127,13 +126,13 @@ export const styles = StyleSheet.create({
   },
   checkListHeaderCell3: {
     width: "20%",
-    padding: 4,
+    padding: 3,
     textAlign: "center",
     fontWeight: "bold",
     fontFamily: "Helvetica-Bold",
   },
   checkListSubHeader: {
-    padding: 4,
+    padding: 3,
     fontWeight: "bold",
     fontFamily: "Helvetica-Bold",
     borderBottomWidth: 1,
@@ -147,7 +146,7 @@ export const styles = StyleSheet.create({
   },
   checkListItemBox: {
     width: "10%",
-    padding: 4,
+    padding: 3,
     borderRightWidth: 1,
     borderRightColor: "#000",
     alignItems: "center",
@@ -161,22 +160,22 @@ export const styles = StyleSheet.create({
   },
   checkListItemText: {
     width: "70%",
-    padding: 4,
+    padding: 3,
     borderRightWidth: 1,
     borderRightColor: "#000",
   },
   checkListItemVerification: {
     width: "20%",
-    padding: 4,
+    padding: 3,
   },
 
   signaturesContainer: {
-    marginTop: 20,
+    marginTop: 10,
   },
   signaturesRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   signatureBlock: {
     width: "30%",
@@ -204,7 +203,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000",
     flexDirection: "row",
-    marginTop: 20,
+    marginTop: 10,
   },
   receiptCell: {
     flex: 1,
@@ -219,6 +218,6 @@ export const styles = StyleSheet.create({
   receiptLabel: {
     fontWeight: "bold",
     fontFamily: "Helvetica-Bold",
-    marginBottom: 15,
+    marginBottom: 10,
   },
 });
