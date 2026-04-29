@@ -41,7 +41,6 @@ import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permiss
 import { IdentificationEnum } from "@app/core/enums/identification.enum";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { AddDeductionModal } from "./components/add-deduction-modal/add-deduction-modal";
-import { AddIncomeModal } from "./components/add-income-modal/add-income-modal";
 
 export const CollaboratorPage = function () {
    const maxPageSize = 10;
@@ -57,7 +56,6 @@ export const CollaboratorPage = function () {
 
    const [showAddCollaboratorModal, setShowAddCollaboratorModal] = useState(false);
    const [showCreateApplicationModal, setShowCreateApplicationModal] = useState(false);
-   const [showAddIncomeModal, setShowAddIncomeModal] = useState(false);
    const [showAddDeductionModal, setShowAddDeductionModal] = useState(false);
    const [showAlert, setShowAlert] = useState<{
       show: boolean;
@@ -247,10 +245,6 @@ export const CollaboratorPage = function () {
       setShowAddCollaboratorModal(true);
    }, [setShowAddCollaboratorModal]);
 
-   const handleAddIncome = useCallback(() => {
-      setShowAddIncomeModal(true);
-   }, [setShowAddIncomeModal]);
-
    const handleAddDeduction = useCallback(() => {
       setShowAddDeductionModal(true);
    }, [setShowAddDeductionModal]);
@@ -260,6 +254,12 @@ export const CollaboratorPage = function () {
    const handleCreateApplication = useCallback(() => {
       setShowCreateApplicationModal(true);
    }, [setShowCreateApplicationModal]);
+
+   const formatNumber = useCallback((value: string) => {
+      const number = Number(value);
+      if (isNaN(number)) return "0";
+      return new Intl.NumberFormat("en-US").format(number);
+   }, []);
 
    return (
       <>
@@ -322,55 +322,35 @@ export const CollaboratorPage = function () {
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <StatsCard
                      title="Activos"
-                     value={
-                        collaborators.total_active
-                           ? collaborators.total_active.toString()
-                           : "0"
-                     }
+                     value={formatNumber(collaborators?.total_active?.toString() || "0")}
                      trend="Total de colaboradores activos"
                      icon={<UserIcon size={30} />}
                      borderColor="border-green-800! dark:border-green-600!"
                   />
                   <StatsCard
                      title="Vacaciones"
-                     value={
-                        collaborators.total_on_vacation
-                           ? collaborators.total_on_vacation.toString()
-                           : "0"
-                     }
+                     value={formatNumber(collaborators?.total_on_vacation?.toString() || "0")}
                      trend="Total de colaboradores en vacaciones"
                      icon={<TreePalmIcon size={30} />}
                      borderColor="border-yellow-600! dark:border-yellow-500!"
                   />
                   <StatsCard
                      title="Proceso de Baja"
-                     value={
-                        collaborators.total_on_exit
-                           ? collaborators.total_on_exit.toString()
-                           : "0"
-                     }
+                     value={formatNumber(collaborators?.total_on_exit?.toString() || "0")}
                      trend="Total de colaboradores en proceso de baja"
                      icon={<UserMinus size={30} />}
                      borderColor="border-red-600! dark:border-red-500!"
                   />
                   <StatsCard
                      title="Subsidios"
-                     value={
-                        collaborators.total_on_subsidy
-                           ? collaborators.total_on_subsidy.toString()
-                           : "0"
-                     }
+                     value={formatNumber(collaborators?.total_on_subsidy?.toString() || "0")}
                      trend="Total de colaboradores con subsidio"
                      icon={<HospitalIcon size={30} />}
                      borderColor="border-blue-600! dark:border-blue-400!"
                   />
                   <StatsCard
                      title="Total"
-                     value={
-                        collaborators.total_collaborators
-                           ? collaborators.total_collaborators.toString()
-                           : "0"
-                     }
+                     value={formatNumber(collaborators?.total_collaborators?.toString() || "0")}
                      trend="Total de colaboradores"
                      icon={<UserRoundPlusIcon size={30} />}
                      borderColor="border-green-800! dark:border-green-600!"
@@ -397,13 +377,6 @@ export const CollaboratorPage = function () {
                      />
                      <Button
                         size="giant"
-                        label="Agregar Ingresos"
-                        icon={<CirclePlus size={20} />}
-                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                        onClick={handleAddIncome}
-                     />
-                     <Button
-                        size="giant"
                         label="Agregar Deducción"
                         icon={<CircleMinus size={20} />}
                         className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
@@ -415,6 +388,14 @@ export const CollaboratorPage = function () {
                         icon={<FileClock size={20} />}
                         className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                         onClick={handleCreateApplication}
+                     />
+                     <Button
+                        size="giant"
+                        disabled
+                        label="Agregar Ingresos"
+                        icon={<CirclePlus size={20} />}
+                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                        onClick={() => { }}
                      />
                      <Button
                         size="giant"
@@ -585,13 +566,6 @@ export const CollaboratorPage = function () {
                   optionsBranches={optionsBranches}
                   optionsBanks={optionsBanks}
                   onClose={() => setShowAddCollaboratorModal(false)}
-                  onRequestSuccess={handleRequestSuccess}
-                  onRequestError={handleRequestError}
-               />
-
-               <AddIncomeModal
-                  isOpen={showAddIncomeModal}
-                  onClose={() => setShowAddIncomeModal(false)}
                   onRequestSuccess={handleRequestSuccess}
                   onRequestError={handleRequestError}
                />

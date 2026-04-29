@@ -39,14 +39,15 @@ import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
 import dayjs from "dayjs";
 import { CompanyEnum } from "@app/core/enums/company.enum";
 import { ServiceRatesTable } from "../service-rates-table/service-rates-table";
+import { AddAllowanceModal } from "../add-allowance-modal/add-allowance-modal";
 
 export const AddCollaboratorModal = (
    props: AddCollaboratorModalProps,
 ): React.ReactNode => {
 
-   const [currentStep, setCurrentStep] = useState(0);
+   const [currentStep, setCurrentStep] = useState(3);
    const [selectedSalaryType, setSelectedSalaryType] = useState<SalaryTypeEnum | null>(null);
-
+   const [showAddIncomeModal, setShowAddIncomeModal] = useState(false);
    const [showAlert, setShowAlert] = useState<{
       show: boolean;
       type: "success" | "error" | "warning" | "info";
@@ -66,7 +67,7 @@ export const AddCollaboratorModal = (
    const isTmnCompany = companyAlias === CompanyEnum.TMN;
    const isVigemsaCompany = companyAlias === CompanyEnum.VIGEMSA;
 
-   const steps = ["Identidad", "Personal", "Laboral", "Salarial"];
+   const steps = ["Identidad", "Personal", "Laboral", "Salarial", "Viáticos"];
 
    const {
       register,
@@ -131,6 +132,10 @@ export const AddCollaboratorModal = (
          handleCloseAlert();
       }
    };
+
+   const handleAddIncome = useCallback(() => {
+      setShowAddIncomeModal(true);
+   }, [setShowAddIncomeModal]);
 
    const handleCloseAlert = useCallback(() => {
       setTimeout(() => {
@@ -857,7 +862,18 @@ export const AddCollaboratorModal = (
                            />
                         )
                      }
+
                   </div>
+
+                  <div>
+                     <Button
+                        size="giant"
+                        label="Agregar Viáticos"
+                        onClick={handleAddIncome}
+                        className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                     />
+                  </div>
+
                   {
                      isProfessionalServicesSalary && selectedSalaryType && (isVigemsaCompany || isTmnCompany) && (
                         <div className="mb-6">
@@ -879,6 +895,13 @@ export const AddCollaboratorModal = (
                   }
                </section>
             </div>
+
+            <AddAllowanceModal
+               isOpen={showAddIncomeModal}
+               onClose={() => setShowAddIncomeModal(false)}
+               onRequestSuccess={() => setShowAddIncomeModal(false)}
+               onRequestError={() => setShowAddIncomeModal(false)}
+            />
 
             <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6 mb-6"></div>
 

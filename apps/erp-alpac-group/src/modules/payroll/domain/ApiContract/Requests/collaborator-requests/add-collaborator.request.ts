@@ -12,6 +12,7 @@ export interface AddCollaboratorRequest {
    personal_information: AddPersonalInformationRequest;
    working_information: AddWorkingInformationRequest;
    salary_information: AddSalaryInformationRequest;
+   allowances: AddAllowanceRequest;
 }
 
 interface AddPersonalInformationRequest {
@@ -39,4 +40,9 @@ interface AddSalaryInformationRequest {
    salary: number;
    salary_type: number;
    sub_catalog_bank_id: number;
+}
+
+interface AddAllowanceRequest {
+   meal?: number;
+   transport?: number;
 }

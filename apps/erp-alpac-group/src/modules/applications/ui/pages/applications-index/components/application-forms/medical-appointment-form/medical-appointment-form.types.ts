@@ -1,6 +1,6 @@
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 
-export type MedicalAppointmentFormProps = {
+export interface MedicalAppointmentFormProps {
    application: GetApplicationsResponse;
    onFinishProcess?: () => void;
 }

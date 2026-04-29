@@ -1,6 +1,6 @@
 import { Button, Modal } from "@alpac/design-system"
 import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types"
-
+import type { ConfirmActionProps } from "./confirm-modal.types";
 
 export const ConfirmModal = ({
    isOpen,
@@ -9,14 +9,7 @@ export const ConfirmModal = ({
    handleFinalAction,
    isLoading = false,
    disabled = false
-}: {
-   isOpen: boolean;
-   type: ConfirmActionType;
-   onClose?: () => void;
-   handleFinalAction: (type: ConfirmActionType) => void;
-   isLoading?: boolean;
-   disabled?: boolean;
-}) => {
+}: ConfirmActionProps) => {
 
    const classButton = "rounded-md! px-6! border shadow-sm transition-all duration-200";
    const classButtonExit = "rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!";
@@ -31,8 +24,8 @@ export const ConfirmModal = ({
 
    return (
       <Modal
-         variant="warning"
          size="md"
+         variant="warning"
          isOpen={isOpen}
          onClose={() => !isLoading && onClose?.()}
       >

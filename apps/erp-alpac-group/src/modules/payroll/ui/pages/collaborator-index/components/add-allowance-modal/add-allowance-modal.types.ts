@@ -1,5 +1,5 @@
 
-export type AddIncomeModalProps = {
+export type AddAllowanceModalProps = {
    isOpen: boolean;
    onClose: () => void;
    onSubmit?: (data: any) => void;
