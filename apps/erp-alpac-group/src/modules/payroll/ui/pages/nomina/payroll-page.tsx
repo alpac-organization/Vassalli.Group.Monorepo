@@ -7,7 +7,7 @@ import {
   Badges,
 } from "@alpac/design-system";
 import { motion } from "framer-motion";
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileX } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -91,6 +91,7 @@ export function PayrollPage() {
   const [isGeneratingPaymentRequestsPdf, setIsGeneratingPaymentRequestsPdf] =
     useState(false);
   const [identificationFilter, setIdentificationFilter] = useState("");
+  const [isStatusErrorModalOpen, setIsStatusErrorModalOpen] = useState(false);
 
   const handleSelectionModalClose = useCallback(() => {
     if (selectedPayrollType === null || selectedBranch === null) {
@@ -107,6 +108,16 @@ export function PayrollPage() {
       setIsPayrollSelectionModalOpen(true);
     }
   }, [selectedPayrollType, selectedBranch]);
+
+  const handleOpenPayrollSelectionFromStatusError = useCallback(() => {
+    setIsStatusErrorModalOpen(false);
+    setIsPayrollSelectionModalOpen(true);
+  }, []);
+
+  const handleCloseStatusErrorModal = useCallback(() => {
+    setIsStatusErrorModalOpen(false);
+    navigate("/dashboard");
+  }, [navigate]);
 
   const handleOpenPayrollDetailModal = useCallback(
     (row: PayrollItemResponse) => {
@@ -173,14 +184,51 @@ export function PayrollPage() {
   const displayedBranchName =
     ordinaryPayrollQuery.data?.branch_name?.trim() || selectedBranchName;
 
+  useEffect(() => {
+    const hasActiveSelection =
+      selectedPayrollType !== null && selectedBranch !== null;
+    if (
+      hasActiveSelection &&
+      payrollStatusQuery.isError &&
+      !statusFetchInFlight
+    ) {
+      setIsStatusErrorModalOpen(true);
+    }
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    payrollStatusQuery.isError,
+    statusFetchInFlight,
+  ]);
+
+  useEffect(() => {
+    if (!payrollStatusQuery.isError) {
+      setIsStatusErrorModalOpen(false);
+    }
+  }, [payrollStatusQuery.isError]);
+
   const handleConfirmTypeSelection = useCallback(() => {
     if (tempSelectedType && tempSelectedBranch) {
+      const isSameSelection =
+        tempSelectedType === selectedPayrollType &&
+        tempSelectedBranch === selectedBranch;
+
       setSelectedPayrollType(tempSelectedType);
       setSelectedBranch(tempSelectedBranch);
       setIsPayrollSelectionModalOpen(false);
       setPageNumber(1);
+
+      if (isSameSelection) {
+        void payrollStatusQuery.refetch();
+      }
     }
-  }, [tempSelectedType, tempSelectedBranch]);
+  }, [
+    tempSelectedType,
+    tempSelectedBranch,
+    selectedPayrollType,
+    selectedBranch,
+    payrollStatusQuery,
+  ]);
 
   const handlePageChange = useCallback((page: number) => {
     setPageNumber(page);
@@ -228,7 +276,7 @@ export function PayrollPage() {
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
     } catch (error) {
-      console.error("Error generando PDF", error);
+      throw error;
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -272,7 +320,6 @@ export function PayrollPage() {
       );
 
       if (filteredItems.length === 0) {
-        console.log("No hay colaboradores sin número de INSS.");
         return;
       }
 
@@ -290,7 +337,7 @@ export function PayrollPage() {
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
     } catch (error) {
-      console.error("Error generando PDF de Solicitudes de Pago", error);
+      throw error;
     } finally {
       setIsGeneratingPaymentRequestsPdf(false);
     }
@@ -390,6 +437,25 @@ export function PayrollPage() {
             />
           </div>
         </>
+      );
+    }
+
+    if (!statusFetchInFlight) {
+      return (
+        <div className="mt-4 flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-neutral-700 dark:bg-[#272b34]">
+          <h3 className="mb-2 text-xl font-bold text-slate-800 dark:text-white">
+            No se pudo verificar el estado de la nómina
+          </h3>
+          <p className="mx-auto mb-8 max-w-md text-slate-500 dark:text-slate-400">
+            Intente con otra combinación de tipo de nómina y sucursal para
+            continuar la consulta.
+          </p>
+          <Button
+            label="Cambiar tipo de nómina"
+            onClick={handleOpenChangePayrollSelection}
+            className="w-full! sm:w-[246px]! min-h-[48px]! py-2! px-4! text-[14px]! leading-snug! text-center! font-normal! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! flex! items-center! justify-center!"
+          />
+        </div>
       );
     }
 
@@ -511,6 +577,32 @@ export function PayrollPage() {
         </div>
       </Modal>
 
+      <Modal
+        isOpen={isStatusErrorModalOpen}
+        onClose={handleCloseStatusErrorModal}
+        variant="error"
+        size="md"
+        title="No se pudo verificar el estado"
+        description="No se pudo comprobar si ya existe una nómina en progreso para la selección realizada. Verifique su conexión o cambie el tipo de nómina y sucursal."
+      >
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            size="giant"
+            label="Cambiar nómina"
+            onClick={handleOpenPayrollSelectionFromStatusError}
+            className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:w-auto!"
+          />
+          <Button
+            type="button"
+            size="giant"
+            label="Cerrar"
+            onClick={handleCloseStatusErrorModal}
+            className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:w-auto!"
+          />
+        </div>
+      </Modal>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -558,8 +650,6 @@ export function PayrollPage() {
                 cicloFinal={ordinaryPayrollQuery.data?.end_date ?? "—"}
                 existPayrollInProgress={existPayrollInProgress}
                 statusLoading={statusFetchInFlight}
-                statusError={payrollStatusQuery.isError}
-                onRetryProcessStatus={() => payrollStatusQuery.refetch()}
               />
               <Button
                 type="button"
@@ -603,8 +693,6 @@ export function PayrollPage() {
                   cicloFinal={ordinaryPayrollQuery.data?.end_date ?? "—"}
                   existPayrollInProgress={existPayrollInProgress}
                   statusLoading={statusFetchInFlight}
-                  statusError={payrollStatusQuery.isError}
-                  onRetryProcessStatus={() => payrollStatusQuery.refetch()}
                 />
               </div>
               <div className="w-[18rem] flex flex-col items-end gap-3">

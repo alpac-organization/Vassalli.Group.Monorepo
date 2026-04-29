@@ -4,7 +4,7 @@ export function DataTable<T>({ title, data, columns, rowClassName, onRowClick, p
    return (
       <div className="w-full 
             rounded-lg 
-            overflow-hidden 
+            overflow-visible 
             border 
             border-slate-600 
             hover:border-neutral-600 
@@ -13,7 +13,7 @@ export function DataTable<T>({ title, data, columns, rowClassName, onRowClick, p
 
          {
             title && (
-               <div className="flex justify-between items-center gap-4 p-6 border-b-2 border-slate-600 dark:border-neutral-600">
+               <div className="flex flex-wrap items-center justify-between gap-3 p-6 border-b-2 border-slate-600 dark:border-neutral-600">
                   <h2 className="
                             p-0!
                             m-0!
@@ -31,7 +31,7 @@ export function DataTable<T>({ title, data, columns, rowClassName, onRowClick, p
                   </h2>
                   {
                      (pagination !== undefined || toolbarEnd !== undefined) && (
-                        <div className="hidden md:flex shrink-0 items-center gap-2">
+                        <div className="hidden shrink-0 items-center gap-2 md:flex md:flex-wrap md:justify-end">
                            {toolbarEnd}
                            {pagination}
                         </div>
@@ -90,9 +90,15 @@ export function DataTable<T>({ title, data, columns, rowClassName, onRowClick, p
 
          {
             (pagination !== undefined || toolbarEnd !== undefined) && (
-               <div className="md:hidden border-t-2 border-slate-600 dark:border-neutral-600 px-6 py-4 flex flex-col items-center justify-center gap-4 w-full">
-                  {toolbarEnd}
-                  {pagination}
+               <div className="md:hidden w-full border-t-2 border-slate-600 px-6 py-4 dark:border-neutral-600">
+                  <div className="flex w-full flex-col gap-3">
+                     {toolbarEnd !== undefined && (
+                        <div className="flex w-full justify-center">{toolbarEnd}</div>
+                     )}
+                     {pagination !== undefined && (
+                        <div className="w-full overflow-x-auto">{pagination}</div>
+                     )}
+                  </div>
                </div>
             )
          }
