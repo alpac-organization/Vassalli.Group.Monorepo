@@ -5,37 +5,41 @@ import ControlVacationsPage from "@app/modules/payroll/ui/pages/control-vacation
 import { VacationPaymentPage } from "@app/modules/payroll/ui/pages/vacation-payment/vacation-payment.page";
 import { AttendanceControlPage } from "@app/modules/payroll/ui/pages/attendance-control/attendance-control.page";
 import { PayrollPage } from "@app/modules/payroll/ui/pages/nomina/payroll-page";
-
+import { ReportsPage } from "@app/modules/payroll/ui/pages/reportes/report-page";
 export const PayrollRoutes: RouteObject[] = [
-   {
-      index: true,
-      element: <CollaboratorPage />,
-   },
-   {
-      path: "collaborators",
-      element: <CollaboratorPage />,
-      children: [
-         {
-            // path: ":identification_number/collaborator-profile",
-            path: "collaborator-profile",
-            element: <CollaboratorProfilePage />,
-         },
-      ],
-   },
-   {
-      path: "control-vacations",
-      element: <ControlVacationsPage />,
-   },
-   {
-      path: "vacation-payment",
-      element: <VacationPaymentPage />,
-   },
-   {
-      path: "gestion-nomina",
-      element: <PayrollPage />,
-   },
-   {
-      path: "attendance-control",
-      element: <AttendanceControlPage />,
-   },
+  {
+    index: true,
+    element: <CollaboratorPage />,
+  },
+  {
+    path: "collaborators",
+    element: <CollaboratorPage />,
+    children: [
+      {
+        // path: ":identification_number/collaborator-profile",
+        path: "collaborator-profile",
+        element: <CollaboratorProfilePage />,
+      },
+    ],
+  },
+  {
+    path: "control-vacations",
+    element: <ControlVacationsPage />,
+  },
+  {
+    path: "vacation-payment",
+    element: <VacationPaymentPage />,
+  },
+  {
+    path: "gestion-nomina",
+    element: <PayrollPage />,
+  },
+  {
+    path: "attendance-control",
+    element: <AttendanceControlPage />,
+  },
+  {
+    path: "reportes",
+    element: <ReportsPage />,
+  },
 ];

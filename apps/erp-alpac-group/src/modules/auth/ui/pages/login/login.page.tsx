@@ -11,6 +11,7 @@ import type { ApiErrorResponse } from '@app/core/interfaces/ErrorResponse';
 import type { LoginRequest } from '@app/modules/auth/domain/ApiContract/Requests/login.request';
 import type { GetCompaniesResponse } from '@app/modules/auth/domain/ApiContract/Responses/get-companies.response';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
+import defaultLogo from '@app/assets/logos/blanco/grupo vassalli-logo.png';
 
 export const LoginPage = function () {
   const { getMappedError } = useMappedError();
@@ -51,19 +52,17 @@ export const LoginPage = function () {
   const selectedCompanyId = watch('company_id');
 
   const urlImage = useMemo(() => {
-    if (!Array.isArray(data)) return '';
+    if (!Array.isArray(data) || !selectedCompanyId) return defaultLogo;
     const company = data.find((c) => c.company_id === selectedCompanyId);
 
     if (company) {
       useCompanyStore.setState({
-        urlImage: company.image_url ?? '',
-        neutralUrlImage: company.neutral_image_url ?? '',
+        urlImage: company.image_url ?? defaultLogo,
+        neutralUrlImage: company.neutral_image_url ?? defaultLogo,
       });
-      return company.image_url ?? '';
+      return company.image_url ?? defaultLogo;
     }
-
-    const alpac = data.find((c) => c.alias.toLowerCase() === 'alpac');
-    return alpac?.image_url ?? '';
+    return defaultLogo;
   }, [data, selectedCompanyId]);
 
   const handleLogin = async function (state: LoginRequest) {

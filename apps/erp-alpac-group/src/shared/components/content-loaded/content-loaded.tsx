@@ -1,4 +1,4 @@
-import Logo from "../../../assets/logos/blanco/alpac.png"
+import Logo from "../../../assets/logos/blanco/grupo vassalli-logo.png"
 
 export const ContentLoaded = function(){
    return (
@@ -7,7 +7,7 @@ export const ContentLoaded = function(){
             <img 
                src={Logo} 
                width={90}  
-               alt="logo alpac"
+               alt="logo por defecto"
             />
             <span className="loader"></span>
          </section>
