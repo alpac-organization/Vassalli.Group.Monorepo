@@ -43,7 +43,7 @@ export function DataTable<T>({ title, data, columns, rowClassName, pagination }:
          {
             data !== undefined && data.length ? (
                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full text-left border-collapse whitespace-nowrap">
                      <thead className="border-b-2 border-slate-600 dark:border-neutral-600">
 
                         <tr className="dark:bg-[#272b34] ">

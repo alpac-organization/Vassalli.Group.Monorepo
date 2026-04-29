@@ -523,10 +523,19 @@ export function NewPermissionRequestForm(
                               isRequired
                               labelClassName={labelClassName}
                               rows={3}
+                              maxLength={500}
                               placeholder="Propósito o detalles de la solicitud..."
                               className={`${inputClassName} resize-none`}
                               error={errors.description?.message}
-                              {...register("description", { required: "La descripción es requerida." })}
+                              {...register("description",
+                                 {
+                                    required: "La descripción es requerida.",
+                                    maxLength: {
+                                       value: 500,
+                                       message: "La descripción debe tener al menos 500 caracteres"
+                                    }
+                                 })
+                              }
                            />
                         </motion.div>
                      )}

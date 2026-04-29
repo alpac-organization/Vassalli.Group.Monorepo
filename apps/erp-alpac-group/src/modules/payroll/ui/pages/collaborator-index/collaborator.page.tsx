@@ -19,7 +19,8 @@ import {
    UserRoundPlusIcon,
    CircleMinus,
    UserMinus,
-   FileClock
+   FileClock,
+   CirclePlus
 } from 'lucide-react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
@@ -39,6 +40,7 @@ import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
 import { IdentificationEnum } from "@app/core/enums/identification.enum";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
+import { AddDeductionModal } from "./components/add-deduction-modal/add-deduction-modal";
 
 export const CollaboratorPage = function () {
    const maxPageSize = 10;
@@ -52,10 +54,9 @@ export const CollaboratorPage = function () {
       status: "",
    } as CollaboratorRequest);
 
-   const [showAddCollaboratorModal, setShowAddCollaboratorModal] =
-      useState(false);
-   const [showCreateApplicationModal, setShowCreateApplicationModal] =
-      useState(false);
+   const [showAddCollaboratorModal, setShowAddCollaboratorModal] = useState(false);
+   const [showCreateApplicationModal, setShowCreateApplicationModal] = useState(false);
+   const [showAddDeductionModal, setShowAddDeductionModal] = useState(false);
    const [showAlert, setShowAlert] = useState<{
       show: boolean;
       type: "success" | "error" | "warning" | "info";
@@ -83,7 +84,7 @@ export const CollaboratorPage = function () {
       handleSubmit,
       control,
       reset,
-      formState: { errors },
+      formState: { errors, isValid, isDirty },
    } = useForm<CollaboratorRequest>({ mode: "onChange" });
 
    const { GetCatalogListQuery: workAreasQuery } = useCatalog({
@@ -165,12 +166,12 @@ export const CollaboratorPage = function () {
       handleCloseAlert();
    }, [handleCloseAlert]);
 
-   const handleRequestSuccess = useCallback((message?: string) => {
+   const handleRequestSuccess = useCallback((message: string) => {
       setShowAlert({
          show: true,
          type: "success",
          title: "Éxito",
-         message: message || "Solicitud realizada exitosamente"
+         message: message
       });
 
       handleCloseAlert();
@@ -242,14 +243,22 @@ export const CollaboratorPage = function () {
 
    const handleAddCollaborator = useCallback(() => {
       setShowAddCollaboratorModal(true);
-   }, []);
+   }, [setShowAddCollaboratorModal]);
 
-   const handleAddDeduction = useCallback(() => { }, []);
+   const handleAddDeduction = useCallback(() => {
+      setShowAddDeductionModal(true);
+   }, [setShowAddDeductionModal]);
 
    const handleCollaboratorExit = useCallback(() => { }, []);
 
    const handleCreateApplication = useCallback(() => {
       setShowCreateApplicationModal(true);
+   }, [setShowCreateApplicationModal]);
+
+   const formatNumber = useCallback((value: string) => {
+      const number = Number(value);
+      if (isNaN(number)) return "0";
+      return new Intl.NumberFormat("en-US").format(number);
    }, []);
 
    return (
@@ -313,55 +322,35 @@ export const CollaboratorPage = function () {
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <StatsCard
                      title="Activos"
-                     value={
-                        collaborators.total_active
-                           ? collaborators.total_active.toString()
-                           : "0"
-                     }
+                     value={formatNumber(collaborators?.total_active?.toString() || "0")}
                      trend="Total de colaboradores activos"
                      icon={<UserIcon size={30} />}
                      borderColor="border-green-800! dark:border-green-600!"
                   />
                   <StatsCard
                      title="Vacaciones"
-                     value={
-                        collaborators.total_on_vacation
-                           ? collaborators.total_on_vacation.toString()
-                           : "0"
-                     }
+                     value={formatNumber(collaborators?.total_on_vacation?.toString() || "0")}
                      trend="Total de colaboradores en vacaciones"
                      icon={<TreePalmIcon size={30} />}
                      borderColor="border-yellow-600! dark:border-yellow-500!"
                   />
                   <StatsCard
                      title="Proceso de Baja"
-                     value={
-                        collaborators.total_on_exit
-                           ? collaborators.total_on_exit.toString()
-                           : "0"
-                     }
+                     value={formatNumber(collaborators?.total_on_exit?.toString() || "0")}
                      trend="Total de colaboradores en proceso de baja"
                      icon={<UserMinus size={30} />}
                      borderColor="border-red-600! dark:border-red-500!"
                   />
                   <StatsCard
                      title="Subsidios"
-                     value={
-                        collaborators.total_on_subsidy
-                           ? collaborators.total_on_subsidy.toString()
-                           : "0"
-                     }
+                     value={formatNumber(collaborators?.total_on_subsidy?.toString() || "0")}
                      trend="Total de colaboradores con subsidio"
                      icon={<HospitalIcon size={30} />}
                      borderColor="border-blue-600! dark:border-blue-400!"
                   />
                   <StatsCard
                      title="Total"
-                     value={
-                        collaborators.total_collaborators
-                           ? collaborators.total_collaborators.toString()
-                           : "0"
-                     }
+                     value={formatNumber(collaborators?.total_collaborators?.toString() || "0")}
                      trend="Total de colaboradores"
                      icon={<UserRoundPlusIcon size={30} />}
                      borderColor="border-green-800! dark:border-green-600!"
@@ -388,19 +377,10 @@ export const CollaboratorPage = function () {
                      />
                      <Button
                         size="giant"
-                        label="Agregar Deducción "
-                        disabled
+                        label="Agregar Deducción"
                         icon={<CircleMinus size={20} />}
                         className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                         onClick={handleAddDeduction}
-                     />
-                     <Button
-                        size="giant"
-                        label="Iniciar Proceso de Baja  "
-                        disabled
-                        icon={<UserMinus size={20} />}
-                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                        onClick={handleCollaboratorExit}
                      />
                      <Button
                         size="giant"
@@ -408,6 +388,22 @@ export const CollaboratorPage = function () {
                         icon={<FileClock size={20} />}
                         className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                         onClick={handleCreateApplication}
+                     />
+                     <Button
+                        size="giant"
+                        disabled
+                        label="Agregar Ingresos"
+                        icon={<CirclePlus size={20} />}
+                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                        onClick={() => { }}
+                     />
+                     <Button
+                        size="giant"
+                        label="Iniciar Proceso de Baja"
+                        disabled
+                        icon={<UserMinus size={20} />}
+                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                        onClick={handleCollaboratorExit}
                      />
                   </div>
                </div>
@@ -529,6 +525,7 @@ export const CollaboratorPage = function () {
                      <Button
                         type="submit"
                         size="giant"
+                        disabled={!isValid || !isDirty}
                         className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                         label="Aplicar filtros"
                      />
@@ -573,11 +570,18 @@ export const CollaboratorPage = function () {
                   onRequestError={handleRequestError}
                />
 
+               <AddDeductionModal
+                  isOpen={showAddDeductionModal}
+                  onClose={() => setShowAddDeductionModal(false)}
+                  onRequestSuccess={handleRequestSuccess}
+                  onRequestError={handleRequestError}
+               />
+
                <NewPermissionRequestModal
                   isOpen={showCreateApplicationModal}
                   onClose={() => setShowCreateApplicationModal(false)}
-                  onRequestError={handleRequestError}
                   onRequestSuccess={handleRequestSuccess}
+                  onRequestError={handleRequestError}
                />
 
                <AnimatedAlertWrapper open={showAlert.show}>

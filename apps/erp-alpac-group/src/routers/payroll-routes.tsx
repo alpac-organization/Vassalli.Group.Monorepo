@@ -1,45 +1,36 @@
-import type { RouteObject } from "react-router-dom";
+import ControlVacationsPage from "@app/modules/payroll/ui/pages/control-vacations/control-vacations";
 import { CollaboratorPage } from "@app/modules/payroll/ui/pages/collaborator-index/collaborator.page";
 import { CollaboratorProfilePage } from "@app/modules/payroll/ui/pages/collaborator-profile/collaborator-profile-page";
-import ControlVacationsPage from "@app/modules/payroll/ui/pages/control-vacations/control-vacations";
-import { VacationPaymentPage } from "@app/modules/payroll/ui/pages/vacation-payment/vacation-payment.page";
-import { AttendanceControlPage } from "@app/modules/payroll/ui/pages/attendance-control/attendance-control.page";
 import { PayrollPage } from "@app/modules/payroll/ui/pages/nomina/payroll-page";
-import { ReportsPage } from "@app/modules/payroll/ui/pages/reportes/report-page";
+import { ReportsPage } from "@app/modules/payroll/ui/pages/reports/reports";
+
+import type { RouteObject } from "react-router-dom";
+
 export const PayrollRoutes: RouteObject[] = [
-  {
-    index: true,
-    element: <CollaboratorPage />,
-  },
-  {
-    path: "collaborators",
-    element: <CollaboratorPage />,
-    children: [
-      {
-        // path: ":identification_number/collaborator-profile",
-        path: "collaborator-profile",
-        element: <CollaboratorProfilePage />,
-      },
-    ],
-  },
-  {
-    path: "control-vacations",
-    element: <ControlVacationsPage />,
-  },
-  {
-    path: "vacation-payment",
-    element: <VacationPaymentPage />,
-  },
-  {
-    path: "gestion-nomina",
-    element: <PayrollPage />,
-  },
-  {
-    path: "attendance-control",
-    element: <AttendanceControlPage />,
-  },
-  {
-    path: "reportes",
-    element: <ReportsPage />,
-  },
+   {
+      index: true,
+      element: <CollaboratorPage />,
+   },
+   {
+      path: "collaborators",
+      element: <CollaboratorPage />,
+      children: [
+         {
+            path: "collaborator-profile",
+            element: <CollaboratorProfilePage />,
+         },
+      ],
+   },
+   {
+      path: "control-vacations",
+      element: <ControlVacationsPage />,
+   },
+   {
+      path: "gestion-nomina",
+      element: <PayrollPage />,
+   },
+   {
+      path: "reports",
+      element: <ReportsPage />,
+   },
 ];

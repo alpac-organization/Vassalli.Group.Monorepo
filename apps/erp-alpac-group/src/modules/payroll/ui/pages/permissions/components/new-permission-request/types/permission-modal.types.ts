@@ -5,6 +5,6 @@ export type NewPermissionRequestModalProps = {
    collaboratorWorkPosition?: string;
    isCollaboratorFullNameLoading?: boolean;
    isCollaboratorWorkPositionLoading?: boolean;
-   onRequestSuccess?: () => void;
+   onRequestSuccess?: (message: string) => void;
    onRequestError?: (description: string) => void;
 };

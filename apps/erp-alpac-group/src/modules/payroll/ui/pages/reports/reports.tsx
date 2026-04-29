@@ -1,20 +1,19 @@
-import { Breadcrumb } from "@alpac/design-system";
-import { m, LazyMotion, domAnimation } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { useTheme } from "@alpac/design-system";
-import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import { FileUploader } from "@app/shared/components/file-uploader/file-uploader";
 
-export const AttendanceControlPage = () => {
+import { Breadcrumb } from '@alpac/design-system';
+import { m, domAnimation, LazyMotion } from 'framer-motion';
+import { useTheme } from '@alpac/design-system';
+import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
+import { useNavigate } from 'react-router-dom';
 
-   const navigate = useNavigate();
+export const ReportsPage = () => {
+
    const { theme } = useTheme();
    const { urlImage, neutralUrlImage } = useCompanyStore();
-
    const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
+   const navigate = useNavigate();
 
    return (
-      <LazyMotion features={domAnimation} strict>
+      <LazyMotion features={domAnimation}>
          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -22,7 +21,6 @@ export const AttendanceControlPage = () => {
             transition={{ duration: 0.5 }}
             className="flex flex-col gap-4"
          >
-
             <div className="flex justify-start">
                <Breadcrumb
                   items={[
@@ -32,8 +30,8 @@ export const AttendanceControlPage = () => {
                         onClick: (url) => navigate(url),
                      },
                      {
-                        label: "Control de asistencia",
-                        url: "/payroll/attendance-control",
+                        label: "Reportes",
+                        url: "/payroll/reports",
                         onClick: (url) => navigate(url),
                      },
                   ]}
@@ -43,9 +41,9 @@ export const AttendanceControlPage = () => {
             <div className="flex flex-col">
                <div className="flex justify-between items-center">
                   <div className="flex flex-col justify-center">
-                     <h3 className="p-0! m-0!">Control de asistencia</h3>
+                     <h3 className="p-0! m-0!">Reportes</h3>
                      <small className="text-gray-500 dark:text-gray-300">
-                        Descripcion de control de asistencia y sus estadisticas
+                        Aqui puedes encontrar todos los reportes de la nomina
                      </small>
                   </div>
                   <img
@@ -55,14 +53,7 @@ export const AttendanceControlPage = () => {
                   />
                </div>
             </div>
-
-            <div className="flex flex-col">
-
-               <FileUploader extensions={["xls", "xlsx", "csv"]} />
-
-            </div>
-
          </m.div>
       </LazyMotion>
-   );
-};
+   )
+}
