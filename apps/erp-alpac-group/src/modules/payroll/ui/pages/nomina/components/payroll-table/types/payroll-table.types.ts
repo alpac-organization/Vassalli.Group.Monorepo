@@ -22,4 +22,8 @@ export type AdditionalDeductions = {
   SalaryAdvance?: number;
   OtherDeductions?: number;
   JudicialSeizures?: number;
+  UniformDeduction?: number;
+  ChristmasBonusAdvance?: number;
+  DeductionForLossesBulk?: number;
+  ChildSupportGarnishment?: number;
 };

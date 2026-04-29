@@ -4,6 +4,7 @@ import type { GetPayrollResponse } from "@app/modules/payroll/domain/ApiContract
 import type { IPayrollServices } from "@app/modules/payroll/application/interfaces/payroll-interfaces/IPayrollServices";
 import type { GetPayrollProcessResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-process";
 import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
+import { cleanParams } from "@app/shared/utils/object.utils";
 
 export class PayrollServices implements IPayrollServices {
   private apiHandler: IHttpHandler;
@@ -39,11 +40,19 @@ export class PayrollServices implements IPayrollServices {
         branch_id,
         page_number,
         page_size,
+        identification_number,
       } = payload;
+      const params = {
+        type,
+        branch_id,
+        page_number,
+        page_size,
+        ...(identification_number ? { identification_number } : {}),
+      };
       const response = await this.apiHandler.get<GetPayrollResponse>(
         `/companies/${companie_id}/modules/${module_code}/payrolls`,
         {
-          params: { type, branch_id, page_number, page_size },
+          params: cleanParams(params),
         },
       );
       return response;

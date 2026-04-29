@@ -12,10 +12,10 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type {
   AddDeductionModalProps,
   AddDeductionRequestBase,
-} from "./types/add-deduction.types";
+} from "@app/modules/payroll/ui/pages/collaborator-index/components/add-deduction/types/add-deduction.types";
 import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator-profile.request";
-import { AddDeductionCollaboratorSummary } from "./collaborator-summary";
-import { AddDeductionForm } from "./add-deduction-form";
+import { AddDeductionCollaboratorSummary } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-deduction/collaborator-summary";
+import { AddDeductionForm } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-deduction/add-deduction-form";
 
 export function AddDeductionModal({
   isOpen,

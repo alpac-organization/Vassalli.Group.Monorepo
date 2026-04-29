@@ -30,11 +30,13 @@ export interface PayrollItemResponse {
   lodging?: number;
   vacations?: number;
   total_to_pay: number;
-  total_travel_expenses: number;
   collaborator: CollaboratorResponse | null;
 }
 export interface CollaboratorResponse {
   full_name: string;
+  inss_number: string;
   collaborator_code: string;
+  work_area?: string;
+  job_position?: string;
   identification_number: string;
 }

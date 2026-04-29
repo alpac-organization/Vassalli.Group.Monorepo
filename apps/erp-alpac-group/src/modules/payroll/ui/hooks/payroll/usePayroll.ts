@@ -54,7 +54,6 @@ export function usePayroll(props: {
 
 export function usePayroll(props: UsePayrollProps) {
   const isEnabled = props.enabled ?? true;
-
   if (props.mode === "status") {
     const { companie_id, module_code, payrol_type, branch_id } = props.payload;
     return useQuery<GetPayrollProcessResponse, Error>({
@@ -77,6 +76,7 @@ export function usePayroll(props: UsePayrollProps) {
     module_code,
     type,
     branch_id,
+    identification_number,
     page_number = 1,
     page_size = 10,
   } = props.payload;
@@ -87,6 +87,7 @@ export function usePayroll(props: UsePayrollProps) {
       module_code,
       type,
       branch_id,
+      identification_number,
       page_number,
       page_size,
     ],

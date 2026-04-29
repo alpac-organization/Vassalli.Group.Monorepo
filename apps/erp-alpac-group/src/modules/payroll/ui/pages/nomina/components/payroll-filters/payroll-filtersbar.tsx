@@ -10,8 +10,8 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 
 type PayrollCollaboratorFilterFields = Pick<
   CollaboratorRequest,
-  "identification_number" | "area_id" | "branch_id"
->;
+  "identification_number" | "area_id"
+> & { job_position: number };
 
 type PayrollFiltersBarProps = {
   onApply: (filters: PayrollCollaboratorFilterFields) => void;
@@ -21,7 +21,7 @@ type PayrollFiltersBarProps = {
 const defaultFormValues: PayrollCollaboratorFilterFields = {
   identification_number: "",
   area_id: 0,
-  branch_id: 0,
+  job_position: 0,
 };
 
 export default function PayrollFiltersBar({
@@ -39,18 +39,15 @@ export default function PayrollFiltersBar({
     company_id: companyId,
     catalog_type_id: CatalogEnum.WORK_AREAS,
   });
-
-  const { GetCatalogListQuery: branchesQuery } = useCatalog({
+  const { GetCatalogListQuery: jobPositionsQuery } = useCatalog({
     company_id: companyId,
-    catalog_type_id: CatalogEnum.BRANCHES,
+    catalog_type_id: CatalogEnum.JOB_POSITIONS,
   });
 
   const { data: workAreas = [] } = workAreasQuery;
-  const { data: branches = [] } = branchesQuery;
-
+  const { data: jobPositions = [] } = jobPositionsQuery;
   const optionsWorkAreas = mapCatalogToOptions(workAreas);
-  const optionsBranches = mapCatalogToOptions(branches);
-
+  const optionsJobPositions = mapCatalogToOptions(jobPositions);
   const onSubmit: SubmitHandler<PayrollCollaboratorFilterFields> = (data) => {
     onApply(data);
   };
@@ -65,9 +62,6 @@ export default function PayrollFiltersBar({
       <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
         <div className="flex flex-col justify-center">
           <h3 className="p-0! m-0!">Filtros</h3>
-          <small className="text-gray-500 dark:text-gray-300">
-            Descripcion de filtros
-          </small>
         </div>
       </div>
       <form
@@ -120,27 +114,28 @@ export default function PayrollFiltersBar({
 
         <div className="flex flex-col">
           <Controller
-            name="branch_id"
+            name="job_position"
             control={control}
             rules={{
               required: false,
             }}
-            render={({ field }) => (
-              <Dropdown
-                onChange={(value) => field.onChange(value)}
-                value={field.value}
-                label="Sucursal"
-                placeholder="Seleccione una sucursal"
-                appearance="dark"
-                labelClassName="text-black! dark:text-white!"
-                valueClassName="text-black! dark:text-white!"
-                className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                options={optionsBranches ?? []}
-              />
-            )}
+            render={({ field }) => {
+              return (
+                <Dropdown
+                  value={field.value}
+                  onChange={(value) => field.onChange(value)}
+                  label="Posición"
+                  placeholder="Seleccione una posición de trabajo"
+                  appearance="dark"
+                  labelClassName="text-black! dark:text-white!"
+                  valueClassName="text-black! dark:text-white!"
+                  className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+                  options={optionsJobPositions ?? []}
+                />
+              );
+            }}
           />
         </div>
-
         <div className="flex flex-col">
           <Button
             type="submit"

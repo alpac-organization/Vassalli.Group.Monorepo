@@ -7,7 +7,7 @@ import {
   Badges,
 } from "@alpac/design-system";
 import { motion } from "framer-motion";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileX } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -29,6 +29,7 @@ import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContrac
 import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import { pdf } from "@react-pdf/renderer";
 import { PayrollPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/payroll-pdf-document";
+import { CheckPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/check-pdf-document";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
 import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
@@ -39,8 +40,33 @@ export function PayrollPage() {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const { companyId, moduleCode } = useUserStore();
-  const { urlImage, neutralUrlImage } = useCompanyStore();
-  const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
+
+  const { GetBranchesQuery: branchesQuery, GetCompaniesQuery } = useCompanies(
+    companyId ? { company_id: companyId } : undefined,
+  );
+
+  const companiesData = GetCompaniesQuery?.data;
+
+  const currentCompanyImageUrl = useMemo(() => {
+    if (!Array.isArray(companiesData)) return undefined;
+
+    const company = companiesData.find((c) => c.company_id === companyId);
+
+    if (company) {
+      useCompanyStore.setState({
+        urlImage: company.image_url ?? "",
+        neutralUrlImage: company.neutral_image_url ?? "",
+      });
+      const url =
+        theme === "dark" ? company.neutral_image_url : company.image_url;
+      return url ? url : undefined;
+    }
+
+    const alpac = companiesData.find((c) => c.alias?.toLowerCase() === "alpac");
+    const fallbackUrl =
+      theme === "dark" ? alpac?.neutral_image_url : alpac?.image_url;
+    return fallbackUrl ? fallbackUrl : undefined;
+  }, [companiesData, companyId, theme]);
 
   const [selectedPayrollType, setSelectedPayrollType] =
     useState<PayrollType | null>(null);
@@ -62,6 +88,9 @@ export function PayrollPage() {
     payrollColumns.map((col) => col.key as string),
   );
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isGeneratingPaymentRequestsPdf, setIsGeneratingPaymentRequestsPdf] =
+    useState(false);
+  const [identificationFilter, setIdentificationFilter] = useState("");
 
   const handleSelectionModalClose = useCallback(() => {
     if (selectedPayrollType === null || selectedBranch === null) {
@@ -91,10 +120,6 @@ export function PayrollPage() {
     setIsPayrollDetailModalOpen(false);
     setSelectedPayrollRow(null);
   }, []);
-
-  const { GetBranchesQuery: branchesQuery } = useCompanies(
-    companyId ? { company_id: companyId } : undefined,
-  );
 
   const branchOptions = (branchesQuery.data ?? []).map((branch) => ({
     label: branch.branch_name,
@@ -126,6 +151,7 @@ export function PayrollPage() {
       module_code: moduleCode,
       type: selectedPayrollType ?? "None",
       branch_id: selectedBranch ?? "",
+      identification_number: identificationFilter || undefined,
       page_number: pageNumber,
       page_size: maxPageSize,
     } as PayrollRequest,
@@ -175,14 +201,17 @@ export function PayrollPage() {
         module_code: moduleCode,
         type: selectedPayrollType,
         branch_id: selectedBranch,
+        identification_number: identificationFilter || undefined,
         page_number: 1,
-        page_size: totalRecords > 0 ? totalRecords : 1000,
+        page_size: totalRecords > 0 ? totalRecords : maxPageSize,
       } as PayrollRequest;
 
       const response = await payrollServices.getPayroll(payload);
       const allItems = response.payroll_details?.items ?? [];
 
-      const logoDataUri = await fetchImageAsDataUri(activeLogo);
+      const logoDataUri = await fetchImageAsDataUri(
+        useCompanyStore.getState().urlImage,
+      );
 
       const blob = await pdf(
         <PayrollPdfDocument
@@ -211,22 +240,87 @@ export function PayrollPage() {
     ordinaryPayrollQuery.data,
     displayedBranchName,
     visibleKeys,
-    activeLogo,
+    currentCompanyImageUrl,
+    identificationFilter,
+  ]);
+
+  const handleGeneratePaymentRequestsPdf = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return;
+    try {
+      setIsGeneratingPaymentRequestsPdf(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const detailsData = ordinaryPayrollQuery.data;
+      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+      const payload = {
+        companie_id: companyId,
+        module_code: moduleCode,
+        type: selectedPayrollType,
+        branch_id: selectedBranch,
+        identification_number: identificationFilter || undefined,
+        page_number: 1,
+        page_size: totalRecords > 0 ? totalRecords : 1000,
+      } as PayrollRequest;
+
+      const response = await payrollServices.getPayroll(payload);
+      const allItems = response.payroll_details?.items ?? [];
+
+      const filteredItems = allItems.filter(
+        (item) => !item.collaborator?.inss_number?.trim(),
+      );
+
+      if (filteredItems.length === 0) {
+        console.log("No hay colaboradores sin número de INSS.");
+        return;
+      }
+
+      //   const logoDataUri = await fetchImageAsDataUri(currentCompanyImageUrl);
+
+      const blob = await pdf(
+        <CheckPdfDocument
+          data={filteredItems}
+          startDate={ordinaryPayrollQuery.data?.start_date}
+          endDate={ordinaryPayrollQuery.data?.end_date}
+          //  logoSrc={logoDataUri}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Error generando PDF de Solicitudes de Pago", error);
+    } finally {
+      setIsGeneratingPaymentRequestsPdf(false);
+    }
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    ordinaryPayrollQuery.data,
+    currentCompanyImageUrl,
+    identificationFilter,
   ]);
 
   const handleApplyFilters = useCallback(
     (
-      _data: Pick<
-        CollaboratorRequest,
-        "identification_number" | "area_id" | "branch_id"
-      >,
+      data: Pick<CollaboratorRequest, "identification_number" | "area_id"> & {
+        job_position: number;
+      },
     ) => {
+      const normalizedIdentification = (data.identification_number ?? "")
+        .trim()
+        .replace(/-/g, "");
+      setIdentificationFilter(normalizedIdentification);
       setPageNumber(1);
     },
     [],
   );
 
   const handleClearFilters = useCallback(() => {
+    setIdentificationFilter("");
     setPageNumber(1);
   }, []);
 
@@ -234,6 +328,7 @@ export function PayrollPage() {
     { label: "Ordinaria", value: "Ordinary" },
     { label: "Variable", value: "Provided" },
   ];
+
   const renderContent = () => {
     if (existPayrollInProgress === false) {
       return (
@@ -446,17 +541,12 @@ export function PayrollPage() {
           />
         </div>
 
-        {/* 
-          Sección de gestión de nómina.
-          - Esta sección incluye presentación adaptable para pantallas pequeñas y grandes.
-          - Si no hay nómina en curso, solo se muestra el encabezado de la página.
-        */}
         {existPayrollInProgress === true ? (
           <>
             {/* Vista para dispositivos pequeños (móvil/tablet) */}
             <div className="flex flex-col gap-6 lg:hidden">
               <PayrollPageHeader
-                logoSrc={activeLogo}
+                logoSrc={currentCompanyImageUrl}
                 logoAlt="logo grupo alpac"
                 branchName={displayedBranchName}
                 onRequestChangePayrollSelection={
@@ -474,10 +564,28 @@ export function PayrollPage() {
               <Button
                 type="button"
                 size="giant"
-                label={isGeneratingPdf ? "Generando..." : "Generar Reporte"}
-                disabled={isGeneratingPdf || !existPayrollInProgress}
+                label="Generar Reporte"
+                isLoading={isGeneratingPdf}
+                disabled={!existPayrollInProgress}
                 onClick={handleGeneratePdf}
-                className="w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+                className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! ${
+                  isGeneratingPdf
+                    ? "disabled:opacity-100! disabled:bg-slate-500! disabled:dark:bg-slate-700!"
+                    : ""
+                }`}
+              />
+              <Button
+                type="button"
+                size="giant"
+                label="Generar Solicitudes de Pago"
+                isLoading={isGeneratingPaymentRequestsPdf}
+                disabled={!existPayrollInProgress}
+                onClick={handleGeneratePaymentRequestsPdf}
+                className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! ${
+                  isGeneratingPaymentRequestsPdf
+                    ? "disabled:opacity-100! disabled:bg-slate-500! disabled:dark:bg-slate-700!"
+                    : ""
+                }`}
               />
             </div>
 
@@ -500,11 +608,14 @@ export function PayrollPage() {
                 />
               </div>
               <div className="w-[18rem] flex flex-col items-end gap-3">
-                <img
-                  className="h-12 sm:h-16 md:h-20 w-auto object-contain"
-                  src={activeLogo}
-                  alt="logo grupo alpac"
-                />
+                {currentCompanyImageUrl && (
+                  <img
+                    className="h-12 sm:h-16 md:h-20 w-auto object-contain"
+                    src={currentCompanyImageUrl}
+                    alt="logo grupo alpac"
+                  />
+                )}
+
                 {displayedBranchName ? (
                   <Badges
                     label={`Nomina de ${displayedBranchName}`}
@@ -522,23 +633,40 @@ export function PayrollPage() {
                 <Button
                   type="button"
                   size="giant"
-                  label={isGeneratingPdf ? "Generando..." : "Generar Reporte"}
-                  disabled={isGeneratingPdf || !existPayrollInProgress}
+                  label="Generar Reporte"
+                  isLoading={isGeneratingPdf}
+                  disabled={!existPayrollInProgress}
                   onClick={handleGeneratePdf}
-                  className="w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+                  className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! ${
+                    isGeneratingPdf
+                      ? "disabled:opacity-100! disabled:bg-slate-500! disabled:dark:bg-slate-700!"
+                      : ""
+                  }`}
+                />
+                <Button
+                  type="button"
+                  size="giant"
+                  label="Generar Solicitudes de Pago"
+                  isLoading={isGeneratingPaymentRequestsPdf}
+                  disabled={!existPayrollInProgress}
+                  onClick={handleGeneratePaymentRequestsPdf}
+                  className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! ${
+                    isGeneratingPaymentRequestsPdf
+                      ? "disabled:opacity-100! disabled:bg-slate-500! disabled:dark:bg-slate-700!"
+                      : ""
+                  }`}
                 />
               </div>
             </div>
           </>
         ) : (
           <PayrollPageHeader
-            logoSrc={activeLogo}
+            logoSrc={currentCompanyImageUrl}
             logoAlt="logo grupo alpac"
             branchName={null}
             onRequestChangePayrollSelection={undefined}
           />
         )}
-
         {selectedPayrollType !== null &&
           selectedBranch !== null &&
           renderContent()}

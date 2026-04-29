@@ -20,6 +20,10 @@ export interface PayrollRequest {
    */
   branch_id: string;
   /**
+   * Numero de identificacion del colaborador
+   */
+  identification_number?: string;
+  /**
    * Numero de la pagina
    */
   page_number?: number;
