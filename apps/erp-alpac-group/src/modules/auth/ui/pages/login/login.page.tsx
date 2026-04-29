@@ -50,21 +50,25 @@ export const LoginPage = function () {
   });
 
   const selectedCompanyId = watch("company_id");
-
-  const urlImage = useMemo(() => {
+  const companyLogos = useMemo(() => {
     if (!Array.isArray(data) || !selectedCompanyId) {
-      return defaultLogo;
+      return { color: defaultLogo, neutral: defaultLogo };
     }
     const company = data.find((c) => c.company_id === selectedCompanyId);
-
-    if (company) {
-      useCompanyStore.setState({
-        urlImage: company.image_url ?? defaultLogo,
-        neutralUrlImage: company.neutral_image_url ?? defaultLogo,
-      });
-      return company.image_url ?? defaultLogo;
+    if (!company) {
+      return { color: defaultLogo, neutral: defaultLogo };
     }
-    return defaultLogo;
+
+    const colorLogo = company.image_url ?? defaultLogo;
+    const neutralLogo =
+      company.neutral_image_url ?? company.image_url ?? defaultLogo;
+
+    useCompanyStore.setState({
+      urlImage: colorLogo,
+      neutralUrlImage: neutralLogo,
+    });
+
+    return { color: colorLogo, neutral: neutralLogo };
   }, [data, selectedCompanyId]);
 
   const handleLogin = async function (state: LoginRequest) {
@@ -113,7 +117,7 @@ export const LoginPage = function () {
   }, [showAuthError]);
 
   if (isLoading || startLoginProcess.isPending) {
-    return <ContentLoaded imageUrl={urlImage} />;
+    return <ContentLoaded imageUrl={companyLogos.neutral} />;
   }
 
   return (
@@ -125,7 +129,7 @@ export const LoginPage = function () {
         <div className="absolute inset-0 bg-black/5 backdrop-brightness-[0.30] backdrop-blur-xs z-0"></div>
 
         <div className="relative z-10 w-full flex items-center justify-center">
-          <FormLayout imageUrl={urlImage}>
+          <FormLayout imageUrl={companyLogos.color}>
             <form
               onSubmit={handleSubmit(handleLogin)}
               className="h-full flex flex-col justify-center gap-2"
