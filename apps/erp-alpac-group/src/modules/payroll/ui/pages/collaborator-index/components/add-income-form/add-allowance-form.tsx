@@ -1,44 +1,30 @@
-import { useCallback, useMemo, useState } from "react"
-import { Controller, useForm } from "react-hook-form"
-import { Alert, AnimatedAlertWrapper, Button, Dropdown, InputText, Textarea } from "@alpac/design-system"
+import { useCallback, useMemo } from "react"
+import { Button, Checkbox, InputText } from "@alpac/design-system"
 import { useIncomes } from "@app/modules/payroll/ui/hooks/incomes/useIncomes"
 import { useUserStore } from "@app/shared/stores/useUserStore"
 import { AllowanceCodeEnum } from "@app/modules/payroll/domain/enums/allowance-enums/allowance.enum"
-import { useMappedError } from "@app/shared/hooks/useMappedError"
 import { formatAmount } from "@app/shared/utils/number.utils"
 
 import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response"
-import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request"
-import type { AddAllowanceFormProps } from "./add-allowance-form.types"
+import type { AddAllowanceFormProps, Allowances } from "./add-allowance-form.types"
+import { useForm, useFieldArray } from "react-hook-form"
 
-export const AddAllowanceForm = ({ identificationNumber, onSuccess }: AddAllowanceFormProps) => {
+export const AddAllowanceForm = ({ onSuccess }: AddAllowanceFormProps) => {
 
-   const { companyId, moduleCode } = useUserStore();
-   const { getMappedError } = useMappedError();
+   const { companyId } = useUserStore();
 
    const {
       control, register, handleSubmit,
       formState: { errors, isDirty, isValid }
-   } = useForm<CreateIncomeRequest>({
-      mode: "onChange",
+   } = useForm<Allowances>({
       defaultValues: {
-         company_id: companyId!,
-         module_code: moduleCode!,
-         identification_number: identificationNumber
+         allowances: []
       }
    });
 
-   const [selectedIncomeType, setSelectedIncomeType] = useState<IncomesTypesResponse | undefined>(undefined);
-   const [showAlert, setShowAlert] = useState<{
-      show: boolean;
-      type: "success" | "error" | "warning" | "info";
-      title: string;
-      message: string;
-   }>({
-      show: false,
-      type: "info",
-      title: "",
-      message: "",
+   const { fields, append, remove } = useFieldArray({
+      control,
+      name: "allowances"
    });
 
    const ALLOWANCE_CODES = [
@@ -47,183 +33,110 @@ export const AddAllowanceForm = ({ identificationNumber, onSuccess }: AddAllowan
       AllowanceCodeEnum.ALW_TRANSPORT
    ] as AllowanceCodeEnum[];
 
-   const { GetIncomeTypes, CreateIncomes } = useIncomes({ incomesTypesPayload: { company_id: companyId! } })
+   const { GetIncomeTypes } = useIncomes({ incomesTypesPayload: { company_id: companyId! } })
 
-   const { data: incomeTypesData } = GetIncomeTypes;
+   const { data: incomeTypesData, isLoading: isLoadingIncomeTypes } = GetIncomeTypes;
 
    const incomeTypeOptions = useMemo(() => {
       if (!incomeTypesData || !Array.isArray(incomeTypesData)) {
          return [];
       }
 
-      return incomeTypesData.map((incomeType: IncomesTypesResponse) => {
-
-         if (ALLOWANCE_CODES.includes(incomeType.income_code as AllowanceCodeEnum)) {
-            return {
-               id: incomeType.type_income_id,
-               value: incomeType.income_code,
-               label: incomeType.income_title,
-            }
-         }
-
-         return []
-
-      }).filter(Boolean)
+      return incomeTypesData
+         .filter((incomeType: IncomesTypesResponse) =>
+            ALLOWANCE_CODES.includes(incomeType.income_code as AllowanceCodeEnum)
+         )
+         .map((incomeType: IncomesTypesResponse) => ({
+            id: incomeType.type_income_id,
+            code: incomeType.income_code,
+            label: incomeType.income_title,
+         }));
 
    }, [incomeTypesData]);
 
-
-   const codeSelectedType = useMemo<AllowanceCodeEnum | undefined>(
-      () => {
-         if (!selectedIncomeType?.income_code) return undefined;
-         return selectedIncomeType?.income_code as AllowanceCodeEnum;
-      },
-      [selectedIncomeType]
-   );
-
-   const isTypeAllowance = useMemo(() => {
-      if (!codeSelectedType) return false;
-
-      return ALLOWANCE_CODES.includes(codeSelectedType);
-
-   }, [codeSelectedType]);
-
-   const createIncome = (data: CreateIncomeRequest) => {
-
-      const payload = {
-         ...data,
-         type_income_id: selectedIncomeType?.type_income_id ?? "",
-         income_amount: data.income_amount
-      }
-
-      CreateIncomes.mutate(payload, {
-         onSuccess: () => {
-            onSuccess?.();
-            setFormDataToSubmit(null);
-
-            setShowAlert({
-               show: true,
-               type: "success",
-               title: "Ingreso agregado",
-               message: `El ingreso ha sido agregado exitosamente.`
-            });
-
-            handleCloseAlert();
-         },
-         onError: (error) => {
-            const mappedError = getMappedError(error)
-
-            setShowAlert({
-               show: true,
-               type: "error",
-               title: "Error",
-               message: mappedError.description
-            });
-
-            handleCloseAlert();
-         }
-      })
-   }
-
-   const handleCloseAlert = useCallback(() => {
-      setTimeout(() => {
-         setShowAlert({ show: false, type: "info", title: "", message: "" });
-      }, 3000);
-   }, []);
-
-   const [formDataToSubmit, setFormDataToSubmit] = useState<CreateIncomeRequest | null>(null);
-
-   const handleValidForm = (data: CreateIncomeRequest) => {
-      setFormDataToSubmit(data);
-   };
-
-   const executeCreateIncome = () => {
-      if (formDataToSubmit) {
-         createIncome(formDataToSubmit);
-      }
-   };
+   const onSubmit = useCallback((data: Allowances) => {
+      onSuccess(data);
+   }, [onSuccess]);
 
    return (
-      <form onSubmit={handleSubmit(handleValidForm)} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
 
-         <Controller
-            name="type_income_id"
-            control={control}
-            rules={{
-               required: "El tipo de ingreso es requerido",
-            }}
-            render={({ field }) => (
-               <Dropdown
-                  placeholder="Tipo de ingreso"
-                  appearance="dark"
-                  value={field.value}
-                  onChange={(value) => {
-                     field.onChange(value)
-                     const selectedIncomeType = incomeTypesData
-                        ?.find((incomeType: IncomesTypesResponse) => incomeType.income_code === value)
-                     setSelectedIncomeType(selectedIncomeType)
-                  }}
-                  options={incomeTypeOptions ?? []}
-                  labelClassName="text-black! dark:text-white!"
-                  valueClassName="text-black! dark:text-white!"
-                  className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-               />
+         <div className="flex flex-row gap-4">
+            {isLoadingIncomeTypes ? (
+               Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                     <div className="w-[18px] h-[18px] rounded-[4px] bg-slate-200 dark:bg-slate-700 animate-pulse"></div>
+                     <div className="w-20 h-3.5 rounded-md bg-slate-200 dark:bg-slate-700 animate-pulse"></div>
+                  </div>
+               ))
+            ) : (
+               incomeTypeOptions?.map((incomeType) => {
+
+                  const fieldIndex = fields.findIndex((field) => field.type_income_id === incomeType.id);
+
+                  const isChecked = fieldIndex !== -1;
+
+                  return (
+                     <Checkbox
+                        key={incomeType.code}
+                        label={incomeType.label}
+                        value={incomeType.id}
+                        checked={isChecked}
+                        onChange={(e) => {
+                           if (e.target.checked) {
+                              append({
+                                 type_income_id: incomeType.id,
+                                 income_amount: 0,
+                              })
+                           } else {
+                              remove(fieldIndex);
+                           }
+                        }}
+                     />
+                  )
+               })
             )}
-         />
+         </div>
 
-         {/* meal, housing and transportation inputs */}
-         {isTypeAllowance && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         {/* meal, housing and transportation allowance inputs */}
+         {
+            fields.map((field, index) => {
 
-               <InputText
-                  label="Monto del viático"
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-                  labelClassName="text-black! dark:text-white!"
-                  isRequired
-                  {...register("income_amount", {
-                     required: "El monto del viático es requerido",
-                     onChange: (evt) => {
-                        evt.target.value = formatAmount(evt.target.value, 5, 2);
-                     },
-                     setValueAs: (value: any) => {
-                        const stringValue = typeof value === "string" ? value : String(value || "");
-                        const trimmed = stringValue.trim();
-                        return trimmed ? parseFloat(trimmed.replace(/,/g, "")) : 0;
-                     },
-                     validate: (value?: number) =>
-                        (value !== undefined && value > 0) ||
-                        "El salario debe ser mayor a 0",
-                  })}
-                  error={
-                     errors.income_amount &&
-                     errors.income_amount?.message
-                  }
-               />
+               const label = incomeTypeOptions.find(opt => opt.id === field.type_income_id)?.label;
 
-            </div>
-         )}
+               return (
+                  <div key={field.id} className="grid grid-cols-1 gap-6">
 
-         {selectedIncomeType && isTypeAllowance && (
-            <Textarea
-               label="Motivo u observación"
-               className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-               labelClassName="text-black! dark:text-white!"
-               isRequired
-               placeholder="Motivo u observación"
-               maxLength={500}
-               {...register("description", {
-                  required: "El motivo del ingreso es requerido",
-                  maxLength: {
-                     value: 500,
-                     message: "El motivo del ingreso debe tener menos de 500 caracteres",
-                  },
-               })}
-               error={errors.description && errors.description.message}
-            />
-         )}
+                     <InputText
+                        label={`Monto C$: ${label}`}
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="0.00"
+                        className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                        labelClassName="text-black! dark:text-white!"
+                        {...register(`allowances.${index}.income_amount`, {
+                           required: false,
+                           onChange: (evt) => {
+                              evt.target.value = formatAmount(evt.target.value, 5, 2);
+                           },
+                           setValueAs: (value: any) => {
+                              const stringValue = typeof value === "string" ? value : String(value || "");
+                              const trimmed = stringValue.trim();
+                              return trimmed ? parseFloat(trimmed.replace(/,/g, "")) : 0;
+                           },
+                           validate: (value?: number) =>
+                              (value !== undefined && value > 0) ||
+                              "El salario debe ser mayor a 0",
+                        })}
+                        error={
+                           errors.allowances?.[index]?.income_amount &&
+                           errors.allowances?.[index]?.income_amount?.message
+                        }
+                     />
+                  </div>
+               );
+            })
+         }
 
          <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6"></div>
 
@@ -239,20 +152,11 @@ export const AddAllowanceForm = ({ identificationNumber, onSuccess }: AddAllowan
                type="submit"
                size="giant"
                label="Agregar Viáticos"
-               disabled={!isDirty || !isValid || !isTypeAllowance}
-               isLoading={CreateIncomes.isPending}
+               disabled={!isDirty || !isValid}
+               isLoading={false}
                className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! disabled:opacity-60! disabled:cursor-not-allowed! sm:w-auto!"
             />
          </div>
-
-         <AnimatedAlertWrapper open={showAlert.show}>
-            <Alert
-               type={showAlert.type}
-               title={showAlert.title}
-               message={showAlert.message}
-               onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
-            />
-         </AnimatedAlertWrapper>
 
       </form>
    )

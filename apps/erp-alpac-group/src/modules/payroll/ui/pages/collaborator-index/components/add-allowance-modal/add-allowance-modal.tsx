@@ -33,7 +33,7 @@ export const AddAllowanceModal = (
          onClose={handleClose}
          title="Agregar Viáticos"
          variant="form"
-         size="5xl"
+         size="3xl"
          description="Complete la información de los viáticos"
       >
          <div className="flex flex-col gap-5">
@@ -78,11 +78,8 @@ export const AddAllowanceModal = (
                      className="flex flex-col gap-4 sm:gap-5">
 
                      <AddAllowanceForm
-                        identificationNumber={""}
-                        onSuccess={() => handleClose()}
-                        onError={(error) => {
-                           handleClose();
-                           setSearchError(error || "Error al agregar ingreso");
+                        onSuccess={(data) => {
+                           props.onSubmit?.(data.allowances)
                         }}
                      />
 

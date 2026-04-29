@@ -8,7 +8,7 @@ import {
    Modal,
    Stepper,
 } from "@alpac/design-system";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { AddCollaboratorModalProps } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal.types";
 import { Controller, useForm } from "react-hook-form";
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
@@ -27,7 +27,7 @@ import {
    IdentificationOptions,
    IdentificationEnum,
 } from "@app/core/enums/identification.enum";
-import { CurrencyOptions } from "@app/core/enums/currency.enum";
+import { CurrencyEnum, CurrencyOptions } from "@app/core/enums/currency.enum";
 import { SalaryTypeEnum, SalaryTypeOptions } from "@app/modules/payroll/domain/enums/salary-enums/salary-type.enum";
 import { ArrowLeftIcon, ArrowRightIcon, SaveIcon, XIcon } from "lucide-react";
 import { formatAmount } from "@app/shared/utils/number.utils";
@@ -40,14 +40,15 @@ import dayjs from "dayjs";
 import { CompanyEnum } from "@app/core/enums/company.enum";
 import { ServiceRatesTable } from "../service-rates-table/service-rates-table";
 import { AddAllowanceModal } from "../add-allowance-modal/add-allowance-modal";
+import { useIncomes } from "@app/modules/payroll/ui/hooks/incomes/useIncomes";
 
 export const AddCollaboratorModal = (
    props: AddCollaboratorModalProps,
 ): React.ReactNode => {
 
-   const [currentStep, setCurrentStep] = useState(3);
+   const [currentStep, setCurrentStep] = useState(0);
    const [selectedSalaryType, setSelectedSalaryType] = useState<SalaryTypeEnum | null>(null);
-   const [showAddIncomeModal, setShowAddIncomeModal] = useState(false);
+   const [showAddAllowanceModal, setShowAddAllowanceModal] = useState(false);
    const [showAlert, setShowAlert] = useState<{
       show: boolean;
       type: "success" | "error" | "warning" | "info";
@@ -67,7 +68,10 @@ export const AddCollaboratorModal = (
    const isTmnCompany = companyAlias === CompanyEnum.TMN;
    const isVigemsaCompany = companyAlias === CompanyEnum.VIGEMSA;
 
-   const steps = ["Identidad", "Personal", "Laboral", "Salarial", "Viáticos"];
+   const { GetIncomeTypes } = useIncomes({ incomesTypesPayload: { company_id: companyId! } });
+   const { data: incomeTypesData } = GetIncomeTypes;
+
+   const steps = ["Identidad", "Personal", "Laboral", "Salarial"];
 
    const {
       register,
@@ -79,9 +83,13 @@ export const AddCollaboratorModal = (
       setValue,
       clearErrors,
       formState: { errors },
-   } = useForm<AddCollaboratorRequest>({ mode: "onChange" });
+   } = useForm<AddCollaboratorRequest>({
+      mode: "onChange"
+   });
 
    const identificationType = watch("identification_type");
+   const currentSalaryType = watch("salary_information.salary_type");
+   const travelExpenses = watch("travel_expenses");
 
    const handleCloseModal = () => {
       setCurrentStep(0);
@@ -133,9 +141,9 @@ export const AddCollaboratorModal = (
       }
    };
 
-   const handleAddIncome = useCallback(() => {
-      setShowAddIncomeModal(true);
-   }, [setShowAddIncomeModal]);
+   const handleAddAllowance = useCallback(() => {
+      setShowAddAllowanceModal(true);
+   }, [setShowAddAllowanceModal]);
 
    const handleCloseAlert = useCallback(() => {
       setTimeout(() => {
@@ -171,6 +179,14 @@ export const AddCollaboratorModal = (
    const isProfessionalServicesSalary = useMemo(() => {
       return selectedSalaryType?.value === SalaryTypeEnum.PROFESSIONAL_SERVICES.value
    }, [selectedSalaryType]);
+
+   useEffect(() => {
+      if (isProfessionalServicesSalary && (isTmnCompany || isVigemsaCompany)) {
+         setValue("salary_information.currency", CurrencyEnum.USD.value);
+      } else {
+         setValue("salary_information.currency", 0);
+      }
+   }, [currentSalaryType, isProfessionalServicesSalary, isTmnCompany, isVigemsaCompany, setValue]);
 
    return (
       <Modal
@@ -451,7 +467,10 @@ export const AddCollaboratorModal = (
                         labelClassName="text-black! dark:text-white!"
                         {...register("personal_information.personal_phone_number", {
                            required: false,
-                           validate: (value) => validateNicaraguaPhone(value),
+                           onChange: (evt) => {
+                              evt.target.value = formatPhone(evt.target.value);
+                           },
+                           validate: (value) => !value || validateNicaraguaPhone(value),
                            setValueAs: (value: string) => {
                               const trimmed = value?.trim();
                               return trimmed ? trimmed.replace(/-/g, "") : "";
@@ -461,9 +480,6 @@ export const AddCollaboratorModal = (
                            errors.personal_information?.personal_phone_number &&
                            errors.personal_information?.personal_phone_number?.message
                         }
-                        onChange={(evt) => {
-                           evt.target.value = formatPhone(evt.target.value);
-                        }}
                      />
 
                      <Controller
@@ -499,7 +515,7 @@ export const AddCollaboratorModal = (
                         control={control}
                         rules={{
                            required: "Debe seleccionar un estado civil",
-                           validate: (val) => val !== 0 || "Selección inválida",
+                           validate: (val) => val !== -1 || "Selección inválida",
                         }}
                         render={({ field }) => (
                            <Dropdown
@@ -865,14 +881,19 @@ export const AddCollaboratorModal = (
 
                   </div>
 
-                  <div>
-                     <Button
-                        size="giant"
-                        label="Agregar Viáticos"
-                        onClick={handleAddIncome}
-                        className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                     />
-                  </div>
+                  {
+                     (!isTmnCompany && !isVigemsaCompany && !isProfessionalServicesSalary) && (
+                        <div className="mb-6">
+                           <Button
+                              size="giant"
+                              type="button"
+                              label="Agregar Viáticos"
+                              onClick={handleAddAllowance}
+                              className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                           />
+                        </div>
+                     )
+                  }
 
                   {
                      isProfessionalServicesSalary && selectedSalaryType && (isVigemsaCompany || isTmnCompany) && (
@@ -893,14 +914,32 @@ export const AddCollaboratorModal = (
                         />
                      )
                   }
+                  {
+                     (travelExpenses?.length ?? 0) > 0 && (
+                        <div className="mb-6">
+                           <p className="text-sm text-slate-600 dark:text-slate-400">
+                              Viáticos asignados:{" "}
+                              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                                 {travelExpenses?.map(a => {
+                                    const title = incomeTypesData?.find((inc: any) => inc.type_income_id === a.type_income_id)?.income_title || "Viático";
+                                    return `${title}: C$ ${formatAmount(String(a.income_amount ?? 0))}`;
+                                 }).join(", ")}
+                              </span>
+                           </p>
+                        </div>
+                     )
+                  }
                </section>
             </div>
 
             <AddAllowanceModal
-               isOpen={showAddIncomeModal}
-               onClose={() => setShowAddIncomeModal(false)}
-               onRequestSuccess={() => setShowAddIncomeModal(false)}
-               onRequestError={() => setShowAddIncomeModal(false)}
+               isOpen={showAddAllowanceModal}
+               onClose={() => setShowAddAllowanceModal(false)}
+               onSubmit={(data) => {
+
+                  setShowAddAllowanceModal(false);
+                  setValue("travel_expenses", data);
+               }}
             />
 
             <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6 mb-6"></div>

@@ -1,5 +1,12 @@
+export interface Allowance {
+   type_income_id: string;
+   income_amount: number;
+}
+
+export interface Allowances {
+   allowances: Allowance[];
+}
+
 export interface AddAllowanceFormProps {
-   identificationNumber: string;
-   onSuccess?: (message?: string) => void;
-   onError?: (message?: string) => void;
+   onSuccess: (data: Allowances) => void;
 }

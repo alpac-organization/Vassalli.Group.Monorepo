@@ -1,10 +1,9 @@
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { IncomesServices } from "@app/modules/payroll/infrastructure/services/incomes-services/IncomesServices";
 import { httpHandler } from "@app/core/adapters";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { GetIncomeTypesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/get-income-types.request";
-import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
 
 const incomeServices = new IncomesServices(httpHandler);
 
@@ -16,8 +15,6 @@ interface useIncomesProps {
 
 export function useIncomes(props?: useIncomesProps) {
 
-   const queryClient = useQueryClient();
-
    const GetIncomeTypes = useQuery<IncomeTypesResponse, ApiErrorResponse>({
       queryKey: ["incomes-types", props?.incomesTypesPayload],
       queryFn: () => incomeServices.GetIncomesTypes(props!.incomesTypesPayload!),
@@ -27,12 +24,5 @@ export function useIncomes(props?: useIncomesProps) {
       retry: 1,
    });
 
-   const CreateIncomes = useMutation<void, ApiErrorResponse, CreateIncomeRequest>({
-      mutationFn: (payload: CreateIncomeRequest) => incomeServices.CreateIncomes(payload),
-      onSuccess: () => {
-         queryClient.invalidateQueries({ queryKey: ["incomes-types"] });
-      }
-   });
-
-   return { GetIncomeTypes, CreateIncomes }
+   return { GetIncomeTypes }
 }

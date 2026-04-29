@@ -1,6 +1,6 @@
-import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
 import type { GetIncomeTypesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/get-income-types.request";
 import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response";
+
 /**
  * @interface IIncomesServices
  * @description Define el contrato para los servicios de ingresos.
@@ -16,13 +16,4 @@ export interface IIncomesServices {
     * @throws {Error} Si hay un error en la solicitud.
     */
    GetIncomesTypes(payload: GetIncomeTypesRequest): Promise<IncomesTypesResponse[]>;
-
-   /**
-    * @method PostIncomes
-    * @description Registra un nuevo ingreso.
-    * @param {CreateIncomeRequest} payload Datos del ingreso a registrar.
-    * @returns {Promise<void>} Promesa que indica que el ingreso se registró correctamente.
-    * @throws {Error} Si hay un error en el registro.
-    */
-   CreateIncomes(payload: CreateIncomeRequest): Promise<void>;
 }
