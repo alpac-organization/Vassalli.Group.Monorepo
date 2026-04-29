@@ -9,6 +9,8 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { useReports } from "@app/modules/payroll/ui/hooks/reportes/useReports";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { REPORT_TYPES } from "@app/modules/payroll/ui/pages/reportes/types/report-types";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { useTheme } from "@alpac/design-system";
 export function ReportsPage() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<ReportType | null>(null);
@@ -16,7 +18,10 @@ export function ReportsPage() {
   const [loading, setLoading] = useState(false);
   const [isLoadingReportTypes, setIsLoadingReportTypes] = useState(true);
   const { companyId } = useUserStore();
-  const { generateReportsMutation } = useReports({
+  const { theme } = useTheme();
+  const { urlImage, neutralUrlImage } = useCompanyStore();
+  const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
+  useReports({
     payloadReport: {
       companie_id: companyId,
       type: selected as ReportType,
@@ -73,10 +78,19 @@ export function ReportsPage() {
             ]}
           />
         </div>
-        <h3 className="pl-2 pt-4 m-0!">Gestión de reportes</h3>
-        <p className="mt-1 pl-2 text-sm text-gray-200 sm:text-base">
-          Selecciona el tipo de reporte que deseas generar.
-        </p>
+        <div className="flex items-center justify-between pt-4">
+          <div className="pl-2">
+            <h3 className="m-0!">Gestión de reportes</h3>
+            <p className="mt-1 text-sm text-gray-200 sm:text-base">
+              Selecciona el tipo de reporte que deseas generar.
+            </p>
+          </div>
+          <img
+            className="h-12 w-auto object-contain sm:h-16 md:h-20"
+            src={activeLogo}
+            alt="logo alpac"
+          />
+        </div>
       </div>
 
       {!requested ? (
