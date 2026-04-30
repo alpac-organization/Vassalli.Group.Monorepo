@@ -10,8 +10,8 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 
 type PayrollCollaboratorFilterFields = Pick<
   CollaboratorRequest,
-  "identification_number" | "area_id"
-> & { job_position: number };
+  "identification_number"
+> & { work_area: number; job_position: number };
 
 type PayrollFiltersBarProps = {
   onApply: (filters: PayrollCollaboratorFilterFields) => void;
@@ -20,7 +20,7 @@ type PayrollFiltersBarProps = {
 
 const defaultFormValues: PayrollCollaboratorFilterFields = {
   identification_number: "",
-  area_id: 0,
+  work_area: 0,
   job_position: 0,
 };
 
@@ -89,7 +89,7 @@ export default function PayrollFiltersBar({
 
         <div className="flex flex-col">
           <Controller
-            name="area_id"
+            name="work_area"
             control={control}
             rules={{
               required: false,

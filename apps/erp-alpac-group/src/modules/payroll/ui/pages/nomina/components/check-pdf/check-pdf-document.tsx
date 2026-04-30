@@ -9,13 +9,8 @@ import type { CheckPdfProps } from "@app/modules/payroll/ui/pages/nomina/compone
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-
-export function CheckPdfDocument({
-  data,
-  startDate,
-  endDate,
-  //logoSrc,
-}: CheckPdfProps) {
+import { topFieldStyles } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/check.utils";
+export function CheckPdfDocument({ data, startDate, endDate }: CheckPdfProps) {
   const { urlImage } = useCompanyStore();
   const companyName = useUserStore.getState().companyName || "Alpac Group";
   const currentDate = new Date()
@@ -48,8 +43,7 @@ export function CheckPdfDocument({
           >
             <View style={styles.headerContainer}>
               <View style={styles.logoContainer}>
-                {/* {logoSrc ? <Image src={urlImage} style={styles.logo} /> : null} */}
-                <Image src={urlImage} style={styles.logo} /> : null
+                {urlImage ? <Image src={urlImage} style={styles.logo} /> : null}
               </View>
               <View style={styles.headerTextContainer}>
                 <Text style={styles.companyName}>{companyName}</Text>
@@ -58,119 +52,60 @@ export function CheckPdfDocument({
             </View>
 
             <View style={styles.mainBox}>
-              <View style={styles.topSectionRow}>
-                <Text style={{ width: "15%", fontSize: 9 }}>Fecha:</Text>
-                <View
-                  style={{
-                    width: "35%",
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#000",
-                    alignItems: "center",
-                  }}
-                >
+              <View style={[styles.topSectionRow, topFieldStyles.rowSpaced]}>
+                <Text style={topFieldStyles.labelLeft}>Fecha:</Text>
+                <View style={topFieldStyles.lineLeft}>
                   <Text>{currentDate}</Text>
                 </View>
-                <Text
-                  style={{ width: "15%", textAlign: "right", paddingRight: 10 }}
-                >
-                  Monto
-                </Text>
-                <Text style={{ width: "5%" }}>C$</Text>
-                <View
-                  style={{
-                    width: "20%",
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#000",
-                    alignItems: "flex-end",
-                  }}
-                >
+                <View style={topFieldStyles.middleGap}></View>
+                <Text style={topFieldStyles.labelRightAmount}>Monto</Text>
+                <Text style={topFieldStyles.currencyLabel}>C$</Text>
+                <View style={topFieldStyles.lineRight}>
                   <Text>{formattedAmount}</Text>
                 </View>
               </View>
 
               <View style={styles.topSectionRow}>
-                <Text style={{ width: "15%", fontSize: 9 }}></Text>
-                <View style={{ width: "35%" }}></View>
-                <Text style={{ width: "15%" }}></Text>
-                <Text style={{ width: "5%" }}>$</Text>
-                <View
-                  style={{
-                    width: "20%",
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#000",
-                  }}
-                ></View>
+                <Text style={topFieldStyles.labelLeft}></Text>
+                <View style={topFieldStyles.lineSpacer}></View>
+                <View style={topFieldStyles.middleGap}></View>
+                <Text style={topFieldStyles.labelRightAmount}></Text>
+                <Text style={topFieldStyles.currencyLabel}>$</Text>
+                <View style={topFieldStyles.lineRight}></View>
               </View>
 
-              <View style={styles.topSectionRow}>
-                <Text style={{ width: "20%", fontSize: 9 }}>Beneficiario:</Text>
-                <View
-                  style={{
-                    width: "40%",
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#000",
-                  }}
-                >
+              <View style={[styles.topSectionRow, topFieldStyles.rowSpaced]}>
+                <Text style={topFieldStyles.labelLeft}>Beneficiario:</Text>
+                <View style={topFieldStyles.lineLeft}>
                   <Text>{fullName}</Text>
                 </View>
-                <Text style={{ width: "15%" }}>Retención IR</Text>
-                <View
-                  style={{
-                    width: "20%",
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#000",
-                  }}
-                ></View>
+                <View style={topFieldStyles.middleGap}></View>
+                <Text style={topFieldStyles.labelRight}>Retención IR</Text>
+                <View style={topFieldStyles.lineRight}></View>
               </View>
 
-              <View style={styles.topSectionRow}>
-                <Text style={{ width: "20%", fontSize: 9 }}>
-                  Área solicitante:
-                </Text>
-                <View
-                  style={{
-                    width: "40%",
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#000",
-                  }}
-                >
+              <View style={[styles.topSectionRow, topFieldStyles.rowSpaced]}>
+                <Text style={topFieldStyles.labelLeft}>Área solicitante:</Text>
+                <View style={topFieldStyles.lineLeft}>
                   <Text>{workArea}</Text>
                 </View>
-                <Text style={{ width: "15%" }}>Retención IMI</Text>
-                <View
-                  style={{
-                    width: "20%",
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#000",
-                  }}
-                ></View>
+                <View style={topFieldStyles.middleGap}></View>
+                <Text style={topFieldStyles.labelRight}>Retención IMI</Text>
+                <View style={topFieldStyles.lineRight}></View>
               </View>
 
-              <View style={styles.topSectionRow}>
-                <Text style={{ width: "20%", fontSize: 9 }}>
-                  N° Orden compra:
-                </Text>
-                <View
-                  style={{
-                    width: "40%",
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#000",
-                  }}
-                ></View>
-                <Text style={{ width: "15%" }}>Otros</Text>
-                <View
-                  style={{
-                    width: "20%",
-                    borderBottomWidth: 1,
-                    borderBottomColor: "#000",
-                  }}
-                ></View>
+              <View style={[styles.topSectionRow, topFieldStyles.rowSpaced]}>
+                <Text style={topFieldStyles.labelLeft}>N° Orden compra:</Text>
+                <View style={topFieldStyles.lineLeft}></View>
+                <View style={topFieldStyles.middleGap}></View>
+                <Text style={topFieldStyles.labelRight}>Otros</Text>
+                <View style={topFieldStyles.lineRight}></View>
               </View>
 
               <View
                 style={[
                   styles.topSectionRow,
-                  { marginTop: 10, marginBottom: 5 },
+                  { marginTop: 12, marginBottom: 6 },
                 ]}
               >
                 <Text style={{ width: "15%", fontSize: 9 }}>Trámite:</Text>
@@ -285,7 +220,7 @@ export function CheckPdfDocument({
             </View>
 
             <View style={styles.signaturesContainer}>
-              <Text style={{ marginBottom: 20 }}>Firma:</Text>
+              <Text style={{ marginBottom: 12 }}>Firma:</Text>
 
               <View style={styles.signaturesRow}>
                 <View style={styles.signatureBlock}>

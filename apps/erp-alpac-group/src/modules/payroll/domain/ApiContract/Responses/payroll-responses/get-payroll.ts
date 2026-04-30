@@ -26,6 +26,7 @@ export interface PayrollItemResponse {
   deductions_additional_data?: string;
   total_deducctions: number;
   travel_expenses?: number;
+  total_travel_expenses?: number;
   food_travel_allowance?: number;
   lodging?: number;
   vacations?: number;

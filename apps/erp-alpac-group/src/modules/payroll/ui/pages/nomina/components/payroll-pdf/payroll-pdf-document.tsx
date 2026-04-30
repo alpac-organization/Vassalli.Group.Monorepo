@@ -11,6 +11,14 @@ import {
   colStyle,
   withSoftLineBreaks,
 } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/payroll-utils";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+
+const NON_SOFT_WRAP_KEYS = new Set([
+  "full_name",
+  "inss_number",
+  "work_area",
+  "job_position",
+]);
 
 export function PayrollPdfDocument({
   data,
@@ -18,9 +26,9 @@ export function PayrollPdfDocument({
   startDate,
   endDate,
   visibleKeys,
-  logoSrc,
   typePayroll,
 }: PayrollPdfProps) {
+  const { urlImage } = useCompanyStore();
   const activeColumns = payrollColumns.filter((col) =>
     visibleKeys.includes(col.key as string),
   );
@@ -42,7 +50,7 @@ export function PayrollPdfDocument({
               Total de registros: {data.length}
             </Text>
           </View>
-          {logoSrc ? <Image src={logoSrc} style={styles.logo} /> : null}
+          {urlImage ? <Image src={urlImage} style={styles.logo} /> : null}
         </View>
 
         <View style={styles.table}>
@@ -69,6 +77,9 @@ export function PayrollPdfDocument({
                   typeof cellValue === "string" || typeof cellValue === "number"
                     ? String(cellValue)
                     : "—";
+                const displayValue = NON_SOFT_WRAP_KEYS.has(col.key as string)
+                  ? raw
+                  : withSoftLineBreaks(raw);
 
                 return (
                   <View
@@ -83,7 +94,7 @@ export function PayrollPdfDocument({
                       }
                       wrap
                     >
-                      {withSoftLineBreaks(raw)}
+                      {displayValue}
                     </Text>
                   </View>
                 );

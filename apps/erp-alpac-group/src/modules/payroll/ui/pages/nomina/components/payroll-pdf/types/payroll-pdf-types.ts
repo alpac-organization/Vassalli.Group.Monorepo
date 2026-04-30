@@ -7,6 +7,5 @@ export type PayrollPdfProps = {
   startDate?: string;
   endDate?: string;
   visibleKeys: string[];
-  logoSrc?: string;
   typePayroll: PayrollType;
 };

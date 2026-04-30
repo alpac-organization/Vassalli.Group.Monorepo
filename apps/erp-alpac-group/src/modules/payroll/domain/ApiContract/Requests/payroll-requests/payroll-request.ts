@@ -24,6 +24,14 @@ export interface PayrollRequest {
    */
   identification_number?: string;
   /**
+   * Id del area de trabajo
+   */
+  work_area_id?: number;
+  /**
+   * Id de la posicion de trabajo
+   */
+  job_position_id?: number;
+  /**
    * Numero de la pagina
    */
   page_number?: number;

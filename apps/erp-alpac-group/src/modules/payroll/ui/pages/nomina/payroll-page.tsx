@@ -5,6 +5,8 @@ import {
   Button,
   Dropdown,
   Badges,
+  AnimatedAlertWrapper,
+  Alert,
 } from "@alpac/design-system";
 import { motion } from "framer-motion";
 import { useCallback, useState, useMemo, useEffect } from "react";
@@ -33,14 +35,13 @@ import { CheckPdfDocument } from "@app/modules/payroll/ui/pages/nomina/component
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
 import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
-import { fetchImageAsDataUri } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/fetch-image-as-data-uri";
+// import { fetchImageAsDataUri } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/fetch-image-as-data-uri";
 
 export function PayrollPage() {
   const maxPageSize = 10;
   const navigate = useNavigate();
   const { theme } = useTheme();
   const { companyId, moduleCode } = useUserStore();
-
   const { GetBranchesQuery: branchesQuery, GetCompaniesQuery } = useCompanies(
     companyId ? { company_id: companyId } : undefined,
   );
@@ -53,10 +54,6 @@ export function PayrollPage() {
     const company = companiesData.find((c) => c.company_id === companyId);
 
     if (company) {
-      useCompanyStore.setState({
-        urlImage: company.image_url ?? "",
-        neutralUrlImage: company.neutral_image_url ?? "",
-      });
       const url =
         theme === "dark" ? company.neutral_image_url : company.image_url;
       return url ? url : undefined;
@@ -67,6 +64,18 @@ export function PayrollPage() {
       theme === "dark" ? alpac?.neutral_image_url : alpac?.image_url;
     return fallbackUrl ? fallbackUrl : undefined;
   }, [companiesData, companyId, theme]);
+
+  useEffect(() => {
+    if (Array.isArray(companiesData) && companyId) {
+      const company = companiesData.find((c) => c.company_id === companyId);
+      if (company) {
+        useCompanyStore.setState({
+          urlImage: company.image_url ?? "",
+          neutralUrlImage: company.neutral_image_url ?? "",
+        });
+      }
+    }
+  }, [companiesData, companyId]);
 
   const [selectedPayrollType, setSelectedPayrollType] =
     useState<PayrollType | null>(null);
@@ -91,7 +100,41 @@ export function PayrollPage() {
   const [isGeneratingPaymentRequestsPdf, setIsGeneratingPaymentRequestsPdf] =
     useState(false);
   const [identificationFilter, setIdentificationFilter] = useState("");
+  const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
+  const [jobPositionFilter, setJobPositionFilter] = useState<number | null>(
+    null,
+  );
   const [isStatusErrorModalOpen, setIsStatusErrorModalOpen] = useState(false);
+  const [showAlert, setShowAlert] = useState<{
+    show: boolean;
+    type: "success" | "error" | "warning" | "info";
+    title: string;
+    message: string;
+  }>({
+    show: false,
+    type: "info",
+    title: "",
+    message: "",
+  });
+
+  const handleCloseAlert = useCallback(() => {
+    setTimeout(() => {
+      setShowAlert({ show: false, type: "info", title: "", message: "" });
+    }, 3000);
+  }, []);
+
+  const handlePdfGenerationError = useCallback(
+    (message: string) => {
+      setShowAlert({
+        show: true,
+        type: "error",
+        title: "Error",
+        message,
+      });
+      handleCloseAlert();
+    },
+    [handleCloseAlert],
+  );
 
   const handleSelectionModalClose = useCallback(() => {
     if (selectedPayrollType === null || selectedBranch === null) {
@@ -163,6 +206,8 @@ export function PayrollPage() {
       type: selectedPayrollType ?? "None",
       branch_id: selectedBranch ?? "",
       identification_number: identificationFilter || undefined,
+      work_area_id: workAreaFilter || undefined,
+      job_position_id: jobPositionFilter || undefined,
       page_number: pageNumber,
       page_size: maxPageSize,
     } as PayrollRequest,
@@ -183,6 +228,10 @@ export function PayrollPage() {
     ordinaryPayrollQuery.isFetching;
   const displayedBranchName =
     ordinaryPayrollQuery.data?.branch_name?.trim() || selectedBranchName;
+  const hasCollaboratorsWithoutInss = useMemo(() => {
+    const items = ordinaryPayrollQuery.data?.payroll_details?.items ?? [];
+    return items.some((item) => !item.collaborator?.inss_number?.trim());
+  }, [ordinaryPayrollQuery.data]);
 
   useEffect(() => {
     const hasActiveSelection =
@@ -250,6 +299,8 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
+        work_area_id: workAreaFilter || undefined,
+        job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
       } as PayrollRequest;
@@ -257,9 +308,17 @@ export function PayrollPage() {
       const response = await payrollServices.getPayroll(payload);
       const allItems = response.payroll_details?.items ?? [];
 
-      const logoDataUri = await fetchImageAsDataUri(
-        useCompanyStore.getState().urlImage,
-      );
+      // let logoDataUri: string | undefined = undefined;
+      // try {
+      //   const imageUrl = useCompanyStore.getState().urlImage;
+      //   if (imageUrl) {
+      //     logoDataUri = await fetchImageAsDataUri(imageUrl);
+      //   }
+      // } catch (imageError) {
+      //   console.warn(
+      //     "No se pudo cargar el logo para el PDF debido a un error de red o CORS.",
+      //   );
+      // }
 
       const blob = await pdf(
         <PayrollPdfDocument
@@ -269,14 +328,15 @@ export function PayrollPage() {
           startDate={ordinaryPayrollQuery.data?.start_date}
           endDate={ordinaryPayrollQuery.data?.end_date}
           visibleKeys={visibleKeys}
-          logoSrc={logoDataUri}
         />,
       ).toBlob();
 
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
     } catch (error) {
-      throw error;
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte de nómina en PDF.",
+      );
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -290,6 +350,9 @@ export function PayrollPage() {
     visibleKeys,
     currentCompanyImageUrl,
     identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    handlePdfGenerationError,
   ]);
 
   const handleGeneratePaymentRequestsPdf = useCallback(async () => {
@@ -308,6 +371,8 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
+        work_area_id: workAreaFilter || undefined,
+        job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : 1000,
       } as PayrollRequest;
@@ -323,21 +388,20 @@ export function PayrollPage() {
         return;
       }
 
-      //   const logoDataUri = await fetchImageAsDataUri(currentCompanyImageUrl);
-
       const blob = await pdf(
         <CheckPdfDocument
           data={filteredItems}
           startDate={ordinaryPayrollQuery.data?.start_date}
           endDate={ordinaryPayrollQuery.data?.end_date}
-          //  logoSrc={logoDataUri}
         />,
       ).toBlob();
 
       const url = URL.createObjectURL(blob);
       window.open(url, "_blank");
     } catch (error) {
-      throw error;
+      handlePdfGenerationError(
+        "Ocurrió un error al generar las solicitudes de pago en PDF.",
+      );
     } finally {
       setIsGeneratingPaymentRequestsPdf(false);
     }
@@ -349,18 +413,24 @@ export function PayrollPage() {
     ordinaryPayrollQuery.data,
     currentCompanyImageUrl,
     identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    handlePdfGenerationError,
   ]);
 
   const handleApplyFilters = useCallback(
     (
-      data: Pick<CollaboratorRequest, "identification_number" | "area_id"> & {
+      data: Pick<CollaboratorRequest, "identification_number"> & {
         job_position: number;
+        work_area: number;
       },
     ) => {
       const normalizedIdentification = (data.identification_number ?? "")
         .trim()
         .replace(/-/g, "");
       setIdentificationFilter(normalizedIdentification);
+      setWorkAreaFilter(data.work_area);
+      setJobPositionFilter(data.job_position);
       setPageNumber(1);
     },
     [],
@@ -368,6 +438,8 @@ export function PayrollPage() {
 
   const handleClearFilters = useCallback(() => {
     setIdentificationFilter("");
+    setWorkAreaFilter(null);
+    setJobPositionFilter(null);
     setPageNumber(1);
   }, []);
 
@@ -651,32 +723,6 @@ export function PayrollPage() {
                 existPayrollInProgress={existPayrollInProgress}
                 statusLoading={statusFetchInFlight}
               />
-              <Button
-                type="button"
-                size="giant"
-                label="Generar Reporte"
-                isLoading={isGeneratingPdf}
-                disabled={!existPayrollInProgress}
-                onClick={handleGeneratePdf}
-                className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! ${
-                  isGeneratingPdf
-                    ? "disabled:opacity-100! disabled:bg-slate-500! disabled:dark:bg-slate-700!"
-                    : ""
-                }`}
-              />
-              <Button
-                type="button"
-                size="giant"
-                label="Generar Solicitudes de Pago"
-                isLoading={isGeneratingPaymentRequestsPdf}
-                disabled={!existPayrollInProgress}
-                onClick={handleGeneratePaymentRequestsPdf}
-                className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! ${
-                  isGeneratingPaymentRequestsPdf
-                    ? "disabled:opacity-100! disabled:bg-slate-500! disabled:dark:bg-slate-700!"
-                    : ""
-                }`}
-              />
             </div>
 
             {/* Vista para dispositivos grandes (escritorio) */}
@@ -711,12 +757,25 @@ export function PayrollPage() {
                     className="max-w-72 text-[12px]! font-semibold! leading-snug! wrap-break-word text-right"
                   />
                 ) : null}
+              </div>
+            </div>
+            <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+              <div className="flex flex-col justify-center">
+                <h3 className="p-0! m-0!">Accesos Directos</h3>
+                <small className="text-gray-500 dark:text-gray-300">
+                  Descripcion de accesos directos
+                </small>
+              </div>
+            </div>
+
+            <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+              <div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
                 <Button
                   type="button"
                   size="giant"
                   label="Cambiar tipo de nómina y sucursal"
                   onClick={handleOpenChangePayrollSelection}
-                  className="w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+                  className="w-full! md:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                 />
                 <Button
                   type="button"
@@ -725,9 +784,9 @@ export function PayrollPage() {
                   isLoading={isGeneratingPdf}
                   disabled={!existPayrollInProgress}
                   onClick={handleGeneratePdf}
-                  className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! ${
+                  className={`w-full! md:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPdf
-                      ? "disabled:opacity-100! disabled:bg-slate-500! disabled:dark:bg-slate-700!"
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}
                 />
@@ -736,11 +795,15 @@ export function PayrollPage() {
                   size="giant"
                   label="Generar Solicitudes de Pago"
                   isLoading={isGeneratingPaymentRequestsPdf}
-                  disabled={!existPayrollInProgress}
+                  disabled={
+                    !existPayrollInProgress ||
+                    detailsFetchInFlight ||
+                    !hasCollaboratorsWithoutInss
+                  }
                   onClick={handleGeneratePaymentRequestsPdf}
-                  className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! ${
+                  className={`w-full! md:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPaymentRequestsPdf
-                      ? "disabled:opacity-100! disabled:bg-slate-500! disabled:dark:bg-slate-700!"
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}
                 />
@@ -758,6 +821,15 @@ export function PayrollPage() {
         {selectedPayrollType !== null &&
           selectedBranch !== null &&
           renderContent()}
+
+        <AnimatedAlertWrapper open={showAlert.show}>
+          <Alert
+            type={showAlert.type}
+            title={showAlert.title}
+            message={showAlert.message}
+            onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
+          />
+        </AnimatedAlertWrapper>
       </motion.div>
     </>
   );

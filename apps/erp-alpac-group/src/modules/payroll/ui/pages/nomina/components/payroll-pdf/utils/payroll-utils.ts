@@ -1,6 +1,24 @@
 import { StyleSheet } from "@react-pdf/renderer";
 export function withSoftLineBreaks(value: string): string {
-  return value;
+  if (!value) return value;
+
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (!normalized) return value;
+
+  const withSeparatorSpacing = normalized.replace(
+    /([\/\\\-_,.;:$()])/g,
+    " $1 ",
+  );
+
+  return withSeparatorSpacing
+    .split(" ")
+    .filter(Boolean)
+    .map((token) => {
+      if (token.length <= 6) return token;
+      const chunks = token.match(/.{1,6}/g);
+      return chunks ? chunks.join("\n") : token;
+    })
+    .join(" ");
 }
 const WIDE_COLUMN_KEYS = new Set(["full_name", "branch_name"]);
 
@@ -99,9 +117,13 @@ export const styles = StyleSheet.create({
   },
   tableCell: {
     margin: 0,
-    padding: 3,
+    paddingTop: 2,
+    paddingBottom: 2,
+    paddingLeft: 3,
+    paddingRight: 3,
     width: "100%",
-    fontSize: 6,
+    fontSize: 5.7,
+    lineHeight: 1.2,
   },
   tableCellInss: {
     margin: 0,

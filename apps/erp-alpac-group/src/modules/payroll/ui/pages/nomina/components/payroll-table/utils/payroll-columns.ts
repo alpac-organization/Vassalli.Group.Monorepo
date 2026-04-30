@@ -94,6 +94,12 @@ export const payrollColumns = [
       formatCurrency(item.travel_expenses ?? 0, "NIO") ?? "—",
   },
   {
+    key: "total_travel_expenses",
+    label: "Total de Gastos de Viaje",
+    render: (item: PayrollItemResponse) =>
+      formatCurrency(item.total_travel_expenses ?? 0, "NIO") ?? "—",
+  },
+  {
     key: "total_legal_deductions",
     label: "Total de Deducciones Legales",
     render: (item: PayrollItemResponse) =>

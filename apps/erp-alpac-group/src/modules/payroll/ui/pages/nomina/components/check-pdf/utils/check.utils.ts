@@ -1,7 +1,32 @@
-export const LETTER_PORTRAIT_SIZE: [number, number] = [612, 792];
 import { StyleSheet } from "@react-pdf/renderer";
+
+export const LETTER_PORTRAIT_SIZE: [number, number] = [612, 792];
+
+export const topFieldStyles = {
+  labelLeft: { width: "20%", fontSize: 9, textAlign: "left" },
+  lineLeft: {
+    width: "34%",
+    borderBottomWidth: 1,
+    borderBottomColor: "#000",
+    paddingLeft: 2,
+    justifyContent: "flex-end",
+  },
+  middleGap: { width: "6%" },
+  labelRight: { width: "15%", textAlign: "left" },
+  labelRightAmount: { width: "12%", textAlign: "left" },
+  currencyLabel: { width: "3%", textAlign: "left" },
+  lineRight: {
+    width: "20%",
+    borderBottomWidth: 1,
+    borderBottomColor: "#000",
+    paddingLeft: 2,
+    justifyContent: "flex-end",
+  },
+  lineSpacer: { width: "34%" },
+  rowSpaced: { marginBottom: 2 },
+} as const;
 export const styles = StyleSheet.create({
-  page: { padding: 25, fontSize: 9, fontFamily: "Helvetica", color: "#000" },
+  page: { padding: 20, fontSize: 9, fontFamily: "Helvetica", color: "#000" },
   headerContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -9,11 +34,12 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
     width: "100%",
     position: "relative",
+    minHeight: 52,
   },
   logoContainer: {
     position: "absolute",
-    left: 20,
-    top: -10,
+    left: 0,
+    top: 0,
   },
   logo: {
     width: 60,
@@ -35,6 +61,8 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#000",
     marginBottom: 10,
+    paddingVertical: 3,
+    paddingHorizontal: 6,
   },
   row: {
     flexDirection: "row",
@@ -70,8 +98,8 @@ export const styles = StyleSheet.create({
 
   topSectionRow: {
     flexDirection: "row",
-    padding: 2,
-    alignItems: "flex-end",
+    paddingVertical: 2,
+    alignItems: "center",
   },
 
   conceptBox: {
@@ -175,7 +203,7 @@ export const styles = StyleSheet.create({
   signaturesRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 5,
+    marginBottom: 3,
   },
   signatureBlock: {
     width: "30%",
@@ -203,7 +231,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000",
     flexDirection: "row",
-    marginTop: 10,
+    marginTop: 8,
   },
   receiptCell: {
     flex: 1,
