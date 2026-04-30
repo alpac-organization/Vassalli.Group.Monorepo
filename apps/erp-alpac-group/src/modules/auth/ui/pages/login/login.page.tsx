@@ -11,7 +11,8 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { LoginRequest } from "@app/modules/auth/domain/ApiContract/Requests/login.request";
 import type { GetCompaniesResponse } from "@app/modules/auth/domain/ApiContract/Responses/get-companies.response";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import defaultLogo from "@app/assets/logos/blanco/grupo vassalli-logo.png";
+import defaultColorLogo from "@app/assets/logos/color/vasalli-neutral-logo.png";
+import defaultNeutralLogo from "@app/assets/logos/blanco/vasalli-logo.png";
 
 export const LoginPage = function () {
   const { getMappedError } = useMappedError();
@@ -52,16 +53,16 @@ export const LoginPage = function () {
   const selectedCompanyId = watch("company_id");
   const companyLogos = useMemo(() => {
     if (!Array.isArray(data) || !selectedCompanyId) {
-      return { color: defaultLogo, neutral: defaultLogo };
+      return { color: defaultColorLogo, neutral: defaultNeutralLogo };
     }
     const company = data.find((c) => c.company_id === selectedCompanyId);
     if (!company) {
-      return { color: defaultLogo, neutral: defaultLogo };
+      return { color: defaultColorLogo, neutral: defaultNeutralLogo };
     }
 
-    const colorLogo = company.image_url ?? defaultLogo;
+    const colorLogo = company.image_url ?? defaultColorLogo;
     const neutralLogo =
-      company.neutral_image_url ?? company.image_url ?? defaultLogo;
+      company.neutral_image_url ?? company.image_url ?? defaultNeutralLogo;
 
     useCompanyStore.setState({
       urlImage: colorLogo,
