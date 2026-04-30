@@ -87,7 +87,7 @@ const liquidacionSection: SidebarLink = {
 const reportsSection: SidebarLink = {
   id: "reports",
   label: "Reportes",
-  path: "payroll/reports",
+  path: "payroll/reportes",
   icon: ClipboardCheck,
 };
 
