@@ -62,7 +62,7 @@ export function NewPermissionRequestModal({
       createPermissionRequestMutation.mutate(payload, {
          onSuccess: () => {
             onClose?.();
-            onRequestSuccess?.();
+            onRequestSuccess?.("Solicitud de permiso creada exitosamente");
          },
          onError: (err) => {
             const apiError = err as unknown as ApiErrorResponse;
@@ -158,7 +158,6 @@ export function NewPermissionRequestModal({
                   )
                }
             </AnimatePresence>
-
 
             <AnimatePresence initial={!isOperator}>
                {(((isManager || isAdministrator) && !!foundCollaborator) || isOperator) && (

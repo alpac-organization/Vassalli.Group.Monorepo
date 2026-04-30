@@ -32,7 +32,7 @@ export const Breadcrumb = function (props: BreadcrumbProps): React.ReactElement 
                         )}
 
                         {isLast ? (
-                           <span className="ms-1! text-[13px]! cursor-pointer font-medium md:ms-2! dark:text-gray-300!">
+                           <span className={`${index === 0 ? "" : "ms-1! md:ms-2!"} text-[13px]! cursor-pointer font-medium  dark:text-gray-300!`}>
                               {item.label}
                            </span>
                         ) : (
@@ -41,7 +41,7 @@ export const Breadcrumb = function (props: BreadcrumbProps): React.ReactElement 
                                  evt.preventDefault()
                                  item.onClick?.(item.url)
                               }}
-                              className="cursor-pointer ms-1! md:ms-2!
+                              className={`cursor-pointer ${index === 0 ? "" : "ms-1! md:ms-2!"}
                                                     inline-flex 
                                                     items-center 
                                                     text-[13px]! 
@@ -51,7 +51,7 @@ export const Breadcrumb = function (props: BreadcrumbProps): React.ReactElement 
                                                     text-white!
                                                     hover:text-blue-600!
                                                     dark:text-white! 
-                                                    dark:hover:text-white!"
+                                                    dark:hover:text-white!`}
                            >
                               {index === 0 && (
                                  <svg className="w-3 h-3 me-2.5 -translate-y-[0.03em]!" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">

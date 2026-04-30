@@ -10,8 +10,7 @@ import {
   DollarSign,
   CircleMinus,
   HandCoins,
-  ClockIcon,
-  Coins,
+  ClipboardCheck,
 } from "lucide-react";
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 

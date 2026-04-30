@@ -9,7 +9,7 @@ export type AddCollaboratorModalProps = {
    optionsBanks: { label: string; value: number }[];
    onClose?: () => void;
    onSubmit?: (data: AddCollaboratorRequest) => void;
-   onRequestSuccess?: (message?: string) => void;
+   onRequestSuccess?: (message: string) => void;
    onRequestError?: (message?: string) => void;
 };
 
