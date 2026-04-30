@@ -81,6 +81,7 @@ export const AddAllowanceModal = (
                         onSuccess={(data) => {
                            props.onSubmit?.(data.allowances)
                         }}
+                        onCancel={handleClose}
                      />
 
                   </motion.div>
