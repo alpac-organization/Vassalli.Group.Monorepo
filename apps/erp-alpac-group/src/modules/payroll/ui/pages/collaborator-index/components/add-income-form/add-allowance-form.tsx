@@ -9,7 +9,7 @@ import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContra
 import type { AddAllowanceFormProps, Allowances } from "./add-allowance-form.types"
 import { useForm, useFieldArray } from "react-hook-form"
 
-export const AddAllowanceForm = ({ onSuccess }: AddAllowanceFormProps) => {
+export const AddAllowanceForm = ({ onSuccess, onCancel }: AddAllowanceFormProps) => {
 
    const { companyId } = useUserStore();
 
@@ -59,7 +59,7 @@ export const AddAllowanceForm = ({ onSuccess }: AddAllowanceFormProps) => {
    }, [onSuccess]);
 
    return (
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
 
          <div className="flex flex-row gap-4">
             {isLoadingIncomeTypes ? (
@@ -145,19 +145,20 @@ export const AddAllowanceForm = ({ onSuccess }: AddAllowanceFormProps) => {
                type="button"
                size="giant"
                label="Cancelar"
-               onClick={() => { }}
+               onClick={onCancel}
                className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30! sm:w-auto!"
             />
             <Button
-               type="submit"
+               type="button"
                size="giant"
                label="Agregar Viáticos"
                disabled={!isDirty || !isValid}
                isLoading={false}
+               onClick={handleSubmit(onSubmit)}
                className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! disabled:opacity-60! disabled:cursor-not-allowed! sm:w-auto!"
             />
          </div>
 
-      </form>
+      </div>
    )
 }

@@ -29,7 +29,7 @@ import {
 } from "@app/core/enums/identification.enum";
 import { CurrencyEnum, CurrencyOptions } from "@app/core/enums/currency.enum";
 import { SalaryTypeEnum, SalaryTypeOptions } from "@app/modules/payroll/domain/enums/salary-enums/salary-type.enum";
-import { ArrowLeftIcon, ArrowRightIcon, SaveIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, SaveIcon, X, XIcon } from "lucide-react";
 import { formatAmount } from "@app/shared/utils/number.utils";
 import { useCreateCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCreateCollaborators";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -179,6 +179,13 @@ export const AddCollaboratorModal = (
    const isProfessionalServicesSalary = useMemo(() => {
       return selectedSalaryType?.value === SalaryTypeEnum.PROFESSIONAL_SERVICES.value
    }, [selectedSalaryType]);
+
+   useEffect(() => {
+      const isProfessionalServices = selectedSalaryType?.value === SalaryTypeEnum.PROFESSIONAL_SERVICES.value
+      if (isProfessionalServices) {
+         setValue("travel_expenses", []);
+      }
+   }, [selectedSalaryType, setValue]);
 
    useEffect(() => {
       if (isProfessionalServicesSalary && (isTmnCompany || isVigemsaCompany)) {
@@ -882,7 +889,7 @@ export const AddCollaboratorModal = (
                   </div>
 
                   {
-                     (!isTmnCompany && !isVigemsaCompany && !isProfessionalServicesSalary) && (
+                     selectedSalaryType && !isProfessionalServicesSalary && (travelExpenses?.length ?? 0) <= 0 && (!isTmnCompany && !isVigemsaCompany) && (
                         <div className="mb-6">
                            <Button
                               size="giant"
@@ -914,9 +921,10 @@ export const AddCollaboratorModal = (
                         />
                      )
                   }
+
                   {
-                     (travelExpenses?.length ?? 0) > 0 && (
-                        <div className="mb-6">
+                     (travelExpenses?.length ?? 0) > 0 && selectedSalaryType && (!isTmnCompany && !isVigemsaCompany && !isProfessionalServicesSalary) && (
+                        <div className="mb-6 flex items-center gap-2 flex-wrap">
                            <p className="text-sm text-slate-600 dark:text-slate-400">
                               Viáticos asignados:{" "}
                               <span className="font-semibold text-slate-800 dark:text-slate-200">
@@ -926,6 +934,22 @@ export const AddCollaboratorModal = (
                                  }).join(", ")}
                               </span>
                            </p>
+                           <div className="group relative flex items-center">
+                              <button
+                                 type="button"
+                                 className="rounded-full p-1 transition-all bg-alpac-primary-500! text-white! hover:opacity-80"
+                                 onClick={() => {
+                                    setValue("travel_expenses", []);
+                                 }}
+                                 aria-label="Quitar viáticos"
+                              >
+                                 <X size={16} />
+                              </button>
+
+                              <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-slate-800 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+                                 Quitar viáticos
+                              </div>
+                           </div>
                         </div>
                      )
                   }
