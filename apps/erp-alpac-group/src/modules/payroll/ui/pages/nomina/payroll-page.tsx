@@ -14,7 +14,11 @@ import { useNavigate } from "react-router-dom";
 import { FileX } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import { usePayroll } from "@app/modules/payroll/ui/hooks/payroll/usePayroll";
+import {
+  usePayrollStatus,
+  usePayrollDetails,
+  useInitializePayroll,
+} from "@app/modules/payroll/ui/hooks/payroll/usePayroll";
 import { Loader } from "@app/shared/components/loaders/loader";
 import PayrollPageHeader from "@app/modules/payroll/ui/pages/nomina/components/payroll-page-header/payroll-page-header";
 import PayrollCycleFormalization from "@app/modules/payroll/ui/pages/nomina/components/payroll-cycle-formalization/payroll-cycle-formalization";
@@ -35,6 +39,7 @@ import { CheckPdfDocument } from "@app/modules/payroll/ui/pages/nomina/component
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
 import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
+import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
 // import { fetchImageAsDataUri } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/fetch-image-as-data-uri";
 
 export function PayrollPage() {
@@ -105,6 +110,8 @@ export function PayrollPage() {
     null,
   );
   const [isStatusErrorModalOpen, setIsStatusErrorModalOpen] = useState(false);
+  const [isInitializeConfirmModalOpen, setIsInitializeConfirmModalOpen] =
+    useState(false);
   const [showAlert, setShowAlert] = useState<{
     show: boolean;
     type: "success" | "error" | "warning" | "info";
@@ -184,8 +191,7 @@ export function PayrollPage() {
       (branch) => branch.branch_id === selectedBranch,
     )?.branch_name ?? null;
 
-  const payrollStatusQuery = usePayroll({
-    mode: "status",
+  const payrollStatusQuery = usePayrollStatus({
     payload: {
       companie_id: companyId,
       module_code: moduleCode,
@@ -198,8 +204,7 @@ export function PayrollPage() {
   const existPayrollInProgress =
     payrollStatusQuery.data?.exist_payroll_in_progress;
 
-  const ordinaryPayrollQuery = usePayroll({
-    mode: "details",
+  const ordinaryPayrollQuery = usePayrollDetails({
     payload: {
       companie_id: companyId,
       module_code: moduleCode,
@@ -228,6 +233,7 @@ export function PayrollPage() {
     ordinaryPayrollQuery.isFetching;
   const displayedBranchName =
     ordinaryPayrollQuery.data?.branch_name?.trim() || selectedBranchName;
+
   const hasCollaboratorsWithoutInss = useMemo(() => {
     const items = ordinaryPayrollQuery.data?.payroll_details?.items ?? [];
     return items.some((item) => !item.collaborator?.inss_number?.trim());
@@ -255,6 +261,67 @@ export function PayrollPage() {
       setIsStatusErrorModalOpen(false);
     }
   }, [payrollStatusQuery.isError]);
+
+  const initializePayrollMutation = useInitializePayroll();
+
+  const handleOpenInitializePayrollConfirmModal = useCallback(() => {
+    if (
+      !selectedPayrollType ||
+      !selectedBranch ||
+      initializePayrollMutation.isPending
+    ) {
+      return;
+    }
+
+    setIsInitializeConfirmModalOpen(true);
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    initializePayrollMutation.isPending,
+  ]);
+
+  const handleCloseInitializePayrollConfirmModal = useCallback(() => {
+    if (initializePayrollMutation.isPending) return;
+    setIsInitializeConfirmModalOpen(false);
+  }, [initializePayrollMutation.isPending]);
+
+  const handleInitializePayroll = useCallback(() => {
+    if (!selectedPayrollType || !selectedBranch) return;
+
+    setIsInitializeConfirmModalOpen(false);
+    initializePayrollMutation.mutate({
+      companie_id: companyId,
+      module_code: moduleCode,
+      type: selectedPayrollType,
+      branch_id: selectedBranch,
+    } as InitializePayrollParams, {
+      onSuccess: () => {
+        setShowAlert({
+          show: true,
+          type: "success",
+          title: "Nómina inicializada",
+          message: "La nómina se inicializó correctamente.",
+        });
+        handleCloseAlert();
+      },
+      onError: () => {
+        setShowAlert({
+          show: true,
+          type: "error",
+          title: "Error",
+          message: "No se pudo inicializar la nómina. Inténtelo nuevamente.",
+        });
+        handleCloseAlert();
+      },
+    });
+  }, [
+    companyId,
+    moduleCode,
+    selectedPayrollType,
+    selectedBranch,
+    initializePayrollMutation,
+    handleCloseAlert,
+  ]);
 
   const handleConfirmTypeSelection = useCallback(() => {
     if (tempSelectedType && tempSelectedBranch) {
@@ -471,7 +538,9 @@ export function PayrollPage() {
           <div className="flex w-full max-w-2xl flex-col gap-6 sm:flex-row sm:justify-center">
             <Button
               label="Inicializar nómina"
-              onClick={() => {}}
+              onClick={handleOpenInitializePayrollConfirmModal}
+              disabled={initializePayrollMutation.isPending}
+              isLoading={initializePayrollMutation.isPending}
               className="w-full! sm:w-[246px]! min-h-[48px]! py-2! text-[14px]! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! flex! items-center! justify-center!"
             />
             <Button
@@ -644,6 +713,39 @@ export function PayrollPage() {
             size="giant"
             label="Cancelar"
             onClick={handleSelectionModalClose}
+            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:flex-1 sm:min-w-0"
+          />
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={isInitializeConfirmModalOpen}
+        onClose={handleCloseInitializePayrollConfirmModal}
+        variant="default"
+        size="sm"
+        title="Confirmar inicialización"
+        description="¿Desea inicializar la nómina para la selección actual?"
+      >
+        <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
+          <Button
+            type="button"
+            size="giant"
+            label="Inicializar"
+            onClick={handleInitializePayroll}
+            isLoading={initializePayrollMutation.isPending}
+            disabled={
+              initializePayrollMutation.isPending ||
+              !selectedPayrollType ||
+              !selectedBranch
+            }
+            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:flex-1 sm:min-w-0"
+          />
+          <Button
+            type="button"
+            size="giant"
+            label="Cancelar"
+            onClick={handleCloseInitializePayrollConfirmModal}
+            disabled={initializePayrollMutation.isPending}
             className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:flex-1 sm:min-w-0"
           />
         </div>
