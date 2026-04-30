@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ModuleEnum } from "@app/core/enums/module.enum";
 import { Modal } from "@alpac/design-system";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import { useAuth } from "@app/modules/auth/ui/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +20,7 @@ export const DashboardLayout = () => {
   const { startProcessToCloseSession } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const mainContentRef = useRef<HTMLElement | null>(null);
 
   // mapeas la secciones = []
   const registry = sidebarData.navigationRegistry;
@@ -58,6 +59,10 @@ export const DashboardLayout = () => {
     }
   }, [isAuthorizedPath]);
 
+  useEffect(() => {
+    mainContentRef.current?.scrollTo({ top: 0, behavior: "auto" });
+  }, [location.pathname]);
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -81,7 +86,10 @@ export const DashboardLayout = () => {
           onLogout={handleLogout}
           isLoadingLogout={isLogout && startProcessToCloseSession.isPending}
         />
-        <main className="flex-1 overflow-y-auto p-5 md:p-7.5 relative ">
+        <main
+          ref={mainContentRef}
+          className="flex-1 overflow-y-auto p-5 md:p-7.5 relative "
+        >
           <AnimatePresence mode="wait">
             {isAuthorizedPath && <Outlet />}
           </AnimatePresence>

@@ -1,6 +1,6 @@
 import type { FormLayoutProps } from './form-layout.type';
 
-import Logo from "../../../assets/logos/color/alpac.png"
+import Logo from "../../../assets/logos/blanco/grupo vassalli-logo.png"
 import { CopyRight } from '@app/shared/components/copy-right/copy-right';
 
 export const FormLayout = ({ children, imageUrl = Logo }: FormLayoutProps) => {

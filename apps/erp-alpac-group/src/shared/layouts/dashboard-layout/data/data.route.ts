@@ -10,8 +10,7 @@ import {
    DollarSign,
    CircleMinus,
    HandCoins,
-   ClockIcon,
-   Coins,
+   ClipboardCheck,
 } from "lucide-react";
 import type { SidebarLink } from "../components/Sidebar/types/sidebar.types";
 
@@ -85,18 +84,11 @@ const liquidacionSection: SidebarLink = {
    icon: HandCoins,
 };
 
-const vacationPaymentSection: SidebarLink = {
-   id: "vacation-payment",
-   label: "Pago de Vacaciones",
-   path: "payroll/vacation-payment",
-   icon: Coins,
-};
-
-const attendanceControlSection: SidebarLink = {
-   id: "attendance-control",
-   label: "Control de asistencia",
-   path: "payroll/attendance-control",
-   icon: ClockIcon,
+const reportsSection: SidebarLink = {
+   id: "reports",
+   label: "Reportes",
+   path: "payroll/reports",
+   icon: ClipboardCheck,
 };
 
 export const sidebarData = {
@@ -111,8 +103,7 @@ export const sidebarData = {
             gestionPayrollSection,
             deduccionesSection,
             liquidacionSection,
-            vacationPaymentSection,
-            attendanceControlSection,
+            reportsSection,
          ],
          [RoleEnum.OPERATOR]: [collboratorSection],
       },

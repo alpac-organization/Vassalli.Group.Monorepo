@@ -1,3 +1,5 @@
+import type { Allowance } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-income-form/add-allowance-form.types";
+
 export interface AddCollaboratorRequest {
    company_id: string;
    module_code: string;
@@ -12,6 +14,7 @@ export interface AddCollaboratorRequest {
    personal_information: AddPersonalInformationRequest;
    working_information: AddWorkingInformationRequest;
    salary_information: AddSalaryInformationRequest;
+   travel_expenses?: Allowance[];
 }
 
 interface AddPersonalInformationRequest {

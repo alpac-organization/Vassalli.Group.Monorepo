@@ -13,3 +13,6 @@ export * from "./date-picker/date-picker"
 
 export * from "./radio-button/radio-button"
 export * from "./radio-button/radio-button.types"
+
+export * from "./checkbox/checkbox"
+export * from "./checkbox/checkbox.types"
