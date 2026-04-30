@@ -1,4 +1,4 @@
-import defaultLogo from "../../../assets/logos/blanco/grupo vassalli-logo.png";
+import defaultLogo from "../../../assets/logos/blanco/vasalli-logo.png";
 
 interface ContentLoadedProps {
   imageUrl?: string;
