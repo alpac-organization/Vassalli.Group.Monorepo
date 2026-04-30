@@ -1,15 +1,24 @@
 export interface PayrollProcessRequest {
-   /**
-    * Identificador único de la empresa
-    */
-   companyId: string;
-   /**
-    * Codigo del modulo de nomina
-    */
-   moduleCode: string;
-   /**
-    * Tipo de proceso de nomina
-    */
-   payrol_type: PayrollType;
+  /**
+   * Identificador único de la empresa
+   */
+  companie_id: string;
+  /**
+   * Codigo del modulo de nomina
+   */
+  module_code: string;
+  /**
+   * Tipo de proceso de nomina
+   */
+  payrol_type: PayrollType;
+
+  /**
+   * Identificador de la sucursal
+   */
+  branch_id: string;
 }
-type PayrollType = "None" | "Ordinary" | "Provided";
+export type PayrollType =
+  | "None"
+  | "Ordinary"
+  | "Provided"
+  | "ProfessionalServices";
