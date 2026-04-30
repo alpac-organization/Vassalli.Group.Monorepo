@@ -1,6 +1,7 @@
 import { CheckCircle } from "lucide-react";
 import type { ReportType } from "@app/modules/payroll/domain/ApiContract/Requests/reports-requests/generate-report-request";
-import { ReportDetails } from "../types/report-types";
+import { ReportDetails } from "@app/modules/payroll/ui/pages/reportes/types/report-types";
+import { Button } from "@alpac/design-system";
 interface ReportTypeGridProps {
   reports: ReportType[];
   selected: ReportType | null;
