@@ -11,7 +11,7 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { LoginRequest } from "@app/modules/auth/domain/ApiContract/Requests/login.request";
 import type { GetCompaniesResponse } from "@app/modules/auth/domain/ApiContract/Responses/get-companies.response";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import defaultColorLogo from "@app/assets/logos/color/grupo vassalli-logo.png";
+import defaultColorLogo from "@app/assets/logos/color/vasalli-neutral-logo.png";
 import defaultNeutralLogo from "@app/assets/logos/blanco/vasalli-logo.png";
 
 export const LoginPage = function () {
