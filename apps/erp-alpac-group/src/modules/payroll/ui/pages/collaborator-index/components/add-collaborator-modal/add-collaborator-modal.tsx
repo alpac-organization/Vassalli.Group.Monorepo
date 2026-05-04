@@ -296,7 +296,7 @@ export const AddCollaboratorModal = (
                            required: "El primer apellido es requerido",
                            setValueAs: (value: string) => value?.trim(),
                            validate: {
-                              onlyLetters: (value: string) => validateOnlyLettersWithAccentsAndDiacritics(value)
+                              onlyLetters: (value: string) => validateOnlyLettersWithAccentsAndDiacritics(value || "", true)
                            },
                         })}
                         error={errors.first_lastname && errors.first_lastname.message}
