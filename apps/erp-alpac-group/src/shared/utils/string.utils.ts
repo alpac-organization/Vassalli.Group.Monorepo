@@ -340,8 +340,8 @@ export const formatTimeHoursOnly = (time: string | null | undefined) => {
  * @param value - String a validar
  * @returns True si el string es válido, false si no
  */
-export const validateOnlyLettersWithAccentsAndDiacritics = (value: string): boolean | string => {
+export const validateOnlyLettersWithAccentsAndDiacritics = (value: string, withSpace: boolean = false): boolean | string => {
    if (!value) return true;
-   const regex = /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]*$/;
+   const regex = withSpace ? /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]*$/ : /^[A-Za-zñÑáéíóúÁÉÍÓÚ]*$/;
    return regex.test(value) || "Solo se permiten letras";
 };
