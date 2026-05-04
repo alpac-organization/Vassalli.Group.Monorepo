@@ -3,7 +3,7 @@ import { CollaboratorPage } from "@app/modules/payroll/ui/pages/collaborator-ind
 import { CollaboratorProfilePage } from "@app/modules/payroll/ui/pages/collaborator-profile/collaborator-profile-page";
 import { PayrollPage } from "@app/modules/payroll/ui/pages/nomina/payroll-page";
 import { ReportsPage } from "@app/modules/payroll/ui/pages/reportes/report-page";
-
+import { PayrollPeriodsHistoryPage } from "@app/modules/payroll/ui/pages/periods-payroll/Payroll-periods-history";
 import type { RouteObject } from "react-router-dom";
 
 export const PayrollRoutes: RouteObject[] = [
@@ -32,5 +32,9 @@ export const PayrollRoutes: RouteObject[] = [
   {
     path: "reportes",
     element: <ReportsPage />,
+  },
+  {
+    path: "historial-periodos-nomina",
+    element: <PayrollPeriodsHistoryPage />,
   },
 ];

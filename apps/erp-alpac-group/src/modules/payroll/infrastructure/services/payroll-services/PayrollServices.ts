@@ -5,10 +5,11 @@ import type { IPayrollServices } from "@app/modules/payroll/application/interfac
 import type { GetPayrollProcessResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-process";
 import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
 import { cleanParams } from "@app/shared/utils/object.utils";
-import type {
-  InitializePayrollParams,
-} from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
-
+import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
+import type { PayrollPeriodsHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-periods-history.request";
+import type { GetPayrollPeriodsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-periods";
+import { normalizeGetPayrollPeriodsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/payroll-periods-history.mapper";
+import type { PayrollPeriodItem } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-periods";
 export class PayrollServices implements IPayrollServices {
   private apiHandler: IHttpHandler;
 
@@ -76,6 +77,41 @@ export class PayrollServices implements IPayrollServices {
         `/companies/${companie_id}/modules/${module_code}/payrolls`,
         { type, branch_id },
       );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  public async getPayrollPeriodsHistory(
+    payload: PayrollPeriodsHistoryRequest,
+  ): Promise<PayrollPeriodItem[]> {
+    try {
+      const {
+        companie_id,
+        module_code,
+        branch_id,
+        type,
+        page_number,
+        page_size,
+      } = payload;
+      const params = {
+        type,
+        page_number,
+        page_size,
+      };
+
+      const response = await this.apiHandler.get<PayrollPeriodItem[]>(
+        `/companies/${companie_id}/modules/${module_code}/branches/${branch_id}/payrolls`,
+        {
+          params: cleanParams(params),
+        },
+      );
+      // return normalizeGetPayrollPeriodsHistoryResponse(raw, {
+      //   page_number,
+      //   page_size,
+      // });
+      console.log(response);
+      return response;
     } catch (error) {
       throw error;
     }

@@ -1,0 +1,239 @@
+import { useState, useMemo, useCallback, useEffect } from "react";
+import {
+  Breadcrumb,
+  Dropdown,
+  Modal,
+  Button,
+  useTheme,
+} from "@alpac/design-system";
+import { Loader } from "@app/shared/components/loaders/loader";
+import { useNavigate } from "react-router-dom";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
+import { usePayrollPeriodsHistory } from "@app/modules/payroll/ui/hooks/payroll/usePayrollPeriodsHistory";
+import { VirtualPayrollList } from "@app/modules/payroll/ui/pages/periods-payroll/components/virtual-payroll-list/virtual-payroll-list";
+import type { PayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
+
+export function PayrollPeriodsHistoryPage() {
+  const navigate = useNavigate();
+  const { theme } = useTheme();
+  const { companyId, moduleCode } = useUserStore();
+  const { GetBranchesQuery: branchesQuery } = useCompanies(
+    companyId ? { company_id: companyId } : undefined,
+  );
+
+  const [selectedPayrollType, setSelectedPayrollType] =
+    useState<PayrollType | null>(null);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+  const [tempSelectedType, setTempSelectedType] = useState<PayrollType | null>(
+    null,
+  );
+  const [tempSelectedBranch, setTempSelectedBranch] = useState<string | null>(
+    null,
+  );
+  const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
+  const [listRowHeight, setListRowHeight] = useState(() =>
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 639px)").matches
+      ? 152
+      : 124,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const apply = () => {
+      setListRowHeight(mq.matches ? 152 : 124);
+    };
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  const branchOptions = useMemo(() => {
+    return (branchesQuery.data ?? []).map((branch) => ({
+      label: branch.branch_name,
+      value: branch.branch_id,
+    }));
+  }, [branchesQuery.data]);
+
+  const payrollTypeOptions = [
+    { label: "Ordinaria", value: "Ordinary" },
+    { label: "Variable", value: "Provided" },
+  ];
+
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+  } = usePayrollPeriodsHistory({
+    payload: {
+      companie_id: companyId,
+      module_code: moduleCode,
+      type: selectedPayrollType ?? "None",
+      branch_id: selectedBranch ?? "",
+      page_size: 10,
+    },
+    enabled: selectedBranch !== null && selectedPayrollType !== null,
+  });
+
+  const allItems = useMemo(() => {
+    if (!data) return [];
+    return data.pages.flatMap((page) => page.items);
+  }, [data]);
+
+  const handleSelectionModalClose = useCallback(() => {
+    if (selectedPayrollType === null || selectedBranch === null) {
+      navigate("/dashboard");
+    } else {
+      setIsSelectionModalOpen(false);
+    }
+  }, [selectedPayrollType, selectedBranch, navigate]);
+
+  const handleConfirmTypeSelection = useCallback(() => {
+    if (tempSelectedType && tempSelectedBranch) {
+      setSelectedPayrollType(tempSelectedType);
+      setSelectedBranch(tempSelectedBranch);
+      setIsSelectionModalOpen(false);
+    }
+  }, [tempSelectedType, tempSelectedBranch]);
+
+  const handleOpenChangePayrollSelection = useCallback(() => {
+    setTempSelectedType(selectedPayrollType);
+    setTempSelectedBranch(selectedBranch);
+    setIsSelectionModalOpen(true);
+  }, [selectedPayrollType, selectedBranch]);
+
+  return (
+    <div className="flex min-h-0 flex-col gap-3 sm:gap-4 h-[calc(100dvh-88px)] sm:h-[calc(100vh-100px)]">
+      <Modal
+        isOpen={
+          selectedPayrollType === null ||
+          selectedBranch === null ||
+          isSelectionModalOpen
+        }
+        onClose={handleSelectionModalClose}
+        variant="default"
+        size="sm"
+        title="Seleccionar Nómina"
+        description="Por favor, primeramente seleccione el tipo de nómina y la sucursal que desea consultar."
+      >
+        <div className="mt-4 flex flex-col gap-4">
+          <Dropdown
+            label="Tipo de nómina"
+            placeholder="Seleccione tipo de nómina"
+            options={payrollTypeOptions}
+            value={tempSelectedType || undefined}
+            appearance={theme === "dark" ? "dark" : "default"}
+            labelClassName="text-white!"
+            onChange={(value) => setTempSelectedType(value as PayrollType)}
+          />
+          <Dropdown
+            label="Sucursal"
+            placeholder="Seleccione una sucursal"
+            options={branchOptions}
+            value={tempSelectedBranch || undefined}
+            appearance={theme === "dark" ? "dark" : "default"}
+            labelClassName="text-white!"
+            onChange={(value) => setTempSelectedBranch(String(value))}
+          />
+        </div>
+        <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
+          <Button
+            type="button"
+            size="giant"
+            label="Consultar"
+            onClick={handleConfirmTypeSelection}
+            disabled={!tempSelectedType || !tempSelectedBranch}
+            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:flex-1 sm:min-w-0 enabled:opacity-100! disabled:pointer-events-none disabled:opacity-50 disabled:saturate-75"
+          />
+          <Button
+            type="button"
+            size="giant"
+            label="Cancelar"
+            onClick={handleSelectionModalClose}
+            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:flex-1 sm:min-w-0"
+          />
+        </div>
+      </Modal>
+
+      <div className="flex justify-start">
+        <Breadcrumb
+          items={[
+            { label: "Dashboard", url: "/", onClick: (url) => navigate(url) },
+            {
+              label: "Historial de periodos",
+              url: "/payroll/payroll-periods-history",
+              onClick: (url) => navigate(url),
+            },
+          ]}
+        />
+      </div>
+
+      <div className="flex flex-col items-start justify-between gap-3 border-b border-slate-200 pb-3 dark:border-neutral-700 sm:gap-4 sm:pb-4 md:flex-row md:items-end">
+        <div className="min-w-0 pr-1">
+          <h3 className="m-0 text-xl font-bold leading-tight text-slate-800 sm:text-2xl dark:text-white">
+            Historial de Periodos de Nómina
+          </h3>
+          <p className="mt-1 text-xs leading-snug text-slate-500 sm:text-sm dark:text-slate-100">
+            Visualiza de forma cronológica todos los periodos procesados
+          </p>
+        </div>
+
+        <div className="w-full md:w-auto">
+          {selectedPayrollType && selectedBranch && (
+            <Button
+              type="button"
+              size="giant"
+              label="Cambiar tipo de nómina y sucursal"
+              onClick={handleOpenChangePayrollSelection}
+              className="w-full! md:w-auto! min-h-[40px]! px-4! text-center! text-[14px]! leading-snug! font-normal! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+            />
+          )}
+        </div>
+      </div>
+
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border border-slate-200 bg-slate-50/50 p-1.5 sm:rounded-xl sm:p-2 dark:border-neutral-800 dark:bg-[#15181e]/50">
+        {(!selectedBranch || !selectedPayrollType) && (
+          <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
+            <p>
+              Por favor, seleccione el tipo de nómina y sucursal para ver el
+              historial.
+            </p>
+          </div>
+        )}
+
+        {selectedBranch && selectedPayrollType && isLoading && (
+          <Loader title="Cargando historial de periodos..." />
+        )}
+
+        {selectedBranch &&
+          selectedPayrollType &&
+          !isLoading &&
+          allItems.length === 0 &&
+          !isError && (
+            <div className="flex flex-col items-center justify-center h-full text-slate-500 dark:text-slate-400 gap-4">
+              <p>No se encontraron periodos de nómina para esta selección.</p>
+            </div>
+          )}
+
+        {selectedBranch &&
+          selectedPayrollType &&
+          !isLoading &&
+          (allItems.length > 0 || isError) && (
+            <VirtualPayrollList
+              items={allItems}
+              itemHeight={listRowHeight}
+              hasNextPage={!!hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              isError={isError}
+              fetchNextPage={fetchNextPage}
+              className="w-full h-full"
+            />
+          )}
+      </div>
+    </div>
+  );
+}

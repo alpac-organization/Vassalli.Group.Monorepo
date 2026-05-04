@@ -11,6 +11,7 @@ import {
   CircleMinus,
   HandCoins,
   ClipboardCheck,
+  History,
 } from "lucide-react";
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 
@@ -56,6 +57,12 @@ const gestionPayrollSection: SidebarLink = {
   icon: DollarSign,
 };
 
+const payrollPeriodsHistorySection: SidebarLink = {
+  id: "historial-periodos-nómina",
+  label: "Periodos de Nómina",
+  path: "payroll/historial-periodos-nomina",
+  icon: History,
+};
 const settingsSection: SidebarLink = {
   id: "settings",
   label: "Configuración",
@@ -101,7 +108,7 @@ export const sidebarData = {
         collboratorSection,
         controlVacationsSection,
         gestionPayrollSection,
-        deduccionesSection,
+        payrollPeriodsHistorySection,
         liquidacionSection,
         reportsSection,
       ],
