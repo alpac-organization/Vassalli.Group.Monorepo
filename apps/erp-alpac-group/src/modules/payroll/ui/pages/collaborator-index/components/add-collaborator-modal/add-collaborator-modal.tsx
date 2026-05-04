@@ -116,10 +116,13 @@ export const AddCollaboratorModal = (
 
    const handleCreateCollaborator = async (data: AddCollaboratorRequest) => {
       try {
+         const { travel_expenses, ...restData } = data;
+
          await PostCollaboratorQuery.mutateAsync({
-            ...data,
+            ...restData,
             company_id: companyId,
             module_code: moduleCode,
+            ...(travel_expenses && travel_expenses.length > 0 ? { travel_expenses } : {}),
          });
 
          props.onRequestSuccess?.("Colaborador creado exitosamente");
