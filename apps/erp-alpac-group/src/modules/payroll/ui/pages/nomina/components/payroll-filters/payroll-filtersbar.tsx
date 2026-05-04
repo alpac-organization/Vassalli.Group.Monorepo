@@ -145,7 +145,7 @@ export default function PayrollFiltersBar({
           />
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col sm:col-span-2 lg:col-span-1">
           <Button
             type="button"
             size="giant"

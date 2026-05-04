@@ -40,7 +40,7 @@ export default function PayrollCycleFormalization({
     <>
       <div className="w-full max-w-full">
         <div className="flex w-full flex-col gap-5 sm:gap-4">
-          <div className="grid min-w-0 grid-cols-1 items-end gap-5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-4">
+          <div className="grid min-w-0 grid-cols-1 items-end gap-5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
             <div className="flex min-w-0 flex-col">
               <InputText
                 label="Inicio del ciclo"
@@ -70,7 +70,7 @@ export default function PayrollCycleFormalization({
                 className={cycleInputClassName}
               />
             </div>
-            <div className="flex min-w-0 flex-col">
+            <div className="flex min-w-0 flex-col sm:col-span-2 xl:col-span-1">
               <Button
                 type="button"
                 size="giant"

@@ -40,6 +40,7 @@ import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
 import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 // import { fetchImageAsDataUri } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/fetch-image-as-data-uri";
 
 export function PayrollPage() {
@@ -112,6 +113,8 @@ export function PayrollPage() {
   const [isStatusErrorModalOpen, setIsStatusErrorModalOpen] = useState(false);
   const [isInitializeConfirmModalOpen, setIsInitializeConfirmModalOpen] =
     useState(false);
+  const [initializeModalPayrollType, setInitializeModalPayrollType] = useState<PayrollType | null>(null);
+  const [initializeModalBranch, setInitializeModalBranch] = useState<string | null>(null);
   const [showAlert, setShowAlert] = useState<{
     show: boolean;
     type: "success" | "error" | "warning" | "info";
@@ -265,14 +268,12 @@ export function PayrollPage() {
   const initializePayrollMutation = useInitializePayroll();
 
   const handleOpenInitializePayrollConfirmModal = useCallback(() => {
-    if (
-      !selectedPayrollType ||
-      !selectedBranch ||
-      initializePayrollMutation.isPending
-    ) {
+    if (initializePayrollMutation.isPending) {
       return;
     }
 
+    setInitializeModalPayrollType(selectedPayrollType);
+    setInitializeModalBranch(selectedBranch);
     setIsInitializeConfirmModalOpen(true);
   }, [
     selectedPayrollType,
@@ -286,39 +287,45 @@ export function PayrollPage() {
   }, [initializePayrollMutation.isPending]);
 
   const handleInitializePayroll = useCallback(() => {
-    if (!selectedPayrollType || !selectedBranch) return;
+    if (!initializeModalPayrollType || !initializeModalBranch) return;
 
-    setIsInitializeConfirmModalOpen(false);
-    initializePayrollMutation.mutate({
-      companie_id: companyId,
-      module_code: moduleCode,
-      type: selectedPayrollType,
-      branch_id: selectedBranch,
-    } as InitializePayrollParams, {
-      onSuccess: () => {
-        setShowAlert({
-          show: true,
-          type: "success",
-          title: "Nómina inicializada",
-          message: "La nómina se inicializó correctamente.",
-        });
-        handleCloseAlert();
+    initializePayrollMutation.mutate(
+      {
+        companie_id: companyId,
+        module_code: moduleCode,
+        type: initializeModalPayrollType,
+        branch_id: initializeModalBranch,
+      } as InitializePayrollParams,
+      {
+        onSuccess: () => {
+          setSelectedPayrollType(initializeModalPayrollType);
+          setSelectedBranch(initializeModalBranch);
+          setIsInitializeConfirmModalOpen(false);
+          setShowAlert({
+            show: true,
+            type: "success",
+            title: "Nómina inicializada",
+            message: "La nómina se inicializó correctamente.",
+          });
+          handleCloseAlert();
+        },
+        onError: (error) => {
+          const apiError = error as ApiErrorResponse;
+          setShowAlert({
+            show: true,
+            type: "error",
+            title: "No se pudo inicializar",
+            message: apiError?.error?.description || "No se pudo inicializar la nómina. Inténtelo nuevamente.",
+          });
+          handleCloseAlert();
+        },
       },
-      onError: () => {
-        setShowAlert({
-          show: true,
-          type: "error",
-          title: "Error",
-          message: "No se pudo inicializar la nómina. Inténtelo nuevamente.",
-        });
-        handleCloseAlert();
-      },
-    });
+    );
   }, [
     companyId,
     moduleCode,
-    selectedPayrollType,
-    selectedBranch,
+    initializeModalPayrollType,
+    initializeModalBranch,
     initializePayrollMutation,
     handleCloseAlert,
   ]);
@@ -724,8 +731,28 @@ export function PayrollPage() {
         variant="default"
         size="sm"
         title="Confirmar inicialización"
-        description="¿Desea inicializar la nómina para la selección actual?"
+        description="Por favor, seleccione el tipo de nómina y la sucursal para inicializar."
       >
+        <div className="mt-4 flex flex-col gap-4">
+          <Dropdown
+            label="Tipo de nómina"
+            placeholder="Seleccione tipo de nómina"
+            options={payrollTypeOptions}
+            value={initializeModalPayrollType || undefined}
+            appearance={theme === "dark" ? "dark" : "default"}
+            labelClassName="text-white!"
+            onChange={(value) => setInitializeModalPayrollType(value as PayrollType)}
+          />
+          <Dropdown
+            label="Sucursal"
+            placeholder="Seleccione una sucursal"
+            options={branchOptions}
+            value={initializeModalBranch || undefined}
+            appearance={theme === "dark" ? "dark" : "default"}
+            labelClassName="text-white!"
+            onChange={(value) => setInitializeModalBranch(String(value))}
+          />
+        </div>
         <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
           <Button
             type="button"
@@ -735,10 +762,10 @@ export function PayrollPage() {
             isLoading={initializePayrollMutation.isPending}
             disabled={
               initializePayrollMutation.isPending ||
-              !selectedPayrollType ||
-              !selectedBranch
+              !initializeModalPayrollType ||
+              !initializeModalBranch
             }
-            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:flex-1 sm:min-w-0"
+            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:flex-1 sm:min-w-0 enabled:opacity-100! disabled:pointer-events-none disabled:opacity-50 disabled:saturate-75"
           />
           <Button
             type="button"
@@ -865,19 +892,20 @@ export function PayrollPage() {
               <div className="flex flex-col justify-center">
                 <h3 className="p-0! m-0!">Accesos Directos</h3>
                 <small className="text-gray-500 dark:text-gray-300">
-                  Descripcion de accesos directos
+                  Aqui puedes cambiar el tipo de nómina y sucursal, generar un
+                  reporte o solicitudes de pago.
                 </small>
               </div>
             </div>
 
             <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-              <div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
+              <div className="w-full flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-center lg:justify-start">
                 <Button
                   type="button"
                   size="giant"
                   label="Cambiar tipo de nómina y sucursal"
                   onClick={handleOpenChangePayrollSelection}
-                  className="w-full! md:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                  className="w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                 />
                 <Button
                   type="button"
@@ -886,7 +914,7 @@ export function PayrollPage() {
                   isLoading={isGeneratingPdf}
                   disabled={!existPayrollInProgress}
                   onClick={handleGeneratePdf}
-                  className={`w-full! md:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPdf
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
@@ -903,7 +931,7 @@ export function PayrollPage() {
                     !hasCollaboratorsWithoutInss
                   }
                   onClick={handleGeneratePaymentRequestsPdf}
-                  className={`w-full! md:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPaymentRequestsPdf
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
