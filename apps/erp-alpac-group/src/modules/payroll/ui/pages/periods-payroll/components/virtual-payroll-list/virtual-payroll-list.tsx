@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Button } from "@alpac/design-system";
 import { PayrollHistoryCard } from "@app/modules/payroll/ui/pages/periods-payroll/components/payroll-history-card/payroll-history-card";
 import { Loader } from "@app/shared/components/loaders/loader";
@@ -58,23 +58,6 @@ export function VirtualPayrollList({
 
   const totalListHeight = items.length * itemHeight;
 
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const sentinelRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      if (isFetchingNextPage || isLoadMoreError) return;
-      if (observerRef.current) observerRef.current.disconnect();
-
-      observerRef.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasNextPage) {
-          fetchNextPage();
-        }
-      });
-
-      if (node) observerRef.current.observe(node);
-    },
-    [isFetchingNextPage, isLoadMoreError, hasNextPage, fetchNextPage],
-  );
-
   if (isInitialFetchError) {
     return (
       <div
@@ -105,7 +88,7 @@ export function VirtualPayrollList({
       >
         {visibleItems.map(({ item, index }) => (
           <PayrollHistoryCard
-            key={item.payrollId}
+            key={item.payroll_id}
             period={item}
             style={{
               height: itemHeight,
@@ -116,7 +99,14 @@ export function VirtualPayrollList({
       </div>
 
       <div className="flex w-full flex-col items-center py-2 sm:py-4">
-        <div ref={sentinelRef} className="h-1 w-full" />
+        {hasNextPage && !isFetchingNextPage && !isLoadMoreError && (
+          <Button
+            type="button"
+            label="Cargar más registros"
+            onClick={() => fetchNextPage()}
+            className="min-h-[40px]! px-4! text-[14px]! leading-snug! font-normal! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+          />
+        )}
 
         {isFetchingNextPage && (
           <div className="flex justify-center items-center py-4 w-full">
@@ -126,7 +116,7 @@ export function VirtualPayrollList({
 
         {isLoadMoreError && (
           <div className="mt-2 flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:mt-4 sm:rounded-xl sm:p-6 dark:border-red-800 dark:bg-red-900/10">
-            <div className="flex flex-wrap items-center justify-center gap-2 text-center text-sm font-medium text-red-600 sm:text-base dark:text-red-400">
+            <div className="flex flex-wrap items-center justify-center gap-2 p-2 text-center text-sm font-medium text-red-600 sm:text-base dark:text-red-400">
               <AlertCircle size={18} className="shrink-0 sm:h-5 sm:w-5" />
               <span>
                 Ha ocurrido un Error al cargar más periodos de nómina, inténtelo
@@ -137,7 +127,7 @@ export function VirtualPayrollList({
               type="button"
               label="Reintentar"
               onClick={() => fetchNextPage()}
-              className="bg-red-400 text-white hover:bg-red-700 dark:bg-red-500/60 dark:hover:bg-red-600/40"
+              className="bg-red-400 text-white h-8  hover:bg-red-700 dark:bg-red-500/60 dark:hover:bg-red-600/40"
             />
           </div>
         )}
@@ -146,10 +136,7 @@ export function VirtualPayrollList({
           <div className="flex w-full justify-center px-2 py-3 sm:px-4 sm:py-5">
             <div className="flex w-full max-w-2xl flex-col items-center justify-center rounded-lg border border-red-200 bg-red-500 p-3 sm:rounded-xl sm:p-6 dark:border-red-800 dark:bg-red-900/10">
               <div className="flex flex-wrap items-center justify-center gap-2 text-center text-xs font-medium text-red-600 sm:text-sm dark:text-red-400">
-                <Milestone
-                  size={16}
-                  className="shrink-0 sm:h-5 sm:w-5"
-                />
+                <Milestone size={16} className="shrink-0 sm:h-5 sm:w-5" />
                 <span>Has llegado al final del historial de periodos.</span>
               </div>
             </div>

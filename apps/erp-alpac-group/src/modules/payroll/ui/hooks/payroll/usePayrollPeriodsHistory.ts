@@ -31,7 +31,6 @@ export function usePayrollPeriodsHistory({
       module_code,
       branch_id,
       type,
-      // page_size,
     ],
     queryFn: ({ pageParam = 1 }) =>
       payrollServices.getPayrollPeriodsHistory({
@@ -40,14 +39,8 @@ export function usePayrollPeriodsHistory({
         page_size,
       }),
     initialPageParam: 1,
-    getNextPageParam: (lastPage) => {
-      // const { page_number, total_items, page_size: lastPageSize } = lastPage;
-      // const size = lastPageSize > 0 ? lastPageSize : page_size;
-      // const totalPages = Math.max(1, Math.ceil(total_items / size));
-      // if (page_number < totalPages) {
-      //   return page_number + 1;
-      // }
-      // return undefined;
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      return lastPage.length < page_size ? undefined : lastPageParam + 1;
     },
     enabled: enabled && Boolean(companie_id && module_code && branch_id),
     staleTime: 1000 * 60 * 5,

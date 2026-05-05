@@ -16,22 +16,22 @@ export function mapPayrollTypeFromApi(type: string): PayrollType {
 function mapRowToPayrollPeriodItem(row: unknown): PayrollPeriodItem | null {
   if (!row || typeof row !== "object") return null;
   const r = row as Record<string, unknown>;
-  const payrollId = String(r.payrollId ?? r.payroll_id ?? "");
-  const startDate = String(r.startDate ?? r.start_date ?? "");
-  const endDate = String(r.endDate ?? r.end_date ?? "");
+  const payroll_id = String(r.payroll_id ?? r.payrollId ?? "");
+  const start_date = String(r.start_date ?? r.startDate ?? "");
+  const end_date = String(r.end_date ?? r.endDate ?? "");
   const typeRaw = String(r.type ?? "None");
-  if (!payrollId || !startDate || !endDate) return null;
+  if (!payroll_id || !start_date || !end_date) return null;
 
-  const branchId = r.branchId ?? r.branch_id;
-  const branchName = r.branchName ?? r.branch_name;
+  const branch_id = r.branch_id ?? r.branchId;
+  const branch_name = r.branch_name ?? r.branchName;
 
   return {
-    payrollId,
-    startDate,
-    endDate,
+    payroll_id,
+    start_date,
+    end_date,
     type: mapPayrollTypeFromApi(typeRaw),
-    ...(typeof branchId === "string" && branchId ? { branchId } : {}),
-    ...(typeof branchName === "string" && branchName ? { branchName } : {}),
+    ...(typeof branch_id === "string" && branch_id ? { branch_id } : {}),
+    ...(typeof branch_name === "string" && branch_name ? { branch_name } : {}),
   };
 }
 

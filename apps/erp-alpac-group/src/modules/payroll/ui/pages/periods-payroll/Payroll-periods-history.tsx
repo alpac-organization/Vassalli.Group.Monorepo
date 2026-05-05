@@ -13,6 +13,7 @@ import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { usePayrollPeriodsHistory } from "@app/modules/payroll/ui/hooks/payroll/usePayrollPeriodsHistory";
 import { VirtualPayrollList } from "@app/modules/payroll/ui/pages/periods-payroll/components/virtual-payroll-list/virtual-payroll-list";
 import type { PayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
+import { AlertCircle } from "lucide-react";
 
 export function PayrollPeriodsHistoryPage() {
   const navigate = useNavigate();
@@ -81,7 +82,7 @@ export function PayrollPeriodsHistoryPage() {
 
   const allItems = useMemo(() => {
     if (!data) return [];
-    return data.pages.flatMap((page) => page.items);
+    return data.pages.flatMap((page) => page);
   }, [data]);
 
   const handleSelectionModalClose = useCallback(() => {
@@ -177,7 +178,7 @@ export function PayrollPeriodsHistoryPage() {
           <h3 className="m-0 text-xl font-bold leading-tight text-slate-800 sm:text-2xl dark:text-white">
             Historial de Periodos de Nómina
           </h3>
-          <p className="mt-1 text-xs leading-snug text-slate-500 sm:text-sm dark:text-slate-100">
+          <p className="mt-1 text-xs leading-snug text-slate-500 sm:text-sm dark:text-slate-300">
             Visualiza de forma cronológica todos los periodos procesados
           </p>
         </div>
@@ -195,7 +196,7 @@ export function PayrollPeriodsHistoryPage() {
         </div>
       </div>
 
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border border-slate-200 bg-slate-50/50 p-1.5 sm:rounded-xl sm:p-2 dark:border-neutral-800 dark:bg-[#15181e]/50">
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border border-slate-200 bg-slate-50/50 p-4 sm:rounded-xl sm:p-2 dark:border-neutral-800 dark:bg-[#15181e]/50">
         {(!selectedBranch || !selectedPayrollType) && (
           <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
             <p>
@@ -214,8 +215,15 @@ export function PayrollPeriodsHistoryPage() {
           !isLoading &&
           allItems.length === 0 &&
           !isError && (
-            <div className="flex flex-col items-center justify-center h-full text-slate-500 dark:text-slate-400 gap-4">
-              <p>No se encontraron periodos de nómina para esta selección.</p>
+            <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
+              <div className="flex w-full max-w-2xl flex-col items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-500 p-4 sm:rounded-xl sm:p-6 dark:border-red-800 dark:bg-red-900/10">
+                <div className="flex flex-wrap items-center justify-center gap-2 py-2 text-center text-sm font-medium text-red-600 sm:py-12 sm:text-base dark:text-red-400">
+                  <AlertCircle size={18} className="shrink-0 sm:h-5 sm:w-5" />
+                  <p>
+                    No se encontraron periodos de nómina para esta selección.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 

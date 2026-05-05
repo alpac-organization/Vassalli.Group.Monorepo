@@ -7,8 +7,6 @@ import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContr
 import { cleanParams } from "@app/shared/utils/object.utils";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
 import type { PayrollPeriodsHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-periods-history.request";
-import type { GetPayrollPeriodsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-periods";
-import { normalizeGetPayrollPeriodsHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/payroll-periods-history.mapper";
 import type { PayrollPeriodItem } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-periods";
 export class PayrollServices implements IPayrollServices {
   private apiHandler: IHttpHandler;
@@ -106,11 +104,6 @@ export class PayrollServices implements IPayrollServices {
           params: cleanParams(params),
         },
       );
-      // return normalizeGetPayrollPeriodsHistoryResponse(raw, {
-      //   page_number,
-      //   page_size,
-      // });
-      console.log(response);
       return response;
     } catch (error) {
       throw error;
