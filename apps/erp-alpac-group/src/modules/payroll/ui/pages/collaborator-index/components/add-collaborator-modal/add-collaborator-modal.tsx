@@ -116,10 +116,13 @@ export const AddCollaboratorModal = (
 
    const handleCreateCollaborator = async (data: AddCollaboratorRequest) => {
       try {
+         const { travel_expenses, ...restData } = data;
+
          await PostCollaboratorQuery.mutateAsync({
-            ...data,
+            ...restData,
             company_id: companyId,
             module_code: moduleCode,
+            ...(travel_expenses && travel_expenses.length > 0 ? { travel_expenses } : {}),
          });
 
          props.onRequestSuccess?.("Colaborador creado exitosamente");
@@ -296,7 +299,7 @@ export const AddCollaboratorModal = (
                            required: "El primer apellido es requerido",
                            setValueAs: (value: string) => value?.trim(),
                            validate: {
-                              onlyLetters: (value: string) => validateOnlyLettersWithAccentsAndDiacritics(value)
+                              onlyLetters: (value: string) => validateOnlyLettersWithAccentsAndDiacritics(value || "", true)
                            },
                         })}
                         error={errors.first_lastname && errors.first_lastname.message}
@@ -889,7 +892,7 @@ export const AddCollaboratorModal = (
                   </div>
 
                   {
-                     selectedSalaryType && !isProfessionalServicesSalary && (travelExpenses?.length ?? 0) <= 0 && (!isTmnCompany && !isVigemsaCompany) && (
+                     selectedSalaryType && !isProfessionalServicesSalary && (travelExpenses?.length ?? 0) <= 0 && (
                         <div className="mb-6">
                            <Button
                               size="giant"
@@ -903,7 +906,7 @@ export const AddCollaboratorModal = (
                   }
 
                   {
-                     isProfessionalServicesSalary && selectedSalaryType && (isVigemsaCompany || isTmnCompany) && (
+                     selectedSalaryType && isProfessionalServicesSalary && (isVigemsaCompany || isTmnCompany) && (
                         <div className="mb-6">
                            <ServiceRatesTable
                               company={isVigemsaCompany ? "VIGEMSA" : "TMN"}
@@ -913,7 +916,7 @@ export const AddCollaboratorModal = (
                   }
 
                   {
-                     (isProfessionalServicesSalary && selectedSalaryType && (!isVigemsaCompany && !isTmnCompany)) && (
+                     (selectedSalaryType && isProfessionalServicesSalary && (!isVigemsaCompany && !isTmnCompany)) && (
                         <Alert
                            type="info"
                            title="Aviso"
@@ -923,7 +926,7 @@ export const AddCollaboratorModal = (
                   }
 
                   {
-                     (travelExpenses?.length ?? 0) > 0 && selectedSalaryType && (!isTmnCompany && !isVigemsaCompany && !isProfessionalServicesSalary) && (
+                     selectedSalaryType && !isProfessionalServicesSalary && (travelExpenses?.length ?? 0) > 0 && (
                         <div className="mb-6 flex items-center gap-2 flex-wrap">
                            <p className="text-sm text-slate-600 dark:text-slate-400">
                               Viáticos asignados:{" "}
