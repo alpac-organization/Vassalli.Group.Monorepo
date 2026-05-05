@@ -1,4 +1,4 @@
-import type { Allowance } from "../add-income-form/add-allowance-form.types";
+import type { Allowance } from "../add-allowance-form/add-allowance-form.types";
 
 export type AddAllowanceModalProps = {
    isOpen: boolean;
