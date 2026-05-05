@@ -5,9 +5,7 @@ import type { IPayrollServices } from "@app/modules/payroll/application/interfac
 import type { GetPayrollProcessResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-process";
 import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
 import { cleanParams } from "@app/shared/utils/object.utils";
-import type {
-  InitializePayrollParams,
-} from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
+import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
 
 export class PayrollServices implements IPayrollServices {
   private apiHandler: IHttpHandler;
