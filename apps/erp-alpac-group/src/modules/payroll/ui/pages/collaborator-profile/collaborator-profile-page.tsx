@@ -73,7 +73,7 @@ export function CollaboratorProfilePage() {
   const TABS: TabOption<TabId>[] = [
     { id: "Personal", label: "Información Personal" },
     { id: "Working", label: "Información de Trabajo" },
-    { id: "Generar-documentos", label: "Generar documentos" },
+    //  { id: "Generar-documentos", label: "Generar documentos" },
   ];
 
   if (!targetIdentification) {
