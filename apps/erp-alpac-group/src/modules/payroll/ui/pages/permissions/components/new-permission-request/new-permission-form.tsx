@@ -11,7 +11,7 @@ import { generatePermissionPayload } from "./utils/generatePermissionPayload";
 import { validateIntegerNumber, validatePositiveNumber } from "@app/shared/utils/number.utils";
 import { validateMaximumDonatedVacation } from "./utils/validateMaximumDonatedVacation";
 import { CollaboratorSearchForm } from "../collaborator-search-form/collaborator-search-form";
-import { NewPermissionCollaboratorSummary } from "./collaborator-summary";
+import { CollaboratorSummary } from "./collaborator-summary";
 
 import type { PermissionRequestFormValues } from "./types/permission-form.types";
 import type { PermissionType } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
@@ -163,15 +163,11 @@ export function NewPermissionRequestForm(
          )}
 
          {isSelectedAtLeastOneType && applicationType.DonatedVacations && foundBeneficiary && (
-            <motion.div
-               variants={formFieldVariants}
-               initial="hidden"
-               animate="visible"
-               className="relative min-w-0 flex flex-row items-center gap-4 w-full"
+            <div className="relative min-w-0 flex flex-row items-center gap-4 w-full"
             >
 
                <div className="min-w-0 flex-1">
-                  <NewPermissionCollaboratorSummary
+                  <CollaboratorSummary
                      fullName={foundBeneficiary.full_name}
                      workPosition={foundBeneficiary.work_position}
                      isFullNameLoading={isSearching}
@@ -199,7 +195,7 @@ export function NewPermissionRequestForm(
                   </div>
                </div>
 
-            </motion.div>
+            </div>
          )}
 
          <Controller
@@ -458,7 +454,6 @@ export function NewPermissionRequestForm(
                               <div className="min-w-0">
                                  <CollaboratorSearchForm
                                     label="Buscar colaborador beneficiario"
-                                    excludeIdentification={identificationNumber}
                                     onSuccess={(collaborator) => {
                                        setFoundBeneficiary(collaborator);
                                        setValue("beneficiary_identification", collaborator.personal_information.identification_number);
@@ -473,6 +468,7 @@ export function NewPermissionRequestForm(
                                        setSearchError(null);
                                        setIsSearching(true);
                                     }}
+                                    excludeIdentifications={[identificationNumber]}
                                  />
                               </div>
 
