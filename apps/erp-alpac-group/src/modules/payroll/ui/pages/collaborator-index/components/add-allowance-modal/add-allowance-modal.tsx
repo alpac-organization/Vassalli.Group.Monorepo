@@ -3,13 +3,11 @@ import { Modal, Alert } from "@alpac/design-system";
 import { AnimatePresence, motion, type Variants } from "framer-motion";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import { AddAllowanceForm } from "../add-income-form/add-allowance-form";
+import { AddAllowanceForm } from "../add-allowance-form/add-allowance-form";
 
 import type { AddAllowanceModalProps } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-allowance-modal/add-allowance-modal.types";
 
-export const AddAllowanceModal = (
-   props: AddAllowanceModalProps
-): React.ReactNode => {
+export const AddAllowanceModal = (props: AddAllowanceModalProps): React.ReactNode => {
 
    const { role } = useUserStore();
    const [searchError, setSearchError] = useState<string | null>(null);
@@ -37,7 +35,6 @@ export const AddAllowanceModal = (
          description="Complete la información de los viáticos"
       >
          <div className="flex flex-col gap-5">
-
 
             <AnimatePresence>
                {searchError && (

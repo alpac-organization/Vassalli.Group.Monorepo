@@ -7,7 +7,7 @@ export interface GetPayrollResponse {
   branch_name?: string;
   payroll_details: PayrollDetailsResponse;
 }
-export interface PayrollDetailsResponse {
+interface PayrollDetailsResponse {
   items: PayrollItemResponse[];
   total_items: number;
   page_size: number;
@@ -40,4 +40,5 @@ export interface CollaboratorResponse {
   work_area?: string;
   job_position?: string;
   identification_number: string;
+  entry_date: string;
 }

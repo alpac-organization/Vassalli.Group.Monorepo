@@ -1,4 +1,4 @@
-import type { Allowance } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-income-form/add-allowance-form.types";
+import type { Allowance } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-allowance-form/add-allowance-form.types";
 
 export interface AddCollaboratorRequest {
    company_id: string;

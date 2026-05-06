@@ -6,6 +6,10 @@ import type { GetPayrollProcessResponse } from "@app/modules/payroll/domain/ApiC
 import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
 import { cleanParams } from "@app/shared/utils/object.utils";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
+import type { GenerateReportPayrollRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/generate-report-payroll";
+import type { GetPayrollReportsPayloadResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-reports";
+
+import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
 import type { PayrollPeriodsHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-periods-history.request";
 import type { PayrollPeriodItem } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-periods";
 export class PayrollServices implements IPayrollServices {
@@ -75,6 +79,23 @@ export class PayrollServices implements IPayrollServices {
         `/companies/${companie_id}/modules/${module_code}/payrolls`,
         { type, branch_id },
       );
+    } catch (error) {
+      throw error;
+    }
+  }
+  public async generateReportsPayroll(
+    payload: GenerateReportPayrollRequest,
+  ): Promise<GetPayrollReportsPayloadResponse> {
+    const { companie_id, report_type, payroll_id } = payload;
+    try {
+      const response =
+        await this.apiHandler.get<GetPayrollReportsPayloadResponse>(
+          `companies/${companie_id}/reports`,
+          {
+            params: { report_type, payroll_id },
+          },
+        );
+      return response;
     } catch (error) {
       throw error;
     }

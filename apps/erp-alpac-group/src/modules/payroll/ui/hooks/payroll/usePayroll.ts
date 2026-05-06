@@ -7,6 +7,7 @@ import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContr
 import type { PayrollRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-request";
 import type { GetPayrollResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
 const payrollServices = new PayrollServices(httpHandler);
 
@@ -78,12 +79,12 @@ export function usePayrollDetails({
 
 export function useInitializePayroll(): UseMutationResult<
   void | null,
-  Error,
+  ApiErrorResponse,
   InitializePayrollParams
 > {
   const queryClient = useQueryClient();
 
-  return useMutation<void | null, Error, InitializePayrollParams>({
+  return useMutation<void | null, ApiErrorResponse, InitializePayrollParams>({
     mutationFn: (payload) => payrollServices.initializePayroll(payload),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({

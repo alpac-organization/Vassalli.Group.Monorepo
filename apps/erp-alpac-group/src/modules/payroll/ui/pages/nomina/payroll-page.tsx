@@ -36,11 +36,15 @@ import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import { pdf } from "@react-pdf/renderer";
 import { PayrollPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/payroll-pdf-document";
 import { CheckPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/check-pdf-document";
+import { AccumulatedHistoryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/accumulated-history-pdf-document";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
 import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
+// import { exportPayrollExcel } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/export-payroll-excel";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 // import { fetchImageAsDataUri } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/fetch-image-as-data-uri";
+import type { PayrollActionValue } from "@app/modules/payroll/ui/pages/nomina/types/payroll-actions.types";
 
 export function PayrollPage() {
   const maxPageSize = 10;
@@ -102,16 +106,28 @@ export function PayrollPage() {
     payrollColumns.map((col) => col.key as string),
   );
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  //   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
   const [isGeneratingPaymentRequestsPdf, setIsGeneratingPaymentRequestsPdf] =
     useState(false);
+  const [
+    isGeneratingAccumulatedHistoryPdf,
+    setIsGeneratingAccumulatedHistoryPdf,
+  ] = useState(false);
   const [identificationFilter, setIdentificationFilter] = useState("");
   const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
   const [jobPositionFilter, setJobPositionFilter] = useState<number | null>(
     null,
   );
+  const [selectedAction, setSelectedAction] =
+    useState<PayrollActionValue | null>(null);
   const [isStatusErrorModalOpen, setIsStatusErrorModalOpen] = useState(false);
   const [isInitializeConfirmModalOpen, setIsInitializeConfirmModalOpen] =
     useState(false);
+  const [initializeModalPayrollType, setInitializeModalPayrollType] =
+    useState<PayrollType | null>(null);
+  const [initializeModalBranch, setInitializeModalBranch] = useState<
+    string | null
+  >(null);
   const [showAlert, setShowAlert] = useState<{
     show: boolean;
     type: "success" | "error" | "warning" | "info";
@@ -238,6 +254,35 @@ export function PayrollPage() {
     const items = ordinaryPayrollQuery.data?.payroll_details?.items ?? [];
     return items.some((item) => !item.collaborator?.inss_number?.trim());
   }, [ordinaryPayrollQuery.data]);
+  const totalPayrollRecords =
+    ordinaryPayrollQuery.data?.payroll_details?.total_items ?? 0;
+  const hasPayrollData = totalPayrollRecords > 0;
+
+  const payrollActionOptions = useMemo(() => {
+    const options: { label: string; value: PayrollActionValue }[] = [
+      { label: "Generar Reporte Nómina", value: "report" },
+      {
+        label: "Generar Historial Acumulado",
+        value: "accumulated_history",
+      },
+    ];
+    if (hasCollaboratorsWithoutInss && !detailsFetchInFlight) {
+      options.push({
+        label: "Generar Solicitudes de Pago",
+        value: "payment_requests",
+      });
+    }
+    return options;
+  }, [hasCollaboratorsWithoutInss, detailsFetchInFlight]);
+
+  useEffect(() => {
+    if (
+      selectedAction &&
+      !payrollActionOptions.some((o) => o.value === selectedAction)
+    ) {
+      setSelectedAction(null);
+    }
+  }, [selectedAction, payrollActionOptions]);
 
   useEffect(() => {
     const hasActiveSelection =
@@ -265,14 +310,12 @@ export function PayrollPage() {
   const initializePayrollMutation = useInitializePayroll();
 
   const handleOpenInitializePayrollConfirmModal = useCallback(() => {
-    if (
-      !selectedPayrollType ||
-      !selectedBranch ||
-      initializePayrollMutation.isPending
-    ) {
+    if (initializePayrollMutation.isPending) {
       return;
     }
 
+    setInitializeModalPayrollType(selectedPayrollType);
+    setInitializeModalBranch(selectedBranch);
     setIsInitializeConfirmModalOpen(true);
   }, [
     selectedPayrollType,
@@ -286,39 +329,47 @@ export function PayrollPage() {
   }, [initializePayrollMutation.isPending]);
 
   const handleInitializePayroll = useCallback(() => {
-    if (!selectedPayrollType || !selectedBranch) return;
+    if (!initializeModalPayrollType || !initializeModalBranch) return;
 
-    setIsInitializeConfirmModalOpen(false);
-    initializePayrollMutation.mutate({
-      companie_id: companyId,
-      module_code: moduleCode,
-      type: selectedPayrollType,
-      branch_id: selectedBranch,
-    } as InitializePayrollParams, {
-      onSuccess: () => {
-        setShowAlert({
-          show: true,
-          type: "success",
-          title: "Nómina inicializada",
-          message: "La nómina se inicializó correctamente.",
-        });
-        handleCloseAlert();
+    initializePayrollMutation.mutate(
+      {
+        companie_id: companyId,
+        module_code: moduleCode,
+        type: initializeModalPayrollType,
+        branch_id: initializeModalBranch,
+      } as InitializePayrollParams,
+      {
+        onSuccess: () => {
+          setSelectedPayrollType(initializeModalPayrollType);
+          setSelectedBranch(initializeModalBranch);
+          setIsInitializeConfirmModalOpen(false);
+          setShowAlert({
+            show: true,
+            type: "success",
+            title: "Nómina inicializada",
+            message: "La nómina se inicializó correctamente.",
+          });
+          handleCloseAlert();
+        },
+        onError: (error) => {
+          const apiError = error as ApiErrorResponse;
+          setShowAlert({
+            show: true,
+            type: "error",
+            title: "No se pudo inicializar",
+            message:
+              apiError?.error?.description ||
+              "No se pudo inicializar la nómina. Inténtelo nuevamente.",
+          });
+          handleCloseAlert();
+        },
       },
-      onError: () => {
-        setShowAlert({
-          show: true,
-          type: "error",
-          title: "Error",
-          message: "No se pudo inicializar la nómina. Inténtelo nuevamente.",
-        });
-        handleCloseAlert();
-      },
-    });
+    );
   }, [
     companyId,
     moduleCode,
-    selectedPayrollType,
-    selectedBranch,
+    initializeModalPayrollType,
+    initializeModalBranch,
     initializePayrollMutation,
     handleCloseAlert,
   ]);
@@ -353,6 +404,12 @@ export function PayrollPage() {
   const handleGeneratePdf = useCallback(async () => {
     if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
       return;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return;
+    }
     try {
       setIsGeneratingPdf(true);
       const payrollServices = new PayrollServices(httpHandler);
@@ -395,6 +452,14 @@ export function PayrollPage() {
           startDate={ordinaryPayrollQuery.data?.start_date}
           endDate={ordinaryPayrollQuery.data?.end_date}
           visibleKeys={visibleKeys}
+          preparedBy={{
+            name: "Lic Aracelly Guillen",
+            role: "Talento Humano",
+          }}
+          reviewedBy={{
+            name: "Isolina Reyes",
+            role: "Contador General",
+          }}
         />,
       ).toBlob();
 
@@ -412,6 +477,7 @@ export function PayrollPage() {
     selectedBranch,
     companyId,
     moduleCode,
+    hasPayrollData,
     ordinaryPayrollQuery.data,
     displayedBranchName,
     visibleKeys,
@@ -483,6 +549,124 @@ export function PayrollPage() {
     workAreaFilter,
     jobPositionFilter,
     handlePdfGenerationError,
+  ]);
+
+  const handleGenerateAccumulatedHistoryPdf = useCallback(async () => {
+    if (!companyId) return;
+    const payrollId = ordinaryPayrollQuery.data?.payroll_id;
+    if (!payrollId) return;
+
+    try {
+      setIsGeneratingAccumulatedHistoryPdf(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const reportResponse = await payrollServices.generateReportsPayroll({
+        companie_id: companyId,
+        payroll_id: payrollId,
+        report_type: "Accumulated",
+      });
+
+      const reportData = reportResponse.accumulated_history ?? [];
+
+      if (!reportData.length) {
+        handlePdfGenerationError(
+          "No hay datos disponibles para generar el historial acumulado.",
+        );
+        return;
+      }
+
+      const blob = await pdf(
+        <AccumulatedHistoryPdfDocument data={reportData} />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte de historial acumulado.",
+      );
+    } finally {
+      setIsGeneratingAccumulatedHistoryPdf(false);
+    }
+  }, [
+    companyId,
+    ordinaryPayrollQuery.data?.payroll_id,
+    handlePdfGenerationError,
+  ]);
+
+  //   const handleGenerateExcel = useCallback(async () => {
+  //     if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+  //       return;
+  //     try {
+  //       setIsGeneratingExcel(true);
+  //       const payrollServices = new PayrollServices(httpHandler);
+
+  //       const detailsData = ordinaryPayrollQuery.data;
+  //       const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+  //       const payload = {
+  //         companie_id: companyId,
+  //         module_code: moduleCode,
+  //         type: selectedPayrollType,
+  //         branch_id: selectedBranch,
+  //         identification_number: identificationFilter || undefined,
+  //         work_area_id: workAreaFilter || undefined,
+  //         job_position_id: jobPositionFilter || undefined,
+  //         page_number: 1,
+  //         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+  //       } as PayrollRequest;
+
+  //       const response = await payrollServices.getPayroll(payload);
+  //       const allItems = response.payroll_details?.items ?? [];
+
+  //       exportPayrollExcel({
+  //         data: allItems,
+  //         visibleKeys,
+  //         branchName: displayedBranchName,
+  //         startDate: ordinaryPayrollQuery.data?.start_date,
+  //         endDate: ordinaryPayrollQuery.data?.end_date,
+  //         typePayroll: selectedPayrollType,
+  //       });
+  //     } catch (error) {
+  //       handlePdfGenerationError(
+  //         "Ocurrió un error al generar el reporte de nómina en Excel.",
+  //       );
+  //     } finally {
+  //       setIsGeneratingExcel(false);
+  //     }
+  //   }, [
+  //     selectedPayrollType,
+  //     selectedBranch,
+  //     companyId,
+  //     moduleCode,
+  //     ordinaryPayrollQuery.data,
+  //     displayedBranchName,
+  //     visibleKeys,
+  //     identificationFilter,
+  //     workAreaFilter,
+  //     jobPositionFilter,
+  //     handlePdfGenerationError,
+  //   ]);
+
+  const handleExecuteSelectedAction = useCallback(() => {
+    switch (selectedAction) {
+      case "report":
+        void handleGeneratePdf();
+        break;
+      case "payment_requests":
+        void handleGeneratePaymentRequestsPdf();
+        break;
+      case "accumulated_history":
+        void handleGenerateAccumulatedHistoryPdf();
+        break;
+      default:
+        break;
+    }
+  }, [
+    selectedAction,
+    handleGeneratePdf,
+    handleGeneratePaymentRequestsPdf,
+    handleGenerateAccumulatedHistoryPdf,
   ]);
 
   const handleApplyFilters = useCallback(
@@ -724,8 +908,30 @@ export function PayrollPage() {
         variant="default"
         size="sm"
         title="Confirmar inicialización"
-        description="¿Desea inicializar la nómina para la selección actual?"
+        description="Por favor, seleccione el tipo de nómina y la sucursal para inicializar."
       >
+        <div className="mt-4 flex flex-col gap-4">
+          <Dropdown
+            label="Tipo de nómina"
+            placeholder="Seleccione tipo de nómina"
+            options={payrollTypeOptions}
+            value={initializeModalPayrollType || undefined}
+            appearance={theme === "dark" ? "dark" : "default"}
+            labelClassName="text-white!"
+            onChange={(value) =>
+              setInitializeModalPayrollType(value as PayrollType)
+            }
+          />
+          <Dropdown
+            label="Sucursal"
+            placeholder="Seleccione una sucursal"
+            options={branchOptions}
+            value={initializeModalBranch || undefined}
+            appearance={theme === "dark" ? "dark" : "default"}
+            labelClassName="text-white!"
+            onChange={(value) => setInitializeModalBranch(String(value))}
+          />
+        </div>
         <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
           <Button
             type="button"
@@ -735,10 +941,10 @@ export function PayrollPage() {
             isLoading={initializePayrollMutation.isPending}
             disabled={
               initializePayrollMutation.isPending ||
-              !selectedPayrollType ||
-              !selectedBranch
+              !initializeModalPayrollType ||
+              !initializeModalBranch
             }
-            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:flex-1 sm:min-w-0"
+            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:flex-1 sm:min-w-0 enabled:opacity-100! disabled:pointer-events-none disabled:opacity-50 disabled:saturate-75"
           />
           <Button
             type="button"
@@ -865,46 +1071,66 @@ export function PayrollPage() {
               <div className="flex flex-col justify-center">
                 <h3 className="p-0! m-0!">Accesos Directos</h3>
                 <small className="text-gray-500 dark:text-gray-300">
-                  Descripcion de accesos directos
+                  Aqui puedes cambiar el tipo de nómina y sucursal, tambien
+                  puedes generar reportes
                 </small>
               </div>
             </div>
 
             <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-              <div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
+              <div className="w-full flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-start">
                 <Button
                   type="button"
                   size="giant"
                   label="Cambiar tipo de nómina y sucursal"
                   onClick={handleOpenChangePayrollSelection}
-                  className="w-full! md:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                  className="w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                 />
-                <Button
+                <div className="w-full lg:w-[18rem]">
+                  <Dropdown
+                    placeholder="Seleccione una acción a generar"
+                    options={payrollActionOptions}
+                    value={selectedAction ?? undefined}
+                    appearance={theme === "dark" ? "dark" : "default"}
+                    onChange={(value) =>
+                      setSelectedAction(value as PayrollActionValue)
+                    }
+                  />
+                </div>
+                {/* <Button
                   type="button"
                   size="giant"
-                  label="Generar Reporte"
-                  isLoading={isGeneratingPdf}
+                  label="Exportar Excel"
+                  isLoading={isGeneratingExcel}
                   disabled={!existPayrollInProgress}
-                  onClick={handleGeneratePdf}
-                  className={`w-full! md:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingPdf
+                  onClick={handleGenerateExcel}
+                  className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGeneratingExcel
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}
-                />
+                /> */}
                 <Button
                   type="button"
                   size="giant"
-                  label="Generar Solicitudes de Pago"
-                  isLoading={isGeneratingPaymentRequestsPdf}
-                  disabled={
-                    !existPayrollInProgress ||
-                    detailsFetchInFlight ||
-                    !hasCollaboratorsWithoutInss
+                  label="Generar"
+                  isLoading={
+                    isGeneratingPdf ||
+                    isGeneratingPaymentRequestsPdf ||
+                    isGeneratingAccumulatedHistoryPdf
                   }
-                  onClick={handleGeneratePaymentRequestsPdf}
-                  className={`w-full! md:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingPaymentRequestsPdf
+                  disabled={
+                    !selectedAction ||
+                    !existPayrollInProgress ||
+                    isGeneratingPdf ||
+                    isGeneratingPaymentRequestsPdf ||
+                    isGeneratingAccumulatedHistoryPdf
+                  }
+                  onClick={handleExecuteSelectedAction}
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGeneratingPdf ||
+                    isGeneratingPaymentRequestsPdf ||
+                    isGeneratingAccumulatedHistoryPdf
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}
