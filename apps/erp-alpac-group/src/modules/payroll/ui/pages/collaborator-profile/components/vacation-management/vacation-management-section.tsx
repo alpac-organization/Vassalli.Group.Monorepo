@@ -50,7 +50,7 @@ export const VacationManagementSection = ({ profile }: VacationManagementSection
                { label: "Vacaciones disfrutadas", value: vacationData?.enjoyed_vacation, valueClass: "text-amber-500 dark:text-amber-400", borderClass: "border-t-amber-400" },
                { label: "Vacaciones disponibles", value: vacationData?.available_vacations, valueClass: "text-emerald-500 dark:text-emerald-400", borderClass: "border-t-emerald-400" },
             ].map(({ label, value, valueClass, borderClass }) => (
-               <div key={label} className={`flex flex-col gap-1 rounded-md border border-slate-200 dark:border-neutral-600 border-t-2 ${borderClass} bg-slate-50 dark:bg-[#1e2229] px-4 py-3`}>
+               <div key={label} className={`flex flex-col gap-1 rounded-md border border-slate-200 dark:border-neutral-600 ${borderClass} bg-slate-50 dark:bg-[#1e2229] px-4 py-3`}>
                   <span className="text-[13px] text-slate-500 dark:text-slate-400">{label}</span>
                   {GetVacationSaldoQuery.isPending ? (
                      <span className="inline-block h-6 w-12 animate-pulse rounded bg-slate-300 dark:bg-slate-600" />

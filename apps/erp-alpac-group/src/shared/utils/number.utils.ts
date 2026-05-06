@@ -51,8 +51,8 @@ export const validateIntegerNumber = (value?: string | number): boolean | string
    return Number.isInteger(number) || 'El valor debe ser un número entero.';
 };
 
-export const validatePositiveNumber = (value?: string | number): boolean | string => {
+export const validatePositiveNumber = (value?: string | number, includeZero: boolean = false): boolean | string => {
    if (value === undefined || value === null || value === '') return false;
    const number = Number(value);
-   return number > 0 || 'El valor debe ser mayor a 0.';
+   return includeZero ? number >= 0 || 'El valor debe ser mayor o igual a 0.' : number > 0 || 'El valor debe ser mayor a 0.';
 };
