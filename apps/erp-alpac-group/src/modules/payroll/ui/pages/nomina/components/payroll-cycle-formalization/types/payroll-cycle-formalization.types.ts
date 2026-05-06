@@ -4,6 +4,4 @@ export type PayrollCycleFormalizationProps = {
   onConfirmFormalizacion?: () => void;
   existPayrollInProgress?: boolean;
   statusLoading?: boolean;
-  statusError?: boolean;
-  onRetryProcessStatus?: () => void;
 };

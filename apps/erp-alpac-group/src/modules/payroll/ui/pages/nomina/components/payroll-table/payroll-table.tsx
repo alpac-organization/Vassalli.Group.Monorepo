@@ -1,59 +1,46 @@
-import { DataTable, Pagination } from "@alpac/design-system";
-import type { GetCollaboratorsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborators.response";
-import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
+import { useMemo } from "react";
+import {
+  DataTable,
+  Pagination,
+  DataTableColumnVisibility,
+} from "@alpac/design-system";
 import type { PayrollTableProps } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/types/payroll-table.types";
+import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 
+const ClickableDataTable = DataTable as any;
 export function PayrollTable({
   rows,
   currentPage,
   pageSize,
   totalRecords,
+  visibleKeys,
+  onVisibleKeysChange,
   onPageChange,
+  onRowClick,
   isPending,
 }: PayrollTableProps) {
-  rows;
-  const columns = [
-    { key: "inss", label: "Inss" },
-    {
-      key: "identification_number",
-      label: "Identificación",
-      render: (value: GetCollaboratorsResponse) => {
-        if (!value.identification_number) return "—";
-        if (value.identification_number.length !== 14) {
-          return value.identification_number;
-        }
-        return formatIdentificationNumber(value.identification_number);
-      },
-    },
-    { key: "full_name", label: "Nombre Completo" },
-    { key: "branch_name", label: "Sucursal" },
-    { key: "work_area", label: "Área" },
-    { key: "salario bruto", label: "Salario bruto" },
-    { key: "Bono", label: "Bonos" },
-    { key: "vacaciones", label: "Vacaciones" },
-    { key: "deducciones", label: "Deducciones" },
-    { key: "total deducciones", label: "Total deducciones" },
-    { key: "pago total", label: "Pago total" },
-
-    //  {
-    //    key: "actions",
-    //    label: "Acciones",
-    //    render: (value: GetCollaboratorsResponse) => (
-    //      <Button
-    //        label="Ver detalles"
-    //        size="small"
-    //        className="text-[13px]! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-    //        onClick={() => onViewProfile(value)}
-    //      />
-    //    ),
-    //  },
-  ];
+  const activeColumns = useMemo(
+    () =>
+      payrollColumns.filter((col) => visibleKeys.includes(col.key as string)),
+    [visibleKeys],
+  );
 
   return (
-    <DataTable
+    <ClickableDataTable
       title="Listado de Nomina"
       data={rows}
-      columns={columns}
+      columns={activeColumns}
+      onRowClick={onRowClick}
+      toolbarEnd={
+        <DataTableColumnVisibility
+          options={payrollColumns.map((c) => ({
+            value: c.key as string,
+            label: c.label,
+          }))}
+          selectedValues={visibleKeys}
+          onChange={onVisibleKeysChange}
+        />
+      }
       pagination={
         <Pagination
           currentPage={currentPage}

@@ -12,7 +12,7 @@ import {
   HandCoins,
   ClipboardCheck,
 } from "lucide-react";
-import type { SidebarLink } from "../components/Sidebar/types/sidebar.types";
+import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 
 const collboratorSection: SidebarLink = {
   id: "collaborators",
@@ -44,14 +44,14 @@ const gestionVacationsSection: SidebarLink = {
 
 const controlVacationsSection: SidebarLink = {
   id: "control-vacaciones",
-  label: "Control de vacaciones",
+  label: "Control de Vacaciones",
   path: "payroll/control-vacations",
   icon: CalendarCheck,
 };
 
 const gestionPayrollSection: SidebarLink = {
   id: "gestion-payroll",
-  label: "Gestion de nómina",
+  label: "Gestion de Nómina",
   path: "payroll/gestion-nomina",
   icon: DollarSign,
 };
@@ -66,7 +66,7 @@ const settingsSection: SidebarLink = {
 
 const deduccionesSection: SidebarLink = {
   id: "deducciones",
-  label: "Deducciones activas",
+  label: "Deducciones Activas",
   path: "payroll/deducciones",
   icon: CircleMinus,
 };

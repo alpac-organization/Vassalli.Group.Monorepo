@@ -9,5 +9,7 @@ export type DataTableProps<T> = {
    data: T[]
    columns: TableColumn<T>[]
    rowClassName?: string
+   onRowClick?: (row: T) => void
    pagination?: React.ReactNode
+   toolbarEnd?: React.ReactNode
 }
