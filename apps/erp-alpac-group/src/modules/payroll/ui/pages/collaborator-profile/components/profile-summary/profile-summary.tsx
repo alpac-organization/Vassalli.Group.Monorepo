@@ -5,6 +5,7 @@ import {
   statusLabel,
 } from "@app/modules/payroll/ui/pages/collaborator-profile/components/profile-summary/types/profile-summary.variants";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { formatCollaboratorCode } from "@app/shared/utils/collaborator.utils";
 import type { ProfileSummaryProps } from "@app/modules/payroll/ui/pages/collaborator-profile/components/profile-summary/types/profile-summary.type";
 
 export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
@@ -15,6 +16,7 @@ export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
 
   const defaultProfilePicture =
     "https://ui-avatars.com/api/?background=272b34&color=fff&name=Usuario";
+  const collaboratorCode = formatCollaboratorCode(profile?.collaborator_code ?? "");
 
   return (
     <section
@@ -40,6 +42,14 @@ export const ProfileSummary = ({ profile }: ProfileSummaryProps) => {
             <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
               {profile?.full_name || ""}
             </h1>
+            {collaboratorCode && (
+              <p className="mt-1 text-xs sm:text-sm font-medium tracking-wide text-cyan-100/90">
+                Codigo colaborador:
+                <span className="ml-1 rounded-md border border-cyan-300/30 bg-cyan-400/10 px-2 py-0.5 font-semibold text-cyan-100">
+                  {collaboratorCode}
+                </span>
+              </p>
+            )}
 
             <div className="mt-1 flex items-center gap-2 mb-1.5">
               <Briefcase size={14} className="shrink-0" />
