@@ -63,50 +63,13 @@ export const AddSubsidyForm = () => {
          <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="min-w-0 flex flex-col gap-1.5">
                <InputText
-                  label="Nº de certificado médico"
-                  placeholder="Ej. CERT-2024-001"
+                  label="Nº de Boleta"
+                  placeholder="Ingrese el número de boleta"
+                  labelClassName={labelClassName}
                   isRequired
-                  labelClassName={labelClassName}
                   className={inputClassName}
                />
             </div>
-            <div className="min-w-0 flex flex-col gap-1.5">
-               <InputText
-                  label="Nº de resolución INSS"
-                  placeholder="Ej. RES-2024-001"
-                  labelClassName={labelClassName}
-                  className={inputClassName}
-               />
-            </div>
-         </div>
-
-         <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="min-w-0 flex flex-col gap-1.5">
-               <InputText
-                  label="Hospital / Centro de salud"
-                  placeholder="Ej. Hospital Lenin Fonseca"
-                  isRequired
-                  labelClassName={labelClassName}
-                  className={inputClassName}
-               />
-            </div>
-            <div className="min-w-0 flex flex-col gap-1.5">
-               <InputText
-                  label="Médico tratante"
-                  placeholder="Ej. Dr. Juan Pérez"
-                  labelClassName={labelClassName}
-                  className={inputClassName}
-               />
-            </div>
-         </div>
-
-         <div className="flex flex-col gap-1.5">
-            <InputText
-               label="Diagnóstico"
-               placeholder="Descripción del diagnóstico médico"
-               labelClassName={labelClassName}
-               className={inputClassName}
-            />
          </div>
 
          {/* ── Sección: Observaciones ── */}

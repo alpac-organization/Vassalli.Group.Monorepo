@@ -25,7 +25,7 @@ export const CollaboratorSearchForm = ({
 }: CollaboratorSearchFormProps) => {
    const { companyId, moduleCode } = useUserStore();
    const { getMappedError } = useMappedError();
-   const { alertState, handleRequestError, handleCloseAlert } = useAlertState();
+   const { alertState, handleRequestError } = useAlertState();
 
    const initialFilters: CollaboratorProfileDetailsRequest = {
       company_id: companyId,
@@ -90,39 +90,40 @@ export const CollaboratorSearchForm = ({
    const onSubmit = handleSubmit(handleSearchSubmit)
 
    return (
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
-         <div className="col-span-2">
-            <InputText
-               label={label ?? "Buscar por número de cédula"}
-               placeholder="Ej. 001-010190-0001A"
-               className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-               labelClassName="text-black! dark:text-white!"
-               errorVariant="tooltip"
-               {...register("identification_number", {
-                  validate: {
-                     validateIdentification: (value?: string) =>
-                        validateIdentificationNumber(
-                           value!,
-                           IdentificationEnum.NATIONAL_ID.value,
-                        ),
-                  },
-                  setValueAs: (value: string) =>
-                     value ? value.toString().replace(/-/g, "").toUpperCase() : "",
-                  required: false,
-                  onChange: (e) => {
-                     e.target.value = formatIdentificationNumber(e.target.value);
-                  },
-               })}
-               onKeyDown={(evt) => {
-                  if (evt.key === 'Enter') {
-                     onSubmit()
-                  }
-               }}
-               error={errors.identification_number?.message}
-            />
-         </div>
+      <>
+         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+            <div className="col-span-2">
+               <InputText
+                  label={label ?? "Buscar por número de cédula"}
+                  placeholder="Ej. 001-010190-0001A"
+                  className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                  labelClassName="text-black! dark:text-white!"
+                  errorVariant="tooltip"
+                  {...register("identification_number", {
+                     validate: {
+                        validateIdentification: (value?: string) =>
+                           validateIdentificationNumber(
+                              value!,
+                              IdentificationEnum.NATIONAL_ID.value,
+                           ),
+                     },
+                     setValueAs: (value: string) =>
+                        value ? value.toString().replace(/-/g, "").toUpperCase() : "",
+                     required: false,
+                     onChange: (e) => {
+                        e.target.value = formatIdentificationNumber(e.target.value);
+                     },
+                  })}
+                  onKeyDown={(evt) => {
+                     if (evt.key === 'Enter') {
+                        onSubmit()
+                     }
+                  }}
+                  error={errors.identification_number?.message}
+               />
+            </div>
 
-         <div className="col-span-1">
+            {/* <div className="col-span-full sm:col-span-1 w-full"> */}
             <Button
                type="button"
                label="Buscar"
@@ -131,8 +132,10 @@ export const CollaboratorSearchForm = ({
                disabled={GetProfileDetails.isLoading}
                isLoading={GetProfileDetails.isLoading}
                icon={<SearchIcon size={18} />}
-               className="text-[15px]! w-full rounded-md!"
+               className="text-[15px]! w-full! rounded-md!"
             />
+            {/* </div> */}
+
          </div>
 
          <LazyMotion features={loadFeatures} strict>
@@ -145,17 +148,13 @@ export const CollaboratorSearchForm = ({
                         initial="initial"
                         animate="animate"
                         exit="exit"
+                        className="col-span-3"
                         transition={{
                            height: { duration: 0.3, ease: "easeInOut" },
                            opacity: { duration: 0.45, ease: "easeOut", delay: 0.1 },
                            y: { duration: 0.3, ease: "easeOut", delay: 0.1 },
-                        }}
-                        onAnimationComplete={(definition) => {
-                           if (definition === "animate") {
-                              handleCloseAlert()
-                           }
-                        }}
-                     >
+                        }}>
+
                         <Alert
                            type="error"
                            title="Error"
@@ -166,9 +165,6 @@ export const CollaboratorSearchForm = ({
                }
             </AnimatePresence>
          </LazyMotion>
-
-
-
-      </div>
+      </>
    );
 };
