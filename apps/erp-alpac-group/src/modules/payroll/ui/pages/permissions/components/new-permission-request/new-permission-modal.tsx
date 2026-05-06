@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Alert, Modal } from "@alpac/design-system";
+import { Modal } from "@alpac/design-system";
 import { usePermission } from "@app/modules/payroll/ui/hooks/permission/usePermission";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { NewPermissionCollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
+import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
 import { NewPermissionRequestForm } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-form";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { CollaboratorSearchForm } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form";
@@ -28,14 +28,7 @@ export function NewPermissionRequestModal({
    const { companyId, moduleCode, identificationNumber, role } = useUserStore();
    const { createPermissionRequestMutation } = usePermission();
    const [foundCollaborator, setFoundCollaborator] = useState<GetCollaboratorProfileDetailsResponse | null>(null);
-   const [searchError, setSearchError] = useState<string | null>(null);
    const [isSearching, setIsSearching] = useState(false);
-
-   const searchErrorVariants = {
-      initial: { opacity: 0, y: 16, height: 0, overflow: 'hidden' },
-      animate: { opacity: 1, y: 0, height: 'auto', overflow: 'visible' },
-      exit: { opacity: 0, y: 8, height: 0, overflow: 'hidden' },
-   }
 
    const isManager = role === RoleEnum.MANAGER
    const isAdministrator = role === RoleEnum.ADMINISTRATOR
@@ -51,7 +44,6 @@ export function NewPermissionRequestModal({
       } else {
          document.body.style.overflow = "unset";
          setFoundCollaborator(null);
-         setSearchError(null);
       }
 
       return () => { document.body.style.overflow = "unset" };
@@ -92,72 +84,24 @@ export function NewPermissionRequestModal({
             {
                (isManager || isAdministrator) && !isOperator && !foundCollaborator &&
                (
-                  <motion.div
-                     variants={searchErrorVariants}
-                     initial="initial"
-                     animate="animate"
-                     exit="exit"
-                     transition={{
-                        height: { duration: 0.3, ease: "easeInOut" },
-                        opacity: { duration: 0.45, ease: "easeOut", delay: 0.1 },
-                        y: { duration: 0.3, ease: "easeOut", delay: 0.1 },
-                     }}
-                     onAnimationComplete={(definition) => {
-                        if (definition === "animate") {
-                           setTimeout(() => setSearchError(null), 3000);
-                        }
-                     }}>
-
+                  <div>
                      <CollaboratorSearchForm
                         onSuccess={(collaborator) => {
                            setFoundCollaborator(collaborator);
-                           setSearchError(null);
                            setIsSearching(false)
                         }}
-                        onError={(errorMessage) => {
-                           setSearchError(errorMessage);
+                        onError={() => {
                            setIsSearching(false);
                            setFoundCollaborator(null);
                         }}
                         onSearchStart={() => {
-                           setSearchError(null);
                            setIsSearching(true);
                         }}
-                        excludeIdentification={identificationNumber}
+                        excludeIdentifications={[identificationNumber]}
                      />
-                  </motion.div>
+                  </div>
                )
             }
-
-            <AnimatePresence>
-               {
-                  searchError && (
-                     <motion.div
-                        key="search-error"
-                        variants={searchErrorVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        transition={{
-                           height: { duration: 0.3, ease: "easeInOut" },
-                           opacity: { duration: 0.45, ease: "easeOut", delay: 0.1 },
-                           y: { duration: 0.3, ease: "easeOut", delay: 0.1 },
-                        }}
-                        onAnimationComplete={(definition) => {
-                           if (definition === "animate") {
-                              setTimeout(() => setSearchError(null), 5000);
-                           }
-                        }}
-                     >
-                        <Alert
-                           type="error"
-                           title="Error"
-                           message={searchError}
-                        />
-                     </motion.div>
-                  )
-               }
-            </AnimatePresence>
 
             <AnimatePresence initial={!isOperator}>
                {(((isManager || isAdministrator) && !!foundCollaborator) || isOperator) && (
@@ -173,7 +117,7 @@ export function NewPermissionRequestModal({
                      }}
                      className="flex flex-col gap-4 sm:gap-5"
                   >
-                     <NewPermissionCollaboratorSummary
+                     <CollaboratorSummary
                         fullName={collaboratorFullName ?? foundCollaborator?.full_name ?? ""}
                         workPosition={collaboratorWorkPosition ?? foundCollaborator?.work_position ?? ""}
                         isFullNameLoading={isCollaboratorFullNameLoading || isSearching}

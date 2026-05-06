@@ -1,4 +1,4 @@
-export type NewPermissionCollaboratorSummaryProps = {
+export type CollaboratorSummaryProps = {
    fullName: string;
    workPosition: string;
    isFullNameLoading?: boolean;
