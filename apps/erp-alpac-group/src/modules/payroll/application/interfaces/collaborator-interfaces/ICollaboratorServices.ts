@@ -4,6 +4,7 @@ import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/dom
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
 import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/update-collaborator-request";
+import type { GetCollaboratorProfileGeneratedDocumentParams } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/generated-document.request";
 /**
  * @interface ICollaboratorServices
  * @description Define el contrato para los servicios de colaboradores.
@@ -50,4 +51,7 @@ export interface ICollaboratorServices {
   UpdateCollaboratorProfileDetails(
     paylod: UpdateCollaboratorProfileDetailsRequest,
   ): Promise<void>;
+  GenerateCollaboratorProfileDocument(
+    payload: GetCollaboratorProfileGeneratedDocumentParams,
+  ): Promise<Blob>;
 }

@@ -7,75 +7,90 @@ import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiCont
 import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator-profile.request";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/update-collaborator-request";
+import type { GetCollaboratorProfileGeneratedDocumentParams } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/generated-document.request";
 export class CollaboratorServices implements ICollaboratorServices {
+  private apiHandler: IHttpHandler;
 
-   private apiHandler: IHttpHandler;
+  constructor(httpHandler: IHttpHandler) {
+    this.apiHandler = httpHandler;
+  }
 
-   constructor(httpHandler: IHttpHandler) {
-      this.apiHandler = httpHandler;
-   }
+  public async GetCollaborators(
+    payload: CollaboratorRequest,
+  ): Promise<GetCollaboratorsListResponse> {
+    try {
+      const { company_id, module_code, ...rest } = payload;
 
-   public async GetCollaborators(
-      payload: CollaboratorRequest,
-   ): Promise<GetCollaboratorsListResponse> {
-      try {
-         const { company_id, module_code, ...rest } = payload;
+      const collaborators =
+        await this.apiHandler.get<GetCollaboratorsListResponse>(
+          `/companies/${company_id}/modules/${module_code}/collaborators`,
+          {
+            params: cleanParams(rest),
+          },
+        );
+      return collaborators;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-         const collaborators =
-            await this.apiHandler.get<GetCollaboratorsListResponse>(
-               `/companies/${company_id}/modules/${module_code}/collaborators`,
-               {
-                  params: cleanParams(rest),
-               },
-            );
-         return collaborators;
-      } catch (error) {
-         throw error;
-      }
-   }
+  public async PostCollaborator(
+    payload: AddCollaboratorRequest,
+  ): Promise<void> {
+    try {
+      const { company_id, module_code, ...rest } = payload;
 
-   public async PostCollaborator(
-      payload: AddCollaboratorRequest,
-   ): Promise<void> {
-      try {
-         const { company_id, module_code, ...rest } = payload;
+      await this.apiHandler.post<void>(
+        `/companies/${company_id}/modules/${module_code}/collaborators`,
+        rest,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
 
-         await this.apiHandler.post<void>(
-            `/companies/${company_id}/modules/${module_code}/collaborators`,
-            rest,
-         );
-      } catch (error) {
-         throw error;
-      }
-   }
+  public async GetCollaboratorProfileDetails(
+    payload: CollaboratorProfileDetailsRequest,
+  ): Promise<GetCollaboratorProfileDetailsResponse> {
+    try {
+      const response =
+        await this.apiHandler.get<GetCollaboratorProfileDetailsResponse>(
+          `/companies/${payload.company_id}/modules/${payload.module_code}/collaborators/${payload.identification_number}/details`,
+        );
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-   public async GetCollaboratorProfileDetails(
-      payload: CollaboratorProfileDetailsRequest,
-   ): Promise<GetCollaboratorProfileDetailsResponse> {
-      try {
-         const response =
-            await this.apiHandler.get<GetCollaboratorProfileDetailsResponse>(
-               `/companies/${payload.company_id}/modules/${payload.module_code}/collaborators/${payload.identification_number}/details`,
-            );
-         return response;
-      } catch (error) {
-         throw error;
-      }
-   }
+  public async UpdateCollaboratorProfileDetails(
+    payload: UpdateCollaboratorProfileDetailsRequest,
+  ): Promise<void> {
+    try {
+      const { company_id, module_code, identification_number, ...rest } =
+        payload;
 
-   public async UpdateCollaboratorProfileDetails(
-      payload: UpdateCollaboratorProfileDetailsRequest,
-   ): Promise<void> {
-      try {
-         const { company_id, module_code, identification_number, ...rest } =
-            payload;
-
-         await this.apiHandler.patch<void>(
-            `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}/details`,
-            rest,
-         );
-      } catch (error) {
-         throw error;
-      }
-   }
+      await this.apiHandler.patch<void>(
+        `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}/details`,
+        rest,
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+  public async GenerateCollaboratorProfileDocument(
+    payload: GetCollaboratorProfileGeneratedDocumentParams,
+  ): Promise<Blob> {
+    try {
+      const { company_id, module_code, identification_number, document_type } =
+        payload;
+      const blob = await this.apiHandler.get<Blob>(
+        `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}/documents/${document_type}/generator`,
+        { responseType: "blob" },
+      );
+      return blob;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
