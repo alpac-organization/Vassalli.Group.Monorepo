@@ -5,7 +5,7 @@ const labelClassName = "text-black! dark:text-white!";
 
 const SUBSIDY_TYPE_OPTIONS = [
    { value: "common_illness", label: "Enfermedad Común" },
-   { value: "work_accident", label: "Accidente Laboral" },
+   { value: "work_accident", label: "Riesgo Laboral" },
    { value: "maternity", label: "Maternidad" },
 ];
 
