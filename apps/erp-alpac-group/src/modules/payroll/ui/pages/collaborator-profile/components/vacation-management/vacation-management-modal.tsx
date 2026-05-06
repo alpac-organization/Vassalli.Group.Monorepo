@@ -8,7 +8,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useVacation } from "@app/modules/payroll/ui/hooks/vacation/useVacation";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 
-export const VacationManagementModal = ({ profile, isOpen, onClose, onRequestError, onRequestSuccess }: VacationManagementModalProps) => {
+export const VacationManagementModal = ({ profile, vacationData, isOpen, onClose, onRequestError, onRequestSuccess }: VacationManagementModalProps) => {
 
    const { getMappedError } = useMappedError();
    const { companyId, moduleCode } = useUserStore();
@@ -19,8 +19,7 @@ export const VacationManagementModal = ({ profile, isOpen, onClose, onRequestErr
       identification_number: profile.personal_information.identification_number!
    }
 
-   const { GetVacationSaldoQuery, UpdateVacationBalanceMutation } = useVacation(initialData);
-   const { data: vacationData } = GetVacationSaldoQuery;
+   const { UpdateVacationBalanceMutation } = useVacation(initialData);
 
    const { register, handleSubmit, reset, formState: { errors, isValid } } = useForm<AddVacationBalanceRequest>({
       defaultValues: { ...initialData },
@@ -70,7 +69,7 @@ export const VacationManagementModal = ({ profile, isOpen, onClose, onRequestErr
 
             <div className="flex flex-col gap-1.5">
                <InputText
-                  label="Saldo de vacaciones"
+                  label="Vacaciones disponibles"
                   className="h-10! w-full! font-semibold! rounded-md! text-[15px] dark:text-slate-100 text-white! dark:bg-[#272b34]! dark:border-slate-600!"
                   labelClassName="text-black! dark:text-white!"
                   type="text"
