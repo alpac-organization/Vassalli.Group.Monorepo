@@ -1,7 +1,5 @@
-export type ControlVacationFiltersBarProps = {
-  initialStart: string | null;
-  initialEnd: string | null;
-  isApplyingFilters?: boolean;
-  onApply: (range: { start_date: string; end_date: string }) => void;
+export interface ControlVacationFiltersBarProps {
+  onApply: (filters: { identification_number?: string; work_area_id?: number }) => void;
   onClear: () => void;
-};
+  isApplyingFilters?: boolean;
+}

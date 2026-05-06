@@ -23,10 +23,8 @@ export const useControlVacations = (props: useControlVacationsProps) => {
     queryKey: ["vacationsHistory", filtersVacations],
     queryFn: () => controlVacationServices.GetVacations(filtersVacations!),
     enabled: Boolean(
-      filtersVacations?.start_date &&
-      filtersVacations?.end_date &&
-      filtersVacations.start_date.length > 0 &&
-      filtersVacations.end_date.length > 0,
+      filtersVacations?.type &&
+      filtersVacations?.branch_id
     ),
     refetchOnMount: false,
     refetchOnWindowFocus: false,

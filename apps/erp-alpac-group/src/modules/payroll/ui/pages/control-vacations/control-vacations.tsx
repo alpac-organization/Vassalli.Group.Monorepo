@@ -1,94 +1,128 @@
-import { Breadcrumb, Modal, useTheme } from "@alpac/design-system";
-import { useCallback, useMemo, useState } from "react";
-import { Construction } from "lucide-react";
+import {
+  Breadcrumb,
+  Modal,
+  useTheme,
+  Dropdown,
+  Button,
+} from "@alpac/design-system";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ControlVacationPageHeader } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-page-header/control-vacation-page-header";
 import { ControlVacationDirectActions } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-direct-actions/control-vacation-direct-actions";
 import { useControlVacations } from "@app/modules/payroll/ui/hooks/vacation/useControlVacations";
-import type { ControlVacationHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/control-vacation-requests/control-vacations-request";
+import type {
+  ControlVacationHistoryRequest,
+  VacationReportType,
+} from "@app/modules/payroll/domain/ApiContract/Requests/control-vacation-requests/control-vacations-request";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { ControlVacationsTable } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-table/control-vacations-table";
-import { ControlVacationDetailsModal } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-details/control-vacation-details-modal";
 import { ControlVacationFiltersBar } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/filters-bar";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import type { AppliedDateRange } from "@app/modules/payroll/ui/pages/control-vacations/types/date.range";
-import type { VacationControlItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/control-vacation-responses/get-control-vacations-response";
+import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
+import type { VacationAccruals } from "@app/modules/payroll/domain/ApiContract/Responses/control-vacation-responses/get-control-vacations-response";
 
 const DEFAULT_PAGE_SIZE = 10;
 
 export default function ControlVacationsPage() {
   const navigate = useNavigate();
   const { companyId, moduleCode } = useUserStore();
-
   const { theme } = useTheme();
   const { urlImage, neutralUrlImage } = useCompanyStore();
-
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
-  const [searchParams, setSearchParams] = useSearchParams();
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const pageNumber = parseInt(searchParams.get("page") || "1", 10);
-  const dateRange = useMemo<AppliedDateRange>(() => {
-    return {
-      start_date: searchParams.get("start_date"),
-      end_date: searchParams.get("end_date"),
-    };
-  }, [searchParams]);
+
+  const { GetBranchesQuery: branchesQuery } = useCompanies(
+    companyId ? { company_id: companyId } : undefined,
+  );
+  const branchOptions = (branchesQuery.data ?? []).map((b) => ({
+    label: b.branch_name,
+    value: b.branch_id,
+  }));
+
+  const [selectedVacationType, setSelectedVacationType] =
+    useState<VacationReportType | null>(null);
+  const [tempSelectedType, setTempSelectedType] =
+    useState<VacationReportType | null>(null);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+  const [tempSelectedBranch, setTempSelectedBranch] = useState<string | null>(
+    null,
+  );
+  const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(true);
+  const [selectedReportAction, setSelectedReportAction] =
+    useState<VacationReportType | null>(null);
+  const [identificationFilter, setIdentificationFilter] = useState("");
+  const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
+  const [filterBarSubmitPending, setFilterBarSubmitPending] = useState(false);
 
   const historyFilters = useMemo<
     ControlVacationHistoryRequest | undefined
   >(() => {
-    if (!companyId || !moduleCode) return undefined;
-    if (!dateRange.start_date || !dateRange.end_date) return undefined;
+    if (!companyId || !moduleCode || !selectedVacationType || !selectedBranch)
+      return undefined;
     return {
       company_id: companyId,
       module_code: moduleCode,
-      start_date: dateRange.start_date,
-      end_date: dateRange.end_date,
+      type: selectedVacationType,
+      branch_id: selectedBranch,
+      identification_number: identificationFilter || undefined,
+      work_area_id: workAreaFilter || undefined,
       page_size: DEFAULT_PAGE_SIZE,
       page_number: pageNumber,
     };
-  }, [companyId, moduleCode, dateRange, pageNumber]);
+  }, [
+    companyId,
+    moduleCode,
+    selectedVacationType,
+    selectedBranch,
+    identificationFilter,
+    workAreaFilter,
+    pageNumber,
+  ]);
 
-  const hasAppliedDateRange = Boolean(
-    dateRange.start_date && dateRange.end_date,
-  );
+  const hasAppliedFilters = Boolean(selectedVacationType && selectedBranch);
 
   const { GetControlVacationHistoryQuery } = useControlVacations({
     filtersVacations: historyFilters,
   });
 
-  const [reportDevModalOpen, setReportDevModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] =
-    useState<VacationControlItemResponse | null>(null);
+  useEffect(() => {
+    if (!GetControlVacationHistoryQuery.isFetching && filterBarSubmitPending) {
+      setFilterBarSubmitPending(false);
+    }
+  }, [GetControlVacationHistoryQuery.isFetching, filterBarSubmitPending]);
 
   const historyPayload = GetControlVacationHistoryQuery.data;
 
-  const rows: VacationControlItemResponse[] = useMemo(() => {
-    if (!hasAppliedDateRange || !historyPayload) return [];
+  const rows: VacationAccruals[] = useMemo(() => {
+    if (!hasAppliedFilters || !historyPayload) return [];
     return historyPayload.data ?? [];
-  }, [hasAppliedDateRange, historyPayload]);
+  }, [hasAppliedFilters, historyPayload]);
 
   const totalRecords = useMemo(() => {
-    if (!hasAppliedDateRange || !historyPayload) return 0;
+    if (!hasAppliedFilters || !historyPayload) return 0;
     const total = historyPayload.total;
     return typeof total === "number" && Number.isFinite(total) ? total : 0;
-  }, [hasAppliedDateRange, historyPayload]);
+  }, [hasAppliedFilters, historyPayload]);
 
   const pageSizeForTable = useMemo(() => {
-    if (!hasAppliedDateRange || !historyPayload) return DEFAULT_PAGE_SIZE;
+    if (!hasAppliedFilters || !historyPayload) return DEFAULT_PAGE_SIZE;
     const size = historyPayload.page_size;
     return typeof size === "number" && Number.isFinite(size) && size > 0
       ? size
       : DEFAULT_PAGE_SIZE;
-  }, [hasAppliedDateRange, historyPayload]);
+  }, [hasAppliedFilters, historyPayload]);
 
-  const handleApplyDateFilters = useCallback(
-    (range: { start_date: string; end_date: string }) => {
+  const handleApplyFilters = useCallback(
+    (filters: { identification_number?: string; work_area_id?: number }) => {
+      setFilterBarSubmitPending(true);
+      setIdentificationFilter(filters.identification_number ?? "");
+      setWorkAreaFilter(filters.work_area_id ?? null);
+
       const nextParams = new URLSearchParams(searchParams);
-      nextParams.set("start_date", range.start_date);
-      nextParams.set("end_date", range.end_date);
       nextParams.set("page", "1");
       setSearchParams(nextParams);
     },
@@ -96,9 +130,11 @@ export default function ControlVacationsPage() {
   );
 
   const handleClearFilters = useCallback(() => {
+    setFilterBarSubmitPending(true);
+    setIdentificationFilter("");
+    setWorkAreaFilter(null);
+
     const nextParams = new URLSearchParams(searchParams);
-    nextParams.delete("start_date");
-    nextParams.delete("end_date");
     nextParams.delete("page");
     setSearchParams(nextParams);
   }, [searchParams, setSearchParams]);
@@ -112,12 +148,95 @@ export default function ControlVacationsPage() {
     [searchParams, setSearchParams],
   );
 
-  const handleOpenReportDevModal = useCallback(() => {
-    setReportDevModalOpen(true);
-  }, []);
+  const handleSelectionModalClose = useCallback(() => {
+    if (selectedVacationType === null || selectedBranch === null) {
+      navigate("/dashboard");
+    } else {
+      setIsSelectionModalOpen(false);
+    }
+  }, [selectedVacationType, selectedBranch, navigate]);
+
+  const handleConfirmTypeSelection = useCallback(() => {
+    if (tempSelectedType && tempSelectedBranch) {
+      setSelectedVacationType(tempSelectedType);
+      setSelectedBranch(tempSelectedBranch);
+      setIsSelectionModalOpen(false);
+
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("page", "1");
+      setSearchParams(nextParams);
+    }
+  }, [tempSelectedType, tempSelectedBranch, searchParams, setSearchParams]);
+
+  const handleGenerateReport = useCallback(() => {
+    if (!selectedReportAction) return;
+  }, [selectedReportAction]);
+
+  const handleOpenChangeSelection = useCallback(() => {
+    setTempSelectedType(selectedVacationType);
+    setTempSelectedBranch(selectedBranch);
+    setIsSelectionModalOpen(true);
+  }, [selectedVacationType, selectedBranch]);
+
+  const vacationTypeOptions: {
+    label: string;
+    value: VacationReportType;
+  }[] = [
+    { label: "Acumulado de Vacaciones", value: "VacationAccrual" },
+    { label: "Solicitud de Vacaciones", value: "VacationRequest" },
+  ];
 
   return (
     <>
+      <Modal
+        isOpen={isSelectionModalOpen || selectedVacationType === null}
+        onClose={handleSelectionModalClose}
+        variant="default"
+        size="sm"
+        title="Seleccionar Control de Vacaciones"
+        description="Por favor, seleccione el tipo de reporte y la sucursal que desea consultar."
+      >
+        <div className="mt-4 flex flex-col gap-4">
+          <Dropdown
+            label="Tipo de control"
+            placeholder="Seleccione tipo"
+            options={vacationTypeOptions}
+            value={tempSelectedType || undefined}
+            appearance={theme === "dark" ? "dark" : "default"}
+            labelClassName="text-white!"
+            onChange={(value) =>
+              setTempSelectedType(value as VacationReportType)
+            }
+          />
+          <Dropdown
+            label="Sucursal"
+            placeholder="Seleccione una sucursal"
+            options={branchOptions}
+            value={tempSelectedBranch || undefined}
+            appearance={theme === "dark" ? "dark" : "default"}
+            labelClassName="text-white!"
+            onChange={(value) => setTempSelectedBranch(String(value))}
+          />
+        </div>
+        <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
+          <Button
+            type="button"
+            size="giant"
+            label="Consultar"
+            onClick={handleConfirmTypeSelection}
+            disabled={!tempSelectedType || !tempSelectedBranch}
+            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:flex-1 sm:min-w-0 enabled:opacity-100! disabled:pointer-events-none disabled:opacity-50 disabled:saturate-75"
+          />
+          <Button
+            type="button"
+            size="giant"
+            label="Cancelar"
+            onClick={handleSelectionModalClose}
+            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:flex-1 sm:min-w-0"
+          />
+        </div>
+      </Modal>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -125,7 +244,7 @@ export default function ControlVacationsPage() {
         transition={{ duration: 0.5 }}
         className="flex flex-col gap-4"
       >
-        {hasAppliedDateRange && GetControlVacationHistoryQuery.isPending && (
+        {hasAppliedFilters && GetControlVacationHistoryQuery.isPending && (
           <Loader title="Cargando control de vacaciones..." />
         )}
 
@@ -149,58 +268,39 @@ export default function ControlVacationsPage() {
         <ControlVacationPageHeader logoSrc={activeLogo} />
 
         <ControlVacationDirectActions
-          onGenerateReport={handleOpenReportDevModal}
+          reportOptions={vacationTypeOptions}
+          selectedReportAction={selectedReportAction}
+          onReportActionChange={setSelectedReportAction}
+          onGenerate={handleGenerateReport}
+          isGenerating={false}
+          onOpenChangeSelection={handleOpenChangeSelection}
+          canChangeSelection={hasAppliedFilters}
         />
 
-        <ControlVacationFiltersBar
-          initialStart={dateRange.start_date}
-          initialEnd={dateRange.end_date}
-          isApplyingFilters={
-            hasAppliedDateRange && GetControlVacationHistoryQuery.isFetching
-          }
-          onApply={handleApplyDateFilters}
-          onClear={handleClearFilters}
-        />
+        {selectedVacationType && selectedBranch && (
+          <>
+            <ControlVacationFiltersBar
+              isApplyingFilters={
+                filterBarSubmitPending &&
+                GetControlVacationHistoryQuery.isFetching
+              }
+              onApply={handleApplyFilters}
+              onClear={handleClearFilters}
+            />
 
-        <ControlVacationsTable
-          rows={rows}
-          currentPage={pageNumber}
-          pageSize={pageSizeForTable}
-          totalRecords={totalRecords}
-          onPageChange={handlePageChange}
-          isPending={
-            hasAppliedDateRange && GetControlVacationHistoryQuery.isFetching
-          }
-          onViewDetails={setSelectedItem}
-        />
+            <ControlVacationsTable
+              rows={rows}
+              currentPage={pageNumber}
+              pageSize={pageSizeForTable}
+              totalRecords={totalRecords}
+              onPageChange={handlePageChange}
+              isPending={
+                hasAppliedFilters && GetControlVacationHistoryQuery.isFetching
+              }
+            />
+          </>
+        )}
       </motion.div>
-
-      <Modal
-        isOpen={reportDevModalOpen}
-        onClose={() => setReportDevModalOpen(false)}
-        variant="info"
-        size="md"
-        title="Generar reporte"
-      >
-        <div className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-neutral-600 dark:bg-neutral-800/60">
-          <Construction
-            className="shrink-0 text-amber-500 dark:text-amber-400"
-            size={28}
-            strokeWidth={1.75}
-            aria-hidden
-          />
-          <p className="m-0 text-sm leading-relaxed text-slate-700 dark:text-slate-200">
-            En este momento esta característica del sistema se encuentra en
-            desarrollo.
-          </p>
-        </div>
-      </Modal>
-
-      <ControlVacationDetailsModal
-        isOpen={selectedItem !== null}
-        onClose={() => setSelectedItem(null)}
-        item={selectedItem}
-      />
     </>
   );
 }

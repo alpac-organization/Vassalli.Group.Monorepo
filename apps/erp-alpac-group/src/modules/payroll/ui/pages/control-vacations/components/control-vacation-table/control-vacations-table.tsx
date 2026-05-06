@@ -1,7 +1,7 @@
 import { Button, DataTable, Pagination } from "@alpac/design-system";
-import type { ControlVacationsTableProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-table/types/control-vacation.table";
-import type { VacationControlItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/control-vacation-responses/get-control-vacations-response";
-import { PermitTypeBadge } from "@app/modules/payroll/ui/pages/control-vacations/utils/vacations.mapper";
+import type { ControlVacationsTableProps } from "./types/control-vacation.table";
+import type { VacationAccruals } from "@app/modules/payroll/domain/ApiContract/Responses/control-vacation-responses/get-control-vacations-response";
+import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 
 export function ControlVacationsTable({
   rows,
@@ -16,78 +16,62 @@ export function ControlVacationsTable({
     {
       key: "collaborator_fullname",
       label: "Nombre completo",
-      render: (row: VacationControlItemResponse) => (
+      render: (row: VacationAccruals) => (
         <span className="font-semibold text-neutral-900 dark:text-white">
-          {row.collaborator_fullname ?? "—"}
+          {row.collaborator_information?.collaborator_fullname ?? "—"}
         </span>
       ),
     },
     {
       key: "collaborator_code",
       label: "Código",
-      render: (row: VacationControlItemResponse) =>
-        row.collaborator_code ?? "—",
+      render: (row: VacationAccruals) =>
+        row.collaborator_information?.code ?? "—",
     },
     {
-      key: "amount_days",
-      label: "Cantidad",
-      render: (row: VacationControlItemResponse) => {
-        const raw = row.amount_days;
-        if (!raw && raw <= 0) return "—";
-
-        const container = (
+      key: "identification_number",
+      label: "Identificación",
+      render: (row: VacationAccruals) => {
+        const id = row.collaborator_information?.identification_number;
+        if (!id) return "—";
+        return id.length === 14 ? formatIdentificationNumber(id) : id;
+      },
+    },
+    {
+      key: "vacation_balance",
+      label: "Balance de vacaciones",
+      render: (row: VacationAccruals) => {
+        const bal = row.vacation_balance;
+        if (bal === undefined || bal === null) return "—";
+        return (
           <span className="font-semibold text-neutral-900 dark:text-white">
-            {raw}
+            {bal} {bal === 1 ? "día" : "días"}
           </span>
         );
-
-        if (!Number.isInteger(raw) && raw < 1) return <>{container} horas</>;
+      },
+    },
+    {
+      key: "enjoyed_vacations",
+      label: "Vacaciones gozadas",
+      render: (row: VacationAccruals) => {
+        const enjoyed = row.enjoyed_vacations;
+        if (enjoyed === undefined || enjoyed === null) return "—";
         return (
-          <>
-            {container} {raw === 1 ? "día" : "días"}
-          </>
+          <span className="text-neutral-800 dark:text-neutral-200">
+            {enjoyed} {enjoyed === 1 ? "día" : "días"}
+          </span>
         );
       },
     },
     {
-      key: "permit_application_type",
-      label: "Tipo",
-      render: (row: VacationControlItemResponse) => (
-        <PermitTypeBadge type={row.permit_application_type} />
-      ),
-    },
-    {
-      key: "work_position",
-      label: "Puesto",
-      render: (row: VacationControlItemResponse) => row.work_position ?? "—",
-    },
-    {
-      key: "description",
-      label: "Descripción",
-      render: (row: VacationControlItemResponse) => {
-        const text = row.description?.trim() ?? "";
-        if (!text) {
-          return "—";
-        }
-        return (
-          <span className="text-neutral-800 dark:text-neutral-200">{text}</span>
-        );
+      key: "entry_date",
+      label: "Fecha de ingreso",
+      render: (row: VacationAccruals) => {
+        const dateStr = row.collaborator_information?.entry_date;
+        if (!dateStr) return "—";
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("es-NI");
       },
-    },
-    {
-      key: "actions",
-      label: "Acciones",
-      render: (row: VacationControlItemResponse) => (
-        <div className="flex">
-          <Button
-            type="button"
-            size="small"
-            label="Ver detalles"
-            onClick={() => onViewDetails(row)}
-            className="text-[13px]! bg-white! text-neutral-900! border! border-neutral-900! dark:bg-transparent! dark:text-white! dark:border-neutral-400! hover:scale-[1.03] transition-transform duration-150"
-          />
-        </div>
-      ),
     },
   ];
 
