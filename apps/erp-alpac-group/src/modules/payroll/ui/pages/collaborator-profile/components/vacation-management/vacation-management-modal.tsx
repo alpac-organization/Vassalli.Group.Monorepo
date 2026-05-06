@@ -81,9 +81,9 @@ export const VacationManagementModal = ({ profile, vacationData, isOpen, onClose
                   error={errors.vacation_balance?.message}
                   {...register("vacation_balance", {
                      valueAsNumber: true,
-                     required: "El saldo de vacaciones es requerido.",
+                     required: "Las vacaciones disponibles son requeridas.",
                      validate: {
-                        validatePositive: (value) => validatePositiveNumber(value),
+                        validatePositive: (value) => validatePositiveNumber(value, true),
                      },
                   })}
                />
