@@ -76,6 +76,7 @@ export function CollaboratorProfilePage() {
       { id: "Working", label: "Información de Trabajo" },
       //  { id: "Generar-documentos", label: "Generar documentos" },
       { id: "vacation-management", label: "Gestión de Vacaciones" },
+      { id: "subsidy-management", label: "Gestión de Subsidio" },
    ];
 
    if (!targetIdentification) {
@@ -164,6 +165,16 @@ export function CollaboratorProfilePage() {
             >
                <VacationManagementSection profile={CollaboratorDetails} />
             </div>
+
+            {/*             <div
+               className={`w-full transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${activeTab === "subsidy-management"
+                  ? "relative z-10 translate-y-0 opacity-100"
+                  : "pointer-events-none absolute inset-0 z-0 -translate-y-2 overflow-hidden opacity-0"
+                  }`}
+               aria-hidden={activeTab !== "subsidy-management"}
+            >
+               <SubsidyManagementSection profile={CollaboratorDetails} />
+            </div> */}
 
          </div>
       </div>

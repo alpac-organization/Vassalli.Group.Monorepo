@@ -1,19 +1,18 @@
 import { useState } from "react";
 import { Alert, AnimatedAlertWrapper, Button } from "@alpac/design-system";
 import { PlusIcon } from "lucide-react";
-import { VacationManagementModal } from "./vacation-management-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
-import type { VacationManagementSectionProps } from "./types/vacation-managment.types";
 import { useVacation } from "@app/modules/payroll/ui/hooks/vacation/useVacation";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import type { SubsidyManagementSectionProps } from "./types/subsidy-management.types";
 
 /**
  * @description
- * Componente que muestra la gestión de vacaciones del colaborador
+ * Componente que muestra la gestión de subsidios del colaborador
  * @param props - Props del componente
  * @param props.profile - Perfil del colaborador
  */
-export const VacationManagementSection = ({ profile }: VacationManagementSectionProps) => {
+export const SubsidyManagementSection = ({ profile }: SubsidyManagementSectionProps) => {
 
    const { companyId, moduleCode } = useUserStore();
 
@@ -70,14 +69,14 @@ export const VacationManagementSection = ({ profile }: VacationManagementSection
             />
          </AnimatedAlertWrapper>
 
-         <VacationManagementModal
+         {/*          <SubsidyManagementModal
             profile={profile}
             vacationData={vacationData!}
             isOpen={showModal}
             onClose={() => setShowModal(false)}
             onRequestError={handleRequestError}
             onRequestSuccess={handleRequestSuccess}
-         />
+         /> */}
 
       </section>
    );
