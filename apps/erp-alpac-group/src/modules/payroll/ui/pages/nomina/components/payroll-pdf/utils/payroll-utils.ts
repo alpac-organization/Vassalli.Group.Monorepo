@@ -156,6 +156,29 @@ export const styles = StyleSheet.create({
     lineHeight: 1.2,
   },
 
+  globalTotalsRow: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "stretch",
+    borderStyle: "solid",
+    borderColor: "#bfbfbf",
+    borderLeftWidth: 1,
+    backgroundColor: "#1e3a5f",
+    marginTop: 6,
+  },
+  globalTotalsCell: {
+    margin: 0,
+    paddingTop: 3,
+    paddingBottom: 3,
+    paddingLeft: 3,
+    paddingRight: 3,
+    width: "100%",
+    fontSize: 6,
+    fontWeight: "bold",
+    color: "#ffffff",
+    lineHeight: 1.2,
+  },
+
   tableCol: {
     flexGrow: 1,
     flexShrink: 1,

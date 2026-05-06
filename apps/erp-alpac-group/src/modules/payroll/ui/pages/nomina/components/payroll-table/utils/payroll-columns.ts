@@ -2,7 +2,7 @@ import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContrac
 import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { parseAdditionalDeductions } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/parse-additional-deductions";
-
+import { formatDate } from "@app/shared/utils/string.utils";
 export type PayrollColumnDef = {
   key: string;
   label: string;
@@ -32,6 +32,11 @@ export const payrollColumns: PayrollColumnDef[] = [
     },
   },
   {
+    key: "entry_date",
+    label: "Fecha de Ingreso",
+    render: (item) => formatDate(item.collaborator?.entry_date ?? "") ?? "—",
+  },
+  {
     key: "job_position",
     label: "Posición",
     render: (item) => item.collaborator?.job_position ?? "—",
@@ -44,6 +49,11 @@ export const payrollColumns: PayrollColumnDef[] = [
       if (!inssNumber || !String(inssNumber).trim()) return "—";
       return inssNumber;
     },
+  },
+  {
+    key: "work_area",
+    label: "Área de Trabajo",
+    render: (item) => item.collaborator?.work_area ?? "—",
   },
   {
     key: "gross_salary",

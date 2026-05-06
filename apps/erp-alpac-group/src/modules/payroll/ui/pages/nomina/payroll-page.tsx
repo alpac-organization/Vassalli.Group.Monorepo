@@ -36,6 +36,7 @@ import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import { pdf } from "@react-pdf/renderer";
 import { PayrollPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/payroll-pdf-document";
 import { CheckPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/check-pdf-document";
+import { AccumulatedHistoryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/accumulated-history-pdf-document";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
 import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
@@ -108,6 +109,10 @@ export function PayrollPage() {
   //   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
   const [isGeneratingPaymentRequestsPdf, setIsGeneratingPaymentRequestsPdf] =
     useState(false);
+  const [
+    isGeneratingAccumulatedHistoryPdf,
+    setIsGeneratingAccumulatedHistoryPdf,
+  ] = useState(false);
   const [identificationFilter, setIdentificationFilter] = useState("");
   const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
   const [jobPositionFilter, setJobPositionFilter] = useState<number | null>(
@@ -249,10 +254,17 @@ export function PayrollPage() {
     const items = ordinaryPayrollQuery.data?.payroll_details?.items ?? [];
     return items.some((item) => !item.collaborator?.inss_number?.trim());
   }, [ordinaryPayrollQuery.data]);
+  const totalPayrollRecords =
+    ordinaryPayrollQuery.data?.payroll_details?.total_items ?? 0;
+  const hasPayrollData = totalPayrollRecords > 0;
 
   const payrollActionOptions = useMemo(() => {
     const options: { label: string; value: PayrollActionValue }[] = [
-      { label: "Generar Reporte", value: "report" },
+      { label: "Generar Reporte Nómina", value: "report" },
+      {
+        label: "Generar Historial Acumulado",
+        value: "accumulated_history",
+      },
     ];
     if (hasCollaboratorsWithoutInss && !detailsFetchInFlight) {
       options.push({
@@ -392,6 +404,12 @@ export function PayrollPage() {
   const handleGeneratePdf = useCallback(async () => {
     if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
       return;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return;
+    }
     try {
       setIsGeneratingPdf(true);
       const payrollServices = new PayrollServices(httpHandler);
@@ -459,6 +477,7 @@ export function PayrollPage() {
     selectedBranch,
     companyId,
     moduleCode,
+    hasPayrollData,
     ordinaryPayrollQuery.data,
     displayedBranchName,
     visibleKeys,
@@ -532,6 +551,49 @@ export function PayrollPage() {
     handlePdfGenerationError,
   ]);
 
+  const handleGenerateAccumulatedHistoryPdf = useCallback(async () => {
+    if (!companyId) return;
+    const payrollId = ordinaryPayrollQuery.data?.payroll_id;
+    if (!payrollId) return;
+
+    try {
+      setIsGeneratingAccumulatedHistoryPdf(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const reportResponse = await payrollServices.generateReportsPayroll({
+        companie_id: companyId,
+        payroll_id: payrollId,
+        report_type: "Accumulated",
+      });
+
+      const reportData = reportResponse.accumulated_history ?? [];
+
+      if (!reportData.length) {
+        handlePdfGenerationError(
+          "No hay datos disponibles para generar el historial acumulado.",
+        );
+        return;
+      }
+
+      const blob = await pdf(
+        <AccumulatedHistoryPdfDocument data={reportData} />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte de historial acumulado.",
+      );
+    } finally {
+      setIsGeneratingAccumulatedHistoryPdf(false);
+    }
+  }, [
+    companyId,
+    ordinaryPayrollQuery.data?.payroll_id,
+    handlePdfGenerationError,
+  ]);
+
   //   const handleGenerateExcel = useCallback(async () => {
   //     if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
   //       return;
@@ -594,10 +656,18 @@ export function PayrollPage() {
       case "payment_requests":
         void handleGeneratePaymentRequestsPdf();
         break;
+      case "accumulated_history":
+        void handleGenerateAccumulatedHistoryPdf();
+        break;
       default:
         break;
     }
-  }, [selectedAction]);
+  }, [
+    selectedAction,
+    handleGeneratePdf,
+    handleGeneratePaymentRequestsPdf,
+    handleGenerateAccumulatedHistoryPdf,
+  ]);
 
   const handleApplyFilters = useCallback(
     (
@@ -1044,16 +1114,23 @@ export function PayrollPage() {
                   type="button"
                   size="giant"
                   label="Generar"
-                  isLoading={isGeneratingPdf || isGeneratingPaymentRequestsPdf}
+                  isLoading={
+                    isGeneratingPdf ||
+                    isGeneratingPaymentRequestsPdf ||
+                    isGeneratingAccumulatedHistoryPdf
+                  }
                   disabled={
                     !selectedAction ||
                     !existPayrollInProgress ||
                     isGeneratingPdf ||
-                    isGeneratingPaymentRequestsPdf
+                    isGeneratingPaymentRequestsPdf ||
+                    isGeneratingAccumulatedHistoryPdf
                   }
                   onClick={handleExecuteSelectedAction}
                   className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingPdf || isGeneratingPaymentRequestsPdf
+                    isGeneratingPdf ||
+                    isGeneratingPaymentRequestsPdf ||
+                    isGeneratingAccumulatedHistoryPdf
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}

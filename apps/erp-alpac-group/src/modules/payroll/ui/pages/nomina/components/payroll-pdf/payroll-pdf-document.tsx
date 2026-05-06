@@ -81,6 +81,9 @@ export function PayrollPdfDocument({
   const grouped = groupByWorkArea(data);
   const showSignatures = !!(preparedBy || reviewedBy);
 
+  const globalTotals = calcAreaTotals(data, activeColumns);
+  const totalCollaborators = data.length;
+
   return (
     <Document>
       <Page size={LEGAL_LANDSCAPE_SIZE} style={styles.page}>
@@ -141,7 +144,7 @@ export function PayrollPdfDocument({
                 {activeColumns.map((col, colIndex) => {
                   const rawTotal =
                     colIndex === 0
-                      ? `Total ${areaName}`
+                      ? `Total ${areaName} (${areaItems.length} colab.)`
                       : (totals[col.key] ?? "");
                   const displayTotal = withSoftLineBreaks(rawTotal);
                   return (
@@ -156,6 +159,23 @@ export function PayrollPdfDocument({
             </View>
           );
         })}
+
+        <View style={styles.globalTotalsRow} wrap={false}>
+          {activeColumns.map((col, colIndex) => {
+            const rawTotal =
+              colIndex === 0
+                ? `TOTAL GENERAL (${totalCollaborators} colaboradores)`
+                : (globalTotals[col.key] ?? "");
+            const displayTotal = withSoftLineBreaks(rawTotal);
+            return (
+              <View style={colStyle(col.key)} key={col.key}>
+                <Text style={styles.globalTotalsCell} wrap>
+                  {displayTotal}
+                </Text>
+              </View>
+            );
+          })}
+        </View>
 
         {showSignatures && (
           <View style={styles.signaturesContainer} wrap={false}>
