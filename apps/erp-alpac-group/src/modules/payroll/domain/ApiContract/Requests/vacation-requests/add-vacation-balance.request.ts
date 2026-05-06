@@ -27,9 +27,4 @@ export interface AddVacationBalanceRequest {
     * Saldo de vacaciones
     */
    vacation_balance: number;
-
-   /**
-    * Vacaciones disfrutadas
-    */
-   enjoyed_vacation: number;
 }

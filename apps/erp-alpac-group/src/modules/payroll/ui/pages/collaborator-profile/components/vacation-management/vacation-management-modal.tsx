@@ -69,7 +69,7 @@ export const VacationManagementModal = ({ profile, vacationData, isOpen, onClose
 
             <div className="flex flex-col gap-1.5">
                <InputText
-                  label="Vacaciones disponibles"
+                  label="Vacaciones disponibles actual"
                   className="h-10! w-full! font-semibold! rounded-md! text-[15px] dark:text-slate-100 text-white! dark:bg-[#272b34]! dark:border-slate-600!"
                   labelClassName="text-black! dark:text-white!"
                   type="text"
@@ -84,28 +84,6 @@ export const VacationManagementModal = ({ profile, vacationData, isOpen, onClose
                      required: "Las vacaciones disponibles son requeridas.",
                      validate: {
                         validatePositive: (value) => validatePositiveNumber(value, true),
-                     },
-                  })}
-               />
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-               <InputText
-                  label="Vacaciones disfrutadas"
-                  className="h-10! w-full! font-semibold! rounded-md! text-[15px] dark:text-slate-100 text-white! dark:bg-[#272b34]! dark:border-slate-600!"
-                  labelClassName="text-black! dark:text-white!"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                  isRequired
-                  error={errors.enjoyed_vacation?.message}
-                  {...register("enjoyed_vacation", {
-                     valueAsNumber: true,
-                     required: "Las vacaciones disfrutadas son requeridas.",
-                     validate: {
-                        validatePositive: (value) => validatePositiveNumber(value),
                      },
                   })}
                />
