@@ -1,7 +1,10 @@
-import { Button, DataTable, Pagination } from "@alpac/design-system";
+import { DataTable, Pagination } from "@alpac/design-system";
 import type { ControlVacationsTableProps } from "./types/control-vacation.table";
 import type { VacationAccruals } from "@app/modules/payroll/domain/ApiContract/Responses/control-vacation-responses/get-control-vacations-response";
-import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
+import {
+  formatDateToSpanishWords,
+  formatIdentificationNumber,
+} from "@app/shared/utils/string.utils";
 
 export function ControlVacationsTable({
   rows,
@@ -68,9 +71,7 @@ export function ControlVacationsTable({
       label: "Fecha de ingreso",
       render: (row: VacationAccruals) => {
         const dateStr = row.collaborator_information?.entry_date;
-        if (!dateStr) return "—";
-        const date = new Date(dateStr);
-        return date.toLocaleDateString("es-NI");
+        return formatDateToSpanishWords(dateStr);
       },
     },
   ];

@@ -32,7 +32,7 @@ export function ControlVacationDirectActions({
             label="Cambiar tipo de control y sucursal"
             onClick={onOpenChangeSelection}
             disabled={!canChangeSelection}
-            className="w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! enabled:opacity-100! disabled:pointer-events-none disabled:opacity-50"
+            className="w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! enabled:opacity-100! disabled:pointer-events-none disabled:opacity-50"
           />
 
           <div className="w-full lg:w-[18rem]">

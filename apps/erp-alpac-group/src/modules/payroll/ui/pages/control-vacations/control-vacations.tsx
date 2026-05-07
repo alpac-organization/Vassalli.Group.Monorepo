@@ -4,10 +4,13 @@ import {
   useTheme,
   Dropdown,
   Button,
+  Alert,
+  AnimatedAlertWrapper,
 } from "@alpac/design-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { pdf } from "@react-pdf/renderer";
 import { ControlVacationPageHeader } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-page-header/control-vacation-page-header";
 import { ControlVacationDirectActions } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-direct-actions/control-vacation-direct-actions";
 import { useControlVacations } from "@app/modules/payroll/ui/hooks/vacation/useControlVacations";
@@ -22,6 +25,7 @@ import { ControlVacationFiltersBar } from "@app/modules/payroll/ui/pages/control
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import type { VacationAccruals } from "@app/modules/payroll/domain/ApiContract/Responses/control-vacation-responses/get-control-vacations-response";
+import { VacationAccrualPdfDocument } from "@app/modules/payroll/ui/pages/control-vacations/components/vacation-accrual-pdf/vacation-accrual-pdf-document";
 
 const DEFAULT_PAGE_SIZE = 10;
 
@@ -57,6 +61,18 @@ export default function ControlVacationsPage() {
   const [identificationFilter, setIdentificationFilter] = useState("");
   const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
   const [filterBarSubmitPending, setFilterBarSubmitPending] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [showAlert, setShowAlert] = useState<{
+    show: boolean;
+    type: "success" | "error" | "warning" | "info";
+    title: string;
+    message: string;
+  }>({
+    show: false,
+    type: "info",
+    title: "",
+    message: "",
+  });
 
   const historyFilters = useMemo<
     ControlVacationHistoryRequest | undefined
@@ -85,15 +101,67 @@ export default function ControlVacationsPage() {
 
   const hasAppliedFilters = Boolean(selectedVacationType && selectedBranch);
 
-  const { GetControlVacationHistoryQuery } = useControlVacations({
-    filtersVacations: historyFilters,
-  });
+  const { GetControlVacationHistoryQuery, getVacationReportData } =
+    useControlVacations({
+      filtersVacations: historyFilters,
+    });
+
+  const handleCloseAlert = useCallback(() => {
+    setTimeout(() => {
+      setShowAlert({ show: false, type: "info", title: "", message: "" });
+    }, 3000);
+  }, []);
+
+  const extractErrorMessage = useCallback(
+    (error: unknown, fallback: string): string => {
+      const errorObj = error as
+        | {
+            error?: { description?: string };
+            response?: { data?: { error?: { description?: string } } };
+          }
+        | undefined;
+
+      if (errorObj?.error?.description) return errorObj.error.description;
+      if (errorObj?.response?.data?.error?.description) {
+        return errorObj.response.data.error.description;
+      }
+      if (error instanceof Error && error.message) {
+        return error.message;
+      }
+      return fallback;
+    },
+    [],
+  );
 
   useEffect(() => {
+    if (
+      filterBarSubmitPending &&
+      !GetControlVacationHistoryQuery.isFetching &&
+      GetControlVacationHistoryQuery.isError
+    ) {
+      setShowAlert({
+        show: true,
+        type: "error",
+        title: "Error al aplicar filtros",
+        message: extractErrorMessage(
+          GetControlVacationHistoryQuery.error,
+          "No se pudo consultar el control de vacaciones con los filtros aplicados.",
+        ),
+      });
+      handleCloseAlert();
+    }
+
     if (!GetControlVacationHistoryQuery.isFetching && filterBarSubmitPending) {
       setFilterBarSubmitPending(false);
     }
-  }, [GetControlVacationHistoryQuery.isFetching, filterBarSubmitPending]);
+  }, [
+    GetControlVacationHistoryQuery.isFetching,
+    GetControlVacationHistoryQuery.isError,
+    GetControlVacationHistoryQuery.error,
+    filterBarSubmitPending,
+    extractErrorMessage,
+    handleCloseAlert,
+  ]);
 
   const historyPayload = GetControlVacationHistoryQuery.data;
 
@@ -168,9 +236,83 @@ export default function ControlVacationsPage() {
     }
   }, [tempSelectedType, tempSelectedBranch, searchParams, setSearchParams]);
 
-  const handleGenerateReport = useCallback(() => {
-    if (!selectedReportAction) return;
-  }, [selectedReportAction]);
+  const handleGenerateReport = useCallback(async () => {
+    if (!selectedReportAction || !companyId || !moduleCode) return;
+    if (selectedReportAction !== "VacationAccrual") {
+      setShowAlert({
+        show: true,
+        type: "warning",
+        title: "Reporte no disponible",
+        message:
+          "Por el momento solo esta disponible el reporte de Acumulado de Vacaciones.",
+      });
+      handleCloseAlert();
+      return;
+    }
+
+    if (!historyFilters) {
+      setShowAlert({
+        show: true,
+        type: "warning",
+        title: "Faltan parámetros",
+        message: "Seleccione el tipo de reporte y la sucursal para continuar.",
+      });
+      handleCloseAlert();
+      return;
+    }
+
+    try {
+      setIsGeneratingPdf(true);
+
+      const response = await getVacationReportData({
+        ...historyFilters,
+        page_number: 1,
+        page_size: totalRecords > 0 ? totalRecords : DEFAULT_PAGE_SIZE,
+      });
+
+      const reportData = response.data ?? [];
+      if (!reportData.length) {
+        throw new Error("No hay datos para generar el reporte.");
+      }
+
+      const dateLabel = new Date().toLocaleDateString("es-NI");
+      const blob = await pdf(
+        <VacationAccrualPdfDocument
+          data={reportData}
+          generatedAt={dateLabel}
+          preparedBy={{
+            name: "Lic Aracelly Guillen",
+            role: "Talento Humano",
+          }}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      setShowAlert({
+        show: true,
+        type: "error",
+        title: "Error al generar reporte",
+        message: extractErrorMessage(
+          error,
+          "No se pudo generar el reporte de acumulado de vacaciones. Inténtelo nuevamente.",
+        ),
+      });
+      handleCloseAlert();
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }, [
+    selectedReportAction,
+    companyId,
+    moduleCode,
+    historyFilters,
+    totalRecords,
+    getVacationReportData,
+    extractErrorMessage,
+    handleCloseAlert,
+  ]);
 
   const handleOpenChangeSelection = useCallback(() => {
     setTempSelectedType(selectedVacationType);
@@ -183,7 +325,6 @@ export default function ControlVacationsPage() {
     value: VacationReportType;
   }[] = [
     { label: "Acumulado de Vacaciones", value: "VacationAccrual" },
-    { label: "Solicitud de Vacaciones", value: "VacationRequest" },
   ];
 
   return (
@@ -272,7 +413,7 @@ export default function ControlVacationsPage() {
           selectedReportAction={selectedReportAction}
           onReportActionChange={setSelectedReportAction}
           onGenerate={handleGenerateReport}
-          isGenerating={false}
+          isGenerating={isGeneratingPdf}
           onOpenChangeSelection={handleOpenChangeSelection}
           canChangeSelection={hasAppliedFilters}
         />
@@ -301,6 +442,15 @@ export default function ControlVacationsPage() {
           </>
         )}
       </motion.div>
+
+      <AnimatedAlertWrapper open={showAlert.show}>
+        <Alert
+          type={showAlert.type}
+          title={showAlert.title}
+          message={showAlert.message}
+          onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
+        />
+      </AnimatedAlertWrapper>
     </>
   );
 }
