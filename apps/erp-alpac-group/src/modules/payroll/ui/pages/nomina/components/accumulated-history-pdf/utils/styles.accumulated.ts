@@ -1,0 +1,73 @@
+import { StyleSheet } from "@react-pdf/renderer";
+export const styles = StyleSheet.create({
+  page: {
+    paddingTop: 28,
+    paddingBottom: 24,
+    paddingHorizontal: 20,
+    fontSize: 10,
+  },
+  title: {
+    textAlign: "center",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 8,
+  },
+  subtitle: {
+    textAlign: "center",
+    fontSize: 13,
+    fontWeight: "bold",
+    marginBottom: 6,
+  },
+  period: {
+    textAlign: "center",
+    fontSize: 11,
+    marginBottom: 14,
+  },
+  tableRow: {
+    flexDirection: "row",
+    width: "100%",
+  },
+  headerRow: {
+    backgroundColor: "#e5e7eb",
+    borderStyle: "solid",
+    borderColor: "#d1d5db",
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+  },
+  bodyRow: {
+    borderStyle: "solid",
+    borderColor: "#d1d5db",
+    borderLeftWidth: 1,
+  },
+  cellCode: {
+    width: "12%",
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#d1d5db",
+    padding: 4,
+    fontSize: 9,
+    textAlign: "left",
+  },
+  cellName: {
+    width: "48%",
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#d1d5db",
+    padding: 4,
+    fontSize: 9,
+    textAlign: "left",
+  },
+  cellAmount: {
+    width: "20%",
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#d1d5db",
+    padding: 4,
+    fontSize: 9,
+    textAlign: "right",
+  },
+  headerCell: {
+    fontWeight: "bold",
+    fontSize: 9,
+  },
+});
