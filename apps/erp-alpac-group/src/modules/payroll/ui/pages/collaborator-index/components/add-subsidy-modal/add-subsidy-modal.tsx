@@ -30,7 +30,7 @@ export const AddSubsidyModal = (props: AddSubsidyModalProps): React.ReactNode =>
          variant="form"
          size="4xl"
       >
-         <LazyMotion features={loadFeatures}>
+         <LazyMotion features={loadFeatures} strict>
             <div className="flex flex-col gap-5">
 
                {/* ── Sección: Buscar Colaborador ── */}
