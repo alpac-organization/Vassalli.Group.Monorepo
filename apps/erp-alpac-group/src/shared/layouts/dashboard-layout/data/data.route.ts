@@ -11,6 +11,7 @@ import {
    CircleMinus,
    HandCoins,
    ClipboardCheck,
+   Scale,
 } from "lucide-react";
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 
@@ -91,6 +92,13 @@ const reportsSection: SidebarLink = {
    icon: ClipboardCheck,
 };
 
+const scaleControlSection: SidebarLink = {
+   id: "scale-control",
+   label: "Control de Báscula",
+   path: "storage",
+   icon: Scale,
+}
+
 export const sidebarData = {
    logoUrl:
       "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
@@ -116,6 +124,9 @@ export const sidebarData = {
       [ModuleEnum.APPLICATIONS]: {
          [RoleEnum.MANAGER]: [applicationSection],
          [RoleEnum.ADMINISTRATOR]: [applicationSection],
+      },
+      [ModuleEnum.STORAGE]: {
+         [RoleEnum.OPERATOR]: [scaleControlSection],
       },
       [ModuleEnum.PUBLIC]: [settingsSection],
    },
