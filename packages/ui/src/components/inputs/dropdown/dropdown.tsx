@@ -1,5 +1,7 @@
 import { DropdownProps } from "./dropdown.types";
-import { motion, AnimatePresence } from "framer-motion";
+
+const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
+import { m, LazyMotion, AnimatePresence } from "framer-motion";
 import { forwardRef, useState, useRef, useEffect } from "react";
 
 export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
@@ -113,106 +115,108 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           </label>
         )}
 
-        <div className="relative w-full" ref={ref}>
-          <div
-            onClick={() => setIsOpen(!isOpen)}
-            className={`
-                  flex items-center justify-between w-full h-12 px-4 rounded-[10px] cursor-pointer
-                  transition-all duration-200 text-[15px] outline-none
-                  ${triggerSurface}
-                  ${className ?? ""}
-               `}
-          >
-            {isOpen ? (
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onClick={(e) => e.stopPropagation()}
-                className={`bg-transparent outline-none w-full truncate ${valueColorClass} ${inputPlaceholderClass}`}
-                placeholder={
-                  selectedOption
-                    ? String(selectedOption.label)
-                    : placeholder || "Buscar..."
-                }
-              />
-            ) : (
-              <span
-                className={`truncate ${!selectedOption ? placeholderClass : valueColorClass}`}
-              >
-                {selectedOption ? selectedOption.label : placeholder}
-              </span>
-            )}
-
-            <motion.svg
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsOpen(!isOpen);
-              }}
-              animate={{ rotate: isOpen ? 180 : 0 }}
-              className="w-5 h-5 text-slate-400 shrink-0 cursor-pointer ml-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="1.5"
+        <LazyMotion features={loadFeatures} strict>
+          <div className="relative w-full" ref={ref}>
+            <div
+              onClick={() => setIsOpen(!isOpen)}
+              className={`
+                    flex items-center justify-between w-full h-12 px-4 rounded-[10px] cursor-pointer
+                    transition-all duration-200 text-[15px] outline-none
+                    ${triggerSurface}
+                    ${className ?? ""}
+                 `}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m19.5 8.25-7.5 7.5-7.5-7.5"
-              />
-            </motion.svg>
-          </div>
+              {isOpen ? (
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onClick={(e) => e.stopPropagation()}
+                  className={`bg-transparent outline-none w-full truncate ${valueColorClass} ${inputPlaceholderClass}`}
+                  placeholder={
+                    selectedOption
+                      ? String(selectedOption.label)
+                      : placeholder || "Buscar..."
+                  }
+                />
+              ) : (
+                <span
+                  className={`truncate ${!selectedOption ? placeholderClass : valueColorClass}`}
+                >
+                  {selectedOption ? selectedOption.label : placeholder}
+                </span>
+              )}
 
-          <AnimatePresence>
-            {isOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 0 }}
-                animate={{ opacity: 1, y: 4 }}
-                exit={{ opacity: 0, y: 0 }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
-                className={`absolute inset-x-0 top-full z-100 mt-1 rounded-[12px] overflow-hidden ${menuSurface}`}
+              <m.svg
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(!isOpen);
+                }}
+                animate={{ rotate: isOpen ? 180 : 0 }}
+                className="w-5 h-5 text-slate-400 shrink-0 cursor-pointer ml-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="1.5"
               >
-                <ul className="max-h-60 overflow-y-auto py-1.5 px-0 m-0!">
-                  {filteredOptions.length > 0 ? (
-                    filteredOptions.map((option, index) => (
-                      <li
-                        key={option.value ?? index}
-                        onClick={() => handleSelect(option.value)}
-                        className={`
-                                       px-4 py-2.5 cursor-pointer text-[14px] flex items-center justify-between transition-colors
-                                       ${value === option.value ? itemSelected : itemBase}
-                                    `}
-                      >
-                        <span className="truncate">{option.label}</span>
-                        {value === option.value && (
-                          <svg
-                            className={`w-4 h-4 ${checkIconClass}`}
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m4.5 12.75 6 6 9-13.5"
-                            />
-                          </svg>
-                        )}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                />
+              </m.svg>
+            </div>
+
+            <AnimatePresence>
+              {isOpen && (
+                <m.div
+                  initial={{ opacity: 0, y: 0 }}
+                  animate={{ opacity: 1, y: 4 }}
+                  exit={{ opacity: 0, y: 0 }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  className={`absolute inset-x-0 top-full z-100 mt-1 rounded-[12px] overflow-hidden ${menuSurface}`}
+                >
+                  <ul className="max-h-60 overflow-y-auto py-1.5 px-0 m-0!">
+                    {filteredOptions.length > 0 ? (
+                      filteredOptions.map((option, index) => (
+                        <li
+                          key={option.value ?? index}
+                          onClick={() => handleSelect(option.value)}
+                          className={`
+                                         px-4 py-2.5 cursor-pointer text-[14px] flex items-center justify-between transition-colors
+                                         ${value === option.value ? itemSelected : itemBase}
+                                      `}
+                        >
+                          <span className="truncate">{option.label}</span>
+                          {value === option.value && (
+                            <svg
+                              className={`w-4 h-4 ${checkIconClass}`}
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="m4.5 12.75 6 6 9-13.5"
+                              />
+                            </svg>
+                          )}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="px-4 py-3 text-[14px] text-slate-500">
+                        Resultados no encontrados.
                       </li>
-                    ))
-                  ) : (
-                    <li className="px-4 py-3 text-[14px] text-slate-500">
-                      Resultados no encontrados.
-                    </li>
-                  )}
-                </ul>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                    )}
+                  </ul>
+                </m.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </LazyMotion>
         {error && (
           <span className="text-xs text-red-500 dark:text-red-400 font-medium ml-1">
             {error}
