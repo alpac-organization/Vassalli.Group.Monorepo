@@ -28,11 +28,11 @@ export class VacationServices implements IVacationServices {
 
    public async UpdateVacationBalance(payload: AddVacationBalanceRequest): Promise<void> {
       try {
-         const { company_id, module_code, identification_number, vacation_id, vacation_balance, enjoyed_vacation } = payload;
+         const { company_id, module_code, identification_number, vacation_id, vacation_balance } = payload;
 
          await this.apiHandler.put(
             `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}/vacations`,
-            { vacation_id, vacation_balance, enjoyed_vacation },
+            { vacation_id, vacation_balance },
          );
       } catch (error) {
          throw error;
