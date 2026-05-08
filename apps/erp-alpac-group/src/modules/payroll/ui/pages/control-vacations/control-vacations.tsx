@@ -26,8 +26,12 @@ import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import type { VacationAccruals } from "@app/modules/payroll/domain/ApiContract/Responses/control-vacation-responses/get-control-vacations-response";
 import { VacationAccrualPdfDocument } from "@app/modules/payroll/ui/pages/control-vacations/components/vacation-accrual-pdf/vacation-accrual-pdf-document";
-
-const DEFAULT_PAGE_SIZE = 10;
+import {
+  CONTROL_VACATIONS_SELECTION_STORAGE_KEY,
+  DEFAULT_PAGE_SIZE,
+} from "@app/modules/payroll/ui/pages/control-vacations/constants/vacations-contants";
+import { isValidVacationReportType } from "@app/modules/payroll/ui/pages/control-vacations/utils/verified-vacations";
+import type { StoredControlVacationsSelection } from "@app/modules/payroll/ui/pages/control-vacations/types/control-vacation.types";
 
 export default function ControlVacationsPage() {
   const navigate = useNavigate();
@@ -42,10 +46,14 @@ export default function ControlVacationsPage() {
   const { GetBranchesQuery: branchesQuery } = useCompanies(
     companyId ? { company_id: companyId } : undefined,
   );
-  const branchOptions = (branchesQuery.data ?? []).map((b) => ({
-    label: b.branch_name,
-    value: b.branch_id,
-  }));
+  const branchOptions = useMemo(
+    () =>
+      (branchesQuery.data ?? []).map((b) => ({
+        label: b.branch_name,
+        value: b.branch_id,
+      })),
+    [branchesQuery.data],
+  );
 
   const [selectedVacationType, setSelectedVacationType] =
     useState<VacationReportType | null>(null);
@@ -56,6 +64,7 @@ export default function ControlVacationsPage() {
     null,
   );
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(true);
+  const [selectionHydrated, setSelectionHydrated] = useState(false);
   const [selectedReportAction, setSelectedReportAction] =
     useState<VacationReportType | null>(null);
   const [identificationFilter, setIdentificationFilter] = useState("");
@@ -73,6 +82,11 @@ export default function ControlVacationsPage() {
     title: "",
     message: "",
   });
+
+  const selectionStorageKey = useMemo(() => {
+    if (!companyId || !moduleCode) return null;
+    return `${CONTROL_VACATIONS_SELECTION_STORAGE_KEY}:${companyId}:${moduleCode}`;
+  }, [companyId, moduleCode]);
 
   const historyFilters = useMemo<
     ControlVacationHistoryRequest | undefined
@@ -163,6 +177,47 @@ export default function ControlVacationsPage() {
     handleCloseAlert,
   ]);
 
+  useEffect(() => {
+    if (selectionHydrated) return;
+    if (!selectionStorageKey || branchesQuery.isPending) return;
+
+    const storedSelectionRaw = localStorage.getItem(selectionStorageKey);
+    if (!storedSelectionRaw) {
+      setSelectionHydrated(true);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(
+        storedSelectionRaw,
+      ) as Partial<StoredControlVacationsSelection>;
+      const restoredType = parsed.type;
+      const restoredBranch = parsed.branch_id;
+
+      const hasValidType = isValidVacationReportType(restoredType);
+      const hasValidBranch =
+        typeof restoredBranch === "string" &&
+        branchOptions.some((branch) => branch.value === restoredBranch);
+
+      if (!hasValidType || !hasValidBranch) {
+        localStorage.removeItem(selectionStorageKey);
+        setSelectionHydrated(true);
+        return;
+      }
+
+      setSelectedVacationType(restoredType);
+      setSelectedBranch(restoredBranch);
+      setTempSelectedType(restoredType);
+      setTempSelectedBranch(restoredBranch);
+      setSelectedReportAction(restoredType);
+      setIsSelectionModalOpen(false);
+      setSelectionHydrated(true);
+    } catch {
+      localStorage.removeItem(selectionStorageKey);
+      setSelectionHydrated(true);
+    }
+  }, [selectionStorageKey, branchOptions, branchesQuery.isPending]);
+
   const historyPayload = GetControlVacationHistoryQuery.data;
 
   const rows: VacationAccruals[] = useMemo(() => {
@@ -228,13 +283,31 @@ export default function ControlVacationsPage() {
     if (tempSelectedType && tempSelectedBranch) {
       setSelectedVacationType(tempSelectedType);
       setSelectedBranch(tempSelectedBranch);
+      setSelectedReportAction(tempSelectedType);
       setIsSelectionModalOpen(false);
+
+      if (selectionStorageKey) {
+        const selectionToStore: StoredControlVacationsSelection = {
+          type: tempSelectedType,
+          branch_id: tempSelectedBranch,
+        };
+        localStorage.setItem(
+          selectionStorageKey,
+          JSON.stringify(selectionToStore),
+        );
+      }
 
       const nextParams = new URLSearchParams(searchParams);
       nextParams.set("page", "1");
       setSearchParams(nextParams);
     }
-  }, [tempSelectedType, tempSelectedBranch, searchParams, setSearchParams]);
+  }, [
+    tempSelectedType,
+    tempSelectedBranch,
+    selectionStorageKey,
+    searchParams,
+    setSearchParams,
+  ]);
 
   const handleGenerateReport = useCallback(async () => {
     if (!selectedReportAction || !companyId || !moduleCode) return;
@@ -323,14 +396,15 @@ export default function ControlVacationsPage() {
   const vacationTypeOptions: {
     label: string;
     value: VacationReportType;
-  }[] = [
-    { label: "Acumulado de Vacaciones", value: "VacationAccrual" },
-  ];
+  }[] = [{ label: "Acumulado de Vacaciones", value: "VacationAccrual" }];
 
   return (
     <>
       <Modal
-        isOpen={isSelectionModalOpen || selectedVacationType === null}
+        isOpen={
+          selectionHydrated &&
+          (isSelectionModalOpen || selectedVacationType === null)
+        }
         onClose={handleSelectionModalClose}
         variant="default"
         size="sm"
@@ -385,9 +459,11 @@ export default function ControlVacationsPage() {
         transition={{ duration: 0.5 }}
         className="flex flex-col gap-4"
       >
-        {hasAppliedFilters && GetControlVacationHistoryQuery.isPending && (
-          <Loader title="Cargando control de vacaciones..." />
-        )}
+        {selectionHydrated &&
+          hasAppliedFilters &&
+          GetControlVacationHistoryQuery.isPending && (
+            <Loader title="Cargando control de vacaciones..." />
+          )}
 
         <div className="flex justify-start">
           <Breadcrumb
@@ -415,7 +491,7 @@ export default function ControlVacationsPage() {
           onGenerate={handleGenerateReport}
           isGenerating={isGeneratingPdf}
           onOpenChangeSelection={handleOpenChangeSelection}
-          canChangeSelection={hasAppliedFilters}
+          canChangeSelection
         />
 
         {selectedVacationType && selectedBranch && (

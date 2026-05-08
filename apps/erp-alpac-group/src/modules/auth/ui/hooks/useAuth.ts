@@ -4,12 +4,12 @@ import { QueryClient, useMutation } from "@tanstack/react-query";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import { AuthenticationServices } from "@app/modules/auth/infrastructure/services/AuthenticationServices";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { clearControlVacationsSelectionStorage } from "@app/modules/auth/utils/save-state-storage";
 
 import type { LoginRequest } from "@app/modules/auth/domain/ApiContract/Requests/login.request";
 import type { LogoutRequest } from "@app/modules/auth/domain/ApiContract/Requests/logout.request";
 
 const authService = new AuthenticationServices(httpHandler);
-
 httpHandler.setAuthenticationService(authService);
 
 export const useAuth = function () {
@@ -52,6 +52,7 @@ export const useAuth = function () {
     mutationFn: (payload: LogoutRequest) =>
       authService.StartProcessToCloseSession(payload),
     onSuccess: () => {
+      clearControlVacationsSelectionStorage();
       CookieStorageAdapter.clearAuth();
 
       navigate("/auth", {
@@ -59,6 +60,7 @@ export const useAuth = function () {
       });
     },
     onError: () => {
+      clearControlVacationsSelectionStorage();
       CookieStorageAdapter.clearAuth();
 
       navigate("/auth", {
