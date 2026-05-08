@@ -9,9 +9,7 @@ import {
    Stepper,
 } from "@alpac/design-system";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import type { AddCollaboratorModalProps } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal.types";
 import { Controller, useForm } from "react-hook-form";
-import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
 import { fieldsToValidate } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal.types";
 import {
    formatIdentificationNumber,
@@ -27,20 +25,23 @@ import {
    IdentificationOptions,
    IdentificationEnum,
 } from "@app/core/enums/identification.enum";
+import dayjs from "dayjs";
 import { CurrencyEnum, CurrencyOptions } from "@app/core/enums/currency.enum";
 import { SalaryTypeEnum, SalaryTypeOptions } from "@app/modules/payroll/domain/enums/salary-enums/salary-type.enum";
 import { ArrowLeftIcon, ArrowRightIcon, SaveIcon, X, XIcon } from "lucide-react";
 import { formatAmount } from "@app/shared/utils/number.utils";
-import { useCreateCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCreateCollaborators";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
-import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
-import dayjs from "dayjs";
 import { CompanyEnum } from "@app/core/enums/company.enum";
 import { ServiceRatesTable } from "../service-rates-table/service-rates-table";
 import { AddAllowanceModal } from "../add-allowance-modal/add-allowance-modal";
 import { useIncomes } from "@app/modules/payroll/ui/hooks/incomes/useIncomes";
+import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
+
+import type { AddCollaboratorModalProps } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal.types";
+import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
 export const AddCollaboratorModal = (
    props: AddCollaboratorModalProps,
@@ -61,7 +62,7 @@ export const AddCollaboratorModal = (
       message: "",
    });
 
-   const { PostCollaboratorQuery } = useCreateCollaborators();
+   const { PostCollaboratorQuery } = useCollaborators();
    const { getMappedError } = useMappedError();
    const { companyId, moduleCode, companyAlias } = useUserStore();
 
