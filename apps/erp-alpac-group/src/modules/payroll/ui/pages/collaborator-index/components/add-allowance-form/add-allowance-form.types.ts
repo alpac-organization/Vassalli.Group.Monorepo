@@ -11,3 +11,9 @@ export interface AddAllowanceFormProps {
    onSubmit: (data: Allowances) => void;
    onCancel: () => void;
 }
+
+export interface AllowanceTypeOption {
+   id: string;
+   code: string;
+   label: string;
+}

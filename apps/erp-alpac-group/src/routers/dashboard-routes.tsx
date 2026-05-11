@@ -5,6 +5,7 @@ import { DashboardLayout } from "@app/shared/layouts/dashboard-layout/dashboard-
 import { PayrollRoutes } from "@app/routers/payroll-routes";
 import { WorkManagementRoutes } from "@app/routers/work-management-routes";
 import { ApplicationRoutes } from "@app/routers/applications-routes";
+import { StorageRoutes } from "./storage-routes";
 
 export const DashboardRoutes: RouteObject[] = [
    {
@@ -30,6 +31,10 @@ export const DashboardRoutes: RouteObject[] = [
          {
             path: "applications",
             children: ApplicationRoutes,
+         },
+         {
+            path: "storage",
+            children: StorageRoutes,
          },
       ],
    },
