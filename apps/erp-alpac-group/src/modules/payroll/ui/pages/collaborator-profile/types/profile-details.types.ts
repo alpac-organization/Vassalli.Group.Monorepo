@@ -1,4 +1,9 @@
 export interface PersonalFormData {
+   first_name?: string;
+   second_name?: string;
+   third_name?: string;
+   first_surname?: string;
+   second_surname?: string;
    identification_number?: string;
    gender?: string;
    marital_status?: string;

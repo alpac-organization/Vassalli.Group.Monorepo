@@ -17,6 +17,11 @@ export interface UpdateCollaboratorProfileDetailsRequest {
    * @required
    */
   identification_number: string;
+  first_name?: string;
+  second_name?: string;
+  third_name?: string;
+  first_surname?: string;
+  second_surname?: string;
   personal_information?: UpdatePersonalInformationRequest;
   working_information?: UpdateWorkingInformationRequest;
   // salary_information?: UpdateSalaryInformationRequest;

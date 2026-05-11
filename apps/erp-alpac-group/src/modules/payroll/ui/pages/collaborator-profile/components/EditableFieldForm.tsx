@@ -30,6 +30,7 @@ export function EditableField<TFieldValues extends FieldValues>({
    onConfirmUpdate,
    missingMessage = "No registrado",
    allowEdit = true,
+   allowEmptySubmit = false,
    displayFormat,
 }: EditableFieldProps<TFieldValues>) {
    const {
@@ -66,7 +67,7 @@ export function EditableField<TFieldValues extends FieldValues>({
          typeof currentValue === "string"
             ? currentValue.trim() === ""
             : isValueMissing(currentValue);
-      if (empty) return;
+      if (empty && !allowEmptySubmit) return;
 
       const isValid = await formMethods.trigger(name);
       if (!isValid) return;
@@ -84,7 +85,9 @@ export function EditableField<TFieldValues extends FieldValues>({
 
    const isConfirmDisabled =
       isUpdating ||
-      (typeof currentValue === "string" && currentValue.trim() === "");
+      (!allowEmptySubmit &&
+         typeof currentValue === "string" &&
+         currentValue.trim() === "");
 
    const inputClassBase = `transition-all! duration-200! dark:bg-[#1e2229]! dark:border-slate-600/50! dark:px-3! 
                           focus:dark:border-cyan-500/60! focus:dark:ring-2! focus:dark:ring-cyan-500/20!

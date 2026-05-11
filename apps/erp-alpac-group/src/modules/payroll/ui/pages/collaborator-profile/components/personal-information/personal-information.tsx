@@ -33,6 +33,11 @@ import {
 } from "@app/shared/utils/string.utils";
 
 const defaultPersonalInformation: PersonalFormData = {
+  first_name: "",
+  second_name: "",
+  third_name: "",
+  first_surname: "",
+  second_surname: "",
   identification_number: "",
   gender: "",
   marital_status: "",
@@ -213,6 +218,89 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                       ),
                     ),
                 }}
+              />
+
+              <EditableField
+                name="first_name"
+                label="Primer nombre"
+                formMethods={formMethods}
+                isEditing={editingFields.first_name}
+                onEditStart={handleEditStart}
+                onEditEnd={handleEditEnd}
+                onConfirmUpdate={handleFieldUpdate}
+                allowEdit={currentRole === "Administrator"}
+                missingMessage="Primer nombre no registrado"
+                className={baseInputClasses}
+                validation={{
+                  validate: (value: string) => {
+                    if (!value?.trim()) return "Este campo es obligatorio";
+                    return validateTextNoDigits(value);
+                  },
+                }}
+              />
+
+              <EditableField
+                name="second_name"
+                label="Segundo nombre"
+                formMethods={formMethods}
+                isEditing={editingFields.second_name}
+                onEditStart={handleEditStart}
+                onEditEnd={handleEditEnd}
+                onConfirmUpdate={handleFieldUpdate}
+                allowEdit={currentRole === "Administrator"}
+                allowEmptySubmit
+                missingMessage="Segundo nombre no registrado"
+                className={baseInputClasses}
+                validation={{ validate: validateTextNoDigits }}
+              />
+
+              <EditableField
+                name="third_name"
+                label="Tercer nombre"
+                formMethods={formMethods}
+                isEditing={editingFields.third_name}
+                onEditStart={handleEditStart}
+                onEditEnd={handleEditEnd}
+                onConfirmUpdate={handleFieldUpdate}
+                allowEdit={currentRole === "Administrator"}
+                allowEmptySubmit
+                missingMessage="Tercer nombre no registrado"
+                className={baseInputClasses}
+                validation={{ validate: validateTextNoDigits }}
+              />
+
+              <EditableField
+                name="first_surname"
+                label="Primer apellido"
+                formMethods={formMethods}
+                isEditing={editingFields.first_surname}
+                onEditStart={handleEditStart}
+                onEditEnd={handleEditEnd}
+                onConfirmUpdate={handleFieldUpdate}
+                allowEdit={currentRole === "Administrator"}
+                missingMessage="Primer apellido no registrado"
+                className={baseInputClasses}
+                validation={{
+                  validate: (value: string) => {
+                    if (!value?.trim()) return "Este campo es obligatorio";
+                    return validateTextNoDigits(value);
+                  },
+                }}
+              />
+
+              <EditableField
+                name="second_surname"
+                label="Segundo apellido"
+                formMethods={formMethods}
+                isEditing={editingFields.second_surname}
+                onEditStart={handleEditStart}
+                onEditEnd={handleEditEnd}
+                onConfirmUpdate={handleFieldUpdate}
+                allowEdit={currentRole === "Administrator"}
+                allowEmptySubmit
+                missingMessage="Segundo apellido no registrado"
+                className={baseInputClasses}
+                validation={{ validate: validateTextNoDigits }}
               />
 
               <EditableField
