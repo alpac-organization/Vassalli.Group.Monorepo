@@ -45,6 +45,12 @@ import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiCon
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 // import { fetchImageAsDataUri } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/fetch-image-as-data-uri";
 import type { PayrollActionValue } from "@app/modules/payroll/ui/pages/nomina/types/payroll-actions.types";
+import type { StoredPayrollSelection } from "@app/modules/payroll/ui/pages/nomina/types/payroll.types";
+import {
+  PAYROLL_SELECTION_STORAGE_KEY,
+  DROPDOWN_DISABLED_TRIGGER_CLASS,
+} from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
+import { isSelectablePayrollType } from "@app/modules/payroll/ui/pages/nomina/utils/payroll.utls";
 
 export function PayrollPage() {
   const maxPageSize = 10;
@@ -98,6 +104,7 @@ export function PayrollPage() {
   const [pageNumber, setPageNumber] = useState(1);
   const [isPayrollSelectionModalOpen, setIsPayrollSelectionModalOpen] =
     useState(false);
+  const [selectionHydrated, setSelectionHydrated] = useState(false);
   const [selectedPayrollRow, setSelectedPayrollRow] =
     useState<PayrollItemResponse | null>(null);
   const [isPayrollDetailModalOpen, setIsPayrollDetailModalOpen] =
@@ -169,14 +176,16 @@ export function PayrollPage() {
 
   const handleOpenChangePayrollSelection = useCallback(() => {
     if (selectedPayrollType !== null && selectedBranch !== null) {
-      setTempSelectedType(selectedPayrollType);
-      setTempSelectedBranch(selectedBranch);
+      setTempSelectedBranch(null);
+      setTempSelectedType(null);
       setIsPayrollSelectionModalOpen(true);
     }
   }, [selectedPayrollType, selectedBranch]);
 
   const handleOpenPayrollSelectionFromStatusError = useCallback(() => {
     setIsStatusErrorModalOpen(false);
+    setTempSelectedBranch(null);
+    setTempSelectedType(null);
     setIsPayrollSelectionModalOpen(true);
   }, []);
 
@@ -198,10 +207,60 @@ export function PayrollPage() {
     setSelectedPayrollRow(null);
   }, []);
 
-  const branchOptions = (branchesQuery.data ?? []).map((branch) => ({
-    label: branch.branch_name,
-    value: branch.branch_id,
-  }));
+  const selectionStorageKey = useMemo(() => {
+    if (!companyId || !moduleCode) return null;
+    return `${PAYROLL_SELECTION_STORAGE_KEY}:${companyId}:${moduleCode}`;
+  }, [companyId, moduleCode]);
+
+  const branchOptions = useMemo(
+    () =>
+      (branchesQuery.data ?? []).map((branch) => ({
+        label: branch.branch_name,
+        value: branch.branch_id,
+      })),
+    [branchesQuery.data],
+  );
+
+  useEffect(() => {
+    if (selectionHydrated) return;
+    if (!selectionStorageKey || branchesQuery.isPending) return;
+
+    const storedSelectionRaw = localStorage.getItem(selectionStorageKey);
+    if (!storedSelectionRaw) {
+      setSelectionHydrated(true);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(
+        storedSelectionRaw,
+      ) as Partial<StoredPayrollSelection>;
+      const restoredType = parsed.type;
+      const restoredBranch = parsed.branch_id;
+
+      const hasValidType = isSelectablePayrollType(restoredType);
+      const hasValidBranch =
+        typeof restoredBranch === "string" &&
+        branchOptions.some((branch) => branch.value === restoredBranch);
+
+      if (!hasValidType || !hasValidBranch) {
+        localStorage.removeItem(selectionStorageKey);
+        setSelectionHydrated(true);
+        return;
+      }
+
+      setSelectedPayrollType(restoredType);
+      setSelectedBranch(restoredBranch);
+      setTempSelectedType(restoredType);
+      setTempSelectedBranch(restoredBranch);
+      setIsPayrollSelectionModalOpen(false);
+      setSelectionHydrated(true);
+    } catch {
+      localStorage.removeItem(selectionStorageKey);
+      setSelectionHydrated(true);
+    }
+  }, [selectionStorageKey, branchOptions, branchesQuery.isPending]);
+
   const selectedBranchName =
     (branchesQuery.data ?? []).find(
       (branch) => branch.branch_id === selectedBranch,
@@ -385,6 +444,17 @@ export function PayrollPage() {
       setIsPayrollSelectionModalOpen(false);
       setPageNumber(1);
 
+      if (selectionStorageKey) {
+        const selectionToStore: StoredPayrollSelection = {
+          type: tempSelectedType,
+          branch_id: tempSelectedBranch,
+        };
+        localStorage.setItem(
+          selectionStorageKey,
+          JSON.stringify(selectionToStore),
+        );
+      }
+
       if (isSameSelection) {
         void payrollStatusQuery.refetch();
       }
@@ -394,6 +464,7 @@ export function PayrollPage() {
     tempSelectedBranch,
     selectedPayrollType,
     selectedBranch,
+    selectionStorageKey,
     payrollStatusQuery,
   ]);
 
@@ -576,7 +647,13 @@ export function PayrollPage() {
       }
 
       const blob = await pdf(
-        <AccumulatedHistoryPdfDocument data={reportData} />,
+        <AccumulatedHistoryPdfDocument
+          data={reportData}
+          reviewedBy={{
+            name: "Aracelly Guillen",
+            role: "Gerente de Recursos Humanos",
+          }}
+        />,
       ).toBlob();
 
       const url = URL.createObjectURL(blob);
@@ -680,8 +757,12 @@ export function PayrollPage() {
         .trim()
         .replace(/-/g, "");
       setIdentificationFilter(normalizedIdentification);
-      setWorkAreaFilter(data.work_area);
-      setJobPositionFilter(data.job_position);
+      setWorkAreaFilter(
+        data.work_area && data.work_area > 0 ? data.work_area : null,
+      );
+      setJobPositionFilter(
+        data.job_position && data.job_position > 0 ? data.job_position : null,
+      );
       setPageNumber(1);
     },
     [],
@@ -853,26 +934,18 @@ export function PayrollPage() {
 
       <Modal
         isOpen={
-          selectedPayrollType === null ||
-          selectedBranch === null ||
-          isPayrollSelectionModalOpen
+          selectionHydrated &&
+          (isPayrollSelectionModalOpen ||
+            selectedPayrollType === null ||
+            selectedBranch === null)
         }
         onClose={handleSelectionModalClose}
         variant="default"
         size="sm"
         title="Seleccionar Nómina"
-        description="Por favor, primeramente seleccione el tipo de nómina y la sucursal que desea consultar."
+        description="Por favor, seleccione primero la sucursal y luego el tipo de nómina que desea consultar."
       >
         <div className="mt-4 flex flex-col gap-4">
-          <Dropdown
-            label="Tipo de nómina"
-            placeholder="Seleccione tipo de nómina"
-            options={payrollTypeOptions}
-            value={tempSelectedType || undefined}
-            appearance={theme === "dark" ? "dark" : "default"}
-            labelClassName="text-white!"
-            onChange={(value) => setTempSelectedType(value as PayrollType)}
-          />
           <Dropdown
             label="Sucursal"
             placeholder="Seleccione una sucursal"
@@ -880,7 +953,22 @@ export function PayrollPage() {
             value={tempSelectedBranch || undefined}
             appearance={theme === "dark" ? "dark" : "default"}
             labelClassName="text-white!"
-            onChange={(value) => setTempSelectedBranch(String(value))}
+            onChange={(value) => {
+              setTempSelectedBranch(String(value));
+              setTempSelectedType(null);
+            }}
+          />
+          <Dropdown
+            label="Tipo de nómina"
+            placeholder="Seleccione tipo de nómina"
+            options={payrollTypeOptions}
+            value={tempSelectedType || undefined}
+            appearance={theme === "dark" ? "dark" : "default"}
+            labelClassName="text-white!"
+            className={
+              !tempSelectedBranch ? DROPDOWN_DISABLED_TRIGGER_CLASS : undefined
+            }
+            onChange={(value) => setTempSelectedType(value as PayrollType)}
           />
         </div>
         <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
@@ -908,20 +996,9 @@ export function PayrollPage() {
         variant="default"
         size="sm"
         title="Confirmar inicialización"
-        description="Por favor, seleccione el tipo de nómina y la sucursal para inicializar."
+        description="Por favor, seleccione primero la sucursal y luego el tipo de nómina para inicializar."
       >
         <div className="mt-4 flex flex-col gap-4">
-          <Dropdown
-            label="Tipo de nómina"
-            placeholder="Seleccione tipo de nómina"
-            options={payrollTypeOptions}
-            value={initializeModalPayrollType || undefined}
-            appearance={theme === "dark" ? "dark" : "default"}
-            labelClassName="text-white!"
-            onChange={(value) =>
-              setInitializeModalPayrollType(value as PayrollType)
-            }
-          />
           <Dropdown
             label="Sucursal"
             placeholder="Seleccione una sucursal"
@@ -929,7 +1006,26 @@ export function PayrollPage() {
             value={initializeModalBranch || undefined}
             appearance={theme === "dark" ? "dark" : "default"}
             labelClassName="text-white!"
-            onChange={(value) => setInitializeModalBranch(String(value))}
+            onChange={(value) => {
+              setInitializeModalBranch(String(value));
+              setInitializeModalPayrollType(null);
+            }}
+          />
+          <Dropdown
+            label="Tipo de nómina"
+            placeholder="Seleccione tipo de nómina"
+            options={payrollTypeOptions}
+            value={initializeModalPayrollType || undefined}
+            appearance={theme === "dark" ? "dark" : "default"}
+            labelClassName="text-white!"
+            className={
+              !initializeModalBranch
+                ? DROPDOWN_DISABLED_TRIGGER_CLASS
+                : undefined
+            }
+            onChange={(value) =>
+              setInitializeModalPayrollType(value as PayrollType)
+            }
           />
         </div>
         <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
@@ -1084,7 +1180,7 @@ export function PayrollPage() {
                   size="giant"
                   label="Cambiar tipo de nómina y sucursal"
                   onClick={handleOpenChangePayrollSelection}
-                  className="w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                  className="hidden! lg:flex! w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                 />
                 <div className="w-full lg:w-[18rem]">
                   <Dropdown
@@ -1127,6 +1223,19 @@ export function PayrollPage() {
                     isGeneratingAccumulatedHistoryPdf
                   }
                   onClick={handleExecuteSelectedAction}
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGeneratingPdf ||
+                    isGeneratingPaymentRequestsPdf ||
+                    isGeneratingAccumulatedHistoryPdf
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
+                />
+                <Button
+                  type="button"
+                  size="giant"
+                  label="Registrar deducciones"
+                  disabled
                   className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||

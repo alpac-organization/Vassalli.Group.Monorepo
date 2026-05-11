@@ -4,7 +4,10 @@ import { QueryClient, useMutation } from "@tanstack/react-query";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import { AuthenticationServices } from "@app/modules/auth/infrastructure/services/AuthenticationServices";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { clearControlVacationsSelectionStorage } from "@app/modules/auth/utils/save-state-storage";
+import {
+  clearControlVacationsSelectionStorage,
+  clearPayrollSelectionStorage,
+} from "@app/modules/auth/utils/save-state-storage";
 
 import type { LoginRequest } from "@app/modules/auth/domain/ApiContract/Requests/login.request";
 import type { LogoutRequest } from "@app/modules/auth/domain/ApiContract/Requests/logout.request";
@@ -53,6 +56,7 @@ export const useAuth = function () {
       authService.StartProcessToCloseSession(payload),
     onSuccess: () => {
       clearControlVacationsSelectionStorage();
+      clearPayrollSelectionStorage();
       CookieStorageAdapter.clearAuth();
 
       navigate("/auth", {
@@ -61,6 +65,7 @@ export const useAuth = function () {
     },
     onError: () => {
       clearControlVacationsSelectionStorage();
+      clearPayrollSelectionStorage();
       CookieStorageAdapter.clearAuth();
 
       navigate("/auth", {
