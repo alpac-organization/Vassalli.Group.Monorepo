@@ -12,5 +12,7 @@ export interface EditableFieldProps<TFieldValues extends FieldValues> {
   onConfirmUpdate: (name: Path<TFieldValues>, value: string) => Promise<void>;
   missingMessage?: string;
   allowEdit?: boolean;
+  /** Si true, permite confirmar vacío (un ej aqui. segundo nombre o segundo apellido opcionales (puede ser vacio)). */
+  allowEmptySubmit?: boolean;
   displayFormat?: (value: string) => string;
 }
