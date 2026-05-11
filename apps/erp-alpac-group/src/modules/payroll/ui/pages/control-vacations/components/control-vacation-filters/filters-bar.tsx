@@ -1,106 +1,54 @@
-import { useEffect, useState } from "react";
-import { Button, DatePicker, type DatePickerValue } from "@alpac/design-system";
-import type { ControlVacationFiltersBarProps } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/types/control-vacation-filter-bar";
-import dayjs from "dayjs";
-import { toUtcDayRangeIsoFromYmd } from "@app/shared/utils/string.utils";
-import {
-  datePickerFieldClassName,
-  controlVacationCalendarDaySx,
-} from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-filters/utils/styles.datepicker";
+import { InputText, Dropdown, Button } from "@alpac/design-system";
+import { Controller, useForm, type SubmitHandler } from "react-hook-form";
+import { useCallback } from "react";
+import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
+import { CatalogEnum } from "@app/core/enums/catalog.enum";
+import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
+import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import type { ControlVacationFiltersBarProps } from "./types/control-vacation-filter-bar";
+
+type VacationFilterFields = {
+  identification_number: string;
+  work_area: number;
+};
+
+const defaultFormValues: VacationFilterFields = {
+  identification_number: "",
+  work_area: 0,
+};
 
 export function ControlVacationFiltersBar({
-  initialStart,
-  initialEnd,
-  isApplyingFilters = false,
   onApply,
   onClear,
+  isApplyingFilters = false,
 }: ControlVacationFiltersBarProps) {
-  const today = dayjs().endOf("day");
-  const [startDate, setStartDate] = useState<DatePickerValue>(() => {
-    if (!initialStart) return null;
-    return dayjs(initialStart.split("T")[0]);
+  const { companyId } = useUserStore();
+
+  const { register, handleSubmit, control, reset } =
+    useForm<VacationFilterFields>({
+      defaultValues: defaultFormValues,
+    });
+
+  const { GetCatalogListQuery: workAreasQuery } = useCatalog({
+    company_id: companyId,
+    catalog_type_id: CatalogEnum.WORK_AREAS,
   });
-  const [endDate, setEndDate] = useState<DatePickerValue>(() => {
-    if (!initialEnd) return null;
-    return dayjs(initialEnd.split("T")[0]);
-  });
-  const [rangeError, setRangeError] = useState<string | null>(null);
 
-  const rangeOrderInvalid =
-    Boolean(startDate && endDate) &&
-    (() => {
-      const s = dayjs(startDate);
-      const e = dayjs(endDate);
-      if (!s.isValid() || !e.isValid()) return false;
-      return s.isAfter(e, "day");
-    })();
+  const { data: workAreas = [] } = workAreasQuery;
+  const optionsWorkAreas = mapCatalogToOptions(workAreas);
 
-  useEffect(() => {
-    setStartDate(initialStart ? dayjs(initialStart.split("T")[0]) : null);
-  }, [initialStart]);
-
-  useEffect(() => {
-    setEndDate(initialEnd ? dayjs(initialEnd.split("T")[0]) : null);
-  }, [initialEnd]);
-
-  const handleStartDateChange = (value: DatePickerValue) => {
-    setRangeError(null);
-    setStartDate(value);
-
-    const nextStart = value ? dayjs(value) : null;
-    if (!nextStart?.isValid()) {
-      setEndDate(null);
-      return;
-    }
-
-    if (endDate) {
-      const currentEnd = dayjs(endDate);
-      if (currentEnd.isValid() && currentEnd.isBefore(nextStart, "day")) {
-        setRangeError("La fecha final no puede ser menor a la fecha inicial");
-      }
-    }
+  const onSubmit: SubmitHandler<VacationFilterFields> = (data) => {
+    onApply({
+      identification_number: data.identification_number,
+      work_area_id: data.work_area || undefined,
+    });
   };
 
-  const handleEndDateChange = (value: DatePickerValue) => {
-    setRangeError(null);
-    setEndDate(value);
-
-    const nextEnd = value ? dayjs(value) : null;
-    if (!nextEnd?.isValid() || !startDate) return;
-
-    const nextStart = dayjs(startDate);
-    if (nextStart.isValid() && nextEnd.isBefore(nextStart, "day")) {
-      setRangeError("La fecha final no puede ser menor a la fecha inicial");
-    }
-  };
-
-  const canApplyFilters = Boolean(startDate && endDate) && !rangeOrderInvalid;
-
-  const handleApply = () => {
-    setRangeError(null);
-    const s = startDate ? dayjs(startDate) : null;
-    const e = endDate ? dayjs(endDate) : null;
-    if (!s?.isValid() || !e?.isValid()) return;
-    if (s.isAfter(today, "day") || e.isAfter(today, "day")) {
-      setRangeError("No se permiten fechas futuras.");
-      return;
-    }
-    const startStr = s.format("YYYY-MM-DD");
-    const endStr = e.format("YYYY-MM-DD");
-    if (startStr > endStr) {
-      setRangeError("La fecha inicial no puede ser posterior a la fecha final");
-      return;
-    }
-    const { start_date, end_date } = toUtcDayRangeIsoFromYmd(startStr, endStr);
-    onApply({ start_date, end_date });
-  };
-
-  const handleClear = () => {
-    setRangeError(null);
-    setStartDate(null);
-    setEndDate(null);
+  const handleClearFilters = useCallback(() => {
+    reset(defaultFormValues);
     onClear();
-  };
+  }, [reset, onClear]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -108,79 +56,80 @@ export function ControlVacationFiltersBar({
         <div className="flex flex-col justify-center">
           <h3 className="p-0! m-0!">Filtros</h3>
           <small className="text-gray-500 dark:text-gray-300">
-            Elija fechas y aplique para cargar. Limpiar deja los campos vacíos.
+            Elija filtros y aplique para cargar. Limpiar deja los campos vacíos.
           </small>
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-start sm:gap-3 md:gap-4">
-        <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-2">
-            <div className="w-full shrink-0 sm:w-auto">
-              <DatePicker
-                fieldWidth="medium"
-                label="Fecha inicio"
-                value={startDate}
-                onChange={handleStartDateChange}
-                maxDate={today}
-                slotProps={{
-                  textField: {
-                    className: datePickerFieldClassName,
-                  },
-                  day: {
-                    sx: controlVacationCalendarDaySx,
-                  },
-                }}
-              />
-            </div>
-            <div className="w-full shrink-0 sm:w-auto">
-              <DatePicker
-                fieldWidth="medium"
-                label="Fecha fin"
-                value={endDate}
-                onChange={handleEndDateChange}
-                disabled={!startDate}
-                minDate={
-                  startDate ? dayjs(startDate).startOf("day") : undefined
-                }
-                maxDate={today}
-                slotProps={{
-                  textField: {
-                    className: datePickerFieldClassName,
-                  },
-                  day: {
-                    sx: controlVacationCalendarDaySx,
-                  },
-                }}
-              />
-            </div>
-          </div>
-          {rangeError || rangeOrderInvalid ? (
-            <p className="m-0 text-sm text-red-600 dark:text-red-400">
-              {rangeError ??
-                "La fecha final no puede ser menor a la fecha inicial"}
-            </p>
-          ) : null}
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end"
+      >
+        <div className="flex flex-col">
+          <InputText
+            label="Identificación"
+            className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-white"
+            labelClassName="text-black! dark:text-white!"
+            type="text"
+            placeholder="Ingrese la identificación"
+            {...register("identification_number", {
+              setValueAs: (value: string) =>
+                value ? value.toString().replace(/-/g, "").toUpperCase() : "",
+              required: false,
+              onChange: (e) => {
+                e.target.value = formatIdentificationNumber(e.target.value);
+              },
+            })}
+          />
         </div>
-        <div className="flex w-full shrink-0 flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+
+        <div className="flex flex-col">
+          <Controller
+            name="work_area"
+            control={control}
+            rules={{
+              required: false,
+            }}
+            render={({ field }) => {
+              return (
+                <Dropdown
+                  value={field.value}
+                  onChange={(value) => field.onChange(value)}
+                  label="Área de trabajo"
+                  placeholder="Seleccione un área de trabajo"
+                  appearance="dark"
+                  labelClassName="text-black! dark:text-white!"
+                  valueClassName="text-black! dark:text-white!"
+                  className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+                  options={optionsWorkAreas ?? []}
+                />
+              );
+            }}
+          />
+        </div>
+
+        <div className="flex flex-col">
           <Button
-            type="button"
+            type="submit"
             size="giant"
+            className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
             label="Aplicar filtros"
             isLoading={isApplyingFilters}
-            onClick={handleApply}
-            disabled={!canApplyFilters}
-            className="w-full! rounded-md! bg-alpac-primary-600! text-[15px]! text-white! sm:w-auto!"
+            disabled={isApplyingFilters}
           />
+        </div>
+
+        <div className="flex flex-col">
           <Button
             type="button"
             size="giant"
+            className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
             label="Limpiar filtros"
-            onClick={handleClear}
-            className="w-full! rounded-md! bg-slate-500! text-[15px]! text-white! dark:bg-slate-700! sm:w-auto!"
+            onClick={handleClearFilters}
+            disabled={isApplyingFilters}
           />
         </div>
-      </div>
+      </form>
     </div>
   );
 }

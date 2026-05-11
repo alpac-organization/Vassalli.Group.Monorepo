@@ -7,6 +7,7 @@ import type { CustomInternalAxiosRequestConfig } from "../interfaces/CustomInter
 import type { IAuthenticationServices } from "@app/modules/auth/application/interfaces/IAuthenticationServices";
 import { useInactivityStore } from "@app/shared/stores/useInactivityStore";
 import { useServerErrorStore } from "@app/shared/stores/useServerErrorStore";
+import { clearControlVacationsSelectionStorage } from "@app/modules/auth/utils/save-state-storage";
 
 class AxiosHttpAdapter implements IHttpHandler {
   private instance: AxiosInstance;
@@ -37,10 +38,10 @@ class AxiosHttpAdapter implements IHttpHandler {
     this.instance.interceptors.request.use((config) => {
       const token = CookieStorageAdapter.getToken();
 
-      // Verifico si la petición es para iniciar sesión
+      // Verifico si la peticion es para iniciar sesion
       const isLoginRequest = config.url?.includes("/auth/login");
 
-      // Verifico si la petición es para renovar el token
+      // Verifico si la peticion es para renovar el token
       const isRefreshTokenRequest = config.url?.includes("/auth/refresh-token");
 
       if (token && !isLoginRequest && !isRefreshTokenRequest) {
@@ -66,7 +67,7 @@ class AxiosHttpAdapter implements IHttpHandler {
               error.response?.data?.error?.typeError || "INTERNAL_CLIENT_ERROR",
             description:
               error.response?.data?.error?.description ||
-              "Ocurrió un error inesperado en la comunicación.",
+              "Ocurrio un error inesperado en la comunicacion.",
           },
           createdAt:
             error.response?.data?.createdAt || new Date().toISOString(),
@@ -82,7 +83,7 @@ class AxiosHttpAdapter implements IHttpHandler {
           !originalRequest.url?.includes("auth/login") &&
           !originalRequest.url?.includes("auth/refresh-token")
         ) {
-          // Marcar que ya se está intentando renovar el token
+          // Marcar que ya se esta intentando renovar el token
           originalRequest._retry = true;
 
           try {
@@ -94,7 +95,7 @@ class AxiosHttpAdapter implements IHttpHandler {
               originalRequest.headers["Authorization"] =
                 `Bearer ${response.access_token}`;
 
-              // Reintento la petición original con el nuevo token
+              // Reintento la peticion original con el nuevo token
               return this.instance(originalRequest);
             } else {
               throw new Error("No se pudo renovar el token");
@@ -102,7 +103,7 @@ class AxiosHttpAdapter implements IHttpHandler {
           } catch (refreshTokenError) {
             this.logout();
 
-            // Rechazo la promesa para que el código que llamó al servicio pueda manejar el error
+            // Rechazo la promesa para que el codigo que llama al servicio pueda manejar el error
             return Promise.reject(refreshTokenError);
           }
         }
@@ -124,10 +125,12 @@ class AxiosHttpAdapter implements IHttpHandler {
     this.refreshIntervalId = setInterval(async () => {
       const { isInactive, lastActivity } = useInactivityStore.getState();
       const now = Date.now();
-      const inactivityThreshold = 20 * 60 * 1000; 
+      const inactivityThreshold = 20 * 60 * 1000;
 
-      if (isInactive || (now - lastActivity) > inactivityThreshold) {
-        console.warn("Sesión en pausa por inactividad. El token expirará naturalmente.");
+      if (isInactive || now - lastActivity > inactivityThreshold) {
+        console.warn(
+          "Sesion en pausa por inactividad. El token expirara naturalmente.",
+        );
         return;
       }
 
@@ -136,11 +139,13 @@ class AxiosHttpAdapter implements IHttpHandler {
   }
 
   private logout() {
-    // MUY IMPORTANTE: Detener el intervalo al cerrar sesión
+    // MUY IMPORTANTE: Detener el intervalo al cerrar sesion
     if (this.refreshIntervalId) {
       clearInterval(this.refreshIntervalId);
     }
-    
+
+    clearControlVacationsSelectionStorage();
+
     CookieStorageAdapter.clearAuth();
     window.location.href = "/auth";
   }
@@ -201,5 +206,5 @@ class AxiosHttpAdapter implements IHttpHandler {
   }
 }
 
-// Exportamos una instancia única (Singleton)
+// Exportamos una instancia unica (Singleton)
 export const httpHandler = new AxiosHttpAdapter();
