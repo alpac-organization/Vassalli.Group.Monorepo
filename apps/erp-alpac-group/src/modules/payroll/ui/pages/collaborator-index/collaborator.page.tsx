@@ -47,7 +47,7 @@ import { useCallback, useState } from "react";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
-import { AddDeductionModal } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-deduction-modal/add-deduction-modal";
+import { AddDeductionModal } from "@app/modules/payroll/ui/pages/collaborator-index/components/deductions/add-deduction-modal/add-deduction-modal";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { AddSubsidyModal } from "./components/add-subsidy-modal/add-subsidy-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
