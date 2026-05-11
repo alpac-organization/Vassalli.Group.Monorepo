@@ -13,6 +13,7 @@ import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-prof
 import type { GeneratedDocumentType } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/generated-document.request";
 import { GenerateDocumentsSection } from "@app/modules/payroll/ui/pages/collaborator-profile/components/generate-documents/generate-documents-section";
 import { VacationManagementSection } from "./components/vacation-management/vacation-management-section";
+import { SubsidyManagementSection } from "./components/subsidy-management/subsidy-management-modal";
 
 export function CollaboratorProfilePage() {
    const [activeTab, setActiveTab] = useState<TabId>("Personal");
@@ -76,6 +77,7 @@ export function CollaboratorProfilePage() {
       { id: "Working", label: "Información de Trabajo" },
       //  { id: "Generar-documentos", label: "Generar documentos" },
       { id: "vacation-management", label: "Gestión de Vacaciones" },
+      { id: "subsidy-management", label: "Gestión de Subsidio" },
    ];
 
    if (!targetIdentification) {
@@ -163,6 +165,16 @@ export function CollaboratorProfilePage() {
                aria-hidden={activeTab !== "vacation-management"}
             >
                <VacationManagementSection profile={CollaboratorDetails} />
+            </div>
+
+            <div
+               className={`w-full transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${activeTab === "subsidy-management"
+                  ? "relative z-10 translate-y-0 opacity-100"
+                  : "pointer-events-none absolute inset-0 z-0 -translate-y-2 overflow-hidden opacity-0"
+                  }`}
+               aria-hidden={activeTab !== "subsidy-management"}
+            >
+               <SubsidyManagementSection profile={CollaboratorDetails} />
             </div>
 
          </div>
