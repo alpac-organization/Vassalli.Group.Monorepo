@@ -1,10 +1,6 @@
 import type { PayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
-
-export type PdfSignatory = {
-  name: string;
-  role: string;
-};
+import type { PdfSignatory } from "@app/modules/payroll/ui/pages/nomina/types/payroll.types";
 
 export type PayrollPdfProps = {
   data: PayrollItemResponse[];

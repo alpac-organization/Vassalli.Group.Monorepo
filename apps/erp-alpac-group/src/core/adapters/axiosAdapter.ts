@@ -7,7 +7,10 @@ import type { CustomInternalAxiosRequestConfig } from "../interfaces/CustomInter
 import type { IAuthenticationServices } from "@app/modules/auth/application/interfaces/IAuthenticationServices";
 import { useInactivityStore } from "@app/shared/stores/useInactivityStore";
 import { useServerErrorStore } from "@app/shared/stores/useServerErrorStore";
-import { clearControlVacationsSelectionStorage } from "@app/modules/auth/utils/save-state-storage";
+import {
+  clearControlVacationsSelectionStorage,
+  clearPayrollSelectionStorage,
+} from "@app/modules/auth/utils/save-state-storage";
 
 class AxiosHttpAdapter implements IHttpHandler {
   private instance: AxiosInstance;
@@ -145,6 +148,7 @@ class AxiosHttpAdapter implements IHttpHandler {
     }
 
     clearControlVacationsSelectionStorage();
+    clearPayrollSelectionStorage();
 
     CookieStorageAdapter.clearAuth();
     window.location.href = "/auth";
