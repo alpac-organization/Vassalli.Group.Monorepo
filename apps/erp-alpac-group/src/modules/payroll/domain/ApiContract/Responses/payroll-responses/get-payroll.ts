@@ -25,9 +25,9 @@ export interface PayrollItemResponse {
   total_legal_deductions: number;
   deductions_additional_data?: string;
   total_deducctions: number;
-  travel_expenses?: number;
   total_travel_expenses?: number;
-  food_travel_allowance?: number;
+  transport?: number;
+  feeding?: number;
   lodging?: number;
   vacations?: number;
   total_to_pay: number;
