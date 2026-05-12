@@ -17,6 +17,10 @@ export const DeductionCodeEnum: Record<string, EnumType> = {
       value: "CHILD_SUPPORT_GARNISHMENT",
       label: "Embargo de pensión alimenticia"
    },
+   LATE_ARRIVALS: {
+      value: "LATE_ARRIVALS",
+      label: "Llegadas tardes"
+   },
    LOAN_REPAYMENT: {
       value: "LOAN_REPAYMENT",
       label: "Préstamo"
@@ -28,7 +32,7 @@ export const DeductionCodeEnum: Record<string, EnumType> = {
    DISCIPLINARY_FINE: {
       value: "DISCIPLINARY_FINE",
       label: "Sanción"
-   },
+   }
 } as const;
 
 export const DeductionOptions = Object.values(DeductionCodeEnum);

@@ -1,10 +1,11 @@
-import { AnimatePresence } from "framer-motion";
+import { m, LazyMotion, AnimatePresence } from "framer-motion";
 import type { FileUploaderProps } from "./file-uploader.types";
-import { motion } from "framer-motion";
 import { FileIcon, UploadCloud, X } from "lucide-react";
 import { CheckCircle2 } from "lucide-react";
 import { Alert, AnimatedAlertWrapper, Button } from "@alpac/design-system";
 import { useCallback, useRef, useState } from "react";
+
+const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
 export const FileUploader = ({ title, description, extensions }: FileUploaderProps) => {
 
@@ -92,7 +93,8 @@ export const FileUploader = ({ title, description, extensions }: FileUploaderPro
    };
 
    return (
-      <div>
+      <LazyMotion features={loadFeatures} strict>
+
          <div className="lg:col-span-2">
             <div className="bg-white dark:bg-[#272b34] p-8 rounded-md border border-slate-200 dark:border-slate-700 shadow-sm h-full flex flex-col">
 
@@ -106,7 +108,7 @@ export const FileUploader = ({ title, description, extensions }: FileUploaderPro
 
                <AnimatePresence mode="wait">
                   {!selectedFile ? (
-                     <motion.div
+                     <m.div
                         key="dropzone"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -118,8 +120,8 @@ export const FileUploader = ({ title, description, extensions }: FileUploaderPro
                         className={`flex-1 border-2 border-dashed rounded-md flex flex-col items-center justify-center p-10 cursor-pointer transition-all duration-300 ${isDragging
                            ? "border-alpac-primary-500 bg-alpac-primary-50 dark:bg-alpac-primary-900/10 scale-[1.02]"
                            : "border-slate-300 dark:border-slate-600 hover:border-alpac-primary-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                           }`}
-                     >
+                           }`}>
+
                         <div className="bg-alpac-primary-100 dark:bg-alpac-primary-900/30 p-4 rounded-full mb-4">
                            <UploadCloud className="text-alpac-primary-600 dark:text-alpac-primary-400" size={40} />
                         </div>
@@ -132,9 +134,9 @@ export const FileUploader = ({ title, description, extensions }: FileUploaderPro
                            {description ?? `O haz clic para explorar tus archivos (${extensions?.join(", ")})`}
                         </p>
 
-                     </motion.div>
+                     </m.div>
                   ) : (
-                     <motion.div
+                     <m.div
                         key="file-info"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -168,7 +170,7 @@ export const FileUploader = ({ title, description, extensions }: FileUploaderPro
                               onClick={handleUpload}
                            />
                         </div>
-                     </motion.div>
+                     </m.div>
                   )}
                </AnimatePresence>
             </div>
@@ -181,6 +183,6 @@ export const FileUploader = ({ title, description, extensions }: FileUploaderPro
                onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
             />
          </AnimatedAlertWrapper>
-      </div>
+      </LazyMotion>
    );
 };

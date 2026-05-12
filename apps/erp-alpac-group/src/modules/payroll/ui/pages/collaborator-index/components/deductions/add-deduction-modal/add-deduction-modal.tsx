@@ -22,10 +22,15 @@ export const AddDeductionModal = (props: AddDeductionModalProps): React.ReactNod
 
    const isAdministrator = role === RoleEnum.ADMINISTRATOR;
 
+   const handleCancel = () => {
+      setFoundCollaborator(null)
+      props.onClose?.()
+   }
+
    return (
       <Modal
          isOpen={props.isOpen}
-         onClose={props.onClose}
+         onClose={handleCancel}
          title="Agregar Deducción"
          variant="form"
          size="4xl"
@@ -98,7 +103,10 @@ export const AddDeductionModal = (props: AddDeductionModalProps): React.ReactNod
                            </div>
                         </div>
 
-                        <AddDeductionForm onSubmit={() => { }} />
+                        <AddDeductionForm
+                           collaborator={foundCollaborator}
+                           onCancel={handleCancel}
+                        />
                      </m.div>
                   )}
                </AnimatePresence>

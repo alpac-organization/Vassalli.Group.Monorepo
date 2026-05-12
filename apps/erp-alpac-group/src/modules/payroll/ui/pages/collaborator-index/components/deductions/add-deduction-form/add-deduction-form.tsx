@@ -1,21 +1,43 @@
 import { useCallback } from "react";
-import type { AddDeductionFormProps, Deductions } from "./add-deduction-form.types";
+import type { AddDeductionFormProps } from "./add-deduction-form.types";
 import { Button, Dropdown } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
 import { DeductionOptions } from "@app/modules/payroll/domain/enums/deduction-enums/deduction.enum";
+import type { CreateDeductionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { AnnualBonusAdvance } from "../annual-bonus-advance/annual-bonus-advance";
+import { ChildSupportGarnishment } from "../child-support-garnishment/child-support-garnishment";
+import { DisciplinaryFine } from "../disciplinary-fine/disciplinary-fine";
+import { JudicialGarnishment } from "../judicial-garnishment/judicial-garnishment";
+import { LoanRepayment } from "../loan-repayment/loan-repayment";
+import { PurisimaContribution } from "../purisima-contribution/purisima-contribution";
+import { SalaryAdvance } from "../salary-advance/salary-advance";
+import { LateArrivals } from "../late-arrivals/late-arrivals";
 
 const inputClassName =
-   "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+   "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
 
-export const AddDeductionForm = ({ onSubmit, onCancel, onRequestError, onRequestSuccess }: AddDeductionFormProps): React.ReactNode => {
+export const AddDeductionForm = ({ collaborator, onSubmit, onCancel, onRequestError, onRequestSuccess }: AddDeductionFormProps): React.ReactNode => {
+
+   const { moduleCode, companyId } = useUserStore();
 
    const {
-      register, handleSubmit, control, formState: { errors, isDirty, isValid }
-   } = useForm<Deductions>();
+      register, handleSubmit, watch, control, formState: { errors, isDirty, isValid }
+   } = useForm<CreateDeductionRequest>({
+      mode: "onChange",
+      defaultValues: {
+         deduction_type: "",
+         company_id: companyId,
+         module_code: moduleCode,
+         collaborator_id: collaborator.collaborator_id.toString(),
+      }
+   });
 
-   const handleSubmitDeduction = useCallback((data: any) => {
-      onSubmit(data);
+   const deductionType = watch("deduction_type");
+
+   const handleSubmitDeduction = useCallback((data: CreateDeductionRequest) => {
+      onSubmit?.(data);
    }, [onSubmit]);
 
    return (
@@ -47,6 +69,15 @@ export const AddDeductionForm = ({ onSubmit, onCancel, onRequestError, onRequest
             />
 
          </div>
+
+         {deductionType === "ANNUAL_BONUS_ADVANCE" && <AnnualBonusAdvance />}
+         {deductionType === "CHILD_SUPPORT_GARNISHMENT" && <ChildSupportGarnishment />}
+         {deductionType === "DISCIPLINARY_FINE" && <DisciplinaryFine />}
+         {deductionType === "JUDICIAL_GARNISHMENT" && <JudicialGarnishment />}
+         {deductionType === "LOAN_REPAYMENT" && <LoanRepayment />}
+         {deductionType === "PURISIMA_CONTRIBUTION" && <PurisimaContribution />}
+         {deductionType === "SALARY_ADVANCE" && <SalaryAdvance />}
+         {deductionType === "LATE_ARRIVALS" && <LateArrivals />}
 
          <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6"></div>
 

@@ -8,7 +8,7 @@ import {
    InputText,
    Pagination,
 } from "@alpac/design-system";
-import { motion } from "framer-motion";
+import { m, LazyMotion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useTheme } from "@alpac/design-system";
@@ -28,6 +28,7 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { ManagerForm } from "./components/application-forms/manager-form/manager-form";
 import { Plus } from "lucide-react";
 
+const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
 import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
 
@@ -198,14 +199,15 @@ export const ApplicationsPage = function () {
       useState<GetApplicationsResponse>({} as GetApplicationsResponse);
 
    return (
-      <>
-         <motion.div
+      <LazyMotion features={loadFeatures} strict>
+
+         <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
-            className="flex flex-col gap-4"
-         >
+            className="flex flex-col gap-4">
+
             {isFetching && (
                <Loader
                   title={
@@ -420,21 +422,23 @@ export const ApplicationsPage = function () {
                   onClose={() => setIsApplicationModalOpen(false)}
                />
             )}
-         </motion.div >
+         </m.div >
 
-         {isManager && (
-            <Button
-               type="button"
-               size="small"
-               icon={<Plus size={18} />}
-               label=""
-               ariaLabel="Agregar Solicitud"
-               tooltip="Agregar Solicitud"
-               className="fixed! bottom-12! right-6! z-40! isolate! min-h-14! min-w-14! rounded-full! bg-alpac-primary-500! dark:bg-white! text-black! active:scale-100! md:hover:brightness-110! md:hover:shadow-2xl! md:hover:-translate-y-0.5! focus-visible:outline-none! focus-visible:ring-2! focus-visible:ring-alpac-primary-400! focus-visible:ring-offset-2! dark:focus-visible:ring-offset-[#0f172a]!"
-               onClick={() => setIsNewPermissionRequestModalOpen(true)}
-            />
-         )
+         {
+            isManager && (
+               <Button
+                  type="button"
+                  size="small"
+                  icon={<Plus size={18} />}
+                  label=""
+                  ariaLabel="Agregar Solicitud"
+                  tooltip="Agregar Solicitud"
+                  className="fixed! bottom-12! right-6! z-40! isolate! min-h-14! min-w-14! rounded-full! bg-alpac-primary-500! dark:bg-white! text-black! active:scale-100! md:hover:brightness-110! md:hover:shadow-2xl! md:hover:-translate-y-0.5! focus-visible:outline-none! focus-visible:ring-2! focus-visible:ring-alpac-primary-400! focus-visible:ring-offset-2! dark:focus-visible:ring-offset-[#0f172a]!"
+                  onClick={() => setIsNewPermissionRequestModalOpen(true)}
+               />
+            )
          }
-      </>
+
+      </LazyMotion>
    );
 };
