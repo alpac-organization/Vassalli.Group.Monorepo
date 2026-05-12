@@ -863,13 +863,12 @@ export const AddCollaboratorModal = (
                               name="salary_information.sub_catalog_bank_id"
                               control={control}
                               rules={{
-                                 required: "Debe seleccionar una institución bancaria",
+                                 required: false,
                                  validate: (val) => val !== 0 || "Selección inválida",
                               }}
                               render={({ field }) => (
                                  <Dropdown
                                     label="Institución Bancaria"
-                                    isRequired
                                     options={props.optionsBanks ?? []}
                                     placeholder="Seleccione..."
                                     onChange={(value) => {

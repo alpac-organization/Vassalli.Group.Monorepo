@@ -106,6 +106,8 @@ export const AddDeductionModal = (props: AddDeductionModalProps): React.ReactNod
                         <AddDeductionForm
                            collaborator={foundCollaborator}
                            onCancel={handleCancel}
+                           onRequestError={props.onRequestError}
+                           onRequestSuccess={props.onRequestSuccess}
                         />
                      </m.div>
                   )}
