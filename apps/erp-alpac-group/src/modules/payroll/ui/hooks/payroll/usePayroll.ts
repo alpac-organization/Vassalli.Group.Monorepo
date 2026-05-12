@@ -53,6 +53,8 @@ export function usePayrollDetails({
     type,
     branch_id,
     identification_number,
+    work_area_id,
+    job_position_id,
     page_number = 1,
     page_size = 10,
   } = payload;
@@ -65,6 +67,8 @@ export function usePayrollDetails({
       type,
       branch_id,
       identification_number,
+      work_area_id,
+      job_position_id,
       page_number,
       page_size,
     ],

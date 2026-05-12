@@ -150,12 +150,13 @@ export const payrollColumns: PayrollColumnDef[] = [
       parseAdditionalDeductions(item.deductions_additional_data)
         ?.SalaryAdvance ?? 0,
   },
+
   {
-    key: "food_travel_allowance",
+    key: "total_viaticos",
     label: "Total de Viáticos",
     render: (item) =>
-      formatCurrency(item.food_travel_allowance ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.food_travel_allowance ?? 0,
+      formatCurrency(item.total_travel_expenses ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.total_travel_expenses ?? 0,
   },
   {
     key: "vacations",
@@ -167,12 +168,23 @@ export const payrollColumns: PayrollColumnDef[] = [
     key: "judicial_seizures",
     label: "Embargos Judiciales",
     render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.JudicialSeizures ?? 0, "NIO") ?? "—";
+      const seizureDeduction = parseAdditionalDeductions(
+        item.deductions_additional_data,
+      );
+      const totalSeizure =
+        (seizureDeduction?.JudicialSeizures ?? 0) +
+        (seizureDeduction?.ChildSupportGarnishment ?? 0);
+      return formatCurrency(totalSeizure ?? 0, "NIO") ?? "—";
     },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.JudicialSeizures ?? 0,
+    getValue: (item) => {
+      const seizureDeduction = parseAdditionalDeductions(
+        item.deductions_additional_data,
+      );
+      const totalSeizure =
+        (seizureDeduction?.JudicialSeizures ?? 0) +
+        (seizureDeduction?.ChildSupportGarnishment ?? 0);
+      return totalSeizure ?? 0;
+    },
   },
   {
     key: "uniform_deduction",
@@ -187,7 +199,7 @@ export const payrollColumns: PayrollColumnDef[] = [
   },
   {
     key: "christmas_bonus_advance",
-    label: "Adelanto de Bono de Navidad",
+    label: "Adelanto de aguinaldo",
     render: (item) => {
       const d = parseAdditionalDeductions(item.deductions_additional_data);
       return formatCurrency(d?.ChristmasBonusAdvance ?? 0, "NIO") ?? "—";
@@ -195,17 +207,6 @@ export const payrollColumns: PayrollColumnDef[] = [
     getValue: (item) =>
       parseAdditionalDeductions(item.deductions_additional_data)
         ?.ChristmasBonusAdvance ?? 0,
-  },
-  {
-    key: "child_support_garnishment",
-    label: "Embargo alimenticios",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.ChildSupportGarnishment ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.ChildSupportGarnishment ?? 0,
   },
   {
     key: "other_deductions",
