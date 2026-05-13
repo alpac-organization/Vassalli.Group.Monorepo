@@ -42,17 +42,14 @@ export const AddDeductionModal = (props: AddDeductionModalProps): React.ReactNod
                {!foundCollaborator &&
                   <CollaboratorSearchForm
                      onSuccess={(collaborator) => {
-                        console.log("Collaborator found:", collaborator);
                         setFoundCollaborator(collaborator);
                         setIsSearching(false);
                      }}
-                     onError={(errorMessage) => {
-                        console.log("Error searching collaborator:", errorMessage);
+                     onError={() => {
                         setFoundCollaborator(null);
                         setIsSearching(false);
                      }}
                      onSearchStart={() => {
-                        console.log("Searching collaborator...");
                         setFoundCollaborator(null);
                         setIsSearching(true);
                      }}

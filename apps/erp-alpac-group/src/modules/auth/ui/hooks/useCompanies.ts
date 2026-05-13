@@ -11,6 +11,7 @@ export const useCompanies = function (branchesRequest?: BranchesRequest) {
       queryKey: ["companies"],
       queryFn: () => companyServices.GetCompaniesAvailable(),
       staleTime: 1000 * 60 * 10,
+      refetchOnWindowFocus: false,
       retry: 1,
    });
 

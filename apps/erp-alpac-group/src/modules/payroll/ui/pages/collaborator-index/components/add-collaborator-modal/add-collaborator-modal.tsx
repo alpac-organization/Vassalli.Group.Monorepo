@@ -26,7 +26,7 @@ import {
    IdentificationEnum,
 } from "@app/core/enums/identification.enum";
 import dayjs from "dayjs";
-import { CurrencyEnum, CurrencyOptions } from "@app/core/enums/currency.enum";
+import { CurrencyOptions } from "@app/core/enums/currency.enum";
 import { SalaryTypeEnum, SalaryTypeOptions } from "@app/modules/payroll/domain/enums/salary-enums/salary-type.enum";
 import { ArrowLeftIcon, ArrowRightIcon, SaveIcon, X, XIcon } from "lucide-react";
 import { formatAmount } from "@app/shared/utils/number.utils";
@@ -89,7 +89,6 @@ export const AddCollaboratorModal = (
    });
 
    const identificationType = watch("identification_type");
-   const currentSalaryType = watch("salary_information.salary_type");
    const travelExpenses = watch("travel_expenses");
 
    const handleCloseModal = () => {
@@ -119,12 +118,20 @@ export const AddCollaboratorModal = (
       try {
          const { travel_expenses, ...restData } = data;
 
-         await PostCollaboratorQuery.mutateAsync({
+         const bacBank = props.optionsBanks.find(item => item.label === 'BAC');
+
+         const payload = {
             ...restData,
             company_id: companyId,
             module_code: moduleCode,
             ...(travel_expenses && travel_expenses.length > 0 ? { travel_expenses } : {}),
-         });
+            salary_information: {
+               ...restData.salary_information,
+               ...(isVigemsaCompany && bacBank ? { sub_catalog_bank_id: bacBank.value } : {}),
+            }
+         };
+
+         await PostCollaboratorQuery.mutateAsync(payload);
 
          props.onRequestSuccess?.("Colaborador creado exitosamente");
 
@@ -190,14 +197,6 @@ export const AddCollaboratorModal = (
          setValue("travel_expenses", []);
       }
    }, [selectedSalaryType, setValue]);
-
-   useEffect(() => {
-      if (isProfessionalServicesSalary && (isTmnCompany || isVigemsaCompany)) {
-         setValue("salary_information.currency", CurrencyEnum.USD.value);
-      } else {
-         setValue("salary_information.currency", 0);
-      }
-   }, [currentSalaryType, isProfessionalServicesSalary, isTmnCompany, isVigemsaCompany, setValue]);
 
    return (
       <Modal
@@ -269,8 +268,9 @@ export const AddCollaboratorModal = (
                            required: false,
                            setValueAs: (value: string) => value?.trim(),
                            validate: {
-                              onlyLetters: (value?: string) => validateOnlyLettersWithAccentsAndDiacritics(value || "")
+                              onlyLetters: (value?: string) => validateOnlyLettersWithAccentsAndDiacritics(value || "", true)
                            },
+
                         })}
                         error={errors.second_name && errors.second_name.message}
                      />
@@ -793,7 +793,7 @@ export const AddCollaboratorModal = (
                      />
 
                      {
-                        !isProfessionalServicesSalary && selectedSalaryType !== null && (
+                        selectedSalaryType !== null && (
                            <Controller
                               name="salary_information.currency"
                               control={control}
@@ -858,17 +858,18 @@ export const AddCollaboratorModal = (
                      }
 
                      {
-                        selectedSalaryType !== null && (
+                        selectedSalaryType !== null && (!isProfessionalServicesSalary) && (
                            <Controller
                               name="salary_information.sub_catalog_bank_id"
                               control={control}
                               rules={{
-                                 required: false,
+                                 required: "El dato de banco es requerido",
                                  validate: (val) => val !== 0 || "Selección inválida",
                               }}
                               render={({ field }) => (
                                  <Dropdown
                                     label="Institución Bancaria"
+                                    isRequired
                                     options={props.optionsBanks ?? []}
                                     placeholder="Seleccione..."
                                     onChange={(value) => {
