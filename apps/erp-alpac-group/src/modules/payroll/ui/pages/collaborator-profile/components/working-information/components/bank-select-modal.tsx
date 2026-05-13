@@ -1,29 +1,28 @@
 import { useEffect, useState } from "react";
 import { Button, Dropdown, Modal, Spinner } from "@alpac/design-system";
-import type { BranchSelectModalProps } from "./types/work-information.type";
-
-export function BranchSelectModal({
+import type { BankSelectModalProps } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/types/bank-information.types";
+export function BankSelectModal({
   isOpen,
   onClose,
-  currentBranchId,
+  currentBankId,
   options,
   isSaving,
   onConfirm,
-}: BranchSelectModalProps) {
-  const [selectedBranchId, setSelectedBranchId] = useState<string>(
-    currentBranchId ?? "",
+}: BankSelectModalProps) {
+  const [selectedBankId, setSelectedBankId] = useState<string>(
+    currentBankId ?? "",
   );
 
   useEffect(() => {
-    setSelectedBranchId(currentBranchId ?? "");
-  }, [currentBranchId]);
+    setSelectedBankId(currentBankId ?? "");
+  }, [currentBankId]);
 
   const selectedOption = options.find(
-    (option) => option.value === selectedBranchId,
+    (option) => option.value === selectedBankId,
   );
-  const hasChanged = selectedBranchId !== (currentBranchId ?? "");
+  const hasChanged = selectedBankId !== (currentBankId ?? "");
   const isConfirmDisabled =
-    isSaving || !selectedBranchId || !selectedOption || !hasChanged;
+    isSaving || !selectedBankId || !selectedOption || !hasChanged;
 
   const handleConfirm = async () => {
     if (!selectedOption) return;
@@ -36,18 +35,18 @@ export function BranchSelectModal({
       isOpen={isOpen}
       onClose={onClose}
       size="lg"
-      title="Seleccionar sucursal"
+      title="Seleccionar banco"
       panelClassName="!max-w-md w-full dark:border dark:border-neutral-700"
     >
       <div className="flex flex-col gap-5 items-center justify-between">
         <Dropdown
           appearance="dark"
-          label="Sucursal"
+          label="Bancos"
           labelClassName="text-white"
           placeholder="Seleccione..."
           options={options}
-          value={selectedBranchId}
-          onChange={(value) => setSelectedBranchId(String(value))}
+          value={selectedBankId}
+          onChange={(value) => setSelectedBankId(String(value))}
           className="w-full"
         />
 
