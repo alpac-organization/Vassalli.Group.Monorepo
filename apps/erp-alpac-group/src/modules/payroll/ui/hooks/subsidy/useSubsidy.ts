@@ -1,7 +1,8 @@
-import type { CreateSubsidyRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/create-subsidy.request";
 import { SubsidyServices } from "@app/modules/payroll/infrastructure/services/subsidy-services/SubsidyServices";
 import { useMutation } from "@tanstack/react-query";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
+
+import type { CreateSubsidyRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/create-subsidy.request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
 const subsidyServices = new SubsidyServices(httpHandler);

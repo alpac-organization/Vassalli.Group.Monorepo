@@ -1,9 +1,10 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { IncomesServices } from "@app/modules/payroll/infrastructure/services/incomes-services/IncomesServices";
 import { httpHandler } from "@app/core/adapters";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { GetIncomeTypesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/get-income-types.request";
+import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
 
 const incomeServices = new IncomesServices(httpHandler);
 
@@ -24,5 +25,9 @@ export function useIncomes(props?: useIncomesProps) {
       retry: 1,
    });
 
-   return { GetIncomeTypes }
+   const CreateIncome = useMutation<void, ApiErrorResponse, CreateIncomeRequest>({
+      mutationFn: (payload: CreateIncomeRequest) => incomeServices.CreateIncome(payload),
+   })
+
+   return { GetIncomeTypes, CreateIncome }
 }

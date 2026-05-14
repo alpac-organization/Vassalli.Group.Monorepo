@@ -8,8 +8,11 @@ import {
   AnimatedAlertWrapper,
   Alert,
 } from "@alpac/design-system";
-import { motion } from "framer-motion";
+import { m, LazyMotion } from "framer-motion";
 import { useCallback, useState, useMemo, useEffect } from "react";
+
+const loadFeatures = () =>
+  import("framer-motion").then((res) => res.domAnimation);
 import { useNavigate } from "react-router-dom";
 import { FileX } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -51,8 +54,17 @@ import {
   DROPDOWN_DISABLED_TRIGGER_CLASS,
 } from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
 import { isSelectablePayrollType } from "@app/modules/payroll/ui/pages/nomina/utils/payroll.utls";
+import { CreateIncomeModal } from "./components/incomes/create-income-modal/create-income-modal";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 
 export function PayrollPage() {
+  const maxPageSize = 10;
+  const navigate = useNavigate();
+  const { theme } = useTheme();
+  const { companyId, moduleCode } = useUserStore();
+  const { GetBranchesQuery: branchesQuery, GetCompaniesQuery } = useCompanies(
+    companyId ? { company_id: companyId } : undefined,
+  );
   const maxPageSize = 10;
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -109,6 +121,9 @@ export function PayrollPage() {
     useState<PayrollItemResponse | null>(null);
   const [isPayrollDetailModalOpen, setIsPayrollDetailModalOpen] =
     useState(false);
+  const [visibleKeys, setVisibleKeys] = useState<string[]>(() =>
+    payrollColumns.map((col) => col.key as string),
+  );
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   //   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
   const [isGeneratingPaymentRequestsPdf, setIsGeneratingPaymentRequestsPdf] =
@@ -132,56 +147,21 @@ export function PayrollPage() {
   const [initializeModalBranch, setInitializeModalBranch] = useState<
     string | null
   >(null);
-  const [showAlert, setShowAlert] = useState<{
-    show: boolean;
-    type: "success" | "error" | "warning" | "info";
-    title: string;
-    message: string;
-  }>({
-    show: false,
-    type: "info",
-    title: "",
-    message: "",
-  });
 
-  const payrollColumnDefs = useMemo(
-    () => getPayrollColumns(companyName),
-    [companyName],
-  );
+  const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
 
-  const [visibleKeys, setVisibleKeys] = useState<string[]>(() =>
-    getPayrollColumns(useUserStore.getState().companyName).map(
-      (col) => col.key as string,
-    ),
-  );
-
-  useEffect(() => {
-    const allowedKeys = payrollColumnDefs.map((c) => c.key as string);
-    const allowedSet = new Set(allowedKeys);
-    setVisibleKeys((prev) => {
-      const kept = prev.filter((k) => allowedSet.has(k));
-      const additions = allowedKeys.filter((k) => !kept.includes(k));
-      return [...kept, ...additions];
-    });
-  }, [payrollColumnDefs]);
-
-  const handleCloseAlert = useCallback(() => {
-    setTimeout(() => {
-      setShowAlert({ show: false, type: "info", title: "", message: "" });
-    }, 3000);
-  }, []);
+  const {
+    alertState,
+    handleCloseAlert,
+    handleRequestError,
+    handleRequestSuccess,
+  } = useAlertState();
 
   const handlePdfGenerationError = useCallback(
     (message: string) => {
-      setShowAlert({
-        show: true,
-        type: "error",
-        title: "Error",
-        message,
-      });
-      handleCloseAlert();
+      handleRequestError(message);
     },
-    [handleCloseAlert],
+    [handleRequestError],
   );
 
   const handleSelectionModalClose = useCallback(() => {
@@ -315,6 +295,8 @@ export function PayrollPage() {
       existPayrollInProgress === true,
   });
 
+  const { data: selectedOrdinaryPayroll } = ordinaryPayrollQuery;
+
   const statusFetchInFlight =
     selectedPayrollType !== null &&
     selectedBranch !== null &&
@@ -420,25 +402,18 @@ export function PayrollPage() {
           setSelectedPayrollType(initializeModalPayrollType);
           setSelectedBranch(initializeModalBranch);
           setIsInitializeConfirmModalOpen(false);
-          setShowAlert({
-            show: true,
-            type: "success",
-            title: "Nómina inicializada",
-            message: "La nómina se inicializó correctamente.",
-          });
-          handleCloseAlert();
+          handleRequestSuccess(
+            "La nómina se inicializó correctamente.",
+            "Nómina inicializada",
+          );
         },
         onError: (error) => {
           const apiError = error as ApiErrorResponse;
-          setShowAlert({
-            show: true,
-            type: "error",
-            title: "No se pudo inicializar",
-            message:
-              apiError?.error?.description ||
+          handleRequestError(
+            apiError?.error?.description ||
               "No se pudo inicializar la nómina. Inténtelo nuevamente.",
-          });
-          handleCloseAlert();
+            "No se pudo inicializar",
+          );
         },
       },
     );
@@ -448,7 +423,8 @@ export function PayrollPage() {
     initializeModalPayrollType,
     initializeModalBranch,
     initializePayrollMutation,
-    handleCloseAlert,
+    handleRequestError,
+    handleRequestSuccess,
   ]);
 
   const handleConfirmTypeSelection = useCallback(() => {
@@ -803,6 +779,15 @@ export function PayrollPage() {
     { label: "Prestacionado", value: "Prestacionado" },
   ];
 
+  const handleRegisterIncome = useCallback(() => {
+    setIsIncomeModalOpen(true);
+  }, []);
+
+  const payrollTypeOptions = [
+    { label: "Ordinaria", value: "Ordinary" },
+    { label: "Variable", value: "Provided" },
+  ];
+
   const renderContent = () => {
     if (existPayrollInProgress === false) {
       return (
@@ -893,7 +878,7 @@ export function PayrollPage() {
   };
 
   return (
-    <>
+    <LazyMotion features={loadFeatures} strict>
       <Modal
         isOpen={isPayrollDetailModalOpen}
         onClose={handleClosePayrollDetailModal}
@@ -1103,7 +1088,7 @@ export function PayrollPage() {
         </div>
       </Modal>
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
@@ -1206,7 +1191,8 @@ export function PayrollPage() {
                   onClick={handleOpenChangePayrollSelection}
                   className="hidden! lg:flex! w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                 />
-                <div className="w-full lg:w-[18rem]">
+
+                <div className="w-full lg:w-[20rem]">
                   <Dropdown
                     placeholder="Seleccione una acción a generar"
                     options={payrollActionOptions}
@@ -1217,6 +1203,7 @@ export function PayrollPage() {
                     }
                   />
                 </div>
+
                 {/* <Button
                   type="button"
                   size="giant"
@@ -1255,11 +1242,27 @@ export function PayrollPage() {
                       : ""
                   }`}
                 />
+
                 <Button
                   type="button"
                   size="giant"
-                  label="Registrar deducciones"
+                  label="Registrar Deducción"
                   disabled
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGeneratingPdf ||
+                    isGeneratingPaymentRequestsPdf ||
+                    isGeneratingAccumulatedHistoryPdf
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
+                />
+
+                <Button
+                  type="button"
+                  size="giant"
+                  label="Registrar Ingreso"
+                  disabled={!existPayrollInProgress}
+                  onClick={handleRegisterIncome}
                   className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
@@ -1279,19 +1282,33 @@ export function PayrollPage() {
             onRequestChangePayrollSelection={undefined}
           />
         )}
+
         {selectedPayrollType !== null &&
           selectedBranch !== null &&
           renderContent()}
 
-        <AnimatedAlertWrapper open={showAlert.show}>
+        <CreateIncomeModal
+          isOpen={isIncomeModalOpen}
+          payrollId={selectedOrdinaryPayroll?.payroll_id ?? ""}
+          onClose={() => setIsIncomeModalOpen(false)}
+          onRequestSuccess={(successMessage) => {
+            handleRequestSuccess(successMessage, "Ingreso registrado");
+            setIsIncomeModalOpen(false);
+          }}
+          onRequestError={(errorMessage) => {
+            handleRequestError(errorMessage || "Error al registrar el ingreso");
+          }}
+        />
+
+        <AnimatedAlertWrapper open={!!alertState?.open}>
           <Alert
-            type={showAlert.type}
-            title={showAlert.title}
-            message={showAlert.message}
-            onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
+            type={alertState?.type || "info"}
+            title={alertState?.title || ""}
+            message={alertState?.message || ""}
+            onClose={handleCloseAlert}
           />
         </AnimatedAlertWrapper>
-      </motion.div>
-    </>
+      </m.div>
+    </LazyMotion>
   );
 }
