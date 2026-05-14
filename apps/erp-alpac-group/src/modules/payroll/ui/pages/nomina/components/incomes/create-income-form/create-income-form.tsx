@@ -32,6 +32,7 @@ export const CreateIncomeForm = ({ collaborator, payrollId, onCancel, onRequestS
 
    const INCOMES_TYPES = [
       IncomeTypeEnum.INCOME_OVERTIME,
+      IncomeTypeEnum.INCOME_COMMISSION,
    ] as IncomeTypeEnum[];
 
    const { GetIncomeTypes, CreateIncome } = useIncomes({ incomesTypesPayload: { company_id: companyId! } })

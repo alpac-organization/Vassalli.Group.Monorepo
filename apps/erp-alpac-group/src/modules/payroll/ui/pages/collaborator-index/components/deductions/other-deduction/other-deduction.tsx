@@ -1,6 +1,6 @@
 import { Alert } from "@alpac/design-system";
 
-export const Sanctions = () => {
+export const OtherDeduction = () => {
    return (
       <div className="flex flex-col gap-4">
          <Alert
