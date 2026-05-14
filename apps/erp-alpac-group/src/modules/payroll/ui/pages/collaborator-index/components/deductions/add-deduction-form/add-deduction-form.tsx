@@ -17,6 +17,7 @@ import type { AddDeductionFormProps } from "./add-deduction-form.types";
 import { useDeduction } from "@app/modules/payroll/ui/hooks/deduction/useDeduction";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import { OtherDeduction } from "../other-deduction/other-deduction";
 
 const inputClassName =
    "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -116,9 +117,14 @@ export const AddDeductionForm = ({ collaborator, onSubmit, onCancel, onRequestEr
             {deductionType === DeductionCodeEnum.PURISIMA.value && <PurisimaContribution />}
             {deductionType === DeductionCodeEnum.CHILD_SUPPORT_GARNISHMENT.value && <ChildSupportGarnishment />}
             {deductionType === DeductionCodeEnum.JUDICIAL_GARNISHMENT.value && <JudicialGarnishment />}
+            {deductionType === DeductionCodeEnum.OTHER_DEDUCTION.value && <OtherDeduction />}
 
             {
-               deductionType && (
+               !!deductionType && (
+                  deductionType === DeductionCodeEnum.LATE_ARRIVAL.value ||
+                  deductionType === DeductionCodeEnum.SALARY_ADVANCE.value ||
+                  deductionType === DeductionCodeEnum.PURISIMA.value
+               ) && (
                   <Controller
                      name="description"
                      control={methods.control}
@@ -159,7 +165,15 @@ export const AddDeductionForm = ({ collaborator, onSubmit, onCancel, onRequestEr
                   type="submit"
                   size="giant"
                   label="Agregar Deducción"
-                  disabled={!methods.formState.isDirty || !methods.formState.isValid}
+                  disabled={
+                     !methods.formState.isDirty ||
+                     !methods.formState.isValid ||
+                     (
+                        deductionType !== DeductionCodeEnum.LATE_ARRIVAL.value &&
+                        deductionType !== DeductionCodeEnum.SALARY_ADVANCE.value &&
+                        deductionType !== DeductionCodeEnum.PURISIMA.value
+                     )
+                  }
                   isLoading={CreateDeduction.isPending}
                   className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! disabled:opacity-60! disabled:cursor-not-allowed! sm:w-auto!"
                />

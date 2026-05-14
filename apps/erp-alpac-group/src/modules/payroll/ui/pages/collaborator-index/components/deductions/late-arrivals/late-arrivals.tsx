@@ -18,7 +18,7 @@ export const LateArrivals = () => {
                required: "Total de minutos es requerido",
                valueAsNumber: true,
                validate: {
-                  validatePositive: (value) => validatePositiveNumber(value),
+                  validatePositive: (value) => validatePositiveNumber(value, true),
                }
             })}
             error={errors.late_arrivals_payload?.total_minutes?.message}
