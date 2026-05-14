@@ -8,8 +8,10 @@ import {
   AnimatedAlertWrapper,
   Alert,
 } from "@alpac/design-system";
-import { motion } from "framer-motion";
+import { m, LazyMotion } from "framer-motion";
 import { useCallback, useState, useMemo, useEffect } from "react";
+
+const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 import { useNavigate } from "react-router-dom";
 import { FileX } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -869,7 +871,7 @@ export function PayrollPage() {
   };
 
   return (
-    <>
+    <LazyMotion features={loadFeatures} strict>
       <Modal
         isOpen={isPayrollDetailModalOpen}
         onClose={handleClosePayrollDetailModal}
@@ -1079,7 +1081,7 @@ export function PayrollPage() {
         </div>
       </Modal>
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
@@ -1267,7 +1269,7 @@ export function PayrollPage() {
             onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
           />
         </AnimatedAlertWrapper>
-      </motion.div>
-    </>
+      </m.div>
+    </LazyMotion>
   );
 }

@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { AnimatePresence, motion, type Variants } from "framer-motion";
+import { AnimatePresence, m, type Variants } from "framer-motion";
 import { useForm, Controller, type ControllerRenderProps } from "react-hook-form";
 import { Alert, Button, DatePicker, Dropdown, InputText, RadioButton, Textarea } from "@alpac/design-system";
 import { validateSessionContextUtils } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/utils/validateSessionContext";
@@ -21,7 +21,7 @@ import { RoleEnum } from "@app/core/enums/role.enum";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 
 const inputClassName =
-   "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+   "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
 
 export function NewPermissionRequestForm(
@@ -221,7 +221,7 @@ export function NewPermissionRequestForm(
          <AnimatePresence mode="wait">
             {isSelectedAtLeastOneType && (
 
-               <motion.div
+               <m.div
                   key="form-fields-container"
                   variants={formContainerVariants}
                   initial="hidden"
@@ -232,7 +232,7 @@ export function NewPermissionRequestForm(
                   <AnimatePresence mode="popLayout">
                      {
                         (applicationType.Vacation || applicationType.MedicalAppointment) && (
-                           <motion.div
+                           <m.div
                               key="dates-section"
                               variants={formFieldVariants}
                               initial="hidden"
@@ -322,12 +322,12 @@ export function NewPermissionRequestForm(
                                  </div>
                               )}
 
-                           </motion.div>
+                           </m.div>
                         )
                      }
 
                      {(applicationType.Vacation && isSameDay) && (
-                        <motion.div
+                        <m.div
                            key="time-format-section"
                            variants={formFieldVariants}
                            initial="hidden"
@@ -365,13 +365,13 @@ export function NewPermissionRequestForm(
                               onChange={() => setTimeFormatType("rangeOfHours")}
                            />
 
-                        </motion.div>
+                        </m.div>
                      )}
 
                      {
                         ((applicationType.Vacation && timeFormatType === "rangeOfHours") || applicationType.MedicalAppointment) && (
 
-                           <motion.div
+                           <m.div
                               key="hours-section"
                               variants={formFieldVariants}
                               initial="hidden"
@@ -437,13 +437,13 @@ export function NewPermissionRequestForm(
                                     }}
                                  />
                               </div>
-                           </motion.div>
+                           </m.div>
                         )
                      }
 
                      {applicationType.DonatedVacations && !foundBeneficiary &&
                         (
-                           <motion.div
+                           <m.div
                               key="search-section"
                               variants={formFieldVariants}
                               initial="hidden"
@@ -472,19 +472,19 @@ export function NewPermissionRequestForm(
                                  />
                               </div>
 
-                           </motion.div>
+                           </m.div>
                         )
                      }
 
                      {((applicationType.DonatedVacations && foundBeneficiary)) && (
-                        <motion.div
+                        <m.div
                            key="donated-days-section"
                            variants={formFieldVariants}
                            initial="hidden"
                            animate="visible"
                            exit="exit"
                            className="grid min-w-0 grid-cols-1 gap-4">
-                           <motion.div variants={formFieldVariants}>
+                           <m.div variants={formFieldVariants}>
                               <InputText
                                  label="Días a donar"
                                  labelClassName={labelClassName}
@@ -502,12 +502,12 @@ export function NewPermissionRequestForm(
                                     },
                                  })}
                               />
-                           </motion.div>
-                        </motion.div>
+                           </m.div>
+                        </m.div>
                      )}
 
                      {((applicationType.DonatedVacations && foundBeneficiary) || applicationType.Vacation || applicationType.MedicalAppointment) && (
-                        <motion.div
+                        <m.div
                            key="description-section"
                            variants={formFieldVariants}
                            initial="hidden"
@@ -533,18 +533,18 @@ export function NewPermissionRequestForm(
                                  })
                               }
                            />
-                        </motion.div>
+                        </m.div>
                      )}
                   </AnimatePresence>
 
-               </motion.div>
+               </m.div>
             )}
          </AnimatePresence>
 
          <AnimatePresence>
             {
                searchError && (
-                  <motion.div
+                  <m.div
                      key="search-error"
                      variants={searchErrorVariants}
                      initial="initial"
@@ -566,7 +566,7 @@ export function NewPermissionRequestForm(
                         title="Error"
                         message={searchError}
                      />
-                  </motion.div>
+                  </m.div>
                )
             }
          </AnimatePresence>
