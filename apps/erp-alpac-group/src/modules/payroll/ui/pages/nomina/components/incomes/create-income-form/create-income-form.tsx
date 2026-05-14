@@ -8,11 +8,15 @@ import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContrac
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useIncomes } from "@app/modules/payroll/ui/hooks/incomes/useIncomes";
 import { IncomeTypeEnum } from "@app/modules/payroll/domain/enums/income-enums/income.enum";
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
-import { Overtime } from "../overtime/overtime";
+import { FileUploader } from "@app/shared/components/file-uploader/file-uploader";
+import {
+  parseOvertimeIncomeExcel,
+  validateOvertimeIncomePayload,
+} from "@app/modules/payroll/ui/pages/nomina/components/incomes/utils/parse-overtime-income-excel";
 
 const inputClassName =
   "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -27,6 +31,7 @@ export const CreateIncomeForm = ({
 }: CreateIncomeFormProps) => {
   const { companyId, moduleCode } = useUserStore();
   const { getMappedError } = useMappedError();
+  const [overtimeFileKey, setOvertimeFileKey] = useState(0);
 
   const methods = useForm<CreateIncomeRequest>({
     mode: "onChange",
@@ -36,6 +41,7 @@ export const CreateIncomeForm = ({
       payroll_id: payrollId,
       identification_number:
         collaborator.personal_information.identification_number,
+      overtime_income_payload: undefined,
     },
   });
 
@@ -77,17 +83,74 @@ export const CreateIncomeForm = ({
     return incomeTypeOptions.find((opt) => opt.id === incomeTypeId)?.code;
   }, [incomeTypeId, incomeTypeOptions]);
 
-  const onSubmit = async (data: CreateIncomeRequest) => {
-    const payload = {
-      ...data,
-      ...(selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME && {
-        overtime_income_payload: {
-          amount_hours: Number(data.overtime_income_payload?.amount_hours) || 0,
-        },
-      }),
-    };
+  useEffect(() => {
+    if (selectedIncomeTypeCode !== IncomeTypeEnum.INCOME_OVERTIME) {
+      methods.setValue("overtime_income_payload", undefined);
+    }
+  }, [selectedIncomeTypeCode, methods]);
 
-    await CreateIncome.mutateAsync(payload, {
+  const handleOvertimeFileRemove = useCallback(() => {
+    methods.setValue("overtime_income_payload", undefined);
+  }, [methods]);
+
+  const handleOvertimeFileSelect = useCallback(
+    async (file: File) => {
+      try {
+        const buffer = await file.arrayBuffer();
+        const result = parseOvertimeIncomeExcel(buffer);
+        if (!result.ok) {
+          onRequestError?.(result.error);
+          methods.setValue("overtime_income_payload", undefined);
+          setOvertimeFileKey((k) => k + 1);
+          return;
+        }
+        methods.setValue("overtime_income_payload", result.rows, {
+          shouldValidate: true,
+        });
+      } catch {
+        onRequestError?.(
+          "No se pudo leer el archivo. Intente de nuevo con un .xls o .xlsx válido.",
+        );
+        methods.setValue("overtime_income_payload", undefined);
+        setOvertimeFileKey((k) => k + 1);
+      }
+    },
+    [methods, onRequestError],
+  );
+
+  const onSubmit = async (data: CreateIncomeRequest) => {
+    if (selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME) {
+      const validated = validateOvertimeIncomePayload(
+        data.overtime_income_payload,
+      );
+      if (!validated.ok) {
+        onRequestError?.(validated.error);
+        return;
+      }
+
+      const payload: CreateIncomeRequest = {
+        ...data,
+        description: undefined,
+        overtime_income_payload: validated.rows,
+      };
+
+      await CreateIncome.mutateAsync(payload, {
+        onSuccess: () => {
+          onRequestSuccess?.("Ingreso registrado correctamente");
+        },
+        onError: (error: ApiErrorResponse) => {
+          const mappedError = getMappedError(error);
+          onRequestError?.(
+            mappedError.description || "Error al registrar el ingreso",
+          );
+        },
+      });
+      return;
+    }
+
+    const { overtime_income_payload: _overtime, ...commissionData } = data;
+
+    await CreateIncome.mutateAsync(commissionData, {
       onSuccess: () => {
         onRequestSuccess?.("Ingreso registrado correctamente");
       },
@@ -139,10 +202,17 @@ export const CreateIncomeForm = ({
           </div>
 
           {selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME && (
-            <Overtime />
+            <FileUploader
+              key={overtimeFileKey}
+              title="Cargar archivo de horas extra"
+              description="Formato .xls o .xlsx (columna A: ID empleado, columna C: minutos)"
+              extensions={["xls", "xlsx"]}
+              onFileSelect={handleOvertimeFileSelect}
+              onFileRemove={handleOvertimeFileRemove}
+            />
           )}
 
-          {selectedIncomeTypeCode && (
+          {selectedIncomeTypeCode !== IncomeTypeEnum.INCOME_OVERTIME && (
             <Textarea
               label="Descripción"
               labelClassName={labelClassName}
@@ -162,7 +232,7 @@ export const CreateIncomeForm = ({
           )}
         </div>
 
-        <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6"></div>
+        <div className="-mx-6 border-t border-t-slate-300 dark:border-t-neutral-600"></div>
         <div className="flex min-w-0 flex-col-reverse gap-2.5 sm:flex-row sm:justify-end sm:gap-3">
           <Button
             type="button"
