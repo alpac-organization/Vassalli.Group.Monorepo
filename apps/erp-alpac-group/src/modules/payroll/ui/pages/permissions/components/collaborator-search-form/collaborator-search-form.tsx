@@ -90,7 +90,7 @@ export const CollaboratorSearchForm = ({
    const onSubmit = handleSubmit(handleSearchSubmit)
 
    return (
-      <>
+      <div className="flex flex-col gap-5">
          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
             <div className="col-span-2">
                <InputText
@@ -165,6 +165,6 @@ export const CollaboratorSearchForm = ({
                }
             </AnimatePresence>
          </LazyMotion>
-      </>
+      </div>
    );
 };
