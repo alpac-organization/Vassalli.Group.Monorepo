@@ -8,7 +8,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Controller, useForm } from "react-hook-form";
 import type { AddSubsidyFormProps } from "./add-subsidy-form.types";
 
-const inputClassName = "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+const inputClassName = "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
 
 const SUBSIDY_TYPE_OPTIONS = [
