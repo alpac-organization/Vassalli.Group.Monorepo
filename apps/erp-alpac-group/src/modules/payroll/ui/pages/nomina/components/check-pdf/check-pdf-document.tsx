@@ -139,7 +139,6 @@ export function CheckPdfDocument({ data, startDate, endDate }: CheckPdfProps) {
                   }}
                 >
                   <Text>{formattedAmount}</Text>
-                  <Text> </Text>
                 </View>
               </View>
             </View>

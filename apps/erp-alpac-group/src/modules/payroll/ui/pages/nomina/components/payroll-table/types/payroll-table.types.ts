@@ -1,7 +1,9 @@
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
+import type { PayrollColumnDef } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 
 export type PayrollTableProps = {
   rows: PayrollItemResponse[];
+  columns: PayrollColumnDef[];
   currentPage: number;
   pageSize: number;
   totalRecords: number;

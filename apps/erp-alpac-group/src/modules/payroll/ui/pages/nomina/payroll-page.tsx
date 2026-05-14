@@ -39,7 +39,7 @@ import { CheckPdfDocument } from "@app/modules/payroll/ui/pages/nomina/component
 import { AccumulatedHistoryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/accumulated-history-pdf-document";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
-import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
+import { getPayrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 // import { exportPayrollExcel } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/export-payroll-excel";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
@@ -56,7 +56,7 @@ export function PayrollPage() {
   const maxPageSize = 10;
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const { companyId, moduleCode } = useUserStore();
+  const { companyId, moduleCode, companyName } = useUserStore();
   const { GetBranchesQuery: branchesQuery, GetCompaniesQuery } = useCompanies(
     companyId ? { company_id: companyId } : undefined,
   );
@@ -109,9 +109,6 @@ export function PayrollPage() {
     useState<PayrollItemResponse | null>(null);
   const [isPayrollDetailModalOpen, setIsPayrollDetailModalOpen] =
     useState(false);
-  const [visibleKeys, setVisibleKeys] = useState<string[]>(() =>
-    payrollColumns.map((col) => col.key as string),
-  );
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   //   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
   const [isGeneratingPaymentRequestsPdf, setIsGeneratingPaymentRequestsPdf] =
@@ -146,6 +143,27 @@ export function PayrollPage() {
     title: "",
     message: "",
   });
+
+  const payrollColumnDefs = useMemo(
+    () => getPayrollColumns(companyName),
+    [companyName],
+  );
+
+  const [visibleKeys, setVisibleKeys] = useState<string[]>(() =>
+    getPayrollColumns(useUserStore.getState().companyName).map(
+      (col) => col.key as string,
+    ),
+  );
+
+  useEffect(() => {
+    const allowedKeys = payrollColumnDefs.map((c) => c.key as string);
+    const allowedSet = new Set(allowedKeys);
+    setVisibleKeys((prev) => {
+      const kept = prev.filter((k) => allowedSet.has(k));
+      const additions = allowedKeys.filter((k) => !kept.includes(k));
+      return [...kept, ...additions];
+    });
+  }, [payrollColumnDefs]);
 
   const handleCloseAlert = useCallback(() => {
     setTimeout(() => {
@@ -520,6 +538,7 @@ export function PayrollPage() {
           typePayroll={selectedPayrollType}
           data={allItems}
           branchName={displayedBranchName ?? ""}
+          companyName={companyName}
           startDate={ordinaryPayrollQuery.data?.start_date}
           endDate={ordinaryPayrollQuery.data?.end_date}
           visibleKeys={visibleKeys}
@@ -552,6 +571,7 @@ export function PayrollPage() {
     ordinaryPayrollQuery.data,
     displayedBranchName,
     visibleKeys,
+    companyName,
     currentCompanyImageUrl,
     identificationFilter,
     workAreaFilter,
@@ -699,6 +719,7 @@ export function PayrollPage() {
   //       exportPayrollExcel({
   //         data: allItems,
   //         visibleKeys,
+  //         companyName,
   //         branchName: displayedBranchName,
   //         startDate: ordinaryPayrollQuery.data?.start_date,
   //         endDate: ordinaryPayrollQuery.data?.end_date,
@@ -719,6 +740,7 @@ export function PayrollPage() {
   //     ordinaryPayrollQuery.data,
   //     displayedBranchName,
   //     visibleKeys,
+  //     companyName,
   //     identificationFilter,
   //     workAreaFilter,
   //     jobPositionFilter,
@@ -778,6 +800,7 @@ export function PayrollPage() {
   const payrollTypeOptions = [
     { label: "Ordinaria", value: "Ordinary" },
     { label: "Variable", value: "Provided" },
+    { label: "Prestacionado", value: "Prestacionado" },
   ];
 
   const renderContent = () => {
@@ -832,6 +855,7 @@ export function PayrollPage() {
           <div className="flex flex-col">
             <PayrollTable
               rows={items}
+              columns={payrollColumnDefs}
               currentPage={pageNumber}
               pageSize={maxPageSize}
               totalRecords={totalRecords}
