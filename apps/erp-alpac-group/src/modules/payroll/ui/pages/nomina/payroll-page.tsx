@@ -22,6 +22,7 @@ import {
   usePayrollDetails,
   useInitializePayroll,
 } from "@app/modules/payroll/ui/hooks/payroll/usePayroll";
+import type { PayrollColumnDef } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { Loader } from "@app/shared/components/loaders/loader";
 import PayrollPageHeader from "@app/modules/payroll/ui/pages/nomina/components/payroll-page-header/payroll-page-header";
 import PayrollCycleFormalization from "@app/modules/payroll/ui/pages/nomina/components/payroll-cycle-formalization/payroll-cycle-formalization";
@@ -43,6 +44,7 @@ import { AccumulatedHistoryPdfDocument } from "@app/modules/payroll/ui/pages/nom
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
 import { getPayrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
+import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 // import { exportPayrollExcel } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/export-payroll-excel";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
@@ -58,13 +60,6 @@ import { CreateIncomeModal } from "./components/incomes/create-income-modal/crea
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 
 export function PayrollPage() {
-  const maxPageSize = 10;
-  const navigate = useNavigate();
-  const { theme } = useTheme();
-  const { companyId, moduleCode } = useUserStore();
-  const { GetBranchesQuery: branchesQuery, GetCompaniesQuery } = useCompanies(
-    companyId ? { company_id: companyId } : undefined,
-  );
   const maxPageSize = 10;
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -147,7 +142,19 @@ export function PayrollPage() {
   const [initializeModalBranch, setInitializeModalBranch] = useState<
     string | null
   >(null);
-
+  const payrollColumnDefs = useMemo(
+    () => getPayrollColumns(companyName),
+    [companyName],
+  );
+  useEffect(() => {
+    const allowedKeys = payrollColumnDefs.map((c) => c.key as string);
+    const allowedSet = new Set(allowedKeys);
+    setVisibleKeys((prev) => {
+      const kept = prev.filter((k) => allowedSet.has(k));
+      const additions = allowedKeys.filter((k) => !kept.includes(k));
+      return [...kept, ...additions];
+    });
+  }, [payrollColumnDefs]);
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
 
   const {
@@ -782,11 +789,6 @@ export function PayrollPage() {
   const handleRegisterIncome = useCallback(() => {
     setIsIncomeModalOpen(true);
   }, []);
-
-  const payrollTypeOptions = [
-    { label: "Ordinaria", value: "Ordinary" },
-    { label: "Variable", value: "Provided" },
-  ];
 
   const renderContent = () => {
     if (existPayrollInProgress === false) {
