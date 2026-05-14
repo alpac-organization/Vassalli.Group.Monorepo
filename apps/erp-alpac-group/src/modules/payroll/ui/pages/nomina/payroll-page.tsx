@@ -44,7 +44,7 @@ import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
 import { getPayrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
-// import { exportPayrollExcel } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/export-payroll-excel";
+import { exportPayrollExcel } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/export-payroll-excel";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 // import { fetchImageAsDataUri } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/fetch-image-as-data-uri";
@@ -676,61 +676,61 @@ export function PayrollPage() {
       handlePdfGenerationError,
    ]);
 
-   //   const handleGenerateExcel = useCallback(async () => {
-   //     if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
-   //       return;
-   //     try {
-   //       setIsGeneratingExcel(true);
-   //       const payrollServices = new PayrollServices(httpHandler);
+   const handleGenerateExcel = useCallback(async () => {
+      if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+         return;
+      try {
+         setIsGeneratingExcel(true);
+         const payrollServices = new PayrollServices(httpHandler);
 
-   //       const detailsData = ordinaryPayrollQuery.data;
-   //       const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+         const detailsData = ordinaryPayrollQuery.data;
+         const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
 
-   //       const payload = {
-   //         companie_id: companyId,
-   //         module_code: moduleCode,
-   //         type: selectedPayrollType,
-   //         branch_id: selectedBranch,
-   //         identification_number: identificationFilter || undefined,
-   //         work_area_id: workAreaFilter || undefined,
-   //         job_position_id: jobPositionFilter || undefined,
-   //         page_number: 1,
-   //         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
-   //       } as PayrollRequest;
+         const payload = {
+            companie_id: companyId,
+            module_code: moduleCode,
+            type: selectedPayrollType,
+            branch_id: selectedBranch,
+            identification_number: identificationFilter || undefined,
+            work_area_id: workAreaFilter || undefined,
+            job_position_id: jobPositionFilter || undefined,
+            page_number: 1,
+            page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+         } as PayrollRequest;
 
-   //       const response = await payrollServices.getPayroll(payload);
-   //       const allItems = response.payroll_details?.items ?? [];
+         const response = await payrollServices.getPayroll(payload);
+         const allItems = response.payroll_details?.items ?? [];
 
-   //       exportPayrollExcel({
-   //         data: allItems,
-   //         visibleKeys,
-   //         companyName,
-   //         branchName: displayedBranchName,
-   //         startDate: ordinaryPayrollQuery.data?.start_date,
-   //         endDate: ordinaryPayrollQuery.data?.end_date,
-   //         typePayroll: selectedPayrollType,
-   //       });
-   //     } catch (error) {
-   //       handlePdfGenerationError(
-   //         "Ocurrió un error al generar el reporte de nómina en Excel.",
-   //       );
-   //     } finally {
-   //       setIsGeneratingExcel(false);
-   //     }
-   //   }, [
-   //     selectedPayrollType,
-   //     selectedBranch,
-   //     companyId,
-   //     moduleCode,
-   //     ordinaryPayrollQuery.data,
-   //     displayedBranchName,
-   //     visibleKeys,
-   //     companyName,
-   //     identificationFilter,
-   //     workAreaFilter,
-   //     jobPositionFilter,
-   //     handlePdfGenerationError,
-   //   ]);
+         exportPayrollExcel({
+            data: allItems,
+            visibleKeys,
+            companyName,
+            branchName: displayedBranchName,
+            startDate: ordinaryPayrollQuery.data?.start_date,
+            endDate: ordinaryPayrollQuery.data?.end_date,
+            typePayroll: selectedPayrollType,
+         });
+      } catch (error) {
+         handlePdfGenerationError(
+            "Ocurrió un error al generar el reporte de nómina en Excel.",
+         );
+      } finally {
+         setIsGeneratingExcel(false);
+      }
+   }, [
+      selectedPayrollType,
+      selectedBranch,
+      companyId,
+      moduleCode,
+      ordinaryPayrollQuery.data,
+      displayedBranchName,
+      visibleKeys,
+      companyName,
+      identificationFilter,
+      workAreaFilter,
+      jobPositionFilter,
+      handlePdfGenerationError,
+   ]);
 
    const handleExecuteSelectedAction = useCallback(() => {
       switch (selectedAction) {
@@ -1212,19 +1212,18 @@ export function PayrollPage() {
                            />
                         </div>
 
-                        {/* <Button
-                  type="button"
-                  size="giant"
-                  label="Exportar Excel"
-                  isLoading={isGeneratingExcel}
-                  disabled={!existPayrollInProgress}
-                  onClick={handleGenerateExcel}
-                  className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingExcel
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
-                /> */}
+                        <Button
+                           type="button"
+                           size="giant"
+                           label="Exportar Excel"
+                           isLoading={isGeneratingExcel}
+                           disabled={!existPayrollInProgress}
+                           onClick={handleGenerateExcel}
+                           className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingExcel
+                                 ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                                 : ""
+                              }`}
+                        />
                         <Button
                            type="button"
                            size="giant"
@@ -1243,10 +1242,10 @@ export function PayrollPage() {
                            }
                            onClick={handleExecuteSelectedAction}
                            className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
-                              isGeneratingPaymentRequestsPdf ||
-                              isGeneratingAccumulatedHistoryPdf
-                              ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                              : ""
+                                 isGeneratingPaymentRequestsPdf ||
+                                 isGeneratingAccumulatedHistoryPdf
+                                 ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                                 : ""
                               }`}
                         />
 
