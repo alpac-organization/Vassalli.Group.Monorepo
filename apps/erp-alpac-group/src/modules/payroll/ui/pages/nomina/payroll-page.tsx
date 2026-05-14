@@ -120,7 +120,7 @@ export function PayrollPage() {
       payrollColumns.map((col) => col.key as string),
    );
    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-   //   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
+   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
    const [isGeneratingPaymentRequestsPdf, setIsGeneratingPaymentRequestsPdf] =
       useState(false);
    const [
@@ -1220,8 +1220,8 @@ export function PayrollPage() {
                            disabled={!existPayrollInProgress}
                            onClick={handleGenerateExcel}
                            className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingExcel
-                                 ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                                 : ""
+                              ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                              : ""
                               }`}
                         />
                         <Button
@@ -1242,10 +1242,10 @@ export function PayrollPage() {
                            }
                            onClick={handleExecuteSelectedAction}
                            className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
-                                 isGeneratingPaymentRequestsPdf ||
-                                 isGeneratingAccumulatedHistoryPdf
-                                 ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                                 : ""
+                              isGeneratingPaymentRequestsPdf ||
+                              isGeneratingAccumulatedHistoryPdf
+                              ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                              : ""
                               }`}
                         />
 
