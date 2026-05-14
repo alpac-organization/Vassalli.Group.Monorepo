@@ -239,7 +239,7 @@ export function CheckPdfDocument({ data, startDate, endDate }: CheckPdfProps) {
                 <View style={styles.signatureBlock}>
                   <View style={styles.signatureLine}></View>
                   <Text style={styles.signatureTitle}>Autorizado:</Text>
-                  <Text style={styles.signatureName}>Aracelly Guillen</Text>
+                  <Text style={styles.signatureName}>Maicol Cruz Morales</Text>
                   <Text style={styles.signatureRole}>Gerente General</Text>
                 </View>
               </View>

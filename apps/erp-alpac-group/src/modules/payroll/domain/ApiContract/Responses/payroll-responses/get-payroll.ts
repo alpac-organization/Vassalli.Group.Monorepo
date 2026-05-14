@@ -24,13 +24,13 @@ export interface PayrollItemResponse {
   inss: number;
   total_legal_deductions: number;
   deductions_additional_data?: string;
-  comissions?: number;
+  commissions?: number;
   total_deducctions: number;
   total_travel_expenses?: number;
   transport?: number;
   feeding?: number;
   total_income?: number;
-  antiquity?: number;
+  antique?: number;
   lodging?: number;
   vacations?: number;
   DAEM?: string;

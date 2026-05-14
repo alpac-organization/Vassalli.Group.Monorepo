@@ -81,14 +81,14 @@ export const payrollColumns: PayrollColumnDef[] = [
   {
     key: "antiquity",
     label: "Antigüedad",
-    render: (item) => formatCurrency(item.antiquity ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.antiquity ?? 0,
+    render: (item) => formatCurrency(item.antique ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.antique ?? 0,
   },
   {
     key: "comissions",
     label: "Comisiones",
-    render: (item) => formatCurrency(item.comissions ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.comissions ?? 0,
+    render: (item) => formatCurrency(item.commissions ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.commissions ?? 0,
   },
   //   {
   //     key: "gross_salary",
