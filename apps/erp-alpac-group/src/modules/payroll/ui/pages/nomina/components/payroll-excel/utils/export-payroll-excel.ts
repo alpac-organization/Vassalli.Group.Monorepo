@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
+import { getPayrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { PAYROLL_TYPE_LABELS } from "@app/modules/payroll/domain/enums/payroll-enums/payroll-enum";
 import type { ExportPayrollExcelParams } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/types/export-payroll.types";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
@@ -24,15 +24,15 @@ function toExcelCellValue(value: unknown): string | number {
 export function exportPayrollExcel({
   data,
   visibleKeys,
+  companyName,
   branchName,
   startDate,
   endDate,
   typePayroll,
 }: ExportPayrollExcelParams): void {
-  const activeColumns = payrollColumns.filter((col) =>
+  const activeColumns = getPayrollColumns(companyName).filter((col) =>
     visibleKeys.includes(col.key as string),
   );
-
   const rows = data.map((item) => {
     return activeColumns.reduce<Record<string, string | number>>((acc, col) => {
       const cellValue = col.render ? col.render(item) : (item as any)[col.key];

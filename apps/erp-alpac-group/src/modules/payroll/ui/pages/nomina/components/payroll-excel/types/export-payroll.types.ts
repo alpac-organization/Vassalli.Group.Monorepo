@@ -3,6 +3,7 @@ import type { PayrollType } from "@app/modules/payroll/domain/ApiContract/Reques
 export type ExportPayrollExcelParams = {
   data: PayrollItemResponse[];
   visibleKeys: string[];
+  companyName?: string | null;
   branchName?: string | null;
   startDate?: string | null;
   endDate?: string | null;
