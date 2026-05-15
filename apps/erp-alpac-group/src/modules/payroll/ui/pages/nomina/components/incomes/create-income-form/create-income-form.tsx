@@ -1,4 +1,7 @@
-import type { CreateIncomeFormProps, IncomeTypeOption } from "./create-income-form.types";
+import type {
+   CreateIncomeFormProps,
+   IncomeTypeOption,
+} from "./create-income-form.types";
 import { FormProvider, Controller, useForm } from "react-hook-form";
 import { Button, Dropdown, Textarea } from "@alpac/design-system";
 import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
@@ -44,32 +47,37 @@ export const CreateIncomeForm = ({ payrollId, onCancel, onRequestSuccess, onRequ
       IncomeTypeEnum.INCOME_COMMISSION,
    ] as IncomeTypeEnum[];
 
-   const { GetIncomeTypes, CreateIncome } = useIncomes({ incomesTypesPayload: { company_id: companyId! } })
+   const { GetIncomeTypes, CreateIncome } = useIncomes({
+      incomesTypesPayload: { company_id: companyId! },
+   });
 
-   const { data: incomeTypesData, isLoading: isLoadingIncomeTypes } = GetIncomeTypes;
+   const { data: incomeTypesData, isLoading: isLoadingIncomeTypes } =
+      GetIncomeTypes;
 
    const incomeTypeOptions = useMemo(() => {
-
       if (!incomeTypesData || !Array.isArray(incomeTypesData)) {
          return [];
       }
 
-      return incomeTypesData.reduce((accumulate: IncomeTypeOption[], item: IncomesTypesResponse) => {
-         if (INCOMES_TYPES.includes(item.income_code as IncomeTypeEnum)) {
-            accumulate.push({
-               id: item.type_income_id,
-               code: item.income_code,
-               label: item.income_title,
-            })
-         }
-         return accumulate;
-      }, [] as IncomeTypeOption[]);
+      return incomeTypesData.reduce(
+         (accumulate: IncomeTypeOption[], item: IncomesTypesResponse) => {
+            if (INCOMES_TYPES.includes(item.income_code as IncomeTypeEnum)) {
+               accumulate.push({
+                  id: item.type_income_id,
+                  code: item.income_code,
+                  label: item.income_title,
+               });
+            }
+            return accumulate;
+         },
+         [] as IncomeTypeOption[],
+      );
    }, [incomeTypesData]);
 
    const incomeTypeId = methods.watch("type_income_id");
 
    const selectedIncomeTypeCode = useMemo(() => {
-      return incomeTypeOptions.find(opt => opt.id === incomeTypeId)?.code;
+      return incomeTypeOptions.find((opt) => opt.id === incomeTypeId)?.code;
    }, [incomeTypeId, incomeTypeOptions]);
 
    const onSubmit = async (data: CreateIncomeRequest) => {
@@ -99,7 +107,9 @@ export const CreateIncomeForm = ({ payrollId, onCancel, onRequestSuccess, onRequ
          },
          onError: (error: ApiErrorResponse) => {
             const mappedError = getMappedError(error);
-            onRequestError?.(mappedError.description || "Error al registrar el ingreso");
+            onRequestError?.(
+               mappedError.description || "Error al registrar el ingreso",
+            );
          },
       });
    };
