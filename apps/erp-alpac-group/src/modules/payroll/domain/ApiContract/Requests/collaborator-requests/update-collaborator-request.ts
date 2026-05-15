@@ -38,6 +38,7 @@ export interface UpdateWorkingInformationRequest {
   work_phone_number?: string;
   branch_id?: string;
   bank_id?: string;
+  inss_number?: string;
 }
 // export interface UpdateSalaryInformationRequest {
 //   salary?: number;

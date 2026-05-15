@@ -297,7 +297,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
+                  allowEdit={currentRole === "Administrator"}
                   missingMessage="INSS no registrado"
                   className={editableFieldInputClasses}
                 />
@@ -338,9 +338,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                         label="Banco"
                         labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
                         disabled
-                        value={
-                          bankMissing ? "Banco no registrado" : bankName
-                        }
+                        value={bankMissing ? "Banco no registrado" : bankName}
                         className={`${baseInputClasses} ${bankMissing ? missingDataInInputClassName : "text-white! dark:text-white!"}`}
                       />
                     </div>

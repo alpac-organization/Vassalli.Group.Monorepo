@@ -59,6 +59,9 @@ export const useUpdateWorkInformation = ({
       case "bankId":
         working.bank_id = value.trim();
         break;
+      case "inssNumber":
+        working.inss_number = value.trim();
+        break;
       default:
         return;
     }
