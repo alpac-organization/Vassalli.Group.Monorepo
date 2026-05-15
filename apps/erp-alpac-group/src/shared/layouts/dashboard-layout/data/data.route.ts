@@ -1,18 +1,6 @@
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { ModuleEnum } from "@app/core/enums/module.enum";
 import {
-  Settings,
-  UsersRound,
-  User,
-  UserKey,
-  FileClock,
-  CalendarCheck,
-  DollarSign,
-  CircleMinus,
-  HandCoins,
-  ClipboardCheck,
-  Scale,
-  Settings,
   UsersRound,
   User,
   UserKey,
@@ -23,6 +11,8 @@ import {
   HandCoins,
   ClipboardCheck,
   History,
+  Scale,
+  Settings,
 } from "lucide-react";
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 
@@ -126,6 +116,7 @@ export const sidebarData = {
         collboratorSection,
         controlVacationsSection,
         gestionPayrollSection,
+        payrollPeriodsHistorySection,
         deduccionesSection,
         liquidacionSection,
         reportsSection,
@@ -144,34 +135,6 @@ export const sidebarData = {
     },
     [ModuleEnum.STORAGE]: {
       [RoleEnum.OPERATOR]: [scaleControlSection],
-    },
-    [ModuleEnum.PUBLIC]: [settingsSection],
-  },
-  logoUrl:
-    "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
-  nameCompany: "CORE PANEL",
-  navigationRegistry: {
-    [ModuleEnum.PAYROLL]: {
-      [RoleEnum.ADMINISTRATOR]: [
-        collboratorSection,
-        controlVacationsSection,
-        gestionPayrollSection,
-        payrollPeriodsHistorySection,
-        liquidacionSection,
-        reportsSection,
-      ],
-      [RoleEnum.OPERATOR]: [collboratorSection],
-    },
-    [ModuleEnum.WORK_MANAGEMENT]: {
-      [RoleEnum.OPERATOR]: [
-        collaboratorProfileSection,
-        gestionVacationsSection,
-        deduccionesPersonalSection,
-      ],
-    },
-    [ModuleEnum.APPLICATIONS]: {
-      [RoleEnum.MANAGER]: [applicationSection],
-      [RoleEnum.ADMINISTRATOR]: [applicationSection],
     },
     [ModuleEnum.PUBLIC]: [settingsSection],
   },
