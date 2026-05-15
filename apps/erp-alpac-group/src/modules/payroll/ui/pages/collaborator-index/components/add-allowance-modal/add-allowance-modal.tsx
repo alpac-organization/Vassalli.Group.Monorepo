@@ -78,8 +78,8 @@ export const AddAllowanceModal = (props: AddAllowanceModalProps): React.ReactNod
                         className="flex flex-col gap-4 sm:gap-5">
 
                         <AddAllowanceForm
-                           onSuccess={(data) => {
-                              props.onSubmit?.(data.allowances)
+                           onSubmit={(data) => {
+                              props.onSubmit(data.allowances)
                            }}
                            onCancel={handleClose}
                         />

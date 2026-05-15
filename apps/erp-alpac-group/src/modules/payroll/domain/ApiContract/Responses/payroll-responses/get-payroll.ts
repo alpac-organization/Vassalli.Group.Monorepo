@@ -18,18 +18,22 @@ export interface PayrollItemResponse {
   biweekly_salary: number;
   bonus?: number;
   overtime?: number;
-  number_of_overtime?: number;
+  number_overtime?: number;
   gross_salary: number;
   ir: number;
   inss: number;
   total_legal_deductions: number;
   deductions_additional_data?: string;
+  commissions?: number;
   total_deducctions: number;
-  travel_expenses?: number;
   total_travel_expenses?: number;
-  food_travel_allowance?: number;
+  transport?: number;
+  feeding?: number;
+  total_income?: number;
+  antique?: number;
   lodging?: number;
   vacations?: number;
+  DAEM?: string;
   total_to_pay: number;
   collaborator: CollaboratorResponse | null;
 }

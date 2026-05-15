@@ -17,10 +17,8 @@ import {
    TreePalmIcon,
    UserIcon,
    UserRoundPlusIcon,
-   CircleMinus,
    UserMinus,
    FileClock,
-   CirclePlus,
    Stethoscope,
 } from "lucide-react";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
@@ -47,7 +45,6 @@ import { useCallback, useState } from "react";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
-import { AddDeductionModal } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-deduction-modal/add-deduction-modal";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { AddSubsidyModal } from "./components/add-subsidy-modal/add-subsidy-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -219,10 +216,6 @@ export const CollaboratorPage = function () {
       setActiveModal("add-collaborator");
    }, []);
 
-   const handleAddDeduction = useCallback(() => {
-      setActiveModal("add-deduction");
-   }, []);
-
    const handleCollaboratorExit = useCallback(() => { }, []);
 
    const handleCreateApplication = useCallback(() => {
@@ -365,13 +358,6 @@ export const CollaboratorPage = function () {
                      />
                      <Button
                         size="giant"
-                        label="Agregar Deducción"
-                        icon={<CircleMinus size={20} />}
-                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                        onClick={handleAddDeduction}
-                     />
-                     <Button
-                        size="giant"
                         label="Crear Solicitud de Permiso"
                         icon={<FileClock size={20} />}
                         className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
@@ -383,14 +369,6 @@ export const CollaboratorPage = function () {
                         icon={<Stethoscope size={20} />}
                         className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                         onClick={handleCreateSubsidy}
-                     />
-                     <Button
-                        size="giant"
-                        disabled
-                        label="Agregar Ingresos"
-                        icon={<CirclePlus size={20} />}
-                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                        onClick={() => { }}
                      />
                      <Button
                         size="giant"
@@ -560,13 +538,6 @@ export const CollaboratorPage = function () {
                   optionsJobPositions={optionsJobPositions}
                   optionsBranches={optionsBranches}
                   optionsBanks={optionsBanks}
-                  onClose={() => setActiveModal(null)}
-                  onRequestSuccess={handleRequestSuccess}
-                  onRequestError={handleRequestError}
-               />
-
-               <AddDeductionModal
-                  isOpen={activeModal === "add-deduction"}
                   onClose={() => setActiveModal(null)}
                   onRequestSuccess={handleRequestSuccess}
                   onRequestError={handleRequestError}

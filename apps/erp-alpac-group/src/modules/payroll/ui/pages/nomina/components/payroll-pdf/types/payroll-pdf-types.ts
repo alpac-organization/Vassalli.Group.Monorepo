@@ -5,6 +5,7 @@ import type { PdfSignatory } from "@app/modules/payroll/ui/pages/nomina/types/pa
 export type PayrollPdfProps = {
   data: PayrollItemResponse[];
   branchName: string;
+  companyName?: string | null;
   startDate?: string;
   endDate?: string;
   visibleKeys: string[];
