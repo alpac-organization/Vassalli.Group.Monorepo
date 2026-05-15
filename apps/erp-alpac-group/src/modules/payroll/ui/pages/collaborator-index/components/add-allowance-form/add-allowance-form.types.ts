@@ -8,6 +8,12 @@ export interface Allowances {
 }
 
 export interface AddAllowanceFormProps {
-   onSuccess: (data: Allowances) => void;
+   onSubmit: (data: Allowances) => void;
    onCancel: () => void;
+}
+
+export interface AllowanceTypeOption {
+   id: string;
+   code: string;
+   label: string;
 }

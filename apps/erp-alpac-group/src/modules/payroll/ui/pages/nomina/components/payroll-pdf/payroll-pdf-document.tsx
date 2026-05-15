@@ -9,7 +9,7 @@ import {
   calcAreaTotals,
 } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/payroll-utils";
 import { PAYROLL_TYPE_LABELS } from "@app/modules/payroll/domain/enums/payroll-enums/payroll-enum";
-import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
+import { getPayrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
@@ -65,6 +65,7 @@ function DataRow({
 export function PayrollPdfDocument({
   data,
   branchName,
+  companyName,
   startDate,
   endDate,
   visibleKeys,
@@ -74,7 +75,7 @@ export function PayrollPdfDocument({
 }: PayrollPdfProps) {
   const { urlImage } = useCompanyStore();
 
-  const activeColumns = payrollColumns.filter((col) =>
+  const activeColumns = getPayrollColumns(companyName).filter((col) =>
     visibleKeys.includes(col.key as string),
   );
 

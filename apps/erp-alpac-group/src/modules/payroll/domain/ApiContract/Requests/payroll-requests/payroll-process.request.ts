@@ -17,8 +17,4 @@ export interface PayrollProcessRequest {
    */
   branch_id: string;
 }
-export type PayrollType =
-  | "None"
-  | "Ordinary"
-  | "Provided"
-  | "ProfessionalServices";
+export type PayrollType = "None" | "Ordinary" | "Provided" | "Prestacionado";

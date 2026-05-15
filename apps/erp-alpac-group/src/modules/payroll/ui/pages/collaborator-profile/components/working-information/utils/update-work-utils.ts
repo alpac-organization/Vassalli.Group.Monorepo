@@ -56,6 +56,12 @@ export const useUpdateWorkInformation = ({
       case "branchId":
         working.branch_id = value.trim();
         break;
+      case "bankId":
+        working.bank_id = value.trim();
+        break;
+      case "inssNumber":
+        working.inss_number = value.trim();
+        break;
       default:
         return;
     }
@@ -75,7 +81,6 @@ export const useUpdateWorkInformation = ({
           }
         : {}),
     };
-
     try {
       await UpdateCollaboratorProfileDetails.mutateAsync(payload);
       setAlertInfo({

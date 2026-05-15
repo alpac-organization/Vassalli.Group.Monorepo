@@ -90,7 +90,7 @@ export const CollaboratorSearchForm = ({
    const onSubmit = handleSubmit(handleSearchSubmit)
 
    return (
-      <>
+      <div className="flex flex-col gap-5">
          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
             <div className="col-span-2">
                <InputText
@@ -123,18 +123,19 @@ export const CollaboratorSearchForm = ({
                />
             </div>
 
-            {/* <div className="col-span-full sm:col-span-1 w-full"> */}
             <Button
                type="button"
                label="Buscar"
-               onClick={onSubmit}
+               onClick={(evt) => {
+                  evt.stopPropagation();
+                  onSubmit();
+               }}
                size="giant"
                disabled={GetProfileDetails.isLoading}
                isLoading={GetProfileDetails.isLoading}
                icon={<SearchIcon size={18} />}
                className="text-[15px]! w-full! rounded-md!"
             />
-            {/* </div> */}
 
          </div>
 
@@ -165,6 +166,6 @@ export const CollaboratorSearchForm = ({
                }
             </AnimatePresence>
          </LazyMotion>
-      </>
+      </div>
    );
 };

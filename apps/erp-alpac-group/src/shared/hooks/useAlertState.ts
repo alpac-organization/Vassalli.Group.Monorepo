@@ -18,38 +18,38 @@ export const useAlertState = () => {
       return () => clearTimeout(timer);
    }, [alertState?.open]);
 
-   const handleRequestSuccess = useCallback((message: string) => {
+   const handleRequestSuccess = useCallback((message: string, title?: string) => {
       setAlertState({
          open: true,
          type: "success",
-         title: "Éxito",
+         title: title ?? "Éxito",
          message,
       });
    }, []);
 
-   const handleRequestError = useCallback((message?: string) => {
+   const handleRequestError = useCallback((message?: string, title?: string) => {
       setAlertState({
          open: true,
          type: "error",
-         title: "Error",
+         title: title ?? "Error",
          message: message ?? "Error al procesar la petición",
       });
    }, []);
 
-   const handleRequestWarning = useCallback((message?: string) => {
+   const handleRequestWarning = useCallback((message?: string, title?: string) => {
       setAlertState({
          open: true,
          type: "warning",
-         title: "Advertencia",
+         title: title ?? "Advertencia",
          message: message ?? "Advertencia al procesar la petición",
       });
    }, []);
 
-   const handleRequestInfo = useCallback((message?: string) => {
+   const handleRequestInfo = useCallback((message?: string, title?: string) => {
       setAlertState({
          open: true,
          type: "info",
-         title: "Información",
+         title: title ?? "Información",
          message: message ?? "Información al procesar la petición",
       });
    }, []);

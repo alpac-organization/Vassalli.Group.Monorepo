@@ -7,7 +7,7 @@ import {
 } from "@alpac/design-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarPlus } from "lucide-react";
-import { motion } from "framer-motion";
+import { m, LazyMotion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import type {
    PermissionHistoryRequest,
@@ -36,6 +36,8 @@ import {
 } from "@app/modules/payroll/ui/pages/permissions/utils/permission-view-state";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
+
+const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
 export default function PermissionsPage() {
    const navigate = useNavigate();
@@ -337,8 +339,8 @@ export default function PermissionsPage() {
    }
 
    return (
-      <>
-         <motion.div
+      <LazyMotion features={loadFeatures} strict>
+         <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -441,7 +443,7 @@ export default function PermissionsPage() {
                //  onGenerateDocument={handleGenerateDocument}
                onCancelRequest={handleCancellVacation}
             />
-         </motion.div>
+         </m.div>
 
          <AnimatedAlertWrapper open={alertState.open}>
             <Alert
@@ -451,6 +453,6 @@ export default function PermissionsPage() {
                onClose={() => setAlertState((prev) => ({ ...prev, open: false }))}
             />
          </AnimatedAlertWrapper>
-      </>
+      </LazyMotion>
    );
 }

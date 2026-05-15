@@ -1,3 +1,4 @@
+import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
 import type { GetIncomeTypesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/get-income-types.request";
 import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response";
 
@@ -16,4 +17,13 @@ export interface IIncomesServices {
     * @throws {Error} Si hay un error en la solicitud.
     */
    GetIncomesTypes(payload: GetIncomeTypesRequest): Promise<IncomesTypesResponse[]>;
+
+   /**
+    * @method CreateIncome
+    * @description Crea un nuevo ingreso.
+    * @param {CreateIncomeRequest} payload Datos del ingreso a crear.
+    * @returns {Promise<void>} Promesa que indica el éxito o fracaso de la operación.
+    * @throws {Error} Si hay un error en la solicitud.
+    */
+   CreateIncome(payload: CreateIncomeRequest): Promise<void>;
 }

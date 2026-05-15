@@ -11,16 +11,14 @@ import {
    Alert,
 } from "@alpac/design-system";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, LazyMotion, AnimatePresence } from "framer-motion";
 import {
    HospitalIcon,
    TreePalmIcon,
    UserIcon,
    UserRoundPlusIcon,
-   CircleMinus,
    UserMinus,
    FileClock,
-   CirclePlus,
    Stethoscope,
 } from "lucide-react";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
@@ -47,10 +45,12 @@ import { useCallback, useState } from "react";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
-import { AddDeductionModal } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-deduction-modal/add-deduction-modal";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { AddSubsidyModal } from "./components/add-subsidy-modal/add-subsidy-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
+import type { CollaboratorModalType } from "./types/collaborator-modal.types";
+
+const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
 export const CollaboratorPage = function () {
    const maxPageSize = 10;
@@ -64,10 +64,8 @@ export const CollaboratorPage = function () {
       status: "",
    } as CollaboratorRequest);
 
-   const [showAddCollaboratorModal, setShowAddCollaboratorModal] = useState(false);
-   const [showCreateApplicationModal, setShowCreateApplicationModal] = useState(false);
-   const [showAddDeductionModal, setShowAddDeductionModal] = useState(false);
-   const [showAddSubsidyModal, setShowAddSubsidyModal] = useState(false);
+   const [activeModal, setActiveModal] = useState<CollaboratorModalType>(null);
+
    const { alertState, handleRequestError, handleRequestSuccess, handleCloseAlert } = useAlertState();
 
    const navigate = useNavigate();
@@ -215,22 +213,18 @@ export const CollaboratorPage = function () {
    }, [reset]);
 
    const handleAddCollaborator = useCallback(() => {
-      setShowAddCollaboratorModal(true);
-   }, [setShowAddCollaboratorModal]);
-
-   const handleAddDeduction = useCallback(() => {
-      setShowAddDeductionModal(true);
-   }, [setShowAddDeductionModal]);
+      setActiveModal("add-collaborator");
+   }, []);
 
    const handleCollaboratorExit = useCallback(() => { }, []);
 
    const handleCreateApplication = useCallback(() => {
-      setShowCreateApplicationModal(true);
-   }, [setShowCreateApplicationModal]);
+      setActiveModal("create-permission-application");
+   }, []);
 
    const handleCreateSubsidy = useCallback(() => {
-      setShowAddSubsidyModal(true);
-   }, [setShowAddSubsidyModal]);
+      setActiveModal("add-subsidy");
+   }, []);
 
    const formatNumber = useCallback((value: string) => {
       const number = Number(value);
@@ -239,20 +233,20 @@ export const CollaboratorPage = function () {
    }, []);
 
    return (
-      <>
+      <LazyMotion features={loadFeatures} strict>
          {isProfileView ? (
             <AnimatePresence mode="wait">
-               <motion.div
+               <m.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.5 }}
                >
                   <Outlet />
-               </motion.div>
+               </m.div>
             </AnimatePresence>
          ) : (
-            <motion.div
+            <m.div
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                exit={{ opacity: 0, y: -20 }}
@@ -364,13 +358,6 @@ export const CollaboratorPage = function () {
                      />
                      <Button
                         size="giant"
-                        label="Agregar Deducción"
-                        icon={<CircleMinus size={20} />}
-                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                        onClick={handleAddDeduction}
-                     />
-                     <Button
-                        size="giant"
                         label="Crear Solicitud de Permiso"
                         icon={<FileClock size={20} />}
                         className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
@@ -382,14 +369,6 @@ export const CollaboratorPage = function () {
                         icon={<Stethoscope size={20} />}
                         className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                         onClick={handleCreateSubsidy}
-                     />
-                     <Button
-                        size="giant"
-                        disabled
-                        label="Agregar Ingresos"
-                        icon={<CirclePlus size={20} />}
-                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                        onClick={() => { }}
                      />
                      <Button
                         size="giant"
@@ -554,33 +533,26 @@ export const CollaboratorPage = function () {
                </div>
 
                <AddCollaboratorModal
-                  isOpen={showAddCollaboratorModal}
+                  isOpen={activeModal === "add-collaborator"}
                   optionsWorkAreas={optionsWorkAreas}
                   optionsJobPositions={optionsJobPositions}
                   optionsBranches={optionsBranches}
                   optionsBanks={optionsBanks}
-                  onClose={() => setShowAddCollaboratorModal(false)}
-                  onRequestSuccess={handleRequestSuccess}
-                  onRequestError={handleRequestError}
-               />
-
-               <AddDeductionModal
-                  isOpen={showAddDeductionModal}
-                  onClose={() => setShowAddDeductionModal(false)}
+                  onClose={() => setActiveModal(null)}
                   onRequestSuccess={handleRequestSuccess}
                   onRequestError={handleRequestError}
                />
 
                <NewPermissionRequestModal
-                  isOpen={showCreateApplicationModal}
-                  onClose={() => setShowCreateApplicationModal(false)}
+                  isOpen={activeModal === "create-permission-application"}
+                  onClose={() => setActiveModal(null)}
                   onRequestSuccess={handleRequestSuccess}
                   onRequestError={handleRequestError}
                />
 
                <AddSubsidyModal
-                  isOpen={showAddSubsidyModal}
-                  onClose={() => setShowAddSubsidyModal(false)}
+                  isOpen={activeModal === "add-subsidy"}
+                  onClose={() => setActiveModal(null)}
                   onRequestSuccess={handleRequestSuccess}
                   onRequestError={handleRequestError}
                />
@@ -593,8 +565,8 @@ export const CollaboratorPage = function () {
                      onClose={handleCloseAlert}
                   />
                </AnimatedAlertWrapper>
-            </motion.div>
+            </m.div>
          )}
-      </>
+      </LazyMotion>
    );
 };

@@ -5,11 +5,11 @@ import {
   DataTableColumnVisibility,
 } from "@alpac/design-system";
 import type { PayrollTableProps } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/types/payroll-table.types";
-import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 
 const ClickableDataTable = DataTable as any;
 export function PayrollTable({
   rows,
+  columns,
   currentPage,
   pageSize,
   totalRecords,
@@ -20,9 +20,8 @@ export function PayrollTable({
   isPending,
 }: PayrollTableProps) {
   const activeColumns = useMemo(
-    () =>
-      payrollColumns.filter((col) => visibleKeys.includes(col.key as string)),
-    [visibleKeys],
+    () => columns.filter((col) => visibleKeys.includes(col.key as string)),
+    [columns, visibleKeys],
   );
 
   return (
@@ -33,7 +32,7 @@ export function PayrollTable({
       onRowClick={onRowClick}
       toolbarEnd={
         <DataTableColumnVisibility
-          options={payrollColumns.map((c) => ({
+          options={columns.map((c) => ({
             value: c.key as string,
             label: c.label,
           }))}

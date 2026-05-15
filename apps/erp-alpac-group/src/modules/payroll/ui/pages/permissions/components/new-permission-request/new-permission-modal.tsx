@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Modal } from "@alpac/design-system";
 import { usePermission } from "@app/modules/payroll/ui/hooks/permission/usePermission";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -105,7 +105,7 @@ export function NewPermissionRequestModal({
 
             <AnimatePresence initial={!isOperator}>
                {(((isManager || isAdministrator) && !!foundCollaborator) || isOperator) && (
-                  <motion.div
+                  <m.div
                      key="collaborator-result"
                      initial={{ opacity: 0, y: 16, height: 0, overflow: 'hidden' }}
                      animate={{ opacity: 1, y: 0, height: 'auto', overflow: 'visible' }}
@@ -133,7 +133,7 @@ export function NewPermissionRequestModal({
                         identificationNumber={targetIdentification}
                         channel={channel}
                      />
-                  </motion.div>
+                  </m.div>
                )}
             </AnimatePresence>
 

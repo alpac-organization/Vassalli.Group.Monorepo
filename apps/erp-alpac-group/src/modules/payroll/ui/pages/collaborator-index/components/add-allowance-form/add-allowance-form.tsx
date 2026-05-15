@@ -4,12 +4,12 @@ import { useIncomes } from "@app/modules/payroll/ui/hooks/incomes/useIncomes"
 import { useUserStore } from "@app/shared/stores/useUserStore"
 import { AllowanceCodeEnum } from "@app/modules/payroll/domain/enums/allowance-enums/allowance.enum"
 import { formatAmount } from "@app/shared/utils/number.utils"
-
-import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response"
-import type { AddAllowanceFormProps, Allowances } from "./add-allowance-form.types"
 import { useForm, useFieldArray } from "react-hook-form"
 
-export const AddAllowanceForm = ({ onSuccess, onCancel }: AddAllowanceFormProps) => {
+import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response"
+import type { AddAllowanceFormProps, Allowances, AllowanceTypeOption } from "./add-allowance-form.types";
+
+export const AddAllowanceForm = ({ onSubmit, onCancel }: AddAllowanceFormProps) => {
 
    const { companyId } = useUserStore();
 
@@ -42,21 +42,21 @@ export const AddAllowanceForm = ({ onSuccess, onCancel }: AddAllowanceFormProps)
          return [];
       }
 
-      return incomeTypesData
-         .filter((incomeType: IncomesTypesResponse) =>
-            ALLOWANCE_CODES.includes(incomeType.income_code as AllowanceCodeEnum)
-         )
-         .map((incomeType: IncomesTypesResponse) => ({
-            id: incomeType.type_income_id,
-            code: incomeType.income_code,
-            label: incomeType.income_title,
-         }));
-
+      return incomeTypesData.reduce((accumulate: AllowanceTypeOption[], item: IncomesTypesResponse) => {
+         if (ALLOWANCE_CODES.includes(item.income_code as AllowanceCodeEnum)) {
+            accumulate.push({
+               id: item.type_income_id,
+               code: item.income_code,
+               label: item.income_title,
+            })
+         }
+         return accumulate;
+      }, [] as AllowanceTypeOption[]);
    }, [incomeTypesData]);
 
-   const onSubmit = useCallback((data: Allowances) => {
-      onSuccess(data);
-   }, [onSuccess]);
+   const handleSubmitAllowance = useCallback((data: Allowances) => {
+      onSubmit(data);
+   }, [onSubmit]);
 
    return (
       <div className="flex flex-col gap-4">
@@ -154,7 +154,7 @@ export const AddAllowanceForm = ({ onSuccess, onCancel }: AddAllowanceFormProps)
                label="Agregar Viáticos"
                disabled={!isDirty || !isValid}
                isLoading={false}
-               onClick={handleSubmit(onSubmit)}
+               onClick={handleSubmit(handleSubmitAllowance)}
                className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! disabled:opacity-60! disabled:cursor-not-allowed! sm:w-auto!"
             />
          </div>

@@ -70,4 +70,32 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 9,
   },
+  signaturesContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 40,
+    paddingHorizontal: 40,
+  },
+  signatureBlock: {
+    flexDirection: "column",
+    alignItems: "center",
+    width: "40%",
+  },
+  signatureLine: {
+    width: "100%",
+    borderBottomWidth: 1,
+    borderBottomColor: "#000000",
+    marginBottom: 6,
+  },
+  signatureName: {
+    fontSize: 9,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 3,
+  },
+  signatureRole: {
+    fontSize: 8,
+    color: "#555",
+    textAlign: "center",
+  },
 });

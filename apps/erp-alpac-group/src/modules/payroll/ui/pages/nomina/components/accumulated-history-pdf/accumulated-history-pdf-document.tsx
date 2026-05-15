@@ -8,6 +8,7 @@ import type { AccumulatedHistoryPdfProps } from "@app/modules/payroll/ui/pages/n
 
 export function AccumulatedHistoryPdfDocument({
   data,
+  reviewedBy,
 }: AccumulatedHistoryPdfProps) {
   const companyName = useUserStore.getState().companyName || "Alpac Group";
   const { urlImage } = useCompanyStore();
@@ -81,6 +82,18 @@ export function AccumulatedHistoryPdfDocument({
             </Text>
           </View>
         ))}
+
+        {reviewedBy ? (
+          <View style={styles.signaturesContainer} wrap={false}>
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureName}>
+                Revisado por: {reviewedBy.name}
+              </Text>
+              <Text style={styles.signatureRole}>{reviewedBy.role}</Text>
+            </View>
+          </View>
+        ) : null}
       </Page>
     </Document>
   );

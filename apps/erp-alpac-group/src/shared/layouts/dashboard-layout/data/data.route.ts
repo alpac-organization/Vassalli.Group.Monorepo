@@ -11,6 +11,17 @@ import {
   CircleMinus,
   HandCoins,
   ClipboardCheck,
+  Scale,
+  Settings,
+  UsersRound,
+  User,
+  UserKey,
+  FileClock,
+  CalendarCheck,
+  DollarSign,
+  CircleMinus,
+  HandCoins,
+  ClipboardCheck,
   History,
 } from "lucide-react";
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
@@ -36,7 +47,7 @@ const applicationSection: SidebarLink = {
   icon: FileClock,
 };
 
-const gestionVacationsSection: SidebarLink = {
+const permissionManagementSection: SidebarLink = {
   id: "gestion-permisos",
   label: "Permisos",
   path: "work-management/gestion-permisos",
@@ -98,7 +109,44 @@ const reportsSection: SidebarLink = {
   icon: ClipboardCheck,
 };
 
+const scaleControlSection: SidebarLink = {
+  id: "scale-control",
+  label: "Control de Báscula",
+  path: "storage",
+  icon: Scale,
+};
+
 export const sidebarData = {
+  logoUrl:
+    "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
+  nameCompany: "CORE PANEL",
+  navigationRegistry: {
+    [ModuleEnum.PAYROLL]: {
+      [RoleEnum.ADMINISTRATOR]: [
+        collboratorSection,
+        controlVacationsSection,
+        gestionPayrollSection,
+        deduccionesSection,
+        liquidacionSection,
+        reportsSection,
+      ],
+    },
+    [ModuleEnum.WORK_MANAGEMENT]: {
+      [RoleEnum.OPERATOR]: [
+        collaboratorProfileSection,
+        permissionManagementSection,
+        deduccionesPersonalSection,
+      ],
+    },
+    [ModuleEnum.APPLICATIONS]: {
+      [RoleEnum.MANAGER]: [applicationSection],
+      [RoleEnum.ADMINISTRATOR]: [applicationSection],
+    },
+    [ModuleEnum.STORAGE]: {
+      [RoleEnum.OPERATOR]: [scaleControlSection],
+    },
+    [ModuleEnum.PUBLIC]: [settingsSection],
+  },
   logoUrl:
     "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
   nameCompany: "CORE PANEL",
