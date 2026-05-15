@@ -366,7 +366,7 @@ export const validateOnlyLettersWithAccentsAndDiacritics = (
    return regex.test(value) || "Solo se permiten letras";
 };
 
-export const formatNumberWithDecimals = (value: string) => {
+export const formatNumberWithDecimals = (value: string, isPercentage: boolean = false) => {
    if (!value) return "";
 
    const cleanValue = value.replace(/[^0-9.]/g, '');
@@ -376,6 +376,8 @@ export const formatNumberWithDecimals = (value: string) => {
    const finalValue = parts.length > 2
       ? `${parts[0]}.${parts.slice(1).join('')}`
       : cleanValue;
+
+   if (isPercentage && Number(finalValue) >= 100) return 100;
 
    return finalValue;
 };

@@ -1,7 +1,4 @@
-import type {
-  CreateIncomeFormProps,
-  IncomeTypeOption,
-} from "./create-income-form.types";
+import type { CreateIncomeFormProps, IncomeTypeOption } from "./create-income-form.types";
 import { FormProvider, Controller, useForm } from "react-hook-form";
 import { Button, Dropdown, Textarea } from "@alpac/design-system";
 import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
@@ -12,6 +9,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { Overtime } from "../overtime/overtime";
+import { Commission } from "../commission/commission";
+import { CollaboratorSearchForm } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form";
+
+import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
+import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
+import { X } from "lucide-react";
 import { FileUploader } from "@app/shared/components/file-uploader/file-uploader";
 import {
   parseOvertimeIncomeExcel,
@@ -19,9 +23,17 @@ import {
 } from "@app/modules/payroll/ui/pages/nomina/components/incomes/utils/parse-overtime-income-excel";
 
 const inputClassName =
-  "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+   "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
 
+export const CreateIncomeForm = ({ payrollId, onCancel, onRequestSuccess, onRequestError }: CreateIncomeFormProps) => {
+
+   const { companyId, moduleCode } = useUserStore();
+   const { getMappedError } = useMappedError();
+
+   const { identificationNumber } = useUserStore();
+   const [foundCollaborator, setFoundCollaborator] = useState<GetCollaboratorProfileDetailsResponse | null>(null);
+   const [isSearching, setIsSearching] = useState(false);
 export const CreateIncomeForm = ({
   collaborator,
   payrollId,
@@ -33,6 +45,25 @@ export const CreateIncomeForm = ({
   const { getMappedError } = useMappedError();
   const [overtimeFileKey, setOvertimeFileKey] = useState(0);
 
+   const methods = useForm<CreateIncomeRequest>({
+      mode: "onChange",
+      defaultValues: {
+         company_id: companyId,
+         module_code: moduleCode,
+         payroll_id: payrollId,
+         type_income_id: "",
+         description: "",
+         overtime_income_payload: {
+            amount_hours: 0,
+         },
+         commission_income_payload: {
+            is_percentage: true,
+            percentage: 0,
+            amount: 0,
+            currency: 0,
+         }
+      }
+   });
   const methods = useForm<CreateIncomeRequest>({
     mode: "onChange",
     defaultValues: {
@@ -45,39 +76,39 @@ export const CreateIncomeForm = ({
     },
   });
 
-  const INCOMES_TYPES = [
-    IncomeTypeEnum.INCOME_OVERTIME,
-    IncomeTypeEnum.INCOME_COMMISSION,
-  ] as IncomeTypeEnum[];
+   const INCOMES_TYPES = [
+      IncomeTypeEnum.INCOME_OVERTIME,
+      IncomeTypeEnum.INCOME_COMMISSION,
+   ] as IncomeTypeEnum[];
 
-  const { GetIncomeTypes, CreateIncome } = useIncomes({
-    incomesTypesPayload: { company_id: companyId! },
-  });
+   const { GetIncomeTypes, CreateIncome } = useIncomes({
+      incomesTypesPayload: { company_id: companyId! },
+   });
 
-  const { data: incomeTypesData, isLoading: isLoadingIncomeTypes } =
-    GetIncomeTypes;
+   const { data: incomeTypesData, isLoading: isLoadingIncomeTypes } =
+      GetIncomeTypes;
 
-  const incomeTypeOptions = useMemo(() => {
-    if (!incomeTypesData || !Array.isArray(incomeTypesData)) {
-      return [];
-    }
+   const incomeTypeOptions = useMemo(() => {
+      if (!incomeTypesData || !Array.isArray(incomeTypesData)) {
+         return [];
+      }
 
-    return incomeTypesData.reduce(
-      (accumulate: IncomeTypeOption[], item: IncomesTypesResponse) => {
-        if (INCOMES_TYPES.includes(item.income_code as IncomeTypeEnum)) {
-          accumulate.push({
-            id: item.type_income_id,
-            code: item.income_code,
-            label: item.income_title,
-          });
-        }
-        return accumulate;
-      },
-      [] as IncomeTypeOption[],
-    );
-  }, [incomeTypesData]);
+      return incomeTypesData.reduce(
+         (accumulate: IncomeTypeOption[], item: IncomesTypesResponse) => {
+            if (INCOMES_TYPES.includes(item.income_code as IncomeTypeEnum)) {
+               accumulate.push({
+                  id: item.type_income_id,
+                  code: item.income_code,
+                  label: item.income_title,
+               });
+            }
+            return accumulate;
+         },
+         [] as IncomeTypeOption[],
+      );
+   }, [incomeTypesData]);
 
-  const incomeTypeId = methods.watch("type_income_id");
+   const incomeTypeId = methods.watch("type_income_id");
 
   const selectedIncomeTypeCode = useMemo(() => {
     return incomeTypeOptions.find((opt) => opt.id === incomeTypeId)?.code;
@@ -135,81 +166,111 @@ export const CreateIncomeForm = ({
       };
 
       await CreateIncome.mutateAsync(payload, {
-        onSuccess: () => {
-          onRequestSuccess?.("Ingreso registrado correctamente");
-        },
-        onError: (error: ApiErrorResponse) => {
-          const mappedError = getMappedError(error);
-          onRequestError?.(
-            mappedError.description || "Error al registrar el ingreso",
-          );
-        },
+         onSuccess: () => {
+            onRequestSuccess?.("Ingreso registrado correctamente");
+         },
+         onError: (error: ApiErrorResponse) => {
+            const mappedError = getMappedError(error);
+            onRequestError?.(
+               mappedError.description || "Error al registrar el ingreso",
+            );
+         },
       });
-      return;
-    }
+   };
 
-    const { overtime_income_payload: _overtime, ...commissionData } = data;
+   return (
+      <FormProvider {...methods}>
+         <form
+            onSubmit={methods.handleSubmit(onSubmit)}
+            className="flex min-w-0 flex-col gap-4 sm:gap-5" noValidate>
 
-    await CreateIncome.mutateAsync(commissionData, {
-      onSuccess: () => {
-        onRequestSuccess?.("Ingreso registrado correctamente");
-      },
-      onError: (error: ApiErrorResponse) => {
-        const mappedError = getMappedError(error);
-        onRequestError?.(
-          mappedError.description || "Error al registrar el ingreso",
-        );
-      },
-    });
-  };
+            <div className="flex flex-col gap-4">
+               <div className="flex flex-col gap-1.5">
+                  <Controller
+                     name="type_income_id"
+                     control={methods.control}
 
-  return (
-    <FormProvider {...methods}>
-      <form
-        onSubmit={methods.handleSubmit(onSubmit)}
-        className="flex min-w-0 flex-col gap-4 sm:gap-5"
-        noValidate
-      >
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Controller
-              name="type_income_id"
-              control={methods.control}
-              rules={{ required: "El tipo de ingreso es requerido" }}
-              render={({ field }) => (
-                <Dropdown
-                  label="Tipo de ingreso"
-                  isRequired
-                  placeholder={
-                    isLoadingIncomeTypes
-                      ? "Cargando..."
-                      : "Seleccione un tipo de ingreso"
-                  }
-                  appearance="dark"
-                  value={field.value}
-                  onChange={field.onChange}
-                  options={incomeTypeOptions.map((opt) => ({
-                    value: opt.id,
-                    label: opt.label,
-                  }))}
-                  error={methods.formState.errors.type_income_id?.message}
-                  labelClassName={labelClassName}
-                  valueClassName={labelClassName}
-                  className={inputClassName}
-                />
-              )}
-            />
-          </div>
+                     rules={{ required: "El tipo de ingreso es requerido" }}
+                     render={({ field }) => (
+                        <Dropdown
+                           label="Tipo de ingreso"
+                           isRequired
+                           placeholder={isLoadingIncomeTypes ? "Cargando..." : "Seleccione un tipo de ingreso"}
+                           appearance="dark"
+                           value={field.value}
+                           onChange={(value) => {
+                              field.onChange(value)
+                              setFoundCollaborator(null)
+                           }}
+                           options={incomeTypeOptions.map(opt => ({
+                              value: opt.id,
+                              label: opt.label
+                           }))}
+                           error={methods.formState.errors.type_income_id?.message}
+                           labelClassName={labelClassName}
+                           valueClassName={labelClassName}
+                           className={inputClassName}
+                        />
+                     )}
+                  />
+               </div>
+
+               {
+                  !foundCollaborator && !!selectedIncomeTypeCode && (
+                     selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION
+                  ) &&
+                  <CollaboratorSearchForm
+                     onSuccess={(collaborator) => {
+                        setFoundCollaborator(collaborator);
+                        setIsSearching(false);
+                     }}
+                     onError={() => {
+                        setFoundCollaborator(null);
+                        setIsSearching(false);
+                     }}
+                     onSearchStart={() => {
+                        setFoundCollaborator(null);
+                        setIsSearching(true);
+                     }}
+                     excludeIdentifications={[identificationNumber]}
+                  />
+               }
+
+               {
+                  !!foundCollaborator && (
+                     <div className="relative flex flex-row items-center gap-4 w-full">
+                        <div className="min-w-0 flex-1">
+                           <CollaboratorSummary
+                              fullName={foundCollaborator?.full_name!}
+                              workPosition={foundCollaborator?.work_position!}
+                              isFullNameLoading={isSearching}
+                              isWorkPositionLoading={isSearching}
+                           />
+                        </div>
+
+                        <div className="group flex items-center">
+                           <button
+                              type="button"
+                              className={`rounded-full p-1.5 transition-all text-slate-700 hover:text-slate-900 hover:bg-slate-300 dark:text-white dark:hover:text-white dark:hover:bg-white/15`}
+                              onClick={() => {
+                                 setFoundCollaborator(null)
+                              }}
+                              aria-label="Quitar Colaborador"
+                           >
+                              <X size={20} />
+                           </button>
+
+                           <div className="absolute -top-10 right-0 mt-2 px-2 py-1 text-xs text-white bg-slate-800 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+                              Quitar Colaborador
+                           </div>
+                        </div>
+
+                     </div>
+                  )
+               }
 
           {selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME && (
-            <FileUploader
-              key={overtimeFileKey}
-              title="Cargar archivo de horas extra"
-              description="Formato .xls o .xlsx (columna A: ID empleado, columna C: minutos)"
-              extensions={["xls", "xlsx"]}
-              onFileSelect={handleOvertimeFileSelect}
-              onFileRemove={handleOvertimeFileRemove}
-            />
+            <Overtime />
           )}
 
           {selectedIncomeTypeCode !== IncomeTypeEnum.INCOME_OVERTIME && (
