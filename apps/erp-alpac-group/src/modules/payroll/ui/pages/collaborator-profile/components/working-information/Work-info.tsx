@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useParams } from "react-router-dom";
 import { Alert, AnimatedAlertWrapper, InputText } from "@alpac/design-system";
-// import { Pencil } from "lucide-react";
 import { EditableField } from "@app/modules/payroll/ui/pages/collaborator-profile/components/EditableFieldForm";
 import { currencyRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/utils/currency-utils";
 import { salaryTypeRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/utils/salary-utils";
@@ -23,8 +22,10 @@ import {
   isValueMissing,
   missingDataInInputClassName,
 } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/field-missing-message";
-import { BranchSelectModal } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/branch-select-modal";
-
+import { BankOptions } from "@app/core/enums/bank.enum";
+import { BranchSelectModal } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/components/branch-select-modal";
+import { BankSelectModal } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/components/bank-select-modal";
+import { Pencil } from "lucide-react";
 const defaultInformationWork: WorkFormData = {
   entry_date: "",
   jobPosition: "",
@@ -107,6 +108,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
     {},
   );
   const [branchModalOpen, setBranchModalOpen] = useState(false);
+  const [bankModalOpen, setBankModalOpen] = useState(false);
   const handleEditStart = (name: string) =>
     setEditingFields((prev) => ({ ...prev, [name]: true }));
   const handleEditEnd = (name: string) =>
@@ -125,15 +127,32 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
       })),
     [branches],
   );
+  const bankOptions = useMemo(
+    () =>
+      BankOptions.map((bank) => ({
+        value: String(bank.value),
+        label: bank.label,
+      })),
+    [],
+  );
 
   const branchName = watch("branchName");
+  const bankName = watch("bankName");
   const branchMissing = isValueMissing(branchName);
+  const bankMissing = isValueMissing(bankName);
   const currentBranchId = useMemo(() => {
     const matchingBranch = branchOptions.find(
       (option) => option.label.trim() === String(branchName ?? "").trim(),
     );
     return matchingBranch?.value ?? null;
   }, [branchName, branchOptions]);
+
+  const currentBankId = useMemo(() => {
+    const matchingBank = bankOptions.find(
+      (option) => option.label.trim() === String(bankName ?? "").trim(),
+    );
+    return matchingBank?.value ?? null;
+  }, [bankName, bankOptions]);
 
   return (
     <div className="flex flex-col w-full max-w-full relative min-h-0">
@@ -148,6 +167,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
           />
         ) : null}
       </AnimatedAlertWrapper>
+
       <BranchSelectModal
         isOpen={branchModalOpen}
         onClose={() => setBranchModalOpen(false)}
@@ -157,6 +177,17 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
         onConfirm={async (branchId, branchLabel) => {
           await handleFieldUpdate("branchId", branchId);
           setValue("branchName", branchLabel, { shouldDirty: true });
+        }}
+      />
+      <BankSelectModal
+        isOpen={bankModalOpen}
+        onClose={() => setBankModalOpen(false)}
+        currentBankId={currentBankId}
+        options={bankOptions}
+        isSaving={isUpdating}
+        onConfirm={async (bankId, bankLabel) => {
+          await handleFieldUpdate("bankId", bankId);
+          setValue("bankName", bankLabel, { shouldDirty: true });
         }}
       />
 
@@ -266,7 +297,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
+                  allowEdit={currentRole === "Administrator"}
                   missingMessage="INSS no registrado"
                   className={editableFieldInputClasses}
                 />
@@ -284,7 +315,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                         className={`${baseInputClasses} ${branchMissing ? missingDataInInputClassName : "text-white! dark:text-white!"}`}
                       />
                     </div>
-                    {/* {(currentRole === "Administrator" ||
+                    {(currentRole === "Operator" ||
                       currentRole === "Manager") && (
                       <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
                         <button
@@ -296,10 +327,36 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                           <Pencil size={16} />
                         </button>
                       </div>
-                    )} */}
+                    )}
                   </div>
                 </div>
 
+                <div className="flex min-w-0 flex-col gap-2 w-full max-w-full">
+                  <div className="flex min-w-0 items-start gap-2 sm:gap-2.5">
+                    <div className="min-w-0 flex-1 relative">
+                      <InputText
+                        label="Banco"
+                        labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
+                        disabled
+                        value={bankMissing ? "Banco no registrado" : bankName}
+                        className={`${baseInputClasses} ${bankMissing ? missingDataInInputClassName : "text-white! dark:text-white!"}`}
+                      />
+                    </div>
+                    {(currentRole === "Operator" ||
+                      currentRole === "Manager") && (
+                      <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
+                        <button
+                          type="button"
+                          title="Cambiar banco"
+                          onClick={() => setBankModalOpen(true)}
+                          className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
                 <EditableField
                   name="bankAccountNumber"
                   label="Cuenta Bancaria (Nómina)"
@@ -310,19 +367,6 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   onConfirmUpdate={handleFieldUpdate}
                   allowEdit={false}
                   missingMessage="Cuenta bancaria no registrada"
-                  className={editableFieldInputClasses}
-                />
-
-                <EditableField
-                  name="bankName"
-                  label="Banco"
-                  formMethods={formMethods}
-                  isEditing={Boolean(editingFields.bankName)}
-                  onEditStart={handleEditStart}
-                  onEditEnd={handleEditEnd}
-                  onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
-                  missingMessage="Banco no registrado"
                   className={editableFieldInputClasses}
                 />
               </div>
