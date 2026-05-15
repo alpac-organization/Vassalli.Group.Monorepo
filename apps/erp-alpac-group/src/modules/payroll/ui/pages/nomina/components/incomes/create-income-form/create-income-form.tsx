@@ -5,20 +5,30 @@ import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContrac
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useIncomes } from "@app/modules/payroll/ui/hooks/incomes/useIncomes";
 import { IncomeTypeEnum } from "@app/modules/payroll/domain/enums/income-enums/income.enum";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { Overtime } from "../overtime/overtime";
+import { Commission } from "../commission/commission";
+import { CollaboratorSearchForm } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form";
+
+import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
+import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
+import { X } from "lucide-react";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
 
-export const CreateIncomeForm = ({ collaborator, payrollId, onCancel, onRequestSuccess, onRequestError }: CreateIncomeFormProps) => {
+export const CreateIncomeForm = ({ payrollId, onCancel, onRequestSuccess, onRequestError }: CreateIncomeFormProps) => {
 
    const { companyId, moduleCode } = useUserStore();
    const { getMappedError } = useMappedError();
+
+   const { identificationNumber } = useUserStore();
+   const [foundCollaborator, setFoundCollaborator] = useState<GetCollaboratorProfileDetailsResponse | null>(null);
+   const [isSearching, setIsSearching] = useState(false);
 
    const methods = useForm<CreateIncomeRequest>({
       mode: "onChange",
@@ -26,7 +36,6 @@ export const CreateIncomeForm = ({ collaborator, payrollId, onCancel, onRequestS
          company_id: companyId,
          module_code: moduleCode,
          payroll_id: payrollId,
-         identification_number: collaborator.personal_information.identification_number,
       }
    });
 
@@ -65,11 +74,21 @@ export const CreateIncomeForm = ({ collaborator, payrollId, onCancel, onRequestS
 
    const onSubmit = async (data: CreateIncomeRequest) => {
 
+      if (!foundCollaborator) return;
+
       const payload = {
          ...data,
+         identification_number: foundCollaborator?.personal_information?.identification_number!,
          ...(selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME && {
             overtime_income_payload: {
                amount_hours: Number(data.overtime_income_payload?.amount_hours) || 0,
+            }
+         }),
+         ...(selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION && {
+            commission_income_payload: {
+               percentage: Number(data.commission_income_payload?.percentage) || 0,
+               amount: Number(data.commission_income_payload?.amount) || 0,
+               currency: Number(data.commission_income_payload?.currency) || 0,
             }
          })
       };
@@ -119,12 +138,71 @@ export const CreateIncomeForm = ({ collaborator, payrollId, onCancel, onRequestS
                   />
                </div>
 
+               {
+                  !foundCollaborator && (
+                     selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION
+                  ) &&
+                  <CollaboratorSearchForm
+                     onSuccess={(collaborator) => {
+                        setFoundCollaborator(collaborator);
+                        setIsSearching(false);
+                     }}
+                     onError={() => {
+                        setFoundCollaborator(null);
+                        setIsSearching(false);
+                     }}
+                     onSearchStart={() => {
+                        setFoundCollaborator(null);
+                        setIsSearching(true);
+                     }}
+                     excludeIdentifications={[identificationNumber]}
+                  />
+               }
+
+               {
+                  foundCollaborator && (
+                     <div className="relative flex flex-row items-center gap-4 w-full">
+                        <div className="min-w-0 flex-1">
+                           <CollaboratorSummary
+                              fullName={foundCollaborator?.full_name!}
+                              workPosition={foundCollaborator?.work_position!}
+                              isFullNameLoading={isSearching}
+                              isWorkPositionLoading={isSearching}
+                           />
+                        </div>
+
+                        {foundCollaborator && (
+                           <div className="group flex items-center">
+                              <button
+                                 type="button"
+                                 className={`rounded-full p-1.5 transition-all text-slate-700 hover:text-slate-900 hover:bg-slate-300 dark:text-white dark:hover:text-white dark:hover:bg-white/15`}
+                                 onClick={() => {
+                                    setFoundCollaborator(null)
+                                 }}
+                                 aria-label="Quitar Colaborador"
+                              >
+                                 <X size={20} />
+                              </button>
+
+                              <div className="absolute -top-10 right-0 mt-2 px-2 py-1 text-xs text-white bg-slate-800 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+                                 Quitar Colaborador
+                              </div>
+                           </div>
+                        )}
+                     </div>
+                  )
+               }
+
                {selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME && (
                   <Overtime />
                )}
 
+               {!!foundCollaborator && selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION && (
+                  <Commission />
+               )}
+
                {
-                  selectedIncomeTypeCode && (
+                  !!foundCollaborator && selectedIncomeTypeCode !== IncomeTypeEnum.INCOME_OVERTIME && (
                      <Textarea
                         label="Descripción"
                         labelClassName={labelClassName}
@@ -160,7 +238,7 @@ export const CreateIncomeForm = ({ collaborator, payrollId, onCancel, onRequestS
                   type="submit"
                   size="giant"
                   label="Registrar Ingreso"
-                  disabled={CreateIncome.isPending}
+                  disabled={CreateIncome.isPending || !selectedIncomeTypeCode}
                   isLoading={CreateIncome.isPending}
                   className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! disabled:opacity-60! disabled:cursor-not-allowed! sm:w-auto!"
                />

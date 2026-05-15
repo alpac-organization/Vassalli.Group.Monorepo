@@ -49,6 +49,11 @@ export interface CreateIncomeRequest {
     * Payload de horas extra
     */
    overtime_income_payload?: CreateIncomeOvertimeRequest;
+
+   /**
+    * Payload de comisiones
+    */
+   commission_income_payload?: CreateIncomeCommissionRequest;
 }
 
 interface CreateIncomeOvertimeRequest {
@@ -56,4 +61,26 @@ interface CreateIncomeOvertimeRequest {
     * Monto de horas extra
     */
    amount_hours: number;
+}
+
+interface CreateIncomeCommissionRequest {
+   /**
+    * Indica si es porcentaje
+    */
+   is_percentage?: boolean;
+
+   /**
+    * Porcentaje de la comisión
+    */
+   percentage?: number;
+
+   /**
+    * Monto a aplicar porcentaje
+    */
+   amount?: number;
+
+   /**
+    * Código de la moneda
+    */
+   currency: number;
 }
