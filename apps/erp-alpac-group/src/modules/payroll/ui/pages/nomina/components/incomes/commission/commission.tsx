@@ -3,7 +3,6 @@ import { InputText, Checkbox, Dropdown } from "@alpac/design-system";
 import { formatAmount, validatePositiveNumber } from "@app/shared/utils/number.utils";
 import { formatNumberWithDecimals } from "@app/shared/utils/string.utils";
 import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
-import { useEffect } from "react";
 import { CurrencyOptions } from "@app/core/enums/currency.enum";
 
 const inputClassName =
@@ -11,13 +10,9 @@ const inputClassName =
 const labelClassName = "text-black! dark:text-white!";
 
 export const Commission = () => {
-   const { control, register, setValue, watch, clearErrors, formState: { errors } } = useFormContext<CreateIncomeRequest>();
+   const { control, register, watch, clearErrors, formState: { errors } } = useFormContext<CreateIncomeRequest>();
 
    const isPercentage = watch("commission_income_payload.is_percentage");
-
-   useEffect(() => {
-      setValue("commission_income_payload.is_percentage", true);
-   }, []);
 
    return (
       <div className="flex flex-col gap-4">

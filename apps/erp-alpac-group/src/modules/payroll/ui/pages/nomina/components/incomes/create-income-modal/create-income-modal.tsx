@@ -15,7 +15,7 @@ export const CreateIncomeModal = ({ isOpen, onClose, onRequestSuccess, onRequest
       <Modal
          isOpen={isOpen}
          onClose={handleCancel}
-         title="Ingreso Adicional"
+         title="Registro de Ingresos"
          variant="form"
          size="4xl"
       >

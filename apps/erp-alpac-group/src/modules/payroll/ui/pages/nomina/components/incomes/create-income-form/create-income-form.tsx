@@ -36,6 +36,17 @@ export const CreateIncomeForm = ({ payrollId, onCancel, onRequestSuccess, onRequ
          company_id: companyId,
          module_code: moduleCode,
          payroll_id: payrollId,
+         type_income_id: "",
+         description: "",
+         overtime_income_payload: {
+            amount_hours: 0,
+         },
+         commission_income_payload: {
+            is_percentage: true,
+            percentage: 0,
+            amount: 0,
+            currency: 0,
+         }
       }
    });
 
@@ -79,21 +90,33 @@ export const CreateIncomeForm = ({ payrollId, onCancel, onRequestSuccess, onRequ
 
    const onSubmit = async (data: CreateIncomeRequest) => {
 
-      if (!foundCollaborator) return;
+      if (!foundCollaborator) {
+         onRequestError?.("Debe buscar un colaborador para agregar un ingreso");
+         return;
+      }
+
+      const { overtime_income_payload, commission_income_payload, ...rest } = data;
 
       const payload = {
-         ...data,
+         ...rest,
          identification_number: foundCollaborator?.personal_information?.identification_number!,
          ...(selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME && {
             overtime_income_payload: {
-               amount_hours: Number(data.overtime_income_payload?.amount_hours) || 0,
+               amount_hours: Number(overtime_income_payload?.amount_hours) || 0,
             }
          }),
          ...(selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION && {
             commission_income_payload: {
-               percentage: Number(data.commission_income_payload?.percentage) || 0,
-               amount: Number(data.commission_income_payload?.amount) || 0,
-               currency: Number(data.commission_income_payload?.currency) || 0,
+               ...(commission_income_payload?.is_percentage ? {
+                  percentage: Number(commission_income_payload?.percentage) || 0,
+                  amount: Number(commission_income_payload?.amount) || 0,
+                  currency: Number(commission_income_payload?.currency) || 0,
+                  is_percentage: true,
+               } : {
+                  amount: Number(commission_income_payload?.amount) || 0,
+                  currency: Number(commission_income_payload?.currency) || 0,
+                  is_percentage: false,
+               }),
             }
          })
       };
@@ -131,7 +154,10 @@ export const CreateIncomeForm = ({ payrollId, onCancel, onRequestSuccess, onRequ
                            placeholder={isLoadingIncomeTypes ? "Cargando..." : "Seleccione un tipo de ingreso"}
                            appearance="dark"
                            value={field.value}
-                           onChange={field.onChange}
+                           onChange={(value) => {
+                              field.onChange(value)
+                              setFoundCollaborator(null)
+                           }}
                            options={incomeTypeOptions.map(opt => ({
                               value: opt.id,
                               label: opt.label
@@ -146,7 +172,7 @@ export const CreateIncomeForm = ({ payrollId, onCancel, onRequestSuccess, onRequ
                </div>
 
                {
-                  !foundCollaborator && (
+                  !foundCollaborator && !!selectedIncomeTypeCode && (
                      selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION
                   ) &&
                   <CollaboratorSearchForm
@@ -167,7 +193,7 @@ export const CreateIncomeForm = ({ payrollId, onCancel, onRequestSuccess, onRequ
                }
 
                {
-                  foundCollaborator && (
+                  !!foundCollaborator && (
                      <div className="relative flex flex-row items-center gap-4 w-full">
                         <div className="min-w-0 flex-1">
                            <CollaboratorSummary
@@ -178,24 +204,23 @@ export const CreateIncomeForm = ({ payrollId, onCancel, onRequestSuccess, onRequ
                            />
                         </div>
 
-                        {foundCollaborator && (
-                           <div className="group flex items-center">
-                              <button
-                                 type="button"
-                                 className={`rounded-full p-1.5 transition-all text-slate-700 hover:text-slate-900 hover:bg-slate-300 dark:text-white dark:hover:text-white dark:hover:bg-white/15`}
-                                 onClick={() => {
-                                    setFoundCollaborator(null)
-                                 }}
-                                 aria-label="Quitar Colaborador"
-                              >
-                                 <X size={20} />
-                              </button>
+                        <div className="group flex items-center">
+                           <button
+                              type="button"
+                              className={`rounded-full p-1.5 transition-all text-slate-700 hover:text-slate-900 hover:bg-slate-300 dark:text-white dark:hover:text-white dark:hover:bg-white/15`}
+                              onClick={() => {
+                                 setFoundCollaborator(null)
+                              }}
+                              aria-label="Quitar Colaborador"
+                           >
+                              <X size={20} />
+                           </button>
 
-                              <div className="absolute -top-10 right-0 mt-2 px-2 py-1 text-xs text-white bg-slate-800 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
-                                 Quitar Colaborador
-                              </div>
+                           <div className="absolute -top-10 right-0 mt-2 px-2 py-1 text-xs text-white bg-slate-800 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+                              Quitar Colaborador
                            </div>
-                        )}
+                        </div>
+
                      </div>
                   )
                }
@@ -245,7 +270,7 @@ export const CreateIncomeForm = ({ payrollId, onCancel, onRequestSuccess, onRequ
                   type="submit"
                   size="giant"
                   label="Registrar Ingreso"
-                  disabled={CreateIncome.isPending || !selectedIncomeTypeCode}
+                  disabled={CreateIncome.isPending || !methods.formState.isDirty || !methods.formState.isValid || !selectedIncomeTypeCode}
                   isLoading={CreateIncome.isPending}
                   className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! disabled:opacity-60! disabled:cursor-not-allowed! sm:w-auto!"
                />
