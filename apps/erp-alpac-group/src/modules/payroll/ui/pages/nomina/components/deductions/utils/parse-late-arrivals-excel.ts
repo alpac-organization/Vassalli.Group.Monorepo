@@ -1,24 +1,24 @@
 import * as XLSX from "xlsx";
-import type { CreateIncomeOvertimeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
+import type { LateArrivalsPayload } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
 
-export function thirdColumnToHours(raw: number): number {
+export function thirdColumnToMinutes(raw: number): number {
   return raw;
 }
 
-export type OvertimeViolation = {
+export type LateArrivalsViolation = {
   sheetRow: number;
   identification_number: string;
   rawDisplay: string;
   reason: string;
 };
 
-export type ParseOvertimeIncomeExcelResult =
-  | { ok: true; rows: CreateIncomeOvertimeRequest[] }
-  | { ok: false; error: string; violations: OvertimeViolation[] };
+export type ParseLateArrivalsExcelResult =
+  | { ok: true; rows: LateArrivalsPayload[] }
+  | { ok: false; error: string; violations: LateArrivalsViolation[] };
 
 const DECIMAL_CHECK_EPS = 1e-3;
 
-export function isTotalHoursBusinessValid(n: number): boolean {
+export function isTotalMinutesBusinessValid(n: number): boolean {
   if (!Number.isFinite(n)) return false;
   if (n < 0) return false;
   const scaled = n * 100;
@@ -26,7 +26,7 @@ export function isTotalHoursBusinessValid(n: number): boolean {
   return Math.abs(scaled - rounded) < DECIMAL_CHECK_EPS;
 }
 
-function reasonForInvalidHours(n: number): string {
+function reasonForInvalidMinutes(n: number): string {
   if (!Number.isFinite(n)) return "valor no numérico válido";
   if (n < 0) return "valor negativo";
   return "más de 2 decimales";
@@ -53,7 +53,6 @@ function isDashOrEmpty(s: string): boolean {
   );
 }
 
-/** Numeric value, or "empty" when cell is `-`, blank, or non-numeric text (all map to 0 hours). */
 function parseThirdColumnToRawNumber(cell: unknown): number | "empty" {
   if (cell == null || cell === "") return "empty";
   if (typeof cell === "number") {
@@ -84,9 +83,21 @@ function colAToEmployeeId(cell: unknown): string | null {
   return null;
 }
 
-export function parseOvertimeIncomeExcel(
+export function formatLateArrivalsViolationsMessage(
+  violations: LateArrivalsViolation[],
+): string {
+  const header =
+    "El archivo contiene montos que no cumplen las reglas (0 o mayor, sin negativos, máximo 2 decimales). Detalle:";
+  const lines = violations.map(
+    (v) =>
+      `• Fila ${v.sheetRow} (ID ${v.identification_number}): "${v.rawDisplay}" — ${v.reason}.`,
+  );
+  return [header, ...lines].join("\n");
+}
+
+export function parseLateArrivalsExcel(
   buffer: ArrayBuffer,
-): ParseOvertimeIncomeExcelResult {
+): ParseLateArrivalsExcelResult {
   let workbook: XLSX.WorkBook;
   try {
     workbook = XLSX.read(buffer, { type: "array" });
@@ -115,8 +126,8 @@ export function parseOvertimeIncomeExcel(
   }) as unknown[][];
 
   const startRow = firstDataRowIndex(matrix);
-  const rows: CreateIncomeOvertimeRequest[] = [];
-  const violations: OvertimeViolation[] = [];
+  const rows: LateArrivalsPayload[] = [];
+  const violations: LateArrivalsViolation[] = [];
 
   for (let i = startRow; i < matrix.length; i++) {
     const sheetRow = i + 1;
@@ -128,29 +139,29 @@ export function parseOvertimeIncomeExcel(
     const rawParsed = parseThirdColumnToRawNumber(third);
     const rawDisplay = cellToTrimmedString(third) || "(vacío)";
 
-    const total_Hours =
-      rawParsed === "empty" ? 0 : thirdColumnToHours(rawParsed);
+    const amount_minutes =
+      rawParsed === "empty" ? 0 : thirdColumnToMinutes(rawParsed);
 
-    if (!isTotalHoursBusinessValid(total_Hours)) {
+    if (!isTotalMinutesBusinessValid(amount_minutes)) {
       violations.push({
         sheetRow,
         identification_number: id,
         rawDisplay,
-        reason: reasonForInvalidHours(total_Hours),
+        reason: reasonForInvalidMinutes(amount_minutes),
       });
       continue;
     }
 
     rows.push({
       identification_number: id,
-      amount_hours: total_Hours,
+      amount_minutes: amount_minutes,
     });
   }
 
   if (violations.length > 0) {
     return {
       ok: false,
-      error: formatOvertimeViolationsMessage(violations),
+      error: formatLateArrivalsViolationsMessage(violations),
       violations,
     };
   }
@@ -167,39 +178,38 @@ export function parseOvertimeIncomeExcel(
   return { ok: true, rows };
 }
 
-export function formatOvertimeViolationsMessage(
-  violations: OvertimeViolation[],
-): string {
-  const header =
-    "El archivo contiene montos que no cumplen las reglas (0 o mayor, sin negativos, máximo 2 decimales). Detalle:";
-  const lines = violations.map(
-    (v) =>
-      `• Fila ${v.sheetRow} — ID ${v.identification_number}: ${v.rawDisplay}`,
-  );
-  return [header, ...lines].join("\n");
+export function mapLateArrivalsDeductionError(description?: string): string {
+  if (!description?.trim()) {
+    return "No se pudieron registrar las tardanzas. Intente de nuevo.";
+  }
+  if (/colaborador/i.test(description)) {
+    return "Uno o más ID del archivo no están registrados en esta nómina. Revise los números de identificación en el Excel.";
+  }
+  return description;
 }
 
-export function validateOvertimeIncomePayload(
-  rows: CreateIncomeOvertimeRequest[] | undefined,
-): ParseOvertimeIncomeExcelResult {
+export function validateLateArrivalsPayload(
+  rows: LateArrivalsPayload[] | undefined,
+): ParseLateArrivalsExcelResult {
   if (!rows?.length) {
     return {
       ok: false,
-      error: "No hay datos de horas extra para enviar.",
+      error:
+        "Debe adjuntar un archivo de llegadas tardes con al menos un registro válido.",
       violations: [],
     };
   }
 
-  const violations: OvertimeViolation[] = [];
+  const violations: LateArrivalsViolation[] = [];
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
-    const n = r.amount_hours;
-    if (!isTotalHoursBusinessValid(n)) {
+    const n = r.amount_minutes;
+    if (!isTotalMinutesBusinessValid(n)) {
       violations.push({
         sheetRow: i + 1,
         identification_number: r.identification_number,
         rawDisplay: String(n),
-        reason: reasonForInvalidHours(n),
+        reason: reasonForInvalidMinutes(n),
       });
     }
   }
@@ -207,7 +217,7 @@ export function validateOvertimeIncomePayload(
   if (violations.length > 0) {
     return {
       ok: false,
-      error: formatOvertimeViolationsMessage(violations),
+      error: formatLateArrivalsViolationsMessage(violations),
       violations,
     };
   }

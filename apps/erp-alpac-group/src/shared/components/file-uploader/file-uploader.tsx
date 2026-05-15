@@ -11,6 +11,7 @@ export const FileUploader = ({
   title,
   description,
   extensions,
+  readySubmitLabel = "Registrar ingreso",
   onFileSelect,
   onFileRemove,
 }: FileUploaderProps) => {
@@ -166,7 +167,7 @@ export const FileUploader = ({
                   {(selectedFile.size / 1024).toFixed(2)} KB
                 </p>
                 <p className="max-w-md text-center text-sm text-slate-600 dark:text-slate-300">
-                  Archivo listo. Use &quot;Registrar ingreso&quot; para enviarlo
+                  Archivo listo. Use &quot;{readySubmitLabel}&quot; para enviarlo
                   con la nómina.
                 </p>
               </m.div>

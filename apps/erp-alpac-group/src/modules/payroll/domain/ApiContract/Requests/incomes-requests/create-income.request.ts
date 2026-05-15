@@ -35,16 +35,16 @@ export interface CreateIncomeRequest {
   type_income_id: string;
 
   /**
-   * Número de identificación
+   * Número de identificación (comisión u otros ingresos individuales)
    */
-  identification_number: string;
+  identification_number?: string;
 
   /**
    * Descripción del ingreso
    */
   description?: string;
 
-  overtime_income_payload?: CreateIncomeOvertimeRequest[];
+  overtime_income_data?: CreateIncomeOvertimeRequest[];
   /**
    * Payload de horas extra
    */
@@ -60,7 +60,7 @@ export interface CreateIncomeOvertimeRequest {
    * Monto de horas extra
    */
   identification_number: string;
-  total_hours: number;
+  amount_hours: number;
 }
 
 interface CreateIncomeCommissionRequest {

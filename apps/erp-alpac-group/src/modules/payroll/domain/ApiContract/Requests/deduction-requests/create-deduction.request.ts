@@ -1,23 +1,28 @@
 /* {
    "collaborator_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
    "description": "string",
-   "deduction_type": "Loans",
+   "deduction_type": 3,
    "purisima_payload": {
       "amount": 0
    },
-   "advance_salary_payload": {
+   "salary_advance_payload": {
       "amount": 0,
       "currency": "NIO"
    },
-   "late_arrivals_payload": {
-      "total_minutes": 0
-   }
+   "late_arrivals_payload": [
+      { "identification_number": "559", "amount_minutes": 110.03 }
+   ]
 } */
 
 /**
  * @description Esta interfaz representa la estructura de la solicitud de creación de una deducción.
  */
 export interface CreateDeductionRequest {
+  /**
+   * @property {string} payroll_id - Identificador de la nomina.
+   */
+  payroll_id: string;
+
   /**
    * @property {string} company_id - Identificador de la empresa.
    */
@@ -54,7 +59,7 @@ export interface CreateDeductionRequest {
   salary_advance_payload?: SalaryAdvancePayload;
 
   /**
-   * @property {LateArrivalsPayload} late_arrivals_payload - Payload de la deducción por tardanzas.
+   * @property {LateArrivalsPayload[]} late_arrivals_payload - Payload de la deducción por tardanzas.
    */
   late_arrivals_payload?: LateArrivalsPayload[];
 }
@@ -87,14 +92,15 @@ interface SalaryAdvancePayload {
 /**
  * @description Esta interfaz representa la estructura de un payload de deduccion de llegadas tarde
  */
-interface LateArrivalsPayload {
+export interface LateArrivalsPayload {
   /*
    * @property {string} identification_number - Identificación del colaborador.
    */
   identification_number: string;
 
   /**
-   * @property {number} total_minutes - Total de minutos de tardanza.
+   * @property {number} amount_minutes - Total de minutos de tardanza.
    */
-  total_minutes: number;
+  amount_minutes: number;
 }
+
