@@ -61,7 +61,7 @@ export interface CreateDeductionRequest {
   /**
    * @property {LateArrivalsPayload[]} late_arrivals_payload - Payload de la deducción por tardanzas.
    */
-  late_arrivals_payload?: LateArrivalsPayload[];
+  late_arrivals_data?: LateArrivalsPayload[];
 }
 
 /**
@@ -103,4 +103,3 @@ export interface LateArrivalsPayload {
    */
   amount_minutes: number;
 }
-
