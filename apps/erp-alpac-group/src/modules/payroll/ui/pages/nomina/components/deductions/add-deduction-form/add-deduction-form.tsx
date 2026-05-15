@@ -1,16 +1,16 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Button, Dropdown, Textarea } from "@alpac/design-system";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { DeductionCodeEnum, DeductionOptions } from "@app/modules/payroll/domain/enums/deduction-enums/deduction.enum";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { AnnualBonusAdvance } from "@app/modules/payroll/ui/pages/collaborator-index/components/deductions/annual-bonus-advance/annual-bonus-advance";
-import { ChildSupportGarnishment } from "@app/modules/payroll/ui/pages/collaborator-index/components/deductions/child-support-garnishment/child-support-garnishment";
-import { Sanctions } from "@app/modules/payroll/ui/pages/collaborator-index/components/deductions/sanction/sanction";
-import { JudicialGarnishment } from "@app/modules/payroll/ui/pages/collaborator-index/components/deductions/judicial-garnishment/judicial-garnishment";
-import { LoanRepayment } from "@app/modules/payroll/ui/pages/collaborator-index/components/deductions/loan-repayment/loan-repayment";
-import { PurisimaContribution } from "@app/modules/payroll/ui/pages/collaborator-index/components/deductions/purisima-contribution/purisima-contribution";
-import { SalaryAdvance } from "@app/modules/payroll/ui/pages/collaborator-index/components/deductions/salary-advance/salary-advance";
-import { LateArrivals } from "@app/modules/payroll/ui/pages/collaborator-index/components/deductions/late-arrivals/late-arrivals";
+import { AnnualBonusAdvance } from "@app/modules/payroll/ui/pages/nomina/components/deductions/annual-bonus-advance/annual-bonus-advance";
+import { ChildSupportGarnishment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/child-support-garnishment/child-support-garnishment";
+import { Sanctions } from "@app/modules/payroll/ui/pages/nomina/components/deductions/sanction/sanction";
+import { JudicialGarnishment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/judicial-garnishment/judicial-garnishment";
+import { LoanRepayment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/loan-repayment/loan-repayment";
+import { PurisimaContribution } from "@app/modules/payroll/ui/pages/nomina/components/deductions/purisima-contribution/purisima-contribution";
+import { SalaryAdvance } from "@app/modules/payroll/ui/pages/nomina/components/deductions/salary-advance/salary-advance";
+import { LateArrivals } from "@app/modules/payroll/ui/pages/nomina/components/deductions/late-arrivals/late-arrivals";
 
 import type { CreateDeductionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
 import type { AddDeductionFormProps } from "./add-deduction-form.types";
@@ -18,14 +18,18 @@ import { useDeduction } from "@app/modules/payroll/ui/hooks/deduction/useDeducti
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { OtherDeduction } from "../other-deduction/other-deduction";
+import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
+import { CollaboratorSearchForm } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form";
+import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
+import { X } from "lucide-react";
 
 const inputClassName =
    "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
 
-export const AddDeductionForm = ({ collaborator, onSubmit, onCancel, onRequestError, onRequestSuccess }: AddDeductionFormProps): React.ReactNode => {
+export const AddDeductionForm = ({ onSubmit, onCancel, onRequestError, onRequestSuccess }: AddDeductionFormProps): React.ReactNode => {
 
-   const { moduleCode, companyId } = useUserStore();
+   const { moduleCode, companyId, identificationNumber } = useUserStore();
    const { CreateDeduction } = useDeduction();
    const { getMappedError } = useMappedError();
 
@@ -35,13 +39,21 @@ export const AddDeductionForm = ({ collaborator, onSubmit, onCancel, onRequestEr
          deduction_type: "",
          company_id: companyId,
          module_code: moduleCode,
-         collaborator_id: collaborator.collaborator_id.toString(),
       }
    });
+
+   const [foundCollaborator, setFoundCollaborator] = useState<GetCollaboratorProfileDetailsResponse | null>(null);
+
+   const [isSearching, setIsSearching] = useState(false);
 
    const deductionType = methods.watch("deduction_type");
 
    const handleSubmitDeduction = useCallback((data: CreateDeductionRequest) => {
+      if (!foundCollaborator && deductionType !== DeductionCodeEnum.LATE_ARRIVAL.value) {
+         onRequestError?.("Debe buscar un colaborador para agregar una deducción");
+         return;
+      }
+
       const {
          late_arrivals_payload,
          purisima_payload,
@@ -54,14 +66,18 @@ export const AddDeductionForm = ({ collaborator, onSubmit, onCancel, onRequestEr
       if (data.deduction_type === DeductionCodeEnum.LATE_ARRIVAL.value) {
          finalPayload.late_arrivals_payload = late_arrivals_payload;
       }
+
       if (data.deduction_type === DeductionCodeEnum.PURISIMA.value) {
          finalPayload.purisima_payload = purisima_payload;
       }
+
       if (data.deduction_type === DeductionCodeEnum.SALARY_ADVANCE.value) {
          finalPayload.salary_advance_payload = salary_advance_payload;
       }
 
-      console.log(finalPayload);
+      if (!!foundCollaborator) {
+         finalPayload.collaborator_id = foundCollaborator?.collaborator_id.toString();
+      }
 
       CreateDeduction.mutate(finalPayload, {
          onSuccess: () => {
@@ -98,7 +114,10 @@ export const AddDeductionForm = ({ collaborator, onSubmit, onCancel, onRequestEr
                         appearance="dark"
                         isRequired
                         value={field.value}
-                        onChange={(value) => field.onChange(value)}
+                        onChange={(value) => {
+                           field.onChange(value)
+                           setFoundCollaborator(null);
+                        }}
                         labelClassName={labelClassName}
                         valueClassName={labelClassName}
                         className={inputClassName}
@@ -109,19 +128,80 @@ export const AddDeductionForm = ({ collaborator, onSubmit, onCancel, onRequestEr
 
             </div>
 
+            {/* ── Sección: Buscar Colaborador ── */}
+            {!foundCollaborator && !!deductionType &&
+               (
+                  deductionType !== DeductionCodeEnum.LATE_ARRIVAL.value ||
+                  deductionType !== DeductionCodeEnum.PURISIMA.value
+               ) &&
+               (
+                  deductionType === DeductionCodeEnum.SALARY_ADVANCE.value
+               ) &&
+               <CollaboratorSearchForm
+                  onSuccess={(collaborator) => {
+                     setFoundCollaborator(collaborator);
+                     setIsSearching(false);
+                  }}
+                  onError={() => {
+                     setFoundCollaborator(null);
+                     setIsSearching(false);
+                  }}
+                  onSearchStart={() => {
+                     setFoundCollaborator(null);
+                     setIsSearching(true);
+                  }}
+                  excludeIdentifications={[identificationNumber]}
+               />
+            }
+
+            {
+               !!foundCollaborator && (
+                  <div className="relative min-w-0 flex flex-row items-center gap-4 w-full">
+
+                     <div className="min-w-0 flex-1">
+                        <CollaboratorSummary
+                           fullName={foundCollaborator?.full_name ?? ""}
+                           workPosition={foundCollaborator?.work_position ?? ""}
+                           isFullNameLoading={isSearching}
+                           isWorkPositionLoading={isSearching}
+                        />
+                     </div>
+
+                     <div className="absolute right-0 top-0 sm:top-auto group flex items-center">
+                        <button
+                           type="button"
+                           className={`rounded-full p-1.5 transition-all text-slate-700 hover:text-slate-900 hover:bg-slate-300 dark:text-white dark:hover:text-white dark:hover:bg-white/15`}
+                           onClick={() => {
+                              setFoundCollaborator(null)
+                           }}
+                           aria-label="Quitar Colaborador"
+                        >
+                           <X size={20} />
+                        </button>
+
+                        <div className="absolute -top-10 right-0 mt-2 px-2 py-1 text-xs text-white bg-slate-800 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+                           Quitar Colaborador
+                        </div>
+                     </div>
+
+                  </div>
+               )
+            }
+
+
+            {deductionType === DeductionCodeEnum.LATE_ARRIVAL.value && <LateArrivals />}
             {deductionType === DeductionCodeEnum.LOAN.value && <LoanRepayment />}
             {deductionType === DeductionCodeEnum.CHRISTMAS_BONUS_ADVANCE.value && <AnnualBonusAdvance />}
-            {deductionType === DeductionCodeEnum.LATE_ARRIVAL.value && <LateArrivals />}
-            {deductionType === DeductionCodeEnum.SALARY_ADVANCE.value && <SalaryAdvance />}
             {deductionType === DeductionCodeEnum.SANCTION.value && <Sanctions />}
-            {deductionType === DeductionCodeEnum.PURISIMA.value && <PurisimaContribution />}
             {deductionType === DeductionCodeEnum.CHILD_SUPPORT_GARNISHMENT.value && <ChildSupportGarnishment />}
             {deductionType === DeductionCodeEnum.JUDICIAL_GARNISHMENT.value && <JudicialGarnishment />}
             {deductionType === DeductionCodeEnum.OTHER_DEDUCTION.value && <OtherDeduction />}
+            {deductionType === DeductionCodeEnum.PURISIMA.value && <PurisimaContribution />}
+
+            {!!foundCollaborator && deductionType === DeductionCodeEnum.SALARY_ADVANCE.value && <SalaryAdvance />}
 
             {
-               !!deductionType && (
-                  deductionType === DeductionCodeEnum.LATE_ARRIVAL.value ||
+               !!foundCollaborator && !!deductionType && deductionType !== DeductionCodeEnum.LATE_ARRIVAL.value && (
                   deductionType === DeductionCodeEnum.SALARY_ADVANCE.value ||
                   deductionType === DeductionCodeEnum.PURISIMA.value
                ) && (
@@ -166,6 +246,7 @@ export const AddDeductionForm = ({ collaborator, onSubmit, onCancel, onRequestEr
                   size="giant"
                   label="Agregar Deducción"
                   disabled={
+                     !foundCollaborator ||
                      !methods.formState.isDirty ||
                      !methods.formState.isValid ||
                      (

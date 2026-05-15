@@ -56,7 +56,7 @@ import {
 } from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
 import { isSelectablePayrollType } from "@app/modules/payroll/ui/pages/nomina/utils/payroll.utls";
 import { CreateIncomeModal } from "./components/incomes/create-income-modal/create-income-modal";
-import { AddDeductionModal } from "@app/modules/payroll/ui/pages/collaborator-index/components/deductions/add-deduction-modal/add-deduction-modal";
+import { AddDeductionModal } from "@app/modules/payroll/ui/pages/nomina/components/deductions/add-deduction-modal/add-deduction-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 
 export function PayrollPage() {
