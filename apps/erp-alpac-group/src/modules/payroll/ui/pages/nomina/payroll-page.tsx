@@ -1307,6 +1307,7 @@ export function PayrollPage() {
 
             <AddDeductionModal
                isOpen={isDeductionModalOpen}
+               payrollId={selectedOrdinaryPayroll?.payroll_id ?? ""}
                onClose={() => setIsDeductionModalOpen(false)}
                onRequestSuccess={(successMessage) => {
                   handleRequestSuccess(successMessage, "Deducción registrada");
