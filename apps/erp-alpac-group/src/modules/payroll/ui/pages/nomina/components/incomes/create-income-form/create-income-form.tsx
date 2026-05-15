@@ -1,7 +1,4 @@
-import type {
-   CreateIncomeFormProps,
-   IncomeTypeOption,
-} from "./create-income-form.types";
+import type { CreateIncomeFormProps, IncomeTypeOption } from "./create-income-form.types";
 import { FormProvider, Controller, useForm } from "react-hook-form";
 import { Button, Dropdown, Textarea } from "@alpac/design-system";
 import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
