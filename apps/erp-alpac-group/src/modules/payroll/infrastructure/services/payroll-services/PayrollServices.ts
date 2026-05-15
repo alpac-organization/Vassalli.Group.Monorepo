@@ -7,10 +7,10 @@ import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContr
 import { cleanParams } from "@app/shared/utils/object.utils";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
 import type { GenerateReportPayrollRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/generate-report-payroll";
-import type {
-  GetPayrollReportsPayloadResponse,
-} from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-reports";
+import type { GetPayrollReportsPayloadResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-reports";
 
+import type { PayrollPeriodsHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-periods-history.request";
+import type { PayrollPeriodItem } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-periods";
 export class PayrollServices implements IPayrollServices {
   private apiHandler: IHttpHandler;
 
@@ -87,10 +87,41 @@ export class PayrollServices implements IPayrollServices {
   ): Promise<GetPayrollReportsPayloadResponse> {
     const { companie_id, report_type, payroll_id } = payload;
     try {
-      const response = await this.apiHandler.get<GetPayrollReportsPayloadResponse>(
-        `companies/${companie_id}/reports`,
+      const response =
+        await this.apiHandler.get<GetPayrollReportsPayloadResponse>(
+          `companies/${companie_id}/reports`,
+          {
+            params: { report_type, payroll_id },
+          },
+        );
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  public async getPayrollPeriodsHistory(
+    payload: PayrollPeriodsHistoryRequest,
+  ): Promise<PayrollPeriodItem[]> {
+    try {
+      const {
+        companie_id,
+        module_code,
+        branch_id,
+        type,
+        page_number,
+        page_size,
+      } = payload;
+      const params = {
+        type,
+        page_number,
+        page_size,
+      };
+
+      const response = await this.apiHandler.get<PayrollPeriodItem[]>(
+        `/companies/${companie_id}/modules/${module_code}/branches/${branch_id}/payrolls`,
         {
-          params: { report_type, payroll_id },
+          params: cleanParams(params),
         },
       );
       return response;
