@@ -43,6 +43,7 @@ export const AddDeductionModal = (props: AddDeductionModalProps): React.ReactNod
                      >
 
                         <AddDeductionForm
+                           payrollId={props.payrollId}
                            onCancel={handleCancel}
                            onRequestError={props.onRequestError}
                            onRequestSuccess={props.onRequestSuccess}
