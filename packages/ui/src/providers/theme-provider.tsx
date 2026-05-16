@@ -18,7 +18,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     const setTheme = (newTheme: Theme) => {
         setThemeState(newTheme);
         localStorage.setItem('theme', newTheme);
-        document.documentElement.setAttribute('data-theme', newTheme);
     };
 
     // Toggle theme

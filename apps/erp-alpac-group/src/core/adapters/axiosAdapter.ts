@@ -1,47 +1,214 @@
-import axios, { type AxiosInstance } from 'axios';
-import type { IHttpHandler } from '../ports';
+import axios, { AxiosError, type AxiosInstance } from "axios";
+import type { IHttpHandler } from "@app/core/ports";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
+import { getBrowserName } from "@app/core/enums/user-agent.enum";
+import type { CustomInternalAxiosRequestConfig } from "../interfaces/CustomInternalAxiosRequestConfig";
+import type { IAuthenticationServices } from "@app/modules/auth/application/interfaces/IAuthenticationServices";
+import { useInactivityStore } from "@app/shared/stores/useInactivityStore";
+import { useServerErrorStore } from "@app/shared/stores/useServerErrorStore";
+import {
+  clearControlVacationsSelectionStorage,
+  clearPayrollSelectionStorage,
+} from "@app/modules/auth/utils/save-state-storage";
 
-export class AxiosHttpAdapter implements IHttpHandler {
-   private instance: AxiosInstance;
+class AxiosHttpAdapter implements IHttpHandler {
+  private instance: AxiosInstance;
+  private apiKey = import.meta.env.VITE_API_KEY;
+  private refreshIntervalId?: NodeJS.Timeout;
+  private authenticationService?: IAuthenticationServices;
 
-   constructor() {
-      this.instance = axios.create({
-         baseURL: import.meta.env.VITE_API_URL || '/api',
-         headers: {
-            'Content-Type': 'application/json',
-         },
-      });
+  public setAuthenticationService(
+    authenticationService: IAuthenticationServices,
+  ) {
+    this.authenticationService = authenticationService;
+  }
 
-      this.instance.interceptors.request.use((config) => {
-         return config;
-      });
-   }
+  constructor() {
+    this.instance = axios.create({
+      baseURL: import.meta.env.VITE_API_URL || "/api",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": this.apiKey,
+        "x-device-name": getBrowserName(navigator.userAgent),
+      },
+    });
 
-   async get<T>(url: string, config?: object): Promise<T> {
-      const response = await this.instance.get<T>(url, config);
-      return response.data;
-   }
+    // Inicia el refresh token cada 15 minutos
+    this.startRefreshToken(15 * 60 * 1000);
 
-   async post<T>(url: string, data?: object, config?: object): Promise<T> {
-      const response = await this.instance.post<T>(url, data, config);
-      return response.data;
-   }
+    // Interceptor to request
+    this.instance.interceptors.request.use((config) => {
+      const token = CookieStorageAdapter.getToken();
 
-   async put<T>(url: string, data?: object, config?: object): Promise<T> {
-      const response = await this.instance.put<T>(url, data, config);
-      return response.data;
-   }
+      // Verifico si la peticion es para iniciar sesion
+      const isLoginRequest = config.url?.includes("/auth/login");
 
-   async delete<T>(url: string, config?: object): Promise<T> {
-      const response = await this.instance.delete<T>(url, config);
-      return response.data;
-   }
+      // Verifico si la peticion es para renovar el token
+      const isRefreshTokenRequest = config.url?.includes("/auth/refresh-token");
 
-   async patch<T>(url: string, data?: object, config?: object): Promise<T> {
-      const response = await this.instance.patch<T>(url, data, config);
-      return response.data;
-   }
+      if (token && !isLoginRequest && !isRefreshTokenRequest) {
+        config.headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      return config;
+    });
+
+    // Interceptor to response
+    this.instance.interceptors.response.use(
+      (response) => {
+        useServerErrorStore.getState().clearServerError();
+        return response;
+      },
+      async (error: AxiosError<ApiErrorResponse>) => {
+        const httpStatus = error.response?.status;
+
+        const customError: ApiErrorResponse = {
+          status: httpStatus ?? 500,
+          error: {
+            typeError:
+              error.response?.data?.error?.typeError || "INTERNAL_CLIENT_ERROR",
+            description:
+              error.response?.data?.error?.description ||
+              "Ocurrio un error inesperado en la comunicacion.",
+          },
+          createdAt:
+            error.response?.data?.createdAt || new Date().toISOString(),
+        };
+
+        const originalRequest =
+          error.config as CustomInternalAxiosRequestConfig;
+
+        if (
+          httpStatus === 401 &&
+          originalRequest &&
+          !originalRequest._retry &&
+          !originalRequest.url?.includes("auth/login") &&
+          !originalRequest.url?.includes("auth/refresh-token")
+        ) {
+          // Marcar que ya se esta intentando renovar el token
+          originalRequest._retry = true;
+
+          try {
+            // Intento renovar el token
+            const response = await this.refreshToken();
+
+            if (response) {
+              // Actualizo el token en el header
+              originalRequest.headers["Authorization"] =
+                `Bearer ${response.access_token}`;
+
+              // Reintento la peticion original con el nuevo token
+              return this.instance(originalRequest);
+            } else {
+              throw new Error("No se pudo renovar el token");
+            }
+          } catch (refreshTokenError) {
+            this.logout();
+
+            // Rechazo la promesa para que el codigo que llama al servicio pueda manejar el error
+            return Promise.reject(refreshTokenError);
+          }
+        }
+
+        if (httpStatus === 503) {
+          useServerErrorStore.getState().showServerError({
+            status: httpStatus,
+          });
+        }
+
+        return Promise.reject(customError);
+      },
+    );
+  }
+
+  private startRefreshToken(miliseconds: number) {
+    if (this.refreshIntervalId) clearInterval(this.refreshIntervalId);
+
+    this.refreshIntervalId = setInterval(async () => {
+      const { isInactive, lastActivity } = useInactivityStore.getState();
+      const now = Date.now();
+      const inactivityThreshold = 20 * 60 * 1000;
+
+      if (isInactive || now - lastActivity > inactivityThreshold) {
+        console.warn(
+          "Sesion en pausa por inactividad. El token expirara naturalmente.",
+        );
+        return;
+      }
+
+      await this.refreshToken();
+    }, miliseconds);
+  }
+
+  private logout() {
+    // MUY IMPORTANTE: Detener el intervalo al cerrar sesion
+    if (this.refreshIntervalId) {
+      clearInterval(this.refreshIntervalId);
+    }
+
+    clearControlVacationsSelectionStorage();
+    clearPayrollSelectionStorage();
+
+    CookieStorageAdapter.clearAuth();
+    window.location.href = "/auth";
+  }
+
+  private async refreshToken(): Promise<any> {
+    try {
+      // Obtengo el refreshToken actual
+      const refreshToken = CookieStorageAdapter.getRefreshToken();
+
+      // Obtengo el alias de la empresa
+      const companyAlias = CookieStorageAdapter.getCompanyAlias();
+
+      // Verifico que el refreshToken y el companyAlias y el refresher no sean nulos
+      if (refreshToken && companyAlias && this.authenticationService) {
+        // Obtengo el nuevo token
+        const response =
+          await this.authenticationService.StartProcessToRefreshToken({
+            company_id: companyAlias,
+            refresh_token: refreshToken,
+          });
+
+        // Actualizo los tokens en las cookies
+        CookieStorageAdapter.setToken(response.access_token);
+        CookieStorageAdapter.setRefreshToken(response.refresh_token);
+
+        return response;
+      }
+      return null;
+    } catch (refreshTokenError) {
+      // Solo propagamos el error para que el interceptor lo maneje
+      throw refreshTokenError;
+    }
+  }
+
+  async get<T>(url: string, config?: object): Promise<T> {
+    const response = await this.instance.get<T>(url, config);
+    return response.data;
+  }
+
+  async post<T>(url: string, data?: object, config?: object): Promise<T> {
+    const response = await this.instance.post<T>(url, data, config);
+    return response.data;
+  }
+
+  async put<T>(url: string, data?: object, config?: object): Promise<T> {
+    const response = await this.instance.put<T>(url, data, config);
+    return response.data;
+  }
+
+  async delete<T>(url: string, config?: object): Promise<T> {
+    const response = await this.instance.delete<T>(url, config);
+    return response.data;
+  }
+
+  async patch<T>(url: string, data?: object, config?: object): Promise<T> {
+    const response = await this.instance.patch<T>(url, data, config);
+    return response.data;
+  }
 }
 
-// Exportamos una instancia única (Singleton)
+// Exportamos una instancia unica (Singleton)
 export const httpHandler = new AxiosHttpAdapter();

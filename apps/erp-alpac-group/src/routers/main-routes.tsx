@@ -1,25 +1,39 @@
-import { LoginPage } from "@app/modules/auth/login/ui/login-page";
-import { SelectCompany } from "@app/modules/auth/select-company/ui/select-company";
-import { Dashboard } from "@app/modules/dashboard/dashboard";
-import type { RouteObject } from "react-router-dom";
+import { LoginPage } from '@app/modules/auth/ui/pages/login/login.page';
+import { Navigate, type RouteObject } from 'react-router-dom';
+import { DashboardRoutes } from './dashboard-routes';
+import { AuthGuard, PublicGuard } from './guardians';
 
-//Configuraciones de rutas del sistema.
 export const MainRoutes: RouteObject[] = [
    {
-      path: "/",
-      element: <SelectCompany />,
+      path: '/',
+      element: <Navigate to="/auth" replace />,
    },
    {
-      path: ":company_id/",
+      element: <PublicGuard />,
       children: [
          {
-            path: "auth",
+            path: 'auth',
             element: <LoginPage />,
          },
+      ],
+   },
+   {
+      path: ':alias_company',
+      element: <AuthGuard />,
+
+      children: [
          {
-            path: "dashboard",
-            element: <Dashboard />,
+            index: true,
+            element: <Navigate to="dashboard" replace />,
+         },
+         {
+            path: 'dashboard',
+            children: DashboardRoutes,
          },
       ],
+   },
+   {
+      path: '*',
+      element: <Navigate to="/auth" replace />,
    },
 ];
