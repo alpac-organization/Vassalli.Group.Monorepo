@@ -1,15 +1,22 @@
-import { Fragment } from "react"
+import { Fragment } from "react";
 
-export const CopyRight = function () {
+const DEFAULT_ENTITY_NAME = "Grupo Vasalli";
 
-   return (
-      <Fragment>
-         <p
-            suppressHydrationWarning
-            className="text-center text-[10px]! md:text-[12px]! text-gray-400"
-         >
-            © {new Date().getFullYear()} Almacenadora del pacífico.❤️ Todos los derechos reservados.
-         </p>
-      </Fragment>
-   )
-}
+export type CopyRightProps = {
+  entityName?: string;
+};
+
+export const CopyRight = function ({
+  entityName = DEFAULT_ENTITY_NAME,
+}: CopyRightProps) {
+  return (
+    <Fragment>
+      <p
+        suppressHydrationWarning
+        className="text-center text-[10px]! md:text-[12px]! text-gray-400"
+      >
+        © {new Date().getFullYear()} {entityName}
+      </p>
+    </Fragment>
+  );
+};

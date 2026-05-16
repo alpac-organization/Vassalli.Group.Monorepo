@@ -2,10 +2,12 @@ import { Outlet } from "react-router-dom";
 import { CopyRight } from "@app/shared/components/copy-right/copy-right";
 import { useInactivityGuard } from "@app/shared/hooks/useInactivityGuard";
 import { AnimatePresence } from "framer-motion";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 export const ContainerCopyright = () => {
-
    useInactivityGuard();
+
+   const companyName = useUserStore((s) => s.companyName);
 
    return (
       <div className="flex flex-col min-h-screen w-full">
@@ -17,7 +19,11 @@ export const ContainerCopyright = () => {
 
          <footer className="w-full py-4 block mt-auto border-t border-t-slate-600">
             <div className="container mx-auto px-4 text-center">
-               <CopyRight />
+               <CopyRight
+                  entityName={
+                     companyName.trim() ? companyName.trim() : undefined
+                  }
+               />
             </div>
          </footer>
       </div>
