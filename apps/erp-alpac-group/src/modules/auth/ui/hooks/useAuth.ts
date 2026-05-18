@@ -4,6 +4,7 @@ import { QueryClient, useMutation } from "@tanstack/react-query";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import { AuthenticationServices } from "@app/modules/auth/infrastructure/services/AuthenticationServices";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import {
   clearControlVacationsSelectionStorage,
   clearPayrollSelectionStorage,
@@ -41,6 +42,13 @@ export const useAuth = function () {
         identificationNumber: response.identification_number,
         userType: response.user_type,
       });
+
+      const sessionLogo = response.company_information.image_url;
+      if (sessionLogo) {
+        useCompanyStore.setState({
+          urlImage: sessionLogo,
+        });
+      }
 
       navigate(`/${companyAlias}/dashboard`, {
         replace: true,

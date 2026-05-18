@@ -11,8 +11,26 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { LoginRequest } from "@app/modules/auth/domain/ApiContract/Requests/login.request";
 import type { GetCompaniesResponse } from "@app/modules/auth/domain/ApiContract/Responses/get-companies.response";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { setDocumentFavicon } from "@app/shared/utils/set-document-favicon";
 import defaultColorLogo from "@app/assets/logos/color/vasalli-neutral-logo.png";
 import defaultNeutralLogo from "@app/assets/logos/blanco/vasalli-logo.png";
+
+const DEFAULT_LOGIN_BRANDING = "Grupo Vasalli";
+
+function resolveGrupoVasalliCompanyId(
+  companies: GetCompaniesResponse[] | undefined,
+): string | null {
+  if (!Array.isArray(companies) || companies.length === 0) return null;
+  const normalize = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").trim();
+  const match = companies.find((c) => {
+    const alias = normalize(c.alias);
+    const name = normalize(c.company_name);
+    const blob = `${alias} ${name}`;
+    return blob.includes("vasalli") || blob.includes("vassalli");
+  });
+  return match?.company_id ?? null;
+}
 
 export const LoginPage = function () {
   const { getMappedError } = useMappedError();
@@ -38,6 +56,7 @@ export const LoginPage = function () {
     register,
     setError,
     reset,
+    setValue,
     control,
     watch,
     formState: { errors, isDirty, isValid },
@@ -51,6 +70,33 @@ export const LoginPage = function () {
   });
 
   const selectedCompanyId = watch("company_id");
+
+  const defaultCompanyId = useMemo(
+    () => resolveGrupoVasalliCompanyId(Array.isArray(data) ? data : undefined),
+    [data],
+  );
+
+  useEffect(() => {
+    if (!defaultCompanyId) return;
+    setValue("company_id", defaultCompanyId, {
+      shouldValidate: true,
+      shouldDirty: false,
+    });
+  }, [defaultCompanyId, setValue]);
+
+  const brandingName = useMemo(() => {
+    if (!Array.isArray(data) || !selectedCompanyId) {
+      return DEFAULT_LOGIN_BRANDING;
+    }
+    const company = data.find((c) => c.company_id === selectedCompanyId);
+
+    return company?.company_name || company?.alias || DEFAULT_LOGIN_BRANDING;
+  }, [data, selectedCompanyId]);
+
+  useEffect(() => {
+    document.title = brandingName;
+  }, [brandingName]);
+
   const companyLogos = useMemo(() => {
     if (!Array.isArray(data) || !selectedCompanyId) {
       return { color: defaultColorLogo, neutral: defaultNeutralLogo };
@@ -71,6 +117,10 @@ export const LoginPage = function () {
 
     return { color: colorLogo, neutral: neutralLogo };
   }, [data, selectedCompanyId]);
+
+  useEffect(() => {
+    setDocumentFavicon(companyLogos.color, selectedCompanyId || "default");
+  }, [companyLogos.color, selectedCompanyId]);
 
   const handleLogin = async function (state: LoginRequest) {
     try {
@@ -94,7 +144,11 @@ export const LoginPage = function () {
       setIsExiting(false);
       setErrorMessage(mappedError.description);
     } finally {
-      reset();
+      reset({
+        password: "",
+        username: "",
+        company_id: defaultCompanyId ?? "",
+      });
     }
   };
 
@@ -130,7 +184,10 @@ export const LoginPage = function () {
         <div className="absolute inset-0 bg-black/5 backdrop-brightness-[0.30] backdrop-blur-xs z-0"></div>
 
         <div className="relative z-10 w-full flex items-center justify-center">
-          <FormLayout imageUrl={companyLogos.color}>
+          <FormLayout
+            imageUrl={companyLogos.color}
+            copyrightEntityName={brandingName}
+          >
             <form
               onSubmit={handleSubmit(handleLogin)}
               className="h-full flex flex-col justify-center gap-2"
