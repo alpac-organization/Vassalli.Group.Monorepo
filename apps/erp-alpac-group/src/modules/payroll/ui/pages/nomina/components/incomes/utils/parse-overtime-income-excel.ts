@@ -1,5 +1,11 @@
 import * as XLSX from "xlsx";
 import type { CreateIncomeOvertimeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
+import {
+  cellToTrimmedString,
+  excelFirstDataRowIndex,
+  EXCEL_NO_VALID_ROWS_MESSAGE,
+  parseColumnAEmployeeId,
+} from "@app/modules/payroll/ui/pages/nomina/components/deductions/utils/excel-employee-id.utils";
 
 export function thirdColumnToHours(raw: number): number {
   return raw;
@@ -32,14 +38,6 @@ function reasonForInvalidHours(n: number): string {
   return "más de 2 decimales";
 }
 
-function cellToTrimmedString(cell: unknown): string {
-  if (cell == null) return "";
-  if (typeof cell === "number" && Number.isFinite(cell)) {
-    return String(cell);
-  }
-  return String(cell).trim();
-}
-
 function isDashOrEmpty(s: string): boolean {
   if (s === "") return true;
   const t = s.trim();
@@ -53,7 +51,6 @@ function isDashOrEmpty(s: string): boolean {
   );
 }
 
-/** Numeric value, or "empty" when cell is `-`, blank, or non-numeric text (all map to 0 hours). */
 function parseThirdColumnToRawNumber(cell: unknown): number | "empty" {
   if (cell == null || cell === "") return "empty";
   if (typeof cell === "number") {
@@ -65,23 +62,6 @@ function parseThirdColumnToRawNumber(cell: unknown): number | "empty" {
   const n = Number(s.replace(",", "."));
   if (!Number.isFinite(n)) return "empty";
   return n;
-}
-
-function firstDataRowIndex(matrix: unknown[][]): number {
-  if (matrix.length === 0) return 0;
-  const first = matrix[0];
-  const a = first?.[0];
-  const idStr = cellToTrimmedString(a).replace(/\s/g, "");
-  if (idStr === "") return 0;
-  if (/^\d+$/.test(idStr)) return 0;
-  return 1;
-}
-
-function colAToEmployeeId(cell: unknown): string | null {
-  const s = cellToTrimmedString(cell).replace(/\s/g, "");
-  if (s === "") return null;
-  if (/^\d+$/.test(s)) return s;
-  return null;
 }
 
 export function parseOvertimeIncomeExcel(
@@ -114,14 +94,14 @@ export function parseOvertimeIncomeExcel(
     raw: true,
   }) as unknown[][];
 
-  const startRow = firstDataRowIndex(matrix);
+  const startRow = excelFirstDataRowIndex(matrix);
   const rows: CreateIncomeOvertimeRequest[] = [];
   const violations: OvertimeViolation[] = [];
 
   for (let i = startRow; i < matrix.length; i++) {
     const sheetRow = i + 1;
     const line = matrix[i] ?? [];
-    const id = colAToEmployeeId(line[0]);
+    const id = parseColumnAEmployeeId(line[0]);
     if (id === null) continue;
 
     const third = line[2];
@@ -158,8 +138,7 @@ export function parseOvertimeIncomeExcel(
   if (rows.length === 0) {
     return {
       ok: false,
-      error:
-        "No se encontraron filas con identificación numérica en la columna A. Revise el formato del archivo.",
+      error: EXCEL_NO_VALID_ROWS_MESSAGE,
       violations: [],
     };
   }
@@ -171,7 +150,7 @@ export function formatOvertimeViolationsMessage(
   violations: OvertimeViolation[],
 ): string {
   const header =
-    "El archivo contiene montos que no cumplen las reglas (0 o mayor, sin negativos, máximo 2 decimales). Detalle:";
+    "El archivo contiene montos que no cumplen las reglas , verifique que cumpla lo siguiente: (0 o mayor, sin negativos). Detalle:";
   const lines = violations.map(
     (v) =>
       `• Fila ${v.sheetRow} — ID ${v.identification_number}: ${v.rawDisplay}`,

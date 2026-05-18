@@ -322,8 +322,7 @@ export const CreateIncomeForm = ({
           {isOvertimeType && (
             <FileUploader
               key={overtimeFileKey}
-              title="Cargar archivo de horas extra"
-              description="Formato .xls o .xlsx (columna A: ID empleado, columna C: horas)"
+              title="Cargar archivo de horas extras"
               extensions={["xls", "xlsx"]}
               onFileSelect={handleOvertimeFileSelect}
               onFileRemove={handleOvertimeFileRemove}
