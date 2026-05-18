@@ -1,38 +1,34 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
 
-<head>
-  <meta charset="UTF-8" />
+    <!-- viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- viewport -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- compatibilidad -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-  <!-- compatibilidad -->
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Grupo Vasalli</title>
 
-  <!-- título -->
-  <title>Almacenadora del Pacífico S.A.</title>
+    <!-- favicon (opcional) -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
 
-  <!-- favicon (opcional) -->
-  <link rel="icon" href="/favicon.ico" />
-  <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="shortcut icon" href="/favicon.ico" />
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-  <link rel="manifest" href="/site.webmanifest" />
+    <script>
+      (function () {
+        const theme = localStorage.getItem("theme") || "dark";
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+  </head>
 
-  <script>
-    (function () {
-      const theme = localStorage.getItem('theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', theme);
-    })();
-  </script>
-
-</head>
-
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/App.tsx"></script>
-</body>
-
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/App.tsx"></script>
+  </body>
 </html>
