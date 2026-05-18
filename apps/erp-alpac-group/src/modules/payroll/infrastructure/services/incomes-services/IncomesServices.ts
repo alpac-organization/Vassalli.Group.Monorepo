@@ -32,8 +32,8 @@ export class IncomesServices implements IIncomesServices {
 
   public async CreateIncome(payload: CreateIncomeRequest): Promise<void> {
     try {
-      const { company_id, module_code, ...rest } = payload;
-      const url = `/companies/${company_id}/modules/${module_code}/incomes`;
+      const { company_id, module_code, branch_id, ...rest } = payload;
+      const url = `/companies/${company_id}/modules/${module_code}/branches/${branch_id}/incomes`;
       await this.httpHandler.post<void>(url, rest);
     } catch (error) {
       throw error;
