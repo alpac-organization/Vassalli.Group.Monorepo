@@ -4,22 +4,21 @@ import { useInactivityGuard } from "@app/shared/hooks/useInactivityGuard";
 import { AnimatePresence } from "framer-motion";
 
 export const ContainerCopyright = () => {
+  useInactivityGuard();
 
-   useInactivityGuard();
+  return (
+    <div className="flex flex-col min-h-screen w-full">
+      <main className="grow flex flex-col w-full">
+        <AnimatePresence mode="wait">
+          <Outlet />
+        </AnimatePresence>
+      </main>
 
-   return (
-      <div className="flex flex-col min-h-screen w-full">
-         <main className="grow flex flex-col w-full">
-            <AnimatePresence mode="wait">
-               <Outlet />
-            </AnimatePresence>
-         </main>
-
-         <footer className="w-full py-4 block mt-auto border-t border-t-slate-600">
-            <div className="container mx-auto px-4 text-center">
-               <CopyRight />
-            </div>
-         </footer>
-      </div>
-   );
+      <footer className="w-full py-4 block mt-auto border-t border-t-slate-600">
+        <div className="container mx-auto px-4 text-center">
+          <CopyRight />
+        </div>
+      </footer>
+    </div>
+  );
 };
