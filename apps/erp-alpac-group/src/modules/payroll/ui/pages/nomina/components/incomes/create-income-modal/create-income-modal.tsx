@@ -6,7 +6,7 @@ import { CreateIncomeForm } from "../create-income-form/create-income-form";
 
 const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
-export const CreateIncomeModal = ({ isOpen, onClose, onRequestSuccess, onRequestError, payrollId }: CreateIncomeModalProps) => {
+export const CreateIncomeModal = ({ isOpen, onClose, onRequestSuccess, onRequestError, payrollId, branchId }: CreateIncomeModalProps) => {
    const handleCancel = useCallback(() => {
       onClose();
    }, [onClose]);
@@ -40,6 +40,7 @@ export const CreateIncomeModal = ({ isOpen, onClose, onRequestSuccess, onRequest
 
                            <CreateIncomeForm
                               payrollId={payrollId}
+                              branchId={branchId}
                               onCancel={() => {
                                  handleCancel();
                               }}

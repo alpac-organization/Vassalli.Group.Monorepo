@@ -175,6 +175,19 @@ export const payrollColumns: PayrollColumnDef[] = [
         ?.LateArrivals ?? 0,
   },
   {
+    key: "late_arrivals_in_minutes",
+    label: "Llegadas Tardías en Minutos",
+    render: (item) => {
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return d?.LateArrivalsInMinutes != null
+        ? `${d.LateArrivalsInMinutes} min`
+        : "—";
+    },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)
+        ?.LateArrivalsInMinutes ?? 0,
+  },
+  {
     key: "salary_advance",
     label: "Adelanto de Salario",
     render: (item) => {

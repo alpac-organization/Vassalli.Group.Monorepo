@@ -5,16 +5,21 @@ import {
   DeductionCodeEnum,
   DeductionOptions,
 } from "@app/modules/payroll/domain/enums/deduction-enums/deduction.enum";
+import { SalaryAdvanceDev } from "@app/modules/payroll/ui/pages/nomina/components/deductions/salary-advance/salary-advance-dev";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { AnnualBonusAdvance } from "@app/modules/payroll/ui/pages/nomina/components/deductions/annual-bonus-advance/annual-bonus-advance";
 import { ChildSupportGarnishment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/child-support-garnishment/child-support-garnishment";
 import { Sanctions } from "@app/modules/payroll/ui/pages/nomina/components/deductions/sanction/sanction";
 import { JudicialGarnishment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/judicial-garnishment/judicial-garnishment";
 import { LoanRepayment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/loan-repayment/loan-repayment";
-import { PurisimaContribution } from "@app/modules/payroll/ui/pages/nomina/components/deductions/purisima-contribution/purisima-contribution";
 import { SalaryAdvance } from "@app/modules/payroll/ui/pages/nomina/components/deductions/salary-advance/salary-advance";
 
-import type { CreateDeductionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
+import type {
+  AddDeductionFormValues,
+  CreateLateArrivalsDeductionRequest,
+  CreatePurisimaDeductionRequest,
+  CreateStandardDeductionRequest,
+} from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
 import type { AddDeductionFormProps } from "./add-deduction-form.types";
 import { useDeduction } from "@app/modules/payroll/ui/hooks/deduction/useDeduction";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -22,24 +27,36 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { OtherDeduction } from "../other-deduction/other-deduction";
 import { FileUploader } from "@app/shared/components/file-uploader/file-uploader";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
-import { CollaboratorSearchForm } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form";
+// import { CollaboratorSearchForm } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form";
 import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
 import {
   mapLateArrivalsDeductionError,
   parseLateArrivalsExcel,
   validateLateArrivalsPayload,
 } from "@app/modules/payroll/ui/pages/nomina/components/deductions/utils/parse-late-arrivals-excel";
+import {
+  mapPurisimaDeductionError,
+  parsePurisimaExcel,
+  validatePurisimaPayload,
+} from "@app/modules/payroll/ui/pages/nomina/components/deductions/utils/parse-purisima-excel";
 import { X } from "lucide-react";
 
 const inputClassName =
   "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
 
-const isLateArrivalType = (type: CreateDeductionRequest["deduction_type"]) =>
-  type === DeductionCodeEnum.LATE_ARRIVAL.value ||
-  type === String(DeductionCodeEnum.LATE_ARRIVAL.value);
+const isLateArrivalType = (type: AddDeductionFormValues["deduction_type"]) =>
+  type === DeductionCodeEnum.LATE_ARRIVAL.value;
+
+const isPurisimaType = (type: AddDeductionFormValues["deduction_type"]) =>
+  type === DeductionCodeEnum.PURISIMA.value;
+
+const isBulkExcelDeductionType = (
+  type: AddDeductionFormValues["deduction_type"],
+) => isLateArrivalType(type) || isPurisimaType(type);
 
 export const AddDeductionForm = ({
+  branchId,
   payrollId,
   onSubmit,
   onCancel,
@@ -50,17 +67,20 @@ export const AddDeductionForm = ({
   const { CreateDeduction } = useDeduction();
   const { getMappedError } = useMappedError();
   const [lateArrivalsFileKey, setLateArrivalsFileKey] = useState(0);
+  const [purisimaFileKey, setPurisimaFileKey] = useState(0);
 
-  const methods = useForm<CreateDeductionRequest>({
+  const methods = useForm<AddDeductionFormValues>({
     mode: "onChange",
     defaultValues: {
       deduction_type: "",
       company_id: companyId,
       module_code: moduleCode,
       payroll_id: payrollId,
+      branch_id: branchId,
       collaborator_id: "",
       description: "",
-      late_arrivals_payload: undefined,
+      late_arrivals_data: undefined,
+      purisima_data: undefined,
     },
   });
 
@@ -68,22 +88,30 @@ export const AddDeductionForm = ({
     methods.setValue("payroll_id", payrollId);
   }, [payrollId, methods]);
 
+  useEffect(() => {
+    methods.setValue("branch_id", branchId);
+  }, [branchId, methods]);
+
   const [foundCollaborator, setFoundCollaborator] =
     useState<GetCollaboratorProfileDetailsResponse | null>(null);
 
   const [isSearching, setIsSearching] = useState(false);
 
   const deductionType = methods.watch("deduction_type");
-  const lateArrivalsPayload = methods.watch("late_arrivals_payload");
+  const lateArrivalsPayload = methods.watch("late_arrivals_data");
+  const purisimaPayload = methods.watch("purisima_data");
 
   useEffect(() => {
     if (!isLateArrivalType(deductionType)) {
-      methods.setValue("late_arrivals_payload", undefined);
+      methods.setValue("late_arrivals_data", undefined);
+    }
+    if (!isPurisimaType(deductionType)) {
+      methods.setValue("purisima_data", undefined);
     }
   }, [deductionType, methods]);
 
   const handleLateArrivalsFileRemove = useCallback(() => {
-    methods.setValue("late_arrivals_payload", undefined);
+    methods.setValue("late_arrivals_data", undefined);
   }, [methods]);
 
   const handleLateArrivalsFileSelect = useCallback(
@@ -93,11 +121,41 @@ export const AddDeductionForm = ({
         const result = parseLateArrivalsExcel(buffer);
         if (!result.ok) {
           onRequestError?.(result.error);
-          methods.setValue("late_arrivals_payload", undefined);
+          methods.setValue("late_arrivals_data", undefined);
           setLateArrivalsFileKey((k) => k + 1);
           return;
         }
-        methods.setValue("late_arrivals_payload", result.rows, {
+        methods.setValue("late_arrivals_data", result.rows, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      } catch {
+        onRequestError?.(
+          "No se pudo leer el archivo. Intente de nuevo con un formato .xls o .xlsx válido.",
+        );
+        methods.setValue("late_arrivals_data", undefined);
+        setLateArrivalsFileKey((k) => k + 1);
+      }
+    },
+    [methods, onRequestError],
+  );
+
+  const handlePurisimaFileRemove = useCallback(() => {
+    methods.setValue("purisima_data", undefined);
+  }, [methods]);
+
+  const handlePurisimaFileSelect = useCallback(
+    async (file: File) => {
+      try {
+        const buffer = await file.arrayBuffer();
+        const result = parsePurisimaExcel(buffer);
+        if (!result.ok) {
+          onRequestError?.(result.error);
+          methods.setValue("purisima_data", undefined);
+          setPurisimaFileKey((k) => k + 1);
+          return;
+        }
+        methods.setValue("purisima_data", result.rows, {
           shouldValidate: true,
           shouldDirty: true,
         });
@@ -105,19 +163,18 @@ export const AddDeductionForm = ({
         onRequestError?.(
           "No se pudo leer el archivo. Intente de nuevo con un .xls o .xlsx válido.",
         );
-        methods.setValue("late_arrivals_payload", undefined);
-        setLateArrivalsFileKey((k) => k + 1);
+        methods.setValue("purisima_data", undefined);
+        setPurisimaFileKey((k) => k + 1);
       }
     },
     [methods, onRequestError],
   );
 
   const handleSubmitDeduction = useCallback(
-    (data: CreateDeductionRequest) => {
+    (data: AddDeductionFormValues) => {
       if (
         !foundCollaborator &&
-        !isLateArrivalType(data.deduction_type) &&
-        data.deduction_type !== DeductionCodeEnum.PURISIMA.value
+        !isBulkExcelDeductionType(data.deduction_type)
       ) {
         onRequestError?.(
           "Debe buscar un colaborador para agregar una deducción",
@@ -127,27 +184,28 @@ export const AddDeductionForm = ({
 
       if (isLateArrivalType(data.deduction_type)) {
         const {
-          late_arrivals_payload,
+          late_arrivals_data,
           description: _description,
           collaborator_id: _collaboratorId,
-          purisima_payload: _purisima,
+          purisima_data: _purisima,
           salary_advance_payload: _salaryAdvance,
           ...lateArrivalsBase
         } = data;
 
-        const validated = validateLateArrivalsPayload(late_arrivals_payload);
+        const validated = validateLateArrivalsPayload(late_arrivals_data);
         if (!validated.ok) {
           onRequestError?.(validated.error);
           return;
         }
 
-        const lateArrivalsPayload = {
+        const lateArrivalsPayload: CreateLateArrivalsDeductionRequest = {
           company_id: lateArrivalsBase.company_id,
           module_code: lateArrivalsBase.module_code,
+          branch_id: lateArrivalsBase.branch_id,
           payroll_id: lateArrivalsBase.payroll_id,
-          deduction_type: lateArrivalsBase.deduction_type,
-          late_arrivals_payload: validated.rows,
-        } as CreateDeductionRequest;
+          deduction_type: Number(DeductionCodeEnum.LATE_ARRIVAL.value),
+          late_arrivals_data: validated.rows,
+        };
 
         CreateDeduction.mutate(lateArrivalsPayload, {
           onSuccess: () => {
@@ -166,26 +224,72 @@ export const AddDeductionForm = ({
         return;
       }
 
+      if (isPurisimaType(data.deduction_type)) {
+        const {
+          purisima_data,
+          description: _description,
+          collaborator_id: _collaboratorId,
+          late_arrivals_data: _lateArrivals,
+          salary_advance_payload: _salaryAdvance,
+          ...purisimaBase
+        } = data;
+
+        const validated = validatePurisimaPayload(purisima_data);
+        if (!validated.ok) {
+          onRequestError?.(validated.error);
+          return;
+        }
+
+        const purisimaRequest: CreatePurisimaDeductionRequest = {
+          company_id: purisimaBase.company_id,
+          module_code: purisimaBase.module_code,
+          branch_id: purisimaBase.branch_id,
+          payroll_id: purisimaBase.payroll_id,
+          deduction_type: Number(DeductionCodeEnum.PURISIMA.value),
+          purisima_data: validated.rows,
+        };
+
+        CreateDeduction.mutate(purisimaRequest, {
+          onSuccess: () => {
+            methods.reset();
+            onSubmit?.(purisimaRequest);
+            onRequestSuccess?.("Deducción agregada correctamente");
+            onCancel?.();
+          },
+          onError: (error: ApiErrorResponse) => {
+            const mappedError = getMappedError(error);
+            onRequestError?.(
+              mapPurisimaDeductionError(mappedError?.description),
+            );
+          },
+        });
+        return;
+      }
+
       const {
-        late_arrivals_payload: _lateArrivals,
-        purisima_payload,
+        late_arrivals_data: _lateArrivals,
+        purisima_data: _purisima,
         salary_advance_payload,
         ...baseData
       } = data;
 
-      const finalPayload: CreateDeductionRequest = { ...baseData };
-
-      if (data.deduction_type === DeductionCodeEnum.PURISIMA.value) {
-        finalPayload.purisima_payload = purisima_payload;
-      } else if (
-        data.deduction_type === DeductionCodeEnum.SALARY_ADVANCE.value
-      ) {
-        finalPayload.salary_advance_payload = salary_advance_payload;
-      }
+      const finalPayload: CreateStandardDeductionRequest = {
+        company_id: baseData.company_id,
+        module_code: baseData.module_code,
+        branch_id: baseData.branch_id,
+        payroll_id: baseData.payroll_id,
+        deduction_type: Number(baseData.deduction_type),
+        collaborator_id: baseData.collaborator_id ?? "",
+        description: baseData.description ?? "",
+      };
 
       if (foundCollaborator) {
         finalPayload.collaborator_id =
           foundCollaborator.collaborator_id.toString();
+      }
+
+      if (data.deduction_type === DeductionCodeEnum.SALARY_ADVANCE.value) {
+        finalPayload.salary_advance_payload = salary_advance_payload;
       }
 
       CreateDeduction.mutate(finalPayload, {
@@ -223,11 +327,15 @@ export const AddDeductionForm = ({
   const hasLateArrivalsData =
     isLateArrivalType(deductionType) && (lateArrivalsPayload?.length ?? 0) > 0;
 
+  const hasPurisimaData =
+    isPurisimaType(deductionType) && (purisimaPayload?.length ?? 0) > 0;
+
   const isSubmitDisabled =
     !methods.formState.isDirty ||
     !methods.formState.isValid ||
     !isSubmitEnabledType ||
     (isLateArrivalType(deductionType) && !hasLateArrivalsData) ||
+    (isPurisimaType(deductionType) && !hasPurisimaData) ||
     (deductionType === DeductionCodeEnum.SALARY_ADVANCE.value &&
       !foundCollaborator);
 
@@ -264,7 +372,7 @@ export const AddDeductionForm = ({
           />
         </div>
 
-        {!!foundCollaborator && !isLateArrivalType(deductionType) && (
+        {!!foundCollaborator && !isBulkExcelDeductionType(deductionType) && (
           <div className="relative flex w-full min-w-0 flex-row items-center gap-4">
             <div className="min-w-0 flex-1">
               <CollaboratorSummary
@@ -302,11 +410,22 @@ export const AddDeductionForm = ({
           <FileUploader
             key={lateArrivalsFileKey}
             title="Cargar archivo de llegadas tardes"
-            description="Formato .xls o .xlsx (columna A: ID empleado, columna C: valor)"
+            description="Formato .xls o .xlsx (columna A: ID empleado, columna C: minutos)"
             extensions={["xls", "xlsx"]}
             readySubmitLabel="Agregar Deducción"
             onFileSelect={handleLateArrivalsFileSelect}
             onFileRemove={handleLateArrivalsFileRemove}
+          />
+        )}
+        {isPurisimaType(deductionType) && (
+          <FileUploader
+            key={purisimaFileKey}
+            title="Cargar archivo de purísima"
+            description="Formato .xls o .xlsx (columna A: ID empleado, columna C: monto)"
+            extensions={["xls", "xlsx"]}
+            readySubmitLabel="Agregar Deducción"
+            onFileSelect={handlePurisimaFileSelect}
+            onFileRemove={handlePurisimaFileRemove}
           />
         )}
         {!!foundCollaborator &&
@@ -314,9 +433,6 @@ export const AddDeductionForm = ({
             <SalaryAdvance />
           )}
         {deductionType === DeductionCodeEnum.SANCTION.value && <Sanctions />}
-        {deductionType === DeductionCodeEnum.PURISIMA.value && (
-          <PurisimaContribution />
-        )}
         {deductionType ===
           DeductionCodeEnum.CHILD_SUPPORT_GARNISHMENT.value && (
           <ChildSupportGarnishment />
@@ -330,28 +446,28 @@ export const AddDeductionForm = ({
 
         {!foundCollaborator &&
           deductionType === DeductionCodeEnum.SALARY_ADVANCE.value && (
-            <CollaboratorSearchForm
-              onSuccess={(collaborator) => {
-                setFoundCollaborator(collaborator);
-                setIsSearching(false);
-              }}
-              onError={() => {
-                setFoundCollaborator(null);
-                setIsSearching(false);
-              }}
-              onSearchStart={() => {
-                setFoundCollaborator(null);
-                setIsSearching(true);
-              }}
-              excludeIdentifications={[identificationNumber]}
-            />
+            // <CollaboratorSearchForm
+            //   onSuccess={(collaborator) => {
+            //     setFoundCollaborator(collaborator);
+            //     setIsSearching(false);
+            //   }}
+            //   onError={() => {
+            //     setFoundCollaborator(null);
+            //     setIsSearching(false);
+            //   }}
+            //   onSearchStart={() => {
+            //     setFoundCollaborator(null);
+            //     setIsSearching(true);
+            //   }}
+            //   excludeIdentifications={[identificationNumber]}
+            // />
+            <SalaryAdvanceDev />
           )}
 
         {!!foundCollaborator &&
           !!deductionType &&
-          !isLateArrivalType(deductionType) &&
-          (deductionType === DeductionCodeEnum.SALARY_ADVANCE.value ||
-            deductionType === DeductionCodeEnum.PURISIMA.value) && (
+          !isBulkExcelDeductionType(deductionType) &&
+          deductionType === DeductionCodeEnum.SALARY_ADVANCE.value && (
             <Controller
               name="description"
               control={methods.control}

@@ -1,11 +1,11 @@
 import { useFormContext, Controller } from "react-hook-form";
-import type { CreateDeductionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
+import type { AddDeductionFormValues } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
 import { InputText, Dropdown } from "@alpac/design-system";
 import { formatAmount } from "@app/shared/utils/number.utils";
 import { CurrencyOptions } from "@app/core/enums/currency.enum";
 
 export const SalaryAdvance = () => {
-   const { register, control, formState: { errors } } = useFormContext<CreateDeductionRequest>();
+   const { register, control, formState: { errors } } = useFormContext<AddDeductionFormValues>();
 
    return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

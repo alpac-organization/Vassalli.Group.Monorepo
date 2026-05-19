@@ -4,6 +4,7 @@ export interface CreateIncomeModalProps {
    isOpen: boolean;
    collaborator?: GetCollaboratorProfileDetailsResponse;
    payrollId: string;
+   branchId: string;
    onClose: () => void;
    onRequestSuccess?: (message: string) => void;
    onRequestError?: (message?: string) => void;

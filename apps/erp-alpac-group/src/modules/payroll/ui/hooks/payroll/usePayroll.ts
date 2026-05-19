@@ -7,6 +7,8 @@ import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContr
 import type { PayrollRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-request";
 import type { GetPayrollResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
+import type { PayrollCloseRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-close.request";
+import type { ClosePayrollResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/payroll-close.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
 const payrollServices = new PayrollServices(httpHandler);
@@ -75,7 +77,7 @@ export function usePayrollDetails({
     queryFn: () => payrollServices.getPayroll(payload),
     enabled:
       enabled && Boolean(companie_id && module_code && type && branch_id),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2,
     retry: 1,
     refetchOnWindowFocus: false,
   });
@@ -107,4 +109,34 @@ export function useInitializePayroll(): UseMutationResult<
       });
     },
   });
+}
+
+export function useClosePayroll(): UseMutationResult<
+  ClosePayrollResponse,
+  ApiErrorResponse,
+  PayrollCloseRequest
+> {
+  const queryClient = useQueryClient();
+
+  return useMutation<ClosePayrollResponse, ApiErrorResponse, PayrollCloseRequest>(
+    {
+      mutationFn: (payload) => payrollServices.closePayroll(payload),
+      onSuccess: (_data, variables) => {
+        queryClient.invalidateQueries({
+          queryKey: [
+            "payrollsStatus",
+            variables.companie_id,
+            variables.module_code,
+          ],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [
+            "detailsPayroll",
+            variables.companie_id,
+            variables.module_code,
+          ],
+        });
+      },
+    },
+  );
 }

@@ -5,7 +5,8 @@ import { CheckCircle2 } from "lucide-react";
 import { Alert, AnimatedAlertWrapper } from "@alpac/design-system";
 import { useCallback, useRef, useState } from "react";
 
-const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
+const loadFeatures = () =>
+  import("framer-motion").then((res) => res.domAnimation);
 
 export const FileUploader = ({
   title,
@@ -127,11 +128,6 @@ export const FileUploader = ({
                 <p className="text-center text-lg font-medium text-slate-700 dark:text-slate-200">
                   {title ?? "Arrastra y suelta tu archivo aquí"}
                 </p>
-
-                <p className="mt-2 text-center text-sm text-slate-500 dark:text-slate-400">
-                  {description ??
-                    `O haz clic para explorar tus archivos (${extensions?.join(", ")})`}
-                </p>
               </m.div>
             ) : (
               <m.div
@@ -167,8 +163,8 @@ export const FileUploader = ({
                   {(selectedFile.size / 1024).toFixed(2)} KB
                 </p>
                 <p className="max-w-md text-center text-sm text-slate-600 dark:text-slate-300">
-                  Archivo listo. Use &quot;{readySubmitLabel}&quot; para enviarlo
-                  con la nómina.
+                  Archivo importado correctamente. Use &quot;{readySubmitLabel}
+                  &quot; para guardar los datos en el software.
                 </p>
               </m.div>
             )}

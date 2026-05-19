@@ -3,7 +3,11 @@ import type { FormLayoutProps } from "./form-layout.type";
 import Logo from "../../../assets/logos/color/vasalli-neutral-logo.png";
 import { CopyRight } from "@app/shared/components/copy-right/copy-right";
 
-export const FormLayout = ({ children, imageUrl = Logo }: FormLayoutProps) => {
+export const FormLayout = ({
+  children,
+  imageUrl = Logo,
+  copyrightEntityName,
+}: FormLayoutProps) => {
   return (
     <div className="flex flex-col w-full min-h-dvh md:min-h-auto items-center justify-center">
       <div className="flex flex-col w-full min-h-dvh md:min-h-70 md:w-108 bg-white md:rounded-2xl transition-all duration-300 px-5 py-8 md:px-8 md:py-9">
@@ -20,7 +24,7 @@ export const FormLayout = ({ children, imageUrl = Logo }: FormLayoutProps) => {
         </div>
 
         <footer className="mt-8 relative z-10">
-          <CopyRight />
+          <CopyRight entityName={copyrightEntityName} />
         </footer>
       </div>
     </div>
