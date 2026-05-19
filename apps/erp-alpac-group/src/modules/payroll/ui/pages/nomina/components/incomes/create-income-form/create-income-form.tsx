@@ -3,12 +3,13 @@ import type {
   IncomeTypeOption,
 } from "./create-income-form.types";
 import { FormProvider, Controller, useForm } from "react-hook-form";
-import { Button, Dropdown, Textarea } from "@alpac/design-system";
+import { Button, Dropdown } from "@alpac/design-system";
 import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useIncomes } from "@app/modules/payroll/ui/hooks/incomes/useIncomes";
 import { IncomeTypeEnum } from "@app/modules/payroll/domain/enums/income-enums/income.enum";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -26,6 +27,9 @@ import {
 const inputClassName =
   "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
+
+const loadMotionFeatures = () =>
+  import("framer-motion").then((res) => res.domAnimation);
 
 export const CreateIncomeForm = ({
   payrollId,
@@ -49,11 +53,10 @@ export const CreateIncomeForm = ({
       payroll_id: payrollId,
       branch_id: branchId,
       type_income_id: "",
-      description: "",
       overtime_income_data: undefined,
       commissions_payload: {
-        commission_amount: 0,
         currency: 0,
+        commission_amount: 0,
       },
     },
   });
@@ -92,6 +95,7 @@ export const CreateIncomeForm = ({
 
   const incomeTypeId = methods.watch("type_income_id");
   const overtimeIncomePayload = methods.watch("overtime_income_data");
+  const commissionIncomePayload = methods.watch("commissions_payload");
 
   const selectedIncomeTypeCode = useMemo(() => {
     return incomeTypeOptions.find((opt) => opt.id === incomeTypeId)?.code;
@@ -103,10 +107,29 @@ export const CreateIncomeForm = ({
     selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION;
 
   useEffect(() => {
+    methods.setValue("payroll_id", payrollId);
+  }, [payrollId, methods]);
+
+  useEffect(() => {
+    methods.setValue("branch_id", branchId);
+  }, [branchId, methods]);
+
+  useEffect(() => {
     if (!isOvertimeType) {
       methods.setValue("overtime_income_data", undefined);
     }
   }, [isOvertimeType, methods]);
+
+  useEffect(() => {
+    if (!isCommissionType) {
+      methods.setValue("commissions_payload", undefined);
+      return;
+    }
+    methods.setValue("commissions_payload", {
+      currency: 0,
+      commission_amount: 0,
+    });
+  }, [isCommissionType, methods]);
 
   const handleOvertimeFileRemove = useCallback(() => {
     methods.setValue("overtime_income_data", undefined);
@@ -184,26 +207,24 @@ export const CreateIncomeForm = ({
     }
 
     if (isCommissionType) {
-      const {
-        description: _description,
-        identification_number: _id,
-        ...commissionRest
-      } = rest;
+      const collaboratorIdentification =
+        foundCollaborator?.personal_information?.identification_number ?? "";
+      const identificationNumber = collaboratorIdentification
+        .replace(/-/g, "")
+        .toUpperCase();
 
       await CreateIncome.mutateAsync(
         {
-          company_id: commissionRest.company_id,
-          module_code: commissionRest.module_code,
-          branch_id: commissionRest.branch_id,
-          payroll_id: commissionRest.payroll_id,
-          type_income_id: commissionRest.type_income_id,
-          identification_number:
-            foundCollaborator?.personal_information?.identification_number ??
-            "",
+          company_id: rest.company_id,
+          module_code: rest.module_code,
+          branch_id: rest.branch_id,
+          payroll_id: rest.payroll_id,
+          type_income_id: rest.type_income_id,
           commissions_payload: {
+            currency: Number(commissions_payload?.currency) || 0,
             commission_amount:
               Number(commissions_payload?.commission_amount) || 0,
-            currency: Number(commissions_payload?.currency) || 0,
+            identification_number: identificationNumber,
           },
         },
         {
@@ -224,13 +245,17 @@ export const CreateIncomeForm = ({
   const hasOvertimeData =
     isOvertimeType && (overtimeIncomePayload?.length ?? 0) > 0;
 
+  const hasValidCommission =
+    (commissionIncomePayload?.commission_amount ?? 0) > 0 &&
+    (commissionIncomePayload?.currency ?? 0) !== 0;
+
   const isSubmitDisabled =
     CreateIncome.isPending ||
     !methods.formState.isDirty ||
     !methods.formState.isValid ||
     !selectedIncomeTypeCode ||
     (isOvertimeType && !hasOvertimeData) ||
-    (isCommissionType && !foundCollaborator);
+    (isCommissionType && (!foundCollaborator || !hasValidCommission));
 
   return (
     <FormProvider {...methods}>
@@ -306,7 +331,13 @@ export const CreateIncomeForm = ({
                 <button
                   type="button"
                   className="rounded-full p-1.5 text-slate-700 transition-all hover:bg-slate-300 hover:text-slate-900 dark:text-white dark:hover:bg-white/15 dark:hover:text-white"
-                  onClick={() => setFoundCollaborator(null)}
+                  onClick={() => {
+                    setFoundCollaborator(null);
+                    methods.setValue("commissions_payload", {
+                      currency: 0,
+                      commission_amount: 0,
+                    });
+                  }}
                   aria-label="Quitar Colaborador"
                 >
                   <X size={20} />
@@ -318,7 +349,30 @@ export const CreateIncomeForm = ({
             </div>
           )}
 
-          {!!foundCollaborator && isCommissionType && <Commission />}
+          <LazyMotion features={loadMotionFeatures} strict>
+            <AnimatePresence initial={false}>
+              {!!foundCollaborator && isCommissionType && (
+                <m.div
+                  key="commission-fields"
+                  initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    height: "auto",
+                    overflow: "visible",
+                  }}
+                  exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+                  transition={{
+                    height: { duration: 0.28, ease: "easeInOut" },
+                    opacity: { duration: 0.35, ease: "easeOut", delay: 0.08 },
+                    y: { duration: 0.28, ease: "easeOut", delay: 0.08 },
+                  }}
+                >
+                  <Commission />
+                </m.div>
+              )}
+            </AnimatePresence>
+          </LazyMotion>
 
           {isOvertimeType && (
             <FileUploader
@@ -327,25 +381,6 @@ export const CreateIncomeForm = ({
               extensions={["xls", "xlsx"]}
               onFileSelect={handleOvertimeFileSelect}
               onFileRemove={handleOvertimeFileRemove}
-            />
-          )}
-
-          {!!foundCollaborator && isCommissionType && (
-            <Textarea
-              label="Descripción"
-              labelClassName={labelClassName}
-              rows={3}
-              maxLength={500}
-              placeholder="Motivo del ingreso..."
-              className={`${inputClassName} resize-none`}
-              error={methods.formState.errors.description?.message}
-              {...methods.register("description", {
-                maxLength: {
-                  value: 500,
-                  message:
-                    "La descripción debe tener como máximo 500 caracteres",
-                },
-              })}
             />
           )}
         </div>

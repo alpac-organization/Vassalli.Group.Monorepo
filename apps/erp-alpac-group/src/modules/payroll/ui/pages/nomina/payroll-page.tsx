@@ -21,6 +21,7 @@ import {
   usePayrollStatus,
   usePayrollDetails,
   useInitializePayroll,
+  useClosePayroll,
 } from "@app/modules/payroll/ui/hooks/payroll/usePayroll";
 import { Loader } from "@app/shared/components/loaders/loader";
 import PayrollPageHeader from "@app/modules/payroll/ui/pages/nomina/components/payroll-page-header/payroll-page-header";
@@ -376,6 +377,7 @@ export function PayrollPage() {
   }, [payrollStatusQuery.isError]);
 
   const initializePayrollMutation = useInitializePayroll();
+  const closePayrollMutation = useClosePayroll();
 
   const handleOpenInitializePayrollConfirmModal = useCallback(() => {
     if (initializePayrollMutation.isPending) {
@@ -432,6 +434,53 @@ export function PayrollPage() {
     initializeModalPayrollType,
     initializeModalBranch,
     initializePayrollMutation,
+    handleRequestError,
+    handleRequestSuccess,
+  ]);
+
+  const handleConfirmFormalizacion = useCallback(async () => {
+    const payrollId = selectedOrdinaryPayroll?.payroll_id;
+    if (
+      !payrollId ||
+      !selectedBranch ||
+      !selectedPayrollType ||
+      selectedPayrollType === "None"
+    ) {
+      handleRequestError(
+        "No se encontró la nómina activa para formalizar.",
+        "No se pudo formalizar",
+      );
+      throw new Error("Missing payroll close context");
+    }
+
+    try {
+      await closePayrollMutation.mutateAsync({
+        companie_id: companyId,
+        module_code: moduleCode,
+        payroll_id: payrollId,
+        branch_id: selectedBranch,
+        payroll_type: selectedPayrollType,
+      });
+      handleRequestSuccess(
+        "La nómina se formalizó correctamente.",
+        "Nómina formalizada",
+      );
+    } catch (error) {
+      const apiError = error as ApiErrorResponse;
+      handleRequestError(
+        apiError?.error?.description ||
+          "No se pudo formalizar la nómina. Inténtelo nuevamente.",
+        "No se pudo formalizar",
+      );
+      throw error;
+    }
+  }, [
+    selectedOrdinaryPayroll?.payroll_id,
+    selectedBranch,
+    selectedPayrollType,
+    companyId,
+    moduleCode,
+    closePayrollMutation,
     handleRequestError,
     handleRequestSuccess,
   ]);
@@ -1143,6 +1192,8 @@ export function PayrollPage() {
                 cicloFinal={ordinaryPayrollQuery.data?.end_date ?? "—"}
                 existPayrollInProgress={existPayrollInProgress}
                 statusLoading={statusFetchInFlight}
+                formalizeLoading={closePayrollMutation.isPending}
+                onConfirmFormalizacion={handleConfirmFormalizacion}
               />
             </div>
 
@@ -1160,6 +1211,8 @@ export function PayrollPage() {
                   cicloFinal={ordinaryPayrollQuery.data?.end_date ?? "—"}
                   existPayrollInProgress={existPayrollInProgress}
                   statusLoading={statusFetchInFlight}
+                  formalizeLoading={closePayrollMutation.isPending}
+                  onConfirmFormalizacion={handleConfirmFormalizacion}
                 />
               </div>
               <div className="w-[18rem] flex flex-col items-end gap-3">

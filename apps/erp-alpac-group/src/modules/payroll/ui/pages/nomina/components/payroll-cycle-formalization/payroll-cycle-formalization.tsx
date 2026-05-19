@@ -16,6 +16,7 @@ export default function PayrollCycleFormalization({
   onConfirmFormalizacion,
   existPayrollInProgress,
   statusLoading = false,
+  formalizeLoading = false,
 }: PayrollCycleFormalizationProps) {
   const [isFormalizeModalOpen, setIsFormalizeModalOpen] = useState(false);
 
@@ -24,16 +25,23 @@ export default function PayrollCycleFormalization({
   }, []);
 
   const handleCloseFormalizeModal = useCallback(() => {
+    if (formalizeLoading) return;
     setIsFormalizeModalOpen(false);
-  }, []);
+  }, [formalizeLoading]);
 
-  const handleConfirmFormalize = useCallback(() => {
-    onConfirmFormalizacion?.();
-    setIsFormalizeModalOpen(false);
+  const handleConfirmFormalize = useCallback(async () => {
+    try {
+      await onConfirmFormalizacion?.();
+    } catch {
+      // El error y la alerta se manejan en el padre (payroll-page).
+    } finally {
+      setIsFormalizeModalOpen(false);
+    }
   }, [onConfirmFormalizacion]);
 
   const formalizeDisabled =
     statusLoading ||
+    formalizeLoading ||
     existPayrollInProgress === false ||
     existPayrollInProgress === undefined;
   return (
@@ -98,13 +106,15 @@ export default function PayrollCycleFormalization({
             size="giant"
             label="Cancelar"
             onClick={handleCloseFormalizeModal}
+            disabled={formalizeLoading}
             className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:w-auto!"
           />
           <Button
             type="button"
             size="giant"
-            label="Confirmar"
+            label={formalizeLoading ? "Formalizando..." : "Confirmar"}
             onClick={handleConfirmFormalize}
+            disabled={formalizeLoading}
             className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:w-auto!"
           />
         </div>
