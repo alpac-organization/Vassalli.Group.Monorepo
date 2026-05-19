@@ -38,7 +38,6 @@ export interface CreateIncomeRequest {
    * Identificador único del tipo de ingreso
    */
   type_income_id: string;
-  branch_id: string;
 
   /**
    * Identificador único de la sucursal

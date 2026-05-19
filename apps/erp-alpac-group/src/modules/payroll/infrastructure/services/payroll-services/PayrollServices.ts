@@ -11,6 +11,8 @@ import type { GetPayrollReportsPayloadResponse } from "@app/modules/payroll/doma
 
 import type { PayrollPeriodsHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-periods-history.request";
 import type { PayrollPeriodItem } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-periods";
+import type { PayrollCloseRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-close.request";
+import type { ClosePayrollResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/payroll-close.response";
 export class PayrollServices implements IPayrollServices {
   private apiHandler: IHttpHandler;
 
@@ -95,6 +97,26 @@ export class PayrollServices implements IPayrollServices {
           },
         );
       return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  public async closePayroll(
+    payload: PayrollCloseRequest,
+  ): Promise<ClosePayrollResponse> {
+    try {
+      const {
+        companie_id,
+        module_code,
+        payroll_id,
+        branch_id,
+        payroll_type,
+      } = payload;
+      return this.apiHandler.post<ClosePayrollResponse>(
+        `/companies/${companie_id}/modules/${module_code}/payrolls/${payroll_id}/close`,
+        { branch_id, payroll_type },
+      );
     } catch (error) {
       throw error;
     }
