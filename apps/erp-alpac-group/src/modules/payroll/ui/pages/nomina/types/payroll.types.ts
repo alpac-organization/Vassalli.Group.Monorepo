@@ -6,5 +6,5 @@ export type StoredPayrollSelection = {
 
 export type PdfSignatory = {
   name: string;
-  role: string;
+  role?: string;
 };

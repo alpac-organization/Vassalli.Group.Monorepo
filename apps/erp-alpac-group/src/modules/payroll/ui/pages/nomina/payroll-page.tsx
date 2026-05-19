@@ -10,7 +10,7 @@ import {
 } from "@alpac/design-system";
 import { m, LazyMotion } from "framer-motion";
 import { useCallback, useState, useMemo, useEffect } from "react";
-
+import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
 import { useNavigate } from "react-router-dom";
@@ -69,6 +69,7 @@ export function PayrollPage() {
     companyId ? { company_id: companyId } : undefined,
   );
 
+  const signatures = getSignatures(companyName);
   const companiesData = GetCompaniesQuery?.data;
 
   const currentCompanyImageUrl = useMemo(() => {
@@ -577,11 +578,10 @@ export function PayrollPage() {
           endDate={ordinaryPayrollQuery.data?.end_date}
           visibleKeys={visibleKeys}
           preparedBy={{
-            name: "Lic Aracelly Guillen",
-            role: "Talento Humano",
+            name: "Talento Humano",
           }}
           reviewedBy={{
-            name: "Isolina Reyes",
+            name: signatures.revisado?.name ?? "",
             role: "Contador General",
           }}
         />,
@@ -904,7 +904,7 @@ export function PayrollPage() {
               visibleKeys={visibleKeys}
               onVisibleKeysChange={setVisibleKeys}
               onPageChange={handlePageChange}
-              onRowClick={handleOpenPayrollDetailModal}
+              onRowDoubleClick={handleOpenPayrollDetailModal}
               isPending={detailsFetchInFlight}
             />
           </div>

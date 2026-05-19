@@ -186,9 +186,9 @@ export function PayrollPdfDocument({
                 <Text style={styles.signatureName}>
                   Elaborado por: {preparedBy.name}
                 </Text>
-                <Text style={styles.signatureRole}>
+                {/* <Text style={styles.signatureRole}>
                   Responsable de: {preparedBy.role}
-                </Text>
+                </Text> */}
               </View>
             )}
             {reviewedBy && (
