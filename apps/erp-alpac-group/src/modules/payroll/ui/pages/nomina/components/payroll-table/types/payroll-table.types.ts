@@ -21,6 +21,7 @@ export type AdditionalDeductions = {
   Sanction?: number;
   CashShortage?: number;
   LateArrivals?: number;
+  LateArrivalsInMinutes?: number;
   SalaryAdvance?: number;
   OtherDeductions?: number;
   JudicialSeizures?: number;

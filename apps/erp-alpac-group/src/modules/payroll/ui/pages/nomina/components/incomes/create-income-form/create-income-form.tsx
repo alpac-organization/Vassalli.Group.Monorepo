@@ -33,6 +33,7 @@ const loadMotionFeatures = () =>
 
 export const CreateIncomeForm = ({
   payrollId,
+  branchId,
   onCancel,
   onRequestSuccess,
   onRequestError,
@@ -50,6 +51,7 @@ export const CreateIncomeForm = ({
       company_id: companyId,
       module_code: moduleCode,
       payroll_id: payrollId,
+      branch_id: branchId,
       type_income_id: "",
       overtime_income_data: undefined,
       commissions_payload: {
@@ -103,6 +105,14 @@ export const CreateIncomeForm = ({
     selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME;
   const isCommissionType =
     selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION;
+
+  useEffect(() => {
+    methods.setValue("payroll_id", payrollId);
+  }, [payrollId, methods]);
+
+  useEffect(() => {
+    methods.setValue("branch_id", branchId);
+  }, [branchId, methods]);
 
   useEffect(() => {
     if (!isOvertimeType) {
@@ -175,8 +185,8 @@ export const CreateIncomeForm = ({
       await CreateIncome.mutateAsync(
         {
           company_id: overtimeRest.company_id,
-          branch_id: overtimeRest.branch_id,
           module_code: overtimeRest.module_code,
+          branch_id: overtimeRest.branch_id,
           payroll_id: overtimeRest.payroll_id,
           type_income_id: overtimeRest.type_income_id,
           overtime_income_data: validated.rows,
@@ -197,8 +207,11 @@ export const CreateIncomeForm = ({
     }
 
     if (isCommissionType) {
-      const identificationNumber =
+      const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
+      const identificationNumber = collaboratorIdentification
+        .replace(/-/g, "")
+        .toUpperCase();
 
       await CreateIncome.mutateAsync(
         {

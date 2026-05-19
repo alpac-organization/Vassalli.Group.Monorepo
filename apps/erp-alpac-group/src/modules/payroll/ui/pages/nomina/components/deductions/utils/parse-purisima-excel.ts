@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import type { LateArrivalsPayload } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
+import type { PurisimaPayload } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
 import {
   cellToTrimmedString,
   excelFirstDataRowIndex,
@@ -7,34 +7,30 @@ import {
   parseColumnAEmployeeId,
 } from "@app/modules/payroll/ui/pages/nomina/components/deductions/utils/excel-employee-id.utils";
 
-export function thirdColumnToMinutes(raw: number): number {
-  return raw;
-}
-
-export type LateArrivalsViolation = {
+export type PurisimaViolation = {
   sheetRow: number;
   identification_number: string;
   rawDisplay: string;
   reason: string;
 };
 
-export type ParseLateArrivalsExcelResult =
-  | { ok: true; rows: LateArrivalsPayload[] }
-  | { ok: false; error: string; violations: LateArrivalsViolation[] };
+export type ParsePurisimaExcelResult =
+  | { ok: true; rows: PurisimaPayload[] }
+  | { ok: false; error: string; violations: PurisimaViolation[] };
 
 const DECIMAL_CHECK_EPS = 1e-3;
 
-export function isTotalMinutesBusinessValid(n: number): boolean {
+export function isPurisimaAmountValid(n: number): boolean {
   if (!Number.isFinite(n)) return false;
-  if (n < 0) return false;
+  if (n <= 0) return false;
   const scaled = n * 100;
   const rounded = Math.round(scaled);
   return Math.abs(scaled - rounded) < DECIMAL_CHECK_EPS;
 }
 
-function reasonForInvalidMinutes(n: number): string {
+function reasonForInvalidAmount(n: number): string {
   if (!Number.isFinite(n)) return "valor no numérico válido";
-  if (n < 0) return "valor negativo";
+  if (n <= 0) return "el monto debe ser mayor a 0";
   return "más de 2 decimales";
 }
 
@@ -64,11 +60,11 @@ function parseThirdColumnToRawNumber(cell: unknown): number | "empty" {
   return n;
 }
 
-export function formatLateArrivalsViolationsMessage(
-  violations: LateArrivalsViolation[],
+export function formatPurisimaViolationsMessage(
+  violations: PurisimaViolation[],
 ): string {
   const header =
-    "El archivo contiene montos que no cumplen las reglas (0 o mayor, sin negativos, máximo 2 decimales). Detalle:";
+    "El archivo contiene montos que no cumplen las reglas (mayor a 0, máximo 2 decimales). Detalle:";
   const lines = violations.map(
     (v) =>
       `• Fila ${v.sheetRow} (ID ${v.identification_number}): "${v.rawDisplay}" — ${v.reason}.`,
@@ -76,9 +72,7 @@ export function formatLateArrivalsViolationsMessage(
   return [header, ...lines].join("\n");
 }
 
-export function parseLateArrivalsExcel(
-  buffer: ArrayBuffer,
-): ParseLateArrivalsExcelResult {
+export function parsePurisimaExcel(buffer: ArrayBuffer): ParsePurisimaExcelResult {
   let workbook: XLSX.WorkBook;
   try {
     workbook = XLSX.read(buffer, { type: "array" });
@@ -107,8 +101,8 @@ export function parseLateArrivalsExcel(
   }) as unknown[][];
 
   const startRow = excelFirstDataRowIndex(matrix);
-  const rows: LateArrivalsPayload[] = [];
-  const violations: LateArrivalsViolation[] = [];
+  const rows: PurisimaPayload[] = [];
+  const violations: PurisimaViolation[] = [];
 
   for (let i = startRow; i < matrix.length; i++) {
     const sheetRow = i + 1;
@@ -120,28 +114,38 @@ export function parseLateArrivalsExcel(
     const rawParsed = parseThirdColumnToRawNumber(third);
     const rawDisplay = cellToTrimmedString(third) || "(vacío)";
 
-    const amount_minutes =
-      rawParsed === "empty" ? 0 : thirdColumnToMinutes(rawParsed);
-
-    if (!isTotalMinutesBusinessValid(amount_minutes)) {
+    if (rawParsed === "empty") {
       violations.push({
         sheetRow,
         identification_number: id,
         rawDisplay,
-        reason: reasonForInvalidMinutes(amount_minutes),
+        reason: "el monto es requerido",
       });
       continue;
     }
+
+    const amount = rawParsed;
+
+    if (!isPurisimaAmountValid(amount)) {
+      violations.push({
+        sheetRow,
+        identification_number: id,
+        rawDisplay,
+        reason: reasonForInvalidAmount(amount),
+      });
+      continue;
+    }
+
     rows.push({
       identification_number: id,
-      total_minutes: amount_minutes,
+      amount,
     });
   }
 
   if (violations.length > 0) {
     return {
       ok: false,
-      error: formatLateArrivalsViolationsMessage(violations),
+      error: formatPurisimaViolationsMessage(violations),
       violations,
     };
   }
@@ -153,12 +157,13 @@ export function parseLateArrivalsExcel(
       violations: [],
     };
   }
+
   return { ok: true, rows };
 }
 
-export function mapLateArrivalsDeductionError(description?: string): string {
+export function mapPurisimaDeductionError(description?: string): string {
   if (!description?.trim()) {
-    return "No se pudieron registrar las tardanzas. Intente de nuevo.";
+    return "No se pudieron registrar las contribuciones de purísima. Intente de nuevo.";
   }
   if (/colaborador/i.test(description)) {
     return "Uno o más ID del archivo no están registrados en esta nómina. Revise los números de identificación en el Excel.";
@@ -166,28 +171,28 @@ export function mapLateArrivalsDeductionError(description?: string): string {
   return description;
 }
 
-export function validateLateArrivalsPayload(
-  rows: LateArrivalsPayload[] | undefined,
-): ParseLateArrivalsExcelResult {
+export function validatePurisimaPayload(
+  rows: PurisimaPayload[] | undefined,
+): ParsePurisimaExcelResult {
   if (!rows?.length) {
     return {
       ok: false,
       error:
-        "Debe adjuntar un archivo de llegadas tardes con al menos un registro válido.",
+        "Debe adjuntar un archivo de purísima con al menos un registro válido.",
       violations: [],
     };
   }
 
-  const violations: LateArrivalsViolation[] = [];
+  const violations: PurisimaViolation[] = [];
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
-    const n = r.total_minutes;
-    if (!isTotalMinutesBusinessValid(n)) {
+    const n = r.amount;
+    if (!isPurisimaAmountValid(n)) {
       violations.push({
         sheetRow: i + 1,
         identification_number: r.identification_number,
         rawDisplay: String(n),
-        reason: reasonForInvalidMinutes(n),
+        reason: reasonForInvalidAmount(n),
       });
     }
   }
@@ -195,7 +200,7 @@ export function validateLateArrivalsPayload(
   if (violations.length > 0) {
     return {
       ok: false,
-      error: formatLateArrivalsViolationsMessage(violations),
+      error: formatPurisimaViolationsMessage(violations),
       violations,
     };
   }

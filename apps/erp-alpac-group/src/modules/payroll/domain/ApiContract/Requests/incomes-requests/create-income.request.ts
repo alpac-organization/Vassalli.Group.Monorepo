@@ -4,6 +4,7 @@
  * ```json
  * {
  *  "payroll_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+ *  "branch_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
  *  "type_income_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
  *  "description": "string",
  *  "commissions_payload": {
@@ -40,6 +41,11 @@ export interface CreateIncomeRequest {
   branch_id: string;
 
   /**
+   * Identificador único de la sucursal
+   */
+  branch_id: string;
+
+  /**
    * Número de identificación (comisión u otros ingresos individuales)
    */
   identification_number?: string;
@@ -65,6 +71,9 @@ export interface CreateIncomeOvertimeRequest {
    * Monto de horas extra
    */
   identification_number: string;
+  /**
+   * Monto de horas extra
+   */
   amount_hours: number;
 }
 

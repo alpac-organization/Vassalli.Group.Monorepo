@@ -75,7 +75,7 @@ export function usePayrollDetails({
     queryFn: () => payrollServices.getPayroll(payload),
     enabled:
       enabled && Boolean(companie_id && module_code && type && branch_id),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 2,
     retry: 1,
     refetchOnWindowFocus: false,
   });
