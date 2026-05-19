@@ -16,7 +16,7 @@ export function PayrollTable({
   visibleKeys,
   onVisibleKeysChange,
   onPageChange,
-  onRowClick,
+  onRowDoubleClick,
   isPending,
 }: PayrollTableProps) {
   const activeColumns = useMemo(
@@ -29,7 +29,7 @@ export function PayrollTable({
       title="Listado de Nomina"
       data={rows}
       columns={activeColumns}
-      onRowClick={onRowClick}
+      onRowDoubleClick={onRowDoubleClick}
       toolbarEnd={
         <DataTableColumnVisibility
           options={columns.map((c) => ({
