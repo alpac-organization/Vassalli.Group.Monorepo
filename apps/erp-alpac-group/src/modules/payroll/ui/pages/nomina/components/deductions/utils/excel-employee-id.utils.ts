@@ -1,4 +1,4 @@
-const EMPLOYEE_ID_PATTERN = /^[0-9A-Za-z-]{3,}$/;
+const EMPLOYEE_ID_PATTERN = /^[0-9A-Z]{3,}$/;
 
 const EXCEL_HEADER_LABEL =
   /^(id\s*empleado|idempleado|identificaci[oó]n|cedula|c[eé]dula|nombre|valor|horas|id)$/i;
@@ -20,7 +20,7 @@ export function parseColumnAEmployeeId(cell: unknown): string | null {
   ) {
     return null;
   }
-  const normalized = raw.replace(/\s/g, "");
+  const normalized = raw.replace(/\s/g, "").replace(/-/g, "").toUpperCase();
   if (!EMPLOYEE_ID_PATTERN.test(normalized)) return null;
   return normalized;
 }

@@ -5,6 +5,7 @@ import {
   DeductionCodeEnum,
   DeductionOptions,
 } from "@app/modules/payroll/domain/enums/deduction-enums/deduction.enum";
+import { SalaryAdvanceDev } from "@app/modules/payroll/ui/pages/nomina/components/deductions/salary-advance/salary-advance-dev";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { AnnualBonusAdvance } from "@app/modules/payroll/ui/pages/nomina/components/deductions/annual-bonus-advance/annual-bonus-advance";
 import { ChildSupportGarnishment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/child-support-garnishment/child-support-garnishment";
@@ -26,7 +27,7 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { OtherDeduction } from "../other-deduction/other-deduction";
 import { FileUploader } from "@app/shared/components/file-uploader/file-uploader";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
-import { CollaboratorSearchForm } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form";
+// import { CollaboratorSearchForm } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form";
 import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
 import {
   mapLateArrivalsDeductionError,
@@ -55,6 +56,7 @@ const isBulkExcelDeductionType = (
 ) => isLateArrivalType(type) || isPurisimaType(type);
 
 export const AddDeductionForm = ({
+  branchId,
   payrollId,
   onSubmit,
   onCancel,
@@ -74,6 +76,7 @@ export const AddDeductionForm = ({
       company_id: companyId,
       module_code: moduleCode,
       payroll_id: payrollId,
+      branch_id: branchId,
       collaborator_id: "",
       description: "",
       late_arrivals_data: undefined,
@@ -84,6 +87,10 @@ export const AddDeductionForm = ({
   useEffect(() => {
     methods.setValue("payroll_id", payrollId);
   }, [payrollId, methods]);
+
+  useEffect(() => {
+    methods.setValue("branch_id", branchId);
+  }, [branchId, methods]);
 
   const [foundCollaborator, setFoundCollaborator] =
     useState<GetCollaboratorProfileDetailsResponse | null>(null);
@@ -194,6 +201,7 @@ export const AddDeductionForm = ({
         const lateArrivalsPayload: CreateLateArrivalsDeductionRequest = {
           company_id: lateArrivalsBase.company_id,
           module_code: lateArrivalsBase.module_code,
+          branch_id: lateArrivalsBase.branch_id,
           payroll_id: lateArrivalsBase.payroll_id,
           deduction_type: Number(DeductionCodeEnum.LATE_ARRIVAL.value),
           late_arrivals_data: validated.rows,
@@ -235,6 +243,7 @@ export const AddDeductionForm = ({
         const purisimaRequest: CreatePurisimaDeductionRequest = {
           company_id: purisimaBase.company_id,
           module_code: purisimaBase.module_code,
+          branch_id: purisimaBase.branch_id,
           payroll_id: purisimaBase.payroll_id,
           deduction_type: Number(DeductionCodeEnum.PURISIMA.value),
           purisima_data: validated.rows,
@@ -267,6 +276,7 @@ export const AddDeductionForm = ({
       const finalPayload: CreateStandardDeductionRequest = {
         company_id: baseData.company_id,
         module_code: baseData.module_code,
+        branch_id: baseData.branch_id,
         payroll_id: baseData.payroll_id,
         deduction_type: Number(baseData.deduction_type),
         collaborator_id: baseData.collaborator_id ?? "",
@@ -436,21 +446,22 @@ export const AddDeductionForm = ({
 
         {!foundCollaborator &&
           deductionType === DeductionCodeEnum.SALARY_ADVANCE.value && (
-            <CollaboratorSearchForm
-              onSuccess={(collaborator) => {
-                setFoundCollaborator(collaborator);
-                setIsSearching(false);
-              }}
-              onError={() => {
-                setFoundCollaborator(null);
-                setIsSearching(false);
-              }}
-              onSearchStart={() => {
-                setFoundCollaborator(null);
-                setIsSearching(true);
-              }}
-              excludeIdentifications={[identificationNumber]}
-            />
+            // <CollaboratorSearchForm
+            //   onSuccess={(collaborator) => {
+            //     setFoundCollaborator(collaborator);
+            //     setIsSearching(false);
+            //   }}
+            //   onError={() => {
+            //     setFoundCollaborator(null);
+            //     setIsSearching(false);
+            //   }}
+            //   onSearchStart={() => {
+            //     setFoundCollaborator(null);
+            //     setIsSearching(true);
+            //   }}
+            //   excludeIdentifications={[identificationNumber]}
+            // />
+            <SalaryAdvanceDev />
           )}
 
         {!!foundCollaborator &&

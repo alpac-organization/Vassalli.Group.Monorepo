@@ -1,6 +1,8 @@
 interface CreateDeductionBase {
   payroll_id: string;
 
+  branch_id: string;
+
   company_id: string;
 
   module_code: string;
@@ -43,6 +45,8 @@ export type CreateDeductionRequest =
 
 export type AddDeductionFormValues = {
   payroll_id: string;
+
+  branch_id: string;
 
   company_id: string;
 
