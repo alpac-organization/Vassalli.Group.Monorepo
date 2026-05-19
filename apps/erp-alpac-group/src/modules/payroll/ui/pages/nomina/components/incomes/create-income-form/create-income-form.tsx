@@ -29,6 +29,7 @@ const labelClassName = "text-black! dark:text-white!";
 
 export const CreateIncomeForm = ({
   payrollId,
+  branchId,
   onCancel,
   onRequestSuccess,
   onRequestError,
@@ -46,13 +47,12 @@ export const CreateIncomeForm = ({
       company_id: companyId,
       module_code: moduleCode,
       payroll_id: payrollId,
+      branch_id: branchId,
       type_income_id: "",
       description: "",
       overtime_income_data: undefined,
-      commission_income_payload: {
-        is_percentage: true,
-        percentage: 0,
-        amount: 0,
+      commissions_payload: {
+        commission_amount: 0,
         currency: 0,
       },
     },
@@ -144,7 +144,7 @@ export const CreateIncomeForm = ({
       return;
     }
 
-    const { overtime_income_data, commission_income_payload, ...rest } = data;
+    const { overtime_income_data, commissions_payload, ...rest } = data;
 
     if (isOvertimeType) {
       const validated = validateOvertimeIncomePayload(overtime_income_data);
@@ -163,6 +163,7 @@ export const CreateIncomeForm = ({
         {
           company_id: overtimeRest.company_id,
           module_code: overtimeRest.module_code,
+          branch_id: overtimeRest.branch_id,
           payroll_id: overtimeRest.payroll_id,
           type_income_id: overtimeRest.type_income_id,
           overtime_income_data: validated.rows,
@@ -183,26 +184,26 @@ export const CreateIncomeForm = ({
     }
 
     if (isCommissionType) {
+      const {
+        description: _description,
+        identification_number: _id,
+        ...commissionRest
+      } = rest;
+
       await CreateIncome.mutateAsync(
         {
-          ...rest,
+          company_id: commissionRest.company_id,
+          module_code: commissionRest.module_code,
+          branch_id: commissionRest.branch_id,
+          payroll_id: commissionRest.payroll_id,
+          type_income_id: commissionRest.type_income_id,
           identification_number:
             foundCollaborator?.personal_information?.identification_number ??
             "",
-          commission_income_payload: {
-            ...(commission_income_payload?.is_percentage
-              ? {
-                  percentage:
-                    Number(commission_income_payload?.percentage) || 0,
-                  amount: Number(commission_income_payload?.amount) || 0,
-                  currency: Number(commission_income_payload?.currency) || 0,
-                  is_percentage: true,
-                }
-              : {
-                  amount: Number(commission_income_payload?.amount) || 0,
-                  currency: Number(commission_income_payload?.currency) || 0,
-                  is_percentage: false,
-                }),
+          commissions_payload: {
+            commission_amount:
+              Number(commissions_payload?.commission_amount) || 0,
+            currency: Number(commissions_payload?.currency) || 0,
           },
         },
         {

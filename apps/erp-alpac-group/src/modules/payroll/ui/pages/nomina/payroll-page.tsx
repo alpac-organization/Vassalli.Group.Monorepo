@@ -1295,6 +1295,7 @@ export function PayrollPage() {
             <CreateIncomeModal
                isOpen={isIncomeModalOpen}
                payrollId={selectedOrdinaryPayroll?.payroll_id ?? ""}
+               branchId={selectedBranch ?? ""}
                onClose={() => setIsIncomeModalOpen(false)}
                onRequestSuccess={(successMessage) => {
                   handleRequestSuccess(successMessage, "Ingreso registrado");
