@@ -6,6 +6,7 @@ export function DataTable<T>({
   columns,
   rowClassName,
   onRowClick,
+  onRowDoubleClick,
   pagination,
   toolbarEnd,
 }: DataTableProps<T>): React.ReactElement {
@@ -71,11 +72,16 @@ export function DataTable<T>({
                     className={
                       rowClassName !== undefined
                         ? rowClassName
-                        : `hover:bg-neutral-50/80 dark:hover:bg-[#363a45] ${onRowClick !== undefined ? "cursor-pointer" : ""}`
+                        : `hover:bg-neutral-50/80 dark:hover:bg-[#363a45] ${onRowClick !== undefined || onRowDoubleClick !== undefined ? "cursor-pointer" : ""}`
                     }
                     onClick={
                       onRowClick !== undefined
                         ? () => onRowClick(item)
+                        : undefined
+                    }
+                    onDoubleClick={
+                      onRowDoubleClick !== undefined
+                        ? () => onRowDoubleClick(item)
                         : undefined
                     }
                   >

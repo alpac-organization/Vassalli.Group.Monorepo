@@ -37,7 +37,7 @@ export default defineConfig({
     exclude: ["node_modules", "dist"],
   },
   build: {
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 10000,
     rollupOptions: {
       output: {
         manualChunks(id) {

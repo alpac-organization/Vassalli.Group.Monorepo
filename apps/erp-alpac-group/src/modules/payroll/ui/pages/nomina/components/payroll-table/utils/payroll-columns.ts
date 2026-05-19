@@ -40,11 +40,6 @@ export const payrollColumns: PayrollColumnDef[] = [
     },
   },
   {
-    key: "entry_date",
-    label: "Fecha de Ingreso",
-    render: (item) => formatDate(item.collaborator?.entry_date ?? "") ?? "—",
-  },
-  {
     key: "job_position",
     label: "Posición",
     render: (item) => item.collaborator?.job_position ?? "—",
@@ -59,18 +54,9 @@ export const payrollColumns: PayrollColumnDef[] = [
     },
   },
   {
-    key: "work_area",
-    label: "Área de Trabajo",
-    render: (item) => item.collaborator?.work_area ?? "—",
-  },
-  {
-    key: "daem",
-    label: "DAEM",
-    onlyForCompanyName: VIGILANCIA_EMPRESARIAL_SA_COMPANY_NAME,
-    render: (item) => {
-      const v = item.DAEM?.trim();
-      return v && v.length > 0 ? v : "—";
-    },
+    key: "entry_date",
+    label: "Fecha de Ingreso",
+    render: (item) => formatDate(item.collaborator?.entry_date ?? "") ?? "—",
   },
   {
     key: "biweekly_salary",
@@ -79,34 +65,18 @@ export const payrollColumns: PayrollColumnDef[] = [
     getValue: (item) => item.biweekly_salary ?? 0,
   },
   {
-    key: "antiquity",
-    label: "Antigüedad",
-    render: (item) => formatCurrency(item.antique ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.antique ?? 0,
+    key: "total_viaticos",
+    label: "Total de Viáticos",
+    render: (item) =>
+      formatCurrency(item.total_travel_expenses ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.total_travel_expenses ?? 0,
   },
+
   {
-    key: "comissions",
-    label: "Comisiones",
-    render: (item) => formatCurrency(item.commissions ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.commissions ?? 0,
-  },
-  //   {
-  //     key: "gross_salary",
-  //     label: "Ordinario",
-  //     render: (item) => formatCurrency(item.gross_salary ?? 0, "NIO") ?? "—",
-  //     getValue: (item) => item.gross_salary ?? 0,
-  //   },
-  {
-    key: "inss",
-    label: "INSS",
-    render: (item) => formatCurrency(item.inss ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.inss ?? 0,
-  },
-  {
-    key: "ir",
-    label: "IR",
-    render: (item) => formatCurrency(item.ir ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.ir ?? 0,
+    key: "vacations",
+    label: "Vacaciones",
+    render: (item) => formatCurrency(item.vacations ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.vacations ?? 0,
   },
   {
     key: "overtime",
@@ -121,27 +91,45 @@ export const payrollColumns: PayrollColumnDef[] = [
     getValue: (item) => item.number_overtime ?? 0,
   },
   {
+    key: "work_area",
+    label: "Área de Trabajo",
+    render: (item) => item.collaborator?.work_area ?? "—",
+  },
+  {
+    key: "comissions",
+    label: "Comisiones",
+    render: (item) => formatCurrency(item.commissions ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.commissions ?? 0,
+  },
+  {
+    key: "antiquity",
+    label: "Antigüedad",
+    render: (item) => formatCurrency(item.antique ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.antique ?? 0,
+  },
+  {
     key: "bonus",
     label: "Bonos",
     render: (item) => formatCurrency(item.bonus ?? 0, "NIO") ?? "—",
     getValue: (item) => item.bonus ?? 0,
   },
   {
-    key: "total_legal_deductions",
-    label: "Total de Deducciones Legales",
-    render: (item) =>
-      formatCurrency(item.total_legal_deductions ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.total_legal_deductions ?? 0,
+    key: "total_income",
+    label: "Total de Ingresos",
+    render: (item) => formatCurrency(item.total_income ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.total_income ?? 0,
   },
   {
-    key: "loans",
-    label: "Préstamos",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.Loans ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)?.Loans ?? 0,
+    key: "inss",
+    label: "INSS",
+    render: (item) => formatCurrency(item.inss ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.inss ?? 0,
+  },
+  {
+    key: "ir",
+    label: "IR",
+    render: (item) => formatCurrency(item.ir ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.ir ?? 0,
   },
   {
     key: "absences",
@@ -154,63 +142,14 @@ export const payrollColumns: PayrollColumnDef[] = [
       parseAdditionalDeductions(item.deductions_additional_data)?.Absences ?? 0,
   },
   {
-    key: "purisima",
-    label: "Purísima",
+    key: "loans",
+    label: "Préstamos",
     render: (item) => {
       const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.Purisima ?? 0, "NIO") ?? "—";
+      return formatCurrency(d?.Loans ?? 0, "NIO") ?? "—";
     },
     getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)?.Purisima ?? 0,
-  },
-  {
-    key: "late_arrivals",
-    label: "Llegadas Tardías",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.LateArrivals ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.LateArrivals ?? 0,
-  },
-  {
-    key: "late_arrivals_in_minutes",
-    label: "Llegadas Tardías en Minutos",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return d?.LateArrivalsInMinutes != null
-        ? `${d.LateArrivalsInMinutes} min`
-        : "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.LateArrivalsInMinutes ?? 0,
-  },
-  {
-    key: "salary_advance",
-    label: "Adelanto de Salario",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.SalaryAdvance ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.SalaryAdvance ?? 0,
-  },
-
-  {
-    key: "total_viaticos",
-    label: "Total de Viáticos",
-    render: (item) =>
-      formatCurrency(item.total_travel_expenses ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.total_travel_expenses ?? 0,
-  },
-  {
-    key: "vacations",
-    label: "Vacaciones",
-    render: (item) => formatCurrency(item.vacations ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.vacations ?? 0,
+      parseAdditionalDeductions(item.deductions_additional_data)?.Loans ?? 0,
   },
   {
     key: "judicial_seizures",
@@ -234,6 +173,65 @@ export const payrollColumns: PayrollColumnDef[] = [
       return totalSeizure ?? 0;
     },
   },
+
+  {
+    key: "late_arrivals",
+    label: "Llegadas Tardías",
+    render: (item) => {
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return formatCurrency(d?.LateArrivals ?? 0, "NIO") ?? "—";
+    },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)
+        ?.LateArrivals ?? 0,
+  },
+  {
+    key: "daem",
+    label: "DAEM",
+    onlyForCompanyName: VIGILANCIA_EMPRESARIAL_SA_COMPANY_NAME,
+    render: (item) => {
+      const v = item.DAEM?.trim();
+      return v && v.length > 0 ? v : "—";
+    },
+  },
+  //   {
+  //     key: "gross_salary",
+  //     label: "Ordinario",
+  //     render: (item) => formatCurrency(item.gross_salary ?? 0, "NIO") ?? "—",
+  //     getValue: (item) => item.gross_salary ?? 0,
+  //   },
+  {
+    key: "total_legal_deductions",
+    label: "Total de Deducciones Legales",
+    render: (item) =>
+      formatCurrency(item.total_legal_deductions ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.total_legal_deductions ?? 0,
+  },
+  {
+    key: "late_arrivals_in_minutes",
+    label: "Llegadas Tardías en Minutos",
+    render: (item) => {
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return d?.LateArrivalsInMinutes != null
+        ? `${d.LateArrivalsInMinutes} min`
+        : "—";
+    },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)
+        ?.LateArrivalsInMinutes ?? 0,
+  },
+
+  {
+    key: "purisima",
+    label: "Purísima",
+    render: (item) => {
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return formatCurrency(d?.Purisima ?? 0, "NIO") ?? "—";
+    },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)?.Purisima ?? 0,
+  },
+
   {
     key: "uniform_deduction",
     label: "Deducción por Uniforme",
@@ -244,17 +242,6 @@ export const payrollColumns: PayrollColumnDef[] = [
     getValue: (item) =>
       parseAdditionalDeductions(item.deductions_additional_data)
         ?.UniformDeduction ?? 0,
-  },
-  {
-    key: "christmas_bonus_advance",
-    label: "Adelanto de aguinaldo",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.ChristmasBonusAdvance ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.ChristmasBonusAdvance ?? 0,
   },
   {
     key: "other_deductions",
@@ -274,10 +261,27 @@ export const payrollColumns: PayrollColumnDef[] = [
     getValue: (item) => item.total_deducctions ?? 0,
   },
   {
-    key: "total_income",
-    label: "Total de Ingresos",
-    render: (item) => formatCurrency(item.total_income ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.total_income ?? 0,
+    key: "salary_advance",
+    label: "Adelanto de Salario",
+    render: (item) => {
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return formatCurrency(d?.SalaryAdvance ?? 0, "NIO") ?? "—";
+    },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)
+        ?.SalaryAdvance ?? 0,
+  },
+
+  {
+    key: "christmas_bonus_advance",
+    label: "Adelanto de aguinaldo",
+    render: (item) => {
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return formatCurrency(d?.ChristmasBonusAdvance ?? 0, "NIO") ?? "—";
+    },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)
+        ?.ChristmasBonusAdvance ?? 0,
   },
   {
     key: "total_to_pay",

@@ -8,4 +8,5 @@ export type ExportPayrollExcelParams = {
   startDate?: string | null;
   endDate?: string | null;
   typePayroll?: PayrollType | null;
+  logoUrl?: string | null;
 };
