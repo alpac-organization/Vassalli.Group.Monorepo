@@ -4,14 +4,13 @@ import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { styles } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/utils/styles.accumulated";
-import type { AccumulatedHistoryPdfProps } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/types/accumulated-history.types";
-
-export function AccumulatedHistoryPdfDocument({
+import type { VacationAccrualPdfProps } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/types/vacation-accrual.types";
+export function VacationAccrualPdfDocument({
   data,
   reviewedBy,
   startDate,
   endDate,
-}: AccumulatedHistoryPdfProps) {
+}: VacationAccrualPdfProps) {
   const companyName = useUserStore.getState().companyName || "Alpac Group";
   const { urlImage } = useCompanyStore();
 
@@ -52,7 +51,7 @@ export function AccumulatedHistoryPdfDocument({
           </Text>
         </View>
 
-        <Text style={styles.subtitle}>Acumulados</Text>
+        <Text style={styles.subtitle}>Acumulado de vacaciones</Text>
         <Text style={styles.period}>
           {formatDateToSpanishWords(startDate)} al{" "}
           {formatDateToSpanishWords(endDate)}
@@ -61,26 +60,34 @@ export function AccumulatedHistoryPdfDocument({
         <View style={[styles.tableRow, styles.headerRow]} wrap={false}>
           <Text style={[styles.cellCode, styles.headerCell]}>Codigo</Text>
           <Text style={[styles.cellName, styles.headerCell]}>Nombre</Text>
-          <Text style={[styles.cellAmount, styles.headerCell]}>Acum IR</Text>
           <Text style={[styles.cellAmount, styles.headerCell]}>
-            Acum Devengado
+            Saldo de vacaciones
+          </Text>
+          <Text style={[styles.cellAmount, styles.headerCell]}>
+            Cantidad equivalente
+          </Text>
+          <Text style={[styles.cellAmount, styles.headerCell]}>
+            Cantidad equivalente en dolares
           </Text>
         </View>
 
         {data.map((item) => (
           <View
             style={[styles.tableRow, styles.bodyRow]}
-            key={`${item.collaborator_id}`}
+            key={`${item.collaborator_code}`}
           >
             <Text style={styles.cellCode}>{item.collaborator_code || "—"}</Text>
             <Text style={styles.cellName}>
               {item.collaborator_fullname || "—"}
             </Text>
             <Text style={styles.cellAmount}>
-              {formatCurrency(item.accumulated_ir)}
+              {formatCurrency(item.vacation_balance)}
             </Text>
             <Text style={styles.cellAmount}>
-              {formatCurrency(item.salary_earned)}
+              {formatCurrency(item.equivales_quantity)}
+            </Text>
+            <Text style={styles.cellAmount}>
+              {formatCurrency(item.equivales_quantity_in_dollars)}
             </Text>
           </View>
         ))}

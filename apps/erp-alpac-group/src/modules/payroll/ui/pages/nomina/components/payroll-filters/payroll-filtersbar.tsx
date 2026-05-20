@@ -62,6 +62,10 @@ export default function PayrollFiltersBar({
       <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
         <div className="flex flex-col justify-center">
           <h3 className="p-0! m-0!">Filtros</h3>
+          <small className="text-gray-500 dark:text-gray-300 pb-4 ">
+            Aqui puedes filtrar los colaboradores por identificación, área de
+            trabajo y posición de trabajo.
+          </small>
         </div>
       </div>
       <form
