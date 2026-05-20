@@ -136,7 +136,7 @@ export const styles = StyleSheet.create({
     borderStyle: "solid",
     borderColor: "#bfbfbf",
     borderLeftWidth: 1,
-    backgroundColor: "#1e3a5f",
+    backgroundColor: "#b8d4f0",
     marginTop: 6,
   },
   globalTotalsCell: {
@@ -148,7 +148,7 @@ export const styles = StyleSheet.create({
     width: "100%",
     fontSize: 6,
     fontWeight: "bold",
-    color: "#ffffff",
+    color: "#1e3a5f",
     lineHeight: 1.2,
   },
 

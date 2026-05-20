@@ -11,6 +11,7 @@ import {
 import { m, LazyMotion } from "framer-motion";
 import { useCallback, useState, useMemo, useEffect } from "react";
 import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
+import { getProcessedSignatureImage } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/processSignatureImage";
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
 import { useNavigate } from "react-router-dom";
@@ -41,6 +42,7 @@ import { pdf } from "@react-pdf/renderer";
 import { PayrollPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/payroll-pdf-document";
 import { CheckPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/check-pdf-document";
 import { AccumulatedHistoryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/accumulated-history-pdf-document";
+import { VacationAccrualPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/components/vacation-accrual";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
 import { getPayrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
@@ -129,6 +131,8 @@ export function PayrollPage() {
     isGeneratingAccumulatedHistoryPdf,
     setIsGeneratingAccumulatedHistoryPdf,
   ] = useState(false);
+  const [isGeneratingVacationAccrualPdf, setIsGeneratingVacationAccrualPdf] =
+    useState(false);
   const [identificationFilter, setIdentificationFilter] = useState("");
   const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
   const [jobPositionFilter, setJobPositionFilter] = useState<number | null>(
@@ -335,6 +339,10 @@ export function PayrollPage() {
         label: "Generar Historial Acumulado",
         value: "accumulated_history",
       },
+      // {
+      //   label: "Generar Acumulado de Vacaciones",
+      //   value: "vacation_accruals_history",
+      // },
     ];
     if (hasCollaboratorsWithoutInss && !detailsFetchInFlight) {
       options.push({
@@ -634,23 +642,28 @@ export function PayrollPage() {
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : 1000,
       } as PayrollRequest;
-
       const response = await payrollServices.getPayroll(payload);
       const allItems = response.payroll_details?.items ?? [];
 
+      //fedback agg bankaccountNumber
       const filteredItems = allItems.filter(
-        (item) => !item.collaborator?.inss_number?.trim(),
+        (item) => !item.collaborator?.bank_account_number?.trim(),
       );
 
       if (filteredItems.length === 0) {
         return;
       }
 
+      const { signatureImage } = getSignatures(companyName);
+      const signatureImageSrc =
+        await getProcessedSignatureImage(signatureImage);
+
       const blob = await pdf(
         <CheckPdfDocument
           data={filteredItems}
           startDate={ordinaryPayrollQuery.data?.start_date}
           endDate={ordinaryPayrollQuery.data?.end_date}
+          signatureImageSrc={signatureImageSrc}
         />,
       ).toBlob();
 
@@ -668,6 +681,7 @@ export function PayrollPage() {
     selectedBranch,
     companyId,
     moduleCode,
+    companyName,
     ordinaryPayrollQuery.data,
     currentCompanyImageUrl,
     identificationFilter,
@@ -680,13 +694,16 @@ export function PayrollPage() {
     if (!companyId) return;
     const payrollId = ordinaryPayrollQuery.data?.payroll_id;
     if (!payrollId) return;
-
+    const startDate = ordinaryPayrollQuery.data?.start_date;
+    const endDate = ordinaryPayrollQuery.data?.end_date;
     try {
       setIsGeneratingAccumulatedHistoryPdf(true);
       const payrollServices = new PayrollServices(httpHandler);
 
       const reportResponse = await payrollServices.generateReportsPayroll({
         companie_id: companyId,
+        module_code: moduleCode,
+        payroll_type: selectedPayrollType ?? "None",
         payroll_id: payrollId,
         report_type: "Accumulated",
       });
@@ -703,6 +720,8 @@ export function PayrollPage() {
       const blob = await pdf(
         <AccumulatedHistoryPdfDocument
           data={reportData}
+          startDate={startDate}
+          endDate={endDate}
           reviewedBy={{
             name: "Aracelly Guillen",
             role: "Gerente de Recursos Humanos",
@@ -722,6 +741,63 @@ export function PayrollPage() {
   }, [
     companyId,
     ordinaryPayrollQuery.data?.payroll_id,
+    handlePdfGenerationError,
+  ]);
+  const handleGenerateVacationAccrualPdf = useCallback(async () => {
+    if (!companyId || !moduleCode) return;
+    const payrollId = ordinaryPayrollQuery.data?.payroll_id;
+    if (!payrollId) return;
+    const startDate = ordinaryPayrollQuery.data?.start_date;
+    const endDate = ordinaryPayrollQuery.data?.end_date;
+    try {
+      setIsGeneratingVacationAccrualPdf(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const reportResponse = await payrollServices.generateReportsPayroll({
+        companie_id: companyId,
+        module_code: moduleCode,
+        payroll_type: selectedPayrollType ?? "None",
+        payroll_id: payrollId,
+        report_type: "VacationAccrual",
+      });
+
+      const reportData = reportResponse.vacation_accruals_history ?? [];
+
+      if (!reportData.length) {
+        handlePdfGenerationError(
+          "No hay datos disponibles para generar el acumulado de vacaciones.",
+        );
+        return;
+      }
+
+      const blob = await pdf(
+        <VacationAccrualPdfDocument
+          data={reportData}
+          startDate={startDate}
+          endDate={endDate}
+          reviewedBy={{
+            name: "Aracelly Guillen",
+            role: "Gerente de Recursos Humanos",
+          }}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte de acumulado de vacaciones.",
+      );
+    } finally {
+      setIsGeneratingVacationAccrualPdf(false);
+    }
+  }, [
+    companyId,
+    moduleCode,
+    selectedPayrollType,
+    ordinaryPayrollQuery.data?.payroll_id,
+    ordinaryPayrollQuery.data?.start_date,
+    ordinaryPayrollQuery.data?.end_date,
     handlePdfGenerationError,
   ]);
 
@@ -793,6 +869,9 @@ export function PayrollPage() {
       case "accumulated_history":
         void handleGenerateAccumulatedHistoryPdf();
         break;
+      case "vacation_accruals_history":
+        void handleGenerateVacationAccrualPdf();
+        break;
       default:
         break;
     }
@@ -801,6 +880,7 @@ export function PayrollPage() {
     handleGeneratePdf,
     handleGeneratePaymentRequestsPdf,
     handleGenerateAccumulatedHistoryPdf,
+    handleGenerateVacationAccrualPdf,
   ]);
 
   const handleApplyFilters = useCallback(
@@ -1286,20 +1366,23 @@ export function PayrollPage() {
                   isLoading={
                     isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
-                    isGeneratingAccumulatedHistoryPdf
+                    isGeneratingAccumulatedHistoryPdf ||
+                    isGeneratingVacationAccrualPdf
                   }
                   disabled={
                     !selectedAction ||
                     !existPayrollInProgress ||
                     isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
-                    isGeneratingAccumulatedHistoryPdf
+                    isGeneratingAccumulatedHistoryPdf ||
+                    isGeneratingVacationAccrualPdf
                   }
                   onClick={handleExecuteSelectedAction}
                   className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
-                    isGeneratingAccumulatedHistoryPdf
+                    isGeneratingAccumulatedHistoryPdf ||
+                    isGeneratingVacationAccrualPdf
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}
@@ -1314,7 +1397,8 @@ export function PayrollPage() {
                   className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
-                    isGeneratingAccumulatedHistoryPdf
+                    isGeneratingAccumulatedHistoryPdf ||
+                    isGeneratingVacationAccrualPdf
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}
@@ -1329,7 +1413,8 @@ export function PayrollPage() {
                   className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
-                    isGeneratingAccumulatedHistoryPdf
+                    isGeneratingAccumulatedHistoryPdf ||
+                    isGeneratingVacationAccrualPdf
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}
