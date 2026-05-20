@@ -64,6 +64,18 @@ export const styles = StyleSheet.create({
     paddingVertical: 3,
     paddingHorizontal: 6,
   },
+  signatureStampArea: {
+    width: "100%",
+    height: 34,
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginBottom: 2,
+  },
+  signatureImage: {
+    width: "92%",
+    height: 32,
+    objectFit: "contain",
+  },
   row: {
     flexDirection: "row",
     borderBottomWidth: 1,
@@ -203,11 +215,13 @@ export const styles = StyleSheet.create({
   signaturesRow: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 3,
   },
   signatureBlock: {
     width: "30%",
     alignItems: "center",
+    flexDirection: "column",
   },
   signatureLine: {
     width: "100%",

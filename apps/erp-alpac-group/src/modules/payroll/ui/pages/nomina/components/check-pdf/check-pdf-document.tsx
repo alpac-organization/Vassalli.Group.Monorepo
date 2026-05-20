@@ -12,7 +12,12 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { topFieldStyles } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/check.utils";
 import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 
-export function CheckPdfDocument({ data, startDate, endDate }: CheckPdfProps) {
+export function CheckPdfDocument({
+  data,
+  startDate,
+  endDate,
+  signatureImageSrc,
+}: CheckPdfProps) {
   const { urlImage } = useCompanyStore();
   const companyName = useUserStore.getState().companyName || "Alpac Group";
   const signatures = getSignatures(companyName);
@@ -469,6 +474,7 @@ export function CheckPdfDocument({ data, startDate, endDate }: CheckPdfProps) {
 
               <View style={styles.signaturesRow}>
                 <View style={styles.signatureBlock}>
+                  <View style={styles.signatureStampArea} />
                   <View style={styles.signatureLine}></View>
                   <Text style={styles.signatureTitle}>Solicitado:</Text>
                   <Text style={styles.signatureName}>
@@ -482,6 +488,14 @@ export function CheckPdfDocument({ data, startDate, endDate }: CheckPdfProps) {
                 </View>
 
                 <View style={styles.signatureBlock}>
+                  <View style={styles.signatureStampArea}>
+                    {signatureImageSrc ? (
+                      <Image
+                        src={signatureImageSrc}
+                        style={styles.signatureImage}
+                      />
+                    ) : null}
+                  </View>
                   <View style={styles.signatureLine}></View>
                   <Text style={styles.signatureTitle}>Revisado:</Text>
                   <Text style={styles.signatureName}>
@@ -496,6 +510,7 @@ export function CheckPdfDocument({ data, startDate, endDate }: CheckPdfProps) {
 
                 {signatures.aprobado ? (
                   <View style={styles.signatureBlock}>
+                    <View style={styles.signatureStampArea} />
                     <View style={styles.signatureLine}></View>
                     <Text style={styles.signatureTitle}>Aprobado:</Text>
                     <Text style={styles.signatureName}>
@@ -508,7 +523,9 @@ export function CheckPdfDocument({ data, startDate, endDate }: CheckPdfProps) {
                     ) : null}
                   </View>
                 ) : (
-                  <View style={styles.signatureBlock}></View>
+                  <View style={styles.signatureBlock}>
+                    <View style={styles.signatureStampArea} />
+                  </View>
                 )}
               </View>
             </View>

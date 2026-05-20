@@ -87,13 +87,14 @@ export class PayrollServices implements IPayrollServices {
   public async generateReportsPayroll(
     payload: GenerateReportPayrollRequest,
   ): Promise<GetPayrollReportsPayloadResponse> {
-    const { companie_id, report_type, payroll_id } = payload;
+    const { companie_id, report_type, payroll_id, payroll_type, module_code } =
+      payload;
     try {
       const response =
         await this.apiHandler.get<GetPayrollReportsPayloadResponse>(
-          `companies/${companie_id}/reports`,
+          `companies/${companie_id}/modules/${module_code}/reports`,
           {
-            params: { report_type, payroll_id },
+            params: { report_type, payroll_id, payroll_type },
           },
         );
       return response;
@@ -106,13 +107,8 @@ export class PayrollServices implements IPayrollServices {
     payload: PayrollCloseRequest,
   ): Promise<ClosePayrollResponse> {
     try {
-      const {
-        companie_id,
-        module_code,
-        payroll_id,
-        branch_id,
-        payroll_type,
-      } = payload;
+      const { companie_id, module_code, payroll_id, branch_id, payroll_type } =
+        payload;
       return this.apiHandler.post<ClosePayrollResponse>(
         `/companies/${companie_id}/modules/${module_code}/payrolls/${payroll_id}/close`,
         { branch_id, payroll_type },
