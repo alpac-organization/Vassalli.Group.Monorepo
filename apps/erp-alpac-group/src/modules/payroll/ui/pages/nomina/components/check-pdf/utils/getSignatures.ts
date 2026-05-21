@@ -4,6 +4,7 @@ import {
   AVASA_COMPANY_NAME,
   TMN_COMPANY_NAME,
   VIGILANCIA_EMPRESARIAL_SA_COMPANY_NAME,
+  ALPAC_CORINTO_NAME,
 } from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
 import alpacSignature from "@app/assets/signatures/alpac/firmaValeria.jpg";
 import avasaSignature from "@app/assets/signatures/avasa-and-aminsa/joseMorales.jpg";
@@ -40,6 +41,16 @@ export function getSignatures(company: string): Signatures {
         solicitado: {
           name: "Aracelly Guillen",
           signatureImage: talentoHumanoSignature,
+        },
+        revisado: { name: "Valeria López" },
+        aprobado: { name: "Isolina Reyes" },
+        signatureImage: alpacSignature,
+      };
+    case ALPAC_CORINTO_NAME:
+      return {
+        solicitado: {
+          name: "Lilibeth Herrera",
+          signatureImage: "",
         },
         revisado: { name: "Valeria López" },
         aprobado: { name: "Isolina Reyes" },
