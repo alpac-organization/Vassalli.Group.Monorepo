@@ -26,6 +26,8 @@ import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import type { VacationAccruals } from "@app/modules/payroll/domain/ApiContract/Responses/control-vacation-responses/get-control-vacations-response";
 import { VacationAccrualPdfDocument } from "@app/modules/payroll/ui/pages/control-vacations/components/vacation-accrual-pdf/vacation-accrual-pdf-document";
+import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
+import { getProcessedSignatureImage } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/processSignatureImage";
 import {
   CONTROL_VACATIONS_SELECTION_STORAGE_KEY,
   DEFAULT_PAGE_SIZE,
@@ -38,7 +40,8 @@ const loadFeatures = () =>
 
 export default function ControlVacationsPage() {
   const navigate = useNavigate();
-  const { companyId, moduleCode } = useUserStore();
+  const { companyId, moduleCode, companyName } = useUserStore();
+  const signatures = getSignatures(companyName);
   const { theme } = useTheme();
   const { urlImage, neutralUrlImage } = useCompanyStore();
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
@@ -352,14 +355,19 @@ export default function ControlVacationsPage() {
       }
 
       const dateLabel = new Date().toLocaleDateString("es-NI");
+      const preparedSignatureImageSrc = signatures.solicitado.signatureImage
+        ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
+        : "";
+
       const blob = await pdf(
         <VacationAccrualPdfDocument
           data={reportData}
           generatedAt={dateLabel}
           preparedBy={{
-            name: "Lic Aracelly Guillen",
+            name: signatures.solicitado.name,
             role: "Talento Humano",
           }}
+          preparedSignatureImageSrc={preparedSignatureImageSrc}
         />,
       ).toBlob();
 
@@ -383,6 +391,7 @@ export default function ControlVacationsPage() {
     selectedReportAction,
     companyId,
     moduleCode,
+    companyName,
     historyFilters,
     totalRecords,
     getVacationReportData,

@@ -11,7 +11,7 @@ import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { topFieldStyles } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/check.utils";
 import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
-
+import { getProcessedSignatureImage } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/processSignatureImage";
 export function CheckPdfDocument({
   data,
   startDate,
@@ -34,7 +34,11 @@ export function CheckPdfDocument({
     ? formatDateToSpanishWords(startDate.trim())
     : "";
   const formattedEnd = endDate ? formatDateToSpanishWords(endDate.trim()) : "";
-
+  const handleSignatureImage = async (signatureImage: string) => {
+    const processedSignatureImage =
+      await getProcessedSignatureImage(signatureImage);
+    return processedSignatureImage;
+  };
   return (
     <Document>
       {data.map((item, index) => {
@@ -474,7 +478,16 @@ export function CheckPdfDocument({
 
               <View style={styles.signaturesRow}>
                 <View style={styles.signatureBlock}>
-                  <View style={styles.signatureStampArea} />
+                  <View style={styles.signatureStampArea}>
+                    {signatures.solicitado.signatureImage ? (
+                      <Image
+                        src={handleSignatureImage(
+                          signatures.solicitado.signatureImage,
+                        )}
+                        style={styles.signatureImage}
+                      />
+                    ) : null}
+                  </View>
                   <View style={styles.signatureLine}></View>
                   <Text style={styles.signatureTitle}>Solicitado:</Text>
                   <Text style={styles.signatureName}>
