@@ -1307,7 +1307,7 @@ export function PayrollPage() {
 
                 {displayedBranchName ? (
                   <Badges
-                    label={`Nomina de ${displayedBranchName}`}
+                    label={`Nómina de ${displayedBranchName}`}
                     color="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
                     className="max-w-72 text-[12px]! font-semibold! leading-snug! wrap-break-word text-right"
                   />
@@ -1319,7 +1319,7 @@ export function PayrollPage() {
                 <h3 className="p-0! m-0!">Accesos Directos</h3>
                 <small className="text-gray-500 dark:text-gray-300">
                   Aqui puedes cambiar el tipo de nómina y sucursal, tambien
-                  puedes generar reportes
+                  puedes generar reportes y exportar el excel de la nómina.
                 </small>
               </div>
             </div>
@@ -1349,19 +1349,6 @@ export function PayrollPage() {
                 <Button
                   type="button"
                   size="giant"
-                  label="Exportar Excel"
-                  isLoading={isGeneratingExcel}
-                  disabled={!existPayrollInProgress}
-                  onClick={handleGenerateExcel}
-                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingExcel
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
-                />
-                <Button
-                  type="button"
-                  size="giant"
                   label="Generar"
                   isLoading={
                     isGeneratingPdf ||
@@ -1388,6 +1375,19 @@ export function PayrollPage() {
                   }`}
                 />
 
+                <Button
+                  type="button"
+                  size="giant"
+                  label="Exportar Excel de nómina"
+                  isLoading={isGeneratingExcel}
+                  disabled={!existPayrollInProgress}
+                  onClick={handleGenerateExcel}
+                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGeneratingExcel
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
+                />
                 <Button
                   type="button"
                   size="giant"
