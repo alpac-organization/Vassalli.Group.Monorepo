@@ -41,6 +41,7 @@ export interface CollaboratorResponse {
   full_name: string;
   inss_number: string;
   collaborator_code: string;
+  bank_account?: string;
   work_area?: string;
   job_position?: string;
   identification_number: string;

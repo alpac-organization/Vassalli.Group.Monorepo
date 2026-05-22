@@ -1,8 +1,10 @@
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 
-export type AddSubsidyFormProps = {
-   collaborator: GetCollaboratorProfileDetailsResponse;
-   onCancel: () => void;
+export type AddSubsidyModalProps = {
+   isOpen: boolean;
+   payrollId: string,
+   collaborator?: GetCollaboratorProfileDetailsResponse;
+   onClose: () => void;
    onRequestSuccess?: (message: string) => void;
    onRequestError?: (message?: string) => void;
 };

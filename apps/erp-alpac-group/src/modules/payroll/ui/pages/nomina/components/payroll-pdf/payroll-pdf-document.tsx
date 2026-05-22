@@ -12,6 +12,7 @@ import { PAYROLL_TYPE_LABELS } from "@app/modules/payroll/domain/enums/payroll-e
 import { getPayrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
 import type { PayrollColumnDef } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 
@@ -72,15 +73,27 @@ export function PayrollPdfDocument({
   typePayroll,
   preparedBy,
   reviewedBy,
+  preparedSignatureImageSrc,
+  reviewedSignatureImageSrc,
 }: PayrollPdfProps) {
   const { urlImage } = useCompanyStore();
+  const signatures = getSignatures(companyName ?? "");
 
   const activeColumns = getPayrollColumns(companyName).filter((col) =>
     visibleKeys.includes(col.key as string),
   );
 
   const grouped = groupByWorkArea(data);
-  const showSignatures = !!(preparedBy || reviewedBy);
+  const showSignatures = !!(
+    preparedBy ||
+    reviewedBy ||
+    signatures.solicitado ||
+    signatures.revisado
+  );
+
+  const preparedName = preparedBy?.name ?? signatures.solicitado.name;
+  const reviewedName = reviewedBy?.name ?? signatures.revisado.name;
+  const reviewedRole = reviewedBy?.role ?? signatures.revisado.role;
 
   const globalTotals = calcAreaTotals(data, activeColumns);
   const totalCollaborators = data.length;
@@ -180,26 +193,43 @@ export function PayrollPdfDocument({
 
         {showSignatures && (
           <View style={styles.signaturesContainer} wrap={false}>
-            {preparedBy && (
-              <View style={styles.signatureBlock}>
-                <View style={styles.signatureLine} />
-                <Text style={styles.signatureName}>
-                  Elaborado por: {preparedBy.name}
-                </Text>
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureStampArea}>
+                {preparedSignatureImageSrc ? (
+                  <Image
+                    src={preparedSignatureImageSrc}
+                    style={styles.signatureImage}
+                  />
+                ) : null}
+              </View>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureName}>
+                Elaborado por: {preparedName}
+              </Text>
+              {signatures.solicitado.role ? (
                 <Text style={styles.signatureRole}>
-                  Responsable de: {preparedBy.role}
+                  {signatures.solicitado.role}
                 </Text>
+              ) : null}
+            </View>
+
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureStampArea}>
+                {reviewedSignatureImageSrc ? (
+                  <Image
+                    src={reviewedSignatureImageSrc}
+                    style={styles.signatureImage}
+                  />
+                ) : null}
               </View>
-            )}
-            {reviewedBy && (
-              <View style={styles.signatureBlock}>
-                <View style={styles.signatureLine} />
-                <Text style={styles.signatureName}>
-                  Revisado por: {reviewedBy.name}
-                </Text>
-                <Text style={styles.signatureRole}>{reviewedBy.role}</Text>
-              </View>
-            )}
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureName}>
+                Revisado por: {reviewedName}
+              </Text>
+              {reviewedRole ? (
+                <Text style={styles.signatureRole}>{reviewedRole}</Text>
+              ) : null}
+            </View>
           </View>
         )}
 

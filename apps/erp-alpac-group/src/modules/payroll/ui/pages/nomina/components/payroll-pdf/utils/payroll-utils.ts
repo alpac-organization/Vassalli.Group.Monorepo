@@ -83,13 +83,13 @@ export const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#1e3a5f",
+    backgroundColor: "#b8d4f0",
     paddingVertical: 4,
     paddingHorizontal: 6,
     marginTop: 4,
   },
   areaHeaderText: {
-    color: "#ffffff",
+    color: "#1e3a5f",
     fontSize: 7,
     fontWeight: "bold",
     textTransform: "uppercase",
@@ -136,7 +136,7 @@ export const styles = StyleSheet.create({
     borderStyle: "solid",
     borderColor: "#bfbfbf",
     borderLeftWidth: 1,
-    backgroundColor: "#1e3a5f",
+    backgroundColor: "#b8d4f0",
     marginTop: 6,
   },
   globalTotalsCell: {
@@ -148,7 +148,7 @@ export const styles = StyleSheet.create({
     width: "100%",
     fontSize: 6,
     fontWeight: "bold",
-    color: "#ffffff",
+    color: "#1e3a5f",
     lineHeight: 1.2,
   },
 
@@ -223,6 +223,18 @@ export const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
     width: "40%",
+  },
+  signatureStampArea: {
+    width: "100%",
+    height: 34,
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginBottom: 2,
+  },
+  signatureImage: {
+    width: "92%",
+    height: 32,
+    objectFit: "contain",
   },
   signatureLine: {
     width: "100%",

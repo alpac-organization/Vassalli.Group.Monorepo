@@ -10,9 +10,18 @@ import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { topFieldStyles } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/check.utils";
-export function CheckPdfDocument({ data, startDate, endDate }: CheckPdfProps) {
+import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
+import { getProcessedSignatureImage } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/processSignatureImage";
+export function CheckPdfDocument({
+  data,
+  startDate,
+  endDate,
+  signatureImageSrc,
+}: CheckPdfProps) {
   const { urlImage } = useCompanyStore();
   const companyName = useUserStore.getState().companyName || "Alpac Group";
+  const signatures = getSignatures(companyName);
+  const isAlpac = companyName === "Almacenadora del Pacífico, S.A";
   const currentDate = new Date()
     .toLocaleDateString("es-NI", {
       day: "2-digit",
@@ -25,7 +34,11 @@ export function CheckPdfDocument({ data, startDate, endDate }: CheckPdfProps) {
     ? formatDateToSpanishWords(startDate.trim())
     : "";
   const formattedEnd = endDate ? formatDateToSpanishWords(endDate.trim()) : "";
-
+  const handleSignatureImage = async (signatureImage: string) => {
+    const processedSignatureImage =
+      await getProcessedSignatureImage(signatureImage);
+    return processedSignatureImage;
+  };
   return (
     <Document>
       {data.map((item, index) => {
@@ -51,112 +64,354 @@ export function CheckPdfDocument({ data, startDate, endDate }: CheckPdfProps) {
               </View>
             </View>
 
-            <View style={styles.mainBox}>
-              <View style={[styles.topSectionRow, topFieldStyles.rowSpaced]}>
-                <Text style={topFieldStyles.labelLeft}>Fecha:</Text>
-                <View style={topFieldStyles.lineLeft}>
-                  <Text>{currentDate}</Text>
+            {isAlpac ? (
+              (console.log(companyName),
+              (
+                <View style={styles.mainBox}>
+                  <View style={{ flexDirection: "row" }}>
+                    <View style={{ width: "55%" }}>
+                      <View
+                        style={[styles.topSectionRow, topFieldStyles.rowSpaced]}
+                      >
+                        <Text style={{ width: "32%", fontSize: 9 }}>
+                          Fecha:
+                        </Text>
+                        <View
+                          style={{
+                            width: "68%",
+                            borderBottomWidth: 1,
+                            borderBottomColor: "#000",
+                            paddingLeft: 2,
+                          }}
+                        >
+                          <Text>{currentDate}</Text>
+                        </View>
+                      </View>
+
+                      <View
+                        style={[styles.topSectionRow, topFieldStyles.rowSpaced]}
+                      >
+                        <Text style={{ width: "32%", fontSize: 9 }}>
+                          Del Departamento:
+                        </Text>
+                        <View
+                          style={{
+                            width: "68%",
+                            borderBottomWidth: 1,
+                            borderBottomColor: "#000",
+                            paddingLeft: 2,
+                          }}
+                        >
+                          <Text>Talento Humano</Text>
+                        </View>
+                      </View>
+
+                      <View
+                        style={[styles.topSectionRow, topFieldStyles.rowSpaced]}
+                      >
+                        <Text style={{ width: "32%", fontSize: 9 }}>
+                          A favor de:
+                        </Text>
+                        <View
+                          style={{
+                            width: "68%",
+                            borderBottomWidth: 1,
+                            borderBottomColor: "#000",
+                            paddingLeft: 2,
+                          }}
+                        >
+                          <Text>{fullName}</Text>
+                        </View>
+                      </View>
+
+                      <View style={{ marginTop: 4, marginBottom: 4 }}>
+                        <Text style={{ fontSize: 9 }}>En Concepto de:</Text>
+                        <Text style={{ fontSize: 9, marginTop: 2 }}>
+                          Pago de salario correspondiente del {formattedStart}{" "}
+                          al {formattedEnd} - {jobPosition}.
+                        </Text>
+                      </View>
+
+                      <View
+                        style={[
+                          styles.topSectionRow,
+                          topFieldStyles.rowSpaced,
+                          { marginTop: 4 },
+                        ]}
+                      >
+                        <Text style={{ width: "55%", fontSize: 9 }}>
+                          Por Cuenta de (Cliente): ALPAC
+                        </Text>
+                      </View>
+
+                      <View
+                        style={[styles.topSectionRow, topFieldStyles.rowSpaced]}
+                      >
+                        <Text style={{ width: "32%", fontSize: 9 }}>RUC</Text>
+                        <Text style={{ width: "68%", fontSize: 9 }}>
+                          J0310000129363
+                        </Text>
+                      </View>
+
+                      <View
+                        style={[styles.topSectionRow, topFieldStyles.rowSpaced]}
+                      >
+                        <Text style={{ width: "32%", fontSize: 9 }}>
+                          Aduana
+                        </Text>
+                        <View
+                          style={{
+                            width: "68%",
+                            borderBottomWidth: 1,
+                            borderBottomColor: "#000",
+                            paddingLeft: 2,
+                          }}
+                        >
+                          <Text>N/A</Text>
+                        </View>
+                      </View>
+
+                      <View
+                        style={[styles.topSectionRow, topFieldStyles.rowSpaced]}
+                      >
+                        <Text style={{ width: "32%", fontSize: 9 }}>
+                          Numero de Referencia
+                        </Text>
+                        <View
+                          style={{
+                            width: "68%",
+                            borderBottomWidth: 1,
+                            borderBottomColor: "#000",
+                          }}
+                        ></View>
+                      </View>
+                    </View>
+
+                    <View style={{ width: "45%", paddingLeft: 8 }}>
+                      {[
+                        { label: "Monto Servicio:", value: formattedAmount },
+                        { label: "Monto Serv Exento", value: "0.00" },
+                        { label: "Desembolso/Otros:", value: "0.00" },
+                        { label: "IVA", value: "0.00" },
+                        { label: "IR", value: "0.00" },
+                        { label: "IMI", value: "0.00" },
+                        { label: "OTROS", value: "0.00" },
+                      ].map((row, i) => (
+                        <View
+                          key={`r-${i}`}
+                          style={[styles.topSectionRow, { marginBottom: 2 }]}
+                        >
+                          <Text style={{ width: "55%", fontSize: 9 }}>
+                            {row.label}
+                          </Text>
+                          <Text style={{ width: "15%", fontSize: 9 }}>C$</Text>
+                          <View
+                            style={{
+                              width: "30%",
+                              borderBottomWidth: 1,
+                              borderBottomColor: "#000",
+                              alignItems: "flex-end",
+                            }}
+                          >
+                            <Text style={{ fontSize: 9 }}>{row.value}</Text>
+                          </View>
+                        </View>
+                      ))}
+
+                      <View
+                        style={[
+                          styles.topSectionRow,
+                          { marginTop: 4, marginBottom: 2 },
+                        ]}
+                      >
+                        <Text
+                          style={{
+                            width: "55%",
+                            fontSize: 9,
+                            fontFamily: "Helvetica-Bold",
+                          }}
+                        >
+                          Neto a Pagar:
+                        </Text>
+                        <Text style={{ width: "15%", fontSize: 9 }}>C$</Text>
+                        <View
+                          style={{
+                            width: "30%",
+                            borderBottomWidth: 1,
+                            borderBottomColor: "#000",
+                            alignItems: "flex-end",
+                          }}
+                        >
+                          <Text style={{ fontSize: 9 }}>{formattedAmount}</Text>
+                        </View>
+                      </View>
+
+                      <View style={[styles.topSectionRow, { marginTop: 6 }]}>
+                        <Text style={{ fontSize: 9 }}>Trámite: Normal </Text>
+                        <View
+                          style={{
+                            width: 12,
+                            height: 12,
+                            borderWidth: 1,
+                            borderColor: "#000",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <Text style={{ fontSize: 9 }}>X</Text>
+                        </View>
+                        <Text style={{ fontSize: 9 }}> Crítica: </Text>
+                        <View
+                          style={{
+                            width: 12,
+                            height: 12,
+                            borderWidth: 1,
+                            borderColor: "#000",
+                          }}
+                        ></View>
+                      </View>
+                    </View>
+                  </View>
+
+                  <View style={[styles.topSectionRow, { marginTop: 6 }]}>
+                    <Text style={{ width: "55%", fontSize: 9 }}>
+                      Numero de Multa Administrativa:
+                    </Text>
+                    <View
+                      style={{
+                        width: "45%",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#000",
+                      }}
+                    ></View>
+                  </View>
+
+                  <View style={[styles.topSectionRow, { marginTop: 4 }]}>
+                    <Text style={{ width: "55%", fontSize: 9 }}>
+                      Numero de Declaracion:
+                    </Text>
+                    <View
+                      style={{
+                        width: "45%",
+                        borderBottomWidth: 1,
+                        borderBottomColor: "#000",
+                      }}
+                    ></View>
+                  </View>
                 </View>
-                <View style={topFieldStyles.middleGap}></View>
-                <Text style={topFieldStyles.labelRightAmount}>Monto</Text>
-                <Text style={topFieldStyles.currencyLabel}>C$</Text>
-                <View style={topFieldStyles.lineRight}>
-                  <Text>{formattedAmount}</Text>
+              ))
+            ) : (
+              <View style={styles.mainBox}>
+                <View style={[styles.topSectionRow, topFieldStyles.rowSpaced]}>
+                  <Text style={topFieldStyles.labelLeft}>Fecha:</Text>
+                  <View style={topFieldStyles.lineLeft}>
+                    <Text>{currentDate}</Text>
+                  </View>
+                  <View style={topFieldStyles.middleGap}></View>
+                  <Text style={topFieldStyles.labelRightAmount}>Monto</Text>
+                  <Text style={topFieldStyles.currencyLabel}>C$</Text>
+                  <View style={topFieldStyles.lineRight}>
+                    <Text>{formattedAmount}</Text>
+                  </View>
                 </View>
-              </View>
 
-              <View style={styles.topSectionRow}>
-                <Text style={topFieldStyles.labelLeft}></Text>
-                <View style={topFieldStyles.lineSpacer}></View>
-                <View style={topFieldStyles.middleGap}></View>
-                <Text style={topFieldStyles.labelRightAmount}></Text>
-                <Text style={topFieldStyles.currencyLabel}>$</Text>
-                <View style={topFieldStyles.lineRight}></View>
-              </View>
-
-              <View style={[styles.topSectionRow, topFieldStyles.rowSpaced]}>
-                <Text style={topFieldStyles.labelLeft}>Beneficiario:</Text>
-                <View style={topFieldStyles.lineLeft}>
-                  <Text>{fullName}</Text>
+                <View style={styles.topSectionRow}>
+                  <Text style={topFieldStyles.labelLeft}></Text>
+                  <View style={topFieldStyles.lineSpacer}></View>
+                  <View style={topFieldStyles.middleGap}></View>
+                  <Text style={topFieldStyles.labelRightAmount}></Text>
+                  <Text style={topFieldStyles.currencyLabel}>$</Text>
+                  <View style={topFieldStyles.lineRight}></View>
                 </View>
-                <View style={topFieldStyles.middleGap}></View>
-                <Text style={topFieldStyles.labelRight}>Retención IR</Text>
-                <View style={topFieldStyles.lineRight}></View>
-              </View>
 
-              <View style={[styles.topSectionRow, topFieldStyles.rowSpaced]}>
-                <Text style={topFieldStyles.labelLeft}>Área solicitante:</Text>
-                <View style={topFieldStyles.lineLeft}>
-                  <Text>{workArea}</Text>
+                <View style={[styles.topSectionRow, topFieldStyles.rowSpaced]}>
+                  <Text style={topFieldStyles.labelLeft}>Beneficiario:</Text>
+                  <View style={topFieldStyles.lineLeft}>
+                    <Text>{fullName}</Text>
+                  </View>
+                  <View style={topFieldStyles.middleGap}></View>
+                  <Text style={topFieldStyles.labelRight}>Retención IR</Text>
+                  <View style={topFieldStyles.lineRight}></View>
                 </View>
-                <View style={topFieldStyles.middleGap}></View>
-                <Text style={topFieldStyles.labelRight}>Retención IMI</Text>
-                <View style={topFieldStyles.lineRight}></View>
-              </View>
 
-              <View style={[styles.topSectionRow, topFieldStyles.rowSpaced]}>
-                <Text style={topFieldStyles.labelLeft}>N° Orden compra:</Text>
-                <View style={topFieldStyles.lineLeft}></View>
-                <View style={topFieldStyles.middleGap}></View>
-                <Text style={topFieldStyles.labelRight}>Otros</Text>
-                <View style={topFieldStyles.lineRight}></View>
-              </View>
+                <View style={[styles.topSectionRow, topFieldStyles.rowSpaced]}>
+                  <Text style={topFieldStyles.labelLeft}>
+                    Área solicitante:
+                  </Text>
+                  <View style={topFieldStyles.lineLeft}>
+                    <Text>{workArea}</Text>
+                  </View>
+                  <View style={topFieldStyles.middleGap}></View>
+                  <Text style={topFieldStyles.labelRight}>Retención IMI</Text>
+                  <View style={topFieldStyles.lineRight}></View>
+                </View>
 
-              <View
-                style={[
-                  styles.topSectionRow,
-                  { marginTop: 12, marginBottom: 6 },
-                ]}
-              >
-                <Text style={{ width: "15%", fontSize: 9 }}>Trámite:</Text>
-                <Text style={{ width: "40%" }}>
-                  Ordinario ( x ) Urgente ( )
-                </Text>
-                <Text style={{ width: "15%" }}>Neto a pagar:</Text>
+                <View style={[styles.topSectionRow, topFieldStyles.rowSpaced]}>
+                  <Text style={topFieldStyles.labelLeft}>N° Orden compra:</Text>
+                  <View style={topFieldStyles.lineLeft}></View>
+                  <View style={topFieldStyles.middleGap}></View>
+                  <Text style={topFieldStyles.labelRight}>Otros</Text>
+                  <View style={topFieldStyles.lineRight}></View>
+                </View>
+
                 <View
-                  style={{
-                    width: "5%",
-                    borderTopWidth: 1,
-                    borderLeftWidth: 1,
-                    borderBottomWidth: 1,
-                    borderColor: "#000",
-                    padding: 2,
-                  }}
+                  style={[
+                    styles.topSectionRow,
+                    { marginTop: 12, marginBottom: 6 },
+                  ]}
                 >
-                  <Text>C$</Text>
-                  <Text>$</Text>
-                </View>
-                <View
-                  style={{
-                    width: "20%",
-                    borderTopWidth: 1,
-                    borderRightWidth: 1,
-                    borderBottomWidth: 1,
-                    borderColor: "#000",
-                    padding: 2,
-                    alignItems: "flex-end",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text>{formattedAmount}</Text>
+                  <Text style={{ width: "15%", fontSize: 9 }}>Trámite:</Text>
+                  <Text style={{ width: "40%" }}>
+                    Ordinario ( x ) Urgente ( )
+                  </Text>
+                  <Text style={{ width: "15%" }}>Neto a pagar:</Text>
+                  <View
+                    style={{
+                      width: "5%",
+                      borderTopWidth: 1,
+                      borderLeftWidth: 1,
+                      borderBottomWidth: 1,
+                      borderColor: "#000",
+                      padding: 2,
+                    }}
+                  >
+                    <Text>C$</Text>
+                    <Text>$</Text>
+                  </View>
+                  <View
+                    style={{
+                      width: "20%",
+                      borderTopWidth: 1,
+                      borderRightWidth: 1,
+                      borderBottomWidth: 1,
+                      borderColor: "#000",
+                      padding: 2,
+                      alignItems: "flex-end",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text>{formattedAmount}</Text>
+                  </View>
                 </View>
               </View>
-            </View>
+            )}
 
-            <View style={styles.conceptBox}>
-              <View style={styles.conceptTitle}>
-                <Text>Concepto del pago:</Text>
+            {!isAlpac && (
+              <View style={styles.conceptBox}>
+                <View style={styles.conceptTitle}>
+                  <Text>Concepto del pago:</Text>
+                </View>
+                <View style={styles.conceptContent}>
+                  <Text>
+                    Pago de salario correspondiente del {formattedStart} al{" "}
+                    {formattedEnd} - {jobPosition}.
+                  </Text>
+                </View>
+                <View style={styles.accountContent}>
+                  <Text>Pago por cuenta de:</Text>
+                </View>
               </View>
-              <View style={styles.conceptContent}>
-                <Text>
-                  Pago de salario correspondiente del {formattedStart} al{" "}
-                  {formattedEnd} - {jobPosition}.
-                </Text>
-              </View>
-              <View style={styles.accountContent}>
-                <Text>Pago por cuenta de:</Text>
-              </View>
-            </View>
+            )}
 
             <View style={styles.checkListBox}>
               <View style={styles.checkListHeaderRow}>
@@ -223,25 +478,68 @@ export function CheckPdfDocument({ data, startDate, endDate }: CheckPdfProps) {
 
               <View style={styles.signaturesRow}>
                 <View style={styles.signatureBlock}>
+                  <View style={styles.signatureStampArea}>
+                    {signatures.solicitado.signatureImage ? (
+                      <Image
+                        src={handleSignatureImage(
+                          signatures.solicitado.signatureImage,
+                        )}
+                        style={styles.signatureImage}
+                      />
+                    ) : null}
+                  </View>
                   <View style={styles.signatureLine}></View>
                   <Text style={styles.signatureTitle}>Solicitado:</Text>
-                  <Text style={styles.signatureName}>Auxiliar</Text>
-                  <Text style={styles.signatureRole}>Talento Humano</Text>
+                  <Text style={styles.signatureName}>
+                    {signatures.solicitado.name}
+                  </Text>
+                  {signatures.solicitado.role ? (
+                    <Text style={styles.signatureRole}>
+                      {signatures.solicitado.role}
+                    </Text>
+                  ) : null}
                 </View>
 
                 <View style={styles.signatureBlock}>
+                  <View style={styles.signatureStampArea}>
+                    {signatureImageSrc ? (
+                      <Image
+                        src={signatureImageSrc}
+                        style={styles.signatureImage}
+                      />
+                    ) : null}
+                  </View>
                   <View style={styles.signatureLine}></View>
                   <Text style={styles.signatureTitle}>Revisado:</Text>
-                  <Text style={styles.signatureName}>Jackson Treminio</Text>
-                  <Text style={styles.signatureRole}>Contador General</Text>
+                  <Text style={styles.signatureName}>
+                    {signatures.revisado.name}
+                  </Text>
+                  {signatures.revisado.role ? (
+                    <Text style={styles.signatureRole}>
+                      {signatures.revisado.role}
+                    </Text>
+                  ) : null}
                 </View>
 
-                <View style={styles.signatureBlock}>
-                  <View style={styles.signatureLine}></View>
-                  <Text style={styles.signatureTitle}>Autorizado:</Text>
-                  <Text style={styles.signatureName}>Maicol Cruz Morales</Text>
-                  <Text style={styles.signatureRole}>Gerente General</Text>
-                </View>
+                {signatures.aprobado ? (
+                  <View style={styles.signatureBlock}>
+                    <View style={styles.signatureStampArea} />
+                    <View style={styles.signatureLine}></View>
+                    <Text style={styles.signatureTitle}>Aprobado:</Text>
+                    <Text style={styles.signatureName}>
+                      {signatures.aprobado.name}
+                    </Text>
+                    {signatures.aprobado.role ? (
+                      <Text style={styles.signatureRole}>
+                        {signatures.aprobado.role}
+                      </Text>
+                    ) : null}
+                  </View>
+                ) : (
+                  <View style={styles.signatureBlock}>
+                    <View style={styles.signatureStampArea} />
+                  </View>
+                )}
               </View>
             </View>
 

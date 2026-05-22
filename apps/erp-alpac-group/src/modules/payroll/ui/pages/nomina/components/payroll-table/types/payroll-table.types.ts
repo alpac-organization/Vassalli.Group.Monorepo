@@ -10,7 +10,7 @@ export type PayrollTableProps = {
   visibleKeys: string[];
   onVisibleKeysChange: (keys: string[]) => void;
   onPageChange: (page: number) => void;
-  onRowClick?: (row: PayrollItemResponse) => void;
+  onRowDoubleClick?: (row: PayrollItemResponse) => void;
   isPending?: boolean;
 };
 

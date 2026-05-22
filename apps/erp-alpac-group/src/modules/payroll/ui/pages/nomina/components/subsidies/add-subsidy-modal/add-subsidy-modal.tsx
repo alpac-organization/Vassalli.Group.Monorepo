@@ -104,6 +104,7 @@ export const AddSubsidyModal = (props: AddSubsidyModalProps): React.ReactNode =>
                         </div>
 
                         <AddSubsidyForm
+                           payrollId={props.payrollId}
                            collaborator={foundCollaborator! ?? props.collaborator!}
                            onRequestSuccess={(message) => {
                               props.onRequestSuccess?.(message);

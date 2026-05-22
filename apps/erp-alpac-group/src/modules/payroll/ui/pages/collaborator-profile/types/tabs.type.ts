@@ -3,5 +3,4 @@ export type TabId =
    | "Personal"
    | "Working"
    | "Generar-documentos"
-   | "vacation-management"
-   | "subsidy-management";
+   | "vacation-management";

@@ -258,7 +258,6 @@ export function NewPermissionRequestForm(
                                              maxDate={endOfYear}
                                              labelAbove
                                              isRequired
-                                             shouldDisableDate={(date) => date.day() === 0}
                                              onChange={(value) => {
                                                 setIsEndDateDisabled(false)
                                                 setStartDate(value.$d)
