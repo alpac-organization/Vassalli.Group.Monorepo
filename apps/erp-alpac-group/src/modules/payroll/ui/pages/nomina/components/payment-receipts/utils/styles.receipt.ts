@@ -10,7 +10,6 @@ export const receiptStyles = StyleSheet.create({
     color: "#000",
   },
 
-  // ── Header ──────────────────────────────────────────────────────────────
   companyName: {
     fontSize: 14,
     fontFamily: "Helvetica-Bold",
@@ -29,7 +28,6 @@ export const receiptStyles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  // ── Info box (Area / Nombre / Ubicacion / Sueldo) ────────────────────────
   infoBox: {
     borderWidth: 1,
     borderColor: "#000",
@@ -56,7 +54,6 @@ export const receiptStyles = StyleSheet.create({
     flex: 1,
   },
 
-  // ── Main income/deduction table ──────────────────────────────────────────
   table: {
     borderWidth: 1,
     borderColor: "#000",
@@ -86,15 +83,36 @@ export const receiptStyles = StyleSheet.create({
     flexDirection: "row",
     flex: 1,
   },
+  transportTable: {
+    borderWidth: 1,
+    borderColor: "#000",
+    marginBottom: 12,
+  },
+  transportTableBody: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
   incomeCol: {
     flex: 1,
     borderRightWidth: 1,
     borderRightColor: "#000",
     padding: 4,
   },
+  transportIncomeCol: {
+    flex: 1,
+    borderRightWidth: 1,
+    borderRightColor: "#000",
+    padding: 4,
+    minWidth: 0,
+  },
   deductCol: {
     flex: 1,
     padding: 4,
+  },
+  transportDeductCol: {
+    flex: 1,
+    padding: 4,
+    alignSelf: "flex-start",
   },
   lineItem: {
     flexDirection: "row",
@@ -124,65 +142,73 @@ export const receiptStyles = StyleSheet.create({
     fontSize: 9,
   },
 
-  // ── Travel routes sub-table (transportistas) ─────────────────────────────
   routeTable: {
     borderWidth: 1,
     borderColor: "#000",
-    marginTop: 6,
+    marginTop: 8,
+    width: "100%",
   },
   routeHeaderRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#000",
-    backgroundColor: "#fff",
+    backgroundColor: "#f5f5f5",
+    minHeight: 28,
+    alignItems: "center",
   },
-  routeHeaderCell: {
-    flex: 1,
-    padding: 3,
-    fontFamily: "Helvetica-Bold",
-    fontSize: 8,
+  routeColOrigin: {
+    width: "40%",
+    paddingVertical: 4,
+    paddingHorizontal: 3,
     borderRightWidth: 1,
     borderRightColor: "#000",
+    justifyContent: "center",
+  },
+  routeColValue: {
+    width: "20%",
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    borderRightWidth: 1,
+    borderRightColor: "#000",
+    justifyContent: "center",
+  },
+  routeColValueLast: {
+    width: "20%",
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    justifyContent: "center",
+  },
+  routeHeaderText: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 7,
     textAlign: "center",
   },
-  routeHeaderCellLast: {
-    flex: 1,
-    padding: 3,
+  routeHeaderTextOrigin: {
     fontFamily: "Helvetica-Bold",
-    fontSize: 8,
-    textAlign: "center",
+    fontSize: 7,
+    textAlign: "left",
   },
   routeRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: "#000",
+    minHeight: 16,
+    alignItems: "center",
   },
   routeRowLast: {
     flexDirection: "row",
+    minHeight: 16,
+    alignItems: "center",
   },
-  routeCell: {
-    flex: 1,
-    padding: 3,
-    fontSize: 8,
-    borderRightWidth: 1,
-    borderRightColor: "#000",
+  routeOriginText: {
+    fontSize: 7,
+    lineHeight: 1.25,
   },
-  routeCellRight: {
-    flex: 1,
-    padding: 3,
-    fontSize: 8,
-    textAlign: "right",
-    borderRightWidth: 1,
-    borderRightColor: "#000",
-  },
-  routeCellLast: {
-    flex: 1,
-    padding: 3,
-    fontSize: 8,
+  routeAmountText: {
+    fontSize: 7,
     textAlign: "right",
   },
 
-  // ── Totals row ───────────────────────────────────────────────────────────
   totalsRow: {
     flexDirection: "row",
     borderTopWidth: 1,
@@ -210,23 +236,30 @@ export const receiptStyles = StyleSheet.create({
     textAlign: "right",
   },
 
-  // ── Net row ──────────────────────────────────────────────────────────────
   netRow: {
     flexDirection: "row",
     paddingHorizontal: 4,
     paddingTop: 4,
     paddingBottom: 2,
+    justifyContent: "space-between",
   },
   netLabel: {
     fontFamily: "Helvetica-Bold",
-    width: "50%",
+    flex: 1,
   },
   netValue: {
     fontFamily: "Helvetica-Bold",
-    width: "50%",
+    textAlign: "right",
+  },
+  transportNetRow: {
+    flexDirection: "row",
+    borderTopWidth: 1,
+    borderTopColor: "#000",
+    paddingHorizontal: 4,
+    paddingVertical: 5,
+    justifyContent: "space-between",
   },
 
-  // ── Signature / footer ───────────────────────────────────────────────────
   signatureArea: {
     marginTop: 24,
     alignItems: "flex-end",
