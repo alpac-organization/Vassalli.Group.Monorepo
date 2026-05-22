@@ -326,9 +326,9 @@ export function PayrollPage() {
   const displayedBranchName =
     ordinaryPayrollQuery.data?.branch_name?.trim() || selectedBranchName;
 
-  const hasCollaboratorsWithoutInss = useMemo(() => {
+  const hasCollaboratorsWithoutBankAccount = useMemo(() => {
     const items = ordinaryPayrollQuery.data?.payroll_details?.items ?? [];
-    return items.some((item) => !item.collaborator?.inss_number?.trim());
+    return items.some((item) => !item.collaborator?.bank_account?.trim());
   }, [ordinaryPayrollQuery.data]);
   const totalPayrollRecords =
     ordinaryPayrollQuery.data?.payroll_details?.total_items ?? 0;
@@ -346,14 +346,14 @@ export function PayrollPage() {
       //   value: "vacation_accruals_history",
       // },
     ];
-    if (hasCollaboratorsWithoutInss && !detailsFetchInFlight) {
+    if (hasCollaboratorsWithoutBankAccount && !detailsFetchInFlight) {
       options.push({
         label: "Generar Solicitudes de Pago",
         value: "payment_requests",
       });
     }
     return options;
-  }, [hasCollaboratorsWithoutInss, detailsFetchInFlight]);
+  }, [hasCollaboratorsWithoutBankAccount, detailsFetchInFlight]);
 
   useEffect(() => {
     if (
@@ -578,6 +578,13 @@ export function PayrollPage() {
       //   );
       // }
 
+      const preparedSignatureImageSrc = signatures.solicitado.signatureImage
+        ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
+        : "";
+      const reviewedSignatureImageSrc = signatures.signatureImage
+        ? await getProcessedSignatureImage(signatures.signatureImage)
+        : "";
+
       const blob = await pdf(
         <PayrollPdfDocument
           typePayroll={selectedPayrollType}
@@ -588,12 +595,14 @@ export function PayrollPage() {
           endDate={ordinaryPayrollQuery.data?.end_date}
           visibleKeys={visibleKeys}
           preparedBy={{
-            name: "Talento Humano",
+            name: signatures.solicitado.name,
           }}
           reviewedBy={{
-            name: signatures.revisado?.name ?? "",
-            role: "Contador General",
+            name: signatures.revisado.name,
+            role: signatures.revisado.role,
           }}
+          preparedSignatureImageSrc={preparedSignatureImageSrc}
+          reviewedSignatureImageSrc={reviewedSignatureImageSrc}
         />,
       ).toBlob();
 
@@ -647,9 +656,8 @@ export function PayrollPage() {
       const response = await payrollServices.getPayroll(payload);
       const allItems = response.payroll_details?.items ?? [];
 
-      //fedback agg bankaccountNumber
       const filteredItems = allItems.filter(
-        (item) => !item.collaborator?.bank_account_number?.trim(),
+        (item) => !item.collaborator?.bank_account?.trim(),
       );
 
       if (filteredItems.length === 0) {
@@ -659,7 +667,6 @@ export function PayrollPage() {
       const { signatureImage } = getSignatures(companyName);
       const signatureImageSrc =
         await getProcessedSignatureImage(signatureImage);
-
       const blob = await pdf(
         <CheckPdfDocument
           data={filteredItems}
@@ -719,15 +726,20 @@ export function PayrollPage() {
         return;
       }
 
+      const reviewedSignatureImageSrc = signatures.solicitado.signatureImage
+        ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
+        : "";
+
       const blob = await pdf(
         <AccumulatedHistoryPdfDocument
           data={reportData}
           startDate={startDate}
           endDate={endDate}
           reviewedBy={{
-            name: "Aracelly Guillen",
-            role: "Gerente de Recursos Humanos",
+            name: signatures.solicitado.name,
+            role: signatures.solicitado.role,
           }}
+          reviewedSignatureImageSrc={reviewedSignatureImageSrc}
         />,
       ).toBlob();
 
@@ -742,7 +754,12 @@ export function PayrollPage() {
     }
   }, [
     companyId,
+    moduleCode,
+    selectedPayrollType,
+    companyName,
     ordinaryPayrollQuery.data?.payroll_id,
+    ordinaryPayrollQuery.data?.start_date,
+    ordinaryPayrollQuery.data?.end_date,
     handlePdfGenerationError,
   ]);
   const handleGenerateVacationAccrualPdf = useCallback(async () => {
@@ -772,15 +789,20 @@ export function PayrollPage() {
         return;
       }
 
+      const reviewedSignatureImageSrc = signatures.solicitado.signatureImage
+        ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
+        : "";
+
       const blob = await pdf(
         <VacationAccrualPdfDocument
           data={reportData}
           startDate={startDate}
           endDate={endDate}
           reviewedBy={{
-            name: "Aracelly Guillen",
-            role: "Gerente de Recursos Humanos",
+            name: signatures.solicitado.name,
+            role: signatures.solicitado.role,
           }}
+          reviewedSignatureImageSrc={reviewedSignatureImageSrc}
         />,
       ).toBlob();
 
@@ -797,6 +819,7 @@ export function PayrollPage() {
     companyId,
     moduleCode,
     selectedPayrollType,
+    companyName,
     ordinaryPayrollQuery.data?.payroll_id,
     ordinaryPayrollQuery.data?.start_date,
     ordinaryPayrollQuery.data?.end_date,
@@ -1313,7 +1336,7 @@ export function PayrollPage() {
 
                 {displayedBranchName ? (
                   <Badges
-                    label={`Nomina de ${displayedBranchName}`}
+                    label={`Nómina de ${displayedBranchName}`}
                     color="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
                     className="max-w-72 text-[12px]! font-semibold! leading-snug! wrap-break-word text-right"
                   />
@@ -1325,7 +1348,7 @@ export function PayrollPage() {
                 <h3 className="p-0! m-0!">Accesos Directos</h3>
                 <small className="text-gray-500 dark:text-gray-300">
                   Aqui puedes cambiar el tipo de nómina y sucursal, tambien
-                  puedes generar reportes
+                  puedes generar reportes y exportar el excel de la nómina.
                 </small>
               </div>
             </div>
@@ -1359,10 +1382,11 @@ export function PayrollPage() {
                   isLoading={isGeneratingExcel}
                   disabled={!existPayrollInProgress}
                   onClick={handleGenerateExcel}
-                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingExcel
-                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                    : ""
-                    }`}
+                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGeneratingExcel
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
                 />
                 <Button
                   type="button"
@@ -1392,6 +1416,19 @@ export function PayrollPage() {
                     }`}
                 />
 
+                <Button
+                  type="button"
+                  size="giant"
+                  label="Exportar Excel de nómina"
+                  isLoading={isGeneratingExcel}
+                  disabled={!existPayrollInProgress}
+                  onClick={handleGenerateExcel}
+                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGeneratingExcel
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
+                />
                 <Button
                   type="button"
                   size="giant"

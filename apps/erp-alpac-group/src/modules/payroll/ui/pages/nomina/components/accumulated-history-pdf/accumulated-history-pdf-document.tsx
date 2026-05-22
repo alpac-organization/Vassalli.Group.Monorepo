@@ -5,15 +5,21 @@ import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { styles } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/utils/styles.accumulated";
 import type { AccumulatedHistoryPdfProps } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/types/accumulated-history.types";
+import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 
 export function AccumulatedHistoryPdfDocument({
   data,
   reviewedBy,
+  reviewedSignatureImageSrc,
   startDate,
   endDate,
 }: AccumulatedHistoryPdfProps) {
   const companyName = useUserStore.getState().companyName || "Alpac Group";
   const { urlImage } = useCompanyStore();
+  const signatures = getSignatures(companyName);
+  const reviewedName = reviewedBy?.name ?? signatures.revisado.name;
+  const reviewedRole = reviewedBy?.role ?? signatures.revisado.role;
+  const showSignatures = !!(reviewedBy || signatures.revisado);
 
   return (
     <Document>
@@ -85,14 +91,24 @@ export function AccumulatedHistoryPdfDocument({
           </View>
         ))}
 
-        {reviewedBy ? (
+        {showSignatures ? (
           <View style={styles.signaturesContainer} wrap={false}>
             <View style={styles.signatureBlock}>
+              <View style={styles.signatureStampArea}>
+                {reviewedSignatureImageSrc ? (
+                  <Image
+                    src={reviewedSignatureImageSrc}
+                    style={styles.signatureImage}
+                  />
+                ) : null}
+              </View>
               <View style={styles.signatureLine} />
               <Text style={styles.signatureName}>
-                Revisado por: {reviewedBy.name}
+                Revisado por: {reviewedName}
               </Text>
-              <Text style={styles.signatureRole}>{reviewedBy.role}</Text>
+              {reviewedRole ? (
+                <Text style={styles.signatureRole}>{reviewedRole}</Text>
+              ) : null}
             </View>
           </View>
         ) : null}

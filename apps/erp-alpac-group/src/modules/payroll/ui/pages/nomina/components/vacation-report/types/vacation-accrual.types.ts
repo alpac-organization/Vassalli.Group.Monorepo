@@ -4,6 +4,7 @@ import type { PdfSignatory } from "@app/modules/payroll/ui/pages/nomina/types/pa
 export type VacationAccrualPdfProps = {
   data: GetPayrollReportsVacationAccrualResponse[];
   reviewedBy?: PdfSignatory;
+  reviewedSignatureImageSrc?: string;
   startDate?: string;
   endDate?: string;
 };
