@@ -13,14 +13,26 @@ export interface CreateSubsidyRequest {
    module_code: string;
 
    /**
+    * @property {string} payroll_id - Código de la nómina
+    */
+   payroll_id: string;
+
+   /**
     * @property {string} collaborator_id - Identificador del colaborador.
     */
    collaborator_id: string;
 
    /**
-    * @property {string} subsidy_type - Tipo de subsidio.
+    * TypeSubsidyId
+    * @property {string} type_subsidy_id - Tipo de subsidio.
+   */
+   type_subsidy_id: string;
+
+   /**
+    * ReferenceNumber
+    * @property {string} reference_number - Número de la boleta.
     */
-   subsidy_type: string;
+   reference_number: string;
 
    /**
     * @property {string | null} start_date - Fecha de inicio del subsidio.
@@ -32,13 +44,9 @@ export interface CreateSubsidyRequest {
     */
    end_date: string | null;
 
-   /**
-    * @property {string} boleta_number - Número de la boleta.
-    */
-   boleta_number: string;
 
    /**
     * @property {string} observations - Observaciones del subsidio.
     */
-   observations: string;
+   observations: string;   
 }

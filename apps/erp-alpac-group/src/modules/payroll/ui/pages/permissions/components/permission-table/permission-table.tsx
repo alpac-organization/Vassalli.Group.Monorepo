@@ -9,7 +9,6 @@ import { statusBadgeColor } from "@app/modules/payroll/ui/pages/permissions/comp
 export function PermissionTable({
   data,
   onViewDetails,
-  onGenerateDocument,
   onCancelRequest,
 }: PermissionTableProps) {
   const columns = [

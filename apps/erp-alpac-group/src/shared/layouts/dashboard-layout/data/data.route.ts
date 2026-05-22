@@ -53,14 +53,14 @@ const controlVacationsSection: SidebarLink = {
 
 const gestionPayrollSection: SidebarLink = {
   id: "gestion-payroll",
-  label: "Gestion de Nómina",
+  label: "Gestión de Nómina",
   path: "payroll/gestion-nomina",
   icon: DollarSign,
 };
 
 const payrollPeriodsHistorySection: SidebarLink = {
   id: "historial-periodos-nómina",
-  label: "Periodos de Nómina",
+  label: "Períodos de Nómina",
   path: "payroll/historial-periodos-nomina",
   icon: History,
 };
@@ -92,13 +92,6 @@ const liquidacionSection: SidebarLink = {
   icon: HandCoins,
 };
 
-const reportsSection: SidebarLink = {
-  id: "reports",
-  label: "Reportes",
-  path: "payroll/reportes",
-  icon: ClipboardCheck,
-};
-
 const scaleControlSection: SidebarLink = {
   id: "scale-control",
   label: "Control de Báscula",
@@ -114,12 +107,11 @@ export const sidebarData = {
     [ModuleEnum.PAYROLL]: {
       [RoleEnum.ADMINISTRATOR]: [
         collboratorSection,
-        controlVacationsSection,
         gestionPayrollSection,
         payrollPeriodsHistorySection,
         deduccionesSection,
         liquidacionSection,
-        reportsSection,
+        controlVacationsSection,
       ],
     },
     [ModuleEnum.WORK_MANAGEMENT]: {

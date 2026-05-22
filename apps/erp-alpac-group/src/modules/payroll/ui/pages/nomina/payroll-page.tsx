@@ -58,8 +58,9 @@ import {
   DROPDOWN_DISABLED_TRIGGER_CLASS,
 } from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
 import { isSelectablePayrollType } from "@app/modules/payroll/ui/pages/nomina/utils/payroll.utls";
-import { CreateIncomeModal } from "./components/incomes/create-income-modal/create-income-modal";
+import { CreateIncomeModal } from "@app/modules/payroll/ui/pages/nomina/components/incomes/create-income-modal/create-income-modal";
 import { AddDeductionModal } from "@app/modules/payroll/ui/pages/nomina/components/deductions/add-deduction-modal/add-deduction-modal";
+import { AddSubsidyModal } from "@app/modules/payroll/ui/pages/nomina/components/subsidies/add-subsidy-modal/add-subsidy-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 
 export function PayrollPage() {
@@ -164,6 +165,7 @@ export function PayrollPage() {
 
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
   const [isDeductionModalOpen, setIsDeductionModalOpen] = useState(false);
+  const [isSubsidyModalOpen, setIsSubsidyModalOpen] = useState(false);
 
   const {
     alertState,
@@ -431,7 +433,7 @@ export function PayrollPage() {
           const apiError = error as ApiErrorResponse;
           handleRequestError(
             apiError?.error?.description ||
-              "No se pudo inicializar la nómina. Inténtelo nuevamente.",
+            "No se pudo inicializar la nómina. Inténtelo nuevamente.",
             "No se pudo inicializar",
           );
         },
@@ -478,7 +480,7 @@ export function PayrollPage() {
       const apiError = error as ApiErrorResponse;
       handleRequestError(
         apiError?.error?.description ||
-          "No se pudo formalizar la nómina. Inténtelo nuevamente.",
+        "No se pudo formalizar la nómina. Inténtelo nuevamente.",
         "No se pudo formalizar",
       );
       throw error;
@@ -926,6 +928,10 @@ export function PayrollPage() {
     setIsDeductionModalOpen(true);
   }, []);
 
+  const handleCreateSubsidy = useCallback(() => {
+    setIsSubsidyModalOpen(true);
+  }, []);
+
   const renderContent = () => {
     if (existPayrollInProgress === false) {
       return (
@@ -1353,11 +1359,10 @@ export function PayrollPage() {
                   isLoading={isGeneratingExcel}
                   disabled={!existPayrollInProgress}
                   onClick={handleGenerateExcel}
-                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingExcel
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
+                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingExcel
+                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                    : ""
+                    }`}
                 />
                 <Button
                   type="button"
@@ -1378,14 +1383,13 @@ export function PayrollPage() {
                     isGeneratingVacationAccrualPdf
                   }
                   onClick={handleExecuteSelectedAction}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingPdf ||
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
                     isGeneratingVacationAccrualPdf
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
+                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                    : ""
+                    }`}
                 />
 
                 <Button
@@ -1394,14 +1398,13 @@ export function PayrollPage() {
                   label="Registrar Ingreso"
                   disabled={!existPayrollInProgress}
                   onClick={handleRegisterIncome}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingPdf ||
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
                     isGeneratingVacationAccrualPdf
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
+                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                    : ""
+                    }`}
                 />
 
                 <Button
@@ -1410,14 +1413,27 @@ export function PayrollPage() {
                   label="Registrar Deducción"
                   disabled={!existPayrollInProgress}
                   onClick={handleRegisterDeduction}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingPdf ||
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
                     isGeneratingVacationAccrualPdf
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
+                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                    : ""}`
+                  }
+                />
+
+                <Button
+                  size="giant"
+                  label="Iniciar Proceso de Subsidio"
+                  disabled={!existPayrollInProgress}
+                  onClick={handleCreateSubsidy}
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
+                    isGeneratingPaymentRequestsPdf ||
+                    isGeneratingAccumulatedHistoryPdf ||
+                    isGeneratingVacationAccrualPdf
+                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                    : ""}`
+                  }
                 />
               </div>
             </div>
@@ -1437,7 +1453,7 @@ export function PayrollPage() {
 
         <CreateIncomeModal
           isOpen={isIncomeModalOpen}
-          payrollId={selectedOrdinaryPayroll?.payroll_id ?? ""}
+          payrollId={selectedOrdinaryPayroll?.payroll_id!}
           branchId={selectedBranch ?? ""}
           onClose={() => setIsIncomeModalOpen(false)}
           onRequestSuccess={(successMessage) => {
@@ -1453,7 +1469,7 @@ export function PayrollPage() {
         <AddDeductionModal
           isOpen={isDeductionModalOpen}
           branchId={selectedBranch ?? ""}
-          payrollId={selectedOrdinaryPayroll?.payroll_id ?? ""}
+          payrollId={selectedOrdinaryPayroll?.payroll_id!}
           onClose={() => setIsDeductionModalOpen(false)}
           onRequestSuccess={(successMessage) => {
             handleRequestSuccess(successMessage, "Deducción registrada");
@@ -1461,9 +1477,21 @@ export function PayrollPage() {
             setIsDeductionModalOpen(false);
           }}
           onRequestError={(errorMessage) => {
-            handleRequestError(
-              errorMessage || "Error al registrar la deducción",
-            );
+            handleRequestError(errorMessage || "Error al registrar la deducción");
+          }}
+        />
+
+        <AddSubsidyModal
+          isOpen={isSubsidyModalOpen}
+          payrollId={selectedOrdinaryPayroll?.payroll_id!}
+          onClose={() => setIsSubsidyModalOpen(false)}
+          onRequestSuccess={(successMessage) => {
+            handleRequestSuccess(successMessage, "Subsidio resgistrado");
+            void ordinaryPayrollQuery.refetch();
+            setIsSubsidyModalOpen(false);
+          }}
+          onRequestError={(errorMessage) => {
+            handleRequestError(errorMessage || "Error al registrar el subsidio")
           }}
         />
 
