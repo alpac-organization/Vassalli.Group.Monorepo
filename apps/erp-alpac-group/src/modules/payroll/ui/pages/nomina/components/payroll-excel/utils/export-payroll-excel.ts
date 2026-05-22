@@ -6,40 +6,20 @@ import {
   calcAreaTotals,
   groupByWorkArea,
 } from "@app/modules/payroll/ui/pages/nomina/utils/payroll-report-grouping.utils";
-
-const C = {
-  headerBg: "FFF3F4F6",
-  areaHeaderBg: "FF1E3A5F",
-  areaHeaderText: "FFFFFFFF",
-  areaTotalsBg: "FFE8F0FE",
-  areaTotalsText: "FF1E3A5F",
-  globalBg: "FF1E3A5F",
-  globalText: "FFFFFFFF",
-  border: "FFBFBFBF",
-  subtitleText: "FF555555",
-} as const;
-
-const THIN_BORDER = {
-  top: { style: "thin" as const, color: { argb: C.border } },
-  left: { style: "thin" as const, color: { argb: C.border } },
-  bottom: { style: "thin" as const, color: { argb: C.border } },
-  right: { style: "thin" as const, color: { argb: C.border } },
-};
-
-function colWidth(key: string): number {
-  if (key === "full_name" || key === "branch_name") return 35;
-  if (key === "inss_number") return 18;
-  return 14;
-}
-
-function slugify(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/[^a-zA-Z0-9-_]/g, "")
-    .toLowerCase();
-}
+import {
+  fitImageInBox,
+  getImageNaturalSize,
+} from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/fit-image-excel";
+import {
+  C,
+  THIN_BORDER,
+  LOGO_MAX_WIDTH,
+  LOGO_MAX_HEIGHT,
+} from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/constants/excel-constants";
+import {
+  colWidth,
+  slugify,
+} from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/excel-helper";
 
 export async function exportPayrollExcel({
   data,
@@ -100,7 +80,7 @@ export async function exportPayrollExcel({
 
   {
     const row = ws.addRow(activeColumns.map((col) => col.label));
-    row.height = 50;
+    row.height = 32;
     for (let c = 1; c <= colCount; c++) {
       const cell = row.getCell(c);
       cell.fill = {
@@ -113,7 +93,6 @@ export async function exportPayrollExcel({
         horizontal: "center",
         vertical: "middle",
         wrapText: true,
-        textRotation: 90,
       };
       cell.border = THIN_BORDER;
     }
@@ -203,9 +182,17 @@ export async function exportPayrollExcel({
           | "jpeg"
           | "gif";
         const imageId = wb.addImage({ buffer: arrayBuffer, extension });
+        const naturalSize = await getImageNaturalSize(arrayBuffer);
+        const logoSize = fitImageInBox(
+          naturalSize.width,
+          naturalSize.height,
+          LOGO_MAX_WIDTH,
+          LOGO_MAX_HEIGHT,
+        );
         ws.addImage(imageId, {
           tl: { col: Math.max(0, colCount - 4), row: 0 },
-          ext: { width: 120, height: 48 },
+          ext: { width: logoSize.width, height: logoSize.height },
+          editAs: "oneCell",
         });
       }
     } catch {}
