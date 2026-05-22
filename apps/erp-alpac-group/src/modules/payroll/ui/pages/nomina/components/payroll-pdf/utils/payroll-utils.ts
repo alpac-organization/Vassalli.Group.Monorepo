@@ -224,6 +224,18 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     width: "40%",
   },
+  signatureStampArea: {
+    width: "100%",
+    height: 34,
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginBottom: 2,
+  },
+  signatureImage: {
+    width: "92%",
+    height: 32,
+    objectFit: "contain",
+  },
   signatureLine: {
     width: "100%",
     borderBottomWidth: 1,

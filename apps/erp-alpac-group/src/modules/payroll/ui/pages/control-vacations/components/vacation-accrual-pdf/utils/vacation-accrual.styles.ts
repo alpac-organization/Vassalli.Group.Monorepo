@@ -84,11 +84,44 @@ export const styles = StyleSheet.create({
   colBalance: { width: "14%", textAlign: "right" },
   colLabelMerged: { width: "45%", paddingRight: 6 },
   bold: { fontWeight: 700 },
-  signatureWrap: {
-    position: "absolute",
-    left: 24,
-    right: 24,
-    bottom: 18,
+  signaturesContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 24,
+    paddingHorizontal: 40,
+  },
+  signatureBlock: {
+    flexDirection: "column",
+    alignItems: "center",
+    width: "40%",
+  },
+  signatureStampArea: {
+    width: "100%",
+    height: 34,
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginBottom: 2,
+  },
+  signatureImage: {
+    width: "92%",
+    height: 32,
+    objectFit: "contain",
+  },
+  signatureLine: {
+    width: "100%",
+    borderBottomWidth: 1,
+    borderBottomColor: "#000000",
+    marginBottom: 6,
+  },
+  signatureName: {
+    fontSize: 9,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 3,
+  },
+  signatureRole: {
+    fontSize: 8,
+    color: "#555",
     textAlign: "center",
   },
 });

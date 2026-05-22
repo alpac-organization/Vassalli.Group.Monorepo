@@ -10,14 +10,20 @@ import {
   formatTotal,
 } from "@app/modules/payroll/ui/pages/control-vacations/components/vacation-accrual-pdf/utils/fn.utils";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 
 export function VacationAccrualPdfDocument({
   data,
   generatedAt,
   preparedBy,
+  preparedSignatureImageSrc,
 }: VacationAccrualPdfProps) {
   const companyName = useUserStore.getState().companyName || "Alpac Group";
   const { urlImage } = useCompanyStore();
+  const signatures = getSignatures(companyName);
+  const preparedName = preparedBy?.name ?? signatures.solicitado.name;
+  const preparedRole = preparedBy?.role ?? "Talento Humano";
+  const showSignatures = !!(preparedBy || signatures.solicitado);
   const grouped = groupByArea(data);
   const globalTotal = data.reduce(
     (sum, item) => sum + asNumber(item.vacation_balance),
@@ -112,15 +118,29 @@ export function VacationAccrualPdfDocument({
           </View>
         </View>
 
-        <Text
-          fixed
-          style={styles.signatureWrap}
-          render={({ pageNumber, totalPages }) =>
-            pageNumber === totalPages
-              ? `_______________________________\nElaborado por : ${preparedBy.name}\nResponsable de ${preparedBy.role}`
-              : ""
-          }
-        />
+        {showSignatures ? (
+          <View style={styles.signaturesContainer} wrap={false}>
+            <View style={styles.signatureBlock}>
+              <View style={styles.signatureStampArea}>
+                {preparedSignatureImageSrc ? (
+                  <Image
+                    src={preparedSignatureImageSrc}
+                    style={styles.signatureImage}
+                  />
+                ) : null}
+              </View>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureName}>
+                Elaborado por: {preparedName}
+              </Text>
+              {preparedRole ? (
+                <Text style={styles.signatureRole}>
+                  Responsable de {preparedRole}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        ) : null}
       </Page>
     </Document>
   );

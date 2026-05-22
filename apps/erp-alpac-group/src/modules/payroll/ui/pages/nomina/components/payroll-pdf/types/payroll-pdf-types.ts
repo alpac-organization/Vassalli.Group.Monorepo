@@ -12,4 +12,6 @@ export type PayrollPdfProps = {
   typePayroll: PayrollType;
   preparedBy?: PdfSignatory;
   reviewedBy?: PdfSignatory;
+  preparedSignatureImageSrc?: string;
+  reviewedSignatureImageSrc?: string;
 };
