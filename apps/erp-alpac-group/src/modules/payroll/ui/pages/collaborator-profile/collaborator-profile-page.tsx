@@ -13,13 +13,13 @@ import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-prof
 import type { GeneratedDocumentType } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/generated-document.request";
 import { GenerateDocumentsSection } from "@app/modules/payroll/ui/pages/collaborator-profile/components/generate-documents/generate-documents-section";
 import { VacationManagementSection } from "./components/vacation-management/vacation-management-section";
-import { SubsidyManagementSection } from "./components/subsidy-management/subsidy-management-modal";
+import { RoleEnum } from "@app/core/enums/role.enum";
 
 export function CollaboratorProfilePage() {
    const [activeTab, setActiveTab] = useState<TabId>("Personal");
 
    const { identification_number } = useParams();
-   const { companyId, moduleCode, identificationNumber } = useUserStore();
+   const { companyId, moduleCode, identificationNumber, role } = useUserStore();
 
    const location = useLocation();
    const state = location.state;
@@ -59,6 +59,8 @@ export function CollaboratorProfilePage() {
       error,
    } = GetProfileDetails;
 
+   const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+
    const handleGenerateProfileDocument = (
       documentType: GeneratedDocumentType,
    ) => {
@@ -71,14 +73,18 @@ export function CollaboratorProfilePage() {
       });
    };
 
-   //Definición de las pestañas de navegación para el perfil del colaborador
-   const TABS: TabOption<TabId>[] = [
-      { id: "Personal", label: "Información Personal" },
-      { id: "Working", label: "Información de Trabajo" },
-      //  { id: "Generar-documentos", label: "Generar documentos" },
-      { id: "vacation-management", label: "Gestión de Vacaciones" },
-      { id: "subsidy-management", label: "Gestión de Subsidio" },
-   ];
+   const tabs = useMemo<TabOption<TabId>[]>(() => {
+      const baseTabs = [
+         { id: "Personal", label: "Información Personal" },
+         { id: "Working", label: "Información de Trabajo" },
+      ] as TabOption<TabId>[];
+
+      if (isAdministrator) {
+         baseTabs.push({ id: "vacation-management" as any, label: "Gestión de Vacaciones" });
+      }
+
+      return baseTabs;
+   }, [isAdministrator]);
 
    if (!targetIdentification) {
       return (
@@ -118,7 +124,7 @@ export function CollaboratorProfilePage() {
       <div className="dark w-full max-w-full min-h-0 flex flex-col font-sans text-slate-100 dark:bg-[#363a45]">
          <ProfileSummary profile={CollaboratorDetails} />
 
-         <TabHeader tabs={TABS} activeTab={activeTab} onTabChange={setActiveTab} />
+         <TabHeader tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
          <div className="relative w-full min-w-0 overflow-hidden sm:mt-6">
             <div
@@ -157,26 +163,19 @@ export function CollaboratorProfilePage() {
                />
             </div>
 
-            <div
-               className={`w-full transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${activeTab === "vacation-management"
-                  ? "relative z-10 translate-y-0 opacity-100"
-                  : "pointer-events-none absolute inset-0 z-0 -translate-y-2 overflow-hidden opacity-0"
-                  }`}
-               aria-hidden={activeTab !== "vacation-management"}
-            >
-               <VacationManagementSection profile={CollaboratorDetails} />
-            </div>
-
-            <div
-               className={`w-full transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${activeTab === "subsidy-management"
-                  ? "relative z-10 translate-y-0 opacity-100"
-                  : "pointer-events-none absolute inset-0 z-0 -translate-y-2 overflow-hidden opacity-0"
-                  }`}
-               aria-hidden={activeTab !== "subsidy-management"}
-            >
-               <SubsidyManagementSection profile={CollaboratorDetails} />
-            </div>
-
+            {
+               isAdministrator && (
+                  <div
+                     className={`w-full transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none ${activeTab === "vacation-management"
+                        ? "relative z-10 translate-y-0 opacity-100"
+                        : "pointer-events-none absolute inset-0 z-0 -translate-y-2 overflow-hidden opacity-0"
+                        }`}
+                     aria-hidden={activeTab !== "vacation-management"}
+                  >
+                     <VacationManagementSection profile={CollaboratorDetails} />
+                  </div>
+               )
+            }
          </div>
       </div>
    );

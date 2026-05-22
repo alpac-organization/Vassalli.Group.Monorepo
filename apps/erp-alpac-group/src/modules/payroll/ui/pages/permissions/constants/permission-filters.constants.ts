@@ -16,7 +16,7 @@ type PermissionTypeEntry = {
 const PERMISSION_TYPE_ENTRIES: Array<PermissionTypeEntry> = [
    { value: "Vacation", label: "Vacaciones" },
    { value: "MedicalAppointment", label: "Cita médica" },
-   { value: "DonatedVacations", label: "Donación de vacaciones" },
+   // { value: "DonatedVacations", label: "Donación de vacaciones" },
    // { value: "CompensatoryTime", label: "Tiempo compensatorio" },
    // { value: "SpecialLeave", label: "Permiso especial" },
 ];

@@ -18,8 +18,7 @@ import {
    UserIcon,
    UserRoundPlusIcon,
    UserMinus,
-   FileClock,
-   Stethoscope,
+   FileClock
 } from "lucide-react";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
@@ -46,7 +45,6 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
-import { AddSubsidyModal } from "./components/add-subsidy-modal/add-subsidy-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import type { CollaboratorModalType } from "./types/collaborator-modal.types";
 
@@ -222,10 +220,6 @@ export const CollaboratorPage = function () {
       setActiveModal("create-permission-application");
    }, []);
 
-   const handleCreateSubsidy = useCallback(() => {
-      setActiveModal("add-subsidy");
-   }, []);
-
    const formatNumber = useCallback((value: string) => {
       const number = Number(value);
       if (isNaN(number)) return "0";
@@ -362,13 +356,6 @@ export const CollaboratorPage = function () {
                         icon={<FileClock size={20} />}
                         className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                         onClick={handleCreateApplication}
-                     />
-                     <Button
-                        size="giant"
-                        label="Iniciar Proceso de Subsidio"
-                        icon={<Stethoscope size={20} />}
-                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                        onClick={handleCreateSubsidy}
                      />
                      <Button
                         size="giant"
@@ -545,13 +532,6 @@ export const CollaboratorPage = function () {
 
                <NewPermissionRequestModal
                   isOpen={activeModal === "create-permission-application"}
-                  onClose={() => setActiveModal(null)}
-                  onRequestSuccess={handleRequestSuccess}
-                  onRequestError={handleRequestError}
-               />
-
-               <AddSubsidyModal
-                  isOpen={activeModal === "add-subsidy"}
                   onClose={() => setActiveModal(null)}
                   onRequestSuccess={handleRequestSuccess}
                   onRequestError={handleRequestError}

@@ -1,6 +1,8 @@
 import type { IHttpHandler } from "@app/core/ports";
 import type { ISubsidyServices } from "@app/modules/payroll/application/interfaces/subsidy-interfaces/ISubsidyServices";
 import type { CreateSubsidyRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/create-subsidy.request";
+import type { GetSubsidyTypesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/get-subsidy-types.request";
+import type { GetSubsidyTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/subsidy-responses/get-subsidy-types.response";
 
 export class SubsidyServices implements ISubsidyServices {
 
@@ -12,12 +14,28 @@ export class SubsidyServices implements ISubsidyServices {
 
    public async CreateSubsidy(payload: CreateSubsidyRequest): Promise<void> {
       try {
-         const { company_id, ...rest } = payload;
+         console.log(payload);
+         
+         const { company_id, module_code, collaborator_id, ...rest } = payload;
 
-         const url = `/companies/${company_id}/subsidies`;
+         const url = `/companies/${company_id}/modules/${module_code}/collaborators/${collaborator_id}/subsidy`;
 
          await this.httpHandler.post<void>(url, rest);
 
+      } catch (error) {
+         throw error;
+      }
+   }
+
+   public async GetSubsidyTypes(payload: GetSubsidyTypesRequest): Promise<GetSubsidyTypesResponse> {
+      try {
+         const { company_id } = payload;
+
+         const url = `/companies/${company_id}/types-subsidy`;
+
+         const response = await this.httpHandler.get<GetSubsidyTypesResponse>(url);
+
+         return response;
       } catch (error) {
          throw error;
       }

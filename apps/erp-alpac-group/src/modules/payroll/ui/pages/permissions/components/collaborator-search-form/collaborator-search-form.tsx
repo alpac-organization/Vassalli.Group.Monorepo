@@ -70,10 +70,16 @@ export const CollaboratorSearchForm = ({
    }, [GetProfileDetails.data, GetProfileDetails.isError, GetProfileDetails.fetchStatus]);
 
    const handleSearchSubmit = (data: CollaboratorProfileDetailsRequest) => {
+
+
       if (excludeIdentifications && excludeIdentifications.includes(data.identification_number!)) {
-         onError(
-            "Por favor busca el perfil de otro colaborador o inicia el trámite a través de los canales establecidos.",
-         );
+
+         const messageError = `
+            Por favor busca el perfil de otro colaborador o 
+            inicia el trámite a través de los canales establecidos.`;
+         handleRequestError(messageError)
+         onError(messageError);
+
          return;
       }
 
@@ -142,7 +148,7 @@ export const CollaboratorSearchForm = ({
          <LazyMotion features={loadFeatures} strict>
             <AnimatePresence>
                {
-                  alertState?.open && GetProfileDetails.isError && (
+                  (alertState?.open || GetProfileDetails.isError) && (
                      <m.div
                         key="search-error"
                         variants={searchErrorVariants}
@@ -159,7 +165,7 @@ export const CollaboratorSearchForm = ({
                         <Alert
                            type="error"
                            title="Error"
-                           message={alertState.message}
+                           message={alertState?.message ?? "Hubo un error al buscar colaborador"}
                         />
                      </m.div>
                   )
