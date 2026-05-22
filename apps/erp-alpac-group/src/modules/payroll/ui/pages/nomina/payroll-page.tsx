@@ -1378,19 +1378,6 @@ export function PayrollPage() {
                 <Button
                   type="button"
                   size="giant"
-                  label="Exportar Excel"
-                  isLoading={isGeneratingExcel}
-                  disabled={!existPayrollInProgress}
-                  onClick={handleGenerateExcel}
-                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingExcel
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
-                />
-                <Button
-                  type="button"
-                  size="giant"
                   label="Generar"
                   isLoading={
                     isGeneratingPdf ||
