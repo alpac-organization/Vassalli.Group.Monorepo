@@ -2,7 +2,6 @@ import type { PaymentReceiptItem } from "@app/modules/payroll/ui/pages/nomina/co
 
 export type StandardPageProps = {
   item: PaymentReceiptItem;
-  companyName: string;
   startDate?: string;
   endDate?: string;
   branchName?: string;
@@ -11,7 +10,6 @@ export type StandardPageProps = {
 
 export type PaymentReceiptProps = {
   data: PaymentReceiptItem[];
-  companyName: string;
   startDate?: string;
   endDate?: string;
   branchName?: string;
@@ -25,7 +23,6 @@ export type TravelRoute = {
 };
 export type TransportistasPageProps = {
   item: PaymentReceiptItem;
-  companyName: string;
   startDate?: string;
   endDate?: string;
   branchName?: string;

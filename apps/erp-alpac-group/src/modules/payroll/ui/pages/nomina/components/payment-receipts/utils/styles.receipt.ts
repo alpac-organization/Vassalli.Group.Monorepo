@@ -10,7 +10,7 @@ export const receiptStyles = StyleSheet.create({
     color: "#000",
   },
 
-  companyName: {
+  branchName: {
     fontSize: 14,
     fontFamily: "Helvetica-Bold",
     textAlign: "center",
@@ -58,7 +58,6 @@ export const receiptStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#000",
     marginBottom: 12,
-    minHeight: 160,
   },
   tableHeader: {
     flexDirection: "row",
@@ -81,7 +80,6 @@ export const receiptStyles = StyleSheet.create({
   },
   tableBody: {
     flexDirection: "row",
-    flex: 1,
   },
   transportTable: {
     borderWidth: 1,

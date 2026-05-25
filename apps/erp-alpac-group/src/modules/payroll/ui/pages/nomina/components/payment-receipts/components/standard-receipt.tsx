@@ -1,16 +1,14 @@
 import { Page, Text, View } from "@react-pdf/renderer";
-import {
-  LETTER_PORTRAIT_SIZE,
-  receiptStyles as s,
-} from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/utils/styles.receipt";
+import { receiptStyles as s } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/utils/styles.receipt";
+import { getStandardPageSize } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/utils/page-size.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import type { StandardPageProps } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/types/payment.receipts.types";
 export function StandardPage({
   item,
-  companyName,
   startDate,
   endDate,
+  branchName,
 }: StandardPageProps) {
   const collaborator = item.collaborator;
 
@@ -24,24 +22,44 @@ export function StandardPage({
     { label: "TRANSPORTE", value: item.transport ?? 0 },
     { label: "ALIMENTACION", value: item.feeding ?? 0 },
     { label: "HOSPEDAJE", value: item.lodging ?? 0 },
+    { label: "Bonos", value: item.bonus ?? 0 },
   ].filter((l) => l.value > 0);
 
   const deductionLines: { label: string; value: number }[] = [
-    { label: "IR", value: item.ir },
-    { label: "INSS", value: item.inss },
+    { label: "IR", value: item.ir ?? 0 },
+    { label: "INSS", value: item.inss ?? 0 },
+    { label: "Ausencias", value: item.Absences ?? 0 },
+    { label: "Préstamos", value: item.Loans ?? 0 },
+    { label: "Embargos judiciales", value: item.JudicialSeizures ?? 0 },
+    { label: "Llegadas tardes", value: item.LateArrivals ?? 0 },
+    { label: "Purísima", value: item.Purisima ?? 0 },
+    { label: "Deducción por uniforme", value: item.UniformDeduction ?? 0 },
+    { label: "Otras deducciones", value: item.OtherDeductions ?? 0 },
+    { label: "Adelanto de salario", value: item.SalaryAdvance ?? 0 },
+    { label: "Adelanto de aguinaldo", value: item.ChristmasBonusAdvance ?? 0 },
   ].filter((l) => l.value > 0);
 
   const monthlySalary = item.biweekly_salary * 2;
   const totalIngresos = item.total_income ?? item.gross_salary ?? 0;
-  const totalEgresos = item.total_legal_deductions ?? 0;
+  const totalEgresos = deductionLines.reduce(
+    (acc, line) => acc + line.value,
+    0,
+  );
+
+  const pageSize = getStandardPageSize(
+    incomeLines.length,
+    deductionLines.length,
+    Boolean(item.DAEM),
+    (item.number_overtime ?? 0) > 0,
+  );
 
   return (
-    <Page size={LETTER_PORTRAIT_SIZE} style={s.page}>
-      <Text style={s.companyName}>{companyName}</Text>
+    <Page size={pageSize} style={s.page}>
+      <Text style={s.branchName}>{branchName}</Text>
       <Text style={s.title}>RECIBO DE PAGO</Text>
       <Text style={s.period}>
-        PERIODO DEL {formatDateToSpanishWords(startDate)}
-        {"   "}AL{"   "}
+        Periodo del: {formatDateToSpanishWords(startDate)}
+        {"   "}al{"   "}
         {formatDateToSpanishWords(endDate)}
       </Text>
 
@@ -71,7 +89,7 @@ export function StandardPage({
           <View style={s.infoRow}>
             <Text style={s.infoLabel}>Sueldo Mensual:</Text>
             <Text style={s.infoValue}>
-              C${"  "}
+              {"  "}
               {formatCurrency(monthlySalary)}
             </Text>
           </View>

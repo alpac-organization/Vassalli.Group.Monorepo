@@ -11,13 +11,13 @@ import { StandardPage } from "@app/modules/payroll/ui/pages/nomina/components/pa
 import { receiptStyles as s } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/utils/styles.receipt";
 import { TransportistasPage } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/components/transportistas-receipt";
 import type { TravelRoute } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/types/payment.receipts.types";
+import type { AdditionalDeductions } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/types/payroll-table.types";
 
 export type PaymentReceiptItem = PayrollItemResponse & {
   feriado?: number;
   travel_routes?: TravelRoute[];
   quantity_of_trips?: number;
-};
-
+} & AdditionalDeductions;
 export function TravelRouteRow({
   route,
   isLast,
@@ -49,7 +49,6 @@ export function TravelRouteRow({
 
 export function PaymentReceiptDocument({
   data,
-  companyName,
   startDate,
   endDate,
   branchName,
@@ -63,7 +62,6 @@ export function PaymentReceiptDocument({
           <TransportistasPage
             key={item.ordinary_payroll_id ?? index}
             item={item}
-            companyName={companyName}
             startDate={startDate}
             endDate={endDate}
             branchName={branchName}
@@ -73,7 +71,6 @@ export function PaymentReceiptDocument({
           <StandardPage
             key={item.ordinary_payroll_id ?? index}
             item={item}
-            companyName={companyName}
             startDate={startDate}
             endDate={endDate}
             branchName={branchName}

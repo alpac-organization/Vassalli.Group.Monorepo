@@ -677,7 +677,6 @@ export function PayrollPage() {
       const blob = await pdf(
         <PaymentReceiptDocument
           data={allItems}
-          companyName={companyName}
           startDate={ordinaryPayrollQuery.data?.start_date}
           endDate={ordinaryPayrollQuery.data?.end_date}
           branchName={displayedBranchName ?? ""}

@@ -2,10 +2,8 @@ import type { TransportistasPageProps } from "@app/modules/payroll/ui/pages/nomi
 import { Page, Text, View } from "@react-pdf/renderer";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
-import {
-  LETTER_PORTRAIT_SIZE,
-  receiptStyles as s,
-} from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/utils/styles.receipt";
+import { receiptStyles as s } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/utils/styles.receipt";
+import { getTransportistasPageSize } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/utils/page-size.utils";
 import {
   IR_PERCENTAGE,
   INSS_PERCENTAGE,
@@ -13,9 +11,9 @@ import {
 import { TravelRouteRow } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/payment-receipt";
 export function TransportistasPage({
   item,
-  companyName,
   startDate,
   endDate,
+  branchName,
 }: TransportistasPageProps) {
   const collaborator = item.collaborator;
   const routes = item.travel_routes ?? [];
@@ -28,28 +26,49 @@ export function TransportistasPage({
     },
     {
       label: "AGUINALDO",
-      pct: `${(((item.antique ?? 0) / (item.biweekly_salary || 1)) * 100).toFixed(2)}%`,
+      pct: `${(((item.antique ?? 0) / (item.gross_salary || 1)) * 100).toFixed(2)}%`,
       value: item.antique ?? 0,
     },
     {
       label: "SALARIO",
       pct: `${(100).toFixed(2)}%`,
-      value: item.biweekly_salary,
+      value: item.gross_salary,
     },
   ].filter((l) => l.value > 0);
 
+  const deductionLines: { label: string; value: number }[] = [
+    {
+      label: "Total de deducciones legales",
+      value: item.total_legal_deductions ?? 0,
+    },
+    { label: "Ausencias", value: item.Absences ?? 0 },
+    { label: "Préstamos", value: item.Loans ?? 0 },
+    { label: "Embargos judiciales", value: item.JudicialSeizures ?? 0 },
+    { label: "Llegadas tardes", value: item.LateArrivals ?? 0 },
+    { label: "Purísima", value: item.Purisima ?? 0 },
+    { label: "Deducción por uniforme", value: item.UniformDeduction ?? 0 },
+    { label: "Otras deducciones", value: item.OtherDeductions ?? 0 },
+  ].filter((l) => l.value > 0);
   const totalIngresos = item.total_income ?? item.gross_salary ?? 0;
-  const totalEgresos = item.total_legal_deductions ?? 0;
+  const totalEgresos = deductionLines.reduce(
+    (acc, line) => acc + line.value,
+    0,
+  );
   const otrasDeductions = totalEgresos - (item.ir ?? 0) - (item.inss ?? 0);
 
+  const pageSize = getTransportistasPageSize(
+    incomeLinesPct.length,
+    routes.length,
+  );
+
   return (
-    <Page size={LETTER_PORTRAIT_SIZE} style={s.page}>
-      <Text style={s.companyName}>{companyName}</Text>
+    <Page size={pageSize} style={s.page}>
+      <Text style={s.branchName}>{branchName}</Text>
       <Text style={s.title}>RECIBO DE PAGO</Text>
       <Text style={s.period}>
-        PERIODO DEL{"  "}
+        Periodo del:{"  "}
         {formatDateToSpanishWords(startDate)}
-        {"   "}AL{"   "}
+        {"   "}al{"   "}
         {formatDateToSpanishWords(endDate)}
       </Text>
 
@@ -113,7 +132,7 @@ export function TransportistasPage({
                     <Text style={s.routeHeaderText}>VALOR VIAJE</Text>
                   </View>
                   <View style={s.routeColValue}>
-                    <Text style={s.routeHeaderText}>VIAJE US$ 11%</Text>
+                    <Text style={s.routeHeaderText}>VIAJE $ 11%</Text>
                   </View>
                   <View style={s.routeColValueLast}>
                     <Text style={s.routeHeaderText}>VIAJE C$</Text>
