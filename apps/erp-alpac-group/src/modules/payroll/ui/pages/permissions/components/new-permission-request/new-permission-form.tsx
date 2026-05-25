@@ -254,8 +254,8 @@ export function NewPermissionRequestForm(
                                              label={`${applicationType.MedicalAppointment ? "Fecha de cita" : "Fecha inicio"}`}
                                              className="w-full"
                                              value={field.value}
-                                             minDate={isOperator ? dayjs() : null}
-                                             maxDate={endOfYear}
+                                             //minDate={isOperator ? dayjs() : null}
+                                             //maxDate={endOfYear}
                                              labelAbove
                                              isRequired
                                              onChange={(value) => {
@@ -306,9 +306,9 @@ export function NewPermissionRequestForm(
                                              labelAbove
                                              isRequired
                                              referenceDate={startDate ? dayjs(startDate) : undefined}
-                                             minDate={startDate ? dayjs(startDate) : undefined}
-                                             maxDate={endOfYear}
-                                             shouldDisableDate={(date) => date.day() === 0}
+                                             //minDate={startDate ? dayjs(startDate) : undefined}
+                                             //maxDate={endOfYear}
+                                             //shouldDisableDate={(date) => date.day() === 0}
                                              disabled={isEndDateDisabled}
                                              onChange={(value) => {
                                                 setEndDate(value.$d)
