@@ -22,7 +22,23 @@ export function calcAreaTotals(
   for (const col of activeColumns) {
     if (col.getValue) {
       const sum = items.reduce((acc, item) => acc + col.getValue!(item), 0);
-      result[col.key] = formatCurrency(sum, "NIO") ?? "—";
+      if (
+        !(
+          col.key === "number_overtime" ||
+          col.key === "late_arrivals_in_minutes"
+        )
+      ) {
+        result[col.key] = formatCurrency(sum, "NIO") ?? "—";
+      } else {
+        switch (col.key) {
+          case "number_overtime":
+            result[col.key] = `${sum} hrs`;
+            break;
+          case "late_arrivals_in_minutes":
+            result[col.key] = `${sum} min`;
+            break;
+        }
+      }
     } else {
       result[col.key] = "";
     }
