@@ -11,6 +11,7 @@ interface PayloadContext {
   channel: number;
   timeFormatType: string;
   isSameDay: boolean;
+  payrollId: string;
 }
 
 export const generatePermissionPayload = (
@@ -24,6 +25,7 @@ export const generatePermissionPayload = (
     channel,
     timeFormatType,
     isSameDay,
+    payrollId,
   } = context;
 
   // Minimo de horas para que se considere un dia completo
@@ -64,6 +66,7 @@ export const generatePermissionPayload = (
     channel,
     permit_application_type: PERMISSION_TYPE_TO_ENUM_VALUE[values.type],
     description: values.description.trim(),
+    payroll_id: payrollId.trim(),
   };
 
   // Asignación de datos específicos por tipo

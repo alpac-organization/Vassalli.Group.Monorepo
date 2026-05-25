@@ -1526,6 +1526,7 @@ export function PayrollPage() {
 
         <NewPermissionRequestModal
           isOpen={isPermissionApplicationModalOpen}
+          payrollId={selectedOrdinaryPayroll?.payroll_id!}
           onClose={() => setIsPermissionApplicationModalOpen(false)}
           onRequestSuccess={(successMessage) => {
             handleRequestSuccess(successMessage, "Solicitud de permiso creada exitosamente");
