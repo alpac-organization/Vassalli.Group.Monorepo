@@ -1,5 +1,6 @@
 export type NewPermissionRequestModalProps = {
    isOpen: boolean;
+   payrollId: string;
    onClose?: () => void;
    collaboratorFullName?: string;
    collaboratorWorkPosition?: string;

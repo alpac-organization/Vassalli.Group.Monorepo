@@ -1,5 +1,4 @@
 type CollaboratorModals =
-   | "add-collaborator"
-   | "create-permission-application";
+   | "add-collaborator";
 
 export type CollaboratorModalType = CollaboratorModals | null;

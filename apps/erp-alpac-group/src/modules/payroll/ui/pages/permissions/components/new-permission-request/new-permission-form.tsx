@@ -17,15 +17,18 @@ import type { PermissionRequestFormValues } from "./types/permission-form.types"
 import type { PermissionType } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
 import type { NewPermissionRequestFormProps } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/new-permissionFormProps";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
-import { RoleEnum } from "@app/core/enums/role.enum";
-import { useUserStore } from "@app/shared/stores/useUserStore";
+// import { RoleEnum } from "@app/core/enums/role.enum";
+// import { useUserStore } from "@app/shared/stores/useUserStore";
 
 const inputClassName =
    "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
 
 export function NewPermissionRequestForm(
-   { isPending, onSubmit, onCancel, companyId, moduleCode, identificationNumber, channel }: NewPermissionRequestFormProps) {
+   {
+      isPending, onSubmit, onCancel, companyId,
+      moduleCode, identificationNumber, channel, payrollId
+   }: NewPermissionRequestFormProps) {
 
    const defaultValues = {
       type: undefined,
@@ -82,10 +85,10 @@ export function NewPermissionRequestForm(
       exit: { opacity: 0, y: 8, height: 0, overflow: 'hidden' },
    }
 
-   const { role } = useUserStore();
+   // const { role } = useUserStore();
 
-   const endOfYear = dayjs().endOf('year');
-   const isOperator = role === RoleEnum.OPERATOR;
+   // const endOfYear = dayjs().endOf('year');
+   // const isOperator = role === RoleEnum.OPERATOR;
 
    const {
       register, handleSubmit, setError,
@@ -143,11 +146,11 @@ export function NewPermissionRequestForm(
       }
 
       const payload = generatePermissionPayload(values, {
-         companyId, moduleCode, identificationNumber,
-         channel: channel.value,
-         timeFormatType, isSameDay
+         companyId, moduleCode, identificationNumber, channel: channel.value,
+         timeFormatType, isSameDay, payrollId,
       });
 
+      console.log("payload", payload);
       onSubmit(payload);
    };
 

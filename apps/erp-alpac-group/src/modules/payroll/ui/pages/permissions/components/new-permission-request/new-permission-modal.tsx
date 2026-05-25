@@ -17,6 +17,7 @@ import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll
 export function NewPermissionRequestModal({
    isOpen,
    onClose,
+   payrollId,
    collaboratorFullName,
    collaboratorWorkPosition,
    isCollaboratorFullNameLoading = false,
@@ -125,6 +126,7 @@ export function NewPermissionRequestModal({
                      />
 
                      <NewPermissionRequestForm
+                        payrollId={payrollId}
                         isPending={createPermissionRequestMutation.isPending}
                         onSubmit={handlePermissionSubmit}
                         onCancel={() => onClose?.()}

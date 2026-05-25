@@ -60,6 +60,7 @@ import {
 import { isSelectablePayrollType } from "@app/modules/payroll/ui/pages/nomina/utils/payroll.utls";
 import { CreateIncomeModal } from "@app/modules/payroll/ui/pages/nomina/components/incomes/create-income-modal/create-income-modal";
 import { AddDeductionModal } from "@app/modules/payroll/ui/pages/nomina/components/deductions/add-deduction-modal/add-deduction-modal";
+import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
 import { AddSubsidyModal } from "@app/modules/payroll/ui/pages/nomina/components/subsidies/add-subsidy-modal/add-subsidy-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 
@@ -121,6 +122,7 @@ export function PayrollPage() {
     useState<PayrollItemResponse | null>(null);
   const [isPayrollDetailModalOpen, setIsPayrollDetailModalOpen] =
     useState(false);
+  const [isPermissionApplicationModalOpen, setIsPermissionApplicationModalOpen] = useState(false);
   const [visibleKeys, setVisibleKeys] = useState<string[]>(() =>
     payrollColumns.map((col) => col.key as string),
   );
@@ -220,6 +222,10 @@ export function PayrollPage() {
   const handleClosePayrollDetailModal = useCallback(() => {
     setIsPayrollDetailModalOpen(false);
     setSelectedPayrollRow(null);
+  }, []);
+
+  const handleOpenPermissionApplicationModal = useCallback(() => {
+    setIsPermissionApplicationModalOpen(true);
   }, []);
 
   const selectionStorageKey = useMemo(() => {
@@ -1410,11 +1416,10 @@ export function PayrollPage() {
                   isLoading={isGeneratingExcel}
                   disabled={!existPayrollInProgress}
                   onClick={handleGenerateExcel}
-                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingExcel
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
+                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingExcel
+                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                    : ""
+                    }`}
                 />
                 <Button
                   type="button"
@@ -1437,6 +1442,20 @@ export function PayrollPage() {
                   label="Registrar Deducción"
                   disabled={!existPayrollInProgress}
                   onClick={handleRegisterDeduction}
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
+                    isGeneratingPaymentRequestsPdf ||
+                    isGeneratingAccumulatedHistoryPdf ||
+                    isGeneratingVacationAccrualPdf
+                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                    : ""}`
+                  }
+                />
+
+                <Button
+                  size="giant"
+                  label="Crear Solicitud de Permiso"
+                  disabled={!existPayrollInProgress}
+                  onClick={handleOpenPermissionApplicationModal}
                   className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
@@ -1502,6 +1521,20 @@ export function PayrollPage() {
           }}
           onRequestError={(errorMessage) => {
             handleRequestError(errorMessage || "Error al registrar la deducción");
+          }}
+        />
+
+        <NewPermissionRequestModal
+          isOpen={isPermissionApplicationModalOpen}
+          payrollId={selectedOrdinaryPayroll?.payroll_id!}
+          onClose={() => setIsPermissionApplicationModalOpen(false)}
+          onRequestSuccess={(successMessage) => {
+            handleRequestSuccess(successMessage, "Solicitud de permiso creada exitosamente");
+            void ordinaryPayrollQuery.refetch();
+            setIsPermissionApplicationModalOpen(false);
+          }}
+          onRequestError={(errorMessage) => {
+            handleRequestError(errorMessage || "Error al crear la solicitud de permiso");
           }}
         />
 

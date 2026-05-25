@@ -674,6 +674,10 @@ export const AddCollaboratorModal = (
                               validEmail: (value?: string) => validateEmail(value),
                            },
                         })}
+                        error={
+                           errors.working_information?.work_email &&
+                           errors.working_information?.work_email?.message
+                        }
                      />
 
                      <InputText
@@ -710,10 +714,8 @@ export const AddCollaboratorModal = (
                         {...register("working_information.inss_number", {
                            required: false,
                            setValueAs: (value: string) => value?.trim(),
-                           pattern: {
-                              value: /^[0-9]+$/,
-                              message: "El número INSS debe contener solo dígitos",
-                           },
+                           validate: (value?: string) =>
+                              !value || /^[0-9]+$/.test(value) || "El número INSS debe contener solo dígitos",
                         })}
                         error={
                            errors.working_information?.inss_number &&
@@ -842,9 +844,10 @@ export const AddCollaboratorModal = (
                                     const trimmed = stringValue.trim();
                                     return trimmed ? parseFloat(trimmed.replace(/,/g, "")) : 0;
                                  },
-                                 validate: (value?: number) =>
-                                    (value !== undefined && value > 0) ||
-                                    "El salario debe ser mayor a 0",
+                                 validate: (value?: number) => {
+                                    if (isProfessionalServicesSalary) return true;
+                                    return (value !== undefined && value > 0) || "El salario debe ser mayor a 0";
+                                 },
                               })}
                               error={
                                  errors.salary_information?.salary &&
@@ -864,7 +867,10 @@ export const AddCollaboratorModal = (
                               control={control}
                               rules={{
                                  required: "El dato de banco es requerido",
-                                 validate: (val) => val !== 0 || "Selección inválida",
+                                 validate: (value) => {
+                                    if (isProfessionalServicesSalary) return true;
+                                    return value !== undefined && value !== 0 ? true : "Selección inválida";
+                                 },
                               }}
                               render={({ field }) => (
                                  <Dropdown

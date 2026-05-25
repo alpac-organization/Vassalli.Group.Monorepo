@@ -1,5 +1,6 @@
 
 export interface CreatePermissionRequestBase {
+   payroll_id: string;
    company_id: string;
    module_code: string;
    identification_number: string;
