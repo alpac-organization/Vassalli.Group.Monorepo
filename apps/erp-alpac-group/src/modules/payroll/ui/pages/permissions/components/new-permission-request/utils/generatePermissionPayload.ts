@@ -3,6 +3,9 @@ import type { PermissionRequestFormValues } from "@app/modules/payroll/ui/pages/
 import { PERMISSION_TYPE_TO_ENUM_VALUE } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/new-permissionFormProps";
 import { formatTimeHoursOnly } from "@app/shared/utils/string.utils";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 interface PayloadContext {
   companyId: string;
@@ -31,9 +34,11 @@ export const generatePermissionPayload = (
   // Minimo de horas para que se considere un dia completo
   const minHoursToFullDay = 5;
 
-  // Helpers internos de conversión
-  const convertToIsoUtcZ = (ymd: any) =>
-    new Date(ymd).toISOString().split(".")[0] + "Z";
+  // Fecha calendario a YYYY-MM-DD
+  const convertToIsoUtcZ = (date: dayjs.ConfigType) => {
+    const ymd = dayjs(date).format("YYYY-MM-DD");
+    return ymd;
+  };
 
   const startDate = dayjs(values.start_date);
   const endDate = dayjs(values.end_date);
@@ -72,8 +77,8 @@ export const generatePermissionPayload = (
   // Asignación de datos específicos por tipo
   if (values.type === "Vacation") {
     payload.permit_application_vacation = {
-      start_date: convertToIsoUtcZ(values.start_date.$d),
-      end_date: convertToIsoUtcZ(values.end_date.$d),
+      start_date: convertToIsoUtcZ(values.start_date),
+      end_date: convertToIsoUtcZ(values.end_date),
       start_time:
         timeFormatType === "rangeOfHours"
           ? formatTimeHoursOnly(values.start_time)
@@ -95,7 +100,7 @@ export const generatePermissionPayload = (
   } else if (values.type === "MedicalAppointment") {
     payload.permit_application_medical_appointment = {
       is_full_day: isFullDay(),
-      start_date: convertToIsoUtcZ(values.start_date.$d),
+      start_date: convertToIsoUtcZ(values.start_date),
       start_time: formatTimeHoursOnly(values.start_time),
       end_time: formatTimeHoursOnly(values.end_time),
     };
