@@ -35,7 +35,7 @@ export const payrollColumns: PayrollColumnDef[] = [
   },
   {
     key: "job_position",
-    label: "Posición",
+    label: "Cargo",
     render: (item) => item.collaborator?.job_position ?? "—",
   },
   {
