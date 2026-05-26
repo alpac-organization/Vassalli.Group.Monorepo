@@ -17,8 +17,7 @@ import {
    TreePalmIcon,
    UserIcon,
    UserRoundPlusIcon,
-   UserMinus,
-   FileClock
+   UserMinus
 } from "lucide-react";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
@@ -36,7 +35,6 @@ import {
 import { AddCollaboratorModal } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal";
 import { useTheme } from "@alpac/design-system";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
 import { IdentificationEnum } from "@app/core/enums/identification.enum";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useForm, type SubmitHandler, Controller } from "react-hook-form";
@@ -216,10 +214,6 @@ export const CollaboratorPage = function () {
 
    const handleCollaboratorExit = useCallback(() => { }, []);
 
-   const handleCreateApplication = useCallback(() => {
-      setActiveModal("create-permission-application");
-   }, []);
-
    const formatNumber = useCallback((value: string) => {
       const number = Number(value);
       if (isNaN(number)) return "0";
@@ -349,13 +343,6 @@ export const CollaboratorPage = function () {
                         icon={<UserRoundPlusIcon size={20} />}
                         className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                         onClick={handleAddCollaborator}
-                     />
-                     <Button
-                        size="giant"
-                        label="Crear Solicitud de Permiso"
-                        icon={<FileClock size={20} />}
-                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                        onClick={handleCreateApplication}
                      />
                      <Button
                         size="giant"
@@ -525,13 +512,6 @@ export const CollaboratorPage = function () {
                   optionsJobPositions={optionsJobPositions}
                   optionsBranches={optionsBranches}
                   optionsBanks={optionsBanks}
-                  onClose={() => setActiveModal(null)}
-                  onRequestSuccess={handleRequestSuccess}
-                  onRequestError={handleRequestError}
-               />
-
-               <NewPermissionRequestModal
-                  isOpen={activeModal === "create-permission-application"}
                   onClose={() => setActiveModal(null)}
                   onRequestSuccess={handleRequestSuccess}
                   onRequestError={handleRequestError}

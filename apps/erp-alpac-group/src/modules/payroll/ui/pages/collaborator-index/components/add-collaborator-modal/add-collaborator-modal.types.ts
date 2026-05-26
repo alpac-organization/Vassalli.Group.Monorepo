@@ -20,12 +20,17 @@ export const fieldsToValidate: Path<AddCollaboratorRequest>[][] = [
       "identification_number",
       "identification_type",
       "gender",
+      // opcionales con formato
+      "second_name",
+      "third_name",
+      "second_lastname",
    ],
    [
       // 'personal_information.departament',
       "personal_information.birthdate",
       "personal_information.marital_status",
       "personal_information.personal_phone_number",
+      "personal_information.personal_email",  // correo opcional
    ],
    [
       "working_information.work_area_id",
@@ -33,6 +38,8 @@ export const fieldsToValidate: Path<AddCollaboratorRequest>[][] = [
       "working_information.branch_id",
       "working_information.entry_date",
       "working_information.work_phon_number",
+      "working_information.work_email",  // correo opcional
+      "working_information.inss_number",
    ],
    [
       "salary_information.currency",

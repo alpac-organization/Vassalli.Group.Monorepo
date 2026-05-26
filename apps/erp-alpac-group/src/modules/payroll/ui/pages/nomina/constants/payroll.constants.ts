@@ -9,3 +9,5 @@ export const ALPAC_CORINTO_NAME = "Almacenadora del Pacífico Corinto";
 export const AMINSA_COMPANY_NAME = "Agencia marítima internacional, S.A.";
 export const AVASA_COMPANY_NAME = "Agencias VASSALI, S.A";
 export const TMN_COMPANY_NAME = "Transporte Multimodal de Nicaragua, S.A.";
+export const TMN_TRANSPORT_NAME =
+  "Transportes Multimodales de Nicaragua Transportistas";
