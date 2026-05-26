@@ -12,12 +12,6 @@ export type PayrollColumnDef = {
   onlyForCompanyName?: string;
 };
 
-// export function isDaemPayrollCompany(
-//   companyName: string | null | undefined,
-// ): boolean {
-//   return (companyName ?? "").trim() === VIGILANCIA_EMPRESARIAL_SA_COMPANY_NAME;
-// }
-
 export const payrollColumns: PayrollColumnDef[] = [
   {
     key: "collaborator_code",
