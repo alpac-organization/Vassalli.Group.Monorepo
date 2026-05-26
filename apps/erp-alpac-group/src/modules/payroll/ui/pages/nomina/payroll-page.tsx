@@ -43,6 +43,7 @@ import { PayrollPdfDocument } from "@app/modules/payroll/ui/pages/nomina/compone
 import { CheckPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/check-pdf-document";
 import { PaymentReceiptDocument } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/payment-receipt";
 import { AccumulatedHistoryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/accumulated-history-pdf-document";
+import { IncomeSummaryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/income-review-pdf/income-summary-pdf-document";
 import { VacationAccrualPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/components/vacation-accrual";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
@@ -123,7 +124,10 @@ export function PayrollPage() {
     useState<PayrollItemResponse | null>(null);
   const [isPayrollDetailModalOpen, setIsPayrollDetailModalOpen] =
     useState(false);
-  const [isPermissionApplicationModalOpen, setIsPermissionApplicationModalOpen] = useState(false);
+  const [
+    isPermissionApplicationModalOpen,
+    setIsPermissionApplicationModalOpen,
+  ] = useState(false);
   const [visibleKeys, setVisibleKeys] = useState<string[]>(() =>
     payrollColumns.map((col) => col.key as string),
   );
@@ -138,6 +142,8 @@ export function PayrollPage() {
     setIsGeneratingAccumulatedHistoryPdf,
   ] = useState(false);
   const [isGeneratingVacationAccrualPdf, setIsGeneratingVacationAccrualPdf] =
+    useState(false);
+  const [isGeneratingIncomeSummaryPdf, setIsGeneratingIncomeSummaryPdf] =
     useState(false);
   const [identificationFilter, setIdentificationFilter] = useState("");
   const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
@@ -351,6 +357,7 @@ export function PayrollPage() {
         label: "Generar Historial Acumulado",
         value: "accumulated_history",
       },
+      { label: "Generar Reporte de Ingresos", value: "income_report" },
       // {
       //   label: "Generar Acumulado de Vacaciones",
       //   value: "vacation_accruals_history",
@@ -444,7 +451,6 @@ export function PayrollPage() {
           handleRequestError(
             apiError?.error?.description ||
               "No se pudo inicializar la nómina. Inténtelo nuevamente.",
-            "No se pudo inicializar",
           );
         },
       },
@@ -467,10 +473,7 @@ export function PayrollPage() {
       !selectedPayrollType ||
       selectedPayrollType === "None"
     ) {
-      handleRequestError(
-        "No se encontró la nómina activa para formalizar.",
-        "No se pudo formalizar",
-      );
+      handleRequestError("No se encontró la nómina activa para formalizar.");
       throw new Error("Missing payroll close context");
     }
 
@@ -491,7 +494,6 @@ export function PayrollPage() {
       handleRequestError(
         apiError?.error?.description ||
           "No se pudo formalizar la nómina. Inténtelo nuevamente.",
-        "No se pudo formalizar",
       );
       throw error;
     }
@@ -761,7 +763,7 @@ export function PayrollPage() {
       window.open(url, "_blank");
     } catch (error) {
       handlePdfGenerationError(
-        "Ocurrió un error al generar las solicitudes de pago en PDF.",
+        "Ocurrió un error al generar las solicitudes de pago en PDF, intente nuevamente mas tarde.",
       );
     } finally {
       setIsGeneratingPaymentRequestsPdf(false);
@@ -802,7 +804,7 @@ export function PayrollPage() {
 
       if (!reportData.length) {
         handlePdfGenerationError(
-          "No hay datos disponibles para generar el historial acumulado.",
+          "No hay datos disponibles para generar el historial acumulado, intente nuevamente mas tarde.",
         );
         return;
       }
@@ -828,7 +830,7 @@ export function PayrollPage() {
       window.open(url, "_blank");
     } catch (error) {
       handlePdfGenerationError(
-        "Ocurrió un error al generar el reporte de historial acumulado.",
+        "Ocurrió un error al generar el reporte de historial acumulado, intente nuevamente mas tarde.",
       );
     } finally {
       setIsGeneratingAccumulatedHistoryPdf(false);
@@ -865,7 +867,7 @@ export function PayrollPage() {
 
       if (!reportData.length) {
         handlePdfGenerationError(
-          "No hay datos disponibles para generar el acumulado de vacaciones.",
+          "No hay datos disponibles para generar el acumulado de vacaciones, intente nuevamente mas tarde.",
         );
         return;
       }
@@ -891,7 +893,7 @@ export function PayrollPage() {
       window.open(url, "_blank");
     } catch (error) {
       handlePdfGenerationError(
-        "Ocurrió un error al generar el reporte de acumulado de vacaciones.",
+        "Ocurrió un error al generar el reporte de acumulado de vacaciones, intente nuevamente mas tarde.",
       );
     } finally {
       setIsGeneratingVacationAccrualPdf(false);
@@ -904,6 +906,70 @@ export function PayrollPage() {
     ordinaryPayrollQuery.data?.payroll_id,
     ordinaryPayrollQuery.data?.start_date,
     ordinaryPayrollQuery.data?.end_date,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateIncomeSummaryPdf = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el resumen de ingresos.",
+      );
+      return;
+    }
+    try {
+      setIsGeneratingIncomeSummaryPdf(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const detailsData = ordinaryPayrollQuery.data;
+      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+      const payload = {
+        companie_id: companyId,
+        module_code: moduleCode,
+        type: selectedPayrollType,
+        branch_id: selectedBranch,
+        identification_number: identificationFilter || undefined,
+        work_area_id: workAreaFilter || undefined,
+        job_position_id: jobPositionFilter || undefined,
+        page_number: 1,
+        page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+      } as PayrollRequest;
+
+      const response = await payrollServices.getPayroll(payload);
+      const allItems = response.payroll_details?.items ?? [];
+
+      const blob = await pdf(
+        <IncomeSummaryPdfDocument
+          data={allItems}
+          branchName={displayedBranchName ?? ""}
+          startDate={ordinaryPayrollQuery.data?.start_date}
+          endDate={ordinaryPayrollQuery.data?.end_date}
+          periodCode={ordinaryPayrollQuery.data?.start_date ?? ""}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el resumen de ingresos en PDF.",
+      );
+    } finally {
+      setIsGeneratingIncomeSummaryPdf(false);
+    }
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    ordinaryPayrollQuery.data,
+    displayedBranchName,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
     handlePdfGenerationError,
   ]);
 
@@ -944,7 +1010,7 @@ export function PayrollPage() {
       });
     } catch (error) {
       handlePdfGenerationError(
-        "Ocurrió un error al generar el reporte de nómina en Excel.",
+        "Ocurrió un error al generar el reporte de nómina en Excel, intente nuevamente mas tarde.",
       );
     } finally {
       setIsGeneratingExcel(false);
@@ -981,6 +1047,9 @@ export function PayrollPage() {
       case "vacation_accruals_history":
         void handleGenerateVacationAccrualPdf();
         break;
+      case "income_report":
+        void handleGenerateIncomeSummaryPdf();
+        break;
       default:
         break;
     }
@@ -991,6 +1060,7 @@ export function PayrollPage() {
     handleGeneratePaymentRequestsPdf,
     handleGenerateAccumulatedHistoryPdf,
     handleGenerateVacationAccrualPdf,
+    handleGenerateIncomeSummaryPdf,
   ]);
 
   const handleApplyFilters = useCallback(
@@ -1469,7 +1539,8 @@ export function PayrollPage() {
                     isGeneratingPaymentReceiptsPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
-                    isGeneratingVacationAccrualPdf
+                    isGeneratingVacationAccrualPdf ||
+                    isGeneratingIncomeSummaryPdf
                   }
                   disabled={
                     !selectedAction ||
@@ -1478,7 +1549,8 @@ export function PayrollPage() {
                     isGeneratingPaymentReceiptsPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
-                    isGeneratingVacationAccrualPdf
+                    isGeneratingVacationAccrualPdf ||
+                    isGeneratingIncomeSummaryPdf
                   }
                   onClick={handleExecuteSelectedAction}
                   className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
@@ -1499,10 +1571,11 @@ export function PayrollPage() {
                   isLoading={isGeneratingExcel}
                   disabled={!existPayrollInProgress}
                   onClick={handleGenerateExcel}
-                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingExcel
-                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                    : ""
-                    }`}
+                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGeneratingExcel
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
                 />
                 <Button
                   type="button"
@@ -1543,13 +1616,14 @@ export function PayrollPage() {
                   label="Crear Solicitud de Permiso"
                   disabled={!existPayrollInProgress}
                   onClick={handleOpenPermissionApplicationModal}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
                     isGeneratingVacationAccrualPdf
-                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                    : ""}`
-                  }
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
                 />
 
                 <Button
@@ -1619,12 +1693,17 @@ export function PayrollPage() {
           payrollId={selectedOrdinaryPayroll?.payroll_id!}
           onClose={() => setIsPermissionApplicationModalOpen(false)}
           onRequestSuccess={(successMessage) => {
-            handleRequestSuccess(successMessage, "Solicitud de permiso creada exitosamente");
+            handleRequestSuccess(
+              successMessage,
+              "Solicitud de permiso creada exitosamente",
+            );
             void ordinaryPayrollQuery.refetch();
             setIsPermissionApplicationModalOpen(false);
           }}
           onRequestError={(errorMessage) => {
-            handleRequestError(errorMessage || "Error al crear la solicitud de permiso");
+            handleRequestError(
+              errorMessage || "Error al crear la solicitud de permiso",
+            );
           }}
         />
 
@@ -1638,6 +1717,9 @@ export function PayrollPage() {
             setIsSubsidyModalOpen(false);
           }}
           onRequestError={(errorMessage) => {
+            handleRequestError(
+              errorMessage || "Error al registrar el subsidio",
+            );
             handleRequestError(
               errorMessage || "Error al registrar el subsidio",
             );
