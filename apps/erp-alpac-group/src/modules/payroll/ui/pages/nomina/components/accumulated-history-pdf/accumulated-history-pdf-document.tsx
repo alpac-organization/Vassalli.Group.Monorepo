@@ -1,7 +1,6 @@
 import { Document, Page, Text, View, Image } from "@react-pdf/renderer";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { styles } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/utils/styles.accumulated";
 import type { AccumulatedHistoryPdfProps } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/types/accumulated-history.types";
@@ -11,8 +10,6 @@ export function AccumulatedHistoryPdfDocument({
   data,
   reviewedBy,
   reviewedSignatureImageSrc,
-  startDate,
-  endDate,
 }: AccumulatedHistoryPdfProps) {
   const companyName = useUserStore.getState().companyName || "Alpac Group";
   const { urlImage } = useCompanyStore();
@@ -30,7 +27,7 @@ export function AccumulatedHistoryPdfDocument({
             width: "100%",
             minHeight: 52,
             justifyContent: "center" as const,
-            marginBottom: 8,
+            marginBottom: 2,
           }}
         >
           {urlImage ? (
@@ -59,10 +56,6 @@ export function AccumulatedHistoryPdfDocument({
         </View>
 
         <Text style={styles.subtitle}>Acumulados</Text>
-        <Text style={styles.period}>
-          {formatDateToSpanishWords(startDate)} al{" "}
-          {formatDateToSpanishWords(endDate)}
-        </Text>
 
         <View style={[styles.tableRow, styles.headerRow]} wrap={false}>
           <Text style={[styles.cellCode, styles.headerCell]}>Codigo</Text>

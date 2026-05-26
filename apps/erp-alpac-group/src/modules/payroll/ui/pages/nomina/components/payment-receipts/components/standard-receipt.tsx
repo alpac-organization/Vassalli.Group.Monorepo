@@ -4,6 +4,8 @@ import { getStandardPageSize } from "@app/modules/payroll/ui/pages/nomina/compon
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import type { StandardPageProps } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/types/payment.receipts.types";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { Image } from "@react-pdf/renderer";
 export function StandardPage({
   item,
   startDate,
@@ -11,7 +13,7 @@ export function StandardPage({
   branchName,
 }: StandardPageProps) {
   const collaborator = item.collaborator;
-
+  const { urlImage } = useCompanyStore();
   const incomeLines: { label: string; value: number }[] = [
     { label: "ORDINARIO", value: item.biweekly_salary },
     { label: "ANTIGUEDAD", value: item.antique ?? 0 },
@@ -55,13 +57,18 @@ export function StandardPage({
 
   return (
     <Page size={pageSize} style={s.page}>
-      <Text style={s.branchName}>{branchName}</Text>
-      <Text style={s.title}>RECIBO DE PAGO</Text>
-      <Text style={s.period}>
-        Periodo del: {formatDateToSpanishWords(startDate)}
-        {"   "}al{"   "}
-        {formatDateToSpanishWords(endDate)}
-      </Text>
+      <View style={s.headerContainer}>
+        <View style={s.logoContainer}>
+          {urlImage ? <Image src={urlImage} style={s.logo} /> : null}
+        </View>
+        <Text style={s.branchName}>{branchName}</Text>
+        <Text style={s.title}>RECIBO DE PAGO</Text>
+        <Text style={s.period}>
+          Periodo del: {formatDateToSpanishWords(startDate)}
+          {"   "}al{"   "}
+          {formatDateToSpanishWords(endDate)}
+        </Text>
+      </View>
 
       <View style={s.infoBox}>
         <View style={s.infoLeft}>
@@ -83,7 +90,7 @@ export function StandardPage({
 
         <View style={s.infoRight}>
           <View style={s.infoRow}>
-            <Text style={s.infoLabel}>Ubicacion</Text>
+            <Text style={s.infoLabel}>Cargo:</Text>
             <Text style={s.infoValue}>{collaborator?.job_position ?? ""}</Text>
           </View>
           <View style={s.infoRow}>

@@ -65,7 +65,6 @@ export function PaymentReceiptDocument({
             startDate={startDate}
             endDate={endDate}
             branchName={branchName}
-            index={index}
           />
         ) : (
           <StandardPage
