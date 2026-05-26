@@ -24,6 +24,26 @@ const inputClassName =
    "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
 
+const SUNDAY_SAME_DAY_MESSAGE =
+   "No se permiten permisos de un solo día en domingo. Use un rango de fechas si aplica.";
+
+/** Cita médica: una sola fecha. Vacaciones: solo cuando inicio y fin son el mismo domingo. */
+const isSundaySameDaySelection = (
+   date: dayjs.ConfigType,
+   options: { isMedicalAppointment: boolean; startDate: Date | null; endDate: Date | null },
+) => {
+   if (dayjs(date).day() !== 0) return false;
+
+   if (options.isMedicalAppointment) return true;
+
+   if (!options.startDate || !options.endDate) return false;
+
+   return (
+      dayjs(date).isSame(dayjs(options.startDate), "day") &&
+      dayjs(date).isSame(dayjs(options.endDate), "day")
+   );
+};
+
 export function NewPermissionRequestForm(
    {
       isPending, onSubmit, onCancel, companyId,
@@ -125,6 +145,23 @@ export function NewPermissionRequestForm(
       return startDate.toDateString() === endDate.toDateString()
    }, [startDate, endDate]);
 
+   const isSaturdaySameDay = useMemo(() => {
+      if (!isSameDay || !startDate) return false;
+      return dayjs(startDate).day() === 6;
+   }, [isSameDay, startDate]);
+
+   const isSundaySameDayBlocked = useMemo(() => {
+      if (!startDate) return false;
+
+      if (applicationType.MedicalAppointment) {
+         return dayjs(startDate).day() === 0;
+      }
+
+      if (!applicationType.Vacation || !endDate || !isSameDay) return false;
+
+      return dayjs(startDate).day() === 0;
+   }, [startDate, endDate, isSameDay, applicationType.MedicalAppointment, applicationType.Vacation]);
+
    const handleTypeChange = (value: string, field: ControllerRenderProps<PermissionRequestFormValues, "type">) => {
 
       const type = value as PermissionType;
@@ -141,6 +178,10 @@ export function NewPermissionRequestForm(
 
    const handleFormSubmit = (values: PermissionRequestFormValues) => {
 
+      if (isSundaySameDayBlocked) {
+         return;
+      }
+
       if (!validateSessionContextUtils(companyId, moduleCode, identificationNumber, setError)) {
          return;
       }
@@ -150,8 +191,19 @@ export function NewPermissionRequestForm(
          timeFormatType, isSameDay, payrollId,
       });
 
-      console.log("payload", payload);
-      // onSubmit(payload);
+      onSubmit(payload);
+   };
+
+   const applyTimeFormat = (start: Date | string, end: Date | string) => {
+      if (!start || !end) return;
+
+      const sameDay = dayjs(start).isSame(dayjs(end), "day");
+
+      if (sameDay && dayjs(start).day() === 6) {
+         setTimeFormatType("halfDay");
+      } else if (sameDay) {
+         setTimeFormatType("fullDay");
+      }
    };
 
    return (
@@ -250,6 +302,20 @@ export function NewPermissionRequestForm(
                                        control={control}
                                        rules={{
                                           required: "La fecha de inicio es requerida.",
+                                          validate: (value) => {
+                                             const end = getValues("end_date");
+                                             if (
+                                                value &&
+                                                isSundaySameDaySelection(value, {
+                                                   isMedicalAppointment: applicationType.MedicalAppointment,
+                                                   startDate: value.$d ?? value,
+                                                   endDate: end?.$d ?? end ?? null,
+                                                })
+                                             ) {
+                                                return SUNDAY_SAME_DAY_MESSAGE;
+                                             }
+                                             return true;
+                                          },
                                        }}
                                        render={({ field }) => (
                                           <DatePicker
@@ -261,6 +327,9 @@ export function NewPermissionRequestForm(
                                              //maxDate={endOfYear}
                                              labelAbove
                                              isRequired
+                                             shouldDisableDate={(date) =>
+                                                applicationType.MedicalAppointment && date.day() === 0
+                                             }
                                              onChange={(value) => {
                                                 setIsEndDateDisabled(false)
                                                 setStartDate(value.$d)
@@ -273,6 +342,7 @@ export function NewPermissionRequestForm(
                                                    setEndDate(value.$d);
                                                 }
 
+                                                applyTimeFormat(value.$d, getValues("end_date")?.$d ?? value.$d);
                                              }}
                                              error={errors.start_date?.message as string}
                                           />
@@ -289,6 +359,21 @@ export function NewPermissionRequestForm(
                                        rules={{
                                           required: "La fecha de fin es requerida.",
                                           validate: {
+                                             notSundaySameDay: (value) => {
+                                                const start = getValues("start_date");
+                                                if (
+                                                   value &&
+                                                   start &&
+                                                   isSundaySameDaySelection(value, {
+                                                      isMedicalAppointment: false,
+                                                      startDate: start.$d ?? start,
+                                                      endDate: value.$d ?? value,
+                                                   })
+                                                ) {
+                                                   return SUNDAY_SAME_DAY_MESSAGE;
+                                                }
+                                                return true;
+                                             },
                                              afterStartDate: (value) => {
                                                 const startDate = getValues("start_date")
 
@@ -311,11 +396,16 @@ export function NewPermissionRequestForm(
                                              referenceDate={startDate ? dayjs(startDate) : undefined}
                                              //minDate={startDate ? dayjs(startDate) : undefined}
                                              //maxDate={endOfYear}
-                                             //shouldDisableDate={(date) => date.day() === 0}
+                                             shouldDisableDate={(date) =>
+                                                !!startDate &&
+                                                date.day() === 0 &&
+                                                dayjs(date).isSame(dayjs(startDate), "day")
+                                             }
                                              disabled={isEndDateDisabled}
                                              onChange={(value) => {
                                                 setEndDate(value.$d)
-                                                field.onChange(value)
+                                                field.onChange(value);
+                                                applyTimeFormat(getValues("start_date")?.$d, value.$d);
                                              }}
                                              error={errors.end_date?.message as string}
                                           />
@@ -344,6 +434,7 @@ export function NewPermissionRequestForm(
                               labelPosition="right"
                               labelClassName={labelClassName}
                               checked={timeFormatType === "fullDay"}
+                              disabled={isSaturdaySameDay}
                               onChange={() => setTimeFormatType("fullDay")}
                            />
 
@@ -363,7 +454,7 @@ export function NewPermissionRequestForm(
                               label="Rango de horas"
                               labelPosition="right"
                               labelClassName={labelClassName}
-                              checked={timeFormatType === "rangeOfHours"}
+                              checked={timeFormatType === "rangeOfHours"} 
                               onChange={() => setTimeFormatType("rangeOfHours")}
                            />
 
@@ -587,7 +678,13 @@ export function NewPermissionRequestForm(
                type="submit"
                size="giant"
                label={isPending ? "Enviando..." : "Enviar solicitud"}
-               disabled={isPending || !isSelectedAtLeastOneType || !isValid || (applicationType.DonatedVacations && !foundBeneficiary)}
+               disabled={
+                  isPending ||
+                  !isSelectedAtLeastOneType ||
+                  !isValid ||
+                  (applicationType.DonatedVacations && !foundBeneficiary) ||
+                  isSundaySameDayBlocked
+               }
                isLoading={isPending}
                className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! disabled:opacity-60! disabled:cursor-not-allowed! sm:w-auto!"
             />

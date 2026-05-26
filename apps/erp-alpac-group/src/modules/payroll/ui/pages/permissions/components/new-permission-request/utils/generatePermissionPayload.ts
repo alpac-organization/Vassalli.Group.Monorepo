@@ -34,10 +34,10 @@ export const generatePermissionPayload = (
   // Minimo de horas para que se considere un dia completo
   const minHoursToFullDay = 5;
 
-  // Fecha calendario a ISO UTC 00:00:00 (sin hora del picker)
+  // Fecha calendario a YYYY-MM-DD
   const convertToIsoUtcZ = (date: dayjs.ConfigType) => {
     const ymd = dayjs(date).format("YYYY-MM-DD");
-    return dayjs.utc(ymd, "YYYY-MM-DD").startOf("day").toISOString().split(".")[0] + "Z";
+    return ymd;
   };
 
   const startDate = dayjs(values.start_date);
