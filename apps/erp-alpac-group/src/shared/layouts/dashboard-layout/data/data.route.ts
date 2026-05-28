@@ -13,6 +13,8 @@ import {
   History,
   Scale,
   Settings,
+  Users,
+  Book,
 } from "lucide-react";
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 
@@ -99,6 +101,19 @@ const scaleControlSection: SidebarLink = {
   icon: Scale,
 };
 
+const administrationUsersSection: SidebarLink = {
+  id: "administration",
+  label: "Usuarios",
+  path: "administration/users",
+  icon: Users,
+};
+const administrationCatalogosSection: SidebarLink = {
+  id: "catalogos",
+  label: "Catálogos",
+  path: "administration/catalogos",
+  icon: Book,
+};
+
 export const sidebarData = {
   logoUrl:
     "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
@@ -112,6 +127,12 @@ export const sidebarData = {
         deduccionesSection,
         liquidacionSection,
         controlVacationsSection,
+      ],
+    },
+    [ModuleEnum.ADMINISTRATION]: {
+      [RoleEnum.ADMINISTRATOR]: [
+        administrationUsersSection,
+        administrationCatalogosSection,
       ],
     },
     [ModuleEnum.WORK_MANAGEMENT]: {
