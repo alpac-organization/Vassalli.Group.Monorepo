@@ -7,10 +7,6 @@ import {
   parseColumnAEmployeeId,
 } from "@app/modules/payroll/ui/pages/nomina/components/deductions/utils/excel-employee-id.utils";
 
-export function thirdColumnToHours(raw: number): number {
-  return raw;
-}
-
 export type OvertimeViolation = {
   sheetRow: number;
   identification_number: string;
@@ -108,8 +104,7 @@ export function parseOvertimeIncomeExcel(
     const rawParsed = parseThirdColumnToRawNumber(third);
     const rawDisplay = cellToTrimmedString(third) || "(vacío)";
 
-    const total_Hours =
-      rawParsed === "empty" ? 0 : thirdColumnToHours(rawParsed);
+    const total_Hours = rawParsed === "empty" ? 0 : rawParsed;
 
     if (!isTotalHoursBusinessValid(total_Hours)) {
       violations.push({
@@ -130,7 +125,7 @@ export function parseOvertimeIncomeExcel(
   if (violations.length > 0) {
     return {
       ok: false,
-      error: formatOvertimeViolationsMessage(violations),
+      error: formatOvertimeViolationsMessage(),
       violations,
     };
   }
@@ -146,16 +141,10 @@ export function parseOvertimeIncomeExcel(
   return { ok: true, rows };
 }
 
-export function formatOvertimeViolationsMessage(
-  violations: OvertimeViolation[],
-): string {
-  const header =
-    "El archivo contiene montos que no cumplen las reglas , verifique que cumpla lo siguiente: (0 o mayor, sin negativos). Detalle:";
-  const lines = violations.map(
-    (v) =>
-      `• Fila ${v.sheetRow} — ID ${v.identification_number}: ${v.rawDisplay}`,
-  );
-  return [header, ...lines].join("\n");
+export function formatOvertimeViolationsMessage(): string {
+  const messageError =
+    "El archivo contiene montos que no cumplen las reglas , verifique que cumpla lo siguiente: (0 o mayor, sin negativos)";
+  return messageError;
 }
 
 export function validateOvertimeIncomePayload(
@@ -186,7 +175,7 @@ export function validateOvertimeIncomePayload(
   if (violations.length > 0) {
     return {
       ok: false,
-      error: formatOvertimeViolationsMessage(violations),
+      error: formatOvertimeViolationsMessage(),
       violations,
     };
   }
