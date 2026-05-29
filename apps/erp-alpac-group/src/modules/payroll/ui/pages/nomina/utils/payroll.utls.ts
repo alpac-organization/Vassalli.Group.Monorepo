@@ -8,3 +8,22 @@ const selectablePayrollTypes = new Set<PayrollType>([
 export function isSelectablePayrollType(value: unknown): value is PayrollType {
   return selectablePayrollTypes.has(value as PayrollType);
 }
+
+export const INCOME_KEYS = [
+  "overtime",
+  "vacations",
+  "bonus",
+  "commissions",
+  "antique",
+  "transport",
+  "feeding",
+];
+export const DEDUCTION_KEYS = [
+  "LateArrivals",
+  "Purisima",
+  "Absences",
+  "Loans",
+  "OtherDeductions",
+  "UniformDeduction",
+  "JudicialSeizures",
+];
