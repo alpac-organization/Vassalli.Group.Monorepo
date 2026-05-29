@@ -81,7 +81,7 @@ export function ModalDetailsPayroll({
       isOpen={isOpen}
       onClose={onClose}
       variant="default"
-      size="lg"
+      size="2xl"
       title="Detalles del Colaborador"
     >
       <div className="flex flex-col gap-4 pb-2">
