@@ -9,13 +9,13 @@ import {
   DollarSign,
   CircleMinus,
   HandCoins,
-  ClipboardCheck,
   History,
   Scale,
   Settings,
   Users,
   Book,
 } from "lucide-react";
+
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 
 const collboratorSection: SidebarLink = {
@@ -32,10 +32,10 @@ const collaboratorProfileSection: SidebarLink = {
   icon: User,
 };
 
-const applicationSection: SidebarLink = {
+const applicationFromPayrollSection: SidebarLink = {
   id: "applications",
-  label: "Solicitudes",
-  path: "applications",
+  label: "Solicitudes de Permisos",
+  path: "payroll/applications",
   icon: FileClock,
 };
 
@@ -66,24 +66,11 @@ const payrollPeriodsHistorySection: SidebarLink = {
   path: "payroll/historial-periodos-nomina",
   icon: History,
 };
-const settingsSection: SidebarLink = {
-  id: "settings",
-  label: "Configuración",
-  path: "configuración ",
-  icon: Settings,
-  isFooter: true,
-};
 
 const deduccionesSection: SidebarLink = {
   id: "deducciones",
   label: "Deducciones Activas",
   path: "payroll/deducciones",
-  icon: CircleMinus,
-};
-const deduccionesPersonalSection: SidebarLink = {
-  id: "deducciones-personal",
-  label: "Deducciones Activas",
-  path: "work-management/deducciones",
   icon: CircleMinus,
 };
 
@@ -124,6 +111,7 @@ export const sidebarData = {
         collboratorSection,
         gestionPayrollSection,
         payrollPeriodsHistorySection,
+        applicationFromPayrollSection,
         deduccionesSection,
         liquidacionSection,
         controlVacationsSection,
@@ -139,16 +127,14 @@ export const sidebarData = {
       [RoleEnum.OPERATOR]: [
         collaboratorProfileSection,
         permissionManagementSection,
-        deduccionesPersonalSection,
       ],
     },
-    [ModuleEnum.APPLICATIONS]: {
-      [RoleEnum.MANAGER]: [applicationSection],
-      [RoleEnum.ADMINISTRATOR]: [applicationSection],
-    },
+    /*  [ModuleEnum.APPLICATIONS]: {
+       [RoleEnum.MANAGER]: [applicationSection],
+       [RoleEnum.ADMINISTRATOR]: [applicationSection],
+     }, */
     [ModuleEnum.STORAGE]: {
       [RoleEnum.OPERATOR]: [scaleControlSection],
     },
-    [ModuleEnum.PUBLIC]: [settingsSection],
   },
 };

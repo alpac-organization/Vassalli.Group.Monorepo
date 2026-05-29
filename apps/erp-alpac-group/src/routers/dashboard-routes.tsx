@@ -1,4 +1,3 @@
-import type { RouteObject } from "react-router-dom";
 import { HomePage } from "@app/modules/dashboard/ui/pages/home/home.page";
 import { ContainerCopyright } from "@app/shared/layouts/container-copyright/container-copyright";
 import { DashboardLayout } from "@app/shared/layouts/dashboard-layout/dashboard-layout";
