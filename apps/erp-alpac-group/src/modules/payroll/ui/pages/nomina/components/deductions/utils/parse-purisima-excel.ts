@@ -22,7 +22,7 @@ const DECIMAL_CHECK_EPS = 1e-3;
 
 export function isPurisimaAmountValid(n: number): boolean {
   if (!Number.isFinite(n)) return false;
-  if (n <= 0) return false;
+  if (n < 0) return false;
   const scaled = n * 100;
   const rounded = Math.round(scaled);
   return Math.abs(scaled - rounded) < DECIMAL_CHECK_EPS;
@@ -30,7 +30,7 @@ export function isPurisimaAmountValid(n: number): boolean {
 
 function reasonForInvalidAmount(n: number): string {
   if (!Number.isFinite(n)) return "valor no numérico válido";
-  if (n <= 0) return "el monto debe ser mayor a 0";
+  if (n < 0) return "valor negativo";
   return "más de 2 decimales";
 }
 
@@ -60,19 +60,15 @@ function parseThirdColumnToRawNumber(cell: unknown): number | "empty" {
   return n;
 }
 
-export function formatPurisimaViolationsMessage(
-  violations: PurisimaViolation[],
-): string {
-  const header =
-    "El archivo contiene montos que no cumplen las reglas (mayor a 0, máximo 2 decimales). Detalle:";
-  const lines = violations.map(
-    (v) =>
-      `• Fila ${v.sheetRow} (ID ${v.identification_number}): "${v.rawDisplay}" — ${v.reason}.`,
-  );
-  return [header, ...lines].join("\n");
+export function formatPurisimaViolationsMessage(): string {
+  const messageError =
+    "El archivo contiene montos que no cumplen las reglas (0 o mayor, sin negativos)";
+  return messageError;
 }
 
-export function parsePurisimaExcel(buffer: ArrayBuffer): ParsePurisimaExcelResult {
+export function parsePurisimaExcel(
+  buffer: ArrayBuffer,
+): ParsePurisimaExcelResult {
   let workbook: XLSX.WorkBook;
   try {
     workbook = XLSX.read(buffer, { type: "array" });
@@ -114,17 +110,7 @@ export function parsePurisimaExcel(buffer: ArrayBuffer): ParsePurisimaExcelResul
     const rawParsed = parseThirdColumnToRawNumber(third);
     const rawDisplay = cellToTrimmedString(third) || "(vacío)";
 
-    if (rawParsed === "empty") {
-      violations.push({
-        sheetRow,
-        identification_number: id,
-        rawDisplay,
-        reason: "el monto es requerido",
-      });
-      continue;
-    }
-
-    const amount = rawParsed;
+    const amount = rawParsed === "empty" ? 0 : rawParsed;
 
     if (!isPurisimaAmountValid(amount)) {
       violations.push({
@@ -145,7 +131,7 @@ export function parsePurisimaExcel(buffer: ArrayBuffer): ParsePurisimaExcelResul
   if (violations.length > 0) {
     return {
       ok: false,
-      error: formatPurisimaViolationsMessage(violations),
+      error: formatPurisimaViolationsMessage(),
       violations,
     };
   }
@@ -200,7 +186,7 @@ export function validatePurisimaPayload(
   if (violations.length > 0) {
     return {
       ok: false,
-      error: formatPurisimaViolationsMessage(violations),
+      error: formatPurisimaViolationsMessage(),
       violations,
     };
   }

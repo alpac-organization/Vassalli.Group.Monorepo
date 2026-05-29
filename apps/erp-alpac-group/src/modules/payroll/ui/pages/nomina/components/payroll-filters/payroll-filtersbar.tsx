@@ -30,10 +30,15 @@ export default function PayrollFiltersBar({
 }: PayrollFiltersBarProps) {
   const { companyId } = useUserStore();
 
-  const { register, handleSubmit, control, reset } =
-    useForm<PayrollCollaboratorFilterFields>({
-      defaultValues: defaultFormValues,
-    });
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors, isValid, isDirty },
+  } = useForm<PayrollCollaboratorFilterFields>({
+    defaultValues: defaultFormValues,
+  });
 
   const { GetCatalogListQuery: workAreasQuery } = useCatalog({
     company_id: companyId,
@@ -87,6 +92,7 @@ export default function PayrollFiltersBar({
                 e.target.value = formatIdentificationNumber(e.target.value);
               },
             })}
+            error={errors.identification_number?.message}
           />
         </div>
 
@@ -145,6 +151,7 @@ export default function PayrollFiltersBar({
             size="giant"
             className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
             label="Aplicar filtros"
+            disabled={!isValid || !isDirty}
           />
         </div>
 
