@@ -41,7 +41,6 @@ import type {
 import type { PayrollRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-request";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
-import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import { pdf } from "@react-pdf/renderer";
 import { PayrollPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/payroll-pdf-document";
 import { CheckPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/check-pdf-document";
@@ -71,6 +70,7 @@ import { AddSubsidyModal } from "@app/modules/payroll/ui/pages/nomina/components
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { parseAdditionalDeductions } from "./components/payroll-table/utils/parse-additional-deductions";
 import type { AdditionalDeductions } from "./components/payroll-table/types/payroll-table.types";
+import { ModalDetailsPayroll } from "@app/modules/payroll/ui/pages/nomina/components/collaborator-details-payroll/modal-details-payroll";
 
 export function PayrollPage() {
   const maxPageSize = 10;
@@ -1297,67 +1297,11 @@ export function PayrollPage() {
 
   return (
     <LazyMotion features={loadFeatures} strict>
-      <Modal
+      <ModalDetailsPayroll
         isOpen={isPayrollDetailModalOpen}
         onClose={handleClosePayrollDetailModal}
-        variant="default"
-        size="7xl"
-        title={"Detalles especificos del colaborador"}
-      >
-        <div className="mt-2 flex flex-col gap-6">
-          <section
-            aria-labelledby="payroll-detail-collaborator-heading"
-            className="rounded-xl border border-slate-200 bg-slate-50/90 p-6 dark:border-neutral-600 dark:bg-[#1e2229]"
-          >
-            <h5
-              id="payroll-detail-collaborator-heading"
-              className="mb-5 border-b border-slate-200 pb-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:border-neutral-600 dark:text-slate-400"
-            >
-              Datos del colaborador
-            </h5>
-            {selectedPayrollRow?.collaborator ? (
-              <dl className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="flex min-w-0 flex-col gap-1.5">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Código
-                  </dt>
-                  <dd className="truncate font-mono text-base font-semibold text-slate-900 dark:text-white">
-                    {selectedPayrollRow.collaborator.collaborator_code || "—"}
-                  </dd>
-                </div>
-                <div className="flex min-w-0 flex-col gap-1.5">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Nombre completo
-                  </dt>
-                  <dd className="text-base font-semibold leading-snug text-slate-900 dark:text-white">
-                    {selectedPayrollRow.collaborator.full_name || "—"}
-                  </dd>
-                </div>
-                <div className="flex min-w-0 flex-col gap-1.5 md:col-span-2">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Identificación
-                  </dt>
-                  <dd className="wrap-break-word font-mono text-base font-semibold text-slate-900 dark:text-white">
-                    {(() => {
-                      const identificationNumber =
-                        selectedPayrollRow.collaborator.identification_number;
-                      if (!identificationNumber) return "—";
-                      if (identificationNumber.length !== 14)
-                        return identificationNumber;
-                      return formatIdentificationNumber(identificationNumber);
-                    })()}
-                  </dd>
-                </div>
-              </dl>
-            ) : (
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                No hay información del colaborador asociada a este registro de
-                nómina.
-              </p>
-            )}
-          </section>
-        </div>
-      </Modal>
+        payrollItem={selectedPayrollRow}
+      />
 
       <Modal
         isOpen={
