@@ -45,3 +45,21 @@ export function calcAreaTotals(
   }
   return result;
 }
+
+export function calcAreaTotalsRaw(
+  items: PayrollItemResponse[],
+  activeColumns: PayrollColumnDef[],
+): Record<string, number | string> {
+  const result: Record<string, number | string> = {};
+  for (const col of activeColumns) {
+    if (col.getValue) {
+      result[col.key] = items.reduce(
+        (acc, item) => acc + col.getValue!(item),
+        0,
+      );
+    } else {
+      result[col.key] = "";
+    }
+  }
+  return result;
+}

@@ -7,10 +7,6 @@ import {
   parseColumnAEmployeeId,
 } from "@app/modules/payroll/ui/pages/nomina/components/deductions/utils/excel-employee-id.utils";
 
-export function thirdColumnToMinutes(raw: number): number {
-  return raw;
-}
-
 export type LateArrivalsViolation = {
   sheetRow: number;
   identification_number: string;
@@ -64,16 +60,10 @@ function parseThirdColumnToRawNumber(cell: unknown): number | "empty" {
   return n;
 }
 
-export function formatLateArrivalsViolationsMessage(
-  violations: LateArrivalsViolation[],
-): string {
-  const header =
-    "El archivo contiene montos que no cumplen las reglas (0 o mayor, sin negativos, máximo 2 decimales). Detalle:";
-  const lines = violations.map(
-    (v) =>
-      `• Fila ${v.sheetRow} (ID ${v.identification_number}): "${v.rawDisplay}" — ${v.reason}.`,
-  );
-  return [header, ...lines].join("\n");
+export function formatLateArrivalsViolationsMessage(): string {
+  const messageError =
+    "El archivo contiene montos que no cumplen las reglas (0 o mayor, sin negativos)";
+  return messageError;
 }
 
 export function parseLateArrivalsExcel(
@@ -120,8 +110,7 @@ export function parseLateArrivalsExcel(
     const rawParsed = parseThirdColumnToRawNumber(third);
     const rawDisplay = cellToTrimmedString(third) || "(vacío)";
 
-    const amount_minutes =
-      rawParsed === "empty" ? 0 : thirdColumnToMinutes(rawParsed);
+    const amount_minutes = rawParsed === "empty" ? 0 : rawParsed;
 
     if (!isTotalMinutesBusinessValid(amount_minutes)) {
       violations.push({
@@ -141,7 +130,7 @@ export function parseLateArrivalsExcel(
   if (violations.length > 0) {
     return {
       ok: false,
-      error: formatLateArrivalsViolationsMessage(violations),
+      error: formatLateArrivalsViolationsMessage(),
       violations,
     };
   }
@@ -195,7 +184,7 @@ export function validateLateArrivalsPayload(
   if (violations.length > 0) {
     return {
       ok: false,
-      error: formatLateArrivalsViolationsMessage(violations),
+      error: formatLateArrivalsViolationsMessage(),
       violations,
     };
   }

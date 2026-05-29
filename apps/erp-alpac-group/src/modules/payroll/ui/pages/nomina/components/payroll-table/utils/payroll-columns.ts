@@ -73,16 +73,16 @@ export const payrollColumns: PayrollColumnDef[] = [
     getValue: (item) => item.vacations ?? 0,
   },
   {
-    key: "overtime",
-    label: "Horas Extras",
-    render: (item) => formatCurrency(item.overtime ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.overtime ?? 0,
-  },
-  {
     key: "number_overtime",
     label: "Número de Horas Extras",
     render: (item) => `${item.number_overtime ?? 0} hrs`,
     getValue: (item) => item.number_overtime ?? 0,
+  },
+  {
+    key: "overtime",
+    label: "Horas Extras",
+    render: (item) => formatCurrency(item.overtime ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.overtime ?? 0,
   },
   {
     key: "work_area",
@@ -180,6 +180,19 @@ export const payrollColumns: PayrollColumnDef[] = [
         ?.LateArrivals ?? 0,
   },
   {
+    key: "late_arrivals_in_minutes",
+    label: "Llegadas Tardías en Minutos",
+    render: (item) => {
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return d?.LateArrivalsInMinutes != null
+        ? `${d.LateArrivalsInMinutes} min`
+        : "—";
+    },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)
+        ?.LateArrivalsInMinutes ?? 0,
+  },
+  {
     key: "daem",
     label: "DAEM",
     onlyForCompanyName: VIGILANCIA_EMPRESARIAL_SA_COMPANY_NAME,
@@ -200,19 +213,6 @@ export const payrollColumns: PayrollColumnDef[] = [
     render: (item) =>
       formatCurrency(item.total_legal_deductions ?? 0, "NIO") ?? "—",
     getValue: (item) => item.total_legal_deductions ?? 0,
-  },
-  {
-    key: "late_arrivals_in_minutes",
-    label: "Llegadas Tardías en Minutos",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return d?.LateArrivalsInMinutes != null
-        ? `${d.LateArrivalsInMinutes} min`
-        : "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.LateArrivalsInMinutes ?? 0,
   },
 
   {

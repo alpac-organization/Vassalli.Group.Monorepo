@@ -24,6 +24,10 @@ import {
   useInitializePayroll,
   useClosePayroll,
 } from "@app/modules/payroll/ui/hooks/payroll/usePayroll";
+import {
+  INCOME_KEYS,
+  DEDUCTION_KEYS,
+} from "@app/modules/payroll/ui/pages/nomina/utils/payroll.utls";
 import { Loader } from "@app/shared/components/loaders/loader";
 import PayrollPageHeader from "@app/modules/payroll/ui/pages/nomina/components/payroll-page-header/payroll-page-header";
 import PayrollCycleFormalization from "@app/modules/payroll/ui/pages/nomina/components/payroll-cycle-formalization/payroll-cycle-formalization";
@@ -37,13 +41,13 @@ import type {
 import type { PayrollRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-request";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
-import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import { pdf } from "@react-pdf/renderer";
 import { PayrollPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/payroll-pdf-document";
 import { CheckPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/check-pdf-document";
 import { PaymentReceiptDocument } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/payment-receipt";
 import { AccumulatedHistoryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/accumulated-history-pdf-document";
 import { IncomeSummaryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/income-review-pdf/income-summary-pdf-document";
+import { DeductionSummaryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/deduction-review-pdf/deduction-review.pdf";
 import { VacationAccrualPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/components/vacation-accrual";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
@@ -52,7 +56,6 @@ import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/
 import { exportPayrollExcel } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/export-payroll-excel";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-// import { fetchImageAsDataUri } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/fetch-image-as-data-uri";
 import type { PayrollActionValue } from "@app/modules/payroll/ui/pages/nomina/types/payroll-actions.types";
 import type { StoredPayrollSelection } from "@app/modules/payroll/ui/pages/nomina/types/payroll.types";
 import {
@@ -65,6 +68,9 @@ import { AddDeductionModal } from "@app/modules/payroll/ui/pages/nomina/componen
 import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
 import { AddSubsidyModal } from "@app/modules/payroll/ui/pages/nomina/components/subsidies/add-subsidy-modal/add-subsidy-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { parseAdditionalDeductions } from "./components/payroll-table/utils/parse-additional-deductions";
+import type { AdditionalDeductions } from "./components/payroll-table/types/payroll-table.types";
+import { ModalDetailsPayroll } from "@app/modules/payroll/ui/pages/nomina/components/collaborator-details-payroll/modal-details-payroll";
 
 export function PayrollPage() {
   const maxPageSize = 10;
@@ -144,6 +150,8 @@ export function PayrollPage() {
   const [isGeneratingVacationAccrualPdf, setIsGeneratingVacationAccrualPdf] =
     useState(false);
   const [isGeneratingIncomeSummaryPdf, setIsGeneratingIncomeSummaryPdf] =
+    useState(false);
+  const [isGeneratingDeductionSummaryPdf, setIsGeneratingDeductionSummaryPdf] =
     useState(false);
   const [identificationFilter, setIdentificationFilter] = useState("");
   const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
@@ -358,6 +366,7 @@ export function PayrollPage() {
         value: "accumulated_history",
       },
       { label: "Generar Reporte de Ingresos", value: "income_report" },
+      { label: "Generar Reporte de Deducciones", value: "deduction_report" },
       // {
       //   label: "Generar Acumulado de Vacaciones",
       //   value: "vacation_accruals_history",
@@ -578,18 +587,6 @@ export function PayrollPage() {
       const response = await payrollServices.getPayroll(payload);
       const allItems = response.payroll_details?.items ?? [];
 
-      // let logoDataUri: string | undefined = undefined;
-      // try {
-      //   const imageUrl = useCompanyStore.getState().urlImage;
-      //   if (imageUrl) {
-      //     logoDataUri = await fetchImageAsDataUri(imageUrl);
-      //   }
-      // } catch (imageError) {
-      //   console.warn(
-      //     "No se pudo cargar el logo para el PDF debido a un error de red o CORS.",
-      //   );
-      // }
-
       const preparedSignatureImageSrc = signatures.solicitado.signatureImage
         ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
         : "";
@@ -674,8 +671,19 @@ export function PayrollPage() {
 
       const response = await payrollServices.getPayroll(payload);
       const allItems = response.payroll_details?.items ?? [];
-
-      if (allItems.length === 0) {
+      const hasNoPayableData = allItems.every((item) => {
+        const deductions = parseAdditionalDeductions(
+          item.deductions_additional_data,
+        );
+        const isIncomeZero = INCOME_KEYS.every(
+          (key) => item[key as keyof PayrollItemResponse] === 0,
+        );
+        const isDeductionsZero = DEDUCTION_KEYS.every(
+          (key) => deductions?.[key as keyof AdditionalDeductions] === 0,
+        );
+        return isIncomeZero && isDeductionsZero;
+      });
+      if (hasNoPayableData) {
         handlePdfGenerationError(
           "No hay datos disponibles para generar los recibos de pago.",
         );
@@ -738,15 +746,22 @@ export function PayrollPage() {
       } as PayrollRequest;
       const response = await payrollServices.getPayroll(payload);
       const allItems = response.payroll_details?.items ?? [];
-
+      if (allItems.length === 0) {
+        handlePdfGenerationError(
+          "No hay datos disponibles para generar las solicitudes de pago, intente nuevamente mas tarde.",
+        );
+        return;
+      }
       const filteredItems = allItems.filter(
         (item) => !item.collaborator?.bank_account?.trim(),
       );
 
       if (filteredItems.length === 0) {
+        handlePdfGenerationError(
+          "No hay colaboradores sin cuenta bancaria para generar las solicitudes de pago.",
+        );
         return;
       }
-
       const { signatureImage } = getSignatures(companyName);
       const signatureImageSrc =
         await getProcessedSignatureImage(signatureImage);
@@ -783,11 +798,8 @@ export function PayrollPage() {
   ]);
 
   const handleGenerateAccumulatedHistoryPdf = useCallback(async () => {
-    if (!companyId) return;
     const payrollId = ordinaryPayrollQuery.data?.payroll_id;
-    if (!payrollId) return;
-    // const startDate = ordinaryPayrollQuery.data?.start_date;
-    // const endDate = ordinaryPayrollQuery.data?.end_date;
+    if (!companyId || !payrollId || !moduleCode || !selectedPayrollType) return;
     try {
       setIsGeneratingAccumulatedHistoryPdf(true);
       const payrollServices = new PayrollServices(httpHandler);
@@ -844,9 +856,8 @@ export function PayrollPage() {
     handlePdfGenerationError,
   ]);
   const handleGenerateVacationAccrualPdf = useCallback(async () => {
-    if (!companyId || !moduleCode) return;
     const payrollId = ordinaryPayrollQuery.data?.payroll_id;
-    if (!payrollId) return;
+    if (!companyId || !moduleCode || !selectedPayrollType || !payrollId) return;
     const startDate = ordinaryPayrollQuery.data?.start_date;
     const endDate = ordinaryPayrollQuery.data?.end_date;
     try {
@@ -937,18 +948,10 @@ export function PayrollPage() {
 
       const response = await payrollServices.getPayroll(payload);
       const allItems = response.payroll_details?.items ?? [];
-      const hasNotIncomes = allItems.some((item) => {
-        if (
-          item.overtime === 0 ||
-          item.vacations === 0 ||
-          item.bonus === 0 ||
-          item.commissions === 0 ||
-          item.antique === 0 ||
-          item.transport === 0 ||
-          item.feeding === 0
-        )
-          return true;
-        return false;
+      const hasNotIncomes = allItems.every((item) => {
+        return INCOME_KEYS.every(
+          (key) => item[key as keyof PayrollItemResponse] === 0,
+        );
       });
       if (hasNotIncomes) {
         handlePdfGenerationError(
@@ -988,7 +991,81 @@ export function PayrollPage() {
     jobPositionFilter,
     handlePdfGenerationError,
   ]);
+  const handleGenerateDeductionSummaryPdf = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return;
 
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el resumen de ingresos.",
+      );
+      return;
+    }
+
+    try {
+      setIsGeneratingDeductionSummaryPdf(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const detailsData = ordinaryPayrollQuery.data;
+      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+      const payload = {
+        companie_id: companyId,
+        module_code: moduleCode,
+        type: selectedPayrollType,
+        branch_id: selectedBranch,
+        identification_number: identificationFilter || undefined,
+        work_area_id: workAreaFilter || undefined,
+        job_position_id: jobPositionFilter || undefined,
+        page_number: 1,
+        page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+      } as PayrollRequest;
+
+      const response = await payrollServices.getPayroll(payload);
+      const allItems = response.payroll_details?.items ?? [];
+      const hasNotDeductions = allItems.every((item) => {
+        const currentDeduction = parseAdditionalDeductions(
+          item.deductions_additional_data,
+        );
+        return DEDUCTION_KEYS.every(
+          (key) => currentDeduction?.[key as keyof AdditionalDeductions] === 0,
+        );
+      });
+      if (hasNotDeductions) {
+        handlePdfGenerationError(
+          "No hay datos disponibles para generar el resumen de deducciones.",
+        );
+        return;
+      }
+      const blob = await pdf(
+        <DeductionSummaryPdfDocument
+          data={allItems}
+          branchName={displayedBranchName ?? ""}
+          startDate={ordinaryPayrollQuery.data?.start_date}
+          endDate={ordinaryPayrollQuery.data?.end_date}
+          periodCode={ordinaryPayrollQuery.data?.start_date ?? ""}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el resumen de deducciones en PDF.",
+      );
+    } finally {
+      setIsGeneratingDeductionSummaryPdf(false);
+    }
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    ordinaryPayrollQuery.data,
+    displayedBranchName,
+    handlePdfGenerationError,
+  ]);
   const handleGenerateExcel = useCallback(async () => {
     if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
       return;
@@ -1065,6 +1142,9 @@ export function PayrollPage() {
         break;
       case "income_report":
         void handleGenerateIncomeSummaryPdf();
+        break;
+      case "deduction_report":
+        void handleGenerateDeductionSummaryPdf();
         break;
       default:
         break;
@@ -1217,67 +1297,11 @@ export function PayrollPage() {
 
   return (
     <LazyMotion features={loadFeatures} strict>
-      <Modal
+      <ModalDetailsPayroll
         isOpen={isPayrollDetailModalOpen}
         onClose={handleClosePayrollDetailModal}
-        variant="default"
-        size="7xl"
-        title={"Detalles especificos del colaborador"}
-      >
-        <div className="mt-2 flex flex-col gap-6">
-          <section
-            aria-labelledby="payroll-detail-collaborator-heading"
-            className="rounded-xl border border-slate-200 bg-slate-50/90 p-6 dark:border-neutral-600 dark:bg-[#1e2229]"
-          >
-            <h5
-              id="payroll-detail-collaborator-heading"
-              className="mb-5 border-b border-slate-200 pb-3 text-xs font-bold uppercase tracking-wider text-slate-500 dark:border-neutral-600 dark:text-slate-400"
-            >
-              Datos del colaborador
-            </h5>
-            {selectedPayrollRow?.collaborator ? (
-              <dl className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="flex min-w-0 flex-col gap-1.5">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Código
-                  </dt>
-                  <dd className="truncate font-mono text-base font-semibold text-slate-900 dark:text-white">
-                    {selectedPayrollRow.collaborator.collaborator_code || "—"}
-                  </dd>
-                </div>
-                <div className="flex min-w-0 flex-col gap-1.5">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Nombre completo
-                  </dt>
-                  <dd className="text-base font-semibold leading-snug text-slate-900 dark:text-white">
-                    {selectedPayrollRow.collaborator.full_name || "—"}
-                  </dd>
-                </div>
-                <div className="flex min-w-0 flex-col gap-1.5 md:col-span-2">
-                  <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Identificación
-                  </dt>
-                  <dd className="wrap-break-word font-mono text-base font-semibold text-slate-900 dark:text-white">
-                    {(() => {
-                      const identificationNumber =
-                        selectedPayrollRow.collaborator.identification_number;
-                      if (!identificationNumber) return "—";
-                      if (identificationNumber.length !== 14)
-                        return identificationNumber;
-                      return formatIdentificationNumber(identificationNumber);
-                    })()}
-                  </dd>
-                </div>
-              </dl>
-            ) : (
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                No hay información del colaborador asociada a este registro de
-                nómina.
-              </p>
-            )}
-          </section>
-        </div>
-      </Modal>
+        payrollItem={selectedPayrollRow}
+      />
 
       <Modal
         isOpen={
@@ -1516,10 +1540,11 @@ export function PayrollPage() {
             </div>
             <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
               <div className="flex flex-col justify-center">
-                <h3 className="p-0! m-0!">Accesos Directos</h3>
+                <h3 className="p-0! m-0!">Acciones Directas</h3>
                 <small className="text-gray-500 dark:text-gray-300">
                   Aqui puedes cambiar el tipo de nómina y sucursal, tambien
-                  puedes generar reportes y exportar el excel de la nómina.
+                  puedes generar reportes, hacer algunas acciones directas y
+                  exportar el excel de la nómina.
                 </small>
               </div>
             </div>
@@ -1556,7 +1581,8 @@ export function PayrollPage() {
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
                     isGeneratingVacationAccrualPdf ||
-                    isGeneratingIncomeSummaryPdf
+                    isGeneratingIncomeSummaryPdf ||
+                    isGeneratingDeductionSummaryPdf
                   }
                   disabled={
                     !selectedAction ||
@@ -1566,7 +1592,8 @@ export function PayrollPage() {
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
                     isGeneratingVacationAccrualPdf ||
-                    isGeneratingIncomeSummaryPdf
+                    isGeneratingIncomeSummaryPdf ||
+                    isGeneratingDeductionSummaryPdf
                   }
                   onClick={handleExecuteSelectedAction}
                   className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
@@ -1574,7 +1601,9 @@ export function PayrollPage() {
                     isGeneratingPaymentReceiptsPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
-                    isGeneratingVacationAccrualPdf
+                    isGeneratingVacationAccrualPdf ||
+                    isGeneratingIncomeSummaryPdf ||
+                    isGeneratingDeductionSummaryPdf
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}
@@ -1679,7 +1708,6 @@ export function PayrollPage() {
           onClose={() => setIsIncomeModalOpen(false)}
           onRequestSuccess={(successMessage) => {
             handleRequestSuccess(successMessage, "Ingreso registrado");
-            void ordinaryPayrollQuery.refetch();
             setIsIncomeModalOpen(false);
           }}
           onRequestError={(errorMessage) => {
@@ -1694,7 +1722,6 @@ export function PayrollPage() {
           onClose={() => setIsDeductionModalOpen(false)}
           onRequestSuccess={(successMessage) => {
             handleRequestSuccess(successMessage, "Deducción registrada");
-            void ordinaryPayrollQuery.refetch();
             setIsDeductionModalOpen(false);
           }}
           onRequestError={(errorMessage) => {
