@@ -44,8 +44,11 @@ export const useApplications = (filters?: ApplicationRequest, config?: { enabled
    const ProcessApplication = useMutation<ProcessApplicationResponse, ApiErrorResponse, ApplicationProcessRequest>({
       mutationFn: (payload: ApplicationProcessRequest) => applicationServices.ProcessApplication(payload),
       onSuccess: () => {
+         // const { company_id, module_code } = filters!;
          queryClient.invalidateQueries({ queryKey: ["applicationsData"] });
          queryClient.invalidateQueries({ queryKey: ["applicationDetailData"] });
+         //queryClient.invalidateQueries({ queryKey: ["payrollsStatus", company_id, module_code] });
+         //queryClient.invalidateQueries({ queryKey: ["detailsPayroll", company_id, module_code] });
       },
    })
 

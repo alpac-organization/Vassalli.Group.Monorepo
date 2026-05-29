@@ -22,15 +22,16 @@ import { PermitApplicationStatusOptions } from "@app/modules/applications/domain
 import { ApplicationModal } from "./components/application-modal/application-modal";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { formatCollaboratorCode, validateCollaboratorCode } from "@app/shared/utils/collaborator.utils";
-import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
-import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { ManagerForm } from "./components/application-forms/manager-form/manager-form";
-import { Plus } from "lucide-react";
+// import { Plus } from "lucide-react";
+
+import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
+import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
 
 const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
-import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
+//import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
 
 export const ApplicationsPage = function () {
    const maxPageSize = 5;
@@ -47,7 +48,7 @@ export const ApplicationsPage = function () {
    const navigate = useNavigate();
 
    const [filters, setFilters] = useState<ApplicationRequest>(initialFilters);
-   const [isNewPermissionRequestModalOpen, setIsNewPermissionRequestModalOpen] = useState(false);
+   // const [isNewPermissionRequestModalOpen, setIsNewPermissionRequestModalOpen] = useState(false);
    const [showAlert, setShowAlert] = useState<{
       show: boolean;
       type: "success" | "error" | "warning" | "info";
@@ -170,25 +171,25 @@ export const ApplicationsPage = function () {
       });
    }, [reset]);
 
-   const handleRequestError = useCallback((description: string) => {
-      setShowAlert({
-         show: true,
-         type: "error",
-         title: "Error",
-         message: description,
-      });
-      handleCloseAlert();
-   }, []);
-
-   const handleRequestSuccess = useCallback(() => {
-      setShowAlert({
-         show: true,
-         type: "success",
-         title: "Éxito",
-         message: "Solicitud creada exitosamente",
-      });
-      handleCloseAlert();
-   }, []);
+   /*    const handleRequestError = useCallback((description: string) => {
+         setShowAlert({
+            show: true,
+            type: "error",
+            title: "Error",
+            message: description,
+         });
+         handleCloseAlert();
+      }, []);
+   
+      const handleRequestSuccess = useCallback(() => {
+         setShowAlert({
+            show: true,
+            type: "success",
+            title: "Éxito",
+            message: "Solicitud creada exitosamente",
+         });
+         handleCloseAlert();
+      }, []); */
 
    const handlePageChange = useCallback((page: number) => {
       setFilters((prev) => ({ ...prev, page_number: page }));
@@ -360,12 +361,13 @@ export const ApplicationsPage = function () {
                </div>
             </form>
 
-            <NewPermissionRequestModal
+            {/*<NewPermissionRequestModal
+               payrollId={"Aquí se debe pasar el id de la nómina"}
                isOpen={isNewPermissionRequestModalOpen}
                onClose={() => setIsNewPermissionRequestModalOpen(false)}
                onRequestError={handleRequestError}
                onRequestSuccess={handleRequestSuccess}
-            />
+            />*/}
 
             {isManager && applicationsData.length === 0 && !isLoading && (
                <div>
@@ -424,7 +426,7 @@ export const ApplicationsPage = function () {
             )}
          </m.div >
 
-         {
+         {/* {
             isManager && (
                <Button
                   type="button"
@@ -437,7 +439,7 @@ export const ApplicationsPage = function () {
                   onClick={() => setIsNewPermissionRequestModalOpen(true)}
                />
             )
-         }
+         } */}
 
       </LazyMotion>
    );
