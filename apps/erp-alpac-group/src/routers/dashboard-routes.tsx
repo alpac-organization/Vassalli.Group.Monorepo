@@ -6,7 +6,7 @@ import { WorkManagementRoutes } from "@app/routers/work-management-routes";
 import { ApplicationRoutes } from "@app/routers/applications-routes";
 import { StorageRoutes } from "@app/routers/storage-routes";
 import { AdminRoutes } from "@app/routers/admin-routes";
-
+import type { RouteObject } from "react-router-dom";
 export const DashboardRoutes: RouteObject[] = [
   {
     element: <ContainerCopyright />,

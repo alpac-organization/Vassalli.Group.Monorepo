@@ -11,7 +11,6 @@ import {
   HandCoins,
   History,
   Scale,
-  Settings,
   Users,
   Book,
 } from "lucide-react";
