@@ -1596,10 +1596,11 @@ export function PayrollPage() {
             </div>
             <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
               <div className="flex flex-col justify-center">
-                <h3 className="p-0! m-0!">Accesos Directos</h3>
+                <h3 className="p-0! m-0!">Acciones Directas</h3>
                 <small className="text-gray-500 dark:text-gray-300">
                   Aqui puedes cambiar el tipo de nómina y sucursal, tambien
-                  puedes generar reportes y exportar el excel de la nómina.
+                  puedes generar reportes, hacer algunas acciones directas y
+                  exportar el excel de la nómina.
                 </small>
               </div>
             </div>
@@ -1763,7 +1764,6 @@ export function PayrollPage() {
           onClose={() => setIsIncomeModalOpen(false)}
           onRequestSuccess={(successMessage) => {
             handleRequestSuccess(successMessage, "Ingreso registrado");
-            void ordinaryPayrollQuery.refetch();
             setIsIncomeModalOpen(false);
           }}
           onRequestError={(errorMessage) => {
@@ -1778,7 +1778,6 @@ export function PayrollPage() {
           onClose={() => setIsDeductionModalOpen(false)}
           onRequestSuccess={(successMessage) => {
             handleRequestSuccess(successMessage, "Deducción registrada");
-            void ordinaryPayrollQuery.refetch();
             setIsDeductionModalOpen(false);
           }}
           onRequestError={(errorMessage) => {

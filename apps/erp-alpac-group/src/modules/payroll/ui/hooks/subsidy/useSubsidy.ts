@@ -1,5 +1,5 @@
 import { SubsidyServices } from "@app/modules/payroll/infrastructure/services/subsidy-services/SubsidyServices";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 
 import type { CreateSubsidyRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/create-subsidy.request";
@@ -10,30 +10,43 @@ import type { GetSubsidyTypesResponse } from "@app/modules/payroll/domain/ApiCon
 const subsidyServices = new SubsidyServices(httpHandler);
 
 interface useSubsidyProps {
-   subsidyTypesPayload?: GetSubsidyTypesRequest;
+  subsidyTypesPayload?: GetSubsidyTypesRequest;
 }
 
 export const useSubsidy = (props?: useSubsidyProps) => {
+  const queryClient = useQueryClient();
+  const CreateSubsidy = useMutation<
+    void,
+    ApiErrorResponse,
+    CreateSubsidyRequest
+  >({
+    mutationFn: (payload: CreateSubsidyRequest) => {
+      return subsidyServices.CreateSubsidy(payload);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [
+          "detailsPayroll",
+          variables.company_id,
+          variables.module_code,
+        ],
+      });
+    },
+  });
 
-   const CreateSubsidy = useMutation<void, ApiErrorResponse, CreateSubsidyRequest>({
-      mutationFn: (payload: CreateSubsidyRequest) => {
-         return subsidyServices.CreateSubsidy(payload);
-      },
-   })
+  const GetSubsidyTypes = useQuery<GetSubsidyTypesResponse, ApiErrorResponse>({
+    queryKey: ["subsidy-types", props?.subsidyTypesPayload],
+    queryFn: () => {
+      return subsidyServices.GetSubsidyTypes(props?.subsidyTypesPayload!);
+    },
+    enabled: Boolean(props?.subsidyTypesPayload),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
 
-   const GetSubsidyTypes = useQuery<GetSubsidyTypesResponse, ApiErrorResponse>({
-      queryKey: ["subsidy-types", props?.subsidyTypesPayload],
-      queryFn: () => {
-         return subsidyServices.GetSubsidyTypes(props?.subsidyTypesPayload!);
-      },
-      enabled: Boolean(props?.subsidyTypesPayload),
-      staleTime: 1000 * 60 * 10,
-      refetchOnWindowFocus: false,
-      retry: 1,
-   })
-
-   return {
-      CreateSubsidy,
-      GetSubsidyTypes
-   };
-}
+  return {
+    CreateSubsidy,
+    GetSubsidyTypes,
+  };
+};
