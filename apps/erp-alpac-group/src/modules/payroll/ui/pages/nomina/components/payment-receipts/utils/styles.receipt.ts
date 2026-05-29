@@ -10,6 +10,25 @@ export const receiptStyles = StyleSheet.create({
     color: "#000",
   },
 
+  headerContainer: {
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+    width: "100%",
+    position: "relative",
+    minHeight: 52,
+  },
+  logo: {
+    width: 60,
+    height: 60,
+    objectFit: "contain",
+  },
+  logoContainer: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+  },
   branchName: {
     fontSize: 14,
     fontFamily: "Helvetica-Bold",

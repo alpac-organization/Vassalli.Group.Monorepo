@@ -26,5 +26,4 @@ export type TransportistasPageProps = {
   startDate?: string;
   endDate?: string;
   branchName?: string;
-  index: number;
 };

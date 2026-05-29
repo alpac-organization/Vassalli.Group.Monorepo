@@ -70,6 +70,8 @@ export const VacationForm = (props: VacationFormProps) => {
                message: `La solicitud ha sido ${action} exitosamente.`
             });
 
+            // void ordinaryPayrollQuery.refetch();
+
             setTimeout(() => {
                onFinishProcess?.();
             }, 1000);

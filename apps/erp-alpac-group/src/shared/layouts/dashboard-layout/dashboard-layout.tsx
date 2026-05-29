@@ -1,16 +1,18 @@
 import { Outlet, useLocation } from "react-router-dom";
-import Sidebarlayout from "@app/shared/layouts/dashboard-layout/components/Sidebar/Sidebar-layout";
 import { TopNavbar } from "@app/shared/layouts/dashboard-layout/components/navbar/top-navbar";
 import { sidebarData } from "@app/shared/layouts/dashboard-layout/data/data.route";
-import useSessionStorageSidebar from "@app/shared/layouts/dashboard-layout/hooks/useSessionStorageSidebar";
 import { m, LazyMotion, AnimatePresence } from "framer-motion";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { ModuleEnum } from "@app/core/enums/module.enum";
 import { Modal } from "@alpac/design-system";
 import { useEffect, useRef, useState } from "react";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import { useAuth } from "@app/modules/auth/ui/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+
+import Sidebarlayout from "@app/shared/layouts/dashboard-layout/components/Sidebar/Sidebar-layout";
+import useSessionStorageSidebar from "@app/shared/layouts/dashboard-layout/hooks/useSessionStorageSidebar";
+
+import type { SidebarLink } from "./components/Sidebar/types/sidebar.types";
 
 const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
@@ -26,14 +28,14 @@ export const DashboardLayout = () => {
 
    // mapeas la secciones = []
    const registry = sidebarData.navigationRegistry;
-   const authorizedRoles = registry[moduleCode as keyof typeof registry] ?? [];
-   const publicItems = registry[ModuleEnum.PUBLIC] ?? [];
+   const authorizedModules = registry[moduleCode as keyof typeof registry] ?? [];
+
    const moduleItems =
-      authorizedRoles[role as keyof typeof authorizedRoles] ?? [];
+      authorizedModules[role as keyof typeof authorizedModules] ?? [];
 
-   const authorizedItems = [...moduleItems, ...publicItems];
+   const authorizedItems = [...moduleItems];
 
-   const isAuthorizedPath = authorizedItems.some((item) => {
+   const isAuthorizedPath = authorizedItems.some((item: SidebarLink) => {
       return location.pathname.includes(item.path);
    });
 

@@ -786,8 +786,8 @@ export function PayrollPage() {
     if (!companyId) return;
     const payrollId = ordinaryPayrollQuery.data?.payroll_id;
     if (!payrollId) return;
-    const startDate = ordinaryPayrollQuery.data?.start_date;
-    const endDate = ordinaryPayrollQuery.data?.end_date;
+    // const startDate = ordinaryPayrollQuery.data?.start_date;
+    // const endDate = ordinaryPayrollQuery.data?.end_date;
     try {
       setIsGeneratingAccumulatedHistoryPdf(true);
       const payrollServices = new PayrollServices(httpHandler);
@@ -816,8 +816,6 @@ export function PayrollPage() {
       const blob = await pdf(
         <AccumulatedHistoryPdfDocument
           data={reportData}
-          startDate={startDate}
-          endDate={endDate}
           reviewedBy={{
             name: signatures.solicitado.name,
             role: signatures.solicitado.role,
@@ -939,7 +937,25 @@ export function PayrollPage() {
 
       const response = await payrollServices.getPayroll(payload);
       const allItems = response.payroll_details?.items ?? [];
-
+      const hasNotIncomes = allItems.some((item) => {
+        if (
+          item.overtime === 0 ||
+          item.vacations === 0 ||
+          item.bonus === 0 ||
+          item.commissions === 0 ||
+          item.antique === 0 ||
+          item.transport === 0 ||
+          item.feeding === 0
+        )
+          return true;
+        return false;
+      });
+      if (hasNotIncomes) {
+        handlePdfGenerationError(
+          "No hay datos disponibles para generar el resumen de ingresos.",
+        );
+        return;
+      }
       const blob = await pdf(
         <IncomeSummaryPdfDocument
           data={allItems}

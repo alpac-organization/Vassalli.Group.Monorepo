@@ -4,17 +4,20 @@ import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { receiptStyles as s } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/utils/styles.receipt";
 import { getTransportistasPageSize } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/utils/page-size.utils";
+import { Image } from "@react-pdf/renderer";
 import {
   IR_PERCENTAGE,
   INSS_PERCENTAGE,
 } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/constants/payment-receipts.constants";
 import { TravelRouteRow } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/payment-receipt";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 export function TransportistasPage({
   item,
   startDate,
   endDate,
   branchName,
 }: TransportistasPageProps) {
+  const { urlImage } = useCompanyStore();
   const collaborator = item.collaborator;
   const routes = item.travel_routes ?? [];
 
@@ -63,14 +66,19 @@ export function TransportistasPage({
 
   return (
     <Page size={pageSize} style={s.page}>
-      <Text style={s.branchName}>{branchName}</Text>
-      <Text style={s.title}>RECIBO DE PAGO</Text>
-      <Text style={s.period}>
-        Periodo del:{"  "}
-        {formatDateToSpanishWords(startDate)}
-        {"   "}al{"   "}
-        {formatDateToSpanishWords(endDate)}
-      </Text>
+      <View style={s.headerContainer}>
+        <View style={s.logoContainer}>
+          {urlImage ? <Image src={urlImage} style={s.logo} /> : null}
+        </View>
+        <Text style={s.branchName}>{branchName}</Text>
+        <Text style={s.title}>RECIBO DE PAGO</Text>
+        <Text style={s.period}>
+          Periodo del:{"  "}
+          {formatDateToSpanishWords(startDate)}
+          {"   "}al{"   "}
+          {formatDateToSpanishWords(endDate)}
+        </Text>
+      </View>
 
       <View style={s.infoBox}>
         <View style={s.infoLeft}>
@@ -92,7 +100,7 @@ export function TransportistasPage({
 
         <View style={s.infoRight}>
           <View style={s.infoRow}>
-            <Text style={s.infoLabel}>Ubicacion:</Text>
+            <Text style={s.infoLabel}>Cargo:</Text>
             <Text style={s.infoValue}>{collaborator?.job_position ?? ""}</Text>
           </View>
           <View style={s.infoRow}>

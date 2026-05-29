@@ -1,6 +1,7 @@
-import { forwardRef } from "react"
+import { forwardRef, isValidElement } from "react"
 import { ButtonRoundedProps } from "./button-rounded.type"
 import { ButtonRoundedStyles } from "./button-rounde.styles"
+import type { LucideIcon } from "lucide-react"
 
 export const ButtonRounded = forwardRef<HTMLButtonElement, ButtonRoundedProps>((props, reference) => {
 
@@ -13,16 +14,19 @@ export const ButtonRounded = forwardRef<HTMLButtonElement, ButtonRoundedProps>((
       className = ""
    } = props
 
-
    return (
       <button
          ref={reference}
          onClick={() => onClick()}
          className={`${ButtonRoundedStyles} ${className}`}
       >
-         {
-            (hasIcon && Icon) && <Icon className="text-[#F3F3F3] group-hover:text-white transition-colors" size={iconSize} />
-         }
+         {hasIcon && Icon && (
+            isValidElement(Icon) ? (
+               Icon
+            ) : (
+               <Icon className="text-[#F3F3F3] group-hover:text-white transition-colors" size={iconSize} />
+            )
+         )}
          {
             label && <span className="hidden md:block">{label}</span>
          }
