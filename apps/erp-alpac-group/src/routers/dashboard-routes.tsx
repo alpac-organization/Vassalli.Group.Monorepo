@@ -3,35 +3,43 @@ import { ContainerCopyright } from "@app/shared/layouts/container-copyright/cont
 import { DashboardLayout } from "@app/shared/layouts/dashboard-layout/dashboard-layout";
 import { PayrollRoutes } from "@app/routers/payroll-routes";
 import { WorkManagementRoutes } from "@app/routers/work-management-routes";
+import { ApplicationRoutes } from "@app/routers/applications-routes";
 import { StorageRoutes } from "@app/routers/storage-routes";
-
+import { AdminRoutes } from "@app/routers/admin-routes";
 import type { RouteObject } from "react-router-dom";
-
 export const DashboardRoutes: RouteObject[] = [
-   {
-      element: <ContainerCopyright />,
-      children: [
-         {
-            index: true,
-            element: <HomePage />,
-         },
-      ],
-   },
-   {
-      element: <DashboardLayout />,
-      children: [
-         {
-            path: "payroll",
-            children: PayrollRoutes,
-         },
-         {
-            path: "work-management",
-            children: WorkManagementRoutes,
-         },
-         {
-            path: "storage",
-            children: StorageRoutes,
-         },
-      ],
-   },
+  {
+    element: <ContainerCopyright />,
+    children: [
+      {
+        index: true,
+        element: <HomePage />,
+      },
+    ],
+  },
+  {
+    element: <DashboardLayout />,
+    children: [
+      {
+        path: "payroll",
+        children: PayrollRoutes,
+      },
+      {
+        path: "work-management",
+        children: WorkManagementRoutes,
+      },
+      {
+        path: "applications",
+        children: ApplicationRoutes,
+      },
+      {
+        path: "storage",
+        children: StorageRoutes,
+      },
+      {
+        path: "administration",
+        children: AdminRoutes,
+      },
+    ],
+  },
 ];
