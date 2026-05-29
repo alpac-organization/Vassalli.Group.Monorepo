@@ -1,8 +1,4 @@
 import { StyleSheet } from "@react-pdf/renderer";
-export {
-  groupByWorkArea,
-  calcAreaTotals,
-} from "@app/modules/payroll/ui/pages/nomina/utils/payroll-report-grouping.utils";
 
 export function withSoftLineBreaks(value: string): string {
   if (!value) return value;
