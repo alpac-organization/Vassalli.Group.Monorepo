@@ -5,9 +5,11 @@ import {
   LEGAL_LANDSCAPE_SIZE,
   colStyle,
   withSoftLineBreaks,
+} from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/payroll-utils";
+import {
   groupByWorkArea,
   calcAreaTotals,
-} from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/payroll-utils";
+} from "@app/modules/payroll/ui/pages/nomina/utils/payroll-report-grouping.utils";
 import { PAYROLL_TYPE_LABELS } from "@app/modules/payroll/domain/enums/payroll-enums/payroll-enum";
 import { getPayrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";

@@ -73,16 +73,16 @@ export const payrollColumns: PayrollColumnDef[] = [
     getValue: (item) => item.vacations ?? 0,
   },
   {
-    key: "overtime",
-    label: "Horas Extras",
-    render: (item) => formatCurrency(item.overtime ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.overtime ?? 0,
-  },
-  {
     key: "number_overtime",
     label: "Número de Horas Extras",
     render: (item) => `${item.number_overtime ?? 0} hrs`,
     getValue: (item) => item.number_overtime ?? 0,
+  },
+  {
+    key: "overtime",
+    label: "Horas Extras",
+    render: (item) => formatCurrency(item.overtime ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.overtime ?? 0,
   },
   {
     key: "work_area",

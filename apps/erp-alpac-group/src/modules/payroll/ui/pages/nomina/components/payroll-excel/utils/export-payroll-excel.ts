@@ -3,7 +3,7 @@ import { PAYROLL_TYPE_LABELS } from "@app/modules/payroll/domain/enums/payroll-e
 import type { ExportPayrollExcelParams } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/types/export-payroll.types";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import {
-  calcAreaTotals,
+  calcAreaTotalsRaw,
   groupByWorkArea,
 } from "@app/modules/payroll/ui/pages/nomina/utils/payroll-report-grouping.utils";
 import {
@@ -117,7 +117,11 @@ export async function exportPayrollExcel({
     }
 
     for (const item of areaItems) {
-      const row = ws.addRow(activeColumns.map((col) => col.render(item)));
+      const row = ws.addRow(
+        activeColumns.map((col) =>
+          col.getValue ? col.getValue(item) : col.render(item),
+        ),
+      );
       row.height = 14;
       for (let c = 1; c <= colCount; c++) {
         const cell = row.getCell(c);
@@ -128,7 +132,7 @@ export async function exportPayrollExcel({
     }
 
     {
-      const totals = calcAreaTotals(areaItems, activeColumns);
+      const totals = calcAreaTotalsRaw(areaItems, activeColumns);
       const label = `Total ${areaName} (${areaItems.length} colab.)`;
       const rowData = activeColumns.map((col, i) =>
         i === 0 ? label : (totals[col.key] ?? ""),
@@ -150,7 +154,7 @@ export async function exportPayrollExcel({
   }
 
   {
-    const totals = calcAreaTotals(data, activeColumns);
+    const totals = calcAreaTotalsRaw(data, activeColumns);
     const label = `TOTAL GENERAL (${data.length} colaboradores)`;
     const rowData = activeColumns.map((col, i) =>
       i === 0 ? label : (totals[col.key] ?? ""),
