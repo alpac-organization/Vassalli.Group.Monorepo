@@ -1680,7 +1680,6 @@ export function PayrollPage() {
           onClose={() => setIsIncomeModalOpen(false)}
           onRequestSuccess={(successMessage) => {
             handleRequestSuccess(successMessage, "Ingreso registrado");
-            void ordinaryPayrollQuery.refetch();
             setIsIncomeModalOpen(false);
           }}
           onRequestError={(errorMessage) => {
@@ -1695,7 +1694,6 @@ export function PayrollPage() {
           onClose={() => setIsDeductionModalOpen(false)}
           onRequestSuccess={(successMessage) => {
             handleRequestSuccess(successMessage, "Deducción registrada");
-            void ordinaryPayrollQuery.refetch();
             setIsDeductionModalOpen(false);
           }}
           onRequestError={(errorMessage) => {
