@@ -55,7 +55,7 @@ export function AccumulatedHistoryPdfDocument({
           </Text>
         </View>
 
-        <Text style={styles.subtitle}>Acumulados</Text>
+        <Text style={styles.subtitle}>Historial de Acumulados</Text>
 
         <View style={[styles.tableRow, styles.headerRow]} wrap={false}>
           <Text style={[styles.cellCode, styles.headerCell]}>Codigo</Text>
