@@ -10,18 +10,20 @@ import { CookieStorageAdapter } from '@app/core/adapters/cookie-storage-adapter'
 import { EmptyModulesState } from './empty-modules-state/empty-modules-state';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 import { validateNameAndLastName } from '@app/shared/utils/string.utils';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { m, LazyMotion } from 'framer-motion';
 import { ModuleEnum } from '@app/core/enums/module.enum';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 import { useTheme } from '@alpac/design-system';
 import { NotificationSidebar } from '@app/shared/components/notification/notification-sidebar/notification-sidebar';
+import { SettingIndex } from '@app/modules/setting/ui/pages/setting-index/setting-index';
 
 const loadFeatures = () => import('framer-motion').then((res) => res.domAnimation);
 
 export const HomePage = function () {
    const navigate = useNavigate();
    const { theme } = useTheme();
+   const { pathname } = useLocation();
 
    const [isLogout, setLogout] = useState(false);
    const [showModal, setShowModal] = useState(false);
@@ -39,6 +41,7 @@ export const HomePage = function () {
    const validatedName = validateNameAndLastName(fullName);
 
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
+   const isSettingPage = pathname.endsWith('/setting');
 
    const handleLogout = async function () {
       try {
@@ -74,45 +77,51 @@ export const HomePage = function () {
                )}
 
             <Navbar
+               isSettingPage={isSettingPage}
                onLogout={handleLogout}
                user_name={firstName}
                email={validatedEmail}
                urlImage={activeLogo}
             />
 
-            <HeaderHome company_name={companyName} username={validatedName} />
+            {isSettingPage ? (
+               <SettingIndex />
+            ) : (
+               <>
+                  <HeaderHome company_name={companyName} username={validatedName} />
+                  <div className="max-w-330 m-auto mt-2 p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full">
+                     {(modulesAvailables || []).length === 0 ? (
+                        <EmptyModulesState />
+                     ) : (
+                        (modulesAvailables || []).map((module) => (
+                           <DashBoardCard
+                              key={module.module_name}
+                              title={module.module_name}
+                              image={module.image_url}
+                              onClick={() => {
+                                 useUserStore.setState({
+                                    moduleCode: module.module_code,
+                                    role: module.role_type,
+                                 });
 
-            <div className="max-w-330 m-auto mt-2 p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full">
-               {(modulesAvailables || []).length === 0 ? (
-                  <EmptyModulesState />
-               ) : (
-                  (modulesAvailables || []).map((module) => (
-                     <DashBoardCard
-                        key={module.module_name}
-                        title={module.module_name}
-                        image={module.image_url}
-                        onClick={() => {
-                           useUserStore.setState({
-                              moduleCode: module.module_code,
-                              role: module.role_type,
-                           });
+                                 if (!module.module_code) {
+                                    setShowModal(true);
+                                    return;
+                                 }
 
-                           if (!module.module_code) {
-                              setShowModal(true);
-                              return;
-                           }
-
-                           if (module.module_code === ModuleEnum.WORK_MANAGEMENT) {
-                              navigate(`${module.path_redirect}/collaborator-profile`);
-                           } else {
-                              navigate(module.path_redirect);
-                           }
-                        }}
-                        description={module.description}
-                     />
-                  ))
-               )}
-            </div>
+                                 if (module.module_code === ModuleEnum.WORK_MANAGEMENT) {
+                                    navigate(`${module.path_redirect}/collaborator-profile`);
+                                 } else {
+                                    navigate(module.path_redirect);
+                                 }
+                              }}
+                              description={module.description}
+                           />
+                        ))
+                     )}
+                  </div>
+               </>
+            )}
 
             <Modal
                isOpen={showModal}

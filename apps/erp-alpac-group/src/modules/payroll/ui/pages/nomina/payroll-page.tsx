@@ -786,8 +786,8 @@ export function PayrollPage() {
     if (!companyId) return;
     const payrollId = ordinaryPayrollQuery.data?.payroll_id;
     if (!payrollId) return;
-    const startDate = ordinaryPayrollQuery.data?.start_date;
-    const endDate = ordinaryPayrollQuery.data?.end_date;
+    // const startDate = ordinaryPayrollQuery.data?.start_date;
+    // const endDate = ordinaryPayrollQuery.data?.end_date;
     try {
       setIsGeneratingAccumulatedHistoryPdf(true);
       const payrollServices = new PayrollServices(httpHandler);
