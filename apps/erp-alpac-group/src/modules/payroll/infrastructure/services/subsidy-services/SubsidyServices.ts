@@ -13,12 +13,10 @@ export class SubsidyServices implements ISubsidyServices {
    }
 
    public async CreateSubsidy(payload: CreateSubsidyRequest): Promise<void> {
-      try {
-         console.log(payload);
-         
+      try {         
          const { company_id, module_code, collaborator_id, ...rest } = payload;
 
-         const url = `/companies/${company_id}/modules/${module_code}/collaborators/${collaborator_id}/subsidy`;
+         const url = `/companies/${company_id}/modules/${module_code}/collaborators/${collaborator_id}/subsidies`;
 
          await this.httpHandler.post<void>(url, rest);
 
