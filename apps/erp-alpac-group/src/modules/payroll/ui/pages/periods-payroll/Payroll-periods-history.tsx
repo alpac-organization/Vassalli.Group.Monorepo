@@ -6,14 +6,22 @@ import {
   Button,
   useTheme,
 } from "@alpac/design-system";
+import { payrollTypeOptions } from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { usePayrollPeriodsHistory } from "@app/modules/payroll/ui/hooks/payroll/usePayrollPeriodsHistory";
 import { VirtualPayrollList } from "@app/modules/payroll/ui/pages/periods-payroll/components/virtual-payroll-list/virtual-payroll-list";
+import { PayrollPeriodsSummary } from "@app/modules/payroll/ui/pages/periods-payroll/components/payroll-periods-summary/payroll-periods-summary";
+import { PayrollPeriodsResultsHeader } from "@app/modules/payroll/ui/pages/periods-payroll/components/payroll-periods-results-header/payroll-periods-results-header";
+import type { PayrollPeriodSummaryStatItem } from "@app/modules/payroll/ui/pages/periods-payroll/components/payroll-periods-summary/payroll-periods-summary.types";
 import type { PayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
-import { AlertCircle } from "lucide-react";
+import { PAYROLL_TYPE_LABELS } from "@app/modules/payroll/domain/enums/payroll-enums/payroll-enum";
+import { AlertCircle, History, UserCheck } from "lucide-react";
+
+const CARD_HEIGHT_DESKTOP = 268;
+const MOBILE_LAYOUT_BREAKPOINT = "(max-width: 767px)";
 
 export function PayrollPeriodsHistoryPage() {
   const navigate = useNavigate();
@@ -33,17 +41,21 @@ export function PayrollPeriodsHistoryPage() {
     null,
   );
   const [isSelectionModalOpen, setIsSelectionModalOpen] = useState(false);
-  const [listRowHeight, setListRowHeight] = useState(() =>
-    typeof window !== "undefined" &&
-    window.matchMedia("(max-width: 639px)").matches
-      ? 152
-      : 124,
+  const [isMobileLayout, setIsMobileLayout] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia(MOBILE_LAYOUT_BREAKPOINT).matches
+      : false,
   );
+  const [listRowHeight, setListRowHeight] = useState(CARD_HEIGHT_DESKTOP);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 639px)");
+    const mq = window.matchMedia(MOBILE_LAYOUT_BREAKPOINT);
     const apply = () => {
-      setListRowHeight(mq.matches ? 152 : 124);
+      const mobile = mq.matches;
+      setIsMobileLayout(mobile);
+      if (!mobile) {
+        setListRowHeight(CARD_HEIGHT_DESKTOP);
+      }
     };
     apply();
     mq.addEventListener("change", apply);
@@ -56,11 +68,6 @@ export function PayrollPeriodsHistoryPage() {
       value: branch.branch_id,
     }));
   }, [branchesQuery.data]);
-
-  const payrollTypeOptions = [
-    { label: "Ordinaria", value: "Ordinary" },
-    { label: "Variable", value: "Provided" },
-  ];
 
   const {
     data,
@@ -85,6 +92,41 @@ export function PayrollPeriodsHistoryPage() {
     return data.pages.flatMap((page) => page);
   }, [data]);
 
+  const selectedBranchLabel = useMemo(
+    () => branchOptions.find((b) => b.value === selectedBranch)?.label ?? "",
+    [branchOptions, selectedBranch],
+  );
+
+  const summaryStats = useMemo<PayrollPeriodSummaryStatItem[]>(() => {
+    const currentYear = new Date().getFullYear();
+    return [
+      {
+        id: "closed-periods",
+        icon: History,
+        iconContainerClassName: "bg-blue-500/10 dark:bg-blue-500/10",
+        iconClassName: "text-blue-500 dark:text-blue-400",
+        label: "Periodos cerrados",
+        value: allItems.length > 0 ? allItems.length : "—",
+        subLabel: `En ${currentYear}`,
+      },
+      {
+        id: "active-employees",
+        icon: UserCheck,
+        iconContainerClassName: "bg-emerald-500/10 dark:bg-emerald-500/10",
+        iconClassName: "text-emerald-500 dark:text-emerald-400",
+        label: "Empleados activos",
+        value: "—",
+        subLabel: "Último periodo",
+      },
+    ];
+  }, [allItems.length]);
+
+  const periodTypeLabel = selectedPayrollType
+    ? (PAYROLL_TYPE_LABELS[
+        selectedPayrollType as keyof typeof PAYROLL_TYPE_LABELS
+      ] ?? selectedPayrollType)
+    : "";
+
   const handleSelectionModalClose = useCallback(() => {
     if (selectedPayrollType === null || selectedBranch === null) {
       navigate("/dashboard");
@@ -107,8 +149,11 @@ export function PayrollPeriodsHistoryPage() {
     setIsSelectionModalOpen(true);
   }, [selectedPayrollType, selectedBranch]);
 
+  const isSelectionReady =
+    selectedBranch !== null && selectedPayrollType !== null;
+
   return (
-    <div className="flex min-h-0 flex-col gap-3 sm:gap-4 h-[calc(100dvh-88px)] sm:h-[calc(100vh-100px)]">
+    <div className="flex min-h-0 flex-col gap-3 sm:gap-4 max-md:h-auto md:h-[calc(100vh-100px)]">
       <Modal
         isOpen={
           selectedPayrollType === null ||
@@ -182,9 +227,8 @@ export function PayrollPeriodsHistoryPage() {
             Visualiza de forma cronológica todos los periodos procesados
           </p>
         </div>
-
         <div className="w-full md:w-auto">
-          {selectedPayrollType && selectedBranch && (
+          {isSelectionReady && (
             <Button
               type="button"
               size="giant"
@@ -196,8 +240,20 @@ export function PayrollPeriodsHistoryPage() {
         </div>
       </div>
 
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border border-slate-200 bg-slate-50/50 p-4 sm:rounded-xl sm:p-2 dark:border-neutral-800 dark:bg-[#15181e]/50">
-        {(!selectedBranch || !selectedPayrollType) && (
+      {isSelectionReady && !isLoading && (
+        <PayrollPeriodsSummary stats={summaryStats} />
+      )}
+
+      {isSelectionReady && !isLoading && allItems.length > 0 && (
+        <PayrollPeriodsResultsHeader
+          totalPeriods={allItems.length}
+          periodTypeLabel={periodTypeLabel}
+          branchName={selectedBranchLabel}
+        />
+      )}
+
+      <div className="relative min-h-0 flex-1 overflow-hidden rounded-lg border border-slate-200 bg-slate-50/50 p-3 max-md:flex-none max-md:overflow-visible max-md:min-h-0 sm:rounded-xl sm:p-2 dark:border-neutral-800 dark:bg-[#15181e]/50">
+        {!isSelectionReady && (
           <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
             <p>
               Por favor, seleccione el tipo de nómina y sucursal para ver el
@@ -206,12 +262,11 @@ export function PayrollPeriodsHistoryPage() {
           </div>
         )}
 
-        {selectedBranch && selectedPayrollType && isLoading && (
+        {isSelectionReady && isLoading && (
           <Loader title="Cargando historial de periodos..." />
         )}
 
-        {selectedBranch &&
-          selectedPayrollType &&
+        {isSelectionReady &&
           !isLoading &&
           allItems.length === 0 &&
           !isError && (
@@ -227,20 +282,18 @@ export function PayrollPeriodsHistoryPage() {
             </div>
           )}
 
-        {selectedBranch &&
-          selectedPayrollType &&
-          !isLoading &&
-          (allItems.length > 0 || isError) && (
-            <VirtualPayrollList
-              items={allItems}
-              itemHeight={listRowHeight}
-              hasNextPage={!!hasNextPage}
-              isFetchingNextPage={isFetchingNextPage}
-              isError={isError}
-              fetchNextPage={fetchNextPage}
-              className="w-full h-full"
-            />
-          )}
+        {isSelectionReady && !isLoading && (allItems.length > 0 || isError) && (
+          <VirtualPayrollList
+            items={allItems}
+            itemHeight={listRowHeight}
+            hasNextPage={!!hasNextPage}
+            isFetchingNextPage={isFetchingNextPage}
+            isError={isError}
+            fetchNextPage={fetchNextPage}
+            isMobileLayout={isMobileLayout}
+            className={isMobileLayout ? "w-full" : "h-full w-full"}
+          />
+        )}
       </div>
     </div>
   );

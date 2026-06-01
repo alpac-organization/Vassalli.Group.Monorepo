@@ -7,4 +7,5 @@ export interface VirtualPayrollListProps {
   isError: boolean;
   fetchNextPage: () => void;
   className?: string;
+  isMobileLayout?: boolean;
 }

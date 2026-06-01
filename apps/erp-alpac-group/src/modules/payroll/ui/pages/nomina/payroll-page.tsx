@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { FileX } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { payrollTypeOptions } from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
 import {
   usePayrollStatus,
   usePayrollDetails,
@@ -1187,12 +1188,6 @@ export function PayrollPage() {
     setJobPositionFilter(null);
     setPageNumber(1);
   }, []);
-
-  const payrollTypeOptions = [
-    { label: "Ordinaria", value: "Ordinary" },
-    { label: "Variable", value: "Provided" },
-    { label: "Prestacionado", value: "Prestacionado" },
-  ];
 
   const handleRegisterIncome = useCallback(() => {
     setIsIncomeModalOpen(true);
