@@ -169,17 +169,6 @@ export const payrollColumns: PayrollColumnDef[] = [
   },
 
   {
-    key: "late_arrivals",
-    label: "Llegadas Tardías",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.LateArrivals ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.LateArrivals ?? 0,
-  },
-  {
     key: "late_arrivals_in_minutes",
     label: "Llegadas Tardías en Minutos",
     render: (item) => {
@@ -191,6 +180,17 @@ export const payrollColumns: PayrollColumnDef[] = [
     getValue: (item) =>
       parseAdditionalDeductions(item.deductions_additional_data)
         ?.LateArrivalsInMinutes ?? 0,
+  },
+  {
+    key: "late_arrivals",
+    label: "Llegadas Tardías",
+    render: (item) => {
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return formatCurrency(d?.LateArrivals ?? 0, "NIO") ?? "—";
+    },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)
+        ?.LateArrivals ?? 0,
   },
   {
     key: "daem",

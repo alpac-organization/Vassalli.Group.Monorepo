@@ -4,6 +4,72 @@ import { PayrollHistoryCard } from "@app/modules/payroll/ui/pages/periods-payrol
 import { Loader } from "@app/shared/components/loaders/loader";
 import { AlertCircle, Milestone } from "lucide-react";
 import type { VirtualPayrollListProps } from "@app/modules/payroll/ui/pages/periods-payroll/components/virtual-payroll-list/types/virtual-payroll-list.types";
+import {
+  DESKTOP_SCROLL_CLASS,
+  PayrollPeriodsDesktopScrollStyles,
+} from "@app/modules/payroll/ui/pages/periods-payroll/components/virtual-payroll-list/utils/virtual-payroll-list.styles";
+
+function PayrollListFooter({
+  hasNextPage,
+  isFetchingNextPage,
+  isLoadMoreError,
+  itemsLength,
+  fetchNextPage,
+}: Pick<
+  VirtualPayrollListProps,
+  "hasNextPage" | "isFetchingNextPage" | "fetchNextPage"
+> & {
+  isLoadMoreError: boolean;
+  itemsLength: number;
+}) {
+  return (
+    <div className="flex w-full flex-col items-center py-2 sm:py-4">
+      {hasNextPage && !isFetchingNextPage && !isLoadMoreError && (
+        <Button
+          type="button"
+          label="Cargar más registros"
+          onClick={() => fetchNextPage()}
+          className="min-h-[40px]! px-4! text-[14px]! leading-snug! font-normal! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+        />
+      )}
+
+      {isFetchingNextPage && (
+        <div className="flex w-full items-center justify-center py-4">
+          <Loader title="Cargando más periodos..." />
+        </div>
+      )}
+
+      {isLoadMoreError && (
+        <div className="mt-2 flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:mt-4 sm:rounded-xl sm:p-6 dark:border-red-800 dark:bg-red-900/10">
+          <div className="flex flex-wrap items-center justify-center gap-2 p-2 text-center text-sm font-medium text-red-600 sm:text-base dark:text-red-400">
+            <AlertCircle size={18} className="shrink-0 sm:h-5 sm:w-5" />
+            <span>
+              Ha ocurrido un Error al cargar más periodos de nómina, inténtelo
+              nuevamente.
+            </span>
+          </div>
+          <Button
+            type="button"
+            label="Reintentar"
+            onClick={() => fetchNextPage()}
+            className="h-8 bg-red-400 text-white hover:bg-red-700 dark:bg-red-500/60 dark:hover:bg-red-600/40"
+          />
+        </div>
+      )}
+
+      {!hasNextPage && itemsLength > 0 && !isFetchingNextPage && (
+        <div className="flex w-full justify-center px-2 py-3 sm:px-4 sm:py-5">
+          <div className="flex w-full max-w-2xl flex-col items-center justify-center rounded-lg border border-red-200 bg-red-500 p-3 sm:rounded-xl sm:p-6 dark:border-red-800 dark:bg-red-900/10">
+            <div className="flex flex-wrap items-center justify-center gap-2 text-center text-xs font-medium text-red-600 sm:text-sm dark:text-red-400">
+              <Milestone size={16} className="shrink-0 sm:h-5 sm:w-5" />
+              <span>Has llegado al final del historial de periodos.</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function VirtualPayrollList({
   items,
@@ -13,6 +79,7 @@ export function VirtualPayrollList({
   isError,
   fetchNextPage,
   className = "",
+  isMobileLayout = false,
 }: VirtualPayrollListProps) {
   const isInitialFetchError = isError && items.length === 0;
   const isLoadMoreError = isError && items.length > 0;
@@ -22,7 +89,7 @@ export function VirtualPayrollList({
   const [containerHeight, setContainerHeight] = useState(800);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (isMobileLayout || !containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         setContainerHeight(entry.contentRect.height);
@@ -30,7 +97,7 @@ export function VirtualPayrollList({
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [isMobileLayout]);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     setScrollTop(e.currentTarget.scrollTop);
@@ -76,73 +143,59 @@ export function VirtualPayrollList({
     );
   }
 
-  return (
-    <div
-      ref={containerRef}
-      onScroll={handleScroll}
-      className={`relative overflow-y-auto px-2 sm:px-4 ${className}`}
-      style={{ contain: "strict" }}
-    >
-      <div
-        style={{ height: totalListHeight, position: "relative", width: "100%" }}
-      >
-        {visibleItems.map(({ item, index }) => (
-          <PayrollHistoryCard
-            key={item.payroll_id}
-            period={item}
-            style={{
-              height: itemHeight,
-              transform: `translateY(${index * itemHeight}px)`,
-            }}
-          />
+  if (isMobileLayout) {
+    return (
+      <div className={`flex w-full flex-col gap-3 ${className}`}>
+        {items.map((item) => (
+          <PayrollHistoryCard key={item.payroll_id} period={item} />
         ))}
+        <PayrollListFooter
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          isLoadMoreError={isLoadMoreError}
+          itemsLength={items.length}
+          fetchNextPage={fetchNextPage}
+        />
       </div>
+    );
+  }
 
-      <div className="flex w-full flex-col items-center py-2 sm:py-4">
-        {hasNextPage && !isFetchingNextPage && !isLoadMoreError && (
-          <Button
-            type="button"
-            label="Cargar más registros"
-            onClick={() => fetchNextPage()}
-            className="min-h-[40px]! px-4! text-[14px]! leading-snug! font-normal! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
-          />
-        )}
-
-        {isFetchingNextPage && (
-          <div className="flex justify-center items-center py-4 w-full">
-            <Loader title="Cargando más periodos..." />
-          </div>
-        )}
-
-        {isLoadMoreError && (
-          <div className="mt-2 flex w-full flex-col items-center justify-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:mt-4 sm:rounded-xl sm:p-6 dark:border-red-800 dark:bg-red-900/10">
-            <div className="flex flex-wrap items-center justify-center gap-2 p-2 text-center text-sm font-medium text-red-600 sm:text-base dark:text-red-400">
-              <AlertCircle size={18} className="shrink-0 sm:h-5 sm:w-5" />
-              <span>
-                Ha ocurrido un Error al cargar más periodos de nómina, inténtelo
-                nuevamente.
-              </span>
-            </div>
-            <Button
-              type="button"
-              label="Reintentar"
-              onClick={() => fetchNextPage()}
-              className="bg-red-400 text-white h-8  hover:bg-red-700 dark:bg-red-500/60 dark:hover:bg-red-600/40"
+  return (
+    <>
+      <PayrollPeriodsDesktopScrollStyles />
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className={`${DESKTOP_SCROLL_CLASS} relative overflow-y-auto overflow-x-hidden overscroll-contain px-1 sm:px-2 ${className}`}
+        style={{ contain: "strict" }}
+      >
+        <div
+          style={{
+            height: totalListHeight,
+            position: "relative",
+            width: "100%",
+          }}
+        >
+          {visibleItems.map(({ item, index }) => (
+            <PayrollHistoryCard
+              key={item.payroll_id}
+              period={item}
+              style={{
+                height: itemHeight,
+                transform: `translateY(${index * itemHeight}px)`,
+              }}
             />
-          </div>
-        )}
+          ))}
+        </div>
 
-        {!hasNextPage && items.length > 0 && !isFetchingNextPage && (
-          <div className="flex w-full justify-center px-2 py-3 sm:px-4 sm:py-5">
-            <div className="flex w-full max-w-2xl flex-col items-center justify-center rounded-lg border border-red-200 bg-red-500 p-3 sm:rounded-xl sm:p-6 dark:border-red-800 dark:bg-red-900/10">
-              <div className="flex flex-wrap items-center justify-center gap-2 text-center text-xs font-medium text-red-600 sm:text-sm dark:text-red-400">
-                <Milestone size={16} className="shrink-0 sm:h-5 sm:w-5" />
-                <span>Has llegado al final del historial de periodos.</span>
-              </div>
-            </div>
-          </div>
-        )}
+        <PayrollListFooter
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          isLoadMoreError={isLoadMoreError}
+          itemsLength={items.length}
+          fetchNextPage={fetchNextPage}
+        />
       </div>
-    </div>
+    </>
   );
 }

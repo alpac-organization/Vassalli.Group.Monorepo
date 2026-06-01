@@ -11,3 +11,9 @@ export const AVASA_COMPANY_NAME = "Agencias VASSALI, S.A";
 export const TMN_COMPANY_NAME = "Transporte Multimodal de Nicaragua, S.A.";
 export const TMN_TRANSPORT_NAME =
   "Transportes Multimodales de Nicaragua Transportistas";
+
+export const payrollTypeOptions = [
+  { label: "Ordinaria", value: "Ordinary" },
+  // { label: "Variable", value: "Provided" },
+  //  { label: "Prestacionado", value: "Prestacionado" },
+];
