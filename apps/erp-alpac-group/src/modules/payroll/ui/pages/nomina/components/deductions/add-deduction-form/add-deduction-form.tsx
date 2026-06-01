@@ -358,7 +358,7 @@ export const AddDeductionForm = ({
                 placeholder="Seleccione el tipo de deducción"
                 appearance="dark"
                 isRequired
-                value={field.value}
+                value={field?.value}
                 onChange={(value) => {
                   field.onChange(value);
                   setFoundCollaborator(null);
