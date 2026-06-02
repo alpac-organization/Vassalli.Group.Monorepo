@@ -17,6 +17,7 @@ export class CostCentersServices implements ICostCentersServices {
       const costCenters = await this.apiHandler.get<
         GetCostCentersResponse[] | undefined
       >(`/companies/${company_id}/areas/${area_id}/cost-centers`);
+      console.log(costCenters);
       return costCenters;
     } catch (error) {
       throw error;
@@ -31,6 +32,7 @@ export class CostCentersServices implements ICostCentersServices {
         `/companies/${company_id}/areas/${area_id}/cost-centers`,
         body,
       );
+      console.log(costCenter);
       return costCenter;
     } catch (error) {
       throw error;

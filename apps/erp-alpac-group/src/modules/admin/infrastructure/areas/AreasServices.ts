@@ -14,6 +14,7 @@ export class AreasServices implements IAreasServices {
       const areas = await this.apiHandler.get<GetAreasResponse[]>(
         `/companies/${company_id}/areas`,
       );
+      console.log(areas);
       return areas;
     } catch (error) {
       throw error;
