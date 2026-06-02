@@ -3,7 +3,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
-import { styles } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/utils/styles.accumulated";
+import { styles } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/utils/styles.accumulated";
 import type { VacationAccrualPdfProps } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/types/vacation-accrual.types";
 import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 

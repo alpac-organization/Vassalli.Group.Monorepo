@@ -5,4 +5,10 @@ export type PayrollActionValue =
   | "accumulated_history"
   | "vacation_accruals_history"
   | "income_report"
-  | "deduction_report";
+  | "deduction_report"
+  | "monthly_accumulated_report"
+  | "quincenal_accumulated_report"
+  | "monthly_ir_report"
+  | "monthly_inss_report"
+  | "quincenal_ir_report"
+  | "quincenal_inss_report";
