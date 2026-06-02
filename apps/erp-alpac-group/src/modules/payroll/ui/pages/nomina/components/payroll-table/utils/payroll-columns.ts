@@ -44,6 +44,15 @@ export const payrollColumns: PayrollColumnDef[] = [
     render: (item) => item.collaborator?.work_area ?? "—",
   },
   {
+    key: "daem",
+    label: "DAEM",
+    onlyForCompanyName: VIGILANCIA_EMPRESARIAL_SA_COMPANY_NAME,
+    render: (item) => {
+      const v = item.DAEM?.trim();
+      return v && v.length > 0 ? v : "—";
+    },
+  },
+  {
     key: "inss_number",
     label: "Número INSS",
     render: (item) => {
@@ -191,15 +200,6 @@ export const payrollColumns: PayrollColumnDef[] = [
     getValue: (item) =>
       parseAdditionalDeductions(item.deductions_additional_data)
         ?.LateArrivals ?? 0,
-  },
-  {
-    key: "daem",
-    label: "DAEM",
-    onlyForCompanyName: VIGILANCIA_EMPRESARIAL_SA_COMPANY_NAME,
-    render: (item) => {
-      const v = item.DAEM?.trim();
-      return v && v.length > 0 ? v : "—";
-    },
   },
   //   {
   //     key: "gross_salary",
