@@ -12,7 +12,8 @@ import {
   History,
   Scale,
   Users,
-  Book,
+  BadgeCent,
+  Grid,
 } from "lucide-react";
 
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
@@ -93,13 +94,19 @@ const administrationUsersSection: SidebarLink = {
   path: "administration/users",
   icon: Users,
 };
-const administrationCatalogosSection: SidebarLink = {
-  id: "catalogos",
-  label: "Catálogos",
-  path: "administration/catalogos",
-  icon: Book,
+const administrationCostCentersSection: SidebarLink = {
+  id: "cost-centers",
+  label: "Centros de Costos",
+  path: "administration/cost-centers",
+  icon: BadgeCent,
 };
 
+const administrationAreasSection: SidebarLink = {
+  id: "areas",
+  label: "Áreas",
+  path: "administration/areas",
+  icon: Grid,
+};
 export const sidebarData = {
   logoUrl:
     "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
@@ -119,7 +126,8 @@ export const sidebarData = {
     [ModuleEnum.ADMINISTRATION]: {
       [RoleEnum.ADMINISTRATOR]: [
         administrationUsersSection,
-        administrationCatalogosSection,
+        administrationCostCentersSection,
+        administrationAreasSection,
       ],
     },
     [ModuleEnum.WORK_MANAGEMENT]: {
