@@ -20,9 +20,11 @@ export const usePermission = (filters?: PermissionHistoryRequest) => {
     mutationFn: (payload: CreatePermissionRequestBase) =>
       permissionServices.createPermissionRequest(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vacationRequests"] });
-      queryClient.invalidateQueries({ queryKey: ["vacationSaldo"] });
-      queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });
+      return Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["vacationRequests"] }),
+        queryClient.invalidateQueries({ queryKey: ["vacationSaldo"] }),
+        queryClient.invalidateQueries({ queryKey: ["vacationHistory"] }),
+      ]);
     },
   });
 
@@ -35,9 +37,11 @@ export const usePermission = (filters?: PermissionHistoryRequest) => {
     mutationFn: (payload: CancelPermissionRequest) =>
       permissionServices.cancelPermissionRequest(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });
-      queryClient.invalidateQueries({ queryKey: ["applicationsData"] });
-      queryClient.invalidateQueries({ queryKey: ["applicationDetailData"] });
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["vacationHistory"] }),
+        queryClient.invalidateQueries({ queryKey: ["applicationsData"] }),
+        queryClient.invalidateQueries({ queryKey: ["applicationDetailData"] }),
+      ]);
     },
   });
 
