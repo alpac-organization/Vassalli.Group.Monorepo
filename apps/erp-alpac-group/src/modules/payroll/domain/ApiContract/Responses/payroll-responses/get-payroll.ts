@@ -8,13 +8,13 @@ export interface GetPayrollResponse {
   payroll_details: PayrollDetailsResponse;
 }
 interface PayrollDetailsResponse {
-  items: PayrollItemResponse[];
+  ordinary_payroll_data: PayrollItemResponse[];
+  professional_service_payroll_data: PayrollItemResponse[];
   total_items: number;
   page_size: number;
   page_number: number;
 }
-export interface PayrollItemResponse {
-  ordinary_payroll_id: string;
+type PayrollItemCommonFields = {
   biweekly_salary: number;
   bonus?: number;
   overtime?: number;
@@ -25,6 +25,9 @@ export interface PayrollItemResponse {
   total_legal_deductions: number;
   deductions_additional_data?: string;
   commissions?: number;
+  Inatec?: number;
+  InssPatronal?: number;
+  aguinaldo?: number;
   total_deducctions: number;
   total_travel_expenses?: number;
   transport?: number;
@@ -36,7 +39,17 @@ export interface PayrollItemResponse {
   DAEM?: string;
   total_to_pay: number;
   collaborator: CollaboratorResponse | null;
-}
+};
+
+export type PayrollItemResponse =
+  | ({
+      ordinary_payroll_id: string;
+      professional_service_payroll_id?: never;
+    } & PayrollItemCommonFields)
+  | ({
+      ordinary_payroll_id?: never;
+      professional_service_payroll_id: string;
+    } & PayrollItemCommonFields);
 export interface CollaboratorResponse {
   full_name: string;
   inss_number: string;

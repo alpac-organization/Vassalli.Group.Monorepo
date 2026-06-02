@@ -4,7 +4,10 @@ import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
 import type { GetPayrollProcessResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-process";
 import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
-import type { PayrollRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-request";
+import type {
+  PayrollClosedDetailsRequest,
+  PayrollRequest,
+} from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-request";
 import type { GetPayrollResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
 import type { PayrollCloseRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-close.request";
@@ -118,25 +121,49 @@ export function useClosePayroll(): UseMutationResult<
 > {
   const queryClient = useQueryClient();
 
-  return useMutation<ClosePayrollResponse, ApiErrorResponse, PayrollCloseRequest>(
-    {
-      mutationFn: (payload) => payrollServices.closePayroll(payload),
-      onSuccess: (_data, variables) => {
-        queryClient.invalidateQueries({
-          queryKey: [
-            "payrollsStatus",
-            variables.companie_id,
-            variables.module_code,
-          ],
-        });
-        queryClient.invalidateQueries({
-          queryKey: [
-            "detailsPayroll",
-            variables.companie_id,
-            variables.module_code,
-          ],
-        });
-      },
+  return useMutation<
+    ClosePayrollResponse,
+    ApiErrorResponse,
+    PayrollCloseRequest
+  >({
+    mutationFn: (payload) => payrollServices.closePayroll(payload),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [
+          "payrollsStatus",
+          variables.companie_id,
+          variables.module_code,
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "detailsPayroll",
+          variables.companie_id,
+          variables.module_code,
+        ],
+      });
     },
-  );
+  });
+}
+
+export function usePayrollClosedDetails(
+  payload: PayrollClosedDetailsRequest,
+  enabled = true,
+): UseQueryResult<GetPayrollResponse, Error> {
+  const { companie_id, module_code, payroll_id, branch_id } = payload;
+  return useQuery<GetPayrollResponse, Error>({
+    queryKey: [
+      "payrollClosedDetails",
+      companie_id,
+      module_code,
+      payroll_id,
+      branch_id,
+    ],
+    queryFn: () => payrollServices.getPayrollClosedDetails(payload),
+    enabled:
+      enabled && Boolean(companie_id && module_code && payroll_id && branch_id),
+    staleTime: 1000 * 60 * 5,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
 }

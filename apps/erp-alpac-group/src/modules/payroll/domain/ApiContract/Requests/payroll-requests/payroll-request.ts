@@ -40,3 +40,7 @@ export interface PayrollRequest {
    */
   page_size?: number;
 }
+
+export type PayrollClosedDetailsRequest = Omit<PayrollRequest, "type"> & {
+  payroll_id: string;
+};
