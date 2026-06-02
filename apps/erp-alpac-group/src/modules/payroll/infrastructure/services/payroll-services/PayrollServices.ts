@@ -1,6 +1,14 @@
 import type { IHttpHandler } from "@app/core/ports";
 import type { PayrollRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-request";
-import type { GetPayrollResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
+import type {
+  GetPayrollResponse,
+  PayrollItemResponse,
+} from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
+import type { PayrollClosedDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-request";
+import type {
+  GetPayrollClosedDetailsRawResponse,
+  RawClosedPayrollItem,
+} from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-closed-details";
 import type { IPayrollServices } from "@app/modules/payroll/application/interfaces/payroll-interfaces/IPayrollServices";
 import type { GetPayrollProcessResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-process";
 import type { PayrollProcessRequest } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
@@ -143,6 +151,72 @@ export class PayrollServices implements IPayrollServices {
         },
       );
       return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+  public async getPayrollClosedDetails(
+    payload: PayrollClosedDetailsRequest,
+  ): Promise<GetPayrollResponse> {
+    try {
+      const {
+        companie_id,
+        module_code,
+        payroll_id,
+        branch_id,
+        page_size,
+        page_number,
+        identification_number,
+        work_area_id,
+        job_position_id,
+      } = payload;
+      const raw = await this.apiHandler.get<GetPayrollClosedDetailsRawResponse>(
+        `/companies/${companie_id}/modules/${module_code}/branches/${branch_id}/payrolls/${payroll_id}/details`,
+        {
+          params: cleanParams({
+            page_size,
+            page_number,
+            identification_number,
+            work_area_id,
+            job_position_id,
+          }),
+        },
+      );
+      const mapItem = (item: RawClosedPayrollItem): PayrollItemResponse => {
+        const { collaborator_information, ...rest } = item;
+        return {
+          ...rest,
+          collaborator: collaborator_information ?? null,
+        } as PayrollItemResponse;
+      };
+
+      const ordinaryItems = raw.ordinary_payroll_data.map(mapItem);
+      const professionalItems =
+        raw.professional_services_payroll_data.map(mapItem);
+
+      const sourceType =
+        ordinaryItems.length > 0 && professionalItems.length > 0
+          ? "mixed"
+          : ordinaryItems.length > 0
+            ? "ordinary"
+            : professionalItems.length > 0
+              ? "professional"
+              : "empty";
+
+      return {
+        payroll_id: raw.payroll_id,
+        start_date: raw.start_date,
+        end_date: raw.end_date,
+        type: raw.type,
+        branch_name: raw.branch_name,
+        source_type: sourceType,
+        payroll_details: {
+          items: [...ordinaryItems, ...professionalItems],
+          total_items: raw.total_items,
+          page_size: raw.page_size,
+          page_number: raw.page_number,
+        },
+      };
     } catch (error) {
       throw error;
     }

@@ -8,7 +8,7 @@ import {
 } from "@alpac/design-system";
 import { payrollTypeOptions } from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
 import { Loader } from "@app/shared/components/loaders/loader";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { usePayrollPeriodsHistory } from "@app/modules/payroll/ui/hooks/payroll/usePayrollPeriodsHistory";
@@ -20,11 +20,12 @@ import type { PayrollType } from "@app/modules/payroll/domain/ApiContract/Reques
 import { PAYROLL_TYPE_LABELS } from "@app/modules/payroll/domain/enums/payroll-enums/payroll-enum";
 import { AlertCircle, History, UserCheck } from "lucide-react";
 
-const CARD_HEIGHT_DESKTOP = 268;
+const CARD_HEIGHT_DESKTOP = 200;
 const MOBILE_LAYOUT_BREAKPOINT = "(max-width: 767px)";
 
 export function PayrollPeriodsHistoryPage() {
   const navigate = useNavigate();
+  const { alias_company } = useParams();
   const { theme } = useTheme();
   const { companyId, moduleCode } = useUserStore();
   const { GetBranchesQuery: branchesQuery } = useCompanies(
@@ -208,10 +209,10 @@ export function PayrollPeriodsHistoryPage() {
       <div className="flex justify-start">
         <Breadcrumb
           items={[
-            { label: "Dashboard", url: "/", onClick: (url) => navigate(url) },
+            { label: "Dashboard", url: `/${alias_company}/dashboard`, onClick: (url) => navigate(url) },
             {
               label: "Historial de periodos",
-              url: "/payroll/payroll-periods-history",
+              url: `/${alias_company}/dashboard/payroll/historial-periodos-nomina`,
               onClick: (url) => navigate(url),
             },
           ]}
@@ -292,6 +293,8 @@ export function PayrollPeriodsHistoryPage() {
             fetchNextPage={fetchNextPage}
             isMobileLayout={isMobileLayout}
             className={isMobileLayout ? "w-full" : "h-full w-full"}
+            selectedBranch={selectedBranch}
+            selectedPayrollType={selectedPayrollType}
           />
         )}
       </div>

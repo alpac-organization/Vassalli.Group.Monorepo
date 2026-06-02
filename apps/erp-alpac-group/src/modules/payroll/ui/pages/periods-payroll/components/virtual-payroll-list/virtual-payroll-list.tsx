@@ -8,6 +8,7 @@ import {
   DESKTOP_SCROLL_CLASS,
   PayrollPeriodsDesktopScrollStyles,
 } from "@app/modules/payroll/ui/pages/periods-payroll/components/virtual-payroll-list/utils/virtual-payroll-list.styles";
+import { useNavigate, useParams } from "react-router-dom";
 
 function PayrollListFooter({
   hasNextPage,
@@ -80,7 +81,10 @@ export function VirtualPayrollList({
   fetchNextPage,
   className = "",
   isMobileLayout = false,
+  selectedBranch,
+  selectedPayrollType,
 }: VirtualPayrollListProps) {
+  const navigate = useNavigate();
   const isInitialFetchError = isError && items.length === 0;
   const isLoadMoreError = isError && items.length > 0;
 
@@ -147,7 +151,22 @@ export function VirtualPayrollList({
     return (
       <div className={`flex w-full flex-col gap-3 ${className}`}>
         {items.map((item) => (
-          <PayrollHistoryCard key={item.payroll_id} period={item} />
+          <PayrollHistoryCard
+            key={item.payroll_id}
+            period={item}
+            onViewDetails={() => {
+              const currentPath = window.location.pathname.replace(/\/$/, "");
+              navigate(
+                `${currentPath}/${item.payroll_id}`,
+                { 
+                  state: { 
+                    branch_id: selectedBranch, 
+                    type: selectedPayrollType 
+                  } 
+                }
+              );
+            }}
+          />
         ))}
         <PayrollListFooter
           hasNextPage={hasNextPage}
@@ -180,6 +199,18 @@ export function VirtualPayrollList({
             <PayrollHistoryCard
               key={item.payroll_id}
               period={item}
+            onViewDetails={() => {
+              const currentPath = window.location.pathname.replace(/\/$/, "");
+              navigate(
+                `${currentPath}/${item.payroll_id}`,
+                { 
+                  state: { 
+                    branch_id: selectedBranch, 
+                    type: selectedPayrollType 
+                  } 
+                }
+              );
+            }}
               style={{
                 height: itemHeight,
                 transform: `translateY(${index * itemHeight}px)`,
