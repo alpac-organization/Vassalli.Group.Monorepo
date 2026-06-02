@@ -4,7 +4,6 @@ import {
   InputText,
   Modal,
   Pagination,
-  useTheme,
 } from "@alpac/design-system";
 import { AreaTable } from "@app/modules/admin/ui/pages/areas/components/areas-table/area-table";
 import { areaColumns } from "@app/modules/admin/ui/pages/areas/components/areas-table/area-columns";
@@ -14,7 +13,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetAreasResponse } from "@app/modules/admin/domain/ApiContract/responses/areas/get-areas.response";
 import { m, LazyMotion } from "framer-motion";
 import { AlertTriangle, PlusCircle } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const loadFeatures = () =>
@@ -24,21 +23,18 @@ const PAGE_SIZE = 10;
 
 export function AreasPage() {
   const navigate = useNavigate();
-  const { theme } = useTheme();
   const { companyId } = useUserStore();
 
   const [pageNumber, setPageNumber] = useState(1);
+  const [isPaging, setIsPaging] = useState(false);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [createName, setCreateName] = useState("");
   const [createDescription, setCreateDescription] = useState("");
-
+  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [areaToDelete, setAreaToDelete] = useState<GetAreasResponse | null>(
-    null,
-  );
-
-  const { GetAreasByCompany, CreateArea } = useAreas({
+  const [areaIdToDelete, setAreaIdToDelete] = useState<GetAreasResponse | null>(null);
+  const { GetAreasByCompany, CreateArea, deleteArea } = useAreas({
     company_id: companyId ?? "",
   });
 
@@ -48,6 +44,22 @@ export function AreasPage() {
     () => areas.slice((pageNumber - 1) * PAGE_SIZE, pageNumber * PAGE_SIZE),
     [areas, pageNumber],
   );
+
+  const isTableLoading =
+    isPaging || (GetAreasByCompany.isFetching && !GetAreasByCompany.isPending);
+
+  const handlePageChange = useCallback((page: number) => {
+    setIsPaging(true);
+    setPageNumber(page);
+  }, []);
+
+  useEffect(() => {
+    if (!isPaging) {
+      return;
+    }
+    const timer = window.setTimeout(() => setIsPaging(false), 350);
+    return () => window.clearTimeout(timer);
+  }, [pageNumber, isPaging]);
 
   const handleOpenCreate = useCallback(() => {
     setCreateName("");
@@ -81,10 +93,18 @@ export function AreasPage() {
   }, [companyId, CreateArea, createName, createDescription]);
 
   const handleDeleteClick = useCallback((area: GetAreasResponse) => {
+   if(!companyId || )
     setAreaToDelete(area);
     setIsDeleteModalOpen(true);
   }, []);
+const handleConfirmDelete = useCallback(()=>{
+  if(!companyId || !areaToDelete) return;
 
+  deleteArea.mutate({
+   company_id:companyId,
+   area_id: areaToDelete
+  })
+},[companyId,areaToDelete,deleteArea,handleCloseDeleteModal,set])
   const handleCloseDeleteModal = useCallback(() => {
     setIsDeleteModalOpen(false);
     setAreaToDelete(null);
@@ -149,11 +169,6 @@ export function AreasPage() {
         variant="default"
         size="sm"
         title="Eliminar área de trabajo"
-        description={
-          areaToDelete
-            ? `Estás a punto de eliminar el área "${areaToDelete.work_area_name}". Esta acción no se puede deshacer y toda la información asociada se perderá permanentemente.`
-            : "Esta acción no se puede deshacer. El área y toda su información asociada se perderán permanentemente."
-        }
       >
         <div className="mt-4 flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 p-4 dark:border-red-700 dark:bg-red-950/30">
           <AlertTriangle
@@ -169,9 +184,9 @@ export function AreasPage() {
           <Button
             type="button"
             size="giant"
-            label="Confirmar eliminación"
-            onClick={handleCloseDeleteModal}
-            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-red-600! hover:bg-red-700! dark:bg-red-700! dark:hover:bg-red-800! sm:flex-1 sm:min-w-0"
+            label="Confirmar"
+            onClick={handleConfirmDelete}
+            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:flex-1 sm:min-w-0"
           />
           <Button
             type="button"
@@ -186,6 +201,8 @@ export function AreasPage() {
       {GetAreasByCompany.isPending && (
         <Loader title="Cargando áreas de trabajo..." />
       )}
+
+      {CreateArea.isPending && <Loader title="Generando área de trabajo..." />}
 
       {!GetAreasByCompany.isPending && (
         <m.div
@@ -226,8 +243,8 @@ export function AreasPage() {
             </div>
             <Button
               size="giant"
-              label="+ Nueva Área de Trabajo"
-              //   icon={<PlusCircle size={18} />}
+              label="Nueva Área de Trabajo"
+              icon={<PlusCircle size={18} />}
               onClick={handleOpenCreate}
               className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
             />
@@ -237,13 +254,14 @@ export function AreasPage() {
             data={paginatedData}
             columns={areaColumns}
             onDeleteClick={handleDeleteClick}
+            isLoading={isTableLoading}
             pagination={
               <Pagination
                 currentPage={pageNumber}
                 pageSize={PAGE_SIZE}
                 totalRecords={areas.length}
-                onPageChange={setPageNumber}
-                disabled={GetAreasByCompany.isFetching}
+                onPageChange={handlePageChange}
+                disabled={isTableLoading}
               />
             }
           />

@@ -7,4 +7,5 @@ export interface AreaTableProps {
   onDeleteClick: (area: GetAreasResponse) => void;
   columns: AreaColumnDef[];
   pagination?: ReactNode;
+  isLoading?: boolean;
 }

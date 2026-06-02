@@ -3,6 +3,7 @@ import type { IHttpHandler } from "@app/core/ports";
 import type { GetAreasRequest } from "@app/modules/admin/domain/ApiContract/requests/areas/get-areas.request";
 import type { GetAreasResponse } from "@app/modules/admin/domain/ApiContract/responses/areas/get-areas.response";
 import type { CreateAreaRequest } from "@app/modules/admin/domain/ApiContract/requests/areas/create-area.request";
+import type { DeleteAreaRequest } from "@app/modules/admin/domain/ApiContract/requests/areas/delete-cost-center";
 export class AreasServices implements IAreasServices {
   private apiHandler: IHttpHandler;
   public constructor(httpHandler: IHttpHandler) {
@@ -26,6 +27,17 @@ export class AreasServices implements IAreasServices {
       const area = await this.apiHandler.post<void>(
         `/companies/${company_id}/areas`,
         body,
+      );
+      return area;
+    } catch (error) {
+      throw error;
+    }
+  }
+  public async deleteArea(payload: DeleteAreaRequest): Promise<void> {
+    try {
+      const { company_id, area_id } = payload;
+      const area = await this.apiHandler.delete<void>(
+        `companies/${company_id}/areas/${area_id}`,
       );
       return area;
     } catch (error) {

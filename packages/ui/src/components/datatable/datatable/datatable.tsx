@@ -13,10 +13,15 @@ export function DataTable<T>({
   onDelete,
   deleteIcon,
   deleteText,
+  isLoading = false,
+  loadingTitle = "Cargando datos...",
 }: DataTableProps<T>): React.ReactElement {
+  const defaultRowClassName =
+    "transition-colors hover:bg-neutral-50/80 dark:hover:bg-[#363a45]";
+
   return (
     <div
-      className="w-full 
+      className="relative w-full 
             rounded-lg 
             overflow-visible 
             border 
@@ -25,6 +30,18 @@ export function DataTable<T>({
             bg-white 
             dark:bg-[#272b34]"
     >
+      {isLoading && (
+        <div
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 rounded-lg bg-[#1a1f2b]/60 backdrop-blur-[1px]"
+          aria-busy="true"
+          aria-live="polite"
+        >
+          <span className="loader" />
+          <p className="animate-pulse text-sm font-medium tracking-wide text-gray-300">
+            {loadingTitle}
+          </p>
+        </div>
+      )}
       {title && (
         <div className="flex flex-wrap items-center justify-between gap-3 p-6 border-b-2 border-slate-600 dark:border-neutral-600">
           <h2
@@ -82,7 +99,7 @@ export function DataTable<T>({
                     className={
                       rowClassName !== undefined
                         ? rowClassName
-                        : `hover:bg-neutral-50/80 dark:hover:bg-[#363a45] ${
+                        : `${defaultRowClassName} ${
                             onRowClick !== undefined ||
                             onRowDoubleClick !== undefined
                               ? "cursor-pointer"
@@ -121,7 +138,7 @@ export function DataTable<T>({
                             e.stopPropagation();
                             onDelete(item);
                           }}
-                          className="inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-[#272b34] transition-colors"
+                          className="inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-[#272b34] transition-colors"
                         >
                           {deleteIcon && <span>{deleteIcon}</span>}
 

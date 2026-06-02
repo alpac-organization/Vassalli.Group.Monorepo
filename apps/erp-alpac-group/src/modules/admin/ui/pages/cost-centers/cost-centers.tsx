@@ -15,9 +15,15 @@ import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { m, LazyMotion } from "framer-motion";
-import { Building2, PlusCircle } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  ArrowLeftRight,
+  Building2,
+  PlusCircle,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import type { GetCostCentersResponse } from "@app/modules/admin/domain/ApiContract/responses/cost-centers/get-cost-centers.response";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -30,6 +36,7 @@ export function CostCentersPage() {
   const { companyId } = useUserStore();
 
   const [selectedAreaId, setSelectedAreaId] = useState<string | null>(null);
+  const [selectedAreaName, setSelectedAreaName] = useState<string | null>(null);
   const [tempSelectedAreaId, setTempSelectedAreaId] = useState<string | null>(
     null,
   );
@@ -41,6 +48,11 @@ export function CostCentersPage() {
   const [createDescription, setCreateDescription] = useState("");
 
   const [pageNumber, setPageNumber] = useState(1);
+  const [isPaging, setIsPaging] = useState(false);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [costCenterToDelete, setCostCenterToDelete] =
+    useState<GetCostCentersResponse | null>(null);
 
   const { GetAreasByCompany } = useAreas({
     company_id: companyId ?? "",
@@ -75,11 +87,31 @@ export function CostCentersPage() {
     [costCenters, pageNumber],
   );
 
+  const isTableLoading =
+    isPaging || (GetCostCenters.isFetching && !GetCostCenters.isPending);
+
+  const handlePageChange = useCallback((page: number) => {
+    setIsPaging(true);
+    setPageNumber(page);
+  }, []);
+
+  useEffect(() => {
+    if (!isPaging) {
+      return;
+    }
+    const timer = window.setTimeout(() => setIsPaging(false), 350);
+    return () => window.clearTimeout(timer);
+  }, [pageNumber, isPaging]);
+
   const handleConfirmAreaSelection = useCallback(() => {
     if (!tempSelectedAreaId) {
       return;
     }
     setSelectedAreaId(tempSelectedAreaId);
+    setSelectedAreaName(
+      areaOptions.find((area) => area.value === tempSelectedAreaId)?.label ??
+        null,
+    );
     setPageNumber(1);
     setIsAreaSelectionModalOpen(false);
   }, [tempSelectedAreaId]);
@@ -101,6 +133,44 @@ export function CostCentersPage() {
   const handleCloseCreate = useCallback(() => {
     setIsCreateModalOpen(false);
   }, []);
+
+  const handleDeleteClick = useCallback(
+    (costCenter: GetCostCentersResponse) => {
+      setCostCenterToDelete(costCenter);
+      setIsDeleteModalOpen(true);
+    },
+    [],
+  );
+
+  const handleCloseDeleteModal = useCallback(() => {
+    setIsDeleteModalOpen(false);
+    setCostCenterToDelete(null);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!companyId || !selectedAreaId || !costCenterToDelete) {
+      return;
+    }
+    deleteCostCenter.mutate(
+      {
+        company_id: companyId,
+        area_id: selectedAreaId,
+        cost_center_id: costCenterToDelete.cost_center_id,
+      },
+      {
+        onSuccess: () => {
+          handleCloseDeleteModal();
+          setPageNumber(1);
+        },
+      },
+    );
+  }, [
+    companyId,
+    costCenterToDelete,
+    deleteCostCenter,
+    handleCloseDeleteModal,
+    selectedAreaId,
+  ]);
 
   const handleConfirmCreate = useCallback(() => {
     if (!companyId || !selectedAreaId || !createName.trim()) {
@@ -129,25 +199,6 @@ export function CostCentersPage() {
     createName,
     selectedAreaId,
   ]);
-
-  const handleDelete = useCallback(
-    (costCenterId: string) => {
-      if (!companyId || !selectedAreaId) {
-        return;
-      }
-      deleteCostCenter.mutate(
-        {
-          company_id: companyId,
-          area_id: selectedAreaId,
-          cost_center_id: costCenterId,
-        },
-        {
-          onSuccess: () => setPageNumber(1),
-        },
-      );
-    },
-    [companyId, deleteCostCenter, selectedAreaId],
-  );
 
   const isAreaModalOpen = isAreaSelectionModalOpen || selectedAreaId === null;
 
@@ -242,8 +293,53 @@ export function CostCentersPage() {
         </div>
       </Modal>
 
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        variant="default"
+        size="sm"
+        title="Eliminar centro de costo"
+      >
+        <div className="mt-4 flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 p-4 dark:border-red-700 dark:bg-red-950/30">
+          <AlertTriangle
+            size={20}
+            className="mt-0.5 shrink-0 text-red-600 dark:text-red-400"
+          />
+          <p className="text-sm text-red-700 dark:text-red-300">
+            Esta operación es irreversible. Verifique que no existan recursos
+            asignados a este centro de costo antes de eliminarlo.
+          </p>
+        </div>
+        <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
+          <Button
+            type="button"
+            size="giant"
+            label="Confirmar"
+            onClick={handleConfirmDelete}
+            disabled={deleteCostCenter.isPending}
+            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:flex-1 sm:min-w-0"
+          />
+          <Button
+            type="button"
+            size="giant"
+            label="Cancelar"
+            onClick={handleCloseDeleteModal}
+            disabled={deleteCostCenter.isPending}
+            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:flex-1 sm:min-w-0"
+          />
+        </div>
+      </Modal>
+
       {GetCostCenters.isPending && selectedAreaId && (
         <Loader title="Cargando centros de costo..." />
+      )}
+
+      {createCostCenter.isPending && (
+        <Loader title="Generando centro de costo..." />
+      )}
+
+      {deleteCostCenter.isPending && !isDeleteModalOpen && (
+        <Loader title="Eliminando centro de costo..." />
       )}
 
       {selectedAreaId && !GetCostCenters.isPending && (
@@ -263,7 +359,7 @@ export function CostCentersPage() {
                   onClick: (url) => navigate(url),
                 },
                 {
-                  label: "Finanzas",
+                  label: `${selectedAreaName}`,
                   url: "/administration",
                   onClick: (url) => navigate(url),
                 },
@@ -285,8 +381,8 @@ export function CostCentersPage() {
             </div>
             <Button
               size="giant"
-              label="+ Crear Centro de Costo"
-              //   icon={<PlusCircle size={18} />}
+              label="Crear Centro de Costo"
+              icon={<PlusCircle size={18} />}
               onClick={handleOpenCreate}
               className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
             />
@@ -303,29 +399,30 @@ export function CostCentersPage() {
           </div>
 
           <div className="flex justify-end">
-            <button
+            <Button
               type="button"
+              size="medium"
+              label="Cambiar área"
+              icon={<ArrowLeftRight size={18} />}
               onClick={() => {
                 setTempSelectedAreaId(selectedAreaId);
                 setIsAreaSelectionModalOpen(true);
               }}
-              className="text-sm text-alpac-primary-500 dark:text-alpac-primary-400 underline underline-offset-2 hover:opacity-80 transition-opacity"
-            >
-              Cambiar área
-            </button>
+            />
           </div>
 
           <CostCenterTable
             data={paginatedData}
             columns={costCenterColumns}
-            onDelete={handleDelete}
+            onDeleteClick={handleDeleteClick}
+            isLoading={isTableLoading}
             pagination={
               <Pagination
                 currentPage={pageNumber}
                 pageSize={PAGE_SIZE}
                 totalRecords={costCenters.length}
-                onPageChange={setPageNumber}
-                disabled={GetCostCenters.isFetching}
+                onPageChange={handlePageChange}
+                disabled={isTableLoading}
               />
             }
           />

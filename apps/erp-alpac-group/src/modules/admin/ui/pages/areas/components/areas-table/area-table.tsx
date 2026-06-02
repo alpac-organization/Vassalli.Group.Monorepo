@@ -7,6 +7,7 @@ export function AreaTable({
   onDeleteClick,
   columns,
   pagination,
+  isLoading = false,
 }: AreaTableProps) {
   return (
     <DataTable
@@ -15,6 +16,8 @@ export function AreaTable({
       data={data}
       columns={columns}
       pagination={pagination}
+      isLoading={isLoading}
+      loadingTitle="Cargando áreas de trabajo..."
     />
   );
 }
