@@ -46,7 +46,7 @@ import { pdf } from "@react-pdf/renderer";
 import { PayrollPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/payroll-pdf-document";
 import { CheckPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/check-pdf-document";
 import { PaymentReceiptDocument } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/payment-receipt";
-import { AccumulatedHistoryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/accumulated-history-pdf-document";
+import { AccumulatedPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/accumulated-pdf-document";
 import { IncomeSummaryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/income-review-pdf/income-summary-pdf-document";
 import { DeductionSummaryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/deduction-review-pdf/deduction-review.pdf";
 import { VacationAccrualPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/components/vacation-accrual";
@@ -373,6 +373,46 @@ export function PayrollPage() {
       //   value: "vacation_accruals_history",
       // },
     ];
+    const startDate = ordinaryPayrollQuery.data?.start_date;
+    const endDate = ordinaryPayrollQuery.data?.end_date;
+    const startDay = startDate ? new Date(startDate).getUTCDate() : null;
+    const endDay = endDate ? new Date(endDate).getUTCDate() : null;
+    const PAYROLL_FIRST_PERIOD_END_DAY = 15;
+    if (endDay === PAYROLL_FIRST_PERIOD_END_DAY) {
+      const actionQuincenal: { label: string; value: PayrollActionValue }[] = [
+        {
+          label: "Generar Reporte Quincenal Acumulado",
+          value: "quincenal_accumulated_report",
+        },
+        {
+          label: "Generar Reporte Quincenal IR",
+          value: "quincenal_ir_report",
+        },
+        {
+          label: "Generar Reporte Quincenal INSS",
+          value: "quincenal_inss_report",
+        },
+      ];
+      actionQuincenal.forEach((option) => options.push(option));
+    }
+    const PAYROLL_SECOND_PERIOD_START_DAY = 16;
+    if (startDay === PAYROLL_SECOND_PERIOD_START_DAY) {
+      const actionMonthly: { label: string; value: PayrollActionValue }[] = [
+        {
+          label: "Generar Reporte Mensual Acumulado",
+          value: "monthly_accumulated_report",
+        },
+        {
+          label: "Generar Reporte Mensual IR",
+          value: "monthly_ir_report",
+        },
+        {
+          label: "Generar Reporte mensual INSS",
+          value: "monthly_inss_report",
+        },
+      ];
+      actionMonthly.forEach((option) => options.push(option));
+    }
     if (hasCollaboratorsWithoutBankAccount && !detailsFetchInFlight) {
       options.push({
         label: "Generar Solicitudes de Pago",
@@ -380,7 +420,11 @@ export function PayrollPage() {
       });
     }
     return options;
-  }, [hasCollaboratorsWithoutBankAccount, detailsFetchInFlight]);
+  }, [
+    hasCollaboratorsWithoutBankAccount,
+    detailsFetchInFlight,
+    ordinaryPayrollQuery.data,
+  ]);
 
   useEffect(() => {
     if (
@@ -827,7 +871,7 @@ export function PayrollPage() {
         : "";
 
       const blob = await pdf(
-        <AccumulatedHistoryPdfDocument
+        <AccumulatedPdfDocument
           data={reportData}
           reviewedBy={{
             name: signatures.solicitado.name,

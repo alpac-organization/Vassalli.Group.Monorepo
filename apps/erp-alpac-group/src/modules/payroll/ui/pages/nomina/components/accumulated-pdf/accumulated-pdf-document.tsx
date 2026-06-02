@@ -2,11 +2,11 @@ import { Document, Page, Text, View, Image } from "@react-pdf/renderer";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
-import { styles } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/utils/styles.accumulated";
-import type { AccumulatedHistoryPdfProps } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-history-pdf/types/accumulated-history.types";
+import { styles } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/utils/styles.accumulated";
+import type { AccumulatedHistoryPdfProps } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/types/accumulated.types";
 import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 
-export function AccumulatedHistoryPdfDocument({
+export function AccumulatedPdfDocument({
   data,
   reviewedBy,
   reviewedSignatureImageSrc,
