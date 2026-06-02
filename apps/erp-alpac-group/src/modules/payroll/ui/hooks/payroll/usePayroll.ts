@@ -142,6 +142,15 @@ export function useClosePayroll(): UseMutationResult<
           variables.module_code,
         ],
       });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "payrollPeriodsHistory",
+          variables.companie_id,
+          variables.module_code,
+          variables.branch_id,
+          variables.payroll_type,
+        ],
+      });
     },
   });
 }
@@ -150,7 +159,17 @@ export function usePayrollClosedDetails(
   payload: PayrollClosedDetailsRequest,
   enabled = true,
 ): UseQueryResult<GetPayrollResponse, Error> {
-  const { companie_id, module_code, payroll_id, branch_id } = payload;
+  const {
+    companie_id,
+    module_code,
+    payroll_id,
+    branch_id,
+    identification_number,
+    work_area_id,
+    job_position_id,
+    page_number = 1,
+    page_size = 10,
+  } = payload;
   return useQuery<GetPayrollResponse, Error>({
     queryKey: [
       "payrollClosedDetails",
@@ -158,6 +177,11 @@ export function usePayrollClosedDetails(
       module_code,
       payroll_id,
       branch_id,
+      identification_number,
+      work_area_id,
+      job_position_id,
+      page_number,
+      page_size,
     ],
     queryFn: () => payrollServices.getPayrollClosedDetails(payload),
     enabled:

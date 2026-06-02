@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { Breadcrumb, Button } from "@alpac/design-system";
+import { Breadcrumb, Button, Dropdown, useTheme } from "@alpac/design-system";
 import { m, LazyMotion } from "framer-motion";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
@@ -17,6 +17,19 @@ import { exportPayrollExcel } from "@app/modules/payroll/ui/pages/nomina/compone
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
+import { pdf } from "@react-pdf/renderer";
+import { PayrollPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/payroll-pdf-document";
+import { CheckPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/check-pdf-document";
+import { PaymentReceiptDocument } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/payment-receipt";
+import { AccumulatedPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/accumulated-pdf-document";
+import { IncomeSummaryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/income-review-pdf/income-summary-pdf-document";
+import { DeductionSummaryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/deduction-review-pdf/deduction-review.pdf";
+import { httpHandler } from "@app/core/adapters/axiosAdapter";
+import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
+import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
+import { getProcessedSignatureImage } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/processSignatureImage";
+import type { PayrollActionValue } from "@app/modules/payroll/ui/pages/nomina/types/payroll-actions.types";
+import type { PayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -28,9 +41,10 @@ export function PayrollClosedHistoryPage() {
   }>();
   const location = useLocation();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const branch_id = location.state?.branch_id as string | undefined;
-  const type_payroll = location.state?.type as string | undefined;
+  const type_payroll = location.state?.type as PayrollType | undefined;
 
   const { companyId, moduleCode, companyName } = useUserStore();
   const maxPageSize = 10;
@@ -44,6 +58,21 @@ export function PayrollClosedHistoryPage() {
     payrollColumns.map((col) => col.key as string),
   );
   const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isGeneratingPaymentReceiptsPdf, setIsGeneratingPaymentReceiptsPdf] =
+    useState(false);
+  const [isGeneratingPaymentRequestsPdf, setIsGeneratingPaymentRequestsPdf] =
+    useState(false);
+  const [
+    isGeneratingAccumulatedHistoryPdf,
+    setIsGeneratingAccumulatedHistoryPdf,
+  ] = useState(false);
+  const [isGeneratingIncomeSummaryPdf, setIsGeneratingIncomeSummaryPdf] =
+    useState(false);
+  const [isGeneratingDeductionSummaryPdf, setIsGeneratingDeductionSummaryPdf] =
+    useState(false);
+  const [selectedAction, setSelectedAction] =
+    useState<PayrollActionValue | null>(null);
 
   const [identificationFilter, setIdentificationFilter] = useState("");
   const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
@@ -67,9 +96,14 @@ export function PayrollClosedHistoryPage() {
       Boolean(payroll_id && branch_id),
     );
 
-  const items = detailsData?.payroll_details?.ordinary_payroll_data ?? [];
-  console.log("items", items);
+  const items = detailsData?.payroll_details?.items ?? [];
   const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+  const hasItems = items.length > 0;
+
+  const hasCollaboratorsWithoutBankAccount = useMemo(
+    () => items.some((item) => !item.collaborator?.bank_account?.trim()),
+    [items],
+  );
 
   const payrollColumnDefs = useMemo(
     () => getPayrollColumns(companyName),
@@ -85,6 +119,95 @@ export function PayrollClosedHistoryPage() {
       return [...kept, ...additions];
     });
   }, [payrollColumnDefs]);
+
+  const payrollActionOptions = useMemo(() => {
+    const options: { label: string; value: PayrollActionValue }[] = [
+      { label: "Generar Reporte Nómina", value: "report" },
+      { label: "Generar Recibos de Pago", value: "payment_receipts" },
+      { label: "Generar Historial Acumulado", value: "accumulated_history" },
+      { label: "Generar Reporte de Ingresos", value: "income_report" },
+      { label: "Generar Reporte de Deducciones", value: "deduction_report" },
+    ];
+    const startDate = detailsData?.start_date;
+    const endDate = detailsData?.end_date;
+    const startDay = startDate ? new Date(startDate).getUTCDate() : null;
+    const endDay = endDate ? new Date(endDate).getUTCDate() : null;
+    if (endDay === 15) {
+      options.push(
+        {
+          label: "Generar Reporte Quincenal Acumulado",
+          value: "quincenal_accumulated_report",
+        },
+        { label: "Generar Reporte Quincenal IR", value: "quincenal_ir_report" },
+        {
+          label: "Generar Reporte Quincenal INSS",
+          value: "quincenal_inss_report",
+        },
+      );
+    }
+    if (startDay === 16) {
+      options.push(
+        {
+          label: "Generar Reporte Mensual Acumulado",
+          value: "monthly_accumulated_report",
+        },
+        { label: "Generar Reporte Mensual IR", value: "monthly_ir_report" },
+        {
+          label: "Generar Reporte mensual INSS",
+          value: "monthly_inss_report",
+        },
+      );
+    }
+    if (hasCollaboratorsWithoutBankAccount && !detailsFetchInFlight) {
+      options.push({
+        label: "Generar Solicitudes de Pago",
+        value: "payment_requests",
+      });
+    }
+    return options;
+  }, [
+    detailsData?.start_date,
+    detailsData?.end_date,
+    hasCollaboratorsWithoutBankAccount,
+    detailsFetchInFlight,
+  ]);
+
+  useEffect(() => {
+    if (
+      selectedAction &&
+      !payrollActionOptions.some((o) => o.value === selectedAction)
+    ) {
+      setSelectedAction(null);
+    }
+  }, [selectedAction, payrollActionOptions]);
+
+  const signatures = useMemo(() => getSignatures(companyName), [companyName]);
+
+  const fetchAllItems = useCallback(async () => {
+    const svc = new PayrollServices(httpHandler);
+    const response = await svc.getPayrollClosedDetails({
+      companie_id: companyId,
+      module_code: moduleCode,
+      payroll_id: payroll_id!,
+      branch_id: branch_id!,
+      identification_number: identificationFilter || undefined,
+      work_area_id: workAreaFilter || undefined,
+      job_position_id: jobPositionFilter || undefined,
+      page_number: 1,
+      page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+    });
+    return response.payroll_details?.items ?? [];
+  }, [
+    companyId,
+    moduleCode,
+    payroll_id,
+    branch_id,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    totalRecords,
+    maxPageSize,
+  ]);
 
   const handlePageChange = useCallback((page: number) => {
     setPageNumber(page);
@@ -132,13 +255,224 @@ export function PayrollClosedHistoryPage() {
     setPageNumber(1);
   }, []);
 
-  const handleGenerateExcel = useCallback(async () => {
-    if (!companyId || !moduleCode || !branch_id || !payroll_id || !type_payroll)
+  const handleGeneratePdf = useCallback(async () => {
+    if (!payroll_id || !branch_id || !companyId || !moduleCode || !hasItems)
       return;
     try {
+      setIsGeneratingPdf(true);
+      const allItems = await fetchAllItems();
+      const preparedSignatureImageSrc = signatures.solicitado.signatureImage
+        ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
+        : "";
+      const reviewedSignatureImageSrc = signatures.signatureImage
+        ? await getProcessedSignatureImage(signatures.signatureImage)
+        : "";
+      const blob = await pdf(
+        <PayrollPdfDocument
+          typePayroll={type_payroll ?? "Ordinary"}
+          data={allItems}
+          branchName={detailsData?.branch_name ?? ""}
+          companyName={companyName}
+          startDate={detailsData?.start_date}
+          endDate={detailsData?.end_date}
+          visibleKeys={visibleKeys}
+          preparedBy={{ name: signatures.solicitado.name }}
+          reviewedBy={{
+            name: signatures.revisado.name,
+            role: signatures.revisado.role,
+          }}
+          preparedSignatureImageSrc={preparedSignatureImageSrc}
+          reviewedSignatureImageSrc={reviewedSignatureImageSrc}
+        />,
+      ).toBlob();
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch {
+      console.error("Error generando el reporte PDF");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }, [
+    payroll_id,
+    branch_id,
+    companyId,
+    moduleCode,
+    hasItems,
+    fetchAllItems,
+    signatures,
+    type_payroll,
+    detailsData,
+    companyName,
+    visibleKeys,
+  ]);
+
+  const handleGeneratePaymentReceiptsPdf = useCallback(async () => {
+    if (!payroll_id || !branch_id || !companyId || !moduleCode || !hasItems)
+      return;
+    try {
+      setIsGeneratingPaymentReceiptsPdf(true);
+      const allItems = await fetchAllItems();
+      const blob = await pdf(
+        <PaymentReceiptDocument
+          data={allItems}
+          startDate={detailsData?.start_date}
+          endDate={detailsData?.end_date}
+          branchName={detailsData?.branch_name ?? ""}
+        />,
+      ).toBlob();
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch {
+      console.error("Error generando recibos de pago");
+    } finally {
+      setIsGeneratingPaymentReceiptsPdf(false);
+    }
+  }, [
+    payroll_id,
+    branch_id,
+    companyId,
+    moduleCode,
+    hasItems,
+    fetchAllItems,
+    detailsData,
+  ]);
+
+  const handleGeneratePaymentRequestsPdf = useCallback(async () => {
+    if (!payroll_id || !branch_id || !companyId || !moduleCode) return;
+    try {
+      setIsGeneratingPaymentRequestsPdf(true);
+      const allItems = await fetchAllItems();
+      const filteredItems = allItems.filter(
+        (item) => !item.collaborator?.bank_account?.trim(),
+      );
+      if (!filteredItems.length) return;
+      const { signatureImage } = getSignatures(companyName);
+      const signatureImageSrc =
+        await getProcessedSignatureImage(signatureImage);
+      const blob = await pdf(
+        <CheckPdfDocument
+          data={filteredItems}
+          startDate={detailsData?.start_date}
+          endDate={detailsData?.end_date}
+          signatureImageSrc={signatureImageSrc}
+        />,
+      ).toBlob();
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch {
+      console.error("Error generando solicitudes de pago");
+    } finally {
+      setIsGeneratingPaymentRequestsPdf(false);
+    }
+  }, [
+    payroll_id,
+    branch_id,
+    companyId,
+    moduleCode,
+    fetchAllItems,
+    companyName,
+    detailsData,
+  ]);
+
+  const handleGenerateAccumulatedHistoryPdf = useCallback(async () => {
+    if (!companyId || !payroll_id || !moduleCode || !type_payroll) return;
+    try {
+      setIsGeneratingAccumulatedHistoryPdf(true);
+      const svc = new PayrollServices(httpHandler);
+      const reportResponse = await svc.generateReportsPayroll({
+        companie_id: companyId,
+        module_code: moduleCode,
+        payroll_type: type_payroll,
+        payroll_id,
+        report_type: "Accumulated",
+      });
+      const reportData = reportResponse.accumulated_history ?? [];
+      if (!reportData.length) return;
+      const reviewedSignatureImageSrc = signatures.solicitado.signatureImage
+        ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
+        : "";
+      const blob = await pdf(
+        <AccumulatedPdfDocument
+          data={reportData}
+          reviewedBy={{
+            name: signatures.solicitado.name,
+            role: signatures.solicitado.role,
+          }}
+          reviewedSignatureImageSrc={reviewedSignatureImageSrc}
+        />,
+      ).toBlob();
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch {
+      console.error("Error generando historial acumulado");
+    } finally {
+      setIsGeneratingAccumulatedHistoryPdf(false);
+    }
+  }, [companyId, payroll_id, moduleCode, type_payroll, signatures]);
+
+  const handleGenerateIncomeSummaryPdf = useCallback(async () => {
+    if (!payroll_id || !branch_id || !companyId || !moduleCode || !hasItems)
+      return;
+    try {
+      setIsGeneratingIncomeSummaryPdf(true);
+      const allItems = await fetchAllItems();
+      const blob = await pdf(
+        <IncomeSummaryPdfDocument
+          data={allItems}
+          startDate={detailsData?.start_date}
+          endDate={detailsData?.end_date}
+          branchName={detailsData?.branch_name ?? ""}
+        />,
+      ).toBlob();
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch {
+      console.error("Error generando resumen de ingresos");
+    } finally {
+      setIsGeneratingIncomeSummaryPdf(false);
+    }
+  }, [
+    payroll_id,
+    branch_id,
+    companyId,
+    moduleCode,
+    hasItems,
+    fetchAllItems,
+    detailsData,
+  ]);
+
+  const handleGenerateDeductionSummaryPdf = useCallback(async () => {
+    if (!payroll_id || !branch_id || !companyId || !moduleCode || !hasItems)
+      return;
+    try {
+      setIsGeneratingDeductionSummaryPdf(true);
+      const allItems = await fetchAllItems();
+      const blob = await pdf(
+        <DeductionSummaryPdfDocument
+          data={allItems}
+          startDate={detailsData?.start_date}
+          endDate={detailsData?.end_date}
+          branchName={detailsData?.branch_name ?? ""}
+        />,
+      ).toBlob();
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch {
+      console.error("Error generando resumen de deducciones");
+    } finally {
+      setIsGeneratingDeductionSummaryPdf(false);
+    }
+  }, [
+    payroll_id,
+    branch_id,
+    companyId,
+    moduleCode,
+    hasItems,
+    fetchAllItems,
+    detailsData,
+  ]);
+
+  const handleGenerateExcel = useCallback(async () => {
+    if (!companyId || !moduleCode || !branch_id || !payroll_id) return;
+    try {
       setIsGeneratingExcel(true);
+      const allItems = await fetchAllItems();
       await exportPayrollExcel({
-        data: items,
+        data: allItems,
         visibleKeys,
         companyName,
         branchName: detailsData?.branch_name ?? "",
@@ -147,8 +481,8 @@ export function PayrollClosedHistoryPage() {
         typePayroll: type_payroll as any,
         logoUrl: useCompanyStore.getState().urlImage,
       });
-    } catch (error) {
-      console.error(error);
+    } catch {
+      console.error("Error generando Excel");
     } finally {
       setIsGeneratingExcel(false);
     }
@@ -157,11 +491,52 @@ export function PayrollClosedHistoryPage() {
     moduleCode,
     branch_id,
     payroll_id,
-    items,
+    fetchAllItems,
     visibleKeys,
     companyName,
     detailsData,
     type_payroll,
+  ]);
+
+  const isAnyReportGenerating =
+    isGeneratingPdf ||
+    isGeneratingPaymentReceiptsPdf ||
+    isGeneratingPaymentRequestsPdf ||
+    isGeneratingAccumulatedHistoryPdf ||
+    isGeneratingIncomeSummaryPdf ||
+    isGeneratingDeductionSummaryPdf;
+
+  const handleExecuteSelectedAction = useCallback(() => {
+    switch (selectedAction) {
+      case "report":
+        void handleGeneratePdf();
+        break;
+      case "payment_receipts":
+        void handleGeneratePaymentReceiptsPdf();
+        break;
+      case "payment_requests":
+        void handleGeneratePaymentRequestsPdf();
+        break;
+      case "accumulated_history":
+        void handleGenerateAccumulatedHistoryPdf();
+        break;
+      case "income_report":
+        void handleGenerateIncomeSummaryPdf();
+        break;
+      case "deduction_report":
+        void handleGenerateDeductionSummaryPdf();
+        break;
+      default:
+        break;
+    }
+  }, [
+    selectedAction,
+    handleGeneratePdf,
+    handleGeneratePaymentReceiptsPdf,
+    handleGeneratePaymentRequestsPdf,
+    handleGenerateAccumulatedHistoryPdf,
+    handleGenerateIncomeSummaryPdf,
+    handleGenerateDeductionSummaryPdf,
   ]);
 
   if (!branch_id || !type_payroll) {
@@ -214,45 +589,82 @@ export function PayrollClosedHistoryPage() {
         </div>
 
         <div className="flex flex-col">
-          <h3 className="text-xl font-bold mb-1 dark:text-white">
-            Detalle de Nómina Cerrada
-          </h3>
-          <p className="text-sm text-gray-200 mb-4">
+          <h3 className="p-0! m-0!">Detalle de Nómina Cerrada</h3>
+          <small className="text-gray-500 dark:text-gray-300">
             Visualizando la nómina del{" "}
             {formatDateToSpanishWords(detailsData?.start_date)} al{" "}
             {formatDateToSpanishWords(detailsData?.end_date)}
-          </p>
+          </small>
+        </div>
 
-          <PayrollFiltersBar
-            onApply={handleApplyFilters}
-            onClear={handleClearFilters}
-          />
+        <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+          <div className="flex flex-col justify-center">
+            <h3 className="p-0! m-0!">Acciones Directas</h3>
+            <small className="text-gray-500 dark:text-gray-300">
+              Aquí puedes generar reportes y exportar el excel de la nómina.
+            </small>
+          </div>
+        </div>
+        <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+          <div className="w-full flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-start">
+            <div className="w-full lg:w-[20rem]">
+              <Dropdown
+                placeholder="Seleccione una acción a generar"
+                options={payrollActionOptions}
+                value={selectedAction ?? undefined}
+                appearance={theme === "dark" ? "dark" : "default"}
+                onChange={(value) =>
+                  setSelectedAction(value as PayrollActionValue)
+                }
+              />
+            </div>
 
-          <div className="mb-4 mt-2">
+            <Button
+              type="button"
+              size="giant"
+              label="Generar"
+              isLoading={isAnyReportGenerating}
+              disabled={!selectedAction || !hasItems || isAnyReportGenerating}
+              onClick={handleExecuteSelectedAction}
+              className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                isAnyReportGenerating
+                  ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                  : ""
+              }`}
+            />
+
             <Button
               type="button"
               size="giant"
               label="Exportar Excel de nómina"
               isLoading={isGeneratingExcel}
-              disabled={items.length === 0}
+              disabled={!hasItems || isGeneratingExcel}
               onClick={handleGenerateExcel}
-              className="w-full lg:w-auto min-h-[48px] px-4 text-center text-[15px] font-normal rounded-md text-white bg-alpac-primary-500 dark:bg-alpac-primary-700"
+              className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                isGeneratingExcel
+                  ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                  : ""
+              }`}
             />
           </div>
-
-          <PayrollTable
-            rows={items}
-            columns={payrollColumnDefs}
-            currentPage={pageNumber}
-            pageSize={maxPageSize}
-            totalRecords={totalRecords}
-            visibleKeys={visibleKeys}
-            onVisibleKeysChange={setVisibleKeys}
-            onPageChange={handlePageChange}
-            onRowDoubleClick={handleOpenPayrollDetailModal}
-            isPending={detailsFetchInFlight}
-          />
         </div>
+        <PayrollFiltersBar
+          onApply={handleApplyFilters}
+          onClear={handleClearFilters}
+        />
+
+        <PayrollTable
+          rows={items}
+          columns={payrollColumnDefs}
+          currentPage={pageNumber}
+          pageSize={maxPageSize}
+          totalRecords={totalRecords}
+          visibleKeys={visibleKeys}
+          onVisibleKeysChange={setVisibleKeys}
+          onPageChange={handlePageChange}
+          onRowDoubleClick={handleOpenPayrollDetailModal}
+          isPending={detailsFetchInFlight}
+        />
       </m.div>
     </LazyMotion>
   );

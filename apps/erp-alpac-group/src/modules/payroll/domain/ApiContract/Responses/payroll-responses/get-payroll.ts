@@ -6,14 +6,15 @@ export interface GetPayrollResponse {
   type: PayrollType;
   branch_name?: string;
   payroll_details: PayrollDetailsResponse;
+  source_type?: PayrollSourceType;
 }
-interface PayrollDetailsResponse {
-  ordinary_payroll_data: PayrollItemResponse[];
-  professional_service_payroll_data: PayrollItemResponse[];
+export interface PayrollDetailsResponse {
+  items: PayrollItemResponse[];
   total_items: number;
   page_size: number;
   page_number: number;
 }
+export type PayrollSourceType = "ordinary" | "professional" | "mixed" | "empty";
 type PayrollItemCommonFields = {
   biweekly_salary: number;
   bonus?: number;
