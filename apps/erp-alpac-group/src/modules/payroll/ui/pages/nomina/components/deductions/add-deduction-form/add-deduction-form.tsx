@@ -1,18 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Dropdown, Textarea } from "@alpac/design-system";
+import { Button, Dropdown } from "@alpac/design-system";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import {
   DeductionCodeEnum,
   DeductionOptions,
 } from "@app/modules/payroll/domain/enums/deduction-enums/deduction.enum";
-import { SalaryAdvanceDev } from "@app/modules/payroll/ui/pages/nomina/components/deductions/salary-advance/salary-advance-dev";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { AnnualBonusAdvance } from "@app/modules/payroll/ui/pages/nomina/components/deductions/annual-bonus-advance/annual-bonus-advance";
 import { ChildSupportGarnishment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/child-support-garnishment/child-support-garnishment";
 import { Sanctions } from "@app/modules/payroll/ui/pages/nomina/components/deductions/sanction/sanction";
 import { JudicialGarnishment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/judicial-garnishment/judicial-garnishment";
 import { LoanRepayment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/loan-repayment/loan-repayment";
-import { SalaryAdvance } from "@app/modules/payroll/ui/pages/nomina/components/deductions/salary-advance/salary-advance";
 
 import type {
   AddDeductionFormValues,
@@ -63,7 +60,7 @@ export const AddDeductionForm = ({
   onRequestError,
   onRequestSuccess,
 }: AddDeductionFormProps): React.ReactNode => {
-  const { moduleCode, companyId, identificationNumber } = useUserStore();
+  const { moduleCode, companyId } = useUserStore();
   const { CreateDeduction } = useDeduction();
   const { getMappedError } = useMappedError();
   const [lateArrivalsFileKey, setLateArrivalsFileKey] = useState(0);
@@ -94,8 +91,6 @@ export const AddDeductionForm = ({
 
   const [foundCollaborator, setFoundCollaborator] =
     useState<GetCollaboratorProfileDetailsResponse | null>(null);
-
-  const [isSearching, setIsSearching] = useState(false);
 
   const deductionType = methods.watch("deduction_type");
   const lateArrivalsPayload = methods.watch("late_arrivals_data");
@@ -188,7 +183,7 @@ export const AddDeductionForm = ({
           description: _description,
           collaborator_id: _collaboratorId,
           purisima_data: _purisima,
-          salary_advance_payload: _salaryAdvance,
+          salary_advance_payload: _salaryAdvancePayload,
           ...lateArrivalsBase
         } = data;
 
@@ -269,7 +264,7 @@ export const AddDeductionForm = ({
       const {
         late_arrivals_data: _lateArrivals,
         purisima_data: _purisima,
-        salary_advance_payload,
+        salary_advance_payload: _salaryAdvancePayload,
         ...baseData
       } = data;
 
@@ -286,10 +281,6 @@ export const AddDeductionForm = ({
       if (foundCollaborator) {
         finalPayload.collaborator_id =
           foundCollaborator.collaborator_id.toString();
-      }
-
-      if (data.deduction_type === DeductionCodeEnum.SALARY_ADVANCE.value) {
-        finalPayload.salary_advance_payload = salary_advance_payload;
       }
 
       CreateDeduction.mutate(finalPayload, {
@@ -320,9 +311,7 @@ export const AddDeductionForm = ({
   );
 
   const isSubmitEnabledType =
-    isLateArrivalType(deductionType) ||
-    deductionType === DeductionCodeEnum.SALARY_ADVANCE.value ||
-    deductionType === DeductionCodeEnum.PURISIMA.value;
+    isLateArrivalType(deductionType) || isPurisimaType(deductionType);
 
   const hasLateArrivalsData =
     isLateArrivalType(deductionType) && (lateArrivalsPayload?.length ?? 0) > 0;
@@ -335,9 +324,7 @@ export const AddDeductionForm = ({
     !methods.formState.isValid ||
     !isSubmitEnabledType ||
     (isLateArrivalType(deductionType) && !hasLateArrivalsData) ||
-    (isPurisimaType(deductionType) && !hasPurisimaData) ||
-    (deductionType === DeductionCodeEnum.SALARY_ADVANCE.value &&
-      !foundCollaborator);
+    (isPurisimaType(deductionType) && !hasPurisimaData);
 
   return (
     <FormProvider {...methods}>
@@ -378,8 +365,8 @@ export const AddDeductionForm = ({
               <CollaboratorSummary
                 fullName={foundCollaborator?.full_name ?? ""}
                 workPosition={foundCollaborator?.work_position ?? ""}
-                isFullNameLoading={isSearching}
-                isWorkPositionLoading={isSearching}
+                isFullNameLoading={false}
+                isWorkPositionLoading={false}
               />
             </div>
 
@@ -403,9 +390,6 @@ export const AddDeductionForm = ({
         )}
 
         {deductionType === DeductionCodeEnum.LOAN.value && <LoanRepayment />}
-        {deductionType === DeductionCodeEnum.CHRISTMAS_BONUS_ADVANCE.value && (
-          <AnnualBonusAdvance />
-        )}
         {isLateArrivalType(deductionType) && (
           <FileUploader
             key={lateArrivalsFileKey}
@@ -428,10 +412,6 @@ export const AddDeductionForm = ({
             onFileRemove={handlePurisimaFileRemove}
           />
         )}
-        {!!foundCollaborator &&
-          deductionType === DeductionCodeEnum.SALARY_ADVANCE.value && (
-            <SalaryAdvance />
-          )}
         {deductionType === DeductionCodeEnum.SANCTION.value && <Sanctions />}
         {deductionType ===
           DeductionCodeEnum.CHILD_SUPPORT_GARNISHMENT.value && (
@@ -443,58 +423,6 @@ export const AddDeductionForm = ({
         {deductionType === DeductionCodeEnum.OTHER_DEDUCTION.value && (
           <OtherDeduction />
         )}
-
-        {!foundCollaborator &&
-          deductionType === DeductionCodeEnum.SALARY_ADVANCE.value && (
-            // <CollaboratorSearchForm
-            //   onSuccess={(collaborator) => {
-            //     setFoundCollaborator(collaborator);
-            //     setIsSearching(false);
-            //   }}
-            //   onError={() => {
-            //     setFoundCollaborator(null);
-            //     setIsSearching(false);
-            //   }}
-            //   onSearchStart={() => {
-            //     setFoundCollaborator(null);
-            //     setIsSearching(true);
-            //   }}
-            //   excludeIdentifications={[identificationNumber]}
-            // />
-            <SalaryAdvanceDev />
-          )}
-
-        {!!foundCollaborator &&
-          !!deductionType &&
-          !isBulkExcelDeductionType(deductionType) &&
-          deductionType === DeductionCodeEnum.SALARY_ADVANCE.value && (
-            <Controller
-              name="description"
-              control={methods.control}
-              rules={{
-                maxLength: {
-                  value: 500,
-                  message:
-                    "La descripción debe tener como máximo 500 caracteres",
-                },
-              }}
-              render={({ field }) => (
-                <Textarea
-                  label="Descripción"
-                  labelClassName={labelClassName}
-                  rows={3}
-                  maxLength={500}
-                  placeholder="Detalles adicionales de la deducción..."
-                  className={`${inputClassName} resize-none`}
-                  value={field.value ?? ""}
-                  onChange={field.onChange}
-                  error={
-                    methods.formState.errors.description?.message as string
-                  }
-                />
-              )}
-            />
-          )}
 
         <div className="-mx-6 border-t border-t-slate-300 dark:border-t-neutral-600" />
 
