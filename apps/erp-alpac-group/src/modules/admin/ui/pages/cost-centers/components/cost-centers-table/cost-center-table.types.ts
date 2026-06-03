@@ -4,7 +4,9 @@ import type { ReactNode } from "react";
 
 export interface CostCenterTableProps {
   data: GetCostCentersResponse[];
-  onDelete: (costCenterId: string) => void;
+  onDeleteClick: (costCenter: GetCostCentersResponse) => void;
+  deleteIcon?: ReactNode;
   columns: CostCenterColumnDef[];
   pagination?: ReactNode;
+  isLoading?: boolean;
 }
