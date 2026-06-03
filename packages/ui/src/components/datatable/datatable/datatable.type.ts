@@ -18,4 +18,5 @@ export type DataTableProps<T> = {
   deleteText?: string;
   isLoading?: boolean;
   loadingTitle?: string;
+  enableRowHover?: boolean;
 };

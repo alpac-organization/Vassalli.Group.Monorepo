@@ -6,6 +6,7 @@ export function CostCenterTable({
   data,
   onDeleteClick,
   columns,
+  deleteIcon,
   pagination,
   isLoading = false,
 }: CostCenterTableProps) {
@@ -15,9 +16,11 @@ export function CostCenterTable({
       onDelete={(row: GetCostCentersResponse) => onDeleteClick(row)}
       data={data}
       columns={columns}
+      deleteIcon={deleteIcon}
       pagination={pagination}
       isLoading={isLoading}
       loadingTitle="Cargando centros de costo..."
+      enableRowHover={false}
     />
   );
 }

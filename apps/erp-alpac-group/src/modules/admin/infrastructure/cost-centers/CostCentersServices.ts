@@ -17,7 +17,6 @@ export class CostCentersServices implements ICostCentersServices {
       const costCenters = await this.apiHandler.get<
         GetCostCentersResponse[] | undefined
       >(`/companies/${company_id}/areas/${area_id}/cost-centers`);
-      console.log(costCenters);
       return costCenters;
     } catch (error) {
       throw error;
@@ -32,7 +31,6 @@ export class CostCentersServices implements ICostCentersServices {
         `/companies/${company_id}/areas/${area_id}/cost-centers`,
         body,
       );
-      console.log(costCenter);
       return costCenter;
     } catch (error) {
       throw error;
@@ -43,10 +41,9 @@ export class CostCentersServices implements ICostCentersServices {
   ): Promise<void> {
     try {
       const { company_id, area_id, cost_center_id } = payload;
-      const costCenter = await this.apiHandler.delete<void>(
+      await this.apiHandler.delete<void>(
         `/companies/${company_id}/areas/${area_id}/cost-centers/${cost_center_id}`,
       );
-      return costCenter;
     } catch (error) {
       throw error;
     }

@@ -15,7 +15,6 @@ export class AreasServices implements IAreasServices {
       const areas = await this.apiHandler.get<GetAreasResponse[]>(
         `/companies/${company_id}/areas`,
       );
-      console.log(areas);
       return areas;
     } catch (error) {
       throw error;
@@ -36,10 +35,9 @@ export class AreasServices implements IAreasServices {
   public async deleteArea(payload: DeleteAreaRequest): Promise<void> {
     try {
       const { company_id, area_id } = payload;
-      const area = await this.apiHandler.delete<void>(
-        `companies/${company_id}/areas/${area_id}`,
+      await this.apiHandler.delete<void>(
+        `/companies/${company_id}/areas/${area_id}`,
       );
-      return area;
     } catch (error) {
       throw error;
     }
