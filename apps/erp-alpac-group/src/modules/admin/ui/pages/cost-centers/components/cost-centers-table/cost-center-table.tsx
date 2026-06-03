@@ -4,17 +4,23 @@ import type { GetCostCentersResponse } from "@app/modules/admin/domain/ApiContra
 
 export function CostCenterTable({
   data,
-  onDelete,
+  onDeleteClick,
   columns,
+  deleteIcon,
   pagination,
+  isLoading = false,
 }: CostCenterTableProps) {
   return (
     <DataTable
       title="Listado de Centros de Costos"
-      onDelete={(row: GetCostCentersResponse) => onDelete(row.cost_center_id)}
+      onDelete={(row: GetCostCentersResponse) => onDeleteClick(row)}
       data={data}
       columns={columns}
+      deleteIcon={deleteIcon}
       pagination={pagination}
+      isLoading={isLoading}
+      loadingTitle="Cargando centros de costo..."
+      enableRowHover={false}
     />
   );
 }

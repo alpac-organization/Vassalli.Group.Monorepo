@@ -16,4 +16,7 @@ export type DataTableProps<T> = {
   onDelete?: (row: T) => void;
   deleteIcon?: React.ReactNode;
   deleteText?: string;
+  isLoading?: boolean;
+  loadingTitle?: string;
+  enableRowHover?: boolean;
 };
