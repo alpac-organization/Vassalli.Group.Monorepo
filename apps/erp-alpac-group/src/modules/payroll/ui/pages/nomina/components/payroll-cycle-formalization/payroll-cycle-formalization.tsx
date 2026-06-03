@@ -4,8 +4,13 @@ import type { PayrollCycleFormalizationProps } from "@app/modules/payroll/ui/pag
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 
 const cycleInputClassName = `
-  w-full! rounded-md! text-[15px]! text-white!
+  w-full! h-12! min-h-[48px]! rounded-md! text-[15px]! text-white!
   dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-white
+`.replace(/\s+/g, " ");
+
+const formalizeButtonClassName = `
+  w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal!
+  rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!
 `.replace(/\s+/g, " ");
 
 const labelClassName = "text-black! dark:text-white!";
@@ -33,7 +38,6 @@ export default function PayrollCycleFormalization({
     try {
       await onConfirmFormalizacion?.();
     } catch {
-      // El error y la alerta se manejan en el padre (payroll-page).
     } finally {
       setIsFormalizeModalOpen(false);
     }
@@ -48,8 +52,8 @@ export default function PayrollCycleFormalization({
     <>
       <div className="w-full max-w-full">
         <div className="flex w-full flex-col gap-5 sm:gap-4">
-          <div className="grid min-w-0 grid-cols-1 items-end gap-5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
-            <div className="flex min-w-0 flex-col">
+          <div className="w-full flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-start">
+            <div className="w-full lg:w-[20rem]">
               <InputText
                 label="Inicio del ciclo"
                 labelClassName={labelClassName}
@@ -64,7 +68,7 @@ export default function PayrollCycleFormalization({
                 className={cycleInputClassName}
               />
             </div>
-            <div className="flex min-w-0 flex-col">
+            <div className="w-full lg:w-[20rem]">
               <InputText
                 label="Fin del ciclo"
                 labelClassName={labelClassName}
@@ -78,14 +82,14 @@ export default function PayrollCycleFormalization({
                 className={cycleInputClassName}
               />
             </div>
-            <div className="flex min-w-0 flex-col sm:col-span-2 xl:col-span-1">
+            <div className="w-full lg:w-[20rem]">
               <Button
                 type="button"
                 size="giant"
                 label="Formalizar nómina"
                 onClick={handleOpenFormalizeModal}
                 disabled={formalizeDisabled}
-                className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                className={formalizeButtonClassName}
               />
             </div>
           </div>

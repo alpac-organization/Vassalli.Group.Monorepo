@@ -4,7 +4,6 @@ import {
   Modal,
   Button,
   Dropdown,
-  Badges,
   AnimatedAlertWrapper,
   Alert,
 } from "@alpac/design-system";
@@ -32,6 +31,7 @@ import {
 import { Loader } from "@app/shared/components/loaders/loader";
 import PayrollPageHeader from "@app/modules/payroll/ui/pages/nomina/components/payroll-page-header/payroll-page-header";
 import PayrollCycleFormalization from "@app/modules/payroll/ui/pages/nomina/components/payroll-cycle-formalization/payroll-cycle-formalization";
+import PayrollGenerateReportsModal from "@app/modules/payroll/ui/pages/nomina/components/payroll-generate-reports-modal/payroll-generate-reports-modal";
 import PayrollFiltersBar from "@app/modules/payroll/ui/pages/nomina/components/payroll-filters/payroll-filtersbar";
 import { PayrollTable } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/payroll-table";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
@@ -63,11 +63,11 @@ import {
   PAYROLL_SELECTION_STORAGE_KEY,
   DROPDOWN_DISABLED_TRIGGER_CLASS,
 } from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
+import { actionSupportsExcel } from "@app/modules/payroll/ui/pages/nomina/constants/payroll-generate-formats.constants";
 import { isSelectablePayrollType } from "@app/modules/payroll/ui/pages/nomina/utils/payroll.utls";
 import { CreateIncomeModal } from "@app/modules/payroll/ui/pages/nomina/components/incomes/create-income-modal/create-income-modal";
 import { AddDeductionModal } from "@app/modules/payroll/ui/pages/nomina/components/deductions/add-deduction-modal/add-deduction-modal";
 import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
-import { AddSubsidyModal } from "@app/modules/payroll/ui/pages/nomina/components/subsidies/add-subsidy-modal/add-subsidy-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { parseAdditionalDeductions } from "./components/payroll-table/utils/parse-additional-deductions";
 import type { AdditionalDeductions } from "./components/payroll-table/types/payroll-table.types";
@@ -161,6 +161,9 @@ export function PayrollPage() {
   );
   const [selectedAction, setSelectedAction] =
     useState<PayrollActionValue | null>(null);
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
+  const [generatePdfChecked, setGeneratePdfChecked] = useState(false);
+  const [generateExcelChecked, setGenerateExcelChecked] = useState(false);
   const [isStatusErrorModalOpen, setIsStatusErrorModalOpen] = useState(false);
   const [isInitializeConfirmModalOpen, setIsInitializeConfirmModalOpen] =
     useState(false);
@@ -185,7 +188,6 @@ export function PayrollPage() {
 
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
   const [isDeductionModalOpen, setIsDeductionModalOpen] = useState(false);
-  const [isSubsidyModalOpen, setIsSubsidyModalOpen] = useState(false);
 
   const {
     alertState,
@@ -1168,40 +1170,112 @@ export function PayrollPage() {
     handlePdfGenerationError,
   ]);
 
-  const handleExecuteSelectedAction = useCallback(() => {
-    switch (selectedAction) {
-      case "report":
-        void handleGeneratePdf();
-        break;
-      case "payment_receipts":
-        void handleGeneratePaymentReceiptsPdf();
-        break;
-      case "payment_requests":
-        void handleGeneratePaymentRequestsPdf();
-        break;
-      case "accumulated_history":
-        void handleGenerateAccumulatedHistoryPdf();
-        break;
-      case "vacation_accruals_history":
-        void handleGenerateVacationAccrualPdf();
-        break;
-      case "income_report":
-        void handleGenerateIncomeSummaryPdf();
-        break;
-      case "deduction_report":
-        void handleGenerateDeductionSummaryPdf();
-        break;
-      default:
-        break;
+  const executePdfForAction = useCallback(
+    async (action: PayrollActionValue) => {
+      switch (action) {
+        case "report":
+          await handleGeneratePdf();
+          break;
+        case "payment_receipts":
+          await handleGeneratePaymentReceiptsPdf();
+          break;
+        case "payment_requests":
+          await handleGeneratePaymentRequestsPdf();
+          break;
+        case "accumulated_history":
+          await handleGenerateAccumulatedHistoryPdf();
+          break;
+        case "vacation_accruals_history":
+          await handleGenerateVacationAccrualPdf();
+          break;
+        case "income_report":
+          await handleGenerateIncomeSummaryPdf();
+          break;
+        case "deduction_report":
+          await handleGenerateDeductionSummaryPdf();
+          break;
+        default:
+          break;
+      }
+    },
+    [
+      handleGeneratePdf,
+      handleGeneratePaymentReceiptsPdf,
+      handleGeneratePaymentRequestsPdf,
+      handleGenerateAccumulatedHistoryPdf,
+      handleGenerateVacationAccrualPdf,
+      handleGenerateIncomeSummaryPdf,
+      handleGenerateDeductionSummaryPdf,
+    ],
+  );
+
+  const isGenerateConfirmLoading =
+    isGeneratingPdf ||
+    isGeneratingExcel ||
+    isGeneratingPaymentReceiptsPdf ||
+    isGeneratingPaymentRequestsPdf ||
+    isGeneratingAccumulatedHistoryPdf ||
+    isGeneratingVacationAccrualPdf ||
+    isGeneratingIncomeSummaryPdf ||
+    isGeneratingDeductionSummaryPdf;
+
+  const handleOpenGenerateModal = useCallback(() => {
+    setSelectedAction(null);
+    setGeneratePdfChecked(false);
+    setGenerateExcelChecked(false);
+    setIsGenerateModalOpen(true);
+  }, []);
+
+  const handleCloseGenerateModal = useCallback(() => {
+    if (isGenerateConfirmLoading) return;
+    setIsGenerateModalOpen(false);
+  }, [isGenerateConfirmLoading]);
+
+  const executeExcelForAction = useCallback(
+    async (action: PayrollActionValue) => {
+      switch (action) {
+        case "report":
+          await handleGenerateExcel();
+          break;
+        case "accumulated_history":
+        case "income_report":
+        case "deduction_report":
+        case "monthly_accumulated_report":
+        case "monthly_ir_report":
+        case "monthly_inss_report":
+          handlePdfGenerationError(
+            "La exportación en Excel para este reporte aún no está disponible.",
+          );
+          break;
+        default:
+          break;
+      }
+    },
+    [handleGenerateExcel, handlePdfGenerationError],
+  );
+
+  const handleConfirmGenerate = useCallback(async () => {
+    if (!selectedAction) return;
+    if (!generatePdfChecked && !generateExcelChecked) return;
+    try {
+      if (generatePdfChecked) {
+        await executePdfForAction(selectedAction);
+      }
+      if (
+        generateExcelChecked &&
+        actionSupportsExcel(selectedAction)
+      ) {
+        await executeExcelForAction(selectedAction);
+      }
+    } finally {
+      setIsGenerateModalOpen(false);
     }
   }, [
     selectedAction,
-    handleGeneratePdf,
-    handleGeneratePaymentReceiptsPdf,
-    handleGeneratePaymentRequestsPdf,
-    handleGenerateAccumulatedHistoryPdf,
-    handleGenerateVacationAccrualPdf,
-    handleGenerateIncomeSummaryPdf,
+    generatePdfChecked,
+    generateExcelChecked,
+    executePdfForAction,
+    executeExcelForAction,
   ]);
 
   const handleApplyFilters = useCallback(
@@ -1239,10 +1313,6 @@ export function PayrollPage() {
 
   const handleRegisterDeduction = useCallback(() => {
     setIsDeductionModalOpen(true);
-  }, []);
-
-  const handleCreateSubsidy = useCallback(() => {
-    setIsSubsidyModalOpen(true);
   }, []);
 
   const renderContent = () => {
@@ -1340,6 +1410,22 @@ export function PayrollPage() {
         isOpen={isPayrollDetailModalOpen}
         onClose={handleClosePayrollDetailModal}
         payrollItem={selectedPayrollRow}
+      />
+
+      <PayrollGenerateReportsModal
+        isOpen={isGenerateModalOpen}
+        onClose={handleCloseGenerateModal}
+        options={payrollActionOptions}
+        appearance={theme === "dark" ? "dark" : "default"}
+        selectedAction={selectedAction}
+        onSelectedActionChange={setSelectedAction}
+        generatePdfChecked={generatePdfChecked}
+        generateExcelChecked={generateExcelChecked}
+        onGeneratePdfChange={setGeneratePdfChecked}
+        onGenerateExcelChange={setGenerateExcelChecked}
+        onConfirm={handleConfirmGenerate}
+        isConfirmLoading={isGenerateConfirmLoading}
+        confirmDisabled={!existPayrollInProgress}
       />
 
       <Modal
@@ -1568,99 +1654,45 @@ export function PayrollPage() {
                   />
                 )}
 
-                {displayedBranchName ? (
-                  <Badges
-                    label={`Nómina de ${displayedBranchName}`}
-                    color="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
-                    className="max-w-72 text-[12px]! font-semibold! leading-snug! wrap-break-word text-right"
-                  />
-                ) : null}
+                <Button
+                  type="button"
+                  size="giant"
+                  label="Cambiar tipo de nómina y sucursal"
+                  onClick={handleOpenChangePayrollSelection}
+                  className="hidden! lg:flex! w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+                />
               </div>
             </div>
             <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
               <div className="flex flex-col justify-center">
                 <h3 className="p-0! m-0!">Acciones Directas</h3>
                 <small className="text-gray-500 dark:text-gray-300">
-                  Aqui puedes cambiar el tipo de nómina y sucursal, tambien
-                  puedes generar reportes, hacer algunas acciones directas y
-                  exportar el excel de la nómina.
+                  Aquí puedes cambiar el tipo de nómina y sucursal, generar
+                  reportes desde el botón Generar (PDF y, para reporte de
+                  nómina, Excel) y realizar otras acciones directas.
                 </small>
               </div>
             </div>
 
             <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
               <div className="w-full flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-start">
-                <Button
-                  type="button"
-                  size="giant"
-                  label="Cambiar tipo de nómina y sucursal"
-                  onClick={handleOpenChangePayrollSelection}
-                  className="hidden! lg:flex! w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                />
-
                 <div className="w-full lg:w-[20rem]">
-                  <Dropdown
-                    placeholder="Seleccione una acción a generar"
-                    options={payrollActionOptions}
-                    value={selectedAction ?? undefined}
-                    appearance={theme === "dark" ? "dark" : "default"}
-                    onChange={(value) =>
-                      setSelectedAction(value as PayrollActionValue)
+                  <Button
+                    type="button"
+                    size="giant"
+                    label="Generar reportes"
+                    isLoading={isGenerateConfirmLoading}
+                    disabled={
+                      !existPayrollInProgress || isGenerateConfirmLoading
                     }
+                    onClick={handleOpenGenerateModal}
+                    className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                      isGenerateConfirmLoading
+                        ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                        : ""
+                    }`}
                   />
                 </div>
-
-                <Button
-                  type="button"
-                  size="giant"
-                  label="Generar"
-                  isLoading={
-                    isGeneratingPdf ||
-                    isGeneratingPaymentReceiptsPdf ||
-                    isGeneratingPaymentRequestsPdf ||
-                    isGeneratingAccumulatedHistoryPdf ||
-                    isGeneratingVacationAccrualPdf ||
-                    isGeneratingIncomeSummaryPdf ||
-                    isGeneratingDeductionSummaryPdf
-                  }
-                  disabled={
-                    !selectedAction ||
-                    !existPayrollInProgress ||
-                    isGeneratingPdf ||
-                    isGeneratingPaymentReceiptsPdf ||
-                    isGeneratingPaymentRequestsPdf ||
-                    isGeneratingAccumulatedHistoryPdf ||
-                    isGeneratingVacationAccrualPdf ||
-                    isGeneratingIncomeSummaryPdf ||
-                    isGeneratingDeductionSummaryPdf
-                  }
-                  onClick={handleExecuteSelectedAction}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingPdf ||
-                    isGeneratingPaymentReceiptsPdf ||
-                    isGeneratingPaymentRequestsPdf ||
-                    isGeneratingAccumulatedHistoryPdf ||
-                    isGeneratingVacationAccrualPdf ||
-                    isGeneratingIncomeSummaryPdf ||
-                    isGeneratingDeductionSummaryPdf
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
-                />
-
-                <Button
-                  type="button"
-                  size="giant"
-                  label="Exportar Excel de nómina"
-                  isLoading={isGeneratingExcel}
-                  disabled={!existPayrollInProgress}
-                  onClick={handleGenerateExcel}
-                  className={` w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingExcel
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
-                />
                 <Button
                   type="button"
                   size="giant"
@@ -1700,21 +1732,6 @@ export function PayrollPage() {
                   label="Crear Solicitud de Permiso"
                   disabled={!existPayrollInProgress}
                   onClick={handleOpenPermissionApplicationModal}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingPdf ||
-                    isGeneratingPaymentRequestsPdf ||
-                    isGeneratingAccumulatedHistoryPdf ||
-                    isGeneratingVacationAccrualPdf
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
-                />
-
-                <Button
-                  size="giant"
-                  label="Iniciar Proceso de Subsidio"
-                  disabled={!existPayrollInProgress}
-                  onClick={handleCreateSubsidy}
                   className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
@@ -1779,31 +1796,11 @@ export function PayrollPage() {
               successMessage,
               "Solicitud de permiso creada exitosamente",
             );
-            void ordinaryPayrollQuery.refetch();
             setIsPermissionApplicationModalOpen(false);
           }}
           onRequestError={(errorMessage) => {
             handleRequestError(
               errorMessage || "Error al crear la solicitud de permiso",
-            );
-          }}
-        />
-
-        <AddSubsidyModal
-          isOpen={isSubsidyModalOpen}
-          payrollId={selectedOrdinaryPayroll?.payroll_id!}
-          onClose={() => setIsSubsidyModalOpen(false)}
-          onRequestSuccess={(successMessage) => {
-            handleRequestSuccess(successMessage, "Subsidio resgistrado");
-            void ordinaryPayrollQuery.refetch();
-            setIsSubsidyModalOpen(false);
-          }}
-          onRequestError={(errorMessage) => {
-            handleRequestError(
-              errorMessage || "Error al registrar el subsidio",
-            );
-            handleRequestError(
-              errorMessage || "Error al registrar el subsidio",
             );
           }}
         />

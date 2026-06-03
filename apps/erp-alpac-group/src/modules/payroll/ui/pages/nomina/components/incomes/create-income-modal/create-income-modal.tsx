@@ -50,6 +50,7 @@ export const CreateIncomeModal = ({
               >
                 <div className="relative min-w-0 flex flex-col gap-4 w-full">
                   <CreateIncomeForm
+                    key={String(isOpen)}
                     payrollId={payrollId}
                     branchId={branchId}
                     onCancel={() => {
