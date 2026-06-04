@@ -12,9 +12,12 @@ import {
   clearPayrollSelectionStorage,
 } from "@app/modules/auth/utils/save-state-storage";
 
+type ConfigType = {
+  baseUrl?: string;
+  apiKey?: string;
+};
 class AxiosHttpAdapter implements IHttpHandler {
   private instance: AxiosInstance;
-  private apiKey = import.meta.env.VITE_API_KEY;
   private refreshIntervalId?: NodeJS.Timeout;
   private authenticationService?: IAuthenticationServices;
 
@@ -23,13 +26,14 @@ class AxiosHttpAdapter implements IHttpHandler {
   ) {
     this.authenticationService = authenticationService;
   }
-
-  constructor() {
+  constructor(config?: ConfigType) {
+    const baseURL = config?.baseUrl ?? import.meta.env.VITE_API_URL;
+    const apiKey = config?.apiKey ?? import.meta.env.VITE_API_KEY;
     this.instance = axios.create({
-      baseURL: import.meta.env.VITE_API_URL || "/api",
+      baseURL,
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": this.apiKey,
+        "x-api-key": apiKey,
         "x-device-name": getBrowserName(navigator.userAgent),
       },
     });
@@ -212,3 +216,8 @@ class AxiosHttpAdapter implements IHttpHandler {
 
 // Exportamos una instancia unica (Singleton)
 export const httpHandler = new AxiosHttpAdapter();
+
+export const warehouseHttpHandler = new AxiosHttpAdapter({
+  baseUrl: import.meta.env.VITE_API_URL_WAREHOUSE ?? "/api-warehouse",
+  apiKey: import.meta.env.VITE_API_KEY_WAREHOUSE,
+});
