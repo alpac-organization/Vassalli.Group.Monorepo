@@ -2,7 +2,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { httpHandler } from "@app/core/adapters";
 import { PermissionServices } from "@app/modules/payroll/infrastructure/services/permission-services/PermissionServices";
 import type { CreatePermissionRequestBase } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
-import type { PermissionHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-history-request";
+import type { PermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
 import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/cancel-permission-request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
@@ -12,7 +12,7 @@ export type UseVacationPayload = {
   module_code: string;
   identification_number: string;
 };
-export const usePermission = (filters?: PermissionHistoryRequest) => {
+export const usePermission = (filters?: PermissionRequest) => {
   const queryClient = useQueryClient();
 
   const createPermissionRequestMutation = useMutation({
@@ -57,7 +57,7 @@ export const usePermission = (filters?: PermissionHistoryRequest) => {
       if (!filters) {
         throw new Error("getVacationHistory: faltante filters");
       }
-      return permissionServices.getPermissionHistory(filters);
+      return permissionServices.getPermissions(filters);
     },
     enabled: historyQueryEnabled,
     refetchOnMount: false,

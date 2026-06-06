@@ -147,6 +147,21 @@ export interface GetApplicationsResponse {
     * @required
     */
    request_date: string;
+
+   /**
+    * Indica si la cita médica es día completo
+    * @optional
+    */
+   is_full_day?: boolean;
+
+   /**
+    * Imágenes adjuntas de la cita médica en base64
+    * @optional
+    */
+   images?: {
+      image_base64?: string | null;
+      content_type?: string | null;
+   }[];
 }
 
 export interface GetApplicationListResponse {

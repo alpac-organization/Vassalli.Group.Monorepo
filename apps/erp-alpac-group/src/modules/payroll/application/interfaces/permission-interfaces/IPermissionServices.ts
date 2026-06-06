@@ -1,6 +1,6 @@
 import type { CreatePermissionRequestBase } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
-import type { PermissionHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-history-request";
-import type { PermissionHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/permission-history-response";
+import type { PermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
+import type { PermissionResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/permission-history-response";
 import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/cancel-permission-request";
 import type { GeneratePermissionDocumentRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/generate-permission-docs-request";
 export interface IPermissionRequestServices {
@@ -16,9 +16,7 @@ export interface IPermissionRequestServices {
    * @param payload - Datos de la solicitud de historial de solicitudes de permisos
    * @returns PermissionHistoryResponse
    */
-  getPermissionHistory(
-    payload: PermissionHistoryRequest,
-  ): Promise<PermissionHistoryResponse[]>;
+  getPermissions(payload: PermissionRequest): Promise<PermissionResponse[]>;
 
   /**
    * Cancela una solicitud de permiso

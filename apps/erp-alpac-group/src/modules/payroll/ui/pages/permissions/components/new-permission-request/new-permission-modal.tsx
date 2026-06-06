@@ -15,131 +15,147 @@ import type { NewPermissionRequestModalProps } from "@app/modules/payroll/ui/pag
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 
 export function NewPermissionRequestModal({
-   isOpen,
-   onClose,
-   payrollId,
-   collaboratorFullName,
-   collaboratorWorkPosition,
-   isCollaboratorFullNameLoading = false,
-   isCollaboratorWorkPositionLoading = false,
-   onRequestSuccess,
-   onRequestError,
+  isOpen,
+  onClose,
+  payrollId,
+  collaboratorFullName,
+  collaboratorWorkPosition,
+  isCollaboratorFullNameLoading = false,
+  isCollaboratorWorkPositionLoading = false,
+  onRequestSuccess,
+  onRequestError,
 }: NewPermissionRequestModalProps) {
+  const { companyId, moduleCode, identificationNumber, role } = useUserStore();
+  const { createPermissionRequestMutation } = usePermission();
+  const [foundCollaborator, setFoundCollaborator] =
+    useState<GetCollaboratorProfileDetailsResponse | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
-   const { companyId, moduleCode, identificationNumber, role } = useUserStore();
-   const { createPermissionRequestMutation } = usePermission();
-   const [foundCollaborator, setFoundCollaborator] = useState<GetCollaboratorProfileDetailsResponse | null>(null);
-   const [isSearching, setIsSearching] = useState(false);
+  const isManager = role === RoleEnum.MANAGER;
+  const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+  const isOperator = role === RoleEnum.OPERATOR;
 
-   const isManager = role === RoleEnum.MANAGER
-   const isAdministrator = role === RoleEnum.ADMINISTRATOR
-   const isOperator = role === RoleEnum.OPERATOR
+  const channel =
+    role === RoleEnum.ADMINISTRATOR
+      ? ChannelEnum.AdministrativePanel
+      : role === RoleEnum.MANAGER
+        ? ChannelEnum.DirectManagerPanel
+        : ChannelEnum.PersonalPanel;
 
-   const channel = role === RoleEnum.ADMINISTRATOR ?
-      ChannelEnum.AdministrativePanel : role === RoleEnum.MANAGER ?
-         ChannelEnum.DirectManagerPanel : ChannelEnum.PersonalPanel;
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+      setFoundCollaborator(null);
+    }
 
-   useEffect(() => {
-      if (isOpen) {
-         document.body.style.overflow = "hidden";
-      } else {
-         document.body.style.overflow = "unset";
-         setFoundCollaborator(null);
-      }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
 
-      return () => { document.body.style.overflow = "unset" };
-   }, [isOpen]);
+  const handlePermissionSubmit = (payload: CreatePermissionRequestBase) => {
+    createPermissionRequestMutation.mutate(payload, {
+      onSuccess: () => {
+        onClose?.();
+        onRequestSuccess?.("Solicitud de permiso creada exitosamente");
+      },
+      onError: (err) => {
+        const apiError = err as unknown as ApiErrorResponse;
+        onRequestError?.(
+          apiError.error?.description ?? "Ocurrió un error inesperado.",
+        );
+      },
+    });
+  };
 
+  const targetIdentification = useMemo(() => {
+    if (isOperator) return identificationNumber;
+    return foundCollaborator?.personal_information?.identification_number ?? "";
+  }, [foundCollaborator, identificationNumber, isOperator]);
 
-   const handlePermissionSubmit = (payload: CreatePermissionRequestBase) => {
-      createPermissionRequestMutation.mutate(payload, {
-         onSuccess: () => {
-            onClose?.();
-            onRequestSuccess?.("Solicitud de permiso creada exitosamente");
-         },
-         onError: (err) => {
-            const apiError = err as unknown as ApiErrorResponse;
-            onRequestError?.(
-               apiError.error?.description ?? "Ocurrió un error inesperado.",
-            );
-         },
-      });
-   }
+  return (
+    <Modal
+      isOpen={isOpen}
+      variant="form"
+      onClose={() => onClose?.()}
+      title="Nueva Solicitud de Permiso"
+      size="4xl"
+      panelClassName={["dark:bg-[#272b34]"].join(" ")}
+    >
+      {/* Formulario de busqueda */}
+      <div className="flex min-w-0 flex-col gap-4 sm:gap-5">
+        {(isManager || isAdministrator) &&
+          !isOperator &&
+          !foundCollaborator && (
+            <div>
+              <CollaboratorSearchForm
+                onSuccess={(collaborator) => {
+                  setFoundCollaborator(collaborator);
+                  setIsSearching(false);
+                }}
+                onError={() => {
+                  setIsSearching(false);
+                  setFoundCollaborator(null);
+                }}
+                onSearchStart={() => {
+                  setIsSearching(true);
+                }}
+                excludeIdentifications={[identificationNumber]}
+              />
+            </div>
+          )}
 
-   const targetIdentification = useMemo(() => {
-      if (isOperator) return identificationNumber;
-      return foundCollaborator?.personal_information?.identification_number ?? "";
-   }, [foundCollaborator, identificationNumber, isOperator]);
+        <AnimatePresence initial={!isOperator}>
+          {(((isManager || isAdministrator) && !!foundCollaborator) ||
+            isOperator) && (
+            <m.div
+              key="collaborator-result"
+              initial={{ opacity: 0, y: 16, height: 0, overflow: "hidden" }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                height: "auto",
+                overflow: "visible",
+              }}
+              exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+              transition={{
+                height: { duration: 0.3, ease: "easeInOut" },
+                opacity: { duration: 0.45, ease: "easeOut", delay: 0.1 },
+                y: { duration: 0.3, ease: "easeOut", delay: 0.1 },
+              }}
+              className="flex flex-col gap-4 sm:gap-5"
+            >
+              <CollaboratorSummary
+                fullName={
+                  collaboratorFullName ?? foundCollaborator?.full_name ?? ""
+                }
+                workPosition={
+                  collaboratorWorkPosition ??
+                  foundCollaborator?.work_position ??
+                  ""
+                }
+                isFullNameLoading={isCollaboratorFullNameLoading || isSearching}
+                isWorkPositionLoading={
+                  isCollaboratorWorkPositionLoading || isSearching
+                }
+              />
 
-   return (
-      <Modal
-         isOpen={isOpen}
-         variant="form"
-         onClose={() => onClose?.()}
-         title="Nueva Solicitud de Permiso"
-         size="4xl"
-         panelClassName={["dark:bg-[#272b34]"].join(" ")}>
-
-         {/* Formulario de busqueda */}
-         <div className="flex min-w-0 flex-col gap-4 sm:gap-5">
-            {
-               (isManager || isAdministrator) && !isOperator && !foundCollaborator &&
-               (
-                  <div>
-                     <CollaboratorSearchForm
-                        onSuccess={(collaborator) => {
-                           setFoundCollaborator(collaborator);
-                           setIsSearching(false)
-                        }}
-                        onError={() => {
-                           setIsSearching(false);
-                           setFoundCollaborator(null);
-                        }}
-                        onSearchStart={() => {
-                           setIsSearching(true);
-                        }}
-                        excludeIdentifications={[identificationNumber]}
-                     />
-                  </div>
-               )
-            }
-
-            <AnimatePresence initial={!isOperator}>
-               {(((isManager || isAdministrator) && !!foundCollaborator) || isOperator) && (
-                  <m.div
-                     key="collaborator-result"
-                     initial={{ opacity: 0, y: 16, height: 0, overflow: 'hidden' }}
-                     animate={{ opacity: 1, y: 0, height: 'auto', overflow: 'visible' }}
-                     exit={{ opacity: 0, y: 8, height: 0, overflow: 'hidden' }}
-                     transition={{
-                        height: { duration: 0.3, ease: "easeInOut" },
-                        opacity: { duration: 0.45, ease: "easeOut", delay: 0.1 },
-                        y: { duration: 0.3, ease: "easeOut", delay: 0.1 },
-                     }}
-                     className="flex flex-col gap-4 sm:gap-5"
-                  >
-                     <CollaboratorSummary
-                        fullName={collaboratorFullName ?? foundCollaborator?.full_name ?? ""}
-                        workPosition={collaboratorWorkPosition ?? foundCollaborator?.work_position ?? ""}
-                        isFullNameLoading={isCollaboratorFullNameLoading || isSearching}
-                        isWorkPositionLoading={isCollaboratorWorkPositionLoading || isSearching}
-                     />
-
-                     <NewPermissionRequestForm
-                        payrollId={payrollId}
-                        isPending={createPermissionRequestMutation.isPending}
-                        onSubmit={handlePermissionSubmit}
-                        onCancel={() => onClose?.()}
-                        companyId={companyId}
-                        moduleCode={moduleCode}
-                        identificationNumber={targetIdentification}
-                        channel={channel}
-                     />
-                  </m.div>
-               )}
-            </AnimatePresence>
-
-         </div>
-      </Modal >
-   );
+              <NewPermissionRequestForm
+                payrollId={payrollId ?? ""}
+                isPending={createPermissionRequestMutation.isPending}
+                onSubmit={handlePermissionSubmit}
+                onCancel={() => onClose?.()}
+                companyId={companyId}
+                moduleCode={moduleCode}
+                identificationNumber={targetIdentification}
+                channel={channel}
+              />
+            </m.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </Modal>
+  );
 }

@@ -1,4 +1,4 @@
-export type PermissionRequestStatus =
+export type PermissionStatus =
   | "Pending"
   | "Approved"
   | "Rejected"
@@ -6,7 +6,7 @@ export type PermissionRequestStatus =
 
 import type { PermissionType } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
 
-export type PermissionHistoryRequest = {
+export type PermissionRequest = {
   module_code: string;
   /**
    * Identificador único de la empresa
@@ -15,7 +15,7 @@ export type PermissionHistoryRequest = {
   /**
    * Numero de identificacion del colaborador
    */
-  identification_number: string;
+  identification_number?: string;
   /**
    * Tamaño de la pagina
    */
@@ -27,7 +27,7 @@ export type PermissionHistoryRequest = {
   /**
    * Estado de la solicitud de permisos. Omitir para retornar todos.
    */
-  status?: PermissionRequestStatus;
+  status?: PermissionStatus;
   /**
    * Tipo de permiso. Omitir para retornar todos.
    */
@@ -35,7 +35,7 @@ export type PermissionHistoryRequest = {
 };
 
 /** Valor del filtro de estado en UI: "all" = todos */
-export type VacationStatusFilterValue = "all" | PermissionRequestStatus;
+export type VacationStatusFilterValue = "all" | PermissionStatus;
 /** Valor del filtro de tipo de permiso en UI: "all" = todos */
 export type PermissionTypeFilterValue = "all" | PermissionType;
 
@@ -48,7 +48,7 @@ export type PermissionHistoryRow = {
   end_date: string;
   start_time?: string | null;
   end_time?: string | null;
-  status: PermissionRequestStatus;
+  status: PermissionStatus;
   approved_by?: string;
   rejected_by?: string;
 };
