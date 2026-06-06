@@ -36,6 +36,12 @@ import {
 } from "@app/modules/payroll/ui/pages/permissions/utils/permission-view-state";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
+import { usePayrollStatus } from "@app/modules/payroll/ui/hooks/payroll/usePayroll";
+import {
+  mapBranchNametoBranchId,
+  mapSalaryTypeToPayrollType,
+} from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/utils/utils_permissions";
+import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -79,11 +85,6 @@ export default function PermissionsPage() {
     };
   }, [companyId, moduleCode, identificationNumber, appliedStatus, appliedType]);
 
-  const {
-    GetPermissionHistory,
-    cancelPermissionRequestMutation,
-    //  generatePermissionDocumentMutation,
-  } = usePermission(historyFilters);
   const { GetProfileDetails } = useCollaborators({
     CollaboratorDetailsPayload: {
       company_id: companyId,
@@ -91,6 +92,38 @@ export default function PermissionsPage() {
       identification_number: identificationNumber ?? "",
     },
   });
+  const {
+    GetPermissionHistory,
+    cancelPermissionRequestMutation,
+    //  generatePermissionDocumentMutation,
+  } = usePermission(historyFilters);
+  const branches = useCompanies({
+    company_id: companyId ?? "",
+  });
+  const payrollStatusQuery = usePayrollStatus({
+    payload: {
+      companie_id: companyId,
+      module_code: moduleCode,
+      branch_id:
+        mapBranchNametoBranchId(
+          GetProfileDetails.data?.working_information.branch_name ?? "",
+          branches.GetBranchesQuery.data ?? [],
+        ) ?? "",
+      payrol_type: mapSalaryTypeToPayrollType(
+        GetProfileDetails.data?.salary_information.salary_type ?? "Fixed",
+      ),
+    },
+  });
+  const payrollIdAssignedToCollaborator = useMemo(() => {
+    if (
+      payrollStatusQuery.isSuccess &&
+      payrollStatusQuery.data?.exist_payroll_in_progress
+    ) {
+      return payrollStatusQuery.data.payroll_id;
+    }
+    return;
+  }, [payrollStatusQuery.isSuccess, payrollStatusQuery.data]);
+
   const { GetVacationSaldoQuery } = useVacation(vacationSaldoPayload);
   const {
     uiSaldoVacaciones: balanceVacation,

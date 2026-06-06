@@ -46,9 +46,7 @@ export const usePermission = (filters?: PermissionRequest) => {
   });
 
   const historyQueryEnabled = Boolean(
-    filters?.companie_id &&
-    filters?.module_code &&
-    filters?.identification_number,
+    filters?.companie_id && filters?.module_code,
   );
 
   const GetPermissionHistory = useQuery({
