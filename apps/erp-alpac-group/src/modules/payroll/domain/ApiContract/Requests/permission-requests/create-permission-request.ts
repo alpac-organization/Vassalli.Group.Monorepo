@@ -5,6 +5,7 @@ export interface CreatePermissionRequestBase {
   permit_application_type: number;
   description?: string | null;
   channel: number;
+  identification_number: string;
   permit_application_vacation?: CreateVacationPermissionRequest;
   permit_application_donated_vacations?: CreateDonatedVacationPermissionRequest;
   permit_application_medical_appointment?: CreateMedicalAppointmentPermissionRequest;

@@ -405,6 +405,7 @@ export default function PermissionsPage() {
         <NewPermissionRequestModal
           isOpen={isNewRequestOpen}
           onClose={() => setIsNewRequestOpen(false)}
+          payrollId={payrollIdAssignedToCollaborator}
           collaboratorFullName={profileCollaborator.nombreCompletoColaborador}
           collaboratorWorkPosition={
             profileCollaborator.puestoDeTrabajoColaborador

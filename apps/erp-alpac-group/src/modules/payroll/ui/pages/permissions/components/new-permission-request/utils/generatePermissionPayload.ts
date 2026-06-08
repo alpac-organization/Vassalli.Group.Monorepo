@@ -24,6 +24,7 @@ export const generatePermissionPayload = (
   const {
     companyId,
     moduleCode,
+    identificationNumber,
     channel,
     timeFormatType,
     isSameDay,
@@ -64,6 +65,7 @@ export const generatePermissionPayload = (
     company_id: companyId,
     module_code: moduleCode,
     channel,
+    identification_number: identificationNumber.trim(),
     permit_application_type: PERMISSION_TYPE_TO_ENUM_VALUE[values.type],
     description: values.description.trim(),
     payroll_id: payrollId.trim(),

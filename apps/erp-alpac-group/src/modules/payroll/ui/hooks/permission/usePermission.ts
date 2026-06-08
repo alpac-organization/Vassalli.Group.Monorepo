@@ -16,14 +16,14 @@ export const usePermission = (filters?: PermissionRequest) => {
   const queryClient = useQueryClient();
 
   const createPermissionRequestMutation = useMutation({
-    mutationKey: ["createVacationRequest"],
+    mutationKey: ["createPermissionRequest"],
     mutationFn: (payload: CreatePermissionRequestBase) =>
       permissionServices.createPermissionRequest(payload),
     onSuccess: () => {
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: ["vacationRequests"] }),
         queryClient.invalidateQueries({ queryKey: ["vacationSaldo"] }),
-        queryClient.invalidateQueries({ queryKey: ["vacationHistory"] }),
+        queryClient.invalidateQueries({ queryKey: ["permissionRecords"] }),
       ]);
     },
   });
@@ -38,7 +38,7 @@ export const usePermission = (filters?: PermissionRequest) => {
       permissionServices.cancelPermissionRequest(payload),
     onSuccess: () => {
       Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["vacationHistory"] }),
+        queryClient.invalidateQueries({ queryKey: ["permissionRecords"] }),
         queryClient.invalidateQueries({ queryKey: ["applicationsData"] }),
         queryClient.invalidateQueries({ queryKey: ["applicationDetailData"] }),
       ]);
@@ -50,7 +50,7 @@ export const usePermission = (filters?: PermissionRequest) => {
   );
 
   const GetPermissionHistory = useQuery({
-    queryKey: ["vacationHistory", filters],
+    queryKey: ["permissionRecords", filters],
     queryFn: () => {
       if (!filters) {
         throw new Error("getVacationHistory: faltante filters");
