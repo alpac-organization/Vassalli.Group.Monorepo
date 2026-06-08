@@ -30,7 +30,7 @@ import {
 import { validateMaximumDonatedVacation } from "./utils/validateMaximumDonatedVacation";
 import { CollaboratorSearchForm } from "../collaborator-search-form/collaborator-search-form";
 import { CollaboratorSummary } from "./collaborator-summary";
-import { MedicalAppointmentImageUploader } from "./medical-appointment-image-uploader/medical-appointment-image-uploader";
+import { MedicalAppointmentImageUploader } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/medical-appointment-image-uploader/medical-appointment-image-uploader";
 
 import type { PermissionRequestFormValues } from "./types/permission-form.types";
 import type { PermissionType } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
@@ -75,6 +75,7 @@ export function NewPermissionRequestForm({
   identificationNumber,
   channel,
   payrollId,
+  onValidationError,
 }: NewPermissionRequestFormProps) {
   const defaultValues = {
     type: undefined,
@@ -268,6 +269,14 @@ export function NewPermissionRequestForm({
       return;
     }
 
+    const resolvedPayrollId = payrollId?.trim();
+    if (!resolvedPayrollId) {
+      onValidationError?.(
+        "No hay una nómina en progreso asociada. No se puede registrar el permiso.",
+      );
+      return;
+    }
+
     const payload = generatePermissionPayload(values, {
       companyId,
       moduleCode,
@@ -275,7 +284,7 @@ export function NewPermissionRequestForm({
       channel: channel.value,
       timeFormatType,
       isSameDay,
-      payrollId,
+      payrollId: resolvedPayrollId,
     });
 
     onSubmit(payload);

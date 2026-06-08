@@ -1,4 +1,4 @@
-import type { PermissionStatus } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-history-request";
+import type { PermissionStatus } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
 import type { PermissionType } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
 export interface PermissionResponse {
   payroll_id: string;
@@ -9,7 +9,7 @@ export interface PermissionResponse {
   requested_by?: string;
   additional_data?: string;
   collaborator_code?: string;
-
+  full_name?: string;
   first_step_status: StepStatus;
   second_step_status: StepStatus;
 
@@ -20,7 +20,6 @@ export interface PermissionResponse {
   end_date: string;
   start_date: string;
   created_at: string;
-
   status: PermissionStatus;
   type: PermissionType;
 }
@@ -28,4 +27,11 @@ export interface PermissionResponse {
 export interface StepStatus {
   is_approved: boolean;
   reviewed_by?: string;
+}
+
+export interface PermissionListResponse {
+  data: PermissionResponse[];
+  page_number: number;
+  page_size: number;
+  total: number;
 }

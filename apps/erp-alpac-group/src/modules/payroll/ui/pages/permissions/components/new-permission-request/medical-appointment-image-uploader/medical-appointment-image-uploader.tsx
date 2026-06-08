@@ -2,7 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { ImagePlus, X } from "lucide-react";
 import { fileToBase64 } from "@app/shared/utils/fileToBase64";
-import type { MedicalAppointmentImageUploaderProps, ImagePreview } from "./medical-appointment-image-uploader.types";
+import type {
+  MedicalAppointmentImageUploaderProps,
+  ImagePreview,
+} from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/medical-appointment-image-uploader/medical-appointment-image-uploader.types";
 
 const DEFAULT_MAX_FILES = 3;
 const DEFAULT_MIN_FILES = 1;
@@ -65,37 +68,40 @@ export function MedicalAppointmentImageUploader({
 
   const remainingSlots = maxFiles - previews.length;
 
-  const { getRootProps, getInputProps, isDragActive, fileRejections } = useDropzone({
-    accept: ACCEPTED_TYPES,
-    maxSize: MAX_SIZE_BYTES,
-    maxFiles: remainingSlots,
-    disabled: remainingSlots <= 0,
-    onDrop: (acceptedFiles) => {
-      setDropError(null);
+  const { getRootProps, getInputProps, isDragActive, fileRejections } =
+    useDropzone({
+      accept: ACCEPTED_TYPES,
+      maxSize: MAX_SIZE_BYTES,
+      maxFiles: remainingSlots,
+      disabled: remainingSlots <= 0,
+      onDrop: (acceptedFiles) => {
+        setDropError(null);
 
-      const newPreviews = acceptedFiles.map((file) => ({
-        id: crypto.randomUUID(),
-        file,
-        preview: URL.createObjectURL(file),
-      }));
+        const newPreviews = acceptedFiles.map((file) => ({
+          id: crypto.randomUUID(),
+          file,
+          preview: URL.createObjectURL(file),
+        }));
 
-      const merged = [...previews, ...newPreviews].slice(0, maxFiles);
-      setPreviews(merged);
-      void syncBase64Images(merged);
-    },
-    onDropRejected: (rejections) => {
-      const firstError = rejections[0]?.errors[0];
-      if (firstError?.code === "file-too-large") {
-        setDropError("Cada imagen debe pesar menos de 3 MB.");
-        return;
-      }
-      if (firstError?.code === "file-invalid-type") {
-        setDropError("Solo se permiten imágenes JPG, PNG o WEBP.");
-        return;
-      }
-      setDropError("No se pudo adjuntar la imagen. Verifique el formato y el tamaño.");
-    },
-  });
+        const merged = [...previews, ...newPreviews].slice(0, maxFiles);
+        setPreviews(merged);
+        void syncBase64Images(merged);
+      },
+      onDropRejected: (rejections) => {
+        const firstError = rejections[0]?.errors[0];
+        if (firstError?.code === "file-too-large") {
+          setDropError("Cada imagen debe pesar menos de 3 MB.");
+          return;
+        }
+        if (firstError?.code === "file-invalid-type") {
+          setDropError("Solo se permiten imágenes JPG, PNG o WEBP.");
+          return;
+        }
+        setDropError(
+          "No se pudo adjuntar la imagen. Verifique el formato y el tamaño.",
+        );
+      },
+    });
 
   const rejectionMessage = fileRejections[0]?.errors[0]?.message;
   const displayError = error ?? dropError ?? rejectionMessage ?? null;

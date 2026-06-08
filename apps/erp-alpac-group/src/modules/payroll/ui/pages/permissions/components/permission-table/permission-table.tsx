@@ -3,11 +3,12 @@ import { getPermissionStatusUiLabel } from "@app/modules/payroll/ui/pages/permis
 import { PERMISSION_TYPE_LABEL } from "@app/modules/payroll/ui/pages/permissions/constants/permission-filters.constants";
 import { formatVacationDate } from "@app/modules/payroll/ui/pages/permissions/utils/format-vacation-date";
 import type { PermissionTableProps } from "@app/modules/payroll/ui/pages/permissions/components/permission-table/types/permission-table.type";
-import type { PermissionHistoryRow } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-history-request";
+import type { PermissionHistoryRow } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
 import { statusBadgeColor } from "@app/modules/payroll/ui/pages/permissions/components/permission-table/utils/statusBadgeColor";
 
 export function PermissionTable({
   data,
+  pagination,
   onViewDetails,
   onCancelRequest,
 }: PermissionTableProps) {
@@ -15,11 +16,7 @@ export function PermissionTable({
     {
       key: "full_name",
       label: "Nombre completo",
-      render: (row: PermissionHistoryRow) => (
-        <span className="font-semibold text-neutral-900 dark:text-white">
-          {row.full_name}
-        </span>
-      ),
+      render: (row: PermissionHistoryRow) => row.full_name,
     },
     {
       key: "type",
@@ -29,6 +26,16 @@ export function PermissionTable({
           {PERMISSION_TYPE_LABEL[row.type] ?? row.type}
         </span>
       ),
+    },
+    {
+      key: "amount_days",
+      label: "Cantidad de días",
+      render: (row: PermissionHistoryRow) => row.amount_days,
+    },
+    {
+      key: "description",
+      label: "Descripción",
+      render: (row: PermissionHistoryRow) => row.description ?? "—",
     },
     {
       key: "start_date",
@@ -71,18 +78,18 @@ export function PermissionTable({
       ),
     },
     {
-      key: "approved_by",
-      label: "Aprobado por",
+      key: "first_step_status_reviewed_by",
+      label: "Aprobado por primer paso",
       render: (row: PermissionHistoryRow) =>
-        row.approved_by ?? (
+        row.first_step_status_reviewed_by ?? (
           <span className="text-neutral-400 dark:text-neutral-500">—</span>
         ),
     },
     {
       key: "rejected_by",
-      label: "Rechazado por",
+      label: "Aprobado por segundo paso",
       render: (row: PermissionHistoryRow) =>
-        row.rejected_by ?? (
+        row.second_step_status_reviewed_by ?? (
           <span className="text-neutral-400 dark:text-neutral-500">—</span>
         ),
     },
@@ -133,6 +140,7 @@ export function PermissionTable({
       data={data}
       columns={columns}
       rowClassName=""
+      pagination={pagination}
     />
   );
 }

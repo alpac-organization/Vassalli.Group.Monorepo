@@ -135,6 +135,10 @@ export const sidebarData = {
         collaboratorProfileSection,
         permissionManagementSection,
       ],
+      [RoleEnum.MANAGER]: [
+        collaboratorProfileSection,
+        permissionManagementSection,
+      ],
     },
     /*  [ModuleEnum.APPLICATIONS]: {
        [RoleEnum.MANAGER]: [applicationSection],

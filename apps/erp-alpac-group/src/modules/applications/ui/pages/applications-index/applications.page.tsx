@@ -113,7 +113,6 @@ export const ApplicationsPage = function () {
       GetApplicationDetailQuery.data,
     ],
   );
-
   const isLoading =
     GetApplicationsQuery.isLoading || GetApplicationDetailQuery.isLoading;
 

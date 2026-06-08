@@ -51,7 +51,7 @@ export function NewPermissionRequestModal({
       return ChannelEnum.PersonalPanel;
     }
     if (isManager && managerTarget === "other") {
-      return ChannelEnum.DirectManagerPanel;
+      return ChannelEnum.PersonalPanel;
     }
     return ChannelEnum.AdministrativePanel;
   }, [isOperator, isManager, managerTarget]);
@@ -71,6 +71,14 @@ export function NewPermissionRequestModal({
     };
   }, [isOpen]);
 
+  const handleValidationError = useCallback(
+    (message: string) => {
+      onRequestError?.(message);
+      onClose?.();
+    },
+    [onRequestError, onClose],
+  );
+
   const handlePermissionSubmit = (payload: CreatePermissionRequestBase) => {
     createPermissionRequestMutation.mutate(payload, {
       onSuccess: () => {
@@ -82,6 +90,7 @@ export function NewPermissionRequestModal({
         onRequestError?.(
           apiError.error?.description ?? "Ocurrió un error inesperado.",
         );
+        onClose?.();
       },
     });
   };
@@ -113,22 +122,33 @@ export function NewPermissionRequestModal({
   const showPermissionForm = useMemo(() => {
     if (isOperator) return true;
     if (isManager && managerTarget === "self") return true;
-    if (isManager && managerTarget === "other" && foundCollaborator) return true;
+    if (isManager && managerTarget === "other" && foundCollaborator)
+      return true;
     if (isAdministrator && foundCollaborator) return true;
     return false;
-  }, [isOperator, isManager, isAdministrator, managerTarget, foundCollaborator]);
+  }, [
+    isOperator,
+    isManager,
+    isAdministrator,
+    managerTarget,
+    foundCollaborator,
+  ]);
 
   const showSelfSummary =
-    isOperator ||
-    (isManager && managerTarget === "self") ||
-    isAdministrator;
+    isOperator || (isManager && managerTarget === "self") || isAdministrator;
 
   const displayFullName = useMemo(() => {
     if (isOperator || (isManager && managerTarget === "self")) {
       return collaboratorFullName ?? "";
     }
     return foundCollaborator?.full_name ?? "";
-  }, [isOperator, isManager, managerTarget, collaboratorFullName, foundCollaborator]);
+  }, [
+    isOperator,
+    isManager,
+    managerTarget,
+    collaboratorFullName,
+    foundCollaborator,
+  ]);
 
   const displayWorkPosition = useMemo(() => {
     if (isOperator || (isManager && managerTarget === "self")) {
@@ -266,10 +286,11 @@ export function NewPermissionRequestModal({
               )}
 
               <NewPermissionRequestForm
-                payrollId={payrollId ?? ""}
+                payrollId={payrollId}
                 isPending={createPermissionRequestMutation.isPending}
                 onSubmit={handlePermissionSubmit}
                 onCancel={() => onClose?.()}
+                onValidationError={handleValidationError}
                 companyId={companyId}
                 moduleCode={moduleCode}
                 identificationNumber={targetIdentification}

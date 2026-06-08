@@ -2,7 +2,7 @@ import type { IHttpHandler } from "@app/core/ports";
 import type { IPermissionRequestServices } from "@app/modules/payroll/application/interfaces/permission-interfaces/IPermissionServices";
 import type { CreatePermissionRequestBase } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
 import type { PermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
-import type { PermissionResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/permission-history-response";
+import type { PermissionListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/permission-history-response";
 import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/cancel-permission-request";
 import type { GeneratePermissionDocumentRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/generate-permission-docs-request";
 import { cleanParams } from "@app/shared/utils/object.utils";
@@ -23,6 +23,7 @@ export class PermissionServices implements IPermissionRequestServices {
         `companies/${company_id}/modules/${module_code}/permit-applications`,
         body,
       );
+      console.log(response);
       return response;
     } catch (error) {
       throw error;
@@ -31,11 +32,11 @@ export class PermissionServices implements IPermissionRequestServices {
 
   public async getPermissions(
     payload: PermissionRequest,
-  ): Promise<PermissionResponse[]> {
+  ): Promise<PermissionListResponse> {
     try {
       const { companie_id, module_code, ...queryParams } = payload;
       const params = cleanParams(queryParams);
-      const response = await this.apiHandler.get<PermissionResponse[]>(
+      const response = await this.apiHandler.get<PermissionListResponse>(
         `/companies/${companie_id}/modules/${module_code}/permit-applications`,
         { params },
       );

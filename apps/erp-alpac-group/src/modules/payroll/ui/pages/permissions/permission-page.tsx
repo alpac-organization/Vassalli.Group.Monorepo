@@ -4,11 +4,17 @@ import {
   Banner,
   Breadcrumb,
   Button,
+  Pagination,
+  RadioButton,
 } from "@alpac/design-system";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarPlus } from "lucide-react";
-import { m, LazyMotion } from "framer-motion";
+import { CalendarPlus, ArrowLeft } from "lucide-react";
+import { m, LazyMotion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { RoleEnum } from "@app/core/enums/role.enum";
+import { CollaboratorSearchForm } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form";
+import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
+import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 import type {
   PermissionRequest,
   PermissionHistoryRow,
@@ -46,10 +52,37 @@ import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
 
+const maxPageSize = 5;
+
+type ViewTarget = "self" | "other";
+
 export default function PermissionsPage() {
   const navigate = useNavigate();
-  const { companyId, moduleCode, identificationNumber, fullName } =
+  const { companyId, moduleCode, identificationNumber, fullName, role } =
     useUserStore();
+
+  const isManager = role === RoleEnum.MANAGER;
+
+  const [viewTarget, setViewTarget] = useState<ViewTarget>("self");
+  const [foundCollaborator, setFoundCollaborator] =
+    useState<GetCollaboratorProfileDetailsResponse | null>(null);
+
+  const effectiveIdentification = useMemo(() => {
+    if (isManager && viewTarget === "other" && foundCollaborator) {
+      return (
+        foundCollaborator.personal_information?.identification_number ??
+        identificationNumber
+      );
+    }
+    return identificationNumber;
+  }, [isManager, viewTarget, foundCollaborator, identificationNumber]);
+
+  const effectiveFullName = useMemo(() => {
+    if (isManager && viewTarget === "other" && foundCollaborator) {
+      return foundCollaborator.full_name ?? fullName;
+    }
+    return fullName;
+  }, [isManager, viewTarget, foundCollaborator, fullName]);
 
   const [filterDraft, setFilterDraft] =
     useState<VacationStatusFilterValue>("all");
@@ -59,16 +92,16 @@ export default function PermissionsPage() {
   const [typeDraft, setTypeDraft] = useState<PermissionTypeFilterValue>("all");
   const [appliedType, setAppliedType] =
     useState<PermissionTypeFilterValue>("all");
+  const [pageNumber, setPageNumber] = useState(1);
 
-  // aqui se obtiene aqui los datos necesarios para consultar el saldo de vacaciones del colaborador actual,
   const vacationSaldoPayload = useMemo<UseVacationPayload | undefined>(() => {
-    if (!companyId || !moduleCode || !identificationNumber) return undefined;
+    if (!companyId || !moduleCode || !effectiveIdentification) return undefined;
     return {
       company_id: companyId,
       module_code: moduleCode,
-      identification_number: identificationNumber,
+      identification_number: effectiveIdentification,
     };
-  }, [companyId, moduleCode, identificationNumber]);
+  }, [companyId, moduleCode, effectiveIdentification]);
 
   const saldoContextReady = Boolean(vacationSaldoPayload);
 
@@ -77,19 +110,30 @@ export default function PermissionsPage() {
     return {
       companie_id: companyId,
       module_code: moduleCode,
-      // identification_number: identificationNumber,
-      page_size: 10,
-      page_number: 1,
+      identification_number: effectiveIdentification,
+      page_size: maxPageSize,
+      page_number: pageNumber,
       ...(appliedStatus !== "all" && { status: appliedStatus }),
       ...(appliedType !== "all" && { type: appliedType }),
     };
-  }, [companyId, moduleCode, identificationNumber, appliedStatus, appliedType]);
+  }, [
+    companyId,
+    moduleCode,
+    effectiveIdentification,
+    appliedStatus,
+    appliedType,
+    pageNumber,
+  ]);
+
+  useEffect(() => {
+    setPageNumber(1);
+  }, [effectiveIdentification]);
 
   const { GetProfileDetails } = useCollaborators({
     CollaboratorDetailsPayload: {
       company_id: companyId,
       module_code: moduleCode,
-      identification_number: identificationNumber ?? "",
+      identification_number: effectiveIdentification ?? "",
     },
   });
   const {
@@ -138,7 +182,7 @@ export default function PermissionsPage() {
       isLoading: GetProfileDetails.isPending,
       datos: GetProfileDetails.data,
     };
-    // aqui se Retorna el estado listo para usar en la UI para las secciones de saldo de vacaciones
+    //  se Retorna el estado listo para usar en la UI para las secciones de saldo de vacaciones
     // y detalles del colaborador en el modal de nueva solicitud, como nombre y puesto de trabajo.
     return {
       uiSaldoVacaciones: derivarUiSaldoVacaciones(
@@ -149,7 +193,7 @@ export default function PermissionsPage() {
         saldoContextReady,
         querySaldoVacation,
         queryPerfilVacation,
-        fullName,
+        effectiveFullName,
       ),
     };
   }, [
@@ -159,7 +203,7 @@ export default function PermissionsPage() {
     GetVacationSaldoQuery.data,
     GetProfileDetails.isPending,
     GetProfileDetails.data,
-    fullName,
+    effectiveFullName,
   ]);
 
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
@@ -192,24 +236,39 @@ export default function PermissionsPage() {
   }, []);
 
   const handleRequestError = useCallback((description: string) => {
+    setIsNewRequestOpen(false);
     setAlertState({ open: true, type: "error", message: description });
-    handleCloseAlert();
   }, []);
 
-  const handleCloseAlert = useCallback(() => {
-    setTimeout(() => {
-      setAlertState({ open: false, type: "success", message: "" });
-    }, 3000);
-  }, []);
+  //   const filteredRows = useMemo<PermissionHistoryRow[]>(() => {
+  //     const items = GetPermissionHistory.data;
+  //     if (!Array.isArray(items) || items.length === 0) return [];
+  //     const collaboratorName =
+  //       GetVacationSaldoQuery.data?.full_name?.trim() || fullName || "";
+  //     return items.map((item) => ({
+  //       id: item.permit_apllication_id,
+  //       full_name: collaboratorName,
+  //       type: item.type,
+  //       start_date: item.start_date,
+  //       end_date: item.end_date,
+  //       /* start_time: item.type !== "Vacation" ? item.start_time || null : null,
+  //             end_time: item.type !== "Vacation" ? item.end_time || null : null, */
+  //       start_time: item.start_time || null,
+  //       end_time: item.end_time || null,
+  //       status: item.status,
+  //       // approved_by: item.approved_by || undefined,
+  //       // rejected_by: item.rejected_by || undefined,
+  //     }));
+  //   }, [GetPermissionHistory.data, GetVacationSaldoQuery.data, fullName]);
 
   const filteredRows = useMemo<PermissionHistoryRow[]>(() => {
-    const items = GetPermissionHistory.data;
-    if (!Array.isArray(items) || items.length === 0) return [];
-    const collaboratorName =
-      GetVacationSaldoQuery.data?.full_name?.trim() || fullName || "";
+    const items = GetPermissionHistory.data?.data ?? [];
+    if (items.length === 0) return [];
     return items.map((item) => ({
       id: item.permit_apllication_id,
-      full_name: collaboratorName,
+      full_name: item.full_name ?? "",
+      collaborator_id: item.collaborator_id,
+      description: item.description,
       type: item.type,
       start_date: item.start_date,
       end_date: item.end_date,
@@ -218,14 +277,15 @@ export default function PermissionsPage() {
       start_time: item.start_time || null,
       end_time: item.end_time || null,
       status: item.status,
-      // approved_by: item.approved_by || undefined,
-      // rejected_by: item.rejected_by || undefined,
+      first_step_status_reviewed_by: item.first_step_status.reviewed_by,
+      second_step_status_reviewed_by: item.second_step_status.reviewed_by,
+      amount_days: item.amount_days,
     }));
-  }, [GetPermissionHistory.data, GetVacationSaldoQuery.data, fullName]);
-
+  }, [GetPermissionHistory.data]);
   const handleApplyFilters = useCallback(() => {
     setAppliedStatus(filterDraft);
     setAppliedType(typeDraft);
+    setPageNumber(1);
   }, [filterDraft, typeDraft]);
 
   const handleClearFilters = useCallback(() => {
@@ -233,11 +293,16 @@ export default function PermissionsPage() {
     setAppliedStatus("all");
     setTypeDraft("all");
     setAppliedType("all");
+    setPageNumber(1);
+  }, []);
+
+  const handlePageChange = useCallback((page: number) => {
+    setPageNumber(page);
   }, []);
 
   const handleViewDetails = useCallback(
     (row: PermissionHistoryRow) => {
-      const item = GetPermissionHistory.data?.find(
+      const item = GetPermissionHistory.data?.data?.find(
         (i) => String(i.permit_apllication_id) === String(row.id),
       );
       if (!item) return;
@@ -313,7 +378,7 @@ export default function PermissionsPage() {
     [
       companyId,
       moduleCode,
-      identificationNumber,
+      effectiveIdentification,
       cancelPermissionRequestMutation,
     ],
   );
@@ -402,6 +467,85 @@ export default function PermissionsPage() {
           collaboratorDisplayName={balanceVacation.nombreColaboradorParaMostrar}
         />
 
+        {isManager && (
+          <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600 mb-2">
+            <h4 className="mb-4 pb-4 text-sm font-medium text-black dark:text-white">
+              ¿De quién deseas ver la información?
+            </h4>
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-6 mb-4">
+              <RadioButton
+                name="page-view-target"
+                value="self"
+                checked={viewTarget === "self"}
+                onChange={() => {
+                  setViewTarget("self");
+                  setFoundCollaborator(null);
+                }}
+                label="Mis permisos"
+              />
+              <RadioButton
+                name="page-view-target"
+                value="other"
+                checked={viewTarget === "other"}
+                onChange={() => setViewTarget("other")}
+                label="Permisos de un colaborador"
+              />
+            </div>
+
+            <AnimatePresence mode="wait">
+              {viewTarget === "other" && !foundCollaborator && (
+                <m.div
+                  key="search-form"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <CollaboratorSearchForm
+                    onSuccess={(collaborator) => {
+                      setFoundCollaborator(collaborator);
+                    }}
+                    onError={() => {
+                      setFoundCollaborator(null);
+                    }}
+                    onSearchStart={() => {}}
+                    excludeIdentifications={[identificationNumber]}
+                  />
+                </m.div>
+              )}
+
+              {viewTarget === "other" && foundCollaborator && (
+                <m.div
+                  key="collaborator-summary"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="flex flex-col sm:flex-row sm:items-center gap-4 mt-2"
+                >
+                  <div className="flex-1">
+                    <CollaboratorSummary
+                      fullName={foundCollaborator.full_name ?? ""}
+                      workPosition={foundCollaborator.work_position ?? ""}
+                      title="Colaborador Seleccionado"
+                      subtitle="Puesto de Trabajo"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    size="small"
+                    icon={<ArrowLeft size={16} />}
+                    label="Volver a mis permisos"
+                    className="shrink-0 text-[13px]! bg-transparent! border! border-slate-500! text-slate-700! dark:border-slate-500! dark:text-slate-300!"
+                    onClick={() => {
+                      setViewTarget("self");
+                      setFoundCollaborator(null);
+                    }}
+                  />
+                </m.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
+
         <NewPermissionRequestModal
           isOpen={isNewRequestOpen}
           onClose={() => setIsNewRequestOpen(false)}
@@ -477,6 +621,15 @@ export default function PermissionsPage() {
           onViewDetails={handleViewDetails}
           //  onGenerateDocument={handleGenerateDocument}
           onCancelRequest={handleCancellVacation}
+          pagination={
+            <Pagination
+              currentPage={GetPermissionHistory.data?.page_number ?? 0}
+              pageSize={GetPermissionHistory.data?.page_size ?? 0}
+              totalRecords={GetPermissionHistory.data?.total ?? 0}
+              onPageChange={handlePageChange}
+              disabled={GetPermissionHistory.isFetching}
+            />
+          }
         />
       </m.div>
 
