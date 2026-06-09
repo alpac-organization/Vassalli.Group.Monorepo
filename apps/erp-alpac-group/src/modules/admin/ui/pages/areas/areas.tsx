@@ -74,18 +74,18 @@ export function AreasPage() {
   }, []);
 
   const canSubmitCreate =
-    Boolean(companyId && createName.trim() && createDescription.trim()) &&
-    !CreateArea.isPending;
+    Boolean(companyId && createName.trim()) && !CreateArea.isPending;
 
   const handleConfirmCreate = useCallback(() => {
-    if (!companyId || !createName.trim() || !createDescription.trim()) {
+    if (!companyId || !createName.trim()) {
       return;
     }
+    const trimmedDescription = createDescription.trim();
     CreateArea.mutate(
       {
         company_id: companyId,
         work_area_name: createName.trim(),
-        description: createDescription.trim(),
+        ...(trimmedDescription ? { description: trimmedDescription } : {}),
       },
       {
         onSuccess: () => {
@@ -157,8 +157,7 @@ export function AreasPage() {
           />
           <InputText
             label="Descripción"
-            placeholder="Ingrese una descripción"
-            isRequired
+            placeholder="Ingrese una descripción (opcional)"
             value={createDescription}
             onChange={(e) => setCreateDescription(e.target.value)}
             labelClassName="text-black! dark:text-white!"

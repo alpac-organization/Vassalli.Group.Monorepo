@@ -1,30 +1,30 @@
-import type {
-  CreateIncomeFormProps,
-  IncomeTypeOption,
-} from "./create-income-form.types";
+import { X } from "lucide-react";
 import { FormProvider, Controller, useForm } from "react-hook-form";
 import { Button, Dropdown } from "@alpac/design-system";
-import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useIncomes } from "@app/modules/payroll/ui/hooks/incomes/useIncomes";
 import { IncomeTypeEnum } from "@app/modules/payroll/domain/enums/income-enums/income.enum";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
-import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response";
-import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { Bonus } from "@app/modules/payroll/ui/pages/nomina/components/incomes/bonus/bonus";
 import { Commission } from "@app/modules/payroll/ui/pages/nomina/components/incomes/commission/commission";
 import { CollaboratorSearchForm } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form";
-import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
 import { AddSubsidyForm } from "@app/modules/payroll/ui/pages/nomina/components/subsidies/add-subsidy-form/add-subsidy-form";
-import { X } from "lucide-react";
 import { FileUploader } from "@app/shared/components/file-uploader/file-uploader";
+
 import {
   parseOvertimeIncomeExcel,
   validateOvertimeIncomePayload,
 } from "@app/modules/payroll/ui/pages/nomina/components/incomes/utils/parse-overtime-income-excel";
+
+import type { CreateIncomeFormProps, IncomeTypeOption } from "./create-income-form.types";
+import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
+import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 
 const inputClassName =
   "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -81,6 +81,7 @@ export const CreateIncomeForm = ({
   const INCOMES_TYPES = [
     IncomeTypeEnum.INCOME_OVERTIME,
     IncomeTypeEnum.INCOME_COMMISSION,
+    IncomeTypeEnum.INCOME_BONUS
   ] as IncomeTypeEnum[];
 
   const { GetIncomeTypes, CreateIncome } = useIncomes({
@@ -123,12 +124,11 @@ export const CreateIncomeForm = ({
     return allIncomeTypeOptions.find((opt) => opt.id === incomeTypeId)?.code;
   }, [incomeTypeId, allIncomeTypeOptions]);
 
-  const isOvertimeType =
-    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME;
-  const isCommissionType =
-    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION;
+  const isOvertimeType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME;
+  const isCommissionType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION;
+  const isBonusType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_BONUS;
   const isSubsidyType = selectedIncomeTypeCode === SUBSIDY_TYPE_CODE;
-  const needsCollaborator = isCommissionType || isSubsidyType;
+  const needsCollaborator = isCommissionType || isBonusType || isSubsidyType;
 
   useEffect(() => {
     methods.setValue("payroll_id", payrollId);
@@ -201,7 +201,7 @@ export const CreateIncomeForm = ({
       return;
     }
 
-    const { overtime_income_data, commissions_payload, ...rest } = data;
+    const { overtime_income_data, commissions_payload, bonus_payload, ...rest } = data;
 
     if (isOvertimeType) {
       const validated = validateOvertimeIncomePayload(overtime_income_data);
@@ -241,6 +241,7 @@ export const CreateIncomeForm = ({
     }
 
     if (isCommissionType) {
+
       const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
       const identificationNumberValue = collaboratorIdentification
@@ -274,6 +275,43 @@ export const CreateIncomeForm = ({
         },
       );
     }
+
+    if (isBonusType) {
+
+      const collaboratorIdentification =
+        foundCollaborator?.personal_information?.identification_number ?? "";
+
+      const identificationNumberValue =
+        collaboratorIdentification.replace(/-/g, "").toUpperCase();
+
+      await CreateIncome.mutateAsync(
+        {
+          company_id: rest.company_id,
+          module_code: rest.module_code,
+          branch_id: rest.branch_id,
+          payroll_id: rest.payroll_id,
+          type_income_id: rest.type_income_id,
+          bonus_payload: {
+            currency: Number(bonus_payload?.currency) || 0,
+            bonus_amount:
+              Number(bonus_payload?.bonus_amount) || 0,
+            identification_number: identificationNumberValue,
+          },
+        },
+        {
+          onSuccess: () => {
+            onRequestSuccess?.("Ingreso registrado correctamente");
+          },
+          onError: (error: ApiErrorResponse) => {
+            const mappedError = getMappedError(error);
+            onRequestError?.(
+              mappedError.description || "Error al registrar el ingreso",
+            );
+          },
+        },
+      );
+    }
+
   };
 
   const hasOvertimeData =
@@ -450,7 +488,7 @@ export const CreateIncomeForm = ({
 
           <LazyMotion features={loadMotionFeatures} strict>
             <AnimatePresence initial={false}>
-              {!!foundCollaborator && isCommissionType && (
+              {!!foundCollaborator && (isCommissionType || isBonusType) && (
                 <m.div
                   key="commission-fields"
                   initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
@@ -467,7 +505,8 @@ export const CreateIncomeForm = ({
                     y: { duration: 0.28, ease: "easeOut", delay: 0.08 },
                   }}
                 >
-                  <Commission />
+                  {isCommissionType && <Commission />}
+                  {isBonusType && <Bonus />}
                 </m.div>
               )}
             </AnimatePresence>
