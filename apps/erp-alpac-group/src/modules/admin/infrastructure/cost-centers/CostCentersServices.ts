@@ -26,7 +26,13 @@ export class CostCentersServices implements ICostCentersServices {
     payload: CreateCostCenterRequest,
   ): Promise<void> {
     try {
-      const { company_id, area_id, ...body } = payload;
+      const { company_id, area_id, cost_center_name, coil_code, description } =
+        payload;
+      const body = {
+        cost_center_name,
+        coil_code,
+        ...(description?.trim() ? { description: description.trim() } : {}),
+      };
       const costCenter = await this.apiHandler.post<void>(
         `/companies/${company_id}/areas/${area_id}/cost-centers`,
         body,
