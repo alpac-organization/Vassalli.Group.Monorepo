@@ -5,6 +5,7 @@ export type PermissionStatus =
   | "Cancelled";
 
 import type { PermissionType } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
+import type { StepStatus } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/permission-history-response";
 
 export type PermissionRequest = {
   module_code: string;
@@ -57,8 +58,8 @@ export type PermissionHistoryRow = {
   collaborator_id: string;
   full_name: string;
   description?: string;
-  first_step_status_reviewed_by?: string;
-  second_step_status_reviewed_by?: string;
+  first_step_status_reviewed_by?: StepStatus;
+  second_step_status_reviewed_by?: StepStatus;
   type: PermissionType;
   amount_days?: number;
   start_date: string;
