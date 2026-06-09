@@ -16,7 +16,9 @@ interface useIncomesProps {
 }
 
 export function useIncomes(props?: useIncomesProps) {
+
   const queryClient = useQueryClient();
+
   const GetIncomeTypes = useQuery<IncomeTypesResponse, ApiErrorResponse>({
     queryKey: ["incomes-types", props?.incomesTypesPayload],
     queryFn: () => incomeServices.GetIncomesTypes(props!.incomesTypesPayload!),
@@ -28,8 +30,7 @@ export function useIncomes(props?: useIncomesProps) {
 
   const CreateIncome = useMutation<void, ApiErrorResponse, CreateIncomeRequest>(
     {
-      mutationFn: (payload: CreateIncomeRequest) =>
-        incomeServices.CreateIncome(payload),
+      mutationFn: (payload: CreateIncomeRequest) => incomeServices.CreateIncome(payload),
       onSuccess: (_data, variables) => {
         queryClient.invalidateQueries({
           queryKey: [
