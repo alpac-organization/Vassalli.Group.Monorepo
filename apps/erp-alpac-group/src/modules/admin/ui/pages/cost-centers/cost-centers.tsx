@@ -46,6 +46,7 @@ export function CostCentersPage() {
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [createName, setCreateName] = useState("");
+  const [createCoilCode, setCreateCoilCode] = useState("");
   const [createDescription, setCreateDescription] = useState("");
 
   const [pageNumber, setPageNumber] = useState(1);
@@ -127,6 +128,7 @@ export function CostCentersPage() {
 
   const handleOpenCreate = useCallback(() => {
     setCreateName("");
+    setCreateCoilCode("");
     setCreateDescription("");
     setIsCreateModalOpen(true);
   }, []);
@@ -178,29 +180,35 @@ export function CostCentersPage() {
       companyId &&
       selectedAreaId &&
       createName.trim() &&
-      createDescription.trim(),
+      createCoilCode.trim() &&
+      !Number.isNaN(Number(createCoilCode)),
     ) && !createCostCenter.isPending;
 
   const handleConfirmCreate = useCallback(() => {
+    const coilCode = Number(createCoilCode.trim());
     if (
       !companyId ||
       !selectedAreaId ||
       !createName.trim() ||
-      !createDescription.trim()
+      !createCoilCode.trim() ||
+      Number.isNaN(coilCode)
     ) {
       return;
     }
+    const trimmedDescription = createDescription.trim();
     createCostCenter.mutate(
       {
         company_id: companyId,
         area_id: selectedAreaId,
         cost_center_name: createName.trim(),
-        description: createDescription.trim(),
+        coil_code: coilCode,
+        ...(trimmedDescription ? { description: trimmedDescription } : {}),
       },
       {
         onSuccess: () => {
           setIsCreateModalOpen(false);
           setCreateName("");
+          setCreateCoilCode("");
           setCreateDescription("");
           setPageNumber(1);
         },
@@ -208,6 +216,7 @@ export function CostCentersPage() {
     );
   }, [
     companyId,
+    createCoilCode,
     createCostCenter,
     createDescription,
     createName,
@@ -284,9 +293,18 @@ export function CostCentersPage() {
             className="rounded-md! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
           />
           <InputText
-            label="Descripción"
-            placeholder="Ingrese una descripción"
+            label="Código COIl"
+            placeholder="Ingrese el código COIl"
+            type="number"
             isRequired
+            value={createCoilCode}
+            onChange={(e) => setCreateCoilCode(e.target.value)}
+            labelClassName="text-black! dark:text-white!"
+            className="rounded-md! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+          />
+          <InputText
+            label="Descripción"
+            placeholder="Ingrese una descripción (opcional)"
             value={createDescription}
             onChange={(e) => setCreateDescription(e.target.value)}
             labelClassName="text-black! dark:text-white!"

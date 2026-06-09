@@ -5,7 +5,7 @@ import { AreasPage } from "@app/modules/admin/ui/pages/areas/areas";
 export const AdminRoutes: RouteObject[] = [
   {
     index: true,
-    element: <UsuarioPage />,
+    element: <CostCentersPage />,
   },
   {
     path: "cost-centers",
