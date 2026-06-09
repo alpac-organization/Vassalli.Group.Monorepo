@@ -54,15 +54,21 @@ export interface CreateIncomeRequest {
    */
   description?: string;
 
-  overtime_income_data?: CreateIncomeOvertimeRequest[];
   /**
    * Payload de horas extra
    */
+  overtime_income_data?: CreateIncomeOvertimeRequest[];
 
   /**
    * Payload de comisiones
    */
   commissions_payload?: CreateIncomeCommissionRequest;
+
+  /**
+   * Payload de bonos
+   */
+
+  bonus_payload?: CreateIncomeBonusRequest;
 }
 
 export interface CreateIncomeOvertimeRequest {
@@ -91,4 +97,23 @@ export interface CreateIncomeCommissionRequest {
    * Número de identificación del colaborador
    */
   identification_number?: string;
+}
+
+export interface CreateIncomeBonusRequest {
+
+  /**
+   * Código de la moneda
+   */
+  currency: number;
+
+  /**
+   * Monto del bono
+   */
+  bonus_amount: number;
+
+  /**
+   * Número de identificación del colaborador
+   */
+  identification_number?: string;
+
 }
