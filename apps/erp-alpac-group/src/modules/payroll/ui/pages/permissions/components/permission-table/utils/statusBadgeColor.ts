@@ -1,7 +1,6 @@
-import type { PermissionHistoryRow } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-history-request";
-export function statusBadgeColor(
-  status: PermissionHistoryRow["status"],
-): string {
+import type { PermissionStatus } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
+
+export function statusBadgeColor(status: PermissionStatus): string {
   switch (status) {
     case "Approved":
       return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200";

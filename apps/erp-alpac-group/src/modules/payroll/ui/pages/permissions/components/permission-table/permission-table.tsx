@@ -8,8 +8,9 @@ import { getPermissionStatusUiLabel } from "@app/modules/payroll/ui/pages/permis
 import { PERMISSION_TYPE_LABEL } from "@app/modules/payroll/ui/pages/permissions/constants/permission-filters.constants";
 import { formatVacationDate } from "@app/modules/payroll/ui/pages/permissions/utils/format-vacation-date";
 import type { PermissionTableProps } from "@app/modules/payroll/ui/pages/permissions/components/permission-table/types/permission-table.type";
-import type { PermissionHistoryRow } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
+import type { PermissionResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/permission-history-response";
 import { statusBadgeColor } from "@app/modules/payroll/ui/pages/permissions/components/permission-table/utils/statusBadgeColor";
+import { formatTimeOrDash } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-details/utils/validate.details-content";
 
 export function PermissionTable({
   data,
@@ -21,12 +22,12 @@ export function PermissionTable({
     {
       key: "full_name",
       label: "Nombre completo",
-      render: (row: PermissionHistoryRow) => row.full_name,
+      render: (row: PermissionResponse) => row.full_name ?? "—",
     },
     {
       key: "type",
       label: "Tipo",
-      render: (row: PermissionHistoryRow) => (
+      render: (row: PermissionResponse) => (
         <span className="text-neutral-700 dark:text-neutral-300">
           {PERMISSION_TYPE_LABEL[row.type] ?? row.type}
         </span>
@@ -35,47 +36,41 @@ export function PermissionTable({
     {
       key: "amount_days",
       label: "Cantidad de días",
-      render: (row: PermissionHistoryRow) => row.amount_days,
+      render: (row: PermissionResponse) => row.amount_days ?? "—",
     },
     {
       key: "description",
       label: "Descripción",
-      render: (row: PermissionHistoryRow) => row.description ?? "—",
+      render: (row: PermissionResponse) => row.description ?? "—",
     },
     {
       key: "start_date",
       label: "Fecha inicio",
-      render: (row: PermissionHistoryRow) => formatVacationDate(row.start_date),
+      render: (row: PermissionResponse) => formatVacationDate(row.start_date),
     },
     {
       key: "end_date",
       label: "Fecha fin",
-      render: (row: PermissionHistoryRow) => formatVacationDate(row.end_date),
+      render: (row: PermissionResponse) => formatVacationDate(row.end_date),
     },
     {
       key: "start_time",
       label: "Hora inicio",
-      render: (row: PermissionHistoryRow) =>
-        row.type === "Vacation" ? (
-          <span className="text-neutral-400 dark:text-neutral-500">—</span>
-        ) : (
-          <span>{row.start_time ?? "—"}</span>
-        ),
+      render: (row: PermissionResponse) => (
+        <span>{formatTimeOrDash(row.start_time)}</span>
+      ),
     },
     {
       key: "end_time",
       label: "Hora fin",
-      render: (row: PermissionHistoryRow) =>
-        row.type === "Vacation" ? (
-          <span className="text-neutral-400 dark:text-neutral-500">—</span>
-        ) : (
-          <span>{row.end_time ?? "—"}</span>
-        ),
+      render: (row: PermissionResponse) => (
+        <span>{formatTimeOrDash(row.end_time)}</span>
+      ),
     },
     {
       key: "status",
       label: "Estado",
-      render: (row: PermissionHistoryRow) => (
+      render: (row: PermissionResponse) => (
         <Badges
           label={getPermissionStatusUiLabel(row.status)}
           color={statusBadgeColor(row.status)}
@@ -85,29 +80,24 @@ export function PermissionTable({
     {
       key: "first_step_status_reviewed_by",
       label: "Aprobado por primer paso",
-      render: (row: PermissionHistoryRow) =>
-        row.first_step_status_reviewed_by ?? (
+      render: (row: PermissionResponse) =>
+        row.first_step_status.reviewed_by ?? (
           <span className="text-neutral-400 dark:text-neutral-500">—</span>
         ),
     },
     {
-      key: "rejected_by",
+      key: "second_step_status_reviewed_by",
       label: "Aprobado por segundo paso",
-      render: (row: PermissionHistoryRow) => {
-        console.log("row", row);
-        return (
-          row.second_step_status_reviewed_by ?? (
-            <span className="text-neutral-400 dark:text-neutral-500">—</span>
-          )
-        );
-      },
+      render: (row: PermissionResponse) =>
+        row.second_step_status.reviewed_by ?? (
+          <span className="text-neutral-400 dark:text-neutral-500">—</span>
+        ),
     },
     {
       key: "actions",
       label: "Acciones",
-      render: (row: PermissionHistoryRow) => {
+      render: (row: PermissionResponse) => {
         const canCancel = row.status === "Pending";
-        //   const canGenerateDocument = row.status === "Pending";
         return (
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -127,16 +117,6 @@ export function PermissionTable({
                 className="text-[13px]! bg-white! text-alpac-primary-600! border! border-alpac-primary-500! dark:bg-transparent! dark:text-alpac-primary-400! dark:border-alpac-primary-500! hover:scale-[1.03] transition-transform duration-150 disabled:opacity-50 disabled:pointer-events-none"
               />
             )}
-            {/* {canGenerateDocument && (
-              <Button
-                type="button"
-                size="small"
-                label="Generar documento"
-                disabled={!canGenerateDocument}
-                onClick={() => onGenerateDocument?.(row)}
-                className="text-[13px]! bg-white! text-alpac-primary-600! border! border-alpac-primary-500! dark:bg-transparent! dark:text-alpac-primary-400! dark:border-alpac-primary-500! hover:scale-[1.03] transition-transform duration-150 disabled:opacity-50 disabled:pointer-events-none"
-              />
-            )} */}
           </div>
         );
       },
@@ -147,7 +127,7 @@ export function PermissionTable({
     <DataTable
       title="Solicitudes de permisos"
       data={data}
-      columns={columns as TableColumn<PermissionHistoryRow>[]}
+      columns={columns as TableColumn<PermissionResponse>[]}
       rowClassName=""
       pagination={pagination}
     />

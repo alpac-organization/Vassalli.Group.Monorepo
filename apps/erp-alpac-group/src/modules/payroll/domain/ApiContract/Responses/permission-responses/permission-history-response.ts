@@ -25,9 +25,21 @@ export interface PermissionResponse {
 }
 
 export interface StepStatus {
-  is_approved: boolean;
+  is_approved: boolean | null;
   reviewed_by?: string;
 }
+
+export type PermissionAdditionalData = {
+  MedicalAppointmentData?: {
+    IsFullDay?: boolean;
+    ImagesAttached?: unknown[];
+  };
+  VacationData?: {
+    IsFullDay?: boolean;
+    IsItMidday?: boolean;
+    WithRangeHours?: boolean;
+  };
+};
 
 export interface PermissionListResponse {
   data: PermissionResponse[];
