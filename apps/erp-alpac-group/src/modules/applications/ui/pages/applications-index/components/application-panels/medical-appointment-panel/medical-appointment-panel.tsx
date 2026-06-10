@@ -11,9 +11,8 @@ export const MedicalAppointmentPanel = ({
   const isMedicalAppointment = application.type === "MedicalAppointment";
   //   const hasImages = (application.?.length ?? 0) > 0;
   const isFullDay =
-    application.amount_days ||
+    (application.amount_days ?? 0) > 1 ||
     (!application.start_time && !application.end_time);
-
   return (
     <>
       {isMedicalAppointment && !!application.start_date && (

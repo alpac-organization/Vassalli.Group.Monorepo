@@ -6,7 +6,10 @@ import type { VacationPanelProps } from "./vacation-panel.types";
 
 export const VacationPanel = ({ application }: VacationPanelProps) => {
   const { start_date, end_date, start_time, end_time } = application;
-
+  const isFullDay =
+    (application.amount_days ?? 0) > 1 &&
+    !application.start_time &&
+    !application.end_time;
   return (
     <>
       {application.type === "Vacation" && !!start_date && (
@@ -22,6 +25,18 @@ export const VacationPanel = ({ application }: VacationPanelProps) => {
         </div>
       )}
 
+      {application.type === "Vacation" && isFullDay && (
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+            Jornada
+          </span>
+          <div className="flex flex-col">
+            <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
+              Día completo
+            </span>
+          </div>
+        </div>
+      )}
       {application.type === "Vacation" && !!end_date && (
         <div className="flex flex-col gap-1">
           <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
