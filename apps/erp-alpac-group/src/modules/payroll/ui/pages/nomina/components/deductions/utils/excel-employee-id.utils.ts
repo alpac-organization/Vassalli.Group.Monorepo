@@ -1,7 +1,7 @@
 const EMPLOYEE_ID_PATTERN = /^[0-9A-Z]{3,}$/;
 
 const EXCEL_HEADER_LABEL =
-  /^(id\s*empleado|idempleado|identificaci[oó]n|cedula|c[eé]dula|nombre|valor|horas|id)$/i;
+  /^(id\s*empleado|idempleado|identificaci[oó]n|cedula|c[eé]dula|nombre|valor|horas|id|quincenas)$/i;
 
 export function cellToTrimmedString(cell: unknown): string {
   if (cell == null) return "";

@@ -1,29 +1,26 @@
 interface CreateDeductionBase {
-  payroll_id: string;
 
-  branch_id: string;
+   payroll_id: string;
 
-  company_id: string;
+   branch_id: string;
 
-  module_code: string;
+   company_id: string;
 
-  deduction_type: number;
+   module_code: string;
+
+   deduction_type: number;
 }
 
 export interface CreateLateArrivalsDeductionRequest extends CreateDeductionBase {
-  late_arrivals_data: LateArrivalsPayload[];
+   late_arrivals_information: LateArrivalsInformation;
 }
 
 export interface CreatePurisimaDeductionRequest extends CreateDeductionBase {
-  purisima_data: PurisimaPayload[];
+   purisima_information: PurisimaInformation;
 }
 
-export interface CreateStandardDeductionRequest extends CreateDeductionBase {
-  collaborator_id: string;
-
-  description: string;
-
-  salary_advance_payload?: SalaryAdvancePayload;
+export interface CreateLoanDeductionRequest extends CreateDeductionBase {
+   loans_payload: LoansPayload;
 }
 
 /**
@@ -33,9 +30,9 @@ export interface CreateStandardDeductionRequest extends CreateDeductionBase {
  */
 
 export type CreateDeductionRequest =
-  | CreateLateArrivalsDeductionRequest
-  | CreatePurisimaDeductionRequest
-  | CreateStandardDeductionRequest;
+   | CreateLateArrivalsDeductionRequest
+   | CreatePurisimaDeductionRequest
+   | CreateLoanDeductionRequest;
 
 /**
 
@@ -44,40 +41,71 @@ export type CreateDeductionRequest =
  */
 
 export type AddDeductionFormValues = {
-  payroll_id: string;
 
-  branch_id: string;
+   payroll_id: string;
 
-  company_id: string;
+   branch_id: string;
 
-  module_code: string;
+   company_id: string;
 
-  deduction_type: number | "";
+   module_code: string;
 
-  collaborator_id?: string;
+   deduction_type: number | "";
 
-  description?: string;
+   collaborator_id?: string;
 
-  salary_advance_payload?: SalaryAdvancePayload;
+   description?: string;
 
-  late_arrivals_data?: LateArrivalsPayload[];
+   late_arrivals_information?: LateArrivalsInformation;
 
-  purisima_data?: PurisimaPayload[];
+   purisima_information?: PurisimaInformation;
+
+   loans_payload?: LoansPayload;
 };
 
-interface SalaryAdvancePayload {
-  amount: number;
+export interface LateArrivalsInformation {
 
-  currency: string;
+   procedure_method: number,
+
+   late_arrivals_payload?: LateArrivalsPayload,
+
+   late_arrivals_data?: LateArrivalsPayload[];
 }
 
 export interface LateArrivalsPayload {
-  identification_number: string;
 
-  total_minutes: number;
+   identification_number: string;
+
+   total_minutes: number;
+}
+
+export interface PurisimaInformation {
+
+   procedure_method: number;
+
+   purisima_payload?: PurisimaPayload;
+
+   purisima_data?: PurisimaPayload[];
 }
 
 export interface PurisimaPayload {
-  identification_number: string;
-  amount: number;
+
+   amount: number;
+
+   identification_number: string;
+
+   number_fortnights: number;
+}
+
+export interface LoansPayload {
+
+   amount: number;
+
+   number_fortnights: number;
+
+   currency: number;
+
+   identification_number: string;
+
+   description: string;
 }
