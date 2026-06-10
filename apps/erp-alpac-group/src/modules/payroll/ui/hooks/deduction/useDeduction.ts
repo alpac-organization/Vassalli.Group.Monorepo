@@ -13,7 +13,9 @@ import type { GetDeductionPaymentsResponse } from "@app/modules/payroll/domain/A
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
 const deductionServices = new DeductionServices(httpHandler);
-const deductionsServicesByPayroll = new DeductionsServicesByPayroll(httpHandler);
+const deductionsServicesByPayroll = new DeductionsServicesByPayroll(
+  httpHandler,
+);
 
 export const useDeduction = () => {
   const queryClient = useQueryClient();
