@@ -51,10 +51,10 @@ const inputClassName =
 const labelClassName = "text-black! dark:text-white!";
 
 const isLateArrivalType = (type: AddDeductionFormValues["deduction_type"]) =>
-  type === DeductionTypeEnum.LATE_ARRIVAL.value;
+  type === DeductionCodeEnum.LATE_ARRIVAL.value;
 
 const isPurisimaType = (type: AddDeductionFormValues["deduction_type"]) =>
-  type === DeductionTypeEnum.PURISIMA.value;
+  type === DeductionCodeEnum.PURISIMA.value;
 
 const isBulkExcelDeductionType = (
   type: AddDeductionFormValues["deduction_type"],
@@ -206,7 +206,7 @@ export const AddDeductionForm = ({
           module_code: lateArrivalsBase.module_code,
           branch_id: lateArrivalsBase.branch_id,
           payroll_id: lateArrivalsBase.payroll_id,
-          deduction_type: Number(DeductionTypeEnum.LATE_ARRIVAL.value),
+          deduction_type: Number(DeductionCodeEnum.LATE_ARRIVAL.value),
           late_arrivals_data: validated.rows,
         };
 
@@ -248,7 +248,7 @@ export const AddDeductionForm = ({
           module_code: purisimaBase.module_code,
           branch_id: purisimaBase.branch_id,
           payroll_id: purisimaBase.payroll_id,
-          deduction_type: Number(DeductionTypeEnum.PURISIMA.value),
+          deduction_type: Number(DeductionCodeEnum.PURISIMA.value),
           purisima_data: validated.rows,
         };
 
@@ -361,7 +361,7 @@ export const AddDeductionForm = ({
                 labelClassName={labelClassName}
                 valueClassName={labelClassName}
                 className={inputClassName}
-                options={DeductionTypeOptions}
+                options={DeductionOptions}
               />
             )}
           />
@@ -397,7 +397,7 @@ export const AddDeductionForm = ({
           </div>
         )}
 
-        {deductionType === DeductionTypeEnum.LOAN.value && <LoanRepayment />}
+        {deductionType === DeductionCodeEnum.LOAN.value && <LoanRepayment />}
         {isLateArrivalType(deductionType) && (
           <FileUploader
             key={lateArrivalsFileKey}
@@ -420,15 +420,15 @@ export const AddDeductionForm = ({
             onFileRemove={handlePurisimaFileRemove}
           />
         )}
-        {deductionType === DeductionTypeEnum.SANCTION.value && <Sanctions />}
+        {deductionType === DeductionCodeEnum.SANCTION.value && <Sanctions />}
         {deductionType ===
-          DeductionTypeEnum.CHILD_SUPPORT_GARNISHMENT.value && (
+          DeductionCodeEnum.CHILD_SUPPORT_GARNISHMENT.value && (
           <ChildSupportGarnishment />
         )}
-        {deductionType === DeductionTypeEnum.JUDICIAL_GARNISHMENT.value && (
+        {deductionType === DeductionCodeEnum.JUDICIAL_GARNISHMENT.value && (
           <JudicialGarnishment />
         )}
-        {deductionType === DeductionTypeEnum.OTHER_DEDUCTION.value && (
+        {deductionType === DeductionCodeEnum.OTHER_DEDUCTION.value && (
           <OtherDeduction />
         )}
 
