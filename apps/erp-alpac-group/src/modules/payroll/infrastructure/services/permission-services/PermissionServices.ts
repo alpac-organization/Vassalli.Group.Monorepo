@@ -40,7 +40,7 @@ export class PermissionServices implements IPermissionRequestServices {
         `/companies/${companie_id}/modules/${module_code}/permit-applications`,
         { params },
       );
-      console.log(response);
+      console.log("response ", response);
       return response;
     } catch (error) {
       throw error;

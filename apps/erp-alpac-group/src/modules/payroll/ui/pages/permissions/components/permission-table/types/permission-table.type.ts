@@ -1,8 +1,8 @@
-import type { PermissionHistoryRow } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
+import type { PermissionResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/permission-history-response";
 export type PermissionTableProps = {
-  data: PermissionHistoryRow[];
+  data: PermissionResponse[];
   pagination?: React.ReactNode;
-  onViewDetails?: (row: PermissionHistoryRow) => void;
-  onGenerateDocument?: (row: PermissionHistoryRow) => void;
-  onCancelRequest?: (row: PermissionHistoryRow) => void;
+  onViewDetails?: (item: PermissionResponse) => void;
+  onGenerateDocument?: (item: PermissionResponse) => void;
+  onCancelRequest?: (item: PermissionResponse) => void;
 };

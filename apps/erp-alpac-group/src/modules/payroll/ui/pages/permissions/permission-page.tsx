@@ -17,7 +17,6 @@ import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/c
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 import type {
   PermissionRequest,
-  PermissionHistoryRow,
   VacationStatusFilterValue,
   PermissionTypeFilterValue,
 } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
@@ -208,7 +207,7 @@ export default function PermissionsPage() {
 
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
 
-  const [selectedVacationItem, setSelectedVacationItem] =
+  const [selectedPermissionItem, setSelectedPermissionItem] =
     useState<PermissionResponse | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
@@ -240,48 +239,10 @@ export default function PermissionsPage() {
     setAlertState({ open: true, type: "error", message: description });
   }, []);
 
-  //   const filteredRows = useMemo<PermissionHistoryRow[]>(() => {
-  //     const items = GetPermissionHistory.data;
-  //     if (!Array.isArray(items) || items.length === 0) return [];
-  //     const collaboratorName =
-  //       GetVacationSaldoQuery.data?.full_name?.trim() || fullName || "";
-  //     return items.map((item) => ({
-  //       id: item.permit_apllication_id,
-  //       full_name: collaboratorName,
-  //       type: item.type,
-  //       start_date: item.start_date,
-  //       end_date: item.end_date,
-  //       /* start_time: item.type !== "Vacation" ? item.start_time || null : null,
-  //             end_time: item.type !== "Vacation" ? item.end_time || null : null, */
-  //       start_time: item.start_time || null,
-  //       end_time: item.end_time || null,
-  //       status: item.status,
-  //       // approved_by: item.approved_by || undefined,
-  //       // rejected_by: item.rejected_by || undefined,
-  //     }));
-  //   }, [GetPermissionHistory.data, GetVacationSaldoQuery.data, fullName]);
-
-  const filteredRows = useMemo<PermissionHistoryRow[]>(() => {
-    const items = GetPermissionHistory.data?.data ?? [];
-    if (items.length === 0) return [];
-    return items.map((item) => ({
-      id: item.permit_apllication_id,
-      full_name: item.full_name ?? "",
-      collaborator_id: item.collaborator_id,
-      description: item.description,
-      type: item.type,
-      start_date: item.start_date,
-      end_date: item.end_date,
-      /* start_time: item.type !== "Vacation" ? item.start_time || null : null,
-            end_time: item.type !== "Vacation" ? item.end_time || null : null, */
-      start_time: item.start_time || null,
-      end_time: item.end_time || null,
-      status: item.status,
-      first_step_status_reviewed_by: item.first_step_status.reviewed_by,
-      second_step_status_reviewed_by: item.second_step_status.reviewed_by,
-      amount_days: item.amount_days,
-    }));
-  }, [GetPermissionHistory.data]);
+  const permissionRows = useMemo(
+    () => GetPermissionHistory.data?.data ?? [],
+    [GetPermissionHistory.data],
+  );
   const handleApplyFilters = useCallback(() => {
     setAppliedStatus(filterDraft);
     setAppliedType(typeDraft);
@@ -300,23 +261,17 @@ export default function PermissionsPage() {
     setPageNumber(page);
   }, []);
 
-  const handleViewDetails = useCallback(
-    (row: PermissionHistoryRow) => {
-      const item = GetPermissionHistory.data?.data?.find(
-        (i) => String(i.permit_apllication_id) === String(row.id),
-      );
-      if (!item) return;
-      setSelectedVacationItem(item);
-      setIsDetailsOpen(true);
-    },
-    [GetPermissionHistory.data],
-  );
+  const handleViewDetails = useCallback((item: PermissionResponse) => {
+    setSelectedPermissionItem(item);
+    setIsDetailsOpen(true);
+  }, []);
 
   const handleCloseDetails = useCallback(() => {
     setIsDetailsOpen(false);
+    setSelectedPermissionItem(null);
   }, []);
 
-  //   const handleGenerateDocument = useCallback((_row: PermissionHistoryRow) => {
+  //   const handleGenerateDocument = useCallback((_item: PermissionResponse) => {
   //     if (!companyId || !moduleCode) return;
   //     generatePermissionDocumentMutation.mutate(
   //       {
@@ -349,13 +304,13 @@ export default function PermissionsPage() {
   //   }, []);
 
   const handleCancellVacation = useCallback(
-    (row: PermissionHistoryRow) => {
+    (item: PermissionResponse) => {
       if (!companyId || !moduleCode) return;
       cancelPermissionRequestMutation.mutate(
         {
           company_id: companyId,
           module_code: moduleCode,
-          permit_application_id: row.id,
+          permit_application_id: item.permit_apllication_id,
         },
         {
           onSuccess: () => {
@@ -567,7 +522,7 @@ export default function PermissionsPage() {
         <PermissionRequestDetailsModal
           isOpen={isDetailsOpen}
           onClose={handleCloseDetails}
-          item={selectedVacationItem}
+          item={selectedPermissionItem}
           collaboratorFullName={profileCollaborator.nombreCompletoColaborador}
         />
 
@@ -617,7 +572,7 @@ export default function PermissionsPage() {
         />
 
         <PermissionTable
-          data={filteredRows}
+          data={permissionRows}
           onViewDetails={handleViewDetails}
           //  onGenerateDocument={handleGenerateDocument}
           onCancelRequest={handleCancellVacation}
