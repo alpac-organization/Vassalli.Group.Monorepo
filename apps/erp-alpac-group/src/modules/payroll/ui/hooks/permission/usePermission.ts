@@ -2,32 +2,29 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { httpHandler } from "@app/core/adapters";
 import { PermissionServices } from "@app/modules/payroll/infrastructure/services/permission-services/PermissionServices";
 import type { CreatePermissionRequestBase } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
-import type { PermissionHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-history-request";
+import type { PermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
 import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/cancel-permission-request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-
 const permissionServices = new PermissionServices(httpHandler);
 export type UseVacationPayload = {
   company_id: string;
   module_code: string;
   identification_number: string;
 };
-export const usePermission = (filters?: PermissionHistoryRequest) => {
+export const usePermission = (filters?: PermissionRequest) => {
   const queryClient = useQueryClient();
-
   const createPermissionRequestMutation = useMutation({
-    mutationKey: ["createVacationRequest"],
+    mutationKey: ["createPermissionRequest"],
     mutationFn: (payload: CreatePermissionRequestBase) =>
       permissionServices.createPermissionRequest(payload),
     onSuccess: () => {
       return Promise.all([
         queryClient.invalidateQueries({ queryKey: ["vacationRequests"] }),
         queryClient.invalidateQueries({ queryKey: ["vacationSaldo"] }),
-        queryClient.invalidateQueries({ queryKey: ["vacationHistory"] }),
+        queryClient.invalidateQueries({ queryKey: ["permissionRecords"] }),
       ]);
     },
   });
-
   const cancelPermissionRequestMutation = useMutation<
     void,
     ApiErrorResponse,
@@ -37,30 +34,38 @@ export const usePermission = (filters?: PermissionHistoryRequest) => {
     mutationFn: (payload: CancelPermissionRequest) =>
       permissionServices.cancelPermissionRequest(payload),
     onSuccess: () => {
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["vacationHistory"] }),
-        queryClient.invalidateQueries({ queryKey: ["applicationsData"] }),
-        queryClient.invalidateQueries({ queryKey: ["applicationDetailData"] }),
+      return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["permissionRecords"],
+          refetchType: "all",
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["vacationSaldo"],
+          refetchType: "all",
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["applicationsData"],
+          refetchType: "all",
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["applicationDetailData"],
+          refetchType: "all",
+        }),
       ]);
     },
   });
-
   const historyQueryEnabled = Boolean(
-    filters?.companie_id &&
-    filters?.module_code &&
-    filters?.identification_number,
+    filters?.companie_id && filters?.module_code,
   );
-
   const GetPermissionHistory = useQuery({
-    queryKey: ["vacationHistory", filters],
+    queryKey: ["permissionRecords", filters],
     queryFn: () => {
       if (!filters) {
         throw new Error("getVacationHistory: faltante filters");
       }
-      return permissionServices.getPermissionHistory(filters);
+      return permissionServices.getPermissions(filters);
     },
     enabled: historyQueryEnabled,
-    refetchOnMount: false,
     refetchOnWindowFocus: false,
     staleTime: 0,
     retry: 1,
