@@ -24,6 +24,7 @@ export interface UpdateCollaboratorProfileDetailsRequest {
   second_surname?: string;
   personal_information?: UpdatePersonalInformationRequest;
   working_information?: UpdateWorkingInformationRequest;
+  code_collaborator?: string;
   // salary_information?: UpdateSalaryInformationRequest;
 }
 export interface UpdatePersonalInformationRequest {

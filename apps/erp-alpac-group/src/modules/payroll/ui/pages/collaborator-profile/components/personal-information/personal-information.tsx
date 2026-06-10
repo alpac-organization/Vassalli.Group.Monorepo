@@ -31,6 +31,7 @@ import {
   validateTextNoDigits,
   formatPhone,
 } from "@app/shared/utils/string.utils";
+import { formatCollaboratorCode } from "@app/shared/utils/collaborator.utils";
 
 const defaultPersonalInformation: PersonalFormData = {
   first_name: "",
@@ -47,6 +48,7 @@ const defaultPersonalInformation: PersonalFormData = {
   personalPhone: "",
   department_id: "",
   department: "",
+  code_collaborator: "",
 };
 
 export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
@@ -72,6 +74,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
       ...defaultPersonalInformation,
       ...mapped,
       ...names,
+      code_collaborator: profile.collaborator_code ?? "",
     };
   }, [profile]);
 
@@ -87,6 +90,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
   const marital_status = watch("marital_status");
   const department_name_watched = watch("department");
 
+
   const resolvedMaritalStatusCode = useMemo(() => {
     const fromForm = normalizeMaritalStatusFromApi(marital_status ?? null);
     if (fromForm !== null) return fromForm;
@@ -100,7 +104,7 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
       companyId,
       moduleCode,
       targetIdentification,
-      resolvedMaritalStatusCode,
+      resolvedMaritalStatusCode
     });
 
   const [editingFields, setEditingFields] = useState<Record<string, boolean>>(
@@ -328,25 +332,25 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                         maritalMissing
                           ? "Estado civil no registrado"
                           : (maritalRawToLabel(
-                              marital_status as MaritalStatusSource,
-                            ) ?? "")
+                            marital_status as MaritalStatusSource,
+                          ) ?? "")
                       }
                       className={`${baseInputClasses} ${maritalMissing ? missingDataInInputClassName : "text-white! dark:text-white!"}`}
                     />
                   </div>
                   {(currentRole === "Administrator" ||
                     currentRole === "Operator") && (
-                    <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
-                      <button
-                        type="button"
-                        title="Cambiar estado civil"
-                        onClick={() => setMaritalModalOpen(true)}
-                        className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                    </div>
-                  )}
+                      <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
+                        <button
+                          type="button"
+                          title="Cambiar estado civil"
+                          onClick={() => setMaritalModalOpen(true)}
+                          className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      </div>
+                    )}
                 </div>
               </div>
 
@@ -462,6 +466,33 @@ export const PersonalInformation = ({ profile }: PersonalInformationProps) => {
                   validation={{ validate: validateTextNoDigits }}
                 />
               </div>
+
+              <EditableField
+                name="code_collaborator"
+                label="Código de Colaborador"
+                formMethods={formMethods}
+                isEditing={Boolean(editingFields.code_collaborator)}
+                onEditStart={handleEditStart}
+                onEditEnd={handleEditEnd}
+                onConfirmUpdate={handleFieldUpdate}
+                allowEdit={true}
+                missingMessage="Código no registrado"
+                className={baseInputClasses}
+                validation={{
+                  onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+
+                    const formatted = formatCollaboratorCode(
+                      e.target.value,
+                    );
+
+                    setValue("code_collaborator", formatted, {
+                      shouldValidate: true,
+                    });
+
+                  },
+                }}
+              />
+
             </div>
           </div>
         </section>

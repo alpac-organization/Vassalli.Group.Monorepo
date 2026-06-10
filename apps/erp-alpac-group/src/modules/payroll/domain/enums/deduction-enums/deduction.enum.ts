@@ -41,5 +41,4 @@ export const DeductionCodeEnum: Record<string, EnumType> = {
 
 export const DeductionOptions = Object.values(DeductionCodeEnum);
 
-export type DeductionCodeEnum =
-  (typeof DeductionCodeEnum)[keyof typeof DeductionCodeEnum];
+export type DeductionCodeEnum = (typeof DeductionCodeEnum)[keyof typeof DeductionCodeEnum];

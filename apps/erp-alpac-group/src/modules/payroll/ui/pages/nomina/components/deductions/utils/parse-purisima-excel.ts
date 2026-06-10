@@ -47,7 +47,7 @@ function isDashOrEmpty(s: string): boolean {
   );
 }
 
-function parseThirdColumnToRawNumber(cell: unknown): number | "empty" {
+function parseColumnToRawNumber(cell: unknown): number | "empty" {
   if (cell == null || cell === "") return "empty";
   if (typeof cell === "number") {
     if (!Number.isFinite(cell)) return "empty";
@@ -66,10 +66,10 @@ export function formatPurisimaViolationsMessage(): string {
   return messageError;
 }
 
-export function parsePurisimaExcel(
-  buffer: ArrayBuffer,
-): ParsePurisimaExcelResult {
+export function parsePurisimaExcel(buffer: ArrayBuffer): ParsePurisimaExcelResult {
+
   let workbook: XLSX.WorkBook;
+
   try {
     workbook = XLSX.read(buffer, { type: "array" });
   } catch {
@@ -81,6 +81,7 @@ export function parsePurisimaExcel(
   }
 
   const sheetName = workbook.SheetNames[0];
+
   if (!sheetName) {
     return {
       ok: false,
@@ -90,6 +91,7 @@ export function parsePurisimaExcel(
   }
 
   const sheet = workbook.Sheets[sheetName];
+
   const matrix = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
     header: 1,
     defval: "",
@@ -101,14 +103,19 @@ export function parsePurisimaExcel(
   const violations: PurisimaViolation[] = [];
 
   for (let i = startRow; i < matrix.length; i++) {
+
     const sheetRow = i + 1;
     const line = matrix[i] ?? [];
     const id = parseColumnAEmployeeId(line[0]);
+
     if (id === null) continue;
 
     const third = line[2];
-    const rawParsed = parseThirdColumnToRawNumber(third);
+    const rawParsed = parseColumnToRawNumber(third);
     const rawDisplay = cellToTrimmedString(third) || "(vacío)";
+
+    const cellThree = line[3];
+    const parseCellThree = parseColumnToRawNumber(cellThree);
 
     const amount = rawParsed === "empty" ? 0 : rawParsed;
 
@@ -123,8 +130,8 @@ export function parsePurisimaExcel(
     }
 
     rows.push({
-      identification_number: id,
-      amount,
+      identification_number: id, amount,
+      number_fortnights: Number(parseCellThree) ?? 0
     });
   }
 
@@ -147,13 +154,16 @@ export function parsePurisimaExcel(
   return { ok: true, rows };
 }
 
-export function mapPurisimaDeductionError(description?: string): string {
+export function mapPurisimaDeductionError(description?: string, isExcelImportMethod?: boolean): string {
+
   if (!description?.trim()) {
     return "No se pudieron registrar las contribuciones de purísima. Intente de nuevo.";
   }
-  if (/colaborador/i.test(description)) {
+
+  if (/colaborador/i.test(description) && isExcelImportMethod) {
     return "Uno o más ID del archivo no están registrados en esta nómina. Revise los números de identificación en el Excel.";
   }
+
   return description;
 }
 

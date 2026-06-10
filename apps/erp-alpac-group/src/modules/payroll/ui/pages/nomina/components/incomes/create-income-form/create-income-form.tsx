@@ -119,6 +119,7 @@ export const CreateIncomeForm = ({
   const incomeTypeId = methods.watch("type_income_id");
   const overtimeIncomePayload = methods.watch("overtime_income_data");
   const commissionIncomePayload = methods.watch("commissions_payload");
+  const bonusIncomePayload = methods.watch("bonus_payload");
 
   const selectedIncomeTypeCode = useMemo(() => {
     return allIncomeTypeOptions.find((opt) => opt.id === incomeTypeId)?.code;
@@ -321,6 +322,10 @@ export const CreateIncomeForm = ({
     (commissionIncomePayload?.commission_amount ?? 0) > 0 &&
     (commissionIncomePayload?.currency ?? 0) !== 0;
 
+  const hasValidBonus =
+    (bonusIncomePayload?.bonus_amount ?? 0) > 0 &&
+    (bonusIncomePayload?.currency ?? 0) !== 0;
+
   const isSubmitDisabled =
     CreateIncome.isPending ||
     !methods.formState.isDirty ||
@@ -328,7 +333,8 @@ export const CreateIncomeForm = ({
     !selectedIncomeTypeCode ||
     isSubsidyType ||
     (isOvertimeType && !hasOvertimeData) ||
-    (isCommissionType && (!foundCollaborator || !hasValidCommission));
+    (isCommissionType && (!foundCollaborator || !hasValidCommission)) ||
+    (isBonusType && (!foundCollaborator || !hasValidBonus));
 
   const incomeTypeDropdown = (
     <div className="flex flex-col gap-1.5">

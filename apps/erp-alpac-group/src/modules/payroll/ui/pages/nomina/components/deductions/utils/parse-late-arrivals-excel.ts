@@ -145,13 +145,16 @@ export function parseLateArrivalsExcel(
   return { ok: true, rows };
 }
 
-export function mapLateArrivalsDeductionError(description?: string): string {
+export function mapLateArrivalsDeductionError(description: string, isExcelImportMethod: boolean): string {
+
   if (!description?.trim()) {
     return "No se pudieron registrar las tardanzas. Intente de nuevo.";
   }
-  if (/colaborador/i.test(description)) {
+
+  if (/colaborador/i.test(description) && isExcelImportMethod) {
     return "Uno o más ID del archivo no están registrados en esta nómina. Revise los números de identificación en el Excel.";
   }
+
   return description;
 }
 
