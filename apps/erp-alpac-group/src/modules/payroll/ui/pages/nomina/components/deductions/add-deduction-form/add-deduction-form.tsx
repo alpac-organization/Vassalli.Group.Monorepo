@@ -43,7 +43,6 @@ import type {
    PurisimaInformation,
 } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
 
-
 const inputClassName =
    "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
