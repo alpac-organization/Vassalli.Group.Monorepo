@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, Dropdown } from "@alpac/design-system";
 import { Controller, FormProvider, useForm } from "react-hook-form";
+// import {
+//   DeductionCodeEnum,
+//   DeductionOptions,
+// } from "@app/modules/payroll/domain/enums/deduction-enums/deduction.enum";
 import {
   DeductionCodeEnum,
   DeductionOptions,
@@ -47,10 +51,10 @@ const inputClassName =
 const labelClassName = "text-black! dark:text-white!";
 
 const isLateArrivalType = (type: AddDeductionFormValues["deduction_type"]) =>
-  type === DeductionCodeEnum.LATE_ARRIVAL.value;
+  type === DeductionTypeEnum.LATE_ARRIVAL.value;
 
 const isPurisimaType = (type: AddDeductionFormValues["deduction_type"]) =>
-  type === DeductionCodeEnum.PURISIMA.value;
+  type === DeductionTypeEnum.PURISIMA.value;
 
 const isBulkExcelDeductionType = (
   type: AddDeductionFormValues["deduction_type"],
@@ -202,7 +206,7 @@ export const AddDeductionForm = ({
           module_code: lateArrivalsBase.module_code,
           branch_id: lateArrivalsBase.branch_id,
           payroll_id: lateArrivalsBase.payroll_id,
-          deduction_type: Number(DeductionCodeEnum.LATE_ARRIVAL.value),
+          deduction_type: Number(DeductionTypeEnum.LATE_ARRIVAL.value),
           late_arrivals_data: validated.rows,
         };
 
@@ -244,7 +248,7 @@ export const AddDeductionForm = ({
           module_code: purisimaBase.module_code,
           branch_id: purisimaBase.branch_id,
           payroll_id: purisimaBase.payroll_id,
-          deduction_type: Number(DeductionCodeEnum.PURISIMA.value),
+          deduction_type: Number(DeductionTypeEnum.PURISIMA.value),
           purisima_data: validated.rows,
         };
 
@@ -357,7 +361,7 @@ export const AddDeductionForm = ({
                 labelClassName={labelClassName}
                 valueClassName={labelClassName}
                 className={inputClassName}
-                options={DeductionOptions}
+                options={DeductionTypeOptions}
               />
             )}
           />
@@ -393,7 +397,7 @@ export const AddDeductionForm = ({
           </div>
         )}
 
-        {deductionType === DeductionCodeEnum.LOAN.value && <LoanRepayment />}
+        {deductionType === DeductionTypeEnum.LOAN.value && <LoanRepayment />}
         {isLateArrivalType(deductionType) && (
           <FileUploader
             key={lateArrivalsFileKey}
@@ -416,15 +420,15 @@ export const AddDeductionForm = ({
             onFileRemove={handlePurisimaFileRemove}
           />
         )}
-        {deductionType === DeductionCodeEnum.SANCTION.value && <Sanctions />}
+        {deductionType === DeductionTypeEnum.SANCTION.value && <Sanctions />}
         {deductionType ===
-          DeductionCodeEnum.CHILD_SUPPORT_GARNISHMENT.value && (
+          DeductionTypeEnum.CHILD_SUPPORT_GARNISHMENT.value && (
           <ChildSupportGarnishment />
         )}
-        {deductionType === DeductionCodeEnum.JUDICIAL_GARNISHMENT.value && (
+        {deductionType === DeductionTypeEnum.JUDICIAL_GARNISHMENT.value && (
           <JudicialGarnishment />
         )}
-        {deductionType === DeductionCodeEnum.OTHER_DEDUCTION.value && (
+        {deductionType === DeductionTypeEnum.OTHER_DEDUCTION.value && (
           <OtherDeduction />
         )}
 
