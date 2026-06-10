@@ -2,6 +2,11 @@ import type { DatePickerValue } from "@alpac/design-system";
 import type { PermissionType } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
 import type { UseFormSetError } from "react-hook-form";
 
+export type MedicalAppointmentImage = {
+  image_base64: string;
+  content_type: string;
+};
+
 /**
  * Valores capturados y gestionados dentro del formulario de permiso.
  */
@@ -13,6 +18,7 @@ export interface PermissionRequestFormValues {
   end_time?: string;
   donated_vacation_days?: number;
   beneficiary_identification?: string;
+  medical_images?: MedicalAppointmentImage[];
   description: string;
 }
 

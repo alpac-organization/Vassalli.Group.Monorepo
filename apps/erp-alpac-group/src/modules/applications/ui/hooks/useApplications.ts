@@ -59,6 +59,14 @@ export const useApplications = (
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["applicationsData"] });
       queryClient.invalidateQueries({ queryKey: ["applicationDetailData"] });
+      queryClient.invalidateQueries({
+        queryKey: ["vacationSaldo"],
+        refetchType: "all",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["permissionRecords"],
+        refetchType: "all",
+      });
       if (variables.is_approved) {
         queryClient.invalidateQueries({
           queryKey: [
