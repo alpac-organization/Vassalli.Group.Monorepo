@@ -95,14 +95,25 @@ export class PayrollServices implements IPayrollServices {
   public async generateReportsPayroll(
     payload: GenerateReportPayrollRequest,
   ): Promise<GetPayrollReportsPayloadResponse> {
-    const { companie_id, report_type, payroll_id, payroll_type, module_code } =
-      payload;
+    const {
+      companie_id,
+      report_type,
+      payroll_id,
+      payroll_type,
+      module_code,
+      identification_number,
+    } = payload;
     try {
       const response =
         await this.apiHandler.get<GetPayrollReportsPayloadResponse>(
           `companies/${companie_id}/modules/${module_code}/reports`,
           {
-            params: { report_type, payroll_id, payroll_type },
+            params: {
+              report_type,
+              payroll_id,
+              payroll_type,
+              identification_number,
+            },
           },
         );
       return response;

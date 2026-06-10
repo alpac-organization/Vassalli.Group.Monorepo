@@ -5,5 +5,10 @@ export interface GenerateReportPayrollRequest {
   payroll_id: string;
   payroll_type: PayrollType;
   module_code: string;
+  identification_number?: string;
+  work_area_id?: number;
 }
-export type ReportPayrollType = "Accumulated" | "VacationAccrual";
+export type ReportPayrollType =
+  | "Accumulated"
+  | "VacationAccrual"
+  | "TravelExpenses";

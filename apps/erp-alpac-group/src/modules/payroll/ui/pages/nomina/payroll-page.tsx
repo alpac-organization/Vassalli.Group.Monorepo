@@ -1410,6 +1410,8 @@ export function PayrollPage() {
         isOpen={isPayrollDetailModalOpen}
         onClose={handleClosePayrollDetailModal}
         payrollItem={selectedPayrollRow}
+        payrollId={ordinaryPayrollQuery.data?.payroll_id}
+        payrollType={selectedPayrollType ?? "None"}
       />
 
       <PayrollGenerateReportsModal

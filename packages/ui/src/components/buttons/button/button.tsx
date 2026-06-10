@@ -1,12 +1,12 @@
-import { Fragment } from 'react';
-import type { ButtonProps } from './button.type';
-import { getButtonStyles } from './button.styles';
-import { Spinner } from '../../spinners';
+import { Fragment } from "react";
+import type { ButtonProps } from "./button.type";
+import { getButtonStyles } from "./button.styles";
+import { Spinner } from "../../spinners";
 
 export const Button = function (props: ButtonProps): React.ReactElement {
   const {
     type,
-    label = 'label',
+    label = "",
     disabled = false,
     styles,
     className,
@@ -26,8 +26,8 @@ export const Button = function (props: ButtonProps): React.ReactElement {
       <button
         type={type}
         style={styles}
-        className={`${classes} ${className ?? ''} relative ${
-          showTooltip ? 'group isolate overflow-visible' : 'overflow-hidden'
+        className={`${classes} ${className ?? ""} relative ${
+          showTooltip ? "group isolate overflow-visible" : "overflow-hidden"
         }`}
         disabled={disabled || isLoading}
         onClick={onClick}
@@ -38,7 +38,7 @@ export const Button = function (props: ButtonProps): React.ReactElement {
           <div className="absolute inset-0 flex items-center justify-center">
             <Spinner
               color="white"
-              size={props.size === 'giant' ? 'medium' : 'small'}
+              size={props.size === "giant" ? "medium" : "small"}
             />
           </div>
         )}
@@ -46,14 +46,14 @@ export const Button = function (props: ButtonProps): React.ReactElement {
         {/* Layer de Contenido: Mantiene el tamaño aunque sea invisible */}
         <div
           className={`relative z-0 flex items-center justify-center gap-2 transition-all ${
-            isLoading ? 'invisible opacity-0' : 'visible opacity-100'
+            isLoading ? "invisible opacity-0" : "visible opacity-100"
           }`}
         >
           {icon && (
             <span className="flex items-center justify-center">{icon}</span>
           )}
           {label && (
-            <span className={isHiddenLabelOnMobile ? 'hidden md:inline' : ''}>
+            <span className={isHiddenLabelOnMobile ? "hidden md:inline" : ""}>
               {label}
             </span>
           )}
