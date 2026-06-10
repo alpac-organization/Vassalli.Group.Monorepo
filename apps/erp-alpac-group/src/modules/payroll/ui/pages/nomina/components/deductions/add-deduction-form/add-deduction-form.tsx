@@ -1,10 +1,18 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, Dropdown } from "@alpac/design-system";
 import { Controller, FormProvider, useForm } from "react-hook-form";
+// import {
+//   DeductionCodeEnum,
+//   DeductionOptions,
+// } from "@app/modules/payroll/domain/enums/deduction-enums/deduction.enum";
 import {
   DeductionCodeEnum,
   DeductionOptions,
 } from "@app/modules/payroll/domain/enums/deduction-enums/deduction.enum";
+// import {
+//   DeductionTypeEnum,
+//   DeductionTypeOptions,
+// } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-type.enum";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ChildSupportGarnishment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/child-support-garnishment/child-support-garnishment";
 import { Sanctions } from "@app/modules/payroll/ui/pages/nomina/components/deductions/sanction/sanction";
