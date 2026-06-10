@@ -67,10 +67,10 @@ const payrollPeriodsHistorySection: SidebarLink = {
   icon: History,
 };
 
-const deduccionesSection: SidebarLink = {
-  id: "deducciones",
+const activeDeductionSection: SidebarLink = {
+  id: "active-deductions",
   label: "Deducciones Activas",
-  path: "payroll/deducciones",
+  path: "payroll/active-deductions",
   icon: CircleMinus,
 };
 
@@ -118,7 +118,7 @@ export const sidebarData = {
         gestionPayrollSection,
         payrollPeriodsHistorySection,
         applicationFromPayrollSection,
-        deduccionesSection,
+        activeDeductionSection,
         liquidacionSection,
         controlVacationsSection,
       ],
