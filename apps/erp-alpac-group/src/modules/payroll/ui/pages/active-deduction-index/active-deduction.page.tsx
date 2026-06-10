@@ -1,13 +1,56 @@
-import { Breadcrumb, Button, InputText, Pagination, useTheme } from "@alpac/design-system";
+import {
+   Breadcrumb,
+   Button,
+   Dropdown,
+   InputText,
+   Pagination,
+   useTheme,
+   type Option,
+} from "@alpac/design-system";
+
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { m, LazyMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { useCallback } from "react";
-import { useForm } from "react-hook-form";
+import { useCallback, useMemo, useState } from "react";
+import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { ActiveDeductionTable } from "./components/active-deduction-table/active-deduction-table";
+import { useDeduction } from "../../hooks/deduction/useDeduction";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { Loader } from "@app/shared/components/loaders/loader";
+import { IdentificationEnum } from "@app/core/enums/identification.enum";
+import { DeductionTypeEnum } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-type.enum";
+import {
+   formatIdentificationNumber,
+   validateIdentificationNumber,
+} from "@app/shared/utils/string.utils";
+
+import type { GetDeductionsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/get-deductions.request";
 
 const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
+
+const PAGE_SIZE = 5;
+type DeductionTypeFilterValue = "all" | keyof typeof DeductionTypeEnum;
+type ActiveDeductionFilterForm = {
+   identification_number: string;
+   type: DeductionTypeFilterValue;
+};
+
+const DEDUCTION_TYPE_FILTER_OPTIONS: Option[] = [
+   { label: "Todos los tipos", value: "all" },
+   ...Object.entries(DeductionTypeEnum).map(([key, item]) => ({
+      label: item.label,
+      value: key,
+   })),
+];
+
+const dropdownClassName =
+   "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
+
+const inputClassName =
+   "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+
+const labelClassName = "text-black! dark:text-white!";
 
 export const ActiveDeductionsPage = () => {
 
@@ -17,136 +60,397 @@ export const ActiveDeductionsPage = () => {
 
    const { urlImage, neutralUrlImage } = useCompanyStore();
 
-   const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
+   const { companyId, moduleCode } = useUserStore();
 
-   const { register, reset, formState: { errors, isValid, isDirty } } = useForm({ mode: "onChange" });
+   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
+
+   const {
+      register,
+      handleSubmit,
+      control,
+      reset,
+      formState: { errors, isValid, isDirty },
+   } = useForm<ActiveDeductionFilterForm>({
+      mode: "onChange",
+      defaultValues: {
+         identification_number: "",
+         type: "all",
+      },
+   });
+
+   const { useGetDeductions } = useDeduction();
+
+   const [pageNumber, setPageNumber] = useState(1);
+
+   const [appliedType, setAppliedType] = useState<DeductionTypeFilterValue>("all");
+
+   const [appliedIdentification, setAppliedIdentification] = useState("");
+
+   const filters = useMemo<GetDeductionsRequest>(
+      () => ({
+         companie_id: companyId,
+         module_code: moduleCode,
+         status: "Progress",
+         page_number: pageNumber,
+         page_size: PAGE_SIZE,
+         ...(appliedType !== "all" && { type: appliedType }),
+         ...(appliedIdentification.trim() && {
+            identification_number: appliedIdentification.trim(),
+         }),
+      }),
+      [companyId, moduleCode, pageNumber, appliedType, appliedIdentification],
+   );
+
+   const { data: deductions, isLoading, isFetching } = useGetDeductions(filters);
+
+   const datasource = deductions?.data ?? [];
+
+   const handlePageChange = useCallback((page: number) => {
+      setPageNumber(page);
+   }, []);
+
+   const onSubmit: SubmitHandler<ActiveDeductionFilterForm> = useCallback(
+      (data) => {
+         setAppliedType(data.type);
+         setAppliedIdentification(
+            data.identification_number?.replace(/-/g, "").trim().toUpperCase() ?? "",
+         );
+         setPageNumber(1);
+      }, []);
+
+
 
    const handleClearFilters = useCallback(() => {
-      reset();
+      reset({ identification_number: "", type: "all" });
+      setAppliedType("all");
+      setAppliedIdentification("");
+      setPageNumber(1);
    }, [reset]);
 
+
+
    return (
+
       <LazyMotion features={loadFeatures}>
 
          <m.div
+
             initial={{ opacity: 0, y: 20 }}
+
             animate={{ opacity: 1, y: 0 }}
+
             exit={{ opacity: 0, y: -20 }}
+
             transition={{ duration: 0.5 }}
-            className="flex flex-col gap-4">
+
+            className="flex flex-col gap-4"
+
+         >
+
+            {isLoading && <Loader title="Cargando Deducciones Activas..." />}
+
+
 
             <div className="flex justify-start">
+
                <Breadcrumb
+
                   items={[
+
                      { label: "Dashboard", url: "/", onClick: (url) => navigate(url) },
+
                      {
+
                         label: "Deducciones Activas",
+
                         url: "/active-deductions",
+
                         onClick: (url) => navigate(url),
+
                      },
+
                   ]}
+
                />
+
             </div>
+
+
 
             <div className="flex flex-col">
+
                <div className="flex justify-between items-center">
+
                   <div className="flex flex-col justify-center">
-                     <h3 className="p-0! m-0!">
-                        Deducciones Activas
-                     </h3>
+
+                     <h3 className="p-0! m-0!">Deducciones Activas</h3>
+
                   </div>
+
                   <img
+
                      className="h-12 sm:h-16 md:h-20 w-auto object-contain"
+
                      src={activeLogo}
+
                      alt="logo alpac"
+
                   />
+
                </div>
+
             </div>
 
+
+
             <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+
                <div className="flex flex-col justify-center">
+
                   <h3 className="p-0! m-0!">Accesos Directos</h3>
+
                   <small className="text-gray-500 dark:text-gray-300">
+
                      Descripcion de accesos directos
+
                   </small>
+
                </div>
+
             </div>
+
+
 
             <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+
                <div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
+
                   <Button
+
                      size="giant"
+
                      label="Acción 1"
+
                      icon={<ArrowRight size={20} />}
+
                      className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+
                      onClick={() => console.log("testing")}
+
                   />
+
                </div>
+
             </div>
+
+
 
             <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+
                <div className="flex flex-col justify-center">
+
                   <h3 className="p-0! m-0!">Filtros</h3>
+
                   <small className="text-gray-500 dark:text-gray-300">
-                     Descripcion de filtros
+
+                     Filtra por identificación o tipo de deducción
+
                   </small>
+
                </div>
+
             </div>
 
+
+
             <form
-               onSubmit={() => console.log("Testing")}
+
+               onSubmit={handleSubmit(onSubmit)}
+
                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
+
             >
+
                <div className="flex flex-col">
+
                   <InputText
-                     label="Filtrar por"
-                     className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
-                     labelClassName="text-black! dark:text-white!"
+
+                     label="Identificación"
+
+                     className={inputClassName}
+
+                     labelClassName={labelClassName}
+
                      type="text"
-                     placeholder="Filtro"
+
+                     placeholder="Ingrese la identificación"
+
                      errorVariant="tooltip"
-                     {...register("object.attribute", { required: false })}
+
+                     {...register("identification_number", {
+
+                        required: false,
+
+                        validate: {
+
+                           validateIdentification: (value?: string) =>
+
+                              !value?.trim() ||
+
+                              validateIdentificationNumber(
+
+                                 value,
+
+                                 IdentificationEnum.NATIONAL_ID.value,
+
+                              ),
+
+                        },
+
+                        setValueAs: (value: string) =>
+
+                           value
+
+                              ? value.toString().replace(/-/g, "").toUpperCase()
+
+                              : "",
+
+                        onChange: (e) => {
+
+                           e.target.value = formatIdentificationNumber(e.target.value);
+
+                        },
+
+                     })}
+
+                     error={errors.identification_number?.message}
+
                   />
+
                </div>
 
+
+
                <div className="flex flex-col">
+
+                  <Controller
+
+                     name="type"
+
+                     control={control}
+
+                     render={({ field }) => (
+
+                        <Dropdown
+
+                           label="Tipo de deducción"
+
+                           appearance="dark"
+
+                           placeholder="Todos los tipos"
+
+                           value={field.value}
+
+                           onChange={(value) =>
+
+                              field.onChange(value as DeductionTypeFilterValue)
+
+                           }
+
+                           options={DEDUCTION_TYPE_FILTER_OPTIONS}
+
+                           labelClassName={labelClassName}
+
+                           valueClassName={labelClassName}
+
+                           className={dropdownClassName}
+
+                        />
+
+                     )}
+
+                  />
+
+               </div>
+
+
+
+               <div className="flex flex-col">
+
                   <Button
+
                      type="submit"
+
                      size="giant"
+
                      disabled={!isValid || !isDirty}
+
                      className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+
                      label="Aplicar filtros"
+
                   />
+
                </div>
 
+
+
                <div className="flex flex-col">
+
                   <Button
+
                      type="button"
+
                      size="giant"
+
                      className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+
                      label="Limpiar filtros"
+
                      onClick={handleClearFilters}
+
                   />
+
                </div>
+
             </form>
 
+
+
             <div className="flex flex-col">
+
                <ActiveDeductionTable
-                  data={[]}
+
+                  data={datasource}
+
                   pagination={
+
                      <Pagination
-                        currentPage={1}
-                        pageSize={2}
-                        totalRecords={3}
-                        onPageChange={() => console.log("Testing")}
-                        disabled={false}
+
+                        currentPage={deductions?.page_number ?? 0}
+
+                        pageSize={deductions?.page_size ?? 0}
+
+                        totalRecords={deductions?.total_deductions ?? 0}
+
+                        onPageChange={handlePageChange}
+
+                        disabled={isFetching}
+
                      />
+
                   }
+
                />
+
             </div>
 
          </m.div>
 
       </LazyMotion>
+
    );
-}
+
+};
+
+
