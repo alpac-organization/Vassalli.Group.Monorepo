@@ -290,7 +290,8 @@ export function ModalDetailsPayroll({
     travelExpensesHistory[0] ??
     null;
   const permissions = GetPermissionHistory.data?.data ?? [];
-  const permissionsTotal = GetPermissionHistory.data?.total ?? permissions.length;
+  const permissionsTotal =
+    GetPermissionHistory.data?.total ?? permissions.length;
 
   const formattedIdentification = (() => {
     const id = collaborator?.identification_number;
@@ -668,7 +669,7 @@ function MobileField({
 }: MobileFieldProps): React.ReactNode {
   return (
     <div className={className}>
-      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+      <p className="text-[16px]! font-medium capitalize tracking-wide text-slate-400 dark:text-slate-500">
         {label}
       </p>
       <div
@@ -790,7 +791,6 @@ function formatPermissionTimeRange(
   if (!startTime && !endTime) return "—";
   return `${startTime ?? "—"} — ${endTime ?? "—"}`;
 }
-
 function formatPermissionDays(amountDays?: number): string {
   if (amountDays == null) return "—";
   return `${amountDays} ${amountDays === 1 ? "día" : "días"}`;
@@ -801,26 +801,27 @@ function getApprovalStepIndicator(step: StepStatus): {
   className: string;
   title: string;
 } {
-  if (step.reviewed_by) {
-    if (step.is_approved) {
-      return {
-        label: "✓",
-        className:
-          "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
-        title: `Aprobado por ${step.reviewed_by}`,
-      };
-    }
+  if (step.is_approved) {
     return {
-      label: "✗",
-      className: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200",
-      title: `Rechazado por ${step.reviewed_by}`,
+      label: "✓",
+      className:
+        "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
+      title: `Aprobado por ${step.reviewed_by}`,
+    };
+    //step.is_approved === null
+  } else if (!step.is_approved && !step.reviewed_by) {
+    return {
+      label: "○",
+      className:
+        "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200",
+      title: "Pendiente de revisión",
     };
   }
   return {
-    label: "○",
+    label: "✗",
     className:
-      "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200",
-    title: "Pendiente de revisión",
+      "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200",
+    title: `Rechazado por ${step.reviewed_by}`,
   };
 }
 
@@ -903,7 +904,7 @@ function PermissionMobileCard({
       </div>
 
       <div>
-        <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+        <p className="text-[15px]! font-medium capitalize tracking-wide text-slate-400 dark:text-slate-500">
           Aprobación
         </p>
         <div className="mt-1.5">
@@ -926,36 +927,36 @@ function PermissionTableRow({
       <div
         className={`${PERMISSION_TABLE_GRID_CLASS} hidden transition-colors hover:bg-slate-50 dark:hover:bg-neutral-800/50 sm:grid`}
       >
-      <div className="px-3 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100">
-        {PERMISSION_TYPE_LABEL[permission.type] ?? permission.type}
+        <div className="px-3 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-100">
+          {PERMISSION_TYPE_LABEL[permission.type] ?? permission.type}
+        </div>
+        <div className="px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300">
+          {formatPermissionPeriod(permission.start_date, permission.end_date)}
+        </div>
+        <div className="px-3 py-2.5 text-sm font-semibold text-blue-700 dark:text-blue-300">
+          {formatPermissionDays(permission.amount_days)}
+        </div>
+        <div className="px-3 py-2.5 font-mono text-xs text-slate-600 dark:text-slate-300">
+          {formatPermissionTimeRange(
+            permission.type,
+            permission.start_time,
+            permission.end_time,
+          )}
+        </div>
+        <div className="flex items-center px-3 py-2.5">
+          <Badges
+            label={getPermissionStatusUiLabel(permission.status)}
+            color="transparent"
+            className={statusBadgeColor(permission.status)}
+          />
+        </div>
+        <div className="flex items-center px-3 py-2.5">
+          <PermissionApprovalSteps
+            firstStep={permission.first_step_status}
+            secondStep={permission.second_step_status}
+          />
+        </div>
       </div>
-      <div className="px-3 py-2.5 text-sm text-slate-600 dark:text-slate-300">
-        {formatPermissionPeriod(permission.start_date, permission.end_date)}
-      </div>
-      <div className="px-3 py-2.5 text-sm font-semibold text-blue-700 dark:text-blue-300">
-        {formatPermissionDays(permission.amount_days)}
-      </div>
-      <div className="px-3 py-2.5 font-mono text-xs text-slate-600 dark:text-slate-300">
-        {formatPermissionTimeRange(
-          permission.type,
-          permission.start_time,
-          permission.end_time,
-        )}
-      </div>
-      <div className="flex items-center px-3 py-2.5">
-        <Badges
-          label={getPermissionStatusUiLabel(permission.status)}
-          color="transparent"
-          className={statusBadgeColor(permission.status)}
-        />
-      </div>
-      <div className="flex items-center px-3 py-2.5">
-        <PermissionApprovalSteps
-          firstStep={permission.first_step_status}
-          secondStep={permission.second_step_status}
-        />
-      </div>
-    </div>
     </>
   );
 }
@@ -1392,7 +1393,9 @@ function VacationBalanceRow({
         <div className="px-3 py-2.5 text-sm text-slate-500 dark:text-slate-400">
           {label}
         </div>
-        <div className={`px-3 py-2.5 font-mono text-sm tabular-nums ${textClass}`}>
+        <div
+          className={`px-3 py-2.5 font-mono text-sm tabular-nums ${textClass}`}
+        >
           {formatVacationBalance(balance)}
         </div>
         <div className="px-3 py-2.5 font-mono text-sm text-slate-400 dark:text-slate-500">
@@ -1464,10 +1467,14 @@ function VacationAmountRow({
         <div className="px-3 py-2.5 font-mono text-sm text-slate-400 dark:text-slate-500">
           —
         </div>
-        <div className={`px-3 py-2.5 font-mono text-sm tabular-nums ${textClass}`}>
+        <div
+          className={`px-3 py-2.5 font-mono text-sm tabular-nums ${textClass}`}
+        >
           {formatCurrency(nio, "NIO")}
         </div>
-        <div className={`px-3 py-2.5 font-mono text-sm tabular-nums ${textClass}`}>
+        <div
+          className={`px-3 py-2.5 font-mono text-sm tabular-nums ${textClass}`}
+        >
           {usd != null ? formatCurrency(usd, "USD") : "—"}
         </div>
       </div>
@@ -1530,10 +1537,14 @@ function AmountRow({
         <div className="px-3 py-2.5 text-sm text-slate-500 dark:text-slate-400">
           {label}
         </div>
-        <div className={`px-3 py-2.5 font-mono text-sm tabular-nums ${textClass}`}>
+        <div
+          className={`px-3 py-2.5 font-mono text-sm tabular-nums ${textClass}`}
+        >
           {formatCurrency(nio, "NIO")}
         </div>
-        <div className={`px-3 py-2.5 font-mono text-sm tabular-nums ${textClass}`}>
+        <div
+          className={`px-3 py-2.5 font-mono text-sm tabular-nums ${textClass}`}
+        >
           {usd != null ? formatCurrency(usd, "USD") : "—"}
         </div>
       </div>
