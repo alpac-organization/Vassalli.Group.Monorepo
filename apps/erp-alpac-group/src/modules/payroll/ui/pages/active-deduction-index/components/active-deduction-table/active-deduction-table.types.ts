@@ -3,4 +3,5 @@ import type { DeductionDto } from "@app/modules/payroll/domain/ApiContract/Respo
 export type ActiveDeductionTableProps = {
     data: DeductionDto[];
     pagination?: React.ReactNode;
+    onViewDetail: (deduction: DeductionDto) => void;
 }
