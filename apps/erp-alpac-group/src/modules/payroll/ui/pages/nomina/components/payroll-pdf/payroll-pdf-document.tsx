@@ -25,6 +25,16 @@ const NON_SOFT_WRAP_KEYS = new Set([
   "job_position",
 ]);
 
+function getTotalsLabelColumnIndex(columns: PayrollColumnDef[]): number {
+  const fullNameIdx = columns.findIndex((col) => col.key === "full_name");
+  if (fullNameIdx >= 0) return fullNameIdx;
+
+  const workAreaIdx = columns.findIndex((col) => col.key === "work_area");
+  if (workAreaIdx >= 0) return workAreaIdx;
+
+  return 0;
+}
+
 function DataRow({
   item,
   activeColumns,
@@ -99,6 +109,7 @@ export function PayrollPdfDocument({
 
   const globalTotals = calcAreaTotals(data, activeColumns);
   const totalCollaborators = data.length;
+  const totalsLabelColumnIndex = getTotalsLabelColumnIndex(activeColumns);
 
   return (
     <Document>
@@ -159,9 +170,11 @@ export function PayrollPdfDocument({
               <View style={styles.areaTotalsRow} wrap={false}>
                 {activeColumns.map((col, colIndex) => {
                   const rawTotal =
-                    colIndex === 0
+                    colIndex === totalsLabelColumnIndex
                       ? `Total ${areaName} (${areaItems.length} colab.)`
-                      : (totals[col.key] ?? "");
+                      : colIndex < totalsLabelColumnIndex
+                        ? ""
+                        : (totals[col.key] ?? "");
                   const displayTotal = withSoftLineBreaks(rawTotal);
                   return (
                     <View style={colStyle(col.key)} key={col.key}>
@@ -176,64 +189,68 @@ export function PayrollPdfDocument({
           );
         })}
 
-        <View style={styles.globalTotalsRow} wrap={false}>
-          {activeColumns.map((col, colIndex) => {
-            const rawTotal =
-              colIndex === 0
-                ? `TOTAL GENERAL (${totalCollaborators} colaboradores)`
-                : (globalTotals[col.key] ?? "");
-            const displayTotal = withSoftLineBreaks(rawTotal);
-            return (
-              <View style={colStyle(col.key)} key={col.key}>
-                <Text style={styles.globalTotalsCell} wrap>
-                  {displayTotal}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-
-        {showSignatures && (
-          <View style={styles.signaturesContainer} wrap={false}>
-            <View style={styles.signatureBlock}>
-              <View style={styles.signatureStampArea}>
-                {preparedSignatureImageSrc ? (
-                  <Image
-                    src={preparedSignatureImageSrc}
-                    style={styles.signatureImage}
-                  />
-                ) : null}
-              </View>
-              <View style={styles.signatureLine} />
-              <Text style={styles.signatureName}>
-                Elaborado por: {preparedName}
-              </Text>
-              {signatures.solicitado.role ? (
-                <Text style={styles.signatureRole}>
-                  {signatures.solicitado.role}
-                </Text>
-              ) : null}
-            </View>
-
-            <View style={styles.signatureBlock}>
-              <View style={styles.signatureStampArea}>
-                {reviewedSignatureImageSrc ? (
-                  <Image
-                    src={reviewedSignatureImageSrc}
-                    style={styles.signatureImage}
-                  />
-                ) : null}
-              </View>
-              <View style={styles.signatureLine} />
-              <Text style={styles.signatureName}>
-                Revisado por: {reviewedName}
-              </Text>
-              {reviewedRole ? (
-                <Text style={styles.signatureRole}>{reviewedRole}</Text>
-              ) : null}
-            </View>
+        <View wrap={false}>
+          <View style={styles.globalTotalsRow}>
+            {activeColumns.map((col, colIndex) => {
+              const rawTotal =
+                colIndex === totalsLabelColumnIndex
+                  ? `TOTAL GENERAL (${totalCollaborators} colaboradores)`
+                  : colIndex < totalsLabelColumnIndex
+                    ? ""
+                    : (globalTotals[col.key] ?? "");
+              const displayTotal = withSoftLineBreaks(rawTotal);
+              return (
+                <View style={colStyle(col.key)} key={col.key}>
+                  <Text style={styles.globalTotalsCell} wrap>
+                    {displayTotal}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
-        )}
+
+          {showSignatures && (
+            <View style={styles.signaturesContainer}>
+              <View style={styles.signatureBlock}>
+                <View style={styles.signatureStampArea}>
+                  {preparedSignatureImageSrc ? (
+                    <Image
+                      src={preparedSignatureImageSrc}
+                      style={styles.signatureImage}
+                    />
+                  ) : null}
+                </View>
+                <View style={styles.signatureLine} />
+                <Text style={styles.signatureName}>
+                  Elaborado por: {preparedName}
+                </Text>
+                {signatures.solicitado.role ? (
+                  <Text style={styles.signatureRole}>
+                    {signatures.solicitado.role}
+                  </Text>
+                ) : null}
+              </View>
+
+              <View style={styles.signatureBlock}>
+                <View style={styles.signatureStampArea}>
+                  {reviewedSignatureImageSrc ? (
+                    <Image
+                      src={reviewedSignatureImageSrc}
+                      style={styles.signatureImage}
+                    />
+                  ) : null}
+                </View>
+                <View style={styles.signatureLine} />
+                <Text style={styles.signatureName}>
+                  Revisado por: {reviewedName}
+                </Text>
+                {reviewedRole ? (
+                  <Text style={styles.signatureRole}>{reviewedRole}</Text>
+                ) : null}
+              </View>
+            </View>
+          )}
+        </View>
 
         <Text
           style={{

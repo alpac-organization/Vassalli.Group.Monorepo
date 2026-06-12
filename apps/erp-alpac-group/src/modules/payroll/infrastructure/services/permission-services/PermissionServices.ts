@@ -23,7 +23,6 @@ export class PermissionServices implements IPermissionRequestServices {
         `companies/${company_id}/modules/${module_code}/permit-applications`,
         body,
       );
-      console.log(response);
       return response;
     } catch (error) {
       throw error;
@@ -40,7 +39,6 @@ export class PermissionServices implements IPermissionRequestServices {
         `/companies/${companie_id}/modules/${module_code}/permit-applications`,
         { params },
       );
-      console.log("response ", response);
       return response;
     } catch (error) {
       throw error;

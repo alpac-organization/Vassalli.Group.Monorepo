@@ -2,6 +2,7 @@ import type { PayrollActionValue } from "@app/modules/payroll/ui/pages/nomina/ty
 
 export const PAYROLL_ACTIONS_WITH_EXCEL: readonly PayrollActionValue[] = [
   "report",
+  "vacation_accrual_area_report",
   "accumulated_history",
   "income_report",
   "deduction_report",
