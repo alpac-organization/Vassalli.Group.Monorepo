@@ -33,7 +33,7 @@ export const AddAllowanceModal = (props: AddAllowanceModalProps): React.ReactNod
          onClose={handleClose}
          title="Agregar Viáticos"
          variant="form"
-         size="3xl"
+         size="3xl"  
          description="Complete la información de los viáticos"
       >
          <LazyMotion features={loadFeatures}>

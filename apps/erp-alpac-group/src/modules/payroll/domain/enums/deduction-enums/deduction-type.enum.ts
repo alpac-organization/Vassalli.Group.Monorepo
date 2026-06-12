@@ -4,7 +4,7 @@ export const DeductionTypeEnum: Record<string, EnumType> = {
   Loans: { value: 1, label: "Préstamo" },
   AdvanceChristmasBonus: { value: 2, label: "Adelanto de aguinaldo" },
   LateArrivals: { value: 3, label: "Llegadas tardes" },
-  SalaryAdvance: { value: 4, label: "Adelanto de salario" },
+  // SalaryAdvance: { value: 4, label: "Adelanto de salario" },
   Sanction: { value: 5, label: "Sanción" },
   Purisima: { value: 6, label: "Purísima" },
   OtherDeductions: { value: 7, label: "Otras deducciones" },

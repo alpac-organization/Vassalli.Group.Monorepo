@@ -51,6 +51,8 @@ export const useDeduction = () => {
         payload.identification_number,
         payload.status,
         payload.type,
+        payload.page_number,
+        payload.page_size,
       ],
       queryFn: () => deductionsServicesByPayroll.GetDeductionsByAsync(payload),
       enabled: options?.enabled,
