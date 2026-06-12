@@ -28,7 +28,6 @@ export class DeductionsServicesByPayroll implements IDeductionsServicesByPayroll
       throw error;
     }
   }
-
   async GetDeductionDetailsAsync(
     payload: GetDeductionDetailsRequest,
   ): Promise<DeductionDetailsDto> {

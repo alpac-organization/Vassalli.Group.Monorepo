@@ -14,6 +14,8 @@ import {
 import { ModalDetailsPayroll } from "@app/modules/payroll/ui/pages/nomina/components/collaborator-details-payroll/modal-details-payroll";
 import PayrollFiltersBar from "@app/modules/payroll/ui/pages/nomina/components/payroll-filters/payroll-filtersbar";
 import { exportPayrollExcel } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/export-payroll-excel";
+import { ConsolidatedAreaPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/pdf/consolidated-area-pdf-document";
+import { exportConsolidatedAreaExcel } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/excel/export-consolidated-area-excel";
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
@@ -71,6 +73,14 @@ export function PayrollClosedHistoryPage() {
     useState(false);
   const [isGeneratingDeductionSummaryPdf, setIsGeneratingDeductionSummaryPdf] =
     useState(false);
+  const [
+    isGeneratingConsolidatedAreaPdf,
+    setIsGeneratingConsolidatedAreaPdf,
+  ] = useState(false);
+  const [
+    isGeneratingConsolidatedAreaExcel,
+    setIsGeneratingConsolidatedAreaExcel,
+  ] = useState(false);
   const [selectedAction, setSelectedAction] =
     useState<PayrollActionValue | null>(null);
 
@@ -127,6 +137,10 @@ export function PayrollClosedHistoryPage() {
       { label: "Generar Historial Acumulado", value: "accumulated_history" },
       { label: "Generar Reporte de Ingresos", value: "income_report" },
       { label: "Generar Reporte de Deducciones", value: "deduction_report" },
+      {
+        label: "Generar Reporte Nómina Consolidada por Área",
+        value: "consolidated_area_report",
+      },
     ];
     const startDate = detailsData?.start_date;
     const endDate = detailsData?.end_date;
@@ -466,6 +480,82 @@ export function PayrollClosedHistoryPage() {
     detailsData,
   ]);
 
+  const handleGenerateConsolidatedAreaPdf = useCallback(async () => {
+    if (!payroll_id || !branch_id || !companyId || !moduleCode || !hasItems)
+      return;
+    try {
+      setIsGeneratingConsolidatedAreaPdf(true);
+      const allItems = await fetchAllItems();
+      const preparedSignatureImageSrc = signatures.solicitado.signatureImage
+        ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
+        : "";
+      const reviewedSignatureImageSrc = signatures.signatureImage
+        ? await getProcessedSignatureImage(signatures.signatureImage)
+        : "";
+      const blob = await pdf(
+        <ConsolidatedAreaPdfDocument
+          data={allItems}
+          branchName={detailsData?.branch_name ?? ""}
+          companyName={companyName}
+          startDate={detailsData?.start_date}
+          endDate={detailsData?.end_date}
+          preparedBy={{ name: signatures.solicitado.name }}
+          reviewedBy={{
+            name: signatures.revisado.name,
+            role: signatures.revisado.role,
+          }}
+          preparedSignatureImageSrc={preparedSignatureImageSrc}
+          reviewedSignatureImageSrc={reviewedSignatureImageSrc}
+        />,
+      ).toBlob();
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch {
+      console.error("Error generando reporte consolidado por área");
+    } finally {
+      setIsGeneratingConsolidatedAreaPdf(false);
+    }
+  }, [
+    payroll_id,
+    branch_id,
+    companyId,
+    moduleCode,
+    hasItems,
+    fetchAllItems,
+    signatures,
+    detailsData,
+    companyName,
+  ]);
+
+  const handleGenerateConsolidatedAreaExcel = useCallback(async () => {
+    if (!companyId || !moduleCode || !branch_id || !payroll_id || !hasItems)
+      return;
+    try {
+      setIsGeneratingConsolidatedAreaExcel(true);
+      const allItems = await fetchAllItems();
+      await exportConsolidatedAreaExcel({
+        data: allItems,
+        companyName,
+        branchName: detailsData?.branch_name ?? "",
+        startDate: detailsData?.start_date,
+        endDate: detailsData?.end_date,
+        logoUrl: useCompanyStore.getState().urlImage,
+      });
+    } catch {
+      console.error("Error generando Excel consolidado por área");
+    } finally {
+      setIsGeneratingConsolidatedAreaExcel(false);
+    }
+  }, [
+    companyId,
+    moduleCode,
+    branch_id,
+    payroll_id,
+    hasItems,
+    fetchAllItems,
+    companyName,
+    detailsData,
+  ]);
+
   const handleGenerateExcel = useCallback(async () => {
     if (!companyId || !moduleCode || !branch_id || !payroll_id) return;
     try {
@@ -504,7 +594,8 @@ export function PayrollClosedHistoryPage() {
     isGeneratingPaymentRequestsPdf ||
     isGeneratingAccumulatedHistoryPdf ||
     isGeneratingIncomeSummaryPdf ||
-    isGeneratingDeductionSummaryPdf;
+    isGeneratingDeductionSummaryPdf ||
+    isGeneratingConsolidatedAreaPdf;
 
   const handleExecuteSelectedAction = useCallback(() => {
     switch (selectedAction) {
@@ -526,6 +617,9 @@ export function PayrollClosedHistoryPage() {
       case "deduction_report":
         void handleGenerateDeductionSummaryPdf();
         break;
+      case "consolidated_area_report":
+        void handleGenerateConsolidatedAreaPdf();
+        break;
       default:
         break;
     }
@@ -537,7 +631,30 @@ export function PayrollClosedHistoryPage() {
     handleGenerateAccumulatedHistoryPdf,
     handleGenerateIncomeSummaryPdf,
     handleGenerateDeductionSummaryPdf,
+    handleGenerateConsolidatedAreaPdf,
   ]);
+
+  const handleExportExcel = useCallback(() => {
+    if (selectedAction === "consolidated_area_report") {
+      void handleGenerateConsolidatedAreaExcel();
+      return;
+    }
+    void handleGenerateExcel();
+  }, [
+    selectedAction,
+    handleGenerateConsolidatedAreaExcel,
+    handleGenerateExcel,
+  ]);
+
+  const isExcelExportLoading =
+    selectedAction === "consolidated_area_report"
+      ? isGeneratingConsolidatedAreaExcel
+      : isGeneratingExcel;
+
+  const excelExportLabel =
+    selectedAction === "consolidated_area_report"
+      ? "Exportar Excel consolidado por área"
+      : "Exportar Excel de nómina";
 
   if (!branch_id || !type_payroll) {
     return (
@@ -636,12 +753,12 @@ export function PayrollClosedHistoryPage() {
             <Button
               type="button"
               size="giant"
-              label="Exportar Excel de nómina"
-              isLoading={isGeneratingExcel}
-              disabled={!hasItems || isGeneratingExcel}
-              onClick={handleGenerateExcel}
+              label={excelExportLabel}
+              isLoading={isExcelExportLoading}
+              disabled={!hasItems || isExcelExportLoading}
+              onClick={handleExportExcel}
               className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                isGeneratingExcel
+                isExcelExportLoading
                   ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                   : ""
               }`}
