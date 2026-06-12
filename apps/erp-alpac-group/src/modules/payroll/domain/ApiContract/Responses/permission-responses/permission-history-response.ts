@@ -29,10 +29,15 @@ export interface StepStatus {
   reviewed_by?: string;
 }
 
+export interface MedicalAppointmentImageAttachment {
+  ContentType?: string | null;
+  ImageBase64?: string | null;
+}
+
 export type PermissionAdditionalData = {
   MedicalAppointmentData?: {
     IsFullDay?: boolean;
-    ImagesAttached?: unknown[];
+    ImagesAttached?: MedicalAppointmentImageAttachment[];
   };
   VacationData?: {
     IsFullDay?: boolean;

@@ -3,16 +3,19 @@ import {
   formatDateToSpanishWords,
   formatTime,
 } from "@app/shared/utils/string.utils";
-import { toDataUrl } from "@app/shared/utils/toDataUrl";
+import { ImagePreviewGallery } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
+import { extractMedicalAppointmentImages } from "@app/modules/payroll/ui/pages/permissions/utils/permission-additional-data.utils";
 
 export const MedicalAppointmentPanel = ({
   application,
 }: MedicalAppointmentPanelProps) => {
   const isMedicalAppointment = application.type === "MedicalAppointment";
-  //   const hasImages = (application.?.length ?? 0) > 0;
   const isFullDay =
-    application.amount_days ||
+    (application.amount_days ?? 0) > 1 ||
     (!application.start_time && !application.end_time);
+  const medicalAppointmentImages = isMedicalAppointment
+    ? extractMedicalAppointmentImages(application.additional_data)
+    : [];
 
   return (
     <>
@@ -80,36 +83,12 @@ export const MedicalAppointmentPanel = ({
           </div>
         </div>
       )}
-      {/* 
-      {isMedicalAppointment && hasImages && (
-        <div className="flex flex-col gap-2">
-          <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
-            Comprobantes médicos
-          </span>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {application.images?.map((image, index) => {
-              const src = toDataUrl(image.image_base64, image.content_type);
-              if (!src) return null;
 
-              return (
-                <a
-                  key={`medical-image-${index}`}
-                  href={src}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="overflow-hidden rounded-md border border-slate-200 dark:border-slate-600"
-                >
-                  <img
-                    src={src}
-                    alt={`Comprobante médico ${index + 1}`}
-                    className="h-24 w-full object-cover"
-                  />
-                </a>
-              );
-            })}
-          </div>
+      {medicalAppointmentImages.length > 0 && (
+        <div className="col-span-full">
+          <ImagePreviewGallery images={medicalAppointmentImages} />
         </div>
-      )} */}
+      )}
     </>
   );
 };

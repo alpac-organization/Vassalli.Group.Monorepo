@@ -36,7 +36,12 @@ export function PermissionTable({
     {
       key: "amount_days",
       label: "Cantidad de días",
-      render: (row: PermissionResponse) => row.amount_days ?? "—",
+      render: (row: PermissionResponse) => {
+        if (row.start_time && row.end_time) {
+          return "—";
+        }
+        return row.amount_days;
+      },
     },
     {
       key: "description",
