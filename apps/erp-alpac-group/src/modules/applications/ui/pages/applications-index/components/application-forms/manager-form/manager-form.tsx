@@ -22,241 +22,246 @@ import type { ConfirmActionType } from "@app/modules/applications/ui/pages/appli
 import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/cancel-permission-request";
 import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator-profile.request";
 
-export const ManagerForm = ({ application }: { application: GetApplicationsResponse }) => {
+export const ManagerForm = ({
+  application,
+}: {
+  application: GetApplicationsResponse;
+}) => {
+  const { companyId, moduleCode, identificationNumber } = useUserStore();
 
-   const { companyId, moduleCode, identificationNumber } = useUserStore();
+  const collaboratorPayload: CollaboratorProfileDetailsRequest = {
+    company_id: companyId,
+    module_code: moduleCode,
+    identification_number: identificationNumber,
+  };
 
-   const collaboratorPayload: CollaboratorProfileDetailsRequest = {
+  const { ProcessApplication } = useApplications();
+  const { cancelPermissionRequestMutation } = usePermission();
+  const { GetProfileDetails } = useCollaborators({
+    CollaboratorDetailsPayload: collaboratorPayload,
+  });
+  const { getMappedError } = useMappedError();
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    type: ConfirmActionType;
+  }>({
+    isOpen: false,
+    type: "CANCEL",
+  });
+
+  const [showAlert, setShowAlert] = useState<{
+    show: boolean;
+    type: "success" | "error" | "warning" | "info";
+    title: string;
+    message: string;
+  }>({
+    show: false,
+    type: "info",
+    title: "",
+    message: "",
+  });
+
+  const { data: managerProfile, isLoading: isLoadingProfile } =
+    GetProfileDetails;
+
+  const { handleSubmit, setValue } = useForm<ApplicationProcessRequest>({
+    defaultValues: {
       company_id: companyId,
       module_code: moduleCode,
-      identification_number: identificationNumber,
-   }
+      permit_application_id: application.permit_apllication_id,
+      is_approved: null,
+    },
+  });
 
-   const { ProcessApplication } = useApplications();
-   const { cancelPermissionRequestMutation } = usePermission();
-   const { GetProfileDetails } = useCollaborators({
-      CollaboratorDetailsPayload: collaboratorPayload
-   })
-   const { getMappedError } = useMappedError();
+  const isPendingApplication =
+    PermitApplicationStatus[application.status] ===
+    PermitApplicationStatus.Pending;
 
-   const [confirmModal, setConfirmModal] = useState<{
-      isOpen: boolean;
-      type: ConfirmActionType;
-   }>({
-      isOpen: false,
-      type: "CANCEL"
-   });
+  const processApplication = (data: ApplicationProcessRequest) => {
+    ProcessApplication.mutate(data, {
+      onSuccess: () => {
+        const action = data.is_approved ? "Aprobada" : "Rechazada";
+        setConfirmModal({ isOpen: false, type: "CANCEL" });
+        setShowAlert({
+          show: true,
+          type: "success",
+          title: "Solicitud procesada",
+          message: `La solicitud ha sido ${action} exitosamente.`,
+        });
 
-   const [showAlert, setShowAlert] = useState<{
-      show: boolean;
-      type: "success" | "error" | "warning" | "info";
-      title: string;
-      message: string;
-   }>({
-      show: false,
-      type: "info",
-      title: "",
-      message: "",
-   });
+        handleCloseAlert();
+      },
+      onError: (error) => {
+        const mappedError = getMappedError(error);
+        setShowAlert({
+          show: true,
+          type: "error",
+          title: "Error",
+          message: mappedError.description,
+        });
 
-   const { data: managerProfile, isLoading: isLoadingProfile } = GetProfileDetails;
+        handleCloseAlert();
+      },
+    });
+  };
 
-   const { handleSubmit, setValue } = useForm<ApplicationProcessRequest>({
-      defaultValues: {
-         company_id: companyId,
-         module_code: moduleCode,
-         permit_application_id: application.permit_apllication_id,
-         is_approved: null
-      }
-   });
+  const cancelApplication = (data: CancelPermissionRequest) => {
+    cancelPermissionRequestMutation.mutate(data, {
+      onSuccess: () => {
+        setConfirmModal({ isOpen: false, type: "CANCEL" });
+        setShowAlert({
+          show: true,
+          type: "success",
+          title: "Solicitud cancelada",
+          message: "La solicitud ha sido cancelada exitosamente.",
+        });
 
-   const isPendingApplication = PermitApplicationStatus[application.status] === PermitApplicationStatus.Pending;
+        handleCloseAlert();
+      },
+      onError: (error) => {
+        const mappedError = getMappedError(error);
+        setShowAlert({
+          show: true,
+          type: "error",
+          title: "Error",
+          message: mappedError.description,
+        });
 
-   const processApplication = (data: ApplicationProcessRequest) => {
-      ProcessApplication.mutate(data, {
-         onSuccess: () => {
-            const action = data.is_approved ? "Aprobada" : "Rechazada";
-            setConfirmModal({ isOpen: false, type: "CANCEL" });
-            setShowAlert({
-               show: true,
-               type: "success",
-               title: "Solicitud procesada",
-               message: `La solicitud ha sido ${action} exitosamente.`
-            });
+        handleCloseAlert();
+      },
+    });
+  };
 
-            handleCloseAlert();
-         },
-         onError: (error) => {
-            const mappedError = getMappedError(error);
-            setShowAlert({
-               show: true,
-               type: "error",
-               title: "Error",
-               message: mappedError.description
-            });
+  const openConfirm = (type: ConfirmActionType) => {
+    setValue("is_approved", type === "APPROVE");
+    setConfirmModal({ isOpen: true, type });
+  };
 
-            handleCloseAlert();
-         }
+  const handleCloseAlert = useCallback(() => {
+    setTimeout(() => {
+      setShowAlert({ show: false, type: "info", title: "", message: "" });
+    }, 3000);
+  }, []);
+
+  const handleConfirmProcessApplication = handleSubmit(processApplication);
+
+  const handleConfirmAction = () => {
+    if (confirmModal.type === "CANCEL") {
+      cancelApplication({
+        company_id: companyId,
+        module_code: moduleCode,
+        permit_application_id: application.permit_apllication_id,
       });
-   };
+    } else {
+      handleConfirmProcessApplication();
+    }
+  };
+  return (
+    <form className="flex flex-col gap-4">
+      <MainPanel
+        application={application}
+        className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+      >
+        {application.type === "Vacation" && (
+          <VacationPanel application={application} />
+        )}
 
-   const cancelApplication = (data: CancelPermissionRequest) => {
-      cancelPermissionRequestMutation.mutate(data, {
-         onSuccess: () => {
-            setConfirmModal({ isOpen: false, type: "CANCEL" });
-            setShowAlert({
-               show: true,
-               type: "success",
-               title: "Solicitud cancelada",
-               message: "La solicitud ha sido cancelada exitosamente."
-            });
+        {application.type === "MedicalAppointment" && (
+          <MedicalAppointmentPanel application={application} />
+        )}
 
-            handleCloseAlert();
-         },
-         onError: (error) => {
-            const mappedError = getMappedError(error);
-            setShowAlert({
-               show: true,
-               type: "error",
-               title: "Error",
-               message: mappedError.description
-            });
+        {application.type === "DonatedVacations" && (
+          <DonatedVacationPanel application={application} />
+        )}
 
-            handleCloseAlert();
-         }
-      });
-   };
+        <ManagerPanel application={application} />
 
-   const openConfirm = (type: ConfirmActionType) => {
-      setValue("is_approved", type === "APPROVE");
-      setConfirmModal({ isOpen: true, type });
-   };
+        <AdministratorPanel application={application} />
 
-   const handleCloseAlert = useCallback(() => {
-      setTimeout(() => {
-         setShowAlert({ show: false, type: "info", title: "", message: "" });
-      }, 3000);
-   }, []);
+        <MainPanel.Field
+          label="Motivo o Descripción"
+          className="font-semibold! rounded-md! text-[15px]"
+        >
+          {application.description || "Sin descripción"}
+        </MainPanel.Field>
+      </MainPanel>
 
-   const handleConfirmProcessApplication = handleSubmit(processApplication);
+      {application.first_step_status.is_approved === null &&
+        isPendingApplication && (
+          <div className="flex flex-row col-span-full gap-4">
+            {isLoadingProfile ? (
+              <>
+                <div className="h-11 w-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md border border-slate-200 dark:border-slate-700" />
+                <div className="h-11 w-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md border border-slate-200 dark:border-slate-700" />
+                <div className="h-11 w-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md border border-slate-200 dark:border-slate-700" />
+              </>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  label="Cancelar"
+                  className="rounded-md! h-11 px-6! border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-500/20 hover:border-orange-400 dark:hover:border-orange-500/60 hover:text-orange-700 dark:hover:text-orange-300 disabled:opacity-40"
+                  onClick={() => openConfirm("CANCEL")}
+                  icon={<BanIcon size={20} />}
+                  isHiddenLabelOnMobile
+                  disabled={cancelPermissionRequestMutation.isPending}
+                  isLoading={cancelPermissionRequestMutation.isPending}
+                />
 
-   const handleConfirmAction = () => {
-      if (confirmModal.type === "CANCEL") {
-         cancelApplication({
-            company_id: companyId,
-            module_code: moduleCode,
-            permit_application_id: application.permit_apllication_id,
-         });
-      } else {
-         handleConfirmProcessApplication();
-      }
-   };
+                {application.collaborator_code !==
+                  managerProfile?.collaborator_code && (
+                  <>
+                    <Button
+                      type="button"
+                      label="Rechazar"
+                      className="rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200"
+                      onClick={() => openConfirm("REJECT")}
+                      icon={<XIcon size={20} />}
+                      isHiddenLabelOnMobile
+                      disabled={ProcessApplication.isPending}
+                      isLoading={ProcessApplication.isPending}
+                    />
+                    <Button
+                      type="button"
+                      label="Aprobar"
+                      className="rounded-md! h-11 px-6! border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-40 shadow-sm transition-all duration-200"
+                      onClick={() => openConfirm("APPROVE")}
+                      icon={<CheckIcon size={20} />}
+                      isHiddenLabelOnMobile
+                      disabled={ProcessApplication.isPending}
+                      isLoading={ProcessApplication.isPending}
+                    />
+                  </>
+                )}
+              </>
+            )}
+          </div>
+        )}
 
-   return (
-      <form className="flex flex-col gap-4">
-         <MainPanel
-            application={application}
-            className="grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      <AnimatedAlertWrapper open={showAlert.show}>
+        <Alert
+          type={showAlert.type}
+          title={showAlert.title}
+          message={showAlert.message}
+          onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
+        />
+      </AnimatedAlertWrapper>
 
-            {
-               application.type === "Vacation" && (
-                  <VacationPanel application={application} />
-               )
-            }
-
-            {
-               application.type === "MedicalAppointment" && (
-                  <MedicalAppointmentPanel application={application} />
-               )
-            }
-
-            {
-               application.type === "DonatedVacations" && (
-                  <DonatedVacationPanel application={application} />
-               )
-            }
-
-            <ManagerPanel application={application} />
-
-            <AdministratorPanel application={application} />
-
-            <MainPanel.Field label="Motivo o Descripción" className="font-semibold! rounded-md! text-[15px]">
-               {application.description || "Sin descripción"}
-            </MainPanel.Field>
-
-         </MainPanel>
-
-         {
-            application.firts_step_approved === null && isPendingApplication && (
-               <div className="flex flex-row col-span-full gap-4">
-                  {isLoadingProfile ? (
-                     <>
-                        <div className="h-11 w-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md border border-slate-200 dark:border-slate-700" />
-                        <div className="h-11 w-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md border border-slate-200 dark:border-slate-700" />
-                        <div className="h-11 w-32 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-md border border-slate-200 dark:border-slate-700" />
-                     </>
-                  ) : (
-                     <>
-                        <Button
-                           type="button"
-                           label="Cancelar"
-                           className="rounded-md! h-11 px-6! border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-500/20 hover:border-orange-400 dark:hover:border-orange-500/60 hover:text-orange-700 dark:hover:text-orange-300 disabled:opacity-40"
-                           onClick={() => openConfirm("CANCEL")}
-                           icon={<BanIcon size={20} />}
-                           isHiddenLabelOnMobile
-                           disabled={cancelPermissionRequestMutation.isPending}
-                           isLoading={cancelPermissionRequestMutation.isPending}
-                        />
-
-                        {
-                           (application.collaborator_code !== managerProfile?.collaborator_code) && (
-                              <>
-                                 <Button
-                                    type="button"
-                                    label="Rechazar"
-                                    className="rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200"
-                                    onClick={() => openConfirm("REJECT")}
-                                    icon={<XIcon size={20} />}
-                                    isHiddenLabelOnMobile
-                                    disabled={ProcessApplication.isPending}
-                                    isLoading={ProcessApplication.isPending}
-                                 />
-                                 <Button
-                                    type="button"
-                                    label="Aprobar"
-                                    className="rounded-md! h-11 px-6! border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-40 shadow-sm transition-all duration-200"
-                                    onClick={() => openConfirm("APPROVE")}
-                                    icon={<CheckIcon size={20} />}
-                                    isHiddenLabelOnMobile
-                                    disabled={ProcessApplication.isPending}
-                                    isLoading={ProcessApplication.isPending}
-                                 />
-                              </>
-                           )
-                        }
-                     </>
-                  )}
-               </div>
-            )
-         }
-
-         <AnimatedAlertWrapper open={showAlert.show}>
-            <Alert
-               type={showAlert.type}
-               title={showAlert.title}
-               message={showAlert.message}
-               onClose={() => setShowAlert((prev) => ({ ...prev, show: false }))}
-            />
-         </AnimatedAlertWrapper>
-
-         <ConfirmModal
-            isOpen={confirmModal.isOpen}
-            onClose={() => setConfirmModal({ isOpen: false, type: "CANCEL" })}
-            type={confirmModal.type}
-            isLoading={ProcessApplication.isPending || cancelPermissionRequestMutation.isPending}
-            disabled={ProcessApplication.isPending || cancelPermissionRequestMutation.isPending}
-            handleFinalAction={() => handleConfirmAction()}
-         />
-      </form>
-   );
-}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, type: "CANCEL" })}
+        type={confirmModal.type}
+        isLoading={
+          ProcessApplication.isPending ||
+          cancelPermissionRequestMutation.isPending
+        }
+        disabled={
+          ProcessApplication.isPending ||
+          cancelPermissionRequestMutation.isPending
+        }
+        handleFinalAction={() => handleConfirmAction()}
+      />
+    </form>
+  );
+};

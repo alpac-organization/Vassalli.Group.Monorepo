@@ -7,7 +7,7 @@ import type { VacationPanelProps } from "./vacation-panel.types";
 export const VacationPanel = ({ application }: VacationPanelProps) => {
   const { start_date, end_date, start_time, end_time } = application;
   const isFullDay =
-    (application.amount_days ?? 0) > 1 &&
+    (application.amount_days ?? 0) === 1 &&
     !application.start_time &&
     !application.end_time;
   return (
