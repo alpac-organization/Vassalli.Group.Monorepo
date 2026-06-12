@@ -212,6 +212,7 @@ export function ModalDetailsPayroll({
     companyId,
     moduleCode,
     collaborator?.identification_number,
+    payrollId,
   ]);
 
   const { GetPermissionHistory } = usePermission(permissionFilters);
