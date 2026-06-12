@@ -76,12 +76,15 @@ export default function PermissionsPage() {
     return identificationNumber;
   }, [isManager, viewTarget, foundCollaborator, identificationNumber]);
 
-  const effectiveFullName = useMemo(() => {
-    if (isManager && viewTarget === "other" && foundCollaborator) {
+  const isViewingOtherCollaborator =
+    isManager && viewTarget === "other" && foundCollaborator !== null;
+
+  const viewedCollaboratorFullName = useMemo(() => {
+    if (isViewingOtherCollaborator) {
       return foundCollaborator.full_name ?? fullName;
     }
     return fullName;
-  }, [isManager, viewTarget, foundCollaborator, fullName]);
+  }, [isViewingOtherCollaborator, foundCollaborator, fullName]);
 
   const [filterDraft, setFilterDraft] =
     useState<VacationStatusFilterValue>("all");
@@ -128,13 +131,27 @@ export default function PermissionsPage() {
     setPageNumber(1);
   }, [effectiveIdentification]);
 
-  const { GetProfileDetails } = useCollaborators({
+  const { GetProfileDetails: viewedProfileQuery } = useCollaborators({
     CollaboratorDetailsPayload: {
       company_id: companyId,
       module_code: moduleCode,
       identification_number: effectiveIdentification ?? "",
     },
   });
+
+  const { GetProfileDetails: requestorProfileQuery } = useCollaborators({
+    CollaboratorDetailsPayload: {
+      company_id: companyId,
+      module_code: moduleCode,
+      identification_number: identificationNumber ?? "",
+      QueryEnabled: isViewingOtherCollaborator,
+    },
+  });
+
+  const requestorProfile = isViewingOtherCollaborator
+    ? requestorProfileQuery
+    : viewedProfileQuery;
+
   const {
     GetPermissionHistory,
     cancelPermissionRequestMutation,
@@ -143,66 +160,94 @@ export default function PermissionsPage() {
   const branches = useCompanies({
     company_id: companyId ?? "",
   });
-  const payrollStatusQuery = usePayrollStatus({
+
+  const requestorPayrollStatusQuery = usePayrollStatus({
     payload: {
       companie_id: companyId,
       module_code: moduleCode,
       branch_id:
         mapBranchNametoBranchId(
-          GetProfileDetails.data?.working_information.branch_name ?? "",
+          requestorProfile.data?.working_information.branch_name ?? "",
           branches.GetBranchesQuery.data ?? [],
         ) ?? "",
       payrol_type: mapSalaryTypeToPayrollType(
-        GetProfileDetails.data?.salary_information.salary_type ?? "Fixed",
+        requestorProfile.data?.salary_information.salary_type ?? "Fixed",
       ),
     },
   });
-  const payrollIdAssignedToCollaborator = useMemo(() => {
+
+  const requestorPayrollId = useMemo(() => {
     if (
-      payrollStatusQuery.isSuccess &&
-      payrollStatusQuery.data?.exist_payroll_in_progress
+      requestorPayrollStatusQuery.isSuccess &&
+      requestorPayrollStatusQuery.data?.exist_payroll_in_progress
     ) {
-      return payrollStatusQuery.data.payroll_id;
+      return requestorPayrollStatusQuery.data.payroll_id;
     }
     return;
-  }, [payrollStatusQuery.isSuccess, payrollStatusQuery.data]);
+  }, [requestorPayrollStatusQuery.isSuccess, requestorPayrollStatusQuery.data]);
 
   const { GetVacationSaldoQuery } = useVacation(vacationSaldoPayload);
-  const {
-    uiSaldoVacaciones: balanceVacation,
-    uiModalNuevaPermission: profileCollaborator,
-  } = useMemo(() => {
+
+  const requestorModalContextReady = Boolean(
+    companyId && moduleCode && identificationNumber,
+  );
+
+  const balanceVacation = useMemo(() => {
+    const querySaldoVacation = {
+      isLoading: GetVacationSaldoQuery.isPending,
+      isError: GetVacationSaldoQuery.isError,
+      datos: GetVacationSaldoQuery.data,
+    };
+    return derivarUiSaldoVacaciones(saldoContextReady, querySaldoVacation);
+  }, [
+    saldoContextReady,
+    GetVacationSaldoQuery.isPending,
+    GetVacationSaldoQuery.isError,
+    GetVacationSaldoQuery.data,
+  ]);
+
+  const viewedCollaboratorUi = useMemo(() => {
     const querySaldoVacation = {
       isLoading: GetVacationSaldoQuery.isPending,
       isError: GetVacationSaldoQuery.isError,
       datos: GetVacationSaldoQuery.data,
     };
     const queryPerfilVacation = {
-      isLoading: GetProfileDetails.isPending,
-      datos: GetProfileDetails.data,
+      isLoading: viewedProfileQuery.isPending,
+      datos: viewedProfileQuery.data,
     };
-    //  se Retorna el estado listo para usar en la UI para las secciones de saldo de vacaciones
-    // y detalles del colaborador en el modal de nueva solicitud, como nombre y puesto de trabajo.
-    return {
-      uiSaldoVacaciones: derivarUiSaldoVacaciones(
-        saldoContextReady,
-        querySaldoVacation,
-      ),
-      uiModalNuevaPermission: derivarUiModalNuevaPermission(
-        saldoContextReady,
-        querySaldoVacation,
-        queryPerfilVacation,
-        effectiveFullName,
-      ),
-    };
+    return derivarUiModalNuevaPermission(
+      saldoContextReady,
+      querySaldoVacation,
+      queryPerfilVacation,
+      viewedCollaboratorFullName,
+    );
   }, [
     saldoContextReady,
     GetVacationSaldoQuery.isPending,
     GetVacationSaldoQuery.isError,
     GetVacationSaldoQuery.data,
-    GetProfileDetails.isPending,
-    GetProfileDetails.data,
-    effectiveFullName,
+    viewedProfileQuery.isPending,
+    viewedProfileQuery.data,
+    viewedCollaboratorFullName,
+  ]);
+
+  const requestorCollaboratorUi = useMemo(() => {
+    const queryPerfilSolicitante = {
+      isLoading: requestorProfile.isPending,
+      datos: requestorProfile.data,
+    };
+    return derivarUiModalNuevaPermission(
+      requestorModalContextReady,
+      { isLoading: false, isError: false, datos: undefined },
+      queryPerfilSolicitante,
+      fullName,
+    );
+  }, [
+    requestorModalContextReady,
+    requestorProfile.isPending,
+    requestorProfile.data,
+    fullName,
   ]);
 
   const [isNewRequestOpen, setIsNewRequestOpen] = useState(false);
@@ -341,21 +386,21 @@ export default function PermissionsPage() {
   const showInitialPageLoader = utilsPermissionPageInitialLoader({
     contextReady: saldoContextReady,
     isSaldoPending: GetVacationSaldoQuery.isPending,
-    isProfilePending: GetProfileDetails.isPending,
+    isProfilePending: viewedProfileQuery.isPending,
     isHistoryPending: GetPermissionHistory.isPending,
   });
 
   const loadError = GetVacationSaldoQuery.isError
     ? GetVacationSaldoQuery.error
-    : GetProfileDetails.isError
-      ? GetProfileDetails.error
+    : viewedProfileQuery.isError
+      ? viewedProfileQuery.error
       : GetPermissionHistory.isError
         ? GetPermissionHistory.error
         : undefined;
 
   const isLoadError =
     GetVacationSaldoQuery.isError ||
-    GetProfileDetails.isError ||
+    viewedProfileQuery.isError ||
     GetPermissionHistory.isError;
 
   if (!identificationNumber?.trim()) {
@@ -504,16 +549,18 @@ export default function PermissionsPage() {
         <NewPermissionRequestModal
           isOpen={isNewRequestOpen}
           onClose={() => setIsNewRequestOpen(false)}
-          payrollId={payrollIdAssignedToCollaborator}
-          collaboratorFullName={profileCollaborator.nombreCompletoColaborador}
+          payrollId={requestorPayrollId}
+          collaboratorFullName={
+            requestorCollaboratorUi.nombreCompletoColaborador
+          }
           collaboratorWorkPosition={
-            profileCollaborator.puestoDeTrabajoColaborador
+            requestorCollaboratorUi.puestoDeTrabajoColaborador
           }
           isCollaboratorFullNameLoading={
-            profileCollaborator.nombreColaboradorCargando
+            requestorCollaboratorUi.nombreColaboradorCargando
           }
           isCollaboratorWorkPositionLoading={
-            profileCollaborator.puestoColaboradorCargando
+            requestorCollaboratorUi.puestoColaboradorCargando
           }
           onRequestSuccess={handleRequestSuccess}
           onRequestError={handleRequestError}
@@ -523,7 +570,9 @@ export default function PermissionsPage() {
           isOpen={isDetailsOpen}
           onClose={handleCloseDetails}
           item={selectedPermissionItem}
-          collaboratorFullName={profileCollaborator.nombreCompletoColaborador}
+          collaboratorFullName={
+            viewedCollaboratorUi.nombreCompletoColaborador
+          }
         />
 
         <VacationStatsSection

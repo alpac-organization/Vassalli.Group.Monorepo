@@ -4,7 +4,7 @@ import {
   AnimatedAlertWrapper,
   Breadcrumb,
   Button,
-  //   Dropdown,
+  Dropdown,
   InputText,
   Pagination,
 } from "@alpac/design-system";
@@ -17,9 +17,9 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ApplicationsTable } from "./components/application-table/applications-table";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useForm, type SubmitHandler } from "react-hook-form";
-// import { Controller } from "react-hook-form";
-// import { PermitApplicationTypeOptions } from "@app/modules/applications/domain/enums/permit-application-type.enum";
-// import { PermitApplicationStatusOptions } from "@app/modules/applications/domain/enums/permit-application-status.enum";
+import { Controller } from "react-hook-form";
+import { PermitApplicationTypeOptions } from "@app/modules/applications/domain/enums/permit-application-type.enum";
+import { PermitApplicationStatusOptions } from "@app/modules/applications/domain/enums/permit-application-status.enum";
 import { ApplicationModal } from "./components/application-modal/application-modal";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import {
@@ -71,7 +71,7 @@ export const ApplicationsPage = function () {
   const { getMappedError } = useMappedError();
 
   const {
-    //  control,
+    control,
     register,
     reset,
     handleSubmit,
@@ -294,10 +294,10 @@ export const ApplicationsPage = function () {
             </div>
           )}
 
-          {/* {isAdministrator && (
+          {isAdministrator && (
             <div className="flex flex-col">
               <Controller
-                name="permit_application_type_id"
+                name="type"
                 control={control}
                 rules={{
                   required: false,
@@ -319,12 +319,12 @@ export const ApplicationsPage = function () {
                 }}
               />
             </div>
-          )} */}
+          )}
 
-          {/* {isAdministrator && (
+          {isAdministrator && (
             <div className="flex flex-col">
               <Controller
-                name="permit_application_status_id"
+                name="status"
                 control={control}
                 rules={{
                   required: false,
@@ -346,7 +346,7 @@ export const ApplicationsPage = function () {
                 }}
               />
             </div>
-          )} */}
+          )}
 
           <div className="flex flex-col">
             <Button
