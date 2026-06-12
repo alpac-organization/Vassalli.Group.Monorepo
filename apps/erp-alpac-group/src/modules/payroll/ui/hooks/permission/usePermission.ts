@@ -61,7 +61,7 @@ export const usePermission = (filters?: PermissionRequest) => {
     queryKey: ["permissionRecords", filters],
     queryFn: () => {
       if (!filters) {
-        throw new Error("getVacationHistory: faltante filters");
+        throw new Error("getPermissions: faltante filters");
       }
       return permissionServices.getPermissions(filters);
     },

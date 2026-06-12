@@ -57,7 +57,6 @@ import type {
 import { PERMISSION_TYPE_LABEL } from "@app/modules/payroll/ui/pages/permissions/constants/permission-filters.constants";
 import { getPermissionStatusUiLabel } from "@app/modules/payroll/ui/pages/permissions/constants/vacation-status.constants";
 import { statusBadgeColor } from "@app/modules/payroll/ui/pages/permissions/components/permission-table/utils/statusBadgeColor";
-import { formatVacationDate } from "@app/modules/payroll/ui/pages/permissions/utils/format-vacation-date";
 import type { ModalDetailsPayrollProps } from "@app/modules/payroll/ui/pages/nomina/components/collaborator-details-payroll/types/modal-details-payroll.types";
 
 type DeductionView = "list" | "detail" | "payments";
@@ -203,6 +202,7 @@ export function ModalDetailsPayroll({
       companie_id: companyId,
       module_code: moduleCode,
       identification_number: collaborator.identification_number,
+      payroll_id: payrollId ?? "",
       page_size: 10,
       page_number: 1,
     };
@@ -775,8 +775,8 @@ const PERMISSION_TABLE_GRID_CLASS =
   "grid grid-cols-[minmax(6.5rem,1fr)_minmax(8.5rem,1.35fr)_minmax(4rem,0.65fr)_minmax(6.5rem,0.9fr)_minmax(5.5rem,0.75fr)_minmax(5.5rem,0.8fr)]";
 
 function formatPermissionPeriod(startDate: string, endDate: string): string {
-  const start = formatVacationDate(startDate);
-  const end = formatVacationDate(endDate);
+  const start = formatDate(startDate);
+  const end = formatDate(endDate);
   if (start === "—" && end === "—") return "—";
   if (start === end) return start;
   return `${start} — ${end}`;

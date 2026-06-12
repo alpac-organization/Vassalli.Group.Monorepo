@@ -6,7 +6,7 @@ import {
 } from "@alpac/design-system";
 import { getPermissionStatusUiLabel } from "@app/modules/payroll/ui/pages/permissions/constants/vacation-status.constants";
 import { PERMISSION_TYPE_LABEL } from "@app/modules/payroll/ui/pages/permissions/constants/permission-filters.constants";
-import { formatVacationDate } from "@app/modules/payroll/ui/pages/permissions/utils/format-vacation-date";
+import { formatDate } from "@app/shared/utils/string.utils";
 import type { PermissionTableProps } from "@app/modules/payroll/ui/pages/permissions/components/permission-table/types/permission-table.type";
 import type { PermissionResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/permission-history-response";
 import { statusBadgeColor } from "@app/modules/payroll/ui/pages/permissions/components/permission-table/utils/statusBadgeColor";
@@ -46,12 +46,12 @@ export function PermissionTable({
     {
       key: "start_date",
       label: "Fecha inicio",
-      render: (row: PermissionResponse) => formatVacationDate(row.start_date),
+      render: (row: PermissionResponse) => formatDate(row.start_date),
     },
     {
       key: "end_date",
       label: "Fecha fin",
-      render: (row: PermissionResponse) => formatVacationDate(row.end_date),
+      render: (row: PermissionResponse) => formatDate(row.end_date),
     },
     {
       key: "start_time",

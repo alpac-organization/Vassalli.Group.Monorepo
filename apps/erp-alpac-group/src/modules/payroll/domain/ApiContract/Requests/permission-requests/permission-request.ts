@@ -16,6 +16,8 @@ export type PermissionRequest = {
    * Numero de identificacion del colaborador
    */
   identification_number?: string;
+
+  payroll_id?: string;
   /**
    * Tamaño de la pagina
    */
