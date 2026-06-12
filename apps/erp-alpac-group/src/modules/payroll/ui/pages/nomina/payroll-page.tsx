@@ -1372,7 +1372,7 @@ export function PayrollPage() {
       setIsGeneratingConsolidatedAreaPdf(true);
       const payrollServices = new PayrollServices(httpHandler);
 
-      const detailsData = ordinaryPayrollQuery.data;
+      const detailsData = payrollDetailsQuery.data;
       const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
 
       const payload = {
@@ -1402,8 +1402,8 @@ export function PayrollPage() {
           data={allItems}
           branchName={displayedBranchName ?? ""}
           companyName={companyName}
-          startDate={ordinaryPayrollQuery.data?.start_date}
-          endDate={ordinaryPayrollQuery.data?.end_date}
+          startDate={payrollDetailsQuery.data?.start_date}
+          endDate={payrollDetailsQuery.data?.end_date}
           preparedBy={{
             name: signatures.solicitado.name,
           }}
@@ -1431,7 +1431,7 @@ export function PayrollPage() {
     companyId,
     moduleCode,
     hasPayrollData,
-    ordinaryPayrollQuery.data,
+    payrollDetailsQuery.data,
     displayedBranchName,
     companyName,
     signatures,
@@ -1454,7 +1454,7 @@ export function PayrollPage() {
       setIsGeneratingConsolidatedAreaExcel(true);
       const payrollServices = new PayrollServices(httpHandler);
 
-      const detailsData = ordinaryPayrollQuery.data;
+      const detailsData = payrollDetailsQuery.data;
       const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
 
       const payload = {
@@ -1476,8 +1476,8 @@ export function PayrollPage() {
         data: allItems,
         companyName,
         branchName: displayedBranchName,
-        startDate: ordinaryPayrollQuery.data?.start_date,
-        endDate: ordinaryPayrollQuery.data?.end_date,
+        startDate: payrollDetailsQuery.data?.start_date,
+        endDate: payrollDetailsQuery.data?.end_date,
         logoUrl: useCompanyStore.getState().urlImage,
       });
     } catch {
@@ -1493,7 +1493,7 @@ export function PayrollPage() {
     companyId,
     moduleCode,
     hasPayrollData,
-    ordinaryPayrollQuery.data,
+    payrollDetailsQuery.data,
     displayedBranchName,
     companyName,
     identificationFilter,
@@ -1603,11 +1603,6 @@ export function PayrollPage() {
     [
       handleGenerateExcel,
       handleGenerateVacationAccrualAreaExcel,
-      handlePdfGenerationError,
-    ],
-    [
-      handleGenerateExcel,
-      handleGenerateConsolidatedAreaExcel,
       handlePdfGenerationError,
     ],
   );
