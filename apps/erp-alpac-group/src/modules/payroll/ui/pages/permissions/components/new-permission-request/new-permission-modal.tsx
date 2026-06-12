@@ -45,17 +45,19 @@ export function NewPermissionRequestModal({
   const isManager = role === RoleEnum.MANAGER;
   const isAdministrator = role === RoleEnum.ADMINISTRATOR;
   const isOperator = role === RoleEnum.OPERATOR;
-
   const channel = useMemo(() => {
     if (isOperator || (isManager && managerTarget === "self")) {
+      console.log("PersonalPanel");
       return ChannelEnum.PersonalPanel;
     }
     if (isManager && managerTarget === "other") {
+      console.log("manager");
       return ChannelEnum.PersonalPanel;
     }
+    console.log("channel admin");
     return ChannelEnum.AdministrativePanel;
   }, [isOperator, isManager, managerTarget]);
-
+  console.log(channel);
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";

@@ -5,7 +5,7 @@
 export const ChannelEnum = {
   PersonalPanel: { value: 1, label: "Personal" },
   // DirectManagerPanel: { value: 2, label: "Jefe Directo" },
-  AdministrativePanel: { value: 3, label: "Administrativo" },
+  AdministrativePanel: { value: 2, label: "Administrativo" },
 } as const;
 
 export type ChannelEnum = (typeof ChannelEnum)[keyof typeof ChannelEnum];

@@ -63,6 +63,8 @@ import { exportVacationAccrualAreaExcel } from "@app/modules/payroll/ui/pages/no
 import { getPayrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { exportPayrollExcel } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/export-payroll-excel";
+import { ConsolidatedAreaPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/pdf/consolidated-area-pdf-document";
+import { exportConsolidatedAreaExcel } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/excel/export-consolidated-area-excel";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { PayrollActionValue } from "@app/modules/payroll/ui/pages/nomina/types/payroll-actions.types";
@@ -166,6 +168,12 @@ export function PayrollPage() {
     useState(false);
   const [isGeneratingDeductionSummaryPdf, setIsGeneratingDeductionSummaryPdf] =
     useState(false);
+  const [isGeneratingConsolidatedAreaPdf, setIsGeneratingConsolidatedAreaPdf] =
+    useState(false);
+  const [
+    isGeneratingConsolidatedAreaExcel,
+    setIsGeneratingConsolidatedAreaExcel,
+  ] = useState(false);
   const [identificationFilter, setIdentificationFilter] = useState("");
   const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
   const [jobPositionFilter, setJobPositionFilter] = useState<number | null>(
@@ -390,6 +398,14 @@ export function PayrollPage() {
         label: "Generar Acumulado Vacaciones aguinaldo",
         value: "vacation_accrual_area_report",
       },
+      {
+        label: "Generar Reporte Nómina Consolidada por Área",
+        value: "consolidated_area_report",
+      },
+      // {
+      //   label: "Generar Acumulado de Vacaciones",
+      //   value: "vacation_accruals_history",
+      // },
     ];
     const startDate = payrollDetailsQuery.data?.start_date;
     const endDate = payrollDetailsQuery.data?.end_date;
@@ -1343,6 +1359,148 @@ export function PayrollPage() {
     jobPositionFilter,
     handlePdfGenerationError,
   ]);
+  const handleGenerateConsolidatedAreaPdf = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return;
+    }
+    try {
+      setIsGeneratingConsolidatedAreaPdf(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const detailsData = payrollDetailsQuery.data;
+      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+      const payload = {
+        companie_id: companyId,
+        module_code: moduleCode,
+        type: selectedPayrollType,
+        branch_id: selectedBranch,
+        identification_number: identificationFilter || undefined,
+        work_area_id: workAreaFilter || undefined,
+        job_position_id: jobPositionFilter || undefined,
+        page_number: 1,
+        page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+      } as PayrollRequest;
+
+      const response = await payrollServices.getPayroll(payload);
+      const allItems = response.payroll_details?.items ?? [];
+
+      const preparedSignatureImageSrc = signatures.solicitado.signatureImage
+        ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
+        : "";
+      const reviewedSignatureImageSrc = signatures.signatureImage
+        ? await getProcessedSignatureImage(signatures.signatureImage)
+        : "";
+
+      const blob = await pdf(
+        <ConsolidatedAreaPdfDocument
+          data={allItems}
+          branchName={displayedBranchName ?? ""}
+          companyName={companyName}
+          startDate={payrollDetailsQuery.data?.start_date}
+          endDate={payrollDetailsQuery.data?.end_date}
+          preparedBy={{
+            name: signatures.solicitado.name,
+          }}
+          reviewedBy={{
+            name: signatures.revisado.name,
+            role: signatures.revisado.role,
+          }}
+          preparedSignatureImageSrc={preparedSignatureImageSrc}
+          reviewedSignatureImageSrc={reviewedSignatureImageSrc}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte consolidado por área en PDF.",
+      );
+    } finally {
+      setIsGeneratingConsolidatedAreaPdf(false);
+    }
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    displayedBranchName,
+    companyName,
+    signatures,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateConsolidatedAreaExcel = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return;
+    }
+    try {
+      setIsGeneratingConsolidatedAreaExcel(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const detailsData = payrollDetailsQuery.data;
+      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+      const payload = {
+        companie_id: companyId,
+        module_code: moduleCode,
+        type: selectedPayrollType,
+        branch_id: selectedBranch,
+        identification_number: identificationFilter || undefined,
+        work_area_id: workAreaFilter || undefined,
+        job_position_id: jobPositionFilter || undefined,
+        page_number: 1,
+        page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+      } as PayrollRequest;
+
+      const response = await payrollServices.getPayroll(payload);
+      const allItems = response.payroll_details?.items ?? [];
+
+      await exportConsolidatedAreaExcel({
+        data: allItems,
+        companyName,
+        branchName: displayedBranchName,
+        startDate: payrollDetailsQuery.data?.start_date,
+        endDate: payrollDetailsQuery.data?.end_date,
+        logoUrl: useCompanyStore.getState().urlImage,
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte consolidado por área en Excel.",
+      );
+    } finally {
+      setIsGeneratingConsolidatedAreaExcel(false);
+    }
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    displayedBranchName,
+    companyName,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    handlePdfGenerationError,
+  ]);
 
   const executePdfForAction = useCallback(
     async (action: PayrollActionValue) => {
@@ -1371,6 +1529,9 @@ export function PayrollPage() {
         case "deduction_report":
           await handleGenerateDeductionSummaryPdf();
           break;
+        case "consolidated_area_report":
+          await handleGenerateConsolidatedAreaPdf();
+          break;
         default:
           break;
       }
@@ -1384,6 +1545,7 @@ export function PayrollPage() {
       handleGenerateVacationAccrualAreaPdf,
       handleGenerateIncomeSummaryPdf,
       handleGenerateDeductionSummaryPdf,
+      handleGenerateConsolidatedAreaPdf,
     ],
   );
 
@@ -1396,7 +1558,9 @@ export function PayrollPage() {
     isGeneratingVacationControlPdf ||
     isGeneratingVacationAccrualAreaReport ||
     isGeneratingIncomeSummaryPdf ||
-    isGeneratingDeductionSummaryPdf;
+    isGeneratingDeductionSummaryPdf ||
+    isGeneratingConsolidatedAreaPdf ||
+    isGeneratingConsolidatedAreaExcel;
 
   const handleOpenGenerateModal = useCallback(() => {
     setSelectedAction(null);
@@ -1415,6 +1579,9 @@ export function PayrollPage() {
       switch (action) {
         case "report":
           await handleGenerateExcel();
+          break;
+        case "consolidated_area_report":
+          await handleGenerateConsolidatedAreaExcel();
           break;
         case "vacation_accrual_area_report":
           await handleGenerateVacationAccrualAreaExcel();

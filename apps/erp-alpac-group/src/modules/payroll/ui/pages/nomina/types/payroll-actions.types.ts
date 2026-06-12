@@ -7,6 +7,7 @@ export type PayrollActionValue =
   | "vacation_accrual_area_report"
   | "income_report"
   | "deduction_report"
+  | "consolidated_area_report"
   | "monthly_accumulated_report"
   | "quincenal_accumulated_report"
   | "monthly_ir_report"
