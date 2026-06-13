@@ -5,12 +5,12 @@ import {
   Modal,
   Pagination,
 } from "@alpac/design-system";
-import { AreaTable } from "@app/modules/admin/ui/pages/areas/components/areas-table/area-table";
-import { areaColumns } from "@app/modules/admin/ui/pages/areas/components/areas-table/utils/area-columns";
-import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
+import { JobPositionsTable } from "@app/modules/admin/ui/pages/job-positions/components/job-positions-table/job-positions-table";
+import { jobPositionColumns } from "@app/modules/admin/ui/pages/job-positions/components/job-positions-table/utils/job-positions-columns";
+import { useJobPositions } from "@app/modules/admin/ui/hooks/job-positions/useJobPositions";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import type { GetAreasResponse } from "@app/modules/admin/domain/ApiContract/responses/areas/get-areas.response";
+import type { GetJobPositionsResponse } from "@app/modules/admin/domain/ApiContract/responses/job-positions/get-positions-response";
 import { m, LazyMotion } from "framer-motion";
 import { AlertTriangle, PlusCircle, Trash } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -21,7 +21,7 @@ const loadFeatures = () =>
 
 const PAGE_SIZE = 10;
 
-export function AreasPage() {
+export function JobPositionsPage() {
   const navigate = useNavigate();
   const { companyId } = useUserStore();
 
@@ -33,22 +33,26 @@ export function AreasPage() {
   const [createDescription, setCreateDescription] = useState("");
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [areaToDelete, setAreaToDelete] = useState<GetAreasResponse | null>(
-    null,
-  );
-  const { GetAreasByCompany, CreateArea, deleteArea } = useAreas({
-    company_id: companyId ?? "",
-  });
+  const [jobPositionToDelete, setJobPositionToDelete] =
+    useState<GetJobPositionsResponse | null>(null);
 
-  const areas = GetAreasByCompany.data ?? [];
+  const { GetJobPositionsByCompany, CreateJobPosition, deleteJobPosition } =
+    useJobPositions({
+      company_id: companyId ?? "",
+    });
+
+  const jobPositions = GetJobPositionsByCompany.data ?? [];
 
   const paginatedData = useMemo(
-    () => areas.slice((pageNumber - 1) * PAGE_SIZE, pageNumber * PAGE_SIZE),
-    [areas, pageNumber],
+    () =>
+      jobPositions.slice((pageNumber - 1) * PAGE_SIZE, pageNumber * PAGE_SIZE),
+    [jobPositions, pageNumber],
   );
 
   const isTableLoading =
-    isPaging || (GetAreasByCompany.isFetching && !GetAreasByCompany.isPending);
+    isPaging ||
+    (GetJobPositionsByCompany.isFetching &&
+      !GetJobPositionsByCompany.isPending);
 
   const handlePageChange = useCallback((page: number) => {
     setIsPaging(true);
@@ -74,18 +78,18 @@ export function AreasPage() {
   }, []);
 
   const canSubmitCreate =
-    Boolean(companyId && createName.trim()) && !CreateArea.isPending;
+    Boolean(companyId && createName.trim()) && !CreateJobPosition.isPending;
 
   const handleConfirmCreate = useCallback(() => {
     if (!companyId || !createName.trim()) {
       return;
     }
     const trimmedDescription = createDescription.trim();
-    CreateArea.mutate(
+    CreateJobPosition.mutate(
       {
         company_id: companyId,
-        work_area_name: createName.trim(),
-        ...(trimmedDescription ? { description: trimmedDescription } : {}),
+        job_position_name: createName.trim(),
+        description: trimmedDescription,
       },
       {
         onSuccess: () => {
@@ -96,26 +100,29 @@ export function AreasPage() {
         },
       },
     );
-  }, [companyId, CreateArea, createName, createDescription]);
+  }, [companyId, CreateJobPosition, createName, createDescription]);
 
-  const handleDeleteClick = useCallback((area: GetAreasResponse) => {
-    setAreaToDelete(area);
-    setIsDeleteModalOpen(true);
-  }, []);
+  const handleDeleteClick = useCallback(
+    (jobPosition: GetJobPositionsResponse) => {
+      setJobPositionToDelete(jobPosition);
+      setIsDeleteModalOpen(true);
+    },
+    [],
+  );
 
   const handleCloseDeleteModal = useCallback(() => {
     setIsDeleteModalOpen(false);
-    setAreaToDelete(null);
+    setJobPositionToDelete(null);
   }, []);
 
   const handleConfirmDelete = useCallback(() => {
-    if (!companyId || !areaToDelete) {
+    if (!companyId || !jobPositionToDelete) {
       return;
     }
-    deleteArea.mutate(
+    deleteJobPosition.mutate(
       {
         company_id: companyId,
-        area_id: areaToDelete.work_area_id,
+        job_position_id: jobPositionToDelete.job_position_id,
       },
       {
         onSuccess: () => {
@@ -124,7 +131,7 @@ export function AreasPage() {
         },
       },
     );
-  }, [companyId, areaToDelete, deleteArea, handleCloseDeleteModal]);
+  }, [companyId, jobPositionToDelete, deleteJobPosition, handleCloseDeleteModal]);
 
   return (
     <LazyMotion features={loadFeatures} strict>
@@ -133,8 +140,8 @@ export function AreasPage() {
         onClose={handleCloseCreate}
         variant="default"
         size="sm"
-        title="Nueva Área de Trabajo"
-        description="Complete los datos para registrar una nueva área de trabajo."
+        title="Nuevo Puesto de Trabajo"
+        description="Complete los datos para registrar un nuevo puesto de trabajo."
       >
         <form
           className="mt-4 flex flex-col gap-4"
@@ -147,8 +154,8 @@ export function AreasPage() {
           }}
         >
           <InputText
-            label="Nombre del Área"
-            placeholder="Ingrese el nombre del área"
+            label="Nombre del Puesto"
+            placeholder="Ingrese el nombre del puesto"
             isRequired
             value={createName}
             onChange={(e) => setCreateName(e.target.value)}
@@ -168,7 +175,7 @@ export function AreasPage() {
               type="submit"
               size="giant"
               label="Guardar"
-              isLoading={CreateArea.isPending}
+              isLoading={CreateJobPosition.isPending}
               disabled={!canSubmitCreate}
               className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:flex-1 sm:min-w-0 enabled:opacity-100! disabled:pointer-events-none disabled:opacity-50 disabled:saturate-75"
             />
@@ -177,7 +184,7 @@ export function AreasPage() {
               size="giant"
               label="Cancelar"
               onClick={handleCloseCreate}
-              disabled={CreateArea.isPending}
+              disabled={CreateJobPosition.isPending}
               className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:flex-1 sm:min-w-0"
             />
           </div>
@@ -189,7 +196,7 @@ export function AreasPage() {
         onClose={handleCloseDeleteModal}
         variant="default"
         size="sm"
-        title="Eliminar área de trabajo"
+        title="Eliminar puesto de trabajo"
       >
         <div className="mt-4 flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 p-4 dark:border-red-700 dark:bg-red-950/30">
           <AlertTriangle
@@ -197,15 +204,15 @@ export function AreasPage() {
             className="mt-0.5 shrink-0 text-red-600 dark:text-red-400"
           />
           <p className="text-sm text-red-700 dark:text-red-300">
-            Esta operación es irreversible. Asegúrese de que no existen centros
-            de costo ni recursos asignados a esta área antes de eliminarla.
+            Esta operación es irreversible. Asegúrese de que no existen
+            colaboradores asignados a este puesto antes de eliminarlo.
           </p>
         </div>
         <form
           className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:items-stretch"
           onSubmit={(e) => {
             e.preventDefault();
-            if (deleteArea.isPending) {
+            if (deleteJobPosition.isPending) {
               return;
             }
             handleConfirmDelete();
@@ -215,8 +222,8 @@ export function AreasPage() {
             type="submit"
             size="giant"
             label="Confirmar"
-            isLoading={deleteArea.isPending}
-            disabled={deleteArea.isPending}
+            isLoading={deleteJobPosition.isPending}
+            disabled={deleteJobPosition.isPending}
             className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:flex-1 sm:min-w-0"
           />
           <Button
@@ -224,19 +231,19 @@ export function AreasPage() {
             size="giant"
             label="Cancelar"
             onClick={handleCloseDeleteModal}
-            disabled={deleteArea.isPending}
+            disabled={deleteJobPosition.isPending}
             className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:flex-1 sm:min-w-0"
           />
         </form>
       </Modal>
 
-      {GetAreasByCompany.isPending && (
-        <Loader title="Cargando áreas de trabajo..." />
+      {GetJobPositionsByCompany.isPending && (
+        <Loader title="Cargando puestos de trabajo..." />
       )}
 
-      {!GetAreasByCompany.isPending && (
+      {!GetJobPositionsByCompany.isPending && (
         <m.div
-          key="areas-content"
+          key="job-positions-content"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
@@ -256,8 +263,8 @@ export function AreasPage() {
                   onClick: (url) => navigate(url),
                 },
                 {
-                  label: "Áreas de Trabajo",
-                  url: "/administration/areas",
+                  label: "Puestos de Trabajo",
+                  url: "/administration/job-positions",
                   onClick: (url) => navigate(url),
                 },
               ]}
@@ -267,24 +274,24 @@ export function AreasPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0 flex flex-col justify-center">
               <h3 className="p-0! m-0! text-xl sm:text-2xl">
-                Áreas de Trabajo
+                Puestos de Trabajo
               </h3>
               <small className="text-sm text-gray-500 dark:text-gray-300">
-                Gestione y organice las unidades operativas de la empresa
+                Gestione los puestos de trabajo disponibles en la empresa
               </small>
             </div>
             <Button
               size="giant"
-              label="Nueva Área de Trabajo"
+              label="Nuevo Puesto de Trabajo"
               icon={<PlusCircle size={18} />}
               onClick={handleOpenCreate}
               className="w-full! shrink-0 text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:w-auto!"
             />
           </div>
 
-          <AreaTable
+          <JobPositionsTable
             data={paginatedData}
-            columns={areaColumns}
+            columns={jobPositionColumns}
             deleteIcon={<Trash size={18} />}
             onDeleteClick={handleDeleteClick}
             isLoading={isTableLoading}
@@ -292,7 +299,7 @@ export function AreasPage() {
               <Pagination
                 currentPage={pageNumber}
                 pageSize={PAGE_SIZE}
-                totalRecords={areas.length}
+                totalRecords={jobPositions.length}
                 onPageChange={handlePageChange}
                 disabled={isTableLoading}
               />
