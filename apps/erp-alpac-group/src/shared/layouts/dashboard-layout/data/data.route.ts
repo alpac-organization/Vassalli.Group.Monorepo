@@ -14,6 +14,7 @@ import {
   Users,
   BadgeCent,
   Grid,
+  Briefcase,
 } from "lucide-react";
 
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
@@ -107,6 +108,14 @@ const administrationAreasSection: SidebarLink = {
   path: "administration/areas",
   icon: Grid,
 };
+
+const administrationJobPositionsSection: SidebarLink = {
+  id: "job-positions",
+  label: "Puestos de Trabajo",
+  path: "administration/job-positions",
+  icon: Briefcase,
+};
+
 export const sidebarData = {
   logoUrl:
     "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
@@ -128,6 +137,7 @@ export const sidebarData = {
         administrationUsersSection,
         administrationCostCentersSection,
         administrationAreasSection,
+        administrationJobPositionsSection,
       ],
     },
     [ModuleEnum.WORK_MANAGEMENT]: {
