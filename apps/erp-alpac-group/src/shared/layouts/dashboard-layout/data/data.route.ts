@@ -14,6 +14,7 @@ import {
   Users,
   BadgeCent,
   Grid,
+  Fingerprint,
 } from "lucide-react";
 
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
@@ -74,6 +75,13 @@ const activeDeductionSection: SidebarLink = {
   icon: CircleMinus,
 };
 
+const attendanceControlSection: SidebarLink = {
+  id: "control-asistencia",
+  label: "Control de Asistencia",
+  path: "payroll/control-asistencia",
+  icon: Fingerprint,
+};
+
 const liquidacionSection: SidebarLink = {
   id: "liquidacion",
   label: "Proceso de Liquidación",
@@ -119,6 +127,7 @@ export const sidebarData = {
         payrollPeriodsHistorySection,
         applicationFromPayrollSection,
         activeDeductionSection,
+        attendanceControlSection,
         liquidacionSection,
         controlVacationsSection,
       ],
