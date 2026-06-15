@@ -19,16 +19,20 @@ export const useCostCenters = (payload?: GetCostCentersRequest) => {
     mutationKey: ["create-cost-center"],
     mutationFn: (payload: CreateCostCenterRequest) =>
       costCenterServices.createCostCenter(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cost-centers"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["cost-centers", variables.company_id, variables.area_id],
+      });
     },
   });
   const deleteCostCenter = useMutation({
     mutationKey: ["delete-cost-center"],
     mutationFn: (payload: DeleteCostCentersRequest) =>
       costCenterServices.deleteCostCenter(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["cost-centers"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["cost-centers", variables.company_id, variables.area_id],
+      });
     },
   });
   return { GetCostCenters, createCostCenter, deleteCostCenter };

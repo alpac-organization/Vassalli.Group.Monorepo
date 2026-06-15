@@ -8,7 +8,7 @@ const areasServices = new AreasServices(httpHandler);
 export const useAreas = (payload: GetAreasRequest) => {
   const queryClient = useQueryClient();
   const GetAreasByCompany = useQuery({
-    queryKey: ["areas"],
+    queryKey: ["areas", payload.company_id],
     queryFn: () => areasServices.getAreas(payload),
     staleTime: 1000 * 60 * 5,
     enabled: Boolean(payload.company_id),
@@ -20,16 +20,20 @@ export const useAreas = (payload: GetAreasRequest) => {
     mutationKey: ["create-area"],
     mutationFn: (payload: CreateAreaRequest) =>
       areasServices.createArea(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["areas"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["areas", variables.company_id],
+      });
     },
   });
   const deleteArea = useMutation({
     mutationKey: ["delete-area"],
     mutationFn: (payload: DeleteAreaRequest) =>
       areasServices.deleteArea(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["areas"] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["areas", variables.company_id],
+      });
     },
   });
   return { GetAreasByCompany, CreateArea, deleteArea };

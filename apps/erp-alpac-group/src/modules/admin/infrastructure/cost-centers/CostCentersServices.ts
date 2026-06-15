@@ -31,7 +31,7 @@ export class CostCentersServices implements ICostCentersServices {
       const body = {
         cost_center_name,
         coil_code,
-        ...(description?.trim() ? { description: description.trim() } : {}),
+        description: description?.trim() || null,
       };
       const costCenter = await this.apiHandler.post<void>(
         `/companies/${company_id}/areas/${area_id}/cost-centers`,
