@@ -15,6 +15,6 @@ export const areaColumns: AreaColumnDef[] = [
   {
     key: "descripcion",
     label: "Descripción",
-    render: (item) => item.descripcion,
+    render: (item) => item.descripcion ?? "—",
   },
 ];

@@ -202,7 +202,7 @@ export function CostCentersPage() {
         area_id: selectedAreaId,
         cost_center_name: createName.trim(),
         coil_code: coilCode,
-        ...(trimmedDescription ? { description: trimmedDescription } : {}),
+        description: trimmedDescription || null,
       },
       {
         onSuccess: () => {

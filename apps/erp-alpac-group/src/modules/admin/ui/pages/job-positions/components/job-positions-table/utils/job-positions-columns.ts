@@ -15,6 +15,6 @@ export const jobPositionColumns: JobPositionColumnDef[] = [
   {
     key: "description",
     label: "Descripción",
-    render: (item) => item.description,
+    render: (item) => item.description ?? "—",
   },
 ];

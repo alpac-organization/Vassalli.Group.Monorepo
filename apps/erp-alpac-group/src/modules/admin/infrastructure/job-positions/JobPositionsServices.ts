@@ -16,7 +16,7 @@ export class JobPositionServices implements IJobPositions {
       const { company_id, job_position_name, description } = payload;
       const body = {
         job_position_name,
-        ...(description?.trim() ? { description: description.trim() } : {}),
+        description: description?.trim() || null,
       };
       await this.apiHandler.post<void>(
         `/companies/${company_id}/job-positions`,

@@ -85,7 +85,7 @@ export function AreasPage() {
       {
         company_id: companyId,
         work_area_name: createName.trim(),
-        ...(trimmedDescription ? { description: trimmedDescription } : {}),
+        description: trimmedDescription || null,
       },
       {
         onSuccess: () => {

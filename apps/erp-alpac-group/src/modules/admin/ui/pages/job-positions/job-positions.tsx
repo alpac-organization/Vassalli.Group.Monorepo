@@ -88,7 +88,7 @@ export function JobPositionsPage() {
       {
         company_id: companyId,
         job_position_name: createName.trim(),
-        description: trimmedDescription,
+        description: trimmedDescription || null,
       },
       {
         onSuccess: () => {
