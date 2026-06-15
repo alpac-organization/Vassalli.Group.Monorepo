@@ -14,6 +14,6 @@ export const costCenterColumns: CostCenterColumnDef[] = [
   {
     key: "descripcion",
     label: "Descripción",
-    render: (item) => item.descripcion,
+    render: (item) => item.descripcion ?? "—",
   },
 ];

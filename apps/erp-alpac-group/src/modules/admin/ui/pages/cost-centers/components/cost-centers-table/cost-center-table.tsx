@@ -1,5 +1,5 @@
 import { DataTable } from "@alpac/design-system";
-import type { CostCenterTableProps } from "./cost-center-table.types";
+import type { CostCenterTableProps } from "@app/modules/admin/ui/pages/cost-centers/components/cost-centers-table/types/cost-center-table.types";
 import type { GetCostCentersResponse } from "@app/modules/admin/domain/ApiContract/responses/cost-centers/get-cost-centers.response";
 
 export function CostCenterTable({

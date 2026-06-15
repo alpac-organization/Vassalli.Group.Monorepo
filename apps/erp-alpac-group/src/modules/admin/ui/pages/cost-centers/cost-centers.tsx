@@ -9,7 +9,7 @@ import {
   useTheme,
 } from "@alpac/design-system";
 import { CostCenterTable } from "@app/modules/admin/ui/pages/cost-centers/components/cost-centers-table/cost-center-table";
-import { costCenterColumns } from "@app/modules/admin/ui/pages/cost-centers/components/cost-centers-table/cost-centers.columns";
+import { costCenterColumns } from "@app/modules/admin/ui/pages/cost-centers/components/cost-centers-table/utils/cost-centers.columns";
 import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters";
 import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { Loader } from "@app/shared/components/loaders/loader";
@@ -202,7 +202,7 @@ export function CostCentersPage() {
         area_id: selectedAreaId,
         cost_center_name: createName.trim(),
         coil_code: coilCode,
-        ...(trimmedDescription ? { description: trimmedDescription } : {}),
+        description: trimmedDescription || null,
       },
       {
         onSuccess: () => {
