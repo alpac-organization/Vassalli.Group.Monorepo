@@ -8,28 +8,29 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 const attendanceServices = new AttendanceServices(httpHandler);
 
 export const useAttendance = () => {
-  const useGetAttendanceRecords = (
-    payload: GetAttendanceRecordsRequest,
-    options?: { enabled?: boolean },
-  ) => {
-    return useQuery<GetAttendanceRecordsResponse, ApiErrorResponse>({
-      queryKey: [
-        "attendanceRecords",
-        payload.companie_id,
-        payload.module_code,
-        payload.start_date,
-        payload.end_date,
-        payload.identification_number,
-        payload.page_number,
-        payload.page_size,
-      ],
-      queryFn: () =>
-        attendanceServices.GetAttendanceRecordsAsync(payload),
-      enabled: options?.enabled,
-    });
-  };
+   
+   const useGetAttendanceRecords = (
+      payload: GetAttendanceRecordsRequest, options?: { enabled?: boolean }) => {
 
-  return {
-    useGetAttendanceRecords,
-  };
+      return useQuery<GetAttendanceRecordsResponse, ApiErrorResponse>({
+         queryKey: [
+            "attendanceRecords",
+            payload.companie_id,
+            payload.module_code,
+            payload.start_date,
+            payload.end_date,
+            payload.identification_number,
+            payload.page_number,
+            payload.page_size,
+         ],
+         queryFn: () => attendanceServices.GetAttendanceRecordsAsync(payload),
+         enabled: options?.enabled,
+         refetchOnWindowFocus: false,
+         retry: 1,
+      });
+   };
+
+   return {
+      useGetAttendanceRecords,
+   };
 };

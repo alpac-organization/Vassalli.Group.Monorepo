@@ -102,6 +102,7 @@ const administrationUsersSection: SidebarLink = {
   path: "administration/users",
   icon: Users,
 };
+
 const administrationCostCentersSection: SidebarLink = {
   id: "cost-centers",
   label: "Centros de Costos",
@@ -115,6 +116,7 @@ const administrationAreasSection: SidebarLink = {
   path: "administration/areas",
   icon: Grid,
 };
+
 export const sidebarData = {
   logoUrl:
     "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
@@ -127,9 +129,9 @@ export const sidebarData = {
         payrollPeriodsHistorySection,
         applicationFromPayrollSection,
         activeDeductionSection,
-        attendanceControlSection,
         liquidacionSection,
         controlVacationsSection,
+        attendanceControlSection,
       ],
     },
     [ModuleEnum.ADMINISTRATION]: {

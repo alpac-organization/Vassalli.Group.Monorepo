@@ -11,9 +11,7 @@ export class AttendanceServices implements IAttendanceServices {
     this.httpHandler = httpHandler;
   }
 
-  async GetAttendanceRecordsAsync(
-    payload: GetAttendanceRecordsRequest,
-  ): Promise<GetAttendanceRecordsResponse> {
+  async GetAttendanceRecordsAsync(payload: GetAttendanceRecordsRequest): Promise<GetAttendanceRecordsResponse> {
     try {
       const { companie_id, module_code, ...queryParams } = payload;
       const url = `/companies/${companie_id}/modules/${module_code}/attendance-records`;
