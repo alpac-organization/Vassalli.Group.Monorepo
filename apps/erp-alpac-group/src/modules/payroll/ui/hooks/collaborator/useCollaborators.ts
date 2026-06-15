@@ -63,7 +63,6 @@ export const useCollaborators = function (props?: useCollaboratorsProps) {
       onSuccess: () => {
          queryClient.invalidateQueries({ queryKey: ["collaboratorData"] });
       },
-      retry: 1,
    });
 
    // Query para obtener los detalles del perfil del colaborador, si y solo si se proporciona el payload necesario
