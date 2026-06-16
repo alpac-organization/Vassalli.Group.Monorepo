@@ -903,7 +903,6 @@ export function PayrollPage() {
         payroll_id: payrollId,
         report_type: "Accumulated",
       });
-
       const reportData = reportResponse.accumulated_history ?? [];
 
       if (!reportData.length) {
@@ -1517,21 +1516,17 @@ export function PayrollPage() {
           deduction_id: deduction.deduction_id,
           identification_number: deduction.identification_number,
         });
-        console.log("details", details);
+        console.log("details saldos por cobrar", details);
         const collaboratorItem = allItems.find(
           (item) =>
             item.collaborator?.identification_number ===
             deduction.identification_number,
         );
-        console.log("collaboratorItem", collaboratorItem);
         const collaborator = collaboratorItem?.collaborator;
 
         if (collaborator && details) {
-          const isDolares =
-            details.currency === "US$" ||
-            details.currency === "USD" ||
-            details.currency === 2 ||
-            details.currency === "2";
+          const isDolares = details.currency === "USD";
+          console.log("isDolares", isDolares);
           const currencyStr = isDolares ? "US$" : "C$";
 
           reportData.push({
@@ -1547,18 +1542,24 @@ export function PayrollPage() {
               (details.number_fortnights || 0) -
               (details.number_fortnights_paid || 0),
             dolares: {
-              cuotasPagadas: isDolares ? details.amount_paid || 0 : 0,
-              montoCuotas: isDolares ? details.fortnightly_amount || 0 : 0,
-              cuotasPendientes: isDolares ? details.total_balance || 0 : 0,
+              cuotasPagadas: isDolares
+                ? details.amount_paid_in_dollars || 0
+                : 0,
+              montoCuotas: isDolares
+                ? details.fortnightly_amount_in_dollars || 0
+                : 0,
+              cuotasPendientes: isDolares
+                ? details.total_balance_in_dollars || 0
+                : 0,
             },
             cordobas: {
-              cuotasPagadas: !isDolares ? details.amount_paid || 0 : 0,
-              montoCuotas: !isDolares ? details.fortnightly_amount || 0 : 0,
-              cuotasPendientes: !isDolares ? details.total_balance || 0 : 0,
+              cuotasPagadas: details.amount_paid || 0,
+              montoCuotas: details.fortnightly_amount || 0,
+              cuotasPendientes: details.total_balance || 0,
             },
           });
         }
-        console.log("reportData", reportData);
+        console.log("reportData here saldos", reportData);
       }
 
       if (reportData.length === 0) {
