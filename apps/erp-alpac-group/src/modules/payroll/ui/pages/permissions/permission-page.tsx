@@ -40,6 +40,7 @@ import {
   derivarUiSaldoVacaciones,
 } from "@app/modules/payroll/ui/pages/permissions/utils/permission-view-state";
 import { Loader } from "@app/shared/components/loaders/loader";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
 import { usePayrollStatus } from "@app/modules/payroll/ui/hooks/payroll/usePayroll";
 import {
@@ -365,22 +366,24 @@ export default function PermissionsPage() {
               message: "Su solicitud ha sido cancelada exitosamente.",
             });
           },
-          onError: () => {
+          onError: (error) => {
+            const apiDescription =
+              error && typeof error === "object" && "error" in error
+                ? (error as ApiErrorResponse).error?.description
+                : undefined;
+
             setAlertState({
               open: true,
               type: "error",
-              message: "No se pudo cancelar la solicitud. Intente nuevamente.",
+              message:
+                apiDescription ??
+                "No se pudo cancelar la solicitud. Intente nuevamente.",
             });
           },
         },
       );
     },
-    [
-      companyId,
-      moduleCode,
-      effectiveIdentification,
-      cancelPermissionRequestMutation,
-    ],
+    [companyId, moduleCode, cancelPermissionRequestMutation],
   );
 
   const showInitialPageLoader = utilsPermissionPageInitialLoader({
@@ -570,9 +573,7 @@ export default function PermissionsPage() {
           isOpen={isDetailsOpen}
           onClose={handleCloseDetails}
           item={selectedPermissionItem}
-          collaboratorFullName={
-            viewedCollaboratorUi.nombreCompletoColaborador
-          }
+          collaboratorFullName={viewedCollaboratorUi.nombreCompletoColaborador}
         />
 
         <VacationStatsSection
