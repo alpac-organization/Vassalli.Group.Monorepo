@@ -4,7 +4,7 @@ import {
   calcVacationAccrualAreaTotalsRaw,
   groupVacationAccrualAreaByWorkArea,
 } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/utils/vacation-accrual-area.utils";
-import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
+import { formatDate } from "@app/shared/utils/string.utils";
 import {
   fitImageInBox,
   getImageNaturalSize,
@@ -12,12 +12,10 @@ import {
 import {
   C,
   THIN_BORDER,
+  LOGO_MAX_WIDTH,
+  LOGO_MAX_HEIGHT,
 } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/constants/excel-constants";
 import { slugify } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/excel-helper";
-
-const LOGO_RESERVED_COLS = 2;
-const LOGO_AREA_MAX_WIDTH = 110;
-const LOGO_AREA_MAX_HEIGHT = 52;
 
 function vacationAccrualColWidth(key: string): number {
   if (key === "collaborator_code" || key === "entry_date") return 14;
@@ -25,8 +23,10 @@ function vacationAccrualColWidth(key: string): number {
   return 13;
 }
 
-function getTitleMergeEndCol(colCount: number, hasLogo: boolean): number {
-  return hasLogo ? colCount - LOGO_RESERVED_COLS : colCount;
+function buildPeriodLabel(startDate?: string, endDate?: string): string {
+  const startLabel = startDate?.trim() ? formatDate(startDate.trim()) : "—";
+  const endLabel = endDate?.trim() ? formatDate(endDate.trim()) : "—";
+  return `Período: ${startLabel} al ${endLabel}`;
 }
 
 export async function exportVacationAccrualAreaExcel({
@@ -55,40 +55,32 @@ export async function exportVacationAccrualAreaExcel({
     views: [{ state: "frozen", ySplit: 3 }],
   });
 
-  ws.columns = columns.map((col) => ({ width: vacationAccrualColWidth(col.key) }));
-
-  const hasLogo = Boolean(logoUrl?.trim());
-  const titleMergeEndCol = getTitleMergeEndCol(colCount, hasLogo);
-
-  if (hasLogo) {
-    ws.getColumn(titleMergeEndCol + 1).width = 16;
-    ws.getColumn(colCount).width = 16;
-  }
+  ws.columns = columns.map((col) => ({
+    width: vacationAccrualColWidth(col.key),
+  }));
 
   {
     const row = ws.addRow([
       `Acumulado de Vacaciones por Área - ${branchName ?? ""}`,
     ]);
-    ws.mergeCells(1, 1, 1, titleMergeEndCol);
-    if (hasLogo) {
-      ws.mergeCells(1, titleMergeEndCol + 1, 2, colCount);
-    }
+    ws.mergeCells(1, 1, 1, colCount);
     row.height = 36;
     const cell = row.getCell(1);
     cell.font = { bold: true, size: 14 };
-    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    cell.alignment = {
+      horizontal: "center",
+      vertical: "middle",
+      wrapText: true,
+    };
   }
 
   {
-    const period =
-      `Período: ${formatDateToSpanishWords(startDate?.trim() ?? "—")} ` +
-      `al ${formatDateToSpanishWords(endDate?.trim() ?? "—")}`;
-    const row = ws.addRow([period]);
-    ws.mergeCells(2, 1, 2, titleMergeEndCol);
-    row.height = 28;
+    const row = ws.addRow([buildPeriodLabel(startDate, endDate)]);
+    ws.mergeCells(2, 1, 2, colCount);
+    row.height = 18;
     const cell = row.getCell(1);
     cell.font = { size: 10, color: { argb: C.subtitleText } };
-    cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+    cell.alignment = { horizontal: "center", vertical: "middle" };
   }
 
   {
@@ -187,7 +179,7 @@ export async function exportVacationAccrualAreaExcel({
     }
   }
 
-  if (hasLogo && logoUrl) {
+  if (logoUrl) {
     try {
       const res = await fetch(logoUrl);
       if (res.ok) {
@@ -203,22 +195,13 @@ export async function exportVacationAccrualAreaExcel({
         const logoSize = fitImageInBox(
           naturalSize.width,
           naturalSize.height,
-          LOGO_AREA_MAX_WIDTH,
-          LOGO_AREA_MAX_HEIGHT,
+          LOGO_MAX_WIDTH,
+          LOGO_MAX_HEIGHT,
         );
-        const logoColStart = titleMergeEndCol;
-        const approxColWidthPx = 16 * 7;
-        const logoAreaWidthPx = LOGO_RESERVED_COLS * approxColWidthPx;
-        const horizontalOffset =
-          (logoAreaWidthPx - logoSize.width) / 2 / approxColWidthPx;
-        const verticalOffset = 0.18;
         ws.addImage(imageId, {
-          tl: {
-            col: logoColStart + Math.max(0.1, horizontalOffset),
-            row: verticalOffset,
-          },
+          tl: { col: Math.max(0, colCount - 2), row: 0 },
           ext: { width: logoSize.width, height: logoSize.height },
-          editAs: "absolute",
+          editAs: "oneCell",
         });
       }
     } catch {}

@@ -7,5 +7,5 @@ export type ControlVacationsTableProps = {
   totalRecords: number;
   onPageChange: (page: number) => void;
   isPending?: boolean;
-  onViewDetails?: (item: VacationAccruals) => void;
+//   onViewDetails?: (item: VacationAccruals) => void;
 };
