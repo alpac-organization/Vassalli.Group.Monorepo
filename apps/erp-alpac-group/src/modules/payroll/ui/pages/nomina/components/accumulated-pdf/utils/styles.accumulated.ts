@@ -6,6 +6,34 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 20,
     fontSize: 10,
   },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+    width: "100%",
+  },
+  logo: {
+    width: 90,
+    height: 36,
+    objectFit: "contain",
+    marginRight: 10,
+  },
+  headerTextBlock: {
+    flexGrow: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  branchName: {
+    fontSize: 11,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 2,
+  },
+  periodText: {
+    fontSize: 8,
+    color: "#555",
+    textAlign: "center",
+  },
   title: {
     textAlign: "center",
     fontSize: 18,

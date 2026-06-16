@@ -915,10 +915,14 @@ export function PayrollPage() {
       const reviewedSignatureImageSrc = signatures.solicitado.signatureImage
         ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
         : "";
-
+      const yearNow = new Date().getFullYear();
+      const monthNow = "01 enero";
       const blob = await pdf(
         <AccumulatedPdfDocument
           data={reportData}
+          branchName={displayedBranchName ?? ""}
+          startDate={`${monthNow}-${yearNow}`}
+          endDate={payrollDetailsQuery.data?.end_date}
           reviewedBy={{
             name: signatures.solicitado.name,
             role: signatures.solicitado.role,
@@ -996,7 +1000,6 @@ export function PayrollPage() {
             payroll_id: payrollId,
           }),
         ]);
-      console.log("allPermissions", allPermissions);
       const payrollItems = payrollResponse.payroll_details?.items ?? [];
       const accrualData = reportResponse.vacation_accruals_history ?? [];
       const pages = buildVacationControlPages(
@@ -1004,7 +1007,6 @@ export function PayrollPage() {
         accrualData,
         allPermissions,
       );
-      console.log("pages", pages);
       if (!pages.length) {
         handlePdfGenerationError(
           "No hay colaboradores disponibles para generar el control de vacaciones.",
@@ -1488,9 +1490,9 @@ export function PayrollPage() {
       const deductionsResponse = await deductionsService.GetDeductionsByAsync({
         companie_id: companyId,
         module_code: moduleCode,
-        type: 1, // Loans / Préstamos
+        type: 1,
         page_number: 1,
-        page_size: 1000,
+        page_size: 10,
       });
 
       const relevantDeductions = deductionsResponse.data.filter((d) =>
@@ -1516,7 +1518,6 @@ export function PayrollPage() {
           deduction_id: deduction.deduction_id,
           identification_number: deduction.identification_number,
         });
-        console.log("details saldos por cobrar", details);
         const collaboratorItem = allItems.find(
           (item) =>
             item.collaborator?.identification_number ===
@@ -1526,7 +1527,6 @@ export function PayrollPage() {
 
         if (collaborator && details) {
           const isDolares = details.currency === "USD";
-          console.log("isDolares", isDolares);
           const currencyStr = isDolares ? "US$" : "C$";
 
           reportData.push({
@@ -1559,7 +1559,6 @@ export function PayrollPage() {
             },
           });
         }
-        console.log("reportData here saldos", reportData);
       }
 
       if (reportData.length === 0) {

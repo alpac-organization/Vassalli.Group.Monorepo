@@ -6,56 +6,42 @@ import { styles } from "@app/modules/payroll/ui/pages/nomina/components/accumula
 import type { AccumulatedHistoryPdfProps } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/types/accumulated.types";
 import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 import { withSoftLineBreaks } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/payroll-utils";
-
+import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 export function AccumulatedPdfDocument({
   data,
   reviewedBy,
   reviewedSignatureImageSrc,
+  startDate,
+  endDate,
+  branchName,
 }: AccumulatedHistoryPdfProps) {
-  const companyName = useUserStore.getState().companyName || "Alpac Group";
   const { urlImage } = useCompanyStore();
+  const companyName = useUserStore.getState().companyName || "Alpac Group";
   const signatures = getSignatures(companyName);
   const reviewedName = reviewedBy?.name ?? signatures.revisado.name;
   const reviewedRole = reviewedBy?.role ?? signatures.revisado.role;
   const showSignatures = !!(reviewedBy || signatures.revisado);
+  const periodLabel =
+    startDate && endDate
+      ? `Fecha de: ${startDate} al ${formatDateToSpanishWords(endDate.trim())}`
+      : undefined;
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <View
-          style={{
-            position: "relative" as const,
-            width: "100%",
-            minHeight: 52,
-            justifyContent: "center" as const,
-            marginBottom: 2,
-          }}
-        >
+        <View style={styles.headerContainer} fixed>
           {urlImage ? (
-            <Image
-              src={urlImage}
-              style={{
-                position: "absolute" as const,
-                left: 0,
-                top: 0,
-                width: 52,
-                height: 52,
-                objectFit: "contain" as const,
-              }}
-            />
-          ) : null}
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "bold" as const,
-              textAlign: "center" as const,
-              width: "100%",
-            }}
-          >
-            {companyName}
-          </Text>
+            <Image src={urlImage} style={styles.logo} />
+          ) : (
+            <View style={styles.logo} />
+          )}
+          <View style={styles.headerTextBlock}>
+            <Text style={styles.title}>Historial de Acumulados</Text>
+            <Text style={styles.branchName}>{branchName}</Text>
+            {periodLabel ? (
+              <Text style={styles.periodText}>{periodLabel}</Text>
+            ) : null}
+          </View>
         </View>
-
-        <Text style={styles.subtitle}>Historial de Acumulados</Text>
 
         <View style={[styles.tableRow, styles.headerRow]} wrap={false} fixed>
           <View style={styles.cellCode}>
