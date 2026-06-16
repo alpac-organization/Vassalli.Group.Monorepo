@@ -23,10 +23,10 @@ export const PayrollRoutes: RouteObject[] = [
       },
     ],
   },
-  {
-    path: "control-vacations",
-    element: <ControlVacationsPage />,
-  },
+  //   {
+  //     path: "control-vacations",
+  //     element: <ControlVacationsPage />,
+  //   },
   {
     path: "gestion-nomina",
     element: <PayrollPage />,
@@ -50,6 +50,6 @@ export const PayrollRoutes: RouteObject[] = [
   },
   {
     path: "active-deductions",
-    element: <ActiveDeductionsPage/>
-  }
+    element: <ActiveDeductionsPage />,
+  },
 ];

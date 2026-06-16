@@ -4,6 +4,7 @@ import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContrac
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { groupByWorkArea } from "@app/modules/payroll/ui/pages/nomina/utils/payroll-report-grouping.utils";
+import { withSoftLineBreaks } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/payroll-utils";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { formatDate } from "@app/shared/utils/string.utils";
 export type IncomeSummaryPdfProps = {
@@ -78,10 +79,14 @@ function ColumnHeaders() {
   return (
     <View style={styles.tableHeaderRow} fixed>
       <View style={styles.colCodEmp}>
-        <Text style={styles.cellHeader}>Cod Emp</Text>
+        <Text style={styles.cellHeader} wrap>
+          Cod Emp
+        </Text>
       </View>
       <View style={styles.colNombre}>
-        <Text style={styles.cellHeader}>Nombre</Text>
+        <Text style={styles.cellHeader} wrap>
+          Nombre
+        </Text>
       </View>
       {/* Valor column — reserved, currently hidden */}
       {/* <View style={styles.colValor}>
@@ -92,13 +97,19 @@ function ColumnHeaders() {
         <Text style={styles.cellHeader}>Unidad</Text>
       </View> */}
       <View style={styles.colTotal}>
-        <Text style={styles.cellHeaderRight}>Total</Text>
+        <Text style={styles.cellHeaderRight} wrap>
+          Total
+        </Text>
       </View>
       <View style={styles.colPeriodo}>
-        <Text style={styles.cellHeader}>Periodo</Text>
+        <Text style={styles.cellHeader} wrap>
+          Periodo
+        </Text>
       </View>
       <View style={styles.colArea}>
-        <Text style={styles.cellHeader}>Area</Text>
+        <Text style={styles.cellHeader} wrap>
+          Area
+        </Text>
       </View>
     </View>
   );
@@ -117,12 +128,14 @@ function DataRow({
   return (
     <View style={styles.tableRow} wrap={false}>
       <View style={styles.colCodEmp}>
-        <Text style={styles.cell}>
-          {item.collaborator?.collaborator_code ?? "—"}
+        <Text style={styles.cell} wrap>
+          {withSoftLineBreaks(item.collaborator?.collaborator_code ?? "—")}
         </Text>
       </View>
       <View style={styles.colNombre}>
-        <Text style={styles.cell}>{item.collaborator?.full_name ?? "—"}</Text>
+        <Text style={styles.cell} wrap>
+          {item.collaborator?.full_name ?? "—"}
+        </Text>
       </View>
       {/* Valor column — reserved, currently hidden */}
       {/* <View style={styles.colValor}>
@@ -133,15 +146,19 @@ function DataRow({
         <Text style={styles.cell}>{concept.unit}</Text>
       </View> */}
       <View style={styles.colTotal}>
-        <Text style={styles.cellRight}>
+        <Text style={styles.cellRight} wrap>
           {formatCurrency(total, "NIO") ?? "—"}
         </Text>
       </View>
       <View style={styles.colPeriodo}>
-        <Text style={styles.cellCenter}>{periodCode}</Text>
+        <Text style={styles.cellCenter} wrap>
+          {periodCode}
+        </Text>
       </View>
       <View style={styles.colArea}>
-        <Text style={styles.cell}>{item.collaborator?.work_area ?? "—"}</Text>
+        <Text style={styles.cell} wrap>
+          {item.collaborator?.work_area ?? "—"}
+        </Text>
       </View>
     </View>
   );
@@ -201,7 +218,7 @@ function ConceptSection({
           <Text style={styles.conceptTotalCell}> </Text>
         </View>
         <View style={styles.colNombre}>
-          <Text style={styles.conceptTotalCell}>
+          <Text style={styles.conceptTotalCell} wrap>
             Total {concept.label} ({items.length} colaboradores)
           </Text>
         </View>
@@ -212,7 +229,7 @@ function ConceptSection({
           <Text style={styles.conceptTotalCell}> </Text>
         </View> */}
         <View style={styles.colTotal}>
-          <Text style={styles.conceptTotalCellRight}>
+          <Text style={styles.conceptTotalCellRight} wrap>
             {formatCurrency(conceptTotal, "NIO") ?? "—"}
           </Text>
         </View>
@@ -285,7 +302,9 @@ export function IncomeSummaryPdfDocument({
             <Text style={styles.globalTotalCell}> </Text>
           </View>
           <View style={styles.colNombre}>
-            <Text style={styles.globalTotalCell}>TOTAL GENERAL</Text>
+            <Text style={styles.globalTotalCell} wrap>
+              TOTAL GENERAL
+            </Text>
           </View>
           {/* <View style={styles.colValor}>
             <Text style={styles.globalTotalCellRight}> </Text>
@@ -294,7 +313,7 @@ export function IncomeSummaryPdfDocument({
             <Text style={styles.globalTotalCell}> </Text>
           </View> */}
           <View style={styles.colTotal}>
-            <Text style={styles.globalTotalCellRight}>
+            <Text style={styles.globalTotalCellRight} wrap>
               {formatCurrency(grandTotal, "NIO") ?? "—"}
             </Text>
           </View>

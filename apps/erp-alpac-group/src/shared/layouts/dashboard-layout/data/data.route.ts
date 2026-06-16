@@ -129,7 +129,7 @@ export const sidebarData = {
         applicationFromPayrollSection,
         activeDeductionSection,
         liquidacionSection,
-        controlVacationsSection,
+        //   controlVacationsSection,
       ],
     },
     [ModuleEnum.ADMINISTRATION]: {

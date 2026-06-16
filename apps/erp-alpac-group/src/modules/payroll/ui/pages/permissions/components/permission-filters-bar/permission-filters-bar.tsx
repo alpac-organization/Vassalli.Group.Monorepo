@@ -7,7 +7,7 @@ import type { PermissionFiltersBarProps } from "@app/modules/payroll/ui/pages/pe
 import type {
   VacationStatusFilterValue,
   PermissionTypeFilterValue,
-} from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-history-request";
+} from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
 
 const dropdownClassName =
   "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";

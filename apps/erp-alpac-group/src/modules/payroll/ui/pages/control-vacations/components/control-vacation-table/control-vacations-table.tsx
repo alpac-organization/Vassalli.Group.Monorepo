@@ -13,7 +13,7 @@ export function ControlVacationsTable({
   totalRecords,
   onPageChange,
   isPending,
-  onViewDetails,
+  //   onViewDetails,
 }: ControlVacationsTableProps) {
   const columns = [
     {

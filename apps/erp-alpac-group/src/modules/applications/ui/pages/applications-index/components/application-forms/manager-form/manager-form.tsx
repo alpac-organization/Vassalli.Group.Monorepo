@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { Alert, AnimatedAlertWrapper, Button } from "@alpac/design-system";
 import { MainPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/main-panel/main-panel";
 import { BanIcon, CheckIcon, XIcon } from "lucide-react";
-import { DonatedVacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/donated-vacation-panel/donated-vacation-panel";
+// import { DonatedVacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/donated-vacation-panel/donated-vacation-panel";
 import { useApplications } from "@app/modules/applications/ui/hooks/useApplications";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/confirm-modal/confirm-modal";
@@ -171,9 +171,9 @@ export const ManagerForm = ({
           <MedicalAppointmentPanel application={application} />
         )}
 
-        {application.type === "DonatedVacations" && (
+        {/* {application.type === "DonatedVacations" && (
           <DonatedVacationPanel application={application} />
-        )}
+        )} */}
 
         <ManagerPanel application={application} />
 
