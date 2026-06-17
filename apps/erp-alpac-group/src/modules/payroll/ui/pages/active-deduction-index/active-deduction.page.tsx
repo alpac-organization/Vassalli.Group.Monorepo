@@ -10,7 +10,6 @@ import {
 
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { m, LazyMotion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";

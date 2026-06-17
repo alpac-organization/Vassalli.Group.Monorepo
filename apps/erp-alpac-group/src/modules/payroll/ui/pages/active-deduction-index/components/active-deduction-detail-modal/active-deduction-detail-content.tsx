@@ -1,6 +1,5 @@
-import { Alert, Badges, Spinner } from "@alpac/design-system";
+import { Alert, Badges, Button, Spinner } from "@alpac/design-system";
 import { AnimatePresence, m } from "framer-motion";
-import type { DeductionDetailsDto } from "@app/modules/payroll/domain/ApiContract/Responses/deduction-responses/get-deduction-details.response";
 import type { DeductionDto } from "@app/modules/payroll/domain/ApiContract/Responses/deduction-responses/get-deductions.response";
 import {
    getDeductionStatusBadgeColor,
@@ -9,12 +8,20 @@ import {
 import { getDeductionTypeLabel } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-type.enum";
 import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import { ActiveDeductionDetailAmountRow } from "./active-deduction-detail-amount-row";
+import { useEffect, useState } from "react";
+import type { ActiveDeductionDetailBodyProps, ActiveDeductionDetailContentProps, ActiveDeductionView } from "./active-deduction-detail-modal.types";
+import { ActiveDeductionPayments } from "./active-deduction-payments";
+import { useDeduction } from "@app/modules/payroll/ui/hooks/deduction/useDeduction";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 const EMPTY_STATE_CONTAINER_CLASS =
    "flex flex-col items-center justify-center px-4 py-10 text-center";
 
 const LOADING_STATE_TEXT_CLASS =
    "mt-3 max-w-[17rem] text-center text-sm leading-relaxed text-slate-500 dark:text-slate-400 sm:max-w-xs";
+
+const PAYMENT_DETAILS_BUTTON_CLASS =
+   "inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold text-white bg-alpac-primary-500 dark:bg-alpac-primary-700 transition-opacity hover:opacity-90";
 
 const fadeSlideTransition = {
    duration: 0.38,
@@ -25,13 +32,6 @@ const fadeSlideVariants = {
    initial: { opacity: 0, y: 14 },
    animate: { opacity: 1, y: 0 },
    exit: { opacity: 0, y: -10 },
-};
-
-type ActiveDeductionDetailContentProps = {
-   summary: DeductionDto | null;
-   detail?: DeductionDetailsDto;
-   isLoading: boolean;
-   isError: boolean;
 };
 
 function SummaryHeader({ summary }: { summary: DeductionDto }) {
@@ -64,7 +64,7 @@ function SummaryHeader({ summary }: { summary: DeductionDto }) {
    );
 }
 
-function DetailBody({ detail }: { detail: DeductionDetailsDto }) {
+function DetailBody({ detail, onViewPayments }: ActiveDeductionDetailBodyProps) {
    const paidCount = detail.number_fortnights_paid ?? 0;
    const totalCount = detail.number_fortnights ?? 0;
 
@@ -101,6 +101,15 @@ function DetailBody({ detail }: { detail: DeductionDetailsDto }) {
                </span>
             </m.div>
          )}
+
+         <m.div className="flex sm:justify-start">
+            <Button
+               type="button"
+               onClick={onViewPayments}
+               label="Ver detalles de pagos "
+               className={`${PAYMENT_DETAILS_BUTTON_CLASS} w-full shrink-0 justify-center whitespace-nowrap sm:w-auto sm:px-3 sm:py-1.5`}
+            />
+         </m.div>
 
          <m.div
             initial={{ opacity: 0, y: 12 }}
@@ -161,10 +170,48 @@ export function ActiveDeductionDetailContent({
    isLoading,
    isError,
 }: ActiveDeductionDetailContentProps) {
-   const bodyKey = isLoading ? "loading" : isError ? "error" : detail ? "detail" : "empty";
+
+   const {companyId, moduleCode, } = useUserStore();
+
+   const [view, setView] = useState<ActiveDeductionView>("detail");
+   const [slideDirection, setSlideDirection] = useState<"back" | "forward">("back");
+
+   const goToDetails = () => {
+      setView("detail")
+      setSlideDirection("back")
+   }
+
+   const goToPayments = () => {
+      setView("payments")
+      setSlideDirection("forward")
+   }
+
+   useEffect(() => goToDetails(), [summary?.deduction_id]);
+
+   const { useGetDeductionPayments } = useDeduction();
+
+   const { data: payments, isLoading: isPaymentLoading, isError: isPaymentError } = useGetDeductionPayments(
+
+      {
+         companie_id: companyId,
+         module_code: moduleCode,
+         deduction_id: summary?.deduction_id ?? "",
+         page_number: 1,
+         page_size: 10,
+      },
+      {
+         enabled:
+            view === "payments" &&
+            !!summary?.deduction_id &&
+            !!companyId &&
+            !!moduleCode,
+      },
+
+   );
 
    return (
       <div className="flex min-w-0 flex-col gap-5">
+
          {summary && (
             <m.div
                key={`summary-${summary.deduction_id}`}
@@ -213,14 +260,34 @@ export function ActiveDeductionDetailContent({
 
                {!isLoading && !isError && summary && detail && (
                   <m.div
-                     key={bodyKey}
+                     key="content"
                      variants={fadeSlideVariants}
                      initial="initial"
                      animate="animate"
                      exit="exit"
                      transition={{ ...fadeSlideTransition, delay: 0.06 }}
+                     className="overflow-hidden"
                   >
-                     <DetailBody detail={detail} />
+                     <AnimatePresence initial={false} mode="wait">
+                        <m.div
+                           key={view}
+                           initial={{ opacity: 0, x: slideDirection === "forward" ? 24 : -24 }}
+                           animate={{ opacity: 1, x: 0 }}
+                           exit={{ opacity: 0, x: slideDirection === "forward" ? -24 : 24 }}
+                           transition={fadeSlideTransition}
+                        >
+                           {view === "detail" ? (
+                              <DetailBody detail={detail} onViewPayments={goToPayments} />
+                           ) : (
+                              <ActiveDeductionPayments
+                                 payments={payments}
+                                 isLoading={isPaymentLoading}
+                                 isError={isPaymentError}
+                                 onBack={goToDetails}
+                              />
+                           )}
+                        </m.div>
+                     </AnimatePresence>
                   </m.div>
                )}
             </AnimatePresence>
