@@ -1406,9 +1406,9 @@ export function PayrollPage() {
       const preparedSignatureImageSrc = signatures.solicitado.signatureImage
         ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
         : "";
-      const reviewedSignatureImageSrc = signatures.signatureImage
-        ? await getProcessedSignatureImage(signatures.signatureImage)
-        : "";
+      // const reviewedSignatureImageSrc = signatures.signatureImage
+      //   ? await getProcessedSignatureImage(signatures.signatureImage)
+      //   : "";
 
       const blob = await pdf(
         <ConsolidatedAreaPdfDocument
@@ -1420,12 +1420,12 @@ export function PayrollPage() {
           preparedBy={{
             name: signatures.solicitado.name,
           }}
-          reviewedBy={{
-            name: signatures.revisado.name,
-            role: signatures.revisado.role,
-          }}
+          //  reviewedBy={{
+          //    name: signatures.revisado.name,
+          //    role: signatures.revisado.role,
+          //  }}
           preparedSignatureImageSrc={preparedSignatureImageSrc}
-          reviewedSignatureImageSrc={reviewedSignatureImageSrc}
+          //  reviewedSignatureImageSrc={reviewedSignatureImageSrc}
         />,
       ).toBlob();
 

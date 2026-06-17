@@ -104,7 +104,12 @@ function writeTwoRowHeaders(ws: Worksheet) {
       if (colIndex === deduccionesStart + 1) {
         const span = deduccionesEnd - deduccionesStart + 1;
         cell1.value = "Deducciones";
-        ws.mergeCells(HEADER_ROW_1, colIndex, HEADER_ROW_1, colIndex + span - 1);
+        ws.mergeCells(
+          HEADER_ROW_1,
+          colIndex,
+          HEADER_ROW_1,
+          colIndex + span - 1,
+        );
         applyHeaderCellStyle(cell1);
       }
 
@@ -127,7 +132,12 @@ function writeTwoRowHeaders(ws: Worksheet) {
 
       cell1.value = groupLabel;
       if (span > 1) {
-        ws.mergeCells(HEADER_ROW_1, colIndex, HEADER_ROW_1, colIndex + span - 1);
+        ws.mergeCells(
+          HEADER_ROW_1,
+          colIndex,
+          HEADER_ROW_1,
+          colIndex + span - 1,
+        );
       } else {
         ws.mergeCells(HEADER_ROW_1, colIndex, HEADER_ROW_2, colIndex);
       }
@@ -300,9 +310,7 @@ export async function exportConsolidatedAreaExcel({
           editAs: "oneCell",
         });
       }
-    } catch {
-      // Logo is optional; skip if fetch fails.
-    }
+    } catch {}
   }
 
   const branchLabel = branchName?.trim() || "sin-sucursal";

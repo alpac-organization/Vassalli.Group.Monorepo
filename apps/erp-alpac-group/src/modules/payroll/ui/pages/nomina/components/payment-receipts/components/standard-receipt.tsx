@@ -23,7 +23,6 @@ export function StandardPage({
     .toString();
 
   const currentYear = new Date().getFullYear().toString();
-
   const lastYear = (parseInt(currentYear) - 1).toString();
   const isSameYear = entryDateYearByCollaborator === currentYear;
   const { urlImage } = useCompanyStore();
