@@ -7,16 +7,28 @@ import type { StandardPageProps } from "@app/modules/payroll/ui/pages/nomina/com
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { Image } from "@react-pdf/renderer";
 import { parseAdditionalDeductions } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/parse-additional-deductions";
+import { months } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/utils/years";
 export function StandardPage({
   item,
   startDate,
   endDate,
   branchName,
 }: StandardPageProps) {
+  const currentMonth = new Date().getMonth() + 1;
+  const isDecember = currentMonth === 12;
   const collaborator = item.collaborator;
+  const entryDateYearByCollaborator = collaborator?.entry_date?.split("-")[0];
+  const entryDateMonthByCollaborator = collaborator?.entry_date
+    ?.split("-")[1]
+    .toString();
+
+  const currentYear = new Date().getFullYear().toString();
+
+  const lastYear = (parseInt(currentYear) - 1).toString();
+  const isSameYear = entryDateYearByCollaborator === currentYear;
   const { urlImage } = useCompanyStore();
   const incomeLines: { label: string; value: number }[] = [
-    { label: "ORDINARIO", value: item.biweekly_salary },
+    { label: "ORDINARIO", value: item.biweekly_salary * 2 },
     { label: "ANTIGUEDAD", value: item.antique ?? 0 },
     { label: "HORAS EXTRAS", value: item.overtime ?? 0 },
     { label: "FERIADO", value: item.feriado ?? 0 },
@@ -72,9 +84,14 @@ export function StandardPage({
         <Text style={s.branchName}>{branchName}</Text>
         <Text style={s.title}>RECIBO DE PAGO</Text>
         <Text style={s.period}>
-          Periodo del: {formatDateToSpanishWords(startDate)}
-          {"   "}al{"   "}
-          {formatDateToSpanishWords(endDate)}
+          Periodo de:{" "}
+          {isDecember && !isSameYear
+            ? `Diciembre ${lastYear} a ${months["11"]} ${currentYear}`
+            : isDecember && isSameYear
+              ? `${months[entryDateMonthByCollaborator as keyof typeof months]} ${currentYear} a ${months["11"]} ${currentYear}`
+              : formatDateToSpanishWords(startDate) +
+                " a " +
+                formatDateToSpanishWords(endDate)}
         </Text>
       </View>
 

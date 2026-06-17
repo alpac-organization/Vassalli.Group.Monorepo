@@ -45,6 +45,12 @@ export const VACATION_ACCRUAL_AREA_COLUMNS: VacationAccrualAreaColumnDef[] = [
       PLACEHOLDER_DASH,
   },
   {
+    key: "full_name",
+    label: "Nombre completo",
+    render: (row) =>
+      row.payrollItem.collaborator?.full_name?.trim() || PLACEHOLDER_DASH,
+  },
+  {
     key: "entry_date",
     label: "Fecha de ingreso",
     render: (row) => formatDate(getEntryDate(row)) || PLACEHOLDER_DASH,
