@@ -29,22 +29,22 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    "baseUrl": ".",
+    /*"baseUrl": ".",*/
     "paths": {
       "@app/modules/*": [
-        "src/modules/*"
+        "./src/modules/*"
       ],
       "@app/shared/*": [
-        "src/shared/*"
+        "./src/shared/*"
       ],
       "@app/routers/*": [
-        "src/routers/*"
+        "./src/routers/*"
       ],
       "@app/assets/*": [
-        "src/assets/*"
+        "./src/assets/*"
       ],
       "@app/*": [
-        "src/*"
+        "./src/*"
       ]
     }
   },
