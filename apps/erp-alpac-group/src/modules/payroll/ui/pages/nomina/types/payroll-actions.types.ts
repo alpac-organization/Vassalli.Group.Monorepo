@@ -3,6 +3,15 @@ export type PayrollActionValue =
   | "payment_receipts"
   | "payment_requests"
   | "accumulated_history"
-  | "vacation_accruals_history"
+  | "vacation_control_report"
+  | "vacation_accrual_area_report"
   | "income_report"
-  | "deduction_report";
+  | "deduction_report"
+  | "consolidated_area_report"
+  | "employee_receivables_report"
+  | "monthly_accumulated_report"
+  | "quincenal_accumulated_report"
+  | "monthly_ir_report"
+  | "monthly_inss_report"
+  | "quincenal_ir_report"
+  | "quincenal_inss_report";

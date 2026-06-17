@@ -4,8 +4,9 @@ import { CollaboratorProfilePage } from "@app/modules/payroll/ui/pages/collabora
 import { PayrollPage } from "@app/modules/payroll/ui/pages/nomina/payroll-page";
 import { PayrollPeriodsHistoryPage } from "@app/modules/payroll/ui/pages/periods-payroll/Payroll-periods-history";
 import { ApplicationsPage } from "@app/modules/applications/ui/pages/applications-index/applications.page";
-
+import { PayrollClosedHistoryPage } from "@app/modules/payroll/ui/pages/payroll-closed-history/payroll-closed-history";
 import type { RouteObject } from "react-router-dom";
+import { ActiveDeductionsPage } from "@app/modules/payroll/ui/pages/active-deduction-index/active-deduction.page";
 
 export const PayrollRoutes: RouteObject[] = [
   {
@@ -22,20 +23,33 @@ export const PayrollRoutes: RouteObject[] = [
       },
     ],
   },
-  {
-    path: "control-vacations",
-    element: <ControlVacationsPage />,
-  },
+  //   {
+  //     path: "control-vacations",
+  //     element: <ControlVacationsPage />,
+  //   },
   {
     path: "gestion-nomina",
     element: <PayrollPage />,
   },
   {
     path: "historial-periodos-nomina",
-    element: <PayrollPeriodsHistoryPage />,
+    children: [
+      {
+        index: true,
+        element: <PayrollPeriodsHistoryPage />,
+      },
+      {
+        path: ":payroll_id",
+        element: <PayrollClosedHistoryPage />,
+      },
+    ],
   },
   {
     path: "applications",
     element: <ApplicationsPage />,
+  },
+  {
+    path: "active-deductions",
+    element: <ActiveDeductionsPage />,
   },
 ];

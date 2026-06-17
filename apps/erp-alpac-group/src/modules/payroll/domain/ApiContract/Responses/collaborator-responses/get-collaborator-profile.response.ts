@@ -1,3 +1,4 @@
+import type { SalaryType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/utils/utils_permissions";
 export interface CollaboratorProfilePersonalInformation {
   gender?: string;
   identification_type?: string | number | null;
@@ -25,7 +26,7 @@ interface CollaboratorProfileWorkingInformation {
 interface CollaboratorProfileSalaryInformation {
   salary?: number;
   currency?: string;
-  salary_type?: string;
+  salary_type?: SalaryType;
 }
 
 /**

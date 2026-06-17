@@ -17,9 +17,16 @@ export function usePayrollReports({
   GetPayrollReportsPayloadResponse,
   Error
 > {
-  const { companie_id, report_type, payroll_id } = payload;
+  const { companie_id, report_type, payroll_id, identification_number } =
+    payload;
   return useQuery<GetPayrollReportsPayloadResponse, Error>({
-    queryKey: ["payrollReports", companie_id, report_type, payroll_id],
+    queryKey: [
+      "payrollReports",
+      companie_id,
+      report_type,
+      payroll_id,
+      identification_number,
+    ],
     queryFn: () => payrollServices.generateReportsPayroll(payload),
     enabled: enabled && Boolean(companie_id && report_type && payroll_id),
     staleTime: 1000 * 60 * 5,

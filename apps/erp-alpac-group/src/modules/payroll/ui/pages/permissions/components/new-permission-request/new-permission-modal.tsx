@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
-import { Modal } from "@alpac/design-system";
+import { X } from "lucide-react";
+import { Modal, RadioButton } from "@alpac/design-system";
 import { usePermission } from "@app/modules/payroll/ui/hooks/permission/usePermission";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
@@ -14,132 +15,291 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { NewPermissionRequestModalProps } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission-modal.types";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 
+type ManagerRequestTarget = "self" | "other";
+
+const formTransition = {
+  height: { duration: 0.3, ease: "easeInOut" as const },
+  opacity: { duration: 0.45, ease: "easeOut" as const, delay: 0.1 },
+  y: { duration: 0.3, ease: "easeOut" as const, delay: 0.1 },
+};
+
 export function NewPermissionRequestModal({
-   isOpen,
-   onClose,
-   payrollId,
-   collaboratorFullName,
-   collaboratorWorkPosition,
-   isCollaboratorFullNameLoading = false,
-   isCollaboratorWorkPositionLoading = false,
-   onRequestSuccess,
-   onRequestError,
+  isOpen,
+  onClose,
+  payrollId,
+  collaboratorFullName,
+  collaboratorWorkPosition,
+  isCollaboratorFullNameLoading = false,
+  isCollaboratorWorkPositionLoading = false,
+  onRequestSuccess,
+  onRequestError,
 }: NewPermissionRequestModalProps) {
+  const { companyId, moduleCode, identificationNumber, role } = useUserStore();
+  const { createPermissionRequestMutation } = usePermission();
+  const [foundCollaborator, setFoundCollaborator] =
+    useState<GetCollaboratorProfileDetailsResponse | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [managerTarget, setManagerTarget] =
+    useState<ManagerRequestTarget | null>(null);
 
-   const { companyId, moduleCode, identificationNumber, role } = useUserStore();
-   const { createPermissionRequestMutation } = usePermission();
-   const [foundCollaborator, setFoundCollaborator] = useState<GetCollaboratorProfileDetailsResponse | null>(null);
-   const [isSearching, setIsSearching] = useState(false);
+  const isManager = role === RoleEnum.MANAGER;
+  const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+  const isOperator = role === RoleEnum.OPERATOR;
+  const channel = useMemo(() => {
+    if (isOperator || (isManager && managerTarget === "self")) {
+      console.log("PersonalPanel");
+      return ChannelEnum.PersonalPanel;
+    }
+    if (isManager && managerTarget === "other") {
+      console.log("manager");
+      return ChannelEnum.PersonalPanel;
+    }
+    return ChannelEnum.AdministrativePanel;
+  }, [isOperator, isManager, managerTarget]);
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+      setFoundCollaborator(null);
+      setManagerTarget(null);
+      setIsSearching(false);
+    }
 
-   const isManager = role === RoleEnum.MANAGER
-   const isAdministrator = role === RoleEnum.ADMINISTRATOR
-   const isOperator = role === RoleEnum.OPERATOR
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
 
-   const channel = role === RoleEnum.ADMINISTRATOR ?
-      ChannelEnum.AdministrativePanel : role === RoleEnum.MANAGER ?
-         ChannelEnum.DirectManagerPanel : ChannelEnum.PersonalPanel;
+  const handleValidationError = useCallback(
+    (message: string) => {
+      onRequestError?.(message);
+      onClose?.();
+    },
+    [onRequestError, onClose],
+  );
 
-   useEffect(() => {
-      if (isOpen) {
-         document.body.style.overflow = "hidden";
-      } else {
-         document.body.style.overflow = "unset";
-         setFoundCollaborator(null);
-      }
+  const handlePermissionSubmit = (payload: CreatePermissionRequestBase) => {
+    createPermissionRequestMutation.mutate(payload, {
+      onSuccess: () => {
+        onClose?.();
+        onRequestSuccess?.("Solicitud de permiso creada exitosamente");
+      },
+      onError: (err) => {
+        const apiError = err as unknown as ApiErrorResponse;
+        onRequestError?.(
+          apiError.error?.description ?? "Ocurrió un error inesperado.",
+        );
+        onClose?.();
+      },
+    });
+  };
 
-      return () => { document.body.style.overflow = "unset" };
-   }, [isOpen]);
+  const handleManagerTargetChange = (target: ManagerRequestTarget) => {
+    setManagerTarget(target);
+    setFoundCollaborator(null);
+    setIsSearching(false);
+  };
 
+  const handleClearCollaborator = useCallback(() => {
+    setFoundCollaborator(null);
+    setIsSearching(false);
+  }, []);
 
-   const handlePermissionSubmit = (payload: CreatePermissionRequestBase) => {
-      createPermissionRequestMutation.mutate(payload, {
-         onSuccess: () => {
-            onClose?.();
-            onRequestSuccess?.("Solicitud de permiso creada exitosamente");
-         },
-         onError: (err) => {
-            const apiError = err as unknown as ApiErrorResponse;
-            onRequestError?.(
-               apiError.error?.description ?? "Ocurrió un error inesperado.",
-            );
-         },
-      });
-   }
+  const targetIdentification = useMemo(() => {
+    if (isOperator || (isManager && managerTarget === "self")) {
+      return identificationNumber;
+    }
+    return foundCollaborator?.personal_information?.identification_number ?? "";
+  }, [
+    isOperator,
+    isManager,
+    managerTarget,
+    identificationNumber,
+    foundCollaborator,
+  ]);
 
-   const targetIdentification = useMemo(() => {
-      if (isOperator) return identificationNumber;
-      return foundCollaborator?.personal_information?.identification_number ?? "";
-   }, [foundCollaborator, identificationNumber, isOperator]);
+  const showPermissionForm = useMemo(() => {
+    if (isOperator) return true;
+    if (isManager && managerTarget === "self") return true;
+    if (isManager && managerTarget === "other" && foundCollaborator)
+      return true;
+    if (isAdministrator && foundCollaborator) return true;
+    return false;
+  }, [
+    isOperator,
+    isManager,
+    isAdministrator,
+    managerTarget,
+    foundCollaborator,
+  ]);
 
-   return (
-      <Modal
-         isOpen={isOpen}
-         variant="form"
-         onClose={() => onClose?.()}
-         title="Nueva Solicitud de Permiso"
-         size="4xl"
-         panelClassName={["dark:bg-[#272b34]"].join(" ")}>
+  const showSelfSummary =
+    isOperator || (isManager && managerTarget === "self") || isAdministrator;
 
-         {/* Formulario de busqueda */}
-         <div className="flex min-w-0 flex-col gap-4 sm:gap-5">
-            {
-               (isManager || isAdministrator) && !isOperator && !foundCollaborator &&
-               (
-                  <div>
-                     <CollaboratorSearchForm
-                        onSuccess={(collaborator) => {
-                           setFoundCollaborator(collaborator);
-                           setIsSearching(false)
-                        }}
-                        onError={() => {
-                           setIsSearching(false);
-                           setFoundCollaborator(null);
-                        }}
-                        onSearchStart={() => {
-                           setIsSearching(true);
-                        }}
-                        excludeIdentifications={[identificationNumber]}
-                     />
-                  </div>
-               )
-            }
+  const displayFullName = useMemo(() => {
+    if (isOperator || (isManager && managerTarget === "self")) {
+      return collaboratorFullName ?? "";
+    }
+    return foundCollaborator?.full_name ?? "";
+  }, [
+    isOperator,
+    isManager,
+    managerTarget,
+    collaboratorFullName,
+    foundCollaborator,
+  ]);
 
-            <AnimatePresence initial={!isOperator}>
-               {(((isManager || isAdministrator) && !!foundCollaborator) || isOperator) && (
-                  <m.div
-                     key="collaborator-result"
-                     initial={{ opacity: 0, y: 16, height: 0, overflow: 'hidden' }}
-                     animate={{ opacity: 1, y: 0, height: 'auto', overflow: 'visible' }}
-                     exit={{ opacity: 0, y: 8, height: 0, overflow: 'hidden' }}
-                     transition={{
-                        height: { duration: 0.3, ease: "easeInOut" },
-                        opacity: { duration: 0.45, ease: "easeOut", delay: 0.1 },
-                        y: { duration: 0.3, ease: "easeOut", delay: 0.1 },
-                     }}
-                     className="flex flex-col gap-4 sm:gap-5"
-                  >
-                     <CollaboratorSummary
-                        fullName={collaboratorFullName ?? foundCollaborator?.full_name ?? ""}
-                        workPosition={collaboratorWorkPosition ?? foundCollaborator?.work_position ?? ""}
-                        isFullNameLoading={isCollaboratorFullNameLoading || isSearching}
-                        isWorkPositionLoading={isCollaboratorWorkPositionLoading || isSearching}
-                     />
+  const displayWorkPosition = useMemo(() => {
+    if (isOperator || (isManager && managerTarget === "self")) {
+      return collaboratorWorkPosition ?? "";
+    }
+    return foundCollaborator?.work_position ?? "";
+  }, [
+    isOperator,
+    isManager,
+    managerTarget,
+    collaboratorWorkPosition,
+    foundCollaborator,
+  ]);
 
-                     <NewPermissionRequestForm
-                        payrollId={payrollId}
-                        isPending={createPermissionRequestMutation.isPending}
-                        onSubmit={handlePermissionSubmit}
-                        onCancel={() => onClose?.()}
-                        companyId={companyId}
-                        moduleCode={moduleCode}
-                        identificationNumber={targetIdentification}
-                        channel={channel}
-                     />
-                  </m.div>
-               )}
-            </AnimatePresence>
+  return (
+    <Modal
+      isOpen={isOpen}
+      variant="form"
+      onClose={() => onClose?.()}
+      title="Nueva Solicitud de Permiso"
+      size="4xl"
+      panelClassName={["dark:bg-[#272b34]"].join(" ")}
+    >
+      <div className="flex min-w-0 flex-col gap-4 sm:gap-5">
+        {isManager && (
+          <fieldset className="flex flex-col gap-3">
+            <legend className="mb-1 text-sm font-medium text-black dark:text-white">
+              ¿Para quién es la solicitud?
+            </legend>
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-6">
+              <RadioButton
+                name="manager-request-target"
+                value="self"
+                checked={managerTarget === "self"}
+                onChange={() => handleManagerTargetChange("self")}
+                label="Para mí"
+              />
+              <RadioButton
+                name="manager-request-target"
+                value="other"
+                checked={managerTarget === "other"}
+                onChange={() => handleManagerTargetChange("other")}
+                label="Para otro colaborador"
+              />
+            </div>
+          </fieldset>
+        )}
 
-         </div>
-      </Modal >
-   );
+        {isManager && managerTarget === "other" && !foundCollaborator && (
+          <CollaboratorSearchForm
+            onSuccess={(collaborator) => {
+              setFoundCollaborator(collaborator);
+              setIsSearching(false);
+            }}
+            onError={() => {
+              setIsSearching(false);
+              setFoundCollaborator(null);
+            }}
+            onSearchStart={() => {
+              setIsSearching(true);
+            }}
+            excludeIdentifications={[identificationNumber]}
+          />
+        )}
+
+        {isManager && managerTarget === "other" && foundCollaborator && (
+          <div className="relative flex w-full flex-row items-center gap-4">
+            <div className="min-w-0 flex-1">
+              <CollaboratorSummary
+                fullName={displayFullName}
+                workPosition={displayWorkPosition}
+                isFullNameLoading={isSearching}
+                isWorkPositionLoading={isSearching}
+              />
+            </div>
+            <div className="group flex items-center">
+              <button
+                type="button"
+                className="rounded-full p-1.5 text-slate-700 transition-all hover:bg-slate-300 hover:text-slate-900 dark:text-white dark:hover:bg-white/15 dark:hover:text-white"
+                onClick={handleClearCollaborator}
+                aria-label="Quitar Colaborador"
+              >
+                <X size={20} />
+              </button>
+              <div className="pointer-events-none absolute -top-10 right-0 z-50 mt-2 rounded bg-slate-800 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+                Quitar Colaborador
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isAdministrator && !foundCollaborator && (
+          <CollaboratorSearchForm
+            onSuccess={(collaborator) => {
+              setFoundCollaborator(collaborator);
+              setIsSearching(false);
+            }}
+            onError={() => {
+              setIsSearching(false);
+              setFoundCollaborator(null);
+            }}
+            onSearchStart={() => {
+              setIsSearching(true);
+            }}
+            excludeIdentifications={[identificationNumber]}
+          />
+        )}
+
+        <AnimatePresence initial={!isOperator}>
+          {showPermissionForm && (
+            <m.div
+              key="permission-form-section"
+              initial={{ opacity: 0, y: 16, height: 0, overflow: "hidden" }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                height: "auto",
+                overflow: "visible",
+              }}
+              exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+              transition={formTransition}
+              className="flex flex-col gap-4 sm:gap-5"
+            >
+              {showSelfSummary && (
+                <CollaboratorSummary
+                  fullName={displayFullName}
+                  workPosition={displayWorkPosition}
+                  isFullNameLoading={
+                    isCollaboratorFullNameLoading || isSearching
+                  }
+                  isWorkPositionLoading={
+                    isCollaboratorWorkPositionLoading || isSearching
+                  }
+                />
+              )}
+
+              <NewPermissionRequestForm
+                payrollId={payrollId}
+                isPending={createPermissionRequestMutation.isPending}
+                onSubmit={handlePermissionSubmit}
+                onCancel={() => onClose?.()}
+                onValidationError={handleValidationError}
+                companyId={companyId}
+                moduleCode={moduleCode}
+                identificationNumber={targetIdentification}
+                channel={channel}
+              />
+            </m.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </Modal>
+  );
 }

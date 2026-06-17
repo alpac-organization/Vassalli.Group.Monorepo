@@ -19,6 +19,20 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    proxy: {
+      "/api-payroll": {
+        target: "https://erp-core-manager-api.onrender.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api-payroll/, "/api/v1"),
+      },
+      "/api-warehouse": {
+        target: "",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api-warehouse/, "/api/v1"),
+      },
+    },
+  },
   resolve: {
     alias: {
       "@app/modules": path.resolve(__dirname, "./src/modules"),

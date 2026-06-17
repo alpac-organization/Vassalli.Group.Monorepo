@@ -13,6 +13,7 @@ export interface PersonalFormData {
    personalPhone?: string;
    department_id?: string;
    department?: string;
+   code_collaborator?: string;
 }
 
 export interface WorkFormData {

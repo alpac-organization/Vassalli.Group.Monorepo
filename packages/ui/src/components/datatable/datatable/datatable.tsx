@@ -1,3 +1,4 @@
+import React from "react";
 import { DataTableProps } from "./datatable.type";
 
 export function DataTable<T>({
@@ -9,6 +10,9 @@ export function DataTable<T>({
   onRowDoubleClick,
   pagination,
   toolbarEnd,
+  onDelete,
+  deleteIcon,
+  deleteText,
 }: DataTableProps<T>): React.ReactElement {
   return (
     <div
@@ -53,7 +57,7 @@ export function DataTable<T>({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead className="border-b-2 border-slate-600 dark:border-neutral-600">
-              <tr className="dark:bg-[#272b34] ">
+              <tr className="dark:bg-[#272b34]">
                 {columns.map((column) => (
                   <th
                     key={column.key as string}
@@ -62,6 +66,12 @@ export function DataTable<T>({
                     {column.label}
                   </th>
                 ))}
+
+                {onDelete !== undefined && (
+                  <th className="whitespace-nowrap px-6 py-4 text-xs font-bold uppercase text-neutral-900 dark:text-white text-right">
+                    Acciones
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-600 dark:divide-neutral-600">
@@ -72,7 +82,12 @@ export function DataTable<T>({
                     className={
                       rowClassName !== undefined
                         ? rowClassName
-                        : `hover:bg-neutral-50/80 dark:hover:bg-[#363a45] ${onRowClick !== undefined || onRowDoubleClick !== undefined ? "cursor-pointer" : ""}`
+                        : `hover:bg-neutral-50/80 dark:hover:bg-[#363a45] ${
+                            onRowClick !== undefined ||
+                            onRowDoubleClick !== undefined
+                              ? "cursor-pointer"
+                              : ""
+                          }`
                     }
                     onClick={
                       onRowClick !== undefined
@@ -97,6 +112,26 @@ export function DataTable<T>({
                               : "—") || "—"}
                       </td>
                     ))}
+
+                    {onDelete !== undefined && (
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-right">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(item);
+                          }}
+                          className="inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-red-900 rounded-md focus:outline-none focus:ring-2
+                          
+                          focus:ring-offset-2 dark:focus:ring-offset-[#272b34] transition-colors"
+                        >
+                          {deleteIcon && <span>{deleteIcon}</span>}
+
+                          {deleteText && <span>{deleteText}</span>}
+                          {!deleteText && !deleteIcon && <span>Eliminar</span>}
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 );
               })}

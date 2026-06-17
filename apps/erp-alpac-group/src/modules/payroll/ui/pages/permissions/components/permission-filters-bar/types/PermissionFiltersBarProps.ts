@@ -1,7 +1,7 @@
 import type {
   VacationStatusFilterValue,
   PermissionTypeFilterValue,
-} from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-history-request";
+} from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
 export type PermissionFiltersBarProps = {
   filterDraft: VacationStatusFilterValue;
   onFilterDraftChange: (value: VacationStatusFilterValue) => void;

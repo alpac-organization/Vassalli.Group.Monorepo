@@ -15,7 +15,8 @@ export type NewPermissionRequestFormProps = {
    moduleCode: string;
    identificationNumber: string;
    channel: ChannelEnum;
-   payrollId: string;
+   payrollId?: string;
+   onValidationError?: (message: string) => void;
 };
 
 export const PERMISSION_TYPE_TO_ENUM_VALUE: Record<PermissionType, number> = {

@@ -1,6 +1,7 @@
 import type { PermissionRequestDetailsContentProps } from "@app/modules/payroll/ui/pages/permissions/components/permission-details/types/permission-details-content.type";
 import { Stepper } from "@alpac/design-system";
 import { mapApprovalToStepStatus } from "@app/modules/payroll/ui/pages/permissions/components/permission-details/types/permission-steps.type";
+import { ImagePreviewGallery } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
 
 export function PermissionRequestDetailsContent({
   details,
@@ -20,9 +21,16 @@ export function PermissionRequestDetailsContent({
           <p className="mt-0.5 text-[13px] text-slate-500 dark:text-slate-400">
             ID Colaborador: {details.collaboratorCode}
           </p>
-          <span className="mt-1.5 inline-block rounded-md bg-slate-100 px-2.5 py-0.5 text-[12px] font-medium text-slate-700 dark:bg-slate-700/50 dark:text-slate-300">
-            {details.permissionTypeLabel}
-          </span>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            <span className="inline-block rounded-md bg-slate-100 px-2.5 py-0.5 text-[12px] font-medium text-slate-700 dark:bg-slate-700/50 dark:text-slate-300">
+              {details.permissionTypeLabel}
+            </span>
+            {details.durationModeLabel && (
+              <span className="inline-block rounded-md bg-slate-100 px-2.5 py-0.5 text-[12px] font-medium text-slate-700 dark:bg-slate-700/50 dark:text-slate-300">
+                {details.durationModeLabel}
+              </span>
+            )}
+          </div>
         </div>
         <span
           className={`shrink-0 rounded-md px-2.5 py-1 text-[13px] font-semibold ${details.statusColorClass}`}
@@ -31,23 +39,29 @@ export function PermissionRequestDetailsContent({
         </span>
       </div>
 
-      <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3">
+      <div
+        className={`grid min-w-0 grid-cols-1 gap-4 ${
+          details.showEndDate ? "sm:grid-cols-3" : "sm:grid-cols-2"
+        }`}
+      >
         <div className="min-w-0">
           <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
-            Fecha de inicio
+            {details.isMedicalAppointment ? "Fecha de cita" : "Fecha de inicio"}
           </p>
           <p className="mt-1 text-[14px] font-bold leading-snug text-slate-900 dark:text-white">
             {details.startDateFormatted}
           </p>
         </div>
-        <div className="min-w-0">
-          <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
-            Fecha de fin
-          </p>
-          <p className="mt-1 text-[14px] font-bold leading-snug text-slate-900 dark:text-white">
-            {details.endDateFormatted}
-          </p>
-        </div>
+        {details.showEndDate && (
+          <div className="min-w-0">
+            <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
+              Fecha de fin
+            </p>
+            <p className="mt-1 text-[14px] font-bold leading-snug text-slate-900 dark:text-white">
+              {details.endDateFormatted}
+            </p>
+          </div>
+        )}
         <div className="min-w-0">
           <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
             Cantidad solicitada
@@ -64,14 +78,14 @@ export function PermissionRequestDetailsContent({
         </div>
       </div>
 
-      {!details.isVacationType && (
+      {details.showTimeRange && (
         <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="min-w-0">
             <p className="text-[12px] font-medium text-slate-500 dark:text-slate-400">
               Hora de inicio
             </p>
             <p className="mt-1 text-[14px] font-bold leading-snug text-slate-900 dark:text-white">
-              {details.startTime ?? "—"}
+              {details.startTimeFormatted}
             </p>
           </div>
           <div className="min-w-0">
@@ -79,7 +93,7 @@ export function PermissionRequestDetailsContent({
               Hora de fin
             </p>
             <p className="mt-1 text-[14px] font-bold leading-snug text-slate-900 dark:text-white">
-              {details.endTime ?? "—"}
+              {details.endTimeFormatted}
             </p>
           </div>
         </div>
@@ -93,6 +107,10 @@ export function PermissionRequestDetailsContent({
           {details.description}
         </div>
       </div>
+
+      {details.isMedicalAppointment && details.medicalAppointmentImages.length > 0 && (
+        <ImagePreviewGallery images={details.medicalAppointmentImages} />
+      )}
 
       <div className="rounded-lg border border-slate-200/70 p-3.5 dark:border-neutral-600">
         <p className="text-[13px] font-semibold text-slate-200">
@@ -131,6 +149,12 @@ export function PermissionRequestDetailsContent({
       </div>
 
       <div className="border-t border-slate-200 pt-3 dark:border-neutral-600">
+        {details.requestedBy && (
+          <p className="text-[13px] text-white">
+            <span className="font-medium">Solicitado por:</span>{" "}
+            {details.requestedBy}
+          </p>
+        )}
         <p className="text-[13px] text-white">
           <span className="font-medium">Solicitado el:</span>{" "}
           {details.requestedAtFormatted}
@@ -139,3 +163,4 @@ export function PermissionRequestDetailsContent({
     </div>
   );
 }
+

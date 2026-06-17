@@ -12,7 +12,9 @@ import {
   History,
   Scale,
   Users,
-  Book,
+  BadgeCent,
+  Grid,
+  Briefcase,
 } from "lucide-react";
 
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
@@ -66,10 +68,10 @@ const payrollPeriodsHistorySection: SidebarLink = {
   icon: History,
 };
 
-const deduccionesSection: SidebarLink = {
-  id: "deducciones",
+const activeDeductionSection: SidebarLink = {
+  id: "active-deductions",
   label: "Deducciones Activas",
-  path: "payroll/deducciones",
+  path: "payroll/active-deductions",
   icon: CircleMinus,
 };
 
@@ -93,11 +95,25 @@ const administrationUsersSection: SidebarLink = {
   path: "administration/users",
   icon: Users,
 };
-const administrationCatalogosSection: SidebarLink = {
-  id: "catalogos",
-  label: "Catálogos",
-  path: "administration/catalogos",
-  icon: Book,
+const administrationCostCentersSection: SidebarLink = {
+  id: "cost-centers",
+  label: "Centros de Costos",
+  path: "administration/cost-centers",
+  icon: BadgeCent,
+};
+
+const administrationAreasSection: SidebarLink = {
+  id: "areas",
+  label: "Áreas",
+  path: "administration/areas",
+  icon: Grid,
+};
+
+const administrationJobPositionsSection: SidebarLink = {
+  id: "job-positions",
+  label: "Puestos de Trabajo",
+  path: "administration/job-positions",
+  icon: Briefcase,
 };
 
 export const sidebarData = {
@@ -111,19 +127,25 @@ export const sidebarData = {
         gestionPayrollSection,
         payrollPeriodsHistorySection,
         applicationFromPayrollSection,
-        deduccionesSection,
+        activeDeductionSection,
         liquidacionSection,
-        controlVacationsSection,
+        //   controlVacationsSection,
       ],
     },
     [ModuleEnum.ADMINISTRATION]: {
       [RoleEnum.ADMINISTRATOR]: [
         administrationUsersSection,
-        administrationCatalogosSection,
+        administrationCostCentersSection,
+        administrationAreasSection,
+        administrationJobPositionsSection,
       ],
     },
     [ModuleEnum.WORK_MANAGEMENT]: {
       [RoleEnum.OPERATOR]: [
+        collaboratorProfileSection,
+        permissionManagementSection,
+      ],
+      [RoleEnum.MANAGER]: [
         collaboratorProfileSection,
         permissionManagementSection,
       ],

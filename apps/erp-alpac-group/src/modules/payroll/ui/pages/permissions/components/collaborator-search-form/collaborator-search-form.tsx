@@ -122,7 +122,8 @@ export const CollaboratorSearchForm = ({
                   })}
                   onKeyDown={(evt) => {
                      if (evt.key === 'Enter') {
-                        onSubmit()
+                        evt.preventDefault();
+                        onSubmit();
                      }
                   }}
                   error={errors.identification_number?.message}

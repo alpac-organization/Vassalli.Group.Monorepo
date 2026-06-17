@@ -39,6 +39,20 @@ export const payrollColumns: PayrollColumnDef[] = [
     render: (item) => item.collaborator?.job_position ?? "—",
   },
   {
+    key: "work_area",
+    label: "Área de Trabajo",
+    render: (item) => item.collaborator?.work_area ?? "—",
+  },
+  {
+    key: "daem",
+    label: "DAEM",
+    onlyForCompanyName: VIGILANCIA_EMPRESARIAL_SA_COMPANY_NAME,
+    render: (item) => {
+      const v = item.DAEM?.trim();
+      return v && v.length > 0 ? v : "—";
+    },
+  },
+  {
     key: "inss_number",
     label: "Número INSS",
     render: (item) => {
@@ -83,11 +97,6 @@ export const payrollColumns: PayrollColumnDef[] = [
     label: "Horas Extras",
     render: (item) => formatCurrency(item.overtime ?? 0, "NIO") ?? "—",
     getValue: (item) => item.overtime ?? 0,
-  },
-  {
-    key: "work_area",
-    label: "Área de Trabajo",
-    render: (item) => item.collaborator?.work_area ?? "—",
   },
   {
     key: "comissions",
@@ -169,17 +178,6 @@ export const payrollColumns: PayrollColumnDef[] = [
   },
 
   {
-    key: "late_arrivals",
-    label: "Llegadas Tardías",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.LateArrivals ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.LateArrivals ?? 0,
-  },
-  {
     key: "late_arrivals_in_minutes",
     label: "Llegadas Tardías en Minutos",
     render: (item) => {
@@ -193,13 +191,15 @@ export const payrollColumns: PayrollColumnDef[] = [
         ?.LateArrivalsInMinutes ?? 0,
   },
   {
-    key: "daem",
-    label: "DAEM",
-    onlyForCompanyName: VIGILANCIA_EMPRESARIAL_SA_COMPANY_NAME,
+    key: "late_arrivals",
+    label: "Llegadas Tardías",
     render: (item) => {
-      const v = item.DAEM?.trim();
-      return v && v.length > 0 ? v : "—";
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return formatCurrency(d?.LateArrivals ?? 0, "NIO") ?? "—";
     },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)
+        ?.LateArrivals ?? 0,
   },
   //   {
   //     key: "gross_salary",
@@ -207,13 +207,13 @@ export const payrollColumns: PayrollColumnDef[] = [
   //     render: (item) => formatCurrency(item.gross_salary ?? 0, "NIO") ?? "—",
   //     getValue: (item) => item.gross_salary ?? 0,
   //   },
-  {
-    key: "total_legal_deductions",
-    label: "Total de Deducciones Legales",
-    render: (item) =>
-      formatCurrency(item.total_legal_deductions ?? 0, "NIO") ?? "—",
-    getValue: (item) => item.total_legal_deductions ?? 0,
-  },
+  //   {
+  //     key: "total_legal_deductions",
+  //     label: "Total de Deducciones Legales",
+  //     render: (item) =>
+  //       formatCurrency(item.total_legal_deductions ?? 0, "NIO") ?? "—",
+  //     getValue: (item) => item.total_legal_deductions ?? 0,
+  //   },
 
   {
     key: "purisima",
@@ -254,29 +254,29 @@ export const payrollColumns: PayrollColumnDef[] = [
     render: (item) => formatCurrency(item.total_deducctions ?? 0, "NIO") ?? "—",
     getValue: (item) => item.total_deducctions ?? 0,
   },
-  {
-    key: "salary_advance",
-    label: "Adelanto de Salario",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.SalaryAdvance ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.SalaryAdvance ?? 0,
-  },
+  //   {
+  //     key: "salary_advance",
+  //     label: "Adelanto de Salario",
+  //     render: (item) => {
+  //       const d = parseAdditionalDeductions(item.deductions_additional_data);
+  //       return formatCurrency(d?.SalaryAdvance ?? 0, "NIO") ?? "—";
+  //     },
+  //     getValue: (item) =>
+  //       parseAdditionalDeductions(item.deductions_additional_data)
+  //         ?.SalaryAdvance ?? 0,
+  //   },
 
-  {
-    key: "christmas_bonus_advance",
-    label: "Adelanto de aguinaldo",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.ChristmasBonusAdvance ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.ChristmasBonusAdvance ?? 0,
-  },
+  //   {
+  //     key: "christmas_bonus_advance",
+  //     label: "Adelanto de aguinaldo",
+  //     render: (item) => {
+  //       const d = parseAdditionalDeductions(item.deductions_additional_data);
+  //       return formatCurrency(d?.ChristmasBonusAdvance ?? 0, "NIO") ?? "—";
+  //     },
+  //     getValue: (item) =>
+  //       parseAdditionalDeductions(item.deductions_additional_data)
+  //         ?.ChristmasBonusAdvance ?? 0,
+  //   },
   {
     key: "total_to_pay",
     label: "Pago total",

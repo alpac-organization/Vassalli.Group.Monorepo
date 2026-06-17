@@ -31,10 +31,8 @@ export const generatePermissionPayload = (
     payrollId,
   } = context;
 
-  // Minimo de horas para que se considere un dia completo
   const minHoursToFullDay = 5;
 
-  // Fecha calendario a YYYY-MM-DD
   const convertToIsoUtcZ = (date: dayjs.ConfigType) => {
     const ymd = dayjs(date).format("YYYY-MM-DD");
     return ymd;
@@ -63,18 +61,16 @@ export const generatePermissionPayload = (
     return false;
   };
 
-  // Estructura base
   const payload: CreatePermissionRequestBase = {
     company_id: companyId,
     module_code: moduleCode,
-    identification_number: identificationNumber.trim(),
     channel,
+    identification_number: identificationNumber.trim(),
     permit_application_type: PERMISSION_TYPE_TO_ENUM_VALUE[values.type],
     description: values.description.trim(),
     payroll_id: payrollId.trim(),
   };
 
-  // Asignación de datos específicos por tipo
   if (values.type === "Vacation") {
     payload.permit_application_vacation = {
       start_date: convertToIsoUtcZ(values.start_date),
@@ -98,11 +94,16 @@ export const generatePermissionPayload = (
         hoursDiff <= minHoursToFullDay,
     };
   } else if (values.type === "MedicalAppointment") {
+    const isMedicalFullDay = timeFormatType === "fullDay";
+
     payload.permit_application_medical_appointment = {
-      is_full_day: isFullDay(),
+      is_full_day: isMedicalFullDay,
       start_date: convertToIsoUtcZ(values.start_date),
-      start_time: formatTimeHoursOnly(values.start_time),
-      end_time: formatTimeHoursOnly(values.end_time),
+      start_time: isMedicalFullDay
+        ? null
+        : formatTimeHoursOnly(values.start_time),
+      end_time: isMedicalFullDay ? null : formatTimeHoursOnly(values.end_time),
+      images: values.medical_images ?? [],
     };
   } else if (values.type === "DonatedVacations") {
     payload.permit_application_donated_vacations = {
