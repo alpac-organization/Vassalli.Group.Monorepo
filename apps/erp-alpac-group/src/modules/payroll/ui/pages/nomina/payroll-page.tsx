@@ -781,7 +781,6 @@ export function PayrollPage() {
         );
         return;
       }
-
       const blob = await pdf(
         <PaymentReceiptDocument
           data={allItems}

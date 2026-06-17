@@ -118,6 +118,16 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 9,
   },
+  totalRow: {
+    backgroundColor: "#f3f4f6",
+    borderStyle: "solid",
+    borderColor: "#d1d5db",
+    borderLeftWidth: 1,
+  },
+  totalCell: {
+    fontWeight: "bold",
+    fontSize: 9,
+  },
   signaturesContainer: {
     flexDirection: "row",
     justifyContent: "center",

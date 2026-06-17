@@ -25,6 +25,14 @@ export function AccumulatedPdfDocument({
     startDate && endDate
       ? `Fecha de: ${startDate} al ${formatDateToSpanishWords(endDate.trim())}`
       : undefined;
+  const totalAccumulatedIr = data.reduce(
+    (acc, item) => acc + (item.accumulated_ir ?? 0),
+    0,
+  );
+  const totalSalaryEarned = data.reduce(
+    (acc, item) => acc + (item.salary_earned ?? 0),
+    0,
+  );
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -66,13 +74,9 @@ export function AccumulatedPdfDocument({
           </View>
         </View>
 
-        {data.map((item, index) => {
-          const isLast = index === data.length - 1;
-          const row = (
-            <View
-              style={[styles.tableRow, styles.bodyRow]}
-              key={`row-${item.collaborator_id}`}
-            >
+        {data.map((item) => (
+          <View wrap={false} key={`wrap-${item.collaborator_id}`}>
+            <View style={[styles.tableRow, styles.bodyRow]}>
               <View style={styles.cellCode}>
                 <Text style={styles.cellText} wrap>
                   {withSoftLineBreaks(item.collaborator_code || "—")}
@@ -94,43 +98,29 @@ export function AccumulatedPdfDocument({
                 </Text>
               </View>
             </View>
-          );
+          </View>
+        ))}
 
-          if (isLast && showSignatures) {
-            return (
-              <View wrap={false} key={`last-group-${item.collaborator_id}`}>
-                {row}
-                <View style={styles.signaturesContainer}>
-                  <View style={styles.signatureBlock}>
-                    <View style={styles.signatureStampArea}>
-                      {reviewedSignatureImageSrc ? (
-                        <Image
-                          src={reviewedSignatureImageSrc}
-                          style={styles.signatureImage}
-                        />
-                      ) : null}
-                    </View>
-                    <View style={styles.signatureLine} />
-                    <Text style={styles.signatureName}>
-                      Revisado por: {reviewedName}
-                    </Text>
-                    {reviewedRole ? (
-                      <Text style={styles.signatureRole}>{reviewedRole}</Text>
-                    ) : null}
-                  </View>
-                </View>
-              </View>
-            );
-          }
-
-          return (
-            <View wrap={false} key={`wrap-${item.collaborator_id}`}>
-              {row}
+        {data.length > 0 ? (
+          <View style={[styles.tableRow, styles.totalRow]} wrap={false}>
+            <View style={styles.cellCode} />
+            <View style={styles.cellName}>
+              <Text style={[styles.cellText, styles.totalCell]}>TOTAL</Text>
             </View>
-          );
-        })}
+            <View style={styles.cellAmount}>
+              <Text style={[styles.cellTextRight, styles.totalCell]} wrap>
+                {formatCurrency(totalAccumulatedIr)}
+              </Text>
+            </View>
+            <View style={styles.cellAmount}>
+              <Text style={[styles.cellTextRight, styles.totalCell]} wrap>
+                {formatCurrency(totalSalaryEarned)}
+              </Text>
+            </View>
+          </View>
+        ) : null}
 
-        {showSignatures && data.length === 0 ? (
+        {showSignatures ? (
           <View style={styles.signaturesContainer} wrap={false}>
             <View style={styles.signatureBlock}>
               <View style={styles.signatureStampArea}>
