@@ -6,6 +6,7 @@ import { formatCurrency } from "@app/shared/utils/currency.utils";
 import type { StandardPageProps } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/types/payment.receipts.types";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { Image } from "@react-pdf/renderer";
+import { parseAdditionalDeductions } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/parse-additional-deductions";
 export function StandardPage({
   item,
   startDate,
@@ -26,21 +27,28 @@ export function StandardPage({
     { label: "HOSPEDAJE", value: item.lodging ?? 0 },
     { label: "Bonos", value: item.bonus ?? 0 },
   ].filter((l) => l.value > 0);
-
+  const deductions = parseAdditionalDeductions(item.deductions_additional_data);
   const deductionLines: { label: string; value: number }[] = [
     { label: "IR", value: item.ir ?? 0 },
     { label: "INSS", value: item.inss ?? 0 },
-    { label: "Ausencias", value: item.Absences ?? 0 },
-    { label: "Préstamos", value: item.Loans ?? 0 },
-    { label: "Embargos judiciales", value: item.JudicialSeizures ?? 0 },
-    { label: "Llegadas tardes", value: item.LateArrivals ?? 0 },
-    { label: "Purísima", value: item.Purisima ?? 0 },
-    { label: "Deducción por uniforme", value: item.UniformDeduction ?? 0 },
-    { label: "Otras deducciones", value: item.OtherDeductions ?? 0 },
-    { label: "Adelanto de salario", value: item.SalaryAdvance ?? 0 },
-    { label: "Adelanto de aguinaldo", value: item.ChristmasBonusAdvance ?? 0 },
-  ].filter((l) => l.value > 0);
-
+    { label: "Ausencias", value: deductions?.Absences ?? 0 },
+    { label: "Préstamos", value: deductions?.Loans ?? 0 },
+    { label: "Embargos judiciales", value: deductions?.JudicialSeizures ?? 0 },
+    { label: "Llegadas tardes", value: deductions?.LateArrivals ?? 0 },
+    { label: "Purísima", value: deductions?.Purisima ?? 0 },
+    {
+      label: "Deducción por uniforme",
+      value: deductions?.UniformDeduction ?? 0,
+    },
+    { label: "Otras deducciones", value: deductions?.OtherDeductions ?? 0 },
+    { label: "Adelanto de salario", value: deductions?.SalaryAdvance ?? 0 },
+    {
+      label: "Adelanto de aguinaldo",
+      value: deductions?.ChristmasBonusAdvance ?? 0,
+    },
+  ].filter((l) => {
+    return l.value > 0;
+  });
   const monthlySalary = item.biweekly_salary * 2;
   const totalIngresos = item.total_income ?? item.gross_salary ?? 0;
   const totalEgresos = deductionLines.reduce(

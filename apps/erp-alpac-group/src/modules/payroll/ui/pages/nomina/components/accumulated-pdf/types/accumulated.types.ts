@@ -5,4 +5,7 @@ export type AccumulatedHistoryPdfProps = {
   data: GetPayrollReportsAccumulatedResponse[];
   reviewedBy?: PdfSignatory;
   reviewedSignatureImageSrc?: string;
+  startDate?: string;
+  endDate?: string;
+  branchName: string;
 };
