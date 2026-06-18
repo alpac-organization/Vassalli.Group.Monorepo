@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import { FormProvider, Controller, useForm } from "react-hook-form";
-import { Button, Dropdown } from "@alpac/design-system";
+import { Button, Dropdown, RadioButton } from "@alpac/design-system";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useIncomes } from "@app/modules/payroll/ui/hooks/incomes/useIncomes";
 import { IncomeTypeEnum } from "@app/modules/payroll/domain/enums/income-enums/income.enum";
@@ -25,6 +25,7 @@ import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContrac
 import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
+import { Overtime } from "../overtime/overtime";
 
 const inputClassName =
   "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -37,7 +38,13 @@ const subsidyTypeOption: IncomeTypeOption = {
   label: "Subsidio",
 };
 
-const subsidyFormTransition = {
+const formFieldsTransition = {
+  height: { duration: 0.28, ease: "easeInOut" as const },
+  opacity: { duration: 0.35, ease: "easeOut" as const, delay: 0.08 },
+  y: { duration: 0.28, ease: "easeOut" as const, delay: 0.08 },
+};
+
+const transition = {
   height: { duration: 0.3, ease: "easeInOut" as const },
   opacity: { duration: 0.45, ease: "easeOut" as const, delay: 0.1 },
   y: { duration: 0.3, ease: "easeOut" as const, delay: 0.1 },
@@ -56,8 +63,8 @@ export const CreateIncomeForm = ({
   const { companyId, moduleCode, identificationNumber, role } = useUserStore();
   const { getMappedError } = useMappedError();
   const [overtimeFileKey, setOvertimeFileKey] = useState(0);
-  const [foundCollaborator, setFoundCollaborator] =
-    useState<GetCollaboratorProfileDetailsResponse | null>(null);
+  const [foundCollaborator, setFoundCollaborator] = useState<GetCollaboratorProfileDetailsResponse | null>(null);
+  const [selectedInputMethod, setSelectedInputMethod] = useState<"manualEntry" | "excelImport">("manualEntry");
   const [isSearching, setIsSearching] = useState(false);
 
   const isAdministrator = role === RoleEnum.ADMINISTRATOR;
@@ -71,6 +78,10 @@ export const CreateIncomeForm = ({
       branch_id: branchId,
       type_income_id: "",
       overtime_income_data: undefined,
+      overtime_payload: {
+        identification_number: "",
+        amount_hours: 0,
+      },
       commissions_payload: {
         currency: 0,
         commission_amount: 0,
@@ -118,6 +129,7 @@ export const CreateIncomeForm = ({
 
   const incomeTypeId = methods.watch("type_income_id");
   const overtimeIncomePayload = methods.watch("overtime_income_data");
+  const overtimeManualPayload = methods.watch("overtime_payload");
   const commissionIncomePayload = methods.watch("commissions_payload");
   const bonusIncomePayload = methods.watch("bonus_payload");
 
@@ -129,7 +141,11 @@ export const CreateIncomeForm = ({
   const isCommissionType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION;
   const isBonusType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_BONUS;
   const isSubsidyType = selectedIncomeTypeCode === SUBSIDY_TYPE_CODE;
-  const needsCollaborator = isCommissionType || isBonusType || isSubsidyType;
+  const needsCollaborator =
+    isCommissionType ||
+    isBonusType ||
+    isSubsidyType ||
+    (isOvertimeType && selectedInputMethod === "manualEntry");
 
   useEffect(() => {
     methods.setValue("payroll_id", payrollId);
@@ -141,9 +157,27 @@ export const CreateIncomeForm = ({
 
   useEffect(() => {
     if (!isOvertimeType) {
+      setSelectedInputMethod("manualEntry");
       methods.setValue("overtime_income_data", undefined);
+      methods.setValue("overtime_payload", undefined);
     }
   }, [isOvertimeType, methods]);
+
+  useEffect(() => {
+    if (!isOvertimeType) return;
+
+    if (selectedInputMethod === "manualEntry") {
+      methods.setValue("overtime_income_data", undefined);
+      methods.setValue("overtime_payload", {
+        identification_number: "",
+        amount_hours: 0,
+      });
+      return;
+    }
+
+    methods.setValue("overtime_payload", undefined);
+    methods.setValue("overtime_income_data", undefined);
+  }, [isOvertimeType, selectedInputMethod, methods]);
 
   useEffect(() => {
     if (!isCommissionType) {
@@ -164,7 +198,13 @@ export const CreateIncomeForm = ({
         commission_amount: 0,
       });
     }
-  }, [isCommissionType, methods]);
+    if (isOvertimeType && selectedInputMethod === "manualEntry") {
+      methods.setValue("overtime_payload", {
+        identification_number: "",
+        amount_hours: 0,
+      });
+    }
+  }, [isCommissionType, isOvertimeType, selectedInputMethod, methods]);
 
   const handleOvertimeFileRemove = useCallback(() => {
     methods.setValue("overtime_income_data", undefined);
@@ -205,6 +245,61 @@ export const CreateIncomeForm = ({
     const { overtime_income_data, commissions_payload, bonus_payload, ...rest } = data;
 
     if (isOvertimeType) {
+      if (selectedInputMethod === "manualEntry") {
+        if (!foundCollaborator) {
+          onRequestError?.("Debe buscar un colaborador para agregar un ingreso");
+          return;
+        }
+
+        const amountHours = data.overtime_payload?.amount_hours;
+        const identificationNumberValue =
+          foundCollaborator.personal_information?.identification_number
+            ?.replace(/-/g, "")
+            .toUpperCase() ?? "";
+
+        const manualRows = [
+          {
+            identification_number: identificationNumberValue,
+            amount_hours: Number(amountHours) || 0,
+          },
+        ];
+
+        const validated = validateOvertimeIncomePayload(manualRows);
+        if (!validated.ok) {
+          onRequestError?.(validated.error);
+          return;
+        }
+
+        const {
+          description: _description,
+          identification_number: _id,
+          ...overtimeRest
+        } = rest;
+
+        await CreateIncome.mutateAsync(
+          {
+            company_id: overtimeRest.company_id,
+            module_code: overtimeRest.module_code,
+            branch_id: overtimeRest.branch_id,
+            payroll_id: overtimeRest.payroll_id,
+            type_income_id: overtimeRest.type_income_id,
+            overtime_income_data: validated.rows,
+          },
+          {
+            onSuccess: () => {
+              onRequestSuccess?.("Ingreso registrado correctamente");
+            },
+            onError: (error: ApiErrorResponse) => {
+              const mappedError = getMappedError(error);
+              onRequestError?.(
+                mappedError.description || "Error al registrar el ingreso",
+              );
+            },
+          },
+        );
+        return;
+      }
+
       const validated = validateOvertimeIncomePayload(overtime_income_data);
       if (!validated.ok) {
         onRequestError?.(validated.error);
@@ -315,8 +410,16 @@ export const CreateIncomeForm = ({
 
   };
 
-  const hasOvertimeData =
-    isOvertimeType && (overtimeIncomePayload?.length ?? 0) > 0;
+  const hasOvertimeExcelData =
+    isOvertimeType &&
+    selectedInputMethod === "excelImport" &&
+    (overtimeIncomePayload?.length ?? 0) > 0;
+
+  const hasValidOvertimeManual =
+    isOvertimeType &&
+    selectedInputMethod === "manualEntry" &&
+    !!foundCollaborator &&
+    (overtimeManualPayload?.amount_hours ?? 0) > 0;
 
   const hasValidCommission =
     (commissionIncomePayload?.commission_amount ?? 0) > 0 &&
@@ -332,7 +435,8 @@ export const CreateIncomeForm = ({
     !methods.formState.isValid ||
     !selectedIncomeTypeCode ||
     isSubsidyType ||
-    (isOvertimeType && !hasOvertimeData) ||
+    (isOvertimeType &&
+      !(hasOvertimeExcelData || hasValidOvertimeManual)) ||
     (isCommissionType && (!foundCollaborator || !hasValidCommission)) ||
     (isBonusType && (!foundCollaborator || !hasValidBonus));
 
@@ -371,8 +475,172 @@ export const CreateIncomeForm = ({
     </div>
   );
 
+  const overtimeInputMethodSection = (
+    <LazyMotion features={loadMotionFeatures} strict>
+      <AnimatePresence initial={false}>
+        {isOvertimeType && (
+          <m.div
+            key="overtime-input-method"
+            initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              height: "auto",
+              overflow: "visible",
+            }}
+            exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+            transition={formFieldsTransition}
+            className="flex flex-row gap-4"
+          >
+            <RadioButton
+              id="overtime-manual-entry"
+              value="manualEntry"
+              label="Introducir Manualmente"
+              labelPosition="right"
+              labelClassName={labelClassName}
+              checked={selectedInputMethod === "manualEntry"}
+              onChange={() => setSelectedInputMethod("manualEntry")}
+            />
+
+            <RadioButton
+              id="overtime-excel-import"
+              value="excelImport"
+              label="Importar desde Excel"
+              labelPosition="right"
+              labelClassName={labelClassName}
+              checked={selectedInputMethod === "excelImport"}
+              onChange={() => {
+                setSelectedInputMethod("excelImport");
+                setFoundCollaborator(null);
+              }}
+            />
+          </m.div>
+        )}
+      </AnimatePresence>
+    </LazyMotion>
+  );
+
+  const animatedCollaboratorSearchPanel = (
+    <LazyMotion features={loadMotionFeatures} strict>
+      <AnimatePresence initial={false}>
+        {!foundCollaborator && needsCollaborator && !isSubsidyType && (
+          <m.div
+            key={`collaborator-search-${incomeTypeId}`}
+            initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              height: "auto",
+              overflow: "visible",
+            }}
+            exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+            transition={formFieldsTransition}
+          >
+            <CollaboratorSearchForm
+              onSuccess={(collaborator) => {
+                setFoundCollaborator(collaborator);
+                setIsSearching(false);
+              }}
+              onError={() => {
+                setFoundCollaborator(null);
+                setIsSearching(false);
+              }}
+              onSearchStart={() => {
+                setFoundCollaborator(null);
+                setIsSearching(true);
+              }}
+              excludeIdentifications={[identificationNumber]}
+            />
+          </m.div>
+        )}
+      </AnimatePresence>
+    </LazyMotion>
+  );
+
+  const animatedTypeFieldsPanel = (
+    <LazyMotion features={loadMotionFeatures} strict>
+      <AnimatePresence initial={false}>
+        {!!foundCollaborator && isCommissionType && (
+          <m.div
+            key="commission-fields"
+            initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              height: "auto",
+              overflow: "visible",
+            }}
+            exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+            transition={formFieldsTransition}
+          >
+            <Commission />
+          </m.div>
+        )}
+
+        {!!foundCollaborator && isBonusType && (
+          <m.div
+            key="bonus-fields"
+            initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              height: "auto",
+              overflow: "visible",
+            }}
+            exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+            transition={formFieldsTransition}
+          >
+            <Bonus />
+          </m.div>
+        )}
+
+        {!!foundCollaborator &&
+          isOvertimeType &&
+          selectedInputMethod === "manualEntry" && (
+            <m.div
+              key="overtime-fields"
+              initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                height: "auto",
+                overflow: "visible",
+              }}
+              exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+              transition={formFieldsTransition}
+            >
+              <Overtime />
+            </m.div>
+          )}
+
+        {isOvertimeType && selectedInputMethod === "excelImport" && (
+          <m.div
+            key="overtime-excel"
+            initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              height: "auto",
+              overflow: "visible",
+            }}
+            exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+            transition={formFieldsTransition}
+          >
+            <FileUploader
+              key={overtimeFileKey}
+              title="Cargar archivo de horas extras"
+              extensions={["xls", "xlsx"]}
+              onFileSelect={handleOvertimeFileSelect}
+              onFileRemove={handleOvertimeFileRemove}
+            />
+          </m.div>
+        )}
+      </AnimatePresence>
+    </LazyMotion>
+  );
+
   const collaboratorSearchSection =
-    !foundCollaborator && needsCollaborator ? (
+    isSubsidyType && !foundCollaborator && needsCollaborator ? (
       <CollaboratorSearchForm
         onSuccess={(collaborator) => {
           setFoundCollaborator(collaborator);
@@ -445,7 +713,7 @@ export const CreateIncomeForm = ({
                       overflow: "visible",
                     }}
                     exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
-                    transition={subsidyFormTransition}
+                    transition={transition}
                     className="flex flex-col gap-4 sm:gap-5"
                   >
                     <AddSubsidyForm
@@ -489,44 +757,10 @@ export const CreateIncomeForm = ({
       >
         <div className="flex flex-col gap-4">
           {incomeTypeDropdown}
-          {collaboratorSearchSection}
+          {overtimeInputMethodSection}
+          {animatedCollaboratorSearchPanel}
           {collaboratorSummarySection}
-
-          <LazyMotion features={loadMotionFeatures} strict>
-            <AnimatePresence initial={false}>
-              {!!foundCollaborator && (isCommissionType || isBonusType) && (
-                <m.div
-                  key="commission-fields"
-                  initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                    height: "auto",
-                    overflow: "visible",
-                  }}
-                  exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
-                  transition={{
-                    height: { duration: 0.28, ease: "easeInOut" },
-                    opacity: { duration: 0.35, ease: "easeOut", delay: 0.08 },
-                    y: { duration: 0.28, ease: "easeOut", delay: 0.08 },
-                  }}
-                >
-                  {isCommissionType && <Commission />}
-                  {isBonusType && <Bonus />}
-                </m.div>
-              )}
-            </AnimatePresence>
-          </LazyMotion>
-
-          {isOvertimeType && (
-            <FileUploader
-              key={overtimeFileKey}
-              title="Cargar archivo de horas extras"
-              extensions={["xls", "xlsx"]}
-              onFileSelect={handleOvertimeFileSelect}
-              onFileRemove={handleOvertimeFileRemove}
-            />
-          )}
+          {animatedTypeFieldsPanel}
         </div>
 
         <div className="-mx-6 border-t border-t-slate-300 dark:border-t-neutral-600" />

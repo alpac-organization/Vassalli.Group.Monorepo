@@ -10,7 +10,6 @@ import {
 
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { m, LazyMotion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -203,27 +202,6 @@ export const ActiveDeductionsPage = () => {
               className="h-12 sm:h-16 md:h-20 w-auto object-contain"
               src={activeLogo}
               alt="logo alpac"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
-          <div className="flex flex-col justify-center">
-            <h3 className="p-0! m-0!">Accesos Directos</h3>
-            <small className="text-gray-500 dark:text-gray-300">
-              Filtra por identificación o tipo de deducción
-            </small>
-          </div>
-        </div>
-
-        <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-          <div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
-            <Button
-              size="giant"
-              label="Acción 1"
-              icon={<ArrowRight size={20} />}
-              className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-              onClick={() => console.log("testing")}
             />
           </div>
         </div>

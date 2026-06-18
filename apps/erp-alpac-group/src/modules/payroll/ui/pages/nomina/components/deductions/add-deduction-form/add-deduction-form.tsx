@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { X } from "lucide-react";
 import { Button, Dropdown, RadioButton } from "@alpac/design-system";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -46,6 +47,15 @@ import type {
 const inputClassName =
    "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
+
+const deductionFormTransition = {
+   height: { duration: 0.28, ease: "easeInOut" as const },
+   opacity: { duration: 0.35, ease: "easeOut" as const, delay: 0.08 },
+   y: { duration: 0.28, ease: "easeOut" as const, delay: 0.08 },
+};
+
+const loadMotionFeatures = () =>
+   import("framer-motion").then((res) => res.domAnimation);
 
 const isLateArrivalType = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionCodeEnum.LATE_ARRIVAL.value;
 const isPurisimaType = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionCodeEnum.PURISIMA.value;
@@ -486,41 +496,49 @@ export const AddDeductionForm = ({
                />
             </div>
 
-            {
-               (
-                  deductionType === DeductionCodeEnum.LATE_ARRIVAL.value ||
-                  deductionType === DeductionCodeEnum.PURISIMA.value) &&
-               (
-                  <div
-                     key="selected-input-method"
-                     className="flex flex-row gap-4">
-
-                     <RadioButton
-                        id="full-day"
-                        value="manualEntry"
-                        label="Introducir Manualmente"
-                        labelPosition="right"
-                        labelClassName={labelClassName}
-                        checked={selectedInputMethod === "manualEntry"}
-                        onChange={() => setSelectedInputMethod("manualEntry")}
-                     />
-
-                     <RadioButton
-                        id="half-day"
-                        value="excelImport"
-                        label="Importar desde Excel"
-                        labelPosition="right"
-                        labelClassName={labelClassName}
-                        checked={selectedInputMethod === "excelImport"}
-                        onChange={() => {
-                           setSelectedInputMethod("excelImport");
-                           setFoundCollaborator(null);
+            <LazyMotion features={loadMotionFeatures} strict>
+               <AnimatePresence initial={false}>
+                  {(deductionType === DeductionCodeEnum.LATE_ARRIVAL.value ||
+                     deductionType === DeductionCodeEnum.PURISIMA.value) && (
+                     <m.div
+                        key="selected-input-method"
+                        initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+                        animate={{
+                           opacity: 1,
+                           y: 0,
+                           height: "auto",
+                           overflow: "visible",
                         }}
-                     />
+                        exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+                        transition={deductionFormTransition}
+                        className="flex flex-row gap-4"
+                     >
+                        <RadioButton
+                           id="full-day"
+                           value="manualEntry"
+                           label="Introducir Manualmente"
+                           labelPosition="right"
+                           labelClassName={labelClassName}
+                           checked={selectedInputMethod === "manualEntry"}
+                           onChange={() => setSelectedInputMethod("manualEntry")}
+                        />
 
-                  </div>
-               )
-            }
+                        <RadioButton
+                           id="half-day"
+                           value="excelImport"
+                           label="Importar desde Excel"
+                           labelPosition="right"
+                           labelClassName={labelClassName}
+                           checked={selectedInputMethod === "excelImport"}
+                           onChange={() => {
+                              setSelectedInputMethod("excelImport");
+                              setFoundCollaborator(null);
+                           }}
+                        />
+                     </m.div>
+                  )}
+               </AnimatePresence>
+            </LazyMotion>
 
             {
                (
@@ -583,54 +601,184 @@ export const AddDeductionForm = ({
                )
             }
 
-            {isLoanRepayment(deductionType) && !!foundCollaborator && <LoanRepayment />}
+            <LazyMotion features={loadMotionFeatures} strict>
+               <AnimatePresence initial={false}>
+                  {isLoanRepayment(deductionType) && !!foundCollaborator && (
+                     <m.div
+                        key="loan-repayment"
+                        initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+                        animate={{
+                           opacity: 1,
+                           y: 0,
+                           height: "auto",
+                           overflow: "visible",
+                        }}
+                        exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+                        transition={deductionFormTransition}
+                     >
+                        <LoanRepayment />
+                     </m.div>
+                  )}
 
-            {(isLateArrivalType(deductionType) && !!foundCollaborator && selectedInputMethod === 'manualEntry') && (<LateArrival />)}
+                  {isLateArrivalType(deductionType) &&
+                     !!foundCollaborator &&
+                     selectedInputMethod === "manualEntry" && (
+                        <m.div
+                           key="late-arrival"
+                           initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+                           animate={{
+                              opacity: 1,
+                              y: 0,
+                              height: "auto",
+                              overflow: "visible",
+                           }}
+                           exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+                           transition={deductionFormTransition}
+                        >
+                           <LateArrival />
+                        </m.div>
+                     )}
 
-            {
-               (isLateArrivalType(deductionType) && selectedInputMethod === 'excelImport') && (
-                  <FileUploader
-                     key={lateArrivalsFileKey}
-                     title="Cargar archivo de llegadas tardes"
-                     description="Formato .xls o .xlsx (columna A: ID empleado, columna C: minutos)"
-                     extensions={["xls", "xlsx"]}
-                     readySubmitLabel="Agregar Deducción"
-                     onFileSelect={handleLateArrivalsFileSelect}
-                     onFileRemove={handleLateArrivalsFileRemove}
-                  />
-               )
-            }
+                  {isLateArrivalType(deductionType) &&
+                     selectedInputMethod === "excelImport" && (
+                        <m.div
+                           key="late-arrival-excel"
+                           initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+                           animate={{
+                              opacity: 1,
+                              y: 0,
+                              height: "auto",
+                              overflow: "visible",
+                           }}
+                           exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+                           transition={deductionFormTransition}
+                        >
+                           <FileUploader
+                              key={lateArrivalsFileKey}
+                              title="Cargar archivo de llegadas tardes"
+                              description="Formato .xls o .xlsx (columna A: ID empleado, columna C: minutos)"
+                              extensions={["xls", "xlsx"]}
+                              readySubmitLabel="Agregar Deducción"
+                              onFileSelect={handleLateArrivalsFileSelect}
+                              onFileRemove={handleLateArrivalsFileRemove}
+                           />
+                        </m.div>
+                     )}
 
-            {(isPurisimaType(deductionType) && !!foundCollaborator && selectedInputMethod === 'manualEntry') && (<PurisimaContribution />)}
+                  {isPurisimaType(deductionType) &&
+                     !!foundCollaborator &&
+                     selectedInputMethod === "manualEntry" && (
+                        <m.div
+                           key="purisima-contribution"
+                           initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+                           animate={{
+                              opacity: 1,
+                              y: 0,
+                              height: "auto",
+                              overflow: "visible",
+                           }}
+                           exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+                           transition={deductionFormTransition}
+                        >
+                           <PurisimaContribution />
+                        </m.div>
+                     )}
 
-            {
-               (isPurisimaType(deductionType) && selectedInputMethod === 'excelImport') && (
-                  <FileUploader
-                     key={purisimaFileKey}
-                     title="Cargar archivo de pur?sima"
-                     description="Formato .xls o .xlsx (columna A: ID empleado, columna C: monto)"
-                     extensions={["xls", "xlsx"]}
-                     readySubmitLabel="Agregar Deducción"
-                     onFileSelect={handlePurisimaFileSelect}
-                     onFileRemove={handlePurisimaFileRemove}
-                  />
-               )
-            }
+                  {isPurisimaType(deductionType) &&
+                     selectedInputMethod === "excelImport" && (
+                        <m.div
+                           key="purisima-excel"
+                           initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+                           animate={{
+                              opacity: 1,
+                              y: 0,
+                              height: "auto",
+                              overflow: "visible",
+                           }}
+                           exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+                           transition={deductionFormTransition}
+                        >
+                           <FileUploader
+                              key={purisimaFileKey}
+                              title="Cargar archivo de pur?sima"
+                              description="Formato .xls o .xlsx (columna A: ID empleado, columna C: monto)"
+                              extensions={["xls", "xlsx"]}
+                              readySubmitLabel="Agregar Deducción"
+                              onFileSelect={handlePurisimaFileSelect}
+                              onFileRemove={handlePurisimaFileRemove}
+                           />
+                        </m.div>
+                     )}
 
-            {deductionType === DeductionCodeEnum.SANCTION.value && <Sanctions />}
+                  {deductionType === DeductionCodeEnum.SANCTION.value && (
+                     <m.div
+                        key="sanctions"
+                        initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+                        animate={{
+                           opacity: 1,
+                           y: 0,
+                           height: "auto",
+                           overflow: "visible",
+                        }}
+                        exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+                        transition={deductionFormTransition}
+                     >
+                        <Sanctions />
+                     </m.div>
+                  )}
 
-            {deductionType ===
-               DeductionCodeEnum.CHILD_SUPPORT_GARNISHMENT.value && (
-                  <ChildSupportGarnishment />
-               )}
+                  {deductionType === DeductionCodeEnum.CHILD_SUPPORT_GARNISHMENT.value && (
+                     <m.div
+                        key="child-support-garnishment"
+                        initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+                        animate={{
+                           opacity: 1,
+                           y: 0,
+                           height: "auto",
+                           overflow: "visible",
+                        }}
+                        exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+                        transition={deductionFormTransition}
+                     >
+                        <ChildSupportGarnishment />
+                     </m.div>
+                  )}
 
-            {deductionType === DeductionCodeEnum.JUDICIAL_GARNISHMENT.value && (
-               <JudicialGarnishment />
-            )}
+                  {deductionType === DeductionCodeEnum.JUDICIAL_GARNISHMENT.value && (
+                     <m.div
+                        key="judicial-garnishment"
+                        initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+                        animate={{
+                           opacity: 1,
+                           y: 0,
+                           height: "auto",
+                           overflow: "visible",
+                        }}
+                        exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+                        transition={deductionFormTransition}
+                     >
+                        <JudicialGarnishment />
+                     </m.div>
+                  )}
 
-            {deductionType === DeductionCodeEnum.OTHER_DEDUCTION.value && (
-               <OtherDeduction />
-            )}
+                  {deductionType === DeductionCodeEnum.OTHER_DEDUCTION.value && (
+                     <m.div
+                        key="other-deduction"
+                        initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+                        animate={{
+                           opacity: 1,
+                           y: 0,
+                           height: "auto",
+                           overflow: "visible",
+                        }}
+                        exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+                        transition={deductionFormTransition}
+                     >
+                        <OtherDeduction />
+                     </m.div>
+                  )}
+               </AnimatePresence>
+            </LazyMotion>
 
             <div className="-mx-6 border-t border-t-slate-300 dark:border-t-neutral-600" />
 
