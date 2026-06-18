@@ -1532,7 +1532,6 @@ export function PayrollPage() {
             codigo: collaborator.collaborator_code,
             nombre: collaborator.full_name,
             cargo: collaborator.job_position || "",
-            inicia: collaborator.entry_date,
             monto: details.total_amount || 0,
             monedaOriginal: currencyStr,
             noCuotasQuincenal: details.number_fortnights || 0,
