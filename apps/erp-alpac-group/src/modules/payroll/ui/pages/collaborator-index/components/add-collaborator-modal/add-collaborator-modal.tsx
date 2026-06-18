@@ -54,10 +54,12 @@ import type { AddCollaboratorModalProps } from "@app/modules/payroll/ui/pages/co
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
-export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.ReactNode => {
-
+export const AddCollaboratorModal = (
+  props: AddCollaboratorModalProps,
+): React.ReactNode => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedSalaryType, setSelectedSalaryType] = useState<SalaryTypeEnum | null>(null);
+  const [selectedSalaryType, setSelectedSalaryType] =
+    useState<SalaryTypeEnum | null>(null);
   const [showAddAllowanceModal, setShowAddAllowanceModal] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     show: boolean;
@@ -154,12 +156,11 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
         },
       };
 
-      console.log(payload)
-      // await PostCollaboratorQuery.mutateAsync(payload);
+      await PostCollaboratorQuery.mutateAsync(payload);
 
       props.onRequestSuccess?.("Colaborador creado exitosamente");
 
-      // handleCloseModal();
+      handleCloseModal();
     } catch (error) {
       const mappedError = getMappedError(error as ApiErrorResponse);
       setShowAlert({
@@ -432,9 +433,9 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
 
                     return trimmed
                       ? identificationType ===
-                        IdentificationEnum.NATIONAL_ID.value ||
+                          IdentificationEnum.NATIONAL_ID.value ||
                         identificationType ===
-                        IdentificationEnum.RESIDENCE_ID.value
+                          IdentificationEnum.RESIDENCE_ID.value
                         ? trimmed.replace(/-/g, "").toUpperCase()
                         : trimmed.toUpperCase()
                       : "";
@@ -449,7 +450,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                 onChange={(evt) => {
                   if (
                     identificationType ===
-                    IdentificationEnum.NATIONAL_ID.value ||
+                      IdentificationEnum.NATIONAL_ID.value ||
                     identificationType === IdentificationEnum.RESIDENCE_ID.value
                   ) {
                     evt.target.value = formatIdentificationNumber(
@@ -807,7 +808,6 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                   />
                 )}
               />
-
             </div>
           </section>
 
