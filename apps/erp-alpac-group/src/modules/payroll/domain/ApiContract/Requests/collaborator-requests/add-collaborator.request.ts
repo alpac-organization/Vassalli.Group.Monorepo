@@ -36,6 +36,7 @@ interface AddWorkingInformationRequest {
   daem?: string;
   inss_number?: string;
   entry_date: string;
+  does_work_saturdays: boolean;
 }
 
 interface AddSalaryInformationRequest {

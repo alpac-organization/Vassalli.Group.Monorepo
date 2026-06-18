@@ -2,6 +2,7 @@ import {
   Alert,
   AnimatedAlertWrapper,
   Button,
+  Checkbox,
   DatePicker,
   Dropdown,
   InputText,
@@ -53,12 +54,10 @@ import type { AddCollaboratorModalProps } from "@app/modules/payroll/ui/pages/co
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
-export const AddCollaboratorModal = (
-  props: AddCollaboratorModalProps,
-): React.ReactNode => {
+export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.ReactNode => {
+
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedSalaryType, setSelectedSalaryType] =
-    useState<SalaryTypeEnum | null>(null);
+  const [selectedSalaryType, setSelectedSalaryType] = useState<SalaryTypeEnum | null>(null);
   const [showAddAllowanceModal, setShowAddAllowanceModal] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     show: boolean;
@@ -155,11 +154,12 @@ export const AddCollaboratorModal = (
         },
       };
 
-      await PostCollaboratorQuery.mutateAsync(payload);
+      console.log(payload)
+      // await PostCollaboratorQuery.mutateAsync(payload);
 
       props.onRequestSuccess?.("Colaborador creado exitosamente");
 
-      handleCloseModal();
+      // handleCloseModal();
     } catch (error) {
       const mappedError = getMappedError(error as ApiErrorResponse);
       setShowAlert({
@@ -432,9 +432,9 @@ export const AddCollaboratorModal = (
 
                     return trimmed
                       ? identificationType ===
-                          IdentificationEnum.NATIONAL_ID.value ||
+                        IdentificationEnum.NATIONAL_ID.value ||
                         identificationType ===
-                          IdentificationEnum.RESIDENCE_ID.value
+                        IdentificationEnum.RESIDENCE_ID.value
                         ? trimmed.replace(/-/g, "").toUpperCase()
                         : trimmed.toUpperCase()
                       : "";
@@ -449,7 +449,7 @@ export const AddCollaboratorModal = (
                 onChange={(evt) => {
                   if (
                     identificationType ===
-                      IdentificationEnum.NATIONAL_ID.value ||
+                    IdentificationEnum.NATIONAL_ID.value ||
                     identificationType === IdentificationEnum.RESIDENCE_ID.value
                   ) {
                     evt.target.value = formatIdentificationNumber(
@@ -790,6 +790,24 @@ export const AddCollaboratorModal = (
                   />
                 )}
               />
+
+              <Controller
+                name="working_information.does_work_saturdays"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    label="¿Jornada en sábado?"
+                    value="testing"
+                    labelClassName="dark:text-white!"
+                    checked={Boolean(field.value)}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                  />
+                )}
+              />
+
             </div>
           </section>
 
