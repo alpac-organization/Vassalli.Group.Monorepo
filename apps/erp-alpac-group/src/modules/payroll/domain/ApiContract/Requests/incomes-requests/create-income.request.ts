@@ -1,22 +1,5 @@
 /**
  * Este payload es para crear ingresos en la nomina
- * @example
- * ```json
- * {
- *  "payroll_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
- *  "branch_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
- *  "type_income_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
- *  "description": "string",
- *  "commissions_payload": {
- *    "currency": 1,
- *    "commission_amount": 1500.5,
- *    "identification_number": "001-123456-0001A"
- *  },
- *  "overtime_income_data": [
- *    { "identification_number": "501", "amount_hours": 78.25 }
- *  ]
- * }
- * ```
  */
 export interface CreateIncomeRequest {
   /**
@@ -58,6 +41,11 @@ export interface CreateIncomeRequest {
    * Payload de horas extra
    */
   overtime_income_data?: CreateIncomeOvertimeRequest[];
+
+  /**
+   * Payload de horas extras
+   */
+  overtime_payload?: CreateIncomeOvertimeRequest;
 
   /**
    * Payload de comisiones
