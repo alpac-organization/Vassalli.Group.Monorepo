@@ -26,7 +26,6 @@ export interface EmployeeReceivableItem {
 interface EmployeeReceivablesPdfDocumentProps {
   data: EmployeeReceivableItem[];
   companyName: string;
-  exchangeRate?: number;
   preparedBy?: {
     name: string;
     role?: string;
@@ -40,7 +39,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
 > = ({
   data,
   companyName,
-  exchangeRate,
   preparedBy,
   preparedSignatureImageSrc,
   logoUrl,
@@ -87,16 +85,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
           <View style={styles.headerTextBlock}>
             <Text style={styles.title}>{companyName}</Text>
             <Text style={styles.title}>Saldos por Cobrar a Empleados</Text>
-            {exchangeRate && (
-              <Text
-                style={[
-                  styles.periodText,
-                  { textAlign: "left", marginTop: 10 },
-                ]}
-              >
-                Tipo de Cambio: {exchangeRate.toFixed(4)}
-              </Text>
-            )}
           </View>
         </View>
 

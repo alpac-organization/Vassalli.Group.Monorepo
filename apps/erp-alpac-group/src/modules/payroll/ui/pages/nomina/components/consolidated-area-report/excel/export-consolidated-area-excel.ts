@@ -1,14 +1,13 @@
 import {
   CONSOLIDATED_AREA_COLUMNS,
-  formatConsolidatedCellValue,
   getConsolidatedColumnCount,
+  type ConsolidatedColumnDef,
 } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/constants/consolidated-area-columns";
 import type {
   ConsolidatedAreaRow,
   ExportConsolidatedAreaExcelParams,
 } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/types/consolidated-area-report.types";
 import { buildConsolidatedAreaRows } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/utils/build-consolidated-area-rows";
-import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 import {
   C,
   LOGO_MAX_HEIGHT,
@@ -23,7 +22,35 @@ import type { Worksheet } from "exceljs";
 
 const HEADER_ROW_1 = 3;
 const HEADER_ROW_2 = 4;
-const DATA_START_ROW = 5;
+
+function getConsolidatedRawValue(
+  row: ConsolidatedAreaRow,
+  column: ConsolidatedColumnDef,
+): string | number {
+  if (column.key === "areaName") return row.areaName;
+
+  const value = row[column.key];
+  if (column.kind === "text") {
+    return typeof value === "string" ? value : String(value ?? "—");
+  }
+
+  return typeof value === "number" ? value : Number(value ?? 0);
+}
+
+function buildRowValues(row: ConsolidatedAreaRow): (string | number)[] {
+  return CONSOLIDATED_AREA_COLUMNS.map((column) =>
+    getConsolidatedRawValue(row, column),
+  );
+}
+
+function applyConsolidatedCellFormat(
+  cell: { numFmt?: string },
+  column: ConsolidatedColumnDef,
+) {
+  if (column.kind === "currency" || column.kind === "quantity") {
+    cell.numFmt = "#,##0.00";
+  }
+}
 
 function applyHeaderCellStyle(cell: {
   fill?: unknown;
@@ -69,14 +96,6 @@ function applyTotalRowStyle(cell: {
   cell.font = { bold: true, size: 8, color: { argb: C.globalText } };
   cell.alignment = { vertical: "middle", horizontal: "right" };
   cell.border = THIN_BORDER;
-}
-
-function buildRowValues(row: ConsolidatedAreaRow): (string | number)[] {
-  return CONSOLIDATED_AREA_COLUMNS.map((column) => {
-    const value = formatConsolidatedCellValue(row, column);
-    if (column.key === "areaName") return row.areaName;
-    return value;
-  });
 }
 
 function writeTwoRowHeaders(ws: Worksheet) {
@@ -162,50 +181,10 @@ function writeTwoRowHeaders(ws: Worksheet) {
   }
 }
 
-function writeSignatureRows(
-  ws: Worksheet,
-  startRow: number,
-  companyName?: string | null,
-) {
-  const signatures = getSignatures(companyName ?? "");
-  const colCount = getConsolidatedColumnCount();
-  const leftSpan = Math.floor(colCount / 2);
-  const rightStart = leftSpan + 1;
-
-  const preparedRow = ws.getRow(startRow + 2);
-  preparedRow.getCell(1).value = `Elaborado por: ${signatures.solicitado.name}`;
-  ws.mergeCells(startRow + 2, 1, startRow + 2, leftSpan);
-  preparedRow.getCell(1).font = { size: 9, bold: true };
-  preparedRow.getCell(1).alignment = { horizontal: "center" };
-
-  if (signatures.solicitado.role) {
-    const roleRow = ws.getRow(startRow + 3);
-    roleRow.getCell(1).value = signatures.solicitado.role;
-    ws.mergeCells(startRow + 3, 1, startRow + 3, leftSpan);
-    roleRow.getCell(1).font = { size: 8 };
-    roleRow.getCell(1).alignment = { horizontal: "center" };
-  }
-
-  const reviewedRow = ws.getRow(startRow + 2);
-  reviewedRow.getCell(rightStart).value =
-    `Revisado por: ${signatures.revisado.name}`;
-  ws.mergeCells(startRow + 2, rightStart, startRow + 2, colCount);
-  reviewedRow.getCell(rightStart).font = { size: 9, bold: true };
-  reviewedRow.getCell(rightStart).alignment = { horizontal: "center" };
-
-  if (signatures.revisado.role) {
-    const roleRow = ws.getRow(startRow + 3);
-    roleRow.getCell(rightStart).value = signatures.revisado.role;
-    ws.mergeCells(startRow + 3, rightStart, startRow + 3, colCount);
-    roleRow.getCell(rightStart).font = { size: 8 };
-    roleRow.getCell(rightStart).alignment = { horizontal: "center" };
-  }
-}
-
 export async function exportConsolidatedAreaExcel({
   data,
   branchName,
-  companyName,
+  companyName: _companyName,
   startDate,
   endDate,
   logoUrl,
@@ -262,7 +241,9 @@ export async function exportConsolidatedAreaExcel({
     row.height = 14;
     for (let c = 1; c <= colCount; c += 1) {
       const cell = row.getCell(c);
+      const column = CONSOLIDATED_AREA_COLUMNS[c - 1];
       applyDataCellStyle(cell);
+      applyConsolidatedCellFormat(cell, column);
       if (c === 1) {
         cell.alignment = { vertical: "middle", horizontal: "left" };
         cell.font = { size: 8, bold: true };
@@ -275,15 +256,14 @@ export async function exportConsolidatedAreaExcel({
     row.height = 16;
     for (let c = 1; c <= colCount; c += 1) {
       const cell = row.getCell(c);
+      const column = CONSOLIDATED_AREA_COLUMNS[c - 1];
       applyTotalRowStyle(cell);
+      applyConsolidatedCellFormat(cell, column);
       if (c === 1) {
         cell.alignment = { vertical: "middle", horizontal: "left" };
       }
     }
   }
-
-  const signatureStartRow = DATA_START_ROW + rows.length + 2;
-  writeSignatureRows(ws, signatureStartRow, companyName);
 
   if (logoUrl) {
     try {

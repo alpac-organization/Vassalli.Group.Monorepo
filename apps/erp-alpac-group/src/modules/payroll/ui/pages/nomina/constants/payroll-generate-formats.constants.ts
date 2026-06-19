@@ -7,6 +7,7 @@ export const PAYROLL_ACTIONS_WITH_EXCEL: readonly PayrollActionValue[] = [
   "income_report",
   "deduction_report",
   "consolidated_area_report",
+  "employee_receivables_report",
   "monthly_accumulated_report",
   "monthly_ir_report",
   "monthly_inss_report",

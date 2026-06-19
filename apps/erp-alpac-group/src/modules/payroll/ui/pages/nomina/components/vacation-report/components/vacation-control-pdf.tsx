@@ -27,6 +27,9 @@ function CollaboratorPage({
   companyName: string;
   urlImage?: string;
 }) {
+  const vacations = page.permissions.filter(
+    (permission) => permission.type === "Vacation",
+  );
   return (
     <Page size="A4" style={styles.page}>
       <View
@@ -134,14 +137,14 @@ function CollaboratorPage({
           Estado
         </Text>
       </View>
-      {page.permissions.length === 0 ? (
+      {vacations.length === 0 ? (
         <View style={[styles.tableRow, styles.bodyRow]} wrap={false}>
           <Text style={[styles.cellName, { width: "100%" }]}>
-            Sin permisos registrados
+            Sin permisos de vacaciones registrados
           </Text>
         </View>
       ) : (
-        page.permissions.map((permission) => (
+        vacations.map((permission) => (
           <View
             style={[styles.tableRow, styles.bodyRow]}
             key={permission.permit_apllication_id}
