@@ -48,13 +48,6 @@ const permissionManagementSection: SidebarLink = {
   icon: UserKey,
 };
 
-const controlVacationsSection: SidebarLink = {
-  id: "control-vacaciones",
-  label: "Control de Vacaciones",
-  path: "payroll/control-vacations",
-  icon: CalendarCheck,
-};
-
 const gestionPayrollSection: SidebarLink = {
   id: "gestion-payroll",
   label: "Gestión de Nómina",

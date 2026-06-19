@@ -55,5 +55,5 @@ export const PayrollRoutes: RouteObject[] = [
   {
     path: "control-asistencia",
     element: <AttendanceControlPage />,
-  },,
+  },
 ];
