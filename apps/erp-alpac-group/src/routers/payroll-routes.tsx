@@ -1,4 +1,3 @@
-import ControlVacationsPage from "@app/modules/payroll/ui/pages/control-vacations/control-vacations";
 import { CollaboratorPage } from "@app/modules/payroll/ui/pages/collaborator-index/collaborator.page";
 import { CollaboratorProfilePage } from "@app/modules/payroll/ui/pages/collaborator-profile/collaborator-profile-page";
 import { PayrollPage } from "@app/modules/payroll/ui/pages/nomina/payroll-page";
@@ -24,10 +23,10 @@ export const PayrollRoutes: RouteObject[] = [
       },
     ],
   },
-  {
-    path: "control-vacations",
-    element: <ControlVacationsPage />,
-  },
+  //   {
+  //     path: "control-vacations",
+  //     element: <ControlVacationsPage />,
+  //   },
   {
     path: "gestion-nomina",
     element: <PayrollPage />,
@@ -51,10 +50,10 @@ export const PayrollRoutes: RouteObject[] = [
   },
   {
     path: "active-deductions",
-    element: <ActiveDeductionsPage/>
+    element: <ActiveDeductionsPage />,
   },
   {
     path: "control-asistencia",
     element: <AttendanceControlPage />,
-  },
+  },,
 ];

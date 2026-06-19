@@ -22,7 +22,7 @@ export function PermissionTable({
     {
       key: "full_name",
       label: "Nombre completo",
-      render: (row: PermissionResponse) => row.full_name ?? "—",
+      render: (row: PermissionResponse) => row.requested_by ?? "—",
     },
     {
       key: "type",

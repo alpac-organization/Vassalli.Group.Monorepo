@@ -16,9 +16,18 @@ import {
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 
-function DataRow({ row, isTotal = false }: { row: ConsolidatedAreaRow; isTotal?: boolean }) {
+function DataRow({
+  row,
+  isTotal = false,
+}: {
+  row: ConsolidatedAreaRow;
+  isTotal?: boolean;
+}) {
   return (
-    <View style={isTotal ? styles.globalTotalsRow : styles.tableRow} wrap={false}>
+    <View
+      style={isTotal ? styles.globalTotalsRow : styles.tableRow}
+      wrap={false}
+    >
       {CONSOLIDATED_AREA_COLUMNS.map((column) => {
         const value =
           column.key === "areaName"
@@ -54,17 +63,17 @@ export function ConsolidatedAreaPdfDocument({
   startDate,
   endDate,
   preparedBy,
-  reviewedBy,
+  //   reviewedBy,
   preparedSignatureImageSrc,
-  reviewedSignatureImageSrc,
+  //   reviewedSignatureImageSrc,
 }: ConsolidatedAreaPdfProps) {
   const { urlImage } = useCompanyStore();
   const signatures = getSignatures(companyName ?? "");
   const { rows, grandTotal } = buildConsolidatedAreaRows(data);
 
   const preparedName = preparedBy?.name ?? signatures.solicitado.name;
-  const reviewedName = reviewedBy?.name ?? signatures.revisado.name;
-  const reviewedRole = reviewedBy?.role ?? signatures.revisado.role;
+  //   const reviewedName = reviewedBy?.name ?? signatures.revisado.name;
+  //   const reviewedRole = reviewedBy?.role ?? signatures.revisado.role;
 
   return (
     <Document>
@@ -119,7 +128,7 @@ export function ConsolidatedAreaPdfDocument({
             ) : null}
           </View>
 
-          <View style={styles.signatureBlock}>
+          {/* <View style={styles.signatureBlock}>
             <View style={styles.signatureStampArea}>
               {reviewedSignatureImageSrc ? (
                 <Image
@@ -135,7 +144,7 @@ export function ConsolidatedAreaPdfDocument({
             {reviewedRole ? (
               <Text style={styles.signatureRole}>{reviewedRole}</Text>
             ) : null}
-          </View>
+          </View> */}
         </View>
 
         <Text

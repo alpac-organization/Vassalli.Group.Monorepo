@@ -1,5 +1,5 @@
 import { DataTable } from "@alpac/design-system";
-import type { AreaTableProps } from "./area-table.types";
+import type { AreaTableProps } from "@app/modules/admin/ui/pages/areas/components/areas-table/types/area-table.types";
 import type { GetAreasResponse } from "@app/modules/admin/domain/ApiContract/responses/areas/get-areas.response";
 
 export function AreaTable({

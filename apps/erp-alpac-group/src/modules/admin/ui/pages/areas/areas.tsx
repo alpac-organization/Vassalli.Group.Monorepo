@@ -6,7 +6,7 @@ import {
   Pagination,
 } from "@alpac/design-system";
 import { AreaTable } from "@app/modules/admin/ui/pages/areas/components/areas-table/area-table";
-import { areaColumns } from "@app/modules/admin/ui/pages/areas/components/areas-table/area-columns";
+import { areaColumns } from "@app/modules/admin/ui/pages/areas/components/areas-table/utils/area-columns";
 import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -85,7 +85,7 @@ export function AreasPage() {
       {
         company_id: companyId,
         work_area_name: createName.trim(),
-        ...(trimmedDescription ? { description: trimmedDescription } : {}),
+        description: trimmedDescription || null,
       },
       {
         onSuccess: () => {

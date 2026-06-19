@@ -54,10 +54,8 @@ export function NewPermissionRequestModal({
       console.log("manager");
       return ChannelEnum.PersonalPanel;
     }
-    console.log("channel admin");
     return ChannelEnum.AdministrativePanel;
   }, [isOperator, isManager, managerTarget]);
-  console.log(channel);
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";

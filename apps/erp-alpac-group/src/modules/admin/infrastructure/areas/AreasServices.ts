@@ -25,7 +25,7 @@ export class AreasServices implements IAreasServices {
       const { company_id, work_area_name, description } = payload;
       const body = {
         work_area_name,
-        ...(description?.trim() ? { description: description.trim() } : {}),
+        description: description?.trim() || null,
       };
       const area = await this.apiHandler.post<void>(
         `/companies/${company_id}/areas`,

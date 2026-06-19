@@ -8,6 +8,7 @@ export type PayrollActionValue =
   | "income_report"
   | "deduction_report"
   | "consolidated_area_report"
+  | "employee_receivables_report"
   | "monthly_accumulated_report"
   | "quincenal_accumulated_report"
   | "monthly_ir_report"

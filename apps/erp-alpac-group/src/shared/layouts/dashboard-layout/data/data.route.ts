@@ -14,6 +14,7 @@ import {
   Users,
   BadgeCent,
   Grid,
+  Briefcase,
   Fingerprint,
 } from "lucide-react";
 
@@ -117,6 +118,13 @@ const administrationAreasSection: SidebarLink = {
   icon: Grid,
 };
 
+const administrationJobPositionsSection: SidebarLink = {
+  id: "job-positions",
+  label: "Puestos de Trabajo",
+  path: "administration/job-positions",
+  icon: Briefcase,
+};
+
 export const sidebarData = {
   logoUrl:
     "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
@@ -130,7 +138,7 @@ export const sidebarData = {
         applicationFromPayrollSection,
         activeDeductionSection,
         liquidacionSection,
-        controlVacationsSection,
+        //   controlVacationsSection,
         attendanceControlSection,
       ],
     },
@@ -139,6 +147,7 @@ export const sidebarData = {
         administrationUsersSection,
         administrationCostCentersSection,
         administrationAreasSection,
+        administrationJobPositionsSection,
       ],
     },
     [ModuleEnum.WORK_MANAGEMENT]: {

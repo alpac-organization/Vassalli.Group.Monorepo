@@ -2,6 +2,7 @@ import {
   Alert,
   AnimatedAlertWrapper,
   Button,
+  Checkbox,
   DatePicker,
   Dropdown,
   InputText,
@@ -787,6 +788,23 @@ export const AddCollaboratorModal = (
                       errors.working_information?.entry_date &&
                       errors.working_information?.entry_date?.message
                     }
+                  />
+                )}
+              />
+
+              <Controller
+                name="working_information.does_work_saturdays"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    label="¿Jornada en sábado?"
+                    value="testing"
+                    labelClassName="dark:text-white!"
+                    checked={Boolean(field.value)}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
                   />
                 )}
               />

@@ -3,5 +3,5 @@ export interface CreateCostCenterRequest {
   area_id: string;
   cost_center_name: string;
   coil_code: number;
-  description?: string;
+  description?: string | null;
 }
