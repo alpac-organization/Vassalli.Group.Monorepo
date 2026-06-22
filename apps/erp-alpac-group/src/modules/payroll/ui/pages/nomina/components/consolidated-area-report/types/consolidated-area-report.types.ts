@@ -20,9 +20,7 @@ export type ConsolidatedAreaRow = {
   seizuresAmount: number;
   lateArrivalsQty: number;
   lateArrivalsAmount: number;
-  vacationDeduction: number;
   purisima: number;
-  others: number;
   totalDeduction: number;
   netPay: number;
   inssPatronal: string;

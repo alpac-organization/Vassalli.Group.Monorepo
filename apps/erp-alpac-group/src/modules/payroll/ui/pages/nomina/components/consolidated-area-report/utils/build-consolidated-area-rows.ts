@@ -28,9 +28,7 @@ const NUMERIC_KEYS: (keyof ConsolidatedAreaRow)[] = [
   "seizuresAmount",
   "lateArrivalsQty",
   "lateArrivalsAmount",
-  "vacationDeduction",
   "purisima",
-  "others",
   "totalDeduction",
   "netPay",
 ];
