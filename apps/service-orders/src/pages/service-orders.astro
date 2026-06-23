@@ -1,29 +1,23 @@
 ---
 import "@alpac/design-system/styles/global.css";
+import MainLayout from "@layouts/main-layout.astro";
+import TermsAndConditios from "@components/astro/terms-conditions.astro"
 ---
 
 <html data-theme="dark">
    <head>
-		<title>Ordenes de servicios</title>
-		
+      <title>Ordenes de servicios</title>
+
       <meta charset="utf-8" />
-		<meta name="generator" content={Astro.generator} />
-		<meta name="viewport" content="width=device-width" />
-    
-		<link rel="icon" href="/favicon.ico" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-	</head>
+      <meta name="generator" content={Astro.generator} />
+      <meta name="viewport" content="width=device-width" />
+
+      <link rel="icon" href="/favicon.ico" />
+      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+   </head>
    <body>
-      <header class="w-full dark:bg-[#272B34] bg-[#FAFAFA] border-b border-b-slate-300 dark:border-b-gray-600 flex items-end" style="height: 70px;">
-         <div class="w-full max-w-300 mx-auto px-6 flex items-end">
-            <div class="dark:bg-white bg-[#272B34] p-1 translate-y-22.5 inline-flex items-center justify-center shadow-lg">
-               <img
-               src="https://erp-core-manager-api.onrender.com/Logos/png/original/centro-logistico-alpac.png"
-               alt="Centro Logístico Alpac"
-               class="h-30 w-auto object-contain block"
-               />
-            </div>
-         </div>
-      </header>
-   </body>    
+      <MainLayout >
+         <TermsAndConditios/>
+      </MainLayout>
+   </body>
 </html>
