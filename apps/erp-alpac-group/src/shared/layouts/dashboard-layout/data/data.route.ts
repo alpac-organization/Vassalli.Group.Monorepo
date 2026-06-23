@@ -15,6 +15,7 @@ import {
   BadgeCent,
   Grid,
   Briefcase,
+  Fingerprint,
 } from "lucide-react";
 
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
@@ -47,13 +48,6 @@ const permissionManagementSection: SidebarLink = {
   icon: UserKey,
 };
 
-const controlVacationsSection: SidebarLink = {
-  id: "control-vacaciones",
-  label: "Control de Vacaciones",
-  path: "payroll/control-vacations",
-  icon: CalendarCheck,
-};
-
 const gestionPayrollSection: SidebarLink = {
   id: "gestion-payroll",
   label: "Gestión de Nómina",
@@ -73,6 +67,13 @@ const activeDeductionSection: SidebarLink = {
   label: "Deducciones Activas",
   path: "payroll/active-deductions",
   icon: CircleMinus,
+};
+
+const attendanceControlSection: SidebarLink = {
+  id: "control-asistencia",
+  label: "Control de Asistencia",
+  path: "payroll/control-asistencia",
+  icon: Fingerprint,
 };
 
 const liquidacionSection: SidebarLink = {
@@ -95,6 +96,7 @@ const administrationUsersSection: SidebarLink = {
   path: "administration/users",
   icon: Users,
 };
+
 const administrationCostCentersSection: SidebarLink = {
   id: "cost-centers",
   label: "Centros de Costos",
@@ -130,6 +132,7 @@ export const sidebarData = {
         activeDeductionSection,
         liquidacionSection,
         //   controlVacationsSection,
+        attendanceControlSection,
       ],
     },
     [ModuleEnum.ADMINISTRATION]: {
