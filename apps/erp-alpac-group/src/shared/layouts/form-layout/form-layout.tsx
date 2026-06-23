@@ -10,7 +10,7 @@ export const FormLayout = ({ children, imageUrl = Logo }: FormLayoutProps) => {
         <div className="mb-8 flex justify-center w-full h-full max-w-25 md:max-w-25 mx-auto overflow-hidden">
           <div
             key={imageUrl}
-            className="w-[100px] h-[100px] bg-cover bg-center transition-all duration-700 ease-in-out animate-bg-fade-logo"
+            className="w-25 h-25 bg-cover bg-center transition-all duration-700 ease-in-out animate-bg-fade-logo"
             style={{ backgroundImage: `url(${imageUrl})` }}
           ></div>
         </div>
