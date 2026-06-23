@@ -58,9 +58,9 @@ export const AddCollaboratorModal = (
   props: AddCollaboratorModalProps,
 ): React.ReactNode => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedSalaryType, setSelectedSalaryType] =
-    useState<SalaryTypeEnum | null>(null);
+  const [selectedSalaryType, setSelectedSalaryType] = useState<SalaryTypeEnum | null>(null);
   const [showAddAllowanceModal, setShowAddAllowanceModal] = useState(false);
+  const [isDaemFieldEnabled, setIsDaemFieldEnabled] = useState(false);
   const [showAlert, setShowAlert] = useState<{
     show: boolean;
     type: "success" | "error" | "warning" | "info";
@@ -433,9 +433,9 @@ export const AddCollaboratorModal = (
 
                     return trimmed
                       ? identificationType ===
-                          IdentificationEnum.NATIONAL_ID.value ||
+                        IdentificationEnum.NATIONAL_ID.value ||
                         identificationType ===
-                          IdentificationEnum.RESIDENCE_ID.value
+                        IdentificationEnum.RESIDENCE_ID.value
                         ? trimmed.replace(/-/g, "").toUpperCase()
                         : trimmed.toUpperCase()
                       : "";
@@ -450,7 +450,7 @@ export const AddCollaboratorModal = (
                 onChange={(evt) => {
                   if (
                     identificationType ===
-                      IdentificationEnum.NATIONAL_ID.value ||
+                    IdentificationEnum.NATIONAL_ID.value ||
                     identificationType === IdentificationEnum.RESIDENCE_ID.value
                   ) {
                     evt.target.value = formatIdentificationNumber(
@@ -792,22 +792,60 @@ export const AddCollaboratorModal = (
                 )}
               />
 
-              <Controller
-                name="working_information.does_work_saturdays"
-                control={control}
-                render={({ field }) => (
+              <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
+                <Controller
+                  name="working_information.does_work_saturdays"
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      label="¿Jornada en sábado?"
+                      value="testing"
+                      labelClassName="dark:text-white!"
+                      checked={Boolean(field.value)}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
+                  )}
+                />
+
+                {(isVigemsaCompany) && (
                   <Checkbox
-                    label="¿Jornada en sábado?"
+                    label="Tiene Licencia DAEM"
                     value="testing"
                     labelClassName="dark:text-white!"
-                    checked={Boolean(field.value)}
-                    onChange={(e) => field.onChange(e.target.checked)}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    ref={field.ref}
+                    checked={Boolean(isDaemFieldEnabled)}
+                    onChange={(evt) => {
+                      setIsDaemFieldEnabled(evt.target.checked)
+                      setValue('working_information.daem', '', {
+                        shouldValidate: true, // Opcional: dispara la validación si la hay
+                        shouldDirty: true     // Opcional: marca el campo como modificado
+                      });
+                    }}
+                    name="daem"
                   />
                 )}
-              />
+              </div>
+
+              {(isVigemsaCompany && isDaemFieldEnabled) && (
+                <InputText
+                  label="Número de Licencia DAEM"
+                  isRequired
+                  placeholder="Escriba número de licencia DAEM"
+                  className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                  labelClassName="text-black! dark:text-white!"
+                  inputMode="numeric"
+                  {...register("working_information.daem", {
+                    required: "Número de licencia DAEM es requerida",
+                  })}
+                  error={
+                    errors.working_information?.daem &&
+                    errors.working_information?.daem?.message
+                  }
+                />
+              )}
+
             </div>
           </section>
 
