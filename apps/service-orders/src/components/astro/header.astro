@@ -1,14 +1,13 @@
 ---
-
+import { FloatingButtonTheme } from "@components/react/floating-button-theme";
 ---
 
 <header
-    class="w-full dark:bg-[#272B34] bg-[#FAFAFA] border-b border-b-slate-300 dark:border-b-gray-600 flex items-end"
-    style="height: 70px;"
+    class="w-full h-[80px] dark:bg-[#272B34] bg-[#FAFAFA] border-b border-b-slate-300 dark:border-b-gray-600 flex items-end"
 >
-    <div class="w-full max-w-300 mx-auto px-6 flex items-end">
+    <div class="relative w-[800px] h-[80px] mx-auto flex items-center">
         <div
-            class="dark:bg-white bg-[#272B34] p-1 translate-y-22.5 inline-flex items-center justify-center shadow-lg"
+            class={`absolute dark:bg-white bg-[#ededed] top-[40px] inline-flex items-center justify-center shadow-lg`}
         >
             <img
                 src="https://erp-core-manager-api.onrender.com/Logos/png/original/centro-logistico-alpac.png"
@@ -16,5 +15,7 @@
                 class="h-30 w-auto object-contain block"
             />
         </div>
+
+        <FloatingButtonTheme client:only="react" />
     </div>
 </header>
