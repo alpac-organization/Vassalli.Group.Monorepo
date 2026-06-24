@@ -27,7 +27,7 @@ interface AddPersonalInformationRequest {
 }
 
 interface AddWorkingInformationRequest {
-  work_area_id: number;
+  work_area_id: string;
   work_position_id: number;
   branch_id: number;
   bank_account_number?: string;

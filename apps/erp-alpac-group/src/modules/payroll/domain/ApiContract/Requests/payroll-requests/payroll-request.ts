@@ -26,7 +26,7 @@ export interface PayrollRequest {
   /**
    * Id del area de trabajo
    */
-  work_area_id?: number;
+  area_id?: string;
   /**
    * Id de la posicion de trabajo
    */

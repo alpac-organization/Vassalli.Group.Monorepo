@@ -3,7 +3,7 @@ import type { Path } from "react-hook-form";
 
 export type AddCollaboratorModalProps = {
   isOpen: boolean;
-  optionsWorkAreas: { label: string; value: number }[];
+  optionsAreas: { label: string; value: string }[];
   optionsJobPositions: { label: string; value: number }[];
   optionsBranches: { label: string; value: number | string }[];
   optionsBanks: { label: string; value: number }[];

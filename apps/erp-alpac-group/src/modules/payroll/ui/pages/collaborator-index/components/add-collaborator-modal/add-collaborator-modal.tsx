@@ -606,13 +606,13 @@ export const AddCollaboratorModal = (
                 control={control}
                 rules={{
                   required: "Debe seleccionar un área de trabajo",
-                  validate: (val) => val !== 0 || "Selección inválida",
+                  validate: (val) => !!val || "Selección inválida",
                 }}
                 render={({ field }) => (
                   <Dropdown
                     label="Área de Trabajo"
                     isRequired
-                    options={props.optionsWorkAreas ?? []}
+                    options={props.optionsAreas ?? []}
                     placeholder="Seleccione..."
                     onChange={(value) => {
                       field.onChange(value);

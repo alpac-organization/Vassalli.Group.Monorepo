@@ -184,7 +184,7 @@ export function PayrollPage() {
     setIsGeneratingEmployeeReceivablesPdf,
   ] = useState(false);
   const [identificationFilter, setIdentificationFilter] = useState("");
-  const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
+  const [workAreaFilter, setWorkAreaFilter] = useState<string | null>(null);
   const [jobPositionFilter, setJobPositionFilter] = useState<number | null>(
     null,
   );
@@ -356,7 +356,7 @@ export function PayrollPage() {
       type: selectedPayrollType ?? "None",
       branch_id: selectedBranch ?? "",
       identification_number: identificationFilter || undefined,
-      work_area_id: workAreaFilter || undefined,
+      area_id: workAreaFilter || undefined,
       job_position_id: jobPositionFilter || undefined,
       page_number: pageNumber,
       page_size: maxPageSize,
@@ -670,7 +670,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -755,7 +755,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -830,7 +830,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : 1000,
@@ -1076,7 +1076,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1190,7 +1190,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1265,7 +1265,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1332,7 +1332,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1394,7 +1394,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1477,7 +1477,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1631,7 +1631,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1805,16 +1805,14 @@ export function PayrollPage() {
     (
       data: Pick<CollaboratorRequest, "identification_number"> & {
         job_position: number;
-        work_area: number;
+        work_area: string;
       },
     ) => {
       const normalizedIdentification = (data.identification_number ?? "")
         .trim()
         .replace(/-/g, "");
       setIdentificationFilter(normalizedIdentification);
-      setWorkAreaFilter(
-        data.work_area && data.work_area > 0 ? data.work_area : null,
-      );
+      setWorkAreaFilter(data.work_area?.trim() ? data.work_area : null);
       setJobPositionFilter(
         data.job_position && data.job_position > 0 ? data.job_position : null,
       );
