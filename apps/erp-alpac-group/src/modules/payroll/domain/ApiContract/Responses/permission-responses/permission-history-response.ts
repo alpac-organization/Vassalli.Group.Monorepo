@@ -1,4 +1,5 @@
 import type { PermissionStatus } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
+import type { ApplicationType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/application.types";
 import type { PermissionType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission.types";
 
 export interface PermissionResponse {
@@ -22,7 +23,7 @@ export interface PermissionResponse {
   start_date: string;
   created_at: string;
   status: PermissionStatus;
-  type: PermissionType;
+  type: ApplicationType | PermissionType;
 }
 
 export interface StepStatus {

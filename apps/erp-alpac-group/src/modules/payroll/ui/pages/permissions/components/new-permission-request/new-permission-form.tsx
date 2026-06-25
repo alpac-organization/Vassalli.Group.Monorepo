@@ -21,6 +21,7 @@ import { PERMISSION_TYPE_OPTIONS } from "@app/modules/payroll/ui/pages/permissio
 import {
    validateLaboralHours,
    validateTime,
+   formatNumberWithDecimals,
 } from "@app/shared/utils/string.utils";
 import { generatePermissionPayload } from "./utils/generatePermissionPayload";
 import {
@@ -353,8 +354,6 @@ export function NewPermissionRequestForm({
                </div>
             )}
 
-
-
          <Controller
             name="type"
             control={control}
@@ -376,7 +375,6 @@ export function NewPermissionRequestForm({
 
             )}
          />
-
 
 
          <AnimatePresence mode="wait">
@@ -797,6 +795,11 @@ export function NewPermissionRequestForm({
                               validate: {
                                  validateDecimal: (value) => validateDecimalNumber(value),
                                  validatePositive: (value) => validatePositiveNumber(value),
+                              },
+                              onChange: (evt) => {
+                                 evt.target.value = String(
+                                    formatNumberWithDecimals(evt.target.value),
+                                 );
                               },
                            })}
                         />
