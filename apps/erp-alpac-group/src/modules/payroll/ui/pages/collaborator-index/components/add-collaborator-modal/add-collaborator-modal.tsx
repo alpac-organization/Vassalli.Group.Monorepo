@@ -157,7 +157,6 @@ export const AddCollaboratorModal = (
       };
 
       await PostCollaboratorQuery.mutateAsync(payload);
-
       props.onRequestSuccess?.("Colaborador creado exitosamente");
 
       handleCloseModal();
@@ -602,7 +601,7 @@ export const AddCollaboratorModal = (
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
               <Controller
-                name="working_information.work_area_id"
+                name="working_information.area_id"
                 control={control}
                 rules={{
                   required: "Debe seleccionar un área de trabajo",
@@ -618,8 +617,8 @@ export const AddCollaboratorModal = (
                       field.onChange(value);
                     }}
                     error={
-                      errors.working_information?.work_area_id &&
-                      errors.working_information?.work_area_id?.message
+                      errors.working_information?.area_id &&
+                      errors.working_information?.area_id?.message
                     }
                     value={field.value}
                     appearance="dark"
@@ -793,7 +792,7 @@ export const AddCollaboratorModal = (
               />
 
               <Controller
-                name="working_information.does_work_saturdays"
+                name="does_work_saturday"
                 control={control}
                 render={({ field }) => (
                   <Checkbox

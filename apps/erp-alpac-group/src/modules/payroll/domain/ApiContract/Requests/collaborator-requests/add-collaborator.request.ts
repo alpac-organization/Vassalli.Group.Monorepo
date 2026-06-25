@@ -11,6 +11,7 @@ export interface AddCollaboratorRequest {
   identification_number: string;
   identification_type: number;
   gender: number;
+  does_work_saturday: boolean;
   personal_information: AddPersonalInformationRequest;
   working_information: AddWorkingInformationRequest;
   salary_information: AddSalaryInformationRequest;
@@ -27,7 +28,7 @@ interface AddPersonalInformationRequest {
 }
 
 interface AddWorkingInformationRequest {
-  work_area_id: string;
+  area_id: number;
   work_position_id: number;
   branch_id: number;
   bank_account_number?: string;
@@ -36,7 +37,6 @@ interface AddWorkingInformationRequest {
   daem?: string;
   inss_number?: string;
   entry_date: string;
-  does_work_saturdays: boolean;
 }
 
 interface AddSalaryInformationRequest {

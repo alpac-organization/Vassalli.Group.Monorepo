@@ -33,7 +33,7 @@ export const fieldsToValidate: Path<AddCollaboratorRequest>[][] = [
     "personal_information.personal_email", // correo opcional
   ],
   [
-    "working_information.work_area_id",
+    "working_information.area_id",
     "working_information.work_position_id",
     "working_information.branch_id",
     "working_information.entry_date",
