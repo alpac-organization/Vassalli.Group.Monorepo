@@ -2258,7 +2258,7 @@ export function PayrollPage() {
 
                 <Button
                   size="giant"
-                  label="Crear Solicitud de Permiso"
+                  label="Registrar Solicitud"
                   disabled={!existPayrollInProgress}
                   onClick={handleOpenPermissionApplicationModal}
                   className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${

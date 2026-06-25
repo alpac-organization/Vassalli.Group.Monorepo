@@ -168,7 +168,7 @@ export function NewPermissionRequestModal({
       isOpen={isOpen}
       variant="form"
       onClose={() => onClose?.()}
-      title="Nueva Solicitud de Permiso"
+      title="Nueva Solicitud"
       size="4xl"
       panelClassName={["dark:bg-[#272b34]"].join(" ")}
     >
