@@ -91,6 +91,7 @@ import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { parseAdditionalDeductions } from "./components/payroll-table/utils/parse-additional-deductions";
 import type { AdditionalDeductions } from "./components/payroll-table/types/payroll-table.types";
 import { ModalDetailsPayroll } from "@app/modules/payroll/ui/pages/nomina/components/collaborator-details-payroll/modal-details-payroll";
+import { exportCollaboratorsExcelTemplate } from "@app/modules/payroll/ui/pages/nomina/utils/export-collaborators-excel-template";
 
 export function PayrollPage() {
   const maxPageSize = 10;
@@ -191,6 +192,8 @@ export function PayrollPage() {
     isGeneratingEmployeeReceivablesPdf,
     setIsGeneratingEmployeeReceivablesPdf,
   ] = useState(false);
+  const [isDownloadingCollaboratorsTemplate, setIsDownloadingCollaboratorsTemplate] =
+    useState(false);
   const [identificationFilter, setIdentificationFilter] = useState("");
   const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
   const [jobPositionFilter, setJobPositionFilter] = useState<number | null>(
@@ -2124,6 +2127,78 @@ export function PayrollPage() {
     setIsDeductionModalOpen(true);
   }, []);
 
+  const handleDownloadCollaboratorsTemplate = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay colaboradores en la nómina para generar la plantilla.",
+      );
+      return;
+    }
+
+    try {
+      setIsDownloadingCollaboratorsTemplate(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const detailsData = payrollDetailsQuery.data;
+      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+      const payload = {
+        companie_id: companyId,
+        module_code: moduleCode,
+        type: selectedPayrollType,
+        branch_id: selectedBranch,
+        identification_number: identificationFilter || undefined,
+        work_area_id: workAreaFilter || undefined,
+        job_position_id: jobPositionFilter || undefined,
+        page_number: 1,
+        page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+      } as PayrollRequest;
+
+      const response = await payrollServices.getPayroll(payload);
+      const allItems = response.payroll_details?.items ?? [];
+
+      const rows = allItems
+        .filter((item) => item.collaborator?.identification_number?.trim())
+        .map((item) => ({
+          identificacion: item.collaborator!.identification_number.trim(),
+          nombre: item.collaborator!.full_name?.trim() ?? "",
+          valor: 0,
+        }));
+
+      if (rows.length === 0) {
+        handlePdfGenerationError(
+          "No hay colaboradores disponibles para generar la plantilla.",
+        );
+        return;
+      }
+
+      await exportCollaboratorsExcelTemplate({
+        rows,
+        branchName: displayedBranchName,
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar la plantilla Excel, intente nuevamente mas tarde.",
+      );
+    } finally {
+      setIsDownloadingCollaboratorsTemplate(false);
+    }
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    displayedBranchName,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    handlePdfGenerationError,
+  ]);
+
   const renderContent = () => {
     if (existPayrollInProgress === false) {
       return (
@@ -2557,6 +2632,20 @@ export function PayrollPage() {
                     isGeneratingVacationControlAreaPdf ||
                     isGeneratingVacationAccrualAreaReport ||
                     isGeneratingEmployeeReceivablesPdf
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
+                />
+
+                <Button
+                  type="button"
+                  size="giant"
+                  label="Descargar plantilla Excel"
+                  disabled={!existPayrollInProgress || isDownloadingCollaboratorsTemplate}
+                  isLoading={isDownloadingCollaboratorsTemplate}
+                  onClick={handleDownloadCollaboratorsTemplate}
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isDownloadingCollaboratorsTemplate
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}
