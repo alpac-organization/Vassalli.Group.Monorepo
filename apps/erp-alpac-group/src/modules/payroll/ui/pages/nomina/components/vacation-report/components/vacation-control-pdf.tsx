@@ -3,6 +3,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { styles } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/utils/styles.accumulated";
+import type { PermissionType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission.types";
 import type { VacationControlPdfProps } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/types/vacation-control.types";
 import {
   formatBalanceValue,
@@ -151,7 +152,7 @@ function CollaboratorPage({
             wrap={false}
           >
             <Text style={[styles.cellCode, { width: "18%" }]}>
-              {formatPermissionType(permission.type)}
+              {formatPermissionType(permission.type as PermissionType)}
             </Text>
             <Text style={[styles.cellName, { width: "26%" }]}>
               {formatPermissionPeriod(

@@ -24,6 +24,7 @@ import { exportPayrollExcel } from "@app/modules/payroll/ui/pages/nomina/compone
 import { ConsolidatedAreaPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/pdf/consolidated-area-pdf-document";
 import { exportConsolidatedAreaExcel } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/excel/export-consolidated-area-excel";
 import { exportAccumulatedHistoryExcel } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/excel/export-accumulated-history-excel";
+import { filterAccumulatedHistoryByPayrollItems } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/utils/filter-accumulated-history.utils";
 import { exportIncomeSummaryExcel } from "@app/modules/payroll/ui/pages/nomina/components/income-review-pdf/excel/export-income-summary-excel";
 import { exportDeductionSummaryExcel } from "@app/modules/payroll/ui/pages/nomina/components/deduction-review-pdf/excel/export-deduction-summary-excel";
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
@@ -42,6 +43,13 @@ import {
 import { buildVacationAccrualAreaRows } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/utils/vacation-accrual-area.utils";
 import { buildVacationControlAreaRows } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/utils/vacation-control-area.utils";
 import { exportVacationAccrualAreaExcel } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/utils/export-vacation-accrual-area-excel";
+import { VacationPermissionsSummaryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/vacation-permissions-summary/vacation-permissions-summary-pdf-document";
+import {
+  buildVacationPermissionsSummaryHeader,
+  buildVacationPermissionsSummaryRows,
+  fetchApprovedVacationPermissionsByPayroll,
+} from "@app/modules/payroll/ui/pages/nomina/components/vacation-permissions-summary/utils/build-vacation-permissions-summary.utils";
+import { exportVacationPermissionsSummaryExcel } from "@app/modules/payroll/ui/pages/nomina/components/vacation-permissions-summary/excel/export-vacation-permissions-summary-excel";
 import { EmployeeReceivablesPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/employee-receivables-pdf/employee-receivables-pdf-document";
 import { exportEmployeeReceivablesExcel } from "@app/modules/payroll/ui/pages/nomina/components/employee-receivables-pdf/excel/export-employee-receivables-excel";
 import { buildEmployeeReceivablesReportData } from "@app/modules/payroll/ui/pages/nomina/components/employee-receivables-pdf/utils/build-employee-receivables-data";
@@ -123,6 +131,10 @@ export function PayrollClosedHistoryPage() {
     isGeneratingEmployeeReceivablesPdf,
     setIsGeneratingEmployeeReceivablesPdf,
   ] = useState(false);
+  const [
+    isGeneratingVacationPermissionsSummary,
+    setIsGeneratingVacationPermissionsSummary,
+  ] = useState(false);
   const [selectedAction, setSelectedAction] =
     useState<PayrollActionValue | null>(null);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
@@ -201,6 +213,10 @@ export function PayrollClosedHistoryPage() {
       {
         label: "Generar Acumulado Vacaciones aguinaldo",
         value: "vacation_accrual_area_report",
+      },
+      {
+        label: "Generar descargue de vacaciones",
+        value: "vacation_permissions_summary_report",
       },
       {
         label: "Generar Nómina Consolidada por Área",
@@ -451,14 +467,20 @@ export function PayrollClosedHistoryPage() {
     try {
       setIsGeneratingAccumulatedHistoryPdf(true);
       const svc = new PayrollServices(httpHandler);
-      const reportResponse = await svc.generateReportsPayroll({
-        companie_id: companyId,
-        module_code: moduleCode,
-        payroll_type: type_payroll,
-        payroll_id,
-        report_type: "Accumulated",
-      });
-      const reportData = reportResponse.accumulated_history ?? [];
+      const [reportResponse, payrollItems] = await Promise.all([
+        svc.generateReportsPayroll({
+          companie_id: companyId,
+          module_code: moduleCode,
+          payroll_type: type_payroll,
+          payroll_id,
+          report_type: "Accumulated",
+        }),
+        fetchAllItems(),
+      ]);
+      const reportData = filterAccumulatedHistoryByPayrollItems(
+        reportResponse.accumulated_history ?? [],
+        payrollItems,
+      );
       if (!reportData.length) {
         handlePdfGenerationError(
           "No hay datos disponibles para generar el historial acumulado, intente nuevamente mas tarde.",
@@ -472,10 +494,10 @@ export function PayrollClosedHistoryPage() {
       const monthNow = "01 enero";
       const blob = await pdf(
         <AccumulatedPdfDocument
-          branchName={branchName}
           data={reportData}
           startDate={`${monthNow}-${yearNow}`}
           endDate={detailsData?.end_date}
+          branchName={detailsData?.branch_name ?? ""}
           reviewedBy={{
             name: signatures.solicitado.name,
             role: signatures.solicitado.role,
@@ -499,6 +521,7 @@ export function PayrollClosedHistoryPage() {
     signatures,
     branchName,
     detailsData?.end_date,
+    fetchAllItems,
     handlePdfGenerationError,
   ]);
 
@@ -640,6 +663,110 @@ export function PayrollClosedHistoryPage() {
     hasPayrollData,
     detailsData,
     fetchAllItems,
+    branchName,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateVacationPermissionsSummaryPdf = useCallback(async () => {
+    if (!companyId || !moduleCode || !payroll_id) return;
+
+    const startDate = detailsData?.start_date;
+    const endDate = detailsData?.end_date;
+
+    try {
+      setIsGeneratingVacationPermissionsSummary(true);
+      const permissionServices = new PermissionServices(httpHandler);
+      const permissions = await fetchApprovedVacationPermissionsByPayroll(
+        permissionServices,
+        {
+          companie_id: companyId,
+          module_code: moduleCode,
+          payroll_id,
+        },
+      );
+
+      if (!permissions.length) {
+        handlePdfGenerationError(
+          "No hay permisos de vacaciones aprobados para esta quincena.",
+        );
+        return;
+      }
+
+      const header = buildVacationPermissionsSummaryHeader(startDate, endDate);
+      const rows = buildVacationPermissionsSummaryRows(permissions);
+
+      const blob = await pdf(
+        <VacationPermissionsSummaryPdfDocument
+          header={header}
+          rows={rows}
+          branchName={branchName}
+        />,
+      ).toBlob();
+
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el descargue de vacaciones, intente nuevamente mas tarde.",
+      );
+    } finally {
+      setIsGeneratingVacationPermissionsSummary(false);
+    }
+  }, [
+    companyId,
+    moduleCode,
+    payroll_id,
+    detailsData,
+    branchName,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateVacationPermissionsSummaryExcel = useCallback(async () => {
+    if (!companyId || !moduleCode || !payroll_id) return;
+
+    const startDate = detailsData?.start_date;
+    const endDate = detailsData?.end_date;
+
+    try {
+      setIsGeneratingVacationPermissionsSummary(true);
+      const permissionServices = new PermissionServices(httpHandler);
+      const permissions = await fetchApprovedVacationPermissionsByPayroll(
+        permissionServices,
+        {
+          companie_id: companyId,
+          module_code: moduleCode,
+          payroll_id,
+        },
+      );
+
+      if (!permissions.length) {
+        handlePdfGenerationError(
+          "No hay permisos de vacaciones aprobados para esta quincena.",
+        );
+        return;
+      }
+
+      const header = buildVacationPermissionsSummaryHeader(startDate, endDate);
+      const rows = buildVacationPermissionsSummaryRows(permissions);
+
+      await exportVacationPermissionsSummaryExcel({
+        header,
+        rows,
+        branchName,
+        startDate,
+        endDate,
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el descargue de vacaciones en Excel, intente nuevamente mas tarde.",
+      );
+    } finally {
+      setIsGeneratingVacationPermissionsSummary(false);
+    }
+  }, [
+    companyId,
+    moduleCode,
+    payroll_id,
+    detailsData,
     branchName,
     handlePdfGenerationError,
   ]);
@@ -850,14 +977,20 @@ export function PayrollClosedHistoryPage() {
     try {
       setIsGeneratingAccumulatedHistoryPdf(true);
       const svc = new PayrollServices(httpHandler);
-      const reportResponse = await svc.generateReportsPayroll({
-        companie_id: companyId,
-        module_code: moduleCode,
-        payroll_type: type_payroll,
-        payroll_id,
-        report_type: "Accumulated",
-      });
-      const reportData = reportResponse.accumulated_history ?? [];
+      const [reportResponse, payrollItems] = await Promise.all([
+        svc.generateReportsPayroll({
+          companie_id: companyId,
+          module_code: moduleCode,
+          payroll_type: type_payroll,
+          payroll_id,
+          report_type: "Accumulated",
+        }),
+        fetchAllItems(),
+      ]);
+      const reportData = filterAccumulatedHistoryByPayrollItems(
+        reportResponse.accumulated_history ?? [],
+        payrollItems,
+      );
       if (!reportData.length) {
         handlePdfGenerationError(
           "No hay datos disponibles para generar el historial acumulado, intente nuevamente mas tarde.",
@@ -887,9 +1020,9 @@ export function PayrollClosedHistoryPage() {
     type_payroll,
     branchName,
     detailsData?.end_date,
+    fetchAllItems,
     handlePdfGenerationError,
   ]);
-
   const handleGenerateIncomeSummaryExcel = useCallback(async () => {
     if (!payroll_id || !branch_id || !companyId || !moduleCode) return;
     if (!hasPayrollData) {
@@ -1227,6 +1360,9 @@ export function PayrollClosedHistoryPage() {
         case "vacation_accrual_area_report":
           await handleGenerateVacationAccrualAreaPdf();
           break;
+        case "vacation_permissions_summary_report":
+          await handleGenerateVacationPermissionsSummaryPdf();
+          break;
         case "income_report":
           await handleGenerateIncomeSummaryPdf();
           break;
@@ -1250,6 +1386,7 @@ export function PayrollClosedHistoryPage() {
       handleGenerateVacationControlPdf,
       handleGenerateVacationControlAreaPdf,
       handleGenerateVacationAccrualAreaPdf,
+      handleGenerateVacationPermissionsSummaryPdf,
       handleGenerateIncomeSummaryPdf,
       handleGenerateDeductionSummaryPdf,
       handleGenerateConsolidatedAreaPdf,
@@ -1269,6 +1406,7 @@ export function PayrollClosedHistoryPage() {
     isGeneratingDeductionSummaryPdf ||
     isGeneratingConsolidatedAreaPdf ||
     isGeneratingEmployeeReceivablesPdf ||
+    isGeneratingVacationPermissionsSummary ||
     isGeneratingConsolidatedAreaExcel;
 
   const handleOpenGenerateModal = useCallback(() => {
@@ -1307,6 +1445,9 @@ export function PayrollClosedHistoryPage() {
         case "employee_receivables_report":
           await handleGenerateEmployeeReceivablesExcel();
           break;
+        case "vacation_permissions_summary_report":
+          await handleGenerateVacationPermissionsSummaryExcel();
+          break;
         case "monthly_accumulated_report":
         case "monthly_ir_report":
         case "monthly_inss_report":
@@ -1326,6 +1467,7 @@ export function PayrollClosedHistoryPage() {
       handleGenerateIncomeSummaryExcel,
       handleGenerateDeductionSummaryExcel,
       handleGenerateEmployeeReceivablesExcel,
+      handleGenerateVacationPermissionsSummaryExcel,
       handlePdfGenerationError,
     ],
   );
