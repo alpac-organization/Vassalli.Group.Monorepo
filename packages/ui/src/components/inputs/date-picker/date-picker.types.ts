@@ -8,6 +8,7 @@ export type DatePickerProps = MuiDatePickerProps & {
    labelAbove?: boolean;
    isRequired?: boolean;
    labelClassName?: string;
+   errorVariant?: "text" | "tooltip"; 
 };
 
 export type DatePickerValue = DatePickerProps["value"];

@@ -79,7 +79,12 @@ export const payrollColumns: PayrollColumnDef[] = [
       formatCurrency(item.total_travel_expenses ?? 0, "NIO") ?? "—",
     getValue: (item) => item.total_travel_expenses ?? 0,
   },
-
+  {
+    key: "amount_days_vacation",
+    label: "cantidad días vacaciones",
+    render: (item) => item.amount_days_vacation ?? 0,
+    getValue: (item) => item.amount_days_vacation ?? 0,
+  },
   {
     key: "vacations",
     label: "Vacaciones",

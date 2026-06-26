@@ -11,6 +11,7 @@ export function DatePicker({
    labelAbove = false,
    isRequired = false,
    labelClassName,
+   errorVariant = "text",
    ...rest
 }: DatePickerProps) {
    const generatedId = useId();
@@ -30,7 +31,7 @@ export function DatePicker({
    });
 
    return (
-      <div className="flex flex-col gap-1.5 w-full">
+      <div className="relative flex flex-col gap-1.5 w-full">
          {label && labelAbove && (
             <label
                htmlFor={inputId}
@@ -51,7 +52,22 @@ export function DatePicker({
             slotProps={mergedSlotProps}
          />
 
-         {error && (
+         {error && errorVariant === "tooltip" && (
+            <span
+               role="tooltip"
+               className="pointer-events-none absolute top-full left-1 z-1000 mt-1 flex flex-col items-start transition-all duration-200 ease-out"
+            >
+               <span
+                  className="h-0 w-0 ml-3 shrink-0 border-x-[6px] border-b-[6px] border-x-transparent border-b-red-500 dark:border-b-red-600"
+                  aria-hidden={true}
+               />
+               <span className="whitespace-nowrap rounded-lg bg-red-500 dark:bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-lg">
+                  {error}
+               </span>
+            </span>
+         )}
+
+         {error && errorVariant === "text" && (
             <span className="text-xs text-red-500 dark:text-red-400 font-medium ml-1 mt-0.5">
                {error}
             </span>
