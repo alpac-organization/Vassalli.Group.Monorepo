@@ -1,17 +1,18 @@
 import { InputText, Dropdown, Button } from "@alpac/design-system";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import type { CollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator.request";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
 import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
 import { formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 
 type PayrollCollaboratorFilterFields = Pick<
   CollaboratorRequest,
   "identification_number"
-> & { work_area: number; job_position: number };
+> & { work_area: string; job_position: number };
 
 type PayrollFiltersBarProps = {
   onApply: (filters: PayrollCollaboratorFilterFields) => void;
@@ -20,7 +21,7 @@ type PayrollFiltersBarProps = {
 
 const defaultFormValues: PayrollCollaboratorFilterFields = {
   identification_number: "",
-  work_area: 0,
+  work_area: "",
   job_position: 0,
 };
 
@@ -40,18 +41,23 @@ export default function PayrollFiltersBar({
     defaultValues: defaultFormValues,
   });
 
-  const { GetCatalogListQuery: workAreasQuery } = useCatalog({
-    company_id: companyId,
-    catalog_type_id: CatalogEnum.WORK_AREAS,
+  const { GetAreasByCompany: areasQuery } = useAreas({
+    company_id: companyId ?? "",
   });
   const { GetCatalogListQuery: jobPositionsQuery } = useCatalog({
     company_id: companyId,
     catalog_type_id: CatalogEnum.JOB_POSITIONS,
   });
 
-  const { data: workAreas = [] } = workAreasQuery;
   const { data: jobPositions = [] } = jobPositionsQuery;
-  const optionsWorkAreas = mapCatalogToOptions(workAreas);
+  const optionsAreas = useMemo(
+    () =>
+      (areasQuery.data ?? []).map((area) => ({
+        label: area.work_area_name,
+        value: area.work_area_id,
+      })),
+    [areasQuery.data],
+  );
   const optionsJobPositions = mapCatalogToOptions(jobPositions);
   const onSubmit: SubmitHandler<PayrollCollaboratorFilterFields> = (data) => {
     onApply(data);
@@ -114,7 +120,7 @@ export default function PayrollFiltersBar({
                   labelClassName="text-black! dark:text-white!"
                   valueClassName="text-black! dark:text-white!"
                   className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                  options={optionsWorkAreas ?? []}
+                  options={optionsAreas ?? []}
                 />
               );
             }}

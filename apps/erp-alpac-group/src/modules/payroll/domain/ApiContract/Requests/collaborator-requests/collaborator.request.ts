@@ -33,7 +33,7 @@ export interface CollaboratorRequest {
    /**
     * Id del area
     */
-   area_id: number;
+   area_id: string;
 
    /**
     * Numero de la pagina
