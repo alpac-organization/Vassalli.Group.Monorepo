@@ -50,7 +50,7 @@ export type ConsolidatedAreaPdfProps = {
   startDate?: string;
   endDate?: string;
   preparedBy?: PdfSignatory;
-  reviewedBy?: PdfSignatory;
+  //   reviewedBy?: PdfSignatory;
   preparedSignatureImageSrc?: string;
-  reviewedSignatureImageSrc?: string;
+  //   reviewedSignatureImageSrc?: string;
 };

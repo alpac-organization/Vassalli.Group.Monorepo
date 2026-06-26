@@ -4,6 +4,7 @@ export type PayrollActionValue =
   | "payment_requests"
   | "accumulated_history"
   | "vacation_control_report"
+  | "vacation_control_area_report"
   | "vacation_accrual_area_report"
   | "income_report"
   | "deduction_report"
