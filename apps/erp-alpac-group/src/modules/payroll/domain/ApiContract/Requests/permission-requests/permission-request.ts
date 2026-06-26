@@ -1,10 +1,10 @@
+import type { PermissionType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission.types";
+
 export type PermissionStatus =
   | "Pending"
   | "Approved"
   | "Rejected"
   | "Cancelled";
-
-import type { PermissionType } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
 
 export type PermissionRequest = {
   module_code: string;

@@ -1,0 +1,13 @@
+---
+import MainLayout from "@layouts/main-layout.astro";
+import { FormServiceOrder } from "@components/react/form-service-order";
+import "@alpac/design-system/styles/global.css";
+---
+
+<html>
+   <body>
+      <MainLayout>         
+         <FormServiceOrder client:load />
+      </MainLayout>
+   </body>
+</html>

@@ -6,11 +6,12 @@ import type { AdministratorPanelProps } from "./administrator-panel.types";
 export const AdministratorPanel = ({
   application,
 }: AdministratorPanelProps) => {
+
   const getStatus = (approved: boolean | null): PermissionStatus => {
     if (approved === null) return "Pending";
     return approved ? "Approved" : "Rejected";
   };
-  console.log("application", application);
+
   const status = getStatus(application.second_step_status.is_approved);
   const label =
     status === "Pending"
@@ -20,7 +21,7 @@ export const AdministratorPanel = ({
         : "Rechazado";
 
   const isCancelledSatus = application.status == "Cancelled";
-  console.log("isCancelledSatus", isCancelledSatus);
+
   return (
     <>
       {!isCancelledSatus && (

@@ -50,7 +50,6 @@ import type {
 } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-reports";
 import { usePayrollReports } from "@app/modules/payroll/ui/hooks/payroll/usePayrollReports";
 import { usePermission } from "@app/modules/payroll/ui/hooks/permission/usePermission";
-import type { PermissionType } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
 import type {
   PermissionResponse,
   StepStatus,
@@ -59,6 +58,7 @@ import { PERMISSION_TYPE_LABEL } from "@app/modules/payroll/ui/pages/permissions
 import { getPermissionStatusUiLabel } from "@app/modules/payroll/ui/pages/permissions/constants/vacation-status.constants";
 import { statusBadgeColor } from "@app/modules/payroll/ui/pages/permissions/components/permission-table/utils/statusBadgeColor";
 import type { ModalDetailsPayrollProps } from "@app/modules/payroll/ui/pages/nomina/components/collaborator-details-payroll/types/modal-details-payroll.types";
+import type { PermissionType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission.types";
 
 type DeductionView = "list" | "detail" | "payments";
 
