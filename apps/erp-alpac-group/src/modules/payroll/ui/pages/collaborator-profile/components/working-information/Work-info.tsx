@@ -1,7 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useParams } from "react-router-dom";
-import { Alert, AnimatedAlertWrapper, InputText } from "@alpac/design-system";
+import {
+  Alert,
+  AnimatedAlertWrapper,
+  Dropdown,
+  InputText,
+} from "@alpac/design-system";
 import { EditableField } from "@app/modules/payroll/ui/pages/collaborator-profile/components/EditableFieldForm";
 import { currencyRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/utils/currency-utils";
 import { salaryTypeRawToLabel } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/utils/salary-utils";
@@ -109,6 +114,25 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
   );
   const [branchModalOpen, setBranchModalOpen] = useState(false);
   const [bankModalOpen, setBankModalOpen] = useState(false);
+  const [selectedCostCenterId, setSelectedCostCenterId] = useState("");
+
+  const costCenterOptions = useMemo(
+    () =>
+      (profile?.cost_centers ?? []).map((center) => ({
+        value: center.cost_center_id,
+        label: center.cost_center_name,
+      })),
+    [profile?.cost_centers],
+  );
+
+  const costCentersMissing = costCenterOptions.length === 0;
+
+  useEffect(() => {
+    const firstCostCenterId = costCenterOptions[0]?.value;
+    setSelectedCostCenterId(
+      firstCostCenterId != null ? String(firstCostCenterId) : "",
+    );
+  }, [costCenterOptions]);
   const handleEditStart = (name: string) =>
     setEditingFields((prev) => ({ ...prev, [name]: true }));
   const handleEditEnd = (name: string) =>
@@ -369,6 +393,30 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   missingMessage="Cuenta bancaria no registrada"
                   className={editableFieldInputClasses}
                 />
+
+                <div
+                  className={`min-w-0 ${costCentersMissing ? "[&_span]:!text-red-600 dark:[&_span]:!text-red-400" : ""}`}
+                >
+                  <Dropdown
+                    appearance="dark"
+                    label="Centros de Costos"
+                    labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
+                    placeholder={
+                      costCentersMissing
+                        ? "Centros de costos no registrados"
+                        : "Seleccione un centro de costos"
+                    }
+                    options={costCenterOptions}
+                    value={
+                      costCentersMissing ? undefined : selectedCostCenterId
+                    }
+                    onChange={(value) =>
+                      setSelectedCostCenterId(String(value))
+                    }
+                    className={`${baseInputClasses} h-[46px]! sm:h-[46px]! px-3! cursor-default!`}
+                    valueClassName="text-white! dark:text-white!"
+                  />
+                </div>
               </div>
             </div>
 

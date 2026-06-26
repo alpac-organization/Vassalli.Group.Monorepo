@@ -57,7 +57,7 @@ export class PayrollServices implements IPayrollServices {
         page_size,
         identification_number,
         job_position_id,
-        work_area_id,
+        area_id,
       } = payload;
       const params = {
         type,
@@ -66,7 +66,7 @@ export class PayrollServices implements IPayrollServices {
         page_size,
         ...(identification_number ? { identification_number } : {}),
         ...(job_position_id ? { job_position_id } : {}),
-        ...(work_area_id ? { work_area_id } : {}),
+        ...(area_id ? { area_id } : {}),
       };
       const response = await this.apiHandler.get<GetPayrollResponse>(
         `/companies/${companie_id}/modules/${module_code}/payrolls`,
@@ -178,7 +178,7 @@ export class PayrollServices implements IPayrollServices {
         page_size,
         page_number,
         identification_number,
-        work_area_id,
+        area_id,
         job_position_id,
       } = payload;
       const raw = await this.apiHandler.get<GetPayrollClosedDetailsRawResponse>(
@@ -188,7 +188,7 @@ export class PayrollServices implements IPayrollServices {
             page_size,
             page_number,
             identification_number,
-            work_area_id,
+            area_id,
             job_position_id,
           }),
         },

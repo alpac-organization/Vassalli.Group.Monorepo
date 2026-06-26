@@ -69,6 +69,8 @@ export interface GetCollaboratorProfileDetailsResponse {
    */
   work_position: string;
 
+  cost_centers: CostCenterDto[];
+
   /**
    * Imagen del colaborador
    * @required
@@ -77,4 +79,11 @@ export interface GetCollaboratorProfileDetailsResponse {
   personal_information: CollaboratorProfilePersonalInformation;
   working_information: CollaboratorProfileWorkingInformation;
   salary_information: CollaboratorProfileSalaryInformation;
+}
+
+export interface CostCenterDto {
+  area_id: string;
+  cost_center_id: string;
+  descripcion: string | null;
+  cost_center_name: string;
 }

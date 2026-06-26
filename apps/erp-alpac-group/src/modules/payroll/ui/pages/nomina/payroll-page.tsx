@@ -184,10 +184,12 @@ export function PayrollPage() {
     isGeneratingEmployeeReceivablesPdf,
     setIsGeneratingEmployeeReceivablesPdf,
   ] = useState(false);
-  const [isDownloadingCollaboratorsTemplate, setIsDownloadingCollaboratorsTemplate] =
-    useState(false);
+  const [
+    isDownloadingCollaboratorsTemplate,
+    setIsDownloadingCollaboratorsTemplate,
+  ] = useState(false);
   const [identificationFilter, setIdentificationFilter] = useState("");
-  const [workAreaFilter, setWorkAreaFilter] = useState<number | null>(null);
+  const [workAreaFilter, setWorkAreaFilter] = useState<string | null>(null);
   const [jobPositionFilter, setJobPositionFilter] = useState<number | null>(
     null,
   );
@@ -332,7 +334,12 @@ export function PayrollPage() {
       localStorage.removeItem(selectionStorageKey);
       setSelectionHydrated(true);
     }
-  }, [selectionStorageKey, branchOptions, branchesQuery.isPending]);
+  }, [
+    selectionStorageKey,
+    branchOptions,
+    branchesQuery.isPending,
+    selectionHydrated,
+  ]);
 
   const selectedBranchName =
     (branchesQuery.data ?? []).find(
@@ -359,7 +366,7 @@ export function PayrollPage() {
       type: selectedPayrollType ?? "None",
       branch_id: selectedBranch ?? "",
       identification_number: identificationFilter || undefined,
-      work_area_id: workAreaFilter || undefined,
+      area_id: workAreaFilter || undefined,
       job_position_id: jobPositionFilter || undefined,
       page_number: pageNumber,
       page_size: maxPageSize,
@@ -673,7 +680,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -721,6 +728,11 @@ export function PayrollPage() {
     }
   }, [
     selectedPayrollType,
+    signatures.solicitado.name,
+    signatures.solicitado.signatureImage,
+    signatures.revisado.name,
+    signatures.revisado.role,
+    signatures.signatureImage,
     selectedBranch,
     companyId,
     moduleCode,
@@ -729,7 +741,6 @@ export function PayrollPage() {
     displayedBranchName,
     visibleKeys,
     companyName,
-    currentCompanyImageUrl,
     identificationFilter,
     workAreaFilter,
     jobPositionFilter,
@@ -758,7 +769,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -810,7 +821,6 @@ export function PayrollPage() {
     hasPayrollData,
     payrollDetailsQuery.data,
     displayedBranchName,
-    companyName,
     identificationFilter,
     workAreaFilter,
     jobPositionFilter,
@@ -833,7 +843,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : 1000,
@@ -884,7 +894,6 @@ export function PayrollPage() {
     moduleCode,
     companyName,
     payrollDetailsQuery.data,
-    currentCompanyImageUrl,
     identificationFilter,
     workAreaFilter,
     jobPositionFilter,
@@ -946,10 +955,12 @@ export function PayrollPage() {
     companyId,
     moduleCode,
     selectedPayrollType,
-    companyName,
     payrollDetailsQuery.data?.payroll_id,
-    payrollDetailsQuery.data?.start_date,
     payrollDetailsQuery.data?.end_date,
+    displayedBranchName,
+    signatures.solicitado.name,
+    signatures.solicitado.signatureImage,
+    signatures.solicitado.role,
     handlePdfGenerationError,
   ]);
   const handleGenerateVacationControlPdf = useCallback(async () => {
@@ -1079,7 +1090,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1193,7 +1204,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1268,7 +1279,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1312,6 +1323,9 @@ export function PayrollPage() {
   }, [
     selectedPayrollType,
     selectedBranch,
+    jobPositionFilter,
+    identificationFilter,
+    workAreaFilter,
     companyId,
     moduleCode,
     hasPayrollData,
@@ -1335,7 +1349,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1397,7 +1411,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1480,7 +1494,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1634,7 +1648,7 @@ export function PayrollPage() {
         type: selectedPayrollType,
         branch_id: selectedBranch,
         identification_number: identificationFilter || undefined,
-        work_area_id: workAreaFilter || undefined,
+        area_id: workAreaFilter || undefined,
         job_position_id: jobPositionFilter || undefined,
         page_number: 1,
         page_size: totalRecords > 0 ? totalRecords : maxPageSize,
@@ -1720,6 +1734,7 @@ export function PayrollPage() {
       handleGenerateIncomeSummaryPdf,
       handleGenerateDeductionSummaryPdf,
       handleGenerateConsolidatedAreaPdf,
+      handleGenerateEmployeeReceivablesPdf,
     ],
   );
 
@@ -1780,6 +1795,7 @@ export function PayrollPage() {
       handleGenerateExcel,
       handleGenerateVacationAccrualAreaExcel,
       handlePdfGenerationError,
+      handleGenerateConsolidatedAreaExcel,
     ],
   );
 
@@ -1808,16 +1824,14 @@ export function PayrollPage() {
     (
       data: Pick<CollaboratorRequest, "identification_number"> & {
         job_position: number;
-        work_area: number;
+        work_area: string;
       },
     ) => {
       const normalizedIdentification = (data.identification_number ?? "")
         .trim()
         .replace(/-/g, "");
       setIdentificationFilter(normalizedIdentification);
-      setWorkAreaFilter(
-        data.work_area && data.work_area > 0 ? data.work_area : null,
-      );
+      setWorkAreaFilter(data.work_area?.trim() ? data.work_area : null);
       setJobPositionFilter(
         data.job_position && data.job_position > 0 ? data.job_position : null,
       );
@@ -2352,7 +2366,10 @@ export function PayrollPage() {
                   type="button"
                   size="giant"
                   label="Descargar plantilla Excel"
-                  disabled={!existPayrollInProgress || isDownloadingCollaboratorsTemplate}
+                  disabled={
+                    !existPayrollInProgress ||
+                    isDownloadingCollaboratorsTemplate
+                  }
                   isLoading={isDownloadingCollaboratorsTemplate}
                   onClick={handleDownloadCollaboratorsTemplate}
                   className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
@@ -2379,7 +2396,7 @@ export function PayrollPage() {
 
         <CreateIncomeModal
           isOpen={isIncomeModalOpen}
-          payrollId={selectedOrdinaryPayroll?.payroll_id!}
+          payrollId={selectedOrdinaryPayroll?.payroll_id ?? ""}
           branchId={selectedBranch ?? ""}
           onClose={() => setIsIncomeModalOpen(false)}
           onRequestSuccess={(successMessage) => {
@@ -2394,7 +2411,7 @@ export function PayrollPage() {
         <AddDeductionModal
           isOpen={isDeductionModalOpen}
           branchId={selectedBranch ?? ""}
-          payrollId={selectedOrdinaryPayroll?.payroll_id!}
+          payrollId={selectedOrdinaryPayroll?.payroll_id ?? ""}
           onClose={() => setIsDeductionModalOpen(false)}
           onRequestSuccess={(successMessage) => {
             handleRequestSuccess(successMessage, "Deducción registrada");
@@ -2409,7 +2426,7 @@ export function PayrollPage() {
 
         <NewPermissionRequestModal
           isOpen={isPermissionApplicationModalOpen}
-          payrollId={selectedOrdinaryPayroll?.payroll_id!}
+          payrollId={selectedOrdinaryPayroll?.payroll_id ?? ""}
           onClose={() => setIsPermissionApplicationModalOpen(false)}
           onRequestSuccess={(successMessage) => {
             handleRequestSuccess(

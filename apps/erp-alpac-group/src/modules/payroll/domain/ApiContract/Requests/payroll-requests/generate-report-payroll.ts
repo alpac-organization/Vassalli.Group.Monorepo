@@ -6,7 +6,7 @@ export interface GenerateReportPayrollRequest {
   payroll_type: PayrollType;
   module_code: string;
   identification_number?: string;
-  work_area_id?: number;
+  area_id?: string;
 }
 export type ReportPayrollType =
   | "Accumulated"
