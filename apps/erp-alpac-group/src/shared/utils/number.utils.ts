@@ -45,6 +45,12 @@ export const formatAmount = (
    return canHaveDecimals ? `${integer}.${decimal}` : integer;
 };
 
+export const validateDecimalNumber = (value?: string | number): boolean | string => {
+   if (value === undefined || value === null || value === '') return false;
+   const number = Number(value);
+   return Number.isFinite(number) || 'El valor debe ser un número válido.';
+};
+
 export const validateIntegerNumber = (value?: string | number): boolean | string => {
    if (value === undefined || value === null || value === '') return false;
    const number = Number(value);

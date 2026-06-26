@@ -9,6 +9,7 @@ export interface CreatePermissionRequestBase {
   permit_application_vacation?: CreateVacationPermissionRequest;
   permit_application_donated_vacations?: CreateDonatedVacationPermissionRequest;
   permit_application_medical_appointment?: CreateMedicalAppointmentPermissionRequest;
+  permit_application_vacation_pay?: CreateVacationPayApplicationRequest;
 }
 
 interface CreateVacationPermissionRequest {
@@ -33,16 +34,13 @@ interface CreateMedicalAppointmentPermissionRequest {
   end_time?: string | null;
   images: ImageMedicalAppointment[];
 }
+
 interface ImageMedicalAppointment {
   image_base64?: string | null;
   content_type?: string | null;
 }
 
-export type PermissionType =
-  | "Vacation"
-  | "MedicalAppointment"
-  // | "CompensatoryTime"
-  // | "PaidLeave"
-  // | "UnpaidLeave"
-  // | "SpecialLeave"
-  | "DonatedVacations";
+interface CreateVacationPayApplicationRequest {
+  amount_days: number;
+  request_date: string;
+}
