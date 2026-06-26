@@ -1,5 +1,5 @@
 import type { Option } from "@alpac/design-system";
-import type { PermissionType } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
+import type { PermissionType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission.types";
 
 export const VACATION_STATUS_FILTER_OPTIONS: Option[] = [
    { label: "Todos los estados", value: "all" },
@@ -13,6 +13,7 @@ type PermissionTypeEntry = {
    value: PermissionType;
    label: string;
 };
+
 const PERMISSION_TYPE_ENTRIES: Array<PermissionTypeEntry> = [
    { value: "Vacation", label: "Vacaciones" },
    { value: "MedicalAppointment", label: "Cita médica" },

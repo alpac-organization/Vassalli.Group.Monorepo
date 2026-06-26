@@ -68,7 +68,7 @@ export const VacationForm = (props: VacationFormProps) => {
   const processApplication = (data: ApplicationProcessRequest) => {
     ProcessApplication.mutate(data, {
       onSuccess: () => {
-        console.log("data", data);
+        
         const action = data.is_approved ? "Aprobada" : "Rechazada";
         setConfirmModal({ isOpen: false, type: "CANCEL" });
         setShowAlert({
@@ -77,8 +77,6 @@ export const VacationForm = (props: VacationFormProps) => {
           title: "Solicitud procesada",
           message: `La solicitud ha sido ${action} exitosamente.`,
         });
-
-        // void ordinaryPayrollQuery.refetch();
 
         setTimeout(() => {
           onFinishProcess?.();
@@ -133,7 +131,6 @@ export const VacationForm = (props: VacationFormProps) => {
 
   const openConfirm = (type: ConfirmActionType) => {
     const value = type ? ConfirmActionValueMap[type] : null;
-    console.log("value", value);
     setValue("is_approved", value);
     setConfirmModal({ isOpen: true, type });
   };
@@ -185,7 +182,7 @@ export const VacationForm = (props: VacationFormProps) => {
             <Button
               type="button"
               label="Cancelar"
-              className="rounded-md! border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-500/20 hover:border-orange-400 dark:hover:border-orange-500/60 hover:text-orange-700 dark:hover:text-orange-300 disabled:opacity-40"
+              className="rounded-md! h-11 px-6! border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-500/20 hover:border-orange-400 dark:hover:border-orange-500/60 hover:text-orange-700 dark:hover:text-orange-300 disabled:opacity-40"
               onClick={() => openConfirm("CANCEL")}
               icon={<BanIcon size={20} />}
               isHiddenLabelOnMobile

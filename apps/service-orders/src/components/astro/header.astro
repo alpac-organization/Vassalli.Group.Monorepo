@@ -1,11 +1,21 @@
+---
+import { FloatingButtonTheme } from "@components/react/floating-button-theme";
+---
 
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    
-</body>
-</html>
+<header
+    class="w-full h-[80px] dark:bg-[#272B34] bg-[#FAFAFA] border-b border-b-slate-300 dark:border-b-gray-600 flex items-end"
+>
+    <div class="relative w-[800px] h-[80px] mx-auto flex items-center">
+        <div
+            class={`absolute dark:bg-white bg-[#ededed] top-[40px] inline-flex items-center justify-center shadow-lg`}
+        >
+            <img
+                src="https://erp-core-manager-api.onrender.com/Logos/png/original/centro-logistico-alpac.png"
+                alt="Centro Logístico Alpac"
+                class="h-30 w-auto object-contain block"
+            />
+        </div>
+
+        <FloatingButtonTheme client:only="react" />
+    </div>
+</header>

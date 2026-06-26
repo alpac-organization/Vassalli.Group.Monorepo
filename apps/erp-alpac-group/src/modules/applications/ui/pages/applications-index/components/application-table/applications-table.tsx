@@ -14,14 +14,14 @@ export const ApplicationsTable = ({ data, pagination, onOpenApplicationDetailMod
       {
          key: 'type',
          label: 'Tipo',
-         render: (value) => PermitApplicationTypeEnum[value.type].label ?? "-"
+         render: (value) => PermitApplicationTypeEnum[value.type]?.label ?? "-"
       },
       {
          key: 'status',
          label: 'Estado',
          render: (value) => (
             <Badges
-               label={PermitApplicationStatusEnum[value.status].label ?? "-"}
+               label={PermitApplicationStatusEnum[value.status]?.label ?? "-"}
                color={statusBadgeColor(value.status)} />
          )
       },
