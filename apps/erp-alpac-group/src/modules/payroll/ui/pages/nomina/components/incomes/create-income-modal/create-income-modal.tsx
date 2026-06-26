@@ -30,7 +30,6 @@ export const CreateIncomeModal = ({
       <LazyMotion features={loadFeatures} strict>
         <div className="flex flex-col gap-5">
           <AnimatePresence>
-            {
               <m.div
                 key="subsidy-form"
                 initial={{ opacity: 0, y: 16, height: 0, overflow: "hidden" }}
@@ -66,7 +65,6 @@ export const CreateIncomeModal = ({
                   />
                 </div>
               </m.div>
-            }
           </AnimatePresence>
         </div>
       </LazyMotion>
