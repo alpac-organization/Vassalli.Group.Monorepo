@@ -45,6 +45,7 @@ import { CatalogEnum } from "@app/core/enums/catalog.enum";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import type { CollaboratorModalType } from "./types/collaborator-modal.types";
+import { DeactivateCollaboratorModal } from "./components/deactivate-collaborator-modal/deactivate-collaborator-modal";
 
 const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
@@ -212,7 +213,9 @@ export const CollaboratorPage = function () {
       setActiveModal("add-collaborator");
    }, []);
 
-   const handleCollaboratorExit = useCallback(() => { }, []);
+   const handleDeactivateCollaborator = useCallback(() => {
+      setActiveModal("deactivate-collaborator");
+   }, []);
 
    const formatNumber = useCallback((value: string) => {
       const number = Number(value);
@@ -347,10 +350,9 @@ export const CollaboratorPage = function () {
                      <Button
                         size="giant"
                         label="Iniciar Proceso de Baja"
-                        disabled
                         icon={<UserMinus size={20} />}
                         className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                        onClick={handleCollaboratorExit}
+                        onClick={handleDeactivateCollaborator}
                      />
                   </div>
                </div>
@@ -512,6 +514,13 @@ export const CollaboratorPage = function () {
                   optionsJobPositions={optionsJobPositions}
                   optionsBranches={optionsBranches}
                   optionsBanks={optionsBanks}
+                  onClose={() => setActiveModal(null)}
+                  onRequestSuccess={handleRequestSuccess}
+                  onRequestError={handleRequestError}
+               />
+
+               <DeactivateCollaboratorModal
+                  isOpen={activeModal === "deactivate-collaborator"}
                   onClose={() => setActiveModal(null)}
                   onRequestSuccess={handleRequestSuccess}
                   onRequestError={handleRequestError}
