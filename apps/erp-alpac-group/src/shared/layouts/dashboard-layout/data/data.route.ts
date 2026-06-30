@@ -15,6 +15,7 @@ import {
   Grid,
   Briefcase,
   Fingerprint,
+  FolderClock,
 } from "lucide-react";
 
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
@@ -117,6 +118,13 @@ const administrationJobPositionsSection: SidebarLink = {
   icon: Briefcase,
 };
 
+const subsidyHistorialSection: SidebarLink = {
+  id: "subsidy-history",
+  label: "Historial de Subsidio",
+  path: "payroll/subsidy-history",
+  icon: FolderClock
+}
+
 export const sidebarData = {
   logoUrl:
     "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
@@ -132,6 +140,7 @@ export const sidebarData = {
         liquidacionSection,
         //   controlVacationsSection,
         attendanceControlSection,
+        subsidyHistorialSection
       ],
     },
     [ModuleEnum.ADMINISTRATION]: {
