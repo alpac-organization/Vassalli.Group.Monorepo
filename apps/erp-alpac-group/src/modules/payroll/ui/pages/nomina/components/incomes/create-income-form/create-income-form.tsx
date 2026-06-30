@@ -154,6 +154,7 @@ export const CreateIncomeForm = ({
     isCommissionType ||
     isBonusType ||
     isSubsidyType ||
+    isDepreciationType ||
     (isOvertimeType && selectedInputMethod === "manualEntry");
 
   useEffect(() => {
@@ -211,20 +212,37 @@ export const CreateIncomeForm = ({
   }, [isDepreciationType, methods]);
 
   const handleClearCollaborator = useCallback(() => {
+
     setFoundCollaborator(null);
+
     if (isCommissionType) {
       methods.setValue("commissions_payload", {
         currency: 0,
         commission_amount: 0,
       });
     }
+
     if (isOvertimeType && selectedInputMethod === "manualEntry") {
       methods.setValue("overtime_payload", {
         identification_number: "",
         amount_hours: 0,
       });
     }
-  }, [isCommissionType, isOvertimeType, selectedInputMethod, methods]);
+
+    if (isDepreciationType) {
+      methods.setValue("depreciation_payload", {
+        currency: 0,
+        identification_number: "",
+        depreciation_amount: 0,
+      });
+    }
+  }, [
+    isCommissionType,
+    isOvertimeType,
+    isDepreciationType,
+    selectedInputMethod,
+    methods
+  ]);
 
   const handleOvertimeFileRemove = useCallback(() => {
     methods.setValue("overtime_income_data", undefined);
@@ -366,6 +384,7 @@ export const CreateIncomeForm = ({
 
       const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
+
       const identificationNumberValue = collaboratorIdentification
         .replace(/-/g, "")
         .toUpperCase();
@@ -435,9 +454,12 @@ export const CreateIncomeForm = ({
     }
 
     if (isDepreciationType) {
-      const identificationNumberValue = (identificationNumber ?? "")
-        .replace(/-/g, "")
-        .toUpperCase();
+
+      const collaboratorIdentification =
+        foundCollaborator?.personal_information?.identification_number ?? "";
+
+      const identificationNumberValue =
+        collaboratorIdentification.replace(/-/g, "").toUpperCase();
 
       await CreateIncome.mutateAsync(
         {
@@ -700,7 +722,7 @@ export const CreateIncomeForm = ({
           </m.div>
         )}
 
-        {isDepreciationType && (
+        {!!foundCollaborator && isDepreciationType && (
           <m.div
             key="depreciation-fields"
             initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
@@ -716,12 +738,14 @@ export const CreateIncomeForm = ({
             <Depreciation />
           </m.div>
         )}
+
       </AnimatePresence>
     </LazyMotion>
   );
 
   const collaboratorSearchSection =
     isSubsidyType && !foundCollaborator && needsCollaborator ? (
+
       <CollaboratorSearchForm
         onSuccess={(collaborator) => {
           setFoundCollaborator(collaborator);
@@ -737,6 +761,7 @@ export const CreateIncomeForm = ({
         }}
         excludeIdentifications={[identificationNumber]}
       />
+
     ) : null;
 
   const collaboratorSummarySection =
