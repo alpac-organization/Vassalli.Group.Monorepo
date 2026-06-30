@@ -43,6 +43,7 @@ export const DeactivateCollaboratorModal = (props: DeactivateCollaboratorModalPr
    }, [foundCollaborator]);
 
    const handleCloseModal = useCallback(() => {
+      setFoundCollaborator(null);
       props.onClose?.();
    }, [props.onClose]);
 
