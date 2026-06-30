@@ -82,7 +82,10 @@ import { exportAccumulatedHistoryExcel } from "@app/modules/payroll/ui/pages/nom
 import { filterAccumulatedHistoryByPayrollItems } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/utils/filter-accumulated-history.utils";
 import { exportIncomeSummaryExcel } from "@app/modules/payroll/ui/pages/nomina/components/income-review-pdf/excel/export-income-summary-excel";
 import { exportDeductionSummaryExcel } from "@app/modules/payroll/ui/pages/nomina/components/deduction-review-pdf/excel/export-deduction-summary-excel";
+import { InssReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/inss-report-pdf/inss-report-pdf-document";
+import { exportInssReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/inss-report-pdf/excel/export-inss-report-excel";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
+import type { ReportPayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/generate-report-payroll";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { PayrollActionValue } from "@app/modules/payroll/ui/pages/nomina/types/payroll-actions.types";
 import type { StoredPayrollSelection } from "@app/modules/payroll/ui/pages/nomina/types/payroll.types";
@@ -200,6 +203,7 @@ export function PayrollPage() {
     isGeneratingEmployeeReceivablesPdf,
     setIsGeneratingEmployeeReceivablesPdf,
   ] = useState(false);
+  const [isGeneratingInssReport, setIsGeneratingInssReport] = useState(false);
   const [
     isGeneratingVacationPermissionsSummary,
     setIsGeneratingVacationPermissionsSummary,
@@ -463,12 +467,13 @@ export function PayrollPage() {
     const startDay = startDate ? new Date(startDate).getUTCDate() : null;
     const endDay = endDate ? new Date(endDate).getUTCDate() : null;
     const PAYROLL_FIRST_PERIOD_END_DAY = 15;
-    if (endDay === PAYROLL_FIRST_PERIOD_END_DAY) {
+    const PAYROLL_SECOND_PERIOD_START_DAY = 16;
+
+    if (
+      endDay === PAYROLL_FIRST_PERIOD_END_DAY ||
+      startDay === PAYROLL_SECOND_PERIOD_START_DAY
+    ) {
       const actionQuincenal: { label: string; value: PayrollActionValue }[] = [
-        {
-          label: "Generar Reporte Quincenal Acumulado",
-          value: "quincenal_accumulated_report",
-        },
         {
           label: "Generar Reporte Quincenal IR",
           value: "quincenal_ir_report",
@@ -480,13 +485,9 @@ export function PayrollPage() {
       ];
       actionQuincenal.forEach((option) => options.push(option));
     }
-    const PAYROLL_SECOND_PERIOD_START_DAY = 16;
+
     if (startDay === PAYROLL_SECOND_PERIOD_START_DAY) {
       const actionMonthly: { label: string; value: PayrollActionValue }[] = [
-        {
-          label: "Generar Reporte Mensual Acumulado",
-          value: "monthly_accumulated_report",
-        },
         {
           label: "Generar Reporte Mensual IR",
           value: "monthly_ir_report",
@@ -2159,6 +2160,117 @@ export function PayrollPage() {
     handlePdfGenerationError,
   ]);
 
+  const loadInssReportData = useCallback(
+    async (isFortnightly: boolean) => {
+      if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+        return null;
+      if (!hasPayrollData) {
+        handlePdfGenerationError(
+          "No hay datos en la tabla de nómina para generar el reporte.",
+        );
+        return null;
+      }
+      const payrollServices = new PayrollServices(httpHandler);
+      const detailsData = payrollDetailsQuery.data;
+      const reportType: ReportPayrollType = isFortnightly
+        ? "InssFortnightly"
+        : "InssMonthly";
+
+      const payload = {
+        companie_id: companyId,
+        report_type: reportType,
+        payroll_id: detailsData?.payroll_id ?? "",
+        payroll_type: selectedPayrollType,
+        module_code: moduleCode,
+        identification_number: identificationFilter || undefined,
+      };
+
+      const response = await payrollServices.generateReportsPayroll(payload);
+      return response.inss_information ?? [];
+    },
+    [
+      selectedPayrollType,
+      selectedBranch,
+      companyId,
+      moduleCode,
+      hasPayrollData,
+      payrollDetailsQuery.data,
+      identificationFilter,
+      handlePdfGenerationError,
+    ],
+  );
+
+  const handleGenerateInssReportPdf = useCallback(
+    async (isFortnightly: boolean) => {
+      try {
+        setIsGeneratingInssReport(true);
+        const inssData = await loadInssReportData(isFortnightly);
+        if (!inssData) return;
+
+        const preparedSignatureImageSrc = signatures.revisado.signatureImage
+          ? await getProcessedSignatureImage(signatures.revisado.signatureImage)
+          : "";
+
+        const blob = await pdf(
+          <InssReportPdfDocument
+            data={inssData}
+            startDate={payrollDetailsQuery.data?.start_date}
+            endDate={payrollDetailsQuery.data?.end_date}
+            branchName={displayedBranchName ?? ""}
+            isFortnightly={isFortnightly}
+          />,
+        ).toBlob();
+
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el reporte INSS en PDF.",
+        );
+      } finally {
+        setIsGeneratingInssReport(false);
+      }
+    },
+    [
+      loadInssReportData,
+      signatures,
+      payrollDetailsQuery.data,
+      displayedBranchName,
+      handlePdfGenerationError,
+    ],
+  );
+
+  const handleGenerateInssReportExcel = useCallback(
+    async (isFortnightly: boolean) => {
+      try {
+        setIsGeneratingInssReport(true);
+        const inssData = await loadInssReportData(isFortnightly);
+        if (!inssData) return;
+
+        await exportInssReportExcel({
+          data: inssData,
+          branchName: displayedBranchName ?? "",
+          startDate: payrollDetailsQuery.data?.start_date,
+          endDate: payrollDetailsQuery.data?.end_date,
+          logoUrl: useCompanyStore.getState().urlImage,
+          isFortnightly,
+        });
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el reporte INSS en Excel.",
+        );
+      } finally {
+        setIsGeneratingInssReport(false);
+      }
+    },
+    [
+      loadInssReportData,
+      displayedBranchName,
+      payrollDetailsQuery.data,
+      handlePdfGenerationError,
+    ],
+  );
+
   const executePdfForAction = useCallback(
     async (action: PayrollActionValue) => {
       switch (action) {
@@ -2198,6 +2310,12 @@ export function PayrollPage() {
         case "employee_receivables_report":
           await handleGenerateEmployeeReceivablesPdf();
           break;
+        case "quincenal_inss_report":
+          await handleGenerateInssReportPdf(true);
+          break;
+        case "monthly_inss_report":
+          await handleGenerateInssReportPdf(false);
+          break;
         default:
           break;
       }
@@ -2215,6 +2333,7 @@ export function PayrollPage() {
       handleGenerateDeductionSummaryPdf,
       handleGenerateConsolidatedAreaPdf,
       handleGenerateEmployeeReceivablesPdf,
+      handleGenerateInssReportPdf,
     ],
   );
 
@@ -2231,6 +2350,7 @@ export function PayrollPage() {
     isGeneratingDeductionSummaryPdf ||
     isGeneratingConsolidatedAreaPdf ||
     isGeneratingEmployeeReceivablesPdf ||
+    isGeneratingInssReport ||
     isGeneratingVacationPermissionsSummary ||
     isGeneratingConsolidatedAreaExcel;
 
@@ -2273,9 +2393,13 @@ export function PayrollPage() {
         case "vacation_permissions_summary_report":
           await handleGenerateVacationPermissionsSummaryExcel();
           break;
-        case "monthly_accumulated_report":
-        case "monthly_ir_report":
+        case "quincenal_inss_report":
+          await handleGenerateInssReportExcel(true);
+          break;
         case "monthly_inss_report":
+          await handleGenerateInssReportExcel(false);
+          break;
+        case "monthly_ir_report":
           handlePdfGenerationError(
             "La exportación en Excel para este reporte aún no está disponible.",
           );
@@ -2294,6 +2418,7 @@ export function PayrollPage() {
       handleGenerateVacationPermissionsSummaryExcel,
       handlePdfGenerationError,
       handleGenerateConsolidatedAreaExcel,
+      handleGenerateInssReportExcel,
     ],
   );
 
@@ -2819,7 +2944,8 @@ export function PayrollPage() {
                     isGeneratingVacationControlPdf ||
                     isGeneratingVacationControlAreaPdf ||
                     isGeneratingVacationAccrualAreaReport ||
-                    isGeneratingEmployeeReceivablesPdf
+                    isGeneratingEmployeeReceivablesPdf ||
+                    isGeneratingInssReport
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}
@@ -2839,7 +2965,8 @@ export function PayrollPage() {
                     isGeneratingVacationControlPdf ||
                     isGeneratingVacationControlAreaPdf ||
                     isGeneratingVacationAccrualAreaReport ||
-                    isGeneratingEmployeeReceivablesPdf
+                    isGeneratingEmployeeReceivablesPdf ||
+                    isGeneratingInssReport
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}
@@ -2857,7 +2984,8 @@ export function PayrollPage() {
                     isGeneratingVacationControlPdf ||
                     isGeneratingVacationControlAreaPdf ||
                     isGeneratingVacationAccrualAreaReport ||
-                    isGeneratingEmployeeReceivablesPdf
+                    isGeneratingEmployeeReceivablesPdf ||
+                    isGeneratingInssReport
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
                   }`}

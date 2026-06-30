@@ -49,6 +49,9 @@ import {
   buildVacationPermissionsSummaryRows,
   fetchApprovedVacationPermissionsByPayroll,
 } from "@app/modules/payroll/ui/pages/nomina/components/vacation-permissions-summary/utils/build-vacation-permissions-summary.utils";
+import { InssReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/inss-report-pdf/inss-report-pdf-document";
+import { exportInssReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/inss-report-pdf/excel/export-inss-report-excel";
+import type { ReportPayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/generate-report-payroll";
 import { exportVacationPermissionsSummaryExcel } from "@app/modules/payroll/ui/pages/nomina/components/vacation-permissions-summary/excel/export-vacation-permissions-summary-excel";
 import { EmployeeReceivablesPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/employee-receivables-pdf/employee-receivables-pdf-document";
 import { exportEmployeeReceivablesExcel } from "@app/modules/payroll/ui/pages/nomina/components/employee-receivables-pdf/excel/export-employee-receivables-excel";
@@ -130,6 +133,10 @@ export function PayrollClosedHistoryPage() {
   const [
     isGeneratingEmployeeReceivablesPdf,
     setIsGeneratingEmployeeReceivablesPdf,
+  ] = useState(false);
+  const [
+    isGeneratingInssReport,
+    setIsGeneratingInssReport,
   ] = useState(false);
   const [
     isGeneratingVacationPermissionsSummary,
@@ -232,12 +239,9 @@ export function PayrollClosedHistoryPage() {
     const startDay = startDate ? new Date(startDate).getUTCDate() : null;
     const endDay = endDate ? new Date(endDate).getUTCDate() : null;
     const PAYROLL_FIRST_PERIOD_END_DAY = 15;
-    if (endDay === PAYROLL_FIRST_PERIOD_END_DAY) {
+    const PAYROLL_SECOND_PERIOD_START_DAY = 16;
+    if (endDay === PAYROLL_FIRST_PERIOD_END_DAY || startDay === PAYROLL_SECOND_PERIOD_START_DAY) {
       options.push(
-        {
-          label: "Generar Reporte Quincenal Acumulado",
-          value: "quincenal_accumulated_report",
-        },
         {
           label: "Generar Reporte Quincenal IR",
           value: "quincenal_ir_report",
@@ -248,16 +252,11 @@ export function PayrollClosedHistoryPage() {
         },
       );
     }
-    const PAYROLL_SECOND_PERIOD_START_DAY = 16;
     if (startDay === PAYROLL_SECOND_PERIOD_START_DAY) {
       options.push(
-        {
-          label: "Generar Reporte Mensual Acumulado",
-          value: "monthly_accumulated_report",
-        },
         { label: "Generar Reporte Mensual IR", value: "monthly_ir_report" },
         {
-          label: "Generar Reporte mensual INSS",
+          label: "Generar Reporte Mensual INSS",
           value: "monthly_inss_report",
         },
       );
@@ -1339,6 +1338,98 @@ export function PayrollClosedHistoryPage() {
     handlePdfGenerationError,
   ]);
 
+  const loadInssReportData = useCallback(async (isFortnightly: boolean) => {
+    if (!companyId || !payroll_id || !moduleCode || !type_payroll)
+      return null;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return null;
+    }
+    const payrollServices = new PayrollServices(httpHandler);
+    const reportType: ReportPayrollType = isFortnightly ? "InssFortnightly" : "InssMonthly";
+
+    const payload = {
+      companie_id: companyId,
+      report_type: reportType,
+      payroll_id: payroll_id,
+      payroll_type: type_payroll,
+      module_code: moduleCode,
+      identification_number: identificationFilter || undefined,
+    };
+
+    const response = await payrollServices.generateReportsPayroll(payload);
+    return response.inss_information ?? [];
+  }, [
+    type_payroll,
+    payroll_id,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    identificationFilter,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateInssReportPdf = useCallback(async (isFortnightly: boolean) => {
+    try {
+      setIsGeneratingInssReport(true);
+      const inssData = await loadInssReportData(isFortnightly);
+      if (!inssData) return;
+
+      const blob = await pdf(
+        <InssReportPdfDocument
+          data={inssData}
+          startDate={detailsData?.start_date}
+          endDate={detailsData?.end_date}
+          branchName={branchName}
+          isFortnightly={isFortnightly}
+        />,
+      ).toBlob();
+
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte INSS en PDF.",
+      );
+    } finally {
+      setIsGeneratingInssReport(false);
+    }
+  }, [
+    loadInssReportData,
+    detailsData,
+    branchName,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateInssReportExcel = useCallback(async (isFortnightly: boolean) => {
+    try {
+      setIsGeneratingInssReport(true);
+      const inssData = await loadInssReportData(isFortnightly);
+      if (!inssData) return;
+
+      await exportInssReportExcel({
+        data: inssData,
+        branchName,
+        startDate: detailsData?.start_date,
+        endDate: detailsData?.end_date,
+        logoUrl: useCompanyStore.getState().urlImage,
+        isFortnightly,
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte INSS en Excel.",
+      );
+    } finally {
+      setIsGeneratingInssReport(false);
+    }
+  }, [
+    loadInssReportData,
+    branchName,
+    detailsData,
+    handlePdfGenerationError,
+  ]);
+
   const executePdfForAction = useCallback(
     async (action: PayrollActionValue) => {
       switch (action) {
@@ -1375,6 +1466,12 @@ export function PayrollClosedHistoryPage() {
         case "employee_receivables_report":
           await handleGenerateEmployeeReceivablesPdf();
           break;
+        case "quincenal_inss_report":
+          await handleGenerateInssReportPdf(true);
+          break;
+        case "monthly_inss_report":
+          await handleGenerateInssReportPdf(false);
+          break;
         default:
           break;
       }
@@ -1391,6 +1488,7 @@ export function PayrollClosedHistoryPage() {
       handleGenerateDeductionSummaryPdf,
       handleGenerateConsolidatedAreaPdf,
       handleGenerateEmployeeReceivablesPdf,
+      handleGenerateInssReportPdf,
     ],
   );
 
@@ -1407,7 +1505,8 @@ export function PayrollClosedHistoryPage() {
     isGeneratingConsolidatedAreaPdf ||
     isGeneratingEmployeeReceivablesPdf ||
     isGeneratingVacationPermissionsSummary ||
-    isGeneratingConsolidatedAreaExcel;
+    isGeneratingConsolidatedAreaExcel ||
+    isGeneratingInssReport;
 
   const handleOpenGenerateModal = useCallback(() => {
     setSelectedAction(null);
@@ -1448,9 +1547,13 @@ export function PayrollClosedHistoryPage() {
         case "vacation_permissions_summary_report":
           await handleGenerateVacationPermissionsSummaryExcel();
           break;
-        case "monthly_accumulated_report":
-        case "monthly_ir_report":
+        case "quincenal_inss_report":
+          await handleGenerateInssReportExcel(true);
+          break;
         case "monthly_inss_report":
+          await handleGenerateInssReportExcel(false);
+          break;
+        case "monthly_ir_report":
           handlePdfGenerationError(
             "La exportación en Excel para este reporte aún no está disponible.",
           );
@@ -1468,6 +1571,7 @@ export function PayrollClosedHistoryPage() {
       handleGenerateDeductionSummaryExcel,
       handleGenerateEmployeeReceivablesExcel,
       handleGenerateVacationPermissionsSummaryExcel,
+      handleGenerateInssReportExcel,
       handlePdfGenerationError,
     ],
   );

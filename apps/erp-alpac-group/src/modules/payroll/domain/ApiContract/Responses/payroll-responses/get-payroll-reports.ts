@@ -35,12 +35,24 @@ export interface GetPaymentTravelExpensesResponse {
   feeding: number;
   lodging: number;
 }
+export interface GetPayrollReportsInssInformationResponse {
+  collaboratorCode: string;
+  collaboratorFullname: string;
+  income: number;
+  absences: number;
+  inssLab: number;
+  inssPatronal: number;
+  inatec: number;
+  total: number;
+}
 export interface GetPayrollReportsPayloadResponse {
   accumulated_history: GetPayrollReportsAccumulatedResponse[];
 
   vacation_accruals_history: GetPayrollReportsVacationAccrualResponse[];
 
   payment_travel_expenses: GetPaymentTravelExpensesResponse[];
+
+  inss_information: GetPayrollReportsInssInformationResponse[];
 }
 
 /** @deprecated Use GetPayrollReportsAccumulatedResponse */

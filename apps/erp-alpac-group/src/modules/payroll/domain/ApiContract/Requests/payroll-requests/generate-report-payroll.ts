@@ -11,4 +11,6 @@ export interface GenerateReportPayrollRequest {
 export type ReportPayrollType =
   | "Accumulated"
   | "VacationAccrual"
-  | "TravelExpenses";
+  | "TravelExpenses"
+  | "InssFortnightly"
+  | "InssMonthly";

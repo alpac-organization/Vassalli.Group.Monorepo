@@ -10,8 +10,6 @@ export type PayrollActionValue =
   | "deduction_report"
   | "consolidated_area_report"
   | "employee_receivables_report"
-  | "monthly_accumulated_report"
-  | "quincenal_accumulated_report"
   | "monthly_ir_report"
   | "monthly_inss_report"
   | "quincenal_ir_report"
