@@ -1,6 +1,6 @@
-import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types"
+import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
 
-export type ConfirmActionProps = {
+export type ApplicationConfirmActionProps = {
    isOpen: boolean;
    type: ConfirmActionType;
    onClose?: () => void;

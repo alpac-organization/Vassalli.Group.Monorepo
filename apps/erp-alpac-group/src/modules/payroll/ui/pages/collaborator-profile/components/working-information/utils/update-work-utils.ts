@@ -35,6 +35,7 @@ export const useUpdateWorkInformation = ({
   }, [alertInfo]);
 
   const handleFieldUpdate = async (name: string, value: string) => {
+
     if (!companyId?.trim() || !moduleCode?.trim() || !targetIdentification) {
       setAlertInfo({
         type: "error",
@@ -62,6 +63,9 @@ export const useUpdateWorkInformation = ({
       case "inssNumber":
         working.inss_number = value.trim();
         break;
+      case "bankAccountNumber":
+        working.bank_account_number = value.trim();
+        break;
       default:
         return;
     }
@@ -81,6 +85,7 @@ export const useUpdateWorkInformation = ({
           }
         : {}),
     };
+
     try {
       await UpdateCollaboratorProfileDetails.mutateAsync(payload);
       setAlertInfo({

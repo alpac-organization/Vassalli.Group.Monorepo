@@ -26,6 +26,7 @@ import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContra
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 import { Overtime } from "../overtime/overtime";
+import { Depreciation } from "../depreciation/depreciation";
 
 const inputClassName =
   "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -86,13 +87,18 @@ export const CreateIncomeForm = ({
         currency: 0,
         commission_amount: 0,
       },
+      depreciation_payload: {
+        currency: 0,
+        depreciation_amount: 0,
+      },
     },
   });
 
   const INCOMES_TYPES = [
     IncomeTypeEnum.INCOME_OVERTIME,
     IncomeTypeEnum.INCOME_COMMISSION,
-    IncomeTypeEnum.INCOME_BONUS
+    IncomeTypeEnum.INCOME_BONUS,
+    IncomeTypeEnum.INCOME_DEPRECIATION
   ] as IncomeTypeEnum[];
 
   const { GetIncomeTypes, CreateIncome } = useIncomes({
@@ -132,6 +138,7 @@ export const CreateIncomeForm = ({
   const overtimeManualPayload = methods.watch("overtime_payload");
   const commissionIncomePayload = methods.watch("commissions_payload");
   const bonusIncomePayload = methods.watch("bonus_payload");
+  const depreciationIncomePayload = methods.watch("depreciation_payload");
 
   const selectedIncomeTypeCode = useMemo(() => {
     return allIncomeTypeOptions.find((opt) => opt.id === incomeTypeId)?.code;
@@ -141,10 +148,13 @@ export const CreateIncomeForm = ({
   const isCommissionType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION;
   const isBonusType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_BONUS;
   const isSubsidyType = selectedIncomeTypeCode === SUBSIDY_TYPE_CODE;
+  const isDepreciationType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_DEPRECIATION;
+
   const needsCollaborator =
     isCommissionType ||
     isBonusType ||
     isSubsidyType ||
+    isDepreciationType ||
     (isOvertimeType && selectedInputMethod === "manualEntry");
 
   useEffect(() => {
@@ -190,21 +200,49 @@ export const CreateIncomeForm = ({
     });
   }, [isCommissionType, methods]);
 
+  useEffect(() => {
+    if (!isDepreciationType) {
+      methods.setValue("depreciation_payload", undefined);
+      return;
+    }
+    methods.setValue("depreciation_payload", {
+      currency: 0,
+      depreciation_amount: 0,
+    });
+  }, [isDepreciationType, methods]);
+
   const handleClearCollaborator = useCallback(() => {
+
     setFoundCollaborator(null);
+
     if (isCommissionType) {
       methods.setValue("commissions_payload", {
         currency: 0,
         commission_amount: 0,
       });
     }
+
     if (isOvertimeType && selectedInputMethod === "manualEntry") {
       methods.setValue("overtime_payload", {
         identification_number: "",
         amount_hours: 0,
       });
     }
-  }, [isCommissionType, isOvertimeType, selectedInputMethod, methods]);
+
+    if (isDepreciationType) {
+      methods.setValue("depreciation_payload", {
+        currency: 0,
+        identification_number: "",
+        depreciation_amount: 0,
+      });
+    }
+  }, [
+    isCommissionType,
+    isOvertimeType,
+    isDepreciationType,
+    selectedInputMethod,
+    methods
+  ]);
 
   const handleOvertimeFileRemove = useCallback(() => {
     methods.setValue("overtime_income_data", undefined);
@@ -242,7 +280,13 @@ export const CreateIncomeForm = ({
       return;
     }
 
-    const { overtime_income_data, commissions_payload, bonus_payload, ...rest } = data;
+    const {
+      overtime_income_data,
+      commissions_payload,
+      bonus_payload,
+      depreciation_payload,
+      ...rest
+    } = data;
 
     if (isOvertimeType) {
       if (selectedInputMethod === "manualEntry") {
@@ -340,6 +384,7 @@ export const CreateIncomeForm = ({
 
       const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
+
       const identificationNumberValue = collaboratorIdentification
         .replace(/-/g, "")
         .toUpperCase();
@@ -408,6 +453,42 @@ export const CreateIncomeForm = ({
       );
     }
 
+    if (isDepreciationType) {
+
+      const collaboratorIdentification =
+        foundCollaborator?.personal_information?.identification_number ?? "";
+
+      const identificationNumberValue =
+        collaboratorIdentification.replace(/-/g, "").toUpperCase();
+
+      await CreateIncome.mutateAsync(
+        {
+          company_id: rest.company_id,
+          module_code: rest.module_code,
+          branch_id: rest.branch_id,
+          payroll_id: rest.payroll_id,
+          type_income_id: rest.type_income_id,
+          depreciation_payload: {
+            currency: Number(depreciation_payload?.currency) || 0,
+            depreciation_amount:
+              Number(depreciation_payload?.depreciation_amount) || 0,
+            identification_number: identificationNumberValue,
+          },
+        },
+        {
+          onSuccess: () => {
+            onRequestSuccess?.("Ingreso registrado correctamente");
+          },
+          onError: (error: ApiErrorResponse) => {
+            const mappedError = getMappedError(error);
+            onRequestError?.(
+              mappedError.description || "Error al registrar el ingreso",
+            );
+          },
+        },
+      );
+    }
+
   };
 
   const hasOvertimeExcelData =
@@ -429,6 +510,10 @@ export const CreateIncomeForm = ({
     (bonusIncomePayload?.bonus_amount ?? 0) > 0 &&
     (bonusIncomePayload?.currency ?? 0) !== 0;
 
+  const hasValidDepreciation =
+    (depreciationIncomePayload?.depreciation_amount ?? 0) > 0 &&
+    (depreciationIncomePayload?.currency ?? 0) !== 0;
+
   const isSubmitDisabled =
     CreateIncome.isPending ||
     !methods.formState.isDirty ||
@@ -438,7 +523,8 @@ export const CreateIncomeForm = ({
     (isOvertimeType &&
       !(hasOvertimeExcelData || hasValidOvertimeManual)) ||
     (isCommissionType && (!foundCollaborator || !hasValidCommission)) ||
-    (isBonusType && (!foundCollaborator || !hasValidBonus));
+    (isBonusType && (!foundCollaborator || !hasValidBonus)) ||
+    (isDepreciationType && !hasValidDepreciation);
 
   const incomeTypeDropdown = (
     <div className="flex flex-col gap-1.5">
@@ -635,12 +721,31 @@ export const CreateIncomeForm = ({
             />
           </m.div>
         )}
+
+        {!!foundCollaborator && isDepreciationType && (
+          <m.div
+            key="depreciation-fields"
+            initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              height: "auto",
+              overflow: "visible",
+            }}
+            exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+            transition={formFieldsTransition}
+          >
+            <Depreciation />
+          </m.div>
+        )}
+
       </AnimatePresence>
     </LazyMotion>
   );
 
   const collaboratorSearchSection =
     isSubsidyType && !foundCollaborator && needsCollaborator ? (
+
       <CollaboratorSearchForm
         onSuccess={(collaborator) => {
           setFoundCollaborator(collaborator);
@@ -656,6 +761,7 @@ export const CreateIncomeForm = ({
         }}
         excludeIdentifications={[identificationNumber]}
       />
+
     ) : null;
 
   const collaboratorSummarySection =
