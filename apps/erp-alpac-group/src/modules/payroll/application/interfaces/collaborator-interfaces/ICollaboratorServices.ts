@@ -5,6 +5,7 @@ import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
 import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/update-collaborator-request";
 import type { GetCollaboratorProfileGeneratedDocumentParams } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/generated-document.request";
+import type { DeactivateCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/deactivate-collaborator.request";
 /**
  * @interface ICollaboratorServices
  * @description Define el contrato para los servicios de colaboradores.
@@ -31,6 +32,7 @@ export interface ICollaboratorServices {
    * @throws {Error} Si hay un error en la solicitud.
    */
   PostCollaborator(payload: AddCollaboratorRequest): Promise<void>;
+
   /**
    * @method GetCollaboratorProfileDetails
    * @description Obtiene los detalles del perfil de colaboradores.
@@ -41,6 +43,7 @@ export interface ICollaboratorServices {
   GetCollaboratorProfileDetails(
     payload: CollaboratorProfileDetailsRequest,
   ): Promise<GetCollaboratorProfileDetailsResponse>;
+
   /**
    * @method UpdateCollaboratorProfileDetails
    * @description Actualiza los detalles del perfil de colaboradores.
@@ -51,7 +54,11 @@ export interface ICollaboratorServices {
   UpdateCollaboratorProfileDetails(
     paylod: UpdateCollaboratorProfileDetailsRequest,
   ): Promise<void>;
+
   GenerateCollaboratorProfileDocument(
     payload: GetCollaboratorProfileGeneratedDocumentParams,
   ): Promise<Blob>;
+
+
+  DeactivateCollaborator(payload: DeactivateCollaboratorRequest): Promise<void>;
 }

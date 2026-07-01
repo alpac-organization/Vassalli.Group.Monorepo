@@ -1,15 +1,15 @@
 import { Button, Modal } from "@alpac/design-system"
-import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types"
-import type { ConfirmActionProps } from "./confirm-modal.types";
+import type { ApplicationConfirmActionProps } from "./application-confirm-modal.types";
+import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
 
-export const ConfirmModal = ({
+export const ApplicationConfirmModal = ({
    isOpen,
    onClose,
    type,
    handleFinalAction,
    isLoading = false,
    disabled = false
-}: ConfirmActionProps) => {
+}: ApplicationConfirmActionProps) => {
 
    const classButton = "rounded-md! px-6! border shadow-sm transition-all duration-200";
    const classButtonExit = "rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!";

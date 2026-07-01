@@ -1,7 +1,9 @@
 import type { IHttpHandler } from "@app/core/ports";
 import type { ISubsidyServices } from "@app/modules/payroll/application/interfaces/subsidy-interfaces/ISubsidyServices";
 import type { CreateSubsidyRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/create-subsidy.request";
+import type { GetSubsidyHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/get-subsidy-history.request";
 import type { GetSubsidyTypesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/get-subsidy-types.request";
+import type { GetSubsidyHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/subsidy-responses/get-subsidy-history.response";
 import type { GetSubsidyTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/subsidy-responses/get-subsidy-types.response";
 
 export class SubsidyServices implements ISubsidyServices {
@@ -13,7 +15,7 @@ export class SubsidyServices implements ISubsidyServices {
    }
 
    public async CreateSubsidy(payload: CreateSubsidyRequest): Promise<void> {
-      try {         
+      try {
          const { company_id, module_code, collaborator_id, ...rest } = payload;
 
          const url = `/companies/${company_id}/modules/${module_code}/collaborators/${collaborator_id}/subsidies`;
@@ -32,6 +34,22 @@ export class SubsidyServices implements ISubsidyServices {
          const url = `/companies/${company_id}/types-subsidy`;
 
          const response = await this.httpHandler.get<GetSubsidyTypesResponse>(url);
+
+         return response;
+      } catch (error) {
+         throw error;
+      }
+   }
+
+   public async GetSubsidyHistory(payload: GetSubsidyHistoryRequest): Promise<GetSubsidyHistoryResponse[]> {
+      try {
+         const { company_id, module_code, ...queryParams } = payload;
+
+         const url = `/companies/${company_id}/modules/${module_code}/subsidies`;
+
+         const response = await this.httpHandler.get<GetSubsidyHistoryResponse[]>(url, {
+            params: queryParams,
+         });
 
          return response;
       } catch (error) {

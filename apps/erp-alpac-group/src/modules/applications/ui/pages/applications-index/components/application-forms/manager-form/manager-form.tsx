@@ -6,7 +6,7 @@ import { BanIcon, CheckIcon, XIcon } from "lucide-react";
 // import { DonatedVacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/donated-vacation-panel/donated-vacation-panel";
 import { useApplications } from "@app/modules/applications/ui/hooks/useApplications";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { ConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/confirm-modal/confirm-modal";
+import { ApplicationConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/application-confirm-modal/application-confirm-modal";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { ManagerPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/manager-panel/manager-panel";
 import { AdministratorPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/administrator-panel/administrator-panel";
@@ -18,9 +18,9 @@ import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/use
 
 import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
-import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
 import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/cancel-permission-request";
 import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator-profile.request";
+import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
 
 export const ManagerForm = ({
   application,
@@ -248,7 +248,7 @@ export const ManagerForm = ({
         />
       </AnimatedAlertWrapper>
 
-      <ConfirmModal
+      <ApplicationConfirmModal
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ isOpen: false, type: "CANCEL" })}
         type={confirmModal.type}
