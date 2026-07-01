@@ -7,6 +7,7 @@ import { PayrollClosedHistoryPage } from "@app/modules/payroll/ui/pages/payroll-
 import type { RouteObject } from "react-router-dom";
 import { ActiveDeductionsPage } from "@app/modules/payroll/ui/pages/active-deduction-index/active-deduction.page";
 import { AttendanceControlPage } from "@app/modules/payroll/ui/pages/attendance-control/attendance-control.page";
+import { SubsidyHistoryPage } from "@app/modules/payroll/ui/pages/subsidy-history/subsidy-history.page";
 
 export const PayrollRoutes: RouteObject[] = [
   {
@@ -55,5 +56,9 @@ export const PayrollRoutes: RouteObject[] = [
   {
     path: "control-asistencia",
     element: <AttendanceControlPage />,
+  },
+  {
+    path: "subsidy-history",
+    element: <SubsidyHistoryPage />,
   },
 ];
