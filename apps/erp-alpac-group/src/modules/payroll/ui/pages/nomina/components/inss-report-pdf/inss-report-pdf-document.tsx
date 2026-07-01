@@ -25,9 +25,9 @@ export function InssReportPdfDocument({
     (acc, item) => acc + (item.absences ?? 0),
     0,
   );
-  const totalInssLab = data.reduce((acc, item) => acc + (item.inssLab ?? 0), 0);
+  const totalInssLab = data.reduce((acc, item) => acc + (item.inss_lab ?? 0), 0);
   const totalInssPatronal = data.reduce(
-    (acc, item) => acc + (item.inssPatronal ?? 0),
+    (acc, item) => acc + (item.inss_patronal ?? 0),
     0,
   );
   const totalInatec = data.reduce((acc, item) => acc + (item.inatec ?? 0), 0);
@@ -99,16 +99,16 @@ export function InssReportPdfDocument({
         </View>
 
         {data.map((item, index) => (
-          <View wrap={false} key={`inss-${item.collaboratorCode}-${index}`}>
+          <View wrap={false} key={`inss-${item.collaborator_code}-${index}`}>
             <View style={[styles.tableRow, styles.bodyRow]}>
               <View style={styles.cellCode}>
                 <Text style={styles.cellText} wrap>
-                  {withSoftLineBreaks(item.collaboratorCode || "—")}
+                  {withSoftLineBreaks(item.collaborator_code || "—")}
                 </Text>
               </View>
               <View style={styles.cellName}>
                 <Text style={styles.cellText} wrap>
-                  {item.collaboratorFullname || "—"}
+                  {item.collaborator_fullname || "—"}
                 </Text>
               </View>
               <View style={styles.cellAmount}>
@@ -123,12 +123,12 @@ export function InssReportPdfDocument({
               </View>
               <View style={styles.cellAmount}>
                 <Text style={styles.cellTextRight} wrap>
-                  {formatCurrency(item.inssLab)}
+                  {formatCurrency(item.inss_lab)}
                 </Text>
               </View>
               <View style={styles.cellAmount}>
                 <Text style={styles.cellTextRight} wrap>
-                  {formatCurrency(item.inssPatronal)}
+                  {formatCurrency(item.inss_patronal)}
                 </Text>
               </View>
               <View style={styles.cellAmount}>

@@ -70,6 +70,8 @@ import {
   fetchApprovedVacationPermissionsByPayroll,
 } from "@app/modules/payroll/ui/pages/nomina/components/vacation-permissions-summary/utils/build-vacation-permissions-summary.utils";
 import { exportVacationPermissionsSummaryExcel } from "@app/modules/payroll/ui/pages/nomina/components/vacation-permissions-summary/excel/export-vacation-permissions-summary-excel";
+import { IrReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/ir-report-pdf/ir-report-pdf-document";
+import { exportIrReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/ir-report-pdf/excel/export-ir-report-excel";
 import { getPayrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { exportPayrollExcel } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/export-payroll-excel";
@@ -204,6 +206,7 @@ export function PayrollPage() {
     setIsGeneratingEmployeeReceivablesPdf,
   ] = useState(false);
   const [isGeneratingInssReport, setIsGeneratingInssReport] = useState(false);
+  const [isGeneratingIrReport, setIsGeneratingIrReport] = useState(false);
   const [
     isGeneratingVacationPermissionsSummary,
     setIsGeneratingVacationPermissionsSummary,
@@ -1249,8 +1252,6 @@ export function PayrollPage() {
 
       const header = buildVacationPermissionsSummaryHeader(startDate, endDate);
       const rows = buildVacationPermissionsSummaryRows(permissions);
-      console.log("permissions", permissions);
-      console.log("rows", rows);
       const blob = await pdf(
         <VacationPermissionsSummaryPdfDocument
           header={header}
@@ -2207,10 +2208,6 @@ export function PayrollPage() {
         const inssData = await loadInssReportData(isFortnightly);
         if (!inssData) return;
 
-        const preparedSignatureImageSrc = signatures.revisado.signatureImage
-          ? await getProcessedSignatureImage(signatures.revisado.signatureImage)
-          : "";
-
         const blob = await pdf(
           <InssReportPdfDocument
             data={inssData}
@@ -2233,7 +2230,6 @@ export function PayrollPage() {
     },
     [
       loadInssReportData,
-      signatures,
       payrollDetailsQuery.data,
       displayedBranchName,
       handlePdfGenerationError,
@@ -2265,6 +2261,109 @@ export function PayrollPage() {
     },
     [
       loadInssReportData,
+      displayedBranchName,
+      payrollDetailsQuery.data,
+      handlePdfGenerationError,
+    ],
+  );
+
+  const loadIrReportData = useCallback(
+    async () => {
+      if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+        return null;
+      if (!hasPayrollData) {
+        handlePdfGenerationError(
+          "No hay datos en la tabla de nómina para generar el reporte.",
+        );
+        return null;
+      }
+      const payrollServices = new PayrollServices(httpHandler);
+      const detailsData = payrollDetailsQuery.data;
+
+      const payload = {
+        companie_id: companyId,
+        report_type: "IrAndSalaryEarned" as const,
+        payroll_id: detailsData?.payroll_id ?? "",
+        payroll_type: selectedPayrollType,
+        module_code: moduleCode,
+        identification_number: identificationFilter || undefined,
+      };
+
+      const response = await payrollServices.generateReportsPayroll(payload);
+      return response.ir_and_salary_earned ?? [];
+    },
+    [
+      selectedPayrollType,
+      selectedBranch,
+      companyId,
+      moduleCode,
+      hasPayrollData,
+      payrollDetailsQuery.data,
+      identificationFilter,
+      handlePdfGenerationError,
+    ],
+  );
+
+  const handleGenerateIrReportPdf = useCallback(
+    async (isFortnightly: boolean) => {
+      try {
+        setIsGeneratingIrReport(true);
+        const irData = await loadIrReportData();
+        if (!irData) return;
+
+        const blob = await pdf(
+          <IrReportPdfDocument
+            data={irData}
+            startDate={payrollDetailsQuery.data?.start_date}
+            endDate={payrollDetailsQuery.data?.end_date}
+            branchName={displayedBranchName ?? ""}
+            isFortnightly={isFortnightly}
+          />,
+        ).toBlob();
+
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el reporte IR en PDF.",
+        );
+      } finally {
+        setIsGeneratingIrReport(false);
+      }
+    },
+    [
+      loadIrReportData,
+      payrollDetailsQuery.data,
+      displayedBranchName,
+      handlePdfGenerationError,
+    ],
+  );
+
+  const handleGenerateIrReportExcel = useCallback(
+    async (isFortnightly: boolean) => {
+      try {
+        setIsGeneratingIrReport(true);
+        const irData = await loadIrReportData();
+        if (!irData) return;
+
+        await exportIrReportExcel({
+          data: irData,
+          branchName: displayedBranchName ?? "",
+          startDate: payrollDetailsQuery.data?.start_date,
+          endDate: payrollDetailsQuery.data?.end_date,
+          logoUrl: useCompanyStore.getState().urlImage,
+          isFortnightly,
+        });
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el reporte IR en Excel.",
+        );
+      } finally {
+        setIsGeneratingIrReport(false);
+      }
+    },
+    [
+      loadIrReportData,
       displayedBranchName,
       payrollDetailsQuery.data,
       handlePdfGenerationError,
@@ -2316,6 +2415,12 @@ export function PayrollPage() {
         case "monthly_inss_report":
           await handleGenerateInssReportPdf(false);
           break;
+        case "quincenal_ir_report":
+          await handleGenerateIrReportPdf(true);
+          break;
+        case "monthly_ir_report":
+          await handleGenerateIrReportPdf(false);
+          break;
         default:
           break;
       }
@@ -2334,6 +2439,7 @@ export function PayrollPage() {
       handleGenerateConsolidatedAreaPdf,
       handleGenerateEmployeeReceivablesPdf,
       handleGenerateInssReportPdf,
+      handleGenerateIrReportPdf,
     ],
   );
 
@@ -2351,6 +2457,7 @@ export function PayrollPage() {
     isGeneratingConsolidatedAreaPdf ||
     isGeneratingEmployeeReceivablesPdf ||
     isGeneratingInssReport ||
+    isGeneratingIrReport ||
     isGeneratingVacationPermissionsSummary ||
     isGeneratingConsolidatedAreaExcel;
 
@@ -2399,10 +2506,11 @@ export function PayrollPage() {
         case "monthly_inss_report":
           await handleGenerateInssReportExcel(false);
           break;
+        case "quincenal_ir_report":
+          await handleGenerateIrReportExcel(true);
+          break;
         case "monthly_ir_report":
-          handlePdfGenerationError(
-            "La exportación en Excel para este reporte aún no está disponible.",
-          );
+          await handleGenerateIrReportExcel(false);
           break;
         default:
           break;
@@ -2419,6 +2527,7 @@ export function PayrollPage() {
       handlePdfGenerationError,
       handleGenerateConsolidatedAreaExcel,
       handleGenerateInssReportExcel,
+      handleGenerateIrReportExcel,
     ],
   );
 

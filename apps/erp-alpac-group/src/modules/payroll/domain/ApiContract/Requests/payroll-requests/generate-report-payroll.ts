@@ -13,4 +13,5 @@ export type ReportPayrollType =
   | "VacationAccrual"
   | "TravelExpenses"
   | "InssFortnightly"
-  | "InssMonthly";
+  | "InssMonthly"
+  | "IrAndSalaryEarned";

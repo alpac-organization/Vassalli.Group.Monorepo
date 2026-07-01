@@ -1,4 +1,3 @@
-import type { GetPayrollReportsInssInformationResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-reports";
 import {
   C,
   LOGO_MAX_HEIGHT,
@@ -11,60 +10,48 @@ import {
 } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/fit-image-excel";
 import { slugify } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/excel-helper";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
-
-export type ExportInssReportExcelParams = {
-  data: GetPayrollReportsInssInformationResponse[];
-  branchName: string;
-  startDate?: string;
-  endDate?: string;
-  logoUrl?: string | null;
-  isFortnightly: boolean;
-};
+import type { ExportIrReportExcelParams } from "../types/ir-report.types";
 
 const COLUMNS = [
-  { key: "code", label: "Código", width: 14 },
-  { key: "name", label: "Nombre", width: 32 },
-  { key: "income", label: "Ingreso", width: 16 },
-  { key: "absences", label: "Ausencias", width: 16 },
-  { key: "inssLab", label: "INSS Laboral", width: 16 },
-  { key: "inssPatronal", label: "INSS Patronal", width: 16 },
-  { key: "inatec", label: "INATEC", width: 16 },
-  { key: "total", label: "Total", width: 16 },
+  { key: "code", label: "Código", width: 15 },
+  { key: "name", label: "Nombre", width: 45 },
+  { key: "salary", label: "Salario Devengado", width: 20 },
+  { key: "ir", label: "Retención IR", width: 20 },
 ] as const;
 
 const COL_COUNT = COLUMNS.length;
 const HEADER_ROW = 3;
 const LOGO_COLUMN_INDEX = COL_COUNT;
 
-export async function exportInssReportExcel({
+export async function exportIrReportExcel({
   data,
   branchName,
   startDate,
   endDate,
   logoUrl,
   isFortnightly,
-}: ExportInssReportExcelParams): Promise<void> {
+}: ExportIrReportExcelParams): Promise<void> {
   const { Workbook } = await import("exceljs");
 
-  const totalIncome = data.reduce((acc, item) => acc + (item.income ?? 0), 0);
-  const totalAbsences = data.reduce((acc, item) => acc + (item.absences ?? 0), 0);
-  const totalInssLab = data.reduce((acc, item) => acc + (item.inss_lab ?? 0), 0);
-  const totalInssPatronal = data.reduce(
-    (acc, item) => acc + (item.inss_patronal ?? 0),
+  const totalIr = data.reduce(
+    (acc, item) => acc + (isFortnightly ? (item.ir_fortnightly ?? 0) : (item.ir_monthly ?? 0)),
     0,
   );
-  const totalInatec = data.reduce((acc, item) => acc + (item.inatec ?? 0), 0);
-  const totalAmount = data.reduce((acc, item) => acc + (item.total ?? 0), 0);
+  
+  const totalSalary = data.reduce(
+    (acc, item) => acc + (isFortnightly ? (item.salary_earned_fortnightly ?? 0) : (item.salary_earned_monthly ?? 0)),
+    0,
+  );
 
-  const reportTitle = isFortnightly ? "Reporte INSS Quincenal" : "Reporte INSS Mensual";
+  const reportTitle = isFortnightly ? "Reporte IR Quincenal" : "Reporte IR Mensual";
 
   const wb = new Workbook();
   wb.creator = "ALPAC ERP";
 
-  const ws = wb.addWorksheet("Reporte INSS", {
+  const ws = wb.addWorksheet("Reporte IR", {
     pageSetup: {
-      orientation: "landscape",
-      paperSize: 5,
+      orientation: "portrait",
+      paperSize: 9, // A4
       fitToPage: true,
       fitToWidth: 1,
       fitToHeight: 0,
@@ -73,7 +60,6 @@ export async function exportInssReportExcel({
   });
 
   ws.columns = COLUMNS.map((col) => ({ width: col.width }));
-  ws.getColumn(LOGO_COLUMN_INDEX + 1).width = 18;
 
   {
     const row = ws.addRow([`${reportTitle} - ${branchName ?? ""}`]);
@@ -118,66 +104,50 @@ export async function exportInssReportExcel({
   }
 
   data.forEach((item) => {
+    const salary = isFortnightly ? (item.salary_earned_fortnightly ?? 0) : (item.salary_earned_monthly ?? 0);
+    const ir = isFortnightly ? (item.ir_fortnightly ?? 0) : (item.ir_monthly ?? 0);
+
     const row = ws.addRow([
       item.collaborator_code || "—",
       item.collaborator_fullname || "—",
-      item.income ?? 0,
-      item.absences ?? 0,
-      item.inss_lab ?? 0,
-      item.inss_patronal ?? 0,
-      item.inatec ?? 0,
-      item.total ?? 0,
+      salary,
+      ir,
     ]);
 
-    row.height = 20;
-
+    row.height = 18;
     for (let c = 1; c <= COL_COUNT; c += 1) {
       const cell = row.getCell(c);
-      cell.border = THIN_BORDER;
       cell.font = { size: 9 };
-      cell.alignment = {
-        vertical: "middle",
-        horizontal: c >= 3 ? "right" : "left",
-      };
+      cell.alignment = { vertical: "middle" };
+      cell.border = THIN_BORDER;
 
       if (c >= 3) {
-        cell.numFmt = '#,##0.00;[Red]-#,##0.00; "-"';
+        cell.numFmt = '#,##0.00" "';
       }
     }
   });
 
-  {
-    const row = ws.addRow([
-      "Totales",
-      "",
-      totalIncome,
-      totalAbsences,
-      totalInssLab,
-      totalInssPatronal,
-      totalInatec,
-      totalAmount,
-    ]);
-    row.height = 22;
+  if (data.length > 0) {
+    const row = ws.addRow(["TOTAL GENERAL", "", totalSalary, totalIr]);
+    row.height = 20;
+    ws.mergeCells(row.number, 1, row.number, 2);
 
     for (let c = 1; c <= COL_COUNT; c += 1) {
       const cell = row.getCell(c);
-      cell.border = THIN_BORDER;
-      cell.font = { bold: true, size: 9, color: { argb: C.globalText } };
+      cell.font = { bold: true, size: 9, color: { argb: C.areaTotalsText } };
       cell.fill = {
         type: "pattern",
         pattern: "solid",
-        fgColor: { argb: C.globalBg },
+        fgColor: { argb: C.areaTotalsBg },
       };
-      cell.alignment = {
-        vertical: "middle",
-        horizontal: c >= 3 ? "right" : "center",
-      };
+      cell.border = THIN_BORDER;
+      cell.alignment = { vertical: "middle" };
 
       if (c >= 3) {
-        cell.numFmt = '#,##0.00;[Red]-#,##0.00; "-"';
+        cell.numFmt = '#,##0.00" "';
       }
     }
-    ws.mergeCells(row.number, 1, row.number, 2);
+    row.getCell(1).alignment = { horizontal: "right", vertical: "middle" };
   }
 
   if (logoUrl) {
@@ -199,28 +169,32 @@ export async function exportInssReportExcel({
           LOGO_MAX_WIDTH,
           LOGO_MAX_HEIGHT,
         );
+
         ws.addImage(imageId, {
-          tl: { col: LOGO_COLUMN_INDEX, row: 0 },
+          tl: { col: 0, row: 0 },
           ext: { width: logoSize.width, height: logoSize.height },
           editAs: "oneCell",
         });
       }
-    } catch {
-      console.warn("No se pudo agregar el logo en Reporte INSS");
-    }
+    } catch {}
   }
 
-  const buf = await wb.xlsx.writeBuffer();
-  const blob = new Blob([buf], {
+  const branchLabel = branchName?.trim() || "sin-sucursal";
+  const periodType = isFortnightly ? "quincenal" : "mensual";
+  const periodStart = startDate?.trim() || "sin-inicio";
+  const periodEnd = endDate?.trim() || "sin-fin";
+  const fileName =
+    `reporte-ir-${periodType}-${slugify(branchLabel)}-` +
+    `${slugify(periodStart)}-a-${slugify(periodEnd)}.xlsx`;
+
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
     type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  const now = new Date().toISOString().split("T")[0];
-  const branchSlug = slugify(branchName);
-  const typeSlug = isFortnightly ? "quincenal" : "mensual";
-  link.download = `reporte-inss-${typeSlug}-${branchSlug}-${now}.xlsx`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  URL.revokeObjectURL(url);
 }

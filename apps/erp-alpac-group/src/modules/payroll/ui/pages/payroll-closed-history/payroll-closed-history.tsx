@@ -53,6 +53,8 @@ import { InssReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/comp
 import { exportInssReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/inss-report-pdf/excel/export-inss-report-excel";
 import type { ReportPayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/generate-report-payroll";
 import { exportVacationPermissionsSummaryExcel } from "@app/modules/payroll/ui/pages/nomina/components/vacation-permissions-summary/excel/export-vacation-permissions-summary-excel";
+import { IrReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/ir-report-pdf/ir-report-pdf-document";
+import { exportIrReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/ir-report-pdf/excel/export-ir-report-excel";
 import { EmployeeReceivablesPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/employee-receivables-pdf/employee-receivables-pdf-document";
 import { exportEmployeeReceivablesExcel } from "@app/modules/payroll/ui/pages/nomina/components/employee-receivables-pdf/excel/export-employee-receivables-excel";
 import { buildEmployeeReceivablesReportData } from "@app/modules/payroll/ui/pages/nomina/components/employee-receivables-pdf/utils/build-employee-receivables-data";
@@ -138,6 +140,7 @@ export function PayrollClosedHistoryPage() {
     isGeneratingInssReport,
     setIsGeneratingInssReport,
   ] = useState(false);
+  const [isGeneratingIrReport, setIsGeneratingIrReport] = useState(false);
   const [
     isGeneratingVacationPermissionsSummary,
     setIsGeneratingVacationPermissionsSummary,
@@ -1430,6 +1433,96 @@ export function PayrollClosedHistoryPage() {
     handlePdfGenerationError,
   ]);
 
+  const loadIrReportData = useCallback(async () => {
+    if (!companyId || !moduleCode || !type_payroll || !branch_id || !payroll_id) return null;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return null;
+    }
+    const payrollServices = new PayrollServices(httpHandler);
+
+    const payload = {
+      companie_id: companyId,
+      report_type: "IrAndSalaryEarned" as const,
+      payroll_id: payroll_id,
+      payroll_type: type_payroll,
+      module_code: moduleCode,
+      identification_number: identificationFilter || undefined,
+    };
+
+    const response = await payrollServices.generateReportsPayroll(payload);
+    return response.ir_and_salary_earned ?? [];
+  }, [
+    type_payroll,
+    payroll_id,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    identificationFilter,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateIrReportPdf = useCallback(async (isFortnightly: boolean) => {
+    try {
+      setIsGeneratingIrReport(true);
+      const irData = await loadIrReportData();
+      if (!irData) return;
+
+      const blob = await pdf(
+        <IrReportPdfDocument
+          data={irData}
+          startDate={detailsData?.start_date}
+          endDate={detailsData?.end_date}
+          branchName={branchName}
+          isFortnightly={isFortnightly}
+        />,
+      ).toBlob();
+
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte IR en PDF.",
+      );
+    } finally {
+      setIsGeneratingIrReport(false);
+    }
+  }, [
+    loadIrReportData,
+    detailsData,
+    branchName,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateIrReportExcel = useCallback(async (isFortnightly: boolean) => {
+    try {
+      setIsGeneratingIrReport(true);
+      const irData = await loadIrReportData();
+      if (!irData) return;
+
+      await exportIrReportExcel({
+        data: irData,
+        branchName: branchName ?? "",
+        startDate: detailsData?.start_date,
+        endDate: detailsData?.end_date,
+        logoUrl: useCompanyStore.getState().urlImage,
+        isFortnightly,
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte IR en Excel.",
+      );
+    } finally {
+      setIsGeneratingIrReport(false);
+    }
+  }, [
+    loadIrReportData,
+    detailsData,
+    branchName,
+    handlePdfGenerationError,
+  ]);
+
   const executePdfForAction = useCallback(
     async (action: PayrollActionValue) => {
       switch (action) {
@@ -1472,6 +1565,12 @@ export function PayrollClosedHistoryPage() {
         case "monthly_inss_report":
           await handleGenerateInssReportPdf(false);
           break;
+        case "quincenal_ir_report":
+          await handleGenerateIrReportPdf(true);
+          break;
+        case "monthly_ir_report":
+          await handleGenerateIrReportPdf(false);
+          break;
         default:
           break;
       }
@@ -1489,6 +1588,7 @@ export function PayrollClosedHistoryPage() {
       handleGenerateConsolidatedAreaPdf,
       handleGenerateEmployeeReceivablesPdf,
       handleGenerateInssReportPdf,
+      handleGenerateIrReportPdf,
     ],
   );
 
@@ -1506,7 +1606,8 @@ export function PayrollClosedHistoryPage() {
     isGeneratingEmployeeReceivablesPdf ||
     isGeneratingVacationPermissionsSummary ||
     isGeneratingConsolidatedAreaExcel ||
-    isGeneratingInssReport;
+    isGeneratingInssReport ||
+    isGeneratingIrReport;
 
   const handleOpenGenerateModal = useCallback(() => {
     setSelectedAction(null);
@@ -1553,10 +1654,11 @@ export function PayrollClosedHistoryPage() {
         case "monthly_inss_report":
           await handleGenerateInssReportExcel(false);
           break;
+        case "quincenal_ir_report":
+          await handleGenerateIrReportExcel(true);
+          break;
         case "monthly_ir_report":
-          handlePdfGenerationError(
-            "La exportación en Excel para este reporte aún no está disponible.",
-          );
+          await handleGenerateIrReportExcel(false);
           break;
         default:
           break;
@@ -1572,6 +1674,7 @@ export function PayrollClosedHistoryPage() {
       handleGenerateEmployeeReceivablesExcel,
       handleGenerateVacationPermissionsSummaryExcel,
       handleGenerateInssReportExcel,
+      handleGenerateIrReportExcel,
       handlePdfGenerationError,
     ],
   );

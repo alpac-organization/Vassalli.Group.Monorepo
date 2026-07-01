@@ -36,15 +36,26 @@ export interface GetPaymentTravelExpensesResponse {
   lodging: number;
 }
 export interface GetPayrollReportsInssInformationResponse {
-  collaboratorCode: string;
-  collaboratorFullname: string;
+  collaborator_code: string;
+  collaborator_fullname: string;
   income: number;
   absences: number;
-  inssLab: number;
-  inssPatronal: number;
+  inss_lab: number;
+  inss_patronal: number;
   inatec: number;
   total: number;
 }
+export interface GetIrAndSalaryEarnedResponse {
+  payroll_id: string;
+  collaborator_id: string;
+  collaborator_code: string;
+  collaborator_fullname: string;
+  ir_fortnightly: number;
+  salary_earned_fortnightly: number;
+  ir_monthly: number;
+  salary_earned_monthly: number;
+}
+
 export interface GetPayrollReportsPayloadResponse {
   accumulated_history: GetPayrollReportsAccumulatedResponse[];
 
@@ -53,6 +64,8 @@ export interface GetPayrollReportsPayloadResponse {
   payment_travel_expenses: GetPaymentTravelExpensesResponse[];
 
   inss_information: GetPayrollReportsInssInformationResponse[];
+
+  ir_and_salary_earned?: GetIrAndSalaryEarnedResponse[];
 }
 
 /** @deprecated Use GetPayrollReportsAccumulatedResponse */
