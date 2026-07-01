@@ -57,6 +57,11 @@ export interface CreateIncomeRequest {
    */
 
   bonus_payload?: CreateIncomeBonusRequest;
+
+  /**
+   * Payload de depreciación
+   */
+  depreciation_payload?: CreateIncomeDepreciationRequest;
 }
 
 export interface CreateIncomeOvertimeRequest {
@@ -104,4 +109,21 @@ export interface CreateIncomeBonusRequest {
    */
   identification_number?: string;
 
+}
+
+export interface CreateIncomeDepreciationRequest {
+  /**
+   * Código de la moneda
+   */
+  currency: number;
+
+  /**
+   * Monto de la depreciación
+   */
+  depreciation_amount: number;
+
+  /**
+   * Número de identificación del colaborador
+   */
+  identification_number?: string;
 }
