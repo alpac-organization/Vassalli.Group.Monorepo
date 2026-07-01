@@ -107,11 +107,11 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
       targetIdentification,
       resolvedMaritalStatusCode,
     });
+
   const { watch, setValue } = formMethods;
 
-  const [editingFields, setEditingFields] = useState<Record<string, boolean>>(
-    {},
-  );
+  const [editingFields, setEditingFields] = useState<Record<string, boolean>>({});
+
   const [branchModalOpen, setBranchModalOpen] = useState(false);
   const [bankModalOpen, setBankModalOpen] = useState(false);
   const [selectedCostCenterId, setSelectedCostCenterId] = useState("");
@@ -389,7 +389,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={false}
+                  allowEdit={currentRole === "Administrator"}
                   missingMessage="Cuenta bancaria no registrada"
                   className={editableFieldInputClasses}
                 />

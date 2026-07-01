@@ -6,7 +6,7 @@ import {
   Button,
   Textarea,
 } from "@alpac/design-system";
-import { ConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/confirm-modal/confirm-modal";
+import { ApplicationConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/application-confirm-modal/application-confirm-modal";
 import { BanIcon, CheckIcon, XIcon } from "lucide-react";
 import { useApplications } from "@app/modules/applications/ui/hooks/useApplications";
 import { MainPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/main-panel/main-panel";
@@ -14,10 +14,7 @@ import { ManagerPanel } from "@app/modules/applications/ui/pages/applications-in
 import { AdministratorPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/administrator-panel/administrator-panel";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import {
-  ConfirmActionValueMap,
-  type ConfirmActionType,
-} from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
+import { ConfirmActionValueMap, type ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
 import { VacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/vacation-panel/vacation-panel";
 import { usePermission } from "@app/modules/payroll/ui/hooks/permission/usePermission";
 import { PermitApplicationStatus } from "@app/modules/applications/domain/enums/permit-application-status.enum";
@@ -221,7 +218,7 @@ export const VacationForm = (props: VacationFormProps) => {
         />
       </AnimatedAlertWrapper>
 
-      <ConfirmModal
+      <ApplicationConfirmModal
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ isOpen: false, type: "CANCEL" })}
         type={confirmModal.type}
