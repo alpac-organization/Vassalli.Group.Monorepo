@@ -13,8 +13,11 @@ export class AttendanceServices implements IAttendanceServices {
 
   async GetAttendanceRecordsAsync(payload: GetAttendanceRecordsRequest): Promise<GetAttendanceRecordsResponse> {
     try {
-      const { companie_id, module_code, ...queryParams } = payload;
-      const url = `/companies/${companie_id}/modules/${module_code}/attendance-records`;
+      const { companie_id, ...queryParams } = payload;
+
+      console.log("payload:", queryParams);
+
+      const url = `/companies/${companie_id}/attendance`;
       const response = await this.httpHandler.get<GetAttendanceRecordsResponse>(
         url,
         { params: cleanParams(queryParams) },

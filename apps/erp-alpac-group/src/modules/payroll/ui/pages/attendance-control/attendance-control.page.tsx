@@ -23,6 +23,7 @@ import {
    validateIdentificationNumber,
 } from "@app/shared/utils/string.utils";
 import type { GetAttendanceRecordsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/attendance-requests/get-attendance-records.request";
+import { BookIcon } from "lucide-react";
 
 const loadFeatures = () =>
    import("framer-motion").then((res) => res.domAnimation);
@@ -49,10 +50,11 @@ const toApiDate = (date: DatePickerValue | null): string | null => {
 };
 
 export const AttendanceControlPage = () => {
+
    const navigate = useNavigate();
    const { theme } = useTheme();
    const { urlImage, neutralUrlImage } = useCompanyStore();
-   const { companyId, moduleCode } = useUserStore();
+   const { companyId } = useUserStore();
    const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
    const {
@@ -78,14 +80,14 @@ export const AttendanceControlPage = () => {
    const [appliedStartDate, setAppliedStartDate] = useState<string | null>(null);
    const [appliedEndDate, setAppliedEndDate] = useState<string | null>(null);
    const [appliedIdentification, setAppliedIdentification] = useState("");
+   const [startDate, setStartDate] = useState<Date | null>(null);
 
-   const hasAppliedPeriod = Boolean(appliedStartDate && appliedEndDate);
+   const hasAppliedPeriod = Boolean(appliedIdentification.trim()) || Boolean(appliedStartDate && appliedEndDate);
 
    const filters = useMemo<GetAttendanceRecordsRequest>((): GetAttendanceRecordsRequest => {
 
       return {
          companie_id: companyId,
-         module_code: moduleCode,
          start_date: appliedStartDate ?? null,
          end_date: appliedEndDate ?? null,
          page_number: pageNumber,
@@ -97,7 +99,6 @@ export const AttendanceControlPage = () => {
 
    }, [
       companyId,
-      moduleCode,
       pageNumber,
       appliedStartDate,
       appliedEndDate,
@@ -120,17 +121,20 @@ export const AttendanceControlPage = () => {
 
    const onSubmit: SubmitHandler<AttendanceControlFilterForm> = useCallback(
       (data) => {
+         const identification =
+            data.identification_number?.replace(/-/g, "").trim().toUpperCase() ?? "";
          const startDate = toApiDate(data.start_date);
          const endDate = toApiDate(data.end_date);
 
-         if (!startDate || !endDate) return;
+         const hasIdentification = Boolean(identification);
+         const hasDateRange = Boolean(startDate && endDate);
 
-         setAppliedStartDate(startDate);
-         setAppliedEndDate(endDate);
-         setAppliedIdentification(
-            data.identification_number?.replace(/-/g, "").trim().toUpperCase() ?? "",
-         );
+         if (!hasIdentification && !hasDateRange) return;
+
          setPageNumber(1);
+         setAppliedIdentification(hasIdentification ? identification : "");
+         setAppliedStartDate(hasDateRange ? startDate : null);
+         setAppliedEndDate(hasDateRange ? endDate : null);
       },
       [],
    );
@@ -141,11 +145,15 @@ export const AttendanceControlPage = () => {
          end_date: null,
          identification_number: "",
       });
+      setPageNumber(1);
       setAppliedStartDate(null);
       setAppliedEndDate(null);
       setAppliedIdentification("");
-      setPageNumber(1);
    }, [reset]);
+
+   const handleGenerateReport = useCallback(() => {
+      
+   }, []);
 
    return (
       <LazyMotion features={loadFeatures}>
@@ -196,9 +204,30 @@ export const AttendanceControlPage = () => {
 
             <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
                <div className="flex flex-col justify-center">
+                  <h3 className="p-0! m-0!">Accesos Directos</h3>
+                  <small className="text-gray-500 dark:text-gray-300">
+                     Acciones de la sección de control de asistencia
+                  </small>
+               </div>
+            </div>
+
+            <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+               <div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
+                  <Button
+                     size="giant"
+                     label="Generar reporte"
+                     icon={<BookIcon size={20} />}
+                     className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                     onClick={handleGenerateReport}
+                  />
+               </div>
+            </div>
+
+            <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+               <div className="flex flex-col justify-center">
                   <h3 className="p-0! m-0!">Filtros</h3>
                   <small className="text-gray-500 dark:text-gray-300">
-                     Seleccione el período y aplique filtros para consultar las
+                     Ingrese identificación o un rango de fechas para consultar las
                      marcaciones
                   </small>
                </div>
@@ -224,13 +253,15 @@ export const AttendanceControlPage = () => {
                               !value?.trim() ||
                               validateIdentificationNumber(
                                  value,
-                                 IdentificationEnum.NATIONAL_ID.value,
+                                 IdentificationEnum.NATIONAL_ID.value ||
+                                 IdentificationEnum.RESIDENCE_ID.value,
                               ),
                         },
                         setValueAs: (value: string) =>
                            value ? value.toString().replace(/-/g, "").toUpperCase() : "",
                         onChange: (e) => {
                            e.target.value = formatIdentificationNumber(e.target.value);
+                           trigger(["start_date", "end_date"]);
                         },
                      })}
                      error={errors.identification_number?.message}
@@ -241,7 +272,21 @@ export const AttendanceControlPage = () => {
                   <Controller
                      name="start_date"
                      control={control}
-                     rules={{ required: "La fecha de inicio es requerida." }}
+                     rules={{
+                        validate: (value) => {
+                           const identification = getValues("identification_number")?.trim();
+                           const endDate = getValues("end_date");
+
+                           if (identification) return true;
+                           if (!value && !endDate) {
+                              return "Ingrese identificación o un rango de fechas.";
+                           }
+                           if (!value && endDate) {
+                              return "La fecha de inicio es requerida.";
+                           }
+                           return true;
+                        },
+                     }}
                      render={({ field }) => (
                         <DatePicker
                            fieldWidth="large"
@@ -250,13 +295,11 @@ export const AttendanceControlPage = () => {
                            labelClassName={labelClassName}
                            value={field.value}
                            labelAbove
-                           isRequired
                            errorVariant="tooltip"
                            onChange={(value) => {
                               field.onChange(value);
-                              // clearErrors(["end_date"]);
-                              trigger("end_date");
-                              // reset({ "end_date": null })
+                              setStartDate(value.$d);
+                              trigger(["end_date", "identification_number"]);
                            }}
                            error={errors.start_date?.message as string}
                         />
@@ -269,9 +312,17 @@ export const AttendanceControlPage = () => {
                      name="end_date"
                      control={control}
                      rules={{
-                        required: "La fecha de fin es requerida.",
                         validate: (value) => {
+                           const identification = getValues("identification_number")?.trim();
                            const startDate = getValues("start_date");
+
+                           if (identification) return true;
+                           if (!value && !startDate) {
+                              return "Ingrese identificación o un rango de fechas.";
+                           }
+                           if (!value && startDate) {
+                              return "La fecha de fin es requerida.";
+                           }
                            if (
                               value &&
                               startDate &&
@@ -293,9 +344,12 @@ export const AttendanceControlPage = () => {
                            labelClassName={labelClassName}
                            value={field.value}
                            labelAbove
-                           isRequired
                            errorVariant="tooltip"
-                           onChange={(value) => field.onChange(value)}
+                           referenceDate={startDate ? dayjs(startDate) : undefined}
+                           onChange={(value) => {
+                              field.onChange(value);
+                              trigger(["start_date", "identification_number"]);
+                           }}
                            error={errors.end_date?.message as string}
                         />
                      )}
@@ -324,6 +378,7 @@ export const AttendanceControlPage = () => {
             </form>
 
             <div className="flex flex-col">
+
                <AttendanceControlTable
                   data={datasource}
                   pagination={
@@ -331,13 +386,14 @@ export const AttendanceControlPage = () => {
                         <Pagination
                            currentPage={attendanceRecords?.page_number ?? 0}
                            pageSize={attendanceRecords?.page_size ?? 0}
-                           totalRecords={attendanceRecords?.total_records ?? 0}
+                           totalRecords={attendanceRecords?.total ?? 0}
                            onPageChange={handlePageChange}
                            disabled={isFetching}
                         />
                      ) : undefined
                   }
                />
+
             </div>
          </m.div>
       </LazyMotion>
