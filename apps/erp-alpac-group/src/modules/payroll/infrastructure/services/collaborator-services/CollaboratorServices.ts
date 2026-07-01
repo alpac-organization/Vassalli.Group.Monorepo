@@ -8,6 +8,8 @@ import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/dom
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/update-collaborator-request";
 import type { GetCollaboratorProfileGeneratedDocumentParams } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/generated-document.request";
+import type { DeactivateCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/deactivate-collaborator.request";
+
 export class CollaboratorServices implements ICollaboratorServices {
    private apiHandler: IHttpHandler;
 
@@ -78,7 +80,7 @@ export class CollaboratorServices implements ICollaboratorServices {
          throw error;
       }
    }
-   
+
    public async GenerateCollaboratorProfileDocument(
       payload: GetCollaboratorProfileGeneratedDocumentParams,
    ): Promise<Blob> {
@@ -90,6 +92,17 @@ export class CollaboratorServices implements ICollaboratorServices {
             { responseType: "blob" },
          );
          return blob;
+      } catch (error) {
+         throw error;
+      }
+   }
+
+   public async DeactivateCollaborator(payload: DeactivateCollaboratorRequest): Promise<void> {
+      try {
+         const { company_id, module_code, identification_number } = payload;
+         await this.apiHandler.delete<void>(
+            `/companies/${company_id}/modules/${module_code}/collaborators/${identification_number}`
+         );
       } catch (error) {
          throw error;
       }

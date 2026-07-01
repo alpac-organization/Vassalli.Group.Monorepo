@@ -1,23 +1,13 @@
 ---
-import "@alpac/design-system/styles/global.css";
 import MainLayout from "@layouts/main-layout.astro";
-import TermsAndConditions from "@components/astro/terms-conditions.astro"
+import { FormServiceOrder } from "@components/react/form-service-order";
+import "@alpac/design-system/styles/global.css";
 ---
 
 <html>
-   <head>
-      <title>Ordenes de servicios</title>
-
-      <meta charset="utf-8" />
-      <meta name="generator" content={Astro.generator} />
-      <meta name="viewport" content="width=device-width" />
-
-      <link rel="icon" href="/favicon.ico" />
-      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-   </head>
    <body>
-      <MainLayout>
-         <TermsAndConditions/>         
+      <MainLayout>         
+         <FormServiceOrder client:load />
       </MainLayout>
    </body>
 </html>
