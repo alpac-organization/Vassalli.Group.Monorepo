@@ -12,9 +12,9 @@ import type { PermissionRequestDetailsModalProps } from "@app/modules/payroll/ui
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { useApplications } from "@app/modules/applications/ui/hooks/useApplications";
-import { ConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/confirm-modal/confirm-modal";
-import type { ConfirmActionType } from "@app/modules/applications/ui/pages/applications-index/types/confirm-action.types";
+import { ApplicationConfirmModal } from "@app/modules/applications/ui/pages/applications-index/components/application-confirm-modal/application-confirm-modal";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
 
 export function PermissionRequestDetailsModal({
   isOpen,
@@ -159,7 +159,7 @@ export function PermissionRequestDetailsModal({
         />
       </AnimatedAlertWrapper>
 
-      <ConfirmModal
+      <ApplicationConfirmModal
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal({ isOpen: false, type: "CANCEL" })}
         type={confirmModal.type}

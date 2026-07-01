@@ -15,7 +15,7 @@ export default function Sidebarlayout({
   return (
     <aside
       className={`dark:bg-[#272b34] border-r border-neutral-700 flex flex-col transition-all duration-300 ease-in-out z-50 h-screen shrink-0 fixed md:relative top-0 left-0
-        ${isOpen ? "translate-x-0 w-full md:w-64" : "-translate-x-full md:translate-x-0 md:w-20"}
+        ${isOpen ? "translate-x-0 w-full md:w-85" : "-translate-x-full md:translate-x-0 md:w-20"}
       `}
     >
       <header className="shrink-0 w-full h-16 border-b border-neutral-700 px-5 flex items-center">

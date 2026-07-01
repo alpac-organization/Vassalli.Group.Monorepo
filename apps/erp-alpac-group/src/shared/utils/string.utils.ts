@@ -381,3 +381,9 @@ export const formatNumberWithDecimals = (value: string, isPercentage: boolean = 
 
    return finalValue;
 };
+
+export const formatNumber = (value: string) => {
+   const number = Number(value);
+   if (isNaN(number)) return "0";
+   return new Intl.NumberFormat("en-US").format(number);
+};

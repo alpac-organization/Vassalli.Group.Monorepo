@@ -16,12 +16,11 @@ export const useAttendance = () => {
          queryKey: [
             "attendanceRecords",
             payload.companie_id,
-            payload.module_code,
             payload.start_date,
             payload.end_date,
             payload.identification_number,
             payload.page_number,
-            payload.page_size,
+            payload.page_size
          ],
          queryFn: () => attendanceServices.GetAttendanceRecordsAsync(payload),
          enabled: options?.enabled,
