@@ -56,6 +56,28 @@ export interface GetIrAndSalaryEarnedResponse {
   salary_earned_monthly: number;
 }
 
+export interface GetPayrollReportsDepreciationResponse {
+  collaborator_id: string;
+  collaborator_code: string | null;
+  collaborator_fullname: string | null;
+  amount_in_local: number;
+  amount_in_dollars: number;
+  description: string | null;
+}
+
+export interface SubsidyHistoryDto {
+  collaborator_code: string | null;
+  collaborator_full_name: string | null;
+  amount_days: number;
+  reference_number: string | null;
+  type_subsidy_name: string | null;
+  start_date: string;
+  end_date: string;
+  percentage: number;
+  company_assumed_amount: number;
+  inss_reimbursement_amount: number;
+}
+
 export interface GetPayrollReportsPayloadResponse {
   accumulated_history: GetPayrollReportsAccumulatedResponse[];
 
@@ -66,6 +88,10 @@ export interface GetPayrollReportsPayloadResponse {
   inss_information: GetPayrollReportsInssInformationResponse[];
 
   ir_and_salary_earned?: GetIrAndSalaryEarnedResponse[];
+
+  depreciations?: GetPayrollReportsDepreciationResponse[];
+
+  subsidies_history?: SubsidyHistoryDto[];
 }
 
 /** @deprecated Use GetPayrollReportsAccumulatedResponse */

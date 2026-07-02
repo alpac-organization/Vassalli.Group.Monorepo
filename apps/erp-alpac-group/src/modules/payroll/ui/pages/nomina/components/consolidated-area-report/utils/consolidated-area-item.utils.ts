@@ -87,8 +87,8 @@ export function createEmptyConsolidatedRow(
     purisima: 0,
     totalDeduction: 0,
     netPay: 0,
-    inssPatronal: PLACEHOLDER_VALUE,
-    inatec: PLACEHOLDER_VALUE,
+    inssPatronal: 0,
+    inatec: 0,
   };
 }
 

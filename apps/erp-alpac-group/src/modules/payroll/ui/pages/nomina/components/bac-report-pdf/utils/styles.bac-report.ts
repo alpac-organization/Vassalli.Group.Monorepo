@@ -4,7 +4,7 @@ export const styles = StyleSheet.create({
   page: {
     paddingTop: 28,
     paddingBottom: 24,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     fontSize: 9,
     fontFamily: "Helvetica",
   },
@@ -30,9 +30,9 @@ export const styles = StyleSheet.create({
   },
   title: {
     textAlign: "center",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   branchName: {
     fontSize: 11,
@@ -50,9 +50,9 @@ export const styles = StyleSheet.create({
     width: "100%",
   },
   headerRow: {
-    backgroundColor: "#e5e7eb",
+    backgroundColor: "#dc2626",
     borderStyle: "solid",
-    borderColor: "#d1d5db",
+    borderColor: "#b91c1c",
     borderTopWidth: 1,
     borderLeftWidth: 1,
   },
@@ -66,11 +66,10 @@ export const styles = StyleSheet.create({
     borderStyle: "solid",
     borderColor: "#d1d5db",
     borderLeftWidth: 1,
-    borderTopWidth: 1,
   },
-  cellCode: {
-    flexGrow: 1.3,
-    flexShrink: 1,
+  cellReference: {
+    flexGrow: 2,
+    flexShrink: 0,
     flexBasis: 0,
     minWidth: 0,
     borderRightWidth: 1,
@@ -78,9 +77,10 @@ export const styles = StyleSheet.create({
     borderColor: "#d1d5db",
     padding: 4,
     justifyContent: "center",
+    alignItems: "stretch",
   },
   cellName: {
-    flexGrow: 2.8,
+    flexGrow: 3,
     flexShrink: 1,
     flexBasis: 0,
     minWidth: 0,
@@ -89,10 +89,11 @@ export const styles = StyleSheet.create({
     borderColor: "#d1d5db",
     padding: 4,
     justifyContent: "center",
+    alignItems: "stretch",
   },
-  cellAmount: {
-    flexGrow: 1.15,
-    flexShrink: 1,
+  cellSalary: {
+    flexGrow: 1.2,
+    flexShrink: 0,
     flexBasis: 0,
     minWidth: 0,
     borderRightWidth: 1,
@@ -100,11 +101,18 @@ export const styles = StyleSheet.create({
     borderColor: "#d1d5db",
     padding: 4,
     justifyContent: "center",
+    alignItems: "stretch",
   },
   cellText: {
     width: "100%",
     fontSize: 8,
     lineHeight: 1.2,
+  },
+  cellTextReference: {
+    width: "100%",
+    fontSize: 8,
+    lineHeight: 1.2,
+    textAlign: "left",
   },
   cellTextRight: {
     width: "100%",
@@ -116,10 +124,11 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 8,
     textAlign: "center",
+    color: "#ffffff",
   },
   totalsText: {
-    fontSize: 8,
     fontWeight: "bold",
+    fontSize: 8,
   },
   emptyMessage: {
     textAlign: "center",

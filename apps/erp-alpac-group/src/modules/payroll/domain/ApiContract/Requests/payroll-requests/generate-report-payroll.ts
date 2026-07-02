@@ -14,4 +14,6 @@ export type ReportPayrollType =
   | "TravelExpenses"
   | "InssFortnightly"
   | "InssMonthly"
-  | "IrAndSalaryEarned";
+  | "IrAndSalaryEarned"
+  | "Depreciations"
+  | "Subsidies";

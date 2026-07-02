@@ -4,7 +4,7 @@ import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { styles } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/utils/styles.accumulated";
 import type { AccumulatedHistoryPdfProps } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/types/accumulated.types";
-import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
+import { getSignaturesForPayroll } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 import { withSoftLineBreaks } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/payroll-utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 export function AccumulatedPdfDocument({
@@ -17,7 +17,7 @@ export function AccumulatedPdfDocument({
 }: AccumulatedHistoryPdfProps) {
   const { urlImage } = useCompanyStore();
   const companyName = useUserStore.getState().companyName || "Alpac Group";
-  const signatures = getSignatures(companyName);
+  const signatures = getSignaturesForPayroll(companyName, branchName);
   const reviewedName = reviewedBy?.name ?? signatures.revisado.name;
   const reviewedRole = reviewedBy?.role ?? signatures.revisado.role;
   const showSignatures = !!(reviewedBy || signatures.revisado);

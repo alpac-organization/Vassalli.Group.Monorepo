@@ -4,6 +4,7 @@ export type CheckPdfProps = {
   data: PayrollItemResponse[];
   startDate?: string;
   endDate?: string;
+  branchName?: string;
   signatureImageSrc?: string;
   //   logoSrc?: string;
 };

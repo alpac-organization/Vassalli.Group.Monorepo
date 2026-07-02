@@ -1,45 +1,39 @@
 import { Document, Page, Text, View, Image } from "@react-pdf/renderer";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
-import { styles } from "@app/modules/payroll/ui/pages/nomina/components/inss-report-pdf/utils/styles.inss-report";
-import type { InssReportPdfProps } from "./types/inss-report.types";
+import { styles } from "./utils/styles.subsidies-report";
 import { withSoftLineBreaks } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/payroll-utils";
-import { buildInssReportPeriodLabel } from "@app/modules/payroll/ui/pages/nomina/components/inss-report-pdf/utils/inss-report.utils";
+import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
+import type { SubsidyHistoryDto } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-reports";
 
-export function InssReportPdfDocument({
+export interface SubsidiesReportPdfProps {
+  data: SubsidyHistoryDto[];
+  startDate?: string;
+  endDate?: string;
+  branchName: string;
+}
+
+export function SubsidiesReportPdfDocument({
   data,
   startDate,
   endDate,
   branchName,
-  isFortnightly,
-}: InssReportPdfProps) {
+}: SubsidiesReportPdfProps) {
   const { urlImage } = useCompanyStore();
 
-  const periodLabel = buildInssReportPeriodLabel(
-    startDate,
-    endDate,
-    isFortnightly,
-  );
+  const periodLabel =
+    startDate && endDate
+      ? `Periodo del ${formatDateToSpanishWords(startDate)} al ${formatDateToSpanishWords(endDate)}`
+      : "";
 
-  const totalIncome = data.reduce((acc, item) => acc + (item.income ?? 0), 0);
-  const totalAbsences = data.reduce(
-    (acc, item) => acc + (item.absences ?? 0),
+  const totalCompanyAssumed = data.reduce(
+    (acc, item) => acc + (item.company_assumed_amount ?? 0),
     0,
   );
-  const totalInssLab = data.reduce(
-    (acc, item) => acc + (item.inss_lab ?? 0),
+  const totalInssReimbursement = data.reduce(
+    (acc, item) => acc + (item.inss_reimbursement_amount ?? 0),
     0,
   );
-  const totalInssPatronal = data.reduce(
-    (acc, item) => acc + (item.inss_patronal ?? 0),
-    0,
-  );
-  const totalInatec = data.reduce((acc, item) => acc + (item.inatec ?? 0), 0);
-  const totalAmount = data.reduce((acc, item) => acc + (item.total ?? 0), 0);
-
-  const reportTitle = isFortnightly
-    ? "Reporte INSS Quincenal"
-    : "Reporte INSS Mensual";
 
   return (
     <Document>
@@ -52,7 +46,7 @@ export function InssReportPdfDocument({
               <View style={styles.logo} />
             )}
             <View style={styles.headerTextBlock}>
-              <Text style={styles.title}>{reportTitle}</Text>
+              <Text style={styles.title}>Reporte de Subsidios</Text>
               <Text style={styles.branchName}>{branchName}</Text>
               {periodLabel ? (
                 <Text style={styles.periodText}>{periodLabel}</Text>
@@ -64,53 +58,61 @@ export function InssReportPdfDocument({
         <View style={[styles.tableRow, styles.headerRow]} wrap={false} fixed>
           <View style={styles.cellCode}>
             <Text style={[styles.cellText, styles.headerCell]} wrap>
-              Codigo
+              Código
             </Text>
           </View>
           <View style={styles.cellName}>
             <Text style={[styles.cellText, styles.headerCell]} wrap>
-              Nombre
+              Empleado
+            </Text>
+          </View>
+          <View style={styles.cellAmountDays}>
+            <Text style={[styles.cellTextCenter, styles.headerCell]} wrap>
+              Día
+            </Text>
+          </View>
+          <View style={styles.cellBoleta}>
+            <Text style={[styles.cellTextCenter, styles.headerCell]} wrap>
+              Boleta
+            </Text>
+          </View>
+          <View style={styles.cellTypeSubsidy}>
+            <Text style={[styles.cellText, styles.headerCell]} wrap>
+              Tipo Subsidio
+            </Text>
+          </View>
+          <View style={styles.cellDate}>
+            <Text style={[styles.cellTextCenter, styles.headerCell]} wrap>
+              Fecha
+            </Text>
+          </View>
+          <View style={styles.cellDate}>
+            <Text style={[styles.cellTextCenter, styles.headerCell]} wrap>
+              Fecha Fin
             </Text>
           </View>
           <View style={styles.cellAmount}>
             <Text style={[styles.cellTextRight, styles.headerCell]} wrap>
-              Ingreso
+              Asume la Emp
             </Text>
           </View>
           <View style={styles.cellAmount}>
             <Text style={[styles.cellTextRight, styles.headerCell]} wrap>
-              Ausencias
-            </Text>
-          </View>
-          <View style={styles.cellAmount}>
-            <Text style={[styles.cellTextRight, styles.headerCell]} wrap>
-              INSS Laboral
-            </Text>
-          </View>
-          <View style={styles.cellAmount}>
-            <Text style={[styles.cellTextRight, styles.headerCell]} wrap>
-              INSS Patronal
-            </Text>
-          </View>
-          <View style={styles.cellAmount}>
-            <Text style={[styles.cellTextRight, styles.headerCell]} wrap>
-              INATEC
-            </Text>
-          </View>
-          <View style={styles.cellAmount}>
-            <Text style={[styles.cellTextRight, styles.headerCell]} wrap>
-              Total
+              % Reembolsa INSS
             </Text>
           </View>
         </View>
 
         {data.length === 0 ? (
           <Text style={styles.emptyMessage}>
-            No hay datos de INSS para este período.
+            No hay datos de subsidios para este período.
           </Text>
         ) : (
           data.map((item, index) => (
-            <View wrap={false} key={`inss-${item.collaborator_code}-${index}`}>
+            <View
+              wrap={false}
+              key={`subsidy-${item.collaborator_code}-${index}`}
+            >
               <View style={[styles.tableRow, styles.bodyRow]}>
                 <View style={styles.cellCode}>
                   <Text style={styles.cellText} wrap>
@@ -119,37 +121,42 @@ export function InssReportPdfDocument({
                 </View>
                 <View style={styles.cellName}>
                   <Text style={styles.cellText} wrap>
-                    {item.collaborator_fullname || "—"}
+                    {item.collaborator_full_name || "—"}
+                  </Text>
+                </View>
+                <View style={styles.cellAmountDays}>
+                  <Text style={styles.cellTextCenter} wrap>
+                    {item.amount_days}
+                  </Text>
+                </View>
+                <View style={styles.cellBoleta}>
+                  <Text style={styles.cellTextCenter} wrap>
+                    {item.reference_number || "—"}
+                  </Text>
+                </View>
+                <View style={styles.cellTypeSubsidy}>
+                  <Text style={styles.cellText} wrap>
+                    {item.type_subsidy_name || "—"}
+                  </Text>
+                </View>
+                <View style={styles.cellDate}>
+                  <Text style={styles.cellTextCenter} wrap>
+                    {item.start_date || "—"}
+                  </Text>
+                </View>
+                <View style={styles.cellDate}>
+                  <Text style={styles.cellTextCenter} wrap>
+                    {item.end_date || "—"}
                   </Text>
                 </View>
                 <View style={styles.cellAmount}>
                   <Text style={styles.cellTextRight} wrap>
-                    {formatCurrency(item.income)}
+                    {formatCurrency(item.company_assumed_amount)}
                   </Text>
                 </View>
                 <View style={styles.cellAmount}>
                   <Text style={styles.cellTextRight} wrap>
-                    {formatCurrency(item.absences)}
-                  </Text>
-                </View>
-                <View style={styles.cellAmount}>
-                  <Text style={styles.cellTextRight} wrap>
-                    {formatCurrency(item.inss_lab)}
-                  </Text>
-                </View>
-                <View style={styles.cellAmount}>
-                  <Text style={styles.cellTextRight} wrap>
-                    {formatCurrency(item.inss_patronal)}
-                  </Text>
-                </View>
-                <View style={styles.cellAmount}>
-                  <Text style={styles.cellTextRight} wrap>
-                    {formatCurrency(item.inatec)}
-                  </Text>
-                </View>
-                <View style={styles.cellAmount}>
-                  <Text style={styles.cellTextRight} wrap>
-                    {formatCurrency(item.total)}
+                    {formatCurrency(item.inss_reimbursement_amount)}
                   </Text>
                 </View>
               </View>
@@ -160,39 +167,34 @@ export function InssReportPdfDocument({
         {data.length > 0 && (
           <View style={[styles.tableRow, styles.totalsRow]} wrap={false}>
             <View style={styles.cellCode}>
-              <Text style={styles.totalsText}>Totales</Text>
+              <Text style={styles.totalsText}>Total</Text>
             </View>
             <View style={styles.cellName}>
               <Text style={styles.totalsText} />
             </View>
+            <View style={styles.cellAmountDays}>
+              <Text style={styles.totalsText} />
+            </View>
+            <View style={styles.cellBoleta}>
+              <Text style={styles.totalsText} />
+            </View>
+            <View style={styles.cellTypeSubsidy}>
+              <Text style={styles.totalsText} />
+            </View>
+            <View style={styles.cellDate}>
+              <Text style={styles.totalsText} />
+            </View>
+            <View style={styles.cellDate}>
+              <Text style={styles.totalsText} />
+            </View>
             <View style={styles.cellAmount}>
               <Text style={[styles.totalsText, styles.cellTextRight]}>
-                {formatCurrency(totalIncome)}
+                {formatCurrency(totalCompanyAssumed)}
               </Text>
             </View>
             <View style={styles.cellAmount}>
               <Text style={[styles.totalsText, styles.cellTextRight]}>
-                {formatCurrency(totalAbsences)}
-              </Text>
-            </View>
-            <View style={styles.cellAmount}>
-              <Text style={[styles.totalsText, styles.cellTextRight]}>
-                {formatCurrency(totalInssLab)}
-              </Text>
-            </View>
-            <View style={styles.cellAmount}>
-              <Text style={[styles.totalsText, styles.cellTextRight]}>
-                {formatCurrency(totalInssPatronal)}
-              </Text>
-            </View>
-            <View style={styles.cellAmount}>
-              <Text style={[styles.totalsText, styles.cellTextRight]}>
-                {formatCurrency(totalInatec)}
-              </Text>
-            </View>
-            <View style={styles.cellAmount}>
-              <Text style={[styles.totalsText, styles.cellTextRight]}>
-                {formatCurrency(totalAmount)}
+                {formatCurrency(totalInssReimbursement)}
               </Text>
             </View>
           </View>

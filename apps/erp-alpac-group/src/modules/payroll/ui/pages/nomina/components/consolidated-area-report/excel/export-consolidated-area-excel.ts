@@ -183,6 +183,7 @@ function writeTwoRowHeaders(ws: Worksheet) {
 
 export async function exportConsolidatedAreaExcel({
   data,
+  inssInformation,
   branchName,
   companyName: _companyName,
   startDate,
@@ -190,7 +191,7 @@ export async function exportConsolidatedAreaExcel({
   logoUrl,
 }: ExportConsolidatedAreaExcelParams): Promise<void> {
   const { Workbook } = await import("exceljs");
-  const { rows, grandTotal } = buildConsolidatedAreaRows(data);
+  const { rows, grandTotal } = buildConsolidatedAreaRows(data, inssInformation);
   const colCount = getConsolidatedColumnCount();
 
   const wb = new Workbook();

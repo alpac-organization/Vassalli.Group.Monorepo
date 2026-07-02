@@ -108,8 +108,8 @@ export const CONSOLIDATED_AREA_COLUMNS: ConsolidatedColumnDef[] = [
     width: 14,
   },
   { key: "netPay", label: "Neto a Recibir", kind: "currency", width: 14 },
-  { key: "inssPatronal", label: "INSS Patronal", kind: "text", width: 12 },
-  { key: "inatec", label: "INATEC 2%", kind: "text", width: 10 },
+  { key: "inssPatronal", label: "INSS Patronal", kind: "currency", width: 12 },
+  { key: "inatec", label: "INATEC 2%", kind: "currency", width: 10 },
 ];
 
 export function formatConsolidatedCellValue(

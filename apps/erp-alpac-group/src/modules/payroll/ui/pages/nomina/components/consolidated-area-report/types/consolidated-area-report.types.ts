@@ -1,4 +1,5 @@
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
+import type { GetPayrollReportsInssInformationResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-reports";
 import type { PdfSignatory } from "@app/modules/payroll/ui/pages/nomina/types/payroll.types";
 
 export type ConsolidatedAreaRow = {
@@ -23,8 +24,8 @@ export type ConsolidatedAreaRow = {
   purisima: number;
   totalDeduction: number;
   netPay: number;
-  inssPatronal: string;
-  inatec: string;
+  inssPatronal: number;
+  inatec: number;
 };
 
 export type ConsolidatedAreaReportData = {
@@ -34,6 +35,7 @@ export type ConsolidatedAreaReportData = {
 
 export type ExportConsolidatedAreaExcelParams = {
   data: PayrollItemResponse[];
+  inssInformation?: GetPayrollReportsInssInformationResponse[];
   branchName?: string | null;
   companyName?: string | null;
   startDate?: string | null;
@@ -43,6 +45,7 @@ export type ExportConsolidatedAreaExcelParams = {
 
 export type ConsolidatedAreaPdfProps = {
   data: PayrollItemResponse[];
+  inssInformation?: GetPayrollReportsInssInformationResponse[];
   branchName: string;
   companyName?: string | null;
   startDate?: string;

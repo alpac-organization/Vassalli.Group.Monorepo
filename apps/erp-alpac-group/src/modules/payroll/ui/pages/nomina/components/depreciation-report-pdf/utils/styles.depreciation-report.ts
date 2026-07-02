@@ -4,7 +4,7 @@ export const styles = StyleSheet.create({
   page: {
     paddingTop: 28,
     paddingBottom: 24,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     fontSize: 9,
     fontFamily: "Helvetica",
   },
@@ -30,9 +30,9 @@ export const styles = StyleSheet.create({
   },
   title: {
     textAlign: "center",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   branchName: {
     fontSize: 11,
@@ -61,15 +61,8 @@ export const styles = StyleSheet.create({
     borderColor: "#d1d5db",
     borderLeftWidth: 1,
   },
-  totalsRow: {
-    backgroundColor: "#f3f4f6",
-    borderStyle: "solid",
-    borderColor: "#d1d5db",
-    borderLeftWidth: 1,
-    borderTopWidth: 1,
-  },
   cellCode: {
-    flexGrow: 1.3,
+    flexGrow: 1.2,
     flexShrink: 1,
     flexBasis: 0,
     minWidth: 0,
@@ -80,7 +73,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   cellName: {
-    flexGrow: 2.8,
+    flexGrow: 2.5,
     flexShrink: 1,
     flexBasis: 0,
     minWidth: 0,
@@ -91,7 +84,18 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   cellAmount: {
-    flexGrow: 1.15,
+    flexGrow: 1.2,
+    flexShrink: 1,
+    flexBasis: 0,
+    minWidth: 0,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#d1d5db",
+    padding: 4,
+    justifyContent: "center",
+  },
+  cellObservation: {
+    flexGrow: 2,
     flexShrink: 1,
     flexBasis: 0,
     minWidth: 0,
@@ -116,10 +120,6 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 8,
     textAlign: "center",
-  },
-  totalsText: {
-    fontSize: 8,
-    fontWeight: "bold",
   },
   emptyMessage: {
     textAlign: "center",

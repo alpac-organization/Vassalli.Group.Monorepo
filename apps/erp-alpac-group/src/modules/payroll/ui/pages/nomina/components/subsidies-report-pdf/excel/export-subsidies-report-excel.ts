@@ -1,4 +1,4 @@
-import type { GetPayrollReportsInssInformationResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-reports";
+import type { SubsidyHistoryDto } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-reports";
 import {
   C,
   LOGO_MAX_HEIGHT,
@@ -10,66 +10,56 @@ import {
   getImageNaturalSize,
 } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/fit-image-excel";
 import { slugify } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/excel-helper";
-import { buildInssReportPeriodLabel } from "../utils/inss-report.utils";
+import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 
-export type ExportInssReportExcelParams = {
-  data: GetPayrollReportsInssInformationResponse[];
+export type ExportSubsidiesReportExcelParams = {
+  data: SubsidyHistoryDto[];
   branchName: string;
   startDate?: string;
   endDate?: string;
   logoUrl?: string | null;
-  isFortnightly: boolean;
 };
 
 const COLUMNS = [
   { key: "code", label: "Código", width: 14 },
-  { key: "name", label: "Nombre", width: 32 },
-  { key: "income", label: "Ingreso", width: 16 },
-  { key: "absences", label: "Ausencias", width: 16 },
-  { key: "inssLab", label: "INSS Laboral", width: 16 },
-  { key: "inssPatronal", label: "INSS Patronal", width: 16 },
-  { key: "inatec", label: "INATEC", width: 16 },
-  { key: "total", label: "Total", width: 16 },
+  { key: "name", label: "Empleado", width: 32 },
+  { key: "days", label: "Día", width: 10 },
+  { key: "boleta", label: "Boleta", width: 14 },
+  { key: "typeSubsidy", label: "Tipo Subsidio", width: 24 },
+  { key: "startDate", label: "Fecha", width: 14 },
+  { key: "endDate", label: "Fecha Fin", width: 14 },
+  { key: "assumed", label: "Asume la Emp", width: 16 },
+  { key: "reimbursement", label: "% Reembolsa INSS", width: 18 },
 ] as const;
 
 const COL_COUNT = COLUMNS.length;
 const HEADER_ROW = 3;
 const LOGO_COLUMN_INDEX = COL_COUNT;
 
-export async function exportInssReportExcel({
+export async function exportSubsidiesReportExcel({
   data,
   branchName,
   startDate,
   endDate,
   logoUrl,
-  isFortnightly,
-}: ExportInssReportExcelParams): Promise<void> {
+}: ExportSubsidiesReportExcelParams): Promise<void> {
   const { Workbook } = await import("exceljs");
 
-  const totalIncome = data.reduce((acc, item) => acc + (item.income ?? 0), 0);
-  const totalAbsences = data.reduce(
-    (acc, item) => acc + (item.absences ?? 0),
+  const totalCompanyAssumed = data.reduce(
+    (acc, item) => acc + (item.company_assumed_amount ?? 0),
     0,
   );
-  const totalInssLab = data.reduce(
-    (acc, item) => acc + (item.inss_lab ?? 0),
+  const totalInssReimbursement = data.reduce(
+    (acc, item) => acc + (item.inss_reimbursement_amount ?? 0),
     0,
   );
-  const totalInssPatronal = data.reduce(
-    (acc, item) => acc + (item.inss_patronal ?? 0),
-    0,
-  );
-  const totalInatec = data.reduce((acc, item) => acc + (item.inatec ?? 0), 0);
-  const totalAmount = data.reduce((acc, item) => acc + (item.total ?? 0), 0);
 
-  const reportTitle = isFortnightly
-    ? "Reporte INSS Quincenal"
-    : "Reporte INSS Mensual";
+  const reportTitle = "Empleados de Subsidio";
 
   const wb = new Workbook();
   wb.creator = "ALPAC ERP";
 
-  const ws = wb.addWorksheet("Reporte INSS", {
+  const ws = wb.addWorksheet("Subsidios", {
     pageSetup: {
       orientation: "landscape",
       paperSize: 5,
@@ -94,8 +84,9 @@ export async function exportInssReportExcel({
 
   {
     const periodLabel =
-      buildInssReportPeriodLabel(startDate, endDate, isFortnightly) ??
-      "Período no disponible";
+      startDate && endDate
+        ? `Periodo del ${formatDateToSpanishWords(startDate)} al ${formatDateToSpanishWords(endDate)}`
+        : "Período no disponible";
     const row = ws.addRow([periodLabel]);
     ws.mergeCells(2, 1, 2, COL_COUNT);
     row.height = 18;
@@ -127,13 +118,14 @@ export async function exportInssReportExcel({
   data.forEach((item) => {
     const row = ws.addRow([
       item.collaborator_code || "—",
-      item.collaborator_fullname || "—",
-      item.income ?? 0,
-      item.absences ?? 0,
-      item.inss_lab ?? 0,
-      item.inss_patronal ?? 0,
-      item.inatec ?? 0,
-      item.total ?? 0,
+      item.collaborator_full_name || "—",
+      item.amount_days ?? 0,
+      item.reference_number || "—",
+      item.type_subsidy_name || "—",
+      item.start_date || "—",
+      item.end_date || "—",
+      item.company_assumed_amount ?? 0,
+      item.inss_reimbursement_amount ?? 0,
     ]);
 
     row.height = 20;
@@ -144,10 +136,15 @@ export async function exportInssReportExcel({
       cell.font = { size: 9 };
       cell.alignment = {
         vertical: "middle",
-        horizontal: c >= 3 ? "right" : "left",
+        horizontal:
+          c >= 8
+            ? "right"
+            : c === 3 || c === 4 || c === 6 || c === 7
+              ? "center"
+              : "left",
       };
 
-      if (c >= 3) {
+      if (c >= 8) {
         cell.numFmt = '#,##0.00;[Red]-#,##0.00; "-"';
       }
     }
@@ -155,14 +152,15 @@ export async function exportInssReportExcel({
 
   {
     const row = ws.addRow([
-      "Totales",
+      "Total",
       "",
-      totalIncome,
-      totalAbsences,
-      totalInssLab,
-      totalInssPatronal,
-      totalInatec,
-      totalAmount,
+      "",
+      "",
+      "",
+      "",
+      "",
+      totalCompanyAssumed,
+      totalInssReimbursement,
     ]);
     row.height = 22;
 
@@ -177,10 +175,10 @@ export async function exportInssReportExcel({
       };
       cell.alignment = {
         vertical: "middle",
-        horizontal: c >= 3 ? "right" : "center",
+        horizontal: c >= 8 ? "right" : "center",
       };
 
-      if (c >= 3) {
+      if (c >= 8) {
         cell.numFmt = '#,##0.00;[Red]-#,##0.00; "-"';
       }
     }
@@ -213,7 +211,7 @@ export async function exportInssReportExcel({
         });
       }
     } catch {
-      console.warn("No se pudo agregar el logo en Reporte INSS");
+      console.warn("No se pudo agregar el logo en Reporte de Subsidios");
     }
   }
 
@@ -225,8 +223,7 @@ export async function exportInssReportExcel({
   link.href = URL.createObjectURL(blob);
   const now = new Date().toISOString().split("T")[0];
   const branchSlug = slugify(branchName);
-  const typeSlug = isFortnightly ? "quincenal" : "mensual";
-  link.download = `reporte-inss-${typeSlug}-${branchSlug}-${now}.xlsx`;
+  link.download = `reporte-subsidios-${branchSlug}-${now}.xlsx`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

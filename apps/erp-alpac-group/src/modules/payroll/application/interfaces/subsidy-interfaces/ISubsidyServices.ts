@@ -2,7 +2,7 @@ import type { CreateSubsidyRequest } from "@app/modules/payroll/domain/ApiContra
 import type { GetSubsidyTypesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/get-subsidy-types.request";
 import type { GetSubsidyTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/subsidy-responses/get-subsidy-types.response";
 import type { GetSubsidyHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/get-subsidy-history.request";
-import type { GetSubsidyHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/subsidy-responses/get-subsidy-history.response";
+import type { GetSubsidyHistoryListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/subsidy-responses/get-subsidy-history.response";
 
 export interface ISubsidyServices {
    
@@ -10,5 +10,5 @@ export interface ISubsidyServices {
 
    GetSubsidyTypes(payload: GetSubsidyTypesRequest): Promise<GetSubsidyTypesResponse>;
 
-   GetSubsidyHistory(payload: GetSubsidyHistoryRequest): Promise<GetSubsidyHistoryResponse[]>;
+   GetSubsidyHistory(payload: GetSubsidyHistoryRequest): Promise<GetSubsidyHistoryListResponse>;
 }

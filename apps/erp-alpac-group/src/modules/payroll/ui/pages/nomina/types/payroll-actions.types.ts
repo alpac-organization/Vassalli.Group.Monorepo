@@ -14,4 +14,7 @@ export type PayrollActionValue =
   | "monthly_inss_report"
   | "quincenal_ir_report"
   | "quincenal_inss_report"
-  | "vacation_permissions_summary_report";
+  | "vacation_permissions_summary_report"
+  | "depreciation_report"
+  | "bac_report"
+  | "subsidies_report";
