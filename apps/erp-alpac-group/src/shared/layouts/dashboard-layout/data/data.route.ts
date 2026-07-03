@@ -20,6 +20,7 @@ import {
   ShieldCheckIcon,
   ArchiveRestoreIcon,
   FolderClock,
+  Warehouse,
 } from "lucide-react";
 
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
@@ -94,12 +95,6 @@ const warehouseCorintoSection: SidebarLink = {
   icon: TruckIcon,
 };
 
-const warehouseManaguaSection: SidebarLink = {
-  id: "warehouse-managua",
-  label: "Panel Logístico",
-  path: "warehouse",
-  icon: TruckIcon,
-};
 
 const accessControlSection: SidebarLink = {
   id: "warehouse1",
@@ -122,10 +117,17 @@ const warehouseReportSection: SidebarLink = {
   icon: FilePenIcon,
 };
 
-const warehouseSection1: SidebarLink = {
-  id: "warehouse4",
+const warehouseManaguaSection: SidebarLink = {
+  id: "warehouse-managua",
+  label: "Control de Acceso",
+  path: "warehouse",
+  icon: TruckIcon,
+};
+
+const DucaDetailsPanel : SidebarLink = {
+  id: "warehouseMercancia",
   label: "Ingreso Mercancía",
-  path: "warehouse/section1",
+  path: "warehouse-section1",
   icon: ArchiveRestoreIcon,
 };
 
@@ -147,9 +149,9 @@ const warehouseSection3: SidebarLink = {
 
 const warehouseSection4: SidebarLink = {
   id: "warehouse7",
-  label: "Asignaciones de Inventario",
+  label: "Asignaciones de Bodegas",
   path: "warehouse/section4",
-  icon: FilePenIcon,
+  icon: Warehouse,
 };
 
 const warehouseSection5: SidebarLink = {
@@ -317,7 +319,7 @@ export const sidebarData = {
     [ModuleEnum.WAREHOUSE_MANAGUA]: {
       [RoleEnum.OPERATOR]: [
         warehouseManaguaSection,
-        warehouseSection1,
+        DucaDetailsPanel,
         warehouseSection4,
         warehouseSection12,
         warehouseReportSection,
