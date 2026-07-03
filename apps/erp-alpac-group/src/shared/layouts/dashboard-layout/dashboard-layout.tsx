@@ -13,6 +13,7 @@ import Sidebarlayout from "@app/shared/layouts/dashboard-layout/components/Sideb
 import useSessionStorageSidebar from "@app/shared/layouts/dashboard-layout/hooks/useSessionStorageSidebar";
 
 import type { SidebarLink } from "./components/Sidebar/types/sidebar.types";
+import { isRouteAuthorized } from "./utils/route-authorization.utils";
 
 const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
@@ -30,16 +31,12 @@ export const DashboardLayout = () => {
    const registry = sidebarData.navigationRegistry;
    const authorizedModules = registry[moduleCode as keyof typeof registry] ?? [];
 
-   const moduleItems =
-      authorizedModules[role as keyof typeof authorizedModules] ?? [];
+   const moduleItems: SidebarLink[] =
+      (authorizedModules[role as keyof typeof authorizedModules] ?? []) as SidebarLink[];
 
-   const authorizedItems = [...moduleItems];
+   const authorizedPaths = moduleItems.map((item) => item.path);
 
-   const isAuthorizedPath = authorizedItems.some((item: SidebarLink) => {
-      return location.pathname.includes(item.path);
-   });
-
-   console.log(moduleItems, authorizedItems, role)
+   const isAuthorizedPath = isRouteAuthorized(location.pathname, authorizedPaths);
 
    const handleLogout = async function () {
       try {
@@ -83,7 +80,7 @@ export const DashboardLayout = () => {
                isOpen={isOpenSidebar}
                logoUrl={sidebarData.logoUrl}
                nameCompany={sidebarData.nameCompany}
-               items={authorizedItems}
+               items={moduleItems}
             />
 
             <div className="flex flex-col flex-1 w-full overflow-hidden transition-all duration-300">

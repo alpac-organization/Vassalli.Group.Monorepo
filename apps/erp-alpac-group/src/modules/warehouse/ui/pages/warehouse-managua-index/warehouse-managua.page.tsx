@@ -6,7 +6,7 @@ import { m, LazyMotion, AnimatePresence } from "framer-motion";
 import { CircleCheckBig, HandPlatterIcon, TruckIcon, WeightTildeIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { driverRecords, type DriverRecord } from "../mock/mocked-data";
+import { driverRecords, type DriverRecord } from "../mock/driver-mocked-data";
 
 const PAGE_SIZE = 10;
 
