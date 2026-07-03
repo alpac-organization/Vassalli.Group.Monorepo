@@ -11,6 +11,7 @@ import type { UpdateCollaboratorProfileDetailsRequest } from "@app/modules/payro
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { GetCollaboratorProfileGeneratedDocumentParams } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/generated-document.request";
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
+import type { DeactivateCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/deactivate-collaborator.request";
 
 const collaboratorServices = new CollaboratorServices(httpHandler);
 
@@ -127,11 +128,23 @@ export const useCollaborators = function (props?: useCollaboratorsProps) {
          setTimeout(() => URL.revokeObjectURL(fileUrl), 60_000);
       },
    });
+
+   const DeactivateCollaborator = useMutation<void, ApiErrorResponse, DeactivateCollaboratorRequest>({
+      mutationKey: ["deactivate-collaborator"],
+      mutationFn: (payload: DeactivateCollaboratorRequest) => collaboratorServices.DeactivateCollaborator(payload),
+      onSuccess: () => {
+         queryClient.invalidateQueries({ queryKey: ["collaboratorData"] });
+      },
+      retryDelay: 2000,
+      retry: 1,
+   });
+
    return {
       GetCollaboratorsQuery,
       PostCollaboratorQuery,
       GetProfileDetails,
       GenerateCollaboratorProfileDocument,
       UpdateCollaboratorProfileDetails,
+      DeactivateCollaborator
    };
 };

@@ -1,4 +1,2 @@
-type CollaboratorModals =
-   | "add-collaborator";
-
+type CollaboratorModals = "add-collaborator" | "deactivate-collaborator";
 export type CollaboratorModalType = CollaboratorModals | null;
