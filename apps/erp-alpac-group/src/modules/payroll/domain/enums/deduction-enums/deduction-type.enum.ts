@@ -4,9 +4,9 @@ export const DeductionTypeEnum: Record<string, EnumType> = {
   Loans: { value: 1, label: "Préstamo" },
   LateArrivals: { value: 3, label: "Llegadas tardes" },
   Sanction: { value: 5, label: "Sanción" },
-  Purisima: { value: 6, label: "Purísima" },
-  ChildSupportGarnishment: { value: 8, label: "Embargo de pensión alimenticia" },
-  JudicialGarnishment: { value: 9, label: "Embargo judicial" },
+  Purisima: { value: 6, label: "Purísima" },  
+  JudicialGarnishment: { value: 8, label: "Embargo judicial" },
+  ChildSupportGarnishment: { value: 9, label: "Embargo de pensión alimenticia" },
 } as const;
 
 export type DeductionTypeEnum =
