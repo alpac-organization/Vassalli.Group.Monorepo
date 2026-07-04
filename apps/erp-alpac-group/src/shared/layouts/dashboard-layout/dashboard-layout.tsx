@@ -39,8 +39,6 @@ export const DashboardLayout = () => {
       return location.pathname.includes(item.path);
    });
 
-   console.log(moduleItems, authorizedItems, role)
-
    const handleLogout = async function () {
       try {
          setLogout(true);

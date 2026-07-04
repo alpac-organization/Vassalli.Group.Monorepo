@@ -23,6 +23,10 @@ export interface CreateLoanDeductionRequest extends CreateDeductionBase {
    loans_payload: LoansPayload;
 }
 
+export interface CreateJudicialSeizureDeductionRequest extends CreateDeductionBase {
+   judicial_seizure_payload: JudicialSeizurePayload;
+}
+
 /**
 
  * @description Payload enviado al API según el tipo de deducción.
@@ -32,7 +36,8 @@ export interface CreateLoanDeductionRequest extends CreateDeductionBase {
 export type CreateDeductionRequest =
    | CreateLateArrivalsDeductionRequest
    | CreatePurisimaDeductionRequest
-   | CreateLoanDeductionRequest;
+   | CreateLoanDeductionRequest
+   | CreateJudicialSeizureDeductionRequest;
 
 /**
 

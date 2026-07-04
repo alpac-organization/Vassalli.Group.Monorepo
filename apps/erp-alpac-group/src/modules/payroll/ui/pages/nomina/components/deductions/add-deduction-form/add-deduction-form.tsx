@@ -34,9 +34,11 @@ import type { AddDeductionFormProps } from "./add-deduction-form.types";
 
 import type {
    AddDeductionFormValues,
+   CreateJudicialSeizureDeductionRequest,
    CreateLateArrivalsDeductionRequest,
    CreateLoanDeductionRequest,
    CreatePurisimaDeductionRequest,
+   JudicialSeizurePayload,
    LateArrivalsInformation,
    LoansPayload,
    PurisimaInformation,
@@ -408,6 +410,68 @@ export const AddDeductionForm = ({
             onSuccess: () => {
                methods.reset();
                onSubmit?.(loanPayload);
+               onRequestSuccess?.("Deducción agregada correctamente");
+               onCancel?.();
+            },
+            onError: (error: ApiErrorResponse) => {
+               const mappedError = getMappedError(error);
+               onRequestError?.(mappedError?.description);
+            },
+         });
+
+         return;
+      }
+
+      if (isJudicialGarnishment(data.deduction_type)) {
+
+         if (!foundCollaborator) {
+            onRequestError?.("Debe buscar un colaborador para agregar una Deducción");
+            return;
+         }
+
+         const { judicial_seizure_payload, ...judicialBase } = data;
+
+         const currency = judicial_seizure_payload?.currency;
+         const totalAmountToPay = judicial_seizure_payload?.total_amount_to_pay;
+         const deductionPercentage = judicial_seizure_payload?.deduction_percentage;
+         const description = judicial_seizure_payload?.description?.trim() ?? "";
+
+         if (!currency || currency <= 0) {
+            onRequestError?.("Debe seleccionar una moneda");
+            return;
+         }
+
+         if (!totalAmountToPay || totalAmountToPay <= 0) {
+            onRequestError?.("El monto total de la deuda debe ser mayor a 0");
+            return;
+         }
+
+         if (!deductionPercentage || Number(deductionPercentage) <= 0) {
+            onRequestError?.("El porcentaje de deducción debe ser mayor a 0");
+            return;
+         }
+
+         const judicialSeizurePayload: JudicialSeizurePayload = {
+            currency: Number(currency),
+            total_amount_to_pay: Number(totalAmountToPay),
+            deduction_percentage: Number(deductionPercentage),
+            description,
+            identification_number: foundCollaborator.personal_information.identification_number!,
+         };
+
+         const judicialPayload: CreateJudicialSeizureDeductionRequest = {
+            company_id: judicialBase.company_id,
+            module_code: judicialBase.module_code,
+            branch_id: judicialBase.branch_id,
+            payroll_id: judicialBase.payroll_id,
+            deduction_type: Number(DeductionTypeEnum.JudicialGarnishment.value),
+            judicial_seizure_payload: judicialSeizurePayload,
+         };
+
+         CreateDeduction.mutate(judicialPayload, {
+            onSuccess: () => {
+               methods.reset();
+               onSubmit?.(judicialPayload);
                onRequestSuccess?.("Deducción agregada correctamente");
                onCancel?.();
             },
