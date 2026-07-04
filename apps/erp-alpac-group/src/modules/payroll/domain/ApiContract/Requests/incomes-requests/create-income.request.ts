@@ -63,6 +63,14 @@ export interface CreateIncomeRequest {
    */
   depreciation_payload?: CreateIncomeDepreciationRequest;
 
+  /**
+   * Payload de feriado (modo manual)
+   */
+  holiday_payload?: CreateIncomeHolidayRequest;
+
+  /**
+   * Payload de feriado (array enviado al API)
+   */
   holiday_income_data?: CreateIncomeHolidayRequest[];
 }
 
