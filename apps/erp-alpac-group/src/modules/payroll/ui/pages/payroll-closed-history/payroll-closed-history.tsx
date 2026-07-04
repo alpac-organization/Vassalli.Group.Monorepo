@@ -147,10 +147,7 @@ export function PayrollClosedHistoryPage() {
     isGeneratingEmployeeReceivablesPdf,
     setIsGeneratingEmployeeReceivablesPdf,
   ] = useState(false);
-  const [
-    isGeneratingInssReport,
-    setIsGeneratingInssReport,
-  ] = useState(false);
+  const [isGeneratingInssReport, setIsGeneratingInssReport] = useState(false);
   const [isGeneratingIrReport, setIsGeneratingIrReport] = useState(false);
   const [isGeneratingDepreciationReport, setIsGeneratingDepreciationReport] =
     useState(false);
@@ -276,7 +273,10 @@ export function PayrollClosedHistoryPage() {
     const endDay = endDate ? new Date(endDate).getUTCDate() : null;
     const PAYROLL_FIRST_PERIOD_END_DAY = 15;
     const PAYROLL_SECOND_PERIOD_START_DAY = 16;
-    if (endDay === PAYROLL_FIRST_PERIOD_END_DAY || startDay === PAYROLL_SECOND_PERIOD_START_DAY) {
+    if (
+      endDay === PAYROLL_FIRST_PERIOD_END_DAY ||
+      startDay === PAYROLL_SECOND_PERIOD_START_DAY
+    ) {
       options.push(
         {
           label: "Generar Reporte Quincenal IR",
@@ -754,56 +754,60 @@ export function PayrollClosedHistoryPage() {
     handlePdfGenerationError,
   ]);
 
-  const handleGenerateVacationPermissionsSummaryExcel = useCallback(async () => {
-    if (!companyId || !moduleCode || !payroll_id) return;
+  const handleGenerateVacationPermissionsSummaryExcel =
+    useCallback(async () => {
+      if (!companyId || !moduleCode || !payroll_id) return;
 
-    const startDate = detailsData?.start_date;
-    const endDate = detailsData?.end_date;
+      const startDate = detailsData?.start_date;
+      const endDate = detailsData?.end_date;
 
-    try {
-      setIsGeneratingVacationPermissionsSummary(true);
-      const permissionServices = new PermissionServices(httpHandler);
-      const permissions = await fetchApprovedVacationPermissionsByPayroll(
-        permissionServices,
-        {
-          companie_id: companyId,
-          module_code: moduleCode,
-          payroll_id,
-        },
-      );
-
-      if (!permissions.length) {
-        handlePdfGenerationError(
-          "No hay permisos de vacaciones aprobados para esta quincena.",
+      try {
+        setIsGeneratingVacationPermissionsSummary(true);
+        const permissionServices = new PermissionServices(httpHandler);
+        const permissions = await fetchApprovedVacationPermissionsByPayroll(
+          permissionServices,
+          {
+            companie_id: companyId,
+            module_code: moduleCode,
+            payroll_id,
+          },
         );
-        return;
+
+        if (!permissions.length) {
+          handlePdfGenerationError(
+            "No hay permisos de vacaciones aprobados para esta quincena.",
+          );
+          return;
+        }
+
+        const header = buildVacationPermissionsSummaryHeader(
+          startDate,
+          endDate,
+        );
+        const rows = buildVacationPermissionsSummaryRows(permissions);
+
+        await exportVacationPermissionsSummaryExcel({
+          header,
+          rows,
+          branchName,
+          startDate,
+          endDate,
+        });
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el descargue de vacaciones en Excel, intente nuevamente mas tarde.",
+        );
+      } finally {
+        setIsGeneratingVacationPermissionsSummary(false);
       }
-
-      const header = buildVacationPermissionsSummaryHeader(startDate, endDate);
-      const rows = buildVacationPermissionsSummaryRows(permissions);
-
-      await exportVacationPermissionsSummaryExcel({
-        header,
-        rows,
-        branchName,
-        startDate,
-        endDate,
-      });
-    } catch {
-      handlePdfGenerationError(
-        "Ocurrió un error al generar el descargue de vacaciones en Excel, intente nuevamente mas tarde.",
-      );
-    } finally {
-      setIsGeneratingVacationPermissionsSummary(false);
-    }
-  }, [
-    companyId,
-    moduleCode,
-    payroll_id,
-    detailsData,
-    branchName,
-    handlePdfGenerationError,
-  ]);
+    }, [
+      companyId,
+      moduleCode,
+      payroll_id,
+      detailsData,
+      branchName,
+      handlePdfGenerationError,
+    ]);
 
   const loadVacationAccrualAreaReportData = useCallback(async () => {
     if (!companyId || !moduleCode || !type_payroll || !branch_id || !payroll_id)
@@ -1402,112 +1406,114 @@ export function PayrollClosedHistoryPage() {
     handlePdfGenerationError,
   ]);
 
-  const loadInssReportData = useCallback(async (isFortnightly: boolean) => {
-    if (!companyId || !payroll_id || !moduleCode || !type_payroll)
-      return null;
-    if (!hasPayrollData) {
-      handlePdfGenerationError(
-        "No hay datos en la tabla de nómina para generar el reporte.",
-      );
-      return null;
-    }
-    const payrollServices = new PayrollServices(httpHandler);
-    const reportType: ReportPayrollType = isFortnightly ? "InssFortnightly" : "InssMonthly";
+  const loadInssReportData = useCallback(
+    async (isFortnightly: boolean) => {
+      if (!companyId || !payroll_id || !moduleCode || !type_payroll)
+        return null;
+      if (!hasPayrollData) {
+        handlePdfGenerationError(
+          "No hay datos en la tabla de nómina para generar el reporte.",
+        );
+        return null;
+      }
+      const payrollServices = new PayrollServices(httpHandler);
+      const reportType: ReportPayrollType = isFortnightly
+        ? "InssFortnightly"
+        : "InssMonthly";
 
-    const payload = {
-      companie_id: companyId,
-      report_type: reportType,
-      payroll_id: payroll_id,
-      payroll_type: type_payroll,
-      module_code: moduleCode,
-      identification_number: identificationFilter || undefined,
-    };
+      const payload = {
+        companie_id: companyId,
+        report_type: reportType,
+        payroll_id: payroll_id,
+        payroll_type: type_payroll,
+        module_code: moduleCode,
+        identification_number: identificationFilter || undefined,
+      };
 
-    const response = await payrollServices.generateReportsPayroll(payload);
-    return response.inss_information ?? [];
-  }, [
-    type_payroll,
-    payroll_id,
-    companyId,
-    moduleCode,
-    hasPayrollData,
-    identificationFilter,
-    handlePdfGenerationError,
-  ]);
+      const response = await payrollServices.generateReportsPayroll(payload);
+      return response.inss_information ?? [];
+    },
+    [
+      type_payroll,
+      payroll_id,
+      companyId,
+      moduleCode,
+      hasPayrollData,
+      identificationFilter,
+      handlePdfGenerationError,
+    ],
+  );
 
-  const handleGenerateInssReportPdf = useCallback(async (isFortnightly: boolean) => {
-    try {
-      setIsGeneratingInssReport(true);
-      const inssData = await loadInssReportData(isFortnightly);
-      if (!inssData) return;
+  const handleGenerateInssReportPdf = useCallback(
+    async (isFortnightly: boolean) => {
+      try {
+        setIsGeneratingInssReport(true);
+        const inssData = await loadInssReportData(isFortnightly);
+        if (!inssData) return;
 
-      const { start, end } = resolveInssReportPeriodDates(
-        detailsData?.start_date,
-        detailsData?.end_date,
-        isFortnightly,
-      );
+        const { start, end } = resolveInssReportPeriodDates(
+          detailsData?.start_date,
+          detailsData?.end_date,
+          isFortnightly,
+        );
 
-      const blob = await pdf(
-        <InssReportPdfDocument
-          data={inssData}
-          startDate={start}
-          endDate={end}
-          branchName={branchName}
-          isFortnightly={isFortnightly}
-        />,
-      ).toBlob();
+        const blob = await pdf(
+          <InssReportPdfDocument
+            data={inssData}
+            startDate={start}
+            endDate={end}
+            branchName={branchName}
+            isFortnightly={isFortnightly}
+          />,
+        ).toBlob();
 
-      window.open(URL.createObjectURL(blob), "_blank");
-    } catch {
-      handlePdfGenerationError(
-        "Ocurrió un error al generar el reporte INSS en PDF.",
-      );
-    } finally {
-      setIsGeneratingInssReport(false);
-    }
-  }, [
-    loadInssReportData,
-    detailsData,
-    branchName,
-    handlePdfGenerationError,
-  ]);
+        window.open(URL.createObjectURL(blob), "_blank");
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el reporte INSS en PDF.",
+        );
+      } finally {
+        setIsGeneratingInssReport(false);
+      }
+    },
+    [loadInssReportData, detailsData, branchName, handlePdfGenerationError],
+  );
 
-  const handleGenerateInssReportExcel = useCallback(async (isFortnightly: boolean) => {
-    try {
-      setIsGeneratingInssReport(true);
-      const inssData = await loadInssReportData(isFortnightly);
-      if (!inssData) return;
+  const handleGenerateInssReportExcel = useCallback(
+    async (isFortnightly: boolean) => {
+      try {
+        setIsGeneratingInssReport(true);
+        const inssData = await loadInssReportData(isFortnightly);
+        if (!inssData) return;
 
-      const { start, end } = resolveInssReportPeriodDates(
-        detailsData?.start_date,
-        detailsData?.end_date,
-        isFortnightly,
-      );
+        const { start, end } = resolveInssReportPeriodDates(
+          detailsData?.start_date,
+          detailsData?.end_date,
+          isFortnightly,
+        );
 
-      await exportInssReportExcel({
-        data: inssData,
-        branchName,
-        startDate: start,
-        endDate: end,
-        logoUrl: useCompanyStore.getState().urlImage,
-        isFortnightly,
-      });
-    } catch {
-      handlePdfGenerationError(
-        "Ocurrió un error al generar el reporte INSS en Excel.",
-      );
-    } finally {
-      setIsGeneratingInssReport(false);
-    }
-  }, [
-    loadInssReportData,
-    branchName,
-    detailsData,
-    handlePdfGenerationError,
-  ]);
+        await exportInssReportExcel({
+          data: inssData,
+          branchName,
+          startDate: start,
+          endDate: end,
+          logoUrl: useCompanyStore.getState().urlImage,
+          isFortnightly,
+        });
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el reporte INSS en Excel.",
+        );
+      } finally {
+        setIsGeneratingInssReport(false);
+      }
+    },
+    [loadInssReportData, branchName, detailsData, handlePdfGenerationError],
+  );
 
   const loadIrReportData = useCallback(async () => {
-    if (!companyId || !moduleCode || !type_payroll || !branch_id || !payroll_id) return null;
+    if (!companyId || !moduleCode || !type_payroll || !branch_id || !payroll_id)
+      return null;
     if (!hasPayrollData) {
       handlePdfGenerationError(
         "No hay datos en la tabla de nómina para generar el reporte.",
@@ -1537,68 +1543,63 @@ export function PayrollClosedHistoryPage() {
     handlePdfGenerationError,
   ]);
 
-  const handleGenerateIrReportPdf = useCallback(async (isFortnightly: boolean) => {
-    try {
-      setIsGeneratingIrReport(true);
-      const irData = await loadIrReportData();
-      if (!irData) return;
+  const handleGenerateIrReportPdf = useCallback(
+    async (isFortnightly: boolean) => {
+      try {
+        setIsGeneratingIrReport(true);
+        const irData = await loadIrReportData();
+        if (!irData) return;
 
-      const blob = await pdf(
-        <IrReportPdfDocument
-          data={irData}
-          startDate={detailsData?.start_date}
-          endDate={detailsData?.end_date}
-          branchName={branchName}
-          isFortnightly={isFortnightly}
-        />,
-      ).toBlob();
+        const blob = await pdf(
+          <IrReportPdfDocument
+            data={irData}
+            startDate={detailsData?.start_date}
+            endDate={detailsData?.end_date}
+            branchName={branchName}
+            isFortnightly={isFortnightly}
+          />,
+        ).toBlob();
 
-      window.open(URL.createObjectURL(blob), "_blank");
-    } catch {
-      handlePdfGenerationError(
-        "Ocurrió un error al generar el reporte IR en PDF.",
-      );
-    } finally {
-      setIsGeneratingIrReport(false);
-    }
-  }, [
-    loadIrReportData,
-    detailsData,
-    branchName,
-    handlePdfGenerationError,
-  ]);
+        window.open(URL.createObjectURL(blob), "_blank");
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el reporte IR en PDF.",
+        );
+      } finally {
+        setIsGeneratingIrReport(false);
+      }
+    },
+    [loadIrReportData, detailsData, branchName, handlePdfGenerationError],
+  );
 
-  const handleGenerateIrReportExcel = useCallback(async (isFortnightly: boolean) => {
-    try {
-      setIsGeneratingIrReport(true);
-      const irData = await loadIrReportData();
-      if (!irData) return;
+  const handleGenerateIrReportExcel = useCallback(
+    async (isFortnightly: boolean) => {
+      try {
+        setIsGeneratingIrReport(true);
+        const irData = await loadIrReportData();
+        if (!irData) return;
 
-      await exportIrReportExcel({
-        data: irData,
-        branchName: branchName ?? "",
-        startDate: detailsData?.start_date,
-        endDate: detailsData?.end_date,
-        logoUrl: useCompanyStore.getState().urlImage,
-        isFortnightly,
-      });
-    } catch {
-      handlePdfGenerationError(
-        "Ocurrió un error al generar el reporte IR en Excel.",
-      );
-    } finally {
-      setIsGeneratingIrReport(false);
-    }
-  }, [
-    loadIrReportData,
-    detailsData,
-    branchName,
-    handlePdfGenerationError,
-  ]);
+        await exportIrReportExcel({
+          data: irData,
+          branchName: branchName ?? "",
+          startDate: detailsData?.start_date,
+          endDate: detailsData?.end_date,
+          logoUrl: useCompanyStore.getState().urlImage,
+          isFortnightly,
+        });
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el reporte IR en Excel.",
+        );
+      } finally {
+        setIsGeneratingIrReport(false);
+      }
+    },
+    [loadIrReportData, detailsData, branchName, handlePdfGenerationError],
+  );
 
   const loadDepreciationReportData = useCallback(async () => {
-    if (!companyId || !payroll_id || !moduleCode || !type_payroll)
-      return null;
+    if (!companyId || !payroll_id || !moduleCode || !type_payroll) return null;
     if (!hasPayrollData) {
       handlePdfGenerationError(
         "No hay datos en la tabla de nómina para generar el reporte.",

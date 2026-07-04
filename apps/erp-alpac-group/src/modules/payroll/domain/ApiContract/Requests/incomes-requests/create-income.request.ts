@@ -62,6 +62,8 @@ export interface CreateIncomeRequest {
    * Payload de depreciación
    */
   depreciation_payload?: CreateIncomeDepreciationRequest;
+
+  holiday_income_data?: CreateIncomeHolidayRequest[];
 }
 
 export interface CreateIncomeOvertimeRequest {
@@ -93,7 +95,6 @@ export interface CreateIncomeCommissionRequest {
 }
 
 export interface CreateIncomeBonusRequest {
-
   /**
    * Código de la moneda
    */
@@ -108,7 +109,6 @@ export interface CreateIncomeBonusRequest {
    * Número de identificación del colaborador
    */
   identification_number?: string;
-
 }
 
 export interface CreateIncomeDepreciationRequest {
@@ -126,4 +126,9 @@ export interface CreateIncomeDepreciationRequest {
    * Número de identificación del colaborador
    */
   identification_number?: string;
+}
+
+export interface CreateIncomeHolidayRequest {
+  identification_number?: string;
+  amount_days: number;
 }
