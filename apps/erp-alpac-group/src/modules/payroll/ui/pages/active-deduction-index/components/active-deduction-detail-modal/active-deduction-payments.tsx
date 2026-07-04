@@ -4,6 +4,7 @@ import type {
   GetDeductionPaymentsResponse,
 } from "@app/modules/payroll/domain/ApiContract/Responses/deduction-responses/get-deduction-payments.response";
 import { getDeductionPaymentOriginLabel } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-payment-origin.enum";
+import currencyNames from "@app/modules/payroll/constants/currency";
 import {
   getDeductionPaymentStatusBadgeColor,
   getDeductionPaymentStatusLabel,
@@ -54,13 +55,17 @@ function PaymentCard({ payment }: { payment: DeductionPaymentsDto }) {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div>
-          <p className="text-xs text-slate-400 dark:text-slate-500">Monto NIO</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            Monto NIO
+          </p>
           <p className="font-mono text-sm font-semibold text-slate-800 dark:text-slate-100">
             {formatCurrency(payment.amount_paid, "NIO")}
           </p>
         </div>
         <div>
-          <p className="text-xs text-slate-400 dark:text-slate-500">Monto USD</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">
+            Monto USD
+          </p>
           <p className="font-mono text-sm font-semibold text-slate-800 dark:text-slate-100">
             {formatCurrency(payment.amount_paid_in_dollars, "USD")}
           </p>
@@ -74,7 +79,7 @@ function PaymentCard({ payment }: { payment: DeductionPaymentsDto }) {
         <div>
           <p className="text-xs text-slate-400 dark:text-slate-500">Moneda</p>
           <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            {String(payment.currency)}
+            {String(currencyNames[payment.currency])}
           </p>
         </div>
       </div>
@@ -112,7 +117,12 @@ export function ActiveDeductionPayments({
   return (
     <div className="flex min-w-0 flex-col gap-5">
       <div className="flex items-center gap-2">
-        <Button type="button"  icon={<ArrowLeftIcon className="w-4 h-4" />} onClick={onBack} label="Volver" />
+        <Button
+          type="button"
+          icon={<ArrowLeftIcon className="w-4 h-4" />}
+          onClick={onBack}
+          label="Volver"
+        />
         <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
           Pagos realizados ({paymentItems.length})
         </p>

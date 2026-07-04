@@ -6,7 +6,10 @@ import {
   Button,
   useTheme,
 } from "@alpac/design-system";
-import { payrollTypeOptions } from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
+import {
+  payrollTypeOptions,
+  DROPDOWN_DISABLED_TRIGGER_CLASS,
+} from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useNavigate, useParams } from "react-router-dom";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -165,18 +168,9 @@ export function PayrollPeriodsHistoryPage() {
         variant="default"
         size="sm"
         title="Seleccionar Nómina"
-        description="Por favor, primeramente seleccione el tipo de nómina y la sucursal que desea consultar."
+        description="Por favor, seleccione primero la sucursal y luego el tipo de nómina que desea consultar."
       >
         <div className="mt-4 flex flex-col gap-4">
-          <Dropdown
-            label="Tipo de nómina"
-            placeholder="Seleccione tipo de nómina"
-            options={payrollTypeOptions}
-            value={tempSelectedType || undefined}
-            appearance={theme === "dark" ? "dark" : "default"}
-            labelClassName="text-white!"
-            onChange={(value) => setTempSelectedType(value as PayrollType)}
-          />
           <Dropdown
             label="Sucursal"
             placeholder="Seleccione una sucursal"
@@ -184,7 +178,22 @@ export function PayrollPeriodsHistoryPage() {
             value={tempSelectedBranch || undefined}
             appearance={theme === "dark" ? "dark" : "default"}
             labelClassName="text-white!"
-            onChange={(value) => setTempSelectedBranch(String(value))}
+            onChange={(value) => {
+              setTempSelectedBranch(String(value));
+              setTempSelectedType(null);
+            }}
+          />
+          <Dropdown
+            label="Tipo de nómina"
+            placeholder="Seleccione tipo de nómina"
+            options={payrollTypeOptions}
+            value={tempSelectedType || undefined}
+            appearance={theme === "dark" ? "dark" : "default"}
+            labelClassName="text-white!"
+            className={
+              !tempSelectedBranch ? DROPDOWN_DISABLED_TRIGGER_CLASS : undefined
+            }
+            onChange={(value) => setTempSelectedType(value as PayrollType)}
           />
         </div>
         <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
@@ -257,8 +266,8 @@ export function PayrollPeriodsHistoryPage() {
         {!isSelectionReady && (
           <div className="flex items-center justify-center h-full text-slate-500 dark:text-slate-400">
             <p>
-              Por favor, seleccione el tipo de nómina y sucursal para ver el
-              historial.
+              Por favor, seleccione primero la sucursal y luego el tipo de
+              nómina para ver el historial.
             </p>
           </div>
         )}

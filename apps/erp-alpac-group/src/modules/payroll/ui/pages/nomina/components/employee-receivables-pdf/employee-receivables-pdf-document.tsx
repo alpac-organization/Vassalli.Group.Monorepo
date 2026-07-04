@@ -6,7 +6,6 @@ export interface EmployeeReceivableItem {
   codigo: string;
   nombre: string;
   cargo: string;
-  inicia: string;
   monto: number;
   monedaOriginal: string;
   noCuotasQuincenal: number;
@@ -27,7 +26,6 @@ export interface EmployeeReceivableItem {
 interface EmployeeReceivablesPdfDocumentProps {
   data: EmployeeReceivableItem[];
   companyName: string;
-  exchangeRate?: number;
   preparedBy?: {
     name: string;
     role?: string;
@@ -41,7 +39,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
 > = ({
   data,
   companyName,
-  exchangeRate,
   preparedBy,
   preparedSignatureImageSrc,
   logoUrl,
@@ -88,20 +85,9 @@ export const EmployeeReceivablesPdfDocument: React.FC<
           <View style={styles.headerTextBlock}>
             <Text style={styles.title}>{companyName}</Text>
             <Text style={styles.title}>Saldos por Cobrar a Empleados</Text>
-            {exchangeRate && (
-              <Text
-                style={[
-                  styles.periodText,
-                  { textAlign: "left", marginTop: 10 },
-                ]}
-              >
-                Tipo de Cambio: {exchangeRate.toFixed(4)}
-              </Text>
-            )}
           </View>
         </View>
 
-        {/* Group Headers */}
         <View style={styles.headerGroupRow}>
           <View style={styles.colEmptyGroup}></View>
           <View style={styles.colGroupDolares}>
@@ -112,7 +98,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
           </View>
         </View>
 
-        {/* Table Headers */}
         <View style={styles.tableHeaderRow}>
           <View style={styles.colCode}>
             <Text style={styles.cellHeader}>Codigo</Text>
@@ -122,9 +107,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
           </View>
           <View style={styles.colLarge}>
             <Text style={styles.cellHeader}>Cargo</Text>
-          </View>
-          <View style={styles.colSmall}>
-            <Text style={styles.cellHeader}>Inicia</Text>
           </View>
           <View style={styles.colMedium}>
             <Text style={styles.cellHeader}>Monto</Text>
@@ -142,7 +124,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
             <Text style={styles.cellHeader}>Cuotas Pendientes</Text>
           </View>
 
-          {/* Dolares */}
           <View style={styles.colMedium}>
             <Text style={styles.cellHeader}>Cuotas Pagadas</Text>
           </View>
@@ -153,7 +134,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
             <Text style={styles.cellHeader}>Cuotas Pendientes</Text>
           </View>
 
-          {/* Cordobas */}
           <View style={styles.colMedium}>
             <Text style={styles.cellHeader}>Cuotas Pagadas</Text>
           </View>
@@ -165,7 +145,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
           </View>
         </View>
 
-        {/* Table Body */}
         {data.map((item, index) => (
           <View key={index} style={styles.tableRow}>
             <View style={styles.colCode}>
@@ -176,9 +155,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
             </View>
             <View style={styles.colLarge}>
               <Text style={styles.cellLeft}>{item.cargo}</Text>
-            </View>
-            <View style={styles.colSmall}>
-              <Text style={styles.cellCenter}>{item.inicia}</Text>
             </View>
             <View style={styles.colMedium}>
               <Text style={styles.cellRight}>{formatNumber(item.monto)}</Text>
@@ -196,7 +172,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
               <Text style={styles.cellCenter}>{item.cuotasPendientes}</Text>
             </View>
 
-            {/* Dolares */}
             <View style={styles.colMedium}>
               <Text style={styles.cellRight}>
                 {formatNumber(item.dolares.cuotasPagadas)}
@@ -213,7 +188,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
               </Text>
             </View>
 
-            {/* Cordobas */}
             <View style={styles.colMedium}>
               <Text style={styles.cellRight}>
                 {formatNumber(item.cordobas.cuotasPagadas)}
@@ -232,7 +206,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
           </View>
         ))}
 
-        {/* Totals */}
         <View style={styles.globalTotalRow}>
           <View style={styles.colEmptyGroup}>
             <Text style={[styles.cellHeader, { textAlign: "left" }]}>
@@ -271,7 +244,6 @@ export const EmployeeReceivablesPdfDocument: React.FC<
           </View>
         </View>
 
-        {/* Signatures */}
         <View style={styles.signatureContainer}>
           <View style={styles.signatureBlock}>
             {preparedSignatureImageSrc && (

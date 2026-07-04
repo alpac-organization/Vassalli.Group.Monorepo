@@ -29,6 +29,7 @@ import {
   getDeductionStatusBadgeColor,
   getDeductionStatusLabel,
 } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-status.enum";
+import currencyNames from "@app/modules/payroll/constants/currency";
 import { getDeductionTypeLabel } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-type.enum";
 import {
   getDeductionPaymentStatusBadgeColor,
@@ -1345,7 +1346,7 @@ function PaymentCard({
         <div>
           <p className="text-xs text-slate-400 dark:text-slate-500">Moneda</p>
           <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            {String(payment.currency)}
+            {String(currencyNames[payment.currency])}
           </p>
         </div>
       </div>
