@@ -6,7 +6,7 @@ import {
 import type { ConsolidatedAreaPdfProps } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/types/consolidated-area-report.types";
 import type { ConsolidatedAreaRow } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/types/consolidated-area-report.types";
 import { buildConsolidatedAreaRows } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/utils/build-consolidated-area-rows";
-import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
+import { getSignaturesForPayroll } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 import {
   getPdfColumnStyle,
   getPdfHeaderLabel,
@@ -58,6 +58,7 @@ function DataRow({
 
 export function ConsolidatedAreaPdfDocument({
   data,
+  inssInformation,
   branchName,
   companyName,
   startDate,
@@ -68,8 +69,8 @@ export function ConsolidatedAreaPdfDocument({
   //   reviewedSignatureImageSrc,
 }: ConsolidatedAreaPdfProps) {
   const { urlImage } = useCompanyStore();
-  const signatures = getSignatures(companyName ?? "");
-  const { rows, grandTotal } = buildConsolidatedAreaRows(data);
+  const signatures = getSignaturesForPayroll(companyName ?? "", branchName);
+  const { rows, grandTotal } = buildConsolidatedAreaRows(data, inssInformation);
 
   const preparedName = preparedBy?.name ?? signatures.solicitado.name;
   //   const reviewedName = reviewedBy?.name ?? signatures.revisado.name;

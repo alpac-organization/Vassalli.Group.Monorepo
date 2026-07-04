@@ -7,9 +7,15 @@ export const PAYROLL_ACTIONS_WITH_EXCEL: readonly PayrollActionValue[] = [
   "income_report",
   "deduction_report",
   "consolidated_area_report",
-  "monthly_accumulated_report",
+  "employee_receivables_report",
+  "vacation_permissions_summary_report",
   "monthly_ir_report",
   "monthly_inss_report",
+  "quincenal_inss_report",
+  "quincenal_ir_report",
+  "depreciation_report",
+  "bac_report",
+  "subsidies_report",
 ] as const;
 
 export const actionSupportsExcel = (action: PayrollActionValue): boolean =>

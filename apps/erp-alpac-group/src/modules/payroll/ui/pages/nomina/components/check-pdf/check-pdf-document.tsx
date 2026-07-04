@@ -10,17 +10,18 @@ import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { topFieldStyles } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/check.utils";
-import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
+import { getSignaturesForPayroll } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 import { getProcessedSignatureImage } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/processSignatureImage";
 export function CheckPdfDocument({
   data,
   startDate,
   endDate,
+  branchName,
   signatureImageSrc,
 }: CheckPdfProps) {
   const { urlImage } = useCompanyStore();
   const companyName = useUserStore.getState().companyName || "Alpac Group";
-  const signatures = getSignatures(companyName);
+  const signatures = getSignaturesForPayroll(companyName, branchName);
   const isAlpac = companyName === "Almacenadora del Pacífico, S.A";
   const currentDate = new Date()
     .toLocaleDateString("es-NI", {

@@ -14,7 +14,7 @@ import { PAYROLL_TYPE_LABELS } from "@app/modules/payroll/domain/enums/payroll-e
 import { getPayrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
+import { getSignaturesForPayroll } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
 import type { PayrollColumnDef } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 
@@ -89,7 +89,7 @@ export function PayrollPdfDocument({
   reviewedSignatureImageSrc,
 }: PayrollPdfProps) {
   const { urlImage } = useCompanyStore();
-  const signatures = getSignatures(companyName ?? "");
+  const signatures = getSignaturesForPayroll(companyName ?? "", branchName);
 
   const activeColumns = getPayrollColumns(companyName).filter((col) =>
     visibleKeys.includes(col.key as string),
