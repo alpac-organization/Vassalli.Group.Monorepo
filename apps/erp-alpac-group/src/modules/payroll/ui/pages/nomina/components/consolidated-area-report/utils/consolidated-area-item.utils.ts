@@ -22,9 +22,8 @@ export type ParsedConsolidatedItem = {
   seizuresAmount: number;
   lateArrivalsQty: number;
   lateArrivalsAmount: number;
-  vacationDeduction: number;
   purisima: number;
-  others: number;
+  //   others: number;
   totalDeduction: number;
   netPay: number;
 };
@@ -43,15 +42,9 @@ export function parseConsolidatedItem(
     vacations: item.vacations ?? 0,
     overtimeQty: item.number_overtime ?? 0,
     overtimeAmount: item.overtime ?? 0,
-    holidayQty: 0,
+    holidayQty: 0, //agg holiday queda pending por ahora.
     holidayAmount: 0,
-    otherIncome:
-      (item.bonus ?? 0) +
-      (item.commissions ?? 0) +
-      (item.antique ?? 0) +
-      (item.transport ?? 0) +
-      (item.feeding ?? 0) +
-      (item.lodging ?? 0),
+    otherIncome: item.commissions ?? 0,
     totalIncome: item.total_income ?? 0,
     inssLaboral: item.inss ?? 0,
     irEmployee: item.ir ?? 0,
@@ -61,11 +54,9 @@ export function parseConsolidatedItem(
     seizuresAmount,
     lateArrivalsQty: deductions?.LateArrivalsInMinutes ?? 0,
     lateArrivalsAmount: deductions?.LateArrivals ?? 0,
-    vacationDeduction: 0,
     purisima: deductions?.Purisima ?? 0,
-    others:
-      (deductions?.OtherDeductions ?? 0) +
-      (deductions?.UniformDeduction ?? 0),
+    //  others:
+    //    (deductions?.OtherDeductions ?? 0) + (deductions?.UniformDeduction ?? 0),
     totalDeduction: item.total_deducctions ?? 0,
     netPay: item.total_to_pay ?? 0,
   };
@@ -93,13 +84,11 @@ export function createEmptyConsolidatedRow(
     seizuresAmount: 0,
     lateArrivalsQty: 0,
     lateArrivalsAmount: 0,
-    vacationDeduction: 0,
     purisima: 0,
-    others: 0,
     totalDeduction: 0,
     netPay: 0,
-    inssPatronal: PLACEHOLDER_VALUE,
-    inatec: PLACEHOLDER_VALUE,
+    inssPatronal: 0,
+    inatec: 0,
   };
 }
 
@@ -124,9 +113,7 @@ export function accumulateParsedItem(
   row.seizuresAmount += parsed.seizuresAmount;
   row.lateArrivalsQty += parsed.lateArrivalsQty;
   row.lateArrivalsAmount += parsed.lateArrivalsAmount;
-  row.vacationDeduction += parsed.vacationDeduction;
   row.purisima += parsed.purisima;
-  row.others += parsed.others;
   row.totalDeduction += parsed.totalDeduction;
   row.netPay += parsed.netPay;
 }

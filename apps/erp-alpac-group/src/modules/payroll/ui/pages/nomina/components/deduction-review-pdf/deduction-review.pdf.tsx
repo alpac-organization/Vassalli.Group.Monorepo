@@ -101,6 +101,17 @@ const DEDUCTION_CONCEPTS: DeductionConcept[] = [
       parseAdditionalDeductions(item.deductions_additional_data)
         ?.JudicialSeizures ?? 0,
   },
+  {
+    key: "Embargos alimenticios",
+    label: "Embargo alimenticio",
+    render: (item) => {
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return formatCurrency(d?.ChildSupportGarnishment ?? 0, "NIO") ?? "—";
+    },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)
+        ?.ChildSupportGarnishment ?? 0,
+  },
 ];
 
 function ColumnHeaders() {

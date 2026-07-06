@@ -1,4 +1,5 @@
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
+import type { GetPayrollReportsInssInformationResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll-reports";
 import type {
   ConsolidatedAreaReportData,
   ConsolidatedAreaRow,
@@ -8,6 +9,11 @@ import {
   createEmptyConsolidatedRow,
   parseConsolidatedItem,
 } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/utils/consolidated-area-item.utils";
+import {
+  aggregateInssByArea,
+  applyInssTotalsToRows,
+  buildCollaboratorAreaMap,
+} from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/utils/merge-inss-by-area.utils";
 import { groupByWorkArea } from "@app/modules/payroll/ui/pages/nomina/utils/payroll-report-grouping.utils";
 
 const NUMERIC_KEYS: (keyof ConsolidatedAreaRow)[] = [
@@ -28,11 +34,11 @@ const NUMERIC_KEYS: (keyof ConsolidatedAreaRow)[] = [
   "seizuresAmount",
   "lateArrivalsQty",
   "lateArrivalsAmount",
-  "vacationDeduction",
   "purisima",
-  "others",
   "totalDeduction",
   "netPay",
+  "inssPatronal",
+  "inatec",
 ];
 
 function sumRowsInto(target: ConsolidatedAreaRow, source: ConsolidatedAreaRow) {
@@ -47,6 +53,7 @@ function sumRowsInto(target: ConsolidatedAreaRow, source: ConsolidatedAreaRow) {
 
 export function buildConsolidatedAreaRows(
   items: PayrollItemResponse[],
+  inssInformation?: GetPayrollReportsInssInformationResponse[],
 ): ConsolidatedAreaReportData {
   const grouped = groupByWorkArea(items);
   const rows = [...grouped.entries()].map(([areaName, areaItems]) => {
@@ -56,6 +63,12 @@ export function buildConsolidatedAreaRows(
     }
     return row;
   });
+
+  if (inssInformation?.length) {
+    const areaByCode = buildCollaboratorAreaMap(items);
+    const inssByArea = aggregateInssByArea(inssInformation, areaByCode);
+    applyInssTotalsToRows(rows, inssByArea);
+  }
 
   const grandTotal = createEmptyConsolidatedRow("Total");
   for (const row of rows) {
