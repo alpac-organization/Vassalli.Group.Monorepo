@@ -20,13 +20,16 @@ import {
   validateOvertimeIncomePayload,
 } from "@app/modules/payroll/ui/pages/nomina/components/incomes/utils/parse-overtime-income-excel";
 
-import type { CreateIncomeFormProps, IncomeTypeOption } from "./create-income-form.types";
+import type {
+  CreateIncomeFormProps,
+  IncomeTypeOption,
+} from "@app/modules/payroll/ui/pages/nomina/components/incomes/create-income-form/create-income-form.types";
 import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
 import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
-import { Overtime } from "../overtime/overtime";
-import { Depreciation } from "../depreciation/depreciation";
+import { Overtime } from "@app/modules/payroll/ui/pages/nomina/components/incomes/overtime/overtime";
+import { Depreciation } from "@app/modules/payroll/ui/pages/nomina/components/incomes/depreciation/depreciation";
 
 const inputClassName =
   "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -38,7 +41,6 @@ const subsidyTypeOption: IncomeTypeOption = {
   code: SUBSIDY_TYPE_CODE,
   label: "Subsidio",
 };
-
 const formFieldsTransition = {
   height: { duration: 0.28, ease: "easeInOut" as const },
   opacity: { duration: 0.35, ease: "easeOut" as const, delay: 0.08 },
@@ -64,8 +66,11 @@ export const CreateIncomeForm = ({
   const { companyId, moduleCode, identificationNumber, role } = useUserStore();
   const { getMappedError } = useMappedError();
   const [overtimeFileKey, setOvertimeFileKey] = useState(0);
-  const [foundCollaborator, setFoundCollaborator] = useState<GetCollaboratorProfileDetailsResponse | null>(null);
-  const [selectedInputMethod, setSelectedInputMethod] = useState<"manualEntry" | "excelImport">("manualEntry");
+  const [foundCollaborator, setFoundCollaborator] =
+    useState<GetCollaboratorProfileDetailsResponse | null>(null);
+  const [selectedInputMethod, setSelectedInputMethod] = useState<
+    "manualEntry" | "excelImport"
+  >("manualEntry");
   const [isSearching, setIsSearching] = useState(false);
 
   const isAdministrator = role === RoleEnum.ADMINISTRATOR;
@@ -98,7 +103,7 @@ export const CreateIncomeForm = ({
     IncomeTypeEnum.INCOME_OVERTIME,
     IncomeTypeEnum.INCOME_COMMISSION,
     IncomeTypeEnum.INCOME_BONUS,
-    IncomeTypeEnum.INCOME_DEPRECIATION
+    IncomeTypeEnum.INCOME_DEPRECIATION,
   ] as IncomeTypeEnum[];
 
   const { GetIncomeTypes, CreateIncome } = useIncomes({
@@ -144,11 +149,14 @@ export const CreateIncomeForm = ({
     return allIncomeTypeOptions.find((opt) => opt.id === incomeTypeId)?.code;
   }, [incomeTypeId, allIncomeTypeOptions]);
 
-  const isOvertimeType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME;
-  const isCommissionType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION;
+  const isOvertimeType =
+    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME;
+  const isCommissionType =
+    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION;
   const isBonusType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_BONUS;
   const isSubsidyType = selectedIncomeTypeCode === SUBSIDY_TYPE_CODE;
-  const isDepreciationType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_DEPRECIATION;
+  const isDepreciationType =
+    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_DEPRECIATION;
 
   const needsCollaborator =
     isCommissionType ||
@@ -212,7 +220,6 @@ export const CreateIncomeForm = ({
   }, [isDepreciationType, methods]);
 
   const handleClearCollaborator = useCallback(() => {
-
     setFoundCollaborator(null);
 
     if (isCommissionType) {
@@ -241,7 +248,7 @@ export const CreateIncomeForm = ({
     isOvertimeType,
     isDepreciationType,
     selectedInputMethod,
-    methods
+    methods,
   ]);
 
   const handleOvertimeFileRemove = useCallback(() => {
@@ -291,7 +298,9 @@ export const CreateIncomeForm = ({
     if (isOvertimeType) {
       if (selectedInputMethod === "manualEntry") {
         if (!foundCollaborator) {
-          onRequestError?.("Debe buscar un colaborador para agregar un ingreso");
+          onRequestError?.(
+            "Debe buscar un colaborador para agregar un ingreso",
+          );
           return;
         }
 
@@ -381,7 +390,6 @@ export const CreateIncomeForm = ({
     }
 
     if (isCommissionType) {
-
       const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
 
@@ -418,12 +426,12 @@ export const CreateIncomeForm = ({
     }
 
     if (isBonusType) {
-
       const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
 
-      const identificationNumberValue =
-        collaboratorIdentification.replace(/-/g, "").toUpperCase();
+      const identificationNumberValue = collaboratorIdentification
+        .replace(/-/g, "")
+        .toUpperCase();
 
       await CreateIncome.mutateAsync(
         {
@@ -434,8 +442,7 @@ export const CreateIncomeForm = ({
           type_income_id: rest.type_income_id,
           bonus_payload: {
             currency: Number(bonus_payload?.currency) || 0,
-            bonus_amount:
-              Number(bonus_payload?.bonus_amount) || 0,
+            bonus_amount: Number(bonus_payload?.bonus_amount) || 0,
             identification_number: identificationNumberValue,
           },
         },
@@ -454,12 +461,12 @@ export const CreateIncomeForm = ({
     }
 
     if (isDepreciationType) {
-
       const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
 
-      const identificationNumberValue =
-        collaboratorIdentification.replace(/-/g, "").toUpperCase();
+      const identificationNumberValue = collaboratorIdentification
+        .replace(/-/g, "")
+        .toUpperCase();
 
       await CreateIncome.mutateAsync(
         {
@@ -488,7 +495,6 @@ export const CreateIncomeForm = ({
         },
       );
     }
-
   };
 
   const hasOvertimeExcelData =
@@ -520,8 +526,7 @@ export const CreateIncomeForm = ({
     !methods.formState.isValid ||
     !selectedIncomeTypeCode ||
     isSubsidyType ||
-    (isOvertimeType &&
-      !(hasOvertimeExcelData || hasValidOvertimeManual)) ||
+    (isOvertimeType && !(hasOvertimeExcelData || hasValidOvertimeManual)) ||
     (isCommissionType && (!foundCollaborator || !hasValidCommission)) ||
     (isBonusType && (!foundCollaborator || !hasValidBonus)) ||
     (isDepreciationType && !hasValidDepreciation);
@@ -738,14 +743,12 @@ export const CreateIncomeForm = ({
             <Depreciation />
           </m.div>
         )}
-
       </AnimatePresence>
     </LazyMotion>
   );
 
   const collaboratorSearchSection =
     isSubsidyType && !foundCollaborator && needsCollaborator ? (
-
       <CollaboratorSearchForm
         onSuccess={(collaborator) => {
           setFoundCollaborator(collaborator);
@@ -761,7 +764,6 @@ export const CreateIncomeForm = ({
         }}
         excludeIdentifications={[identificationNumber]}
       />
-
     ) : null;
 
   const collaboratorSummarySection =

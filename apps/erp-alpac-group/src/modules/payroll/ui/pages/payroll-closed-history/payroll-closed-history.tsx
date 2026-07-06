@@ -57,6 +57,8 @@ import { exportDepreciationReportExcel } from "@app/modules/payroll/ui/pages/nom
 import { BacReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/bac-report-pdf/bac-report-pdf-document";
 import { exportBacReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/bac-report-pdf/excel/export-bac-report-excel";
 import { mapPayrollItemsToBacRows } from "@app/modules/payroll/ui/pages/nomina/components/bac-report-pdf/utils/bac-report.utils";
+import { buildMonthlyRetentionReportRows } from "@app/modules/payroll/ui/pages/nomina/components/monthly-retention-report/utils/build-monthly-retention-report.utils";
+import { exportMonthlyRetentionReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/monthly-retention-report/excel/export-monthly-retention-report-excel";
 import type { ReportPayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/generate-report-payroll";
 import { exportVacationPermissionsSummaryExcel } from "@app/modules/payroll/ui/pages/nomina/components/vacation-permissions-summary/excel/export-vacation-permissions-summary-excel";
 import { IrReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/ir-report-pdf/ir-report-pdf-document";
@@ -154,6 +156,8 @@ export function PayrollClosedHistoryPage() {
   const [isGeneratingSubsidiesReport, setIsGeneratingSubsidiesReport] =
     useState(false);
   const [isGeneratingBacReport, setIsGeneratingBacReport] = useState(false);
+  const [isGeneratingMonthlyRetentionReport, setIsGeneratingMonthlyRetentionReport] =
+    useState(false);
   const [
     isGeneratingVacationPermissionsSummary,
     setIsGeneratingVacationPermissionsSummary,
@@ -294,6 +298,10 @@ export function PayrollClosedHistoryPage() {
         {
           label: "Generar Reporte Mensual INSS",
           value: "monthly_inss_report",
+        },
+        {
+          label: "Generar Informe de Retenciones Mensual",
+          value: "monthly_retention_report",
         },
       );
     }
@@ -1769,6 +1777,81 @@ export function PayrollClosedHistoryPage() {
     }
   }, [loadBacReportData, branchName, handlePdfGenerationError]);
 
+  const loadMonthlyRetentionReportData = useCallback(async () => {
+    if (!companyId || !payroll_id || !moduleCode || !type_payroll) return null;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return null;
+    }
+
+    const payrollServices = new PayrollServices(httpHandler);
+
+    const reportPayload = {
+      companie_id: companyId,
+      payroll_id: payroll_id,
+      payroll_type: type_payroll,
+      module_code: moduleCode,
+      identification_number: identificationFilter || undefined,
+    };
+
+    const [inssResponse, irResponse, allItems] = await Promise.all([
+      payrollServices.generateReportsPayroll({
+        ...reportPayload,
+        report_type: "InssMonthly",
+      }),
+      payrollServices.generateReportsPayroll({
+        ...reportPayload,
+        report_type: "IrAndSalaryEarned",
+      }),
+      fetchAllItems(),
+    ]);
+
+    const reportData = buildMonthlyRetentionReportRows(
+      inssResponse.inss_information ?? [],
+      irResponse.ir_and_salary_earned ?? [],
+      allItems,
+    );
+
+    if (reportData.length === 0) {
+      handlePdfGenerationError(
+        "No hay datos para generar el informe de retenciones mensual.",
+      );
+      return null;
+    }
+
+    return reportData;
+  }, [
+    companyId,
+    payroll_id,
+    moduleCode,
+    type_payroll,
+    hasPayrollData,
+    identificationFilter,
+    fetchAllItems,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateMonthlyRetentionReportExcel = useCallback(async () => {
+    try {
+      setIsGeneratingMonthlyRetentionReport(true);
+      const reportData = await loadMonthlyRetentionReportData();
+      if (!reportData) return;
+
+      await exportMonthlyRetentionReportExcel({
+        data: reportData,
+        branchName,
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el informe de retenciones mensual.",
+      );
+    } finally {
+      setIsGeneratingMonthlyRetentionReport(false);
+    }
+  }, [loadMonthlyRetentionReportData, branchName, handlePdfGenerationError]);
+
   const loadSubsidiesReportData = useCallback(async () => {
     if (!companyId || !payroll_id || !moduleCode || !type_payroll) return null;
     if (!hasPayrollData) {
@@ -1965,7 +2048,8 @@ export function PayrollClosedHistoryPage() {
     isGeneratingIrReport ||
     isGeneratingDepreciationReport ||
     isGeneratingSubsidiesReport ||
-    isGeneratingBacReport;
+    isGeneratingBacReport ||
+    isGeneratingMonthlyRetentionReport;
 
   const handleOpenGenerateModal = useCallback(() => {
     setSelectedAction(null);
@@ -2018,6 +2102,9 @@ export function PayrollClosedHistoryPage() {
         case "monthly_ir_report":
           await handleGenerateIrReportExcel(false);
           break;
+        case "monthly_retention_report":
+          await handleGenerateMonthlyRetentionReportExcel();
+          break;
         case "depreciation_report":
           await handleGenerateDepreciationReportExcel();
           break;
@@ -2044,6 +2131,7 @@ export function PayrollClosedHistoryPage() {
       handleGenerateIrReportExcel,
       handleGenerateDepreciationReportExcel,
       handleGenerateBacReportExcel,
+      handleGenerateMonthlyRetentionReportExcel,
       handlePdfGenerationError,
     ],
   );

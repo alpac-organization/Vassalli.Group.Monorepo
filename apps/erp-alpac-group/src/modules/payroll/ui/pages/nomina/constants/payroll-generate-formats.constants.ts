@@ -16,7 +16,15 @@ export const PAYROLL_ACTIONS_WITH_EXCEL: readonly PayrollActionValue[] = [
   "depreciation_report",
   "bac_report",
   "subsidies_report",
+  "monthly_retention_report",
+] as const;
+
+export const PAYROLL_ACTIONS_EXCEL_ONLY: readonly PayrollActionValue[] = [
+  "monthly_retention_report",
 ] as const;
 
 export const actionSupportsExcel = (action: PayrollActionValue): boolean =>
   PAYROLL_ACTIONS_WITH_EXCEL.includes(action);
+
+export const actionIsExcelOnly = (action: PayrollActionValue): boolean =>
+  PAYROLL_ACTIONS_EXCEL_ONLY.includes(action);

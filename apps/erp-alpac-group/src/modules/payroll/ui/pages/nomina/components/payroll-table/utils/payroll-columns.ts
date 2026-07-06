@@ -92,6 +92,18 @@ export const payrollColumns: PayrollColumnDef[] = [
     getValue: (item) => item.vacations ?? 0,
   },
   {
+    key: "number_of_holidays",
+    label: "Número de Días Feriados",
+    render: (item) => `${item.number_of_holidays ?? 0} días`,
+    getValue: (item) => item.number_of_holidays ?? 0,
+  },
+  {
+    key: "holiday_pay",
+    label: "Pago por Día Feriado",
+    render: (item) => formatCurrency(item.holiday_pay ?? 0, "NIO") ?? "—",
+    getValue: (item) => item.holiday_pay ?? 0,
+  },
+  {
     key: "number_overtime",
     label: "Número de Horas Extras",
     render: (item) => `${item.number_overtime ?? 0} hrs`,
