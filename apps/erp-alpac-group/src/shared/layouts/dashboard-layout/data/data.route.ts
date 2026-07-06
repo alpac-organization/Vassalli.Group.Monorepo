@@ -20,9 +20,12 @@ import {
   ShieldCheckIcon,
   ArchiveRestoreIcon,
   FolderClock,
+  WarehouseIcon,
 } from "lucide-react";
 
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 
 const collboratorSection: SidebarLink = {
   id: "collaborators",
@@ -90,7 +93,7 @@ const liquidacionSection: SidebarLink = {
 const warehouseCorintoSection: SidebarLink = {
   id: "warehouse-corinto",
   label: "Panel Logístico",
-  path: "warehouse",
+  path: "warehouse-corinto",
   icon: TruckIcon,
 };
 
@@ -102,16 +105,16 @@ const warehouseManaguaSection: SidebarLink = {
 };
 
 const accessControlSection: SidebarLink = {
-  id: "warehouse1",
+  id: "access-control",
   label: "Control de acceso",
-  path: "warehouse/access",
+  path: "warehouse-corinto/access",
   icon: ShieldCheckIcon,
 };
 
-const weighingSection: SidebarLink = {
-  id: "warehouse2",
+const scaleSection: SidebarLink = {
+  id: "scale",
   label: "Basculaje",
-  path: "warehouse/weighing",
+  path: "warehouse-corinto/scale",
   icon: WeightTildeIcon,
 };
 
@@ -129,22 +132,6 @@ const warehouseSection1: SidebarLink = {
   icon: ArchiveRestoreIcon,
 };
 
-
-
-const warehouseSection2: SidebarLink = {
-  id: "warehouse5",
-  label: "Documentos Registrados",
-  path: "warehouse/section2",
-  icon: FilePenIcon,
-};
-
-const warehouseSection3: SidebarLink = {
-  id: "warehouse6",
-  label: "Salidas",
-  path: "warehouse/section3",
-  icon: FilePenIcon,
-};
-
 const warehouseSection4: SidebarLink = {
   id: "warehouse7",
   label: "Asignaciones de Inventario",
@@ -152,66 +139,10 @@ const warehouseSection4: SidebarLink = {
   icon: FilePenIcon,
 };
 
-const warehouseSection5: SidebarLink = {
-  id: "warehouse8",
-  label: "Reporte de Liquidación Actividades",
-  path: "warehouse/section5",
-  icon: FilePenIcon,
-};
-
-const warehouseSection6: SidebarLink = {
-  id: "warehouse9",
-  label: "Edición de Cardex",
-  path: "warehouse/section6",
-  icon: FilePenIcon,
-};
-
-const warehouseSection7: SidebarLink = {
-  id: "warehouse10",
-  label: "Registrar actividades horarias",
-  path: "warehouse/section7",
-  icon: FilePenIcon,
-};
-
-const warehouseSection8: SidebarLink = {
-  id: "warehouse11",
-  label: "Reporte de Inventario",
-  path: "warehouse/section8",
-  icon: FilePenIcon,
-};
-
-const warehouseSection9: SidebarLink = {
-  id: "warehouse12",
-  label: "Informe de Validación",
-  path: "warehouse/section9",
-  icon: FilePenIcon,
-};
-
-const warehouseSection10: SidebarLink = {
-  id: "warehouse13",
-  label: "Asignaciones de Embarque",
-  path: "warehouse/section10",
-  icon: FilePenIcon,
-};
-
-const warehouseSection11: SidebarLink = {
-  id: "warehouse14",
-  label: "Actividad de Liquidación",
-  path: "warehouse/section11",
-  icon: FilePenIcon,
-};
-
 const warehouseSection12: SidebarLink = {
   id: "warehouse15",
   label: "Cuadrillas",
   path: "warehouse/section12",
-  icon: FilePenIcon,
-};
-
-const warehouseSection13: SidebarLink = {
-  id: "warehouse16",
-  label: "Ingreso Producto",
-  path: "warehouse/section13",
   icon: FilePenIcon,
 };
 
@@ -250,10 +181,20 @@ const subsidyHistorialSection: SidebarLink = {
   icon: FolderClock
 }
 
+const receivingSection: SidebarLink = {
+  id: "receiving",
+  label: "Bodega",
+  path: "warehouse-corinto/receiving",
+  icon: WarehouseIcon
+}
+
+const { companyAlias } = useUserStore.getState();
+
+const { neutralUrlImage } = useCompanyStore.getState();
+
 export const sidebarData = {
-  logoUrl:
-    "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
-  nameCompany: "CORE PANEL",
+  logoUrl: neutralUrlImage,
+  nameCompany: companyAlias,
   navigationRegistry: {
     [ModuleEnum.PAYROLL]: {
       [RoleEnum.ADMINISTRATOR]: [
@@ -263,7 +204,6 @@ export const sidebarData = {
         applicationFromPayrollSection,
         activeDeductionSection,
         liquidacionSection,
-        //   controlVacationsSection,
         attendanceControlSection,
         subsidyHistorialSection
       ],
@@ -294,23 +234,8 @@ export const sidebarData = {
       [RoleEnum.OPERATOR]: [
         warehouseCorintoSection,
         accessControlSection,
-        weighingSection,
-        
-        
-        //warehouseSection1,
-        // warehouseSection2,
-        warehouseSection13,
-        
-        // warehouseSection3,
-        warehouseSection4,
-        warehouseSection12,
-        /*warehouseSection5,
-        warehouseSection6,
-        warehouseSection7,
-        warehouseSection8,
-        warehouseSection9,
-        warehouseSection10,
-        warehouseSection11*/
+        scaleSection,
+        receivingSection,
         warehouseReportSection,
       ],
     },
