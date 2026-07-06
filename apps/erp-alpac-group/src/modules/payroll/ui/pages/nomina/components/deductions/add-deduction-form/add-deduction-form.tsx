@@ -3,7 +3,6 @@ import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { X } from "lucide-react";
 import { Button, Dropdown, RadioButton } from "@alpac/design-system";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { DeductionCodeEnum, DeductionOptions } from "@app/modules/payroll/domain/enums/deduction-enums/deduction.enum";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ChildSupportGarnishment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/child-support-garnishment/child-support-garnishment";
 import { Sanctions } from "@app/modules/payroll/ui/pages/nomina/components/deductions/sanction/sanction";
@@ -11,7 +10,6 @@ import { JudicialGarnishment } from "@app/modules/payroll/ui/pages/nomina/compon
 import { LoanRepayment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/loan-repayment/loan-repayment";
 import { useDeduction } from "@app/modules/payroll/ui/hooks/deduction/useDeduction";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
-import { OtherDeduction } from "../other-deduction/other-deduction";
 import { FileUploader } from "@app/shared/components/file-uploader/file-uploader";
 import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
 import { LateArrival } from "../late-arrival/late-arrival";
@@ -36,13 +34,16 @@ import type { AddDeductionFormProps } from "./add-deduction-form.types";
 
 import type {
    AddDeductionFormValues,
+   CreateJudicialSeizureDeductionRequest,
    CreateLateArrivalsDeductionRequest,
    CreateLoanDeductionRequest,
    CreatePurisimaDeductionRequest,
+   JudicialSeizurePayload,
    LateArrivalsInformation,
    LoansPayload,
    PurisimaInformation,
 } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
+import { DeductionTypeEnum, DeductionTypeOptions } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-type.enum";
 
 const inputClassName =
    "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -57,9 +58,10 @@ const deductionFormTransition = {
 const loadMotionFeatures = () =>
    import("framer-motion").then((res) => res.domAnimation);
 
-const isLateArrivalType = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionCodeEnum.LATE_ARRIVAL.value;
-const isPurisimaType = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionCodeEnum.PURISIMA.value;
-const isLoanRepayment = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionCodeEnum.LOAN.value;
+const isLateArrivalType = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionTypeEnum.LateArrivals.value;
+const isPurisimaType = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionTypeEnum.Purisima.value;
+const isLoanRepayment = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionTypeEnum.Loans.value;
+const isJudicialGarnishment = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionTypeEnum.JudicialGarnishment.value;
 
 export const AddDeductionForm = ({
    branchId,
@@ -118,6 +120,10 @@ export const AddDeductionForm = ({
    const loanManualFortnights = methods.watch("loans_payload.number_fortnights");
    const loanManualCurrency = methods.watch("loans_payload.currency");
    const loanManualDescription = methods.watch("loans_payload.description");
+
+   const judicialCurrency = methods.watch("judicial_seizure_payload.currency");
+   const judicialTotalAmountToPay = methods.watch("judicial_seizure_payload.total_amount_to_pay");
+   const judicialDeductionPercentage = methods.watch("judicial_seizure_payload.deduction_percentage");
 
    useEffect(() => {
 
@@ -249,7 +255,7 @@ export const AddDeductionForm = ({
             module_code: lateArrivalsBase.module_code,
             branch_id: lateArrivalsBase.branch_id,
             payroll_id: lateArrivalsBase.payroll_id,
-            deduction_type: Number(DeductionCodeEnum.LATE_ARRIVAL.value),
+            deduction_type: Number(DeductionTypeEnum.LateArrivals.value),
             late_arrivals_information: lateArrivalsInformationPayload,
          };
 
@@ -327,7 +333,7 @@ export const AddDeductionForm = ({
             module_code: purisimaBase.module_code,
             branch_id: purisimaBase.branch_id,
             payroll_id: purisimaBase.payroll_id,
-            deduction_type: Number(DeductionCodeEnum.PURISIMA.value),
+            deduction_type: Number(DeductionTypeEnum.Purisima.value),
             purisima_information: purisimaInformationPayload,
          };
 
@@ -396,7 +402,7 @@ export const AddDeductionForm = ({
             module_code: loansBase.module_code,
             branch_id: loansBase.branch_id,
             payroll_id: loansBase.payroll_id,
-            deduction_type: Number(DeductionCodeEnum.LOAN.value),
+            deduction_type: Number(DeductionTypeEnum.Loans.value),
             loans_payload: loansPayload
          }
 
@@ -404,6 +410,68 @@ export const AddDeductionForm = ({
             onSuccess: () => {
                methods.reset();
                onSubmit?.(loanPayload);
+               onRequestSuccess?.("Deducción agregada correctamente");
+               onCancel?.();
+            },
+            onError: (error: ApiErrorResponse) => {
+               const mappedError = getMappedError(error);
+               onRequestError?.(mappedError?.description);
+            },
+         });
+
+         return;
+      }
+
+      if (isJudicialGarnishment(data.deduction_type)) {
+
+         if (!foundCollaborator) {
+            onRequestError?.("Debe buscar un colaborador para agregar una Deducción");
+            return;
+         }
+
+         const { judicial_seizure_payload, ...judicialBase } = data;
+
+         const currency = judicial_seizure_payload?.currency;
+         const totalAmountToPay = judicial_seizure_payload?.total_amount_to_pay;
+         const deductionPercentage = judicial_seizure_payload?.deduction_percentage;
+         const description = judicial_seizure_payload?.description?.trim() ?? "";
+
+         if (!currency || currency <= 0) {
+            onRequestError?.("Debe seleccionar una moneda");
+            return;
+         }
+
+         if (!totalAmountToPay || totalAmountToPay <= 0) {
+            onRequestError?.("El monto total de la deuda debe ser mayor a 0");
+            return;
+         }
+
+         if (!deductionPercentage || Number(deductionPercentage) <= 0) {
+            onRequestError?.("El porcentaje de deducción debe ser mayor a 0");
+            return;
+         }
+
+         const judicialSeizurePayload: JudicialSeizurePayload = {
+            currency: Number(currency),
+            total_amount_to_pay: Number(totalAmountToPay),
+            deduction_percentage: Number(deductionPercentage),
+            description,
+            identification_number: foundCollaborator.personal_information.identification_number!,
+         };
+
+         const judicialPayload: CreateJudicialSeizureDeductionRequest = {
+            company_id: judicialBase.company_id,
+            module_code: judicialBase.module_code,
+            branch_id: judicialBase.branch_id,
+            payroll_id: judicialBase.payroll_id,
+            deduction_type: Number(DeductionTypeEnum.JudicialGarnishment.value),
+            judicial_seizure_payload: judicialSeizurePayload,
+         };
+
+         CreateDeduction.mutate(judicialPayload, {
+            onSuccess: () => {
+               methods.reset();
+               onSubmit?.(judicialPayload);
                onRequestSuccess?.("Deducción agregada correctamente");
                onCancel?.();
             },
@@ -429,31 +497,39 @@ export const AddDeductionForm = ({
       ],
    );
 
-   const isLateArrivalManualReady = !!foundCollaborator && Number(lateLateArrivalManualMinutes) > 0;
+   const isLateArrivalManualReady = !!foundCollaborator &&
+      Number(lateLateArrivalManualMinutes) > 0;
+
    const isLateArrivalExcelReady = (lateArrivalsData?.length ?? 0) > 0;
+
    const isLateArrivalReady = isLateArrivalType(deductionType) && (
       selectedInputMethod === "excelImport"
          ? isLateArrivalExcelReady
          : isLateArrivalManualReady
    );
 
-   const isPurisimaManualReady =
-      !!foundCollaborator &&
+   const isPurisimaManualReady = !!foundCollaborator &&
       Number(purisimaManualAmount) > 0 &&
       Number(purisimaManualFortnights) > 0;
+
    const isPurisimaExcelReady = (purisimaData?.length ?? 0) > 0;
+
    const isPurisimaReady = isPurisimaType(deductionType) && (
       selectedInputMethod === "excelImport"
          ? isPurisimaExcelReady
          : isPurisimaManualReady
    );
 
-   const isLoanReady =
-      !!foundCollaborator &&
+   const isLoanReady = !!foundCollaborator &&
       Number(loanManualAmount) > 0 &&
       Number(loanManualFortnights) > 0 &&
       Number(loanManualCurrency) > 0 &&
       !!loanManualDescription?.trim();
+
+   const isJudicialGarnishmentReady = !!foundCollaborator &&
+      Number(judicialCurrency) &&
+      Number(judicialTotalAmountToPay) &&
+      Number(judicialDeductionPercentage);
 
    const isSubmitDisabled =
       CreateDeduction.isPending ||
@@ -461,7 +537,8 @@ export const AddDeductionForm = ({
       !methods.formState.isValid ||
       (isLateArrivalType(deductionType) && !isLateArrivalReady) ||
       (isPurisimaType(deductionType) && !isPurisimaReady) ||
-      (isLoanRepayment(deductionType) && !isLoanReady);
+      (isLoanRepayment(deductionType) && !isLoanReady) ||
+      (isJudicialGarnishment(deductionType) && !isJudicialGarnishmentReady);
 
    return (
       <FormProvider {...methods}>
@@ -490,7 +567,7 @@ export const AddDeductionForm = ({
                         labelClassName={labelClassName}
                         valueClassName={labelClassName}
                         className={inputClassName}
-                        options={DeductionOptions}
+                        options={DeductionTypeOptions}
                      />
                   )}
                />
@@ -498,51 +575,52 @@ export const AddDeductionForm = ({
 
             <LazyMotion features={loadMotionFeatures} strict>
                <AnimatePresence initial={false}>
-                  {(deductionType === DeductionCodeEnum.LATE_ARRIVAL.value ||
-                     deductionType === DeductionCodeEnum.PURISIMA.value) && (
-                     <m.div
-                        key="selected-input-method"
-                        initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
-                        animate={{
-                           opacity: 1,
-                           y: 0,
-                           height: "auto",
-                           overflow: "visible",
-                        }}
-                        exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
-                        transition={deductionFormTransition}
-                        className="flex flex-row gap-4"
-                     >
-                        <RadioButton
-                           id="full-day"
-                           value="manualEntry"
-                           label="Introducir Manualmente"
-                           labelPosition="right"
-                           labelClassName={labelClassName}
-                           checked={selectedInputMethod === "manualEntry"}
-                           onChange={() => setSelectedInputMethod("manualEntry")}
-                        />
-
-                        <RadioButton
-                           id="half-day"
-                           value="excelImport"
-                           label="Importar desde Excel"
-                           labelPosition="right"
-                           labelClassName={labelClassName}
-                           checked={selectedInputMethod === "excelImport"}
-                           onChange={() => {
-                              setSelectedInputMethod("excelImport");
-                              setFoundCollaborator(null);
+                  {(deductionType === DeductionTypeEnum.LateArrivals.value ||
+                     deductionType === DeductionTypeEnum.Purisima.value) && (
+                        <m.div
+                           key="selected-input-method"
+                           initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+                           animate={{
+                              opacity: 1,
+                              y: 0,
+                              height: "auto",
+                              overflow: "visible",
                            }}
-                        />
-                     </m.div>
-                  )}
+                           exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+                           transition={deductionFormTransition}
+                           className="flex flex-row gap-4"
+                        >
+                           <RadioButton
+                              id="full-day"
+                              value="manualEntry"
+                              label="Introducir Manualmente"
+                              labelPosition="right"
+                              labelClassName={labelClassName}
+                              checked={selectedInputMethod === "manualEntry"}
+                              onChange={() => setSelectedInputMethod("manualEntry")}
+                           />
+
+                           <RadioButton
+                              id="half-day"
+                              value="excelImport"
+                              label="Importar desde Excel"
+                              labelPosition="right"
+                              labelClassName={labelClassName}
+                              checked={selectedInputMethod === "excelImport"}
+                              onChange={() => {
+                                 setSelectedInputMethod("excelImport");
+                                 setFoundCollaborator(null);
+                              }}
+                           />
+                        </m.div>
+                     )}
                </AnimatePresence>
             </LazyMotion>
 
             {
                (
                   isLoanRepayment(deductionType) ||
+                  isJudicialGarnishment(deductionType) ||
                   (
                      (isPurisimaType(deductionType) || isLateArrivalType(deductionType)) &&
                      selectedInputMethod === "manualEntry"
@@ -710,7 +788,7 @@ export const AddDeductionForm = ({
                         </m.div>
                      )}
 
-                  {deductionType === DeductionCodeEnum.SANCTION.value && (
+                  {deductionType === DeductionTypeEnum.Sanction.value && (
                      <m.div
                         key="sanctions"
                         initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
@@ -727,7 +805,7 @@ export const AddDeductionForm = ({
                      </m.div>
                   )}
 
-                  {deductionType === DeductionCodeEnum.CHILD_SUPPORT_GARNISHMENT.value && (
+                  {deductionType === DeductionTypeEnum.ChildSupportGarnishment.value && (
                      <m.div
                         key="child-support-garnishment"
                         initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
@@ -744,7 +822,7 @@ export const AddDeductionForm = ({
                      </m.div>
                   )}
 
-                  {deductionType === DeductionCodeEnum.JUDICIAL_GARNISHMENT.value && (
+                  {isJudicialGarnishment(deductionType) &&  !!foundCollaborator && (
                      <m.div
                         key="judicial-garnishment"
                         initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
@@ -761,22 +839,6 @@ export const AddDeductionForm = ({
                      </m.div>
                   )}
 
-                  {deductionType === DeductionCodeEnum.OTHER_DEDUCTION.value && (
-                     <m.div
-                        key="other-deduction"
-                        initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
-                        animate={{
-                           opacity: 1,
-                           y: 0,
-                           height: "auto",
-                           overflow: "visible",
-                        }}
-                        exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
-                        transition={deductionFormTransition}
-                     >
-                        <OtherDeduction />
-                     </m.div>
-                  )}
                </AnimatePresence>
             </LazyMotion>
 
