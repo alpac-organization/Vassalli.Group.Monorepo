@@ -1,4 +1,4 @@
-import type { ScaleRecord } from "../../../../types/driver.types";
+import type { ScaleRecord } from "@app/modules/warehouse/ui/pages/types/driver.types";
 
 export type WeightModalProps = {
    isOpen: boolean;

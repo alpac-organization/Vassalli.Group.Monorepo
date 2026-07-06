@@ -3,16 +3,11 @@ import { formatTime } from "@app/shared/utils/string.utils";
 import { User, WeightTildeIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { WeightModalProps, WeightStageCardProps } from "./weight-modal.types";
-import { formatWeight } from "./utils/scale.utils";
+import { formatWeight, getTrailerPlate } from "./utils/scale.utils";
 
 const INITIAL_TARA_KG = 12_500;
 const SCALE_ID = "BASC-00942-X8";
 const SCALE_NUMBER = "04";
-
-const getTrailerPlate = (licensePlate: string) => {
-   const suffix = licensePlate.replace(/\s/g, "").slice(-3).toUpperCase();
-   return `R-${suffix}-XZ`;
-};
 
 export const WeightModal = ({ isOpen, onClose, record }: WeightModalProps) => {
    const [liveWeight, setLiveWeight] = useState(42_305);

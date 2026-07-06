@@ -1,5 +1,4 @@
-import { Badges, Breadcrumb, Button, DataTable, InputText, Pagination, StatsCard, useTheme, type TableColumn } from "@alpac/design-system";
-import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { Badges, Breadcrumb, Button, DataTable, InputText, Pagination, StatsCard, type TableColumn } from "@alpac/design-system";
 import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,10 +17,6 @@ const labelClassName = "text-black! dark:text-white!";
 export const AccessControlPage = () => {
 
    const navigate = useNavigate();
-   const { theme } = useTheme();
-   const { urlImage, neutralUrlImage } = useCompanyStore();
-
-   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
    const [page, setPage] = useState(1);
    const [verifiedDrivers, setVerifiedDrivers] = useState<Record<number, boolean>>({});
