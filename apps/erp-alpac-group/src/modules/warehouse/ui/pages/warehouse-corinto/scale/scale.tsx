@@ -2,7 +2,6 @@ import {
    Badges,
    Breadcrumb,
    Button,
-   // Checkbox,
    DataTable,
    InputText,
    Pagination,
@@ -10,8 +9,6 @@ import {
 } from "@alpac/design-system";
 import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-// import { GeneralInformation } from "./components/general-information/general-information";
-// import { RecordData } from "./components/record-data/record-data";
 import { ScaleBanner } from "./components/scale-banner/scale-banner";
 import {
    getScaleStatusActionLabel,
@@ -53,25 +50,6 @@ export const ScalePage = () => {
    const scales = useMemo(() => {
       return scaleRecords.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
    }, [page]);
-
-   /* 
-      {
-       "id": 1,
-       "licensePlate": "M 123-456",
-       "driverName": "Juan Carlos Pérez",
-       "status": "entry",
-       "arrivalDate": "2026-06-29T07:15:00Z",
-       "arrivalTime": "2026-06-29T07:15:00Z",
-       "action": "ver detalles",
-       "custumer": "CASUR",
-       "product": "Azucar en Jumbo",
-       "package_number": 22,
-       "arrived_time": "15:00pm",
-       "exit_time": "15:00am",
-       "entry_number": 4,
-       "exit_number": 3
-   }
-        */
 
    const columns = useMemo<TableColumn<ScaleRecord>[]>(
       () => [
@@ -158,38 +136,6 @@ export const ScalePage = () => {
 
             <ScaleBanner />
 
-            {/* <div className="grid grid-cols-3 gap-4"> */}
-
-            {/* <div className="h-fit col-span-3 rounded-xl border border-slate-200 bg-white shadow-slate-200/60 dark:border-neutral-700 p-6">
-                  <GeneralInformation />
-               </div> */}
-
-            {/* <div className="h-fit col-span-3 rounded-xl border border-slate-200 bg-white shadow-slate-200/60 dark:border-neutral-700 p-6">
-                  <RecordData />
-               </div> */}
-
-            {/* <div className="h-fit col-span-3 rounded-xl border border-slate-200 bg-white shadow-slate-200/60 dark:border-neutral-700 p-6">
-                  <DriverData />
-               </div> */}
-
-            {/* <div className="h-[200px] rounded-xl border border-slate-200 bg-white shadow-slate-200/60 dark:border-neutral-700 p-6">
-
-               </div> */}
-
-            {/* <div className="h-[200px] rounded-xl border border-slate-200 bg-white shadow-slate-200/60 dark:border-neutral-700 p-6">
-
-               </div> */}
-
-            {/* <div className="h-[200px] rounded-xl border border-slate-200 bg-white shadow-slate-200/60 dark:border-neutral-700 p-6">
-
-               </div> */}
-
-            {/* <div className="h-[100px] col-span-3 rounded-xl border border-slate-200 bg-white shadow-slate-200/60 dark:border-neutral-700 p-6">
-
-               </div> */}
-
-            {/* </div> */}
-
             <div className="flex justify-between items-center mb-2">
                <div className="flex flex-col justify-center">
                   <h4 className="p-0! m-0!">Filtros</h4>
@@ -259,70 +205,6 @@ export const ScalePage = () => {
                   }
                />
             </div>
-
-            {/* <div className="flex flex-col gap-4">
-
-               <div className="mt-4 flex flex-col gap-4 border-t border-slate-200 pt-4 dark:border-slate-600">
-
-                  <div className="flex justify-center gap-4">
-
-                     <Button
-                        type="button"
-                        label="Guardar"
-                        size="giant"
-                        onClick={() => { }}
-                        isHiddenLabelOnMobile
-                        className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                     />
-
-                     <Button
-                        type="button"
-                        label="Limpiar"
-                        size="giant"
-                        onClick={() => { }}
-                        isHiddenLabelOnMobile
-                        className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                     />
-
-                     <Button
-                        type="button"
-                        label="Imprimir Inicial"
-                        size="giant"
-                        onClick={() => { }}
-                        isHiddenLabelOnMobile
-                        className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                     />
-
-                     <Button
-                        type="button"
-                        label="Imprimir Final"
-                        size="giant"
-                        onClick={() => { }}
-                        isHiddenLabelOnMobile
-                        className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                     />
-
-                     <Button
-                        type="button"
-                        label="Obtener Peso Inicial"
-                        size="giant"
-                        onClick={() => { }}
-                        isHiddenLabelOnMobile
-                        className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                     />
-
-                     <Button
-                        type="button"
-                        label="Obtener Peso Final"
-                        size="giant"
-                        onClick={() => { }}
-                        isHiddenLabelOnMobile
-                        className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                     />
-
-                  </div>
-               </div>
-            </div>*/}
 
          </form>
 

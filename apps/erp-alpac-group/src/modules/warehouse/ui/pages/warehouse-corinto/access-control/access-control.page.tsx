@@ -219,19 +219,6 @@ export const AccessControlPage = () => {
 
          </div>
 
-         {/*          <div className="flex flex-col">
-            <div className="flex justify-between items-center">
-               <div className="flex flex-col justify-center">
-                  <h3 className="p-0! m-0!">Control de Acceso a Plantel</h3>
-               </div>
-               <img
-                  className="h-12 sm:h-16 md:h-20 w-auto object-contain"
-                  src={activeLogo}
-                  alt="logo alpac"
-               />
-            </div>
-         </div> */}
-
          <div className="flex flex-col">
             <DataTable
                title="Lista de conductores"
