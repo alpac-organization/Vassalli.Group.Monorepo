@@ -2,14 +2,12 @@ import { Button, Modal } from "@alpac/design-system";
 import { formatTime } from "@app/shared/utils/string.utils";
 import { User, WeightTildeIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { WeightModalProps } from "./weight-modal.types";
+import type { WeightModalProps, WeightStageCardProps } from "./weight-modal.types";
+import { formatWeight } from "./utils/scale.utils";
 
 const INITIAL_TARA_KG = 12_500;
 const SCALE_ID = "BASC-00942-X8";
 const SCALE_NUMBER = "04";
-
-const formatWeight = (kg: number) =>
-   `${kg.toLocaleString("es-NI", { maximumFractionDigits: 0 })} kg`;
 
 const getTrailerPlate = (licensePlate: string) => {
    const suffix = licensePlate.replace(/\s/g, "").slice(-3).toUpperCase();
@@ -28,7 +26,7 @@ export const WeightModal = ({ isOpen, onClose, record }: WeightModalProps) => {
       setLiveWeight(42_305);
       setInitialWeight(INITIAL_TARA_KG);
       setFinalWeight(null);
-      setInitialRegisteredAt(record.start_time);
+      setInitialRegisteredAt(record.start_time ?? null);
    }, [isOpen, record]);
 
    const estimatedNet = useMemo(() => {
@@ -207,16 +205,6 @@ export const WeightModal = ({ isOpen, onClose, record }: WeightModalProps) => {
          </div>
       </Modal>
    );
-};
-
-type WeightStageCardProps = {
-   accent: "blue" | "amber" | "emerald";
-   label: string;
-   value: string;
-   meta?: string;
-   subMeta?: string;
-   isPending?: boolean;
-   highlighted?: boolean;
 };
 
 const WeightStageCard = ({
