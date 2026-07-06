@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useWarehouse, type WarehouseItem } from '@app/modules/warehouse/ui/pages/warehouse-managua-index/wareouse-context';
+import { useWarehouse, type WarehouseItem } from '@app/modules/warehouse/ui/pages/warehouse-managua-index/context/wareouse-context';
 import { DucaDetailModal } from './duca-detail-modal';
 
 export const DucaPanel: React.FC = () => {
