@@ -114,7 +114,6 @@ export const AccessControlPage = () => {
                      size="small"
                      icon={icon}
                      className={getStatusButtonColor(statusType)}
-                  // className="text-[13px]! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                   />
                )
             },
