@@ -1,6 +1,6 @@
-import type { SubsidyHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/subsidy-responses/get-subsidy-history.response";
+import type { GetSubsidyHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/subsidy-responses/get-subsidy-history.response";
 
 export type SubsidyHistoryTableProps = {
-  data: SubsidyHistoryResponse[];
+  data: GetSubsidyHistoryResponse[];
   pagination?: React.ReactNode;
 };

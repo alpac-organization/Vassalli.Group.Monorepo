@@ -3,57 +3,62 @@ import type { ISubsidyServices } from "@app/modules/payroll/application/interfac
 import type { CreateSubsidyRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/create-subsidy.request";
 import type { GetSubsidyHistoryRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/get-subsidy-history.request";
 import type { GetSubsidyTypesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/subsidy-requests/get-subsidy-types.request";
-import type { GetSubsidyHistoryResponse } from "@app/modules/payroll/domain/ApiContract/Responses/subsidy-responses/get-subsidy-history.response";
+import type { GetSubsidyHistoryListResponse } from "@app/modules/payroll/domain/ApiContract/Responses/subsidy-responses/get-subsidy-history.response";
 import type { GetSubsidyTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/subsidy-responses/get-subsidy-types.response";
 
 export class SubsidyServices implements ISubsidyServices {
+  private readonly httpHandler: IHttpHandler;
 
-   private readonly httpHandler: IHttpHandler;
+  constructor(httpHandler: IHttpHandler) {
+    this.httpHandler = httpHandler;
+  }
 
-   constructor(httpHandler: IHttpHandler) {
-      this.httpHandler = httpHandler;
-   }
+  public async CreateSubsidy(payload: CreateSubsidyRequest): Promise<void> {
+    try {
+      const { company_id, module_code, collaborator_id, ...rest } = payload;
 
-   public async CreateSubsidy(payload: CreateSubsidyRequest): Promise<void> {
-      try {
-         const { company_id, module_code, collaborator_id, ...rest } = payload;
+      const url = `/companies/${company_id}/modules/${module_code}/collaborators/${collaborator_id}/subsidies`;
 
-         const url = `/companies/${company_id}/modules/${module_code}/collaborators/${collaborator_id}/subsidies`;
+      await this.httpHandler.post<void>(url, rest);
+    } catch (error) {
+      throw error;
+    }
+  }
 
-         await this.httpHandler.post<void>(url, rest);
+  public async GetSubsidyTypes(
+    payload: GetSubsidyTypesRequest,
+  ): Promise<GetSubsidyTypesResponse> {
+    try {
+      const { company_id } = payload;
 
-      } catch (error) {
-         throw error;
-      }
-   }
+      const url = `/companies/${company_id}/types-subsidy`;
 
-   public async GetSubsidyTypes(payload: GetSubsidyTypesRequest): Promise<GetSubsidyTypesResponse> {
-      try {
-         const { company_id } = payload;
+      const response = await this.httpHandler.get<GetSubsidyTypesResponse>(url);
 
-         const url = `/companies/${company_id}/types-subsidy`;
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
 
-         const response = await this.httpHandler.get<GetSubsidyTypesResponse>(url);
+  public async GetSubsidyHistory(
+    payload: GetSubsidyHistoryRequest,
+  ): Promise<GetSubsidyHistoryListResponse> {
+    try {
+      const { companie_id, module_code, ...queryParams } = payload;
 
-         return response;
-      } catch (error) {
-         throw error;
-      }
-   }
+      const url = `/companies/${companie_id}/modules/${module_code}/subsidies`;
 
-   public async GetSubsidyHistory(payload: GetSubsidyHistoryRequest): Promise<GetSubsidyHistoryResponse[]> {
-      try {
-         const { company_id, module_code, ...queryParams } = payload;
+      const response = await this.httpHandler.get<GetSubsidyHistoryListResponse>(
+        url,
+        {
+          params: queryParams,
+        },
+      );
 
-         const url = `/companies/${company_id}/modules/${module_code}/subsidies`;
-
-         const response = await this.httpHandler.get<GetSubsidyHistoryResponse[]>(url, {
-            params: queryParams,
-         });
-
-         return response;
-      } catch (error) {
-         throw error;
-      }
-   }
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

@@ -3,6 +3,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { styles } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/utils/styles.accumulated";
+import type { PermissionType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission.types";
 import type { VacationControlPdfProps } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/types/vacation-control.types";
 import {
   formatBalanceValue,
@@ -27,6 +28,9 @@ function CollaboratorPage({
   companyName: string;
   urlImage?: string;
 }) {
+  const vacations = page.permissions.filter(
+    (permission) => permission.type === "Vacation",
+  );
   return (
     <Page size="A4" style={styles.page}>
       <View
@@ -134,21 +138,21 @@ function CollaboratorPage({
           Estado
         </Text>
       </View>
-      {page.permissions.length === 0 ? (
+      {vacations.length === 0 ? (
         <View style={[styles.tableRow, styles.bodyRow]} wrap={false}>
           <Text style={[styles.cellName, { width: "100%" }]}>
-            Sin permisos registrados
+            Sin permisos de vacaciones registrados
           </Text>
         </View>
       ) : (
-        page.permissions.map((permission) => (
+        vacations.map((permission) => (
           <View
             style={[styles.tableRow, styles.bodyRow]}
             key={permission.permit_apllication_id}
             wrap={false}
           >
             <Text style={[styles.cellCode, { width: "18%" }]}>
-              {formatPermissionType(permission.type)}
+              {formatPermissionType(permission.type as PermissionType)}
             </Text>
             <Text style={[styles.cellName, { width: "26%" }]}>
               {formatPermissionPeriod(

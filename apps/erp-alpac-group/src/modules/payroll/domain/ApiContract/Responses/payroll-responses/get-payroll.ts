@@ -26,8 +26,8 @@ type PayrollItemCommonFields = {
   total_legal_deductions: number;
   deductions_additional_data?: string;
   commissions?: number;
-  Inatec?: number;
-  InssPatronal?: number;
+  inatec?: number;
+  inssPatronal?: number;
   aguinaldo?: number;
   total_deducctions: number;
   total_travel_expenses?: number;
