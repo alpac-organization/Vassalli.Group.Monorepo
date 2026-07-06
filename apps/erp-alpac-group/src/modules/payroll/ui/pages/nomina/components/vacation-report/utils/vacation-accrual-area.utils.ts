@@ -127,12 +127,18 @@ export const VACATION_ACCRUAL_AREA_COLUMNS: VacationAccrualAreaColumnDef[] = [
   {
     key: "indem_years",
     label: "AÑOS INDEM",
-    render: () => PLACEHOLDER_DASH,
+    render: (row) => row.accrual?.indemnification_years ?? PLACEHOLDER_DASH,
+    getValue: (row) => row.accrual?.indemnification_years ?? 0,
+    formatTotal: (sum) => String(sum) ?? PLACEHOLDER_DASH,
   },
   {
     key: "indem_value",
     label: "Valor INDEM",
-    render: () => PLACEHOLDER_DASH,
+    render: (row) =>
+      formatCurrency(row.accrual?.indemnification_value ?? 0, "NIO") ??
+      PLACEHOLDER_DASH,
+    getValue: (row) => row.accrual?.indemnification_value ?? 0,
+    formatTotal: (sum) => formatCurrency(sum, "NIO") ?? PLACEHOLDER_DASH,
   },
 ];
 

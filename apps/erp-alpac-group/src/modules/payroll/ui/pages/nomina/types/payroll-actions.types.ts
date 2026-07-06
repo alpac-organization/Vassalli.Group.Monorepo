@@ -17,4 +17,5 @@ export type PayrollActionValue =
   | "vacation_permissions_summary_report"
   | "depreciation_report"
   | "bac_report"
-  | "subsidies_report";
+  | "subsidies_report"
+  | "monthly_retention_report";

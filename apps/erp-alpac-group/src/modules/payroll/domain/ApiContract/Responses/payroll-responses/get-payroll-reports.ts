@@ -24,6 +24,8 @@ export interface GetPayrollReportsVacationAccrualResponse {
   equivales_quantity_in_dollars: number;
   final_balance: number;
   beginning_balance: number;
+  indemnification_years: number;
+  indemnification_value: number;
   entry_date: string;
 }
 export interface GetPaymentTravelExpensesResponse {
