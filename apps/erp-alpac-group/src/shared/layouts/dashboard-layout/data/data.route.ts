@@ -118,16 +118,16 @@ const warehouseReportSection: SidebarLink = {
 };
 
 const warehouseManaguaSection: SidebarLink = {
-  id: "warehouse-managua",
+  id: "warehouse-mga",
   label: "Control de Acceso",
-  path: "warehouse",
+  path: "warehouse-mga/access-control",
   icon: TruckIcon,
 };
 
-const DucaDetailsPanel : SidebarLink = {
-  id: "warehouseMercancia",
+const DucaPanel : SidebarLink = {
+  id: "merchandise-registration",
   label: "Ingreso Mercancía",
-  path: "warehouse-section1",
+  path: "warehouse-mga/merchandise-registration",
   icon: ArchiveRestoreIcon,
 };
 
@@ -319,7 +319,7 @@ export const sidebarData = {
     [ModuleEnum.WAREHOUSE_MANAGUA]: {
       [RoleEnum.OPERATOR]: [
         warehouseManaguaSection,
-        DucaDetailsPanel,
+        DucaPanel,
         warehouseSection4,
         warehouseSection12,
         warehouseReportSection,
