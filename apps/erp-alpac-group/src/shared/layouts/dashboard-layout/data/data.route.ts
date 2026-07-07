@@ -24,14 +24,13 @@ import {
 } from "lucide-react";
 
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
-import { useUserStore } from "@app/shared/stores/useUserStore";
-import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 
 const collboratorSection: SidebarLink = {
   id: "collaborators",
   label: "Colaboradores",
   path: "payroll/collaborators",
   icon: UsersRound,
+  allowsRubRoutes: true
 };
 
 const collaboratorProfileSection: SidebarLink = {
@@ -188,13 +187,7 @@ const receivingSection: SidebarLink = {
   icon: WarehouseIcon
 }
 
-const { companyAlias } = useUserStore.getState();
-
-const { neutralUrlImage } = useCompanyStore.getState();
-
 export const sidebarData = {
-  logoUrl: neutralUrlImage,
-  nameCompany: companyAlias,
   navigationRegistry: {
     [ModuleEnum.PAYROLL]: {
       [RoleEnum.ADMINISTRATOR]: [
@@ -225,11 +218,7 @@ export const sidebarData = {
         collaboratorProfileSection,
         permissionManagementSection,
       ],
-    },
-    /*  [ModuleEnum.APPLICATIONS]: {
-       [RoleEnum.MANAGER]: [applicationSection],
-       [RoleEnum.ADMINISTRATOR]: [applicationSection],
-     }, */
+    },    
     [ModuleEnum.WAREHOUSE_CORINTO]: {
       [RoleEnum.OPERATOR]: [
         warehouseCorintoSection,
