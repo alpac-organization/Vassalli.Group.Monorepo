@@ -1,6 +1,7 @@
 import type { RouteObject } from "react-router-dom";
-import { WarehouseManaguaPage } from "@app/modules/warehouse/ui/pages/warehouse-managua-index/ui/pages/warehouse-managua.page";
-import { WarehouseProvider } from "@app/modules/warehouse/ui/pages/warehouse-managua-index/context/wareouse-context";
+import { WarehouseManaguaPage } from "@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/reception-index/warehouse-managua.page";
+import { WarehouseProvider } from "@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/reception-index/warehouse-managua.page";
+import { DucaPanel } from "@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/duca-index/duca.page";
 
 export const WarehouseManaguaRoutes: RouteObject[] = [
    {
@@ -23,7 +24,7 @@ export const WarehouseManaguaRoutes: RouteObject[] = [
       path: "merchandise-registration",
       element: (
          <WarehouseProvider>
-            <WarehouseManaguaPage />
+            <DucaPanel />
          </WarehouseProvider>
       ),
    },

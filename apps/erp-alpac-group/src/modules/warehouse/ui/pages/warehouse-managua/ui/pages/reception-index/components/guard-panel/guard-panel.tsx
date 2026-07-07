@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Button, DataTable } from '@alpac/design-system';
 import { Plus, LogOut } from 'lucide-react';
-import { WarehouseStats } from './warehouse-stats'; 
-import { GateEntryModal } from './gate-entry-modal';
-import { useWarehouse, type WarehouseItem } from '@app/modules/warehouse/ui/pages/warehouse-managua-index/context/wareouse-context'; // Importación correcta del contexto
+import { WarehouseStats } from '@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/reception-index/components/guard-panel/warehouse-stats'; 
+import { GateEntryModal } from '@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/reception-index/components/guard-panel/gate-entry-modal';
+import { useWarehouse, type WarehouseItem } from '@app/modules/warehouse/ui/pages/warehouse-managua/context/wareouse-context'; // Importación correcta del contexto
+import { SearchInput } from '../search-imput/searh-imput';
 
 export const GuardPanel: React.FC = () => {
   const [isEntryModalOpen, setEntryModalOpen] = useState(false);
@@ -43,8 +44,13 @@ export const GuardPanel: React.FC = () => {
         />
       </div>
 
+        <SearchInput value={''} onChange={function (value: string): void {
+          throw new Error('Function not implemented.');
+        } } />
+      
       <DataTable
         title=""
+
         data={itemsQueue} // Datos tipados provenientes del contexto
         columns={columns}
       />

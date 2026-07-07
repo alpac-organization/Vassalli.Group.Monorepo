@@ -1,6 +1,6 @@
 import React from 'react';
 import { StatsCard } from '@alpac/design-system';
-import { TruckIcon, WeightTildeIcon, CircleCheckBig } from 'lucide-react';
+import { TruckIcon, CircleCheckBig, CircleParking } from 'lucide-react';
 import { formatNumber } from '@app/shared/utils/string.utils';
 
 export const WarehouseStats: React.FC = () => (
@@ -16,7 +16,7 @@ export const WarehouseStats: React.FC = () => (
       title="Totales en Planta"
       value={`0${formatNumber('8')}`}
       trend="Unidades en plantel / patio"
-      icon={<WeightTildeIcon size={30} />}
+      icon={<CircleParking size={30} />}
       borderColor="border-yellow-600! dark:border-yellow-500!"
     />
     <StatsCard
