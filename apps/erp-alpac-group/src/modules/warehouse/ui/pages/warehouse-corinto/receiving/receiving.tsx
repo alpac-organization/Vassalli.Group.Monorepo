@@ -16,6 +16,9 @@ import { m } from "framer-motion";
 import { MapPin, Scale, Warehouse } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { UnloadingTimerModal } from "./components/unloading-timer-modal/unloading-timer-modal";
+import type { ReceivingProps, ReceivingRecord, ReceivingStatus } from "./types/receiving.types";
+import { MOCK_RECEIVING_RECORDS, WAREHOUSE_VISUAL_MOCK } from "../../mock/receiving-mocked-data";
 
 const PAGE_SIZE = 10;
 
@@ -23,26 +26,6 @@ const inputClassName =
    "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 
 const labelClassName = "text-black! dark:text-white!";
-
-type ReceivingStatus = "pending" | "located";
-
-type ReceivingRecord = {
-   id: number;
-   identification_number: string;
-   driverName: string;
-   licensePlate: string;
-   trailerPlate: string;
-   customer: string;
-   exporter: string;
-   product: string;
-   presentation: string;
-   lotOrZafra: string;
-   netWeightKg: number;
-   scaleTicket: string;
-   weighedAt: string;
-   status: ReceivingStatus;
-   warehouse?: string;
-};
 
 const RECEIVING_STATUS_LABELS: Record<ReceivingStatus, string> = {
    pending: "Pendiente ubicación",
@@ -59,85 +42,6 @@ const getReceivingStatusBadgeColor = (status: ReceivingStatus): string => {
          return "bg-slate-100 text-slate-800";
    }
 };
-
-const MOCK_RECEIVING_RECORDS: ReceivingRecord[] = [
-   {
-      id: 1,
-      identification_number: "001-220145-0078D",
-      driverName: "Carlos Fernando Meza",
-      licensePlate: "LE 233-554",
-      trailerPlate: "R-554-XZ",
-      customer: "CASUR",
-      exporter: "CASUR Export",
-      product: "Azúcar en granel",
-      presentation: "Granel",
-      lotOrZafra: "Zafra 2025-2026 / Lote A-14",
-      netWeightKg: 29_805,
-      scaleTicket: "BASC-00942-X8",
-      weighedAt: "2026-06-29T09:55:00Z",
-      status: "pending",
-   },
-   {
-      id: 2,
-      identification_number: "001-310678-0091E",
-      driverName: "Ana Julia Centeno",
-      licensePlate: "M 445-988",
-      trailerPlate: "R-988-XZ",
-      customer: "Montelimar",
-      exporter: "Montelimar S.A.",
-      product: "Azúcar cruda",
-      presentation: "Granel",
-      lotOrZafra: "Zafra 2025-2026 / Lote B-07",
-      netWeightKg: 31_200,
-      scaleTicket: "BASC-00943-X9",
-      weighedAt: "2026-06-29T10:15:00Z",
-      status: "pending",
-   },
-   {
-      id: 3,
-      identification_number: "001-120456-0012A",
-      driverName: "Juan Carlos Pérez",
-      licensePlate: "M 123-456",
-      trailerPlate: "R-456-XZ",
-      customer: "San Antonio",
-      exporter: "San Antonio Sugar",
-      product: "Azúcar refinada",
-      presentation: "Big bag",
-      lotOrZafra: "Zafra 2024-2025 / Lote C-02",
-      netWeightKg: 27_450,
-      scaleTicket: "BASC-00940-X6",
-      weighedAt: "2026-06-29T07:50:00Z",
-      status: "located",
-      warehouse: "Bodega Corinto 1",
-   },
-];
-
-const WAREHOUSE_VISUAL_MOCK = [
-   {
-      id: "corinto-norte",
-      name: "Bodega Corinto 1",
-      occupancyPercent: 68,
-      availableKg: 48_000,
-      status: "available" as const,
-      products: ["Azúcar cruda", "Azúcar en granel"],
-   },
-   {
-      id: "corinto-sur",
-      name: "Bodega Corinto 2",
-      occupancyPercent: 91,
-      availableKg: 12_500,
-      status: "almost_full" as const,
-      products: ["Azúcar cruda"],
-   },
-   {
-      id: "corinto-este",
-      name: "Bodega Corinto 3",
-      occupancyPercent: 0,
-      availableKg: 0,
-      status: "maintenance" as const,
-      products: [],
-   },
-];
 
 const WAREHOUSE_STATUS_LABELS = {
    available: { label: "Disponible", className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200" },
@@ -157,15 +61,8 @@ const LoadSummaryItem = ({ label, value, highlight = false }: { label: string; v
    </div>
 );
 
-const WarehouseCard = ({
-   warehouse,
-   isSelected,
-   onSelect,
-}: {
-   warehouse: (typeof WAREHOUSE_VISUAL_MOCK)[number];
-   isSelected: boolean;
-   onSelect: () => void;
-}) => {
+const WarehouseCard = ({ warehouse, isSelected, onSelect }: ReceivingProps) => {
+
    const isDisabled = warehouse.status === "maintenance";
    const status = WAREHOUSE_STATUS_LABELS[warehouse.status];
 
@@ -256,12 +153,14 @@ const SummaryCard = ({
 );
 
 export const Receiving = () => {
+
    const navigate = useNavigate();
 
    const [page, setPage] = useState(1);
    const [records, setRecords] = useState(MOCK_RECEIVING_RECORDS);
    const [selectedRecord, setSelectedRecord] = useState<ReceivingRecord | null>(null);
    const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+   const [isUnloadingTimerModalOpen, setUnloadingTimerModalOpen] = useState(false);
 
    const [selectedWarehouseId, setSelectedWarehouseId] = useState("");
 
@@ -295,9 +194,12 @@ export const Receiving = () => {
    }, []);
 
    const handleConfirmLocation = useCallback(() => {
+
       if (!selectedRecord || !selectedWarehouse) return;
 
-      setRecords((prev) =>
+      setUnloadingTimerModalOpen(true)
+
+      /* setRecords((prev) =>
          prev.map((record) =>
             record.id === selectedRecord.id
                ? {
@@ -308,8 +210,14 @@ export const Receiving = () => {
                : record,
          ),
       );
-      handleCloseLocationModal();
-   }, [handleCloseLocationModal, selectedRecord, selectedWarehouse]);
+
+      handleCloseLocationModal(); */
+
+   }, [
+      // handleCloseLocationModal,
+      selectedRecord,
+      selectedWarehouse
+   ]);
 
    const columns = useMemo<TableColumn<ReceivingRecord>[]>(
       () => [
@@ -538,6 +446,10 @@ export const Receiving = () => {
                </div>
             )}
          </Modal>
+         <UnloadingTimerModal
+            isOpen={isUnloadingTimerModalOpen}
+            onClose={() => setUnloadingTimerModalOpen(false)}
+         />
       </m.div>
    );
 };
