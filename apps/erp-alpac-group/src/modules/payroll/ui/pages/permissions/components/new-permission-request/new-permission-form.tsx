@@ -792,14 +792,16 @@ export function NewPermissionRequestForm({
                            error={errors.amount_days?.message}
                            {...register("amount_days", {
                               required: "Cantidad de días a solicitar son requeridos.",
+                              setValueAs: (value) => {
+                                 const clean = String(value ?? "").replace(/[^0-9.]/g, "");
+                                 return clean === "" ? undefined : Number(clean);
+                              },
                               validate: {
                                  validateDecimal: (value) => validateDecimalNumber(value),
                                  validatePositive: (value) => validatePositiveNumber(value),
                               },
                               onChange: (evt) => {
-                                 evt.target.value = String(
-                                    formatNumberWithDecimals(evt.target.value),
-                                 );
+                                 evt.target.value = formatNumberWithDecimals(evt.target.value);
                               },
                            })}
                         />
