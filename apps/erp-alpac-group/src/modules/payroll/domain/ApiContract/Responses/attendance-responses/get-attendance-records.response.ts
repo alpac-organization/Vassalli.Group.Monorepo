@@ -3,7 +3,7 @@ export interface AttendanceRecordDto {
   date: string;
   identification_number?: string;
   collaborator_fullname?: string;
-  markings: AttendanceLog
+  markings: AttendanceLog[]
 }
 
 interface AttendanceLog {

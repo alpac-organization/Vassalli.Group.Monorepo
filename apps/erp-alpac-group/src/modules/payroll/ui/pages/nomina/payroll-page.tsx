@@ -95,6 +95,8 @@ import { exportDepreciationReportExcel } from "@app/modules/payroll/ui/pages/nom
 import { BacReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/bac-report-pdf/bac-report-pdf-document";
 import { exportBacReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/bac-report-pdf/excel/export-bac-report-excel";
 import { mapPayrollItemsToBacRows } from "@app/modules/payroll/ui/pages/nomina/components/bac-report-pdf/utils/bac-report.utils";
+import { buildMonthlyRetentionReportRows } from "@app/modules/payroll/ui/pages/nomina/components/monthly-retention-report/utils/build-monthly-retention-report.utils";
+import { exportMonthlyRetentionReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/monthly-retention-report/excel/export-monthly-retention-report-excel";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
 import type { ReportPayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/generate-report-payroll";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
@@ -222,6 +224,8 @@ export function PayrollPage() {
   const [isGeneratingSubsidiesReport, setIsGeneratingSubsidiesReport] =
     useState(false);
   const [isGeneratingBacReport, setIsGeneratingBacReport] = useState(false);
+  const [isGeneratingMonthlyRetentionReport, setIsGeneratingMonthlyRetentionReport] =
+    useState(false);
   const [
     isGeneratingVacationPermissionsSummary,
     setIsGeneratingVacationPermissionsSummary,
@@ -526,6 +530,10 @@ export function PayrollPage() {
         {
           label: "Generar Reporte mensual INSS",
           value: "monthly_inss_report",
+        },
+        {
+          label: "Generar Informe de Retenciones Mensual",
+          value: "monthly_retention_report",
         },
       ];
       actionMonthly.forEach((option) => options.push(option));
@@ -2654,6 +2662,104 @@ export function PayrollPage() {
     handlePdfGenerationError,
   ]);
 
+  const loadMonthlyRetentionReportData = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return null;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return null;
+    }
+
+    const payrollServices = new PayrollServices(httpHandler);
+    const detailsData = payrollDetailsQuery.data;
+    const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+    const reportPayload = {
+      companie_id: companyId,
+      payroll_id: detailsData?.payroll_id ?? "",
+      payroll_type: selectedPayrollType,
+      module_code: moduleCode,
+      identification_number: identificationFilter || undefined,
+    };
+
+    const payrollPayload = {
+      companie_id: companyId,
+      module_code: moduleCode,
+      type: selectedPayrollType,
+      branch_id: selectedBranch,
+      identification_number: identificationFilter || undefined,
+      area_id: workAreaFilter || undefined,
+      job_position_id: jobPositionFilter || undefined,
+      page_number: 1,
+      page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+    } as PayrollRequest;
+
+    const [inssResponse, irResponse, payrollResponse] = await Promise.all([
+      payrollServices.generateReportsPayroll({
+        ...reportPayload,
+        report_type: "InssMonthly",
+      }),
+      payrollServices.generateReportsPayroll({
+        ...reportPayload,
+        report_type: "IrAndSalaryEarned",
+      }),
+      payrollServices.getPayroll(payrollPayload),
+    ]);
+
+    const allItems = payrollResponse.payroll_details?.items ?? [];
+    const reportData = buildMonthlyRetentionReportRows(
+      inssResponse.inss_information ?? [],
+      irResponse.ir_and_salary_earned ?? [],
+      allItems,
+    );
+
+    if (reportData.length === 0) {
+      handlePdfGenerationError(
+        "No hay datos para generar el informe de retenciones mensual.",
+      );
+      return null;
+    }
+
+    return reportData;
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    maxPageSize,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateMonthlyRetentionReportExcel = useCallback(async () => {
+    try {
+      setIsGeneratingMonthlyRetentionReport(true);
+      const reportData = await loadMonthlyRetentionReportData();
+      if (!reportData) return;
+
+      await exportMonthlyRetentionReportExcel({
+        data: reportData,
+        branchName: displayedBranchName ?? "",
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el informe de retenciones mensual.",
+      );
+    } finally {
+      setIsGeneratingMonthlyRetentionReport(false);
+    }
+  }, [
+    loadMonthlyRetentionReportData,
+    displayedBranchName,
+    handlePdfGenerationError,
+  ]);
+
   const loadSubsidiesReportData = useCallback(async () => {
     if (!companyId || !selectedPayrollType || !moduleCode) return null;
     if (!hasPayrollData) {
@@ -2854,6 +2960,7 @@ export function PayrollPage() {
     isGeneratingDepreciationReport ||
     isGeneratingSubsidiesReport ||
     isGeneratingBacReport ||
+    isGeneratingMonthlyRetentionReport ||
     isGeneratingVacationPermissionsSummary ||
     isGeneratingConsolidatedAreaExcel;
 
@@ -2908,6 +3015,9 @@ export function PayrollPage() {
         case "monthly_ir_report":
           await handleGenerateIrReportExcel(false);
           break;
+        case "monthly_retention_report":
+          await handleGenerateMonthlyRetentionReportExcel();
+          break;
         case "depreciation_report":
           await handleGenerateDepreciationReportExcel();
           break;
@@ -2935,6 +3045,7 @@ export function PayrollPage() {
       handleGenerateIrReportExcel,
       handleGenerateDepreciationReportExcel,
       handleGenerateBacReportExcel,
+      handleGenerateMonthlyRetentionReportExcel,
     ],
   );
 

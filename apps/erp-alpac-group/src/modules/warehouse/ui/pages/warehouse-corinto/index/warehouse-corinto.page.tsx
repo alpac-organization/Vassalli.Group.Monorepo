@@ -2,11 +2,12 @@
 import { Badges, Breadcrumb, Button, DataTable, Pagination, StatsCard, useTheme, type TableColumn } from "@alpac/design-system";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { formatDate, formatNumber, formatTime } from "@app/shared/utils/string.utils";
-import { m, LazyMotion, AnimatePresence } from "framer-motion";
+import { m } from "framer-motion";
 import { CircleCheckBig, TruckIcon, WeightTildeIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { driverRecords, type DriverRecord } from "../mock/mocked-data";
+import { driverRecords } from "../../mock/driver-mocked-data";
+import type { DriverRecord } from "../../types/driver.types";
 
 const PAGE_SIZE = 10;
 
@@ -135,23 +136,15 @@ export const WarehouseCorintoPage = () => {
             <StatsCard
                title="CAMIONES EN PLANTA"
                value={formatNumber("42")}
-               trend="Total de colaboradores activos"
+               trend="Total de camiones en planta"
                icon={<TruckIcon size={30} />}
                borderColor="border-red-600! dark:border-red-500!"
             />
 
-            {/* <StatsCard
-               title="INSPECCIONES"
-               value={`0${formatNumber("8")}`}
-               trend="Total de colaboradores en vacaciones"
-               icon={<UserRoundCheck size={30} />}
-               borderColor="border-blue-500! dark:border-blue-400!"
-            /> */}
-
             <StatsCard
                title="PENDIENTE DE PESAJE"
                value={`0${formatNumber("8")}`}
-               trend="Total de colaboradores en vacaciones"
+               trend="Total de camiones pendiente de pesaje en báscula"
                icon={<WeightTildeIcon size={30} />}
                borderColor="border-yellow-600! dark:border-yellow-500!"
             />
@@ -159,25 +152,16 @@ export const WarehouseCorintoPage = () => {
             <StatsCard
                title="DESPACHOS COMPLETO"
                value={formatNumber("20")}
-               trend="Total de colaboradores en proceso de baja"
+               trend="Total de camiones despachados"
                icon={<CircleCheckBig size={30} />}
                borderColor="border-green-800! dark:border-green-600!"
             />
 
          </div>
 
-         <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
-            <div className="flex flex-col justify-center">
-               <h3 className="p-0! m-0!">Filtros</h3>
-               <small className="text-gray-500 dark:text-gray-300">
-                  Filtrar registros de camiones
-               </small>
-            </div>
-         </div>
-
          <div className="flex flex-col">
             <DataTable
-               title="Lista de colaboradores"
+               title="Lista de conductores"
                data={drivers}
                columns={columns}
                pagination={

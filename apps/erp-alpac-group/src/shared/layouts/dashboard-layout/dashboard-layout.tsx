@@ -13,6 +13,8 @@ import Sidebarlayout from "@app/shared/layouts/dashboard-layout/components/Sideb
 import useSessionStorageSidebar from "@app/shared/layouts/dashboard-layout/hooks/useSessionStorageSidebar";
 
 import type { SidebarLink } from "./components/Sidebar/types/sidebar.types";
+import { isRouteAuthorized } from "./utils/route-authorization.utils";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 
 const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
@@ -25,19 +27,17 @@ export const DashboardLayout = () => {
    const location = useLocation();
    const navigate = useNavigate();
    const mainContentRef = useRef<HTMLElement | null>(null);
+   const { companyAlias } = useUserStore();
+   const { neutralUrlImage } = useCompanyStore();
 
    // mapeas la secciones = []
    const registry = sidebarData.navigationRegistry;
    const authorizedModules = registry[moduleCode as keyof typeof registry] ?? [];
 
-   const moduleItems =
-      authorizedModules[role as keyof typeof authorizedModules] ?? [];
+   const authorizedPaths: SidebarLink[] =
+      (authorizedModules[role as keyof typeof authorizedModules] ?? []) as SidebarLink[];
 
-   const authorizedItems = [...moduleItems];
-
-   const isAuthorizedPath = authorizedItems.some((item: SidebarLink) => {
-      return location.pathname.includes(item.path);
-   });
+   const isAuthorizedPath = isRouteAuthorized(location.pathname, authorizedPaths);
 
    const handleLogout = async function () {
       try {
@@ -79,9 +79,9 @@ export const DashboardLayout = () => {
             <Sidebarlayout
                setIsOpen={setIsOpenSidebar}
                isOpen={isOpenSidebar}
-               logoUrl={sidebarData.logoUrl}
-               nameCompany={sidebarData.nameCompany}
-               items={authorizedItems}
+               logoUrl={neutralUrlImage}
+               nameCompany={companyAlias}
+               items={authorizedPaths}
             />
 
             <div className="flex flex-col flex-1 w-full overflow-hidden transition-all duration-300">

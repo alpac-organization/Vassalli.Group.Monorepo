@@ -25,7 +25,10 @@ import {
   validateHolidayIncomePayload,
 } from "@app/modules/payroll/ui/pages/nomina/components/incomes/utils/parse-holiday-income-excel";
 
-import type { CreateIncomeFormProps, IncomeTypeOption } from "./create-income-form.types";
+import type {
+  CreateIncomeFormProps,
+  IncomeTypeOption,
+} from "@app/modules/payroll/ui/pages/nomina/components/incomes/create-income-form/create-income-form.types";
 import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
 import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
@@ -44,7 +47,6 @@ const subsidyTypeOption: IncomeTypeOption = {
   code: SUBSIDY_TYPE_CODE,
   label: "Subsidio",
 };
-
 const formFieldsTransition = {
   height: { duration: 0.28, ease: "easeInOut" as const },
   opacity: { duration: 0.35, ease: "easeOut" as const, delay: 0.08 },
@@ -71,8 +73,11 @@ export const CreateIncomeForm = ({
   const { getMappedError } = useMappedError();
   const [overtimeFileKey, setOvertimeFileKey] = useState(0);
   const [holidayFileKey, setHolidayFileKey] = useState(0);
-  const [foundCollaborator, setFoundCollaborator] = useState<GetCollaboratorProfileDetailsResponse | null>(null);
-  const [selectedInputMethod, setSelectedInputMethod] = useState<"manualEntry" | "excelImport">("manualEntry");
+  const [foundCollaborator, setFoundCollaborator] =
+    useState<GetCollaboratorProfileDetailsResponse | null>(null);
+  const [selectedInputMethod, setSelectedInputMethod] = useState<
+    "manualEntry" | "excelImport"
+  >("manualEntry");
   const [isSearching, setIsSearching] = useState(false);
 
   const isAdministrator = role === RoleEnum.ADMINISTRATOR;
@@ -154,19 +159,24 @@ export const CreateIncomeForm = ({
     return allIncomeTypeOptions.find((opt) => opt.id === incomeTypeId)?.code;
   }, [incomeTypeId, allIncomeTypeOptions]);
 
-  const isOvertimeType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME;
-  const isCommissionType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION;
+  const isOvertimeType =
+    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME;
+  const isCommissionType =
+    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION;
   const isBonusType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_BONUS;
   const isSubsidyType = selectedIncomeTypeCode === SUBSIDY_TYPE_CODE;
-  const isDepreciationType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_DEPRECIATION;
-  const isHolidayType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_HOLIDAY;
+  const isDepreciationType =
+    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_DEPRECIATION;
+  const isHolidayType =
+    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_HOLIDAY;
 
   const needsCollaborator =
     isCommissionType ||
     isBonusType ||
     isSubsidyType ||
     isDepreciationType ||
-    ((isOvertimeType || isHolidayType) && selectedInputMethod === "manualEntry");
+    ((isOvertimeType || isHolidayType) &&
+      selectedInputMethod === "manualEntry");
 
   useEffect(() => {
     methods.setValue("payroll_id", payrollId);
@@ -251,7 +261,6 @@ export const CreateIncomeForm = ({
   }, [isDepreciationType, methods]);
 
   const handleClearCollaborator = useCallback(() => {
-
     setFoundCollaborator(null);
 
     if (isCommissionType) {
@@ -288,7 +297,7 @@ export const CreateIncomeForm = ({
     isHolidayType,
     isDepreciationType,
     selectedInputMethod,
-    methods
+    methods,
   ]);
 
   const handleOvertimeFileRemove = useCallback(() => {
@@ -369,7 +378,9 @@ export const CreateIncomeForm = ({
     if (isOvertimeType) {
       if (selectedInputMethod === "manualEntry") {
         if (!foundCollaborator) {
-          onRequestError?.("Debe buscar un colaborador para agregar un ingreso");
+          onRequestError?.(
+            "Debe buscar un colaborador para agregar un ingreso",
+          );
           return;
         }
 
@@ -461,7 +472,103 @@ export const CreateIncomeForm = ({
     if (isHolidayType) {
       if (selectedInputMethod === "manualEntry") {
         if (!foundCollaborator) {
-          onRequestError?.("Debe buscar un colaborador para agregar un ingreso");
+          onRequestError?.(
+            "Debe buscar un colaborador para agregar un ingreso",
+          );
+          return;
+        }
+
+        const amountDays = data.holiday_payload?.amount_days;
+        const identificationNumberValue =
+          foundCollaborator.personal_information?.identification_number
+            ?.replace(/-/g, "")
+            .toUpperCase() ?? "";
+
+        const manualRows = [
+          {
+            identification_number: identificationNumberValue,
+            amount_days: Number(amountDays) || 0,
+          },
+        ];
+
+        const validated = validateHolidayIncomePayload(manualRows);
+        if (!validated.ok) {
+          onRequestError?.(validated.error);
+          return;
+        }
+
+        const {
+          description: _description,
+          identification_number: _id,
+          ...holidayRest
+        } = rest;
+
+        await CreateIncome.mutateAsync(
+          {
+            company_id: holidayRest.company_id,
+            module_code: holidayRest.module_code,
+            branch_id: holidayRest.branch_id,
+            payroll_id: holidayRest.payroll_id,
+            type_income_id: holidayRest.type_income_id,
+            holiday_income_data: validated.rows,
+          },
+          {
+            onSuccess: () => {
+              onRequestSuccess?.("Ingreso registrado correctamente");
+            },
+            onError: (error: ApiErrorResponse) => {
+              const mappedError = getMappedError(error);
+              onRequestError?.(
+                mappedError.description || "Error al registrar el ingreso",
+              );
+            },
+          },
+        );
+        return;
+      }
+
+      const validated = validateHolidayIncomePayload(holiday_income_data);
+      if (!validated.ok) {
+        onRequestError?.(validated.error);
+        return;
+      }
+
+      const {
+        description: _description,
+        identification_number: _id,
+        ...holidayRest
+      } = rest;
+
+      await CreateIncome.mutateAsync(
+        {
+          company_id: holidayRest.company_id,
+          module_code: holidayRest.module_code,
+          branch_id: holidayRest.branch_id,
+          payroll_id: holidayRest.payroll_id,
+          type_income_id: holidayRest.type_income_id,
+          holiday_income_data: validated.rows,
+        },
+        {
+          onSuccess: () => {
+            onRequestSuccess?.("Ingreso registrado correctamente");
+          },
+          onError: (error: ApiErrorResponse) => {
+            const mappedError = getMappedError(error);
+            onRequestError?.(
+              mappedError.description || "Error al registrar el ingreso",
+            );
+          },
+        },
+      );
+      return;
+    }
+
+    if (isHolidayType) {
+      if (selectedInputMethod === "manualEntry") {
+        if (!foundCollaborator) {
+          onRequestError?.(
+            "Debe buscar un colaborador para agregar un ingreso",
+          );
           return;
         }
 
@@ -551,7 +658,6 @@ export const CreateIncomeForm = ({
     }
 
     if (isCommissionType) {
-
       const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
 
@@ -588,12 +694,12 @@ export const CreateIncomeForm = ({
     }
 
     if (isBonusType) {
-
       const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
 
-      const identificationNumberValue =
-        collaboratorIdentification.replace(/-/g, "").toUpperCase();
+      const identificationNumberValue = collaboratorIdentification
+        .replace(/-/g, "")
+        .toUpperCase();
 
       await CreateIncome.mutateAsync(
         {
@@ -604,8 +710,7 @@ export const CreateIncomeForm = ({
           type_income_id: rest.type_income_id,
           bonus_payload: {
             currency: Number(bonus_payload?.currency) || 0,
-            bonus_amount:
-              Number(bonus_payload?.bonus_amount) || 0,
+            bonus_amount: Number(bonus_payload?.bonus_amount) || 0,
             identification_number: identificationNumberValue,
           },
         },
@@ -624,12 +729,12 @@ export const CreateIncomeForm = ({
     }
 
     if (isDepreciationType) {
-
       const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
 
-      const identificationNumberValue =
-        collaboratorIdentification.replace(/-/g, "").toUpperCase();
+      const identificationNumberValue = collaboratorIdentification
+        .replace(/-/g, "")
+        .toUpperCase();
 
       await CreateIncome.mutateAsync(
         {
@@ -658,7 +763,6 @@ export const CreateIncomeForm = ({
         },
       );
     }
-
   };
 
   const hasOvertimeExcelData =
@@ -701,10 +805,8 @@ export const CreateIncomeForm = ({
     !methods.formState.isValid ||
     !selectedIncomeTypeCode ||
     isSubsidyType ||
-    (isOvertimeType &&
-      !(hasOvertimeExcelData || hasValidOvertimeManual)) ||
-    (isHolidayType &&
-      !(hasHolidayExcelData || hasValidHolidayManual)) ||
+    (isOvertimeType && !(hasOvertimeExcelData || hasValidOvertimeManual)) ||
+    (isHolidayType && !(hasHolidayExcelData || hasValidHolidayManual)) ||
     (isCommissionType && (!foundCollaborator || !hasValidCommission)) ||
     (isBonusType && (!foundCollaborator || !hasValidBonus)) ||
     (isDepreciationType && !hasValidDepreciation);
@@ -963,14 +1065,12 @@ export const CreateIncomeForm = ({
             <Depreciation />
           </m.div>
         )}
-
       </AnimatePresence>
     </LazyMotion>
   );
 
   const collaboratorSearchSection =
     isSubsidyType && !foundCollaborator && needsCollaborator ? (
-
       <CollaboratorSearchForm
         onSuccess={(collaborator) => {
           setFoundCollaborator(collaborator);
@@ -986,7 +1086,6 @@ export const CreateIncomeForm = ({
         }}
         excludeIdentifications={[identificationNumber]}
       />
-
     ) : null;
 
   const collaboratorSummarySection =

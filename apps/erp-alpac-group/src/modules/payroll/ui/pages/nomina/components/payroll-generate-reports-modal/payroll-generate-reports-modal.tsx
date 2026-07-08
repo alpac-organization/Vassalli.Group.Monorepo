@@ -1,9 +1,9 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { Modal, Button, Dropdown, Checkbox } from "@alpac/design-system";
 import { m, LazyMotion, AnimatePresence } from "framer-motion";
 import type { PayrollGenerateReportsModalProps } from "@app/modules/payroll/ui/pages/nomina/components/payroll-generate-reports-modal/types/payroll-generate-reports-modal.types";
 import type { PayrollActionValue } from "@app/modules/payroll/ui/pages/nomina/types/payroll-actions.types";
-import { actionSupportsExcel } from "@app/modules/payroll/ui/pages/nomina/constants/payroll-generate-formats.constants";
+import { actionSupportsExcel, actionIsExcelOnly } from "@app/modules/payroll/ui/pages/nomina/constants/payroll-generate-formats.constants";
 import { AlertTriangle } from "lucide-react";
 
 const loadFeatures = () =>
@@ -36,14 +36,26 @@ export default function PayrollGenerateReportsModal({
   isConfirmLoading = false,
   confirmDisabled = false,
 }: PayrollGenerateReportsModalProps) {
+  const isExcelOnlyAction =
+    selectedAction !== null && actionIsExcelOnly(selectedAction);
+  const showPdfOption =
+    selectedAction !== null && !isExcelOnlyAction;
   const showExcelOption =
     selectedAction !== null && actionSupportsExcel(selectedAction);
-  const hasAtLeastOneFormat = generatePdfChecked || generateExcelChecked;
+  const hasAtLeastOneFormat = isExcelOnlyAction
+    ? generateExcelChecked
+    : generatePdfChecked || generateExcelChecked;
   const canConfirm =
     !confirmDisabled &&
     !isConfirmLoading &&
     selectedAction !== null &&
     hasAtLeastOneFormat;
+
+  useEffect(() => {
+    if (!selectedAction || !actionIsExcelOnly(selectedAction)) return;
+    onGeneratePdfChange(false);
+    onGenerateExcelChange(true);
+  }, [selectedAction, onGeneratePdfChange, onGenerateExcelChange]);
 
   const handleClose = useCallback(() => {
     if (isConfirmLoading) return;
@@ -99,12 +111,39 @@ export default function PayrollGenerateReportsModal({
                 transition={formatSectionTransition}
                 className="flex flex-col gap-3"
               >
-                <Checkbox
-                  label="Generar PDF"
-                  checked={generatePdfChecked}
-                  onChange={(e) => onGeneratePdfChange(e.target.checked)}
-                  disabled={isConfirmLoading}
-                />
+                <AnimatePresence>
+                  {showPdfOption && (
+                    <m.div
+                      key="pdf-option"
+                      initial={{
+                        opacity: 0,
+                        y: 8,
+                        height: 0,
+                        overflow: "hidden",
+                      }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                        height: "auto",
+                        overflow: "visible",
+                      }}
+                      exit={{
+                        opacity: 0,
+                        y: 4,
+                        height: 0,
+                        overflow: "hidden",
+                      }}
+                      transition={excelOptionTransition}
+                    >
+                      <Checkbox
+                        label="Generar PDF"
+                        checked={generatePdfChecked}
+                        onChange={(e) => onGeneratePdfChange(e.target.checked)}
+                        disabled={isConfirmLoading}
+                      />
+                    </m.div>
+                  )}
+                </AnimatePresence>
 
                 <AnimatePresence>
                   {showExcelOption && (

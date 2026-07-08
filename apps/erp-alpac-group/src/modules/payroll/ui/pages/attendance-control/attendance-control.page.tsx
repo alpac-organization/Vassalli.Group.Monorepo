@@ -24,6 +24,8 @@ import {
 } from "@app/shared/utils/string.utils";
 import type { GetAttendanceRecordsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/attendance-requests/get-attendance-records.request";
 import { BookIcon } from "lucide-react";
+import { AttendanceControlDetail } from "./components/attendance-control-details/attendance-control-details";
+import type { AttendanceRecordDto } from "@app/modules/payroll/domain/ApiContract/Responses/attendance-responses/get-attendance-records.response";
 
 const loadFeatures = () =>
    import("framer-motion").then((res) => res.domAnimation);
@@ -81,6 +83,8 @@ export const AttendanceControlPage = () => {
    const [appliedEndDate, setAppliedEndDate] = useState<string | null>(null);
    const [appliedIdentification, setAppliedIdentification] = useState("");
    const [startDate, setStartDate] = useState<Date | null>(null);
+   const [attendance, setAttendance] = useState<AttendanceRecordDto | null>(null);
+   const [isAttendanceDetailModalOpen, setIsAttendanceDetailModalOpen] = useState(false)
 
    const hasAppliedPeriod = Boolean(appliedIdentification.trim()) || Boolean(appliedStartDate && appliedEndDate);
 
@@ -152,7 +156,7 @@ export const AttendanceControlPage = () => {
    }, [reset]);
 
    const handleGenerateReport = useCallback(() => {
-      
+
    }, []);
 
    return (
@@ -381,6 +385,12 @@ export const AttendanceControlPage = () => {
 
                <AttendanceControlTable
                   data={datasource}
+                  onSelect={(item: AttendanceRecordDto) => {
+                     console.log("Item:", item)
+                     setAttendance(item)
+                     setIsAttendanceDetailModalOpen(true)
+
+                  }}
                   pagination={
                      hasAppliedPeriod ? (
                         <Pagination
@@ -392,6 +402,14 @@ export const AttendanceControlPage = () => {
                         />
                      ) : undefined
                   }
+               />
+
+               <AttendanceControlDetail
+                  isOpen={isAttendanceDetailModalOpen}
+                  attendanceDetail={attendance?.markings}
+                  onClose={() => {
+                     setIsAttendanceDetailModalOpen(false)
+                  }}
                />
 
             </div>

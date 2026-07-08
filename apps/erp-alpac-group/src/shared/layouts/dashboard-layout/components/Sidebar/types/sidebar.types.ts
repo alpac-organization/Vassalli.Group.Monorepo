@@ -6,6 +6,7 @@ export interface SidebarLink {
   path: string;
   icon: ElementType;
   isFooter?: boolean;
+  allowsRubRoutes?: boolean;
 }
 
 export interface SidebarConfig {

@@ -118,13 +118,22 @@ function ColumnHeaders() {
 function DataRow({
   item,
   periodCode,
+  conceptLabel,
   getValue,
 }: {
   item: PayrollItemResponse;
   periodCode: string;
+  conceptLabel: string;
   getValue: (item: PayrollItemResponse) => number;
 }) {
   const total = getValue(item);
+  console.log("[Incomes]", {
+    concepto: conceptLabel,
+    codigo: item.collaborator?.collaborator_code ?? "—",
+    nombre: item.collaborator?.full_name ?? "—",
+    area: item.collaborator?.work_area ?? "—",
+    valor: total,
+  });
   return (
     <View style={styles.tableRow} wrap={false}>
       <View style={styles.colCodEmp}>
@@ -197,6 +206,7 @@ function ConceptSection({
                 <DataRow
                   item={firstItem}
                   periodCode={periodCode}
+                  conceptLabel={concept.label}
                   getValue={concept.getValue}
                 />
               )}
@@ -206,6 +216,7 @@ function ConceptSection({
                 key={item.ordinary_payroll_id || i}
                 item={item}
                 periodCode={periodCode}
+                conceptLabel={concept.label}
                 getValue={concept.getValue}
               />
             ))}
@@ -261,6 +272,24 @@ export function IncomeSummaryPdfDocument({
     startDate && endDate
       ? `Período: ${formatDateToSpanishWords(startDate.trim())} al ${formatDateToSpanishWords(endDate.trim())}`
       : undefined;
+
+  INCOME_CONCEPTS.forEach((concept) => {
+    const rows = data
+      .map((item) => ({
+        concepto: concept.label,
+        codigo: item.collaborator?.collaborator_code ?? "—",
+        nombre: item.collaborator?.full_name ?? "—",
+        area: item.collaborator?.work_area ?? "—",
+        valor: concept.getValue(item),
+      }))
+      .filter((row) => row.valor > 0);
+
+    if (rows.length > 0) {
+      console.group(`[Income Summary] ${concept.label}`);
+      console.table(rows);
+      console.groupEnd();
+    }
+  });
 
   return (
     <Document>

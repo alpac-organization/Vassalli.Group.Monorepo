@@ -30,20 +30,6 @@ function parseUtcDateParts(dateString: string): {
   return { year, month, day };
 }
 
-export function calcVacationDays(startDate: string, endDate: string): number {
-  const startParts = parseUtcDateParts(startDate);
-  const endParts = parseUtcDateParts(endDate);
-
-  if (!startParts || !endParts) return 0;
-
-  const start = Date.UTC(startParts.year, startParts.month - 1, startParts.day);
-  const end = Date.UTC(endParts.year, endParts.month - 1, endParts.day);
-  const msPerDay = 24 * 60 * 60 * 1000;
-  const diff = Math.round((end - start) / msPerDay);
-
-  return diff + 1;
-}
-
 function capitalizeFirst(value: string): string {
   if (!value) return value;
   return value.charAt(0).toUpperCase() + value.slice(1);
@@ -139,7 +125,7 @@ export function buildVacationPermissionsSummaryRows(
     employeeName: permission.requested_by?.trim() || "—",
     startDate: formatDate(permission.start_date) || "—",
     endDate: formatDate(permission.end_date) || "—",
-    days: calcVacationDays(permission.start_date, permission.end_date),
+    days: permission.amount_days ?? 0,
     type: MOVEMENT_TYPE,
   }));
 }
