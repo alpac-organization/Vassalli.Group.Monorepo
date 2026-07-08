@@ -38,10 +38,12 @@ import type {
    CreateLateArrivalsDeductionRequest,
    CreateLoanDeductionRequest,
    CreatePurisimaDeductionRequest,
+   CreateSanctionDeductionRequest,
    JudicialSeizurePayload,
    LateArrivalsInformation,
    LoansPayload,
    PurisimaInformation,
+   SanctionPayload,
 } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
 import { DeductionTypeEnum, DeductionTypeOptions } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-type.enum";
 
@@ -62,6 +64,7 @@ const isLateArrivalType = (type: AddDeductionFormValues["deduction_type"]) => ty
 const isPurisimaType = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionTypeEnum.Purisima.value;
 const isLoanRepayment = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionTypeEnum.Loans.value;
 const isJudicialGarnishment = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionTypeEnum.JudicialGarnishment.value;
+const isSanctionType = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionTypeEnum.Sanction.value;
 
 export const AddDeductionForm = ({
    branchId,
@@ -124,6 +127,8 @@ export const AddDeductionForm = ({
    const judicialCurrency = methods.watch("judicial_seizure_payload.currency");
    const judicialTotalAmountToPay = methods.watch("judicial_seizure_payload.total_amount_to_pay");
    const judicialDeductionPercentage = methods.watch("judicial_seizure_payload.deduction_percentage");
+
+   const sanctionAmountDays = methods.watch("sansion_payload.amount_days");
 
    useEffect(() => {
 
@@ -483,6 +488,44 @@ export const AddDeductionForm = ({
 
          return;
       }
+
+      if (isSanctionType(data.deduction_type)) {
+
+         if (!foundCollaborator) {
+            onRequestError?.("Debe buscar un colaborador para agregar una Deducción");
+            return;
+         }
+
+         const { sansion_payload, ...sanctionBase } = data;
+
+         const sanctionPayload: SanctionPayload = {
+            amount_days: Number(sansion_payload?.amount_days),
+            identification_number: foundCollaborator.personal_information.identification_number!,
+         }
+
+         const sanctionPayloadFull: CreateSanctionDeductionRequest = {
+            company_id: sanctionBase.company_id,
+            module_code: sanctionBase.module_code,
+            branch_id: sanctionBase.branch_id,
+            payroll_id: sanctionBase.payroll_id,
+            deduction_type: Number(DeductionTypeEnum.Sanction.value),
+            sansion_payload: sanctionPayload,
+         }
+
+         CreateDeduction.mutate(sanctionPayloadFull, {
+            onSuccess: () => {
+               methods.reset();
+               onSubmit?.(sanctionPayloadFull);
+               onRequestSuccess?.("Deducción agregada correctamente");
+               onCancel?.();
+            },
+            onError: (error: ApiErrorResponse) => {
+               const mappedError = getMappedError(error);
+               onRequestError?.(mappedError?.description);
+            },
+         });
+         return;
+      }
    },
       [
          CreateDeduction,
@@ -531,6 +574,8 @@ export const AddDeductionForm = ({
       Number(judicialTotalAmountToPay) &&
       Number(judicialDeductionPercentage);
 
+   const isSanctionReady = !!foundCollaborator && Number(sanctionAmountDays);
+
    const isSubmitDisabled =
       CreateDeduction.isPending ||
       !methods.formState.isDirty ||
@@ -538,7 +583,8 @@ export const AddDeductionForm = ({
       (isLateArrivalType(deductionType) && !isLateArrivalReady) ||
       (isPurisimaType(deductionType) && !isPurisimaReady) ||
       (isLoanRepayment(deductionType) && !isLoanReady) ||
-      (isJudicialGarnishment(deductionType) && !isJudicialGarnishmentReady);
+      (isJudicialGarnishment(deductionType) && !isJudicialGarnishmentReady) ||
+      (isSanctionType(deductionType) && !isSanctionReady);
 
    return (
       <FormProvider {...methods}>
@@ -621,6 +667,7 @@ export const AddDeductionForm = ({
                (
                   isLoanRepayment(deductionType) ||
                   isJudicialGarnishment(deductionType) ||
+                  isSanctionType(deductionType) ||
                   (
                      (isPurisimaType(deductionType) || isLateArrivalType(deductionType)) &&
                      selectedInputMethod === "manualEntry"
@@ -788,7 +835,7 @@ export const AddDeductionForm = ({
                         </m.div>
                      )}
 
-                  {deductionType === DeductionTypeEnum.Sanction.value && (
+                  {isSanctionType(deductionType) && !!foundCollaborator && (
                      <m.div
                         key="sanctions"
                         initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
@@ -822,7 +869,7 @@ export const AddDeductionForm = ({
                      </m.div>
                   )}
 
-                  {isJudicialGarnishment(deductionType) &&  !!foundCollaborator && (
+                  {isJudicialGarnishment(deductionType) && !!foundCollaborator && (
                      <m.div
                         key="judicial-garnishment"
                         initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
