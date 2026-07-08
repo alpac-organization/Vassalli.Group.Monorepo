@@ -39,6 +39,8 @@ type PayrollItemCommonFields = {
   vacations?: number;
   amount_days_vacation?: number;
   DAEM?: string;
+  holiday_pay?: number;
+  number_of_holidays?: number;
   total_to_pay: number;
   collaborator: CollaboratorResponse | null;
 };
