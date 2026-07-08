@@ -15,7 +15,7 @@ export class DeductionServices implements IDeductionServices {
          const { company_id, module_code, ...rest } = payload;
 
          const url = `/companies/${company_id}/modules/${module_code}/deductions`;
-
+         
          await this.httpHandler.post(url, rest);
       } catch (error) {
          throw error;
