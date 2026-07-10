@@ -1,8 +1,9 @@
+import { AccessControlPage } from "@app/modules/warehouse/ui/warehouse-corinto/pages/access-control/access-control.page";
+import { WarehouseCorintoPage } from "@app/modules/warehouse/ui/warehouse-corinto/pages/index/warehouse-corinto.page";
+import { Receiving } from "@app/modules/warehouse/ui/warehouse-corinto/pages/receiving/receiving";
+import { ScalePage } from "@app/modules/warehouse/ui/warehouse-corinto/pages/scale/scale";
 import type { RouteObject } from "react-router-dom";
-import { WarehouseCorintoPage } from "@app/modules/warehouse/ui/pages/warehouse-corinto/index/warehouse-corinto.page";
-import { AccessControlPage } from "@app/modules/warehouse/ui/pages/warehouse-corinto/access-control/access-control.page";
-import { ScalePage } from "@app/modules/warehouse/ui/pages/warehouse-corinto/scale/scale";
-import { Receiving } from "@app/modules/warehouse/ui/pages/warehouse-corinto/receiving/receiving";
+
 
 export const WarehouseCorintoRoutes: RouteObject[] = [
    {
