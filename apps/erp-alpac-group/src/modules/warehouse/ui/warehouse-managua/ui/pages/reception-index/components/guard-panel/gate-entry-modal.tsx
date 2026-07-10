@@ -7,7 +7,7 @@ import {
 import React, { useState } from "react";
 import { useForm, useFieldArray, type SubmitHandler } from "react-hook-form";
 import { SaveIcon, ArrowRightIcon, XIcon, ArrowLeftIcon, PlusIcon, Trash2Icon } from "lucide-react";
-import { useWarehouse } from "@app/modules/warehouse/ui/pages/warehouse-managua/context/wareouse-context";
+import { useWarehouse } from "@app/modules/warehouse/ui/warehouse-managua/context/wareouse-context";
 
 interface ReceptionFormValues {
   countryOfOrigin: string;

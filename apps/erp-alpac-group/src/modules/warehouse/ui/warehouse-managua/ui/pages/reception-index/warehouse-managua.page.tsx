@@ -1,12 +1,12 @@
 import React, { useMemo, useContext } from 'react';
-import { WarehouseProvider } from '@app/modules/warehouse/ui/pages/warehouse-managua/context/wareouse-context';
-import { GuardPanel } from '@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/reception-index/components/guard-panel/guard-panel';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@alpac/design-system';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 import { useCompanies } from '@app/modules/auth/ui/hooks/useCompanies';
 import { Breadcrumb, type BreadcrumbProps } from '@alpac/design-system';
 import { WarehouseHeader } from './components/warehouse-header';
+import { WarehouseProvider } from '../../../context/wareouse-context';
+import { GuardPanel } from './components/guard-panel/guard-panel';
 
 
 export function WarehouseManaguaPage() {

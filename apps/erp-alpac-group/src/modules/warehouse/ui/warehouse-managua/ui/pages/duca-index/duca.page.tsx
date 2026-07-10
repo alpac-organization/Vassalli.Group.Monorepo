@@ -1,13 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { useTheme } from '@alpac/design-system';
-import { useWarehouse, type WarehouseItem } from '@app/modules/warehouse/ui/pages/warehouse-managua/context/wareouse-context';
 import { useCompanies } from '@app/modules/auth/ui/hooks/useCompanies';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 
 // Corrección de Ruta: Subimos un nivel para encontrar el componente hermano del panel
-import { DucaDetailModal, type DucaPayload } from '@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/duca-index/components/duca-detail-modal';
 import { DucaHeader } from './components/duca-header';
 import { DucaTable } from './components/duca-table/duca-table';
+import { useWarehouse, type WarehouseItem } from '../../../context/wareouse-context';
+import { DucaDetailModal, type DucaPayload } from './components/duca-detail-modal';
 
 export function DucaPanel() {
   const { theme } = useTheme();
@@ -49,7 +49,7 @@ export function DucaPanel() {
       </div>
 
       {selectedVehicle && (
-        <DucaDetailModal 
+        <DucaDetailModal
           isOpen={true}
           onClose={() => setSelectedVehicle(null)} 
           recordEntranceId={selectedVehicle.id} // Vinculación directa con el ID de la fila vehicular

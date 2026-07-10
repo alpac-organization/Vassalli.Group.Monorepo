@@ -3,7 +3,7 @@ import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { driverRecords } from "../../mock/driver-mocked-data";
-import { getStatusBadgeColor, getStatusButtonColor, STATUS_LABELS, type DriverRecord } from "@app/modules/warehouse/ui/pages/types/driver.types";
+import { getStatusBadgeColor, getStatusButtonColor, STATUS_LABELS, type DriverRecord } from "@app/modules/warehouse/ui/warehouse-corinto/types/driver.types";
 import { ArrowUpRightIcon, CheckCircle, TruckIcon } from "lucide-react";
 import { formatTime } from "@app/shared/utils/string.utils";
 import type { EnumType } from "@app/shared/types/enum.type";

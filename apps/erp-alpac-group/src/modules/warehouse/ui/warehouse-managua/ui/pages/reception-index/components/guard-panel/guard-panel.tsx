@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { Button, DataTable } from '@alpac/design-system';
 import { Plus } from 'lucide-react';
-import { WarehouseStats } from '@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/reception-index/components/guard-panel/warehouse-stats'; 
-import { GateEntryModal } from '@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/reception-index/components/guard-panel/gate-entry-modal';
-import { useWarehouse, type WarehouseItem } from '@app/modules/warehouse/ui/pages/warehouse-managua/context/wareouse-context'; 
 import { SearchInput } from '../searh-imput';
+import { useWarehouse, type WarehouseItem } from '@app/modules/warehouse/ui/warehouse-managua/context/wareouse-context';
+import { WarehouseStats } from './warehouse-stats';
+import { GateEntryModal } from './gate-entry-modal';
 
 export const GuardPanel: React.FC = () => {
   const [isEntryModalOpen, setEntryModalOpen] = useState(false);
