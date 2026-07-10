@@ -1,0 +1,50 @@
+import type { ScaleRecord } from "../types/driver.types";
+
+export const scaleRecords: ScaleRecord[] = [
+    {
+        id: 1,
+        identification_number: "001-120456-0012A",
+        licensePlate: "M 123-456",
+        driverName: "Juan Carlos Pérez",
+        status: "pending",
+        date: "2026-06-29T07:30:00Z",
+    },
+    {
+        id: 2,
+        identification_number: "001-080234-0056B",
+        licensePlate: "M 789-101",
+        driverName: "María Elena Gutiérrez",
+        status: "in_progress",
+        date: "2026-06-29T08:00:00Z",
+        start_time: "2026-06-29T08:05:00Z",
+    },
+    {
+        id: 3,
+        identification_number: "001-150789-0033C",
+        licensePlate: "CH 154-321",
+        driverName: "José Alberto Espinoza",
+        status: "in_progress",
+        date: "2026-06-29T08:30:00Z",
+        start_time: "2026-06-29T08:35:00Z",
+    },
+    {
+        id: 4,
+        identification_number: "001-220145-0078D",
+        licensePlate: "LE 233-554",
+        driverName: "Carlos Fernando Meza",
+        status: "completed",
+        date: "2026-06-29T09:00:00Z",
+        start_time: "2026-06-29T09:10:00Z",
+        end_time: "2026-06-29T09:55:00Z",
+    },
+    {
+        id: 5,
+        identification_number: "001-310678-0091E",
+        licensePlate: "M 445-988",
+        driverName: "Ana Julia Centeno",
+        status: "completed",
+        date: "2026-06-29T09:30:00Z",
+        start_time: "2026-06-29T09:35:00Z",
+        end_time: "2026-06-29T10:15:00Z",
+    },
+];

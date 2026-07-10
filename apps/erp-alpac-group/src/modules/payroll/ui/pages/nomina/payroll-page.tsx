@@ -9,7 +9,10 @@ import {
 } from "@alpac/design-system";
 import { m, LazyMotion } from "framer-motion";
 import { useCallback, useState, useMemo, useEffect } from "react";
-import { getSignatures } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
+import {
+  getSignaturesForPayroll,
+  getReviewedSignatureImage,
+} from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/getSignatures";
 import { getProcessedSignatureImage } from "@app/modules/payroll/ui/pages/nomina/components/check-pdf/utils/processSignatureImage";
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -50,6 +53,7 @@ import { AccumulatedPdfDocument } from "@app/modules/payroll/ui/pages/nomina/com
 import { IncomeSummaryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/income-review-pdf/income-summary-pdf-document";
 import { DeductionSummaryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/deduction-review-pdf/deduction-review.pdf";
 import { VacationControlPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/components/vacation-control-pdf";
+import { VacationControlAreaPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/components/vacation-control-area-pdf";
 import { VacationAccrualAreaPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/components/vacation-accrual-area-pdf";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 import { PayrollServices } from "@app/modules/payroll/infrastructure/services/payroll-services/PayrollServices";
@@ -60,18 +64,44 @@ import {
   fetchAllPermissionsByPayroll,
 } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/utils/vacation-control.utils";
 import { buildVacationAccrualAreaRows } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/utils/vacation-accrual-area.utils";
+import { buildVacationControlAreaRows } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/utils/vacation-control-area.utils";
 import { exportVacationAccrualAreaExcel } from "@app/modules/payroll/ui/pages/nomina/components/vacation-report/utils/export-vacation-accrual-area-excel";
+import { VacationPermissionsSummaryPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/vacation-permissions-summary/vacation-permissions-summary-pdf-document";
+import {
+  buildVacationPermissionsSummaryHeader,
+  buildVacationPermissionsSummaryRows,
+  fetchApprovedVacationPermissionsByPayroll,
+} from "@app/modules/payroll/ui/pages/nomina/components/vacation-permissions-summary/utils/build-vacation-permissions-summary.utils";
+import { exportVacationPermissionsSummaryExcel } from "@app/modules/payroll/ui/pages/nomina/components/vacation-permissions-summary/excel/export-vacation-permissions-summary-excel";
+import { IrReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/ir-report-pdf/ir-report-pdf-document";
+import { exportIrReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/ir-report-pdf/excel/export-ir-report-excel";
 import { getPayrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { payrollColumns } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/payroll-columns";
 import { exportPayrollExcel } from "@app/modules/payroll/ui/pages/nomina/components/payroll-excel/utils/export-payroll-excel";
 import { ConsolidatedAreaPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/pdf/consolidated-area-pdf-document";
-import {
-  EmployeeReceivablesPdfDocument,
-  type EmployeeReceivableItem,
-} from "@app/modules/payroll/ui/pages/nomina/components/employee-receivables-pdf/employee-receivables-pdf-document";
+import { EmployeeReceivablesPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/employee-receivables-pdf/employee-receivables-pdf-document";
+import { buildEmployeeReceivablesReportData } from "@app/modules/payroll/ui/pages/nomina/components/employee-receivables-pdf/utils/build-employee-receivables-data";
+import { exportEmployeeReceivablesExcel } from "@app/modules/payroll/ui/pages/nomina/components/employee-receivables-pdf/excel/export-employee-receivables-excel";
 import { exportConsolidatedAreaExcel } from "@app/modules/payroll/ui/pages/nomina/components/consolidated-area-report/excel/export-consolidated-area-excel";
+import { exportAccumulatedHistoryExcel } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/excel/export-accumulated-history-excel";
+import { filterAccumulatedHistoryByPayrollItems } from "@app/modules/payroll/ui/pages/nomina/components/accumulated-pdf/utils/filter-accumulated-history.utils";
+import { exportIncomeSummaryExcel } from "@app/modules/payroll/ui/pages/nomina/components/income-review-pdf/excel/export-income-summary-excel";
+import { exportDeductionSummaryExcel } from "@app/modules/payroll/ui/pages/nomina/components/deduction-review-pdf/excel/export-deduction-summary-excel";
+import { InssReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/inss-report-pdf/inss-report-pdf-document";
+import { exportInssReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/inss-report-pdf/excel/export-inss-report-excel";
+import { resolveInssReportPeriodDates } from "@app/modules/payroll/ui/pages/nomina/components/inss-report-pdf/utils/inss-report.utils";
+import { DepreciationReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/depreciation-report-pdf/depreciation-report-pdf-document";
+import { exportDepreciationReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/depreciation-report-pdf/excel/export-depreciation-report-excel";
+import { BacReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/bac-report-pdf/bac-report-pdf-document";
+import { exportBacReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/bac-report-pdf/excel/export-bac-report-excel";
+import { mapPayrollItemsToBacRows } from "@app/modules/payroll/ui/pages/nomina/components/bac-report-pdf/utils/bac-report.utils";
+import { buildMonthlyRetentionReportRows } from "@app/modules/payroll/ui/pages/nomina/components/monthly-retention-report/utils/build-monthly-retention-report.utils";
+import { exportMonthlyRetentionReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/monthly-retention-report/excel/export-monthly-retention-report-excel";
 import type { InitializePayrollParams } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-initialize.request";
+import type { ReportPayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/generate-report-payroll";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import { SubsidiesReportPdfDocument } from "@app/modules/payroll/ui/pages/nomina/components/subsidies-report-pdf/subsidies-report-pdf-document";
+import { exportSubsidiesReportExcel } from "@app/modules/payroll/ui/pages/nomina/components/subsidies-report-pdf/excel/export-subsidies-report-excel";
 import type { PayrollActionValue } from "@app/modules/payroll/ui/pages/nomina/types/payroll-actions.types";
 import type { StoredPayrollSelection } from "@app/modules/payroll/ui/pages/nomina/types/payroll.types";
 import {
@@ -88,6 +118,7 @@ import { parseAdditionalDeductions } from "./components/payroll-table/utils/pars
 import type { AdditionalDeductions } from "./components/payroll-table/types/payroll-table.types";
 import { ModalDetailsPayroll } from "@app/modules/payroll/ui/pages/nomina/components/collaborator-details-payroll/modal-details-payroll";
 import { exportCollaboratorsExcelTemplate } from "@app/modules/payroll/ui/pages/nomina/utils/export-collaborators-excel-template";
+import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 
 export function PayrollPage() {
   const maxPageSize = 10;
@@ -97,8 +128,8 @@ export function PayrollPage() {
   const { GetBranchesQuery: branchesQuery, GetCompaniesQuery } = useCompanies(
     companyId ? { company_id: companyId } : undefined,
   );
+  const { baseUrl } = useBaseUrl();
 
-  const signatures = getSignatures(companyName);
   const companiesData = GetCompaniesQuery?.data;
 
   const currentCompanyImageUrl = useMemo(() => {
@@ -167,6 +198,10 @@ export function PayrollPage() {
   const [isGeneratingVacationControlPdf, setIsGeneratingVacationControlPdf] =
     useState(false);
   const [
+    isGeneratingVacationControlAreaPdf,
+    setIsGeneratingVacationControlAreaPdf,
+  ] = useState(false);
+  const [
     isGeneratingVacationAccrualAreaReport,
     setIsGeneratingVacationAccrualAreaReport,
   ] = useState(false);
@@ -183,6 +218,19 @@ export function PayrollPage() {
   const [
     isGeneratingEmployeeReceivablesPdf,
     setIsGeneratingEmployeeReceivablesPdf,
+  ] = useState(false);
+  const [isGeneratingInssReport, setIsGeneratingInssReport] = useState(false);
+  const [isGeneratingIrReport, setIsGeneratingIrReport] = useState(false);
+  const [isGeneratingDepreciationReport, setIsGeneratingDepreciationReport] =
+    useState(false);
+  const [isGeneratingSubsidiesReport, setIsGeneratingSubsidiesReport] =
+    useState(false);
+  const [isGeneratingBacReport, setIsGeneratingBacReport] = useState(false);
+  const [isGeneratingMonthlyRetentionReport, setIsGeneratingMonthlyRetentionReport] =
+    useState(false);
+  const [
+    isGeneratingVacationPermissionsSummary,
+    setIsGeneratingVacationPermissionsSummary,
   ] = useState(false);
   const [
     isDownloadingCollaboratorsTemplate,
@@ -391,6 +439,11 @@ export function PayrollPage() {
   const displayedBranchName =
     payrollDetailsQuery.data?.branch_name?.trim() || selectedBranchName;
 
+  const signatures = useMemo(
+    () => getSignaturesForPayroll(companyName, displayedBranchName),
+    [companyName, displayedBranchName],
+  );
+
   const hasCollaboratorsWithoutBankAccount = useMemo(() => {
     const items = payrollDetailsQuery.data?.payroll_details?.items ?? [];
     return items.some((item) => !item.collaborator?.bank_account?.trim());
@@ -414,16 +467,32 @@ export function PayrollPage() {
         value: "vacation_control_report",
       },
       {
+        label: "Generar Control de Vacaciones por Área",
+        value: "vacation_control_area_report",
+      },
+      {
         label: "Generar Acumulado Vacaciones aguinaldo",
         value: "vacation_accrual_area_report",
       },
       {
-        label: "Generar Reporte Nómina Consolidada por Área",
+        label: "Generar Descargue de vacaciones",
+        value: "vacation_permissions_summary_report",
+      },
+      {
+        label: "Generar  Nómina Consolidada por Área",
         value: "consolidated_area_report",
       },
       {
         label: "Generar Saldos por Cobrar a Empleados",
         value: "employee_receivables_report",
+      },
+      {
+        label: "Generar Reporte de Depreciaciones",
+        value: "depreciation_report",
+      },
+      {
+        label: "Generar Reporte BAC",
+        value: "bac_report",
       },
       // {
       //   label: "Generar Acumulado de Vacaciones",
@@ -435,12 +504,13 @@ export function PayrollPage() {
     const startDay = startDate ? new Date(startDate).getUTCDate() : null;
     const endDay = endDate ? new Date(endDate).getUTCDate() : null;
     const PAYROLL_FIRST_PERIOD_END_DAY = 15;
-    if (endDay === PAYROLL_FIRST_PERIOD_END_DAY) {
+    const PAYROLL_SECOND_PERIOD_START_DAY = 16;
+
+    if (
+      endDay === PAYROLL_FIRST_PERIOD_END_DAY ||
+      startDay === PAYROLL_SECOND_PERIOD_START_DAY
+    ) {
       const actionQuincenal: { label: string; value: PayrollActionValue }[] = [
-        {
-          label: "Generar Reporte Quincenal Acumulado",
-          value: "quincenal_accumulated_report",
-        },
         {
           label: "Generar Reporte Quincenal IR",
           value: "quincenal_ir_report",
@@ -452,13 +522,9 @@ export function PayrollPage() {
       ];
       actionQuincenal.forEach((option) => options.push(option));
     }
-    const PAYROLL_SECOND_PERIOD_START_DAY = 16;
+
     if (startDay === PAYROLL_SECOND_PERIOD_START_DAY) {
       const actionMonthly: { label: string; value: PayrollActionValue }[] = [
-        {
-          label: "Generar Reporte Mensual Acumulado",
-          value: "monthly_accumulated_report",
-        },
         {
           label: "Generar Reporte Mensual IR",
           value: "monthly_ir_report",
@@ -466,6 +532,10 @@ export function PayrollPage() {
         {
           label: "Generar Reporte mensual INSS",
           value: "monthly_inss_report",
+        },
+        {
+          label: "Generar Informe de Retenciones Mensual",
+          value: "monthly_retention_report",
         },
       ];
       actionMonthly.forEach((option) => options.push(option));
@@ -476,6 +546,12 @@ export function PayrollPage() {
         value: "payment_requests",
       });
     }
+
+    options.push({
+      label: "Generar Reporte de Subsidios",
+      value: "subsidies_report",
+    });
+
     return options;
   }, [
     hasCollaboratorsWithoutBankAccount,
@@ -561,7 +637,7 @@ export function PayrollPage() {
           const apiError = error as ApiErrorResponse;
           handleRequestError(
             apiError?.error?.description ||
-              "No se pudo inicializar la nómina. Inténtelo nuevamente.",
+            "No se pudo inicializar la nómina. Inténtelo nuevamente.",
           );
         },
       },
@@ -604,7 +680,7 @@ export function PayrollPage() {
       const apiError = error as ApiErrorResponse;
       handleRequestError(
         apiError?.error?.description ||
-          "No se pudo formalizar la nómina. Inténtelo nuevamente.",
+        "No se pudo formalizar la nómina. Inténtelo nuevamente.",
       );
       throw error;
     }
@@ -692,8 +768,9 @@ export function PayrollPage() {
       const preparedSignatureImageSrc = signatures.solicitado.signatureImage
         ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
         : "";
-      const reviewedSignatureImageSrc = signatures.signatureImage
-        ? await getProcessedSignatureImage(signatures.signatureImage)
+      const reviewedSignatureImage = getReviewedSignatureImage(signatures);
+      const reviewedSignatureImageSrc = reviewedSignatureImage
+        ? await getProcessedSignatureImage(reviewedSignatureImage)
         : "";
 
       const blob = await pdf(
@@ -732,6 +809,7 @@ export function PayrollPage() {
     signatures.solicitado.signatureImage,
     signatures.revisado.name,
     signatures.revisado.role,
+    signatures.revisado.signatureImage,
     signatures.signatureImage,
     selectedBranch,
     companyId,
@@ -866,14 +944,20 @@ export function PayrollPage() {
         );
         return;
       }
-      const { signatureImage } = getSignatures(companyName);
-      const signatureImageSrc =
-        await getProcessedSignatureImage(signatureImage);
+      const paymentSignatures = getSignaturesForPayroll(
+        companyName,
+        displayedBranchName,
+      );
+      const reviewedSignatureImage = getReviewedSignatureImage(paymentSignatures);
+      const signatureImageSrc = reviewedSignatureImage
+        ? await getProcessedSignatureImage(reviewedSignatureImage)
+        : "";
       const blob = await pdf(
         <CheckPdfDocument
           data={filteredItems}
           startDate={payrollDetailsQuery.data?.start_date}
           endDate={payrollDetailsQuery.data?.end_date}
+          branchName={displayedBranchName ?? ""}
           signatureImageSrc={signatureImageSrc}
         />,
       ).toBlob();
@@ -893,6 +977,7 @@ export function PayrollPage() {
     companyId,
     moduleCode,
     companyName,
+    displayedBranchName,
     payrollDetailsQuery.data,
     identificationFilter,
     workAreaFilter,
@@ -902,19 +987,46 @@ export function PayrollPage() {
 
   const handleGenerateAccumulatedHistoryPdf = useCallback(async () => {
     const payrollId = payrollDetailsQuery.data?.payroll_id;
-    if (!companyId || !payrollId || !moduleCode || !selectedPayrollType) return;
+    if (
+      !companyId ||
+      !payrollId ||
+      !moduleCode ||
+      !selectedPayrollType ||
+      !selectedBranch
+    )
+      return;
     try {
       setIsGeneratingAccumulatedHistoryPdf(true);
       const payrollServices = new PayrollServices(httpHandler);
 
-      const reportResponse = await payrollServices.generateReportsPayroll({
-        companie_id: companyId,
-        module_code: moduleCode,
-        payroll_type: selectedPayrollType ?? "None",
-        payroll_id: payrollId,
-        report_type: "Accumulated",
-      });
-      const reportData = reportResponse.accumulated_history ?? [];
+      const detailsData = payrollDetailsQuery.data;
+      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+      const [reportResponse, payrollResponse] = await Promise.all([
+        payrollServices.generateReportsPayroll({
+          companie_id: companyId,
+          module_code: moduleCode,
+          payroll_type: selectedPayrollType ?? "None",
+          payroll_id: payrollId,
+          report_type: "Accumulated",
+        }),
+        payrollServices.getPayroll({
+          companie_id: companyId,
+          module_code: moduleCode,
+          type: selectedPayrollType,
+          branch_id: selectedBranch,
+          identification_number: identificationFilter || undefined,
+          area_id: workAreaFilter || undefined,
+          job_position_id: jobPositionFilter || undefined,
+          page_number: 1,
+          page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+        } as PayrollRequest),
+      ]);
+      const payrollItems = payrollResponse.payroll_details?.items ?? [];
+      const reportData = filterAccumulatedHistoryByPayrollItems(
+        reportResponse.accumulated_history ?? [],
+        payrollItems,
+      );
 
       if (!reportData.length) {
         handlePdfGenerationError(
@@ -955,12 +1067,16 @@ export function PayrollPage() {
     companyId,
     moduleCode,
     selectedPayrollType,
+    selectedBranch,
     payrollDetailsQuery.data?.payroll_id,
     payrollDetailsQuery.data?.end_date,
     displayedBranchName,
     signatures.solicitado.name,
     signatures.solicitado.signatureImage,
     signatures.solicitado.role,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
     handlePdfGenerationError,
   ]);
   const handleGenerateVacationControlPdf = useCallback(async () => {
@@ -1004,6 +1120,9 @@ export function PayrollPage() {
             module_code: moduleCode,
             type: selectedPayrollType,
             branch_id: selectedBranch,
+            identification_number: identificationFilter || undefined,
+            area_id: workAreaFilter || undefined,
+            job_position_id: jobPositionFilter || undefined,
             page_number: 1,
             page_size: totalRecords > 0 ? totalRecords : maxPageSize,
           } as PayrollRequest),
@@ -1051,8 +1170,221 @@ export function PayrollPage() {
     selectedBranch,
     hasPayrollData,
     payrollDetailsQuery.data,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
     handlePdfGenerationError,
   ]);
+
+  const handleGenerateVacationControlAreaPdf = useCallback(async () => {
+    const payrollId = payrollDetailsQuery.data?.payroll_id;
+    if (
+      !companyId ||
+      !moduleCode ||
+      !selectedPayrollType ||
+      !selectedBranch ||
+      !payrollId
+    ) {
+      return;
+    }
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay colaboradores en la nómina para generar el control de vacaciones por área.",
+      );
+      return;
+    }
+    const startDate = payrollDetailsQuery.data?.start_date;
+    const endDate = payrollDetailsQuery.data?.end_date;
+    try {
+      setIsGeneratingVacationControlAreaPdf(true);
+      const payrollServices = new PayrollServices(httpHandler);
+      const permissionServices = new PermissionServices(httpHandler);
+
+      const detailsData = payrollDetailsQuery.data;
+      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+      const [reportResponse, payrollResponse, allPermissions] =
+        await Promise.all([
+          payrollServices.generateReportsPayroll({
+            companie_id: companyId,
+            module_code: moduleCode,
+            payroll_type: selectedPayrollType ?? "None",
+            payroll_id: payrollId,
+            report_type: "VacationAccrual",
+          }),
+          payrollServices.getPayroll({
+            companie_id: companyId,
+            module_code: moduleCode,
+            type: selectedPayrollType,
+            branch_id: selectedBranch,
+            identification_number: identificationFilter || undefined,
+            area_id: workAreaFilter || undefined,
+            job_position_id: jobPositionFilter || undefined,
+            page_number: 1,
+            page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+          } as PayrollRequest),
+          fetchAllPermissionsByPayroll(permissionServices, {
+            companie_id: companyId,
+            module_code: moduleCode,
+            payroll_id: payrollId,
+          }),
+        ]);
+      const payrollItems = payrollResponse.payroll_details?.items ?? [];
+      const accrualData = reportResponse.vacation_accruals_history ?? [];
+      const rows = buildVacationControlAreaRows(
+        payrollItems,
+        accrualData,
+        allPermissions,
+      );
+      if (!rows.length) {
+        handlePdfGenerationError(
+          "No hay colaboradores disponibles para generar el control de vacaciones por área.",
+        );
+        return;
+      }
+
+      const blob = await pdf(
+        <VacationControlAreaPdfDocument
+          rows={rows}
+          branchName={displayedBranchName ?? ""}
+          startDate={startDate}
+          endDate={endDate}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el control de vacaciones por área, intente nuevamente mas tarde.",
+      );
+    } finally {
+      setIsGeneratingVacationControlAreaPdf(false);
+    }
+  }, [
+    companyId,
+    moduleCode,
+    selectedPayrollType,
+    selectedBranch,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    displayedBranchName,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateVacationPermissionsSummaryPdf = useCallback(async () => {
+    const payrollId = payrollDetailsQuery.data?.payroll_id;
+    if (!companyId || !moduleCode || !payrollId) {
+      return;
+    }
+
+    const startDate = payrollDetailsQuery.data?.start_date;
+    const endDate = payrollDetailsQuery.data?.end_date;
+
+    try {
+      setIsGeneratingVacationPermissionsSummary(true);
+      const permissionServices = new PermissionServices(httpHandler);
+      const permissions = await fetchApprovedVacationPermissionsByPayroll(
+        permissionServices,
+        {
+          companie_id: companyId,
+          module_code: moduleCode,
+          payroll_id: payrollId,
+        },
+      );
+
+      if (!permissions.length) {
+        handlePdfGenerationError(
+          "No hay permisos de vacaciones aprobados para esta quincena.",
+        );
+        return;
+      }
+
+      const header = buildVacationPermissionsSummaryHeader(startDate, endDate);
+      const rows = buildVacationPermissionsSummaryRows(permissions);
+      const blob = await pdf(
+        <VacationPermissionsSummaryPdfDocument
+          header={header}
+          rows={rows}
+          branchName={displayedBranchName ?? ""}
+        />,
+      ).toBlob();
+
+      window.open(URL.createObjectURL(blob), "_blank");
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el descargue de vacaciones, intente nuevamente mas tarde.",
+      );
+    } finally {
+      setIsGeneratingVacationPermissionsSummary(false);
+    }
+  }, [
+    companyId,
+    moduleCode,
+    payrollDetailsQuery.data,
+    displayedBranchName,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateVacationPermissionsSummaryExcel =
+    useCallback(async () => {
+      const payrollId = payrollDetailsQuery.data?.payroll_id;
+      if (!companyId || !moduleCode || !payrollId) {
+        return;
+      }
+
+      const startDate = payrollDetailsQuery.data?.start_date;
+      const endDate = payrollDetailsQuery.data?.end_date;
+
+      try {
+        setIsGeneratingVacationPermissionsSummary(true);
+        const permissionServices = new PermissionServices(httpHandler);
+        const permissions = await fetchApprovedVacationPermissionsByPayroll(
+          permissionServices,
+          {
+            companie_id: companyId,
+            module_code: moduleCode,
+            payroll_id: payrollId,
+          },
+        );
+
+        if (!permissions.length) {
+          handlePdfGenerationError(
+            "No hay permisos de vacaciones aprobados para esta quincena.",
+          );
+          return;
+        }
+
+        const header = buildVacationPermissionsSummaryHeader(
+          startDate,
+          endDate,
+        );
+        const rows = buildVacationPermissionsSummaryRows(permissions);
+
+        await exportVacationPermissionsSummaryExcel({
+          header,
+          rows,
+          branchName: displayedBranchName ?? "",
+          startDate,
+          endDate,
+        });
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el descargue de vacaciones en Excel, intente nuevamente mas tarde.",
+        );
+      } finally {
+        setIsGeneratingVacationPermissionsSummary(false);
+      }
+    }, [
+      companyId,
+      moduleCode,
+      payrollDetailsQuery.data,
+      displayedBranchName,
+      handlePdfGenerationError,
+    ]);
 
   const loadVacationAccrualAreaReportData = useCallback(async () => {
     const payrollId = payrollDetailsQuery.data?.payroll_id;
@@ -1333,6 +1665,232 @@ export function PayrollPage() {
     displayedBranchName,
     handlePdfGenerationError,
   ]);
+
+  const handleGenerateAccumulatedHistoryExcel = useCallback(async () => {
+    const payrollId = payrollDetailsQuery.data?.payroll_id;
+    if (
+      !companyId ||
+      !payrollId ||
+      !moduleCode ||
+      !selectedPayrollType ||
+      !selectedBranch
+    )
+      return;
+    try {
+      setIsGeneratingAccumulatedHistoryPdf(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const detailsData = payrollDetailsQuery.data;
+      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+      const [reportResponse, payrollResponse] = await Promise.all([
+        payrollServices.generateReportsPayroll({
+          companie_id: companyId,
+          module_code: moduleCode,
+          payroll_type: selectedPayrollType ?? "None",
+          payroll_id: payrollId,
+          report_type: "Accumulated",
+        }),
+        payrollServices.getPayroll({
+          companie_id: companyId,
+          module_code: moduleCode,
+          type: selectedPayrollType,
+          branch_id: selectedBranch,
+          identification_number: identificationFilter || undefined,
+          area_id: workAreaFilter || undefined,
+          job_position_id: jobPositionFilter || undefined,
+          page_number: 1,
+          page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+        } as PayrollRequest),
+      ]);
+      const payrollItems = payrollResponse.payroll_details?.items ?? [];
+      const reportData = filterAccumulatedHistoryByPayrollItems(
+        reportResponse.accumulated_history ?? [],
+        payrollItems,
+      );
+
+      if (!reportData.length) {
+        handlePdfGenerationError(
+          "No hay datos disponibles para generar el historial acumulado, intente nuevamente mas tarde.",
+        );
+        return;
+      }
+
+      const yearNow = new Date().getFullYear();
+      const monthNow = "01 enero";
+      await exportAccumulatedHistoryExcel({
+        data: reportData,
+        branchName: displayedBranchName ?? "",
+        startDate: `${monthNow}-${yearNow}`,
+        endDate: payrollDetailsQuery.data?.end_date,
+        logoUrl: useCompanyStore.getState().urlImage,
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el historial acumulado en Excel, intente nuevamente mas tarde.",
+      );
+    } finally {
+      setIsGeneratingAccumulatedHistoryPdf(false);
+    }
+  }, [
+    companyId,
+    moduleCode,
+    selectedPayrollType,
+    selectedBranch,
+    payrollDetailsQuery.data?.payroll_id,
+    payrollDetailsQuery.data?.end_date,
+    displayedBranchName,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateIncomeSummaryExcel = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el resumen de ingresos.",
+      );
+      return;
+    }
+    try {
+      setIsGeneratingIncomeSummaryPdf(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const detailsData = payrollDetailsQuery.data;
+      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+      const payload = {
+        companie_id: companyId,
+        module_code: moduleCode,
+        type: selectedPayrollType,
+        branch_id: selectedBranch,
+        identification_number: identificationFilter || undefined,
+        work_area_id: workAreaFilter || undefined,
+        job_position_id: jobPositionFilter || undefined,
+        page_number: 1,
+        page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+      } as PayrollRequest;
+
+      const response = await payrollServices.getPayroll(payload);
+      const allItems = response.payroll_details?.items ?? [];
+      const hasNotIncomes = allItems.every((item) => {
+        return INCOME_KEYS.every(
+          (key) => item[key as keyof PayrollItemResponse] === 0,
+        );
+      });
+      if (hasNotIncomes) {
+        handlePdfGenerationError(
+          "No hay datos disponibles para generar el resumen de ingresos.",
+        );
+        return;
+      }
+
+      await exportIncomeSummaryExcel({
+        data: allItems,
+        branchName: displayedBranchName ?? "",
+        startDate: payrollDetailsQuery.data?.start_date,
+        endDate: payrollDetailsQuery.data?.end_date,
+        periodCode: payrollDetailsQuery.data?.start_date ?? "",
+        logoUrl: useCompanyStore.getState().urlImage,
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el resumen de ingresos en Excel.",
+      );
+    } finally {
+      setIsGeneratingIncomeSummaryPdf(false);
+    }
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    displayedBranchName,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateDeductionSummaryExcel = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el resumen de deducciones.",
+      );
+      return;
+    }
+    try {
+      setIsGeneratingDeductionSummaryPdf(true);
+      const payrollServices = new PayrollServices(httpHandler);
+
+      const detailsData = payrollDetailsQuery.data;
+      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+      const payload = {
+        companie_id: companyId,
+        module_code: moduleCode,
+        type: selectedPayrollType,
+        branch_id: selectedBranch,
+        identification_number: identificationFilter || undefined,
+        work_area_id: workAreaFilter || undefined,
+        job_position_id: jobPositionFilter || undefined,
+        page_number: 1,
+        page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+      } as PayrollRequest;
+
+      const response = await payrollServices.getPayroll(payload);
+      const allItems = response.payroll_details?.items ?? [];
+      const hasNotDeductions = allItems.every((item) => {
+        const currentDeduction = parseAdditionalDeductions(
+          item.deductions_additional_data,
+        );
+        return DEDUCTION_KEYS.every(
+          (key) => currentDeduction?.[key as keyof AdditionalDeductions] === 0,
+        );
+      });
+      if (hasNotDeductions) {
+        handlePdfGenerationError(
+          "No hay datos disponibles para generar el resumen de deducciones.",
+        );
+        return;
+      }
+
+      await exportDeductionSummaryExcel({
+        data: allItems,
+        branchName: displayedBranchName ?? "",
+        startDate: payrollDetailsQuery.data?.start_date,
+        endDate: payrollDetailsQuery.data?.end_date,
+        periodCode: payrollDetailsQuery.data?.start_date ?? "",
+        logoUrl: useCompanyStore.getState().urlImage,
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el resumen de deducciones en Excel.",
+      );
+    } finally {
+      setIsGeneratingDeductionSummaryPdf(false);
+    }
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    displayedBranchName,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    handlePdfGenerationError,
+  ]);
+
   const handleGenerateExcel = useCallback(async () => {
     if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
       return;
@@ -1420,16 +1978,27 @@ export function PayrollPage() {
       const response = await payrollServices.getPayroll(payload);
       const allItems = response.payroll_details?.items ?? [];
 
+      const inssResponse = await payrollServices.generateReportsPayroll({
+        companie_id: companyId,
+        report_type: "InssFortnightly",
+        payroll_id: detailsData?.payroll_id ?? "",
+        payroll_type: selectedPayrollType,
+        module_code: moduleCode,
+        identification_number: identificationFilter || undefined,
+      });
+      const inssInformation = inssResponse.inss_information ?? [];
+
       const preparedSignatureImageSrc = signatures.solicitado.signatureImage
         ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
         : "";
-      const reviewedSignatureImageSrc = signatures.signatureImage
-        ? await getProcessedSignatureImage(signatures.signatureImage)
-        : "";
+      // const reviewedSignatureImageSrc = signatures.signatureImage
+      //   ? await getProcessedSignatureImage(signatures.signatureImage)
+      //   : "";
 
       const blob = await pdf(
         <ConsolidatedAreaPdfDocument
           data={allItems}
+          inssInformation={inssInformation}
           branchName={displayedBranchName ?? ""}
           companyName={companyName}
           startDate={payrollDetailsQuery.data?.start_date}
@@ -1437,12 +2006,12 @@ export function PayrollPage() {
           preparedBy={{
             name: signatures.solicitado.name,
           }}
-          reviewedBy={{
-            name: signatures.revisado.name,
-            role: signatures.revisado.role,
-          }}
+          //  reviewedBy={{
+          //    name: signatures.revisado.name,
+          //    role: signatures.revisado.role,
+          //  }}
           preparedSignatureImageSrc={preparedSignatureImageSrc}
-          reviewedSignatureImageSrc={reviewedSignatureImageSrc}
+        //  reviewedSignatureImageSrc={reviewedSignatureImageSrc}
         />,
       ).toBlob();
 
@@ -1471,118 +2040,70 @@ export function PayrollPage() {
     handlePdfGenerationError,
   ]);
 
-  const handleGenerateEmployeeReceivablesPdf = useCallback(async () => {
+  const loadEmployeeReceivablesReportData = useCallback(async () => {
     if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
-      return;
+      return null;
     if (!hasPayrollData) {
       handlePdfGenerationError(
         "No hay datos en la tabla de nómina para generar el reporte.",
       );
-      return;
+      return null;
     }
+
+    const payrollServices = new PayrollServices(httpHandler);
+    const deductionsService = new DeductionsServicesByPayroll(httpHandler);
+
+    const detailsData = payrollDetailsQuery.data;
+    const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+    const payload = {
+      companie_id: companyId,
+      module_code: moduleCode,
+      type: selectedPayrollType,
+      branch_id: selectedBranch,
+      identification_number: identificationFilter || undefined,
+      area_id: workAreaFilter || undefined,
+      job_position_id: jobPositionFilter || undefined,
+      page_number: 1,
+      page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+    } as PayrollRequest;
+
+    const response = await payrollServices.getPayroll(payload);
+    const allItems = response.payroll_details?.items ?? [];
+
+    const reportData = await buildEmployeeReceivablesReportData({
+      allItems,
+      companyId,
+      moduleCode,
+      deductionsService,
+    });
+
+    if (reportData.length === 0) {
+      handlePdfGenerationError(
+        "No hay deducciones de préstamos para los colaboradores en esta nómina.",
+      );
+      return null;
+    }
+
+    return reportData;
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateEmployeeReceivablesPdf = useCallback(async () => {
     try {
       setIsGeneratingEmployeeReceivablesPdf(true);
-      const payrollServices = new PayrollServices(httpHandler);
-      const deductionsService = new DeductionsServicesByPayroll(httpHandler);
-
-      const detailsData = payrollDetailsQuery.data;
-      const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
-
-      const payload = {
-        companie_id: companyId,
-        module_code: moduleCode,
-        type: selectedPayrollType,
-        branch_id: selectedBranch,
-        identification_number: identificationFilter || undefined,
-        area_id: workAreaFilter || undefined,
-        job_position_id: jobPositionFilter || undefined,
-        page_number: 1,
-        page_size: totalRecords > 0 ? totalRecords : maxPageSize,
-      } as PayrollRequest;
-
-      const response = await payrollServices.getPayroll(payload);
-      const allItems = response.payroll_details?.items ?? [];
-
-      const deductionsResponse = await deductionsService.GetDeductionsByAsync({
-        companie_id: companyId,
-        module_code: moduleCode,
-        type: 1,
-        page_number: 1,
-        page_size: 10,
-      });
-
-      const relevantDeductions = deductionsResponse.data.filter((d) =>
-        allItems.some(
-          (item) =>
-            item.collaborator?.identification_number ===
-            d.identification_number,
-        ),
-      );
-
-      if (relevantDeductions.length === 0) {
-        handlePdfGenerationError(
-          "No hay deducciones de préstamos para los colaboradores en esta nómina.",
-        );
-        return;
-      }
-
-      const reportData: EmployeeReceivableItem[] = [];
-      for (const deduction of relevantDeductions) {
-        const details = await deductionsService.GetDeductionDetailsAsync({
-          companie_id: companyId,
-          module_code: moduleCode,
-          deduction_id: deduction.deduction_id,
-          identification_number: deduction.identification_number,
-        });
-        const collaboratorItem = allItems.find(
-          (item) =>
-            item.collaborator?.identification_number ===
-            deduction.identification_number,
-        );
-        const collaborator = collaboratorItem?.collaborator;
-
-        if (collaborator && details) {
-          const isDolares = details.currency === "USD";
-          const currencyStr = isDolares ? "US$" : "C$";
-
-          reportData.push({
-            codigo: collaborator.collaborator_code,
-            nombre: collaborator.full_name,
-            cargo: collaborator.job_position || "",
-            inicia: collaborator.entry_date,
-            monto: details.total_amount || 0,
-            monedaOriginal: currencyStr,
-            noCuotasQuincenal: details.number_fortnights || 0,
-            cuotasPagadas: details.number_fortnights_paid || 0,
-            cuotasPendientes:
-              (details.number_fortnights || 0) -
-              (details.number_fortnights_paid || 0),
-            dolares: {
-              cuotasPagadas: isDolares
-                ? details.amount_paid_in_dollars || 0
-                : 0,
-              montoCuotas: isDolares
-                ? details.fortnightly_amount_in_dollars || 0
-                : 0,
-              cuotasPendientes: isDolares
-                ? details.total_balance_in_dollars || 0
-                : 0,
-            },
-            cordobas: {
-              cuotasPagadas: details.amount_paid || 0,
-              montoCuotas: details.fortnightly_amount || 0,
-              cuotasPendientes: details.total_balance || 0,
-            },
-          });
-        }
-      }
-
-      if (reportData.length === 0) {
-        handlePdfGenerationError(
-          "No se pudieron obtener los detalles de los préstamos.",
-        );
-        return;
-      }
+      const reportData = await loadEmployeeReceivablesReportData();
+      if (!reportData) return;
 
       const preparedSignatureImageSrc = signatures.solicitado.signatureImage
         ? await getProcessedSignatureImage(signatures.solicitado.signatureImage)
@@ -1592,7 +2113,6 @@ export function PayrollPage() {
         <EmployeeReceivablesPdfDocument
           data={reportData}
           companyName={companyName}
-          exchangeRate={36.6243}
           preparedBy={{
             name: signatures.solicitado.name,
             role: signatures.solicitado.role,
@@ -1612,17 +2132,35 @@ export function PayrollPage() {
       setIsGeneratingEmployeeReceivablesPdf(false);
     }
   }, [
-    selectedPayrollType,
-    selectedBranch,
-    companyId,
-    moduleCode,
-    hasPayrollData,
-    payrollDetailsQuery.data,
+    loadEmployeeReceivablesReportData,
     companyName,
     signatures,
-    identificationFilter,
-    workAreaFilter,
-    jobPositionFilter,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateEmployeeReceivablesExcel = useCallback(async () => {
+    try {
+      setIsGeneratingEmployeeReceivablesPdf(true);
+      const reportData = await loadEmployeeReceivablesReportData();
+      if (!reportData) return;
+
+      await exportEmployeeReceivablesExcel({
+        data: reportData,
+        companyName,
+        branchName: displayedBranchName,
+        logoUrl: useCompanyStore.getState().urlImage,
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte de saldos por cobrar a empleados en Excel.",
+      );
+    } finally {
+      setIsGeneratingEmployeeReceivablesPdf(false);
+    }
+  }, [
+    loadEmployeeReceivablesReportData,
+    companyName,
+    displayedBranchName,
     handlePdfGenerationError,
   ]);
 
@@ -1657,8 +2195,19 @@ export function PayrollPage() {
       const response = await payrollServices.getPayroll(payload);
       const allItems = response.payroll_details?.items ?? [];
 
+      const inssResponse = await payrollServices.generateReportsPayroll({
+        companie_id: companyId,
+        report_type: "InssFortnightly",
+        payroll_id: detailsData?.payroll_id ?? "",
+        payroll_type: selectedPayrollType,
+        module_code: moduleCode,
+        identification_number: identificationFilter || undefined,
+      });
+      const inssInformation = inssResponse.inss_information ?? [];
+
       await exportConsolidatedAreaExcel({
         data: allItems,
+        inssInformation,
         companyName,
         branchName: displayedBranchName,
         startDate: payrollDetailsQuery.data?.start_date,
@@ -1687,6 +2236,630 @@ export function PayrollPage() {
     handlePdfGenerationError,
   ]);
 
+  const loadInssReportData = useCallback(
+    async (isFortnightly: boolean) => {
+      if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+        return null;
+      if (!hasPayrollData) {
+        handlePdfGenerationError(
+          "No hay datos en la tabla de nómina para generar el reporte.",
+        );
+        return null;
+      }
+      const payrollServices = new PayrollServices(httpHandler);
+      const detailsData = payrollDetailsQuery.data;
+      const reportType: ReportPayrollType = isFortnightly
+        ? "InssFortnightly"
+        : "InssMonthly";
+
+      const payload = {
+        companie_id: companyId,
+        report_type: reportType,
+        payroll_id: detailsData?.payroll_id ?? "",
+        payroll_type: selectedPayrollType,
+        module_code: moduleCode,
+        identification_number: identificationFilter || undefined,
+      };
+
+      const response = await payrollServices.generateReportsPayroll(payload);
+      return response.inss_information ?? [];
+    },
+    [
+      selectedPayrollType,
+      selectedBranch,
+      companyId,
+      moduleCode,
+      hasPayrollData,
+      payrollDetailsQuery.data,
+      identificationFilter,
+      handlePdfGenerationError,
+    ],
+  );
+
+  const handleGenerateInssReportPdf = useCallback(
+    async (isFortnightly: boolean) => {
+      try {
+        setIsGeneratingInssReport(true);
+        const inssData = await loadInssReportData(isFortnightly);
+        if (!inssData) return;
+
+        const { start, end } = resolveInssReportPeriodDates(
+          payrollDetailsQuery.data?.start_date,
+          payrollDetailsQuery.data?.end_date,
+          isFortnightly,
+        );
+
+        const blob = await pdf(
+          <InssReportPdfDocument
+            data={inssData}
+            startDate={start}
+            endDate={end}
+            branchName={displayedBranchName ?? ""}
+            isFortnightly={isFortnightly}
+          />,
+        ).toBlob();
+
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el reporte INSS en PDF.",
+        );
+      } finally {
+        setIsGeneratingInssReport(false);
+      }
+    },
+    [
+      loadInssReportData,
+      payrollDetailsQuery.data,
+      displayedBranchName,
+      handlePdfGenerationError,
+    ],
+  );
+
+  const handleGenerateInssReportExcel = useCallback(
+    async (isFortnightly: boolean) => {
+      try {
+        setIsGeneratingInssReport(true);
+        const inssData = await loadInssReportData(isFortnightly);
+        if (!inssData) return;
+
+        const { start, end } = resolveInssReportPeriodDates(
+          payrollDetailsQuery.data?.start_date,
+          payrollDetailsQuery.data?.end_date,
+          isFortnightly,
+        );
+
+        await exportInssReportExcel({
+          data: inssData,
+          branchName: displayedBranchName ?? "",
+          startDate: start,
+          endDate: end,
+          logoUrl: useCompanyStore.getState().urlImage,
+          isFortnightly,
+        });
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el reporte INSS en Excel.",
+        );
+      } finally {
+        setIsGeneratingInssReport(false);
+      }
+    },
+    [
+      loadInssReportData,
+      displayedBranchName,
+      payrollDetailsQuery.data,
+      handlePdfGenerationError,
+    ],
+  );
+
+  const loadIrReportData = useCallback(
+    async () => {
+      if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+        return null;
+      if (!hasPayrollData) {
+        handlePdfGenerationError(
+          "No hay datos en la tabla de nómina para generar el reporte.",
+        );
+        return null;
+      }
+      const payrollServices = new PayrollServices(httpHandler);
+      const detailsData = payrollDetailsQuery.data;
+
+      const payload = {
+        companie_id: companyId,
+        report_type: "IrAndSalaryEarned" as const,
+        payroll_id: detailsData?.payroll_id ?? "",
+        payroll_type: selectedPayrollType,
+        module_code: moduleCode,
+        identification_number: identificationFilter || undefined,
+      };
+
+      const response = await payrollServices.generateReportsPayroll(payload);
+      return response.ir_and_salary_earned ?? [];
+    },
+    [
+      selectedPayrollType,
+      selectedBranch,
+      companyId,
+      moduleCode,
+      hasPayrollData,
+      payrollDetailsQuery.data,
+      identificationFilter,
+      handlePdfGenerationError,
+    ],
+  );
+
+  const handleGenerateIrReportPdf = useCallback(
+    async (isFortnightly: boolean) => {
+      try {
+        setIsGeneratingIrReport(true);
+        const irData = await loadIrReportData();
+        if (!irData) return;
+
+        const blob = await pdf(
+          <IrReportPdfDocument
+            data={irData}
+            startDate={payrollDetailsQuery.data?.start_date}
+            endDate={payrollDetailsQuery.data?.end_date}
+            branchName={displayedBranchName ?? ""}
+            isFortnightly={isFortnightly}
+          />,
+        ).toBlob();
+
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el reporte IR en PDF.",
+        );
+      } finally {
+        setIsGeneratingIrReport(false);
+      }
+    },
+    [
+      loadIrReportData,
+      payrollDetailsQuery.data,
+      displayedBranchName,
+      handlePdfGenerationError,
+    ],
+  );
+
+  const handleGenerateIrReportExcel = useCallback(
+    async (isFortnightly: boolean) => {
+      try {
+        setIsGeneratingIrReport(true);
+        const irData = await loadIrReportData();
+        if (!irData) return;
+
+        await exportIrReportExcel({
+          data: irData,
+          branchName: displayedBranchName ?? "",
+          startDate: payrollDetailsQuery.data?.start_date,
+          endDate: payrollDetailsQuery.data?.end_date,
+          logoUrl: useCompanyStore.getState().urlImage,
+          isFortnightly,
+        });
+      } catch {
+        handlePdfGenerationError(
+          "Ocurrió un error al generar el reporte IR en Excel.",
+        );
+      } finally {
+        setIsGeneratingIrReport(false);
+      }
+    },
+    [
+      loadIrReportData,
+      displayedBranchName,
+      payrollDetailsQuery.data,
+      handlePdfGenerationError,
+    ],
+  );
+
+  const loadDepreciationReportData = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return null;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return null;
+    }
+    const payrollServices = new PayrollServices(httpHandler);
+    const detailsData = payrollDetailsQuery.data;
+
+    const payload = {
+      companie_id: companyId,
+      report_type: "Depreciations" as const,
+      payroll_id: detailsData?.payroll_id ?? "",
+      payroll_type: selectedPayrollType,
+      module_code: moduleCode,
+      identification_number: identificationFilter || undefined,
+    };
+
+    const response = await payrollServices.generateReportsPayroll(payload);
+    const depreciations = response.depreciations ?? [];
+
+    if (depreciations.length === 0) {
+      handlePdfGenerationError(
+        "No hay datos de depreciación para generar el reporte.",
+      );
+      return null;
+    }
+
+    return depreciations;
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    identificationFilter,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateDepreciationReportPdf = useCallback(async () => {
+    try {
+      setIsGeneratingDepreciationReport(true);
+      const depreciationData = await loadDepreciationReportData();
+      if (!depreciationData) return;
+
+      const blob = await pdf(
+        <DepreciationReportPdfDocument
+          data={depreciationData}
+          startDate={payrollDetailsQuery.data?.start_date}
+          endDate={payrollDetailsQuery.data?.end_date}
+          branchName={displayedBranchName ?? ""}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte de Depreciaciones en PDF.",
+      );
+    } finally {
+      setIsGeneratingDepreciationReport(false);
+    }
+  }, [
+    loadDepreciationReportData,
+    payrollDetailsQuery.data,
+    displayedBranchName,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateDepreciationReportExcel = useCallback(async () => {
+    try {
+      setIsGeneratingDepreciationReport(true);
+      const depreciationData = await loadDepreciationReportData();
+      if (!depreciationData) return;
+
+      await exportDepreciationReportExcel({
+        data: depreciationData,
+        branchName: displayedBranchName ?? "",
+        startDate: payrollDetailsQuery.data?.start_date,
+        endDate: payrollDetailsQuery.data?.end_date,
+        logoUrl: useCompanyStore.getState().urlImage,
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte de Depreciaciones en Excel.",
+      );
+    } finally {
+      setIsGeneratingDepreciationReport(false);
+    }
+  }, [
+    loadDepreciationReportData,
+    displayedBranchName,
+    payrollDetailsQuery.data,
+    handlePdfGenerationError,
+  ]);
+
+  const loadBacReportData = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return null;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return null;
+    }
+
+    const payrollServices = new PayrollServices(httpHandler);
+    const detailsData = payrollDetailsQuery.data;
+    const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+    const payload = {
+      companie_id: companyId,
+      module_code: moduleCode,
+      type: selectedPayrollType,
+      branch_id: selectedBranch,
+      identification_number: identificationFilter || undefined,
+      area_id: workAreaFilter || undefined,
+      job_position_id: jobPositionFilter || undefined,
+      page_number: 1,
+      page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+    } as PayrollRequest;
+
+    const response = await payrollServices.getPayroll(payload);
+    const allItems = response.payroll_details?.items ?? [];
+    const reportData = mapPayrollItemsToBacRows(allItems);
+
+    if (reportData.length === 0) {
+      handlePdfGenerationError(
+        "No hay colaboradores con cuenta bancaria registrada para generar el reporte BAC.",
+      );
+      return null;
+    }
+
+    return reportData;
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    maxPageSize,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateBacReportPdf = useCallback(async () => {
+    try {
+      setIsGeneratingBacReport(true);
+      const bacData = await loadBacReportData();
+      if (!bacData) return;
+
+      const blob = await pdf(
+        <BacReportPdfDocument
+          data={bacData}
+          startDate={payrollDetailsQuery.data?.start_date}
+          endDate={payrollDetailsQuery.data?.end_date}
+          branchName={displayedBranchName ?? ""}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte BAC en PDF.",
+      );
+    } finally {
+      setIsGeneratingBacReport(false);
+    }
+  }, [
+    loadBacReportData,
+    payrollDetailsQuery.data,
+    displayedBranchName,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateBacReportExcel = useCallback(async () => {
+    try {
+      setIsGeneratingBacReport(true);
+      const bacData = await loadBacReportData();
+      if (!bacData) return;
+
+      await exportBacReportExcel({
+        data: bacData,
+        branchName: displayedBranchName ?? "",
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte BAC en Excel.",
+      );
+    } finally {
+      setIsGeneratingBacReport(false);
+    }
+  }, [
+    loadBacReportData,
+    displayedBranchName,
+    handlePdfGenerationError,
+  ]);
+
+  const loadMonthlyRetentionReportData = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return null;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return null;
+    }
+
+    const payrollServices = new PayrollServices(httpHandler);
+    const detailsData = payrollDetailsQuery.data;
+    const totalRecords = detailsData?.payroll_details?.total_items ?? 0;
+
+    const reportPayload = {
+      companie_id: companyId,
+      payroll_id: detailsData?.payroll_id ?? "",
+      payroll_type: selectedPayrollType,
+      module_code: moduleCode,
+      identification_number: identificationFilter || undefined,
+    };
+
+    const payrollPayload = {
+      companie_id: companyId,
+      module_code: moduleCode,
+      type: selectedPayrollType,
+      branch_id: selectedBranch,
+      identification_number: identificationFilter || undefined,
+      area_id: workAreaFilter || undefined,
+      job_position_id: jobPositionFilter || undefined,
+      page_number: 1,
+      page_size: totalRecords > 0 ? totalRecords : maxPageSize,
+    } as PayrollRequest;
+
+    const [inssResponse, irResponse, payrollResponse] = await Promise.all([
+      payrollServices.generateReportsPayroll({
+        ...reportPayload,
+        report_type: "InssMonthly",
+      }),
+      payrollServices.generateReportsPayroll({
+        ...reportPayload,
+        report_type: "IrAndSalaryEarned",
+      }),
+      payrollServices.getPayroll(payrollPayload),
+    ]);
+
+    const allItems = payrollResponse.payroll_details?.items ?? [];
+    const reportData = buildMonthlyRetentionReportRows(
+      inssResponse.inss_information ?? [],
+      irResponse.ir_and_salary_earned ?? [],
+      allItems,
+    );
+
+    if (reportData.length === 0) {
+      handlePdfGenerationError(
+        "No hay datos para generar el informe de retenciones mensual.",
+      );
+      return null;
+    }
+
+    return reportData;
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    identificationFilter,
+    workAreaFilter,
+    jobPositionFilter,
+    maxPageSize,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateMonthlyRetentionReportExcel = useCallback(async () => {
+    try {
+      setIsGeneratingMonthlyRetentionReport(true);
+      const reportData = await loadMonthlyRetentionReportData();
+      if (!reportData) return;
+
+      await exportMonthlyRetentionReportExcel({
+        data: reportData,
+        branchName: displayedBranchName ?? "",
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el informe de retenciones mensual.",
+      );
+    } finally {
+      setIsGeneratingMonthlyRetentionReport(false);
+    }
+  }, [
+    loadMonthlyRetentionReportData,
+    displayedBranchName,
+    handlePdfGenerationError,
+  ]);
+
+  const loadSubsidiesReportData = useCallback(async () => {
+    if (!companyId || !selectedPayrollType || !moduleCode) return null;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return null;
+    }
+    const payrollServices = new PayrollServices(httpHandler);
+
+    const payload = {
+      companie_id: companyId,
+      report_type: "Subsidies" as const,
+      payroll_id: payrollDetailsQuery.data?.payroll_id ?? "",
+      payroll_type: selectedPayrollType,
+      module_code: moduleCode,
+      identification_number: identificationFilter || undefined,
+    };
+
+    const response = await payrollServices.generateReportsPayroll(payload);
+    const subsidies = response.subsidies_history ?? [];
+
+    if (subsidies.length === 0) {
+      handlePdfGenerationError(
+        "No hay subsidios registrados para generar el reporte en este período.",
+      );
+      return null;
+    }
+
+    return subsidies;
+  }, [
+    selectedPayrollType,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    identificationFilter,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateSubsidiesReportPdf = useCallback(async () => {
+    try {
+      setIsGeneratingSubsidiesReport(true);
+      const subsidiesData = await loadSubsidiesReportData();
+      if (!subsidiesData) return;
+
+      const blob = await pdf(
+        <SubsidiesReportPdfDocument
+          data={subsidiesData}
+          startDate={payrollDetailsQuery.data?.start_date}
+          endDate={payrollDetailsQuery.data?.end_date}
+          branchName={displayedBranchName ?? ""}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte de Subsidios en PDF.",
+      );
+    } finally {
+      setIsGeneratingSubsidiesReport(false);
+    }
+  }, [
+    loadSubsidiesReportData,
+    displayedBranchName,
+    payrollDetailsQuery.data,
+    handlePdfGenerationError,
+  ]);
+
+  const handleGenerateSubsidiesReportExcel = useCallback(async () => {
+    try {
+      setIsGeneratingSubsidiesReport(true);
+      const subsidiesData = await loadSubsidiesReportData();
+      if (!subsidiesData) return;
+
+      await exportSubsidiesReportExcel({
+        data: subsidiesData,
+        branchName: displayedBranchName ?? "",
+        startDate: payrollDetailsQuery.data?.start_date,
+        endDate: payrollDetailsQuery.data?.end_date,
+        logoUrl: useCompanyStore.getState().urlImage,
+      });
+    } catch {
+      handlePdfGenerationError(
+        "Ocurrió un error al generar el reporte de Subsidios en Excel.",
+      );
+    } finally {
+      setIsGeneratingSubsidiesReport(false);
+    }
+  }, [
+    loadSubsidiesReportData,
+    displayedBranchName,
+    payrollDetailsQuery.data,
+    handlePdfGenerationError,
+  ]);
+
   const executePdfForAction = useCallback(
     async (action: PayrollActionValue) => {
       switch (action) {
@@ -1705,8 +2878,14 @@ export function PayrollPage() {
         case "vacation_control_report":
           await handleGenerateVacationControlPdf();
           break;
+        case "vacation_control_area_report":
+          await handleGenerateVacationControlAreaPdf();
+          break;
         case "vacation_accrual_area_report":
           await handleGenerateVacationAccrualAreaPdf();
+          break;
+        case "vacation_permissions_summary_report":
+          await handleGenerateVacationPermissionsSummaryPdf();
           break;
         case "income_report":
           await handleGenerateIncomeSummaryPdf();
@@ -1720,6 +2899,27 @@ export function PayrollPage() {
         case "employee_receivables_report":
           await handleGenerateEmployeeReceivablesPdf();
           break;
+        case "quincenal_inss_report":
+          await handleGenerateInssReportPdf(true);
+          break;
+        case "monthly_inss_report":
+          await handleGenerateInssReportPdf(false);
+          break;
+        case "quincenal_ir_report":
+          await handleGenerateIrReportPdf(true);
+          break;
+        case "monthly_ir_report":
+          await handleGenerateIrReportPdf(false);
+          break;
+        case "depreciation_report":
+          await handleGenerateDepreciationReportPdf();
+          break;
+        case "bac_report":
+          await handleGenerateBacReportPdf();
+          break;
+        case "subsidies_report":
+          await handleGenerateSubsidiesReportPdf();
+          break;
         default:
           break;
       }
@@ -1730,11 +2930,17 @@ export function PayrollPage() {
       handleGeneratePaymentRequestsPdf,
       handleGenerateAccumulatedHistoryPdf,
       handleGenerateVacationControlPdf,
+      handleGenerateVacationControlAreaPdf,
       handleGenerateVacationAccrualAreaPdf,
+      handleGenerateVacationPermissionsSummaryPdf,
       handleGenerateIncomeSummaryPdf,
       handleGenerateDeductionSummaryPdf,
       handleGenerateConsolidatedAreaPdf,
       handleGenerateEmployeeReceivablesPdf,
+      handleGenerateInssReportPdf,
+      handleGenerateIrReportPdf,
+      handleGenerateDepreciationReportPdf,
+      handleGenerateBacReportPdf,
     ],
   );
 
@@ -1745,11 +2951,19 @@ export function PayrollPage() {
     isGeneratingPaymentRequestsPdf ||
     isGeneratingAccumulatedHistoryPdf ||
     isGeneratingVacationControlPdf ||
+    isGeneratingVacationControlAreaPdf ||
     isGeneratingVacationAccrualAreaReport ||
     isGeneratingIncomeSummaryPdf ||
     isGeneratingDeductionSummaryPdf ||
     isGeneratingConsolidatedAreaPdf ||
     isGeneratingEmployeeReceivablesPdf ||
+    isGeneratingInssReport ||
+    isGeneratingIrReport ||
+    isGeneratingDepreciationReport ||
+    isGeneratingSubsidiesReport ||
+    isGeneratingBacReport ||
+    isGeneratingMonthlyRetentionReport ||
+    isGeneratingVacationPermissionsSummary ||
     isGeneratingConsolidatedAreaExcel;
 
   const handleOpenGenerateModal = useCallback(() => {
@@ -1777,15 +2991,43 @@ export function PayrollPage() {
           await handleGenerateVacationAccrualAreaExcel();
           break;
         case "accumulated_history":
+          await handleGenerateAccumulatedHistoryExcel();
+          break;
         case "income_report":
+          await handleGenerateIncomeSummaryExcel();
+          break;
         case "deduction_report":
+          await handleGenerateDeductionSummaryExcel();
+          break;
         case "employee_receivables_report":
-        case "monthly_accumulated_report":
-        case "monthly_ir_report":
+          await handleGenerateEmployeeReceivablesExcel();
+          break;
+        case "vacation_permissions_summary_report":
+          await handleGenerateVacationPermissionsSummaryExcel();
+          break;
+        case "quincenal_inss_report":
+          await handleGenerateInssReportExcel(true);
+          break;
         case "monthly_inss_report":
-          handlePdfGenerationError(
-            "La exportación en Excel para este reporte aún no está disponible.",
-          );
+          await handleGenerateInssReportExcel(false);
+          break;
+        case "quincenal_ir_report":
+          await handleGenerateIrReportExcel(true);
+          break;
+        case "monthly_ir_report":
+          await handleGenerateIrReportExcel(false);
+          break;
+        case "monthly_retention_report":
+          await handleGenerateMonthlyRetentionReportExcel();
+          break;
+        case "depreciation_report":
+          await handleGenerateDepreciationReportExcel();
+          break;
+        case "bac_report":
+          await handleGenerateBacReportExcel();
+          break;
+        case "subsidies_report":
+          await handleGenerateSubsidiesReportExcel();
           break;
         default:
           break;
@@ -1794,8 +3036,18 @@ export function PayrollPage() {
     [
       handleGenerateExcel,
       handleGenerateVacationAccrualAreaExcel,
+      handleGenerateAccumulatedHistoryExcel,
+      handleGenerateIncomeSummaryExcel,
+      handleGenerateDeductionSummaryExcel,
+      handleGenerateEmployeeReceivablesExcel,
+      handleGenerateVacationPermissionsSummaryExcel,
       handlePdfGenerationError,
       handleGenerateConsolidatedAreaExcel,
+      handleGenerateInssReportExcel,
+      handleGenerateIrReportExcel,
+      handleGenerateDepreciationReportExcel,
+      handleGenerateBacReportExcel,
+      handleGenerateMonthlyRetentionReportExcel,
     ],
   );
 
@@ -2209,10 +3461,12 @@ export function PayrollPage() {
         <div className="flex justify-start">
           <Breadcrumb
             items={[
-              { label: "Dashboard", url: "/", onClick: (url) => navigate(url) },
+              { label: "Dashboard", 
+                url: `${baseUrl}/`, 
+                onClick: (url) => navigate(url) },
               {
                 label: "Gestión de nómina",
-                url: "/payroll/gestion-nomina",
+                url: `${baseUrl}/payroll/gestion-nomina`,
                 onClick: (url) => navigate(url),
               },
             ]}
@@ -2300,11 +3554,10 @@ export function PayrollPage() {
                       !existPayrollInProgress || isGenerateConfirmLoading
                     }
                     onClick={handleOpenGenerateModal}
-                    className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                      isGenerateConfirmLoading
-                        ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                        : ""
-                    }`}
+                    className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGenerateConfirmLoading
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                      }`}
                   />
                 </div>
                 <Button
@@ -2313,17 +3566,18 @@ export function PayrollPage() {
                   label="Registrar Ingreso"
                   disabled={!existPayrollInProgress}
                   onClick={handleRegisterIncome}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingPdf ||
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
                     isGeneratingPaymentReceiptsPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
                     isGeneratingVacationControlPdf ||
+                    isGeneratingVacationControlAreaPdf ||
                     isGeneratingVacationAccrualAreaReport ||
-                    isGeneratingEmployeeReceivablesPdf
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
+                    isGeneratingEmployeeReceivablesPdf ||
+                    isGeneratingInssReport
+                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                    : ""
+                    }`}
                 />
 
                 <Button
@@ -2332,17 +3586,18 @@ export function PayrollPage() {
                   label="Registrar Deducción"
                   disabled={!existPayrollInProgress}
                   onClick={handleRegisterDeduction}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingPdf ||
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
                     isGeneratingPaymentReceiptsPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
                     isGeneratingVacationControlPdf ||
+                    isGeneratingVacationControlAreaPdf ||
                     isGeneratingVacationAccrualAreaReport ||
-                    isGeneratingEmployeeReceivablesPdf
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
+                    isGeneratingEmployeeReceivablesPdf ||
+                    isGeneratingInssReport
+                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                    : ""
+                    }`}
                 />
 
                 <Button
@@ -2350,16 +3605,17 @@ export function PayrollPage() {
                   label="Registrar Solicitud"
                   disabled={!existPayrollInProgress}
                   onClick={handleOpenPermissionApplicationModal}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isGeneratingPdf ||
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
                     isGeneratingVacationControlPdf ||
+                    isGeneratingVacationControlAreaPdf ||
                     isGeneratingVacationAccrualAreaReport ||
-                    isGeneratingEmployeeReceivablesPdf
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
+                    isGeneratingEmployeeReceivablesPdf ||
+                    isGeneratingInssReport
+                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                    : ""
+                    }`}
                 />
 
                 <Button
@@ -2372,11 +3628,10 @@ export function PayrollPage() {
                   }
                   isLoading={isDownloadingCollaboratorsTemplate}
                   onClick={handleDownloadCollaboratorsTemplate}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                    isDownloadingCollaboratorsTemplate
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                  }`}
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isDownloadingCollaboratorsTemplate
+                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                    : ""
+                    }`}
                 />
               </div>
             </div>

@@ -23,6 +23,14 @@ export interface CreateLoanDeductionRequest extends CreateDeductionBase {
    loans_payload: LoansPayload;
 }
 
+export interface CreateJudicialSeizureDeductionRequest extends CreateDeductionBase {
+   judicial_seizure_payload: JudicialSeizurePayload;
+}
+
+export interface CreateSanctionDeductionRequest extends CreateDeductionBase {
+   sansion_payload: SanctionPayload;
+}
+
 /**
 
  * @description Payload enviado al API según el tipo de deducción.
@@ -32,7 +40,9 @@ export interface CreateLoanDeductionRequest extends CreateDeductionBase {
 export type CreateDeductionRequest =
    | CreateLateArrivalsDeductionRequest
    | CreatePurisimaDeductionRequest
-   | CreateLoanDeductionRequest;
+   | CreateLoanDeductionRequest
+   | CreateJudicialSeizureDeductionRequest
+   | CreateSanctionDeductionRequest;
 
 /**
 
@@ -61,6 +71,10 @@ export type AddDeductionFormValues = {
    purisima_information?: PurisimaInformation;
 
    loans_payload?: LoansPayload;
+
+   judicial_seizure_payload?: JudicialSeizurePayload;
+
+   sansion_payload?: SanctionPayload;
 };
 
 export interface LateArrivalsInformation {
@@ -108,4 +122,24 @@ export interface LoansPayload {
    identification_number: string;
 
    description: string;
+}
+
+export interface JudicialSeizurePayload {
+
+   currency: number;
+
+   total_amount_to_pay: number;
+
+   deduction_percentage: number;
+
+   description: string;
+
+   identification_number: string;
+}
+
+export interface SanctionPayload {
+
+   amount_days: number;
+
+   identification_number: string;
 }

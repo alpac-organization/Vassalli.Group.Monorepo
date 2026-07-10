@@ -20,13 +20,22 @@ import {
   validateOvertimeIncomePayload,
 } from "@app/modules/payroll/ui/pages/nomina/components/incomes/utils/parse-overtime-income-excel";
 
-import type { CreateIncomeFormProps, IncomeTypeOption } from "./create-income-form.types";
+import {
+  parseHolidayIncomeExcel,
+  validateHolidayIncomePayload,
+} from "@app/modules/payroll/ui/pages/nomina/components/incomes/utils/parse-holiday-income-excel";
+
+import type {
+  CreateIncomeFormProps,
+  IncomeTypeOption,
+} from "@app/modules/payroll/ui/pages/nomina/components/incomes/create-income-form/create-income-form.types";
 import type { CreateIncomeRequest } from "@app/modules/payroll/domain/ApiContract/Requests/incomes-requests/create-income.request";
 import type { IncomesTypesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/incomes-responses/incomes-types.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 import { Overtime } from "../overtime/overtime";
 import { Depreciation } from "../depreciation/depreciation";
+import { Holiday } from "../holiday/holiday";
 
 const inputClassName =
   "w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -38,7 +47,6 @@ const subsidyTypeOption: IncomeTypeOption = {
   code: SUBSIDY_TYPE_CODE,
   label: "Subsidio",
 };
-
 const formFieldsTransition = {
   height: { duration: 0.28, ease: "easeInOut" as const },
   opacity: { duration: 0.35, ease: "easeOut" as const, delay: 0.08 },
@@ -64,8 +72,12 @@ export const CreateIncomeForm = ({
   const { companyId, moduleCode, identificationNumber, role } = useUserStore();
   const { getMappedError } = useMappedError();
   const [overtimeFileKey, setOvertimeFileKey] = useState(0);
-  const [foundCollaborator, setFoundCollaborator] = useState<GetCollaboratorProfileDetailsResponse | null>(null);
-  const [selectedInputMethod, setSelectedInputMethod] = useState<"manualEntry" | "excelImport">("manualEntry");
+  const [holidayFileKey, setHolidayFileKey] = useState(0);
+  const [foundCollaborator, setFoundCollaborator] =
+    useState<GetCollaboratorProfileDetailsResponse | null>(null);
+  const [selectedInputMethod, setSelectedInputMethod] = useState<
+    "manualEntry" | "excelImport"
+  >("manualEntry");
   const [isSearching, setIsSearching] = useState(false);
 
   const isAdministrator = role === RoleEnum.ADMINISTRATOR;
@@ -98,7 +110,8 @@ export const CreateIncomeForm = ({
     IncomeTypeEnum.INCOME_OVERTIME,
     IncomeTypeEnum.INCOME_COMMISSION,
     IncomeTypeEnum.INCOME_BONUS,
-    IncomeTypeEnum.INCOME_DEPRECIATION
+    IncomeTypeEnum.INCOME_DEPRECIATION,
+    IncomeTypeEnum.INCOME_HOLIDAY,
   ] as IncomeTypeEnum[];
 
   const { GetIncomeTypes, CreateIncome } = useIncomes({
@@ -136,6 +149,8 @@ export const CreateIncomeForm = ({
   const incomeTypeId = methods.watch("type_income_id");
   const overtimeIncomePayload = methods.watch("overtime_income_data");
   const overtimeManualPayload = methods.watch("overtime_payload");
+  const holidayIncomePayload = methods.watch("holiday_income_data");
+  const holidayManualPayload = methods.watch("holiday_payload");
   const commissionIncomePayload = methods.watch("commissions_payload");
   const bonusIncomePayload = methods.watch("bonus_payload");
   const depreciationIncomePayload = methods.watch("depreciation_payload");
@@ -144,18 +159,24 @@ export const CreateIncomeForm = ({
     return allIncomeTypeOptions.find((opt) => opt.id === incomeTypeId)?.code;
   }, [incomeTypeId, allIncomeTypeOptions]);
 
-  const isOvertimeType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME;
-  const isCommissionType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION;
+  const isOvertimeType =
+    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_OVERTIME;
+  const isCommissionType =
+    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_COMMISSION;
   const isBonusType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_BONUS;
   const isSubsidyType = selectedIncomeTypeCode === SUBSIDY_TYPE_CODE;
-  const isDepreciationType = selectedIncomeTypeCode === IncomeTypeEnum.INCOME_DEPRECIATION;
+  const isDepreciationType =
+    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_DEPRECIATION;
+  const isHolidayType =
+    selectedIncomeTypeCode === IncomeTypeEnum.INCOME_HOLIDAY;
 
   const needsCollaborator =
     isCommissionType ||
     isBonusType ||
     isSubsidyType ||
     isDepreciationType ||
-    (isOvertimeType && selectedInputMethod === "manualEntry");
+    ((isOvertimeType || isHolidayType) &&
+      selectedInputMethod === "manualEntry");
 
   useEffect(() => {
     methods.setValue("payroll_id", payrollId);
@@ -167,11 +188,23 @@ export const CreateIncomeForm = ({
 
   useEffect(() => {
     if (!isOvertimeType) {
-      setSelectedInputMethod("manualEntry");
       methods.setValue("overtime_income_data", undefined);
       methods.setValue("overtime_payload", undefined);
     }
   }, [isOvertimeType, methods]);
+
+  useEffect(() => {
+    if (!isHolidayType) {
+      methods.setValue("holiday_income_data", undefined);
+      methods.setValue("holiday_payload", undefined);
+    }
+  }, [isHolidayType, methods]);
+
+  useEffect(() => {
+    if (!isOvertimeType && !isHolidayType) {
+      setSelectedInputMethod("manualEntry");
+    }
+  }, [isOvertimeType, isHolidayType]);
 
   useEffect(() => {
     if (!isOvertimeType) return;
@@ -188,6 +221,22 @@ export const CreateIncomeForm = ({
     methods.setValue("overtime_payload", undefined);
     methods.setValue("overtime_income_data", undefined);
   }, [isOvertimeType, selectedInputMethod, methods]);
+
+  useEffect(() => {
+    if (!isHolidayType) return;
+
+    if (selectedInputMethod === "manualEntry") {
+      methods.setValue("holiday_income_data", undefined);
+      methods.setValue("holiday_payload", {
+        identification_number: "",
+        amount_days: 0,
+      });
+      return;
+    }
+
+    methods.setValue("holiday_payload", undefined);
+    methods.setValue("holiday_income_data", undefined);
+  }, [isHolidayType, selectedInputMethod, methods]);
 
   useEffect(() => {
     if (!isCommissionType) {
@@ -212,7 +261,6 @@ export const CreateIncomeForm = ({
   }, [isDepreciationType, methods]);
 
   const handleClearCollaborator = useCallback(() => {
-
     setFoundCollaborator(null);
 
     if (isCommissionType) {
@@ -229,6 +277,13 @@ export const CreateIncomeForm = ({
       });
     }
 
+    if (isHolidayType && selectedInputMethod === "manualEntry") {
+      methods.setValue("holiday_payload", {
+        identification_number: "",
+        amount_days: 0,
+      });
+    }
+
     if (isDepreciationType) {
       methods.setValue("depreciation_payload", {
         currency: 0,
@@ -239,9 +294,10 @@ export const CreateIncomeForm = ({
   }, [
     isCommissionType,
     isOvertimeType,
+    isHolidayType,
     isDepreciationType,
     selectedInputMethod,
-    methods
+    methods,
   ]);
 
   const handleOvertimeFileRemove = useCallback(() => {
@@ -274,6 +330,36 @@ export const CreateIncomeForm = ({
     [methods, onRequestError],
   );
 
+  const handleHolidayFileRemove = useCallback(() => {
+    methods.setValue("holiday_income_data", undefined);
+  }, [methods]);
+
+  const handleHolidayFileSelect = useCallback(
+    async (file: File) => {
+      try {
+        const buffer = await file.arrayBuffer();
+        const result = parseHolidayIncomeExcel(buffer);
+        if (!result.ok) {
+          onRequestError?.(result.error);
+          methods.setValue("holiday_income_data", undefined);
+          setHolidayFileKey((k) => k + 1);
+          return;
+        }
+        methods.setValue("holiday_income_data", result.rows, {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      } catch {
+        onRequestError?.(
+          "No se pudo leer el archivo. Intente de nuevo con un .xls o .xlsx válido.",
+        );
+        methods.setValue("holiday_income_data", undefined);
+        setHolidayFileKey((k) => k + 1);
+      }
+    },
+    [methods, onRequestError],
+  );
+
   const onSubmit = async (data: CreateIncomeRequest) => {
     if (!foundCollaborator && isCommissionType) {
       onRequestError?.("Debe buscar un colaborador para agregar un ingreso");
@@ -282,6 +368,7 @@ export const CreateIncomeForm = ({
 
     const {
       overtime_income_data,
+      holiday_income_data,
       commissions_payload,
       bonus_payload,
       depreciation_payload,
@@ -291,7 +378,9 @@ export const CreateIncomeForm = ({
     if (isOvertimeType) {
       if (selectedInputMethod === "manualEntry") {
         if (!foundCollaborator) {
-          onRequestError?.("Debe buscar un colaborador para agregar un ingreso");
+          onRequestError?.(
+            "Debe buscar un colaborador para agregar un ingreso",
+          );
           return;
         }
 
@@ -380,8 +469,195 @@ export const CreateIncomeForm = ({
       return;
     }
 
-    if (isCommissionType) {
+    if (isHolidayType) {
+      if (selectedInputMethod === "manualEntry") {
+        if (!foundCollaborator) {
+          onRequestError?.(
+            "Debe buscar un colaborador para agregar un ingreso",
+          );
+          return;
+        }
 
+        const amountDays = data.holiday_payload?.amount_days;
+        const identificationNumberValue =
+          foundCollaborator.personal_information?.identification_number
+            ?.replace(/-/g, "")
+            .toUpperCase() ?? "";
+
+        const manualRows = [
+          {
+            identification_number: identificationNumberValue,
+            amount_days: Number(amountDays) || 0,
+          },
+        ];
+
+        const validated = validateHolidayIncomePayload(manualRows);
+        if (!validated.ok) {
+          onRequestError?.(validated.error);
+          return;
+        }
+
+        const {
+          description: _description,
+          identification_number: _id,
+          ...holidayRest
+        } = rest;
+
+        await CreateIncome.mutateAsync(
+          {
+            company_id: holidayRest.company_id,
+            module_code: holidayRest.module_code,
+            branch_id: holidayRest.branch_id,
+            payroll_id: holidayRest.payroll_id,
+            type_income_id: holidayRest.type_income_id,
+            holiday_income_data: validated.rows,
+          },
+          {
+            onSuccess: () => {
+              onRequestSuccess?.("Ingreso registrado correctamente");
+            },
+            onError: (error: ApiErrorResponse) => {
+              const mappedError = getMappedError(error);
+              onRequestError?.(
+                mappedError.description || "Error al registrar el ingreso",
+              );
+            },
+          },
+        );
+        return;
+      }
+
+      const validated = validateHolidayIncomePayload(holiday_income_data);
+      if (!validated.ok) {
+        onRequestError?.(validated.error);
+        return;
+      }
+
+      const {
+        description: _description,
+        identification_number: _id,
+        ...holidayRest
+      } = rest;
+
+      await CreateIncome.mutateAsync(
+        {
+          company_id: holidayRest.company_id,
+          module_code: holidayRest.module_code,
+          branch_id: holidayRest.branch_id,
+          payroll_id: holidayRest.payroll_id,
+          type_income_id: holidayRest.type_income_id,
+          holiday_income_data: validated.rows,
+        },
+        {
+          onSuccess: () => {
+            onRequestSuccess?.("Ingreso registrado correctamente");
+          },
+          onError: (error: ApiErrorResponse) => {
+            const mappedError = getMappedError(error);
+            onRequestError?.(
+              mappedError.description || "Error al registrar el ingreso",
+            );
+          },
+        },
+      );
+      return;
+    }
+
+    if (isHolidayType) {
+      if (selectedInputMethod === "manualEntry") {
+        if (!foundCollaborator) {
+          onRequestError?.(
+            "Debe buscar un colaborador para agregar un ingreso",
+          );
+          return;
+        }
+
+        const amountDays = data.holiday_payload?.amount_days;
+        const identificationNumberValue =
+          foundCollaborator.personal_information?.identification_number
+            ?.replace(/-/g, "")
+            .toUpperCase() ?? "";
+
+        const manualRows = [
+          {
+            identification_number: identificationNumberValue,
+            amount_days: Number(amountDays) || 0,
+          },
+        ];
+
+        const validated = validateHolidayIncomePayload(manualRows);
+        if (!validated.ok) {
+          onRequestError?.(validated.error);
+          return;
+        }
+
+        const {
+          description: _description,
+          identification_number: _id,
+          ...holidayRest
+        } = rest;
+
+        await CreateIncome.mutateAsync(
+          {
+            company_id: holidayRest.company_id,
+            module_code: holidayRest.module_code,
+            branch_id: holidayRest.branch_id,
+            payroll_id: holidayRest.payroll_id,
+            type_income_id: holidayRest.type_income_id,
+            holiday_income_data: validated.rows,
+          },
+          {
+            onSuccess: () => {
+              onRequestSuccess?.("Ingreso registrado correctamente");
+            },
+            onError: (error: ApiErrorResponse) => {
+              const mappedError = getMappedError(error);
+              onRequestError?.(
+                mappedError.description || "Error al registrar el ingreso",
+              );
+            },
+          },
+        );
+        return;
+      }
+
+      const validated = validateHolidayIncomePayload(holiday_income_data);
+      if (!validated.ok) {
+        onRequestError?.(validated.error);
+        return;
+      }
+
+      const {
+        description: _description,
+        identification_number: _id,
+        ...holidayRest
+      } = rest;
+
+      await CreateIncome.mutateAsync(
+        {
+          company_id: holidayRest.company_id,
+          module_code: holidayRest.module_code,
+          branch_id: holidayRest.branch_id,
+          payroll_id: holidayRest.payroll_id,
+          type_income_id: holidayRest.type_income_id,
+          holiday_income_data: validated.rows,
+        },
+        {
+          onSuccess: () => {
+            onRequestSuccess?.("Ingreso registrado correctamente");
+          },
+          onError: (error: ApiErrorResponse) => {
+            const mappedError = getMappedError(error);
+            onRequestError?.(
+              mappedError.description || "Error al registrar el ingreso",
+            );
+          },
+        },
+      );
+      return;
+    }
+
+    if (isCommissionType) {
       const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
 
@@ -418,12 +694,12 @@ export const CreateIncomeForm = ({
     }
 
     if (isBonusType) {
-
       const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
 
-      const identificationNumberValue =
-        collaboratorIdentification.replace(/-/g, "").toUpperCase();
+      const identificationNumberValue = collaboratorIdentification
+        .replace(/-/g, "")
+        .toUpperCase();
 
       await CreateIncome.mutateAsync(
         {
@@ -434,8 +710,7 @@ export const CreateIncomeForm = ({
           type_income_id: rest.type_income_id,
           bonus_payload: {
             currency: Number(bonus_payload?.currency) || 0,
-            bonus_amount:
-              Number(bonus_payload?.bonus_amount) || 0,
+            bonus_amount: Number(bonus_payload?.bonus_amount) || 0,
             identification_number: identificationNumberValue,
           },
         },
@@ -454,12 +729,12 @@ export const CreateIncomeForm = ({
     }
 
     if (isDepreciationType) {
-
       const collaboratorIdentification =
         foundCollaborator?.personal_information?.identification_number ?? "";
 
-      const identificationNumberValue =
-        collaboratorIdentification.replace(/-/g, "").toUpperCase();
+      const identificationNumberValue = collaboratorIdentification
+        .replace(/-/g, "")
+        .toUpperCase();
 
       await CreateIncome.mutateAsync(
         {
@@ -488,7 +763,6 @@ export const CreateIncomeForm = ({
         },
       );
     }
-
   };
 
   const hasOvertimeExcelData =
@@ -501,6 +775,17 @@ export const CreateIncomeForm = ({
     selectedInputMethod === "manualEntry" &&
     !!foundCollaborator &&
     (overtimeManualPayload?.amount_hours ?? 0) > 0;
+
+  const hasValidHolidayManual =
+    isHolidayType &&
+    selectedInputMethod === "manualEntry" &&
+    !!foundCollaborator &&
+    (holidayManualPayload?.amount_days ?? 0) > 0;
+
+  const hasHolidayExcelData =
+    isHolidayType &&
+    selectedInputMethod === "excelImport" &&
+    (holidayIncomePayload?.length ?? 0) > 0;
 
   const hasValidCommission =
     (commissionIncomePayload?.commission_amount ?? 0) > 0 &&
@@ -520,8 +805,8 @@ export const CreateIncomeForm = ({
     !methods.formState.isValid ||
     !selectedIncomeTypeCode ||
     isSubsidyType ||
-    (isOvertimeType &&
-      !(hasOvertimeExcelData || hasValidOvertimeManual)) ||
+    (isOvertimeType && !(hasOvertimeExcelData || hasValidOvertimeManual)) ||
+    (isHolidayType && !(hasHolidayExcelData || hasValidHolidayManual)) ||
     (isCommissionType && (!foundCollaborator || !hasValidCommission)) ||
     (isBonusType && (!foundCollaborator || !hasValidBonus)) ||
     (isDepreciationType && !hasValidDepreciation);
@@ -561,12 +846,12 @@ export const CreateIncomeForm = ({
     </div>
   );
 
-  const overtimeInputMethodSection = (
+  const inputMethodSection = (
     <LazyMotion features={loadMotionFeatures} strict>
       <AnimatePresence initial={false}>
-        {isOvertimeType && (
+        {(isOvertimeType || isHolidayType) && (
           <m.div
-            key="overtime-input-method"
+            key="input-method"
             initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
             animate={{
               opacity: 1,
@@ -579,7 +864,7 @@ export const CreateIncomeForm = ({
             className="flex flex-row gap-4"
           >
             <RadioButton
-              id="overtime-manual-entry"
+              id="income-manual-entry"
               value="manualEntry"
               label="Introducir Manualmente"
               labelPosition="right"
@@ -589,7 +874,7 @@ export const CreateIncomeForm = ({
             />
 
             <RadioButton
-              id="overtime-excel-import"
+              id="income-excel-import"
               value="excelImport"
               label="Importar desde Excel"
               labelPosition="right"
@@ -722,6 +1007,48 @@ export const CreateIncomeForm = ({
           </m.div>
         )}
 
+        {!!foundCollaborator &&
+          isHolidayType &&
+          selectedInputMethod === "manualEntry" && (
+            <m.div
+              key="holiday-fields"
+              initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                height: "auto",
+                overflow: "visible",
+              }}
+              exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+              transition={formFieldsTransition}
+            >
+              <Holiday />
+            </m.div>
+          )}
+
+        {isHolidayType && selectedInputMethod === "excelImport" && (
+          <m.div
+            key="holiday-excel"
+            initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              height: "auto",
+              overflow: "visible",
+            }}
+            exit={{ opacity: 0, y: 8, height: 0, overflow: "hidden" }}
+            transition={formFieldsTransition}
+          >
+            <FileUploader
+              key={holidayFileKey}
+              title="Cargar archivo de feriados"
+              extensions={["xls", "xlsx"]}
+              onFileSelect={handleHolidayFileSelect}
+              onFileRemove={handleHolidayFileRemove}
+            />
+          </m.div>
+        )}
+
         {!!foundCollaborator && isDepreciationType && (
           <m.div
             key="depreciation-fields"
@@ -738,14 +1065,12 @@ export const CreateIncomeForm = ({
             <Depreciation />
           </m.div>
         )}
-
       </AnimatePresence>
     </LazyMotion>
   );
 
   const collaboratorSearchSection =
     isSubsidyType && !foundCollaborator && needsCollaborator ? (
-
       <CollaboratorSearchForm
         onSuccess={(collaborator) => {
           setFoundCollaborator(collaborator);
@@ -761,7 +1086,6 @@ export const CreateIncomeForm = ({
         }}
         excludeIdentifications={[identificationNumber]}
       />
-
     ) : null;
 
   const collaboratorSummarySection =
@@ -863,7 +1187,7 @@ export const CreateIncomeForm = ({
       >
         <div className="flex flex-col gap-4">
           {incomeTypeDropdown}
-          {overtimeInputMethodSection}
+          {inputMethodSection}
           {animatedCollaboratorSearchPanel}
           {collaboratorSummarySection}
           {animatedTypeFieldsPanel}

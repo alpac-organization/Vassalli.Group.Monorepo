@@ -26,8 +26,8 @@ type PayrollItemCommonFields = {
   total_legal_deductions: number;
   deductions_additional_data?: string;
   commissions?: number;
-  Inatec?: number;
-  InssPatronal?: number;
+  inatec?: number;
+  inssPatronal?: number;
   aguinaldo?: number;
   total_deducctions: number;
   total_travel_expenses?: number;
@@ -39,6 +39,8 @@ type PayrollItemCommonFields = {
   vacations?: number;
   amount_days_vacation?: number;
   DAEM?: string;
+  holiday_pay?: number;
+  number_of_holidays?: number;
   total_to_pay: number;
   collaborator: CollaboratorResponse | null;
 };

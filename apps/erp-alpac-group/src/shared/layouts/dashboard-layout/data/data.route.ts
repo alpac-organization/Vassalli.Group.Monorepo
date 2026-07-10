@@ -20,7 +20,7 @@ import {
   ShieldCheckIcon,
   ArchiveRestoreIcon,
   FolderClock,
-  Warehouse,
+  WarehouseIcon,
 } from "lucide-react";
 
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
@@ -30,6 +30,7 @@ const collboratorSection: SidebarLink = {
   label: "Colaboradores",
   path: "payroll/collaborators",
   icon: UsersRound,
+  allowsRubRoutes: true
 };
 
 const collaboratorProfileSection: SidebarLink = {
@@ -91,22 +92,22 @@ const liquidacionSection: SidebarLink = {
 const warehouseCorintoSection: SidebarLink = {
   id: "warehouse-corinto",
   label: "Panel Logístico",
-  path: "warehouse",
+  path: "warehouse-corinto",
   icon: TruckIcon,
 };
 
 
 const accessControlSection: SidebarLink = {
-  id: "warehouse1",
+  id: "access-control",
   label: "Control de acceso",
-  path: "warehouse/access",
+  path: "warehouse-corinto/access",
   icon: ShieldCheckIcon,
 };
 
-const weighingSection: SidebarLink = {
-  id: "warehouse2",
+const scaleSection: SidebarLink = {
+  id: "scale",
   label: "Basculaje",
-  path: "warehouse/weighing",
+  path: "warehouse-corinto/scale",
   icon: WeightTildeIcon,
 };
 
@@ -131,27 +132,11 @@ const DucaPanel : SidebarLink = {
   icon: ArchiveRestoreIcon,
 };
 
-
-
-const warehouseSection2: SidebarLink = {
-  id: "warehouse5",
-  label: "Documentos Registrados",
-  path: "warehouse/section2",
-  icon: FilePenIcon,
-};
-
-const warehouseSection3: SidebarLink = {
-  id: "warehouse6",
-  label: "Salidas",
-  path: "warehouse/section3",
-  icon: FilePenIcon,
-};
-
 const warehouseSection4: SidebarLink = {
   id: "warehouse7",
   label: "Asignaciones de Bodegas",
   path: "warehouse/section4",
-  icon: Warehouse,
+  icon: FilePenIcon,
 };
 
 const warehouseSection5: SidebarLink = {
@@ -210,13 +195,6 @@ const warehouseSection12: SidebarLink = {
   icon: FilePenIcon,
 };
 
-const warehouseSection13: SidebarLink = {
-  id: "warehouse16",
-  label: "Ingreso Producto",
-  path: "warehouse/section13",
-  icon: FilePenIcon,
-};
-
 const administrationUsersSection: SidebarLink = {
   id: "administration",
   label: "Usuarios",
@@ -252,10 +230,14 @@ const subsidyHistorialSection: SidebarLink = {
   icon: FolderClock
 }
 
+const receivingSection: SidebarLink = {
+  id: "receiving",
+  label: "Bodega",
+  path: "warehouse-corinto/receiving",
+  icon: WarehouseIcon
+}
+
 export const sidebarData = {
-  logoUrl:
-    "https://ui-avatars.com/api/?name=CP&background=2962ff&color=fff&rounded=true",
-  nameCompany: "CORE PANEL",
   navigationRegistry: {
     [ModuleEnum.PAYROLL]: {
       [RoleEnum.ADMINISTRATOR]: [
@@ -265,7 +247,6 @@ export const sidebarData = {
         applicationFromPayrollSection,
         activeDeductionSection,
         liquidacionSection,
-        //   controlVacationsSection,
         attendanceControlSection,
         subsidyHistorialSection
       ],
@@ -287,32 +268,13 @@ export const sidebarData = {
         collaboratorProfileSection,
         permissionManagementSection,
       ],
-    },
-    /*  [ModuleEnum.APPLICATIONS]: {
-       [RoleEnum.MANAGER]: [applicationSection],
-       [RoleEnum.ADMINISTRATOR]: [applicationSection],
-     }, */
+    },    
     [ModuleEnum.WAREHOUSE_CORINTO]: {
       [RoleEnum.OPERATOR]: [
         warehouseCorintoSection,
         accessControlSection,
-        weighingSection,
-        
-        
-        //warehouseSection1,
-        // warehouseSection2,
-        warehouseSection13,
-        
-        // warehouseSection3,
-        warehouseSection4,
-        warehouseSection12,
-        /*warehouseSection5,
-        warehouseSection6,
-        warehouseSection7,
-        warehouseSection8,
-        warehouseSection9,
-        warehouseSection10,
-        warehouseSection11*/
+        scaleSection,
+        receivingSection,
         warehouseReportSection,
       ],
     },

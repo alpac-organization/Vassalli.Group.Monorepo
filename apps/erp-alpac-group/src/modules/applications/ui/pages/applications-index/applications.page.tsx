@@ -32,6 +32,7 @@ import { ManagerForm } from "./components/application-forms/manager-form/manager
 
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
+import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -69,6 +70,7 @@ export const ApplicationsPage = function () {
   const { urlImage, neutralUrlImage } = useCompanyStore();
   const { companyId, moduleCode } = useUserStore();
   const { getMappedError } = useMappedError();
+  const { baseUrl } = useBaseUrl();
 
   const {
     control,
@@ -230,10 +232,14 @@ export const ApplicationsPage = function () {
         <div className="flex justify-start">
           <Breadcrumb
             items={[
-              { label: "Dashboard", url: "/", onClick: (url) => navigate(url) },
+              {
+                label: "Dashboard",
+                url: `${baseUrl}/`,
+                onClick: (url) => navigate(url)
+              },
               {
                 label: "Solicitudes",
-                url: "/applications",
+                url: `${baseUrl}/applications`,
                 onClick: (url) => navigate(url),
               },
             ]}

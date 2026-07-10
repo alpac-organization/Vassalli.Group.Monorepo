@@ -3,4 +3,5 @@ import type { AttendanceRecordDto } from "@app/modules/payroll/domain/ApiContrac
 export type AttendanceControlTableProps = {
   data: AttendanceRecordDto[];
   pagination?: React.ReactNode;
+  onSelect: (attendance: AttendanceRecordDto) => void;
 };
