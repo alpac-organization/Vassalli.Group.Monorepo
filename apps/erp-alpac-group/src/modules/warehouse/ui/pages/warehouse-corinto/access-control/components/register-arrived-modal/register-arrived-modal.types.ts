@@ -1,6 +1,6 @@
 
 export type RegisterArrivedModalProps = {
    isOpen: boolean;
-   onClose: () => void;
-   onSubmit: () => void;
+   onClose?: () => void;
+   onSubmit?: () => void;
 };

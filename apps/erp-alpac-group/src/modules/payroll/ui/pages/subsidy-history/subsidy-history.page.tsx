@@ -18,6 +18,7 @@ import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { useSubsidy } from "../../hooks/subsidy/useSubsidy";
 import { SubsidyHistoryTable } from "./components/subsidy-history-table/subsidy-history-table";
+import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 
 const PAGE_SIZE = 10;
 
@@ -40,6 +41,7 @@ export const SubsidyHistoryPage = () => {
   const { theme } = useTheme();
   const { companyId, moduleCode } = useUserStore();
   const { urlImage, neutralUrlImage } = useCompanyStore();
+  const { baseUrl } = useBaseUrl();
 
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
@@ -164,12 +166,12 @@ export const SubsidyHistoryPage = () => {
           items={[
             {
               label: "Dashboard",
-              url: "/",
+              url: `${baseUrl}/`,
               onClick: (url) => navigate(url),
             },
             {
               label: "Historial de Subsidio",
-              url: "/payroll/subsidy-history",
+              url: `${baseUrl}/payroll/subsidy-history`,
               onClick: (url) => navigate(url),
             },
           ]}

@@ -11,6 +11,7 @@ export interface DriverRecord {
    custumer: string;
    product: string;
    package_number: number;
+   total_package_number: number;
    arrived_time: string;
    exit_time: string;
    entry_number: number;

@@ -26,6 +26,7 @@ import type { GetAttendanceRecordsRequest } from "@app/modules/payroll/domain/Ap
 import { BookIcon } from "lucide-react";
 import { AttendanceControlDetail } from "./components/attendance-control-details/attendance-control-details";
 import type { AttendanceRecordDto } from "@app/modules/payroll/domain/ApiContract/Responses/attendance-responses/get-attendance-records.response";
+import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 
 const loadFeatures = () =>
    import("framer-motion").then((res) => res.domAnimation);
@@ -57,6 +58,7 @@ export const AttendanceControlPage = () => {
    const { theme } = useTheme();
    const { urlImage, neutralUrlImage } = useCompanyStore();
    const { companyId } = useUserStore();
+   const { baseUrl } = useBaseUrl();
    const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
    const {
@@ -177,12 +179,12 @@ export const AttendanceControlPage = () => {
                   items={[
                      {
                         label: "Dashboard",
-                        url: "/",
+                        url: `${baseUrl}/`,
                         onClick: (url) => navigate(url),
                      },
                      {
                         label: "Control de Asistencia",
-                        url: "/payroll/control-asistencia",
+                        url: `${baseUrl}/payroll/control-asistencia`,
                         onClick: (url) => navigate(url),
                      },
                   ]}
