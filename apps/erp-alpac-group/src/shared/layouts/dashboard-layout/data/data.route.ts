@@ -96,12 +96,6 @@ const warehouseCorintoSection: SidebarLink = {
   icon: TruckIcon,
 };
 
-const warehouseManaguaSection: SidebarLink = {
-  id: "warehouse-managua",
-  label: "Panel Logístico",
-  path: "warehouse",
-  icon: TruckIcon,
-};
 
 const accessControlSection: SidebarLink = {
   id: "access-control",
@@ -124,17 +118,73 @@ const warehouseReportSection: SidebarLink = {
   icon: FilePenIcon,
 };
 
-const warehouseSection1: SidebarLink = {
-  id: "warehouse4",
+const warehouseManaguaSection: SidebarLink = {
+  id: "warehouse-mga",
+  label: "Control de Acceso",
+  path: "warehouse-mga/access-control",
+  icon: TruckIcon,
+};
+
+const DucaPanel : SidebarLink = {
+  id: "merchandise-registration",
   label: "Ingreso Mercancía",
-  path: "warehouse/section1",
+  path: "warehouse-mga/merchandise-registration",
   icon: ArchiveRestoreIcon,
 };
 
 const warehouseSection4: SidebarLink = {
   id: "warehouse7",
-  label: "Asignaciones de Inventario",
+  label: "Asignaciones de Bodegas",
   path: "warehouse/section4",
+  icon: FilePenIcon,
+};
+
+const warehouseSection5: SidebarLink = {
+  id: "warehouse8",
+  label: "Reporte de Liquidación Actividades",
+  path: "warehouse/section5",
+  icon: FilePenIcon,
+};
+
+const warehouseSection6: SidebarLink = {
+  id: "warehouse9",
+  label: "Edición de Cardex",
+  path: "warehouse/section6",
+  icon: FilePenIcon,
+};
+
+const warehouseSection7: SidebarLink = {
+  id: "warehouse10",
+  label: "Registrar actividades horarias",
+  path: "warehouse/section7",
+  icon: FilePenIcon,
+};
+
+const warehouseSection8: SidebarLink = {
+  id: "warehouse11",
+  label: "Reporte de Inventario",
+  path: "warehouse/section8",
+  icon: FilePenIcon,
+};
+
+const warehouseSection9: SidebarLink = {
+  id: "warehouse12",
+  label: "Informe de Validación",
+  path: "warehouse/section9",
+  icon: FilePenIcon,
+};
+
+const warehouseSection10: SidebarLink = {
+  id: "warehouse13",
+  label: "Asignaciones de Embarque",
+  path: "warehouse/section10",
+  icon: FilePenIcon,
+};
+
+const warehouseSection11: SidebarLink = {
+  id: "warehouse14",
+  label: "Actividad de Liquidación",
+  path: "warehouse/section11",
   icon: FilePenIcon,
 };
 
@@ -231,7 +281,7 @@ export const sidebarData = {
     [ModuleEnum.WAREHOUSE_MANAGUA]: {
       [RoleEnum.OPERATOR]: [
         warehouseManaguaSection,
-        warehouseSection1,
+        DucaPanel,
         warehouseSection4,
         warehouseSection12,
         warehouseReportSection,

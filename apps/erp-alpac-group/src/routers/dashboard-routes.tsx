@@ -38,7 +38,7 @@ export const DashboardRoutes: RouteObject[] = [
         children: WarehouseCorintoRoutes,
       },
       {
-        path: "warehouse-managua",
+        path: "warehouse-mga",
         children: WarehouseManaguaRoutes,
       },
       {
