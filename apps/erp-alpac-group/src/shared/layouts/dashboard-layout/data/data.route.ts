@@ -66,6 +66,7 @@ const payrollPeriodsHistorySection: SidebarLink = {
   label: "Períodos de Nómina",
   path: "payroll/historial-periodos-nomina",
   icon: History,
+  allowsRubRoutes: true
 };
 
 const activeDeductionSection: SidebarLink = {
