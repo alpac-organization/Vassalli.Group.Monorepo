@@ -47,6 +47,7 @@ import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import type { CollaboratorModalType } from "./types/collaborator-modal.types";
 import { DeactivateCollaboratorModal } from "./components/deactivate-collaborator-modal/deactivate-collaborator-modal";
+import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -111,6 +112,8 @@ export const CollaboratorPage = function () {
       module_code: moduleCode,
     },
   });
+
+  const { baseUrl } = useBaseUrl();
 
   const { data: jobPositions = [] } = jobPositionQuery;
   const { data: branches = [] } = branchesQuery;
@@ -225,9 +228,9 @@ export const CollaboratorPage = function () {
     setActiveModal("add-collaborator");
   }, []);
 
-   const handleDeactivateCollaborator = useCallback(() => {
-      setActiveModal("deactivate-collaborator");
-   }, []);
+  const handleDeactivateCollaborator = useCallback(() => {
+    setActiveModal("deactivate-collaborator");
+  }, []);
 
   const formatNumber = useCallback((value: string) => {
     const number = Number(value);
@@ -265,12 +268,12 @@ export const CollaboratorPage = function () {
               items={[
                 {
                   label: "Dashboard",
-                  url: "/",
+                  url: `${baseUrl}/`,
                   onClick: (url) => navigate(url),
                 },
                 {
                   label: "Colaboradores",
-                  url: "/payroll/collaborators",
+                  url: `${baseUrl}/payroll/collaborators`,
                   onClick: (url) => navigate(url),
                 },
               ]}
@@ -350,24 +353,24 @@ export const CollaboratorPage = function () {
             </div>
           </div>
 
-               <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-                  <div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
-                     <Button
-                        size="giant"
-                        label="Agregar Colaborador"
-                        icon={<UserRoundPlusIcon size={20} />}
-                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                        onClick={handleAddCollaborator}
-                     />
-                     <Button
-                        size="giant"
-                        label="Iniciar Proceso de Baja"
-                        icon={<UserMinus size={20} />}
-                        className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                        onClick={handleDeactivateCollaborator}
-                     />
-                  </div>
-               </div>
+          <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+            <div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
+              <Button
+                size="giant"
+                label="Agregar Colaborador"
+                icon={<UserRoundPlusIcon size={20} />}
+                className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                onClick={handleAddCollaborator}
+              />
+              <Button
+                size="giant"
+                label="Iniciar Proceso de Baja"
+                icon={<UserMinus size={20} />}
+                className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                onClick={handleDeactivateCollaborator}
+              />
+            </div>
+          </div>
 
           <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
             <div className="flex flex-col justify-center">
@@ -531,12 +534,12 @@ export const CollaboratorPage = function () {
             onRequestError={handleRequestError}
           />
 
-               <DeactivateCollaboratorModal
-                  isOpen={activeModal === "deactivate-collaborator"}
-                  onClose={() => setActiveModal(null)}
-                  onRequestSuccess={handleRequestSuccess}
-                  onRequestError={handleRequestError}
-               />
+          <DeactivateCollaboratorModal
+            isOpen={activeModal === "deactivate-collaborator"}
+            onClose={() => setActiveModal(null)}
+            onRequestSuccess={handleRequestSuccess}
+            onRequestError={handleRequestError}
+          />
 
           <AnimatedAlertWrapper open={alertState?.open ?? false}>
             <Alert

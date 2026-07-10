@@ -27,6 +27,7 @@ import {
 import type { GetDeductionsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/get-deductions.request";
 import type { DeductionDto } from "@app/modules/payroll/domain/ApiContract/Responses/deduction-responses/get-deductions.response";
 import { ActiveDeductionDetailModal } from "./components/active-deduction-detail-modal/active-deduction-detail-modal";
+import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -57,6 +58,7 @@ const inputClassName =
 const labelClassName = "text-black! dark:text-white!";
 
 export const ActiveDeductionsPage = () => {
+
   const navigate = useNavigate();
 
   const { theme } = useTheme();
@@ -64,6 +66,8 @@ export const ActiveDeductionsPage = () => {
   const { urlImage, neutralUrlImage } = useCompanyStore();
 
   const { companyId, moduleCode } = useUserStore();
+
+  const { baseUrl } = useBaseUrl();
 
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
@@ -142,7 +146,7 @@ export const ActiveDeductionsPage = () => {
       setAppliedType(data.type);
       setAppliedIdentification(
         data.identification_number?.replace(/-/g, "").trim().toUpperCase() ??
-          "",
+        "",
       );
       setPageNumber(1);
     },
@@ -180,10 +184,14 @@ export const ActiveDeductionsPage = () => {
         <div className="flex justify-start">
           <Breadcrumb
             items={[
-              { label: "Dashboard", url: "/", onClick: (url) => navigate(url) },
+              {
+                label: "Dashboard",
+                url: `${baseUrl}/`,
+                onClick: (url) => navigate(url)
+              },
               {
                 label: "Deducciones Activas",
-                url: "/active-deductions",
+                url: `${baseUrl}/active-deductions`,
                 onClick: (url) => navigate(url),
               },
             ]}
