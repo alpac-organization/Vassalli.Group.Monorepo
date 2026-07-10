@@ -7,8 +7,8 @@ import {
 import React, { useState } from "react";
 import { useForm, useFieldArray, type SubmitHandler } from "react-hook-form";
 import { SaveIcon, ArrowRightIcon, XIcon, ArrowLeftIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { useWarehouse } from "@app/modules/warehouse/ui/pages/warehouse-managua/context/wareouse-context";
 
-// 1. Interfaz del formulario para cumplir con la arquitectura del sistema
 interface ReceptionFormValues {
   countryOfOrigin: string;
   aduana: string;
@@ -29,9 +29,21 @@ interface GateEntryModalProps {
 }
 
 export const GateEntryModal: React.FC<GateEntryModalProps> = ({ isOpen, onClose }) => {
-  // Inicialización con FieldArray para manejar N DUCAs dinámicas
-  const { register, handleSubmit, control } = useForm<ReceptionFormValues>({
+  const { addItemToQueue } = useWarehouse(); // Consumimos la mutación del contexto
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const { register, handleSubmit, control, reset } = useForm<ReceptionFormValues>({
     defaultValues: {
+      countryOfOrigin: "Costa Rica",
+      aduana: "Peñas Blancas",
+      plateNumber: "",
+      trailerChassis: "",
+      driverName: "",
+      driverLicense: "",
+      transportista: "",
+      consignee: "",
+      sealNumber: "",
+      medio: "Terrestre",
       ducas: [{ value: "" }]
     }
   });
@@ -43,10 +55,24 @@ export const GateEntryModal: React.FC<GateEntryModalProps> = ({ isOpen, onClose 
 
   const labelStyle = "text-slate-150 font-semibold text-sm";
 
-  const [currentStep, setCurrentStep] = useState(0);
-
   const onSubmit: SubmitHandler<ReceptionFormValues> = (data) => {
-    console.log("Guardando registro final en Warehouse Managua:", data);
+    // Simulamos el comportamiento del Backend: Generar un consecutivo de Orden de Servicio de Managua
+    const randomId = Math.floor(1000 + Math.random() * 9000);
+    const generatedOS = `OS-MGA-2026-${randomId}`;
+
+    // Mapeamos el payload del formulario a la interfaz estricta del WarehouseItem en español
+    addItemToQueue({
+      osNumber: generatedOS,
+      placaCabezal: data.plateNumber.toUpperCase(),
+      placaRastra: data.trailerChassis.toUpperCase() || undefined,
+      conductor: data.driverName,
+      consignatario: data.consignee || "Consignatario General S.A.",
+      marchamo: data.sealNumber || "N/A",
+      estado: 'PENDIENTE'
+    });
+
+    reset();
+    setCurrentStep(0);
     onClose();
   };
 
@@ -54,7 +80,6 @@ export const GateEntryModal: React.FC<GateEntryModalProps> = ({ isOpen, onClose 
     <Modal isOpen={isOpen} onClose={onClose} title="Registro de Entrada de Vehículo" size="3xl">
       <form onSubmit={handleSubmit(onSubmit)} className="p-4">
         
-        {/* Stepper corporativo */}
         <Stepper currentStep={currentStep} steps={["Datos Vehículo", "Documentos (DUCAs)"]} />
 
         <div className="mt-8 space-y-6">
@@ -62,9 +87,9 @@ export const GateEntryModal: React.FC<GateEntryModalProps> = ({ isOpen, onClose 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
               <InputText label="País de Origen" {...register("countryOfOrigin")} labelClassName={labelStyle} className="bg-transparent!" />
               <InputText label="Aduana" {...register("aduana")} labelClassName={labelStyle} className="bg-transparent!" />
-              <InputText label="Placa Cabezal" {...register("plateNumber")} labelClassName={labelStyle} className="bg-transparent!" />
+              <InputText label="Placa Cabezal" {...register("plateNumber", { required: true })} labelClassName={labelStyle} className="bg-transparent!" />
               <InputText label="Trailer / Chasis" {...register("trailerChassis")} labelClassName={labelStyle} className="bg-transparent!" />
-              <InputText label="Conductor" {...register("driverName")} labelClassName={labelStyle} className="bg-transparent!" />
+              <InputText label="Conductor" {...register("driverName", { required: true })} labelClassName={labelStyle} className="bg-transparent!" />
               <InputText label="Licencia" {...register("driverLicense")} labelClassName={labelStyle} className="bg-transparent!" />
               <InputText label="Transportista" {...register("transportista")} labelClassName={labelStyle} className="bg-transparent!" />
               <InputText label="Consignatario" {...register("consignee")} labelClassName={labelStyle} className="bg-transparent!" />
@@ -89,7 +114,7 @@ export const GateEntryModal: React.FC<GateEntryModalProps> = ({ isOpen, onClose 
                   <InputText 
                     label={`Documento DUCA #${index + 1}`} 
                     {...register(`ducas.${index}.value` as const)} 
-                   labelClassName={labelStyle} className="bg-transparent! flex-1" 
+                    labelClassName={labelStyle} className="bg-transparent! flex-1" 
                   />
                   <Button 
                     type="button" 
@@ -103,7 +128,6 @@ export const GateEntryModal: React.FC<GateEntryModalProps> = ({ isOpen, onClose 
           )}
         </div>
 
-        {/* Botonera estandarizada "Giant" estilo Alpac */}
         <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-100">
           <Button
             type="button"

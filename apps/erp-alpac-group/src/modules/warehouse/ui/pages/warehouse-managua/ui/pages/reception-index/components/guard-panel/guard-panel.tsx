@@ -1,34 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button, DataTable } from '@alpac/design-system';
-import { Plus, LogOut } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { WarehouseStats } from '@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/reception-index/components/guard-panel/warehouse-stats'; 
 import { GateEntryModal } from '@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/reception-index/components/guard-panel/gate-entry-modal';
-import { useWarehouse, type WarehouseItem } from '@app/modules/warehouse/ui/pages/warehouse-managua/context/wareouse-context'; // Importación correcta del contexto
-import { SearchInput } from '../search-imput/searh-imput';
+import { useWarehouse, type WarehouseItem } from '@app/modules/warehouse/ui/pages/warehouse-managua/context/wareouse-context'; 
+import { SearchInput } from '../searh-imput';
 
 export const GuardPanel: React.FC = () => {
   const [isEntryModalOpen, setEntryModalOpen] = useState(false);
-  const { itemsQueue } = useWarehouse(); // Consumiendo el estado real
+  const [searchQuery, setSearchQuery] = useState('');
+  const { itemsQueue } = useWarehouse(); 
 
+  // Mapeo corregido según las llaves reales declaradas en wareouse-context.tsx
   const columns = [
-  { key: "plateNumber", label: "Placa Cabezal" },
-  { key: "driverName", label: "Conductor" },
-  { key: "transportista", label: "Transportista" },
-  { key: "entryDate", label: "Ingreso" },
-  { key: "status", label: "Estado" },
-  { 
-    key: "actions", 
-    label: "Acciones",
-    // Corregido: recibe solo 'row' (del tipo WarehouseItem)
-    render: (row: WarehouseItem) => ( 
-      <Button 
-        label="Detalle" 
-        size="small" 
-        className="text-alpac-primary-600! bg-transparent!" 
-      />
-    ) 
-  },
-];
+    { key: "osNumber", label: "Orden Servicio" },
+    { key: "placaCabezal", label: "Placa Cabezal" },
+    { key: "conductor", label: "Conductor" },
+    { key: "consignatario", label: "Consignatario" },
+    { 
+      key: "fechaIngreso", 
+      label: "Ingreso",
+      render: (row: WarehouseItem) => new Date(row.fechaIngreso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    },
+    { key: "estado", label: "Estado" },
+    { 
+      key: "actions", 
+      label: "Acciones",
+      render: (row: WarehouseItem) => ( 
+        <Button 
+          label="Detalle" 
+          size="small" 
+          className="text-alpac-primary-600! bg-transparent!" 
+          onClick={() => console.log("Abriendo detalle de: ", row.osNumber)}
+        />
+      ) 
+    },
+  ];
+
+  // Filtro reactivo en memoria para sorprender en la presentación
+  const filteredItems = useMemo(() => {
+    return itemsQueue.filter(item => 
+      item.placaCabezal.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.conductor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.osNumber.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [itemsQueue, searchQuery]);
 
   return (
     <div className="flex flex-col gap-6 p-4 bg-[#121726] rounded-xl border border-slate-800">
@@ -40,18 +56,20 @@ export const GuardPanel: React.FC = () => {
           label="Dar Entrada" 
           onClick={() => setEntryModalOpen(true)} 
           className="bg-alpac-primary-500 text-white" 
-          icon={<Plus size={30} />} 
+          icon={<Plus size={20} />} 
         />
       </div>
 
-        <SearchInput value={''} onChange={function (value: string): void {
-          throw new Error('Function not implemented.');
-        } } />
+      {/* Buscador conectado al estado funcional */}
+      <SearchInput 
+        value={searchQuery} 
+        onChange={(value: string) => setSearchQuery(value)} 
+        placeholder="Buscar por placa, conductor u orden..."
+      />
       
       <DataTable
         title=""
-
-        data={itemsQueue} // Datos tipados provenientes del contexto
+        data={filteredItems} 
         columns={columns}
       />
 

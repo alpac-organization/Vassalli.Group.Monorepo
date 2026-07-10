@@ -32,7 +32,7 @@ export const DucaTable: React.FC<DucaTableProps> = ({ itemsQueue = [], ducaList 
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22d3ee]" />
           <h2 className="text-xl font-bold text-slate-100 tracking-tight">
-            Registro de Mercancías
+            Detalle de Mercancías
           </h2>
         </div>
 

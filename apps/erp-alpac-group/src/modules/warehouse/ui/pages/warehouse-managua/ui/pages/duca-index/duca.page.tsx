@@ -1,11 +1,11 @@
-// apps/erp-alpac-group/src/modules/warehouse/ui/pages/warehouse-managua/ui/pages/ducas-index/components/duca-panel/duca-panel.tsx
 import React, { useMemo, useState } from 'react';
 import { useTheme } from '@alpac/design-system';
 import { useWarehouse, type WarehouseItem } from '@app/modules/warehouse/ui/pages/warehouse-managua/context/wareouse-context';
 import { useCompanies } from '@app/modules/auth/ui/hooks/useCompanies';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 
-import { DucaDetailModal } from './components/duca-detail-modal';
+// Corrección de Ruta: Subimos un nivel para encontrar el componente hermano del panel
+import { DucaDetailModal, type DucaPayload } from '@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/duca-index/components/duca-detail-modal';
 import { DucaHeader } from './components/duca-header';
 import { DucaTable } from './components/duca-table/duca-table';
 
@@ -27,9 +27,17 @@ export function DucaPanel() {
     return theme === "dark" ? alpac?.neutral_image_url : alpac?.image_url;
   }, [companiesData, companyId, theme]);
 
+  // Manejador del submit unificado con la API de Backend de Managua
+  const handleSaveDuca = (payload: DucaPayload) => {
+    console.log('Payload listo para ser enviado a ERP.Core.Warehouse.Api:', payload);
+    // Aquí se inyectará el fetcher/mutation hacia tu Slice vertical de infraestructura
+    
+    // Cerramos el modal tras la confirmación
+    setSelectedVehicle(null);
+  };
+
   return (
     <div className="space-y-6">
-      {/* Pasamos el logo como prop */}
       <DucaHeader logoUrl={currentCompanyImageUrl} />
 
       <div className="bg-[#121726] p-6 rounded-xl border border-slate-800 shadow-2xl space-y-5">
@@ -44,7 +52,8 @@ export function DucaPanel() {
         <DucaDetailModal 
           isOpen={true}
           onClose={() => setSelectedVehicle(null)} 
-          onSave={(duca: string) => console.log('Guardar:', duca)} 
+          recordEntranceId={selectedVehicle.id} // Vinculación directa con el ID de la fila vehicular
+          onSave={handleSaveDuca} // Consume el payload estructurado completo
         />
       )}
     </div>

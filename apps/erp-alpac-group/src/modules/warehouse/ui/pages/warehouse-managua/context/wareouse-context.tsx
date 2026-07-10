@@ -41,7 +41,7 @@ interface WarehouseContextProps {
   createDucaHeader: (header: Omit<DucaHeader, 'id' | 'estado' | 'detalles'>) => void;
 }
 
-const WarehouseContext = createContext<WarehouseContextProps | undefined>(undefined);
+export const WarehouseContext = createContext<WarehouseContextProps | undefined>(undefined);
 
 export const WarehouseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   

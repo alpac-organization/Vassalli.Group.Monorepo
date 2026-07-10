@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useContext } from 'react';
 import { WarehouseProvider } from '@app/modules/warehouse/ui/pages/warehouse-managua/context/wareouse-context';
 import { GuardPanel } from '@app/modules/warehouse/ui/pages/warehouse-managua/ui/pages/reception-index/components/guard-panel/guard-panel';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { useTheme } from '@alpac/design-system';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 import { useCompanies } from '@app/modules/auth/ui/hooks/useCompanies';
 import { Breadcrumb, type BreadcrumbProps } from '@alpac/design-system';
+import { WarehouseHeader } from './components/warehouse-header';
 
 
 export function WarehouseManaguaPage() {
@@ -37,7 +38,7 @@ export function WarehouseManaguaPage() {
 
   return (
     <WarehouseProvider>
-      <div className="flex flex-col gap-6 p-6 animate-in fade-in duration-500">
+      <div className="space-y-6">
 
 
         <div className="space-y-6">
@@ -61,19 +62,12 @@ export function WarehouseManaguaPage() {
                 },
               ]}
               />
-              {/* Renderizado condicional del Logo */}
-              {currentCompanyImageUrl && (
-                <div className="flex items-center justify-end mb">
-                  <img
-                    src={currentCompanyImageUrl}
-                    alt="Logo Corporativo"
-                    className="h-18 object-contai n"
-                  />
-                </div>
-              )}
+              
           </div>
         </div>
 
+
+        <WarehouseHeader />
 
         <GuardPanel />
         {/* Resto de tu UI... */}
