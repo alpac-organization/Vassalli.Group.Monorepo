@@ -139,55 +139,6 @@ const warehouseSection4: SidebarLink = {
   icon: FilePenIcon,
 };
 
-const warehouseSection5: SidebarLink = {
-  id: "warehouse8",
-  label: "Reporte de Liquidación Actividades",
-  path: "warehouse/section5",
-  icon: FilePenIcon,
-};
-
-const warehouseSection6: SidebarLink = {
-  id: "warehouse9",
-  label: "Edición de Cardex",
-  path: "warehouse/section6",
-  icon: FilePenIcon,
-};
-
-const warehouseSection7: SidebarLink = {
-  id: "warehouse10",
-  label: "Registrar actividades horarias",
-  path: "warehouse/section7",
-  icon: FilePenIcon,
-};
-
-const warehouseSection8: SidebarLink = {
-  id: "warehouse11",
-  label: "Reporte de Inventario",
-  path: "warehouse/section8",
-  icon: FilePenIcon,
-};
-
-const warehouseSection9: SidebarLink = {
-  id: "warehouse12",
-  label: "Informe de Validación",
-  path: "warehouse/section9",
-  icon: FilePenIcon,
-};
-
-const warehouseSection10: SidebarLink = {
-  id: "warehouse13",
-  label: "Asignaciones de Embarque",
-  path: "warehouse/section10",
-  icon: FilePenIcon,
-};
-
-const warehouseSection11: SidebarLink = {
-  id: "warehouse14",
-  label: "Actividad de Liquidación",
-  path: "warehouse/section11",
-  icon: FilePenIcon,
-};
-
 const warehouseSection12: SidebarLink = {
   id: "warehouse15",
   label: "Cuadrillas",
