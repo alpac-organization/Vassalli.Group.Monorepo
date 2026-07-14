@@ -122,7 +122,7 @@ export const TabHeader = <T extends string>({
   onTabChange,
 }: TabHeaderProps<T>) => {
   return (
-    <div className="mb-6 w-full min-w-0">
+    <div className="w-full min-w-0">
       <div className="sm:hidden">
         <MobileTabSelect
           tabs={tabs}
@@ -134,7 +134,7 @@ export const TabHeader = <T extends string>({
       <div
         role="tablist"
         aria-label="Secciones del perfil"
-        className="hidden min-w-0 border-b border-slate-600/40 sm:flex sm:flex-wrap sm:items-end sm:gap-x-8 sm:gap-y-0 sm:overflow-x-auto"
+        className="hidden min-w-0 border-b border-slate-600/40 sm:flex sm:flex-wrap sm:items-end sm:gap-x-8 sm:gap-y-0 sm:overflow-x-auto items-center"
       >
         {tabs.map((tab) => (
           <button
@@ -143,7 +143,7 @@ export const TabHeader = <T extends string>({
             role="tab"
             aria-selected={activeTab === tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`min-h-0 w-auto shrink-0 touch-manipulation border-b-2 px-0 pb-3 text-left text-sm font-medium transition-colors duration-200 -mb-px ${
+            className={`min-h-0 w-auto shrink-0 touch-manipulation border-b-2 px-0 py-3 text-left text-sm font-medium transition-colors duration-200 -mb-px ${
               activeTab === tab.id
                 ? "border-blue-600 text-blue-400"
                 : "border-transparent text-slate-400 hover:text-slate-200"
