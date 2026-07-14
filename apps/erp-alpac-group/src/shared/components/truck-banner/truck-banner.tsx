@@ -2,8 +2,9 @@
 import bannerTrucksWarehouse from "@app/assets/banners/banner-trucks-warehouse.webp";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import type { TruckBannerProps } from "./truck-banner.types";
 
-export const ScaleBanner = () => {
+export const TruckBanner = ({ title, subTitle }: TruckBannerProps) => {
 
     const { companyName } = useUserStore();
     const { neutralUrlImage } = useCompanyStore();
@@ -36,10 +37,10 @@ export const ScaleBanner = () => {
             <div className="p-0! absolute inset-0 flex flex-col items-center justify-center text-center">
 
                 <h4 className="m-0! text-2xl font-semibold text-white">
-                    Registro de Báscula
+                    {title}
                 </h4>
                 <p className="m-0! text-sm text-white">
-                    Gestión de pesaje de camiones
+                    {subTitle}
                 </p>
             </div>
         </div>

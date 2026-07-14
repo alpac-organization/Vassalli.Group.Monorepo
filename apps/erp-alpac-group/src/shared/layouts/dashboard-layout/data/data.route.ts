@@ -21,6 +21,7 @@ import {
   ArchiveRestoreIcon,
   FolderClock,
   WarehouseIcon,
+  FileCheckIcon,
 } from "lucide-react";
 
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
@@ -182,11 +183,25 @@ const subsidyHistorialSection: SidebarLink = {
   icon: FolderClock
 }
 
-const receivingSection: SidebarLink = {
-  id: "receiving",
+const inboundSection: SidebarLink = {
+  id: "warehouse-section",
   label: "Bodega",
-  path: "warehouse-corinto/receiving",
+  path: "warehouse-corinto/warehouse",
   icon: WarehouseIcon
+}
+
+const inboundOperationSection: SidebarLink = {
+  id: "inbound-operation",
+  label: "Operación de Recepción",
+  path: "warehouse-corinto/inbound-operation",
+  icon: FileCheckIcon
+}
+
+const customerSection: SidebarLink = {
+  id: "customer",
+  label: "Clientes",
+  path: "warehouse-corinto/customer",
+  icon: FileCheckIcon
 }
 
 export const sidebarData = {
@@ -222,11 +237,13 @@ export const sidebarData = {
       ],
     },    
     [ModuleEnum.WAREHOUSE_CORINTO]: {
-      [RoleEnum.OPERATOR]: [
+      [RoleEnum.OPERATOR]: [        
         warehouseCorintoSection,
-        accessControlSection,
+        customerSection,
+        inboundOperationSection,
+        accessControlSection,        
         scaleSection,
-        receivingSection,
+        inboundSection,
         warehouseReportSection,
       ],
     },

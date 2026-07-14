@@ -9,7 +9,6 @@ import {
 } from "@alpac/design-system";
 import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ScaleBanner } from "./components/scale-banner/scale-banner";
 import {
    getScaleStatusActionLabel,
    getScaleStatusBadgeColor,
@@ -21,6 +20,7 @@ import { useCallback, useMemo, useState } from "react";
 import { WeightModal } from "./components/weight-modal/weight-modal";
 import { formatDate, formatTime } from "@app/shared/utils/string.utils";
 import { scaleRecords } from "../../mock/scale-mocked-data";
+import { TruckBanner } from "@app/shared/components/truck-banner/truck-banner";
 
 const PAGE_SIZE = 10;
 
@@ -133,8 +133,8 @@ export const ScalePage = () => {
          <form
             onSubmit={() => { }}
             className="relative mx-auto w-[100%] rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
-
-            <ScaleBanner />
+            
+            <TruckBanner title="Registro de Báscula" subTitle="Gestión de pesaje de camiones" />
 
             <div className="flex justify-between items-center mb-2">
                <div className="flex flex-col justify-center">

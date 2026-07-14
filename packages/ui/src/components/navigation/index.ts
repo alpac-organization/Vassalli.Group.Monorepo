@@ -6,3 +6,5 @@ export * from "./stepper/stepper";
 export * from "./stepper/stepper.type";
 export * from "./pagination/pagination";
 export * from "./pagination/pagination.type";
+export * from "./tabs/tabs";
+export * from "./tabs/tabs.type";

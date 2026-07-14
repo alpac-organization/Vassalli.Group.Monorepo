@@ -1,4 +1,4 @@
-import type { ReceivingRecord } from "../warehouse-corinto/receiving/types/receiving.types";
+import type { ReceivingRecord } from "../pages/warehouse-operation/types/receiving.types";
 
 export const WAREHOUSE_VISUAL_MOCK = [
    {
