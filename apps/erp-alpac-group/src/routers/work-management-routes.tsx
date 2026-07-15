@@ -1,11 +1,7 @@
 import type { RouteObject } from "react-router-dom";
 import { CollaboratorProfilePage } from "@app/modules/payroll/ui/pages/collaborator-profile/collaborator-profile-page";
 import PermissionsPage from "@app/modules/payroll/ui/pages/permissions/permission-page";
-export const WorkManagementRoutes: RouteObject[] = [
-  {
-    index: true,
-    element: <CollaboratorProfilePage />,
-  },
+export const WorkManagementRoutes: RouteObject[] = [  
   {
     path: "collaborator-profile",
     element: <CollaboratorProfilePage />,

@@ -1,6 +1,5 @@
 import type { WAREHOUSE_VISUAL_MOCK } from "../../../mock/receiving-mocked-data";
 
-
 export type ReceivingProps = {
     warehouse: (typeof WAREHOUSE_VISUAL_MOCK)[number];
     isSelected: boolean;

@@ -11,10 +11,6 @@ import { SubsidyHistoryPage } from "@app/modules/payroll/ui/pages/subsidy-histor
 
 export const PayrollRoutes: RouteObject[] = [
   {
-    index: true,
-    element: <CollaboratorPage />,
-  },
-  {
     path: "collaborators",
     element: <CollaboratorPage />,
     children: [

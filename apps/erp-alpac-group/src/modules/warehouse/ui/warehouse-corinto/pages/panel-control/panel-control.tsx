@@ -49,7 +49,7 @@ const columns: TableColumn<DriverRecord>[] = [
    
 ];
 
-export const WarehouseCorintoPage = () => {
+export const WarehouseControlPanel = () => {
 
    const navigate = useNavigate();
    const { theme } = useTheme();

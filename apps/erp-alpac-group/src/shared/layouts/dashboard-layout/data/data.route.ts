@@ -92,9 +92,9 @@ const liquidacionSection: SidebarLink = {
 };
 
 const warehouseCorintoSection: SidebarLink = {
-  id: "warehouse-corinto",
+  id: "control-panel",
   label: "Panel Logístico",
-  path: "warehouse-corinto",
+  path: "warehouse-corinto/control-panel",
   icon: TruckIcon,
 };
 
@@ -190,17 +190,10 @@ const inboundSection: SidebarLink = {
   icon: WarehouseIcon
 }
 
-const inboundOperationSection: SidebarLink = {
-  id: "inbound-operation",
-  label: "Operación de Recepción",
-  path: "warehouse-corinto/inbound-operation",
-  icon: FileCheckIcon
-}
-
-const customerSection: SidebarLink = {
-  id: "customer",
-  label: "Clientes",
-  path: "warehouse-corinto/customer",
+const administrativeSection: SidebarLink = {
+  id: "administrative-section",
+  label: "Sección Administrativa",
+  path: "warehouse-corinto/administrative-section",
   icon: FileCheckIcon
 }
 
@@ -238,9 +231,8 @@ export const sidebarData = {
     },    
     [ModuleEnum.WAREHOUSE_CORINTO]: {
       [RoleEnum.OPERATOR]: [        
-        warehouseCorintoSection,
-        customerSection,
-        inboundOperationSection,
+        administrativeSection,
+        warehouseCorintoSection,        
         accessControlSection,        
         scaleSection,
         inboundSection,

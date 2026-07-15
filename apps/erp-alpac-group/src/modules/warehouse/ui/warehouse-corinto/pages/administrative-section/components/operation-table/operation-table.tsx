@@ -1,8 +1,8 @@
 import { Button, DataTable, Pagination, type TableColumn } from "@alpac/design-system";
-import type { InboundOperationTableProps } from "@app/modules/warehouse/ui/warehouse-corinto/pages/inbound-operation/components/inbound-operation-table/inbound-operation-table.types";
 import { useMemo } from "react";
+import type { OperationTableProps } from "./operation-table.types";
 
-export const InboundOperationTable = ({ data }: InboundOperationTableProps) => {
+export const OperationTable = ({ data }: OperationTableProps) => {
 
    const columnConfig: TableColumn<any>[] = [
       { key: "name", label: "Nombre" },

@@ -1,24 +1,24 @@
 import { AccessControlPage } from "@app/modules/warehouse/ui/warehouse-corinto/pages/access-control/access-control.page";
-import { WarehouseCorintoPage } from "@app/modules/warehouse/ui/warehouse-corinto/pages/index/warehouse-corinto.page";
+import { WarehouseControlPanel } from "@app/modules/warehouse/ui/warehouse-corinto/pages/panel-control/panel-control";
 import { WarehouseOperation } from "@app/modules/warehouse/ui/warehouse-corinto/pages/warehouse-operation/warehouse-operation";
 import { ScalePage } from "@app/modules/warehouse/ui/warehouse-corinto/pages/scale/scale";
-import { InboundOperation } from "@app/modules/warehouse/ui/warehouse-corinto/pages/inbound-operation/inbound-operation";
+import { AdministrativeSection } from "@app/modules/warehouse/ui/warehouse-corinto/pages/administrative-section/administrative-section";
 
 import type { RouteObject } from "react-router-dom";
 import { Customer } from "@app/modules/warehouse/ui/warehouse-corinto/pages/customer/customer";
 
 export const WarehouseCorintoRoutes: RouteObject[] = [
    {
-      index: true,
-      element: <WarehouseCorintoPage />,
+      path: "administrative-section",
+      element: <AdministrativeSection />,
+   },
+   {
+      path: "control-panel",
+      element: <WarehouseControlPanel />,
    },
    {
       path: "customer",
       element: <Customer />,
-   },
-   {
-      path: "inbound-operation",
-      element: <InboundOperation />,
    },
    {
       path: "access",

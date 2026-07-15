@@ -3,15 +3,7 @@ import { DucaPanel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/
 import { WarehouseManaguaPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/reception-index/warehouse-managua.page";
 import type { RouteObject } from "react-router-dom";
 
-export const WarehouseManaguaRoutes: RouteObject[] = [
-   {
-      index: true,
-      element: (
-         <WarehouseProvider>
-            <WarehouseManaguaPage />
-         </WarehouseProvider>
-      ),
-   },
+export const WarehouseManaguaRoutes: RouteObject[] = [   
    {
       path: "access-control",
       element: (

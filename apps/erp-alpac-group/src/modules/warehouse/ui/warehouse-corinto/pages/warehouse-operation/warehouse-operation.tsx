@@ -14,7 +14,7 @@ import { Warehouse } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UnloadingTimerModal } from "./components/unloading-timer-modal/unloading-timer-modal";
-import type { ReceivingProps, ReceivingRecord, ReceivingStatus } from "./types/receiving.types";
+import type { ReceivingProps, ReceivingRecord, ReceivingStatus } from "./types/warehouse-operation.types";
 import { MOCK_RECEIVING_RECORDS, WAREHOUSE_VISUAL_MOCK } from "../../mock/receiving-mocked-data";
 import { TruckBanner } from "@app/shared/components/truck-banner/truck-banner";
 
