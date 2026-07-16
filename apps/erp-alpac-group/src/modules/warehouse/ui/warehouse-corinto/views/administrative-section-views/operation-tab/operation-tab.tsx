@@ -5,7 +5,7 @@ import { OperationTable } from "./components/operation-table/operation-table";
 import type { OperationTabProps } from "./operation-tab.types";
 import { StartOperationModal } from "./components/start-operation-modal/start-operation-modal";
 
-export const OperationTab = ({ tabId }: OperationTabProps) => {
+export const OperationTab = ({ }: OperationTabProps) => {
 
 	const [isStartOperationOpen, setIsStartOperationOpen] = useState(false);
 

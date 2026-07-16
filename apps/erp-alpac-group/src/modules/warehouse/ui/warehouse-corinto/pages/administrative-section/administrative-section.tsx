@@ -10,17 +10,17 @@ export const AdministrativeSection = () => {
       {
          id: "operation",
          label: "Gestionar Operaciones",
-         render: (id?: string) => <OperationTab tabId={id} />
+         render: () => <OperationTab />
       },
       {
          id: "customer",
          label: "Gestionar Clientes",
-         render: (id?: string) => <CustomerTab tabId={id} />
+         render: () => <CustomerTab />
       },
       {
          id: "warehouse",
          label: "Gestionar Bodegas",
-         render: (id?: string) => <WarehouseTab tabId={id} />
+         render: () => <WarehouseTab />
       },
    ]
 

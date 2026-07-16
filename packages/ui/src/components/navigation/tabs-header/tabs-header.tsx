@@ -134,7 +134,7 @@ export const TabHeader = <T extends string>({
       <div
         role="tablist"
         aria-label="Secciones del perfil"
-        className="hidden min-w-0 border-b border-slate-600/40 sm:flex sm:flex-wrap sm:items-end sm:gap-x-8 sm:gap-y-0 sm:overflow-x-auto items-center"
+        className="hidden min-w-0 border-b border-slate-600/40 sm:flex sm:flex-wrap sm:items-end sm:gap-x-4 sm:gap-y-0 sm:overflow-x-auto items-center"
       >
         {tabs.map((tab) => (
           <button

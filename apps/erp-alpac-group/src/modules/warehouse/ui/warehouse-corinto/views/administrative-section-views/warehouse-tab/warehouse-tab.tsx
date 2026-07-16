@@ -4,10 +4,28 @@ import { useCallback, useState } from "react";
 import type { WarehouseTabProps } from "./warehouse-tab.types";
 import { WarehouseModal } from "@app/modules/warehouse/ui/warehouse/components/warehouse-modal/warehouse-modal";
 import { WarehouseTable } from "./components/warehouse-table/warehouse-table";
+import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
 
-export const WarehouseTab = ({ tabId }: WarehouseTabProps) => {
+export const WarehouseTab = ({ }: WarehouseTabProps) => {
 
 	const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+
+	const { companyId, moduleCode } = useUserStore();
+
+	const initialFilter: GetWarehouseRequest = {
+		company_id: companyId,
+		module_code: moduleCode
+	};
+
+	const { GetWarehouses } = useWarehouse({
+		getWarehousesPayload: initialFilter
+	});
+
+	const { data } = GetWarehouses;
+
+	console.log("Datos de las warehouse : ", data);
 
 	const handleCreateWarehouse = useCallback(() => {
 		setIsWarehouseModalOpen(true);

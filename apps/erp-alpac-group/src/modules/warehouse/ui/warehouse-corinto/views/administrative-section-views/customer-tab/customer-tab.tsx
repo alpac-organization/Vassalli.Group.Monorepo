@@ -7,7 +7,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCustomer } from "@app/modules/warehouse/ui/hooks/useCustomer";
 import { CustomerTable } from "./components/customer-table/customer-table";
 
-export const CustomerTab = ({ tabId }: CustomerTabProps) => {
+export const CustomerTab = ({ }: CustomerTabProps) => {
 
 	const { companyId } = useUserStore();
 
