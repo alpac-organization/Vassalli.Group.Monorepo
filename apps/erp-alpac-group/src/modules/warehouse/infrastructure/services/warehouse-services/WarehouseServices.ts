@@ -1,0 +1,73 @@
+import type { IHttpHandler } from "@app/core/ports";
+import type { IWarehouseServices } from "@app/modules/warehouse/application/interfaces/warehouse-interfaces/IWarehouseServices";
+import type { AssignWarehouseZoneRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/assign-warehouse-zone-request";
+import type { CreateWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-warehouse-request";
+import type { GetWarehouseZoneRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouse-zones-request";
+import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
+import { cleanParams } from "@app/shared/utils/object.utils";
+
+export class WarehouseServices implements IWarehouseServices {
+
+   private apiHandler: IHttpHandler;
+
+   constructor(httpHandler: IHttpHandler) {
+      this.apiHandler = httpHandler;
+   }
+
+   async GetWarehouses(payload: GetWarehouseRequest): Promise<any> {
+      try {
+         const { company_id, module_code, ...rest } = payload;
+
+         const url = `companies/${company_id}/modules/${module_code}/warehouse`;
+
+         return await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
+
+      } catch (error) {
+
+         throw error;
+      }
+   }
+
+   async CreateWarehouse(payload: CreateWarehouseRequest): Promise<void> {
+      try {
+         const { company_id, module_code, ...rest } = payload;
+
+         const url = `companies/${company_id}/modules/${module_code}/warehouse`;
+
+         await this.apiHandler.post<void>(url, rest);
+
+      } catch (error) {
+
+         throw error;
+      }
+   }
+
+   async GetWarehouseZones(payload: GetWarehouseZoneRequest): Promise<any> {
+      try {
+         const { company_id, module_code, warehouse_id, ...rest } = payload;
+
+         const url = `companies/${company_id}/modules/${module_code}/warehouse/${warehouse_id}/sections`;
+
+         return await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
+
+      } catch (error) {
+
+         throw error;
+      }
+   }
+
+   async AssignWarehouseZone(payload: AssignWarehouseZoneRequest): Promise<void> {
+      try {
+         const { company_id, module_code, warehouse_id, ...rest } = payload;
+
+         const url = `companies/${company_id}/modules/${module_code}/warehouse/${warehouse_id}/sections`;
+
+         await this.apiHandler.post<void>(url, rest);
+
+      } catch (error) {
+
+         throw error;
+      }
+   }
+
+}

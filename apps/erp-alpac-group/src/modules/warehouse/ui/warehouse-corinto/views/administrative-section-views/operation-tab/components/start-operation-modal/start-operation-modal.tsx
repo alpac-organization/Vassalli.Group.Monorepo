@@ -42,7 +42,7 @@ export const StartOperationModal = (props: StartOperationFormProps): React.React
 			onClose={handleClose}
 			title="Registrar nueva operación"
 			variant="form"
-			size="3xl"
+			size="6xl"
 			description="Complete la información para iniciar la operación"
 		>
 			<form

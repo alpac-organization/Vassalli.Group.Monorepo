@@ -5,7 +5,6 @@ import { ScalePage } from "@app/modules/warehouse/ui/warehouse-corinto/pages/sca
 import { AdministrativeSection } from "@app/modules/warehouse/ui/warehouse-corinto/pages/administrative-section/administrative-section";
 
 import type { RouteObject } from "react-router-dom";
-import { Customer } from "@app/modules/warehouse/ui/warehouse-corinto/pages/customer/customer";
 
 export const WarehouseCorintoRoutes: RouteObject[] = [
    {
@@ -15,10 +14,6 @@ export const WarehouseCorintoRoutes: RouteObject[] = [
    {
       path: "control-panel",
       element: <WarehouseControlPanel />,
-   },
-   {
-      path: "customer",
-      element: <Customer />,
    },
    {
       path: "access",

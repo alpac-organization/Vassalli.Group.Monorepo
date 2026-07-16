@@ -62,6 +62,14 @@ export const HomePage = function () {
    };
 
    const handleSelectModule = (module: ModulesAvailableResponse) => {
+
+      /* payroll/collaborators
+      warehouse-mga/access-control
+      accounting
+      administration/users
+      warehouse-corinto/administrative-section
+      work-management/collaborator-profile */
+
       useUserStore.setState({
          moduleCode: module.module_code,
          role: module.role_type,

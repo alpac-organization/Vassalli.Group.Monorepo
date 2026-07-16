@@ -40,7 +40,7 @@ export const CustomerModal = (props: CustomerModalProps): React.ReactNode => {
 			onClose={handleClose}
 			title="Crear Registro de Cliente"
 			variant="form"
-			size="3xl"
+			size="5xl"
 			description="Complete la información del cliente"
 		>
 			<form

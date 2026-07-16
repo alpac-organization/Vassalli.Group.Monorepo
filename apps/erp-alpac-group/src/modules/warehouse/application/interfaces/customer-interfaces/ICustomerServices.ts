@@ -3,10 +3,10 @@ import type { GetCustomerTypeRequest } from "@app/modules/warehouse/domain/ApiCo
 import type { GetCustomerRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/get-customer.request";
 
 /**
- * @interface ICustomerService
+ * @interface ICustomerServices
  * @description Define el contrato para los servicios de clientes del almacén.
  */
-export interface ICustomerService {
+export interface ICustomerServices {
 
    GetCustomerRecords(payload: GetCustomerRequest): Promise<any>;
 
