@@ -30,7 +30,7 @@ const collboratorSection: SidebarLink = {
   label: "Colaboradores",
   path: "payroll/collaborators",
   icon: UsersRound,
-  allowsRubRoutes: true
+  allowsRubRoutes: true,
 };
 
 const collaboratorProfileSection: SidebarLink = {
@@ -66,7 +66,7 @@ const payrollPeriodsHistorySection: SidebarLink = {
   label: "Períodos de Nómina",
   path: "payroll/historial-periodos-nomina",
   icon: History,
-  allowsRubRoutes: true
+  allowsRubRoutes: true,
 };
 
 const activeDeductionSection: SidebarLink = {
@@ -97,7 +97,6 @@ const warehouseCorintoSection: SidebarLink = {
   icon: TruckIcon,
 };
 
-
 const accessControlSection: SidebarLink = {
   id: "access-control",
   label: "Control de acceso",
@@ -120,13 +119,13 @@ const warehouseReportSection: SidebarLink = {
 };
 
 const warehouseManaguaSection: SidebarLink = {
-  id: "warehouse-mga",
+  id: "access-control",
   label: "Control de Acceso",
   path: "warehouse-mga/access-control",
   icon: TruckIcon,
 };
 
-const DucaPanel : SidebarLink = {
+const DucaPanel: SidebarLink = {
   id: "merchandise-registration",
   label: "Ingreso Mercancía",
   path: "warehouse-mga/merchandise-registration",
@@ -134,16 +133,16 @@ const DucaPanel : SidebarLink = {
 };
 
 const warehouseSection4: SidebarLink = {
-  id: "warehouse7",
+  id: "warehouse-allocation",
   label: "Asignaciones de Bodegas",
-  path: "warehouse/section4",
+  path: "warehouse-mga/warehouse-allocation",
   icon: FilePenIcon,
 };
 
 const warehouseSection12: SidebarLink = {
-  id: "warehouse15",
+  id: "cuadrillas",
   label: "Cuadrillas",
-  path: "warehouse/section12",
+  path: "warehouse-mga/cuadrillas",
   icon: FilePenIcon,
 };
 
@@ -179,15 +178,15 @@ const subsidyHistorialSection: SidebarLink = {
   id: "subsidy-history",
   label: "Historial de Subsidio",
   path: "payroll/subsidy-history",
-  icon: FolderClock
-}
+  icon: FolderClock,
+};
 
 const receivingSection: SidebarLink = {
   id: "receiving",
   label: "Bodega",
   path: "warehouse-corinto/receiving",
-  icon: WarehouseIcon
-}
+  icon: WarehouseIcon,
+};
 
 export const sidebarData = {
   navigationRegistry: {
@@ -200,7 +199,7 @@ export const sidebarData = {
         activeDeductionSection,
         liquidacionSection,
         attendanceControlSection,
-        subsidyHistorialSection
+        subsidyHistorialSection,
       ],
     },
     [ModuleEnum.ADMINISTRATION]: {
@@ -220,7 +219,7 @@ export const sidebarData = {
         collaboratorProfileSection,
         permissionManagementSection,
       ],
-    },    
+    },
     [ModuleEnum.WAREHOUSE_CORINTO]: {
       [RoleEnum.OPERATOR]: [
         warehouseCorintoSection,

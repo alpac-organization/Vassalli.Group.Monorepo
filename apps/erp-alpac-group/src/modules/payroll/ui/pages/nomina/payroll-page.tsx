@@ -226,8 +226,10 @@ export function PayrollPage() {
   const [isGeneratingSubsidiesReport, setIsGeneratingSubsidiesReport] =
     useState(false);
   const [isGeneratingBacReport, setIsGeneratingBacReport] = useState(false);
-  const [isGeneratingMonthlyRetentionReport, setIsGeneratingMonthlyRetentionReport] =
-    useState(false);
+  const [
+    isGeneratingMonthlyRetentionReport,
+    setIsGeneratingMonthlyRetentionReport,
+  ] = useState(false);
   const [
     isGeneratingVacationPermissionsSummary,
     setIsGeneratingVacationPermissionsSummary,
@@ -637,7 +639,7 @@ export function PayrollPage() {
           const apiError = error as ApiErrorResponse;
           handleRequestError(
             apiError?.error?.description ||
-            "No se pudo inicializar la nómina. Inténtelo nuevamente.",
+              "No se pudo inicializar la nómina. Inténtelo nuevamente.",
           );
         },
       },
@@ -680,7 +682,7 @@ export function PayrollPage() {
       const apiError = error as ApiErrorResponse;
       handleRequestError(
         apiError?.error?.description ||
-        "No se pudo formalizar la nómina. Inténtelo nuevamente.",
+          "No se pudo formalizar la nómina. Inténtelo nuevamente.",
       );
       throw error;
     }
@@ -948,7 +950,8 @@ export function PayrollPage() {
         companyName,
         displayedBranchName,
       );
-      const reviewedSignatureImage = getReviewedSignatureImage(paymentSignatures);
+      const reviewedSignatureImage =
+        getReviewedSignatureImage(paymentSignatures);
       const signatureImageSrc = reviewedSignatureImage
         ? await getProcessedSignatureImage(reviewedSignatureImage)
         : "";
@@ -2011,7 +2014,7 @@ export function PayrollPage() {
           //    role: signatures.revisado.role,
           //  }}
           preparedSignatureImageSrc={preparedSignatureImageSrc}
-        //  reviewedSignatureImageSrc={reviewedSignatureImageSrc}
+          //  reviewedSignatureImageSrc={reviewedSignatureImageSrc}
         />,
       ).toBlob();
 
@@ -2354,42 +2357,39 @@ export function PayrollPage() {
     ],
   );
 
-  const loadIrReportData = useCallback(
-    async () => {
-      if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
-        return null;
-      if (!hasPayrollData) {
-        handlePdfGenerationError(
-          "No hay datos en la tabla de nómina para generar el reporte.",
-        );
-        return null;
-      }
-      const payrollServices = new PayrollServices(httpHandler);
-      const detailsData = payrollDetailsQuery.data;
+  const loadIrReportData = useCallback(async () => {
+    if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
+      return null;
+    if (!hasPayrollData) {
+      handlePdfGenerationError(
+        "No hay datos en la tabla de nómina para generar el reporte.",
+      );
+      return null;
+    }
+    const payrollServices = new PayrollServices(httpHandler);
+    const detailsData = payrollDetailsQuery.data;
 
-      const payload = {
-        companie_id: companyId,
-        report_type: "IrAndSalaryEarned" as const,
-        payroll_id: detailsData?.payroll_id ?? "",
-        payroll_type: selectedPayrollType,
-        module_code: moduleCode,
-        identification_number: identificationFilter || undefined,
-      };
+    const payload = {
+      companie_id: companyId,
+      report_type: "IrAndSalaryEarned" as const,
+      payroll_id: detailsData?.payroll_id ?? "",
+      payroll_type: selectedPayrollType,
+      module_code: moduleCode,
+      identification_number: identificationFilter || undefined,
+    };
 
-      const response = await payrollServices.generateReportsPayroll(payload);
-      return response.ir_and_salary_earned ?? [];
-    },
-    [
-      selectedPayrollType,
-      selectedBranch,
-      companyId,
-      moduleCode,
-      hasPayrollData,
-      payrollDetailsQuery.data,
-      identificationFilter,
-      handlePdfGenerationError,
-    ],
-  );
+    const response = await payrollServices.generateReportsPayroll(payload);
+    return response.ir_and_salary_earned ?? [];
+  }, [
+    selectedPayrollType,
+    selectedBranch,
+    companyId,
+    moduleCode,
+    hasPayrollData,
+    payrollDetailsQuery.data,
+    identificationFilter,
+    handlePdfGenerationError,
+  ]);
 
   const handleGenerateIrReportPdf = useCallback(
     async (isFortnightly: boolean) => {
@@ -2658,11 +2658,7 @@ export function PayrollPage() {
     } finally {
       setIsGeneratingBacReport(false);
     }
-  }, [
-    loadBacReportData,
-    displayedBranchName,
-    handlePdfGenerationError,
-  ]);
+  }, [loadBacReportData, displayedBranchName, handlePdfGenerationError]);
 
   const loadMonthlyRetentionReportData = useCallback(async () => {
     if (!selectedPayrollType || !selectedBranch || !companyId || !moduleCode)
@@ -3461,9 +3457,11 @@ export function PayrollPage() {
         <div className="flex justify-start">
           <Breadcrumb
             items={[
-              { label: "Dashboard", 
-                url: `${baseUrl}/`, 
-                onClick: (url) => navigate(url) },
+              {
+                label: "Dashboard",
+                url: `${baseUrl}/`,
+                onClick: (url) => navigate(url),
+              },
               {
                 label: "Gestión de nómina",
                 url: `${baseUrl}/payroll/gestion-nomina`,
@@ -3554,10 +3552,11 @@ export function PayrollPage() {
                       !existPayrollInProgress || isGenerateConfirmLoading
                     }
                     onClick={handleOpenGenerateModal}
-                    className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGenerateConfirmLoading
-                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                      : ""
-                      }`}
+                    className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                      isGenerateConfirmLoading
+                        ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                        : ""
+                    }`}
                   />
                 </div>
                 <Button
@@ -3566,7 +3565,8 @@ export function PayrollPage() {
                   label="Registrar Ingreso"
                   disabled={!existPayrollInProgress}
                   onClick={handleRegisterIncome}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGeneratingPdf ||
                     isGeneratingPaymentReceiptsPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
@@ -3575,9 +3575,9 @@ export function PayrollPage() {
                     isGeneratingVacationAccrualAreaReport ||
                     isGeneratingEmployeeReceivablesPdf ||
                     isGeneratingInssReport
-                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                    : ""
-                    }`}
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
                 />
 
                 <Button
@@ -3586,7 +3586,8 @@ export function PayrollPage() {
                   label="Registrar Deducción"
                   disabled={!existPayrollInProgress}
                   onClick={handleRegisterDeduction}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGeneratingPdf ||
                     isGeneratingPaymentReceiptsPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
@@ -3595,9 +3596,9 @@ export function PayrollPage() {
                     isGeneratingVacationAccrualAreaReport ||
                     isGeneratingEmployeeReceivablesPdf ||
                     isGeneratingInssReport
-                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                    : ""
-                    }`}
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
                 />
 
                 <Button
@@ -3605,7 +3606,8 @@ export function PayrollPage() {
                   label="Registrar Solicitud"
                   disabled={!existPayrollInProgress}
                   onClick={handleOpenPermissionApplicationModal}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isGeneratingPdf ||
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
                     isGeneratingVacationControlPdf ||
@@ -3613,9 +3615,9 @@ export function PayrollPage() {
                     isGeneratingVacationAccrualAreaReport ||
                     isGeneratingEmployeeReceivablesPdf ||
                     isGeneratingInssReport
-                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                    : ""
-                    }`}
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
                 />
 
                 <Button
@@ -3628,10 +3630,11 @@ export function PayrollPage() {
                   }
                   isLoading={isDownloadingCollaboratorsTemplate}
                   onClick={handleDownloadCollaboratorsTemplate}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${isDownloadingCollaboratorsTemplate
-                    ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                    : ""
-                    }`}
+                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isDownloadingCollaboratorsTemplate
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
                 />
               </div>
             </div>

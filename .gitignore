@@ -13,3 +13,5 @@ public/dist
 storybook-static/
 .idea/
 repomix.config.json
+.vscode/
+tailwind.config.js
