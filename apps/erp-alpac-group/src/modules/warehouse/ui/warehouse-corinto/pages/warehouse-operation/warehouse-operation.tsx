@@ -8,17 +8,15 @@ import {
    Pagination,
    type TableColumn,
 } from "@alpac/design-system";
-import bannerTrucksWarehouse from "@app/assets/banners/banner-trucks-warehouse.webp";
-import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDate, formatTime } from "@app/shared/utils/string.utils";
 import { m } from "framer-motion";
-import { MapPin, Scale, Warehouse } from "lucide-react";
+import { Warehouse } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UnloadingTimerModal } from "./components/unloading-timer-modal/unloading-timer-modal";
 import type { ReceivingProps, ReceivingRecord, ReceivingStatus } from "./types/receiving.types";
 import { MOCK_RECEIVING_RECORDS, WAREHOUSE_VISUAL_MOCK } from "../../mock/receiving-mocked-data";
+import { TruckBanner } from "@app/shared/components/truck-banner/truck-banner";
 
 const PAGE_SIZE = 10;
 
@@ -109,27 +107,6 @@ const WarehouseCard = ({ warehouse, isSelected, onSelect }: ReceivingProps) => {
    );
 };
 
-const ReceivingBanner = () => {
-   const { companyName } = useUserStore();
-   const { neutralUrlImage } = useCompanyStore();
-
-   return (
-      <div className="relative -mx-4 -mt-4 mb-4 flex h-[100px] items-center justify-between overflow-hidden rounded-t-xl bg-gradient-to-br  from-[#092D67] via-[#0E4194] to-[#154DA8]  text-white">
-         <img
-            className="absolute right-0 h-[100px] w-85 object-cover [mask-image:linear-gradient(to_left,black_50%,transparent_100%)]"
-            src={bannerTrucksWarehouse}
-            alt="Recepción en bodega"
-            width={200}
-         />
-         <img src={neutralUrlImage} alt={companyName} className="ml-3 h-15 w-15 shrink-0" />
-         <div className="absolute inset-0 flex flex-col items-center justify-center p-0! text-center">
-            <h4 className="m-0! text-2xl font-semibold text-white">Recepción en Bodega</h4>
-            <p className="m-0! text-sm text-white/90">Asignación de ubicación física post-báscula</p>
-         </div>
-      </div>
-   );
-};
-
 const SummaryCard = ({
    label,
    value,
@@ -152,7 +129,7 @@ const SummaryCard = ({
    </div>
 );
 
-export const Receiving = () => {
+export const WarehouseOperation = () => {
 
    const navigate = useNavigate();
 
@@ -172,11 +149,6 @@ export const Receiving = () => {
    const receivingList = useMemo(
       () => records.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
       [page, records],
-   );
-
-   const pendingCount = useMemo(
-      () => records.filter((r) => r.status === "pending").length,
-      [records],
    );
 
    const handleOpenLocationModal = useCallback((record: ReceivingRecord) => {
@@ -297,25 +269,16 @@ export const Receiving = () => {
             />
          </div>
 
-         <div className="relative mx-auto w-full rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
-            <ReceivingBanner />
+         <div className="relative mx-auto w-full rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">            
 
-            <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-               <SummaryCard
-                  label="Pendientes de ubicación"
-                  value={`${pendingCount} registros`}
-                  icon={<MapPin size={18} />}
-               />
+            <TruckBanner title="Recepción en Bodega" subTitle="Gestión de bodegas" />
+
+            <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-3">               
                <SummaryCard
                   label="Inspector en turno"
                   value="Donald José Munguía"
                   icon={<Warehouse size={18} />}
-               />
-               <SummaryCard
-                  label="Flujo activo"
-                  value="Báscula → Bodega"
-                  icon={<Scale size={18} />}
-               />
+               />               
             </div>
 
             <div className="mb-2 flex items-center justify-between">

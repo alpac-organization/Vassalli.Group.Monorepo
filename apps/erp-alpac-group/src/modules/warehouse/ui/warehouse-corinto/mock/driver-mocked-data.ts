@@ -15,7 +15,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "15:00am",
         entry_number: 4,
-        exit_number: 3
+        exit_number: 3,
+        total_package_number: 100,
     },
     {
         id: 2,
@@ -31,7 +32,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "30:00am",
         entry_number: 5,
-        exit_number: 4
+        exit_number: 4,
+        total_package_number: 100,
     },
     {
         id: 3,
@@ -47,7 +49,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "45:00am",
         entry_number: 1,
-        exit_number: 0
+        exit_number: 0,
+        total_package_number: 100,
     },
     {
         id: 4,
@@ -63,7 +66,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "00:00am",
         entry_number: 0,
-        exit_number: 0
+        exit_number: 0,
+        total_package_number: 100,
     },
     {
         id: 5,
@@ -79,7 +83,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "10:00am",
         entry_number: 0,
-        exit_number: 0
+        exit_number: 0,
+        total_package_number: 100,
     },
     {
         id: 6,
@@ -95,7 +100,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "15:00am",
         entry_number: 3,
-        exit_number: 3
+        exit_number: 3,
+        total_package_number: 100,
     },
     {
         id: 7,
@@ -111,7 +117,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "20:00am",
         entry_number: 4,
-        exit_number: 4
+        exit_number: 4,
+        total_package_number: 100,
     },
     {
         id: 8,
@@ -127,7 +134,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "30:00am",
         entry_number: 1,
-        exit_number: 0
+        exit_number: 0,
+        total_package_number: 100,
     },
     {
         id: 9,
@@ -143,7 +151,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "35:00am",
         entry_number: 7,
-        exit_number: 7
+        exit_number: 7,
+        total_package_number: 100,
     },
     {
         id: 10,
@@ -159,7 +168,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "40:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 11,
@@ -175,7 +185,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "45:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 12,
@@ -191,7 +202,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "50:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 13,
@@ -207,7 +219,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "55:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 14,
@@ -223,7 +236,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "00:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 15,
@@ -239,7 +253,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "05:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 16,
@@ -255,7 +270,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "10:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 17,
@@ -271,7 +287,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "15:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 18,
@@ -287,7 +304,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "20:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 19,
@@ -303,7 +321,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "25:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 20,
@@ -319,7 +338,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "30:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 21,
@@ -335,7 +355,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "35:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 22,
@@ -351,7 +372,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "40:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 23,
@@ -367,7 +389,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "45:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 24,
@@ -383,7 +406,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "50:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 25,
@@ -399,7 +423,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "55:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 26,
@@ -415,7 +440,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "00:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 27,
@@ -431,7 +457,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "05:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 28,
@@ -447,7 +474,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "10:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 29,
@@ -463,7 +491,8 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "15:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     },
     {
         id: 30,
@@ -479,6 +508,7 @@ export const driverRecords: DriverRecord[] = [
         arrived_time: "2026-06-29T07:15:00Z",
         exit_time: "20:00am",
         entry_number: 10,
-        exit_number: 9
+        exit_number: 9,
+        total_package_number: 100,
     }
 ];
