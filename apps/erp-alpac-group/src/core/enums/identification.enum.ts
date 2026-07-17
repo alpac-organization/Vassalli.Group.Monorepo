@@ -8,6 +8,7 @@ export const IdentificationEnum = {
   NATIONAL_ID: { value: 1, label: "Cédula Nicaragüense" },
   PASSPORT: { value: 2, label: "Pasaporte" },
   RESIDENCE_ID: { value: 3, label: "Cédula de Residencia" },
+  RUC: { value: 4, label: "Registro Único de Contribuyente" },
 } as const;
 
 export type IdentificationEnum =

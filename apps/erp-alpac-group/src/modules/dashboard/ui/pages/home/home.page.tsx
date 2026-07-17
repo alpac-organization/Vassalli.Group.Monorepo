@@ -3,6 +3,7 @@ import { DashBoardCard, Modal } from '@alpac/design-system';
 import { useModules } from '@app/modules/dashboard/ui/hooks/useModules';
 import { HeaderHome } from '@app/modules/dashboard/ui/pages/home/hearder/header';
 
+import { m, LazyMotion } from 'framer-motion';
 import { useAuth } from '@app/modules/auth/ui/hooks/useAuth';
 import { Loader } from '@app/shared/components/loaders/loader';
 import { Navbar } from '@app/shared/components/navbar/navbar';
@@ -11,12 +12,11 @@ import { EmptyModulesState } from './empty-modules-state/empty-modules-state';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 import { validateNameAndLastName } from '@app/shared/utils/string.utils';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { m, LazyMotion } from 'framer-motion';
-import { ModuleEnum } from '@app/core/enums/module.enum';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 import { useTheme } from '@alpac/design-system';
 import { NotificationSidebar } from '@app/shared/components/notification/notification-sidebar/notification-sidebar';
 import { SettingIndex } from '@app/modules/setting/ui/pages/setting-index/setting-index';
+import type { ModulesAvailableResponse } from '@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response';
 
 const loadFeatures = () => import('framer-motion').then((res) => res.domAnimation);
 
@@ -61,6 +61,28 @@ export const HomePage = function () {
       }
    };
 
+   const handleSelectModule = (module: ModulesAvailableResponse) => {
+
+      /* payroll/collaborators
+      warehouse-mga/access-control
+      accounting
+      administration/users
+      warehouse-corinto/administrative-section
+      work-management/collaborator-profile */
+
+      useUserStore.setState({
+         moduleCode: module.module_code,
+         role: module.role_type,
+      });
+
+      if (!module.module_code) {
+         setShowModal(true);
+         return;
+      }
+
+      navigate(module.path_redirect);
+   }
+
    return (
       <LazyMotion features={loadFeatures} strict>
          <m.div
@@ -98,23 +120,7 @@ export const HomePage = function () {
                               key={module.module_name}
                               title={module.module_name}
                               image={module.image_url}
-                              onClick={() => {
-                                 useUserStore.setState({
-                                    moduleCode: module.module_code,
-                                    role: module.role_type,
-                                 });
-
-                                 if (!module.module_code) {
-                                    setShowModal(true);
-                                    return;
-                                 }
-
-                                 if (module.module_code === ModuleEnum.WORK_MANAGEMENT) {
-                                    navigate(`${module.path_redirect}/collaborator-profile`);
-                                 } else {
-                                    navigate(module.path_redirect);
-                                 }
-                              }}
+                              onClick={() => handleSelectModule(module)}
                               description={module.description}
                            />
                         ))

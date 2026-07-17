@@ -27,7 +27,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api-payroll/, "/api/v1"),
       },
       "/api-warehouse": {
-        target: "",
+        target: "https://erp-core-warehouse-api.onrender.com",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api-warehouse/, "/api/v1"),
       },
