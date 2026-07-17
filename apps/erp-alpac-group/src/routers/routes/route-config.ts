@@ -15,20 +15,18 @@ const {
   activeDeductionSection,
   liquidacionSection,
   attendanceControlSection,
-  subsidyHistorialSection
+  subsidyHistorialSection,
 } = getPayrollRoutes();
 
 const {
   administrationUsersSection,
   administrationCostCentersSection,
   administrationAreasSection,
-  administrationJobPositionsSection
+  administrationJobPositionsSection,
 } = getAdminRoutes();
 
-const {
-  collaboratorProfileSection,
-  permissionManagementSection
-} = getWorkManagementRoutes();
+const { collaboratorProfileSection, permissionManagementSection } =
+  getWorkManagementRoutes();
 
 const {
   administrativeSection,
@@ -36,19 +34,17 @@ const {
   accessControlSection,
   scaleSection,
   inboundSection,
-  warehouseReportSection
+  warehouseReportSection,
 } = getCorintoWarehouseRoutes();
 
 const {
   warehouseManaguaSection,
   DucaPanel,
   warehouseSection4,
-  warehouseSection12
+  warehouseSection12,
 } = getManaguaWarehouseRoutes();
 
-const {
-  supplierSection
-} = getProcurementRoutes();
+const { supplierSection, quotesSection } = getProcurementRoutes();
 
 export const routeConfig = {
   [ModuleEnum.PAYROLL]: {
@@ -60,7 +56,7 @@ export const routeConfig = {
       activeDeductionSection,
       liquidacionSection,
       attendanceControlSection,
-      subsidyHistorialSection
+      subsidyHistorialSection,
     ],
   },
   [ModuleEnum.ADMINISTRATION]: {
@@ -68,7 +64,7 @@ export const routeConfig = {
       administrationUsersSection,
       administrationCostCentersSection,
       administrationAreasSection,
-      administrationJobPositionsSection
+      administrationJobPositionsSection,
     ],
   },
   [ModuleEnum.WORK_MANAGEMENT]: {
@@ -101,8 +97,6 @@ export const routeConfig = {
     ],
   },
   [ModuleEnum.PROCUREMENT]: {
-    [RoleEnum.OPERATOR]: [
-      supplierSection
-    ]
-  }
+    [RoleEnum.ADMINISTRATOR]: [supplierSection, quotesSection],
+  },
 };
