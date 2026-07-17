@@ -32,7 +32,7 @@ export const AdministrativeSection = () => {
          transition={{ duration: 0.5 }}
          className="flex flex-col gap-4">
 
-         <div className="relative mx-auto w-[100%] rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
+         <div className="relative mx-auto w-full rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
             <Tabs tabItems={tabs ?? []} activeTab="operation" />
          </div>
 

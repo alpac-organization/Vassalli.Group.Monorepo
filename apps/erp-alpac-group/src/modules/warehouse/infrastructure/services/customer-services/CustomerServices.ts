@@ -7,7 +7,7 @@ import { cleanParams } from "@app/shared/utils/object.utils";
 
 export class CustomerServices implements ICustomerServices {
 
-	private apiHandler: IHttpHandler;
+	private readonly apiHandler: IHttpHandler;
 
 	constructor(httpHandler: IHttpHandler) {
 		this.apiHandler = httpHandler;

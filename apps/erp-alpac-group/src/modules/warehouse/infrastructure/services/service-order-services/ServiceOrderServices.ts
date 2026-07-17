@@ -4,7 +4,7 @@ import type { CreateServiceOrderRequest } from "@app/modules/warehouse/domain/Ap
 
 export class ServiceOrderServices implements IServiceOrderServices {
 
-   private apiHandler: IHttpHandler;
+   private readonly apiHandler: IHttpHandler;
 
    constructor(httpHandler: IHttpHandler) {
       this.apiHandler = httpHandler;

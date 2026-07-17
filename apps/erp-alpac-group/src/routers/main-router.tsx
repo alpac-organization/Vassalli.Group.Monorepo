@@ -2,10 +2,10 @@ import { LoginPage } from "@app/modules/auth/ui/pages/login/login.page";
 import { HomePage } from "@app/modules/dashboard/ui/pages/home/home.page";
 import { ContainerCopyright } from "@app/shared/layouts/container-copyright/container-copyright";
 import { Navigate, type RouteObject } from "react-router-dom";
-import { DashboardRoutes } from "./dashboard-routes";
 import { AuthGuard, PublicGuard } from "./guardians";
+import { DashboardRouter } from "./routes/dashboard/dashboard-router";
 
-export const MainRoutes: RouteObject[] = [
+export const MainRouter: RouteObject[] = [
   {
     path: "/",
     element: <Navigate to="/auth" replace />,
@@ -30,7 +30,7 @@ export const MainRoutes: RouteObject[] = [
       },
       {
         path: "dashboard",
-        children: DashboardRoutes,
+        children: DashboardRouter,
       },
       {
         path: "setting",

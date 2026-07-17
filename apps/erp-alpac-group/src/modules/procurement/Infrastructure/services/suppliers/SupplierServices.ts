@@ -1,0 +1,52 @@
+import type { IHttpHandler } from "@app/core/ports";
+import type { ISupplierServices } from "@app/modules/procurement/application/interfaces/suppliers/ISuppliersServices";
+import type { GetSuppliersRequest } from "@app/modules/procurement/domain/suppliers/requests/get-supplier-request";
+import type { GetSuppliersResponseList } from "@app/modules/procurement/domain/suppliers/responses/get-suppliers";
+import { cleanParams } from "@app/shared/utils/object.utils";
+
+export class SupplierServices implements ISupplierServices {
+
+	private readonly httpHandler: IHttpHandler;
+
+	constructor(htttpHandler: IHttpHandler) {
+		this.httpHandler = htttpHandler;
+	}
+
+	async getSuppliers(payload: GetSuppliersRequest): Promise<GetSuppliersResponseList> {
+		try {
+			const { companie_id, module_code, ...rest } = payload;
+
+			const url = `/companies/${companie_id}/modules/${module_code}/suppliers`;
+
+			const response = await this.httpHandler.get<GetSuppliersResponseList>(url, { params: cleanParams(rest) });
+
+			return response;
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	async CreateSupplier(payload: any): Promise<void> {
+		try {
+			const { companie_id, module_code, ...rest } = payload;
+
+			const url = `/companies/${companie_id}/modules/${module_code}/suppliers`;
+
+			await this.httpHandler.post<void>(url, rest);
+		} catch (error) {
+			throw error;
+		}
+	}
+
+	async UpdateSupplier(payload: any): Promise<void> {
+		try {
+			const { companie_id, module_code, supplier_id, ...rest } = payload;
+
+			const url = `companies/${companie_id}/modules/${module_code}/suppliers/${supplier_id}`;
+
+			await this.httpHandler.put<void>(url, rest);
+		} catch (error) {
+			throw error;
+		}
+	}
+}
