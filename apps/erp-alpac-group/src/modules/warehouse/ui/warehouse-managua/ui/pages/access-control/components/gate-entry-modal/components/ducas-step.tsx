@@ -21,11 +21,7 @@ type DucasStepProps = {
   onRemove: (index: number) => void;
 };
 
-export function DucasStep({
-  fields,
-  register,
-  onRemove,
-}: DucasStepProps) {
+export function DucasStep({ fields, register, onRemove }: DucasStepProps) {
   const lastItemRef = useRef<HTMLDivElement>(null);
   const prevCountRef = useRef(fields.length);
 
@@ -59,16 +55,16 @@ export function DucasStep({
   if (fields.length === 0) {
     return (
       <div className="space-y-2 px-1 bg-red-900/55 border-l-4 border-red-500/60 rounded-md">
-        <p className="text-[13px] sm:text-[14px] text-slate-500 dark:text-slate-300 text-center py-6 sm:py-4 flex flex-col items-center gap-2">
-          <AlertTriangleIcon size={28} />
-          No hay DUCAs agregadas. Use &quot;Agregar Duca&quot; para continuar.
+        <p className="text-[12px] sm:text-[14px] text-slate-500 dark:text-slate-300 text-center py-4 flex flex-col items-center gap-1.5 sm:gap-2">
+          <AlertTriangleIcon className="size-5 sm:size-7" />
+          No hay Ducas agregadas. Use &quot;Agregar Duca&quot; para continuar.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 sm:space-y-4">
+    <div className="space-y-3 sm:space-y-4">
       <AnimatePresence initial={false} mode="popLayout">
         {fields.map((field, index) => {
           const isLast = index === fields.length - 1;
@@ -81,15 +77,15 @@ export function DucasStep({
               initial="initial"
               animate="animate"
               exit="exit"
-              className="flex flex-col gap-2 sm:gap-1.5 min-w-0 overflow-hidden"
+              className="flex flex-col gap-1 sm:gap-1.5 min-w-0 overflow-hidden"
             >
               <label
                 className={`text-[13px] sm:text-[14px] font-medium ml-0.5 ${gateEntryLabelClassName}`}
               >
                 {`Documento DUCA #${index + 1}`}
               </label>
-              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                <div className="flex-1 min-w-0 p-1.5 sm:p-2">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div className="flex-1 min-w-0 p-1 sm:p-2">
                   <InputText
                     className={gateEntryInputClassName}
                     {...register(`ducas.${index}.value` as const)}

@@ -36,7 +36,7 @@ const stepVariants = {
 };
 
 const footerButtonClass =
-  "w-full! sm:w-auto! shrink-0! text-[14px]! sm:text-[15px]! rounded-md! justify-center!";
+  "w-full! sm:w-auto! shrink-0! max-sm:h-9! max-sm:px-2! max-sm:py-1! max-sm:text-[12px]! text-[14px]! sm:text-[15px]! rounded-md! justify-center!";
 
 export function GateEntryModal({
   isOpen,
@@ -128,7 +128,7 @@ export function GateEntryModal({
           onSubmit={handleSubmit(handleFormSubmit)}
           className="flex flex-col flex-1 min-h-0 h-full overflow-hidden"
         >
-          <div className="shrink-0 overflow-x-auto">
+          <div className="shrink-0 overflow-x-auto mb-3 sm:mb-6">
             <Stepper
               currentStep={currentStep}
               steps={[...GATE_ENTRY_STEPS]}
@@ -137,7 +137,7 @@ export function GateEntryModal({
           </div>
 
           {currentStep === 1 && (
-            <div className="shrink-0 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-3 pt-2 sm:pt-1">
+            <div className="shrink-0 grid grid-cols-2 gap-2 mb-2 py-2 sm:flex sm:justify-between sm:items-center sm:gap-4 sm:mb-3 sm:pt-1">
               <Button
                 type="button"
                 label="Eliminar todas"
@@ -145,7 +145,7 @@ export function GateEntryModal({
                 onClick={() => setIsDeleteAllDucasConfirmOpen(true)}
                 disabled={fields.length === 0}
                 icon={<Trash2Icon size={18} />}
-                className="w-full! sm:w-auto! text-[14px]! rounded-md! text-white! bg-red-600! hover:bg-red-500! dark:bg-red-900! dark:hover:bg-red-800! disabled:opacity-40! justify-center!"
+                className="w-full! sm:w-auto! max-sm:h-8! max-sm:px-2! max-sm:py-1! max-sm:text-[12px]! text-[14px]! rounded-md! text-white! bg-red-600! hover:bg-red-500! dark:bg-red-900! dark:hover:bg-red-800! disabled:opacity-40! justify-center!"
               />
               <Button
                 type="button"
@@ -153,7 +153,7 @@ export function GateEntryModal({
                 size="medium"
                 onClick={handleAddDuca}
                 icon={<PlusIcon size={18} />}
-                className="w-full! sm:w-auto! text-[14px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! justify-center!"
+                className="w-full! sm:w-auto! max-sm:h-8! max-sm:px-2! max-sm:py-1! max-sm:text-[12px]! text-[14px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! justify-center!"
               />
             </div>
           )}
@@ -161,7 +161,10 @@ export function GateEntryModal({
           <div
             className={[
               "relative flex-1 min-h-0",
-              "overflow-y-auto overflow-x-hidden",
+              currentStep === 1 && fields.length === 0
+                ? "overflow-y-hidden sm:overflow-y-auto"
+                : "overflow-y-auto",
+              "overflow-x-hidden",
               "overscroll-contain scrollbar-dashboard",
               "py-2 sm:py-1 pr-1",
             ].join(" ")}
@@ -189,13 +192,17 @@ export function GateEntryModal({
             </AnimatePresence>
           </div>
 
-          <div className="shrink-0 sticky bottom-0 z-10 bg-white dark:bg-[#272b34] flex flex-col-reverse sm:flex-row sm:flex-nowrap sm:justify-end sm:items-center gap-3 sm:gap-3 mt-4 sm:mt-4 pt-4 sm:pt-4 border-t border-slate-600 dark:border-neutral-600">
+          <div className="shrink-0 sticky bottom-0 z-10 bg-white dark:bg-[#272b34] grid grid-cols-2 gap-2 sm:flex sm:flex-nowrap sm:justify-end sm:items-center sm:gap-3 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-600 dark:border-neutral-600">
             <Button
               type="button"
               label="Cancelar"
               size="giant"
               onClick={handleClose}
-              className={`${footerButtonClass} text-white! bg-red-600! hover:bg-red-500! dark:bg-red-900! dark:hover:bg-red-800!`}
+              className={`${footerButtonClass} ${
+                currentStep === 1
+                  ? "col-span-2 order-3 sm:order-0 sm:col-auto"
+                  : "col-span-1"
+              } text-white! bg-red-600! hover:bg-red-500! dark:bg-red-900! dark:hover:bg-red-800!`}
               icon={<XIcon size={18} />}
             />
 
@@ -215,14 +222,14 @@ export function GateEntryModal({
                   label="Atrás"
                   size="giant"
                   onClick={() => goToStep(0)}
-                  className={`${footerButtonClass} text-slate-200! bg-slate-600/50! hover:bg-slate-600!`}
+                  className={`${footerButtonClass} col-span-1 order-1 sm:order-0 text-slate-200! bg-slate-600/50! hover:bg-slate-600!`}
                   icon={<ArrowLeftIcon size={18} />}
                 />
                 <Button
                   type="submit"
                   label="Finalizar y Guardar"
                   size="giant"
-                  className={`${footerButtonClass} text-white! bg-emerald-800! hover:bg-emerald-700!`}
+                  className={`${footerButtonClass} col-span-1 order-2 sm:order-0 text-white! bg-emerald-800! hover:bg-emerald-700!`}
                   icon={<SaveIcon size={18} />}
                 />
               </>
