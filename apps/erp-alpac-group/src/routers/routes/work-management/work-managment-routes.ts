@@ -6,14 +6,14 @@ export const getWorkManagementRoutes = () => {
    const collaboratorProfileSection: SidebarLink = {
       id: "collaborator-profile",
       label: "Perfil",
-      path: "work-management/collaborator-profile",
+      path: "dashboard/work-management/collaborator-profile",
       icon: User,
    };
 
    const permissionManagementSection: SidebarLink = {
       id: "gestion-permisos",
       label: "Permisos",
-      path: "work-management/gestion-permisos",
+      path: "dashboard/work-management/gestion-permisos",
       icon: UserKey,
    };
 

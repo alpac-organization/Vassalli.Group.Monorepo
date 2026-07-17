@@ -6,28 +6,28 @@ export const getAdminRoutes = () => {
    const administrationUsersSection: SidebarLink = {
       id: "administration",
       label: "Usuarios",
-      path: "administration/users",
+      path: "dashboard/administration/users",
       icon: Users,
    };
 
    const administrationCostCentersSection: SidebarLink = {
       id: "cost-centers",
       label: "Centros de Costos",
-      path: "administration/cost-centers",
+      path: "dashboard/administration/cost-centers",
       icon: BadgeCent,
    };
 
    const administrationAreasSection: SidebarLink = {
       id: "areas",
       label: "Áreas",
-      path: "administration/areas",
+      path: "dashboard/administration/areas",
       icon: Grid,
    };
 
    const administrationJobPositionsSection: SidebarLink = {
       id: "job-positions",
       label: "Puestos de Trabajo",
-      path: "administration/job-positions",
+      path: "dashboard/administration/job-positions",
       icon: Briefcase,
    };
 

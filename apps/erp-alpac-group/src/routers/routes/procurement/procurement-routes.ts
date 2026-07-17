@@ -6,7 +6,7 @@ export const getProcurementRoutes = () => {
    const supplierSection: SidebarLink = {
       id: "supplier",
       label: "Proveedores",
-      path: "procurement/suppliers",
+      path: "dashboard/procurement/suppliers",
       icon: PackageSearchIcon
    };
 

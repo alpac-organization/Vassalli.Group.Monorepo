@@ -1,6 +1,6 @@
 import type { CreateSupplierRequest } from "@app/modules/procurement/domain/suppliers/requests/create-supplier-request";
-import type { GetSuppliersRequest } from "@app/modules/procurement/domain/suppliers/requests/get-supplier-request";
-import type { GetSuppliersResponseList } from "@app/modules/procurement/domain/suppliers/responses/get-suppliers";
+import type { GetSuppliersRequest } from "@app/modules/procurement/domain/suppliers/requests/get-suppliers-request";
+import type { GetSuppliersResponseList } from "@app/modules/procurement/domain/suppliers/responses/get-suppliers-response";
 
 export interface ISupplierServices {
 

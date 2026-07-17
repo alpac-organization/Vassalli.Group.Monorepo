@@ -79,6 +79,7 @@ export const AddCollaboratorModal = (
 
   const isTmnCompany = companyAlias === CompanyEnum.TMN;
   const isVigemsaCompany = companyAlias === CompanyEnum.VIGEMSA;
+  const identificationOptions = IdentificationOptions.filter(item => item.value != IdentificationEnum.RUC.value);
 
   const { GetIncomeTypes } = useIncomes({
     incomesTypesPayload: { company_id: companyId! },
@@ -255,7 +256,7 @@ export const AddCollaboratorModal = (
       </AnimatedAlertWrapper>
 
       <form
-        className="min-h-[450px] flex flex-col"
+        className="min-h-112.5 flex flex-col"
         onSubmit={handleSubmit(handleCreateCollaborator)}
       >
         <div className="grow relative">
@@ -394,7 +395,7 @@ export const AddCollaboratorModal = (
                   <Dropdown
                     label="Tipo Identificación"
                     isRequired
-                    options={IdentificationOptions}
+                    options={identificationOptions}
                     placeholder="Seleccione..."
                     onChange={(value) => {
                       field.onChange(value);

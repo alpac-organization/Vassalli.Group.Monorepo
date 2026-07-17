@@ -17,6 +17,8 @@ import { useTheme } from '@alpac/design-system';
 import { NotificationSidebar } from '@app/shared/components/notification/notification-sidebar/notification-sidebar';
 import { SettingIndex } from '@app/modules/setting/ui/pages/setting-index/setting-index';
 import type { ModulesAvailableResponse } from '@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response';
+import { routeConfig } from '@app/routers/routes/route-config';
+import type { SidebarLink } from '@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types';
 
 const loadFeatures = () => import('framer-motion').then((res) => res.domAnimation);
 
@@ -63,24 +65,23 @@ export const HomePage = function () {
 
    const handleSelectModule = (module: ModulesAvailableResponse) => {
 
-      /* payroll/collaborators
-      warehouse-mga/access-control
-      accounting
-      administration/users
-      warehouse-corinto/administrative-section
-      work-management/collaborator-profile */
+      if (!module.module_code) {
+         setShowModal(true);
+         return;
+      }
 
       useUserStore.setState({
          moduleCode: module.module_code,
          role: module.role_type,
       });
 
-      if (!module.module_code) {
-         setShowModal(true);
-         return;
-      }
+      const routesByModules = routeConfig[module.module_code as keyof typeof routeConfig];
+      const routesByRoles: SidebarLink[] = routesByModules[module.role_type as keyof typeof routesByModules];
+      const [firstRouteConfig] = routesByRoles;
 
-      navigate(module.path_redirect);
+      if (!firstRouteConfig.path) return;      
+
+      navigate(`${module.path_redirect}/${firstRouteConfig.path}`);
    }
 
    return (
