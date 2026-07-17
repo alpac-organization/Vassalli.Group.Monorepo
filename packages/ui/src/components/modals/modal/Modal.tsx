@@ -16,6 +16,7 @@ export const Modal = ({
    description,
    children,
    panelClassName,
+   contentClassName,
    closeButtonClassName,
 }: ModalProps): React.ReactNode => {
    const [isMounted, setIsMounted] = useState(false);
@@ -114,7 +115,9 @@ export const Modal = ({
                               </div>
                            )}
 
-                           {children && <div>{children}</div>}
+                           {children && (
+                              <div className={contentClassName}>{children}</div>
+                           )}
 
                            <button
                               type="button"

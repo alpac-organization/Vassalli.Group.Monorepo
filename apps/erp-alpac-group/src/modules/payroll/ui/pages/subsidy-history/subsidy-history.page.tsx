@@ -16,7 +16,7 @@ import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
-import { useSubsidy } from "../../hooks/subsidy/useSubsidy";
+import { useSubsidy } from "@app/modules/payroll/ui/hooks/subsidy/useSubsidy";
 import { SubsidyHistoryTable } from "./components/subsidy-history-table/subsidy-history-table";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 
