@@ -4,7 +4,7 @@ import { GoodsReceiptsPage } from "@app/modules/warehouse/ui/warehouse-managua/u
 import { WarehouseAllocationPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-allocation/warehouse-allocation";
 import type { RouteObject } from "react-router-dom";
 
-export const WarehouseManaguaRoutes: RouteObject[] = [
+export const WarehouseManaguaRouter: RouteObject[] = [
   {
     path: "access-control",
     element: <AccessControlPage />,
