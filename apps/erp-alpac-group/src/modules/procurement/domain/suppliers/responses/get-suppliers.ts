@@ -1,4 +1,5 @@
 export interface GetSuppliersResponse {
+  supplier_id: string;
   supplier_legal_name: string;
   identification_number: string;
   address: string;
@@ -6,9 +7,10 @@ export interface GetSuppliersResponse {
   contact_name: string;
   contact_email: string;
   contact_phone_number: string;
-  identification_type: string;
-  contribution_type: string;
+  identification_type: number;
+  constitution_type: number;
 }
+
 export interface GetSuppliersResponseList {
   suppliers: GetSuppliersResponse[];
   total_pages: number;

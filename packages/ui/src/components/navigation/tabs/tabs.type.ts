@@ -5,6 +5,6 @@ export interface TabItem<T extends string> extends TabOption<T> {
 }
 
 export interface TabProps<T extends string> {
-    tabHeaders: TabItem<T>[];
+    tabItems: TabItem<T>[];
     activeTab: T;
 }

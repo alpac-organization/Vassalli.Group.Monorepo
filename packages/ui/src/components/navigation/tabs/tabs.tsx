@@ -25,11 +25,11 @@ export function Tabs(props: TabProps<string>): React.ReactNode {
 	const [activeTab, setActiveTab] = useState(props.activeTab);
 	const [direction, setDirection] = useState(0);
 
-	const activeItem = props.tabHeaders.find((item) => item.id === activeTab);
+	const activeItem = props.tabItems.find((item) => item.id === activeTab);
 
 	const handleTabChange = (nextTab: string) => {
-		const currentIndex = props.tabHeaders.findIndex((item) => item.id === activeTab);
-		const nextIndex = props.tabHeaders.findIndex((item) => item.id === nextTab);
+		const currentIndex = props.tabItems.findIndex((item) => item.id === activeTab);
+		const nextIndex = props.tabItems.findIndex((item) => item.id === nextTab);
 
 		setDirection(nextIndex > currentIndex ? 1 : -1);
 		setActiveTab(nextTab);
@@ -38,7 +38,7 @@ export function Tabs(props: TabProps<string>): React.ReactNode {
 	return (
 		<div className="flex w-full min-w-0 flex-col gap-4">
 			<TabHeader
-				tabs={props.tabHeaders}
+				tabs={props.tabItems}
 				activeTab={activeTab}
 				onTabChange={handleTabChange}
 			/>

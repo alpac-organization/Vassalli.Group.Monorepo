@@ -1,6 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { TopNavbar } from "@app/shared/layouts/dashboard-layout/components/navbar/top-navbar";
-import { sidebarData } from "@app/shared/layouts/dashboard-layout/data/data.route";
 import { m, LazyMotion, AnimatePresence } from "framer-motion";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Modal } from "@alpac/design-system";
@@ -15,6 +14,7 @@ import useSessionStorageSidebar from "@app/shared/layouts/dashboard-layout/hooks
 import type { SidebarLink } from "./components/Sidebar/types/sidebar.types";
 import { isRouteAuthorized } from "./utils/route-authorization.utils";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { routeConfig } from "@app/routers/routes/route-config";
 
 const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
@@ -30,9 +30,7 @@ export const DashboardLayout = () => {
    const { companyAlias } = useUserStore();
    const { neutralUrlImage } = useCompanyStore();
 
-   // mapeas la secciones = []
-   const registry = sidebarData.navigationRegistry;
-   const authorizedModules = registry[moduleCode as keyof typeof registry] ?? [];
+   const authorizedModules = routeConfig[moduleCode as keyof typeof routeConfig] ?? [];
 
    const authorizedPaths: SidebarLink[] =
       (authorizedModules[role as keyof typeof authorizedModules] ?? []) as SidebarLink[];
