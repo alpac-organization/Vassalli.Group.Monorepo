@@ -6,7 +6,7 @@ export const getPayrollRoutes = () => {
    const collboratorSection: SidebarLink = {
       id: "collaborators",
       label: "Colaboradores",
-      path: "dashboard/payroll/collaborators",
+      path: "collaborators",
       icon: UsersRound,
       allowsRubRoutes: true
    };
@@ -14,14 +14,14 @@ export const getPayrollRoutes = () => {
    const gestionPayrollSection: SidebarLink = {
       id: "gestion-payroll",
       label: "Gestión de Nómina",
-      path: "dashboard/payroll/gestion-nomina",
+      path: "gestion-nomina",
       icon: DollarSign,
    };
 
    const payrollPeriodsHistorySection: SidebarLink = {
       id: "historial-periodos-nómina",
       label: "Períodos de Nómina",
-      path: "dashboard/payroll/historial-periodos-nomina",
+      path: "historial-periodos-nomina",
       icon: History,
       allowsRubRoutes: true
    };
@@ -29,35 +29,35 @@ export const getPayrollRoutes = () => {
    const applicationFromPayrollSection: SidebarLink = {
       id: "applications",
       label: "Solicitudes de Permisos",
-      path: "dashboard/payroll/applications",
+      path: "applications",
       icon: FileClock,
    };
 
    const activeDeductionSection: SidebarLink = {
       id: "active-deductions",
       label: "Deducciones Activas",
-      path: "dashboard/payroll/active-deductions",
+      path: "active-deductions",
       icon: CircleMinus,
    };
 
    const liquidacionSection: SidebarLink = {
       id: "liquidacion",
       label: "Proceso de Liquidación",
-      path: "dashboard/payroll/liquidacion",
+      path: "liquidacion",
       icon: HandCoins,
    };
 
    const attendanceControlSection: SidebarLink = {
       id: "control-asistencia",
       label: "Control de Asistencia",
-      path: "dashboard/payroll/control-asistencia",
+      path: "control-asistencia",
       icon: Fingerprint,
    };
 
    const subsidyHistorialSection: SidebarLink = {
       id: "subsidy-history",
       label: "Historial de Subsidio",
-      path: "dashboard/payroll/subsidy-history",
+      path: "subsidy-history",
       icon: FolderClock
    }
 

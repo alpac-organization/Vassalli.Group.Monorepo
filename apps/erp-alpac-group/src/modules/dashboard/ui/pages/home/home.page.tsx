@@ -65,7 +65,7 @@ export const HomePage = function () {
 
    const handleSelectModule = (module: ModulesAvailableResponse) => {
 
-      if (!module.module_code) {
+      if (!module.module_code || !module.role_type || !module.path_redirect) {
          setShowModal(true);
          return;
       }
@@ -73,13 +73,14 @@ export const HomePage = function () {
       useUserStore.setState({
          moduleCode: module.module_code,
          role: module.role_type,
+         moduleBasePath: module.path_redirect
       });
 
       const routesByModules = routeConfig[module.module_code as keyof typeof routeConfig];
       const routesByRoles: SidebarLink[] = routesByModules[module.role_type as keyof typeof routesByModules];
       const [firstRouteConfig] = routesByRoles;
 
-      if (!firstRouteConfig.path) return;      
+      if (!firstRouteConfig.path) return;
 
       navigate(`${module.path_redirect}/${firstRouteConfig.path}`);
    }

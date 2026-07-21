@@ -25,8 +25,6 @@ export const WarehouseTab = ({ }: WarehouseTabProps) => {
 
 	const { data } = GetWarehouses;
 
-	console.log("Datos de las warehouse : ", data);
-
 	const handleCreateWarehouse = useCallback(() => {
 		setIsWarehouseModalOpen(true);
 	}, []);

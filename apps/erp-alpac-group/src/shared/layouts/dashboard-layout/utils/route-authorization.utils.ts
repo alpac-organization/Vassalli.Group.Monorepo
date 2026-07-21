@@ -8,24 +8,27 @@ export const getDashboardRelativePath = (pathname: string): string => {
 
    const segments = normalizePath(pathname).split("/").filter(Boolean);
 
-   const companyAlias = useUserStore.getState().companyAlias;
+   const companyAlias = useUserStore.getState().companyAlias?.toLowerCase() ?? "";
 
-   const dashboardIndex = segments.indexOf(companyAlias.toLowerCase());
+   const aliasIndex = segments.findIndex(
+      (segment) => segment.toLowerCase() === companyAlias,
+   );
 
-   if (dashboardIndex === -1) return normalizePath(pathname);
+   if (aliasIndex === -1) return normalizePath(pathname);
 
-   return segments.slice(dashboardIndex + 1).join("/");
+   return segments.slice(aliasIndex + 2).join("/");
 };
 
 export const matchesAuthorizedRoute = (pathname: string, link: SidebarLink): boolean => {
 
-   
+   const moduleBasePath = useUserStore.getState().moduleBasePath?.toLowerCase() ?? "";
+
    const current = normalizePath(getDashboardRelativePath(pathname));
-   
-   const authorized = normalizePath(link.path);
+
+   const authorized = normalizePath(moduleBasePath ? `${moduleBasePath}/${link.path}` : link.path);   
 
    if (!current || !authorized) return false;
-   
+
    if (current === authorized) return true;
 
    return Boolean(link.allowsRubRoutes && current.startsWith(`${authorized}/`));
