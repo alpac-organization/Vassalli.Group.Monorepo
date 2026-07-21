@@ -1,5 +1,5 @@
-import { Button, Dropdown, InputText } from "@alpac/design-system";
-import { Controller, useForm } from "react-hook-form";
+import { Button, InputText } from "@alpac/design-system";
+import { useForm } from "react-hook-form";
 import type { AccessControlFilters } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
 import type { AccessControlFiltersProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/types/access-control.types";
 
@@ -8,27 +8,21 @@ const inputClassName =
 
 const labelClassName = "text-black! dark:text-white!";
 
-const dropdownClassName =
-  "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
-
 const EMPTY_FILTERS: AccessControlFilters = {
-  ducaNumero: "",
-  placaCabezal: "",
-  conductor: "",
+  ducat_number: "",
+  plate_number: "",
+  driver_name: "",
 };
 
 export function AccessControlFiltersBar({
-  plateOptions,
-  conductorOptions,
   onApply,
   onClear,
   defaultValues = EMPTY_FILTERS,
 }: AccessControlFiltersProps) {
-  const { register, handleSubmit, control, reset } =
-    useForm<AccessControlFilters>({
-      defaultValues,
-      mode: "onChange",
-    });
+  const { register, handleSubmit, reset } = useForm<AccessControlFilters>({
+    defaultValues,
+    mode: "onChange",
+  });
 
   const handleClear = () => {
     reset(EMPTY_FILTERS);
@@ -59,47 +53,31 @@ export function AccessControlFiltersBar({
             type="text"
             placeholder="Ingrese número DUCA"
             errorVariant="tooltip"
-            {...register("ducaNumero")}
+            {...register("ducat_number")}
           />
         </div>
 
         <div className="flex flex-col min-w-0">
-          <Controller
-            name="placaCabezal"
-            control={control}
-            render={({ field }) => (
-              <Dropdown
-                value={field.value}
-                onChange={(value) => field.onChange(value)}
-                label="Número de placa"
-                placeholder="Buscar por placa..."
-                appearance="dark"
-                labelClassName={labelClassName}
-                valueClassName="text-black! dark:text-white!"
-                className={dropdownClassName}
-                options={plateOptions}
-              />
-            )}
+          <InputText
+            label="Número de placa"
+            className={inputClassName}
+            labelClassName={labelClassName}
+            type="text"
+            placeholder="Buscar por placa..."
+            errorVariant="tooltip"
+            {...register("plate_number")}
           />
         </div>
 
         <div className="flex flex-col min-w-0">
-          <Controller
-            name="conductor"
-            control={control}
-            render={({ field }) => (
-              <Dropdown
-                value={field.value}
-                onChange={(value) => field.onChange(value)}
-                label="Conductor"
-                placeholder="Buscar por conductor..."
-                appearance="dark"
-                labelClassName={labelClassName}
-                valueClassName="text-black! dark:text-white!"
-                className={dropdownClassName}
-                options={conductorOptions}
-              />
-            )}
+          <InputText
+            label="Conductor"
+            className={inputClassName}
+            labelClassName={labelClassName}
+            type="text"
+            placeholder="Buscar por conductor..."
+            errorVariant="tooltip"
+            {...register("driver_name")}
           />
         </div>
 

@@ -1,21 +1,23 @@
 import { Badges, Button, type TableColumn } from "@alpac/design-system";
 import { EyeIcon } from "lucide-react";
-import type { MovementQueueItem } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
-import { STATUS_BADGE_CLASS } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
+import type { DataAccessControl } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
+import { getStatusBadgeClass } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
 
 type MovementsColumnsOptions = {
-  onDetailClick?: (item: MovementQueueItem) => void;
+  onDetailClick?: (item: DataAccessControl) => void;
 };
 
 export function getMovementsColumns({
   onDetailClick,
-}: MovementsColumnsOptions = {}): TableColumn<MovementQueueItem>[] {
+}: MovementsColumnsOptions = {}): TableColumn<DataAccessControl>[] {
   return [
-    { key: "serviceOrder", label: "Orden Servicio" },
-    { key: "placaCabezal", label: "Placa Cabezal" },
-    { key: "driver", label: "Conductor" },
-    { key: "consignee", label: "Consignatario" },
-    { key: "entry", label: "Ingreso" },
+    { key: "plate_number", label: "Placa" },
+    { key: "driver_name", label: "Conductor" },
+    { key: "transportista", label: "Transportista" },
+    { key: "reception_start_date", label: "fecha de ingreso" },
+    { key: "reception_end_date", label: "fecha de salida" },
+    { key: "reception_start_time", label: "Hora de ingreso" },
+    { key: "reception_end_time", label: "Hora de salida" },
     {
       key: "status",
       label: "Estado",
@@ -23,7 +25,7 @@ export function getMovementsColumns({
         <Badges
           label={item.status}
           color="transparent"
-          className={STATUS_BADGE_CLASS[item.status]}
+          className={getStatusBadgeClass(item.status)}
         />
       ),
     },

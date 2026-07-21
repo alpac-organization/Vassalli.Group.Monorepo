@@ -1,20 +1,33 @@
 import { DataTable, Pagination } from "@alpac/design-system";
 import { useCallback, useMemo, useState } from "react";
-import type { MovementQueueItem } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
+import type { DataAccessControl } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import { getMovementsColumns } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/movements-columns";
 import { MovementDetailModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/movement-detail-modal";
 
 type MovementsQueueProps = {
-  data: MovementQueueItem[];
-  onDetailClick?: (item: MovementQueueItem) => void;
+  data: DataAccessControl[];
+  currentPage: number;
+  totalRecords: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  isFetching?: boolean;
+  onDetailClick?: (item: DataAccessControl) => void;
 };
 
-export function MovementsQueue({ data, onDetailClick }: MovementsQueueProps) {
+export function MovementsQueue({
+  data,
+  currentPage,
+  totalRecords,
+  pageSize,
+  onPageChange,
+  isFetching = false,
+  onDetailClick,
+}: MovementsQueueProps) {
   const [selectedMovement, setSelectedMovement] =
-    useState<MovementQueueItem | null>(null);
+    useState<DataAccessControl | null>(null);
 
   const handleDetailClick = useCallback(
-    (item: MovementQueueItem) => {
+    (item: DataAccessControl) => {
       setSelectedMovement(item);
       onDetailClick?.(item);
     },
@@ -35,10 +48,11 @@ export function MovementsQueue({ data, onDetailClick }: MovementsQueueProps) {
           columns={columns}
           pagination={
             <Pagination
-              currentPage={1}
-              totalRecords={data.length}
-              pageSize={10}
-              onPageChange={() => {}}
+              currentPage={currentPage}
+              totalRecords={totalRecords}
+              pageSize={pageSize}
+              onPageChange={onPageChange}
+              disabled={isFetching}
             />
           }
         />

@@ -19,8 +19,8 @@ export type GateEntryModalProps = {
 };
 
 export const GATE_ENTRY_DEFAULT_VALUES: GateEntryFormValues = {
-  countryOfOrigin: "Costa Rica",
-  aduana: "Peñas Blancas",
+  countryOfOrigin: "",
+  aduana: "",
   plateNumber: "",
   trailerChassis: "",
   driverName: "",

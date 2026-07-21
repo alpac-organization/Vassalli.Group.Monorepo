@@ -1,6 +1,6 @@
 import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
-import type { EnumType } from "@app/shared/types/enum.type";
+import { useQueryClient } from "@tanstack/react-query";
 import { AccessControlHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-header/access-control-header";
 import { AccessControlStats } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-stats/access-control-stats";
 import { AccessControlActions } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-actions/access-control-actions";
@@ -8,80 +8,82 @@ import { AccessControlFiltersBar } from "@app/modules/warehouse/ui/warehouse-man
 import { MovementsQueue } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/movements-queue";
 import { GateEntryModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/gate-entry-modal";
 import type { GateEntryFormValues } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/types/gate-entry-modal.types";
-import { MOCK_MOVEMENTS } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/mock/movements.mock";
-import type {
-  AccessControlFilters,
-  MovementQueueItem,
-} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
-import {
-  filterMovements,
-  getAccessControlMetrics,
-} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/filter-movements";
+import type { AccessControlFilters } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
+import { getAccessControlMetrics } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/filter-movements";
+import { useAccessControl } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAccessControl";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import type { GetAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-access-control";
+import { Loader } from "@app/shared/components/loaders/loader";
+
+const PAGE_SIZE = 10;
 
 const EMPTY_FILTERS: AccessControlFilters = {
-  ducaNumero: "",
-  placaCabezal: "",
-  conductor: "",
+  ducat_number: "",
+  plate_number: "",
+  driver_name: "",
 };
 
-function mapFormToMovement(data: GateEntryFormValues): MovementQueueItem {
-  const randomId = Math.floor(1000 + Math.random() * 9000);
-  const now = new Date();
-  const entry = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
-  const firstDuca =
-    data.ducas.find((duca) => duca.value.trim())?.value.trim() ||
-    `DUCA-T-2026-${randomId}`;
-
-  return {
-    id: crypto.randomUUID(),
-    serviceOrder: `OS-MGA-2026-${randomId}`,
-    ducaNumero: firstDuca,
-    placaCabezal: data.plateNumber.toUpperCase(),
-    driver: data.driverName,
-    consignee: data.consignee || "Consignatario General S.A.",
-    entry,
-    status: "PENDIENTE",
-  };
-}
-
 export function AccessControlPage() {
-  const [filters, setFilters] = useState<AccessControlFilters>(EMPTY_FILTERS);
-  const [movements, setMovements] =
-    useState<MovementQueueItem[]>(MOCK_MOVEMENTS);
+  const { companyId, moduleCode } = useUserStore();
+  const queryClient = useQueryClient();
+
+  const [pageNumber, setPageNumber] = useState(1);
+  const [appliedFilters, setAppliedFilters] =
+    useState<AccessControlFilters>(EMPTY_FILTERS);
   const [isGateEntryOpen, setIsGateEntryOpen] = useState(false);
 
-  const plateOptions = useMemo<EnumType[]>(
-    () =>
-      movements.map((item) => ({
-        label: item.placaCabezal,
-        value: item.placaCabezal,
-      })),
-    [movements],
+  const payload = useMemo<GetAccessControlRequest>(
+    () => ({
+      company_id: companyId,
+      module_code: moduleCode,
+      driver_name: appliedFilters.driver_name.trim(),
+      plate_number: appliedFilters.plate_number.trim(),
+      ducat_number: appliedFilters.ducat_number.trim(),
+      page_number: pageNumber,
+      page_size: PAGE_SIZE,
+    }),
+    [companyId, moduleCode, appliedFilters, pageNumber],
   );
 
-  const conductorOptions = useMemo<EnumType[]>(() => {
-    const seen = new Set<string>();
-    return movements.reduce<EnumType[]>((options, item) => {
-      if (seen.has(item.driver)) return options;
-      seen.add(item.driver);
-      options.push({ label: item.driver, value: item.driver });
-      return options;
-    }, []);
-  }, [movements]);
+  const { GetAccessControl } = useAccessControl({ payload });
+  const {
+    data: accessControl,
+    isLoading,
+    isFetching,
+  } = GetAccessControl;
 
-  const filteredMovements = useMemo(
-    () => filterMovements(movements, filters),
-    [movements, filters],
-  );
+  const movements = accessControl?.data ?? [];
+  const totalRecords = accessControl?.total_count ?? 0;
 
   const metrics = useMemo(
-    () => getAccessControlMetrics(movements),
-    [movements],
+    () => getAccessControlMetrics(movements, totalRecords),
+    [movements, totalRecords],
   );
 
-  const handleGateEntrySubmit = useCallback((data: GateEntryFormValues) => {
-    setMovements((prev) => [mapFormToMovement(data), ...prev]);
+  const handleApplyFilters = useCallback((filters: AccessControlFilters) => {
+    setAppliedFilters({
+      ducat_number: filters.ducat_number.trim(),
+      plate_number: filters.plate_number.trim(),
+      driver_name: filters.driver_name.trim(),
+    });
+    setPageNumber(1);
   }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setAppliedFilters(EMPTY_FILTERS);
+    setPageNumber(1);
+  }, []);
+
+  const handlePageChange = useCallback((page: number) => {
+    setPageNumber(page);
+  }, []);
+
+  const handleGateEntrySubmit = useCallback(
+    (_data: GateEntryFormValues) => {
+      void queryClient.invalidateQueries({ queryKey: ["access-control"] });
+    },
+    [queryClient],
+  );
 
   return (
     <m.div
@@ -91,6 +93,8 @@ export function AccessControlPage() {
       transition={{ duration: 0.5 }}
       className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full"
     >
+      {isLoading && <Loader title="Cargando control de acceso..." />}
+
       <AccessControlHeader />
 
       <AccessControlStats metrics={metrics} />
@@ -98,13 +102,18 @@ export function AccessControlPage() {
       <AccessControlActions onGiveEntry={() => setIsGateEntryOpen(true)} />
 
       <AccessControlFiltersBar
-        plateOptions={plateOptions}
-        conductorOptions={conductorOptions}
-        onApply={setFilters}
-        onClear={() => setFilters(EMPTY_FILTERS)}
+        onApply={handleApplyFilters}
+        onClear={handleClearFilters}
       />
 
-      <MovementsQueue data={filteredMovements} onDetailClick={() => {}} />
+      <MovementsQueue
+        data={movements}
+        currentPage={accessControl?.page_number ?? pageNumber}
+        totalRecords={totalRecords}
+        pageSize={accessControl?.page_size ?? PAGE_SIZE}
+        onPageChange={handlePageChange}
+        isFetching={isFetching}
+      />
 
       <GateEntryModal
         isOpen={isGateEntryOpen}

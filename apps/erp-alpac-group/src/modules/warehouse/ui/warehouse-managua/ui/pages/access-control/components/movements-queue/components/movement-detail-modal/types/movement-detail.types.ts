@@ -1,7 +1,7 @@
-import type { MovementQueueItem } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
+import type { DataAccessControl } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 
 export type MovementDetailModalProps = {
   isOpen: boolean;
-  movement: MovementQueueItem | null;
+  movement: DataAccessControl | null;
   onClose: () => void;
 };
