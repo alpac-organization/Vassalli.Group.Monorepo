@@ -6,28 +6,28 @@ export const getManaguaWarehouseRoutes = () => {
    const warehouseManaguaSection: SidebarLink = {
       id: "warehouse-mga",
       label: "Control de Acceso",
-      path: "warehouse-mga/access-control",
+      path: "access-control",
       icon: TruckIcon,
    };
 
    const DucaPanel: SidebarLink = {
       id: "merchandise-registration",
       label: "Ingreso Mercancía",
-      path: "warehouse-mga/merchandise-registration",
+      path: "merchandise-registration",
       icon: ArchiveRestoreIcon,
    };
 
    const warehouseSection4: SidebarLink = {
       id: "warehouse7",
       label: "Asignaciones de Bodegas",
-      path: "warehouse/section4",
+      path: "section4",
       icon: FilePenIcon,
    };
 
    const warehouseSection12: SidebarLink = {
       id: "warehouse15",
       label: "Cuadrillas",
-      path: "warehouse/section12",
+      path: "section12",
       icon: FilePenIcon,
    };
 

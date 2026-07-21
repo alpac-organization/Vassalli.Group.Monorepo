@@ -12,7 +12,8 @@ export interface GetSuppliersResponse {
 }
 
 export interface GetSuppliersResponseList {
-  suppliers: GetSuppliersResponse[];
-  total_pages: number;
-  total_items: number;
+  data: GetSuppliersResponse[];
+  page_number: number;
+  page_size: number;
+  total: number;
 }

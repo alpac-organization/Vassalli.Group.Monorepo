@@ -6,42 +6,42 @@ export const getCorintoWarehouseRoutes = () => {
    const administrativeSection: SidebarLink = {
       id: "administrative-section",
       label: "Sección Administrativa",
-      path: "warehouse-corinto/administrative-section",
+      path: "administrative-section",
       icon: FileCheckIcon
    }
 
    const warehouseCorintoSection: SidebarLink = {
       id: "control-panel",
       label: "Panel Logístico",
-      path: "warehouse-corinto/control-panel",
+      path: "control-panel",
       icon: TruckIcon,
    };
 
    const accessControlSection: SidebarLink = {
       id: "access-control",
       label: "Control de acceso",
-      path: "warehouse-corinto/access",
+      path: "access",
       icon: ShieldCheckIcon,
    };
 
    const scaleSection: SidebarLink = {
       id: "scale",
       label: "Basculaje",
-      path: "warehouse-corinto/scale",
+      path: "scale",
       icon: WeightTildeIcon,
    };
 
    const inboundSection: SidebarLink = {
       id: "warehouse-section",
       label: "Bodega",
-      path: "warehouse-corinto/warehouse",
+      path: "warehouse",
       icon: WarehouseIcon
    }
 
    const warehouseReportSection: SidebarLink = {
       id: "warehouse3",
       label: "Reportes",
-      path: "warehouse/reports",
+      path: "reports",
       icon: FilePenIcon
    };
 

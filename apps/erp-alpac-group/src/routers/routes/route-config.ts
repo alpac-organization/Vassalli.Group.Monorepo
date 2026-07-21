@@ -101,7 +101,7 @@ export const routeConfig = {
     ],
   },
   [ModuleEnum.PROCUREMENT]: {
-    [RoleEnum.OPERATOR]: [
+    [RoleEnum.ADMINISTRATOR]: [
       supplierSection
     ]
   }
