@@ -2,19 +2,13 @@ import { Controller, useFormContext } from "react-hook-form";
 import { Trash2 } from "lucide-react";
 import { Button, Dropdown, InputText, Textarea } from "@alpac/design-system";
 import type { CreateQuoteFormValues } from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/create-quote-form.types";
-import { QuoteImageUploader } from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/components/quote-image-uploader";
+import { QuoteImageUploader } from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/components/product-image-uploader/quote-image-uploader";
 import {
   quoteFormDropdownClassName,
   quoteFormInputClassName,
   quoteFormLabelClassName,
-} from "../create-quote-form.styles";
-
-type ProductQuoteFieldsProps = {
-  supplierIndex: number;
-  productIndex: number;
-  canRemove: boolean;
-  onRemove: () => void;
-};
+} from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/create-quote-form.styles";
+import type { ProductQuoteFieldsProps } from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/components/product-quote-fields/types/product-quote.props";
 
 const UNIT_OPTIONS = [
   { label: "Unidad (UND)", value: "UND" },
@@ -37,7 +31,6 @@ export function ProductQuoteFields({
     register,
     formState: { errors },
   } = useFormContext<CreateQuoteFormValues>();
-
   const productErrors =
     errors.suppliers?.[supplierIndex]?.products?.[productIndex];
   const path = `suppliers.${supplierIndex}.products.${productIndex}` as const;
@@ -58,13 +51,6 @@ export function ProductQuoteFields({
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <InputText
-          label="ID del producto"
-          placeholder="prod-uuid"
-          className={quoteFormInputClassName}
-          labelClassName={quoteFormLabelClassName}
-          {...register(`${path}.product_id`)}
-        />
         <InputText
           label="Nombre del producto"
           placeholder="Ej: Aceite Motor 15W40"

@@ -1,5 +1,5 @@
 import type { GetHistoryQuotesView } from "@app/modules/procurement/ui/pages/quotes/types/quotes-view.types";
-import type { CreateQuoteFormValues } from "./create-quote-form.types";
+import type { CreateQuoteFormValues } from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/create-quote-form.types";
 
 export const mapCreateQuoteFormToView = (
   values: CreateQuoteFormValues,
@@ -13,8 +13,8 @@ export const mapCreateQuoteFormToView = (
   additional_data: {
     quotes_made: values.suppliers.map((supplier) => ({
       suppliers_details: {
-        its_registered: false,
-        supplier_id: null,
+        its_registered: Boolean(supplier.its_registered),
+        supplier_id: supplier.supplier_id,
         supplier_legal_name: supplier.supplier_legal_name.trim(),
         contact_name: supplier.contact_name.trim(),
         contact_phone_number: supplier.contact_phone_number.trim(),

@@ -3,13 +3,7 @@ import { ImagePlus, X } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { Modal, Spinner } from "@alpac/design-system";
 import { fileToBase64 } from "@app/shared/utils/fileToBase64";
-
-type QuoteImageUploaderProps = {
-  value: string[];
-  onChange: (images: string[]) => void;
-  maxFiles?: number;
-  error?: string;
-};
+import type { QuoteImageUploaderProps } from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/components/product-image-uploader/types/quote-image.props";
 
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 const MIN_LOADING_MS = 1500;

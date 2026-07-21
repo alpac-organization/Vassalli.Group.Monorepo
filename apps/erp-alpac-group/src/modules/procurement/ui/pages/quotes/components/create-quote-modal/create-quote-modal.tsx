@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Controller,
   FormProvider,
@@ -14,32 +14,39 @@ import {
   Modal,
   Textarea,
 } from "@alpac/design-system";
-import { Plus, SaveIcon, XIcon } from "lucide-react";
+import { ListChecks, Plus, SaveIcon, XIcon } from "lucide-react";
 import dayjs from "dayjs";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { toDateOnly } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/date-input";
+import { useSuppliers } from "@app/modules/procurement/ui/hooks/suppliers/useSuppliers";
+import type { GetSuppliersResponse } from "@app/modules/procurement/domain/suppliers/responses/get-suppliers-response";
+import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import type { CreateQuoteModalProps } from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/create-quote-modal.types";
 import {
+  createEmptyProduct,
   createEmptySupplier,
   createQuoteDefaultValues,
   type CreateQuoteFormValues,
-} from "./create-quote-form.types";
-import { SupplierQuoteAccordion } from "./components/supplier-quote-accordion";
-import { mapCreateQuoteFormToView } from "./create-quote-form.mapper";
+  type SupplierQuoteFormValues,
+} from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/create-quote-form.types";
+import { SupplierQuoteAccordion } from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/components/supplier-quote-accordion";
+import { SelectSupplierModal } from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/components/select-supplier-modal";
+import { mapCreateQuoteFormToView } from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/create-quote-form.mapper";
 import {
   quoteFormDropdownClassName,
   quoteFormInputClassName,
   quoteFormLabelClassName,
+  quoteFormOutlineButtonClassName,
   quoteFormPrimaryButtonClassName,
   quoteFormSecondaryButtonClassName,
-} from "./create-quote-form.styles";
+} from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/create-quote-form.styles";
 
 export function CreateQuoteModal({
   isOpen,
   onClose,
   onQuoteCreated,
 }: CreateQuoteModalProps) {
-  const { fullName, userName } = useUserStore();
+  const { fullName, userName, companyId, moduleCode } = useUserStore();
   const madeBy = fullName.trim() || userName.trim();
   const [initialValues] = useState(() => createQuoteDefaultValues(madeBy));
   const methods = useForm<CreateQuoteFormValues>({
@@ -60,11 +67,33 @@ export function CreateQuoteModal({
   const [openSuppliers, setOpenSuppliers] = useState<string[]>(() =>
     initialValues.suppliers.map((supplier) => supplier.client_id),
   );
+  const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
+  const [supplierToDelete, setSupplierToDelete] = useState<{
+    index: number;
+    clientId: string;
+    name: string;
+  } | null>(null);
+
+  const { GetSuppliers } = useSuppliers({
+    suppliersFilters: {
+      companie_id: companyId,
+      module_code: moduleCode,
+      page_number: 1,
+      page_size: 100,
+    },
+  });
+
+  const registeredSuppliers = useMemo(
+    () => GetSuppliers.data?.data ?? [],
+    [GetSuppliers.data?.data],
+  );
 
   const resetForm = () => {
     const defaults = createQuoteDefaultValues(madeBy);
     reset(defaults);
     setOpenSuppliers(defaults.suppliers.map((supplier) => supplier.client_id));
+    setIsSelectSupplierOpen(false);
+    setSupplierToDelete(null);
   };
 
   const handleCancel = () => {
@@ -76,6 +105,33 @@ export function CreateQuoteModal({
     onQuoteCreated(mapCreateQuoteFormToView(values));
     resetForm();
     onClose();
+  };
+
+  const appendSupplier = (supplier: SupplierQuoteFormValues) => {
+    append(supplier);
+    setOpenSuppliers((current) => [...current, supplier.client_id]);
+  };
+
+  const handleSelectRegisteredSupplier = (supplier: GetSuppliersResponse) => {
+    const nextSupplier: SupplierQuoteFormValues = {
+      client_id: crypto.randomUUID(),
+      supplier_id: supplier.supplier_id,
+      its_registered: true,
+      supplier_legal_name: supplier.supplier_legal_name,
+      contact_name: supplier.contact_name,
+      contact_phone_number: supplier.contact_phone_number,
+      products: [createEmptyProduct()],
+    };
+    appendSupplier(nextSupplier);
+  };
+
+  const confirmDeleteSupplier = () => {
+    if (!supplierToDelete) return;
+    remove(supplierToDelete.index);
+    setOpenSuppliers((current) =>
+      current.filter((value) => value !== supplierToDelete.clientId),
+    );
+    setSupplierToDelete(null);
   };
 
   return (
@@ -161,27 +217,20 @@ export function CreateQuoteModal({
                     })}
                   />
 
-                  <Controller
-                    control={control}
-                    name="currency"
-                    rules={{ required: "Seleccione la moneda." }}
-                    render={({ field }) => (
-                      <Dropdown
-                        label="Moneda"
-                        isRequired
-                        appearance="dark"
-                        options={[
-                          { label: "Córdobas (NIO)", value: "NIO" },
-                          { label: "Dólares (USD)", value: "USD" },
-                        ]}
-                        placeholder="Seleccione..."
-                        value={field.value}
-                        onChange={field.onChange}
-                        error={errors.currency?.message}
-                        labelClassName={quoteFormLabelClassName}
-                        className={quoteFormDropdownClassName}
-                      />
-                    )}
+                  <InputText
+                    type="te"
+                    label="Código de requisición"
+                    placeholder="codigo de requisición"
+                    error={errors.approximate_cost?.message}
+                    className={quoteFormInputClassName}
+                    labelClassName={quoteFormLabelClassName}
+                    {...register("approximate_cost", {
+                      valueAsNumber: true,
+                      min: {
+                        value: 0,
+                        message: "El costo no puede ser negativo.",
+                      },
+                    })}
                   />
                 </div>
 
@@ -219,30 +268,34 @@ export function CreateQuoteModal({
                       accordionValue={field.client_id}
                       canRemove={fields.length > 1}
                       onRemove={() => {
-                        remove(supplierIndex);
-                        setOpenSuppliers((current) =>
-                          current.filter((value) => value !== field.client_id),
-                        );
+                        setSupplierToDelete({
+                          index: supplierIndex,
+                          clientId: field.client_id,
+                          name:
+                            field.supplier_legal_name?.trim() ||
+                            `Proveedor ${supplierIndex + 1}`,
+                        });
                       }}
                     />
                   ))}
                 </AccordionGroup>
 
-                <div className="flex justify-start">
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-start">
                   <Button
                     type="button"
                     size="giant"
                     label="Agregar proveedor"
                     icon={<Plus size={20} />}
                     className={`w-full! sm:w-auto! ${quoteFormPrimaryButtonClassName}`}
-                    onClick={() => {
-                      const supplier = createEmptySupplier();
-                      append(supplier);
-                      setOpenSuppliers((current) => [
-                        ...current,
-                        supplier.client_id,
-                      ]);
-                    }}
+                    onClick={() => appendSupplier(createEmptySupplier())}
+                  />
+                  <Button
+                    type="button"
+                    size="giant"
+                    label="Seleccionar proveedor"
+                    icon={<ListChecks size={20} />}
+                    className={`w-full! sm:w-auto! ${quoteFormOutlineButtonClassName}`}
+                    onClick={() => setIsSelectSupplierOpen(true)}
                   />
                 </div>
               </section>
@@ -251,12 +304,6 @@ export function CreateQuoteModal({
 
           <div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-[12px] text-slate-500 dark:text-slate-400">
-                <span className="font-bold text-red-500 dark:text-red-400">
-                  *
-                </span>{" "}
-                Campos requeridos
-              </span>
               <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center">
                 <Button
                   type="button"
@@ -283,6 +330,29 @@ export function CreateQuoteModal({
           </div>
         </form>
       </FormProvider>
+
+      <SelectSupplierModal
+        key={
+          isSelectSupplierOpen
+            ? "select-supplier-open"
+            : "select-supplier-closed"
+        }
+        isOpen={isSelectSupplierOpen}
+        onClose={() => setIsSelectSupplierOpen(false)}
+        suppliers={registeredSuppliers}
+        isLoading={GetSuppliers.isPending || GetSuppliers.isFetching}
+        onSelect={handleSelectRegisteredSupplier}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(supplierToDelete)}
+        type="CANCEL"
+        title={`¿Está seguro de eliminar a "${supplierToDelete?.name ?? "este proveedor"}"? Se quitarán también sus productos de la cotización.`}
+        buttonActionLabel="Eliminar"
+        buttonActionClass="rounded-md! bg-red-500! text-white! hover:bg-red-600! dark:bg-red-700!"
+        onClose={() => setSupplierToDelete(null)}
+        handleFinalAction={confirmDeleteSupplier}
+      />
     </Modal>
   );
 }

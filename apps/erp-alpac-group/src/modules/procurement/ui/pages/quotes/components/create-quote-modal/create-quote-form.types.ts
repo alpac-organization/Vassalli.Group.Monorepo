@@ -12,6 +12,8 @@ export type ProductQuoteFormValues = {
 
 export type SupplierQuoteFormValues = {
   client_id: string;
+  supplier_id: string | null;
+  its_registered: boolean;
   supplier_legal_name: string;
   contact_name: string;
   contact_phone_number: string;
@@ -27,6 +29,13 @@ export type CreateQuoteFormValues = {
   suppliers: SupplierQuoteFormValues[];
 };
 
+export type CatalogProductOption = {
+  product_id: string;
+  product_name: string;
+  product_cost: number;
+  unit_measure_id: string;
+};
+
 export const createEmptyProduct = (): ProductQuoteFormValues => ({
   client_id: crypto.randomUUID(),
   product_id: "",
@@ -39,6 +48,8 @@ export const createEmptyProduct = (): ProductQuoteFormValues => ({
 
 export const createEmptySupplier = (): SupplierQuoteFormValues => ({
   client_id: crypto.randomUUID(),
+  supplier_id: null,
+  its_registered: false,
   supplier_legal_name: "",
   contact_name: "",
   contact_phone_number: "",
