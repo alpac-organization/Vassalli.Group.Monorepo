@@ -103,6 +103,30 @@ export const formatIdentificationNumber = (identification: string): string => {
 };
 
 /**
+ * Formatea un string a formato de cédula nicaragüense (000-000000-0000X)
+ * @param identification - El número de cédula (con o sin guiones)
+ * @returns La cédula formateada o el valor original si no cumple el mínimo
+ */
+export const formatRuc = (identification: string): string => {
+
+   if (!identification) return "";
+
+   const raw = identification
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .toUpperCase()
+      .slice(0, 14);
+
+   const letter = raw.slice(0, 1).replace(/[^A-Z]/g, "");
+   const numbers = raw.slice(1, 14).replace(/[^0-9]/g, "");
+
+   const clean = letter + numbers;
+
+   if (clean.length <= 1) return clean;   
+
+   return `${clean.slice(0, 1)}${clean.slice(1)}`;
+};
+
+/**
  * Formatea un string a formato de teléfono nicaragüense (0000-0000)
  * @param phone - El número de teléfono (con o sin guiones)
  * @returns El teléfono formateado o el valor original si no cumple el mínimo

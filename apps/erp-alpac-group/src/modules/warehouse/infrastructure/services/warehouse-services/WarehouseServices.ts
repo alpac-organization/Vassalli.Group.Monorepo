@@ -16,9 +16,7 @@ export class WarehouseServices implements IWarehouseServices {
 
    async GetWarehouses(payload: GetWarehouseRequest): Promise<any> {
       try {
-         const { company_id, module_code, ...rest } = payload;
-
-         console.log(company_id, module_code)
+         const { company_id, module_code, ...rest } = payload;         
 
          const url = `companies/${company_id}/modules/${module_code}/warehouse`;
 

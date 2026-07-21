@@ -1,7 +1,9 @@
 import type { IHttpHandler } from "@app/core/ports";
 import type { ISupplierServices } from "@app/modules/procurement/application/interfaces/suppliers/ISuppliersServices";
-import type { GetSuppliersRequest } from "@app/modules/procurement/domain/suppliers/requests/get-supplier-request";
-import type { GetSuppliersResponseList } from "@app/modules/procurement/domain/suppliers/responses/get-suppliers";
+import type { CreateSupplierRequest } from "@app/modules/procurement/domain/suppliers/requests/create-supplier-request";
+import type { GetSuppliersRequest } from "@app/modules/procurement/domain/suppliers/requests/get-suppliers-request";
+import type { UpdateSupplierRequest } from "@app/modules/procurement/domain/suppliers/requests/update-suppliers-request";
+import type { GetSuppliersResponseList } from "@app/modules/procurement/domain/suppliers/responses/get-suppliers-response";
 import { cleanParams } from "@app/shared/utils/object.utils";
 
 export class SupplierServices implements ISupplierServices {
@@ -26,11 +28,11 @@ export class SupplierServices implements ISupplierServices {
 		}
 	}
 
-	async CreateSupplier(payload: any): Promise<void> {
+	async CreateSupplier(payload: CreateSupplierRequest): Promise<void> {
 		try {
-			const { companie_id, module_code, ...rest } = payload;
+			const { company_id, module_code, ...rest } = payload;
 
-			const url = `/companies/${companie_id}/modules/${module_code}/suppliers`;
+			const url = `/companies/${company_id}/modules/${module_code}/suppliers`;
 
 			await this.httpHandler.post<void>(url, rest);
 		} catch (error) {
@@ -38,13 +40,13 @@ export class SupplierServices implements ISupplierServices {
 		}
 	}
 
-	async UpdateSupplier(payload: any): Promise<void> {
+	async UpdateSupplier(payload: UpdateSupplierRequest): Promise<void> {
 		try {
-			const { companie_id, module_code, supplier_id, ...rest } = payload;
+			const { company_id, module_code, supplier_id, ...rest } = payload;
 
-			const url = `companies/${companie_id}/modules/${module_code}/suppliers/${supplier_id}`;
+			const url = `companies/${company_id}/modules/${module_code}/suppliers/${supplier_id}`;
 
-			await this.httpHandler.put<void>(url, rest);
+			await this.httpHandler.patch<void>(url, rest);
 		} catch (error) {
 			throw error;
 		}
