@@ -2,16 +2,18 @@ import { useRef, useState } from "react";
 import { NavLink, useParams } from "react-router-dom";
 import type { SidebarItemsProps } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 import SidebarTooltip from "@app/shared/layouts/dashboard-layout/components/Sidebar/SidebarTooltip";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 export const SidebarItem = ({ item, isOpen, setIsOpen }: SidebarItemsProps) => {
   const { alias_company } = useParams<{ alias_company: string }>();
+  const moduleBasePath = useUserStore((item) => item.moduleBasePath);
   const Icon = item.icon;
   const itemRootRef = useRef<HTMLDivElement>(null);
   const [tooltipOpen, setTooltipOpen] = useState(false);
 
   const dashboardHref =
-    alias_company != null && alias_company !== ""
-      ? `/${alias_company}/dashboard/${item.path}`
+    (!!alias_company && !!moduleBasePath)
+      ? `/${alias_company}/dashboard/${moduleBasePath}/${item.path}`
       : `/dashboard/${item.path}`;
 
   const handleClick = () => {

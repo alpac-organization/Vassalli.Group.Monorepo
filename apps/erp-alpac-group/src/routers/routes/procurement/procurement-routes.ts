@@ -5,13 +5,13 @@ export const getProcurementRoutes = () => {
   const supplierSection: SidebarLink = {
     id: "supplier",
     label: "Proveedores",
-    path: "procurement/suppliers",
+    path: "suppliers",
     icon: PackageSearchIcon,
   };
   const quotesSection: SidebarLink = {
     id: "quotes",
     label: "Cotizaciones",
-    path: "procurement/quotes",
+    path: "quotes",
     icon: FileCheck,
   };
 

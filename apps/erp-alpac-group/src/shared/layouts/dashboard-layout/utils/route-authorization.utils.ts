@@ -1,4 +1,5 @@
 import type { SidebarLink } from "../components/Sidebar/types/sidebar.types";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 const normalizePath = (path: string): string =>
    path.replace(/^\/+|\/+$/g, "");
@@ -7,18 +8,24 @@ export const getDashboardRelativePath = (pathname: string): string => {
 
    const segments = normalizePath(pathname).split("/").filter(Boolean);
 
-   const dashboardIndex = segments.indexOf("dashboard");
+   const companyAlias = useUserStore.getState().companyAlias?.toLowerCase() ?? "";
 
-   if (dashboardIndex === -1) return normalizePath(pathname);
+   const aliasIndex = segments.findIndex(
+      (segment) => segment.toLowerCase() === companyAlias,
+   );
 
-   return segments.slice(dashboardIndex + 1).join("/");
+   if (aliasIndex === -1) return normalizePath(pathname);
+
+   return segments.slice(aliasIndex + 2).join("/");
 };
 
 export const matchesAuthorizedRoute = (pathname: string, link: SidebarLink): boolean => {
 
+   const moduleBasePath = useUserStore.getState().moduleBasePath?.toLowerCase() ?? "";
+
    const current = normalizePath(getDashboardRelativePath(pathname));
 
-   const authorized = normalizePath(link.path);
+   const authorized = normalizePath(moduleBasePath ? `${moduleBasePath}/${link.path}` : link.path);   
 
    if (!current || !authorized) return false;
 
