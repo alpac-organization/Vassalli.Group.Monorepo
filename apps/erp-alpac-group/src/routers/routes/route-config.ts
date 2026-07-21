@@ -5,7 +5,7 @@ import { getAdminRoutes } from "@app/routers/routes/admin/admin-routes";
 import { getWorkManagementRoutes } from "@app/routers/routes/work-management/work-managment-routes";
 import { getCorintoWarehouseRoutes } from "@app/routers/routes/warehouse/corinto/corinto-routes";
 import { getManaguaWarehouseRoutes } from "@app/routers/routes/warehouse/managua/managua-routes";
-import { getProcurementRoutes } from "./procurement/procurement-routes";
+import { getPurchasingRoutes } from "./purchasing/purchasing-routes";
 
 const {
   collboratorSection,
@@ -47,8 +47,10 @@ const {
 } = getManaguaWarehouseRoutes();
 
 const {
-  supplierSection
-} = getProcurementRoutes();
+  supplierSection,
+  requisitionSection,
+  purchaseOrderSection
+} = getPurchasingRoutes();
 
 export const routeConfig = {
   [ModuleEnum.PAYROLL]: {
@@ -100,9 +102,11 @@ export const routeConfig = {
       warehouseReportSection,
     ],
   },
-  [ModuleEnum.PROCUREMENT]: {
+  [ModuleEnum.PURCHASING]: {
     [RoleEnum.ADMINISTRATOR]: [
-      supplierSection
+      supplierSection,
+      requisitionSection,
+      purchaseOrderSection
     ]
   }
 };

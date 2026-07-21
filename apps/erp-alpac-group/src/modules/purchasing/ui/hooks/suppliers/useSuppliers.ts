@@ -1,9 +1,9 @@
 import { httpHandler } from "@app/core/adapters";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { CreateSupplierRequest } from "@app/modules/procurement/domain/suppliers/requests/create-supplier-request";
-import type { GetSuppliersRequest } from "@app/modules/procurement/domain/suppliers/requests/get-suppliers-request";
-import type { UpdateSupplierRequest } from "@app/modules/procurement/domain/suppliers/requests/update-suppliers-request";
-import { SupplierServices } from "@app/modules/procurement/Infrastructure/services/suppliers/SupplierServices";
+import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/suppliers/requests/create-supplier-request";
+import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/suppliers/requests/get-suppliers-request";
+import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/suppliers/requests/update-suppliers-request";
+import { SupplierServices } from "@app/modules/purchasing/infrastructure/services/suppliers/SupplierServices";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const suppliersServices = new SupplierServices(httpHandler);

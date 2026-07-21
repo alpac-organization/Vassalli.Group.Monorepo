@@ -2,10 +2,10 @@ import { useEffect, useMemo } from "react";
 import { Button, Dropdown, InputText, Modal, Textarea } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
 import { IdentificationEnum, IdentificationOptions } from "@app/core/enums/identification.enum";
-import type { CreateSupplierRequest } from "@app/modules/procurement/domain/suppliers/requests/create-supplier-request";
+import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/suppliers/requests/create-supplier-request";
 import type { SupplierModalProps } from "./supplier-modal.types";
 import { ConstitutionEnum, ConstitutionOptions } from "@app/core/enums/constitution.enum";
-import { useSuppliers } from "@app/modules/procurement/ui/hooks/suppliers/useSuppliers";
+import { useSuppliers } from "@app/modules/purchasing/ui/hooks/suppliers/useSuppliers";
 import {
    formatIdentificationNumber,
    formatRuc,
@@ -14,7 +14,7 @@ import {
 } from "@app/shared/utils/string.utils";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
-import type { UpdateSupplierRequest } from "@app/modules/procurement/domain/suppliers/requests/update-suppliers-request";
+import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/suppliers/requests/update-suppliers-request";
 import { useFieldTracker } from "@app/shared/hooks/useFieldTracker";
 
 const inputClassName =
@@ -466,6 +466,11 @@ export const SupplierModal = ({
                         onChange: (evt) => trackField("address", evt.target.value),
                      })}
                      error={errors.address?.message}
+                     maxLength={500}
+                     style={{
+                        resize: "none",
+                        height: "100px"
+                     }}                     
                   />
                </div>
             </div>
