@@ -2,11 +2,10 @@ import { Button, InputText } from "@alpac/design-system";
 import { useForm } from "react-hook-form";
 import type { AccessControlFilters } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
 import type { AccessControlFiltersProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/types/access-control.types";
-
-const inputClassName =
-  "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-
-const labelClassName = "text-black! dark:text-white!";
+import {
+  inputClassName,
+  labelClassName,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/utils/styles";
 
 const EMPTY_FILTERS: AccessControlFilters = {
   ducat_number: "",
@@ -47,11 +46,11 @@ export function AccessControlFiltersBar({
       >
         <div className="flex flex-col min-w-0">
           <InputText
-            label="Número DUCA"
+            label="Número DUCAT"
             className={inputClassName}
             labelClassName={labelClassName}
             type="text"
-            placeholder="Ingrese número DUCA"
+            placeholder="Ingrese número DUCAT"
             errorVariant="tooltip"
             {...register("ducat_number")}
           />

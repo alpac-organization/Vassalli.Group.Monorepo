@@ -1,14 +1,9 @@
 import { InputText } from "@alpac/design-system";
-import type { UseFormRegister } from "react-hook-form";
-import type { GateEntryFormValues } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/types/gate-entry-modal.types";
 import {
   gateEntryInputClassName,
   gateEntryLabelClassName,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
-
-type VehicleDataStepProps = {
-  register: UseFormRegister<GateEntryFormValues>;
-};
+import type { VehicleDataStepProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/vehicle-data-step/types/vehicle-data.props";
 
 export function VehicleDataStep({ register }: VehicleDataStepProps) {
   return (

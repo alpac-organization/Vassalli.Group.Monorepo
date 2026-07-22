@@ -1,5 +1,5 @@
 import type { DataAccessControl } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
-import type { AccessControlMetrics } from "../types/movement.types";
+import type { AccessControlMetrics } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
 
 export function getAccessControlMetrics(
   items: DataAccessControl[],

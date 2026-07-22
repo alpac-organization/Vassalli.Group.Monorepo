@@ -1,6 +1,6 @@
 import { Badges, Button, Modal } from "@alpac/design-system";
-import { DetailField } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/detail-field";
-import { DetailSection } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/detail-section";
+import { DetailField } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/detail-field/detail-field";
+import { DetailSection } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/detail-section/detail-section";
 import type { MovementDetailModalProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/types/movement-detail.types";
 import { getStatusBadgeClass } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
 
@@ -56,7 +56,7 @@ export function MovementDetailModal({
               description="Documentos y datos del vehículo"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DetailField label="Número DUCA" value={ducaNumbers} />
+                <DetailField label="Número DUCAT" value={ducaNumbers} />
                 <DetailField
                   label="Placa cabezal"
                   value={movement.plate_number || "—"}
@@ -93,7 +93,7 @@ export function MovementDetailModal({
           </div>
         </div>
       ) : (
-        <div className="min-h-[120px]" />
+        <div className="min-h-120px" />
       )}
     </Modal>
   );

@@ -1,10 +1,4 @@
-import type { ReactNode } from "react";
-
-type DetailSectionProps = {
-  title: string;
-  description?: string;
-  children: ReactNode;
-};
+import type { DetailSectionProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/detail-section/types/detail-section.props";
 
 export function DetailSection({
   title,

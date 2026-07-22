@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm, type SubmitHandler } from "react-hook-form";
-import { DucasStep } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/ducas-step";
-import { VehicleDataStep } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/vehicle-data-step";
+import { DucasStep } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/ducat-stepper/ducat-step";
+import { VehicleDataStep } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/vehicle-data-step/vehicle-data-step";
 import {
   GATE_ENTRY_DEFAULT_VALUES,
   GATE_ENTRY_STEPS,
@@ -19,24 +19,8 @@ import {
   type GateEntryModalProps,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/types/gate-entry-modal.types";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
-
-const stepVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 24 : -24,
-    opacity: 0,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-  },
-  exit: (direction: number) => ({
-    x: direction < 0 ? 24 : -24,
-    opacity: 0,
-  }),
-};
-
-const footerButtonClass =
-  "w-full! sm:w-auto! shrink-0! max-sm:h-9! max-sm:px-2! max-sm:py-1! max-sm:text-[12px]! text-[14px]! sm:text-[15px]! rounded-md! justify-center!";
+import { stepVariants } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
+import { footerButtonClass } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
 
 export function GateEntryModal({
   isOpen,
@@ -132,7 +116,7 @@ export function GateEntryModal({
             <Stepper
               currentStep={currentStep}
               steps={[...GATE_ENTRY_STEPS]}
-              className="min-w-[280px] pt-1 pb-9 sm:pt-2 sm:pb-10"
+              className="min-w-280px pt-1 pb-9 sm:pt-2 sm:pb-10"
             />
           </div>
 

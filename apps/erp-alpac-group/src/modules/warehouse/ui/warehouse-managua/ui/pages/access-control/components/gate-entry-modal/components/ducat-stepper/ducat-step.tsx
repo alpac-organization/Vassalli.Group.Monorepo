@@ -2,8 +2,7 @@ import { Button, InputText } from "@alpac/design-system";
 import { AnimatePresence, m } from "framer-motion";
 import { Trash2Icon, AlertTriangleIcon } from "lucide-react";
 import { useLayoutEffect, useRef } from "react";
-import type { FieldArrayWithId, UseFormRegister } from "react-hook-form";
-import type { GateEntryFormValues } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/types/gate-entry-modal.types";
+import type { DucasStepProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/ducat-stepper/types/ducat-step.props";
 import {
   getScrollParent,
   ENTER_ANIMATION_MS,
@@ -14,12 +13,6 @@ import {
   gateEntryInputClassName,
   gateEntryLabelClassName,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
-
-type DucasStepProps = {
-  fields: FieldArrayWithId<GateEntryFormValues, "ducas", "id">[];
-  register: UseFormRegister<GateEntryFormValues>;
-  onRemove: (index: number) => void;
-};
 
 export function DucasStep({ fields, register, onRemove }: DucasStepProps) {
   const lastItemRef = useRef<HTMLDivElement>(null);

@@ -1,9 +1,6 @@
 import { Button } from "@alpac/design-system";
 import { PlusIcon } from "lucide-react";
-
-type AccessControlActionsProps = {
-  onGiveEntry?: () => void;
-};
+import type { AccessControlActionsProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-actions/types/access-control-action";
 
 export function AccessControlActions({
   onGiveEntry,
