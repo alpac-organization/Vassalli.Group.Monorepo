@@ -86,7 +86,7 @@ export const Requisition = () => {
 			{ key: "requisition_number", label: "N° Requisición" },
 			{ key: "requester_name", label: "Solicitante" },
 			{ key: "area_name", label: "Área" },
-			{ key: "request_date", label: "Fecha" },
+			{ key: "required_date", label: "Fecha límite" },
 			{ key: "status", label: "Estado" },
 			{
 				key: "actions",

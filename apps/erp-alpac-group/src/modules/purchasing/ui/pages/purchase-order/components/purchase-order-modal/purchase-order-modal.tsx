@@ -1,39 +1,27 @@
 import { useEffect, useState } from "react";
-import { Button, Dropdown, InputText, Modal, Textarea } from "@alpac/design-system";
+import { Button, DatePicker, Dropdown, Modal, Textarea } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
 import type { PurchaseOrderModalProps } from "./purchase-order-modal.types";
 import { QuotesSelectionModal } from "../quote-selection-modal/quote-selection-modal";
+import dayjs from "dayjs";
+import { CurrencyOptions } from "@app/core/enums/currency.enum";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-const dropdownClassName =
-	`${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
 const labelClassName = "text-black! dark:text-white!";
 
-const statusOptions = [
-	{ label: "Borrador", value: "draft" },
-	{ label: "Pendiente", value: "pending" },
-	{ label: "Aprobada", value: "approved" },
-	{ label: "Recibida", value: "received" },
-	{ label: "Cancelada", value: "cancelled" },
-];
-
 type PurchaseOrderFormValues = {
-	order_number: string;
-	supplier_name: string;
-	order_date: string;
-	total_amount: string;
-	status: string;
+	expected_delivery_date: string;
+	currency: number;
 	notes: string;
+	payment_type: number;
 };
 
 const emptyFormValues: PurchaseOrderFormValues = {
-	order_number: "",
-	supplier_name: "",
-	order_date: "",
-	total_amount: "",
-	status: "draft",
+	expected_delivery_date: "",
+	currency: -1,
 	notes: "",
+	payment_type: -1
 };
 
 export const PurchaseOrderModal = ({
@@ -42,16 +30,11 @@ export const PurchaseOrderModal = ({
 	onSubmit,
 	selectedPurchaseOrder,
 }: PurchaseOrderModalProps) => {
-
 	const isEditMode = Boolean(selectedPurchaseOrder?.purchase_order_id);
-	const [isQuoteSelectionModalOpen, setIsQuoteSelectionModalOpen] = useState(false);
+	const [isQuoteSelectionModalOpen, setIsQuoteSelectionModalOpen] =
+		useState(false);
 
-	const {
-		control,
-		handleSubmit,
-		reset,
-		formState: { errors },
-	} = useForm<PurchaseOrderFormValues>({
+	const { control, handleSubmit, reset, formState: { errors } } = useForm<PurchaseOrderFormValues>({
 		defaultValues: emptyFormValues,
 	});
 
@@ -60,11 +43,6 @@ export const PurchaseOrderModal = ({
 
 		if (selectedPurchaseOrder) {
 			reset({
-				order_number: selectedPurchaseOrder.order_number,
-				supplier_name: selectedPurchaseOrder.supplier_name,
-				order_date: selectedPurchaseOrder.order_date,
-				total_amount: selectedPurchaseOrder.total_amount,
-				status: selectedPurchaseOrder.status,
 				notes: "",
 			});
 			return;
@@ -74,8 +52,8 @@ export const PurchaseOrderModal = ({
 	}, [isOpen, selectedPurchaseOrder, reset]);
 
 	const handleSelectQuotes = () => {
-		setIsQuoteSelectionModalOpen(true)
-	}
+		setIsQuoteSelectionModalOpen(true);
+	};
 
 	const handleFormSubmit = handleSubmit(() => {
 		onSubmit?.();
@@ -96,25 +74,10 @@ export const PurchaseOrderModal = ({
 		>
 			<form onSubmit={handleFormSubmit} className="flex flex-col gap-4">
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-					<Controller
-						name="order_number"
-						control={control}
-						rules={{ required: "El número de orden es requerido" }}
-						render={({ field }) => (
-							<InputText
-								label="N° Orden"
-								placeholder="Ej. OC-2026-001"
-								className={inputClassName}
-								labelClassName={labelClassName}
-								value={field.value}
-								onChange={field.onChange}
-								error={errors.order_number?.message}
-							/>
-						)}
-					/>
-
 					<div className="flex flex-col gap-1.5 w-full max-w-full box-border">
-						<span className="text-[14px] font-medium  ml-0.5 text-black! dark:text-white!">Asociar cotización</span>
+						<span className="text-[14px] font-medium ml-0.5 text-black! dark:text-white!">
+							Cotización Origen
+						</span>
 						<Button
 							label="Seleccionar cotización"
 							type="button"
@@ -123,54 +86,112 @@ export const PurchaseOrderModal = ({
 							onClick={handleSelectQuotes}
 						/>
 					</div>
-
-					<Controller
-						name="order_date"
-						control={control}
-						rules={{ required: "La fecha es requerida" }}
-						render={({ field }) => (
-							<InputText
-								label="Fecha"
-								type="date"
-								className={inputClassName}
-								labelClassName={labelClassName}
-								value={field.value}
-								onChange={field.onChange}
-								error={errors.order_date?.message}
-							/>
-						)}
-					/>
-
-					<Controller
-						name="status"
-						control={control}
-						render={({ field }) => (
-							<Dropdown
-								label="Estado"
-								placeholder="Seleccione..."
-								appearance="dark"
-								options={statusOptions}
-								value={field.value}
-								onChange={(value) => field.onChange(String(value))}
-								className={dropdownClassName}
-								labelClassName={labelClassName}
-								valueClassName={labelClassName}
-							/>
-						)}
-					/>
 				</div>
+
+				<Controller
+					name="expected_delivery_date"
+					control={control}
+					rules={{
+						required: "La fecha límite es requerida",
+						validate: (value) => {
+							if (!value) return "La fecha límite es requerida";
+
+							const selectedDate = dayjs(value).startOf("day");
+							if (!selectedDate.isValid()) {
+								return "La fecha no es válida";
+							}
+
+							if (!selectedDate.isAfter(dayjs().startOf("day"), "day")) {
+								return "La fecha límite debe ser una fecha futura";
+							}
+
+							return true;
+						},
+					}}
+					render={({ field }) => (
+						<DatePicker
+							fieldWidth="large"
+							label="Fecha de entrega esperada"
+							labelAbove
+							isRequired
+							minDate={dayjs().add(0, "day")}
+							className={inputClassName}
+							labelClassName={labelClassName}
+							value={field.value ? dayjs(field.value) : null}
+							onChange={(value) => {
+								field.onChange(
+									value ? dayjs(value).format("YYYY-MM-DD") : "",
+								);
+							}}
+							error={errors.expected_delivery_date?.message}
+						/>
+					)}
+				/>
+
+				<Controller
+					name="currency"
+					control={control}
+					rules={{
+						required: "Debe seleccionar tipo de condiciones de pago",
+						validate: (val) => val !== 0 || "Selección inválida",
+					}}
+					render={({ field }) => (
+						<Dropdown
+							label="Condiciones de pago"
+							isRequired
+							options={[{ value: 1, label: "Contado" }, { value: 2, label: "Credito" }]}
+							placeholder="Seleccione..."
+							onChange={(value) => field.onChange(value)}
+							error={errors.currency?.message as string}
+							value={field.value}
+							appearance="dark"
+							labelClassName={labelClassName}
+							valueClassName={labelClassName}
+							className={inputClassName}
+						/>
+					)}
+				/>
+
+				<Controller
+					name="currency"
+					control={control}
+					rules={{
+						required: "Debe seleccionar una moneda",
+						validate: (val) => val !== 0 || "Selección inválida",
+					}}
+					render={({ field }) => (
+						<Dropdown
+							label="Moneda"
+							isRequired
+							options={CurrencyOptions ?? []}
+							placeholder="Seleccione..."
+							onChange={(value) => field.onChange(value)}
+							error={errors.currency?.message as string}
+							value={field.value}
+							appearance="dark"
+							labelClassName={labelClassName}
+							valueClassName={labelClassName}
+							className={inputClassName}
+						/>
+					)}
+				/>
 
 				<Controller
 					name="notes"
 					control={control}
 					render={({ field }) => (
 						<Textarea
-							label="Notas"
+							label="Notas / Observaciones"
 							placeholder="Observaciones de la orden..."
 							className={inputClassName}
 							labelClassName={labelClassName}
 							value={field.value}
 							onChange={field.onChange}
+							maxLength={500}
+							style={{
+								resize: "none",
+								minHeight: "100px",
+							}}
 						/>
 					)}
 				/>
@@ -196,7 +217,7 @@ export const PurchaseOrderModal = ({
 				isOpen={isQuoteSelectionModalOpen}
 				selectionType="single"
 				onClose={() => {
-					setIsQuoteSelectionModalOpen(false)
+					setIsQuoteSelectionModalOpen(false);
 				}}
 			/>
 		</Modal>
