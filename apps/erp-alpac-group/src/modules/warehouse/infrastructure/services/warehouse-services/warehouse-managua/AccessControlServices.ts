@@ -17,6 +17,7 @@ export class AccessControlServices {
         driver_name,
         plate_number,
         ducat_number,
+        date,
         page_number,
         page_size,
       } = payload;
@@ -30,11 +31,13 @@ export class AccessControlServices {
             driver_name,
             plate_number,
             ducat_number,
+            date,
             page_number,
             page_size,
           },
         },
       );
+      console.log("response", response);
       return response;
     } catch (error) {
       throw error;

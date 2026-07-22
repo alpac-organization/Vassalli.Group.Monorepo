@@ -1,5 +1,5 @@
-import { Button, InputText } from "@alpac/design-system";
-import { useForm } from "react-hook-form";
+import { Button, DatePicker, InputText } from "@alpac/design-system";
+import { Controller, useForm } from "react-hook-form";
 import type { AccessControlFilters } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
 import type { AccessControlFiltersProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/types/access-control.types";
 import {
@@ -11,17 +11,22 @@ const EMPTY_FILTERS: AccessControlFilters = {
   ducat_number: "",
   plate_number: "",
   driver_name: "",
+  date: null,
 };
+
+const datePickerClassName =
+  "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 
 export function AccessControlFiltersBar({
   onApply,
   onClear,
   defaultValues = EMPTY_FILTERS,
 }: AccessControlFiltersProps) {
-  const { register, handleSubmit, reset } = useForm<AccessControlFilters>({
-    defaultValues,
-    mode: "onChange",
-  });
+  const { register, handleSubmit, control, reset } =
+    useForm<AccessControlFilters>({
+      defaultValues,
+      mode: "onChange",
+    });
 
   const handleClear = () => {
     reset(EMPTY_FILTERS);
@@ -34,15 +39,15 @@ export function AccessControlFiltersBar({
         <div className="flex flex-col justify-center gap-2">
           <h3 className="p-0! m-0!">Filtros</h3>
           <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
-            Filtra por Num.Ducat, placa o conductor de vehiculo para la busqueda
-            de unidades en el plantel.
+            Filtra por Num.Ducat, placa, conductor o fecha para la busqueda de
+            unidades en el plantel.
           </small>
         </div>
       </div>
 
       <form
         onSubmit={handleSubmit(onApply)}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
       >
         <div className="flex flex-col min-w-0">
           <InputText
@@ -77,6 +82,25 @@ export function AccessControlFiltersBar({
             placeholder="Buscar por conductor..."
             errorVariant="tooltip"
             {...register("driver_name")}
+          />
+        </div>
+
+        <div className="flex flex-col min-w-0">
+          <Controller
+            name="date"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                fieldWidth="large"
+                label="Fecha"
+                className={datePickerClassName}
+                labelClassName={labelClassName}
+                labelAbove
+                value={field.value}
+                onChange={(value) => field.onChange(value)}
+                errorVariant="tooltip"
+              />
+            )}
           />
         </div>
 

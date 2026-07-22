@@ -1,6 +1,8 @@
 import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import dayjs from "dayjs";
+import type { DatePickerValue } from "@alpac/design-system";
 import { AccessControlHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-header/access-control-header";
 import { AccessControlStats } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-stats/access-control-stats";
 import { AccessControlActions } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-actions/access-control-actions";
@@ -21,6 +23,12 @@ const EMPTY_FILTERS: AccessControlFilters = {
   ducat_number: "",
   plate_number: "",
   driver_name: "",
+  date: null,
+};
+
+const toApiDate = (date: DatePickerValue | null): string => {
+  if (!date) return "";
+  return dayjs(date.$d ?? date).format("YYYY-MM-DD");
 };
 
 export function AccessControlPage() {
@@ -39,6 +47,7 @@ export function AccessControlPage() {
       driver_name: appliedFilters.driver_name.trim(),
       plate_number: appliedFilters.plate_number.trim(),
       ducat_number: appliedFilters.ducat_number.trim(),
+      date: toApiDate(appliedFilters.date),
       page_number: pageNumber,
       page_size: PAGE_SIZE,
     }),
@@ -65,6 +74,7 @@ export function AccessControlPage() {
       ducat_number: filters.ducat_number.trim(),
       plate_number: filters.plate_number.trim(),
       driver_name: filters.driver_name.trim(),
+      date: filters.date,
     });
     setPageNumber(1);
   }, []);

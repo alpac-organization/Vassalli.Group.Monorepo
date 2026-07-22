@@ -1,16 +1,105 @@
-import { Badges, Button, Modal } from "@alpac/design-system";
+import { useMemo } from "react";
+import {
+  Badges,
+  Button,
+  Modal,
+  Tabs,
+  type TabItem,
+} from "@alpac/design-system";
 import { DetailField } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/detail-field/detail-field";
 import { DetailSection } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/detail-section/detail-section";
+import { DucatList } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/ducat-list/ducat-list";
 import type { MovementDetailModalProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/types/movement-detail.types";
-import { getStatusBadgeClass } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
+import {
+  getStatusBadgeClass,
+  getStatusBadgeLabel,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
+import { formatDate, formatTime } from "@app/shared/utils/string.utils";
+import type { DataAccessControl } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
+
+type DetailTabId = "resumen" | "ducats";
+
+function ResumenTabContent({ movement }: { movement: DataAccessControl }) {
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-3">
+      <DetailSection title="Resumen">
+        <div className="min-w-0 flex flex-row items-center justify-between gap-3 sm:flex-col sm:items-start sm:gap-1.5">
+          <p className="m-0! shrink-0 text-xs tracking-wide text-slate-500 dark:text-slate-400">
+            Estado:
+          </p>
+          <Badges
+            label={getStatusBadgeLabel(movement.status)}
+            color="transparent"
+            className={getStatusBadgeClass(movement.status)}
+          />
+        </div>
+        <DetailField
+          label="Hora Inicial registro"
+          value={formatTime(movement.reception_start_time)}
+        />
+        <DetailField
+          label="Hora final registro"
+          value={formatTime(movement.reception_end_time)}
+        />
+      </DetailSection>
+
+      <DetailSection title="Identificación">
+        <DetailField
+          label="Placa cabezal"
+          value={movement.plate_number || "—"}
+        />
+        <DetailField
+          label="Fecha de registro"
+          value={
+            movement.reception_start_date
+              ? formatDate(movement.reception_start_date)
+              : "—"
+          }
+        />
+      </DetailSection>
+
+      <DetailSection title="Personas y empresa">
+        <DetailField label="Conductor" value={movement.driver_name || "—"} />
+        <DetailField
+          label="Transportista"
+          value={movement.transportista || "—"}
+        />
+      </DetailSection>
+    </div>
+  );
+}
+
+function DucatsTabContent({ items }: { items: string[] }) {
+  return (
+    <DetailSection title="Documentos DUCAT">
+      <DucatList items={items} />
+    </DetailSection>
+  );
+}
 
 export function MovementDetailModal({
   isOpen,
   movement,
   onClose,
 }: MovementDetailModalProps) {
-  const ducaNumbers =
-    movement?.ducat_numbers?.filter(Boolean).join(", ") || "—";
+  const ducatCount = movement?.ducat_numbers?.filter(Boolean).length ?? 0;
+
+  const tabItems = useMemo<TabItem<DetailTabId>[]>(() => {
+    if (!movement) return [];
+
+    return [
+      {
+        id: "resumen",
+        label: "Resumen",
+        render: () => <ResumenTabContent movement={movement} />,
+      },
+      {
+        id: "ducats",
+        label: `Documentos Ducat (${ducatCount})`,
+        render: () => <DucatsTabContent items={movement.ducat_numbers ?? []} />,
+      },
+    ];
+  }, [movement, ducatCount]);
 
   return (
     <Modal
@@ -18,67 +107,16 @@ export function MovementDetailModal({
       onClose={onClose}
       title="Detalle del movimiento"
       variant="info"
-      size="2xl"
+      size="3xl"
     >
       {movement ? (
         <div className="flex flex-col gap-4 sm:gap-5">
-          <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden p-1 sm:p-2 flex flex-col gap-4 sm:gap-5">
-            <DetailSection
-              title="Resumen"
-              description="Estado actual y hora de ingreso del movimiento"
-            >
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-                <div className="flex  gap-3 sm:items-end sm:shrink-0">
-                  <div className="min-w-0">
-                    <p className="m-0! mb-1.5! text-xs capitalize tracking-wide text-slate-500 dark:text-slate-400">
-                      Estado
-                    </p>
-                    <Badges
-                      label={movement.status}
-                      color="transparent"
-                      className={getStatusBadgeClass(movement.status)}
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="m-0! mb-1.5! text-xs capitalize tracking-wide text-slate-500 dark:text-slate-400">
-                      Hora de ingreso
-                    </p>
-                    <p className="m-0! wrap-break-word text-sm font-medium text-slate-900 dark:text-white">
-                      {movement.reception_start_time || "—"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </DetailSection>
-
-            <DetailSection
-              title="Identificación"
-              description="Documentos y datos del vehículo"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DetailField label="Número DUCAT" value={ducaNumbers} />
-                <DetailField
-                  label="Placa cabezal"
-                  value={movement.plate_number || "—"}
-                />
-              </div>
-            </DetailSection>
-
-            <DetailSection
-              title="Personas / empresa"
-              description="Conductor responsable y transportista"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <DetailField
-                  label="Conductor"
-                  value={movement.driver_name || "—"}
-                />
-                <DetailField
-                  label="Transportista"
-                  value={movement.transportista || "—"}
-                />
-              </div>
-            </DetailSection>
+          <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden p-1 sm:p-2">
+            <Tabs
+              key={movement.record_entrance_id}
+              tabItems={tabItems as TabItem<string>[]}
+              activeTab="resumen"
+            />
           </div>
 
           <div className="shrink-0 sticky bottom-0 z-10 bg-white dark:bg-[#272b34] flex justify-end pt-3 sm:pt-4 border-t border-slate-200 dark:border-neutral-600 -mx-1 px-1 sm:-mx-2 sm:px-2">
