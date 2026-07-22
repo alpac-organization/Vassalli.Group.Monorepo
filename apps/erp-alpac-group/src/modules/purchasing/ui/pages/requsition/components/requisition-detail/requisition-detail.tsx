@@ -76,14 +76,16 @@ export const RequisitionDetail = () => {
 		}));
 	}, [productCategories, isLoadingProductCategories]);
 
-	const handleSelectProduct = (product: SelectableRequisitionProduct) => {
-		append({
-			product_id: product.product_id,
-			description: product.product_name,
-			quantity: "",
-			unit: product.unit_measure_id || product.unit_measure_name,
-			product_category:
-				product.product_category_id || product.product_category_name,
+	const handleSelectProduct = (products: SelectableRequisitionProduct[]) => {
+		products.forEach((product) => {
+			append({
+				product_id: product.product_id,
+				description: product.product_name,
+				quantity: "",
+				unit: product.unit_measure_id || product.unit_measure_name,
+				product_category:
+					product.product_category_id || product.product_category_name,
+			});
 		});
 	};
 
@@ -257,6 +259,7 @@ export const RequisitionDetail = () => {
 				isOpen={isItemSelectionOpen}
 				onClose={() => setIsItemSelectionOpen(false)}
 				onSubmit={handleSelectProduct}
+				selectionType="multiple"
 			/>
 		</div>
 	);

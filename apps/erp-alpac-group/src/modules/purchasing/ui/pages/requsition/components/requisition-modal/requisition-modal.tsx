@@ -87,8 +87,6 @@ export const RequisitionModal = ({
 		defaultValues: emptyFormValues,
 	});
 
-
-
 	const selectedAreaId = useWatch({ control, name: "area_id" });
 
 	const costCentersPayload = useMemo(() => {

@@ -11,7 +11,8 @@ export type SelectableRequisitionProduct = {
 export interface RequisitionItemSelectionModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	onSubmit?: (product: SelectableRequisitionProduct) => void;
+	onSubmit?: (products: SelectableRequisitionProduct[]) => void;
 	onRequestError?: (message?: string) => void;
 	selectedProductId?: string | null;
+	selectionType?: "single" | "multiple";
 }

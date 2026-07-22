@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
 	Button,
+	Checkbox,
 	DataTable,
 	Dropdown,
 	InputText,
@@ -86,6 +87,7 @@ export const RequisitionItemSelectionModal = ({
 	onSubmit,
 	onRequestError,
 	selectedProductId = null,
+	selectionType = "single"
 }: RequisitionItemSelectionModalProps) => {
 	const { companyId, moduleCode } = useUserStore();
 
@@ -94,6 +96,9 @@ export const RequisitionItemSelectionModal = ({
 	const [pageNumber, setPageNumber] = useState(1);
 	const [tempSelected, setTempSelected] =
 		useState<SelectableRequisitionProduct | null>(null);
+	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<
+		SelectableRequisitionProduct[]
+	>([]);
 
 	const { GetProductCategories } = useProduct({
 		productCategoryPayload: {
@@ -157,6 +162,7 @@ export const RequisitionItemSelectionModal = ({
 			setCategoryId("");
 			setPageNumber(1);
 			setTempSelected(null);
+			setTempSelectedMultiple([]);
 			return;
 		}
 
@@ -180,13 +186,41 @@ export const RequisitionItemSelectionModal = ({
 	};
 
 	const handleConfirm = () => {
+		if (selectionType === "multiple") {
+			if (tempSelectedMultiple.length === 0) {
+				onRequestError?.("Debe seleccionar al menos un insumo o producto");
+				return;
+			}
+			onSubmit?.(tempSelectedMultiple);
+			onClose();
+			return;
+		}
+
 		if (!tempSelected) {
 			onRequestError?.("Debe seleccionar un insumo o producto");
 			return;
 		}
 
-		onSubmit?.(tempSelected);
+		onSubmit?.([tempSelected]);
 		onClose();
+	};
+
+	const handleToggleMultipleSelection = (
+		product: SelectableRequisitionProduct,
+	) => {
+		setTempSelectedMultiple((prevArray) => {
+			const alreadySelected = prevArray.some(
+				(item) => item.product_id === product.product_id,
+			);
+
+			if (alreadySelected) {
+				return prevArray.filter(
+					(item) => item.product_id !== product.product_id,
+				);
+			}
+
+			return [...prevArray, product];
+		});
 	};
 
 	const columnConfig: TableColumn<SelectableRequisitionProduct>[] = useMemo(
@@ -194,22 +228,38 @@ export const RequisitionItemSelectionModal = ({
 			{
 				key: "select",
 				label: "",
-				render: (row) => (
-					<RadioButton
-						name="requisition-item-selection"
-						checked={tempSelected?.product_id === row.product_id}
-						onChange={() => setTempSelected(row)}
-						aria-label={`Seleccionar ${row.product_name}`}
-					/>
-				),
+				render: (row) => {
+					return selectionType === "single" ? (
+						<RadioButton
+							name="requisition-item-selection-single"
+							checked={tempSelected?.product_id === row.product_id}
+							onChange={() => setTempSelected(row)}
+							aria-label={`Seleccionar ${row.product_name}`}
+						/>
+					) : (
+						<Checkbox
+							name="requisition-item-selection-multiple"
+							checked={tempSelectedMultiple.some(
+								(item) => item.product_id === row.product_id,
+							)}
+							onChange={() => handleToggleMultipleSelection(row)}
+							aria-label={`Seleccionar ${row.product_name}`}
+						/>
+					);
+				},
 			},
 			{ key: "product_code", label: "Código" },
 			{ key: "product_name", label: "Producto / Insumo" },
 			{ key: "product_category_name", label: "Categoría" },
 			{ key: "unit_measure_name", label: "Unidad" },
 		],
-		[tempSelected],
+		[selectionType, tempSelected, tempSelectedMultiple],
 	);
+
+	const isConfirmDisabled =
+		selectionType === "multiple"
+			? tempSelectedMultiple.length === 0
+			: !tempSelected;
 
 	return (
 		<Modal
@@ -275,7 +325,7 @@ export const RequisitionItemSelectionModal = ({
 						size="giant"
 						label="Seleccionar"
 						onClick={handleConfirm}
-						disabled={!tempSelected}
+						disabled={isConfirmDisabled}
 						className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! disabled:opacity-50!"
 					/>
 				</div>
