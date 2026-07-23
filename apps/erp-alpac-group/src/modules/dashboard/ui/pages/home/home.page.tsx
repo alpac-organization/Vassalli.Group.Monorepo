@@ -77,10 +77,25 @@ export const HomePage = function () {
       });
 
       const routesByModules = routeConfig[module.module_code as keyof typeof routeConfig];
+
+      if (!routesByModules) {
+         setShowModal(true);
+         return;
+      }
+
       const routesByRoles: SidebarLink[] = routesByModules[module.role_type as keyof typeof routesByModules];
+
+      if (!routesByRoles?.length) {
+         setShowModal(true);
+         return;
+      }
+
       const [firstRouteConfig] = routesByRoles;
 
-      if (!firstRouteConfig.path) return;
+      if (!firstRouteConfig?.path) {
+         setShowModal(true);
+         return;
+      }
 
       navigate(`${module.path_redirect}/${firstRouteConfig.path}`);
    }
