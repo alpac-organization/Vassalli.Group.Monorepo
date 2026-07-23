@@ -8,7 +8,7 @@ import { ApplicationRouter } from "@app/routers/routes/application/application-r
 import { WarehouseCorintoRouter } from "@app/routers/routes/warehouse/corinto/corinto-router";
 import { WarehouseManaguaRouter } from "@app/routers/routes/warehouse/managua/managua-router";
 import { AdminRouter } from "@app/routers/routes/admin/admin-router";
-import { ProcurementRouter } from "@app/routers/routes/procurement/procurement-router";
+import { PurchasingRouter } from "@app/routers/routes/purchasing/purchasing-router";
 
 export const DashboardRouter: RouteObject[] = [
   {
@@ -49,7 +49,7 @@ export const DashboardRouter: RouteObject[] = [
       },
       {
         path: "purchasing",
-        children: ProcurementRouter
+        children: PurchasingRouter
       },
     ],
   },
