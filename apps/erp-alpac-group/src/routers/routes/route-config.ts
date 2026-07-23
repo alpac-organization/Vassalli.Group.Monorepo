@@ -49,7 +49,7 @@ const {
 const {
   supplierSection,
   requisitionSection,
-  purchaseOrderSection
+  purchaseOrderSection,
 } = getPurchasingRoutes();
 
 export const routeConfig = {
@@ -106,7 +106,7 @@ export const routeConfig = {
     [RoleEnum.ADMINISTRATOR]: [
       supplierSection,
       requisitionSection,
-      purchaseOrderSection
-    ]
-  }
+      purchaseOrderSection,
+    ],
+  },
 };

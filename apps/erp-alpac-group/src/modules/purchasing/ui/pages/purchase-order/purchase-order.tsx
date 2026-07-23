@@ -1,273 +1,339 @@
 import { useCallback, useMemo, useState } from "react";
 import {
-	Alert,
-	AnimatedAlertWrapper,
-	Breadcrumb,
-	Button,
-	ContextMenu,
-	DataTable,
-	Dropdown,
-	InputText,
-	Pagination,
-	useTheme,
-	type TableColumn,
+  Alert,
+  AnimatedAlertWrapper,
+  Breadcrumb,
+  Button,
+  ContextMenu,
+  DataTable,
+  Dropdown,
+  InputText,
+  Pagination,
+  useTheme,
+  type TableColumn,
 } from "@alpac/design-system";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { m } from "framer-motion";
-import { PackagePlusIcon } from "lucide-react";
+import { FileSpreadsheetIcon, FileTextIcon, PackagePlusIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { pdf } from "@react-pdf/renderer";
 import { PurchaseOrderModal } from "./components/purchase-order-modal/purchase-order-modal";
 import type { PurchaseOrderRow } from "./components/purchase-order-modal/purchase-order-modal.types";
+import { ServiceOrderDocument } from "@app/modules/purchasing/ui/pages/purchase-order/template/service-order";
+import { MOCK_CUADRO_COMPARATIVO } from "@app/modules/purchasing/ui/pages/cuadroComparativo/mock/mock-cuadro-comparativo";
+import { exportCuadroComparativoExcel } from "@app/modules/purchasing/ui/pages/cuadroComparativo/utils/export-cuadro-comparativo-excel";
 
 const inputClassName =
-	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+  "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const dropdownClassName =
-	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
+  "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
 const PAGE_SIZE = 5;
 
 const statusOptions = [
-	{ label: "Borrador", value: "draft" },
-	{ label: "Pendiente", value: "pending" },
-	{ label: "Aprobada", value: "approved" },
-	{ label: "Recibida", value: "received" },
-	{ label: "Cancelada", value: "cancelled" },
+  { label: "Borrador", value: "draft" },
+  { label: "Pendiente", value: "pending" },
+  { label: "Aprobada", value: "approved" },
+  { label: "Recibida", value: "received" },
+  { label: "Cancelada", value: "cancelled" },
 ];
 
 export const PurchaseOrder = () => {
-	const navigate = useNavigate();
-	const { baseUrl } = useBaseUrl();
-	const { theme } = useTheme();
-	const { urlImage, neutralUrlImage } = useCompanyStore();
+  const navigate = useNavigate();
+  const { baseUrl } = useBaseUrl();
+  const { theme } = useTheme();
+  const { urlImage, neutralUrlImage } = useCompanyStore();
 
-	const [isPurchaseOrderModalOpen, setIsPurchaseOrderModalOpen] = useState(false);
-	const [orderNumber, setOrderNumber] = useState("");
-	const [supplierName, setSupplierName] = useState("");
-	const [status, setStatus] = useState<string>("");
-	const [selectedPurchaseOrder, setSelectedPurchaseOrder] =
-		useState<PurchaseOrderRow | null>(null);
-	const [currentPage, setCurrentPage] = useState(1);
+  const [isPurchaseOrderModalOpen, setIsPurchaseOrderModalOpen] =
+    useState(false);
+  const [orderNumber, setOrderNumber] = useState("");
+  const [supplierName, setSupplierName] = useState("");
+  const [status, setStatus] = useState<string>("");
+  const [selectedPurchaseOrder, setSelectedPurchaseOrder] =
+    useState<PurchaseOrderRow | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isGeneratingExcel, setIsGeneratingExcel] = useState(false);
 
-	const {
-		alertState,
-		handleCloseAlert,
-		handleRequestError,
-		handleRequestSuccess,
-	} = useAlertState();
+  const {
+    alertState,
+    handleCloseAlert,
+    handleRequestError,
+    handleRequestSuccess,
+  } = useAlertState();
 
-	const purchaseOrders: PurchaseOrderRow[] = [];
-	const totalRecords = 0;
-	const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
+  const purchaseOrders: PurchaseOrderRow[] = [];
+  const totalRecords = 0;
+  const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
-	const handleClearFilters = () => {
-		setOrderNumber("");
-		setSupplierName("");
-		setStatus("");
-		setCurrentPage(1);
-	};
+  const handleClearFilters = () => {
+    setOrderNumber("");
+    setSupplierName("");
+    setStatus("");
+    setCurrentPage(1);
+  };
 
-	const handlePageChange = useCallback((page: number) => {
-		setCurrentPage(page);
-	}, []);
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
 
-	const onEditPurchaseOrder = (data: PurchaseOrderRow) => {
-		setSelectedPurchaseOrder(data);
-		setIsPurchaseOrderModalOpen(true);
-	};
+  const handleGeneratePdf = useCallback(async () => {
+    try {
+      setIsGeneratingPdf(true);
+      const blob = await pdf(<ServiceOrderDocument />).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch {
+      handleRequestError(
+        "Ocurrió un error al generar la orden de compra en PDF.",
+      );
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }, [handleRequestError]);
 
-	const onViewDetails = (data: PurchaseOrderRow) => {
-		console.log(data);
-	};
+  const handleGenerateCuadroComparativoExcel = useCallback(async () => {
+    try {
+      setIsGeneratingExcel(true);
+      await exportCuadroComparativoExcel({
+        data: MOCK_CUADRO_COMPARATIVO,
+        logoUrl: urlImage,
+      });
+      handleRequestSuccess("Cuadro comparativo generado correctamente.");
+    } catch {
+      handleRequestError(
+        "Ocurrió un error al generar el cuadro comparativo en Excel.",
+      );
+    } finally {
+      setIsGeneratingExcel(false);
+    }
+  }, [handleRequestError, handleRequestSuccess, urlImage]);
 
-	const columnConfig: TableColumn<PurchaseOrderRow>[] = useMemo(
-		() => [
-			{ key: "order_number", label: "N° Orden" },
-			{ key: "supplier_name", label: "Proveedor" },
-			{ key: "order_date", label: "Fecha" },
-			{ key: "total_amount", label: "Total" },
-			{ key: "status", label: "Estado" },
-			{
-				key: "actions",
-				label: "Acciones",
-				render: (row: PurchaseOrderRow) => (
-					<ContextMenu
-						items={[
-							{ label: "Editar", onClick: () => onEditPurchaseOrder(row) },
-							{ label: "Ver detalle", onClick: () => onViewDetails(row) },
-						]}
-					/>
-				),
-			},
-		],
-		[],
-	);
+  const onEditPurchaseOrder = (data: PurchaseOrderRow) => {
+    setSelectedPurchaseOrder(data);
+    setIsPurchaseOrderModalOpen(true);
+  };
 
-	return (
-		<m.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			exit={{ opacity: 0, y: -20 }}
-			transition={{ duration: 0.5 }}
-			className="flex flex-col gap-4"
-		>
-			<div className="flex justify-start">
-				<Breadcrumb
-					items={[
-						{
-							label: "Dashboard",
-							url: `${baseUrl}/`,
-							onClick: (url) => navigate(url),
-						},
-						{
-							label: "Órdenes de Compra",
-							url: `${baseUrl}/purchasing/purchase-orders`,
-							onClick: (url) => navigate(url),
-						},
-					]}
-				/>
-			</div>
+  const onViewDetails = (data: PurchaseOrderRow) => {
+    console.log(data);
+  };
 
-			<div className="flex flex-col">
-				<div className="flex justify-between items-center">
-					<div className="flex flex-col justify-center">
-						<h3 className="p-0! m-0!">Órdenes de Compra</h3>
-						<small className="text-gray-500 dark:text-gray-300">
-							Gestión de Órdenes de Compra
-						</small>
-					</div>
-					<img
-						className="h-12 sm:h-16 md:h-20 w-auto object-contain"
-						src={activeLogo}
-						alt="logo alpac"
-					/>
-				</div>
-			</div>
+  const columnConfig: TableColumn<PurchaseOrderRow>[] = useMemo(
+    () => [
+      { key: "order_number", label: "N° Orden" },
+      { key: "supplier_name", label: "Proveedor" },
+      { key: "order_date", label: "Fecha" },
+      { key: "total_amount", label: "Total" },
+      { key: "status", label: "Estado" },
+      {
+        key: "actions",
+        label: "Acciones",
+        render: (row: PurchaseOrderRow) => (
+          <ContextMenu
+            items={[
+              { label: "Editar", onClick: () => onEditPurchaseOrder(row) },
+              { label: "Ver detalle", onClick: () => onViewDetails(row) },
+            ]}
+          />
+        ),
+      },
+    ],
+    [],
+  );
 
-			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
-				<div className="flex flex-col justify-center">
-					<h3 className="p-0! m-0!">Accesos Directos</h3>
-					<small className="text-gray-500 dark:text-gray-300">
-						Acciones rápidas de órdenes de compra
-					</small>
-				</div>
-			</div>
+  return (
+    <m.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5 }}
+      className="flex flex-col gap-4"
+    >
+      <div className="flex justify-start">
+        <Breadcrumb
+          items={[
+            {
+              label: "Dashboard",
+              url: `${baseUrl}/`,
+              onClick: (url) => navigate(url),
+            },
+            {
+              label: "Órdenes de Compra",
+              url: `${baseUrl}/purchasing/purchase-orders`,
+              onClick: (url) => navigate(url),
+            },
+          ]}
+        />
+      </div>
 
-			<div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-				<div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
-					<Button
-						type="button"
-						size="giant"
-						label="Agregar Orden de Compra"
-						icon={<PackagePlusIcon size={20} />}
-						className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-						onClick={() => {
-							setSelectedPurchaseOrder(null);
-							setIsPurchaseOrderModalOpen(true);
-						}}
-					/>
-				</div>
-			</div>
+      <div className="flex flex-col">
+        <div className="flex justify-between items-center">
+          <div className="flex flex-col justify-center">
+            <h3 className="p-0! m-0!">Órdenes de Compra</h3>
+            <small className="text-gray-500 dark:text-gray-300">
+              Gestión de Órdenes de Compra
+            </small>
+          </div>
+          <img
+            className="h-12 sm:h-16 md:h-20 w-auto object-contain"
+            src={activeLogo}
+            alt="logo alpac"
+          />
+        </div>
+      </div>
 
-			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
-				<div className="flex flex-col justify-center">
-					<h3 className="p-0! m-0!">Filtros</h3>
-					<small className="text-gray-500 dark:text-gray-300">
-						Filtre la lista de órdenes de compra
-					</small>
-				</div>
-			</div>
+      <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+        <div className="flex flex-col justify-center">
+          <h3 className="p-0! m-0!">Accesos Directos</h3>
+          <small className="text-gray-500 dark:text-gray-300">
+            Acciones rápidas de órdenes de compra
+          </small>
+        </div>
+      </div>
 
-			<form
-				onSubmit={(event) => event.preventDefault()}
-				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
-			>
-				<InputText
-					label="N° Orden"
-					placeholder="Ej. OC-2026-001"
-					className={inputClassName}
-					labelClassName={labelClassName}
-					value={orderNumber}
-					onChange={(event) => setOrderNumber(event.target.value)}
-				/>
+      <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+        <div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
+          <Button
+            type="button"
+            size="giant"
+            label="Agregar Orden de Compra"
+            icon={<PackagePlusIcon size={20} />}
+            className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+            onClick={() => {
+              setSelectedPurchaseOrder(null);
+              setIsPurchaseOrderModalOpen(true);
+            }}
+          />
+          <Button
+            type="button"
+            size="giant"
+            label={
+              isGeneratingPdf
+                ? "Generando informe..."
+                : "Generar informe Orden de Compra"
+            }
+            icon={<FileTextIcon size={20} />}
+            disabled={isGeneratingPdf || isGeneratingExcel}
+            className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+            onClick={handleGeneratePdf}
+          />
+          <Button
+            type="button"
+            size="giant"
+            label={
+              isGeneratingExcel
+                ? "Generando Excel..."
+                : "Generar Cuadro Comparativo (Excel)"
+            }
+            icon={<FileSpreadsheetIcon size={20} />}
+            disabled={isGeneratingExcel || isGeneratingPdf}
+            isLoading={isGeneratingExcel}
+            className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+            onClick={handleGenerateCuadroComparativoExcel}
+          />
+        </div>
+      </div>
 
-				<InputText
-					label="Proveedor"
-					placeholder="Ej. Distribuidora del Pacífico"
-					className={inputClassName}
-					labelClassName={labelClassName}
-					value={supplierName}
-					onChange={(event) => setSupplierName(event.target.value)}
-				/>
+      <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+        <div className="flex flex-col justify-center">
+          <h3 className="p-0! m-0!">Filtros</h3>
+          <small className="text-gray-500 dark:text-gray-300">
+            Filtre la lista de órdenes de compra
+          </small>
+        </div>
+      </div>
 
-				<Dropdown
-					label="Estado"
-					placeholder="Seleccione..."
-					appearance="dark"
-					options={statusOptions}
-					value={status}
-					onChange={(value) => setStatus(String(value))}
-					className={dropdownClassName}
-					labelClassName={labelClassName}
-					valueClassName={labelClassName}
-				/>
+      <form
+        onSubmit={(event) => event.preventDefault()}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
+      >
+        <InputText
+          label="N° Orden"
+          placeholder="Ej. OC-2026-001"
+          className={inputClassName}
+          labelClassName={labelClassName}
+          value={orderNumber}
+          onChange={(event) => setOrderNumber(event.target.value)}
+        />
 
-				<Button
-					type="submit"
-					size="giant"
-					label="Aplicar filtros"
-					className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-				/>
+        <InputText
+          label="Proveedor"
+          placeholder="Ej. Distribuidora del Pacífico"
+          className={inputClassName}
+          labelClassName={labelClassName}
+          value={supplierName}
+          onChange={(event) => setSupplierName(event.target.value)}
+        />
 
-				<Button
-					type="button"
-					size="giant"
-					label="Limpiar filtros"
-					onClick={handleClearFilters}
-					className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
-				/>
-			</form>
+        <Dropdown
+          label="Estado"
+          placeholder="Seleccione..."
+          appearance="dark"
+          options={statusOptions}
+          value={status}
+          onChange={(value) => setStatus(String(value))}
+          className={dropdownClassName}
+          labelClassName={labelClassName}
+          valueClassName={labelClassName}
+        />
 
-			<div className="flex flex-col">
-				<DataTable
-					title="Lista de órdenes de compra"
-					data={purchaseOrders}
-					columns={columnConfig}
-					pagination={
-						<Pagination
-							currentPage={currentPage}
-							pageSize={PAGE_SIZE}
-							totalRecords={totalRecords}
-							onPageChange={handlePageChange}
-						/>
-					}
-				/>
-			</div>
+        <Button
+          type="submit"
+          size="giant"
+          label="Aplicar filtros"
+          className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+        />
 
-			<PurchaseOrderModal
-				isOpen={isPurchaseOrderModalOpen}
-				onClose={() => {
-					setIsPurchaseOrderModalOpen(false);
-					setSelectedPurchaseOrder(null);
-				}}
-				onSubmit={() => {
-					setIsPurchaseOrderModalOpen(false);
-					setSelectedPurchaseOrder(null);
-					handleRequestSuccess("Orden de compra guardada correctamente.");
-				}}
-				onRequestError={handleRequestError}
-				selectedPurchaseOrder={selectedPurchaseOrder}
-			/>
+        <Button
+          type="button"
+          size="giant"
+          label="Limpiar filtros"
+          onClick={handleClearFilters}
+          className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+        />
+      </form>
 
-			<AnimatedAlertWrapper open={alertState?.open ?? false}>
-				<Alert
-					type={alertState?.type!}
-					title={alertState?.title}
-					message={alertState?.message!}
-					onClose={handleCloseAlert}
-				/>
-			</AnimatedAlertWrapper>
-		</m.div>
-	);
+      <div className="flex flex-col">
+        <DataTable
+          title="Lista de órdenes de compra"
+          data={purchaseOrders}
+          columns={columnConfig}
+          pagination={
+            <Pagination
+              currentPage={currentPage}
+              pageSize={PAGE_SIZE}
+              totalRecords={totalRecords}
+              onPageChange={handlePageChange}
+            />
+          }
+        />
+      </div>
+
+      <PurchaseOrderModal
+        isOpen={isPurchaseOrderModalOpen}
+        onClose={() => {
+          setIsPurchaseOrderModalOpen(false);
+          setSelectedPurchaseOrder(null);
+        }}
+        onSubmit={() => {
+          setIsPurchaseOrderModalOpen(false);
+          setSelectedPurchaseOrder(null);
+          handleRequestSuccess("Orden de compra guardada correctamente.");
+        }}
+        onRequestError={handleRequestError}
+        selectedPurchaseOrder={selectedPurchaseOrder}
+      />
+
+      <AnimatedAlertWrapper open={alertState?.open ?? false}>
+        <Alert
+          type={alertState?.type!}
+          title={alertState?.title}
+          message={alertState?.message!}
+          onClose={handleCloseAlert}
+        />
+      </AnimatedAlertWrapper>
+    </m.div>
+  );
 };
