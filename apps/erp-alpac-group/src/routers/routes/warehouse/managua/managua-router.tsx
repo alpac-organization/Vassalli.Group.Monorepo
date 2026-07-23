@@ -1,23 +1,19 @@
 import { WarehouseProvider } from "@app/modules/warehouse/ui/warehouse-managua/context/wareouse-context";
-import { DucaPanel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/duca-index/duca.page";
 import { WarehouseManaguaPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/reception-index/warehouse-managua.page";
 import type { RouteObject } from "react-router-dom";
+import Bodega from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/Bodega";
 
-export const WarehouseManaguaRouter: RouteObject[] = [   
-   {
-      path: "access-control",
-      element: (
-         <WarehouseProvider>
-            <WarehouseManaguaPage />
-         </WarehouseProvider>
-      ),
-   },
-   {
-      path: "merchandise-registration",
-      element: (
-         <WarehouseProvider>
-            <DucaPanel />
-         </WarehouseProvider>
-      ),
-   },
+export const WarehouseManaguaRouter: RouteObject[] = [
+  {
+    path: "access-control",
+    element: (
+      <WarehouseProvider>
+        <WarehouseManaguaPage />
+      </WarehouseProvider>
+    ),
+  },
+  {
+    path: "bodegas",
+    element: <Bodega />,
+  },
 ];

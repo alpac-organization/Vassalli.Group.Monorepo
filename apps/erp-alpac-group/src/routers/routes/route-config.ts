@@ -15,20 +15,18 @@ const {
   activeDeductionSection,
   liquidacionSection,
   attendanceControlSection,
-  subsidyHistorialSection
+  subsidyHistorialSection,
 } = getPayrollRoutes();
 
 const {
   administrationUsersSection,
   administrationCostCentersSection,
   administrationAreasSection,
-  administrationJobPositionsSection
+  administrationJobPositionsSection,
 } = getAdminRoutes();
 
-const {
-  collaboratorProfileSection,
-  permissionManagementSection
-} = getWorkManagementRoutes();
+const { collaboratorProfileSection, permissionManagementSection } =
+  getWorkManagementRoutes();
 
 const {
   administrativeSection,
@@ -36,21 +34,18 @@ const {
   accessControlSection,
   scaleSection,
   inboundSection,
-  warehouseReportSection
+  warehouseReportSection,
 } = getCorintoWarehouseRoutes();
 
 const {
   warehouseManaguaSection,
   DucaPanel,
-  warehouseSection4,
-  warehouseSection12
+  BodegaSection,
+  warehouseSection12,
 } = getManaguaWarehouseRoutes();
 
-const {
-  supplierSection,
-  requisitionSection,
-  purchaseOrderSection
-} = getPurchasingRoutes();
+const { supplierSection, requisitionSection, purchaseOrderSection } =
+  getPurchasingRoutes();
 
 export const routeConfig = {
   [ModuleEnum.PAYROLL]: {
@@ -62,7 +57,7 @@ export const routeConfig = {
       activeDeductionSection,
       liquidacionSection,
       attendanceControlSection,
-      subsidyHistorialSection
+      subsidyHistorialSection,
     ],
   },
   [ModuleEnum.ADMINISTRATION]: {
@@ -70,7 +65,7 @@ export const routeConfig = {
       administrationUsersSection,
       administrationCostCentersSection,
       administrationAreasSection,
-      administrationJobPositionsSection
+      administrationJobPositionsSection,
     ],
   },
   [ModuleEnum.WORK_MANAGEMENT]: {
@@ -97,7 +92,7 @@ export const routeConfig = {
     [RoleEnum.OPERATOR]: [
       warehouseManaguaSection,
       DucaPanel,
-      warehouseSection4,
+      BodegaSection,
       warehouseSection12,
       warehouseReportSection,
     ],
@@ -106,7 +101,7 @@ export const routeConfig = {
     [RoleEnum.ADMINISTRATOR]: [
       supplierSection,
       requisitionSection,
-      purchaseOrderSection
-    ]
-  }
+      purchaseOrderSection,
+    ],
+  },
 };

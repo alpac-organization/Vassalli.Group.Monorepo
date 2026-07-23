@@ -2,40 +2,38 @@ import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/component
 import { ArchiveRestoreIcon, FilePenIcon, TruckIcon } from "lucide-react";
 
 export const getManaguaWarehouseRoutes = () => {
+  const warehouseManaguaSection: SidebarLink = {
+    id: "warehouse-mga",
+    label: "Control de Acceso",
+    path: "access-control",
+    icon: TruckIcon,
+  };
 
-   const warehouseManaguaSection: SidebarLink = {
-      id: "warehouse-mga",
-      label: "Control de Acceso",
-      path: "access-control",
-      icon: TruckIcon,
-   };
+  const DucaPanel: SidebarLink = {
+    id: "merchandise-registration",
+    label: "Ingreso Mercancía",
+    path: "merchandise-registration",
+    icon: ArchiveRestoreIcon,
+  };
 
-   const DucaPanel: SidebarLink = {
-      id: "merchandise-registration",
-      label: "Ingreso Mercancía",
-      path: "merchandise-registration",
-      icon: ArchiveRestoreIcon,
-   };
+  const BodegaSection: SidebarLink = {
+    id: "Bodegas",
+    label: "Asignaciones de Bodegas",
+    path: "bodegas",
+    icon: FilePenIcon,
+  };
 
-   const warehouseSection4: SidebarLink = {
-      id: "warehouse7",
-      label: "Asignaciones de Bodegas",
-      path: "section4",
-      icon: FilePenIcon,
-   };
+  const warehouseSection12: SidebarLink = {
+    id: "warehouse15",
+    label: "Cuadrillas",
+    path: "section12",
+    icon: FilePenIcon,
+  };
 
-   const warehouseSection12: SidebarLink = {
-      id: "warehouse15",
-      label: "Cuadrillas",
-      path: "section12",
-      icon: FilePenIcon,
-   };
-
-   return {
-      warehouseManaguaSection,
-      DucaPanel,
-      warehouseSection4,
-      warehouseSection12
-   }
-}
-
+  return {
+    warehouseManaguaSection,
+    DucaPanel,
+    BodegaSection,
+    warehouseSection12,
+  };
+};
