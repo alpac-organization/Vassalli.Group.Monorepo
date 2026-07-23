@@ -4,7 +4,6 @@ import {
    AlertTriangle,
    XCircle,
    Info,
-   Bell,
    Form,
 } from "lucide-react";
 
@@ -79,6 +78,7 @@ export const MODAL_SIZES: Record<ModalSize, string> = {
    "5xl": "max-w-5xl",
    "6xl": "max-w-6xl",
    "7xl": "max-w-7xl",
+   "7.5xl": "max-w-[1400px]",
    "8xl": "max-w-8xl",
    "9xl": "max-w-9xl",
    full: "max-w-full",

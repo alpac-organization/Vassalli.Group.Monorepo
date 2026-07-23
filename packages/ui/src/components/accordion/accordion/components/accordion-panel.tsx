@@ -36,7 +36,7 @@ export function AccordionPanel({
 }): ReactElement {
   return (
     <div
-      className={`${isOpen ? "overflow-visible" : "overflow-hidden"} rounded-lg border border-slate-200 bg-white dark:border-slate-600/50 dark:bg-[#272b34] ${className}`}
+      className={`${isOpen ? "overflow-visible" : "overflow-hidden"} h-fit rounded-lg border border-slate-200 bg-white dark:border-slate-600/50 dark:bg-[#272b34] ${className}`}
     >
       <h3 className="m-0!">
         <button
@@ -46,7 +46,7 @@ export function AccordionPanel({
           aria-controls={panelId}
           disabled={disabled}
           onClick={onToggle}
-          className={`flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3 text-left text-sm font-medium text-slate-800 outline-none transition-colors duration-200 ease-out hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-600/25 focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-100 dark:hover:bg-white/5 ${triggerClassName}`}
+          className={`flex w-full cursor-pointer h-10 p-2 dark:bg-[#363a45] items-center justify-between gap-3 text-left text-sm font-medium text-slate-800 outline-none transition-colors duration-200 ease-out hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-600/25 focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-100 dark:hover:bg-white/5 ${triggerClassName}`}
         >
           <span className="min-w-0 flex-1">{title}</span>
           <Icon

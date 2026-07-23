@@ -17,6 +17,7 @@ export type ModalSize =
   | "5xl"
   | "6xl"
   | "7xl"
+  | "7.5xl"
   | "8xl"
   | "9xl"
   | "full";

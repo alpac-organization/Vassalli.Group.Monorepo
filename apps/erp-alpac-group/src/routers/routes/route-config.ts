@@ -96,7 +96,7 @@ export const routeConfig = {
       warehouseReportSection,
     ],
   },
-  [ModuleEnum.PROCUREMENT]: {
+  [ModuleEnum.PURCHASING]: {
     [RoleEnum.ADMINISTRATOR]: [supplierSection, quotesSection],
   },
 };

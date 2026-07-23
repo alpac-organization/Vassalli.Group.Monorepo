@@ -48,7 +48,7 @@ export const DashboardRouter: RouteObject[] = [
         children: AdminRouter,
       },
       {
-        path: "procurement",
+        path: "purchasing",
         children: ProcurementRouter
       },
     ],

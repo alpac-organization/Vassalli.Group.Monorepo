@@ -2,12 +2,14 @@ import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/component
 import { FileCheck, PackageSearchIcon } from "lucide-react";
 
 export const getProcurementRoutes = () => {
+  
   const supplierSection: SidebarLink = {
     id: "supplier",
     label: "Proveedores",
     path: "suppliers",
     icon: PackageSearchIcon,
   };
+
   const quotesSection: SidebarLink = {
     id: "quotes",
     label: "Cotizaciones",
