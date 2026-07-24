@@ -16,6 +16,7 @@ import {
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
 import { formatDate, formatTime } from "@app/shared/utils/string.utils";
 import type { RecordEntrance } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
+import { ConsolidatedVariations } from "./variants/global-variants";
 
 type DetailTabId = "resumen" | "ducats";
 
@@ -23,8 +24,10 @@ function ResumenTabContent({ movement }: { movement: RecordEntrance }) {
   const entrance = movement.reception_entrance;
   const log = movement.execution_log;
 
+  console.log(JSON.stringify(movement, null, 2));
+
   return (
-    <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
       <DetailSection title="Resumen">
         <div className="min-w-0 flex flex-row items-center justify-between gap-3 sm:flex-col sm:items-start sm:gap-1.5">
           <p className="m-0! shrink-0 text-xs tracking-wide text-slate-500 dark:text-slate-400">
@@ -36,36 +39,71 @@ function ResumenTabContent({ movement }: { movement: RecordEntrance }) {
             className={getStatusBadgeClass(movement.status)}
           />
         </div>
+
         <DetailField
           label="Hora Inicial registro"
           value={formatTime(log?.start_time)}
         />
+
         <DetailField
           label="Hora final registro"
           value={formatTime(log?.end_time)}
         />
+
+        <div className="min-w-0 flex flex-row items-center justify-between gap-3 sm:flex-col sm:items-start sm:gap-1.5">
+          <p className="m-0! shrink-0 text-xs tracking-wide text-slate-500 dark:text-slate-400">
+            ¿Es consolidado?
+          </p>
+
+          <Badges
+            label={movement.is_consolidated ? ConsolidatedVariations.consolidated.label : ConsolidatedVariations.Unbound.label}
+            color={movement.is_consolidated
+              ? ConsolidatedVariations.consolidated.color
+              : ConsolidatedVariations.Unbound.color}
+          />
+        </div>
       </DetailSection>
 
       <DetailSection title="Identificación">
+
         <DetailField
           label="Placa cabezal"
           value={entrance?.plate_number || "—"}
         />
+
         <DetailField
           label="Fecha de registro"
           value={log?.start_date ? formatDate(log.start_date) : "—"}
         />
+
+        <DetailField
+          label="Fecha de registro"
+          value={log?.start_date ? formatDate(log.start_date) : "—"}
+        />
+
       </DetailSection>
 
-      <DetailSection title="Personas y empresa">
+      <DetailSection title="Información del conductor">
         <DetailField
           label="Conductor"
           value={entrance?.driver_name || "—"}
         />
+
+        <DetailField
+          label="Licencia de conductor"
+          value={entrance?.driver_license || "—"}
+        />
+
+        <DetailField
+          label="Medio de transporte"
+          value={entrance?.medio || "—"}
+        />
+
         <DetailField
           label="Transportista"
           value={entrance?.transportista || "—"}
         />
+        
       </DetailSection>
     </div>
   );
@@ -91,6 +129,9 @@ export function MovementDetailModal({
     [movement?.ducats],
   );
   const ducatCount = ducatNumbers.length;
+
+
+  console.log(JSON.stringify(movement, null, 3))
 
   const tabItems = useMemo<TabItem<DetailTabId>[]>(() => {
     if (!movement) return [];
