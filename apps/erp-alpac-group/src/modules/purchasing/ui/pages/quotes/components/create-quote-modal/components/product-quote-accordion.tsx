@@ -110,7 +110,7 @@ export function ProductQuoteAccordion({
 					</div>
 				}
 			>
-				<div className="flex flex-col gap-6 pt-4 dark:border-t-neutral-600">
+				<div className="flex flex-col gap-4 pt-4 dark:border-t-neutral-600">
 					{canRemove && (
 						<div className="flex justify-end">
 							<Button
@@ -124,7 +124,7 @@ export function ProductQuoteAccordion({
 						</div>
 					)}
 
-					<div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 						<InputText
 							type="text"
 							label="Producto"
@@ -172,11 +172,11 @@ export function ProductQuoteAccordion({
 					</div>
 
 					{assignedQuoteIndexes.length === 0 ? (
-						<p className="m-0 text-xs text-slate-500 dark:text-slate-400">
+						<p className="m-0 text-[14px]! text-slate-500 dark:text-slate-400">
 							Aún no hay proveedores asignados a este producto.
 						</p>
 					) : (
-						<ul className="m-0 flex list-none flex-col gap-1 p-0">
+						<ul className="m-0! flex list-none flex-col gap-1 p-0">
 							{assignedQuoteIndexes.map(({ detail, detailIndex }) => {
 								const supplier = suppliersById.get(detail.supplier_id);
 								const supplierLabel =
@@ -198,8 +198,8 @@ export function ProductQuoteAccordion({
 											) : null}
 										</span>
 
-										<div className="flex flex-row gap-2 w-35 items-center justify-center shrink-0">
-											<label htmlFor="total_cost" className="text-[14px]">Precio:</label>
+										<div className="flex flex-row gap-2 w-50 items-center justify-center shrink-0">
+											<label htmlFor="total_cost" className="text-[14px] whitespace-nowrap">Precio Unitario:</label>
 											<Controller
 												control={control}
 												name={`quote_details.${detailIndex}.amount`}

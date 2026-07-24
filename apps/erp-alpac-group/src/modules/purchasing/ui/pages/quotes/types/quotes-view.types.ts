@@ -17,6 +17,7 @@ export type GetHistoryQuotesView = Omit<
   "additional_data"
 > & {
   id: string;
+  quote_code: string;
   currency?: "NIO" | "USD";
   additional_data: {
     quotes_made: QuoteSupplierView[];

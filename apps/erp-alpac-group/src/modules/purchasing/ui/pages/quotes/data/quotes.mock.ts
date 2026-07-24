@@ -1,8 +1,11 @@
-import type { GetHistoryQuotesView } from "@app/modules/procurement/ui/pages/quotes/types/quotes-view.types";
+
 import firmaAracellyGuillen from "@app/assets/signatures/alpac/firmaAracellyGuillen.jpg";
+import type { GetHistoryQuotesView } from "../types/quotes-view.types";
+
 export const MOCK_QUOTES: GetHistoryQuotesView[] = [
   {
     id: "quote-1",
+	 quote_code: "COT-ALP-001",
     made_by: "Carlos Méndez",
     quote_date: "2026-07-10",
     approximate_cost: 4850.75,
@@ -10,7 +13,7 @@ export const MOCK_QUOTES: GetHistoryQuotesView[] = [
       "Cotización para reposición de insumos de oficina y limpieza.",
     additional_data: {
       quotes_made: [
-        {
+        {			
           suppliers_details: {
             its_registered: true,
             supplier_id: "sup-001",
@@ -60,13 +63,14 @@ export const MOCK_QUOTES: GetHistoryQuotesView[] = [
   },
   {
     id: "quote-2",
+	 quote_code: "COT-ALP-002",
     made_by: "María López",
     quote_date: "2026-07-12",
     approximate_cost: 12500,
     observations: "Equipos de cómputo para nuevas estaciones de trabajo.",
     additional_data: {
       quotes_made: [
-        {
+        {			
           suppliers_details: {
             its_registered: true,
             supplier_id: "sup-014",
@@ -98,6 +102,7 @@ export const MOCK_QUOTES: GetHistoryQuotesView[] = [
   },
   {
     id: "quote-3",
+	 quote_code: "COT-ALP-003",
     made_by: "José Ramírez",
     quote_date: "2026-07-15",
     approximate_cost: 3200.5,

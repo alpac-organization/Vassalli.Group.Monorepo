@@ -23,11 +23,11 @@ export type QuoteDetails = {
 export type CreateQuoteFormValues = {
 	area_id: string;
 	branch_id: string;
-	application_code: string;
+	application_codes: string[];
 	quote_date: string;
 	observations: string;
 	quote_details: QuoteDetails[];
-	products: CatalogProductOption[]; 
+	products: CatalogProductOption[];
 };
 
 export type CatalogProductOption = {

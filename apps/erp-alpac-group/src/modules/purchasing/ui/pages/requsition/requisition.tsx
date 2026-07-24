@@ -1,54 +1,21 @@
-import { useCallback, useMemo, useState } from "react";
 import {
 	Alert,
 	AnimatedAlertWrapper,
 	Breadcrumb,
-	Button,
-	ContextMenu,
-	DataTable,
-	Dropdown,
-	InputText,
-	Pagination,
-	useTheme,
-	type TableColumn,
+	Tabs,
+	type TabItem
 } from "@alpac/design-system";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
-import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { m } from "framer-motion";
-import { PackagePlusIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
-import { RequisitionModal } from "./components/requisition-modal/requisition-modal";
-import type { RequisitionRow } from "./components/requisition-modal/requisition-modal.types";
-
-const inputClassName =
-	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-const dropdownClassName =
-	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
-const labelClassName = "text-black! dark:text-white!";
-const PAGE_SIZE = 5;
-
-const statusOptions = [
-	{ label: "Borrador", value: "draft" },
-	{ label: "Pendiente", value: "pending" },
-	{ label: "Aprobada", value: "approved" },
-	{ label: "Rechazada", value: "rejected" },
-	{ label: "Cancelada", value: "cancelled" },
-];
+import { RequisitionTab } from "./components/tabs/requisition-tab/requisition-tab";
+import { MonthlyMaterialTab } from "./components/tabs/monthly-materials-tab/monthly-materials-tab";
+import { OccasionalMaterialTab } from "./components/tabs/occasional-materials-tab/occasional-materials-tab";
 
 export const Requisition = () => {
 	const navigate = useNavigate();
 	const { baseUrl } = useBaseUrl();
-	const { theme } = useTheme();
-	const { urlImage, neutralUrlImage } = useCompanyStore();
-
-	const [isRequisitionModalOpen, setIsRequisitionModalOpen] = useState(false);
-	const [requisitionNumber, setRequisitionNumber] = useState("");
-	const [requesterName, setRequesterName] = useState("");
-	const [status, setStatus] = useState<string>("");
-	const [selectedRequisition, setSelectedRequisition] =
-		useState<RequisitionRow | null>(null);
-	const [currentPage, setCurrentPage] = useState(1);
 
 	const {
 		alertState,
@@ -57,52 +24,35 @@ export const Requisition = () => {
 		handleRequestSuccess,
 	} = useAlertState();
 
-	const requisitions: RequisitionRow[] = [];
-	const totalRecords = 0;
-	const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
-
-	const handleClearFilters = () => {
-		setRequisitionNumber("");
-		setRequesterName("");
-		setStatus("");
-		setCurrentPage(1);
-	};
-
-	const handlePageChange = useCallback((page: number) => {
-		setCurrentPage(page);
-	}, []);
-
-	const onEditRequisition = (data: RequisitionRow) => {
-		setSelectedRequisition(data);
-		setIsRequisitionModalOpen(true);
-	};
-
-	const onViewDetails = (data: RequisitionRow) => {
-		console.log(data);
-	};
-
-	const columnConfig: TableColumn<RequisitionRow>[] = useMemo(
-		() => [
-			{ key: "requisition_number", label: "N° Requisición" },
-			{ key: "requester_name", label: "Solicitante" },
-			{ key: "area_name", label: "Área" },
-			{ key: "required_date", label: "Fecha límite" },
-			{ key: "status", label: "Estado" },
-			{
-				key: "actions",
-				label: "Acciones",
-				render: (row: RequisitionRow) => (
-					<ContextMenu
-						items={[
-							{ label: "Editar", onClick: () => onEditRequisition(row) },
-							{ label: "Ver detalle", onClick: () => onViewDetails(row) },
-						]}
-					/>
-				),
-			},
-		],
-		[],
-	);
+	const tabs: TabItem<string>[] = [
+		{
+			id: "requisitions",
+			label: "Requisiciones",
+			render: () =>
+			(<RequisitionTab
+				onRequestError={handleRequestError}
+				onRequestSuccess={handleRequestSuccess}
+			/>)
+		},
+		{
+			id: "monthly-applications",
+			label: "Solicitud de Materiales Mensuales",
+			render: () =>
+			(<MonthlyMaterialTab
+				onRequestError={handleRequestError}
+				onRequestSuccess={handleRequestSuccess}
+			/>)
+		},
+		{
+			id: "occasional-applications",
+			label: "Solicitud de Materiales Eventuales",
+			render: () =>
+			(<OccasionalMaterialTab
+				onRequestError={handleRequestError}
+				onRequestSuccess={handleRequestSuccess}
+			/>)
+		},
+	]
 
 	return (
 		<m.div
@@ -121,7 +71,7 @@ export const Requisition = () => {
 							onClick: (url) => navigate(url),
 						},
 						{
-							label: "Solicitud de compras",
+							label: "Solicitudes de compras",
 							url: `${baseUrl}/purchasing/requisitions`,
 							onClick: (url) => navigate(url),
 						},
@@ -129,160 +79,9 @@ export const Requisition = () => {
 				/>
 			</div>
 
-			<div className="flex flex-col">
-				<div className="flex justify-between items-center">
-					<div className="flex flex-col justify-center">
-						<h3 className="p-0! m-0!">Solictud de Compras</h3>
-						<small className="text-gray-500 dark:text-gray-300">
-							Gestión de Requisiciones
-						</small>
-					</div>
-					<img
-						className="h-12 sm:h-16 md:h-20 w-auto object-contain"
-						src={activeLogo}
-						alt="logo alpac"
-					/>
-				</div>
+			<div className="relative mx-auto w-full rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
+				<Tabs tabItems={tabs ?? []} activeTab="requisitions" />
 			</div>
-
-			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
-				<div className="flex flex-col justify-center">
-					<h3 className="p-0! m-0!">Accesos Directos</h3>
-					<small className="text-gray-500 dark:text-gray-300">
-						Acciones rápidas de requisiciones
-					</small>
-				</div>
-			</div>
-
-			<div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-				<div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
-					<Button
-						type="button"
-						size="giant"
-						label="Crear Requisición"
-						icon={<PackagePlusIcon size={20} />}
-						className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-						onClick={() => {
-							setSelectedRequisition(null);
-							setIsRequisitionModalOpen(true);
-						}}
-					/>
-
-					<Button
-						type="button"
-						size="giant"
-						label="Solicitar Materiales Mensual"
-						icon={<PackagePlusIcon size={20} />}
-						className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-						onClick={() => {
-							setSelectedRequisition(null);
-							setIsRequisitionModalOpen(true);
-						}}
-					/>
-
-					<Button
-						type="button"
-						size="giant"
-						label="Solicitar Materiales Eventual"
-						icon={<PackagePlusIcon size={20} />}
-						className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-						onClick={() => {
-							setSelectedRequisition(null);
-							setIsRequisitionModalOpen(true);
-						}}
-					/>
-				</div>
-			</div>
-
-			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
-				<div className="flex flex-col justify-center">
-					<h3 className="p-0! m-0!">Filtros</h3>
-					<small className="text-gray-500 dark:text-gray-300">
-						Filtre la lista de requisiciones
-					</small>
-				</div>
-			</div>
-
-			<form
-				onSubmit={(event) => event.preventDefault()}
-				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
-			>
-				<InputText
-					label="N° Requisición"
-					placeholder="Ej. REQ-2026-001"
-					className={inputClassName}
-					labelClassName={labelClassName}
-					value={requisitionNumber}
-					onChange={(event) => setRequisitionNumber(event.target.value)}
-				/>
-
-				<InputText
-					label="Solicitante"
-					placeholder="Ej. Juan Pérez"
-					className={inputClassName}
-					labelClassName={labelClassName}
-					value={requesterName}
-					onChange={(event) => setRequesterName(event.target.value)}
-				/>
-
-				<Dropdown
-					label="Estado"
-					placeholder="Seleccione..."
-					appearance="dark"
-					options={statusOptions}
-					value={status}
-					onChange={(value) => setStatus(String(value))}
-					className={dropdownClassName}
-					labelClassName={labelClassName}
-					valueClassName={labelClassName}
-				/>
-
-				<Button
-					type="submit"
-					size="giant"
-					label="Aplicar filtros"
-					className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-				/>
-
-				<Button
-					type="button"
-					size="giant"
-					label="Limpiar filtros"
-					onClick={handleClearFilters}
-					className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
-				/>
-			</form>
-
-			<div className="flex flex-col">
-				<DataTable
-					title="Lista de requisiciones"
-					data={requisitions}
-					columns={columnConfig}
-					pagination={
-						<Pagination
-							currentPage={currentPage}
-							pageSize={PAGE_SIZE}
-							totalRecords={totalRecords}
-							onPageChange={handlePageChange}
-						/>
-					}
-				/>
-			</div>
-
-			<RequisitionModal
-				isOpen={isRequisitionModalOpen}
-				onClose={() => {
-					setIsRequisitionModalOpen(false);
-					setSelectedRequisition(null);
-				}}
-				onSubmit={() => {
-					setIsRequisitionModalOpen(false);
-					setSelectedRequisition(null);
-					handleRequestSuccess("Requisición guardada correctamente.");
-				}}
-				onRequestError={handleRequestError}
-				selectedRequisition={selectedRequisition}
-			/>
 
 			<AnimatedAlertWrapper open={alertState?.open ?? false}>
 				<Alert
@@ -292,6 +91,7 @@ export const Requisition = () => {
 					onClose={handleCloseAlert}
 				/>
 			</AnimatedAlertWrapper>
+
 		</m.div>
 	);
 };

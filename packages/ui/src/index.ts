@@ -12,6 +12,7 @@ export * from "./components/badges"
 export * from "./components/banners"
 export * from "./components/wrappers"
 export * from "./components/accordion"
+export * from "./components/chips"
 export * from "./providers/theme-provider";
 export * from "./providers/date-picker-provider";
 export * from "./constants";

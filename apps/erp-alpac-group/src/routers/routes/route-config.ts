@@ -48,7 +48,8 @@ const {
   supplierSection,
   requisitionSection,
   quotesSection,
-  purchaseOrderSection
+  purchaseOrderSection,
+  quoteAnalisysSection
 } = getPurchasingRoutes();
 
 export const routeConfig = {
@@ -106,6 +107,7 @@ export const routeConfig = {
       supplierSection,
       requisitionSection,
       quotesSection,
+      quoteAnalisysSection,
       purchaseOrderSection
     ]
   }

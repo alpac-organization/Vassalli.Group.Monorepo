@@ -8,16 +8,13 @@ import {
 import {
 	AccordionGroup,
 	Button,
-	DatePicker,
+	Chips,
 	Dropdown,
-	InputText,
 	Modal,
 	Textarea,
 } from "@alpac/design-system";
 import { SaveIcon, XIcon } from "lucide-react";
-import dayjs from "dayjs";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { toDateOnly } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/date-input";
 import { useSuppliers } from "@app/modules/purchasing/ui/hooks/suppliers/useSuppliers";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal.types";
@@ -28,6 +25,7 @@ import {
 import { ProductQuoteAccordion } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/product-quote-accordion";
 import { mapCreateQuoteFormToView } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.mapper";
 import {
+	quoteFormDropdownClassName,
 	quoteFormInputClassName,
 	quoteFormLabelClassName,
 	quoteFormPrimaryButtonClassName,
@@ -35,6 +33,14 @@ import {
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.styles";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
+
+const applicationOptionsMock = [
+	{ value: "SOL-ALP-001", label: "SOL-ALP-001" },
+	{ value: "SOL-ALP-002", label: "SOL-ALP-002" },
+	{ value: "SOL-ALP-003", label: "SOL-ALP-003" },
+	{ value: "SOL-ALP-004", label: "SOL-ALP-004" },
+	{ value: "REQ-ALP-001", label: "REQ-ALP-001" },
+];
 
 const productMock: CatalogProductOption[] = [
 	{
@@ -89,7 +95,7 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 		defaultValues: {
 			area_id: "",
 			branch_id: "",
-			application_code: "",
+			application_codes: [],
 			quote_date: "",
 			observations: "",
 			quote_details: [],
@@ -103,7 +109,7 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 		register,
 		handleSubmit,
 		reset,
-		formState: { errors, isSubmitting },
+		formState: { isSubmitting },
 	} = methods;
 
 	const { fields, remove } = useFieldArray({
@@ -111,9 +117,7 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 		name: "products",
 	});
 
-	const [openProducts, setOpenProducts] = useState<string[]>(() =>
-		productMock.map((product) => product.product_id),
-	);
+	const [openProducts, setOpenProducts] = useState<string[]>([]);
 
 	const { GetSuppliers } = useSuppliers({
 		suppliersFilters: {
@@ -164,13 +168,13 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 		reset({
 			area_id: "",
 			branch_id: "",
-			application_code: "",
+			application_codes: [],
 			quote_date: "",
 			observations: "",
 			quote_details: [],
 			products: productMock,
 		});
-		setOpenProducts(productMock.map((product) => product.product_id));
+		setOpenProducts([]);
 	};
 
 	const handleCancel = () => {
@@ -207,10 +211,10 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 					noValidate
 				>
 					<div className="scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-						<div className="flex flex-col gap-8">
+						<div className="flex flex-col gap-4">
 							<section className="flex flex-col gap-6 p-1">
 
-								<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+								<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 
 									<Controller
 										name="branch_id"
@@ -228,24 +232,6 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 													valueClassName={quoteFormLabelClassName}
 													className={quoteFormInputClassName}
 													options={branchOptions ?? []}
-												/>
-											);
-										}}
-									/>
-
-									<Controller
-										name="application_code"
-										control={control}
-										rules={{ required: "Se requiere un código de solicitud" }}
-										render={({ field }) => {
-											return (
-												<InputText
-													value={field.value}
-													onChange={(value) => field.onChange(value)}
-													label="Código de solicitud"
-													placeholder="Código"
-													labelClassName={quoteFormLabelClassName}
-													className={quoteFormInputClassName}
 												/>
 											);
 										}}
@@ -273,23 +259,55 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 									/>
 
 									<Controller
+										name="application_codes"
 										control={control}
-										name="quote_date"
-										rules={{ required: "Seleccione la fecha de cotización." }}
-										render={({ field }) => (
-											<DatePicker
-												fieldWidth="large"
-												label="Fecha de cotización"
-												labelAbove
-												isRequired
-												value={field.value ? dayjs(field.value) : null}
-												onChange={(value) => {
-													field.onChange(toDateOnly(value));
-												}}
-												error={errors.quote_date?.message}
-												labelClassName={quoteFormLabelClassName}
-											/>
-										)}
+										rules={{
+											validate: (value) =>
+												(Array.isArray(value) && value.length > 0) ||
+												"Seleccione al menos una solicitud.",
+										}}
+										render={({ field, fieldState }) => {
+											const selectedCodes = field.value ?? [];
+											const availableOptions = applicationOptionsMock.filter(
+												(option) => !selectedCodes.includes(option.value),
+											);
+
+											return (
+												<div className="flex flex-col gap-2 md:col-span-2">
+													<Dropdown
+														value=""
+														onChange={(value) => {
+															const code = String(value ?? "");
+															if (!code || selectedCodes.includes(code)) return;
+															field.onChange([...selectedCodes, code]);
+														}}
+														label="Solicitudes"
+														placeholder="Agregar solicitud..."
+														appearance="dark"
+														isRequired
+														labelClassName={quoteFormLabelClassName}
+														valueClassName={quoteFormLabelClassName}
+														className={quoteFormDropdownClassName}
+														options={availableOptions}
+														error={fieldState.error?.message}
+													/>
+												
+													{selectedCodes.length > 0 ? (
+														<div className="flex flex-wrap gap-2">
+															{selectedCodes.map((code) => (
+																<Chips label={code} onClick={() => {
+																	field.onChange(selectedCodes.filter((current) => current !== code))
+																}} />
+															))}
+														</div>
+													) : (
+														<p className="m-0 text-xs text-slate-500 dark:text-slate-400">
+															Puede consolidar varias solicitudes en esta cotización.
+														</p>
+													)}
+												</div>
+											);
+										}}
 									/>
 
 								</div>
@@ -323,7 +341,7 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 												: [];
 										setOpenProducts(validateValue);
 									}}
-									className="gap-3"
+									className="gap-3 pb-3"
 								>
 									{fields.map((field, index) => (
 										<ProductQuoteAccordion
@@ -358,7 +376,6 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 					<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6">
 						<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
 
-
 							<Button
 								type="button"
 								label="Descartar"
@@ -380,7 +397,6 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 								className={quoteFormPrimaryButtonClassName}
 							/>
 
-
 						</div>
 					</div>
 				</form>
@@ -392,8 +408,8 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 				title={`¿Está seguro de eliminar a?`}
 				buttonActionLabel="Eliminar"
 				buttonActionClass="rounded-md! bg-red-500! text-white! hover:bg-red-600! dark:bg-red-700!"
-				onClose={() => {}}
-				handleFinalAction={() => {}}
+				onClose={() => { }}
+				handleFinalAction={() => { }}
 			/>
 		</Modal>
 	);

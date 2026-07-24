@@ -3,6 +3,7 @@ import { PurchaseOrder } from "@app/modules/purchasing/ui/pages/purchase-order/p
 import { Requisition } from "@app/modules/purchasing/ui/pages/requsition/requisition";
 import { Supplier } from "@app/modules/purchasing/ui/pages/supplier/supplier";
 import type { RouteObject } from "react-router-dom";
+import { QuoteAnalisys } from "@app/modules/purchasing/ui/pages/quote-analisys/quote-analisys";
 
 export const PurchasingRouter: RouteObject[] = [
    {
@@ -20,5 +21,9 @@ export const PurchasingRouter: RouteObject[] = [
    {
       path: "purchase-orders",
       element: <PurchaseOrder />,
+   },
+   {
+      path: "analisys",
+      element: <QuoteAnalisys />,
    },
 ];

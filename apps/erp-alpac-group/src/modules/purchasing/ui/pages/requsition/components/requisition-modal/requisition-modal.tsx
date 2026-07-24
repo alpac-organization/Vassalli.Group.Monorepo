@@ -22,6 +22,13 @@ const inputClassName =
 const dropdownClassName = `${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
 const labelClassName = "text-black! dark:text-white!";
 
+const operationalOrderOptionsMock = [
+	{ value: "", label: "Sin orden operativa" },
+	{ value: "OP-2026-001", label: "OP-2026-001 · Mantenimiento Bodega 1" },
+	{ value: "OP-2026-002", label: "OP-2026-002 · Reparación equipo A" },
+	{ value: "OP-2026-004", label: "OP-2026-004 · Recepción en bodega 2 del Cliente ALMADISA" },
+];
+
 const emptyItem: RequisitionItem = {
 	product_id: "",
 	description: "",
@@ -36,6 +43,7 @@ type RequisitionFormValues = {
 	requester_name: string;
 	area_id: string;
 	cost_center_id: string;
+	operational_order_id: string;
 	request_date: string;
 	required_date: string;
 	status: string;
@@ -48,6 +56,7 @@ const emptyFormValues: RequisitionFormValues = {
 	requester_name: "",
 	area_id: "",
 	cost_center_id: "",
+	operational_order_id: "",
 	request_date: "",
 	required_date: "",
 	status: "draft",
@@ -118,6 +127,7 @@ export const RequisitionModal = ({
 				requester_name: selectedRequisition.requester_name,
 				area_id: selectedRequisition.area_id,
 				cost_center_id: selectedRequisition.cost_center_id,
+				operational_order_id: selectedRequisition.operational_order_id ?? "",
 				request_date: selectedRequisition.request_date,
 				required_date: selectedRequisition.required_date,
 				status: selectedRequisition.status,
@@ -211,6 +221,29 @@ export const RequisitionModal = ({
 							/>
 						)}
 					/>
+
+					<div className="flex flex-col gap-1">
+						<Controller
+							name="operational_order_id"
+							control={control}
+							render={({ field }) => (
+								<Dropdown
+									label="Orden operativa (OP)"
+									options={operationalOrderOptionsMock}
+									placeholder="Opcional: vincular a una OP"
+									onChange={(value) => field.onChange(String(value ?? ""))}
+									value={field.value}
+									appearance="dark"
+									labelClassName="text-black! dark:text-white!"
+									valueClassName="text-black! dark:text-white!"
+									className={dropdownClassName}
+								/>
+							)}
+						/>
+						<p className="m-0 text-xs text-slate-500 dark:text-slate-400">
+							Seleccione la orden operativa si los productos son usados para ese caso
+						</p>
+					</div>
 
 					<Controller
 						name="required_date"

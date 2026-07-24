@@ -17,6 +17,7 @@ export type RequisitionRow = {
 	requester_name: string;
 	area_id: string;
 	cost_center_id: string;
+	operational_order_id?: string;
 	request_date: string;
 	required_date: string;
 	status: string;

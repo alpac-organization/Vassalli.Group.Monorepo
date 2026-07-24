@@ -1,14 +1,9 @@
 import type { GetHistoryQuotesView } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-view.types";
 import type { CreateQuoteFormValues } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.types";
 
-export const mapCreateQuoteFormToView = (
-	values: CreateQuoteFormValues,
-	madeBy = "",
-): GetHistoryQuotesView => {
-	const approximateCost = values.quote_details.reduce(
-		(total, detail) => total + (Number(detail.amount) || 0),
-		0,
-	);
+export const mapCreateQuoteFormToView = (values: CreateQuoteFormValues, madeBy = ""): GetHistoryQuotesView => {
+
+	const approximateCost = values.quote_details.reduce((total, detail) => total + (Number(detail.amount) || 0), 0);
 
 	const quotesBySupplier = new Map<
 		string,
@@ -22,6 +17,7 @@ export const mapCreateQuoteFormToView = (
 
 	return {
 		id: `quote-${crypto.randomUUID()}`,
+		quote_code: "",
 		made_by: madeBy.trim(),
 		quote_date: values.quote_date,
 		approximate_cost: approximateCost,
