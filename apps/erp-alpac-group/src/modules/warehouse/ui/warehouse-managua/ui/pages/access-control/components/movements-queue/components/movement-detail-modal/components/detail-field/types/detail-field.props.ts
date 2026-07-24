@@ -1,5 +1,5 @@
 export type DetailFieldProps = {
-  label: string;
+  label?: string;
   value?: string | null;
   className?: string;
 };

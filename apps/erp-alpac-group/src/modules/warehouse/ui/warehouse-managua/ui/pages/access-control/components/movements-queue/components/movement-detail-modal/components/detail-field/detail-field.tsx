@@ -13,7 +13,7 @@ export function DetailField({
         {label}:
       </p>
       <p className="m-0! wrap-break-word text-right text-sm font-semibold text-slate-900 sm:text-left dark:text-white">
-        {value || "—"}
+        {value || value === undefined ? value : ""}
       </p>
     </div>
   );

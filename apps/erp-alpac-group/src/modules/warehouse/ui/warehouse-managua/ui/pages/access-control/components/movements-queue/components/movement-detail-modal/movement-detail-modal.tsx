@@ -44,6 +44,34 @@ function ResumenTabContent({ movement }: { movement: RecordEntrance }) {
           label="Hora final registro"
           value={formatTime(log?.end_time)}
         />
+        <DetailField
+          label="Fecha de registro"
+          value={log?.start_date ? formatDate(log.start_date) : "—"}
+        />
+        <DetailField
+          label="Fecha de actualización"
+          value={entrance.updated_date ? formatDate(log.start_date) : "—"}
+        />
+        <DetailField
+          label="Hora de actualización"
+          value={entrance.updated_time ? formatDate(log.start_date) : "—"}
+        />
+        <DetailField
+          label="Usuario de actualización"
+          value={
+            entrance.updated_by_user_name ? formatDate(log.start_date) : "—"
+          }
+        />
+        <div className="flex justify-between">
+          <DetailField label="Es consolidada?" />
+          <Badges
+            label={movement.is_consolidated ? "Consolidada" : "No consolidada"}
+            color={movement.is_consolidated ? "success" : "danger"}
+            className={getStatusBadgeClass(
+              movement.is_consolidated ? "success" : "danger",
+            )}
+          />
+        </div>
       </DetailSection>
 
       <DetailSection title="Identificación">
@@ -51,20 +79,32 @@ function ResumenTabContent({ movement }: { movement: RecordEntrance }) {
           label="Placa cabezal"
           value={entrance?.plate_number || "—"}
         />
+        <DetailField label="Licencia" value={entrance?.driver_license || "—"} />
         <DetailField
-          label="Fecha de registro"
-          value={log?.start_date ? formatDate(log.start_date) : "—"}
+          label="Trailer chasis"
+          value={entrance?.trailer_chassis || "—"}
         />
-      </DetailSection>
-
-      <DetailSection title="Personas y empresa">
-        <DetailField
-          label="Conductor"
-          value={entrance?.driver_name || "—"}
-        />
+        <DetailField label="Conductor" value={entrance?.driver_name || "—"} />
         <DetailField
           label="Transportista"
           value={entrance?.transportista || "—"}
+        />
+        <DetailField label="Medio" value={entrance?.medio || "—"} />
+        <DetailField
+          label="Fecha de salida"
+          value={
+            entrance?.medio_exit_date
+              ? formatDate(entrance.medio_exit_date)
+              : "—"
+          }
+        />
+        <DetailField
+          label="Hora de salida"
+          value={
+            entrance?.medio_exit_time
+              ? formatTime(entrance.medio_exit_time)
+              : "—"
+          }
         />
       </DetailSection>
     </div>
