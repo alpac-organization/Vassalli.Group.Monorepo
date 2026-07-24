@@ -16,6 +16,7 @@ export type GateEntryModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: GateEntryFormValues) => void;
+  isSubmitting?: boolean;
 };
 
 export const GATE_ENTRY_DEFAULT_VALUES: GateEntryFormValues = {

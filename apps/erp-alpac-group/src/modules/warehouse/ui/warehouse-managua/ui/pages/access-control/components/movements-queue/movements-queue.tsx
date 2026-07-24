@@ -1,6 +1,6 @@
 import { DataTable, Pagination } from "@alpac/design-system";
 import { useCallback, useMemo, useState } from "react";
-import type { DataAccessControl } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
+import type { RecordEntrance } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import { getMovementsColumns } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/movements-columns";
 import { MovementDetailModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/movement-detail-modal";
 import type { MovementsQueueProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/types/movements-queues";
@@ -15,10 +15,10 @@ export function MovementsQueue({
   onDetailClick,
 }: MovementsQueueProps) {
   const [selectedMovement, setSelectedMovement] =
-    useState<DataAccessControl | null>(null);
+    useState<RecordEntrance | null>(null);
 
   const handleDetailClick = useCallback(
-    (item: DataAccessControl) => {
+    (item: RecordEntrance) => {
       setSelectedMovement(item);
       onDetailClick?.(item);
     },

@@ -1,8 +1,7 @@
 import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import type { DatePickerValue } from "@alpac/design-system";
+import { Alert, AnimatedAlertWrapper, type DatePickerValue } from "@alpac/design-system";
 import { AccessControlHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-header/access-control-header";
 import { AccessControlStats } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-stats/access-control-stats";
 import { AccessControlActions } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-actions/access-control-actions";
@@ -15,7 +14,11 @@ import { getAccessControlMetrics } from "@app/modules/warehouse/ui/warehouse-man
 import { useAccessControl } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAccessControl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-access-control";
+import type { CreateAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/create-access-control";
 import { Loader } from "@app/shared/components/loaders/loader";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
 const PAGE_SIZE = 10;
 
@@ -31,9 +34,43 @@ const toApiDate = (date: DatePickerValue | null): string => {
   return dayjs(date.$d ?? date).format("YYYY-MM-DD");
 };
 
+function mapGateEntryToCreateRequest(
+  data: GateEntryFormValues,
+  companyId: string,
+  moduleCode: string,
+): CreateAccessControlRequest {
+  const now = dayjs();
+
+  return {
+    company_id: companyId,
+    module_code: moduleCode,
+    ducat_numbers: data.ducas
+      .map((duca) => duca.value.trim())
+      .filter(Boolean),
+    country_of_origin: data.countryOfOrigin.trim(),
+    aduana: data.aduana.trim(),
+    plate_number: data.plateNumber.trim().toUpperCase(),
+    trailer_chassis: data.trailerChassis.trim(),
+    driver_license: data.driverLicense.trim(),
+    transportista: data.transportista.trim(),
+    medio: data.medio.trim(),
+    driver_name: data.driverName.trim(),
+    consignee: data.consignee.trim(),
+    seal_number: data.sealNumber.trim(),
+    start_date: now.format("YYYY-MM-DD"),
+    start_time: now.format("HH:mm:ss"),
+  };
+}
+
 export function AccessControlPage() {
   const { companyId, moduleCode } = useUserStore();
-  const queryClient = useQueryClient();
+  const { getMappedError } = useMappedError();
+  const {
+    alertState,
+    handleCloseAlert,
+    handleRequestError,
+    handleRequestSuccess,
+  } = useAlertState();
 
   const [pageNumber, setPageNumber] = useState(1);
   const [appliedFilters, setAppliedFilters] =
@@ -54,7 +91,9 @@ export function AccessControlPage() {
     [companyId, moduleCode, appliedFilters, pageNumber],
   );
 
-  const { GetAccessControl } = useAccessControl({ payload });
+  const { GetAccessControl, CreateAccessControl } = useAccessControl({
+    payload,
+  });
   const {
     data: accessControl,
     isLoading,
@@ -65,8 +104,8 @@ export function AccessControlPage() {
   const totalRecords = accessControl?.total_count ?? 0;
 
   const metrics = useMemo(
-    () => getAccessControlMetrics(movements, totalRecords),
-    [movements, totalRecords],
+    () => getAccessControlMetrics(accessControl?.stats, totalRecords),
+    [accessControl?.stats, totalRecords],
   );
 
   const handleApplyFilters = useCallback((filters: AccessControlFilters) => {
@@ -89,10 +128,42 @@ export function AccessControlPage() {
   }, []);
 
   const handleGateEntrySubmit = useCallback(
-    (_data: GateEntryFormValues) => {
-      void queryClient.invalidateQueries({ queryKey: ["access-control"] });
+    (data: GateEntryFormValues) => {
+      if (!companyId || !moduleCode) {
+        handleRequestError(
+          "No se pudo obtener la empresa o el módulo activo.",
+        );
+        return;
+      }
+
+      const createPayload = mapGateEntryToCreateRequest(
+        data,
+        companyId,
+        moduleCode,
+      );
+
+      CreateAccessControl.mutate(createPayload, {
+        onSuccess: () => {
+          setIsGateEntryOpen(false);
+          setPageNumber(1);
+          handleRequestSuccess("Entrada registrada exitosamente");
+        },
+        onError: (error) => {
+          const mappedError = getMappedError(error as ApiErrorResponse);
+          handleRequestError(
+            mappedError?.description || "Error al registrar la entrada",
+          );
+        },
+      });
     },
-    [queryClient],
+    [
+      companyId,
+      moduleCode,
+      CreateAccessControl,
+      getMappedError,
+      handleRequestError,
+      handleRequestSuccess,
+    ],
   );
 
   return (
@@ -129,7 +200,17 @@ export function AccessControlPage() {
         isOpen={isGateEntryOpen}
         onClose={() => setIsGateEntryOpen(false)}
         onSubmit={handleGateEntrySubmit}
+        isSubmitting={CreateAccessControl.isPending}
       />
+
+      <AnimatedAlertWrapper open={alertState?.open ?? false}>
+        <Alert
+          type={alertState?.type!}
+          title={alertState?.title}
+          message={alertState?.message!}
+          onClose={handleCloseAlert}
+        />
+      </AnimatedAlertWrapper>
     </m.div>
   );
 }

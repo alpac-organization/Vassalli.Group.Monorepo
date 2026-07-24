@@ -15,11 +15,14 @@ import {
   getStatusBadgeLabel,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
 import { formatDate, formatTime } from "@app/shared/utils/string.utils";
-import type { DataAccessControl } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
+import type { RecordEntrance } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 
 type DetailTabId = "resumen" | "ducats";
 
-function ResumenTabContent({ movement }: { movement: DataAccessControl }) {
+function ResumenTabContent({ movement }: { movement: RecordEntrance }) {
+  const entrance = movement.reception_entrance;
+  const log = movement.execution_log;
+
   return (
     <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-3">
       <DetailSection title="Resumen">
@@ -35,34 +38,33 @@ function ResumenTabContent({ movement }: { movement: DataAccessControl }) {
         </div>
         <DetailField
           label="Hora Inicial registro"
-          value={formatTime(movement.reception_start_time)}
+          value={formatTime(log?.start_time)}
         />
         <DetailField
           label="Hora final registro"
-          value={formatTime(movement.reception_end_time)}
+          value={formatTime(log?.end_time)}
         />
       </DetailSection>
 
       <DetailSection title="Identificación">
         <DetailField
           label="Placa cabezal"
-          value={movement.plate_number || "—"}
+          value={entrance?.plate_number || "—"}
         />
         <DetailField
           label="Fecha de registro"
-          value={
-            movement.reception_start_date
-              ? formatDate(movement.reception_start_date)
-              : "—"
-          }
+          value={log?.start_date ? formatDate(log.start_date) : "—"}
         />
       </DetailSection>
 
       <DetailSection title="Personas y empresa">
-        <DetailField label="Conductor" value={movement.driver_name || "—"} />
+        <DetailField
+          label="Conductor"
+          value={entrance?.driver_name || "—"}
+        />
         <DetailField
           label="Transportista"
-          value={movement.transportista || "—"}
+          value={entrance?.transportista || "—"}
         />
       </DetailSection>
     </div>
@@ -82,7 +84,13 @@ export function MovementDetailModal({
   movement,
   onClose,
 }: MovementDetailModalProps) {
-  const ducatCount = movement?.ducat_numbers?.filter(Boolean).length ?? 0;
+  const ducatNumbers = useMemo(
+    () =>
+      movement?.ducats?.map((ducat) => ducat.ducat_number).filter(Boolean) ??
+      [],
+    [movement?.ducats],
+  );
+  const ducatCount = ducatNumbers.length;
 
   const tabItems = useMemo<TabItem<DetailTabId>[]>(() => {
     if (!movement) return [];
@@ -96,10 +104,10 @@ export function MovementDetailModal({
       {
         id: "ducats",
         label: `Documentos Ducat (${ducatCount})`,
-        render: () => <DucatsTabContent items={movement.ducat_numbers ?? []} />,
+        render: () => <DucatsTabContent items={ducatNumbers} />,
       },
     ];
-  }, [movement, ducatCount]);
+  }, [movement, ducatCount, ducatNumbers]);
 
   return (
     <Modal
@@ -113,7 +121,7 @@ export function MovementDetailModal({
         <div className="flex flex-col gap-4 sm:gap-5">
           <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden p-1 sm:p-2">
             <Tabs
-              key={movement.record_entrance_id}
+              key={movement.id}
               tabItems={tabItems as TabItem<string>[]}
               activeTab="resumen"
             />
@@ -131,7 +139,7 @@ export function MovementDetailModal({
           </div>
         </div>
       ) : (
-        <div className="min-h-120px" />
+        <div className="min-h-[120px]" />
       )}
     </Modal>
   );

@@ -1,42 +1,42 @@
 import { Badges, Button, type TableColumn } from "@alpac/design-system";
 import { EyeIcon } from "lucide-react";
-import type { DataAccessControl } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
+import type { RecordEntrance } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import {
   getStatusBadgeClass,
   getStatusBadgeLabel,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
 import { formatDate, formatTime } from "@app/shared/utils/string.utils";
+
 type MovementsColumnsOptions = {
-  onDetailClick?: (item: DataAccessControl) => void;
+  onDetailClick?: (item: RecordEntrance) => void;
 };
 
 export function getMovementsColumns({
   onDetailClick,
-}: MovementsColumnsOptions = {}): TableColumn<DataAccessControl>[] {
+}: MovementsColumnsOptions = {}): TableColumn<RecordEntrance>[] {
   return [
     {
       key: "plate_number",
       label: "Placa",
-      render: (item) => item.plate_number || "—",
+      render: (item) => item.reception_entrance?.plate_number || "—",
     },
     {
       key: "driver_name",
       label: "Conductor",
-      render: (item) => item.driver_name || "—",
+      render: (item) => item.reception_entrance?.driver_name || "—",
     },
     {
-      key: "reception_start_date",
-      label: "fecha de ingreso",
-      render(item) {
-        return formatDate(item.reception_start_date);
-      },
+      key: "start_date",
+      label: "Fecha de ingreso",
+      render: (item) =>
+        item.execution_log?.start_date
+          ? formatDate(item.execution_log.start_date)
+          : "—",
     },
     {
-      key: "reception_start_time",
+      key: "start_time",
       label: "Hora de ingreso del registro",
-      render(item) {
-        return formatTime(item.reception_start_time);
-      },
+      render: (item) => formatTime(item.execution_log?.start_time),
     },
     {
       key: "status",

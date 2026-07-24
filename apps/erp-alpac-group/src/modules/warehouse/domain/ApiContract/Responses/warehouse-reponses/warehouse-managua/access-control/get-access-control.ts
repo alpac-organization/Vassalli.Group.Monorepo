@@ -3,21 +3,57 @@ export interface GetAccessControlResponse {
   page_number: number;
   page_size: number;
   total_pages: number;
-  data: DataAccessControl[];
+  data: RecordEntrance[];
+  stats: AccessControlStatsResponse;
 }
-export interface DataAccessControl {
-  record_entrance_id: string;
+
+export interface AccessControlStatsResponse {
+  total_entries: number;
+  total_on_site: number;
+  total_exits: number;
+}
+
+export interface RecordEntrance {
+  id: string;
   status: string;
-  current_step_code: string;
   is_consolidated: boolean;
-  created_at: string;
-  reception_start_date: string;
-  reception_start_time: string;
-  reception_end_time: string;
-  reception_end_date: string;
-  duration_total_seconds: number;
+  reception_entrance: ReceptionEntrance;
+  execution_log: ExecutionLog;
+  ducats: Ducat[];
+}
+
+export interface ReceptionEntrance {
+  id: string;
+  country_of_origin: string;
+  aduana: string;
   driver_name: string;
   plate_number: string;
+  trailer_chassis: string;
+  driver_license: string;
   transportista: string;
-  ducat_numbers: string[];
+  medio: string;
+  consignee: string;
+  seal_number: string;
+  updated_by_user_name: string | null;
+  updated_date: string | null;
+  updated_time: string | null;
+  medio_exit_date: string | null;
+  medio_exit_time: string | null;
 }
+
+export interface ExecutionLog {
+  start_date: string;
+  start_time: string;
+  end_date: string;
+  end_time: string;
+  processed_by_user_name: string;
+  duration_total_seconds: number;
+  duration_formatted: string;
+}
+
+export interface Ducat {
+  id: string;
+  ducat_number: string;
+}
+
+export type DataAccessControl = RecordEntrance;

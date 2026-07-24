@@ -26,6 +26,7 @@ export function GateEntryModal({
   isOpen,
   onClose,
   onSubmit,
+  isSubmitting = false,
 }: GateEntryModalProps) {
   const [[currentStep, direction], setStep] = useState([0, 0]);
   const [isDeleteAllDucasConfirmOpen, setIsDeleteAllDucasConfirmOpen] =
@@ -56,6 +57,7 @@ export function GateEntryModal({
   };
 
   const handleClose = () => {
+    if (isSubmitting) return;
     reset(GATE_ENTRY_DEFAULT_VALUES);
     setStep([0, 0]);
     setIsDeleteAllDucasConfirmOpen(false);
@@ -84,7 +86,6 @@ export function GateEntryModal({
     }
 
     onSubmit(data);
-    handleClose();
   };
 
   return (
@@ -182,6 +183,7 @@ export function GateEntryModal({
               label="Cancelar"
               size="giant"
               onClick={handleClose}
+              disabled={isSubmitting}
               className={`${footerButtonClass} ${
                 currentStep === 1
                   ? "col-span-2 order-3 sm:order-0 sm:col-auto"
@@ -196,6 +198,7 @@ export function GateEntryModal({
                 label="Siguiente"
                 size="giant"
                 onClick={() => goToStep(1)}
+                disabled={isSubmitting}
                 className={`${footerButtonClass} text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!`}
                 icon={<ArrowRightIcon size={18} />}
               />
@@ -206,6 +209,7 @@ export function GateEntryModal({
                   label="Atrás"
                   size="giant"
                   onClick={() => goToStep(0)}
+                  disabled={isSubmitting}
                   className={`${footerButtonClass} col-span-1 order-1 sm:order-0 text-slate-200! bg-slate-600/50! hover:bg-slate-600!`}
                   icon={<ArrowLeftIcon size={18} />}
                 />
@@ -213,6 +217,8 @@ export function GateEntryModal({
                   type="submit"
                   label="Finalizar y Guardar"
                   size="giant"
+                  isLoading={isSubmitting}
+                  disabled={isSubmitting}
                   className={`${footerButtonClass} col-span-1 order-2 sm:order-0 text-white! bg-emerald-800! hover:bg-emerald-700!`}
                   icon={<SaveIcon size={18} />}
                 />
