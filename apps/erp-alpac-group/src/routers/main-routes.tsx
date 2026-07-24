@@ -5,10 +5,12 @@ import { Navigate, type RouteObject } from "react-router-dom";
 import { DashboardRoutes } from "./dashboard-routes";
 import { AuthGuard, PublicGuard } from "./guardians";
 
+import { Home } from "@app/modules/Home/Home"
+
 export const MainRoutes: RouteObject[] = [
   {
     path: "/",
-    element: <Navigate to="/auth" replace />,
+    element: <Home />,
   },
   {
     element: <PublicGuard />,
