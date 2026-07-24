@@ -1,7 +1,7 @@
 import { useTheme } from "@alpac/design-system";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import type { QuotesPageHeaderProps } from "@app/modules/procurement/ui/pages/quotes/components/quotes-page-header/quotes-page-header.types";
+import type { QuotesPageHeaderProps } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header.types";
 
 export function QuotesPageHeader({
   title = "Cotizaciones",

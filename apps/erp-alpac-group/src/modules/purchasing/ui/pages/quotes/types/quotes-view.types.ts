@@ -2,7 +2,7 @@ import type {
   GetHistoryQuotes,
   ProductDetailsQuotes,
   Quotes,
-} from "@app/modules/procurement/domain/quotes/responses/get-quotes";
+} from "@app/modules/purchasing/domain/quotes/responses/get-quotes";
 
 export type ProductDetailsQuoteView = ProductDetailsQuotes & {
   product_id?: string;

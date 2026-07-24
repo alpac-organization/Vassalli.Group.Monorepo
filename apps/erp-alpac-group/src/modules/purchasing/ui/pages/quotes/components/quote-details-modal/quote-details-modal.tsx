@@ -1,8 +1,8 @@
 import { Badges, Modal } from "@alpac/design-system";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { ImagePreviewGallery } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
-import type { GetHistoryQuotesView } from "@app/modules/procurement/ui/pages/quotes/types/quotes-view.types";
-import type { QuoteDetailsModalProps } from "@app/modules/procurement/ui/pages/quotes/components/quote-details-modal/quote-details-modal.types";
+import type { GetHistoryQuotesView } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-view.types";
+import type { QuoteDetailsModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/quote-details-modal/quote-details-modal.types";
 
 const formatQuoteDate = (value: string) => {
   const date = new Date(`${value}T00:00:00`);

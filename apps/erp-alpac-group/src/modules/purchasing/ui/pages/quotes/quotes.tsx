@@ -3,14 +3,14 @@ import { m } from "framer-motion";
 import { Breadcrumb } from "@alpac/design-system";
 import { useNavigate } from "react-router-dom";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
-import { QuotesPageHeader } from "@app/modules/procurement/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
-import { QuotesActions } from "@app/modules/procurement/ui/pages/quotes/components/quotes-actions/quotes-actions";
-import { QuotesTable } from "@app/modules/procurement/ui/pages/quotes/components/quotes-table/quotes-table";
-import { CreateQuoteModal } from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/create-quote-modal";
-import { QuoteDetailsModal } from "@app/modules/procurement/ui/pages/quotes/components/quote-details-modal/quote-details-modal";
-import { MOCK_QUOTES } from "@app/modules/procurement/ui/pages/quotes/data/quotes.mock";
-import type { QuotesModalType } from "@app/modules/procurement/ui/pages/quotes/types/quotes-modal.types";
-import type { GetHistoryQuotesView } from "@app/modules/procurement/ui/pages/quotes/types/quotes-view.types";
+import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
+import { QuotesActions } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-actions/quotes-actions";
+import { QuotesTable } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-table/quotes-table";
+import { CreateQuoteModal } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal";
+import { QuoteDetailsModal } from "@app/modules/purchasing/ui/pages/quotes/components/quote-details-modal/quote-details-modal";
+import { MOCK_QUOTES } from "@app/modules/purchasing/ui/pages/quotes/data/quotes.mock";
+import type { QuotesModalType } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-modal.types";
+import type { GetHistoryQuotesView } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-view.types";
 
 export function Quotes() {
   const navigate = useNavigate();
@@ -59,7 +59,7 @@ export function Quotes() {
               },
               {
                 label: "Cotizaciones",
-                url: `${baseUrl}/procurement/quotes`,
+                url: `${baseUrl}/purchasing/quotes`,
                 onClick: (url) => navigate(url),
               },
             ]}

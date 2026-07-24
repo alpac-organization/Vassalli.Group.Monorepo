@@ -252,6 +252,7 @@ export const RequisitionItemSelectionModal = ({
 			{ key: "product_name", label: "Producto / Insumo" },
 			{ key: "product_category_name", label: "Categoría" },
 			{ key: "unit_measure_name", label: "Unidad" },
+			{ key: "quantity_by_unit_measure", label: "Cantidad por Unidad de Medida" },
 		],
 		[selectionType, tempSelected, tempSelectedMultiple],
 	);

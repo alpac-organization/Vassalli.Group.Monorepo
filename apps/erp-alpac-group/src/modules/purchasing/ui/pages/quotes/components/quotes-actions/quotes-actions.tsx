@@ -1,6 +1,6 @@
 import { Button } from "@alpac/design-system";
 import { FilePlus2 } from "lucide-react";
-import type { QuotesActionsProps } from "@app/modules/procurement/ui/pages/quotes/components/quotes-actions/quotes-actions.types";
+import type { QuotesActionsProps } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-actions/quotes-actions.types";
 
 export function QuotesActions({ onCreateQuote }: QuotesActionsProps) {
   return (

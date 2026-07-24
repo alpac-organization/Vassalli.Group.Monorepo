@@ -25,9 +25,10 @@ const labelClassName = "text-black! dark:text-white!";
 const emptyItem: RequisitionItem = {
 	product_id: "",
 	description: "",
-	quantity: "",
+	quantity: 0,
 	unit: "",
 	product_category: "",
+	quantity_by_presentation: 0
 };
 
 type RequisitionFormValues = {
@@ -143,7 +144,7 @@ export const RequisitionModal = ({
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
-			title={isEditMode ? "Editar Requisición" : "Agregar Requisición"}
+			title={isEditMode ? "Editar Requisición" : "Registrar Requisición"}
 			variant="form"
 			size="7xl"
 			description={

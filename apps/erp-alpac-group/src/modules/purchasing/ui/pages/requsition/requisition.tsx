@@ -121,7 +121,7 @@ export const Requisition = () => {
 							onClick: (url) => navigate(url),
 						},
 						{
-							label: "Requisiciones",
+							label: "Solicitud de compras",
 							url: `${baseUrl}/purchasing/requisitions`,
 							onClick: (url) => navigate(url),
 						},
@@ -132,7 +132,7 @@ export const Requisition = () => {
 			<div className="flex flex-col">
 				<div className="flex justify-between items-center">
 					<div className="flex flex-col justify-center">
-						<h3 className="p-0! m-0!">Requisiciones</h3>
+						<h3 className="p-0! m-0!">Solictud de Compras</h3>
 						<small className="text-gray-500 dark:text-gray-300">
 							Gestión de Requisiciones
 						</small>
@@ -159,7 +159,31 @@ export const Requisition = () => {
 					<Button
 						type="button"
 						size="giant"
-						label="Agregar Requisición"
+						label="Crear Requisición"
+						icon={<PackagePlusIcon size={20} />}
+						className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+						onClick={() => {
+							setSelectedRequisition(null);
+							setIsRequisitionModalOpen(true);
+						}}
+					/>
+
+					<Button
+						type="button"
+						size="giant"
+						label="Solicitar Materiales Mensual"
+						icon={<PackagePlusIcon size={20} />}
+						className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+						onClick={() => {
+							setSelectedRequisition(null);
+							setIsRequisitionModalOpen(true);
+						}}
+					/>
+
+					<Button
+						type="button"
+						size="giant"
+						label="Solicitar Materiales Eventual"
 						icon={<PackagePlusIcon size={20} />}
 						className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
 						onClick={() => {

@@ -1,9 +1,10 @@
 export type RequisitionItem = {
 	product_id?: string;
 	description: string;
-	quantity: string;
+	quantity: number;
 	unit: string;
 	product_category: string;
+	quantity_by_presentation?: number;
 };
 
 export type RequisitionItems = {

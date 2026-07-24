@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import { Button, Dropdown, Modal, Spinner } from "@alpac/design-system";
-import type { GetSuppliersResponse } from "@app/modules/procurement/domain/suppliers/responses/get-suppliers-response";
+import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/suppliers/responses/get-suppliers-response";
 import {
   quoteFormDropdownClassName,
   quoteFormLabelClassName,
   quoteFormPrimaryButtonClassName,
   quoteFormSecondaryButtonClassName,
-} from "@app/modules/procurement/ui/pages/quotes/components/create-quote-modal/create-quote-form.styles";
+} from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.styles";
 
 type SelectSupplierModalProps = {
   isOpen: boolean;

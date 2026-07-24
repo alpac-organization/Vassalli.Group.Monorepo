@@ -6,8 +6,8 @@ import {
   type TableColumn,
 } from "@alpac/design-system";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
-import type { GetHistoryQuotesView } from "@app/modules/procurement/ui/pages/quotes/types/quotes-view.types";
-import type { QuotesTableProps } from "@app/modules/procurement/ui/pages/quotes/components/quotes-table/quotes-table.types";
+import type { GetHistoryQuotesView } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-view.types";
+import type { QuotesTableProps } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-table/quotes-table.types";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 
 const buildColumns = (

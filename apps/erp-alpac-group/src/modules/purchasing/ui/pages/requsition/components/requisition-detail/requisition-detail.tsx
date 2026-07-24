@@ -23,6 +23,7 @@ export const RequisitionDetail = () => {
 	const {
 		control,
 		setValue,
+		watch,
 		formState: { errors },
 	} = useForm<RequisitionItems>({
 		defaultValues: {
@@ -81,10 +82,11 @@ export const RequisitionDetail = () => {
 			append({
 				product_id: product.product_id,
 				description: product.product_name,
-				quantity: "",
+				quantity: 0,
 				unit: product.unit_measure_id || product.unit_measure_name,
 				product_category:
 					product.product_category_id || product.product_category_name,
+				quantity_by_presentation: 0
 			});
 		});
 	};
@@ -110,150 +112,205 @@ export const RequisitionDetail = () => {
 				/>
 			</div>
 
-			{fields.map((item, index) => (
-				<div
-					key={item.id}
-					className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_7rem_12rem_12rem_2.75rem] gap-3 items-end w-full dark:border-neutral-600"
-				>
-					<div>
-						<Controller
-							name={`requisition_items.${index}.description`}
-							control={control}
-							rules={{ required: "El insumo es requerido" }}
-							render={({ field }) => (
-								<InputText
-									label={`Insumo #${index + 1}`}
-									placeholder="Ej. Toner HP 85A"
-									className={inputClassName}
-									labelClassName={labelClassName}
-									value={field.value}
-									onChange={field.onChange}
-									error={
-										errors.requisition_items?.[index]?.description?.message
-									}
-								/>
-							)}
-						/>
-					</div>
+			{fields.map((item, index) => {
+				const selectedUnitId = watch(`requisition_items.${index}.unit`);
+				const selectedUnit = unitsOfMeasurementOptions.find(
+					(option) => option.value === selectedUnitId,
+				);
+				const unitLabel = selectedUnit?.label?.toLowerCase() ?? "";
+				const unitSymbol = selectedUnit?.symbol?.toLowerCase() ?? "";
+				const isBoxOrPackage =
+					unitLabel.includes("caja") ||
+					unitLabel.includes("paquete") ||
+					unitSymbol.includes("caja") ||
+					unitSymbol.includes("paquete") ||
+					unitSymbol === "cj" ||
+					unitSymbol === "paq";
 
-					<div>
-						<Controller
-							name={`requisition_items.${index}.quantity`}
-							control={control}
-							rules={{
-								required: "La cantidad es requerida",
-								validate: (value) => {
-									const quantity = Number(value);
-									if (!value || Number.isNaN(quantity)) {
-										return "Ingrese una cantidad válida";
-									}
-									if (quantity <= 0) {
-										return "La cantidad debe ser mayor a 0";
-									}
-									return true;
-								},
-							}}
-							render={({ field }) => (
-								<InputText
-									label="Cantidad"
-									type="number"
-									placeholder="0"
-									className={inputClassName}
-									labelClassName={labelClassName}
-									value={field.value}
-									onChange={field.onChange}
-									error={errors.requisition_items?.[index]?.quantity?.message}
-								/>
-							)}
-						/>
-					</div>
+				return (
+					<div
+						key={item.id}
+						className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_12rem_7rem_12rem_12rem_2.75rem] gap-3 items-end w-full dark:border-neutral-600"
+					>
+						<div>
+							<Controller
+								name={`requisition_items.${index}.description`}
+								control={control}
+								rules={{ required: "El insumo es requerido" }}
+								render={({ field }) => (
+									<InputText
+										label={`Insumo #${index + 1}`}
+										placeholder="Ej. Toner HP 85A"
+										className={inputClassName}
+										labelClassName={labelClassName}
+										value={field.value}
+										onChange={field.onChange}
+										error={
+											errors.requisition_items?.[index]?.description?.message
+										}
+									/>
+								)}
+							/>
+						</div>
 
-					<div>
-						<Controller
-							name={`requisition_items.${index}.product_category`}
-							control={control}
-							rules={{ required: "La categoría de producto es requerida" }}
-							render={({ field }) => (
-								<Dropdown
-									label="Categoría de Producto"
-									isRequired
-									options={productCategoryOptions}
-									placeholder={
-										isLoadingProductCategories
-											? "Cargando categorías..."
-											: "Seleccione..."
-									}
-									onChange={(value) => field.onChange(String(value))}
-									error={
-										errors.requisition_items?.[index]?.product_category
-											?.message
-									}
-									value={field.value}
-									appearance="dark"
-									labelClassName={labelClassName}
-									valueClassName={labelClassName}
-									className={dropdownClassName}
-								/>
-							)}
-						/>
-					</div>
+						<div>
+							<Controller
+								name={`requisition_items.${index}.product_category`}
+								control={control}
+								rules={{ required: "La categoría de producto es requerida" }}
+								render={({ field }) => (
+									<Dropdown
+										label="Categoría de Producto"
+										isRequired
+										options={productCategoryOptions}
+										placeholder={
+											isLoadingProductCategories
+												? "Cargando categorías..."
+												: "Seleccione..."
+										}
+										onChange={(value) => field.onChange(String(value))}
+										error={
+											errors.requisition_items?.[index]?.product_category
+												?.message
+										}
+										value={field.value}
+										appearance="dark"
+										labelClassName={labelClassName}
+										valueClassName={labelClassName}
+										className={dropdownClassName}
+									/>
+								)}
+							/>
+						</div>
 
-					<div>
-						<Controller
-							name={`requisition_items.${index}.unit`}
-							control={control}
-							rules={{ required: "La unidad es requerida" }}
-							render={({ field }) => (
-								<Dropdown
-									label="Unidad"
-									isRequired
-									options={unitsOfMeasurementOptions}
-									placeholder={
-										isLoadingUnits ? "Cargando unidades..." : "Seleccione..."
-									}
-									onChange={(value) => field.onChange(String(value))}
-									error={errors.requisition_items?.[index]?.unit?.message}
-									value={field.value}
-									appearance="dark"
-									labelClassName={labelClassName}
-									valueClassName={labelClassName}
-									className={dropdownClassName}
-								/>
-							)}
-						/>
-					</div>
-
-					<div className="flex md:justify-end md:items-center h-11">
-						<div className="group relative flex items-center">
-							<button
-								type="button"
-								className="rounded-full p-1 transition-all text-white! bg-red-500! dark:bg-red-700!"
-								onClick={() => {
-									if (fields.length === 1) {
-										setValue(`requisition_items.${index}.product_id`, "");
-										setValue(`requisition_items.${index}.description`, "");
-										setValue(`requisition_items.${index}.quantity`, "");
-										setValue(`requisition_items.${index}.unit`, "");
-										setValue(
-											`requisition_items.${index}.product_category`,
-											"",
-										);
-										return;
-									}
-									remove(index);
+						<div>
+							<Controller
+								name={`requisition_items.${index}.quantity`}
+								control={control}
+								rules={{
+									required: "La cantidad es requerida",
+									validate: (value) => {
+										const quantity = Number(value);
+										if (!value || Number.isNaN(quantity)) {
+											return "Ingrese una cantidad válida";
+										}
+										if (quantity <= 0) {
+											return "La cantidad debe ser mayor a 0";
+										}
+										return true;
+									},
 								}}
-								aria-label="Quitar insumo"
-							>
-								<X size={16} />
-							</button>
+								render={({ field }) => (
+									<InputText
+										label="Cantidad"
+										type="number"
+										placeholder="0"
+										className={inputClassName}
+										labelClassName={labelClassName}
+										value={field.value}
+										onChange={field.onChange}
+										error={errors.requisition_items?.[index]?.quantity?.message}
+									/>
+								)}
+							/>
+						</div>
 
-							<div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-slate-800 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
-								Quitar insumo
+						<div>
+							<Controller
+								name={`requisition_items.${index}.unit`}
+								control={control}
+								rules={{ required: "La unidad es requerida" }}
+								render={({ field }) => (
+									<Dropdown
+										label="Unidad de Medida"
+										isRequired
+										options={unitsOfMeasurementOptions}
+										placeholder={
+											isLoadingUnits ? "Cargando unidades..." : "Seleccione..."
+										}
+										onChange={(value) => field.onChange(String(value))}
+										error={errors.requisition_items?.[index]?.unit?.message}
+										value={field.value}
+										appearance="dark"
+										labelClassName={labelClassName}
+										valueClassName={labelClassName}
+										className={dropdownClassName}
+									/>
+								)}
+							/>
+						</div>
+
+						{isBoxOrPackage ? (
+							<div>
+								<Controller
+									name={`requisition_items.${index}.quantity_by_presentation`}
+									control={control}
+									rules={{
+										required: "Agregue las unidades por presentación",
+										validate: (value) => {
+											const quantity = Number(value);
+											if (!value || Number.isNaN(quantity)) {
+												return "Ingrese una cantidad válida";
+											}
+											if (quantity <= 0) {
+												return "La cantidad debe ser mayor a 0";
+											}
+											return true;
+										},
+									}}
+									render={({ field }) => (
+										<InputText
+											label="Unidades por presentación"
+											type="number"
+											placeholder="0"
+											className={inputClassName}
+											labelClassName={labelClassName}
+											value={field.value}
+											onChange={field.onChange}
+											error={
+												errors.requisition_items?.[index]
+													?.quantity_by_presentation?.message
+											}
+										/>
+									)}
+								/>
+							</div>
+						) : <span></span>
+					}
+
+						<div className="flex md:justify-end md:items-center h-11">
+							<div className="group relative flex items-center">
+								<button
+									type="button"
+									className="rounded-full p-1 transition-all text-white! bg-red-500! dark:bg-red-700!"
+									onClick={() => {
+										if (fields.length === 1) {
+											setValue(`requisition_items.${index}.product_id`, "");
+											setValue(`requisition_items.${index}.description`, "");
+											setValue(`requisition_items.${index}.quantity`, 0);
+											setValue(`requisition_items.${index}.unit`, "");
+											setValue(`requisition_items.${index}.quantity_by_presentation`, 0);
+											setValue(
+												`requisition_items.${index}.product_category`,
+												"",
+											);
+											return;
+										}
+										remove(index);
+									}}
+									aria-label="Quitar insumo"
+								>
+									<X size={16} />
+								</button>
+
+								<div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-slate-800 rounded shadow-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 whitespace-nowrap">
+									Quitar insumo
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
-			))}
+				);
+			})}
 
 			<RequisitionItemSelectionModal
 				isOpen={isItemSelectionOpen}

@@ -1,4 +1,4 @@
-import type { GetHistoryQuotesView } from "@app/modules/procurement/ui/pages/quotes/types/quotes-view.types";
+import type { GetHistoryQuotesView } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-view.types";
 
 export type CreateQuoteModalProps = {
   isOpen: boolean;

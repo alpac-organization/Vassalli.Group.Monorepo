@@ -5,7 +5,7 @@ export type SelectableRequisitionProduct = {
 	product_category_id: string;
 	product_category_name: string;
 	unit_measure_id: string;
-	unit_measure_name: string;
+	unit_measure_name: string;	
 };
 
 export interface RequisitionItemSelectionModalProps {

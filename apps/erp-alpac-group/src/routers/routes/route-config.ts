@@ -44,9 +44,12 @@ const {
   warehouseSection12,
 } = getManaguaWarehouseRoutes();
 
-const { supplierSection,
+const {
+  supplierSection,
   requisitionSection,
-  purchaseOrderSection, quotesSection } = getPurchasingRoutes();
+  quotesSection,
+  purchaseOrderSection
+} = getPurchasingRoutes();
 
 export const routeConfig = {
   [ModuleEnum.PAYROLL]: {
@@ -102,7 +105,8 @@ export const routeConfig = {
     [RoleEnum.ADMINISTRATOR]: [
       supplierSection,
       requisitionSection,
-      purchaseOrderSection,quotesSection
+      quotesSection,
+      purchaseOrderSection
     ]
   }
 };

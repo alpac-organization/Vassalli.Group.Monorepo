@@ -17,9 +17,7 @@ export class ProductServices implements IProductServices {
 
          const url = `companies/${company_id}/modules/${module_code}/category-products`;
 
-         const response = await this.apiHandler.get<any>(url, { params: cleanParams(queryParams) });
-
-         console.log("respuesta de categoria de producto: ", response)
+         const response = await this.apiHandler.get<any>(url, { params: cleanParams(queryParams) });         
 
          return response;
       } catch (error) {

@@ -19,14 +19,22 @@ export const getPurchasingRoutes = () => {
 
    const requisitionSection: SidebarLink = {
       id: "requisition",
-      label: "Requisiciones",
+      label: "Solicitud de Compras",
       path: "requisitions",
+      icon: NotebookIcon
+   }
+
+   const quotesSection: SidebarLink = {
+      id: "quote",
+      label: "Cotizaciones",
+      path: "quotes",
       icon: NotebookIcon
    }
 
    return {
       supplierSection,
       requisitionSection,
+      quotesSection,
       purchaseOrderSection
    }
 }
