@@ -17,7 +17,6 @@ export interface TramoSize {
   depth: number;
 }
 
-/** Lateral floor-only tramo (T-41…T-50, T-71…T-80). */
 export interface FloorTramo {
   id: string;
   kind: "floor";
@@ -27,7 +26,6 @@ export interface FloorTramo {
   size: TramoSize;
 }
 
-/** Center rack tramo with 3 levels (T-51…T-70). */
 export interface RackTramo {
   id: string;
   kind: "rack";
@@ -72,14 +70,10 @@ export const STATUS_LABEL: Record<SlotStatus, string> = {
   reserved: "Reservada",
 };
 
-/** Vertical spacing between rack levels (meters). */
 export const LEVEL_HEIGHT = 2;
 
-/** Visual box height inside a level. */
 export const BOX_HEIGHT = 1.4;
 
-/** Floor plate thickness for lateral / level-1 slots. */
 export const FLOOR_PLATE_HEIGHT = 0.25;
 
-/** Rack steel frame total height. */
 export const RACK_FRAME_HEIGHT = 6;

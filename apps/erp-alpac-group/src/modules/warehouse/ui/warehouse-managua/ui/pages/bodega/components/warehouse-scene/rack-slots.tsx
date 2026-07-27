@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import type {
-  OccupancyMap,
-  RackTramo,
-} from "../../types/warehouse-3d.types";
+import type { OccupancyMap, RackTramo } from "../../types/warehouse-3d.types";
 import {
   BOX_HEIGHT,
   FLOOR_PLATE_HEIGHT,
@@ -87,9 +84,12 @@ export function RackSlots({ tramos, occupancy }: RackSlotsProps) {
       const dimOthers = Boolean(focusedTramoId) && !isFocused;
 
       dummy.position.set(slot.x, slot.y, slot.z);
-      // Slight scale-up on selected level for feedback
       const scaleBoost = isSelected ? 1.04 : 1;
-      dummy.scale.set(slot.w * scaleBoost, slot.h * scaleBoost, slot.d * scaleBoost);
+      dummy.scale.set(
+        slot.w * scaleBoost,
+        slot.h * scaleBoost,
+        slot.d * scaleBoost,
+      );
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
 
@@ -102,7 +102,6 @@ export function RackSlots({ tramos, occupancy }: RackSlotsProps) {
 
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    // InstancedMesh default bounds sit at origin — recompute so orbit/zoom never culls colors
     mesh.computeBoundingSphere();
     mesh.computeBoundingBox();
     invalidate();
@@ -133,7 +132,6 @@ export function RackSlots({ tramos, occupancy }: RackSlotsProps) {
 
         const focused = useBodegaViewerStore.getState().focusedTramoId;
 
-        // Overview (or another tramo): zoom into this rack — no panel yet
         if (focused !== slot.tramoId) {
           const tramo = tramosById.get(slot.tramoId);
           if (!tramo) return;
@@ -142,7 +140,6 @@ export function RackSlots({ tramos, occupancy }: RackSlotsProps) {
           return;
         }
 
-        // Already zoomed on this tramo: select the level → show panel
         selectLevel(slot.code);
         invalidate();
       }}

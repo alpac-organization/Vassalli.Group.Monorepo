@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import type {
-  FloorTramo,
-  OccupancyMap,
-} from "../../types/warehouse-3d.types";
+import type { FloorTramo, OccupancyMap } from "../../types/warehouse-3d.types";
 import {
   FLOOR_PLATE_HEIGHT,
   STATUS_COLOR,
@@ -16,7 +13,6 @@ interface FloorTramosProps {
   occupancy: OccupancyMap;
 }
 
-/** Lateral floor-only tramos: click shows detail panel (no zoom). */
 export function FloorTramos({ tramos, occupancy }: FloorTramosProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const codesRef = useRef<string[]>([]);
@@ -52,7 +48,6 @@ export function FloorTramos({ tramos, occupancy }: FloorTramosProps) {
 
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    // Prevent disappearing colors when OrbitControls moves away from origin
     mesh.computeBoundingSphere();
     mesh.computeBoundingBox();
     invalidate();
@@ -67,7 +62,6 @@ export function FloorTramos({ tramos, occupancy }: FloorTramosProps) {
       frustumCulled={false}
       onClick={(e) => {
         e.stopPropagation();
-        // While inspecting a center rack, ignore lateral clicks
         if (useBodegaViewerStore.getState().focusedTramoId) return;
         const id = e.instanceId;
         if (id == null) return;

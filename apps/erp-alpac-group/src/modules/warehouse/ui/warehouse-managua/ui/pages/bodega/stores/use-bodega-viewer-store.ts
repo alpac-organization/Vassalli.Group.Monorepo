@@ -15,9 +15,7 @@ export type CameraFlyTo = {
 interface BodegaViewerState {
   selectedBodegaId: string | null;
   selectedBodegaName: string | null;
-  /** Center rack tramo currently inspected (zoom). */
   focusedTramoId: string | null;
-  /** Level location code — panel only when set. */
   selectedLocationCode: LocationCode | null;
   cameraPreset: CameraPreset | null;
   cameraFlyTo: CameraFlyTo | null;

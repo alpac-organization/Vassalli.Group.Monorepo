@@ -12,7 +12,6 @@ export function BuildingShell({ layout }: BuildingShellProps) {
 
   return (
     <group>
-      {/* Main warehouse floor */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[width / 2, 0, depth / 2]}
@@ -22,13 +21,11 @@ export function BuildingShell({ layout }: BuildingShellProps) {
         <meshStandardMaterial color="#1e293b" roughness={0.9} />
       </mesh>
 
-      {/* Subtle grid plane */}
       <gridHelper
         args={[Math.max(width, depth), 40, "#334155", "#1e293b"]}
         position={[width / 2, 0.01, depth / 2]}
       />
 
-      {/* Galeron floor (south of origin) */}
       <mesh
         rotation={[-Math.PI / 2, 0, 0]}
         position={[width / 2, 0, -galeronDepth / 2]}
@@ -38,7 +35,6 @@ export function BuildingShell({ layout }: BuildingShellProps) {
         <meshStandardMaterial color="#334155" roughness={1} />
       </mesh>
 
-      {/* Perimeter walls (main bodega) */}
       <mesh position={[width / 2, wallY, -wallT / 2]}>
         <boxGeometry args={[width, wallH, wallT]} />
         <meshStandardMaterial color="#475569" transparent opacity={0.35} />

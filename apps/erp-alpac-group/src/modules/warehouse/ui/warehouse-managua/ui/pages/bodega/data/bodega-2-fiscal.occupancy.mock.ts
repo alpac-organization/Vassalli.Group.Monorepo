@@ -12,7 +12,6 @@ function allLocationCodes(): string[] {
   return codes;
 }
 
-/** Deterministic pseudo-random status from location code (stable mock). */
 function mockStatus(code: string): SlotStatus {
   let hash = 0;
   for (let i = 0; i < code.length; i++) {
@@ -29,7 +28,6 @@ export function buildBodega2OccupancyMock(): OccupancyMap {
   for (const code of allLocationCodes()) {
     map[code] = mockStatus(code);
   }
-  // Showcase examples matching the plan nomenclature
   map["T-41"] = "free";
   map["T-62"] = "occupied";
   map["T-62-01"] = "reserved";

@@ -7,7 +7,6 @@ interface FocusedTramoHighlightProps {
   layout: WarehouseLayout;
 }
 
-/** Soft rectangular highlight around the focused center rack. */
 export function FocusedTramoHighlight({ layout }: FocusedTramoHighlightProps) {
   const focusedTramoId = useBodegaViewerStore((s) => s.focusedTramoId);
 

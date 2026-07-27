@@ -1,6 +1,5 @@
 import type { LocationCode } from "../types/warehouse-3d.types";
 
-/** Level 1 = floor (T-62), level 2 = T-62-01, level 3 = T-62-02 */
 export function rackLevelCodes(
   baseCode: LocationCode,
 ): readonly [LocationCode, LocationCode, LocationCode] {

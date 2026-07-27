@@ -2,7 +2,10 @@ import { useEffect, useMemo, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type { RackTramo } from "../../types/warehouse-3d.types";
-import { LEVEL_HEIGHT, RACK_FRAME_HEIGHT } from "../../types/warehouse-3d.types";
+import {
+  LEVEL_HEIGHT,
+  RACK_FRAME_HEIGHT,
+} from "../../types/warehouse-3d.types";
 
 interface RackStructuresProps {
   tramos: RackTramo[];
@@ -44,10 +47,8 @@ function buildParts(tramos: RackTramo[]): Part[] {
       });
     }
 
-    // Horizontal beams at level 2 and 3 shelf heights
     for (const level of [1, 2]) {
       const by = LEVEL_HEIGHT * level;
-      // Front / back beams along X
       parts.push({
         x,
         y: by,
@@ -64,7 +65,6 @@ function buildParts(tramos: RackTramo[]): Part[] {
         sy: POST_W,
         sz: POST_W,
       });
-      // Side beams along Z
       parts.push({
         x: x - hw,
         y: by,
@@ -120,11 +120,7 @@ export function RackStructures({ tramos }: RackStructuresProps) {
       frustumCulled={false}
     >
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial
-        color="#94a3b8"
-        metalness={0.65}
-        roughness={0.35}
-      />
+      <meshStandardMaterial color="#94a3b8" metalness={0.65} roughness={0.35} />
     </instancedMesh>
   );
 }

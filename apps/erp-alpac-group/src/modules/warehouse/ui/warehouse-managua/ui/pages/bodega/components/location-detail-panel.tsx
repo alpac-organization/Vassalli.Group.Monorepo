@@ -32,7 +32,9 @@ export function LocationDetailPanel({ occupancy }: LocationDetailPanelProps) {
   const status = occupancy[code] ?? "free";
   const base = parseRackBase(code);
   const layout = bodegaId ? getLayoutByBodegaId(bodegaId) : null;
-  const rack = layout?.rackTramos.find((t) => t.id === base || t.baseCode === base);
+  const rack = layout?.rackTramos.find(
+    (t) => t.id === base || t.baseCode === base,
+  );
   const floor = layout?.floorTramos.find((t) => t.code === code);
   const isRackLevel = Boolean(rack);
 
@@ -114,9 +116,7 @@ export function LocationDetailPanel({ occupancy }: LocationDetailPanelProps) {
                     >
                       <span
                         className={
-                          active
-                            ? "font-semibold text-white"
-                            : "text-slate-300"
+                          active ? "font-semibold text-white" : "text-slate-300"
                         }
                       >
                         {levelCode}
@@ -145,13 +145,6 @@ export function LocationDetailPanel({ occupancy }: LocationDetailPanelProps) {
               {floor.size.width.toFixed(2)} × {floor.size.depth.toFixed(2)} m
             </dd>
           </div>
-        )}
-
-        {focusedTramoId && isRackLevel && (
-          <p className="m-0 pt-1 text-[11px] leading-relaxed text-slate-500">
-            Haz click en otro nivel del rack para cambiar la ubicación, o
-            usa Volver para salir del zoom.
-          </p>
         )}
       </dl>
     </aside>

@@ -5,8 +5,6 @@ import type {
 } from "../types/warehouse-3d.types";
 import { rackLevelCodes } from "../utils/location-codes";
 
-/** Bodega #2 Fiscal — dimensions from architectural plan (meters = Three.js units). */
-
 const BUILDING = {
   width: 37.35,
   depth: 61.02,
@@ -20,10 +18,8 @@ const BUILDING = {
 const LEFT_W = 8.85;
 const CENTER_W = 4.75;
 const RIGHT_W = 8.85;
-/** Combined center block width from plan (two back-to-back rows). */
 const CENTER_BLOCK_W = 10.85;
 
-/** Depth along Z for each row index 0 (south) … 9 (north). */
 const ROW_DEPTHS = [5.23, 6, 6, 6, 6, 6, 6, 6, 6, 5.23] as const;
 
 function rowCentersZ(): number[] {
@@ -36,11 +32,6 @@ function rowCentersZ(): number[] {
   return centers;
 }
 
-/**
- * X layout (west → east):
- * clear | left 8.85 | aisle 4.40 | centerL 4.75 | gap | centerR 4.75 | aisle 4.40 | right 8.85 | clear
- * Center block total = 10.85 → gap between backs = 10.85 - 2*4.75 = 1.35
- */
 function columnCentersX() {
   const { wallClearance: c, aisleWidth: a } = BUILDING;
   const gapBetweenCenter = CENTER_BLOCK_W - CENTER_W * 2;
@@ -178,7 +169,6 @@ export function getLayoutByBodegaId(bodegaId: string): WarehouseLayout | null {
   return null;
 }
 
-/** Scene target: center of roofed warehouse floor. */
 export function getWarehouseCenter(layout: WarehouseLayout) {
   return {
     x: layout.building.width / 2,

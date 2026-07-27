@@ -33,7 +33,6 @@ function WarehouseScene({ bodegaId }: WarehouseCanvasProps) {
   return (
     <>
       <color attach="background" args={["#0b1220"]} />
-      {/* Far fog only — keeps status colors visible while orbiting/zooming */}
       <fog attach="fog" args={["#0b1220", 110, 220]} />
       <ambientLight intensity={0.75} />
       <directionalLight
