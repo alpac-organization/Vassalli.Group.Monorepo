@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type {
-  CameraPreset,
+  CameraProps,
   LocationCode,
   Vec3,
 } from "../types/warehouse-3d.types";
@@ -17,7 +17,7 @@ interface BodegaViewerState {
   selectedBodegaName: string | null;
   focusedTramoId: string | null;
   selectedLocationCode: LocationCode | null;
-  cameraPreset: CameraPreset | null;
+  cameraPreset: CameraProps | null;
   cameraFlyTo: CameraFlyTo | null;
   setBodega: (id: string, name: string) => void;
   clearBodega: () => void;
@@ -25,7 +25,7 @@ interface BodegaViewerState {
   selectLevel: (code: LocationCode) => void;
   clearLevelSelection: () => void;
   exitTramoFocus: (overviewFlyTo?: CameraFlyTo) => void;
-  requestCameraPreset: (preset: CameraPreset) => void;
+  requestCameraPreset: (preset: CameraProps) => void;
   clearCameraPreset: () => void;
   clearCameraFlyTo: () => void;
 }

@@ -2,9 +2,9 @@ export type SlotStatus = "free" | "occupied" | "reserved";
 
 export type LocationCode = string;
 
-export type TramoKind = "floor" | "rack";
+export type TramoProps = "floor" | "rack";
 
-export type CameraPreset = "isometric" | "top" | "reset";
+export type CameraProps = "isometric" | "top" | "reset";
 
 export interface Vec3 {
   x: number;
@@ -19,6 +19,7 @@ export interface TramoSize {
 
 export interface FloorTramo {
   id: string;
+  warehouseNumber: number;
   kind: "floor";
   code: LocationCode;
   column: "left" | "right";
@@ -28,6 +29,7 @@ export interface FloorTramo {
 
 export interface RackTramo {
   id: string;
+  warehouseNumber: number;
   kind: "rack";
   baseCode: LocationCode;
   column: "centerLeft" | "centerRight";

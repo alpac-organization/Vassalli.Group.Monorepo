@@ -4,12 +4,12 @@ import { SelectBodegaModal } from "./components/select-bodega-modal";
 import { LocationDetailPanel } from "./components/location-detail-panel";
 import { useBodegaViewerStore } from "./stores/use-bodega-viewer-store";
 import { useWarehouseOccupancy } from "./hooks/use-warehouse-occupancy";
-import { STATUS_COLOR, STATUS_LABEL } from "./types/warehouse-3d.types";
 import { getLayoutByBodegaId } from "./data/bodega-2-fiscal.layout";
 import { getOverviewFlyTo } from "./utils/camera-fly";
 
 const WarehouseCanvas = lazy(
-  () => import("./components/warehouse-scene/warehouse-canvas"),
+  () =>
+    import("@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/warehouse-canvas"),
 );
 
 export default function Bodega() {
@@ -64,20 +64,27 @@ export default function Bodega() {
 
         <div className="flex flex-wrap items-center gap-2">
           <div className="mr-2 hidden items-center gap-3 sm:flex">
-            {(
-              Object.keys(STATUS_COLOR) as Array<keyof typeof STATUS_COLOR>
-            ).map((key) => (
+            <span className="flex items-center gap-1.5 text-xs text-slate-300">
               <span
-                key={key}
-                className="flex items-center gap-1.5 text-xs text-slate-300"
-              >
-                <span
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={{ backgroundColor: STATUS_COLOR[key] }}
-                />
-                {STATUS_LABEL[key]}
-              </span>
-            ))}
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: "#22c55e" }}
+              />
+              Libre
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-slate-300">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: "#eab308" }}
+              />
+              Reservada
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-slate-300">
+              <span
+                className="h-2.5 w-2.5 rounded-sm"
+                style={{ backgroundColor: "#c4a574" }}
+              />
+              Ocupada (caja)
+            </span>
           </div>
 
           {selectedBodegaId && focusedTramoId && (
@@ -150,13 +157,12 @@ export default function Bodega() {
               Ninguna bodega seleccionada
             </p>
             <p className="m-0 max-w-sm text-sm text-slate-500">
-              Selecciona una bodega para inspeccionar tramos, pasillos y racks en
-              360°.
+              Selecciona una bodega para inspeccionar tramos, pasillos y racks
+              en 360°.
             </p>
           </div>
         )}
       </div>
-
       <SelectBodegaModal
         isOpen={modalOpen}
         allowDismiss={Boolean(selectedBodegaId)}

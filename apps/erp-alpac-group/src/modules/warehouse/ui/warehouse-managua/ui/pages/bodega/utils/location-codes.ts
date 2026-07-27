@@ -1,5 +1,4 @@
-import type { LocationCode } from "../types/warehouse-3d.types";
-
+import type { LocationCode } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/types/warehouse-3d.types";
 export function rackLevelCodes(
   baseCode: LocationCode,
 ): readonly [LocationCode, LocationCode, LocationCode] {

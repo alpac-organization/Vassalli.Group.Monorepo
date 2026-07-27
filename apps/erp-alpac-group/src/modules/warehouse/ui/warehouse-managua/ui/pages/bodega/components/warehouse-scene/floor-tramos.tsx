@@ -1,17 +1,25 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import type { FloorTramo, OccupancyMap } from "../../types/warehouse-3d.types";
-import {
-  FLOOR_PLATE_HEIGHT,
-  STATUS_COLOR,
+import type {
+  FloorTramo,
+  OccupancyMap,
+  SlotStatus,
 } from "../../types/warehouse-3d.types";
+import { FLOOR_PLATE_HEIGHT } from "../../types/warehouse-3d.types";
 import { useBodegaViewerStore } from "../../stores/use-bodega-viewer-store";
 
 interface FloorTramosProps {
   tramos: FloorTramo[];
   occupancy: OccupancyMap;
 }
+
+/** Lateral floor plates — no red: free=green, reserved=yellow, occupied=slate. */
+const FLOOR_COLOR: Record<SlotStatus, string> = {
+  free: "#22c55e",
+  reserved: "#eab308",
+  occupied: "#64748b",
+};
 
 export function FloorTramos({ tramos, occupancy }: FloorTramosProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
@@ -41,8 +49,8 @@ export function FloorTramos({ tramos, occupancy }: FloorTramosProps) {
       mesh.setMatrixAt(i, dummy.matrix);
 
       const status = occupancy[tramo.code] ?? "free";
-      color.set(STATUS_COLOR[status]);
-      if (focusedTramoId) color.multiplyScalar(0.4);
+      color.set(FLOOR_COLOR[status]);
+      if (focusedTramoId) color.multiplyScalar(0.45);
       mesh.setColorAt(i, color);
     });
 

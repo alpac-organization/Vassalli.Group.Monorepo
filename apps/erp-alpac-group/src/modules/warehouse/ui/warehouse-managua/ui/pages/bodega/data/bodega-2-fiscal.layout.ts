@@ -2,7 +2,7 @@ import type {
   FloorTramo,
   RackTramo,
   WarehouseLayout,
-} from "../types/warehouse-3d.types";
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/types/warehouse-3d.types";
 import { rackLevelCodes } from "../utils/location-codes";
 
 const BUILDING = {
@@ -14,12 +14,10 @@ const BUILDING = {
   heightHigh: 9.05,
   heightLow: 6.57,
 } as const;
-
 const LEFT_W = 8.85;
 const CENTER_W = 4.75;
 const RIGHT_W = 8.85;
 const CENTER_BLOCK_W = 10.85;
-
 const ROW_DEPTHS = [5.23, 6, 6, 6, 6, 6, 6, 6, 6, 5.23] as const;
 
 function rowCentersZ(): number[] {
@@ -41,10 +39,8 @@ function columnCentersX() {
   const centerRight =
     c + LEFT_W + a + CENTER_W + gapBetweenCenter + CENTER_W / 2;
   const right = BUILDING.width - c - RIGHT_W / 2;
-
   return { left, centerLeft, centerRight, right };
 }
-
 function buildFloorColumn(
   idsSouthToNorth: string[],
   x: number,
@@ -54,6 +50,7 @@ function buildFloorColumn(
 ): FloorTramo[] {
   return idsSouthToNorth.map((id, i) => ({
     id,
+    warehouseNumber: i + 1,
     kind: "floor" as const,
     code: id,
     column,
@@ -61,7 +58,6 @@ function buildFloorColumn(
     size: { width, depth: ROW_DEPTHS[i]! },
   }));
 }
-
 function buildRackColumn(
   idsSouthToNorth: string[],
   x: number,
@@ -70,6 +66,7 @@ function buildRackColumn(
 ): RackTramo[] {
   return idsSouthToNorth.map((id, i) => ({
     id,
+    warehouseNumber: i + 1,
     kind: "rack" as const,
     baseCode: id,
     column,
@@ -82,8 +79,6 @@ function buildRackColumn(
 function buildLayout(): WarehouseLayout {
   const centersZ = rowCentersZ();
   const x = columnCentersX();
-
-  // South → north numbering from plan
   const leftIds = [
     "T-41",
     "T-42",
@@ -132,10 +127,9 @@ function buildLayout(): WarehouseLayout {
     "T-72",
     "T-71",
   ];
-
   return {
     bodegaId: "bodega-2-fiscal",
-    name: "Bodega #2 Fiscal",
+    name: "Bodega #2",
     building: { ...BUILDING },
     floorTramos: [
       ...buildFloorColumn(leftIds, x.left, LEFT_W, "left", centersZ),
@@ -161,7 +155,6 @@ export const AVAILABLE_BODEGAS = [
     name: BODEGA_2_FISCAL_LAYOUT.name,
   },
 ] as const;
-
 export function getLayoutByBodegaId(bodegaId: string): WarehouseLayout | null {
   if (bodegaId === BODEGA_2_FISCAL_LAYOUT.bodegaId) {
     return BODEGA_2_FISCAL_LAYOUT;

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import { ContactShadows } from "@react-three/drei";
 import {
@@ -14,6 +15,7 @@ import { RackStructures } from "./rack-structures";
 import { RackSlots } from "./rack-slots";
 import { FocusedTramoHighlight } from "./focused-tramo-highlight";
 import { CameraRig } from "./camera-rig";
+import "../../hooks/use-cardboard-box-geometry";
 
 interface WarehouseCanvasProps {
   bodegaId: string;
@@ -48,7 +50,9 @@ function WarehouseScene({ bodegaId }: WarehouseCanvasProps) {
         <AisleMarkers layout={layout} />
         <FloorTramos tramos={layout.floorTramos} occupancy={locations} />
         <RackStructures tramos={layout.rackTramos} />
-        <RackSlots tramos={layout.rackTramos} occupancy={locations} />
+        <Suspense fallback={null}>
+          <RackSlots tramos={layout.rackTramos} occupancy={locations} />
+        </Suspense>
         <FocusedTramoHighlight layout={layout} />
       </group>
 
