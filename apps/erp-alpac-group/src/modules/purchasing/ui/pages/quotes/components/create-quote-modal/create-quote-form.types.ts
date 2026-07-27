@@ -21,13 +21,13 @@ export type QuoteDetails = {
 };
 
 export type CreateQuoteFormValues = {
-	area_id: string;
+	// area_id: string;
 	branch_id: string;
-	application_codes: string[];
 	quote_date: string;
 	observations: string;
-	quote_details: QuoteDetails[];
+	application_codes: string[];
 	products: CatalogProductOption[];
+	quote_details: QuoteDetails[];
 };
 
 export type CatalogProductOption = {

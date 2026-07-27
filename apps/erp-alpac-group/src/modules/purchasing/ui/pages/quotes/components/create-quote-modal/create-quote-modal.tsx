@@ -318,6 +318,8 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 									rows={4}
 									className={`${quoteFormInputClassName} resize-none`}
 									labelClassName={quoteFormLabelClassName}
+									enableCharacterCount
+									maxLength={500}
 									{...register("observations")}
 								/>
 
