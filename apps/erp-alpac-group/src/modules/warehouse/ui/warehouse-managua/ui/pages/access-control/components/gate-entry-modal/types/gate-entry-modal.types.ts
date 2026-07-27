@@ -32,8 +32,3 @@ export const GATE_ENTRY_DEFAULT_VALUES: GateEntryFormValues = {
   medio: "Terrestre",
   ducas: [{ value: "" }],
 };
-
-export const GATE_ENTRY_STEPS = [
-  "Datos Vehículo",
-  "Documentos (DUCAs)",
-] as const;

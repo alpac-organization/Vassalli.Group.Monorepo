@@ -24,8 +24,6 @@ function ResumenTabContent({ movement }: { movement: RecordEntrance }) {
   const entrance = movement.reception_entrance;
   const log = movement.execution_log;
 
-  console.log(JSON.stringify(movement, null, 2));
-
   return (
     <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
       <DetailSection title="Resumen">
@@ -130,9 +128,6 @@ export function MovementDetailModal({
   );
   const ducatCount = ducatNumbers.length;
 
-
-  console.log(JSON.stringify(movement, null, 3))
-
   const tabItems = useMemo<TabItem<DetailTabId>[]>(() => {
     if (!movement) return [];
 
@@ -180,7 +175,7 @@ export function MovementDetailModal({
           </div>
         </div>
       ) : (
-        <div className="min-h-[120px]" />
+        <div className="min-h-30" />
       )}
     </Modal>
   );

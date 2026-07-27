@@ -103,6 +103,55 @@ export const formatIdentificationNumber = (identification: string): string => {
 };
 
 /**
+ * Formatea un string a formato de Declaración Única Centroamericana (NI-26-T-00000000001).
+ * Estructura: 2 letras (país) + 2 dígitos (año) + 1 letra (tipo) + 11 dígitos.
+ * @param duca - cadena de texto de la DUCA (con o sin guiones)
+ * @returns La DUCA formateada parcialmente según lo ingresado
+ */
+export const formatAmericaCentralUniqueDeclaration = (duca: string): string => {
+   if (!duca) return "";
+
+   const chars = duca
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .toUpperCase();
+
+   let country = "";
+   let year = "";
+   let type = "";
+   let numbers = "";
+
+   for (const char of chars) {
+      if (country.length < 2) {
+         if (/[A-Z]/.test(char)) country += char;
+         continue;
+      }
+
+      if (year.length < 2) {
+         if (/[0-9]/.test(char)) year += char;
+         continue;
+      }
+
+      if (type.length < 1) {
+         if (/[A-Z]/.test(char)) type += char;
+         continue;
+      }
+
+      if (numbers.length < 11) {
+         if (/[0-9]/.test(char)) numbers += char;
+         continue;
+      }
+
+      break;
+   }
+
+   if (!year) return country;
+   if (!type) return `${country}-${year}`;
+   if (!numbers) return `${country}-${year}-${type}`;
+
+   return `${country}-${year}-${type}-${numbers}`;
+};
+
+/**
  * Formatea un string a formato de cédula nicaragüense (000-000000-0000X)
  * @param identification - El número de cédula (con o sin guiones)
  * @returns La cédula formateada o el valor original si no cumple el mínimo
@@ -121,7 +170,7 @@ export const formatRuc = (identification: string): string => {
 
    const clean = letter + numbers;
 
-   if (clean.length <= 1) return clean;   
+   if (clean.length <= 1) return clean;
 
    return `${clean.slice(0, 1)}${clean.slice(1)}`;
 };
