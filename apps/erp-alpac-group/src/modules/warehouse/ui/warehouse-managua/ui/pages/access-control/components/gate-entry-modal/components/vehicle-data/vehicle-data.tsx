@@ -3,55 +3,116 @@ import {
 	gateEntryInputClassName,
 	gateEntryLabelClassName,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
-import type { VehicleDataStepProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/vehicle-data-step/types/vehicle-data.props";
+import type { VehicleDataStepProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/vehicle-data/types/vehicle-data.props";
+import {
+	DISPATCH_TRANSPORT_MEDIA,
+	RECEPTION_TRANSPORT_MEDIA,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/types/gate-entry-modal.types";
 import { validateOnlyLettersWithAccentsAndDiacritics } from "@app/shared/utils/string.utils";
 import { useState } from "react";
+import { DocumentEnum, type TransportDocumentType } from "@app/core/enums/document.enum";
 
-export function VehicleDataStep({ register, errors }: VehicleDataStepProps) {
+export function VehicleDataStep({
+	register,
+	setValue,
+	errors,
+	documentType,
+	onChangeDocumentType,
+}: VehicleDataStepProps) {
+
 	const [selectedModality, setSelectedModality] = useState<"reception" | "dispatch">("reception");
-	const [selectedWarehouseType, setSelectedWarehouseType] = useState<"fiscal" | "nationalized">("fiscal");
+	const [selectedDocumentType, setSelectedDocumentType] = useState<TransportDocumentType>(documentType);
+	const [selectedMedioOption, setSelectedMedioOption] = useState<string>(RECEPTION_TRANSPORT_MEDIA[0].value);
+
+	const transportMedia =
+		selectedModality === "reception"
+			? RECEPTION_TRANSPORT_MEDIA
+			: DISPATCH_TRANSPORT_MEDIA;
+
+	const handleModalityChange = (modality: "reception" | "dispatch") => {
+		setSelectedModality(modality);
+
+		const defaultMedio =
+			modality === "reception"
+				? RECEPTION_TRANSPORT_MEDIA[0].value
+				: DISPATCH_TRANSPORT_MEDIA[0].value;
+
+		setSelectedMedioOption(defaultMedio);
+		setValue("medio", defaultMedio, { shouldValidate: true, shouldDirty: true });
+	};
+
+	const handleMedioChange = (value: string) => {
+		setSelectedMedioOption(value);
+		setValue("medio", value, { shouldValidate: true, shouldDirty: true });
+	};
 
 	return (
 		<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-3 px-2">
-			<div className="flex flex-col">
-				<span>Modalidad de acceso</span>
-				<div className="flex flex-row gap-4 items-center h-12">
-					<RadioButton
-						label="Para Recepción"
-						value="reception"
-						checked={selectedModality === "reception"}
-						onChange={() => setSelectedModality("reception")}
-					/>
-
-					<RadioButton
-						label="Para Despacho"
-						value="dispatch"
-						checked={selectedModality === "dispatch"}
-						onChange={() => setSelectedModality("dispatch")}
-					/>
-				</div>
-			</div>
-
-			{selectedModality === "reception" && (
+			<div className="sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-3">
 				<div className="flex flex-col">
-					<span>Tipo de bodega</span>
+					<span>Modalidad de acceso</span>
 					<div className="flex flex-row gap-4 items-center h-12">
 						<RadioButton
-							label="Fiscal"
-							value="fiscal"
-							checked={selectedWarehouseType === "fiscal"}
-							onChange={() => setSelectedWarehouseType("fiscal")}
+							label="Para Recepción"
+							value="reception"
+							checked={selectedModality === "reception"}
+							onChange={() => handleModalityChange("reception")}
 						/>
 
 						<RadioButton
-							label="Nacionalizada"
-							value="nationalized"
-							checked={selectedWarehouseType === "nationalized"}
-							onChange={() => setSelectedWarehouseType("nationalized")}
+							label="Para Despacho"
+							value="dispatch"
+							checked={selectedModality === "dispatch"}
+							onChange={() => handleModalityChange("dispatch")}
 						/>
 					</div>
 				</div>
-			)}
+
+				{selectedModality === "reception" && (
+					<div className="flex flex-col">
+						<span>Tipo de documento</span>
+						<div className="flex flex-row gap-4 items-center h-12">
+							<RadioButton
+								label="DUCA-T"
+								value={DocumentEnum.DUCA.value}
+								checked={selectedDocumentType === DocumentEnum.DUCA}
+								onChange={() => {
+									setSelectedDocumentType(DocumentEnum.DUCA);
+									onChangeDocumentType(DocumentEnum.DUCA);
+								}}
+							/>
+
+							<RadioButton
+								label="Declaración Aduanera"
+								value={DocumentEnum.CustomsDeclaration.value}
+								checked={selectedDocumentType === DocumentEnum.CustomsDeclaration}
+								onChange={() => {
+									setSelectedDocumentType(DocumentEnum.CustomsDeclaration);
+									onChangeDocumentType(DocumentEnum.CustomsDeclaration);
+								}}
+							/>
+						</div>
+					</div>
+				)}
+
+				<div className={`flex flex-col ${selectedModality === "dispatch" ? "col-span-2" : ""} `}>
+					<span>Medio de transporte</span>
+					<div className="flex flex-row flex-wrap gap-4 items-center min-h-12">
+						{transportMedia.map((media) => (
+							<RadioButton
+								key={media.value}
+								label={media.label}
+								value={media.value}
+								checked={selectedMedioOption === media.value}
+								onChange={() => handleMedioChange(media.value)}
+							/>
+						))}
+					</div>
+					{errors.medio?.message && (
+						<span className="text-[12px] text-red-500 mt-1">{errors.medio.message}</span>
+					)}
+				</div>
+			</div>
 
 			<InputText
 				label="País de Origen"
@@ -171,17 +232,6 @@ export function VehicleDataStep({ register, errors }: VehicleDataStepProps) {
 					setValueAs: (value: string) => value?.trim(),
 				})}
 				error={errors.sealNumber && errors.sealNumber.message}
-			/>
-
-			<InputText
-				label="Medio"
-				labelClassName={gateEntryLabelClassName}
-				className={gateEntryInputClassName}
-				{...register("medio", {
-					required: false,
-					setValueAs: (value: string) => value?.trim(),
-				})}
-				error={errors.medio && errors.medio.message}
 			/>
 		</div>
 	);

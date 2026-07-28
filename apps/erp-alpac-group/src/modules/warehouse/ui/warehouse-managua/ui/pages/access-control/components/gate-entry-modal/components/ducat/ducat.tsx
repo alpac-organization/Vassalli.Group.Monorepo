@@ -2,7 +2,7 @@ import { Button, InputText } from "@alpac/design-system";
 import { AnimatePresence, m } from "framer-motion";
 import { Trash2Icon, AlertTriangleIcon } from "lucide-react";
 import { useLayoutEffect, useRef } from "react";
-import type { DucasStepProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/ducat-stepper/types/ducat-step.props";
+import type { DucatProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/ducat/types/ducat.props";
 import {
 	getScrollParent,
 	ENTER_ANIMATION_MS,
@@ -15,7 +15,7 @@ import {
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
 import { formatAmericaCentralUniqueDeclaration } from "@app/shared/utils/string.utils";
 
-export function DucasStep({ fields, register, onRemove }: DucasStepProps) {
+export function Ducat({ fields, register, onRemove }: DucatProps) {
 	const lastItemRef = useRef<HTMLDivElement>(null);
 	const prevCountRef = useRef(fields.length);
 

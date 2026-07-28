@@ -8,8 +8,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm, type SubmitHandler } from "react-hook-form";
-import { DucasStep } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/ducat-stepper/ducat-step";
-import { VehicleDataStep } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/vehicle-data-step/vehicle-data-step";
+import { Ducat } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/ducat/ducat";
+import { VehicleDataStep } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/vehicle-data/vehicle-data";
 import {
    GATE_ENTRY_DEFAULT_VALUES,
    type GateEntryFormValues,
@@ -18,6 +18,8 @@ import {
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import { stepVariants } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
 import { footerButtonClass } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
+import { DocumentEnum, type DocumentType } from "@app/core/enums/document.enum";
+import { CustomsDeclaration } from "./components/customs-declaration/customs-declaration";
 
 export function GateEntryModal({
    isOpen,
@@ -28,8 +30,9 @@ export function GateEntryModal({
 
    const [isDeleteAllDucasConfirmOpen, setIsDeleteAllDucasConfirmOpen] = useState(false);
    const [ducasError, setDucasError] = useState<string | null>(null);
+   const [documentType, setDocumentType] = useState<DocumentType>(DocumentEnum.DUCA);
 
-   const { register, handleSubmit, control, reset, formState: { errors } } =
+   const { register, handleSubmit, control, reset, setValue, formState: { errors } } =
       useForm<GateEntryFormValues>({
          mode: "onChange",
          defaultValues: GATE_ENTRY_DEFAULT_VALUES,
@@ -76,7 +79,7 @@ export function GateEntryModal({
       const setDucas = new Set();
 
       const hasDuplicates = ducas.filter(duca => {
-         if(setDucas.has(duca.value)) return true;   
+         if (setDucas.has(duca.value)) return true;
          setDucas.add(duca.value);
          return false;
       })
@@ -140,33 +143,54 @@ export function GateEntryModal({
                         transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
                         className="flex flex-col gap-6"
                      >
-                        <VehicleDataStep register={register} errors={errors} />
+                        <VehicleDataStep
+                           register={register}
+                           setValue={setValue}
+                           errors={errors}
+                           documentType={documentType}
+                           onChangeDocumentType={(type: DocumentType) => {
+                              setDocumentType(type);
+                              console.log("Tipo de documento: ", type);
+                           }}
+                        />
 
-                        <div className="border-t border-slate-600 dark:border-neutral-600">
-                           <h5>Documentos</h5>
-                           <div className="shrink-0 grid grid-cols-2 gap-2 mb-2 py-2 sm:flex sm:justify-end sm:items-center sm:gap-4 sm:mb-3 sm:pt-1">
-                              <Button
-                                 type="button"
-                                 label="Eliminar todas"
-                                 size="medium"
-                                 onClick={() => setIsDeleteAllDucasConfirmOpen(true)}
-                                 disabled={fields.length === 0}
-                                 icon={<Trash2Icon size={18} />}
-                                 className="w-full! sm:w-auto! max-sm:h-8! max-sm:px-2! max-sm:py-1! max-sm:text-[12px]! text-[14px]! rounded-md! text-white! bg-red-600! hover:bg-red-500! dark:bg-red-900! dark:hover:bg-red-800! disabled:opacity-40! justify-center!"
-                              />
-                              <Button
-                                 type="button"
-                                 label="Agregar Duca"
-                                 size="medium"
-                                 onClick={handleAddDuca}
-                                 icon={<PlusIcon size={18} />}
-                                 className="w-full! sm:w-auto! max-sm:h-8! max-sm:px-2! max-sm:py-1! max-sm:text-[12px]! text-[14px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! justify-center!"
-                              />
-                           </div>
+                        {
+                           documentType === DocumentEnum.DUCA && (
+                              <div className="border-t border-slate-600 dark:border-neutral-600">
+                                 <h5>Documentos DUCA</h5>
+                                 <div className="shrink-0 grid grid-cols-2 gap-2 mb-2 py-2 sm:flex sm:justify-end sm:items-center sm:gap-4 sm:mb-3 sm:pt-1">
+                                    <Button
+                                       type="button"
+                                       label="Eliminar todas"
+                                       size="medium"
+                                       onClick={() => setIsDeleteAllDucasConfirmOpen(true)}
+                                       disabled={fields.length === 0}
+                                       icon={<Trash2Icon size={18} />}
+                                       className="w-full! sm:w-auto! max-sm:h-8! max-sm:px-2! max-sm:py-1! max-sm:text-[12px]! text-[14px]! rounded-md! text-white! bg-red-600! hover:bg-red-500! dark:bg-red-900! dark:hover:bg-red-800! disabled:opacity-40! justify-center!"
+                                    />
+                                    <Button
+                                       type="button"
+                                       label="Agregar Duca"
+                                       size="medium"
+                                       onClick={handleAddDuca}
+                                       icon={<PlusIcon size={18} />}
+                                       className="w-full! sm:w-auto! max-sm:h-8! max-sm:px-2! max-sm:py-1! max-sm:text-[12px]! text-[14px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! justify-center!"
+                                    />
+                                 </div>
 
-                           <DucasStep fields={fields} register={register} onRemove={remove} />
-                        </div>
+                                 <Ducat fields={fields} register={register} onRemove={remove} />
+                              </div>
+                           )
+                        }
 
+                        {
+                           documentType === DocumentEnum.CustomsDeclaration && (
+                              <div className="border-t border-slate-600 dark:border-neutral-600">
+                                 <h5>Documentos de Declaración Aduanera</h5>
+                                 <CustomsDeclaration />
+                              </div>
+                           )
+                        }
 
                      </m.div>
                   </AnimatePresence>

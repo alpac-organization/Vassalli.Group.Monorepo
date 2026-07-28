@@ -19,6 +19,17 @@ export type GateEntryModalProps = {
   isSubmitting?: boolean;
 };
 
+export const RECEPTION_TRANSPORT_MEDIA = [
+  { value: "Furgón", label: "Furgón" },
+  { value: "Trailer", label: "Trailer" },
+] as const;
+
+export const DISPATCH_TRANSPORT_MEDIA = [
+  { value: "Camión", label: "Camión" },
+  { value: "Vehículo liviano", label: "Vehículo liviano" },
+  { value: "Vehículo no motorizado", label: "Vehículo no motorizado" },
+] as const;
+
 export const GATE_ENTRY_DEFAULT_VALUES: GateEntryFormValues = {
   countryOfOrigin: "",
   aduana: "",
@@ -29,6 +40,6 @@ export const GATE_ENTRY_DEFAULT_VALUES: GateEntryFormValues = {
   transportista: "",
   consignee: "",
   sealNumber: "",
-  medio: "Terrestre",
+  medio: "Furgón",
   ducas: [{ value: "" }],
 };
