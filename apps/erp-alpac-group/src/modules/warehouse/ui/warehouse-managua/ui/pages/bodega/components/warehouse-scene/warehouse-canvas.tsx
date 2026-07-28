@@ -4,18 +4,18 @@ import { ContactShadows } from "@react-three/drei";
 import {
   getLayoutByBodegaId,
   getWarehouseCenter,
-} from "../../data/bodega-2-fiscal.layout";
-import { useWarehouseOccupancy } from "../../hooks/use-warehouse-occupancy";
-import { useBodegaViewerStore } from "../../stores/use-bodega-viewer-store";
-import { getOverviewFlyTo } from "../../utils/camera-fly";
-import { BuildingShell } from "./building-shell";
-import { AisleMarkers } from "./aisle-markers";
-import { FloorTramos } from "./floor-tramos";
-import { RackStructures } from "./rack-structures";
-import { RackSlots } from "./rack-slots";
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/data/bodega-2-fiscal.layout";
+import { useWarehouseOccupancy } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/hooks/use-warehouse-occupancy";
+import { useBodegaViewerStore } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/stores/use-bodega-viewer-store";
+import { getOverviewFlyTo } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/utils/camera-fly";
+import { BuildingShell } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/building-shell";
+import { AisleMarkers } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/aisle-markers";
+import { FloorTramos } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/floor-tramos";
+import { RackStructures } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/rack-structures";
+import { RackSlots } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/rack-slots";
 import { FocusedTramoHighlight } from "./focused-tramo-highlight";
-import { CameraRig } from "./camera-rig";
-import "../../hooks/use-cardboard-box-geometry";
+import { CameraRig } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/camera-rig";
+import "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/hooks/use-cardboard-box-geometry";
 
 interface WarehouseCanvasProps {
   bodegaId: string;

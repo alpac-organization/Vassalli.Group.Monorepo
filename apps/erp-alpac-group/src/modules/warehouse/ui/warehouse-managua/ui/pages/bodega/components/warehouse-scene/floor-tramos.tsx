@@ -5,20 +5,22 @@ import type {
   FloorTramo,
   OccupancyMap,
   SlotStatus,
-} from "../../types/warehouse-3d.types";
-import { FLOOR_PLATE_HEIGHT } from "../../types/warehouse-3d.types";
-import { useBodegaViewerStore } from "../../stores/use-bodega-viewer-store";
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/types/warehouse-3d.types";
+import {
+  FLOOR_PLATE_HEIGHT,
+  occupancyOf,
+  resolveStatus,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/types/warehouse-3d.types";
+import { useBodegaViewerStore } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/stores/use-bodega-viewer-store";
 
 interface FloorTramosProps {
   tramos: FloorTramo[];
   occupancy: OccupancyMap;
 }
 
-/** Lateral floor plates — no red: free=green, reserved=yellow, occupied=slate. */
 const FLOOR_COLOR: Record<SlotStatus, string> = {
   free: "#22c55e",
-  reserved: "#eab308",
-  occupied: "#64748b",
+  occupied: "#ea580c",
 };
 
 export function FloorTramos({ tramos, occupancy }: FloorTramosProps) {
@@ -27,7 +29,6 @@ export function FloorTramos({ tramos, occupancy }: FloorTramosProps) {
   const selectLevel = useBodegaViewerStore((s) => s.selectLevel);
   const focusedTramoId = useBodegaViewerStore((s) => s.focusedTramoId);
   const invalidate = useThree((s) => s.invalidate);
-
   const count = tramos.length;
   const color = useMemo(() => new THREE.Color(), []);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -48,7 +49,7 @@ export function FloorTramos({ tramos, occupancy }: FloorTramosProps) {
       dummy.updateMatrix();
       mesh.setMatrixAt(i, dummy.matrix);
 
-      const status = occupancy[tramo.code] ?? "free";
+      const status = resolveStatus(occupancyOf(occupancy, tramo.code));
       color.set(FLOOR_COLOR[status]);
       if (focusedTramoId) color.multiplyScalar(0.45);
       mesh.setColorAt(i, color);

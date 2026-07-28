@@ -1,10 +1,12 @@
-export type SlotStatus = "free" | "occupied" | "reserved";
+export type SlotStatus = "free" | "occupied";
+
+export type PolinCount = 0 | 1 | 2;
 
 export type LocationCode = string;
 
 export type TramoProps = "floor" | "rack";
 
-export type CameraProps = "isometric" | "top" | "reset";
+export type CameraProps = "isometric" | "reset";
 
 export interface Vec3 {
   x: number;
@@ -58,23 +60,49 @@ export interface WarehouseLayout {
   rackTramos: RackTramo[];
 }
 
-export type OccupancyMap = Record<LocationCode, SlotStatus>;
+export interface LocationOccupancy {
+  status: SlotStatus;
+  polines?: PolinCount;
+}
+
+export type OccupancyMap = Record<LocationCode, LocationOccupancy>;
 
 export const STATUS_COLOR: Record<SlotStatus, string> = {
   free: "#22c55e",
-  occupied: "#ef4444",
-  reserved: "#eab308",
+  occupied: "#f97316",
 };
-
 export const STATUS_LABEL: Record<SlotStatus, string> = {
   free: "Libre",
   occupied: "Ocupada",
-  reserved: "Reservada",
 };
 
+export const POLINES_PER_LEVEL = 2 as const;
+
+export function polinesFromStatus(status: SlotStatus): PolinCount {
+  return status === "occupied" ? 2 : 0;
+}
+
+export function resolvePolines(occ: LocationOccupancy | undefined): PolinCount {
+  if (!occ) return 0;
+  if (occ.polines === 0 || occ.polines === 1 || occ.polines === 2) {
+    return occ.polines;
+  }
+  return polinesFromStatus(occ.status);
+}
+
+export function resolveStatus(occ: LocationOccupancy | undefined): SlotStatus {
+  return resolvePolines(occ) > 0 ? "occupied" : "free";
+}
+
+export function occupancyOf(
+  map: OccupancyMap,
+  code: LocationCode,
+): LocationOccupancy {
+  return map[code] ?? { status: "free", polines: 0 };
+}
 export const LEVEL_HEIGHT = 2;
 
-export const BOX_HEIGHT = 1.4;
+export const BOX_HEIGHT = 0.5;
 
 export const FLOOR_PLATE_HEIGHT = 0.25;
 

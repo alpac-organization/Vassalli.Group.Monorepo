@@ -12,7 +12,7 @@ import type { CameraFlyTo } from "@app/modules/warehouse/ui/warehouse-managua/ui
 
 export function getRackZoomFlyTo(tramo: RackTramo): CameraFlyTo {
   const aisleSide = tramo.column === "centerLeft" ? -1 : 1;
-  const standOff = tramo.size.width / 2 + 7.5;
+  const standOff = tramo.size.width / 2 + 10.8;
   const target: Vec3 = {
     x: tramo.position.x,
     y: LEVEL_HEIGHT * 0.85,

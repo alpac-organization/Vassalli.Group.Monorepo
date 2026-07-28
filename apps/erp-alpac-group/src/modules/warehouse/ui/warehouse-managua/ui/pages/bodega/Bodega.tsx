@@ -1,11 +1,12 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { ArrowLeft, Map, RotateCcw, View } from "lucide-react";
-import { SelectBodegaModal } from "./components/select-bodega-modal";
-import { LocationDetailPanel } from "./components/location-detail-panel";
-import { useBodegaViewerStore } from "./stores/use-bodega-viewer-store";
-import { useWarehouseOccupancy } from "./hooks/use-warehouse-occupancy";
-import { getLayoutByBodegaId } from "./data/bodega-2-fiscal.layout";
-import { getOverviewFlyTo } from "./utils/camera-fly";
+import { SelectBodegaModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/select-bodega-modal";
+import { LocationDetailPanel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/location-detail-panel";
+import { useBodegaViewerStore } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/stores/use-bodega-viewer-store";
+import { useWarehouseOccupancy } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/hooks/use-warehouse-occupancy";
+import { getLayoutByBodegaId } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/data/bodega-2-fiscal.layout";
+import { getOverviewFlyTo } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/utils/camera-fly";
+import { Button } from "@alpac/design-system";
+import { ArrowLeft, Building2, RotateCcw } from "lucide-react";
 
 const WarehouseCanvas = lazy(
   () =>
@@ -51,19 +52,10 @@ export default function Bodega() {
               </span>
             ) : null}
           </h1>
-          {focusedTramoId ? (
-            <p className="m-0 mt-0.5 text-xs text-slate-500">
-              Click en un nivel (1 · 2 · 3) para ver el detalle de la ubicación
-            </p>
-          ) : (
-            <p className="m-0 mt-0.5 text-xs text-slate-500">
-              Click en un rack central para hacer zoom
-            </p>
-          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="mr-2 hidden items-center gap-3 sm:flex">
+          <div className="mr-2 hidden flex-wrap items-center gap-3 sm:flex">
             <span className="flex items-center gap-1.5 text-xs text-slate-300">
               <span
                 className="h-2.5 w-2.5 rounded-full"
@@ -73,67 +65,41 @@ export default function Bodega() {
             </span>
             <span className="flex items-center gap-1.5 text-xs text-slate-300">
               <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: "#eab308" }}
-              />
-              Reservada
-            </span>
-            <span className="flex items-center gap-1.5 text-xs text-slate-300">
-              <span
                 className="h-2.5 w-2.5 rounded-sm"
-                style={{ backgroundColor: "#c4a574" }}
+                style={{ backgroundColor: "#f97316" }}
               />
-              Ocupada (caja)
+              Ocupado
             </span>
           </div>
 
           {selectedBodegaId && focusedTramoId && (
-            <button
+            <Button
               type="button"
+              label="Volver"
               onClick={handleExitZoom}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-sky-700/60 bg-sky-950/50 px-2.5 py-1.5 text-xs font-medium text-sky-300 transition hover:border-sky-500"
-            >
-              <ArrowLeft size={14} />
-              Volver
-            </button>
+              icon={<ArrowLeft size={14} />}
+              className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-500"
+            />
           )}
 
           {selectedBodegaId && (
             <>
-              <button
+              <Button
                 type="button"
-                onClick={() => requestCameraPreset("top")}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-slate-200 transition hover:border-slate-500"
-              >
-                <Map size={14} />
-                Planta
-              </button>
-              <button
-                type="button"
-                onClick={() => requestCameraPreset("isometric")}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-slate-200 transition hover:border-slate-500"
-              >
-                <View size={14} />
-                Isométrica
-              </button>
-              <button
-                type="button"
+                label="Reset"
                 onClick={() => requestCameraPreset("reset")}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-slate-200 transition hover:border-slate-500"
-              >
-                <RotateCcw size={14} />
-                Reset
-              </button>
+                icon={<RotateCcw size={14} />}
+                className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-500"
+              />
             </>
           )}
-
-          <button
+          <Button
             type="button"
+            label={selectedBodegaId ? "Cambiar bodega" : "Seleccionar bodega"}
             onClick={() => setModalOpen(true)}
+            icon={<Building2 size={14} />}
             className="rounded-lg bg-sky-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-sky-500"
-          >
-            {selectedBodegaId ? "Cambiar bodega" : "Seleccionar bodega"}
-          </button>
+          />
         </div>
       </header>
 

@@ -2,11 +2,18 @@ import { X } from "lucide-react";
 import {
   STATUS_COLOR,
   STATUS_LABEL,
+  occupancyOf,
+  resolvePolines,
+  resolveStatus,
   type OccupancyMap,
-} from "../types/warehouse-3d.types";
-import { parseRackBase, rackLevelIndex } from "../utils/location-codes";
-import { useBodegaViewerStore } from "../stores/use-bodega-viewer-store";
-import { getLayoutByBodegaId } from "../data/bodega-2-fiscal.layout";
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/types/warehouse-3d.types";
+import {
+  parseRackBase,
+  rackLevelIndex,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/utils/location-codes";
+import { useBodegaViewerStore } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/stores/use-bodega-viewer-store";
+import { getLayoutByBodegaId } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/data/bodega-2-fiscal.layout";
+import { Button } from "@alpac/design-system";
 
 interface LocationDetailPanelProps {
   occupancy: OccupancyMap;
@@ -22,14 +29,14 @@ function levelDescription(code: string): string {
 export function LocationDetailPanel({ occupancy }: LocationDetailPanelProps) {
   const code = useBodegaViewerStore((s) => s.selectedLocationCode);
   const bodegaId = useBodegaViewerStore((s) => s.selectedBodegaId);
-  const focusedTramoId = useBodegaViewerStore((s) => s.focusedTramoId);
   const clearLevelSelection = useBodegaViewerStore(
     (s) => s.clearLevelSelection,
   );
-
   if (!code) return null;
 
-  const status = occupancy[code] ?? "free";
+  const occ = occupancyOf(occupancy, code);
+  const status = resolveStatus(occ);
+  const polines = resolvePolines(occ);
   const base = parseRackBase(code);
   const layout = bodegaId ? getLayoutByBodegaId(bodegaId) : null;
   const rack = layout?.rackTramos.find(
@@ -37,7 +44,6 @@ export function LocationDetailPanel({ occupancy }: LocationDetailPanelProps) {
   );
   const floor = layout?.floorTramos.find((t) => t.code === code);
   const isRackLevel = Boolean(rack);
-
   return (
     <aside className="absolute right-4 top-4 z-10 w-[280px] rounded-xl border border-slate-700/90 bg-slate-950/95 p-4 shadow-2xl backdrop-blur-md">
       <div className="mb-4 flex items-start justify-between gap-2">
@@ -49,14 +55,13 @@ export function LocationDetailPanel({ occupancy }: LocationDetailPanelProps) {
             {code}
           </h3>
         </div>
-        <button
+        <Button
           type="button"
           aria-label="Cerrar detalle"
           onClick={() => clearLevelSelection()}
           className="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-800 hover:text-slate-100"
-        >
-          <X size={16} />
-        </button>
+          icon={<X size={16} />}
+        />
       </div>
 
       <dl className="m-0 space-y-2.5 text-sm">
@@ -71,7 +76,7 @@ export function LocationDetailPanel({ occupancy }: LocationDetailPanelProps) {
           </dd>
         </div>
         <div className="flex items-center justify-between gap-3 border-b border-slate-800/80 pb-2.5">
-          <dt className="text-slate-400">Estado</dt>
+          <dt className="text-slate-400">Estado:</dt>
           <dd className="m-0 flex items-center gap-1.5 font-semibold text-white">
             <span
               className="inline-block h-2.5 w-2.5 rounded-full"
@@ -80,6 +85,32 @@ export function LocationDetailPanel({ occupancy }: LocationDetailPanelProps) {
             {STATUS_LABEL[status]}
           </dd>
         </div>
+
+        {isRackLevel && (
+          <div className="flex items-center justify-between gap-3 border-b border-slate-800/80 pb-2.5">
+            <dt className="text-slate-400">Polines</dt>
+            <dd className="m-0 flex items-center gap-2 font-semibold text-white">
+              <span className="flex items-center gap-1">
+                {[0, 1].map((i) => (
+                  <span
+                    key={i}
+                    className="inline-block h-2.5 w-2.5 rounded-sm"
+                    title={i < polines ? "Ocupado" : "Libre"}
+                    style={{
+                      backgroundColor:
+                        i < polines ? STATUS_COLOR.occupied : STATUS_COLOR.free,
+                    }}
+                  />
+                ))}
+              </span>
+              <span>
+                {polines} / 2{polines === 0 ? " · ambos libres" : ""}
+                {polines === 1 ? " · 1 ocupado, 1 libre" : ""}
+                {polines === 2 ? " · ambos ocupados" : ""}
+              </span>
+            </dd>
+          </div>
+        )}
 
         {rack && (
           <>
@@ -99,11 +130,12 @@ export function LocationDetailPanel({ occupancy }: LocationDetailPanelProps) {
             </div>
             <div className="pt-1">
               <p className="m-0 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                Niveles del tramo
+                Niveles del tramo:
               </p>
-              <ul className="m-0 space-y-1 p-0 list-none">
+              <ul className="m-0 list-none space-y-1 p-0">
                 {rack.levels.map((levelCode) => {
-                  const levelStatus = occupancy[levelCode] ?? "free";
+                  const levelOcc = occupancyOf(occupancy, levelCode);
+                  const levelPolines = resolvePolines(levelOcc);
                   const active = levelCode === code;
                   return (
                     <li
@@ -121,14 +153,22 @@ export function LocationDetailPanel({ occupancy }: LocationDetailPanelProps) {
                       >
                         {levelCode}
                       </span>
-                      <span className="flex items-center gap-1 text-slate-400">
-                        <span
-                          className="inline-block h-2 w-2 rounded-full"
-                          style={{
-                            backgroundColor: STATUS_COLOR[levelStatus],
-                          }}
-                        />
-                        {STATUS_LABEL[levelStatus]}
+                      <span className="flex items-center gap-1.5 text-slate-400">
+                        <span className="tabular-nums">{levelPolines}/2</span>
+                        <span className="flex items-center gap-0.5">
+                          {[0, 1].map((i) => (
+                            <span
+                              key={i}
+                              className="inline-block h-2 w-2 rounded-sm"
+                              style={{
+                                backgroundColor:
+                                  i < levelPolines
+                                    ? STATUS_COLOR.occupied
+                                    : STATUS_COLOR.free,
+                              }}
+                            />
+                          ))}
+                        </span>
                       </span>
                     </li>
                   );

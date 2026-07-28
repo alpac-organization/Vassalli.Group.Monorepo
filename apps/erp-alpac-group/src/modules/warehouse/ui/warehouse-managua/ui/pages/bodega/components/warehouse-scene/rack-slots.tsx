@@ -5,11 +5,17 @@ import type {
   OccupancyMap,
   RackTramo,
   SlotStatus,
-} from "../../types/warehouse-3d.types";
-import { BOX_HEIGHT, LEVEL_HEIGHT } from "../../types/warehouse-3d.types";
-import { useBodegaViewerStore } from "../../stores/use-bodega-viewer-store";
-import { getRackZoomFlyTo } from "../../utils/camera-fly";
-import { useCardboardBoxAsset } from "../../hooks/use-cardboard-box-geometry";
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/types/warehouse-3d.types";
+import {
+  BOX_HEIGHT,
+  LEVEL_HEIGHT,
+  POLINES_PER_LEVEL,
+  occupancyOf,
+  resolvePolines,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/types/warehouse-3d.types";
+import { useBodegaViewerStore } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/stores/use-bodega-viewer-store";
+import { getRackZoomFlyTo } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/utils/camera-fly";
+import { useCardboardBoxAsset } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/hooks/use-cardboard-box-geometry";
 
 interface RackSlotsProps {
   tramos: RackTramo[];
@@ -17,61 +23,84 @@ interface RackSlotsProps {
 }
 
 const SHELF_THICKNESS = 0.14;
+const POLIN_GAP = 0.18;
 
-/** Shelf colors in 3D — occupied uses neutral (box shows occupancy), never red. */
 const SHELF_COLOR: Record<SlotStatus, string> = {
   free: "#22c55e",
-  reserved: "#eab308",
-  occupied: "#475569",
+  occupied: "#f97316",
 };
 
-type LevelSlot = {
+type ShelfSlot = {
   code: string;
   tramoId: string;
   status: SlotStatus;
   shelf: { x: number; y: number; z: number; w: number; d: number };
-  box: { x: number; y: number; z: number; w: number; d: number; h: number };
 };
 
-function buildSlots(tramos: RackTramo[], occupancy: OccupancyMap): LevelSlot[] {
-  const list: LevelSlot[] = [];
+type PolinInstance = {
+  code: string;
+  tramoId: string;
+  visible: boolean;
+  x: number;
+  y: number;
+  z: number;
+  w: number;
+  d: number;
+  h: number;
+};
+function buildSlots(tramos: RackTramo[], occupancy: OccupancyMap) {
+  const shelves: ShelfSlot[] = [];
+  const polines: PolinInstance[] = [];
 
   for (const tramo of tramos) {
     const shelfW = tramo.size.width * 0.9;
     const shelfD = tramo.size.depth * 0.9;
-    const boxW = Math.min(1.25, shelfW * 0.42);
-    const boxD = Math.min(1.05, shelfD * 0.55);
-    const boxH = BOX_HEIGHT * 0.7;
+
+    const padD = (shelfD - POLIN_GAP) / 2;
+    const polinW = shelfW * 0.92;
+    const polinD = padD * 0.92;
+    const polinH = BOX_HEIGHT * 2.65;
+    const zOffset = (padD + POLIN_GAP) / 2;
 
     tramo.levels.forEach((code, level) => {
-      const status = occupancy[code] ?? "free";
+      const occ = occupancyOf(occupancy, code);
+      const count = resolvePolines(occ);
+      //Ok haber necesito
       const shelfY = LEVEL_HEIGHT * level + SHELF_THICKNESS / 2;
-      const boxY = LEVEL_HEIGHT * level + SHELF_THICKNESS + boxH / 2 + 0.02;
+      const boxY = LEVEL_HEIGHT * level + SHELF_THICKNESS + polinH / 2 + 0.02;
 
-      list.push({
-        code,
-        tramoId: tramo.id,
-        status,
-        shelf: {
-          x: tramo.position.x,
-          y: shelfY,
-          z: tramo.position.z,
-          w: shelfW,
-          d: shelfD,
-        },
-        box: {
+      for (let p = 0; p < POLINES_PER_LEVEL; p++) {
+        const side = p === 0 ? -1 : 1;
+        const occupied = p < count;
+        const z = tramo.position.z + side * zOffset;
+        shelves.push({
+          code,
+          tramoId: tramo.id,
+          status: occupied ? "occupied" : "free",
+          shelf: {
+            x: tramo.position.x,
+            y: shelfY,
+            z,
+            w: shelfW,
+            d: padD,
+          },
+        });
+        polines.push({
+          code,
+          tramoId: tramo.id,
+          visible: occupied,
           x: tramo.position.x,
           y: boxY,
-          z: tramo.position.z,
-          w: boxW,
-          d: boxD,
-          h: boxH,
-        },
-      });
+          z,
+          w: polinW,
+          d: polinD,
+          h: polinH,
+        });
+      }
     });
   }
 
-  return list;
+  return { shelves, polines };
 }
 
 export function RackSlots({ tramos, occupancy }: RackSlotsProps) {
@@ -79,19 +108,18 @@ export function RackSlots({ tramos, occupancy }: RackSlotsProps) {
   const shelvesRef = useRef<THREE.InstancedMesh>(null);
   const boxesRef = useRef<THREE.InstancedMesh>(null);
 
-  const slots = useMemo(
+  const { shelves, polines } = useMemo(
     () => buildSlots(tramos, occupancy),
     [tramos, occupancy],
   );
-  const slotsRef = useRef(slots);
-  slotsRef.current = slots;
+  const shelvesRefData = useRef(shelves);
+  shelvesRefData.current = shelves;
 
   const tramosById = useMemo(() => {
     const map = new Map<string, RackTramo>();
     for (const t of tramos) map.set(t.id, t);
     return map;
   }, [tramos]);
-
   const selectedLocationCode = useBodegaViewerStore(
     (s) => s.selectedLocationCode,
   );
@@ -103,51 +131,52 @@ export function RackSlots({ tramos, occupancy }: RackSlotsProps) {
   const color = useMemo(() => new THREE.Color(), []);
 
   useEffect(() => {
-    const shelves = shelvesRef.current;
-    const boxes = boxesRef.current;
-    if (!shelves || !boxes) return;
+    const shelfMesh = shelvesRef.current;
+    const boxMesh = boxesRef.current;
+    if (!shelfMesh || !boxMesh) return;
 
-    slots.forEach((slot, i) => {
+    shelves.forEach((slot, i) => {
       const selected = selectedLocationCode === slot.code;
       const boost = selected ? 1.03 : 1;
 
       dummy.position.set(slot.shelf.x, slot.shelf.y, slot.shelf.z);
       dummy.scale.set(slot.shelf.w * boost, 1, slot.shelf.d * boost);
       dummy.updateMatrix();
-      shelves.setMatrixAt(i, dummy.matrix);
+      shelfMesh.setMatrixAt(i, dummy.matrix);
       color.set(SHELF_COLOR[slot.status]);
-      shelves.setColorAt(i, color);
+      shelfMesh.setColorAt(i, color);
+    });
 
-      if (slot.status === "occupied") {
-        dummy.position.set(slot.box.x, slot.box.y, slot.box.z);
-        dummy.scale.set(
-          slot.box.w * boost,
-          slot.box.h * boost,
-          slot.box.d * boost,
-        );
+    polines.forEach((polin, i) => {
+      const selected = selectedLocationCode === polin.code;
+      const boost = selected ? 1.04 : 1;
+
+      if (polin.visible) {
+        dummy.position.set(polin.x, polin.y, polin.z);
+        dummy.scale.set(polin.w * boost, polin.h * boost, polin.d * boost);
       } else {
-        dummy.position.set(slot.box.x, slot.box.y, slot.box.z);
+        dummy.position.set(polin.x, polin.y, polin.z);
         dummy.scale.set(0, 0, 0);
       }
       dummy.updateMatrix();
-      boxes.setMatrixAt(i, dummy.matrix);
+      boxMesh.setMatrixAt(i, dummy.matrix);
     });
 
-    shelves.instanceMatrix.needsUpdate = true;
-    if (shelves.instanceColor) shelves.instanceColor.needsUpdate = true;
-    boxes.instanceMatrix.needsUpdate = true;
-    shelves.computeBoundingSphere();
-    shelves.computeBoundingBox();
-    boxes.computeBoundingSphere();
-    boxes.computeBoundingBox();
+    shelfMesh.instanceMatrix.needsUpdate = true;
+    if (shelfMesh.instanceColor) shelfMesh.instanceColor.needsUpdate = true;
+    boxMesh.instanceMatrix.needsUpdate = true;
+    shelfMesh.computeBoundingSphere();
+    shelfMesh.computeBoundingBox();
+    boxMesh.computeBoundingSphere();
+    boxMesh.computeBoundingBox();
     invalidate();
-  }, [slots, selectedLocationCode, dummy, color, invalidate]);
+  }, [shelves, polines, selectedLocationCode, dummy, color, invalidate]);
 
-  if (slots.length === 0) return null;
+  if (shelves.length === 0) return null;
 
   const handleClick = (instanceId: number | undefined) => {
     if (instanceId == null) return;
-    const slot = slotsRef.current[instanceId];
+    const slot = shelvesRefData.current[instanceId];
     if (!slot) return;
 
     const focused = useBodegaViewerStore.getState().focusedTramoId;
@@ -166,7 +195,7 @@ export function RackSlots({ tramos, occupancy }: RackSlotsProps) {
     <group>
       <instancedMesh
         ref={shelvesRef}
-        args={[undefined, undefined, slots.length]}
+        args={[undefined, undefined, shelves.length]}
         castShadow
         receiveShadow
         frustumCulled={false}
@@ -192,7 +221,7 @@ export function RackSlots({ tramos, occupancy }: RackSlotsProps) {
 
       <instancedMesh
         ref={boxesRef}
-        args={[geometry, material, slots.length]}
+        args={[geometry, material, polines.length]}
         castShadow
         receiveShadow
         frustumCulled={false}

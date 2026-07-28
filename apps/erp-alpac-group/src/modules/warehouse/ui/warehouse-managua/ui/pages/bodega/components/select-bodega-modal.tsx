@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Modal, Button, Dropdown, useTheme } from "@alpac/design-system";
-import { AVAILABLE_BODEGAS } from "../data/bodega-2-fiscal.layout";
+import { AVAILABLE_BODEGAS } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/data/bodega-2-fiscal.layout";
 
 interface SelectBodegaModalProps {
   isOpen: boolean;

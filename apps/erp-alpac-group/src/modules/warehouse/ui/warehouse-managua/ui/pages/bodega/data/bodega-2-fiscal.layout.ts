@@ -3,7 +3,7 @@ import type {
   RackTramo,
   WarehouseLayout,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/types/warehouse-3d.types";
-import { rackLevelCodes } from "../utils/location-codes";
+import { rackLevelCodes } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/utils/location-codes";
 
 const BUILDING = {
   width: 37.35,
@@ -17,7 +17,6 @@ const BUILDING = {
 const LEFT_W = 8.85;
 const CENTER_W = 4.75;
 const RIGHT_W = 8.85;
-const CENTER_BLOCK_W = 10.85;
 const ROW_DEPTHS = [5.23, 6, 6, 6, 6, 6, 6, 6, 6, 5.23] as const;
 
 function rowCentersZ(): number[] {
@@ -32,12 +31,10 @@ function rowCentersZ(): number[] {
 
 function columnCentersX() {
   const { wallClearance: c, aisleWidth: a } = BUILDING;
-  const gapBetweenCenter = CENTER_BLOCK_W - CENTER_W * 2;
 
   const left = c + LEFT_W / 2;
   const centerLeft = c + LEFT_W + a + CENTER_W / 2;
-  const centerRight =
-    c + LEFT_W + a + CENTER_W + gapBetweenCenter + CENTER_W / 2;
+  const centerRight = centerLeft + CENTER_W;
   const right = BUILDING.width - c - RIGHT_W / 2;
   return { left, centerLeft, centerRight, right };
 }
@@ -148,11 +145,26 @@ function buildLayout(): WarehouseLayout {
 }
 
 export const BODEGA_2_FISCAL_LAYOUT = buildLayout();
-
 export const AVAILABLE_BODEGAS = [
+  {
+    id: "bodega-1-fiscal",
+    name: "Bodega #1",
+  },
   {
     id: BODEGA_2_FISCAL_LAYOUT.bodegaId,
     name: BODEGA_2_FISCAL_LAYOUT.name,
+  },
+  {
+    id: "bodega-3-fiscal",
+    name: "Bodega #3",
+  },
+  {
+    id: "bodega-4-fiscal",
+    name: "Bodega #4",
+  },
+  {
+    id: "bodega-5-fiscal",
+    name: "Bodega #5",
   },
 ] as const;
 export function getLayoutByBodegaId(bodegaId: string): WarehouseLayout | null {
