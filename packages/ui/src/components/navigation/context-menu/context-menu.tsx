@@ -6,7 +6,7 @@ import type { ContextMenuProps } from "./context-menu.type";
 const loadFeatures = () =>
    import("framer-motion").then((res) => res.domAnimation);
 
-export const ContextMenu = ({ items, triggerLabel }: ContextMenuProps) => {
+export const ContextMenu = ({ items, triggerLabel, triggerClassName, triggerIcon }: ContextMenuProps) => {
    const [open, setOpen] = useState(false);
    const containerRef = useRef<HTMLDivElement>(null);
 
@@ -66,12 +66,19 @@ export const ContextMenu = ({ items, triggerLabel }: ContextMenuProps) => {
             aria-expanded={open}
             aria-haspopup="menu"
             onClick={() => setOpen((prev) => !prev)}
-            className="rounded-md border w-fit border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 transition-colors
-                   hover:bg-slate-50
-                   dark:border-slate-600 dark:bg-[#272b34] dark:text-slate-200 dark:hover:bg-slate-700/40"
+            className={[
+               "rounded-md w-fit bg-white px-3 py-1.5 text-sm text-slate-700 transition-colors",
+                "dark:bg-[#272b34] dark:text-slate-200 dark:hover:bg-slate-700/40",
+               triggerClassName,
+            ]
+               .filter(Boolean)
+               .join(" ")}
          >
-            {triggerLabel ? (
-               triggerLabel
+            {triggerIcon || triggerLabel ? (
+               <span className="inline-flex items-center gap-1.5">
+                  {triggerIcon}
+                  {triggerLabel}
+               </span>
             ) : (
                <EllipsisVerticalIcon size={20} />
             )}
@@ -86,7 +93,7 @@ export const ContextMenu = ({ items, triggerLabel }: ContextMenuProps) => {
                      animate={{ opacity: 1, y: 0, scale: 1 }}
                      exit={{ opacity: 0, y: -4, scale: 0.98 }}
                      transition={{ duration: 0.16, ease: "easeOut" }}
-                     className="m-0! absolute right-0 z-50 mt-2 min-w-40 origin-top-right overflow-hidden rounded-lg border border-slate-200
+                     className="m-0! absolute right-0 top-full z-50 mt-1.5 min-w-40 origin-top-right overflow-hidden rounded-lg border border-slate-200
                          bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:bg-[#272b34] dark:border-slate-600 dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]"
                   >
                      {items.map((item, index) => {

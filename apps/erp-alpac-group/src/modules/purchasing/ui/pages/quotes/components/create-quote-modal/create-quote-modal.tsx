@@ -1,105 +1,54 @@
+import dayjs from "dayjs";
 import { useMemo, useState } from "react";
+
 import {
 	Controller,
 	FormProvider,
 	useFieldArray,
 	useForm,
 } from "react-hook-form";
+
 import {
 	AccordionGroup,
 	Button,
-	Chips,
+	ContextMenu,
+	DatePicker,
 	Dropdown,
 	Modal,
 	Textarea,
 } from "@alpac/design-system";
-import { SaveIcon, XIcon } from "lucide-react";
-import { useUserStore } from "@app/shared/stores/useUserStore";
-import { useSuppliers } from "@app/modules/purchasing/ui/hooks/suppliers/useSuppliers";
-import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
-import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal.types";
+
 import {
-	type CatalogProductOption,
-	type CreateQuoteFormValues,
-} from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.types";
-import { ProductQuoteAccordion } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/product-quote-accordion";
-import { mapCreateQuoteFormToView } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.mapper";
-import {
-	quoteFormDropdownClassName,
 	quoteFormInputClassName,
 	quoteFormLabelClassName,
 	quoteFormPrimaryButtonClassName,
 	quoteFormSecondaryButtonClassName,
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.styles";
+
+import { PlusIcon, SaveIcon, XIcon } from "lucide-react";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { QuoteDetailAccordion } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/quote-detail-accordion/quote-detail-accordion";
+import { mapCreateQuoteFormToView } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.mapper";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
-import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
+import { toDateOnly } from "@app/shared/utils/date.utils";
+import { SupplierModal } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal";
+import { SelectSupplierModal } from "./components/select-supplier-modal/select-supplier-modal";
+import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal.types";
+import { type CreateQuote } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.types";
+import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/suppliers/responses/get-suppliers-response";
+import { SelectProductModal } from "./components/select-product-modal/select-product-modal";
 
-const applicationOptionsMock = [
-	{ value: "SOL-ALP-001", label: "SOL-ALP-001" },
-	{ value: "SOL-ALP-002", label: "SOL-ALP-002" },
-	{ value: "SOL-ALP-003", label: "SOL-ALP-003" },
-	{ value: "SOL-ALP-004", label: "SOL-ALP-004" },
-	{ value: "REQ-ALP-001", label: "REQ-ALP-001" },
-];
-
-const productMock: CatalogProductOption[] = [
-	{
-		product_id: "90c68967-7758-4fd5-bc33-793470d10fd0",
-		product_name: "Aceite Motor 15W40",
-		quantity: 12,
-		unit_measure_id: "3c338ea1-badb-48f9-8362-0ca58ecd264b",
-		unit_measure_name: "Galón",
-	},
-	{
-		product_id: "a1b2c3d4-1111-4aaa-8bbb-1234567890ab",
-		product_name: "Filtro de aire",
-		quantity: 6,
-		unit_measure_id: "4d449fb2-cbec-59g0-9473-1db69fde375c",
-		unit_measure_name: "Unidad",
-	},
-	{
-		product_id: "b2c3d4e5-2222-4bbb-9ccc-2345678901bc",
-		product_name: "Resma de papel bond carta",
-		quantity: 20,
-		unit_measure_id: "4d449fb2-cbec-59g0-9473-1db69fde375c",
-		unit_measure_name: "Unidad",
-	},
-	{
-		product_id: "c3d4e5f6-3333-4ccc-addd-3456789012cd",
-		product_name: "Detergente industrial 5L",
-		quantity: 8,
-		unit_measure_id: "4d449fb2-cbec-59g0-9473-1db69fde375c",
-		unit_measure_name: "Unidad",
-	},
-	{
-		product_id: "d4e5f6a7-4444-4ddd-beee-4567890123de",
-		product_name: "Casco de seguridad",
-		quantity: 15,
-		unit_measure_id: "4d449fb2-cbec-59g0-9473-1db69fde375c",
-		unit_measure_name: "Unidad",
-	},
-	{
-		product_id: "e5f6a7b8-5555-4eee-cfff-5678901234ef",
-		product_name: "Guantes anticorte",
-		quantity: 30,
-		unit_measure_id: "5e55a0c3-dcfd-60h1-a584-2ec70gef486d",
-		unit_measure_name: "Par",
-	},
-]
 
 export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuoteModalProps) {
 
-	const { companyId, moduleCode } = useUserStore();
+	const { companyId } = useUserStore();
 
-	const methods = useForm<CreateQuoteFormValues>({
+	const methods = useForm<CreateQuote>({
 		defaultValues: {
-			area_id: "",
 			branch_id: "",
-			application_codes: [],
 			quote_date: "",
 			observations: "",
 			quote_details: [],
-			products: productMock,
 		},
 		mode: "onSubmit",
 	});
@@ -109,40 +58,29 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 		register,
 		handleSubmit,
 		reset,
+		getValues,
 		formState: { isSubmitting },
 	} = methods;
 
-	const { fields, remove } = useFieldArray({
+	const { fields, append, remove } = useFieldArray({
 		control,
-		name: "products",
+		name: "quote_details"
 	});
 
 	const [openProducts, setOpenProducts] = useState<string[]>([]);
 
-	const { GetSuppliers } = useSuppliers({
-		suppliersFilters: {
-			companie_id: companyId,
-			module_code: moduleCode,
-			page_number: 1,
-			page_size: 100,
-		},
-	});
+	const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+	const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
 
-	const registeredSuppliers = useMemo(
-		() => GetSuppliers.data?.data ?? [],
-		[GetSuppliers.data?.data],
-	);
+	const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
+	const [suppliersById, setSuppliersById] = useState<Record<string, GetSuppliersResponse>>({});
 
 	const { GetBranchesQuery } = useCompanies({
 		company_id: companyId
 	});
 
-	const { GetAreasByCompany } = useAreas({
-		company_id: companyId
-	});
-
 	const { data: branches } = GetBranchesQuery;
-	const { data: areas } = GetAreasByCompany;
 
 	const branchOptions = useMemo(() => {
 		if (!branches || !Array.isArray(branches)) return [];
@@ -154,27 +92,15 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 		});
 	}, [branches]);
 
-	const areasOptions = useMemo(() => {
-		if (!areas || !Array.isArray(areas)) return [];
-		return areas.map(area => {
-			return {
-				value: area.work_area_id,
-				label: area.work_area_name
-			}
-		});
-	}, [branches]);
-
 	const resetForm = () => {
 		reset({
-			area_id: "",
 			branch_id: "",
-			application_codes: [],
 			quote_date: "",
 			observations: "",
 			quote_details: [],
-			products: productMock,
 		});
 		setOpenProducts([]);
+		setSuppliersById({});
 	};
 
 	const handleCancel = () => {
@@ -182,7 +108,43 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 		onClose();
 	};
 
-	const onSubmit = (values: CreateQuoteFormValues) => {
+	const assignedSupplierIds = useMemo(
+		() =>
+			fields
+				.map((field) => field.supplier_id)
+				.filter((id): id is string => Boolean(id)),
+		[fields],
+	);
+
+	const handleSelectRegisteredSuppliers = (suppliers: GetSuppliersResponse[]) => {
+
+		const existingIds = new Set(
+			(getValues("quote_details") ?? []).map((detail) => detail.supplier_id),
+		);
+
+		const suppliersToAdd = suppliers.filter(
+			(supplier) => !existingIds.has(supplier.supplier_id),
+		);
+
+		if (suppliersToAdd.length === 0) return;
+
+		setSuppliersById((current) => {
+			const next = { ...current };
+			suppliersToAdd.forEach((supplier) => {
+				next[supplier.supplier_id] = supplier;
+			});
+			return next;
+		});
+
+		append(
+			suppliersToAdd.map((supplier) => ({
+				supplier_id: supplier.supplier_id,
+				products: [],
+			})),
+		);
+	};
+
+	const onSubmit = (values: CreateQuote) => {
 		console.log("Testing: ", values);
 		onQuoteCreated(mapCreateQuoteFormToView(values));
 		resetForm();
@@ -238,76 +200,23 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 									/>
 
 									<Controller
-										name="area_id"
-										control={control}
-										rules={{ required: "Seleccione una área" }}
-										render={({ field }) => {
-											return (
-												<Dropdown
-													value={field.value}
-													onChange={(value) => field.onChange(value)}
-													label="Área de trabajo"
-													placeholder="Seleccione una área"
-													appearance="dark"
-													labelClassName={quoteFormLabelClassName}
-													valueClassName={quoteFormLabelClassName}
-													className={quoteFormInputClassName}
-													options={areasOptions ?? []}
-												/>
-											);
-										}}
-									/>
-
-									<Controller
-										name="application_codes"
+										name="quote_date"
 										control={control}
 										rules={{
-											validate: (value) =>
-												(Array.isArray(value) && value.length > 0) ||
-												"Seleccione al menos una solicitud.",
+											required: "La fecha de cotización es requerida.",
 										}}
-										render={({ field, fieldState }) => {
-											const selectedCodes = field.value ?? [];
-											const availableOptions = applicationOptionsMock.filter(
-												(option) => !selectedCodes.includes(option.value),
-											);
-
-											return (
-												<div className="flex flex-col gap-2 md:col-span-2">
-													<Dropdown
-														value=""
-														onChange={(value) => {
-															const code = String(value ?? "");
-															if (!code || selectedCodes.includes(code)) return;
-															field.onChange([...selectedCodes, code]);
-														}}
-														label="Solicitudes"
-														placeholder="Agregar solicitud..."
-														appearance="dark"
-														isRequired
-														labelClassName={quoteFormLabelClassName}
-														valueClassName={quoteFormLabelClassName}
-														className={quoteFormDropdownClassName}
-														options={availableOptions}
-														error={fieldState.error?.message}
-													/>
-												
-													{selectedCodes.length > 0 ? (
-														<div className="flex flex-wrap gap-2">
-															{selectedCodes.map((code) => (
-																<Chips label={code} onClick={() => {
-																	field.onChange(selectedCodes.filter((current) => current !== code))
-																}} />
-															))}
-														</div>
-													) : (
-														<p className="m-0 text-xs text-slate-500 dark:text-slate-400">
-															Puede consolidar varias solicitudes en esta cotización.
-														</p>
-													)}
-												</div>
-											);
-										}}
+										render={({ field }) => (
+											<DatePicker
+												fieldWidth="large"
+												label="Fecha de cotización"
+												labelAbove
+												isRequired
+												value={field.value ? dayjs(field.value) : null}
+												onChange={(value) => {
+													field.onChange(toDateOnly(value));
+												}}
+											/>
+										)}
 									/>
 
 								</div>
@@ -326,51 +235,113 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 							</section>
 
 							<section className="flex flex-col gap-4 dark:border-t-neutral-600">
-								<div className="flex items-center gap-2">
+								<div className="flex items-center justify-between gap-2">
 									<h3 className="m-0! text-[16px]! font-bold text-slate-800 dark:text-white!">
 										Cotizaciones por producto
 									</h3>
+									{/* <ContextMenu
+										items={[
+											{
+												label: "Agregar Nuevo Proveedor", onClick() {
+													setIsSupplierModalOpen(true)
+												}
+											},
+											{
+												label: "Agregar Proveedor Existente", onClick() {
+													setIsSelectSupplierOpen(true)
+												}
+											}
+										]}
+										triggerLabel="Agregar Proveedor"
+										triggerIcon={<PlusIcon size={18} />}
+										triggerClassName={quoteFormPrimaryButtonClassName}
+									/> */}
+
+									<ContextMenu
+										items={[
+											{
+												label: "Agregar Nuevo Producto", onClick() {
+													setIsProductModalOpen(true)
+												}
+											},
+											{
+												label: "Agregar Producto Existente", onClick() {
+													setIsSelectProductOpen(true)
+												}
+											}
+										]}
+										triggerLabel="Agregar Producto"
+										triggerIcon={<PlusIcon size={18} />}
+										triggerClassName={quoteFormPrimaryButtonClassName}
+									/>
 								</div>
 
-								<AccordionGroup
-									type="multiple"
-									value={openProducts}
-									onValueChange={(value) => {
-										const validateValue = Array.isArray(value)
-											? value
-											: value
-												? [value]
-												: [];
-										setOpenProducts(validateValue);
-									}}
-									className="gap-3 pb-3"
-								>
-									{fields.map((field, index) => (
-										<ProductQuoteAccordion
-											key={field.id}
-											index={index}
-											accordionValue={field.product_id}
-											canRemove={fields.length > 0}
-											productName={field.product_name}
-											productId={field.product_id}
-											unitOfMeasure={field.unit_measure_name}
-											unitMeasureId={field.unit_measure_id}
-											quantity={field.quantity}
-											suppliers={registeredSuppliers}
-											isLoadingSuppliers={
-												GetSuppliers.isPending || GetSuppliers.isFetching
-											}
-											onRemove={() => {
-												remove(index);
-												setOpenProducts((current) =>
-													current.filter(
-														(value) => value !== field.product_id,
-													),
-												);
-											}}
-										/>
-									))}
-								</AccordionGroup>
+								{fields.length === 0 ? (
+									<p className="m-0 text-sm text-slate-500 dark:text-slate-400">
+										Aún no hay proveedores agregados a esta cotización.
+									</p>
+								) : (
+									<AccordionGroup
+										type="multiple"
+										value={openProducts}
+										onValueChange={(value) => {
+											const validateValue = Array.isArray(value)
+												? value
+												: value
+													? [value]
+													: [];
+											setOpenProducts(validateValue);
+										}}
+										className="gap-3 pb-3">
+
+										{/* {fields.map((field, index) => (
+											<QuoteDetailAccordion
+												key={field.id}
+												accordionValue={field.id}
+												quoteDetailIndex={index}
+												supplier={suppliersById[field.supplier_id]}
+												onRemove={() => {
+													const supplierId = field.supplier_id;
+													remove(index);
+													setOpenProducts((current) =>
+														current.filter((value) => value !== field.id),
+													);
+													if (supplierId) {
+														setSuppliersById((current) => {
+															const next = { ...current };
+															delete next[supplierId];
+															return next;
+														});
+													}
+												}}
+											/>
+										))} */}
+
+										{fields.map((field, index) => (
+											<QuoteDetailAccordion
+												key={field.id}
+												accordionValue={field.id}
+												quoteDetailIndex={index}
+												supplier={suppliersById[field.supplier_id]}
+												onRemove={() => {
+													const supplierId = field.supplier_id;
+													remove(index);
+													setOpenProducts((current) =>
+														current.filter((value) => value !== field.id),
+													);
+													if (supplierId) {
+														setSuppliersById((current) => {
+															const next = { ...current };
+															delete next[supplierId];
+															return next;
+														});
+													}
+												}}
+											/>
+										))}
+									</AccordionGroup>
+								)}
+
 							</section>
 						</div>
 					</div>
@@ -404,15 +375,37 @@ export function CreateQuoteModal({ isOpen, onClose, onQuoteCreated }: CreateQuot
 				</form>
 			</FormProvider>
 
-			<ConfirmModal
+			{/* <ConfirmModal
 				isOpen={false}
 				type="CANCEL"
-				title={`¿Está seguro de eliminar a?`}
+				title={`¿Está seguro de eliminar un ?`}
 				buttonActionLabel="Eliminar"
 				buttonActionClass="rounded-md! bg-red-500! text-white! hover:bg-red-600! dark:bg-red-700!"
 				onClose={() => { }}
 				handleFinalAction={() => { }}
+			/> */}
+
+			<SelectSupplierModal
+				isOpen={isSelectSupplierOpen}
+				onClose={() => setIsSelectSupplierOpen(false)}
+				onSelect={handleSelectRegisteredSuppliers}
+				selectionType="multiple"
+				excludeSupplierIds={assignedSupplierIds}
 			/>
+
+			<SelectProductModal
+				isOpen={isSelectProductOpen}
+				onClose={() => setIsSelectProductOpen(false)}
+			/>
+
+			<SupplierModal
+				isOpen={isSupplierModalOpen}
+				onClose={() => setIsSupplierModalOpen(false)}
+				onSubmit={() => {
+					setIsSupplierModalOpen(false);
+				}}
+			/>
+
 		</Modal>
 	);
 }
