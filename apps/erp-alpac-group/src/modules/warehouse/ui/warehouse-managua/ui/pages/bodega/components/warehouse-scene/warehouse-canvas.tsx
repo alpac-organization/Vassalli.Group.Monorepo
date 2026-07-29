@@ -13,9 +13,10 @@ import { AisleMarkers } from "@app/modules/warehouse/ui/warehouse-managua/ui/pag
 import { FloorTramos } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/floor-tramos";
 import { RackStructures } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/rack-structures";
 import { RackSlots } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/rack-slots";
+import { PolinCargoInstances } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/polin-cargo-instances";
 import { FocusedTramoHighlight } from "./focused-tramo-highlight";
 import { CameraRig } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/camera-rig";
-import "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/hooks/use-cardboard-box-geometry";
+import "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/hooks/use-warehouse-gltf-assets";
 
 interface WarehouseCanvasProps {
   bodegaId: string;
@@ -34,7 +35,7 @@ function WarehouseScene({ bodegaId }: WarehouseCanvasProps) {
 
   return (
     <>
-      <color attach="background" args={["#0b1220"]} />
+      <color attach="background" args={["#fff"]} />
       <fog attach="fog" args={["#0b1220", 110, 220]} />
       <ambientLight intensity={0.75} />
       <directionalLight
@@ -48,10 +49,15 @@ function WarehouseScene({ bodegaId }: WarehouseCanvasProps) {
       <group onPointerMissed={() => clearLevelSelection()}>
         <BuildingShell layout={layout} />
         <AisleMarkers layout={layout} />
-        <FloorTramos tramos={layout.floorTramos} occupancy={locations} />
+        <FloorTramos tramos={layout.floorTramos} />
+        <RackSlots tramos={layout.rackTramos} />
         <RackStructures tramos={layout.rackTramos} />
         <Suspense fallback={null}>
-          <RackSlots tramos={layout.rackTramos} occupancy={locations} />
+          <PolinCargoInstances
+            floorTramos={layout.floorTramos}
+            rackTramos={layout.rackTramos}
+            occupancy={locations}
+          />
         </Suspense>
         <FocusedTramoHighlight layout={layout} />
       </group>

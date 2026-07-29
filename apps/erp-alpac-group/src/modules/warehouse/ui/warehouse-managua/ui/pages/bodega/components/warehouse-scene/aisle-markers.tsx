@@ -5,15 +5,19 @@ interface AisleMarkersProps {
 }
 
 export function AisleMarkers({ layout }: AisleMarkersProps) {
-  const { wallClearance, aisleWidth, depth } = layout.building;
-  const leftW = 8.85;
-  const centerBlock = 10.85;
+  const { wallClearance, aisleWidth, depth, sideTramoWidth, centerBlockWidth } =
+    layout.building;
+
   const aisleLen = depth - wallClearance * 2;
   const aisleZ = wallClearance + aisleLen / 2;
 
-  const aisle1X = wallClearance + leftW + aisleWidth / 2;
+  const aisle1X = wallClearance + sideTramoWidth + aisleWidth / 2;
   const aisle2X =
-    wallClearance + leftW + aisleWidth + centerBlock + aisleWidth / 2;
+    wallClearance +
+    sideTramoWidth +
+    aisleWidth +
+    centerBlockWidth +
+    aisleWidth / 2;
 
   return (
     <group>

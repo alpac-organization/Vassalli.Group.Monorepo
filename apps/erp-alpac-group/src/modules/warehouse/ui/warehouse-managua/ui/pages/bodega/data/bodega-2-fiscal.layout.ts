@@ -5,23 +5,35 @@ import type {
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/types/warehouse-3d.types";
 import { rackLevelCodes } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/utils/location-codes";
 
+// Medidas del plano Bodega #2 Fiscal
+const WALL_CLEARANCE = 0.6;
+const AISLE_WIDTH = 4.4;
+const SIDE_W = 8.85;
+const CENTER_W = 4.75;
+const CENTER_BLOCK_W = 10.85;
+const BUILDING_WIDTH = 37.35;
+const BUILDING_DEPTH = 61.02;
+const GALERON_DEPTH = 12.1;
+
+/** Filas S→N: extremos 5.23, intermedios 6.00 (plano). */
+const ROW_DEPTHS = [5.23, 6, 6, 6, 6, 6, 6, 6, 6, 5.23] as const;
+
 const BUILDING = {
-  width: 37.35,
-  depth: 61.02,
-  galeronDepth: 12.1,
-  wallClearance: 0.6,
-  aisleWidth: 4.4,
+  width: BUILDING_WIDTH,
+  depth: BUILDING_DEPTH,
+  galeronDepth: GALERON_DEPTH,
+  wallClearance: WALL_CLEARANCE,
+  aisleWidth: AISLE_WIDTH,
   heightHigh: 9.05,
   heightLow: 6.57,
+  sideTramoWidth: SIDE_W,
+  centerTramoWidth: CENTER_W,
+  centerBlockWidth: CENTER_BLOCK_W,
 } as const;
-const LEFT_W = 8.85;
-const CENTER_W = 4.75;
-const RIGHT_W = 8.85;
-const ROW_DEPTHS = [5.23, 6, 6, 6, 6, 6, 6, 6, 6, 5.23] as const;
 
 function rowCentersZ(): number[] {
   const centers: number[] = [];
-  let z = BUILDING.wallClearance;
+  let z = WALL_CLEARANCE;
   for (const d of ROW_DEPTHS) {
     centers.push(z + d / 2);
     z += d;
@@ -30,18 +42,21 @@ function rowCentersZ(): number[] {
 }
 
 function columnCentersX() {
-  const { wallClearance: c, aisleWidth: a } = BUILDING;
+  const c = WALL_CLEARANCE;
+  const a = AISLE_WIDTH;
+  const gapBetweenCenter = CENTER_BLOCK_W - CENTER_W * 2;
 
-  const left = c + LEFT_W / 2;
-  const centerLeft = c + LEFT_W + a + CENTER_W / 2;
-  const centerRight = centerLeft + CENTER_W;
-  const right = BUILDING.width - c - RIGHT_W / 2;
+  const left = c + SIDE_W / 2;
+  const centerLeft = c + SIDE_W + a + CENTER_W / 2;
+  const centerRight =
+    c + SIDE_W + a + CENTER_W + gapBetweenCenter + CENTER_W / 2;
+  const right = BUILDING_WIDTH - c - SIDE_W / 2;
   return { left, centerLeft, centerRight, right };
 }
+
 function buildFloorColumn(
   idsSouthToNorth: string[],
   x: number,
-  width: number,
   column: FloorTramo["column"],
   centersZ: number[],
 ): FloorTramo[] {
@@ -52,9 +67,10 @@ function buildFloorColumn(
     code: id,
     column,
     position: { x, z: centersZ[i]! },
-    size: { width, depth: ROW_DEPTHS[i]! },
+    size: { width: SIDE_W, depth: ROW_DEPTHS[i]! },
   }));
 }
+
 function buildRackColumn(
   idsSouthToNorth: string[],
   x: number,
@@ -76,6 +92,8 @@ function buildRackColumn(
 function buildLayout(): WarehouseLayout {
   const centersZ = rowCentersZ();
   const x = columnCentersX();
+
+  // Plano: abajo (galerón) → arriba
   const leftIds = [
     "T-41",
     "T-42",
@@ -124,13 +142,14 @@ function buildLayout(): WarehouseLayout {
     "T-72",
     "T-71",
   ];
+
   return {
     bodegaId: "bodega-2-fiscal",
     name: "Bodega #2",
     building: { ...BUILDING },
     floorTramos: [
-      ...buildFloorColumn(leftIds, x.left, LEFT_W, "left", centersZ),
-      ...buildFloorColumn(rightIds, x.right, RIGHT_W, "right", centersZ),
+      ...buildFloorColumn(leftIds, x.left, "left", centersZ),
+      ...buildFloorColumn(rightIds, x.right, "right", centersZ),
     ],
     rackTramos: [
       ...buildRackColumn(centerLeftIds, x.centerLeft, "centerLeft", centersZ),
@@ -145,28 +164,18 @@ function buildLayout(): WarehouseLayout {
 }
 
 export const BODEGA_2_FISCAL_LAYOUT = buildLayout();
+
 export const AVAILABLE_BODEGAS = [
-  {
-    id: "bodega-1-fiscal",
-    name: "Bodega #1",
-  },
+  { id: "bodega-1-fiscal", name: "Bodega #1" },
   {
     id: BODEGA_2_FISCAL_LAYOUT.bodegaId,
     name: BODEGA_2_FISCAL_LAYOUT.name,
   },
-  {
-    id: "bodega-3-fiscal",
-    name: "Bodega #3",
-  },
-  {
-    id: "bodega-4-fiscal",
-    name: "Bodega #4",
-  },
-  {
-    id: "bodega-5-fiscal",
-    name: "Bodega #5",
-  },
+  { id: "bodega-3-fiscal", name: "Bodega #3" },
+  { id: "bodega-4-fiscal", name: "Bodega #4" },
+  { id: "bodega-5-fiscal", name: "Bodega #5" },
 ] as const;
+
 export function getLayoutByBodegaId(bodegaId: string): WarehouseLayout | null {
   if (bodegaId === BODEGA_2_FISCAL_LAYOUT.bodegaId) {
     return BODEGA_2_FISCAL_LAYOUT;

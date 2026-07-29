@@ -11,7 +11,6 @@ export type CameraFlyTo = {
   target: Vec3;
   minDistance?: number;
 };
-
 interface BodegaViewerState {
   selectedBodegaId: string | null;
   selectedBodegaName: string | null;

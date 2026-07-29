@@ -22,7 +22,6 @@ export default function Bodega() {
     requestCameraPreset,
     exitTramoFocus,
   } = useBodegaViewerStore();
-
   const [modalOpen, setModalOpen] = useState(true);
   const { locations } = useWarehouseOccupancy(selectedBodegaId);
 
@@ -58,15 +57,22 @@ export default function Bodega() {
           <div className="mr-2 hidden flex-wrap items-center gap-3 sm:flex">
             <span className="flex items-center gap-1.5 text-xs text-slate-300">
               <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: "#22c55e" }}
+                className="h-2.5 w-4 rounded-sm"
+                style={{ backgroundColor: "#e8d98a" }}
               />
-              Libre
+              Tramo
             </span>
             <span className="flex items-center gap-1.5 text-xs text-slate-300">
               <span
                 className="h-2.5 w-2.5 rounded-sm"
-                style={{ backgroundColor: "#f97316" }}
+                style={{ backgroundColor: "#0a1628" }}
+              />
+              Slot libre
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-slate-300">
+              <span
+                className="h-2.5 w-2.5 rounded-sm"
+                style={{ backgroundColor: "#c4a574" }}
               />
               Ocupado
             </span>
