@@ -8,9 +8,7 @@ import { QuotesActions } from "@app/modules/purchasing/ui/pages/quotes/component
 import { QuotesTable } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-table/quotes-table";
 import { CreateQuoteModal } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal";
 import { QuoteDetailsModal } from "@app/modules/purchasing/ui/pages/quotes/components/quote-details-modal/quote-details-modal";
-import { MOCK_QUOTES } from "@app/modules/purchasing/ui/pages/quotes/data/quotes.mock";
 import type { QuotesModalType } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-modal.types";
-import type { GetHistoryQuotesView } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-view.types";
 
 export function Quotes() {
   const navigate = useNavigate();
@@ -18,15 +16,15 @@ export function Quotes() {
 
   const [activeModal, setActiveModal] = useState<QuotesModalType>(null);
   const [selectedQuote, setSelectedQuote] =
-    useState<GetHistoryQuotesView | null>(null);
-  const [quotes, setQuotes] = useState<GetHistoryQuotesView[]>(MOCK_QUOTES);
+    useState<any | null>(null);
+  const [quotes, setQuotes] = useState<any[]>([]);
 
   const handleCreateQuote = useCallback(() => {
     setSelectedQuote(null);
     setActiveModal("create-quote");
   }, []);
 
-  const handleViewDetail = useCallback((quote: GetHistoryQuotesView) => {
+  const handleViewDetail = useCallback((quote: any) => {
     setSelectedQuote(quote);
     setActiveModal("quote-details");
   }, []);
@@ -36,7 +34,7 @@ export function Quotes() {
     setSelectedQuote(null);
   }, []);
 
-  const handleQuoteCreated = useCallback((quote: GetHistoryQuotesView) => {
+  const handleQuoteCreated = useCallback((quote: any) => {
     setQuotes((current) => [quote, ...current]);
   }, []);
 

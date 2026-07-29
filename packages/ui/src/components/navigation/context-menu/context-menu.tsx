@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { EllipsisVerticalIcon } from "lucide-react";
 import type { ContextMenuProps } from "./context-menu.type";
+import { Button } from "../../buttons";
 
 const loadFeatures = () =>
    import("framer-motion").then((res) => res.domAnimation);
 
-export const ContextMenu = ({ items, triggerLabel, triggerClassName, triggerIcon }: ContextMenuProps) => {
+export const ContextMenu = ({ items, triggerLabel, triggerClassName, triggerIcon, triggerButtonSize }: ContextMenuProps) => {
    const [open, setOpen] = useState(false);
    const containerRef = useRef<HTMLDivElement>(null);
 
@@ -61,29 +62,16 @@ export const ContextMenu = ({ items, triggerLabel, triggerClassName, triggerIcon
 
    return (
       <div ref={containerRef} className="relative inline-block">
-         <button
+         <Button
             type="button"
             aria-expanded={open}
             aria-haspopup="menu"
+            size={triggerButtonSize ?? "giant"}
             onClick={() => setOpen((prev) => !prev)}
-            className={[
-               "rounded-md w-fit bg-white px-3 py-1.5 text-sm text-slate-700 transition-colors",
-                "dark:bg-[#272b34] dark:text-slate-200 dark:hover:bg-slate-700/40",
-               triggerClassName,
-            ]
-               .filter(Boolean)
-               .join(" ")}
-         >
-            {triggerIcon || triggerLabel ? (
-               <span className="inline-flex items-center gap-1.5">
-                  {triggerIcon}
-                  {triggerLabel}
-               </span>
-            ) : (
-               <EllipsisVerticalIcon size={20} />
-            )}
-         </button>
-
+            className={[triggerClassName].filter(Boolean).join(" ")}
+            label={triggerLabel ?? ""}
+            icon={triggerIcon ?? <EllipsisVerticalIcon size={20} />}
+         />
          <LazyMotion features={loadFeatures} strict>
             <AnimatePresence>
                {open && (
@@ -107,8 +95,7 @@ export const ContextMenu = ({ items, triggerLabel, triggerClassName, triggerIcon
                            );
                         }
 
-                        const showDivider =
-                           index < items.length - 1 && !items[index + 1]?.separator;
+                        const showDivider = index < items.length - 1 && !items[index + 1]?.separator;
 
                         return (
                            <li

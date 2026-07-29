@@ -14,8 +14,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
-import { MOCK_QUOTES } from "@app/modules/purchasing/ui/pages/quotes/data/quotes.mock";
-import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { QuoteAnalysisTable } from "@app/modules/purchasing/ui/pages/quote-analisys/components/quote-analysis-table/quote-analysis-table";
 import {
 	buildQuoteComparisonRows,
@@ -27,21 +25,14 @@ export function QuoteAnalisys() {
 	const navigate = useNavigate();
 	const { baseUrl } = useBaseUrl();
 
-	const [selectedQuoteId, setSelectedQuoteId] = useState(
-		MOCK_QUOTES[0]?.id ?? "",
-	);
+	const [selectedQuoteId, setSelectedQuoteId] = useState();
 
 	const quoteOptions = useMemo(
-		() =>
-			MOCK_QUOTES.map((quote) => ({
-				value: quote.id,
-				label: `${quote.quote_code} · ${quote.quote_date}`,
-			})),
-		[],
+		() => [],[],
 	);
 
 	const selectedQuote = useMemo(
-		() => MOCK_QUOTES.find((quote) => quote.id === selectedQuoteId) ?? null,
+		() => [],
 		[selectedQuoteId],
 	);
 
@@ -74,8 +65,6 @@ export function QuoteAnalisys() {
 
 	const potentialSaving =
 		bestTotal != null && worstTotal != null ? worstTotal - bestTotal : 0;
-
-	const currency = selectedQuote?.currency ?? "NIO";
 
 	return (
 		<m.div
@@ -115,7 +104,7 @@ export function QuoteAnalisys() {
 						placeholder="Seleccione una cotización"
 						options={quoteOptions}
 						value={selectedQuoteId}
-						onChange={(value) => setSelectedQuoteId(String(value ?? ""))}
+						onChange={(value) => setSelectedQuoteId(value)}
 						labelClassName="text-black! dark:text-white!"
 						valueClassName="text-black! dark:text-white!"
 						className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600!"
@@ -137,17 +126,13 @@ export function QuoteAnalisys() {
 					/>
 					<StatsCard
 						title="Mejor total"
-						value={
-							bestTotal != null
-								? (formatCurrency(bestTotal, currency) ?? "—")
-								: "—"
-						}
+						value={""}
 						icon={<BanknoteIcon size={28} />}
 						borderColor="border-emerald-600! dark:border-emerald-400!"
 					/>
 					<StatsCard
 						title="Ahorro potencial"
-						value={formatCurrency(potentialSaving, currency) ?? "—"}
+						value={""}
 						icon={<TrendingDownIcon size={28} />}
 						borderColor="border-amber-600! dark:border-amber-400!"
 					/>
@@ -159,7 +144,7 @@ export function QuoteAnalisys() {
 							<span className="font-semibold text-slate-900 dark:text-white">
 								Observaciones:
 							</span>{" "}
-							{selectedQuote.observations?.trim() || "Sin observaciones"}
+							{"Sin observaciones"}
 						</p>
 					</div>
 				) : null}
@@ -168,7 +153,7 @@ export function QuoteAnalisys() {
 					<QuoteAnalysisTable
 						rows={comparisonRows}
 						suppliers={suppliers}
-						currency={currency}
+						currency={undefined}
 					/>
 				) : (
 					<div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-600">
