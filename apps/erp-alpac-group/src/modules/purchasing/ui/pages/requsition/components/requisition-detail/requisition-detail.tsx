@@ -4,7 +4,7 @@ import { PlusIcon, X } from "lucide-react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { useProduct } from "@app/modules/product/hooks/useProduct";
+import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import type {
 	RequisitionItems,
 } from "../requisition-modal/requisition-modal.types";
@@ -44,7 +44,7 @@ export const RequisitionDetail = () => {
 	});
 
 	const { GetProductCategories } = useProduct({
-		productCategoryPayload: {
+		getProductCategoryPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
 		},

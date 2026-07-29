@@ -10,6 +10,8 @@ import {
 
 import {
 	AccordionGroup,
+	Alert,
+	AnimatedAlertWrapper,
 	Button,
 	ContextMenu,
 	DatePicker,
@@ -23,7 +25,7 @@ import {
 	quoteFormLabelClassName,
 	quoteFormPrimaryButtonClassName,
 	quoteFormSecondaryButtonClassName,
-} from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.styles";
+} from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
 
 import { PlusIcon, SaveIcon, XIcon } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -31,9 +33,11 @@ import { QuoteDetailAccordion } from "@app/modules/purchasing/ui/pages/quotes/co
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { toDateOnly } from "@app/shared/utils/date.utils";
 import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal.types";
-import { type CreateQuote } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.types";
-import { SelectProductModal } from "./components/select-product-modal/select-product-modal";
-import type { SelectableCatalogProduct } from "./components/select-product-modal/select-product-modal.types";
+import { type CreateQuote } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-form.types";
+import { SelectProductModal } from "../../../../../../product/ui/views/select-product-modal/select-product-modal";
+import type { SelectableCatalogProduct } from "../../../../../../product/ui/views/select-product-modal/select-product-modal.types";
+import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 
 export function CreateQuoteModal({
 	isOpen,
@@ -67,11 +71,18 @@ export function CreateQuoteModal({
 	});
 
 	const [openProducts, setOpenProducts] = useState<string[]>([]);
-	const [, setIsProductModalOpen] = useState(false);
+	const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 	const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
 	const [productsById, setProductsById] = useState<
 		Record<string, SelectableCatalogProduct>
 	>({});
+
+	const {
+		alertState,
+		handleCloseAlert,
+		handleRequestError,
+		handleRequestSuccess,
+	} = useAlertState();
 
 	const { GetBranchesQuery } = useCompanies({
 		company_id: companyId,
@@ -148,23 +159,24 @@ export function CreateQuoteModal({
 	};
 
 	return (
-		<Modal
-			isOpen={isOpen}
-			onClose={handleCancel}
-			variant="form"
-			size="7.5xl"
-			title="Nueva cotización"
-			description="Complete el formulario para registrar una nueva cotización."
-			panelClassName={[
-				"flex h-[min(94dvh,54rem)] w-[min(calc(100vw-1rem),56rem)] min-w-0 flex-col overflow-hidden",
-				"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
-				"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
-			].join(" ")}
-			contentClassName="flex min-h-0 flex-1 flex-col"
-		>
+		<>
+			<Modal
+				isOpen={isOpen}
+				onClose={handleCancel}
+				variant="form"
+				size="7.5xl"
+				title="Nueva cotización"
+				description="Complete el formulario para registrar una nueva cotización."
+				panelClassName={[
+					"flex h-[min(94dvh,54rem)] w-[min(calc(100vw-1rem),56rem)] min-w-0 flex-col overflow-hidden",
+					"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
+					"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
+				].join(" ")}
+				contentClassName="flex min-h-0 flex-1 flex-col"
+			>
 			<FormProvider {...methods}>
 				<form
-					onSubmit={handleSubmit(onSubmit, () => {})}
+					onSubmit={handleSubmit(onSubmit, () => { })}
 					className="flex min-h-0 flex-1 flex-col"
 					noValidate
 				>
@@ -323,6 +335,7 @@ export function CreateQuoteModal({
 					</div>
 				</form>
 			</FormProvider>
+			</Modal>
 
 			<SelectProductModal
 				isOpen={isSelectProductOpen}
@@ -331,6 +344,22 @@ export function CreateQuoteModal({
 				selectionType="multiple"
 				excludeProductIds={assignedProductIds}
 			/>
-		</Modal>
+
+			<CreateProductModal
+				isOpen={isProductModalOpen}
+				onClose={() => setIsProductModalOpen(false)}
+				onRequestSuccess={handleRequestSuccess}
+				onRequestError={handleRequestError}
+			/>
+
+			<AnimatedAlertWrapper open={alertState?.open ?? false}>
+				<Alert
+					type={alertState?.type!}
+					title={alertState?.title}
+					message={alertState?.message!}
+					onClose={handleCloseAlert}
+				/>
+			</AnimatedAlertWrapper>
+		</>
 	);
 }

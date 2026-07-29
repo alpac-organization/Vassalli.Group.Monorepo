@@ -12,13 +12,13 @@ import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/suppli
 import {
 	quoteFormPrimaryButtonClassName,
 	quoteFormSecondaryButtonClassName,
-} from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.styles";
+} from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useSuppliers } from "@app/modules/purchasing/ui/hooks/suppliers/useSuppliers";
 
 type SelectSupplierModalProps = {
 	isOpen: boolean;
-	selectionType?: "single" | "multiple";	
+	selectionType?: "single" | "multiple";
 	excludeSupplierIds?: string[];
 	onClose: () => void;
 	onSelect: (suppliers: GetSuppliersResponse[]) => void;
@@ -166,20 +166,17 @@ export function SelectSupplierModal({
 		[selectionType, tempSelected, tempSelectedMultiple],
 	);
 
-	const isConfirmDisabled =
-		GetSuppliers.isPending ||
-		GetSuppliers.isFetching ||
-		registeredSuppliers.length === 0 ||
-		(selectionType === "multiple"
-			? tempSelectedMultiple.length === 0
-			: !tempSelected);
+	const isLoadingSuppliers = GetSuppliers.isPending || GetSuppliers.isFetching;
 
-	const selectedCount =
-		selectionType === "multiple"
-			? tempSelectedMultiple.length
-			: tempSelected
-				? 1
-				: 0;
+	const hasSelectedSuppliers = (selectionType === "multiple" ? tempSelectedMultiple.length === 0 : !tempSelected);
+
+	const isConfirmDisabled = isLoadingSuppliers || registeredSuppliers.length === 0 || hasSelectedSuppliers;
+
+	const selectedCount = selectionType === "multiple" ? tempSelectedMultiple.length : tempSelected ? 1 : 0;
+
+	const selectedCountText = useMemo(() => {
+		return selectedCount > 0 ? `(${selectedCount} ${selectedCount === 1 ? "seleccionado)" : "seleccionados)"}` : "";
+	}, [selectedCount])
 
 	return (
 		<Modal
@@ -197,19 +194,10 @@ export function SelectSupplierModal({
 			<div className="flex flex-col gap-6">
 				{error ? (
 					<p className="m-0 text-sm text-red-500 dark:text-red-400">{error}</p>
-				) : null}
-
-				{selectedCount > 0 ? (
-					<p className="m-0 text-sm text-slate-500 dark:text-slate-400">
-						{selectedCount}{" "}
-						{selectedCount === 1
-							? "proveedor seleccionado"
-							: "proveedores seleccionados"}
-					</p>
-				) : null}
+				) : null}				
 
 				<DataTable
-					title="Proveedores"
+					title={`Proveedores ${selectedCountText}`}
 					data={paginatedSuppliers}
 					columns={columnConfig}
 					pagination={

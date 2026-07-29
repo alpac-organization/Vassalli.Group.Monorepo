@@ -15,11 +15,6 @@ import { useNavigate } from "react-router-dom";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
 import { QuoteAnalysisTable } from "@app/modules/purchasing/ui/pages/quote-analisys/components/quote-analysis-table/quote-analysis-table";
-import {
-	buildQuoteComparisonRows,
-	getQuoteSupplierColumns,
-	getSupplierTotals,
-} from "@app/modules/purchasing/ui/pages/quote-analisys/quote-analisys.utils";
 
 export function QuoteAnalisys() {
 	const navigate = useNavigate();
@@ -28,43 +23,13 @@ export function QuoteAnalisys() {
 	const [selectedQuoteId, setSelectedQuoteId] = useState();
 
 	const quoteOptions = useMemo(
-		() => [],[],
+		() => [], [],
 	);
 
 	const selectedQuote = useMemo(
 		() => [],
 		[selectedQuoteId],
 	);
-
-	const suppliers = useMemo(
-		() => getQuoteSupplierColumns(selectedQuote),
-		[selectedQuote],
-	);
-
-	const comparisonRows = useMemo(
-		() => buildQuoteComparisonRows(selectedQuote),
-		[selectedQuote],
-	);
-
-	const supplierTotals = useMemo(
-		() => getSupplierTotals(selectedQuote),
-		[selectedQuote],
-	);
-
-	const bestTotal = useMemo(() => {
-		const totals = Object.values(supplierTotals);
-		if (totals.length === 0) return null;
-		return Math.min(...totals);
-	}, [supplierTotals]);
-
-	const worstTotal = useMemo(() => {
-		const totals = Object.values(supplierTotals);
-		if (totals.length === 0) return null;
-		return Math.max(...totals);
-	}, [supplierTotals]);
-
-	const potentialSaving =
-		bestTotal != null && worstTotal != null ? worstTotal - bestTotal : 0;
 
 	return (
 		<m.div
@@ -114,13 +79,13 @@ export function QuoteAnalisys() {
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
 					<StatsCard
 						title="Proveedores cotizados"
-						value={String(suppliers.length)}
+						value={""}
 						icon={<UsersIcon size={28} />}
 						borderColor="border-blue-600! dark:border-blue-400!"
 					/>
 					<StatsCard
 						title="Productos comparados"
-						value={String(comparisonRows.length)}
+						value={""}
 						icon={<PackageIcon size={28} />}
 						borderColor="border-violet-600! dark:border-violet-400!"
 					/>
@@ -149,20 +114,14 @@ export function QuoteAnalisys() {
 					</div>
 				) : null}
 
-				{comparisonRows.length > 0 ? (
-					<QuoteAnalysisTable
-						rows={comparisonRows}
-						suppliers={suppliers}
-						currency={undefined}
-					/>
-				) : (
-					<div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-600">
-						<p className="m-0 text-sm text-slate-500 dark:text-slate-400">
-							Seleccione una cotización con productos para ver el cuadro
-							comparativo.
-						</p>
-					</div>
-				)}
+
+				<div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-600">
+					<p className="m-0 text-sm text-slate-500 dark:text-slate-400">
+						Seleccione una cotización con productos para ver el cuadro
+						comparativo.
+					</p>
+				</div>
+
 			</div>
 		</m.div>
 	);

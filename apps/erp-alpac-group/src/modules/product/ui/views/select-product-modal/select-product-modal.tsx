@@ -8,23 +8,23 @@ import {
 	RadioButton,
 	type TableColumn,
 } from "@alpac/design-system";
-import {
-	quoteFormPrimaryButtonClassName,
-	quoteFormSecondaryButtonClassName,
-} from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-form.styles";
 import type {
 	SelectableCatalogProduct,
 	SelectProductModalProps,
 } from "./select-product-modal.types";
-import { useProduct } from "@app/modules/product/hooks/useProduct";
+import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 
 const PAGE_SIZE = 5;
 
+const primaryButtonClassName = "text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
+const secondaryButtonClassName = "text-[15px]! rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!";
+
 function normalizeProducts(
-	data: GetProductResponse | GetProductResponse[] | null | undefined,
+	data: GetProductResponse | GetProductResponse[] | null | undefined
 ): SelectableCatalogProduct[] {
+
 	if (!data) return [];
 	if (Array.isArray(data)) return data;
 	if ("product_id" in data) return [data];
@@ -42,14 +42,11 @@ export function SelectProductModal({
 
 	const [error, setError] = useState("");
 	const [pageNumber, setPageNumber] = useState(1);
-	const [tempSelected, setTempSelected] =
-		useState<SelectableCatalogProduct | null>(null);
-	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<
-		SelectableCatalogProduct[]
-	>([]);
+	const [tempSelected, setTempSelected] = useState<SelectableCatalogProduct | null>(null);
+	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<SelectableCatalogProduct[]>([]);
 
 	const { GetProducts } = useProduct({
-		productPayload: {
+		getProductPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
 		},
@@ -231,7 +228,7 @@ export function SelectProductModal({
 						type="button"
 						size="giant"
 						label="Cancelar"
-						className={quoteFormSecondaryButtonClassName}
+						className={secondaryButtonClassName}
 						onClick={handleClose}
 					/>
 					<Button
@@ -239,7 +236,7 @@ export function SelectProductModal({
 						size="giant"
 						label="Agregar a la lista"
 						disabled={isConfirmDisabled}
-						className={quoteFormPrimaryButtonClassName}
+						className={primaryButtonClassName}
 						onClick={handleConfirm}
 					/>
 				</div>

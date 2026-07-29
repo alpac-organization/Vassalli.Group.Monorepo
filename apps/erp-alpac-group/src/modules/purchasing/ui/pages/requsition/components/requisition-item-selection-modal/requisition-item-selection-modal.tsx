@@ -11,7 +11,7 @@ import {
 	type TableColumn,
 } from "@alpac/design-system";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { useProduct } from "@app/modules/product/hooks/useProduct";
+import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import type {
 	RequisitionItemSelectionModalProps,
 	SelectableRequisitionProduct,
@@ -101,7 +101,7 @@ export const RequisitionItemSelectionModal = ({
 	>([]);
 
 	const { GetProductCategories } = useProduct({
-		productCategoryPayload: {
+		getProductCategoryPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
 		},

@@ -65,7 +65,7 @@ export function AccordionPanel({
       >
         <div className="min-h-0">
           <div
-            className={`${isOpen ? "overflow-visible" : "overflow-hidden"} ${contentFade} px-4 pb-4 text-sm text-slate-600 dark:text-slate-300 ${
+            className={`${isOpen ? "overflow-visible" : "overflow-hidden"} ${contentFade} text-sm text-slate-600 dark:text-slate-300 ${
               isOpen ? "opacity-100" : "opacity-0"
             } ${contentClassName}`}
           >
