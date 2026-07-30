@@ -3,6 +3,7 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/suppliers/requests/create-supplier-request";
 import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/suppliers/requests/get-suppliers-request";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/suppliers/requests/update-suppliers-request";
+import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/suppliers/responses/create-supplier-response";
 import { SupplierServices } from "@app/modules/purchasing/infrastructure/services/suppliers/SupplierServices";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -34,7 +35,7 @@ export const useSuppliers = (props?: useSuppliersProps) => {
 		refetchOnMount: false,
 	});
 
-	const CreateSupplier = useMutation<void, ApiErrorResponse, CreateSupplierRequest>({
+	const CreateSupplier = useMutation<CreateSupplierResponse, ApiErrorResponse, CreateSupplierRequest>({
 		mutationKey: ["create-supplier"],
 		mutationFn: (payload: CreateSupplierRequest) => suppliersServices.CreateSupplier(payload),
 		onSuccess() {

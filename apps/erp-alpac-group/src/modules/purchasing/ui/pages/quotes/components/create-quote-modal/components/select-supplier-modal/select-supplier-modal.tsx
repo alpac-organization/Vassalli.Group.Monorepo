@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	Button,
 	Checkbox,
@@ -9,12 +9,14 @@ import {
 	type TableColumn,
 } from "@alpac/design-system";
 import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/suppliers/responses/get-suppliers-response";
+import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/suppliers/requests/get-suppliers-request";
 import {
 	quoteFormPrimaryButtonClassName,
 	quoteFormSecondaryButtonClassName,
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useSuppliers } from "@app/modules/purchasing/ui/hooks/suppliers/useSuppliers";
+import { Loader } from "@app/shared/components/loaders/loader";
 
 type SelectSupplierModalProps = {
 	isOpen: boolean;
@@ -30,8 +32,7 @@ export function SelectSupplierModal({
 	isOpen,
 	onClose,
 	onSelect,
-	selectionType = "single",
-	excludeSupplierIds = [],
+	selectionType = "single",	
 }: SelectSupplierModalProps) {
 	const { companyId, moduleCode } = useUserStore();
 
@@ -43,32 +44,24 @@ export function SelectSupplierModal({
 	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<
 		GetSuppliersResponse[]
 	>([]);
+	const [filters, setFilters] = useState<GetSuppliersRequest>({
+		companie_id: companyId,
+		module_code: moduleCode,
+		page_number: 1,
+		page_size: PAGE_SIZE,
+	});
 
 	const { GetSuppliers } = useSuppliers({
-		suppliersFilters: {
-			companie_id: companyId,
-			module_code: moduleCode,
-			page_number: 1,
-			page_size: 100,
-		},
+		suppliersFilters: filters,
 	});
 
 	const registeredSuppliers = useMemo(() => {
-		const suppliers = GetSuppliers.data?.data ?? [];
-		if (excludeSupplierIds.length === 0) return suppliers;
+		return GetSuppliers.data?.data ?? [];
+	}, [GetSuppliers.data?.data]);
 
-		const excluded = new Set(excludeSupplierIds);
-		return suppliers.filter(
-			(supplier) => !excluded.has(supplier.supplier_id),
-		);
-	}, [GetSuppliers.data?.data, excludeSupplierIds]);
-
-	const totalRecords = registeredSuppliers.length;
-
-	const paginatedSuppliers = useMemo(() => {
-		const start = (pageNumber - 1) * PAGE_SIZE;
-		return registeredSuppliers.slice(start, start + PAGE_SIZE);
-	}, [registeredSuppliers, pageNumber]);
+	const totalRecords = useMemo(() => {
+		return GetSuppliers.data?.total ?? 0;
+	}, [GetSuppliers.data]);
 
 	useEffect(() => {
 		if (!isOpen) {
@@ -76,13 +69,28 @@ export function SelectSupplierModal({
 			setPageNumber(1);
 			setTempSelected(null);
 			setTempSelectedMultiple([]);
+			return;
 		}
-	}, [isOpen]);
 
-	useEffect(() => {
-		const maxPage = Math.max(1, Math.ceil(totalRecords / PAGE_SIZE) || 1);
-		if (pageNumber > maxPage) setPageNumber(maxPage);
-	}, [totalRecords, pageNumber]);
+		const initial: GetSuppliersRequest = {
+			companie_id: companyId,
+			module_code: moduleCode,
+			page_number: 1,
+			page_size: PAGE_SIZE,
+		};
+
+		setFilters(initial);
+		setPageNumber(1);
+	}, [isOpen, companyId, moduleCode]);
+
+	const handlePageChange = useCallback((page: number) => {
+		setPageNumber(page);
+		setFilters((prev) => ({
+			...prev,
+			page_number: page,
+			page_size: PAGE_SIZE,
+		}));
+	}, []);
 
 	const handleClose = () => {
 		setError("");
@@ -168,15 +176,28 @@ export function SelectSupplierModal({
 
 	const isLoadingSuppliers = GetSuppliers.isPending || GetSuppliers.isFetching;
 
-	const hasSelectedSuppliers = (selectionType === "multiple" ? tempSelectedMultiple.length === 0 : !tempSelected);
+	const hasSelectedSuppliers =
+		selectionType === "multiple"
+			? tempSelectedMultiple.length === 0
+			: !tempSelected;
 
-	const isConfirmDisabled = isLoadingSuppliers || registeredSuppliers.length === 0 || hasSelectedSuppliers;
+	const isConfirmDisabled =
+		isLoadingSuppliers ||
+		registeredSuppliers.length === 0 ||
+		hasSelectedSuppliers;
 
-	const selectedCount = selectionType === "multiple" ? tempSelectedMultiple.length : tempSelected ? 1 : 0;
+	const selectedCount =
+		selectionType === "multiple"
+			? tempSelectedMultiple.length
+			: tempSelected
+				? 1
+				: 0;
 
 	const selectedCountText = useMemo(() => {
-		return selectedCount > 0 ? `(${selectedCount} ${selectedCount === 1 ? "seleccionado)" : "seleccionados)"}` : "";
-	}, [selectedCount])
+		return selectedCount > 0
+			? `(${selectedCount} ${selectedCount === 1 ? "seleccionado)" : "seleccionados)"}`
+			: "";
+	}, [selectedCount]);
 
 	return (
 		<Modal
@@ -191,21 +212,23 @@ export function SelectSupplierModal({
 					: "Elija un proveedor registrado para agregarlo a la cotización."
 			}
 		>
+			{isLoadingSuppliers && <Loader title="Cargando proveedores..." />}
+
 			<div className="flex flex-col gap-6">
 				{error ? (
 					<p className="m-0 text-sm text-red-500 dark:text-red-400">{error}</p>
-				) : null}				
+				) : null}
 
 				<DataTable
 					title={`Proveedores ${selectedCountText}`}
-					data={paginatedSuppliers}
+					data={registeredSuppliers}
 					columns={columnConfig}
 					pagination={
 						<Pagination
 							currentPage={pageNumber}
 							pageSize={PAGE_SIZE}
 							totalRecords={totalRecords}
-							onPageChange={setPageNumber}
+							onPageChange={handlePageChange}
 						/>
 					}
 				/>

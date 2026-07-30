@@ -5,7 +5,7 @@ export const getPurchasingRoutes = () => {
 
    const supplierSection: SidebarLink = {
       id: "supplier",
-      label: "Proveedores",
+      label: "Proveedores y Productos",
       path: "suppliers",
       icon: PackageSearchIcon
    };
@@ -17,10 +17,10 @@ export const getPurchasingRoutes = () => {
       icon: ShoppingBasketIcon
    };
 
-   const requisitionSection: SidebarLink = {
-      id: "requisition",
-      label: "Solicitud de Compras",
-      path: "requisitions",
+   const purchasingApplicationSection: SidebarLink = {
+      id: "purchasing-application",
+      label: "Solicitud de Compra",
+      path: "purchasing-applications",
       icon: NotebookIcon
    }
 
@@ -40,7 +40,7 @@ export const getPurchasingRoutes = () => {
 
    return {
       supplierSection,
-      requisitionSection,
+      purchasingApplicationSection,
       quotesSection,
       quoteAnalisysSection,
       purchaseOrderSection

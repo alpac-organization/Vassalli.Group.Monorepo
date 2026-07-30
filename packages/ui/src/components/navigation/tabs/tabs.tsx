@@ -7,31 +7,23 @@ const loadFeatures = () =>
 	import("framer-motion").then((res) => res.domAnimation);
 
 const tabPanelVariants = {
-	enter: (direction: number) => ({
+	enter: {
 		opacity: 0,
-		x: direction > 0 ? 24 : -24,
-	}),
+	},
 	center: {
 		opacity: 1,
-		x: 0,
 	},
-	exit: (direction: number) => ({
+	exit: {
 		opacity: 0,
-		x: direction > 0 ? -24 : 24,
-	}),
+	},
 };
 
 export function Tabs(props: TabProps<string>): React.ReactNode {
 	const [activeTab, setActiveTab] = useState(props.activeTab);
-	const [direction, setDirection] = useState(0);
 
 	const activeItem = props.tabItems.find((item) => item.id === activeTab);
 
 	const handleTabChange = (nextTab: string) => {
-		const currentIndex = props.tabItems.findIndex((item) => item.id === activeTab);
-		const nextIndex = props.tabItems.findIndex((item) => item.id === nextTab);
-
-		setDirection(nextIndex > currentIndex ? 1 : -1);
 		setActiveTab(nextTab);
 	};
 
@@ -45,12 +37,11 @@ export function Tabs(props: TabProps<string>): React.ReactNode {
 
 			<div className="relative w-full min-w-0 overflow-hidden">
 				<LazyMotion features={loadFeatures} strict>
-					<AnimatePresence mode="wait" initial={false} custom={direction}>
+					<AnimatePresence mode="wait" initial={false}>
 						{activeItem && (
 							<m.div
 								key={activeItem.id}
 								role="tabpanel"
-								custom={direction}
 								variants={tabPanelVariants}
 								initial="enter"
 								animate="center"

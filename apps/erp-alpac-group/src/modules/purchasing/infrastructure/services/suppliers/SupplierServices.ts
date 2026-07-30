@@ -3,6 +3,7 @@ import type { ISupplierServices } from "@app/modules/purchasing/application/inte
 import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/suppliers/requests/create-supplier-request";
 import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/suppliers/requests/get-suppliers-request";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/suppliers/requests/update-suppliers-request";
+import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/suppliers/responses/create-supplier-response";
 import type { GetSuppliersResponseList } from "@app/modules/purchasing/domain/suppliers/responses/get-suppliers-response";
 import { cleanParams } from "@app/shared/utils/object.utils";
 
@@ -28,13 +29,15 @@ export class SupplierServices implements ISupplierServices {
 		}
 	}
 
-	async CreateSupplier(payload: CreateSupplierRequest): Promise<void> {
+	async CreateSupplier(payload: CreateSupplierRequest): Promise<CreateSupplierResponse> {
 		try {
 			const { company_id, module_code, ...rest } = payload;
 
 			const url = `/companies/${company_id}/modules/${module_code}/suppliers`;
 
-			await this.httpHandler.post<void>(url, rest);
+			const response = await this.httpHandler.post<CreateSupplierResponse>(url, rest);
+
+			return response;
 		} catch (error) {
 			throw error;
 		}

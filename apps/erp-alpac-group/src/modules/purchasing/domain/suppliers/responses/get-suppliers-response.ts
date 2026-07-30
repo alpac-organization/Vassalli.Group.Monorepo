@@ -1,9 +1,9 @@
 export interface GetSuppliersResponse {
   supplier_id: string;
   supplier_legal_name: string;
-  identification_number: string;  
-  identification_type: number;
-  constitution_type: number;  
+  identification_number: string;
+  identification_type: string;
+  constitution_type: string;
 }
 
 export interface GetSuppliersResponseList {

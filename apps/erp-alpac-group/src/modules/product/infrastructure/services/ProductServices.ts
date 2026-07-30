@@ -6,6 +6,7 @@ import type { GetProductCategoryResponse } from "../../domain/ApiContract/Respon
 import type { GetProductRequest } from "../../domain/ApiContract/Requests/product/get-product.request";
 import type { GetProductResponseList } from "../../domain/ApiContract/Responses/product/get-product.response";
 import type { CreateProductRequest } from "../../domain/ApiContract/Requests/product/create-product.request";
+import type { CreateProductResponse } from "../../domain/ApiContract/Responses/product/create-product.response";
 
 export class ProductServices implements IProductServices {
   private readonly apiHandler: IHttpHandler;
@@ -37,8 +38,6 @@ export class ProductServices implements IProductServices {
 
   async GetProducts(payload: GetProductRequest): Promise<GetProductResponseList> {
     try {
-      console.log("Payload : ", payload);
-
       const { company_id, module_code, ...queryParams } = payload;
 
       const url = `companies/${company_id}/modules/${module_code}/products`;
@@ -47,21 +46,21 @@ export class ProductServices implements IProductServices {
         params: cleanParams(queryParams),
       });
 
-      console.log("Response : ", response);
-
       return response;
     } catch (error) {
       throw error;
     }
   }
 
-  async CreateProduct(payload: CreateProductRequest): Promise<void> {
+  async CreateProduct(payload: CreateProductRequest): Promise<CreateProductResponse> {
     try {
       const { company_id, module_code, ...rest } = payload;
 
       const url = `companies/${company_id}/modules/${module_code}/products`;
 
-      await this.apiHandler.post<void>(url, rest);
+      const response = await this.apiHandler.post<CreateProductResponse>(url, rest);
+
+      return response;
     } catch (error) {
       throw error;
     }

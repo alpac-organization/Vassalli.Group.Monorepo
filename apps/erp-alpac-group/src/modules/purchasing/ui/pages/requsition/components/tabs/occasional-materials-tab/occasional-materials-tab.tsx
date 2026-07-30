@@ -77,7 +77,7 @@ export const OccasionalMaterialTab = ({
          <Button
             type="button"
             size="giant"
-            label="Crear Solicitud"
+            label="Crear Solicitud Eventual"
             icon={<PackagePlusIcon size={20} />}
             className="w-full! md:w-auto! mb-4! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
             onClick={() => {               

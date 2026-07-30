@@ -3,6 +3,7 @@ import type { CreateProductRequest } from "@app/modules/product/domain/ApiContra
 import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product.request";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
 import type { GetProductResponseList } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
+import type { CreateProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/create-product.response";
 
 export interface IProductServices {
    
@@ -10,5 +11,5 @@ export interface IProductServices {
 
   GetProducts(payload: GetProductRequest): Promise<GetProductResponseList>;
 
-  CreateProduct(payload: CreateProductRequest): Promise<void>;
+  CreateProduct(payload: CreateProductRequest): Promise<CreateProductResponse>;
 }

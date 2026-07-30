@@ -15,6 +15,7 @@ import { SupplierModal } from "@app/modules/purchasing/ui/pages/supplier/compone
 import type { QuoteDetailAccordionProps } from "./quote-detail-accordion.types";
 import type { CreateQuote, Supplier } from "../../types/create-quote-form.types";
 import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/suppliers/responses/get-suppliers-response";
+import type { CreatedSupplierDto } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal.types";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -51,9 +52,8 @@ export function QuoteDetailAccordion({
 		name: `quote_details.${quoteDetailIndex}.suppliers` as `quote_details.${number}.suppliers`,
 	});
 
-	const handleSelectRegisteredSuppliers = (
-		suppliers: GetSuppliersResponse[],
-	) => {
+	const handleSelectRegisteredSuppliers = (suppliers: GetSuppliersResponse[]) => {
+
 		const existingIds = new Set(fields.map((item) => item.supplier_id));
 		const suppliersToAdd = suppliers.filter(
 			(supplier) => !existingIds.has(supplier.supplier_id),
@@ -82,6 +82,36 @@ export function QuoteDetailAccordion({
 		}));
 
 		append(mappedSuppliers);
+	};
+
+	const handleCreatedSupplier = (supplier: CreatedSupplierDto) => {
+		const supplierId = supplier.data.supplier_id;
+
+		const existingIds = new Set(fields.map((item) => item.supplier_id));
+
+		if (existingIds.has(supplierId)) return;
+
+		const mappedSupplier: Supplier = {
+			supplier_id: supplierId,
+			supplier_legal_name: supplier.supplier_name,
+			is_wholesale: false,
+			quantity: 0,
+			quantity_per_unit: 0,
+			price: 0,
+			additional_data: [
+				{
+					brand: "",
+					images_base64: [],
+					warranty_information: {
+						has_warranty: false,
+						quantity_days: 0,
+						quantity_months: 0,
+					},
+				},
+			],
+		}
+
+		append(mappedSupplier);
 	};
 
 	return (
@@ -411,7 +441,8 @@ export function QuoteDetailAccordion({
 			<SupplierModal
 				isOpen={isSupplierModalOpen}
 				onClose={() => setIsSupplierModalOpen(false)}
-				onSubmit={() => {
+				onSubmit={(supplier) => {
+					handleCreatedSupplier(supplier);
 					setIsSupplierModalOpen(false);
 				}}
 			/>

@@ -1,14 +1,14 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, Dropdown, InputText, Modal, Textarea } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
-import { ProductUsageOptions } from "@app/modules/product/domain/enums/product-usage-type";
-import type { CreateProductModalProps } from "./create-product-modal.types";
+import type { CreatedProductDto, CreateProductModalProps } from "./create-product-modal.types";
 import type { CreateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/create-product.request";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "../../hooks/useProduct";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import type { EnumType } from "@app/shared/types/enum.type";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -37,8 +37,11 @@ export const CreateProductModal = ({
 	onRequestSuccess,
 	onRequestError,
 }: CreateProductModalProps) => {
+
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
+
+	const [selectedProductCategory, setSelectedProductCategory] = useState<string>("");
 
 	const {
 		control,
@@ -87,6 +90,7 @@ export const CreateProductModal = ({
 	};
 
 	const handleCreateProduct = (values: CreateProductRequest) => {
+
 		const payload: CreateProductRequest = {
 			...values,
 			company_id: companyId,
@@ -96,9 +100,16 @@ export const CreateProductModal = ({
 		};
 
 		CreateProduct.mutate(payload, {
-			onSuccess() {
+			onSuccess(product) {
+
+				const createdProduct: CreatedProductDto = {
+					data: product,
+					product_name: payload.product_name,
+					category_name: selectedProductCategory ?? ""
+				}
+
 				onRequestSuccess?.("Producto registrado correctamente.");
-				onSubmit?.(payload);
+				onSubmit?.(createdProduct);
 				handleClose();
 			},
 			onError(error) {
@@ -160,7 +171,11 @@ export const CreateProductModal = ({
 								appearance="dark"
 								isRequired
 								value={field.value}
-								onChange={field.onChange}
+								onChange={(value) => {
+									field.onChange(value);
+									const [category] = productCategories.filter(item => item.value === value);
+									setSelectedProductCategory(category.label);
+								}}
 								options={productCategories ?? []}
 								error={fieldState.error?.message}
 								labelClassName={labelClassName}

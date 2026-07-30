@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ProductServices } from "../../infrastructure/services/ProductServices";
+import { ProductServices } from "@app/modules/product/infrastructure/services/ProductServices";
 import { httpHandler } from "@app/core/adapters";
 
-import type { GetProductCategoryRequest } from "../../domain/ApiContract/Requests/product-category/get-product-category.request";
-import type { GetProductRequest } from "../../domain/ApiContract/Requests/product/get-product.request";
-import type { CreateProductRequest } from "../../domain/ApiContract/Requests/product/create-product.request";
+import type { GetProductCategoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product-category/get-product-category.request";
+import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product.request";
+import type { CreateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/create-product.request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import type { CreateProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/create-product.response";
 
 const productServices = new ProductServices(httpHandler);
 
@@ -22,7 +23,7 @@ export const useProduct = (props?: useProductProps) => {
 	const productEnabled = Boolean(
 		(getProductPayload?.company_id?.trim() &&
 			getProductPayload?.module_code?.trim()) ||
-		getProductPayload?.product_id?.trim(),
+		getProductPayload?.category_product_id?.trim(),
 	);
 
 	const productCategoryEnabled = Boolean(
@@ -45,10 +46,11 @@ export const useProduct = (props?: useProductProps) => {
 		queryFn: () => productServices.GetProducts(getProductPayload!),
 		enabled: productEnabled,
 		refetchOnWindowFocus: false,
+		refetchOnMount: false,
 		retry: 1,
 	});
 
-	const CreateProduct = useMutation<void, ApiErrorResponse, CreateProductRequest>({
+	const CreateProduct = useMutation<CreateProductResponse, ApiErrorResponse, CreateProductRequest>({
 		mutationKey: ["create-product"],
 		mutationFn: (payload: CreateProductRequest) => productServices.CreateProduct(payload),
 		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["get-products"] }),

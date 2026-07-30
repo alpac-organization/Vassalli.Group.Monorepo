@@ -5,6 +5,12 @@ export interface CreateSupplierRequest {
    identification_number?: string;
    constitution_type?: number;
    identification_type?: number;
+   supplier_details: SupplierDetails;
+}
+
+export interface SupplierDetails {
+   credit_days: number;
+   has_credit: boolean;
    address?: string;
    email_support?: string;
    contact_name?: string;

@@ -1,9 +1,9 @@
-import { useEffect, useMemo } from "react";
-import { Button, Dropdown, InputText, Modal, Textarea } from "@alpac/design-system";
+import { useEffect, useMemo, useState } from "react";
+import { Button, Checkbox, Dropdown, InputText, Modal, Textarea } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
 import { IdentificationEnum, IdentificationOptions } from "@app/core/enums/identification.enum";
 import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/suppliers/requests/create-supplier-request";
-import type { SupplierModalProps } from "./supplier-modal.types";
+import type { CreatedSupplierDto, SupplierModalProps } from "./supplier-modal.types";
 import { ConstitutionEnum, ConstitutionOptions } from "@app/core/enums/constitution.enum";
 import { useSuppliers } from "@app/modules/purchasing/ui/hooks/suppliers/useSuppliers";
 import {
@@ -54,11 +54,15 @@ const emptyFormValues: Partial<CreateSupplierRequest> = {
    constitution_type: ConstitutionEnum.None.value,
    identification_type: undefined,
    identification_number: "",
-   contact_name: "",
-   contact_phone_number: "",
-   contact_email: "",
-   email_support: "",
-   address: "",
+   supplier_details: {
+      credit_days: 0,
+      has_credit: false,
+      contact_name: "",
+      contact_phone_number: "",
+      contact_email: "",
+      email_support: "",
+      address: "",
+   }
 };
 
 export const SupplierModal = ({
@@ -75,6 +79,8 @@ export const SupplierModal = ({
    const { companyId, moduleCode } = useUserStore();
    const { getMappedError } = useMappedError();
    const isEditMode = Boolean(selectedSupplier?.supplier_id);
+
+   const [hasCreditSupplier, setHasCreditSupplier] = useState(false);
 
    const trackerInitial = useMemo((): UpdateSupplierRequest => {
       if (!selectedSupplier) {
@@ -93,10 +99,10 @@ export const SupplierModal = ({
          suppliers_legal_name: selectedSupplier.supplier_legal_name,
          ...(hasConstitutionData(constitutionType)
             ? {
-                 identification_number: identificationNumber,
-                 constitution_type: constitutionType,
-                 identification_type: resolveIdentificationType(constitutionType),
-              }
+               identification_number: identificationNumber,
+               constitution_type: constitutionType,
+               identification_type: resolveIdentificationType(constitutionType),
+            }
             : {}),
          //contact_name: selectedSupplier.contact_name,
          // contact_phone_number: selectedSupplier.contact_phone_number,
@@ -117,9 +123,12 @@ export const SupplierModal = ({
       watch,
       setValue,
       formState: { errors },
-   } = useForm<CreateSupplierRequest>();
+   } = useForm<CreateSupplierRequest>({
+      defaultValues: emptyFormValues as CreateSupplierRequest,
+   });
 
    const constitutionType = watch("constitution_type");
+   const hasCredit = watch("supplier_details.has_credit");
    const isLegalPerson = constitutionType === ConstitutionEnum.Legal.value;
    const isNaturalPerson = constitutionType === ConstitutionEnum.Natural.value;
 
@@ -147,13 +156,21 @@ export const SupplierModal = ({
          constitution_type,
          identification_type,
          identification_number,
+         supplier_details,
          ...rest
       } = data;
+
+      const hasCredit = Boolean(supplier_details?.has_credit);
 
       const payload: CreateSupplierRequest = {
          ...rest,
          company_id: companyId,
          module_code: moduleCode,
+         supplier_details: {
+            ...supplier_details,
+            has_credit: hasCredit,
+            credit_days: hasCredit ? Number(supplier_details?.credit_days) || 0 : 0,
+         },
       };
 
       if (hasConstitutionData(constitution_type)) {
@@ -186,11 +203,17 @@ export const SupplierModal = ({
       const payload = buildCreatePayload(data);
 
       CreateSupplier.mutate(payload, {
-         onSuccess() {
+         onSuccess(supplier) {
+
+            const createdSupplier: CreatedSupplierDto = {
+               data: supplier,
+               supplier_name: payload.suppliers_legal_name
+            }
+
             onRequestSuccess?.("Proveedor registrado exitosamente.");
             reset(emptyFormValues);
             resetFieldTracker();
-            onSubmit?.(payload);
+            onSubmit?.(createdSupplier);
          },
          onError(error) {
             const mappedError = getMappedError(error);
@@ -208,8 +231,7 @@ export const SupplierModal = ({
          onSuccess() {
             onRequestSuccess?.("Proveedor actualizado exitosamente.");
             reset(emptyFormValues);
-            resetFieldTracker();
-            onSubmit?.(payload);
+            resetFieldTracker();            
          },
          onError(error) {
             const mappedError = getMappedError(error);
@@ -243,8 +265,8 @@ export const SupplierModal = ({
             : undefined;
          const identificationNumber = hasConstitution
             ? String(selectedSupplier.identification_number ?? "")
-                 .replace(/-/g, "")
-                 .toUpperCase()
+               .replace(/-/g, "")
+               .toUpperCase()
             : "";
 
          reset({
@@ -404,10 +426,10 @@ export const SupplierModal = ({
                   placeholder="Ej. Ana López"
                   className={inputClassName}
                   labelClassName={labelClassName}
-                  {...register("contact_name", {
+                  {...register("supplier_details.contact_name", {
                      onChange: (evt) => trackField("contact_name", evt.target.value),
                   })}
-                  error={errors.contact_name?.message}
+                  error={errors.supplier_details?.contact_name?.message}
                />
 
                <InputText
@@ -415,11 +437,11 @@ export const SupplierModal = ({
                   placeholder="Ej. 8888-1234"
                   className={inputClassName}
                   labelClassName={labelClassName}
-                  {...register("contact_phone_number", {
+                  {...register("supplier_details.contact_phone_number", {
                      onChange: (evt) =>
                         trackField("contact_phone_number", evt.target.value),
                   })}
-                  error={errors.contact_phone_number?.message}
+                  error={errors.supplier_details?.contact_phone_number?.message}
                />
 
                <InputText
@@ -428,7 +450,7 @@ export const SupplierModal = ({
                   type="email"
                   className={inputClassName}
                   labelClassName={labelClassName}
-                  {...register("contact_email", {
+                  {...register("supplier_details.contact_email", {
                      required: false,
                      setValueAs: (value: string) => value?.trim(),
                      validate: {
@@ -436,7 +458,7 @@ export const SupplierModal = ({
                      },
                      onChange: (evt) => trackField("contact_email", evt.target.value?.trim()),
                   })}
-                  error={errors.contact_email?.message}
+                  error={errors.supplier_details?.contact_email?.message}
                />
 
                <InputText
@@ -445,7 +467,7 @@ export const SupplierModal = ({
                   type="email"
                   className={inputClassName}
                   labelClassName={labelClassName}
-                  {...register("email_support", {
+                  {...register("supplier_details.email_support", {
                      required: false,
                      setValueAs: (value: string) => value?.trim(),
                      validate: {
@@ -453,8 +475,66 @@ export const SupplierModal = ({
                      },
                      onChange: (evt) => trackField("email_support", evt.target.value?.trim()),
                   })}
-                  error={errors.email_support?.message}
+                  error={errors.supplier_details?.email_support?.message}
                />
+
+               <Controller
+                  control={control}
+                  name="supplier_details.has_credit"
+                  render={({ field }) => (
+                     <div className="flex items-start">
+                        <Checkbox
+                           label="Tiene crédito"
+                           checked={Boolean(field.value)}
+                           onChange={(e) => {
+                              const checked = e.target.checked;
+                              setHasCreditSupplier(checked)
+                              field.onChange(checked);
+                              if (!checked) {
+                                 setValue("supplier_details.credit_days", 0);
+                              }
+                           }}
+                           className="whitespace-nowrap"
+                        />
+                     </div>
+                  )}
+               />
+
+               {
+                  hasCreditSupplier && (
+                     <InputText
+                        label="Días de crédito"
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        className={inputClassName}
+                        labelClassName={labelClassName}
+                        disabled={!hasCredit}
+                        {...register("supplier_details.credit_days", {
+                           setValueAs: (value) => {
+                              if (value === "" || value === null || value === undefined) {
+                                 return 0;
+                              }
+                              return Number(value);
+                           },
+                           validate: (value) => {
+                              if (!hasCredit) return true;
+
+                              const days = Number(value);
+                              if (value === null || value === undefined || Number.isNaN(days)) {
+                                 return "Los días de crédito son requeridos";
+                              }
+                              if (days <= 0) {
+                                 return "Los días de crédito deben ser mayores a 0";
+                              }
+                              return true;
+                           },
+                        })}
+                        error={errors.supplier_details?.credit_days?.message}
+                     />
+                  )
+               }
+
 
                <div className="md:col-span-2">
                   <Textarea
@@ -462,15 +542,15 @@ export const SupplierModal = ({
                      placeholder="Ej. Managua, Km 7.5 Carretera Norte"
                      className={inputClassName}
                      labelClassName={labelClassName}
-                     {...register("address", {
+                     {...register("supplier_details.address", {
                         onChange: (evt) => trackField("address", evt.target.value),
                      })}
-                     error={errors.address?.message}
+                     error={errors.supplier_details?.address?.message}
                      maxLength={500}
                      style={{
                         resize: "none",
                         height: "100px"
-                     }}                     
+                     }}
                   />
                </div>
             </div>

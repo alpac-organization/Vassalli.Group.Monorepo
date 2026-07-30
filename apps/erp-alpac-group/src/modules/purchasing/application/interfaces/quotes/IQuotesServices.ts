@@ -1,6 +1,6 @@
-import type { GetHistoryQuotes } from "@app/modules/procurement/domain/quotes/responses/get-quotes";
+import type { QuoteDetails } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-form.types";
 
 export interface IQuotesServices {
-  createQuote: (quote: unknown) => Promise<void>;
-  getHistoryQuotesByDate: () => Promise<GetHistoryQuotes[]>;
+
+  CreateQuote: (payload: QuoteDetails) => Promise<void>;  
 }
