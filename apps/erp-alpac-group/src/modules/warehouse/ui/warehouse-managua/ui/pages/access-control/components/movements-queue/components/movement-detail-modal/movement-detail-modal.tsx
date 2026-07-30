@@ -16,6 +16,7 @@ import {
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
 import { formatDate, formatTime } from "@app/shared/utils/string.utils";
 import type { RecordEntrance } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
+import { ConsolidatedVariations } from "./variants/global-variants";
 
 type DetailTabId = "resumen" | "ducats";
 
@@ -24,7 +25,7 @@ function ResumenTabContent({ movement }: { movement: RecordEntrance }) {
   const log = movement.execution_log;
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-3">
+    <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
       <DetailSection title="Resumen">
         <div className="min-w-0 flex flex-row items-center justify-between gap-3 sm:flex-col sm:items-start sm:gap-1.5">
           <p className="m-0! shrink-0 text-xs tracking-wide text-slate-500 dark:text-slate-400">
@@ -36,40 +37,33 @@ function ResumenTabContent({ movement }: { movement: RecordEntrance }) {
             className={getStatusBadgeClass(movement.status)}
           />
         </div>
+
         <DetailField
           label="Hora Inicial registro"
           value={formatTime(log?.start_time)}
         />
+
         <DetailField
           label="Hora final registro"
           value={formatTime(log?.end_time)}
         />
-        <DetailField
-          label="Fecha de registro"
-          value={log?.start_date ? formatDate(log.start_date) : "—"}
-        />
-        <DetailField
-          label="Fecha de actualización"
-          value={entrance.updated_date ? formatDate(log.start_date) : "—"}
-        />
-        <DetailField
-          label="Hora de actualización"
-          value={entrance.updated_time ? formatDate(log.start_date) : "—"}
-        />
-        <DetailField
-          label="Usuario de actualización"
-          value={
-            entrance.updated_by_user_name ? formatDate(log.start_date) : "—"
-          }
-        />
-        <div className="flex justify-between">
-          <DetailField label="Es consolidada?" />
+
+        <div className="min-w-0 flex flex-row items-center justify-between gap-3 sm:flex-col sm:items-start sm:gap-1.5">
+          <p className="m-0! shrink-0 text-xs tracking-wide text-slate-500 dark:text-slate-400">
+            ¿Es consolidado?
+          </p>
+
           <Badges
-            label={movement.is_consolidated ? "Consolidada" : "No consolidada"}
-            color={movement.is_consolidated ? "success" : "danger"}
-            className={getStatusBadgeClass(
-              movement.is_consolidated ? "success" : "danger",
-            )}
+            label={
+              movement.is_consolidated
+                ? ConsolidatedVariations.consolidated.label
+                : ConsolidatedVariations.Unbound.label
+            }
+            color={
+              movement.is_consolidated
+                ? ConsolidatedVariations.consolidated.color
+                : ConsolidatedVariations.Unbound.color
+            }
           />
         </div>
       </DetailSection>
@@ -79,32 +73,34 @@ function ResumenTabContent({ movement }: { movement: RecordEntrance }) {
           label="Placa cabezal"
           value={entrance?.plate_number || "—"}
         />
-        <DetailField label="Licencia" value={entrance?.driver_license || "—"} />
+
+        <DetailField
+          label="Fecha de registro"
+          value={log?.start_date ? formatDate(log.start_date) : "—"}
+        />
+
         <DetailField
           label="Trailer chasis"
           value={entrance?.trailer_chassis || "—"}
         />
+      </DetailSection>
+
+      <DetailSection title="Información del conductor">
         <DetailField label="Conductor" value={entrance?.driver_name || "—"} />
+
+        <DetailField
+          label="Licencia de conductor"
+          value={entrance?.driver_license || "—"}
+        />
+
+        <DetailField
+          label="Medio de transporte"
+          value={entrance?.medio || "—"}
+        />
+
         <DetailField
           label="Transportista"
           value={entrance?.transportista || "—"}
-        />
-        <DetailField label="Medio" value={entrance?.medio || "—"} />
-        <DetailField
-          label="Fecha de salida"
-          value={
-            entrance?.medio_exit_date
-              ? formatDate(entrance.medio_exit_date)
-              : "—"
-          }
-        />
-        <DetailField
-          label="Hora de salida"
-          value={
-            entrance?.medio_exit_time
-              ? formatTime(entrance.medio_exit_time)
-              : "—"
-          }
         />
       </DetailSection>
     </div>
@@ -179,7 +175,7 @@ export function MovementDetailModal({
           </div>
         </div>
       ) : (
-        <div className="min-h-[120px]" />
+        <div className="min-h-30" />
       )}
     </Modal>
   );
