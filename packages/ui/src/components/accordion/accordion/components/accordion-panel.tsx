@@ -63,7 +63,7 @@ export function AccordionPanel({
         aria-hidden={!isOpen}
         className={`${panelTransition} ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
       >
-        <div className="min-h-0">
+        <div className={isOpen ? "overflow-visible" : "min-h-0 overflow-hidden"}>
           <div
             className={`${isOpen ? "overflow-visible" : "overflow-hidden"} ${contentFade} text-sm text-slate-600 dark:text-slate-300 ${
               isOpen ? "opacity-100" : "opacity-0"

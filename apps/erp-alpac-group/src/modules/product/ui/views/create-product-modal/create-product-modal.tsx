@@ -27,7 +27,6 @@ const emptyFormValues = (
 	module_code: moduleCode,
 	product_name: "",
 	description: "",
-	usage_type: 0,
 	category_id: "",
 });
 
@@ -170,28 +169,6 @@ export const CreateProductModal = ({
 						)}
 					/>
 
-					<Controller
-						control={control}
-						name="usage_type"
-						rules={{
-							validate: (value) =>
-								Number(value) > 0 || "El tipo de uso es inválido.",
-						}}
-						render={({ field, fieldState }) => (
-							<Dropdown
-								label="Tipo de uso"
-								placeholder="Seleccione un tipo de uso"
-								appearance="dark"
-								isRequired
-								value={field.value || ""}
-								onChange={(value) => field.onChange(Number(value))}
-								options={ProductUsageOptions ?? []}
-								error={fieldState.error?.message}
-								labelClassName={labelClassName}
-								className={dropdownClassName}
-							/>
-						)}
-					/>
 				</div>
 
 				<Textarea

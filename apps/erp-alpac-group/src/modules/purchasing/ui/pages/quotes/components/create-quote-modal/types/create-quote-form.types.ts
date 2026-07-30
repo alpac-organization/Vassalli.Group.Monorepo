@@ -11,12 +11,12 @@ export type QuoteDetails = {
 };
 
 export type Supplier = {
-  supplier_id: string;
-  unit_of_measure_id: string;
+  supplier_id: string;  
   is_wholesale: boolean;
   quantity: number;
   quantity_per_unit: number;
   price: number;
+  supplier_legal_name: string;
   additional_data: AdditionalData[];
 };
 

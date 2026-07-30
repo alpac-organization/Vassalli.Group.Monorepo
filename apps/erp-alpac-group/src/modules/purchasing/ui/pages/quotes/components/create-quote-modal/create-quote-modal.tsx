@@ -32,12 +32,29 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { QuoteDetailAccordion } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/quote-detail-accordion/quote-detail-accordion";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { toDateOnly } from "@app/shared/utils/date.utils";
-import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal.types";
-import { type CreateQuote } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-form.types";
-import { SelectProductModal } from "../../../../../../product/ui/views/select-product-modal/select-product-modal";
-import type { SelectableCatalogProduct } from "../../../../../../product/ui/views/select-product-modal/select-product-modal.types";
+import { SelectProductModal } from "@app/modules/product/ui/views/select-product-modal/select-product-modal";
 import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
+import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal.types";
+import type { SelectableCatalogProduct } from "@app/modules/product/ui/views/select-product-modal/select-product-modal.types";
+import { type CreateQuote } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-form.types";
+
+/** Mock temporal mientras se repara el GET de productos */
+const MOCK_PRODUCT_ID = "mock-product-001";
+
+const mockProduct: SelectableCatalogProduct = {
+	product_id: MOCK_PRODUCT_ID,
+	product_name: "Aceite Motor 15W40 (Mock)",
+	description: "Producto de prueba para cotizar proveedores mientras se repara el listado.",
+	category_id: "mock-category-001",
+	category: {
+		id: "mock-category-001",
+		name: "Lubricantes",
+		code: "LUB",
+		is_active: true,
+		sub_category: [],
+	},
+};
 
 export function CreateQuoteModal({
 	isOpen,
@@ -51,7 +68,12 @@ export function CreateQuoteModal({
 			branch_id: "",
 			quote_date: "",
 			observations: "",
-			quote_details: [],
+			quote_details: [
+				{
+					product_id: MOCK_PRODUCT_ID,
+					suppliers: [],
+				},
+			],
 		},
 		mode: "onSubmit",
 	});
@@ -75,7 +97,9 @@ export function CreateQuoteModal({
 	const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
 	const [productsById, setProductsById] = useState<
 		Record<string, SelectableCatalogProduct>
-	>({});
+	>({
+		[MOCK_PRODUCT_ID]: mockProduct,
+	});
 
 	const {
 		alertState,
@@ -111,10 +135,17 @@ export function CreateQuoteModal({
 			branch_id: "",
 			quote_date: "",
 			observations: "",
-			quote_details: [],
+			quote_details: [
+				{
+					product_id: MOCK_PRODUCT_ID,
+					suppliers: [],
+				},
+			],
 		});
 		setOpenProducts([]);
-		setProductsById({});
+		setProductsById({
+			[MOCK_PRODUCT_ID]: mockProduct,
+		});
 	};
 
 	const handleCancel = () => {
@@ -164,13 +195,11 @@ export function CreateQuoteModal({
 				isOpen={isOpen}
 				onClose={handleCancel}
 				variant="form"
-				size="7.5xl"
+				size="9xl"
 				title="Nueva cotización"
 				description="Complete el formulario para registrar una nueva cotización."
 				panelClassName={[
-					"flex h-[min(94dvh,54rem)] w-[min(calc(100vw-1rem),56rem)] min-w-0 flex-col overflow-hidden",
-					"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
-					"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
+					"flex h-[54rem] w-[56rem] min-w-0 flex-col"					
 				].join(" ")}
 				contentClassName="flex min-h-0 flex-1 flex-col"
 			>
@@ -180,8 +209,8 @@ export function CreateQuoteModal({
 					className="flex min-h-0 flex-1 flex-col"
 					noValidate
 				>
-					<div className="scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-						<div className="flex flex-col gap-4">
+					<div className="scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+						<div className="flex flex-col gap-4 pb-2">
 							<section className="flex flex-col gap-6 p-1">
 								<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 									<Controller
@@ -309,7 +338,7 @@ export function CreateQuoteModal({
 						</div>
 					</div>
 
-					<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6">
+					<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
 						<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
 							<Button
 								type="button"

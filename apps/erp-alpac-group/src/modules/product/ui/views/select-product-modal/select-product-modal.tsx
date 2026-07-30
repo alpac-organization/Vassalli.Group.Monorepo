@@ -166,8 +166,7 @@ export function SelectProductModal({
 				key: "category",
 				label: "Categoría",
 				render: (row) => row.category?.name ?? "—",
-			},
-			{ key: "usage_type", label: "Tipo de uso" },
+			}
 		],
 		[selectionType, tempSelected, tempSelectedMultiple],
 	);

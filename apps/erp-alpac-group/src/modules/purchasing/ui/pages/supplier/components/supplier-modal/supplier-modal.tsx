@@ -98,11 +98,11 @@ export const SupplierModal = ({
                  identification_type: resolveIdentificationType(constitutionType),
               }
             : {}),
-         contact_name: selectedSupplier.contact_name,
-         contact_phone_number: selectedSupplier.contact_phone_number,
-         contact_email: selectedSupplier.contact_email,
-         email_support: selectedSupplier.email_support,
-         address: selectedSupplier.address,
+         //contact_name: selectedSupplier.contact_name,
+         // contact_phone_number: selectedSupplier.contact_phone_number,
+         // contact_email: selectedSupplier.contact_email,
+         // email_support: selectedSupplier.email_support,
+         // address: selectedSupplier.address,
       };
    }, [selectedSupplier, companyId, moduleCode]);
 
@@ -252,11 +252,11 @@ export const SupplierModal = ({
             constitution_type: constitutionTypeValue,
             identification_type: identificationTypeValue,
             identification_number: identificationNumber,
-            contact_name: selectedSupplier.contact_name,
-            contact_phone_number: selectedSupplier.contact_phone_number,
-            contact_email: selectedSupplier.contact_email,
-            email_support: selectedSupplier.email_support,
-            address: selectedSupplier.address,
+            // contact_name: selectedSupplier.contact_name,
+            // contact_phone_number: selectedSupplier.contact_phone_number,
+            // contact_email: selectedSupplier.contact_email,
+            // email_support: selectedSupplier.email_support,
+            // address: selectedSupplier.address,
          });
          resetFieldTracker();
          return;
