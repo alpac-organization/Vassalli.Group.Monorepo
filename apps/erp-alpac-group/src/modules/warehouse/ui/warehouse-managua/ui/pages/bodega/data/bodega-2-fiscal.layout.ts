@@ -5,7 +5,6 @@ import type {
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/types/warehouse-3d.types";
 import { rackLevelCodes } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/utils/location-codes";
 
-// Medidas del plano Bodega #2 Fiscal
 const WALL_CLEARANCE = 0.6;
 const AISLE_WIDTH = 4.4;
 const SIDE_W = 8.85;
@@ -15,7 +14,6 @@ const BUILDING_WIDTH = 37.35;
 const BUILDING_DEPTH = 61.02;
 const GALERON_DEPTH = 12.1;
 
-/** Filas S→N: extremos 5.23, intermedios 6.00 (plano). */
 const ROW_DEPTHS = [5.23, 6, 6, 6, 6, 6, 6, 6, 6, 5.23] as const;
 
 const BUILDING = {
@@ -93,7 +91,6 @@ function buildLayout(): WarehouseLayout {
   const centersZ = rowCentersZ();
   const x = columnCentersX();
 
-  // Plano: abajo (galerón) → arriba
   const leftIds = [
     "T-41",
     "T-42",

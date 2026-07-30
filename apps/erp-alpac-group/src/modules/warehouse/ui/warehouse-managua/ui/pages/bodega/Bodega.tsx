@@ -65,13 +65,6 @@ export default function Bodega() {
             <span className="flex items-center gap-1.5 text-xs text-slate-300">
               <span
                 className="h-2.5 w-2.5 rounded-sm"
-                style={{ backgroundColor: "#0a1628" }}
-              />
-              Slot libre
-            </span>
-            <span className="flex items-center gap-1.5 text-xs text-slate-300">
-              <span
-                className="h-2.5 w-2.5 rounded-sm"
                 style={{ backgroundColor: "#c4a574" }}
               />
               Ocupado

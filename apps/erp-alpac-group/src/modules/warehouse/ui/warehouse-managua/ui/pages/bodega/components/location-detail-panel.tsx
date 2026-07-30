@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import {
+  FLOOR_POLIN_COLS,
   FLOOR_POLINES_MAX,
   POLINES_PER_LEVEL,
   POLIN_SLOT_COLOR,
@@ -125,7 +126,12 @@ export function LocationDetailPanel({ occupancy }: LocationDetailPanelProps) {
           <div className="flex items-center justify-between gap-3 border-b border-slate-800/80 pb-2.5">
             <dt className="text-slate-400">Polines</dt>
             <dd className="m-0 flex flex-col items-end gap-1 font-semibold text-white">
-              <span className="grid grid-cols-7 gap-0.5">
+              <span
+                className="grid gap-0.5"
+                style={{
+                  gridTemplateColumns: `repeat(${FLOOR_POLIN_COLS}, minmax(0, 1fr))`,
+                }}
+              >
                 {Array.from({ length: FLOOR_POLINES_MAX }, (_, i) => (
                   <span
                     key={i}

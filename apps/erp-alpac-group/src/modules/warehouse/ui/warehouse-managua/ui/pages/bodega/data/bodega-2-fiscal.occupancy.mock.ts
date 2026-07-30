@@ -70,8 +70,8 @@ export function buildBodega2OccupancyMock(): OccupancyMap {
   map["T-51-01"] = entry("occupied", 2);
   map["T-51-02"] = entry("occupied", 2);
   map["T-55-02"] = entry("occupied", 1);
-  map["T-80"] = entry("occupied", 3);
-  map["T-79"] = entry("occupied", 7);
+  map["T-80"] = entry("occupied", 12);
+  map["T-79"] = entry("occupied", 28);
 
   return map;
 }

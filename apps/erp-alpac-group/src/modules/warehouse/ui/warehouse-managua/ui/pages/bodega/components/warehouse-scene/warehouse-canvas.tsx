@@ -17,25 +17,20 @@ import { PolinCargoInstances } from "@app/modules/warehouse/ui/warehouse-managua
 import { FocusedTramoHighlight } from "./focused-tramo-highlight";
 import { CameraRig } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/camera-rig";
 import "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/hooks/use-warehouse-gltf-assets";
-
 interface WarehouseCanvasProps {
   bodegaId: string;
 }
-
 function WarehouseScene({ bodegaId }: WarehouseCanvasProps) {
   const layout = getLayoutByBodegaId(bodegaId);
   const { locations } = useWarehouseOccupancy(bodegaId);
   const clearLevelSelection = useBodegaViewerStore(
     (s) => s.clearLevelSelection,
   );
-
   if (!layout) return null;
-
   const center = getWarehouseCenter(layout);
-
   return (
     <>
-      <color attach="background" args={["#fff"]} />
+      <color attach="background" args={["#0b1220"]} />
       <fog attach="fog" args={["#0b1220", 110, 220]} />
       <ambientLight intensity={0.75} />
       <directionalLight
@@ -77,6 +72,7 @@ function WarehouseScene({ bodegaId }: WarehouseCanvasProps) {
 
 export default function WarehouseCanvas({ bodegaId }: WarehouseCanvasProps) {
   const layout = getLayoutByBodegaId(bodegaId);
+  console.log(layout);
   const overview = layout
     ? getOverviewFlyTo(layout)
     : {

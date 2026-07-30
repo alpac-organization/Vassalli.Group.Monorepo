@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import type {
@@ -34,38 +34,32 @@ export function PolinCargoInstances({
     () => buildAllPolinCargo(floorTramos, rackTramos, occupancy),
     [floorTramos, rackTramos, occupancy],
   );
-  console.log("polines", polines, "boxes", boxes);
-  useEffect(() => {
+
+  useLayoutEffect(() => {
     const polinMesh = polinesRef.current;
-    const boxMesh = boxesRef.current;
-    if (!polinMesh || !boxMesh) return;
-
-    polines.forEach((p, i) => {
-      dummy.position.set(p.x, p.y, p.z);
-      if (p.visible) {
+    if (polinMesh && polines.length > 0) {
+      polines.forEach((p, i) => {
+        dummy.position.set(p.x, p.y, p.z);
         dummy.scale.set(p.w, p.h, p.d);
-      } else {
-        dummy.scale.set(0, 0, 0);
-      }
-      dummy.updateMatrix();
-      polinMesh.setMatrixAt(i, dummy.matrix);
-    });
+        dummy.updateMatrix();
+        polinMesh.setMatrixAt(i, dummy.matrix);
+      });
+      polinMesh.instanceMatrix.needsUpdate = true;
+      polinMesh.computeBoundingSphere();
+    }
 
-    boxes.forEach((b, i) => {
-      dummy.position.set(b.x, b.y, b.z);
-      if (b.visible) {
+    const boxMesh = boxesRef.current;
+    if (boxMesh && boxes.length > 0) {
+      boxes.forEach((b, i) => {
+        dummy.position.set(b.x, b.y, b.z);
         dummy.scale.set(b.w, b.h, b.d);
-      } else {
-        dummy.scale.set(0, 0, 0);
-      }
-      dummy.updateMatrix();
-      boxMesh.setMatrixAt(i, dummy.matrix);
-    });
+        dummy.updateMatrix();
+        boxMesh.setMatrixAt(i, dummy.matrix);
+      });
+      boxMesh.instanceMatrix.needsUpdate = true;
+      boxMesh.computeBoundingSphere();
+    }
 
-    polinMesh.instanceMatrix.needsUpdate = true;
-    boxMesh.instanceMatrix.needsUpdate = true;
-    polinMesh.computeBoundingSphere();
-    boxMesh.computeBoundingSphere();
     invalidate();
   }, [polines, boxes, dummy, invalidate]);
 
@@ -74,6 +68,7 @@ export function PolinCargoInstances({
   return (
     <group>
       <instancedMesh
+        key={`polines-${polines.length}`}
         ref={polinesRef}
         args={[polinAsset.geometry, polinAsset.material, polines.length]}
         castShadow
@@ -81,14 +76,17 @@ export function PolinCargoInstances({
         frustumCulled={false}
         raycast={() => {}}
       />
-      <instancedMesh
-        ref={boxesRef}
-        args={[boxAsset.geometry, boxAsset.material, boxes.length]}
-        castShadow
-        receiveShadow
-        frustumCulled={false}
-        raycast={() => {}}
-      />
+      {boxes.length > 0 ? (
+        <instancedMesh
+          key={`boxes-${boxes.length}`}
+          ref={boxesRef}
+          args={[boxAsset.geometry, boxAsset.material, boxes.length]}
+          castShadow
+          receiveShadow
+          frustumCulled={false}
+          raycast={() => {}}
+        />
+      ) : null}
     </group>
   );
 }

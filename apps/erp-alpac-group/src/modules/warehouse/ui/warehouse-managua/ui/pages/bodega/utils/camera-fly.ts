@@ -18,13 +18,11 @@ export function getRackZoomFlyTo(tramo: RackTramo): CameraFlyTo {
     y: LEVEL_HEIGHT * 0.85,
     z: tramo.position.z,
   };
-
   const position: Vec3 = {
     x: tramo.position.x + aisleSide * standOff,
     y: RACK_FRAME_HEIGHT * 0.55,
     z: tramo.position.z + tramo.size.depth * 0.15,
   };
-
   return { position, target, minDistance: 3 };
 }
 export function getOverviewFlyTo(layout: WarehouseLayout): CameraFlyTo {

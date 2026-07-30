@@ -22,6 +22,7 @@ type Part = {
   sz: number;
 };
 
+/** Full-size metal frame matching the center tramo footprint. */
 function buildParts(tramos: RackTramo[]): Part[] {
   const parts: Part[] = [];
 

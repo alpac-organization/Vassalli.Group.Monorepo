@@ -5,25 +5,35 @@ import type { RackTramo } from "@app/modules/warehouse/ui/warehouse-managua/ui/p
 import {
   FLOOR_PLATE_HEIGHT,
   LEVEL_HEIGHT,
+  RACK_LEVEL_BORDER_COLOR,
   SHELF_THICKNESS,
   TRAMO_STRIP_COLOR,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/types/warehouse-3d.types";
 import { useBodegaViewerStore } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/stores/use-bodega-viewer-store";
 import { getRackZoomFlyTo } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/utils/camera-fly";
+import {
+  pushRectBorder,
+  type BorderRail,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/utils/tramo-border";
 
 interface RackSlotsProps {
   tramos: RackTramo[];
 }
 
-type ShelfSlot = {
+type ClickPlate = {
   code: string;
   tramoId: string;
-  level: number;
-  shelf: { x: number; y: number; z: number; w: number; d: number; h: number };
+  x: number;
+  y: number;
+  z: number;
+  w: number;
+  d: number;
 };
 
-function buildShelves(tramos: RackTramo[]): ShelfSlot[] {
-  const shelves: ShelfSlot[] = [];
+function buildRackBorders(tramos: RackTramo[]) {
+  const rails: BorderRail[] = [];
+  const plates: ClickPlate[] = [];
+
   for (const tramo of tramos) {
     tramo.levels.forEach((code, level) => {
       const isFloor = level === 0;
@@ -32,29 +42,40 @@ function buildShelves(tramos: RackTramo[]): ShelfSlot[] {
         ? FLOOR_PLATE_HEIGHT / 2
         : LEVEL_HEIGHT * level + SHELF_THICKNESS / 2;
 
-      shelves.push({
+      pushRectBorder(rails, {
+        x: tramo.position.x,
+        y,
+        z: tramo.position.z,
+        w: tramo.size.width,
+        d: tramo.size.depth,
+        h,
         code,
         tramoId: tramo.id,
         level,
-        shelf: {
-          x: tramo.position.x,
-          y,
-          z: tramo.position.z,
-          w: tramo.size.width,
-          d: tramo.size.depth,
-          h,
-        },
+      });
+
+      plates.push({
+        code,
+        tramoId: tramo.id,
+        x: tramo.position.x,
+        y: isFloor ? 0.02 : y,
+        z: tramo.position.z,
+        w: tramo.size.width,
+        d: tramo.size.depth,
       });
     });
   }
-  return shelves;
+
+  return { rails, plates };
 }
 
 export function RackSlots({ tramos }: RackSlotsProps) {
-  const shelvesRef = useRef<THREE.InstancedMesh>(null);
-  const shelves = useMemo(() => buildShelves(tramos), [tramos]);
-  const shelvesRefData = useRef(shelves);
-  shelvesRefData.current = shelves;
+  const borderRef = useRef<THREE.InstancedMesh>(null);
+  const hitRef = useRef<THREE.InstancedMesh>(null);
+  const platesRef = useRef<ClickPlate[]>([]);
+
+  const { rails, plates } = useMemo(() => buildRackBorders(tramos), [tramos]);
+  platesRef.current = plates;
 
   const tramosById = useMemo(() => {
     const map = new Map<string, RackTramo>();
@@ -72,70 +93,102 @@ export function RackSlots({ tramos }: RackSlotsProps) {
   const color = useMemo(() => new THREE.Color(), []);
 
   useEffect(() => {
-    const shelfMesh = shelvesRef.current;
-    if (!shelfMesh) return;
+    const borderMesh = borderRef.current;
+    const hitMesh = hitRef.current;
+    if (!borderMesh || !hitMesh) return;
 
-    shelves.forEach((slot, i) => {
-      const selected = selectedLocationCode === slot.code;
-      const boost = selected ? 1.02 : 1;
-      dummy.position.set(slot.shelf.x, slot.shelf.y, slot.shelf.z);
-      dummy.scale.set(slot.shelf.w * boost, slot.shelf.h, slot.shelf.d * boost);
+    rails.forEach((rail, i) => {
+      const selected = selectedLocationCode === rail.code;
+      const boost = selected ? 1.04 : 1;
+      const isRackShelf = (rail.level ?? 0) >= 1;
+      const base = isRackShelf ? RACK_LEVEL_BORDER_COLOR : TRAMO_STRIP_COLOR;
+      const selectedTint = isRackShelf ? "#94a3b8" : "#f5e6a8";
+
+      dummy.position.set(rail.x, rail.y, rail.z);
+      dummy.scale.set(rail.sx * boost, rail.sy, rail.sz * boost);
       dummy.updateMatrix();
-      shelfMesh.setMatrixAt(i, dummy.matrix);
-      color.set(TRAMO_STRIP_COLOR);
-      shelfMesh.setColorAt(i, color);
+      borderMesh.setMatrixAt(i, dummy.matrix);
+      color.set(selected ? selectedTint : base);
+      borderMesh.setColorAt(i, color);
     });
+    borderMesh.instanceMatrix.needsUpdate = true;
+    if (borderMesh.instanceColor) borderMesh.instanceColor.needsUpdate = true;
+    borderMesh.computeBoundingSphere();
 
-    shelfMesh.instanceMatrix.needsUpdate = true;
-    if (shelfMesh.instanceColor) shelfMesh.instanceColor.needsUpdate = true;
-    shelfMesh.computeBoundingSphere();
+    plates.forEach((p, i) => {
+      const selected = selectedLocationCode === p.code;
+      const boost = selected ? 1.02 : 1;
+      dummy.position.set(p.x, p.y, p.z);
+      dummy.scale.set(p.w * boost, 1, p.d * boost);
+      dummy.updateMatrix();
+      hitMesh.setMatrixAt(i, dummy.matrix);
+    });
+    hitMesh.instanceMatrix.needsUpdate = true;
+    hitMesh.computeBoundingSphere();
     invalidate();
-  }, [shelves, selectedLocationCode, dummy, color, invalidate]);
+  }, [rails, plates, selectedLocationCode, dummy, color, invalidate]);
 
-  if (shelves.length === 0) return null;
+  if (rails.length === 0) return null;
 
   const handleClick = (instanceId: number | undefined) => {
     if (instanceId == null) return;
-    const slot = shelvesRefData.current[instanceId];
-    if (!slot) return;
+    const plate = platesRef.current[instanceId];
+    if (!plate) return;
 
     const focused = useBodegaViewerStore.getState().focusedTramoId;
-    if (focused !== slot.tramoId) {
-      const tramo = tramosById.get(slot.tramoId);
+    if (focused !== plate.tramoId) {
+      const tramo = tramosById.get(plate.tramoId);
       if (!tramo) return;
-      focusTramo(slot.tramoId, getRackZoomFlyTo(tramo));
+      focusTramo(plate.tramoId, getRackZoomFlyTo(tramo));
       invalidate();
       return;
     }
-    selectLevel(slot.code);
+    selectLevel(plate.code);
     invalidate();
   };
 
   return (
-    <instancedMesh
-      ref={shelvesRef}
-      args={[undefined, undefined, shelves.length]}
-      castShadow
-      receiveShadow
-      frustumCulled={false}
-      onClick={(e) => {
-        e.stopPropagation();
-        handleClick(e.instanceId);
-      }}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        document.body.style.cursor = "pointer";
-      }}
-      onPointerOut={() => {
-        document.body.style.cursor = "auto";
-      }}
-    >
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial
-        roughness={0.7}
-        metalness={0.04}
-        toneMapped={false}
-      />
-    </instancedMesh>
+    <group>
+      <instancedMesh
+        ref={borderRef}
+        args={[undefined, undefined, rails.length]}
+        castShadow
+        receiveShadow
+        frustumCulled={false}
+        raycast={() => {}}
+      >
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial
+          roughness={0.7}
+          metalness={0.04}
+          toneMapped={false}
+        />
+      </instancedMesh>
+
+      <instancedMesh
+        ref={hitRef}
+        args={[undefined, undefined, plates.length]}
+        frustumCulled={false}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleClick(e.instanceId);
+        }}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          document.body.style.cursor = "auto";
+        }}
+      >
+        <boxGeometry args={[1, 0.04, 1]} />
+        <meshBasicMaterial
+          transparent
+          opacity={0}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </instancedMesh>
+    </group>
   );
 }

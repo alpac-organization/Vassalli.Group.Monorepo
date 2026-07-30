@@ -72,23 +72,37 @@ export type OccupancyMap = Record<LocationCode, LocationOccupancy>;
 
 export const CM = 0.01;
 
-export const POLIN_WIDTH = 2.2;
-export const POLIN_DEPTH = 2.2;
+/** Default / rack-floor polín footprint (meters). */
+export const POLIN_WIDTH = 1.0;
+export const POLIN_DEPTH = 1.8;
 
-export const FLOOR_POLINES_MAX = 7 as const;
+/** Lateral floor grid: 7 cols × 4 rows = 28. */
+export const FLOOR_POLIN_COLS = 7 as const;
+export const FLOOR_POLIN_ROWS = 4 as const;
+export const FLOOR_POLINES_MAX = (FLOOR_POLIN_COLS * FLOOR_POLIN_ROWS) as 28;
 export const FLOOR_POLINES_BOTH_SIDES = FLOOR_POLINES_MAX * 2;
 
 export const RACK_FLOOR_POLINES_MAX = 4 as const;
 export const POLINES_PER_LEVEL = 2 as const;
 
 export const BOXES_PER_POLIN = 2 as const;
-export const POLIN_HEIGHT = 0.24;
-export const SMALL_BOX_WIDTH = 0.82;
+/** Rack levels 2–3: 2 columns × 2 rows of boxes per polín. */
+export const RACK_SHELF_BOX_COLS = 2 as const;
+export const RACK_SHELF_BOX_ROWS = 2 as const;
+export const RACK_SHELF_BOXES_PER_POLIN = (RACK_SHELF_BOX_COLS *
+  RACK_SHELF_BOX_ROWS) as 4;
+export const POLIN_HEIGHT = 0.18;
+/** Gap between the 2 polines on rack levels 2–3. */
+export const RACK_SHELF_POLIN_GAP = 0.12;
+export const SMALL_BOX_WIDTH = 0.42;
 export const SMALL_BOX_DEPTH = 0.5;
-export const SMALL_BOX_HEIGHT = 0.36;
+export const SMALL_BOX_HEIGHT = 0.86;
 
 export const TRAMO_STRIP_COLOR = "#e8d98a";
-export const POLIN_SLOT_COLOR = "#0a1628";
+/** Rack levels 2–3 border — solid slate gray. */
+export const RACK_LEVEL_BORDER_COLOR = "#64748b";
+/** Empty slot outline — slate gray border (not a solid fill). */
+export const POLIN_SLOT_COLOR = "#64748b";
 
 export const STATUS_COLOR: Record<SlotStatus, string> = {
   free: POLIN_SLOT_COLOR,
