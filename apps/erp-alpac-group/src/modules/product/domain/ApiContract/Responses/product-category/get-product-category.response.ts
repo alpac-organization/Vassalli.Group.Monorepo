@@ -1,5 +1,4 @@
-interface ProductCategory {
-  id: string;
+interface ProductCategory {  
   name: string;
   code: string;
   is_active: boolean;

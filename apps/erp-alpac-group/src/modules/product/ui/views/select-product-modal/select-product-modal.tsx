@@ -54,7 +54,7 @@ export function SelectProductModal({
 
 	const registeredProducts = useMemo(() => {
 		const products = normalizeProducts(
-			GetProducts.data as
+			GetProducts.data?.data as
 				| GetProductResponse
 				| GetProductResponse[]
 				| null

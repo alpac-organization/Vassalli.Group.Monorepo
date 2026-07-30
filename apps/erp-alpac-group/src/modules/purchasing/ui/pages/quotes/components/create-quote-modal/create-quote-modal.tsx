@@ -39,23 +39,6 @@ import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quo
 import type { SelectableCatalogProduct } from "@app/modules/product/ui/views/select-product-modal/select-product-modal.types";
 import { type CreateQuote } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-form.types";
 
-/** Mock temporal mientras se repara el GET de productos */
-const MOCK_PRODUCT_ID = "mock-product-001";
-
-const mockProduct: SelectableCatalogProduct = {
-	product_id: MOCK_PRODUCT_ID,
-	product_name: "Aceite Motor 15W40 (Mock)",
-	description: "Producto de prueba para cotizar proveedores mientras se repara el listado.",
-	category_id: "mock-category-001",
-	category: {
-		id: "mock-category-001",
-		name: "Lubricantes",
-		code: "LUB",
-		is_active: true,
-		sub_category: [],
-	},
-};
-
 export function CreateQuoteModal({
 	isOpen,
 	onClose,
@@ -69,10 +52,10 @@ export function CreateQuoteModal({
 			quote_date: "",
 			observations: "",
 			quote_details: [
-				{
-					product_id: MOCK_PRODUCT_ID,
+				/* {
+					product_id: "",
 					suppliers: [],
-				},
+				}, */
 			],
 		},
 		mode: "onSubmit",
@@ -95,11 +78,7 @@ export function CreateQuoteModal({
 	const [openProducts, setOpenProducts] = useState<string[]>([]);
 	const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 	const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
-	const [productsById, setProductsById] = useState<
-		Record<string, SelectableCatalogProduct>
-	>({
-		[MOCK_PRODUCT_ID]: mockProduct,
-	});
+	const [productsById, setProductsById] = useState<Record<string, SelectableCatalogProduct>>({});
 
 	const {
 		alertState,
@@ -135,17 +114,10 @@ export function CreateQuoteModal({
 			branch_id: "",
 			quote_date: "",
 			observations: "",
-			quote_details: [
-				{
-					product_id: MOCK_PRODUCT_ID,
-					suppliers: [],
-				},
-			],
+			quote_details: [],
 		});
 		setOpenProducts([]);
-		setProductsById({
-			[MOCK_PRODUCT_ID]: mockProduct,
-		});
+		setProductsById({});
 	};
 
 	const handleCancel = () => {

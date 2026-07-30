@@ -8,5 +8,9 @@ export interface GetProductResponse {
    category: GetProductCategoryResponse;
 }
 
-
-
+export interface GetProductResponseList {
+   data: GetProductResponse[];
+   page_number: number;
+   page_size: number;
+   total: number;
+}

@@ -4,7 +4,7 @@ import type { IProductServices } from "../../application/interfaces/IProductServ
 import type { GetProductCategoryRequest } from "../../domain/ApiContract/Requests/product-category/get-product-category.request";
 import type { GetProductCategoryResponse } from "../../domain/ApiContract/Responses/product-category/get-product-category.response";
 import type { GetProductRequest } from "../../domain/ApiContract/Requests/product/get-product.request";
-import type { GetProductResponse } from "../../domain/ApiContract/Responses/product/get-product.response";
+import type { GetProductResponseList } from "../../domain/ApiContract/Responses/product/get-product.response";
 import type { CreateProductRequest } from "../../domain/ApiContract/Requests/product/create-product.request";
 
 export class ProductServices implements IProductServices {
@@ -35,15 +35,19 @@ export class ProductServices implements IProductServices {
     }
   }
 
-  async GetProducts(payload: GetProductRequest): Promise<GetProductResponse> {
+  async GetProducts(payload: GetProductRequest): Promise<GetProductResponseList> {
     try {
+      console.log("Payload : ", payload);
+
       const { company_id, module_code, ...queryParams } = payload;
 
       const url = `companies/${company_id}/modules/${module_code}/products`;
 
-      const response = await this.apiHandler.get<GetProductResponse>(url, {
+      const response = await this.apiHandler.get<GetProductResponseList>(url, {
         params: cleanParams(queryParams),
       });
+
+      console.log("Response : ", response);
 
       return response;
     } catch (error) {

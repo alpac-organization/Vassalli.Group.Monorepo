@@ -239,7 +239,7 @@ export function QuoteDetailAccordion({
 														id={`warranty-in-days-${field.id}`}
 														name={warrantyRadioName}
 														value="warrantyInDays"
-														label="Garantías en Días"
+														label="Garantía en Días"
 														labelPosition="right"
 														labelClassName={labelClassName}
 														checked={warrantyUnit === "days"}
@@ -252,7 +252,7 @@ export function QuoteDetailAccordion({
 														id={`warranty-in-months-${field.id}`}
 														name={warrantyRadioName}
 														value="warrantyInMonths"
-														label="Garantías en Meses"
+														label="Garantía en Meses"
 														labelPosition="right"
 														labelClassName={labelClassName}
 														checked={warrantyUnit === "months"}
