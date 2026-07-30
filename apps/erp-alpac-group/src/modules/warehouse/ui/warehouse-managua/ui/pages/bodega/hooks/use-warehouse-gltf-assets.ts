@@ -116,9 +116,17 @@ export function usePolinAsset(): UnitGltfAsset {
   const gltf = useGLTF(polinUrl);
   return useMemo(() => buildUnitAsset(gltf, "polin.glb", "#8b6914"), [gltf]);
 }
-export function useForklift() {
+export function useForkliftAsset(): UnitGltfAsset {
   const gltf = useGLTF(forkliftUrl);
-  return useMemo(() => buildUnitAsset(gltf, "forklift.glb", "#8b6914"), [gltf]);
+  return useMemo(
+    () => buildUnitAsset(gltf, "forklift.glb", "#f59e0b"),
+    [gltf],
+  );
+}
+
+/** @deprecated use useForkliftAsset */
+export function useForklift(): UnitGltfAsset {
+  return useForkliftAsset();
 }
 
 useGLTF.preload(boxUrl);

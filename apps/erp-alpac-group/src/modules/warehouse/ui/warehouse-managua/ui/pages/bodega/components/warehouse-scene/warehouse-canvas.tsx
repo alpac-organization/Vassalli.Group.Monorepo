@@ -14,6 +14,7 @@ import { FloorTramos } from "@app/modules/warehouse/ui/warehouse-managua/ui/page
 import { RackStructures } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/rack-structures";
 import { RackSlots } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/rack-slots";
 import { PolinCargoInstances } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/polin-cargo-instances";
+import { AisleForklifts } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/aisle-forklifts";
 import { FocusedTramoHighlight } from "./focused-tramo-highlight";
 import { CameraRig } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/components/warehouse-scene/camera-rig";
 import "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/hooks/use-warehouse-gltf-assets";
@@ -53,6 +54,7 @@ function WarehouseScene({ bodegaId }: WarehouseCanvasProps) {
             rackTramos={layout.rackTramos}
             occupancy={locations}
           />
+          <AisleForklifts layout={layout} />
         </Suspense>
         <FocusedTramoHighlight layout={layout} />
       </group>
