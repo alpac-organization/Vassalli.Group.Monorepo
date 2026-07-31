@@ -10,6 +10,7 @@ export interface DropdownProps {
    options: Option[];
    placeholder?: string;
    error?: string;
+   errorVariant?: "text" | "tooltip";
    name?: string;
    onChange?: (value: any) => void;
    value?: any;

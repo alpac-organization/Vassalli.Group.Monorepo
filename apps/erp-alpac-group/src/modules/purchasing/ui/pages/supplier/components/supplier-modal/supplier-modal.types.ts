@@ -1,5 +1,5 @@
-import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/suppliers/responses/create-supplier-response";
-import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/suppliers/responses/get-suppliers-response";
+import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/suppliers/create-supplier-response";
+import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/suppliers/get-suppliers-response";
 
 export interface SupplierModalProps {
 	isOpen: boolean;

@@ -1,6 +1,6 @@
 import { Quotes } from "@app/modules/purchasing/ui/pages/quotes/quotes";
 import { PurchaseOrder } from "@app/modules/purchasing/ui/pages/purchase-order/purchase-order";
-import { Requisition } from "@app/modules/purchasing/ui/pages/requsition/requisition";
+import { PurchaseRequest } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request";
 import { QuoteAnalisys } from "@app/modules/purchasing/ui/pages/quote-analisys/quote-analisys";
 import { SupplierProduct } from "@app/modules/purchasing/ui/pages/supplier-product/supplier-product";
 
@@ -12,8 +12,8 @@ export const PurchasingRouter: RouteObject[] = [
       element: <SupplierProduct />,
    },
    {
-      path: "purchasing-applications",
-      element: <Requisition />,
+      path: "purchase-requests",
+      element: <PurchaseRequest />,
    },
    {
       path: "quotes",

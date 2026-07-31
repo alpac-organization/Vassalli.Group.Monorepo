@@ -8,8 +8,8 @@ import {
 	RadioButton,
 	type TableColumn,
 } from "@alpac/design-system";
-import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/suppliers/responses/get-suppliers-response";
-import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/suppliers/requests/get-suppliers-request";
+import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/suppliers/get-suppliers-response";
+import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/get-suppliers-request";
 import {
 	quoteFormPrimaryButtonClassName,
 	quoteFormSecondaryButtonClassName,

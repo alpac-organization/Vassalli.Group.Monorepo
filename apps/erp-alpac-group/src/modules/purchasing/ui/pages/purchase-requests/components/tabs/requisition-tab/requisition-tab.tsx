@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
-import type { RequisitionRow } from "../../requisition-modal/requisition-modal.types";
 import { Button, ContextMenu, DataTable, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
 import { PackagePlusIcon } from "lucide-react";
-import type { MonthlyMaterialTabProps } from "./monthly-materials-tab.types";
+import { PurchaseRequestModal } from "../../purchase-request-modal/purchase-request-modal";
+import type { RequisitionTabProps } from "./requisition-tab.types";
+import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -11,24 +12,14 @@ const dropdownClassName =
 const labelClassName = "text-black! dark:text-white!";
 const PAGE_SIZE = 5;
 
-const statusOptions = [
-   { label: "Borrador", value: "draft" },
-   { label: "Pendiente", value: "pending" },
-   { label: "Aprobada", value: "approved" },
-   { label: "Rechazada", value: "rejected" },
-   { label: "Cancelada", value: "cancelled" },
-];
+export const RequisitionTab = ({ currentBranchId, onRequestError, onRequestSuccess }: RequisitionTabProps) => {
 
-export const MonthlyMaterialTab = ({ 
-   // onRequestError, onRequestSuccess 
-}: MonthlyMaterialTabProps) => {
-   
+   const [isRequisitionModalOpen, setIsRequisitionModalOpen] = useState(false);
    const [requisitionNumber, setRequisitionNumber] = useState("");
    const [requesterName, setRequesterName] = useState("");
-   const [status, setStatus] = useState<string>("");   
+   const [status, setStatus] = useState<string>("");
    const [currentPage, setCurrentPage] = useState(1);
 
-   const requisitions: RequisitionRow[] = [];
    const totalRecords = 0;
 
    const handleClearFilters = () => {
@@ -43,11 +34,14 @@ export const MonthlyMaterialTab = ({
    }, []);
 
    const onEditRequisition = (data: any) => {
+      setIsRequisitionModalOpen(true);
    };
 
    const onViewDetails = (data: any) => {
       console.log(data);
    };
+
+
 
    const columnConfig: TableColumn<any>[] = useMemo(
       () => [
@@ -59,7 +53,7 @@ export const MonthlyMaterialTab = ({
          {
             key: "actions",
             label: "Acciones",
-            render: (row: RequisitionRow) => (
+            render: (row: any) => (
                <ContextMenu
                   items={[
                      { label: "Editar", onClick: () => onEditRequisition(row) },
@@ -77,25 +71,28 @@ export const MonthlyMaterialTab = ({
          <Button
             type="button"
             size="giant"
-            label="Crear Solicitud Mensual"
+            label="Crear Requisición"
             icon={<PackagePlusIcon size={20} />}
             className="w-full! md:w-auto! mb-4! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-            onClick={() => {               
+            onClick={() => {
+               setIsRequisitionModalOpen(true);
             }}
          />
 
          <div className="flex justify-between items-center pt-4 pb-4 border-t border-t-slate-600 dark:border-t-neutral-600">
             <div className="flex flex-col justify-center">
-               <h3 className="p-0! m-0!">Filtros</h3>               
+               <h3 className="p-0! m-0!">Filtros</h3>
             </div>
          </div>
 
          <form
-            onSubmit={(event) => event.preventDefault()}
+            onSubmit={(event) => {
+               event.preventDefault();
+            }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end mb-4!"
          >
             <InputText
-               label="N° Solicitud"
+               label="N° Requisición"
                placeholder="Ej. REQ-2026-001"
                className={inputClassName}
                labelClassName={labelClassName}
@@ -116,7 +113,7 @@ export const MonthlyMaterialTab = ({
                label="Estado"
                placeholder="Seleccione..."
                appearance="dark"
-               options={statusOptions}
+               options={[]}
                value={status}
                onChange={(value) => setStatus(String(value))}
                className={dropdownClassName}
@@ -142,8 +139,8 @@ export const MonthlyMaterialTab = ({
 
          <div className="flex flex-col">
             <DataTable
-               title="Lista de solicitudes"
-               data={requisitions}
+               title="Lista de requisiciones"
+               data={[]}
                columns={columnConfig}
                pagination={
                   <Pagination
@@ -155,6 +152,20 @@ export const MonthlyMaterialTab = ({
                }
             />
          </div>
+
+         <PurchaseRequestModal
+            isOpen={isRequisitionModalOpen}
+            onClose={() => {
+               setIsRequisitionModalOpen(false);
+            }}
+            onSubmit={(_payload) => {
+               setIsRequisitionModalOpen(false);
+               onRequestSuccess("Requisición guardada correctamente.");
+            }}
+            onRequestError={onRequestError}
+            currentBranchId={currentBranchId}
+            requestType={PurchaseRequestEnum.Requisition}
+         />
 
       </div>
    );

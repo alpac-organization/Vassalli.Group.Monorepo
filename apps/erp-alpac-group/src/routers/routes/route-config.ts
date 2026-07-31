@@ -46,7 +46,7 @@ const {
 
 const {
   supplierSection,
-  purchasingApplicationSection,
+  purchaseRequestSection,
   quotesSection,
   purchaseOrderSection,
   quoteAnalisysSection
@@ -105,7 +105,7 @@ export const routeConfig = {
   [ModuleEnum.PURCHASING]: {
     [RoleEnum.ADMINISTRATOR]: [
       supplierSection,
-      purchasingApplicationSection,
+      purchaseRequestSection,
       quotesSection,
       quoteAnalisysSection,
       purchaseOrderSection

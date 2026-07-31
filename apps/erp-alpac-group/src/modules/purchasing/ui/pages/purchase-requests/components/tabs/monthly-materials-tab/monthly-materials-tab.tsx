@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
-import type { RequisitionRow } from "../../requisition-modal/requisition-modal.types";
 import { Button, ContextMenu, DataTable, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
 import { PackagePlusIcon } from "lucide-react";
-import type { OccasionalMaterialTabProps } from "./occasional-materials-tab.types";
+import type { MonthlyMaterialTabProps } from "./monthly-materials-tab.types";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -19,16 +18,15 @@ const statusOptions = [
    { label: "Cancelada", value: "cancelled" },
 ];
 
-export const OccasionalMaterialTab = ({ 
+export const MonthlyMaterialTab = ({ 
    // onRequestError, onRequestSuccess 
-}: OccasionalMaterialTabProps) => {
+}: MonthlyMaterialTabProps) => {
    
    const [requisitionNumber, setRequisitionNumber] = useState("");
    const [requesterName, setRequesterName] = useState("");
    const [status, setStatus] = useState<string>("");   
    const [currentPage, setCurrentPage] = useState(1);
-
-   const requisitions: RequisitionRow[] = [];
+   
    const totalRecords = 0;
 
    const handleClearFilters = () => {
@@ -59,7 +57,7 @@ export const OccasionalMaterialTab = ({
          {
             key: "actions",
             label: "Acciones",
-            render: (row: RequisitionRow) => (
+            render: (row: any) => (
                <ContextMenu
                   items={[
                      { label: "Editar", onClick: () => onEditRequisition(row) },
@@ -77,7 +75,7 @@ export const OccasionalMaterialTab = ({
          <Button
             type="button"
             size="giant"
-            label="Crear Solicitud Eventual"
+            label="Crear Solicitud Mensual"
             icon={<PackagePlusIcon size={20} />}
             className="w-full! md:w-auto! mb-4! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
             onClick={() => {               
@@ -143,7 +141,7 @@ export const OccasionalMaterialTab = ({
          <div className="flex flex-col">
             <DataTable
                title="Lista de solicitudes"
-               data={requisitions}
+               data={[]}
                columns={columnConfig}
                pagination={
                   <Pagination

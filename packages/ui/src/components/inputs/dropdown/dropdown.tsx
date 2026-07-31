@@ -1,4 +1,5 @@
 import { DropdownProps } from "./dropdown.types";
+import { ErrorTooltip } from "../shared/error-tooltip";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -26,6 +27,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
       options,
       placeholder,
       error,
+      errorVariant = "text",
       onChange,
       value,
       className,
@@ -362,12 +364,16 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
                 />
               </m.svg>
             </div>
+
+            {error && errorVariant === "tooltip" && (
+              <ErrorTooltip message={error} anchorRef={triggerRef} />
+            )}
           </div>
         </LazyMotion>
 
         {menuContent}
 
-        {error && (
+        {error && errorVariant === "text" && (
           <span className="text-xs text-red-500 dark:text-red-400 font-medium ml-1">
             {error}
           </span>

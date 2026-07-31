@@ -42,9 +42,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                   ${className ?? ""}               
                `}
                onChange={(event) => {
-                  const counting = event.target.value;
-                  if (!counting.length) return;
-                  setCount(counting.length);
+                  setCount(event.target.value.length);
+                  rest.onChange?.(event);
                }}
                maxLength={maxLength}
             />

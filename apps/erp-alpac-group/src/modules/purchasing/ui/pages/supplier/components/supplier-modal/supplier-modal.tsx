@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, Checkbox, Dropdown, InputText, Modal, Textarea } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
 import { IdentificationEnum, IdentificationOptions } from "@app/core/enums/identification.enum";
-import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/suppliers/requests/create-supplier-request";
+import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/create-supplier-request";
 import type { CreatedSupplierDto, SupplierModalProps } from "./supplier-modal.types";
 import { ConstitutionEnum, ConstitutionOptions } from "@app/core/enums/constitution.enum";
 import { useSuppliers } from "@app/modules/purchasing/ui/hooks/suppliers/useSuppliers";
@@ -14,7 +14,7 @@ import {
 } from "@app/shared/utils/string.utils";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
-import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/suppliers/requests/update-suppliers-request";
+import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/update-suppliers-request";
 import { useFieldTracker } from "@app/shared/hooks/useFieldTracker";
 
 const inputClassName =

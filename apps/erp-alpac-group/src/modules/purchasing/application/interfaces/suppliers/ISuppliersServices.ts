@@ -1,7 +1,7 @@
-import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/suppliers/requests/create-supplier-request";
-import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/suppliers/requests/get-suppliers-request";
-import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/suppliers/responses/create-supplier-response";
-import type { GetSuppliersResponseList } from "@app/modules/purchasing/domain/suppliers/responses/get-suppliers-response";
+import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/create-supplier-request";
+import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/get-suppliers-request";
+import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/suppliers/create-supplier-response";
+import type { GetSuppliersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/suppliers/get-suppliers-response";
 
 export interface ISupplierServices {
 

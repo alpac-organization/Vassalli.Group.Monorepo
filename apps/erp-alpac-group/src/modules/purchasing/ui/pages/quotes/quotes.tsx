@@ -4,7 +4,6 @@ import { Breadcrumb } from "@alpac/design-system";
 import { useNavigate } from "react-router-dom";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
-import { QuotesActions } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-actions/quotes-actions";
 import { QuotesTable } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-table/quotes-table";
 import { CreateQuoteModal } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal";
 import type { QuotesModalType } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-modal.types";
@@ -18,10 +17,6 @@ export function Quotes() {
   const [activeModal, setActiveModal] = useState<QuotesModalType>(null);
 
   const [quotes, setQuotes] = useState<any[]>([]);
-
-  const handleCreateQuote = useCallback(() => {
-    setActiveModal("create-quote");
-  }, []);
 
   const handleViewDetail = useCallback(() => {
     setActiveModal("quote-details");
@@ -61,9 +56,7 @@ export function Quotes() {
           />
         </div>
 
-        <QuotesPageHeader />
-
-        <QuotesActions onCreateQuote={handleCreateQuote} />
+        <QuotesPageHeader />        
 
         <QuotesTable data={quotes} onViewDetail={handleViewDetail} />
 

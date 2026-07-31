@@ -14,7 +14,7 @@ import { SelectSupplierModal } from "@app/modules/purchasing/ui/pages/quotes/com
 import { SupplierModal } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal";
 import type { QuoteDetailAccordionProps } from "./quote-detail-accordion.types";
 import type { CreateQuote, Supplier } from "../../types/create-quote-form.types";
-import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/suppliers/responses/get-suppliers-response";
+import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/suppliers/get-suppliers-response";
 import type { CreatedSupplierDto } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal.types";
 
 const inputClassName =

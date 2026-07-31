@@ -17,8 +17,8 @@ import { SupplierModal } from "./components/supplier-modal/supplier-modal";
 import { ConstitutionOptions } from "@app/core/enums/constitution.enum";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useSuppliers } from "@app/modules/purchasing/ui/hooks/suppliers/useSuppliers";
-import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/suppliers/requests/get-suppliers-request";
-import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/suppliers/responses/get-suppliers-response";
+import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/get-suppliers-request";
+import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/suppliers/get-suppliers-response";
 import { Loader } from "@app/shared/components/loaders/loader";
 
 const inputClassName =

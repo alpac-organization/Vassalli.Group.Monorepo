@@ -1,10 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
-import type { RequisitionRow } from "../../requisition-modal/requisition-modal.types";
 import { Button, ContextMenu, DataTable, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
 import { PackagePlusIcon } from "lucide-react";
-import { RequisitionModal } from "../../requisition-modal/requisition-modal";
-import type { RequisitionTabProps } from "./requisition-tab.types";
-
+import type { OccasionalMaterialTabProps } from "./occasional-materials-tab.types";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -21,16 +18,15 @@ const statusOptions = [
    { label: "Cancelada", value: "cancelled" },
 ];
 
-export const RequisitionTab = ({ onRequestError, onRequestSuccess }: RequisitionTabProps) => {
-
-   const [isRequisitionModalOpen, setIsRequisitionModalOpen] = useState(false);
+export const OccasionalMaterialTab = ({ 
+   // onRequestError, onRequestSuccess 
+}: OccasionalMaterialTabProps) => {
+   
    const [requisitionNumber, setRequisitionNumber] = useState("");
    const [requesterName, setRequesterName] = useState("");
-   const [status, setStatus] = useState<string>("");
-   const [selectedRequisition, setSelectedRequisition] = useState<RequisitionRow | null>(null);
+   const [status, setStatus] = useState<string>("");   
    const [currentPage, setCurrentPage] = useState(1);
-
-   const requisitions: RequisitionRow[] = [];
+   
    const totalRecords = 0;
 
    const handleClearFilters = () => {
@@ -44,16 +40,14 @@ export const RequisitionTab = ({ onRequestError, onRequestSuccess }: Requisition
       setCurrentPage(page);
    }, []);
 
-   const onEditRequisition = (data: RequisitionRow) => {
-      setSelectedRequisition(data);
-      setIsRequisitionModalOpen(true);
+   const onEditRequisition = (data: any) => {
    };
 
-   const onViewDetails = (data: RequisitionRow) => {
+   const onViewDetails = (data: any) => {
       console.log(data);
    };
 
-   const columnConfig: TableColumn<RequisitionRow>[] = useMemo(
+   const columnConfig: TableColumn<any>[] = useMemo(
       () => [
          { key: "requisition_number", label: "N° Requisición" },
          { key: "requester_name", label: "Solicitante" },
@@ -63,7 +57,7 @@ export const RequisitionTab = ({ onRequestError, onRequestSuccess }: Requisition
          {
             key: "actions",
             label: "Acciones",
-            render: (row: RequisitionRow) => (
+            render: (row: any) => (
                <ContextMenu
                   items={[
                      { label: "Editar", onClick: () => onEditRequisition(row) },
@@ -81,12 +75,10 @@ export const RequisitionTab = ({ onRequestError, onRequestSuccess }: Requisition
          <Button
             type="button"
             size="giant"
-            label="Crear Requisición"
+            label="Crear Solicitud Eventual"
             icon={<PackagePlusIcon size={20} />}
             className="w-full! md:w-auto! mb-4! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-            onClick={() => {
-               setSelectedRequisition(null);
-               setIsRequisitionModalOpen(true);
+            onClick={() => {               
             }}
          />
 
@@ -101,7 +93,7 @@ export const RequisitionTab = ({ onRequestError, onRequestSuccess }: Requisition
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end mb-4!"
          >
             <InputText
-               label="N° Requisición"
+               label="N° Solicitud"
                placeholder="Ej. REQ-2026-001"
                className={inputClassName}
                labelClassName={labelClassName}
@@ -148,8 +140,8 @@ export const RequisitionTab = ({ onRequestError, onRequestSuccess }: Requisition
 
          <div className="flex flex-col">
             <DataTable
-               title="Lista de requisiciones"
-               data={requisitions}
+               title="Lista de solicitudes"
+               data={[]}
                columns={columnConfig}
                pagination={
                   <Pagination
@@ -161,21 +153,6 @@ export const RequisitionTab = ({ onRequestError, onRequestSuccess }: Requisition
                }
             />
          </div>
-
-         <RequisitionModal
-            isOpen={isRequisitionModalOpen}
-            onClose={() => {
-               setIsRequisitionModalOpen(false);
-               setSelectedRequisition(null);
-            }}
-            onSubmit={() => {
-               setIsRequisitionModalOpen(false);
-               setSelectedRequisition(null);
-               onRequestSuccess("Requisición guardada correctamente.");
-            }}
-            onRequestError={onRequestError}
-            selectedRequisition={selectedRequisition}
-         />
 
       </div>
    );
