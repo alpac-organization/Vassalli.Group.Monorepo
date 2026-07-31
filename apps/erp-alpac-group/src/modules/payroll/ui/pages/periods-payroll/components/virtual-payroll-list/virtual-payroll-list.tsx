@@ -156,15 +156,12 @@ export function VirtualPayrollList({
             period={item}
             onViewDetails={() => {
               const currentPath = window.location.pathname.replace(/\/$/, "");
-              navigate(
-                `${currentPath}/${item.payroll_id}`,
-                { 
-                  state: { 
-                    branch_id: selectedBranch, 
-                    type: selectedPayrollType 
-                  } 
-                }
-              );
+              navigate(`${currentPath}/${item.payroll_id}`, {
+                state: {
+                  branch_id: selectedBranch,
+                  type: selectedPayrollType,
+                },
+              });
             }}
           />
         ))}
@@ -199,18 +196,15 @@ export function VirtualPayrollList({
             <PayrollHistoryCard
               key={item.payroll_id}
               period={item}
-            onViewDetails={() => {
-              const currentPath = window.location.pathname.replace(/\/$/, "");
-              navigate(
-                `${currentPath}/${item.payroll_id}`,
-                { 
-                  state: { 
-                    branch_id: selectedBranch, 
-                    type: selectedPayrollType 
-                  } 
-                }
-              );
-            }}
+              onViewDetails={() => {
+                const currentPath = window.location.pathname.replace(/\/$/, "");
+                navigate(`${currentPath}/${item.payroll_id}`, {
+                  state: {
+                    branch_id: selectedBranch,
+                    type: selectedPayrollType,
+                  },
+                });
+              }}
               style={{
                 height: itemHeight,
                 transform: `translateY(${index * itemHeight}px)`,

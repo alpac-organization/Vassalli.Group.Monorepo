@@ -5,52 +5,51 @@
  */
 
 export interface CollaboratorRequest {
-   /**
-    * Id de la empresa
-    * @required
-    */
-   company_id: string;
+  /**
+   * Id de la empresa
+   * @required
+   */
+  company_id: string;
 
-   /**
-    * Codigo del modulo de Nomina, Contabilidad, Facturacion, Inventario, etc
-    * @required
-    */
-   module_code: string;
+  /**
+   * Codigo del modulo de Nomina, Contabilidad, Facturacion, Inventario, etc
+   * @required
+   */
+  module_code: string;
+  /**
+   * Numero de identificación del colaborador
+   * @example "001-120395-0000X"
+   * @optional
+   */
+  identification_number?: string;
 
-   /**
-    * Numero de identificación del colaborador
-    * @example "001-120395-0000X"
-    * @optional
-    */
-   identification_number?: string;
+  /**
+   * Id de la sucursal
+   * @required
+   */
+  branch_id: number;
 
-   /**
-    * Id de la sucursal
-    * @required
-    */
-   branch_id: number;
+  /**
+   * Id del area
+   */
+  area_id: string;
 
-   /**
-    * Id del area
-    */
-   area_id: string;
+  /**
+   * Numero de la pagina
+   * @optional
+   */
+  page_number?: number;
 
-   /**
-    * Numero de la pagina
-    * @optional
-    */
-   page_number?: number;
+  /**
+   * Tamaño de la pagina
+   * @optional
+   */
+  page_size?: number;
 
-   /**
-    * Tamaño de la pagina
-    * @optional
-    */
-   page_size?: number;
-
-   /**
-    * Estado del colaborador
-    * @example "Activo"
-    * @optional
-    */
-   status?: string;
+  /**
+   * Estado del colaborador
+   * @example "Activo"
+   * @optional
+   */
+  status?: string;
 }
