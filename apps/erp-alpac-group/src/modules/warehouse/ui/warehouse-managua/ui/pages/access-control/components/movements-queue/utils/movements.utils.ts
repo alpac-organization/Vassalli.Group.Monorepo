@@ -4,24 +4,21 @@ const FALLBACK_STATUS_BADGE_CLASS =
   "bg-slate-100 text-slate-900 dark:bg-slate-600/60 dark:text-slate-200 p-1.5";
 
 const QUEUE_STATUS_CLASS =
-  "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200";
+  "bg-amber-100 text-amber-900 border border-amber-200 dark:bg-amber-900/40 dark:text-amber-200 dark:border-amber-700/50";
 
 const ENTRY_MOVEMENT_STATUS_CLASS: Record<string, string> = {
   queue: QUEUE_STATUS_CLASS,
-  intail: QUEUE_STATUS_CLASS,
   unloading:
-    "bg-green-100 text-green-900 dark:bg-green-900/40 dark:text-green-200",
-  inunloading:
-    "bg-green-100 text-green-900 dark:bg-green-900/40 dark:text-green-200",
-  completed: "bg-blue-100 text-blue-900 dark:bg-blue-900/40 dark:text-blue-200",
+    "bg-green-100 text-green-900 border border-green-200 dark:bg-green-900/40 dark:text-green-200 dark:border-green-700/50",
+  completed:
+    "bg-blue-100 text-blue-900 border border-blue-200 dark:bg-blue-900/40 dark:text-blue-200 dark:border-blue-700/50",
   abandoned:
-    "bg-slate-200 text-slate-800 dark:bg-slate-700/60 dark:text-slate-200",
+    "bg-slate-200 text-slate-800 border border-slate-300 dark:bg-slate-700/60 dark:text-slate-200 dark:border-slate-600/50",
 };
 
 function normalizeStatusKey(status: string): string {
   return status.replace(/[_\s-]/g, "").toLowerCase();
 }
-
 export function getStatusBadgeClass(status: string): string {
   return (
     ENTRY_MOVEMENT_STATUS_CLASS[normalizeStatusKey(status)] ??
@@ -38,8 +35,6 @@ export function getStatusBadgeLabel(status: string): string {
   if (fromEnum) return fromEnum;
 
   const legacyLabels: Record<string, string> = {
-    intail: "En cola",
-    inunloading: "En descarga",
     completed: "Completado",
     abandoned: "Abandonado",
     queue: "En cola",

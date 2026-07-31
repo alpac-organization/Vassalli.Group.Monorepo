@@ -1,11 +1,6 @@
 import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
-import dayjs from "dayjs";
-import {
-  Alert,
-  AnimatedAlertWrapper,
-  type DatePickerValue,
-} from "@alpac/design-system";
+import { Alert, AnimatedAlertWrapper } from "@alpac/design-system";
 import { AccessControlHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-header/access-control-header";
 import { AccessControlStats } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-stats/access-control-stats";
 import { AccessControlActions } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-actions/access-control-actions";
@@ -17,10 +12,13 @@ import type { GateEntryFormValues } from "@app/modules/warehouse/ui/warehouse-ma
 import type { AccessControlFilters } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
 import type { MovementDetailFormValues } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/types/movement-detail.types";
 import { getAccessControlMetrics } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/filter-movements";
+import {
+  toApiDate,
+  mapGateEntryToCreateRequest,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/mapping-access-control";
 import { useAccessControl } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAccessControl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-access-control";
-import type { CreateAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/create-access-control";
 import type { UpdateReceptionEntranceRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/update-access-control";
 import type { ReceptionEntranceListItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import { Loader } from "@app/shared/components/loaders/loader";
@@ -36,11 +34,6 @@ const EMPTY_FILTERS: AccessControlFilters = {
   plate_number: "",
   driver_name: "",
   date: null,
-};
-
-const toApiDate = (date: DatePickerValue | null): string => {
-  if (!date) return "";
-  return dayjs(date.$d ?? date).format("YYYY-MM-DD");
 };
 
 const UPDATABLE_FIELDS = new Set<Path<MovementDetailFormValues>>([
@@ -60,41 +53,6 @@ const UPDATABLE_FIELDS = new Set<Path<MovementDetailFormValues>>([
   "transport_unit_id",
 ]);
 
-function mapGateEntryToCreateRequest(
-  data: GateEntryFormValues,
-  documentType: DocumentType,
-  companyId: string,
-  moduleCode: string,
-): CreateAccessControlRequest {
-  const now = dayjs();
-
-  return {
-    company_id: companyId,
-    module_code: moduleCode,
-    ducat_numbers: data.ducas.map((duca) => duca.value.trim()).filter(Boolean),
-    document_type: documentType,
-    customs_declaration_number:
-      data.customsDeclarationNumber?.trim() || undefined,
-    packages: data.packages ? Number(data.packages) : undefined,
-    customer: data.customer?.trim() || undefined,
-    product: data.product?.trim() || undefined,
-    container_number: data.containerNumber?.trim() || undefined,
-    transport_unit_id: data.transportUnitId.trim(),
-    country_of_origin: data.countryOfOrigin.trim(),
-    aduana: data.aduana.trim(),
-    plate_number: data.plateNumber.trim().toUpperCase(),
-    trailer_chassis: data.trailerChassis.trim(),
-    driver_license: data.driverLicense.trim(),
-    transportista: data.transportista.trim(),
-    medio: data.medio.trim(),
-    driver_name: data.driverName.trim(),
-    consignee: data.consignee.trim(),
-    seal_number: data.sealNumber.trim(),
-    start_date: now.format("YYYY-MM-DD"),
-    start_time: now.format("HH:mm:ss"),
-  };
-}
-
 export function AccessControlPage() {
   const { companyId, moduleCode } = useUserStore();
   const { getMappedError } = useMappedError();
@@ -104,7 +62,6 @@ export function AccessControlPage() {
     handleRequestError,
     handleRequestSuccess,
   } = useAlertState();
-
   const [pageNumber, setPageNumber] = useState(1);
   const [appliedFilters, setAppliedFilters] =
     useState<AccessControlFilters>(EMPTY_FILTERS);
@@ -321,9 +278,7 @@ export function AccessControlPage() {
   const handleGateEntrySubmit = useCallback(
     (data: GateEntryFormValues, documentType: DocumentType) => {
       if (!companyId || !moduleCode) {
-        handleRequestError(
-          "No se pudo obtener la empresa o el módulo activo.",
-        );
+        handleRequestError("No se pudo obtener la empresa o el módulo activo.");
         return;
       }
 

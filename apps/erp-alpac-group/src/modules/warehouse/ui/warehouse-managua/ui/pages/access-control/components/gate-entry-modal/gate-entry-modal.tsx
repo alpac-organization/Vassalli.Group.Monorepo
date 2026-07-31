@@ -14,7 +14,7 @@ import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal
 import { stepVariants } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
 import { footerButtonClass } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
 import { DocumentEnum, type DocumentType } from "@app/core/enums/document.enum";
-import { CustomsDeclaration } from "./components/customs-declaration/customs-declaration";
+import { CustomsDeclaration } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/customs-declaration/customs-declaration";
 
 export function GateEntryModal({
   isOpen,
@@ -29,7 +29,6 @@ export function GateEntryModal({
   const [documentType, setDocumentType] = useState<DocumentType>(
     DocumentEnum.DUCA,
   );
-
   const {
     register,
     handleSubmit,

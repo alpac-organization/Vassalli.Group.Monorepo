@@ -5,19 +5,12 @@ import {
   getStatusBadgeClass,
   getStatusBadgeLabel,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
-import { formatDate, formatTime } from "@app/shared/utils/string.utils";
+import { formatTime } from "@app/shared/utils/string.utils";
+import { resolveDocumentTypeLabel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/resolveStatus";
 
 type MovementsColumnsOptions = {
   onDetailClick?: (item: ReceptionEntranceListItem) => void;
 };
-
-function splitArrival(arrivalTime?: string) {
-  if (!arrivalTime) return { date: "", time: "" };
-  const [datePart, timePart = ""] = arrivalTime.split("T");
-  const time = timePart.split(".")[0] || timePart;
-  return { date: datePart, time };
-}
-
 export function getMovementsColumns({
   onDetailClick,
 }: MovementsColumnsOptions = {}): TableColumn<ReceptionEntranceListItem>[] {
@@ -33,20 +26,16 @@ export function getMovementsColumns({
       render: (item) => item.driver_name || "—",
     },
     {
-      key: "arrival_date",
-      label: "Fecha de ingreso",
-      render: (item) => {
-        const { date } = splitArrival(item.arrival_time);
-        return date ? formatDate(date) : "—";
-      },
-    },
-    {
       key: "arrival_time",
       label: "Hora de ingreso del registro",
       render: (item) => {
-        const { time } = splitArrival(item.arrival_time);
-        return time ? formatTime(time) : "—";
+        return formatTime(item.arrival_time) || "—";
       },
+    },
+    {
+      key: "document_type",
+      label: "Tipo de documento",
+      render: (item) => resolveDocumentTypeLabel(item.document_type) || "—",
     },
     {
       key: "status",

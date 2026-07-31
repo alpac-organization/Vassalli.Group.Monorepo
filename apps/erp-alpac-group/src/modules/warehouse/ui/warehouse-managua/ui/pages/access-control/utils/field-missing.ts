@@ -4,6 +4,5 @@ export function isValueMissing(value: unknown): boolean {
   return String(value).trim() === "";
 }
 
-/** Same red “no registrado” tone as payroll personal-information. */
 export const missingDataInInputClassName =
   "text-red-600! dark:text-red-400! not-italic! font-normal! text-[14px]! sm:text-[15px]! leading-snug! tracking-tight!";

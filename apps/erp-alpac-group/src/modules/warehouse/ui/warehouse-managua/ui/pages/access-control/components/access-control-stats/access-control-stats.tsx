@@ -4,10 +4,7 @@ import { formatNumber } from "@app/shared/utils/string.utils";
 import type { AccessControlStatsProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-stats/types/access-control-stats.types";
 
 export function AccessControlStats({ metrics }: AccessControlStatsProps) {
-  const plantaValue =
-    metrics.totalesEnPlanta < 10
-      ? `0${formatNumber(metrics.totalesEnPlanta.toString())}`
-      : formatNumber(metrics.totalesEnPlanta.toString());
+  const plantaValue = formatNumber(metrics.totalesEnPlanta.toString());
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">

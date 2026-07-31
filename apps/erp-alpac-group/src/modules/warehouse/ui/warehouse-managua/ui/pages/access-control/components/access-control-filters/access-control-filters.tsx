@@ -6,6 +6,8 @@ import {
   inputClassName,
   labelClassName,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/utils/styles";
+import { isMobileViewport } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/utils/utils";
+import { datePickerClassName } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/utils/styles";
 
 const EMPTY_FILTERS: AccessControlFilters = {
   ducat_number: "",
@@ -14,15 +16,12 @@ const EMPTY_FILTERS: AccessControlFilters = {
   date: null,
 };
 
-const datePickerClassName =
-  "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
-
 export function AccessControlFiltersBar({
   onApply,
   onClear,
   defaultValues = EMPTY_FILTERS,
 }: AccessControlFiltersProps) {
-  const { register, handleSubmit, control, reset } =
+  const { register, handleSubmit, control, reset, getValues } =
     useForm<AccessControlFilters>({
       defaultValues,
       mode: "onChange",
@@ -31,6 +30,16 @@ export function AccessControlFiltersBar({
   const handleClear = () => {
     reset(EMPTY_FILTERS);
     onClear();
+  };
+
+  const applyFiltersFromForm = (date: AccessControlFilters["date"]) => {
+    const current = getValues();
+    onApply({
+      ducat_number: current.ducat_number.trim(),
+      plate_number: current.plate_number.trim(),
+      driver_name: current.driver_name.trim(),
+      date,
+    });
   };
 
   return (
@@ -98,6 +107,12 @@ export function AccessControlFiltersBar({
                 labelAbove
                 value={field.value}
                 onChange={(value) => field.onChange(value)}
+                onAccept={(value) => {
+                  field.onChange(value);
+                  if (isMobileViewport()) {
+                    applyFiltersFromForm(value);
+                  }
+                }}
                 errorVariant="tooltip"
               />
             )}
