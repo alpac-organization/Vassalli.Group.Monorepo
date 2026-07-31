@@ -1,6 +1,6 @@
 import { Badges, Button, type TableColumn } from "@alpac/design-system";
 import { EyeIcon } from "lucide-react";
-import type { RecordEntrance } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
+import type { ReceptionEntranceListItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import {
   getStatusBadgeClass,
   getStatusBadgeLabel,
@@ -8,35 +8,45 @@ import {
 import { formatDate, formatTime } from "@app/shared/utils/string.utils";
 
 type MovementsColumnsOptions = {
-  onDetailClick?: (item: RecordEntrance) => void;
+  onDetailClick?: (item: ReceptionEntranceListItem) => void;
 };
+
+function splitArrival(arrivalTime?: string) {
+  if (!arrivalTime) return { date: "", time: "" };
+  const [datePart, timePart = ""] = arrivalTime.split("T");
+  const time = timePart.split(".")[0] || timePart;
+  return { date: datePart, time };
+}
 
 export function getMovementsColumns({
   onDetailClick,
-}: MovementsColumnsOptions = {}): TableColumn<RecordEntrance>[] {
+}: MovementsColumnsOptions = {}): TableColumn<ReceptionEntranceListItem>[] {
   return [
     {
       key: "plate_number",
       label: "Placa",
-      render: (item) => item.reception_entrance?.plate_number || "—",
+      render: (item) => item.plate_number || "—",
     },
     {
       key: "driver_name",
       label: "Conductor",
-      render: (item) => item.reception_entrance?.driver_name || "—",
+      render: (item) => item.driver_name || "—",
     },
     {
-      key: "start_date",
+      key: "arrival_date",
       label: "Fecha de ingreso",
-      render: (item) =>
-        item.execution_log?.start_date
-          ? formatDate(item.execution_log.start_date)
-          : "—",
+      render: (item) => {
+        const { date } = splitArrival(item.arrival_time);
+        return date ? formatDate(date) : "—";
+      },
     },
     {
-      key: "start_time",
+      key: "arrival_time",
       label: "Hora de ingreso del registro",
-      render: (item) => formatTime(item.execution_log?.start_time),
+      render: (item) => {
+        const { time } = splitArrival(item.arrival_time);
+        return time ? formatTime(time) : "—";
+      },
     },
     {
       key: "status",

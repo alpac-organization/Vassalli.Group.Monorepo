@@ -1,4 +1,4 @@
-import { InputText, RadioButton } from "@alpac/design-system";
+import { Dropdown, InputText, RadioButton } from "@alpac/design-system";
 import {
 	gateEntryInputClassName,
 	gateEntryLabelClassName,
@@ -9,25 +9,36 @@ import {
 	RECEPTION_TRANSPORT_MEDIA,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/types/gate-entry-modal.types";
 import { validateOnlyLettersWithAccentsAndDiacritics } from "@app/shared/utils/string.utils";
-import { useState } from "react";
-import { DocumentEnum, type TransportDocumentType } from "@app/core/enums/document.enum";
+import { useMemo, useState } from "react";
+import { DocumentEnum, type DocumentType } from "@app/core/enums/document.enum";
 
 export function VehicleDataStep({
 	register,
 	setValue,
+	watch,
 	errors,
 	documentType,
 	onChangeDocumentType,
+	vehicleOptions = [],
 }: VehicleDataStepProps) {
-
 	const [selectedModality, setSelectedModality] = useState<"reception" | "dispatch">("reception");
-	const [selectedDocumentType, setSelectedDocumentType] = useState<TransportDocumentType>(documentType);
+	const [selectedDocumentType, setSelectedDocumentType] = useState<DocumentType>(documentType);
 	const [selectedMedioOption, setSelectedMedioOption] = useState<string>(RECEPTION_TRANSPORT_MEDIA[0].value);
+	const transportUnitId = watch("transportUnitId");
 
 	const transportMedia =
 		selectedModality === "reception"
 			? RECEPTION_TRANSPORT_MEDIA
 			: DISPATCH_TRANSPORT_MEDIA;
+
+	const vehicleDropdownOptions = useMemo(
+		() =>
+			vehicleOptions.map((vehicle) => ({
+				value: vehicle.id,
+				label: vehicle.name,
+			})),
+		[vehicleOptions],
+	);
 
 	const handleModalityChange = (modality: "reception" | "dispatch") => {
 		setSelectedModality(modality);
@@ -112,6 +123,25 @@ export function VehicleDataStep({
 						<span className="text-[12px] text-red-500 mt-1">{errors.medio.message}</span>
 					)}
 				</div>
+			</div>
+
+			<div className="sm:col-span-2 lg:col-span-3">
+				<Dropdown
+					label="Unidad de transporte"
+					appearance="dark"
+					isRequired
+					placeholder="Seleccione una unidad"
+					options={vehicleDropdownOptions}
+					value={transportUnitId}
+					onChange={(value) =>
+						setValue("transportUnitId", String(value), {
+							shouldValidate: true,
+							shouldDirty: true,
+						})
+					}
+					error={errors.transportUnitId?.message}
+					labelClassName={gateEntryLabelClassName}
+				/>
 			</div>
 
 			<InputText

@@ -1,7 +1,15 @@
+import type { DocumentType } from "@app/core/enums/document.enum";
 export interface CreateAccessControlRequest {
   company_id: string;
   module_code: string;
   ducat_numbers: string[];
+  document_type: DocumentType;
+  customs_declaration_number?: string;
+  packages?: number;
+  customer?: string;
+  product?: string;
+  container_number?: string;
+  transport_unit_id: string;
   country_of_origin: string;
   aduana: string;
   plate_number: string;

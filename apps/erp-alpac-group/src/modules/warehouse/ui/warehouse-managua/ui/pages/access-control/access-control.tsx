@@ -1,27 +1,36 @@
 import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
 import dayjs from "dayjs";
-import { Alert, AnimatedAlertWrapper, type DatePickerValue } from "@alpac/design-system";
+import {
+  Alert,
+  AnimatedAlertWrapper,
+  type DatePickerValue,
+} from "@alpac/design-system";
 import { AccessControlHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-header/access-control-header";
 import { AccessControlStats } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-stats/access-control-stats";
 import { AccessControlActions } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-actions/access-control-actions";
 import { AccessControlFiltersBar } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/access-control-filters";
 import { MovementsQueue } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/movements-queue";
+import { MovementDetailModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/movement-detail-modal";
 import { GateEntryModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/gate-entry-modal";
 import type { GateEntryFormValues } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/types/gate-entry-modal.types";
 import type { AccessControlFilters } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
+import type { MovementDetailFormValues } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/types/movement-detail.types";
 import { getAccessControlMetrics } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/filter-movements";
 import { useAccessControl } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAccessControl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-access-control";
 import type { CreateAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/create-access-control";
+import type { UpdateReceptionEntranceRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/update-access-control";
+import type { ReceptionEntranceListItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import type { DocumentType } from "@app/core/enums/document.enum";
+import type { Path } from "react-hook-form";
 
 const PAGE_SIZE = 10;
-
 const EMPTY_FILTERS: AccessControlFilters = {
   ducat_number: "",
   plate_number: "",
@@ -34,8 +43,26 @@ const toApiDate = (date: DatePickerValue | null): string => {
   return dayjs(date.$d ?? date).format("YYYY-MM-DD");
 };
 
+const UPDATABLE_FIELDS = new Set<Path<MovementDetailFormValues>>([
+  "plate_number",
+  "trailer_chassis",
+  "driver_name",
+  "driver_license",
+  "transportista",
+  "seal_number",
+  "country_of_origin",
+  "aduana",
+  "customs_decaration_number",
+  "packages",
+  "customer",
+  "product",
+  "container_number",
+  "transport_unit_id",
+]);
+
 function mapGateEntryToCreateRequest(
   data: GateEntryFormValues,
+  documentType: DocumentType,
   companyId: string,
   moduleCode: string,
 ): CreateAccessControlRequest {
@@ -44,9 +71,15 @@ function mapGateEntryToCreateRequest(
   return {
     company_id: companyId,
     module_code: moduleCode,
-    ducat_numbers: data.ducas
-      .map((duca) => duca.value.trim())
-      .filter(Boolean),
+    ducat_numbers: data.ducas.map((duca) => duca.value.trim()).filter(Boolean),
+    document_type: documentType,
+    customs_declaration_number:
+      data.customsDeclarationNumber?.trim() || undefined,
+    packages: data.packages ? Number(data.packages) : undefined,
+    customer: data.customer?.trim() || undefined,
+    product: data.product?.trim() || undefined,
+    container_number: data.containerNumber?.trim() || undefined,
+    transport_unit_id: data.transportUnitId.trim(),
     country_of_origin: data.countryOfOrigin.trim(),
     aduana: data.aduana.trim(),
     plate_number: data.plateNumber.trim().toUpperCase(),
@@ -76,8 +109,11 @@ export function AccessControlPage() {
   const [appliedFilters, setAppliedFilters] =
     useState<AccessControlFilters>(EMPTY_FILTERS);
   const [isGateEntryOpen, setIsGateEntryOpen] = useState(false);
+  const [selectedReceptionId, setSelectedReceptionId] = useState<string | null>(
+    null,
+  );
 
-  const payload = useMemo<GetAccessControlRequest>(
+  const payloadAccessControl = useMemo<GetAccessControlRequest>(
     () => ({
       company_id: companyId,
       module_code: moduleCode,
@@ -91,17 +127,49 @@ export function AccessControlPage() {
     [companyId, moduleCode, appliedFilters, pageNumber],
   );
 
-  const { GetAccessControl, CreateAccessControl } = useAccessControl({
-    payload,
-  });
+  const vehiclesPayload = useMemo(
+    () => ({
+      company_id: companyId,
+      module_code: moduleCode,
+    }),
+    [companyId, moduleCode],
+  );
+
+  const detailPayload = useMemo(
+    () =>
+      selectedReceptionId
+        ? {
+            company_id: companyId,
+            module_code: moduleCode,
+            reception_id: selectedReceptionId,
+          }
+        : null,
+    [companyId, moduleCode, selectedReceptionId],
+  );
+
   const {
-    data: accessControl,
-    isLoading,
-    isFetching,
-  } = GetAccessControl;
+    GetAccessControl,
+    GetAccessControlDetail,
+    CreateAccessControl,
+    UpdateAccessControl,
+    UpdateDucat,
+    GetVehicles,
+  } = useAccessControl({
+    payloadAccessControl,
+    vehiclesPayload,
+    detailPayload,
+  });
+
+  const { data: accessControl, isLoading, isFetching } = GetAccessControl;
+  const {
+    data: detail,
+    isLoading: isDetailLoading,
+    isFetching: isDetailFetching,
+  } = GetAccessControlDetail;
 
   const movements = accessControl?.data ?? [];
   const totalRecords = accessControl?.total_count ?? 0;
+  const vehicleOptions = GetVehicles.data ?? [];
 
   const metrics = useMemo(
     () => getAccessControlMetrics(accessControl?.stats, totalRecords),
@@ -127,8 +195,131 @@ export function AccessControlPage() {
     setPageNumber(page);
   }, []);
 
+  const handleDetailClick = useCallback((item: ReceptionEntranceListItem) => {
+    setSelectedReceptionId(item.id);
+  }, []);
+
+  const handleFieldUpdate = useCallback(
+    async (name: Path<MovementDetailFormValues>, value: string) => {
+      if (!companyId || !moduleCode || !selectedReceptionId) {
+        handleRequestError("No se pudo actualizar el registro.");
+        throw new Error("Missing context");
+      }
+
+      if (!UPDATABLE_FIELDS.has(name)) return;
+
+      const payload: UpdateReceptionEntranceRequest = {
+        company_id: companyId,
+        module_code: moduleCode,
+        reception_id: selectedReceptionId,
+      };
+
+      switch (name) {
+        case "packages":
+          payload.packages = value.trim() ? Number(value) : undefined;
+          break;
+        case "plate_number":
+          payload.plate_number = value.trim();
+          break;
+        case "trailer_chassis":
+          payload.trailer_chassis = value.trim();
+          break;
+        case "driver_name":
+          payload.driver_name = value.trim();
+          break;
+        case "driver_license":
+          payload.driver_license = value.trim();
+          break;
+        case "transportista":
+          payload.transportista = value.trim();
+          break;
+        case "seal_number":
+          payload.seal_number = value.trim();
+          break;
+        case "country_of_origin":
+          payload.country_of_origin = value.trim();
+          break;
+        case "aduana":
+          payload.aduana = value.trim();
+          break;
+        case "customs_decaration_number":
+          payload.customs_decaration_number = value.trim();
+          break;
+        case "customer":
+          payload.customer = value.trim();
+          break;
+        case "product":
+          payload.product = value.trim();
+          break;
+        case "container_number":
+          payload.container_number = value.trim();
+          break;
+        case "transport_unit_id":
+          payload.transport_unit_id = value.trim();
+          break;
+        default:
+          return;
+      }
+
+      try {
+        await UpdateAccessControl.mutateAsync(payload);
+        handleRequestSuccess("Campo actualizado exitosamente");
+      } catch (error) {
+        const mappedError = getMappedError(error as ApiErrorResponse);
+        handleRequestError(
+          mappedError?.description || "Error al actualizar el registro",
+        );
+        throw error;
+      }
+    },
+    [
+      companyId,
+      moduleCode,
+      selectedReceptionId,
+      UpdateAccessControl,
+      getMappedError,
+      handleRequestError,
+      handleRequestSuccess,
+    ],
+  );
+
+  const handleDucatUpdate = useCallback(
+    async (ducatId: string, ducatNumber: string) => {
+      if (!companyId || !moduleCode || !selectedReceptionId) {
+        handleRequestError("No se pudo actualizar la DUCA.");
+        throw new Error("Missing context");
+      }
+
+      try {
+        await UpdateDucat.mutateAsync({
+          company_id: companyId,
+          module_code: moduleCode,
+          reception_id: selectedReceptionId,
+          ducat_id: ducatId,
+          ducat_number: ducatNumber.trim(),
+        });
+        handleRequestSuccess("DUCA actualizada exitosamente");
+      } catch (error) {
+        const mappedError = getMappedError(error as ApiErrorResponse);
+        handleRequestError(
+          mappedError?.description || "Error al actualizar la DUCA",
+        );
+        throw error;
+      }
+    },
+    [
+      companyId,
+      moduleCode,
+      selectedReceptionId,
+      UpdateDucat,
+      getMappedError,
+      handleRequestError,
+      handleRequestSuccess,
+    ],
+  );
+
   const handleGateEntrySubmit = useCallback(
-    (data: GateEntryFormValues) => {
+    (data: GateEntryFormValues, documentType: DocumentType) => {
       if (!companyId || !moduleCode) {
         handleRequestError(
           "No se pudo obtener la empresa o el módulo activo.",
@@ -136,8 +327,14 @@ export function AccessControlPage() {
         return;
       }
 
+      if (!data.transportUnitId.trim()) {
+        handleRequestError("Debe seleccionar una unidad de transporte.");
+        return;
+      }
+
       const createPayload = mapGateEntryToCreateRequest(
         data,
+        documentType,
         companyId,
         moduleCode,
       );
@@ -194,6 +391,17 @@ export function AccessControlPage() {
         pageSize={accessControl?.page_size ?? PAGE_SIZE}
         onPageChange={handlePageChange}
         isFetching={isFetching}
+        onDetailClick={handleDetailClick}
+      />
+
+      <MovementDetailModal
+        isOpen={Boolean(selectedReceptionId)}
+        receptionId={selectedReceptionId}
+        detail={detail}
+        isLoading={isDetailLoading || isDetailFetching}
+        onClose={() => setSelectedReceptionId(null)}
+        onFieldUpdate={handleFieldUpdate}
+        onDucatUpdate={handleDucatUpdate}
       />
 
       <GateEntryModal
@@ -201,6 +409,7 @@ export function AccessControlPage() {
         onClose={() => setIsGateEntryOpen(false)}
         onSubmit={handleGateEntrySubmit}
         isSubmitting={CreateAccessControl.isPending}
+        vehicleOptions={vehicleOptions}
       />
 
       <AnimatedAlertWrapper open={alertState?.open ?? false}>

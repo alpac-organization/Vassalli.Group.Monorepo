@@ -1,59 +1,34 @@
-export interface GetAccessControlResponse {
+import type { DocumentType } from "@app/core/enums/document.enum";
+import type { EnumType } from "@app/shared/types/enum.type";
+
+export interface GetReceptionEntrancesResponse {
+  data: ReceptionEntranceListItem[];
   total_count: number;
   page_number: number;
   page_size: number;
   total_pages: number;
-  data: RecordEntrance[];
-  stats: AccessControlStatsResponse;
+  stats: ReceptionEntranceStatsResponse;
+}
+export interface ReceptionEntranceListItem {
+  id: string;
+  plate_number: string;
+  driver_name: string;
+  document_type: DocumentType;
+  arrival_time: string;
+  status: RecordEntranceStatusKey | string;
 }
 
-export interface AccessControlStatsResponse {
+export interface ReceptionEntranceStatsResponse {
   total_entries: number;
   total_on_site: number;
-  total_exits: number;
+  total_exists: number;
 }
 
-export interface RecordEntrance {
-  id: string;
-  status: string;
-  is_consolidated: boolean;
-  reception_entrance: ReceptionEntrance;
-  execution_log: ExecutionLog;
-  ducats: Ducat[];
-}
+export const RecordEntranceStatusEnum: Record<string, EnumType> = {
+  Queue: { value: 1, label: "En cola" },
+  Unloading: { value: 2, label: "En descarga" },
+  Completed: { value: 3, label: "Completado" },
+  Abandoned: { value: 4, label: "Abandonado" },
+};
 
-export interface ReceptionEntrance {
-  id: string;
-  country_of_origin: string;
-  aduana: string;
-  driver_name: string;
-  plate_number: string;
-  trailer_chassis: string;
-  driver_license: string;
-  transportista: string;
-  medio: string;
-  consignee: string;
-  seal_number: string;
-  updated_by_user_name: string | null;
-  updated_date: string | null;
-  updated_time: string | null;
-  medio_exit_date: string | null;
-  medio_exit_time: string | null;
-}
-
-export interface ExecutionLog {
-  start_date: string;
-  start_time: string;
-  end_date: string;
-  end_time: string;
-  processed_by_user_name: string;
-  duration_total_seconds: number;
-  duration_formatted: string;
-}
-
-export interface Ducat {
-  id: string;
-  ducat_number: string;
-}
-
-export type DataAccessControl = RecordEntrance;
+export type RecordEntranceStatusKey = keyof typeof RecordEntranceStatusEnum;
