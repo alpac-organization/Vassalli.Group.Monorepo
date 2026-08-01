@@ -103,6 +103,22 @@ export const formatIdentificationNumber = (identification: string): string => {
 };
 
 /**
+ * - Convierte todo a mayúsculas.
+ * - Elimina caracteres no alfanuméricos.
+ * - Inserta un guión automáticamente después de los primeros 2 caracteres.
+ */
+export function formatCodeAduana(value: string, maxLength: number = 6): string {
+  const cleaned = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+  const trimmed = cleaned.slice(0, maxLength);
+
+  if (trimmed.length <= 2) {
+    return trimmed;
+  }
+
+  return `${trimmed.slice(0, 2)}-${trimmed.slice(2)}`;
+}
+/**
  * Formatea un string a formato de Declaración Única Centroamericana (NI-26-T-00000000001).
  * Estructura: 2 letras (país) + 2 dígitos (año) + 1 letra (tipo) + 11 dígitos.
  * @param duca - cadena de texto de la DUCA (con o sin guiones)

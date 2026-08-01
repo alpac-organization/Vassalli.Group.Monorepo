@@ -1,5 +1,6 @@
 import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
+import dayjs from "dayjs";
 import { Alert, AnimatedAlertWrapper } from "@alpac/design-system";
 import { AccessControlHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-header/access-control-header";
 import { AccessControlStats } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-stats/access-control-stats";
@@ -15,6 +16,7 @@ import { getAccessControlMetrics } from "@app/modules/warehouse/ui/warehouse-man
 import {
   toApiDate,
   mapGateEntryToCreateRequest,
+  type EntryStartedAt,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/mapping-access-control";
 import { useAccessControl } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAccessControl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -66,6 +68,9 @@ export function AccessControlPage() {
   const [appliedFilters, setAppliedFilters] =
     useState<AccessControlFilters>(EMPTY_FILTERS);
   const [isGateEntryOpen, setIsGateEntryOpen] = useState(false);
+  const [entryStartedAt, setEntryStartedAt] = useState<EntryStartedAt | null>(
+    null,
+  );
   const [selectedReceptionId, setSelectedReceptionId] = useState<string | null>(
     null,
   );
@@ -126,7 +131,9 @@ export function AccessControlPage() {
 
   const movements = accessControl?.data ?? [];
   const totalRecords = accessControl?.total_count ?? 0;
-  const vehicleOptions = GetVehicles.data ?? [];
+  const vehicleOptions = Array.isArray(GetVehicles.data)
+    ? GetVehicles.data
+    : [];
 
   const metrics = useMemo(
     () => getAccessControlMetrics(accessControl?.stats, totalRecords),
@@ -275,6 +282,20 @@ export function AccessControlPage() {
     ],
   );
 
+  const handleOpenGateEntry = useCallback(() => {
+    const now = dayjs();
+    setEntryStartedAt({
+      start_date: now.format("YYYY-MM-DD"),
+      start_time: now.format("HH:mm:ss"),
+    });
+    setIsGateEntryOpen(true);
+  }, []);
+
+  const handleCloseGateEntry = useCallback(() => {
+    setIsGateEntryOpen(false);
+    setEntryStartedAt(null);
+  }, []);
+
   const handleGateEntrySubmit = useCallback(
     (data: GateEntryFormValues, documentType: DocumentType) => {
       if (!companyId || !moduleCode) {
@@ -287,16 +308,25 @@ export function AccessControlPage() {
         return;
       }
 
+      if (!entryStartedAt) {
+        handleRequestError(
+          "No se capturó la hora de inicio. Vuelva a abrir el registro.",
+        );
+        return;
+      }
+
       const createPayload = mapGateEntryToCreateRequest(
         data,
         documentType,
         companyId,
         moduleCode,
+        entryStartedAt,
       );
 
       CreateAccessControl.mutate(createPayload, {
         onSuccess: () => {
           setIsGateEntryOpen(false);
+          setEntryStartedAt(null);
           setPageNumber(1);
           handleRequestSuccess("Entrada registrada exitosamente");
         },
@@ -311,6 +341,7 @@ export function AccessControlPage() {
     [
       companyId,
       moduleCode,
+      entryStartedAt,
       CreateAccessControl,
       getMappedError,
       handleRequestError,
@@ -332,7 +363,7 @@ export function AccessControlPage() {
 
       <AccessControlStats metrics={metrics} />
 
-      <AccessControlActions onGiveEntry={() => setIsGateEntryOpen(true)} />
+      <AccessControlActions onGiveEntry={handleOpenGateEntry} />
 
       <AccessControlFiltersBar
         onApply={handleApplyFilters}
@@ -361,7 +392,7 @@ export function AccessControlPage() {
 
       <GateEntryModal
         isOpen={isGateEntryOpen}
-        onClose={() => setIsGateEntryOpen(false)}
+        onClose={handleCloseGateEntry}
         onSubmit={handleGateEntrySubmit}
         isSubmitting={CreateAccessControl.isPending}
         vehicleOptions={vehicleOptions}

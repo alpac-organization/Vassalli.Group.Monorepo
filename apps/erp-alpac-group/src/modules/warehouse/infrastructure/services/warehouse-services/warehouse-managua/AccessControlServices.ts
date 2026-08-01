@@ -40,6 +40,7 @@ export class AccessControlServices implements IAccessControl {
   ): Promise<void> {
     const { company_id, module_code, ...rest } = payload;
     const url = `/companies/${company_id}/modules/${module_code}/reception-entrances`;
+    console.log(" body POST", rest);
     return this.httpHandler.post<void>(url, rest);
   }
 
@@ -63,6 +64,7 @@ export class AccessControlServices implements IAccessControl {
   ): Promise<GetVehiclesResponse> {
     const { company_id, module_code } = payload;
     const url = `/companies/${company_id}/modules/${module_code}/transport-units`;
-    return this.httpHandler.get<GetVehiclesResponse>(url);
+    const response = await this.httpHandler.get<GetVehiclesResponse>(url);
+    return response;
   }
 }
