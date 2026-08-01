@@ -211,7 +211,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
                     width: menuPosition.width,
                     zIndex: 9999,
                   }}
-                  className={`rounded-[12px] overflow-hidden ${menuSurface}`}
+                  className={`rounded-xl overflow-hidden ${menuSurface}`}
                 >
                   <ul
                     ref={listRef}

@@ -1,8 +1,7 @@
 import type { Allowance } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-allowance-form/add-allowance-form.types";
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
 
-export interface AddCollaboratorRequest {
-  company_id: string;
-  module_code: string;
+export interface AddCollaboratorRequest extends BaseRequest {
   first_name: string;
   second_name?: string;
   third_name?: string;

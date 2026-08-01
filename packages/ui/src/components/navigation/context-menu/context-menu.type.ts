@@ -15,3 +15,9 @@ export type ContextMenuProps = {
   triggerIcon?: ReactNode;
   triggerButtonSize?: ButtonSize
 };
+
+export type MenuPosition = {
+	top: number;
+	left: number;
+	openUp: boolean;
+};

@@ -53,7 +53,7 @@ export const SupplierProduct = () => {
          </div>
 
          <div className="relative mx-auto w-full rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
-            <Tabs tabItems={tabs ?? []} activeTab="suppliers" />
+            <Tabs tabItems={tabs ?? []} activeTab="suppliers" animation="fade" />
          </div>         
 
       </m.div>

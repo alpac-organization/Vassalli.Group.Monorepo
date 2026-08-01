@@ -7,5 +7,5 @@ export interface TextareaProps
    labelClassName?: string;
    isRequired?: boolean;
    enableCharacterCount?: boolean;
-   maxLength: number;
+   maxLength?: number;
 }

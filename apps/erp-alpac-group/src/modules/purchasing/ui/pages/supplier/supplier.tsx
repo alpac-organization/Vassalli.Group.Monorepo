@@ -16,9 +16,9 @@ import { PackagePlusIcon } from "lucide-react";
 import { SupplierModal } from "./components/supplier-modal/supplier-modal";
 import { ConstitutionOptions } from "@app/core/enums/constitution.enum";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
-import { useSuppliers } from "@app/modules/purchasing/ui/hooks/suppliers/useSuppliers";
-import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/get-suppliers-request";
-import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/suppliers/get-suppliers-response";
+import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
+import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
+import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
 import { Loader } from "@app/shared/components/loaders/loader";
 
 const inputClassName =
@@ -55,7 +55,7 @@ export const Supplier = () => {
 		handleRequestSuccess,
 	} = useAlertState();
 
-	const { GetSuppliers } = useSuppliers({
+	const { GetSuppliers } = useSupplier({
 		suppliersFilters: {
 			...filters,
 			companie_id: companyId,

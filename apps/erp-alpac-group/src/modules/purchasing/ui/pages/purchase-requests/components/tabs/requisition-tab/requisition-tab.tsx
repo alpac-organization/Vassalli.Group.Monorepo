@@ -1,172 +1,264 @@
-import { useCallback, useMemo, useState } from "react";
-import { Button, ContextMenu, DataTable, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Button, ContextMenu, DataTable, Dropdown, InputText, Pagination, type ContextMenuItem, type TableColumn } from "@alpac/design-system";
 import { PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "../../purchase-request-modal/purchase-request-modal";
 import type { RequisitionTabProps } from "./requisition-tab.types";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
+import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
+import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
+import { Loader } from "@app/shared/components/loaders/loader";
+import { RoleEnum } from "@app/core/enums/role.enum";
+import { PurchaseRequestDetailModal } from "../../purchase-request-detail-modal/purchase-request-detail-modal";
 
 const inputClassName =
-   "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const dropdownClassName =
-   "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
+	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
 const PAGE_SIZE = 5;
 
-export const RequisitionTab = ({ currentBranchId, onRequestError, onRequestSuccess }: RequisitionTabProps) => {
+export const RequisitionTab = ({
+	currentBranchId,
+	onRequestError,
+	onRequestSuccess,
+}: RequisitionTabProps) => {
 
-   const [isRequisitionModalOpen, setIsRequisitionModalOpen] = useState(false);
-   const [requisitionNumber, setRequisitionNumber] = useState("");
-   const [requesterName, setRequesterName] = useState("");
-   const [status, setStatus] = useState<string>("");
-   const [currentPage, setCurrentPage] = useState(1);
+	const { companyId, moduleCode, role } = useUserStore();
+	const [isRequisitionModalOpen, setIsRequisitionModalOpen] = useState(false);
+	const [isRequisitionDetailModalOpen, setIsRequisitionDetailModalOpen] = useState(false);
+	const [requisitionNumber, setRequisitionNumber] = useState("");
+	const [status, setStatus] = useState<string>("");
+	const [requisitionDetail, setRequisitionDetail] = useState<GetPurchaseRequestResponse | null>(null);
 
-   const totalRecords = 0;
+	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
+		company_id: companyId,
+		module_code: moduleCode,
+		branch_id: currentBranchId,
+		request_type: Number(PurchaseRequestEnum.Requisition.value),
+		page_number: 1,
+		page_size: PAGE_SIZE,
+	});
 
-   const handleClearFilters = () => {
-      setRequisitionNumber("");
-      setRequesterName("");
-      setStatus("");
-      setCurrentPage(1);
-   };
+	const { GetPurchaseRequests } = usePurchase({
+		getPurchaseRequestsPayload: {
+			...filters,
+			company_id: companyId,
+			module_code: moduleCode,
+			branch_id: currentBranchId,
+			request_type: Number(PurchaseRequestEnum.Requisition.value),
+			page_size: PAGE_SIZE,
+		},
+	});
 
-   const handlePageChange = useCallback((page: number) => {
-      setCurrentPage(page);
-   }, []);
+	const purchaseRequests = GetPurchaseRequests.data?.data ?? [];
+	const totalRecords = GetPurchaseRequests.data?.total ?? 0;
+	const currentPage = filters.page_number ?? 1;
 
-   const onEditRequisition = (data: any) => {
-      setIsRequisitionModalOpen(true);
-   };
+	useEffect(() => {
+		setFilters({
+			company_id: companyId,
+			module_code: moduleCode,
+			branch_id: currentBranchId,
+			request_type: Number(PurchaseRequestEnum.Requisition.value),
+			page_number: 1,
+			page_size: PAGE_SIZE,
+		});
+		setRequisitionNumber("");
+		setStatus("");
+	}, [currentBranchId, companyId, moduleCode]);
 
-   const onViewDetails = (data: any) => {
-      console.log(data);
-   };
+	const administratorOptions = (row: GetPurchaseRequestResponse): ContextMenuItem[] =>
+		[
+			{ label: "Editar", onClick: () => onEditRequisition(row) },
+			{ label: "Ver detalle", onClick: () => onViewDetails(row) },
+			{ label: "Eliminar", onClick: () => onDeleteRequisition(row) }
+		];
 
+	const managerOptions = (row: GetPurchaseRequestResponse): ContextMenuItem[] =>
+		[
+			{ label: "Editar", onClick: () => onEditRequisition(row) },
+			{ label: "Ver detalle", onClick: () => onViewDetails(row) }
+		];
 
+	const operatorOptions = (row: GetPurchaseRequestResponse): ContextMenuItem[] =>
+		[
+			{ label: "Ver detalle", onClick: () => onViewDetails(row) }
+		];
 
-   const columnConfig: TableColumn<any>[] = useMemo(
-      () => [
-         { key: "requisition_number", label: "N° Requisición" },
-         { key: "requester_name", label: "Solicitante" },
-         { key: "area_name", label: "Área" },
-         { key: "required_date", label: "Fecha límite" },
-         { key: "status", label: "Estado" },
-         {
-            key: "actions",
-            label: "Acciones",
-            render: (row: any) => (
-               <ContextMenu
-                  items={[
-                     { label: "Editar", onClick: () => onEditRequisition(row) },
-                     { label: "Ver detalle", onClick: () => onViewDetails(row) },
-                  ]}
-               />
-            ),
-         },
-      ],
-      [],
-   );
+	const mapContextMenuOptions = new Map<RoleEnum, (row: GetPurchaseRequestResponse) => ContextMenuItem[]>([
+		[RoleEnum.ADMINISTRATOR, administratorOptions],
+		[RoleEnum.MANAGER, managerOptions],
+		[RoleEnum.OPERATOR, operatorOptions]
+	]);
 
-   return (
-      <div>
-         <Button
-            type="button"
-            size="giant"
-            label="Crear Requisición"
-            icon={<PackagePlusIcon size={20} />}
-            className="w-full! md:w-auto! mb-4! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-            onClick={() => {
-               setIsRequisitionModalOpen(true);
-            }}
-         />
+	const contexMenuOptions: ((row: GetPurchaseRequestResponse) => ContextMenuItem[]) =
+		mapContextMenuOptions.get(role as RoleEnum)!;
 
-         <div className="flex justify-between items-center pt-4 pb-4 border-t border-t-slate-600 dark:border-t-neutral-600">
-            <div className="flex flex-col justify-center">
-               <h3 className="p-0! m-0!">Filtros</h3>
-            </div>
-         </div>
+	const handleApplyFilters = () => {
+		setFilters((prev) => ({
+			...prev,
+			company_id: companyId,
+			module_code: moduleCode,
+			branch_id: currentBranchId,
+			request_type: Number(PurchaseRequestEnum.Requisition.value),
+			code: requisitionNumber.trim() || undefined,
+			page_number: 1,
+			page_size: PAGE_SIZE,
+		}));
+	};
 
-         <form
-            onSubmit={(event) => {
-               event.preventDefault();
-            }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end mb-4!"
-         >
-            <InputText
-               label="N° Requisición"
-               placeholder="Ej. REQ-2026-001"
-               className={inputClassName}
-               labelClassName={labelClassName}
-               value={requisitionNumber}
-               onChange={(event) => setRequisitionNumber(event.target.value)}
-            />
+	const handleClearFilters = () => {
+		setRequisitionNumber("");
+		setStatus("");
+		setFilters({
+			company_id: companyId,
+			module_code: moduleCode,
+			branch_id: currentBranchId,
+			request_type: Number(PurchaseRequestEnum.Requisition.value),
+			page_number: 1,
+			page_size: PAGE_SIZE,
+		});
+	};
 
-            <InputText
-               label="Solicitante"
-               placeholder="Ej. Juan Pérez"
-               className={inputClassName}
-               labelClassName={labelClassName}
-               value={requesterName}
-               onChange={(event) => setRequesterName(event.target.value)}
-            />
+	const handlePageChange = useCallback((page: number) => {
+		setFilters((prev) => ({
+			...prev,
+			page_number: page,
+		}));
+	}, []);
 
-            <Dropdown
-               label="Estado"
-               placeholder="Seleccione..."
-               appearance="dark"
-               options={[]}
-               value={status}
-               onChange={(value) => setStatus(String(value))}
-               className={dropdownClassName}
-               labelClassName={labelClassName}
-               valueClassName={labelClassName}
-            />
+	const onEditRequisition = (data: GetPurchaseRequestResponse) => {
+		console.log(data);
+		setIsRequisitionModalOpen(true);
+	};
 
-            <Button
-               type="submit"
-               size="giant"
-               label="Aplicar filtros"
-               className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-            />
+	const onViewDetails = (data: GetPurchaseRequestResponse) => {
+		setRequisitionDetail(data);
+		setIsRequisitionDetailModalOpen(true)
+	};
 
-            <Button
-               type="button"
-               size="giant"
-               label="Limpiar filtros"
-               onClick={handleClearFilters}
-               className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
-            />
-         </form>
+	const onDeleteRequisition = (data: GetPurchaseRequestResponse) => {
+		console.log(data);
+	};
 
-         <div className="flex flex-col">
-            <DataTable
-               title="Lista de requisiciones"
-               data={[]}
-               columns={columnConfig}
-               pagination={
-                  <Pagination
-                     currentPage={currentPage}
-                     pageSize={PAGE_SIZE}
-                     totalRecords={totalRecords}
-                     onPageChange={handlePageChange}
-                  />
-               }
-            />
-         </div>
+	const columnConfig: TableColumn<GetPurchaseRequestResponse>[] = useMemo(
+		() => [
+			{ key: "code", label: "Código" },
+			{ key: "request_date", label: "Fecha de Solicitud" },
+			{ key: "request_status", label: "Estado" },
+			{ key: "request_type", label: "Tipo" },
+			{ key: "revision_date", label: "Fecha de revisión" },
+			{
+				key: "actions",
+				label: "Acciones",
+				render: (row: GetPurchaseRequestResponse) => (
+					<ContextMenu items={contexMenuOptions(row)} />
+				)
+			},
+		],
+		[],
+	);
 
-         <PurchaseRequestModal
-            isOpen={isRequisitionModalOpen}
-            onClose={() => {
-               setIsRequisitionModalOpen(false);
-            }}
-            onSubmit={(_payload) => {
-               setIsRequisitionModalOpen(false);
-               onRequestSuccess("Requisición guardada correctamente.");
-            }}
-            onRequestError={onRequestError}
-            currentBranchId={currentBranchId}
-            requestType={PurchaseRequestEnum.Requisition}
-         />
+	return (
+		<div>
+			{GetPurchaseRequests.isPending && (
+				<Loader title="Cargando requisiciones..." />
+			)}
 
-      </div>
-   );
-} 
+			<Button
+				type="button"
+				size="giant"
+				label="Crear Requisición"
+				icon={<PackagePlusIcon size={20} />}
+				className="w-full! md:w-auto! mb-4! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+				onClick={() => {
+					setIsRequisitionModalOpen(true);
+				}}
+			/>
+
+			<div className="flex justify-between items-center pt-4 pb-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+				<div className="flex flex-col justify-center">
+					<h3 className="p-0! m-0!">Filtros</h3>
+				</div>
+			</div>
+
+			<form
+				onSubmit={(event) => {
+					event.preventDefault();
+					handleApplyFilters();
+				}}
+				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end mb-4!"
+			>
+				<InputText
+					label="N° Requisición"
+					placeholder="Ej. REQ-2026-001"
+					className={inputClassName}
+					labelClassName={labelClassName}
+					value={requisitionNumber}
+					onChange={(event) => setRequisitionNumber(event.target.value)}
+				/>
+
+				<Dropdown
+					label="Estado"
+					placeholder="Seleccione..."
+					appearance="dark"
+					options={[]}
+					value={status}
+					onChange={(value) => setStatus(String(value))}
+					className={dropdownClassName}
+					labelClassName={labelClassName}
+					valueClassName={labelClassName}
+				/>
+
+				<Button
+					type="submit"
+					size="giant"
+					label="Aplicar filtros"
+					className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+				/>
+
+				<Button
+					type="button"
+					size="giant"
+					label="Limpiar filtros"
+					onClick={handleClearFilters}
+					className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+				/>
+			</form>
+
+			<div className="flex flex-col">
+				<DataTable
+					title="Lista de requisiciones"
+					data={purchaseRequests}
+					columns={columnConfig}
+					pagination={
+						<Pagination
+							currentPage={currentPage}
+							pageSize={PAGE_SIZE}
+							totalRecords={totalRecords}
+							onPageChange={handlePageChange}
+							disabled={GetPurchaseRequests.isFetching}
+						/>
+					}
+				/>
+			</div>
+
+			<PurchaseRequestModal
+				isOpen={isRequisitionModalOpen}
+				onClose={() => setIsRequisitionModalOpen(false)}
+				onRequestSuccess={onRequestSuccess}
+				onRequestError={onRequestError}
+				currentBranchId={currentBranchId}
+				requestType={PurchaseRequestEnum.Requisition}
+			/>
+
+			<PurchaseRequestDetailModal
+				isOpen={isRequisitionDetailModalOpen}
+				onClose={() => setIsRequisitionDetailModalOpen(false)}
+				purchaseRequest={requisitionDetail!}
+			/>
+		</div>
+	);
+};

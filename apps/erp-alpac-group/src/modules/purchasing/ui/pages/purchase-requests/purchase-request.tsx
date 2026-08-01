@@ -15,7 +15,6 @@ import { RequisitionTab } from "./components/tabs/requisition-tab/requisition-ta
 import { MonthlyMaterialTab } from "./components/tabs/monthly-materials-tab/monthly-materials-tab";
 import { OccasionalMaterialTab } from "./components/tabs/occasional-materials-tab/occasional-materials-tab";
 import { SelectBranchModal } from "./components/select-branch-modal/select-branch-modal";
-import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 
 export const PurchaseRequest = () => {
 	const navigate = useNavigate();
@@ -43,7 +42,7 @@ export const PurchaseRequest = () => {
 	}, [baseUrl, isBranchSelected, navigate]);
 
 	const handleBranchConfirm = useCallback(
-		(branchId: string, branchName: string) => {
+		(branchId: string, branchName: string) => {			
 			setSelectedBranchId(branchId);
 			setSelectedBranchName(branchName);
 			setIsBranchModalOpen(false);
@@ -135,12 +134,12 @@ export const PurchaseRequest = () => {
 							size="giant"
 							label="Cambiar sucursal"
 							onClick={() => setIsBranchModalOpen(true)}
-							className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+							className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-primary!"
 						/>
 					</div>
 
 					<div className="relative mx-auto w-full rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
-						<Tabs tabItems={tabs ?? []} activeTab="requisitions" />
+						<Tabs tabItems={tabs ?? []} activeTab="requisitions" animation="slide"/>
 					</div>
 				</>
 			) : null}

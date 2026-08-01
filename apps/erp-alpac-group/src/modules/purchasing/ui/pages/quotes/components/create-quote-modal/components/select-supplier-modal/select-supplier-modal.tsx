@@ -8,14 +8,14 @@ import {
 	RadioButton,
 	type TableColumn,
 } from "@alpac/design-system";
-import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/suppliers/get-suppliers-response";
-import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/get-suppliers-request";
+import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
 import {
 	quoteFormPrimaryButtonClassName,
 	quoteFormSecondaryButtonClassName,
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { useSuppliers } from "@app/modules/purchasing/ui/hooks/suppliers/useSuppliers";
+import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
 import { Loader } from "@app/shared/components/loaders/loader";
 
 type SelectSupplierModalProps = {
@@ -51,7 +51,7 @@ export function SelectSupplierModal({
 		page_size: PAGE_SIZE,
 	});
 
-	const { GetSuppliers } = useSuppliers({
+	const { GetSuppliers } = useSupplier({
 		suppliersFilters: filters,
 	});
 

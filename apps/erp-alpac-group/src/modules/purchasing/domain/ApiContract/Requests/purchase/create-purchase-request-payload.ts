@@ -1,5 +1,8 @@
 
-export interface CreatePurchaseApplicationRequest {
+export interface CreatePurchaseRequestPayload {
+   company_id: string;
+   module_code: string;
+   area_id?: string;
    branch_id: string;
    request_date: string;
    request_type: number;
@@ -9,7 +12,7 @@ export interface CreatePurchaseApplicationRequest {
 
 export interface RequestedProduct {
    quantity: number;
-   quantity_unit?: number;   
+   quantity_unit?: number;
    unit_measure_id: string;
    product_id: string;
    justification?: string;

@@ -109,6 +109,12 @@ export const routeConfig = {
       quotesSection,
       quoteAnalisysSection,
       purchaseOrderSection
-    ]
+    ],
+    [RoleEnum.MANAGER]: [
+      purchaseRequestSection,
+    ],
+    [RoleEnum.OPERATOR]: [
+      purchaseRequestSection,
+    ],
   }
 };

@@ -1,10 +1,10 @@
 import type { IHttpHandler } from "@app/core/ports";
-import type { ISupplierServices } from "@app/modules/purchasing/application/interfaces/suppliers/ISuppliersServices";
-import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/create-supplier-request";
-import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/get-suppliers-request";
-import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/update-suppliers-request";
-import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/suppliers/create-supplier-response";
-import type { GetSuppliersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/suppliers/get-suppliers-response";
+import type { ISupplierServices } from "@app/modules/purchasing/application/interfaces/supplier/ISuppliersServices";
+import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/create-supplier-request";
+import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
+import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
+import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
+import type { GetSuppliersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
 import { cleanParams } from "@app/shared/utils/object.utils";
 
 export class SupplierServices implements ISupplierServices {

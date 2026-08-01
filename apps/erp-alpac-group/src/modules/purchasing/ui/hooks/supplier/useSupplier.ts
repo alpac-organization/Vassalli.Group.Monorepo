@@ -1,10 +1,10 @@
 import { httpHandler } from "@app/core/adapters";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/create-supplier-request";
-import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/get-suppliers-request";
-import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/suppliers/update-suppliers-request";
-import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/suppliers/create-supplier-response";
-import { SupplierServices } from "@app/modules/purchasing/infrastructure/services/suppliers/SupplierServices";
+import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/create-supplier-request";
+import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
+import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
+import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
+import { SupplierServices } from "@app/modules/purchasing/infrastructure/services/supplier/SupplierServices";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const suppliersServices = new SupplierServices(httpHandler);
@@ -13,7 +13,7 @@ type useSuppliersProps = {
 	suppliersFilters?: GetSuppliersRequest;
 };
 
-export const useSuppliers = (props?: useSuppliersProps) => {
+export const useSupplier = (props?: useSuppliersProps) => {
 
 	const queryClient = useQueryClient();
 
@@ -30,9 +30,9 @@ export const useSuppliers = (props?: useSuppliersProps) => {
 		queryFn: () => suppliersServices.getSuppliers(suppliersFilters!),
 		staleTime: 1000 * 60 * 2,
 		enabled: suppliersListEnabled,
-		retry: 1,
 		refetchOnWindowFocus: false,
 		refetchOnMount: false,
+		retry: 1,
 	});
 
 	const CreateSupplier = useMutation<CreateSupplierResponse, ApiErrorResponse, CreateSupplierRequest>({

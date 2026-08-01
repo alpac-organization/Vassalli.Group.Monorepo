@@ -4,7 +4,7 @@ import type { TextareaProps } from "./textarea.types";
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
    (
-      { label, labelClassName, error, className, id: idProp, isRequired, enableCharacterCount, maxLength, ...rest },
+      { label, labelClassName, error, className, id: idProp, isRequired, enableCharacterCount, maxLength = 500, ...rest },
       ref,
    ) => {
 
@@ -47,16 +47,15 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                }}
                maxLength={maxLength}
             />
-            <div className="flex flex-col justify-between">
-               {error ? (
-                  <span className="ml-1 mt-0.5 text-[14px] font-medium text-red-500 dark:text-red-400">
-                     {error}
-                  </span>
-               ) : null}
-
+            <div className="flex flex-row gap-4 items-center">
                {enableCharacterCount ? (
                   <span className="ml-1 mt-0.5 text-xs font-medium text-white dark:text-gray-400">
-                     Carácteres restantes {maxLength - count} / {maxLength}
+                     Carácteres restantes {maxLength - count} / {maxLength} {error ? ":" : ""}
+                  </span>
+               ) : null}
+               {error ? (
+                  <span className="ml-1 mt-0.5 text-[13px] font-medium text-red-500 dark:text-red-400">
+                     {error}
                   </span>
                ) : null}
             </div>
