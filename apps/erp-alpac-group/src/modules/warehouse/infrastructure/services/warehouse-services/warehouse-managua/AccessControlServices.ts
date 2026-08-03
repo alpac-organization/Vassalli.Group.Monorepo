@@ -40,7 +40,6 @@ export class AccessControlServices implements IAccessControl {
   ): Promise<void> {
     const { company_id, module_code, ...rest } = payload;
     const url = `/companies/${company_id}/modules/${module_code}/reception-entrances`;
-    console.log(" body POST", rest);
     return this.httpHandler.post<void>(url, rest);
   }
 

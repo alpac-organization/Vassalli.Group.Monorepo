@@ -11,7 +11,6 @@ export type GateEntryFormValues = {
   transportista: string;
   consignee: string;
   sealNumber: string;
-  medio: string;
   transportUnitId: string;
   customsDeclarationNumber: string;
   packages: string;
@@ -39,7 +38,6 @@ export const GATE_ENTRY_DEFAULT_VALUES: GateEntryFormValues = {
   transportista: "",
   consignee: "",
   sealNumber: "",
-  medio: "Furgón",
   transportUnitId: "",
   customsDeclarationNumber: "",
   packages: "",

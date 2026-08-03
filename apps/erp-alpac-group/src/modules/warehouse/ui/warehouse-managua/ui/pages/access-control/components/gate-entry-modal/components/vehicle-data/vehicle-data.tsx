@@ -4,7 +4,11 @@ import {
   gateEntryLabelClassName,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
 import type { VehicleDataStepProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/vehicle-data/types/vehicle-data.props";
-import { validateOnlyLettersWithAccentsAndDiacritics } from "@app/shared/utils/string.utils";
+import {
+  validateOnlyLettersWithAccentsAndDiacritics,
+  isAlfaNumericValue,
+  isNumericValueWithHyphen,
+} from "@app/shared/utils/string.utils";
 import { useEffect, useMemo, useState } from "react";
 import { DocumentEnum, type DocumentType } from "@app/core/enums/document.enum";
 
@@ -51,24 +55,17 @@ export function VehicleDataStep({
 
   const handleTransportUnitChange = (value: string | number) => {
     const id = String(value);
-    const selected = vehicleOptions.find((vehicle) => vehicle.id === id);
 
     setValue("transportUnitId", id, {
       shouldValidate: true,
       shouldDirty: true,
     });
-
-    if (selected?.name) {
-      setValue("medio", selected.name, {
-        shouldDirty: true,
-      });
-    }
   };
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-3 px-2">
-      <div className="sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-3">
-        <div className="flex flex-col">
+      <div className="sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-3 items-start">
+        <div className="flex flex-col min-w-0">
           <span className={gateEntryLabelClassName}>Modalidad de acceso</span>
           <div className="flex flex-row gap-4 items-center h-12">
             <RadioButton
@@ -81,9 +78,9 @@ export function VehicleDataStep({
         </div>
 
         {selectedModality === "reception" && (
-          <div className="flex flex-col sm:col-span-2">
+          <div className="flex flex-col min-w-0">
             <span className={gateEntryLabelClassName}>Tipo de documento</span>
-            <div className="flex flex-row flex-wrap gap-4 items-center min-h-12">
+            <div className="flex flex-row flex-wrap gap-3 sm:gap-4 items-center min-h-12">
               <RadioButton
                 label="DUCA"
                 value={DocumentEnum.DUCA.value}
@@ -153,6 +150,10 @@ export function VehicleDataStep({
         {...register("aduana", {
           required: "La Aduana de ingreso es obligatoria.",
           setValueAs: (value: string) => value?.trim(),
+          validate: {
+            onlyLetters: (value: string) =>
+              validateOnlyLettersWithAccentsAndDiacritics(value || "", true),
+          },
         })}
         error={errors.aduana?.message}
       />
@@ -165,6 +166,12 @@ export function VehicleDataStep({
         {...register("plateNumber", {
           required: "El número de placa es obligatorio.",
           setValueAs: (value: string) => value?.trim(),
+          validate: (value: string) => {
+            if (!isAlfaNumericValue(value)) {
+              return "Digite un número de placa válido.";
+            }
+            return true;
+          },
         })}
         error={errors.plateNumber?.message}
       />
@@ -177,6 +184,12 @@ export function VehicleDataStep({
         {...register("trailerChassis", {
           required: "El número de chasis/remolque es obligatorio.",
           setValueAs: (value: string) => value?.trim(),
+          validate: (value: string) => {
+            if (!isAlfaNumericValue(value)) {
+              return "Digite un número de chasis/remolque válido.";
+            }
+            return true;
+          },
         })}
         error={errors.trailerChassis?.message}
       />
@@ -205,6 +218,12 @@ export function VehicleDataStep({
         {...register("driverLicense", {
           required: "La licencia del conductor es obligatoria.",
           setValueAs: (value: string) => value?.trim(),
+          validate: (value: string) => {
+            if (!isAlfaNumericValue(value)) {
+              return "Digite un número de licencia válido.";
+            }
+            return true;
+          },
         })}
         error={errors.driverLicense?.message}
       />
@@ -217,6 +236,10 @@ export function VehicleDataStep({
         {...register("transportista", {
           required: "La empresa transportista es requerida.",
           setValueAs: (value: string) => value?.trim(),
+          validate: {
+            onlyLetters: (value: string) =>
+              validateOnlyLettersWithAccentsAndDiacritics(value || "", true),
+          },
         })}
         error={errors.transportista?.message}
       />
@@ -229,6 +252,12 @@ export function VehicleDataStep({
         {...register("sealNumber", {
           required: "El número de marchamo es obligatorio.",
           setValueAs: (value: string) => value?.trim(),
+          validate: (value: string) => {
+            if (!isNumericValueWithHyphen(value)) {
+              return "Digite un número de sello válido.";
+            }
+            return true;
+          },
         })}
         error={errors.sealNumber?.message}
       />
