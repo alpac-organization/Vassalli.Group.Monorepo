@@ -1,4 +1,3 @@
-
 export const gateEntryLabelClassName = "text-black! dark:text-white!";
 
 export const gateEntryInputClassName =

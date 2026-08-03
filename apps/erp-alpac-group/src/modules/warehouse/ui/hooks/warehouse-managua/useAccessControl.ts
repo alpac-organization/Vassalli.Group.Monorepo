@@ -103,7 +103,7 @@ export const useAccessControl = (props: UseAccessControlProps) => {
     ),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
     retry: 1,
   });
 
