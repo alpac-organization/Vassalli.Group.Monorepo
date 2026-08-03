@@ -220,12 +220,14 @@ export function GateEntryModal({
         panelClassName={[
           "flex! flex-col!",
           currentStep === 1 && isDucaDocument
-            ? "max-h-[min(85dvh,36rem)]!"
+            ? fields.length === 0
+              ? "max-xl:min-h-[min(58dvh,30rem)]! max-xl:max-h-[min(85dvh,40rem)]! xl:min-h-[min(58dvh,34rem)]! xl:max-h-[min(80dvh,40rem)]!"
+              : "max-xl:max-h-[min(78dvh,36rem)]! xl:min-h-[min(55dvh,32rem)]! xl:max-h-[min(80dvh,40rem)]!"
             : "max-h-[min(92dvh,60rem)]!",
           "overflow-hidden!",
           "p-4! sm:p-6!",
           "w-[calc(100%-1rem)]! sm:w-full!",
-          "transition-[max-width,max-height] duration-300 ease-out!",
+          "transition-[max-width,max-height,min-height] duration-300 ease-out!",
           "[&>div:last-of-type]:flex-1!",
           "[&>div:last-of-type]:min-h-0!",
           "[&>div:last-of-type]:flex!",
@@ -241,7 +243,9 @@ export function GateEntryModal({
           }}
           className="flex flex-col flex-1 min-h-0 h-full overflow-hidden"
         >
-          <div className="shrink-0 px-1 mb-12">
+          <div
+            className={`shrink-0 px-1 ${currentStep === 1 ? "mb-5 sm:mb-6" : "mb-12"}`}
+          >
             <Stepper
               steps={stepperLabels}
               currentStep={currentStep}
@@ -250,7 +254,7 @@ export function GateEntryModal({
           </div>
 
           {currentStep === 1 && isDucaDocument ? (
-            <div className="shrink-0 z-20 grid grid-cols-2 gap-2 py-2 px-1 mb-1 bg-white dark:bg-[#272b34] border-b border-slate-200 dark:border-neutral-700 sm:flex sm:justify-end sm:items-center sm:gap-4 sm:border-b-0 sm:mb-0">
+            <div className="shrink-0 z-20 grid grid-cols-2 gap-2 py-2 px-1 mb-1 bg-white dark:bg-[#272b34] border-b border-slate-200 dark:border-neutral-700 sm:flex sm:justify-center sm:items-center sm:gap-4 sm:border-b-0 sm:mb-0">
               <Button
                 type="button"
                 label="Eliminar todas"
@@ -274,9 +278,12 @@ export function GateEntryModal({
           <div
             className={[
               "relative flex-1 min-h-0",
+              currentStep === 1 && isDucaDocument && fields.length === 0
+                ? "flex flex-col max-xl:[&>div]:flex-1 max-xl:[&>div]:flex max-xl:[&>div]:flex-col max-xl:[&>div]:min-h-0 max-xl:[&>div]:h-full"
+                : "",
               "overflow-x-hidden overflow-y-auto",
               "overscroll-contain scrollbar-dashboard",
-              "py-2 sm:py-1 pr-1",
+              "py-2 sm:py-1 px-1",
             ].join(" ")}
           >
             <AnimatePresence mode="wait" custom={stepDirection} initial={false}>
@@ -310,7 +317,11 @@ export function GateEntryModal({
                   animate="center"
                   exit="exit"
                   transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
-                  className="flex flex-col gap-4"
+                  className={
+                    isDucaDocument && fields.length === 0
+                      ? "flex flex-1 flex-col h-full min-h-0"
+                      : "flex flex-col gap-4"
+                  }
                 >
                   {isDucaDocument && (
                     <Ducat
@@ -333,7 +344,7 @@ export function GateEntryModal({
             </AnimatePresence>
           </div>
 
-          <div className="shrink-0 sticky bottom-0 z-10 bg-white dark:bg-[#272b34] grid grid-cols-2 gap-2 sm:flex sm:flex-nowrap sm:justify-end sm:items-center sm:gap-3 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-600 dark:border-neutral-600">
+          <div className="shrink-0 sticky bottom-0 z-10 bg-white dark:bg-[#272b34] grid grid-cols-2 gap-2 sm:flex sm:flex-nowrap sm:justify-center xl:justify-end sm:items-center sm:gap-3 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-slate-600 dark:border-neutral-600">
             {currentStep === 0 ? (
               <>
                 <Button
