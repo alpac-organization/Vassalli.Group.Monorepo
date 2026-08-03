@@ -3,7 +3,7 @@ import {
   gateEntryInputClassName,
   gateEntryLabelClassName,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
-import type { CustomsDeclarationProps } from "./customs-declaration.types";
+import type { CustomsDeclarationProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/customs-declaration/customs-declaration.types";
 
 export function CustomsDeclaration({
   register,

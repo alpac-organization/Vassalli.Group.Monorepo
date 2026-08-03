@@ -4,10 +4,7 @@ import {
   gateEntryLabelClassName,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
 import type { VehicleDataStepProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/vehicle-data/types/vehicle-data.props";
-import {
-  formatCodeAduana,
-  validateOnlyLettersWithAccentsAndDiacritics,
-} from "@app/shared/utils/string.utils";
+import { validateOnlyLettersWithAccentsAndDiacritics } from "@app/shared/utils/string.utils";
 import { useEffect, useMemo, useState } from "react";
 import { DocumentEnum, type DocumentType } from "@app/core/enums/document.enum";
 
@@ -156,13 +153,6 @@ export function VehicleDataStep({
         {...register("aduana", {
           required: "La Aduana de ingreso es obligatoria.",
           setValueAs: (value: string) => value?.trim(),
-          onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-            const formatted = formatCodeAduana(e.target.value);
-            setValue("aduana", formatted, {
-              shouldValidate: true,
-              shouldDirty: true,
-            });
-          },
         })}
         error={errors.aduana?.message}
       />
