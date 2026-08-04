@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import {
 	Alert,
 	AnimatedAlertWrapper,
+	Badges,
 	Button,
 	ContextMenu,
 	DataTable,
@@ -11,7 +12,6 @@ import {
 	type TableColumn,
 } from "@alpac/design-system";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { PackagePlusIcon } from "lucide-react";
 import { SupplierModal } from "./components/supplier-modal/supplier-modal";
 import { ConstitutionEnum, ConstitutionOptions } from "@app/core/enums/constitution.enum";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -21,6 +21,9 @@ import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiCon
 import { Loader } from "@app/shared/components/loaders/loader";
 import { Controller, useForm } from "react-hook-form";
 import { formatIdentificationNumber, formatRuc } from "@app/shared/utils/string.utils";
+import { getIdentificationTypeBadgeColor } from "./utils/identificationTypeBadgeColor";
+import { getConstitutionTypeBadgeColor } from "./utils/constitutionTypeBadgeColor";
+import { PackagePlusIcon } from "lucide-react";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -109,9 +112,36 @@ export const Supplier = () => {
 	const columnConfig: TableColumn<GetSuppliersResponse>[] = useMemo(
 		() => [
 			{ key: "supplier_legal_name", label: "Razón social" },
-			{ key: "identification_type", label: "Tipo de identificación" },
+			{
+				key: "identification_type",
+				label: "Tipo de identificación",
+				render(row: GetSuppliersResponse) {
+					if (row.identification_type === undefined || row.identification_type === null || Number(row.identification_type) === 0) {
+						return "—";
+					}
+					return (
+						<Badges label={row.identification_type ?? ""}
+							color={getIdentificationTypeBadgeColor(row.identification_type ?? "")}
+						/>
+					)
+				}
+			},
 			{ key: "identification_number", label: "Número de identificación" },
-			{ key: "constitution_type", label: "Tipo de constitución" },
+			{
+				key: "constitution_type",
+				label: "Tipo de constitución",
+				render(row: GetSuppliersResponse) {
+					if (row.constitution_type === undefined || row.constitution_type === null || Number(row.constitution_type) === 0) {
+						return "—";
+					}
+					return (
+						<Badges
+							label={row.constitution_type ?? ""}
+							color={getConstitutionTypeBadgeColor(row.constitution_type ?? "")}
+						/>
+					);
+				},
+			},
 			{
 				key: "actions",
 				label: "Acciones",
@@ -121,7 +151,7 @@ export const Supplier = () => {
 							{ label: "Editar", onClick: () => onEditSupplier(row) },
 							{ label: "Ver detalle", onClick: () => onViewDetails(row) },
 						]}
-						triggerClassName={contextMenuButton}
+						triggerClassName={contextMenuButton}						
 					/>
 				),
 			},
