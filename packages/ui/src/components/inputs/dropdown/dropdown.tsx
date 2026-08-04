@@ -1,21 +1,24 @@
 import { DropdownProps, type Option } from "./dropdown.types";
+import { ErrorTooltip } from "../shared/error-tooltip";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
 import { m, LazyMotion, AnimatePresence } from "framer-motion";
+import { forwardRef, useState, useRef, useEffect, useCallback, CSSProperties } from "react";
 import { createPortal } from "react-dom";
-import {
-  forwardRef,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  type CSSProperties,
-} from "react";
 
-function sameValue(a: unknown, b: unknown) {
-  return String(a ?? "") === String(b ?? "");
-}
+type MenuPosition = {
+  top?: number;
+  bottom?: number;
+  left: number;
+  width: number;
+  maxHeight: number;
+  placement: "bottom" | "top";
+};
+
+const MENU_GAP = 4;
+const MENU_MAX_HEIGHT = 240; // max-h-60
+const VIEWPORT_PADDING = 8;
 
 export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
   (
@@ -24,6 +27,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
       options,
       placeholder,
       error,
+      errorVariant = "text",
       onChange,
       value,
       className,
@@ -40,43 +44,51 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [activeIndex, setActiveIndex] = useState(-1);
-    const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
+    const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);    
     const containerRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLDivElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLUListElement>(null);
 
-    const selectedOption = options.find((opt) => sameValue(opt.value, value));
+    const selectedOption = options.find((opt) => opt.value === value);
 
     const updateMenuPosition = useCallback(() => {
-      const el = triggerRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const gap = 4;
-      const maxHeight = 240;
-      const spaceBelow = window.innerHeight - rect.bottom - gap;
-      const openUp = spaceBelow < 160 && rect.top > spaceBelow;
+      const trigger = triggerRef.current;
+      if (!trigger) return;
 
-      setMenuStyle({
-        position: "fixed",
+      const rect = trigger.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom - VIEWPORT_PADDING;
+      const spaceAbove = rect.top - VIEWPORT_PADDING;
+      const placement =
+        spaceBelow < Math.min(MENU_MAX_HEIGHT, 160) && spaceAbove > spaceBelow
+          ? "top"
+          : "bottom";
+
+      const availableHeight = placement === "bottom" ? spaceBelow : spaceAbove;
+      const maxHeight = Math.max(
+        120,
+        Math.min(MENU_MAX_HEIGHT, availableHeight - MENU_GAP),
+      );
+
+      setMenuPosition({
+        ...(placement === "bottom"
+          ? { top: rect.bottom + MENU_GAP }
+          : { bottom: window.innerHeight - rect.top + MENU_GAP }),
         left: rect.left,
         width: rect.width,
-        zIndex: 9999,
         maxHeight,
-        ...(openUp
-          ? { bottom: window.innerHeight - rect.top + gap }
-          : { top: rect.bottom + gap }),
+        placement,
       });
     }, []);
 
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         const target = event.target as Node;
-        if (
-          containerRef.current &&
-          !containerRef.current.contains(target) &&
-          !(target instanceof Element && target.closest("[data-dropdown-menu]"))
-        ) {
+        const clickedInsideTrigger = containerRef.current?.contains(target);
+        const clickedInsideMenu = menuRef.current?.contains(target);
+
+        if (!clickedInsideTrigger && !clickedInsideMenu) {
           setIsOpen(false);
         }
       };
@@ -90,16 +102,23 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
       if (!isOpen) {
         setSearchTerm("");
         setActiveIndex(-1);
+        setMenuPosition(null);
         return;
       }
+
       updateMenuPosition();
-      const onScrollOrResize = () => updateMenuPosition();
-      window.addEventListener("resize", onScrollOrResize);
-      window.addEventListener("scroll", onScrollOrResize, true);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+
+      const handleReposition = () => updateMenuPosition();
+
+      window.addEventListener("resize", handleReposition);
+      window.addEventListener("scroll", handleReposition, true);
+
       return () => {
-        window.removeEventListener("resize", onScrollOrResize);
-        window.removeEventListener("scroll", onScrollOrResize, true);
+        window.removeEventListener("resize", handleReposition);
+        window.removeEventListener("scroll", handleReposition, true);
       };
     }, [isOpen, updateMenuPosition]);
 
@@ -180,11 +199,10 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
             onEditOption(option);
             setIsOpen(false);
           }}
-          className={`h-7 w-7 flex items-center justify-center rounded-md border transition-colors ${
-            isDarkSurface
+          className={`h-7 w-7 flex items-center ml-auto! justify-center rounded-md border transition-colors ${isDarkSurface
               ? "border-slate-500/40 text-slate-300 hover:text-white hover:border-blue-400 hover:bg-blue-500/10"
               : "border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50"
-          }`}
+            }`}
         >
           <svg
             width="14"
@@ -207,62 +225,67 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     const optionAction = (option: Option) =>
       renderOptionAction?.(option) ?? defaultEditAction(option);
 
-    const menu = isOpen
-      ? createPortal(
+    const menuContent =
+      isOpen && menuPosition
+        ? createPortal(
           <LazyMotion features={loadFeatures} strict>
             <AnimatePresence>
               <m.div
-                data-dropdown-menu
-                initial={{ opacity: 0, y: -4 }}
+                ref={menuRef}
+                initial={{
+                  opacity: 0,
+                  y: menuPosition.placement === "bottom" ? -4 : 4,
+                }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
+                exit={{
+                  opacity: 0,
+                  y: menuPosition.placement === "bottom" ? -4 : 4,
+                }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
-                style={menuStyle}
-                className={`rounded-[12px] overflow-hidden ${menuSurface}`}
+                style={{
+                  position: "fixed",
+                  top: menuPosition.top,
+                  bottom: menuPosition.bottom,
+                  left: menuPosition.left,
+                  width: menuPosition.width,
+                  zIndex: 9999
+                }}
+                className={`rounded-xl overflow-hidden ${menuSurface}`}
               >
                 <ul
                   ref={listRef}
-                  className="max-h-60 overflow-y-auto py-1.5 px-0 m-0!"
+                  className="overflow-y-auto py-1.5 px-0 m-0!"
+                  style={{ maxHeight: menuPosition.maxHeight }}
                 >
                   {filteredOptions.length > 0 ? (
                     filteredOptions.map((option, index) => (
                       <li
-                        key={String(option.value ?? index)}
+                        key={option.value ?? index}
                         onClick={() => handleSelect(option.value)}
                         className={`
-                          px-3 sm:px-4 py-2.5 cursor-pointer text-[13px] sm:text-[14px] flex items-center justify-between gap-2 transition-colors
-                          ${
-                            sameValue(value, option.value)
-                              ? itemSelected
-                              : index === activeIndex
-                                ? isDarkSurface
-                                  ? "bg-slate-700/80 text-white"
-                                  : "bg-slate-100 text-slate-900"
-                                : itemBase
-                          }
-                        `}
+                                         px-4 py-2.5 cursor-pointer text-[14px] flex items-center gap-2 justify-between transition-colors
+                                         ${value === option.value ? itemSelected : index === activeIndex ? (isDarkSurface ? "bg-slate-700/80 text-white" : "bg-slate-100 text-slate-900") : itemBase}
+                                      `}
                       >
-                        <span className="truncate min-w-0 flex-1">
-                          {option.label}
-                        </span>
-                        <div className="flex shrink-0 items-center gap-1.5">
+                        <span className="truncate">{option.label}</span>
+                        <div className="flex shrink-0 items-center ml-auto! gap-1.5">
                           {optionAction(option)}
-                          {sameValue(value, option.value) && (
-                            <svg
-                              className={`w-4 h-4 ${checkIconClass}`}
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth="2.5"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="m4.5 12.75 6 6 9-13.5"
-                              />
-                            </svg>
-                          )}
                         </div>
+                        {value === option.value && (
+                          <svg
+                            className={`w-4 h-4 ${checkIconClass}`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="m4.5 12.75 6 6 9-13.5"
+                            />
+                          </svg>
+                        )}
                       </li>
                     ))
                   ) : (
@@ -276,7 +299,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           </LazyMotion>,
           document.body,
         )
-      : null;
+        : null;
 
     return (
       <div className="flex flex-col gap-1.5 w-full min-w-0" ref={containerRef}>
@@ -388,10 +411,16 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
                 />
               </m.svg>
             </div>
+
+            {error && errorVariant === "tooltip" && (
+              <ErrorTooltip message={error} anchorRef={triggerRef} />
+            )}
           </div>
         </LazyMotion>
-        {menu}
-        {error && (
+
+        {menuContent}
+
+        {error && errorVariant === "text" && (
           <span className="text-xs text-red-500 dark:text-red-400 font-medium ml-1">
             {error}
           </span>

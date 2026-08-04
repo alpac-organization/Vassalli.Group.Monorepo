@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { httpHandler } from "@app/core/adapters";
-import { QueryClient, useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import { AuthenticationServices } from "@app/modules/auth/infrastructure/services/AuthenticationServices";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -17,7 +17,7 @@ const authService = new AuthenticationServices(httpHandler);
 httpHandler.setAuthenticationService(authService);
 
 export const useAuth = function () {
-  const queryClient = new QueryClient();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const startLoginProcess = useMutation({
@@ -66,6 +66,7 @@ export const useAuth = function () {
       clearControlVacationsSelectionStorage();
       clearPayrollSelectionStorage();
       CookieStorageAdapter.clearAuth();
+      queryClient.clear();
 
       navigate("/auth", {
         replace: true,
@@ -75,6 +76,7 @@ export const useAuth = function () {
       clearControlVacationsSelectionStorage();
       clearPayrollSelectionStorage();
       CookieStorageAdapter.clearAuth();
+      queryClient.clear();
 
       navigate("/auth", {
         replace: true,

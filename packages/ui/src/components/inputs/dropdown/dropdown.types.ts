@@ -7,11 +7,14 @@ export interface Option {
 
 export type DropdownAppearance = "default" | "dark";
 
+export type ErrorVariant = "text" | "tooltip";
+
 export interface DropdownProps {
   label?: string;
   options: Option[];
   placeholder?: string;
   error?: string;
+  errorVariant?: ErrorVariant;
   name?: string;
   onChange?: (value: any) => void;
   value?: any;

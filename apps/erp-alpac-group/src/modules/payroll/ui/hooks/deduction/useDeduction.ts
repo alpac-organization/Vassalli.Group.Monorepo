@@ -46,7 +46,7 @@ export const useDeduction = () => {
     return useQuery<GetDeductionsResponse, ApiErrorResponse>({
       queryKey: [
         "deductions",
-        payload.companie_id,
+        payload.company_id,
         payload.module_code,
         payload.identification_number,
         payload.status,
@@ -66,7 +66,7 @@ export const useDeduction = () => {
     return useQuery<DeductionDetailsDto, ApiErrorResponse>({
       queryKey: [
         "deductionDetails",
-        payload.companie_id,
+        payload.company_id,
         payload.module_code,
         payload.deduction_id,
         payload.identification_number,
@@ -84,7 +84,7 @@ export const useDeduction = () => {
     return useQuery<GetDeductionPaymentsResponse, ApiErrorResponse>({
       queryKey: [
         "deductionPayments",
-        payload.companie_id,
+        payload.company_id,
         payload.module_code,
         payload.deduction_id,
         payload.page_number,

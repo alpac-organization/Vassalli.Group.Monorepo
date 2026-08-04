@@ -6,11 +6,9 @@ import {
   DeductionTypeEnum,
   type DeductionTypeEnum as DeductionTypeEnumType,
 } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-type.enum";
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
 
-export interface GetDeductionsRequest {
-  companie_id: string;
-  module_code: string;
-
+export interface GetDeductionsRequest extends BaseRequest {
   type?: keyof typeof DeductionTypeEnum | DeductionTypeEnumType | number;
   status?:
     | keyof typeof DeductionStatusEnum

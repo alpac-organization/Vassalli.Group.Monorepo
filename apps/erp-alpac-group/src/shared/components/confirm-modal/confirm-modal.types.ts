@@ -3,18 +3,20 @@ export type ConfirmActionProps = {
    type: ConfirmActionType;
    title: string;
    buttonActionLabel: string;
-   buttonActionClass: string;
+   buttonActionClass?: string;
+   buttonCancelClass?: string;
    isLoading?: boolean;
    disabled?: boolean;
+   hasReason?: boolean;
    onClose?: () => void;
-   handleFinalAction: (type: ConfirmActionType) => void;
+   handleFinalAction: (type: ConfirmActionType, reason?: string) => void;
 }
 
-export type ConfirmActionType = "APPROVE" | "REJECT" | "CANCEL";
+export type ConfirmActionType = "APPROVE" | "REJECT" | "CANCEL" | "DELETE";
 
 export const ConfirmActionValueMap: Record<ConfirmActionType, boolean | null> = {
    APPROVE: true,
    REJECT: false,
    CANCEL: null,
+   DELETE: null,
 };
-

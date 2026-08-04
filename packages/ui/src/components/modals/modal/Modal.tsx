@@ -16,6 +16,7 @@ export const Modal = ({
    description,
    children,
    panelClassName,
+   contentClassName,
    closeButtonClassName,
 }: ModalProps): React.ReactNode => {
    const [isMounted, setIsMounted] = useState(false);
@@ -67,12 +68,12 @@ export const Modal = ({
                      aria-hidden
                   />
 
-                  <div className="fixed inset-0 overflow-y-auto">
+                  <div className="fixed inset-0 overflow-y-auto overscroll-contain">
                      <div className="flex min-h-full items-center justify-center p-4">
                         <m.div
                            role="dialog"
                            aria-modal="true"
-                           className={`relative p-6 rounded-2xl shadow-xl dark:shadow-[0_0_50px_-12px_rgba(0,0,0,0.7)] ${configSize} w-full m-auto ${configVariant.bgClass} ${panelClassName ?? ""}`}
+                           className={`relative p-6 rounded-2xl shadow-xl dark:shadow-[0_0_50px_-12px_rgba(0,0,0,0.7)] ${configSize} w-full my-auto ${configVariant.bgClass} ${panelClassName ?? ""}`}
                            initial={{ opacity: 0, scale: 0.96, y: 16 }}
                            animate={{ opacity: 1, scale: 1, y: 0 }}
                            exit={{ opacity: 0, scale: 0.96, y: 16 }}
@@ -114,7 +115,9 @@ export const Modal = ({
                               </div>
                            )}
 
-                           {children && <div>{children}</div>}
+                           {children && (
+                              <div className={contentClassName}>{children}</div>
+                           )}
 
                            <button
                               type="button"
