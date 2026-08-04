@@ -388,6 +388,36 @@ export const formatTime = (time?: string): string => {
   }).format(validatedTime);
 };
 
+export const formatTimeWithSeconds = (time?: string): string => {
+  if (!time) return "--:--:-- --";
+
+  let validatedTime = new Date(time);
+
+  if (validatedTime.toString() === "Invalid Date") {
+    const [hours, minutes, seconds = 0] = time.split(":").map(Number);
+
+    if (isNaN(hours) || isNaN(minutes)) return "--:--:-- --";
+
+    validatedTime = new Date(
+      0,
+      0,
+      0,
+      hours,
+      minutes,
+      Number.isNaN(seconds) ? 0 : seconds,
+    );
+  }
+
+  if (isNaN(validatedTime.getTime())) return "--:--:-- --";
+
+  return new Intl.DateTimeFormat("es-NI", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  }).format(validatedTime);
+};
+
 /**
  * Formatea una duración en formato HH:MM:SS a un formato legible para el usuario
  * @param duration - Duración en formato HH:MM:SS

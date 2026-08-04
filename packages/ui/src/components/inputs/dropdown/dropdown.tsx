@@ -222,7 +222,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
               >
                 <ul
                   ref={listRef}
-                  className="max-h-60 overflow-y-auto py-1.5 px-0 m-0!"
+                  className="max-h-60 overflow-y-auto overscroll-contain scrollbar-dashboard py-1.5 px-0 m-0!"
                 >
                   {filteredOptions.length > 0 ? (
                     filteredOptions.map((option, index) => (
