@@ -4,6 +4,7 @@ import {
   gateEntryLabelClassName,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/utils/gate-entry-modal.styles";
 import type { CustomsDeclarationProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/customs-declaration/customs-declaration.types";
+import { isAlfaNumericValue } from "@app/shared/utils/string.utils";
 
 export function CustomsDeclaration({
   register,
@@ -16,14 +17,15 @@ export function CustomsDeclaration({
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
         isRequired
-        placeholder="Ingrese número de declaración"
+        placeholder="Ingrese declaración"
         {...register("customsDeclarationNumber", {
           required: "El número de declaración es obligatorio.",
           setValueAs: (value: string) => value?.trim(),
-          validate: {
-            notEmpty: (value: string) =>
-              Boolean(value?.trim()) ||
-              "El número de declaración es obligatorio.",
+          validate: (value: string) => {
+            if (!isAlfaNumericValue(value)) {
+              return "Digite un número de declaración válido.";
+            }
+            return true;
           },
         })}
         error={errors.customsDeclarationNumber?.message}
@@ -37,7 +39,7 @@ export function CustomsDeclaration({
         type="number"
         placeholder="Cantidad de paquetes"
         {...register("packages", {
-          required: "La cantidad de bultos es obligatoria.",
+          required: "La cantidad de paquetes es obligatoria.",
           setValueAs: (value: string) => value?.trim(),
           validate: {
             notEmpty: (value: string) =>
@@ -76,7 +78,7 @@ export function CustomsDeclaration({
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
         isRequired
-        placeholder="Descripción del producto"
+        placeholder="Ingrese el producto"
         {...register("product", {
           required: "El producto es obligatorio.",
           setValueAs: (value: string) => value?.trim(),

@@ -47,11 +47,13 @@ export function Ducat({ fields, register, onRemove }: DucatProps) {
 
   if (fields.length === 0) {
     return (
-      <div className="space-y-2 px-1 bg-red-900/55 border-l-4 border-red-500/60 rounded-md">
-        <p className="text-[12px] sm:text-[14px] text-slate-500 dark:text-slate-300 text-center py-4 flex flex-col items-center gap-1.5 sm:gap-2">
-          <AlertTriangleIcon className="size-5 sm:size-7" />
-          No hay Ducas agregadas. Use &quot;Agregar Duca&quot; para continuar.
-        </p>
+      <div className="flex w-full flex-1 items-center justify-center px-1 max-xl:min-h-[min(28dvh,12rem)]">
+        <div className="w-full max-w-md mx-auto bg-red-900/55 border-l-4 border-red-500/60 rounded-md">
+          <p className="text-[12px] sm:text-[14px] text-slate-500 dark:text-slate-300 text-center px-3 py-4 flex flex-col items-center justify-center gap-1.5 sm:gap-2">
+            <AlertTriangleIcon className="size-5 sm:size-7 shrink-0" />
+            No hay Ducas agregadas. Use &quot;Agregar Duca&quot; para continuar.
+          </p>
+        </div>
       </div>
     );
   }

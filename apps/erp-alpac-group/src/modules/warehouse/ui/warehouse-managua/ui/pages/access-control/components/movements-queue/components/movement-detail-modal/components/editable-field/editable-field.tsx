@@ -15,7 +15,6 @@ function formatValueForSubmit(value: unknown): string {
   return String(value ?? "");
 }
 
-/** Same pattern as payroll `EditableFieldForm` / Work-info. */
 export function EditableField<TFieldValues extends FieldValues>({
   name,
   label,
@@ -118,7 +117,6 @@ export function EditableField<TFieldValues extends FieldValues>({
               {...register(name, validation)}
             />
           ) : (
-            // Div (not <input>): avoids RHF/DOM wiping "No registrado" on tab remount.
             <div className="flex flex-col gap-1.5 w-full max-w-full box-border">
               {label ? (
                 <span className="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!">
@@ -129,14 +127,16 @@ export function EditableField<TFieldValues extends FieldValues>({
                 role="text"
                 aria-label={`${label}: ${displayValue}`}
                 className={`
-                  flex items-center w-full box-border bg-white dark:bg-[#1e2229]
+                  flex items-start w-full box-border bg-white dark:bg-[#1e2229]
                   border border-slate-200 dark:border-slate-600/50 rounded-[10px]
-                  h-12 py-2 px-3 sm:px-4
+                  min-h-12 h-auto py-2.5 px-3 sm:px-4
                   text-[14px] md:text-[16px] font-medium
                   ${className} ${valueToneClasses}
                 `}
               >
-                <span className="truncate">{displayValue}</span>
+                <span className="min-w-0 w-full whitespace-normal wrap-break-word leading-snug">
+                  {displayValue}
+                </span>
               </div>
             </div>
           )}
