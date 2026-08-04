@@ -30,7 +30,20 @@ export const validateNameAndLastName = (fullName: string): string => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 };
+/**
+ * Valida que el valor sea alfanumérico
+ * @param value - Valor a validar
+ * @returns True si el valor es alfanumérico, false si no
+ */
+export function isAlfaNumericValue(value: string): boolean {
+  const regex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ-]+$/;
+  return regex.test(value);
+}
 
+export function isNumericValueWithHyphen(value: string) {
+  const regex = /^[0-9-]+$/;
+  return regex.test(value);
+}
 export const validateIdentificationNumber = (
   value: string,
   identificationType: number,
@@ -371,6 +384,36 @@ export const formatTime = (time?: string): string => {
   return new Intl.DateTimeFormat("es-NI", {
     hour: "numeric",
     minute: "2-digit",
+    hour12: true,
+  }).format(validatedTime);
+};
+
+export const formatTimeWithSeconds = (time?: string): string => {
+  if (!time) return "--:--:-- --";
+
+  let validatedTime = new Date(time);
+
+  if (validatedTime.toString() === "Invalid Date") {
+    const [hours, minutes, seconds = 0] = time.split(":").map(Number);
+
+    if (isNaN(hours) || isNaN(minutes)) return "--:--:-- --";
+
+    validatedTime = new Date(
+      0,
+      0,
+      0,
+      hours,
+      minutes,
+      Number.isNaN(seconds) ? 0 : seconds,
+    );
+  }
+
+  if (isNaN(validatedTime.getTime())) return "--:--:-- --";
+
+  return new Intl.DateTimeFormat("es-NI", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
     hour12: true,
   }).format(validatedTime);
 };

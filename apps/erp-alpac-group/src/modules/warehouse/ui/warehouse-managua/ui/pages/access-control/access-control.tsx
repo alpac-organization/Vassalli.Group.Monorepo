@@ -177,7 +177,6 @@ export function AccessControlPage() {
         module_code: moduleCode,
         reception_id: selectedReceptionId,
       };
-
       switch (name) {
         case "packages":
           payload.packages = value.trim() ? Number(value) : undefined;

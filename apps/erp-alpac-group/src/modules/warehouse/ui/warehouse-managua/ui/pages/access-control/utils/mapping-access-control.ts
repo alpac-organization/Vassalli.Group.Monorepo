@@ -1,4 +1,8 @@
-import type { CreateAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/create-access-control";
+import type {
+  CreateAccessControlRequest,
+  DeclarationAduanaPayload,
+  DucaPayload,
+} from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/create-access-control";
 import type { GateEntryFormValues } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/types/gate-entry-modal.types";
 import { DocumentEnum, type DocumentType } from "@app/core/enums/document.enum";
 import dayjs from "dayjs";
@@ -16,26 +20,10 @@ export function mapGateEntryToCreateRequest(
   moduleCode: string,
   entryStartedAt: EntryStartedAt,
 ): CreateAccessControlRequest {
-  const isCustomsDeclaration =
-    Number(documentType.value) ===
-    Number(DocumentEnum.CustomsDeclaration.value);
-
-  return {
+  const base = {
     company_id: companyId,
     module_code: moduleCode,
-    ducat_numbers: isCustomsDeclaration
-      ? []
-      : data.ducas.map((duca) => duca.value.trim()).filter(Boolean),
     document_type: Number(documentType.value),
-    customs_declaration_number: isCustomsDeclaration
-      ? data.customsDeclarationNumber.trim()
-      : undefined,
-    packages: isCustomsDeclaration ? Number(data.packages) : undefined,
-    customer: isCustomsDeclaration ? data.customer.trim() : undefined,
-    product: isCustomsDeclaration ? data.product.trim() : undefined,
-    container_number: isCustomsDeclaration
-      ? data.containerNumber.trim()
-      : undefined,
     transport_unit_id: data.transportUnitId.trim(),
     country_of_origin: data.countryOfOrigin.trim(),
     aduana: data.aduana.trim(),
@@ -43,12 +31,33 @@ export function mapGateEntryToCreateRequest(
     trailer_chassis: data.trailerChassis.trim(),
     driver_license: data.driverLicense.trim(),
     transportista: data.transportista.trim(),
-    medio: data.medio.trim(),
     driver_name: data.driverName.trim(),
     seal_number: data.sealNumber.trim(),
     start_date: entryStartedAt.start_date,
     start_time: entryStartedAt.start_time,
   };
+
+  const isCustomsDeclaration =
+    Number(documentType.value) ===
+    Number(DocumentEnum.CustomsDeclaration.value);
+
+  if (isCustomsDeclaration) {
+    const payload: DeclarationAduanaPayload = {
+      ...base,
+      customs_declaration_number: data.customsDeclarationNumber.trim(),
+      packages: Number(data.packages),
+      customer: data.customer.trim(),
+      product: data.product.trim(),
+      container_number: data.containerNumber.trim(),
+    };
+    return payload;
+  }
+
+  const payload: DucaPayload = {
+    ...base,
+    ducat_numbers: data.ducas.map((duca) => duca.value.trim()).filter(Boolean),
+  };
+  return payload;
 }
 
 export const toApiDate = (date: DatePickerValue | null): string => {

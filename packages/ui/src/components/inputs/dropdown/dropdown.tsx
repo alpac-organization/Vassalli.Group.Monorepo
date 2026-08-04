@@ -4,7 +4,14 @@ import { ErrorTooltip } from "../shared/error-tooltip";
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
 import { m, LazyMotion, AnimatePresence } from "framer-motion";
-import { forwardRef, useState, useRef, useEffect, useCallback, CSSProperties } from "react";
+import {
+  forwardRef,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  CSSProperties,
+} from "react";
 import { createPortal } from "react-dom";
 
 type MenuPosition = {
@@ -44,7 +51,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [activeIndex, setActiveIndex] = useState(-1);
-    const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);    
+    const [menuPosition, setMenuPosition] = useState<MenuPosition | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLDivElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -199,10 +206,11 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
             onEditOption(option);
             setIsOpen(false);
           }}
-          className={`h-7 w-7 flex items-center ml-auto! justify-center rounded-md border transition-colors ${isDarkSurface
+          className={`h-7 w-7 flex items-center ml-auto! justify-center rounded-md border transition-colors ${
+            isDarkSurface
               ? "border-slate-500/40 text-slate-300 hover:text-white hover:border-blue-400 hover:bg-blue-500/10"
               : "border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-300 hover:bg-blue-50"
-            }`}
+          }`}
         >
           <svg
             width="14"
@@ -228,77 +236,77 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     const menuContent =
       isOpen && menuPosition
         ? createPortal(
-          <LazyMotion features={loadFeatures} strict>
-            <AnimatePresence>
-              <m.div
-                ref={menuRef}
-                initial={{
-                  opacity: 0,
-                  y: menuPosition.placement === "bottom" ? -4 : 4,
-                }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{
-                  opacity: 0,
-                  y: menuPosition.placement === "bottom" ? -4 : 4,
-                }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
-                style={{
-                  position: "fixed",
-                  top: menuPosition.top,
-                  bottom: menuPosition.bottom,
-                  left: menuPosition.left,
-                  width: menuPosition.width,
-                  zIndex: 9999
-                }}
-                className={`rounded-xl overflow-hidden ${menuSurface}`}
-              >
-                <ul
-                  ref={listRef}
-                  className="overflow-y-auto py-1.5 px-0 m-0!"
-                  style={{ maxHeight: menuPosition.maxHeight }}
+            <LazyMotion features={loadFeatures} strict>
+              <AnimatePresence>
+                <m.div
+                  ref={menuRef}
+                  initial={{
+                    opacity: 0,
+                    y: menuPosition.placement === "bottom" ? -4 : 4,
+                  }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{
+                    opacity: 0,
+                    y: menuPosition.placement === "bottom" ? -4 : 4,
+                  }}
+                  transition={{ duration: 0.15, ease: "easeOut" }}
+                  style={{
+                    position: "fixed",
+                    top: menuPosition.top,
+                    bottom: menuPosition.bottom,
+                    left: menuPosition.left,
+                    width: menuPosition.width,
+                    zIndex: 9999,
+                  }}
+                  className={`rounded-xl overflow-hidden ${menuSurface}`}
                 >
-                  {filteredOptions.length > 0 ? (
-                    filteredOptions.map((option, index) => (
-                      <li
-                        key={option.value ?? index}
-                        onClick={() => handleSelect(option.value)}
-                        className={`
+                  <ul
+                    ref={listRef}
+                    className="overflow-y-auto py-1.5 px-0 m-0!"
+                    style={{ maxHeight: menuPosition.maxHeight }}
+                  >
+                    {filteredOptions.length > 0 ? (
+                      filteredOptions.map((option, index) => (
+                        <li
+                          key={option.value ?? index}
+                          onClick={() => handleSelect(option.value)}
+                          className={`
                                          px-4 py-2.5 cursor-pointer text-[14px] flex items-center gap-2 justify-between transition-colors
                                          ${value === option.value ? itemSelected : index === activeIndex ? (isDarkSurface ? "bg-slate-700/80 text-white" : "bg-slate-100 text-slate-900") : itemBase}
                                       `}
-                      >
-                        <span className="truncate">{option.label}</span>
-                        <div className="flex shrink-0 items-center ml-auto! gap-1.5">
-                          {optionAction(option)}
-                        </div>
-                        {value === option.value && (
-                          <svg
-                            className={`w-4 h-4 ${checkIconClass}`}
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="m4.5 12.75 6 6 9-13.5"
-                            />
-                          </svg>
-                        )}
+                        >
+                          <span className="truncate">{option.label}</span>
+                          <div className="flex shrink-0 items-center ml-auto! gap-1.5">
+                            {optionAction(option)}
+                          </div>
+                          {value === option.value && (
+                            <svg
+                              className={`w-4 h-4 ${checkIconClass}`}
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth="2.5"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="m4.5 12.75 6 6 9-13.5"
+                              />
+                            </svg>
+                          )}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="px-4 py-3 text-[14px] text-slate-500">
+                        Resultados no encontrados.
                       </li>
-                    ))
-                  ) : (
-                    <li className="px-4 py-3 text-[14px] text-slate-500">
-                      Resultados no encontrados.
-                    </li>
-                  )}
-                </ul>
-              </m.div>
-            </AnimatePresence>
-          </LazyMotion>,
-          document.body,
-        )
+                    )}
+                  </ul>
+                </m.div>
+              </AnimatePresence>
+            </LazyMotion>,
+            document.body,
+          )
         : null;
 
     return (
