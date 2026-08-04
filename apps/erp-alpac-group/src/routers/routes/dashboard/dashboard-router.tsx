@@ -49,7 +49,7 @@ export const DashboardRouter: RouteObject[] = [
       },
       {
         path: "purchasing",
-        children: PurchasingRouter
+        children: PurchasingRouter,
       },
     ],
   },

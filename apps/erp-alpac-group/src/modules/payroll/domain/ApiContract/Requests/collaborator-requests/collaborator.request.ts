@@ -13,33 +13,33 @@ export interface CollaboratorRequest extends BaseRequest {
     */
    identification_number?: string;
 
-   /**
-    * Id de la sucursal
-    * @required
-    */
-   branch_id: number;
+  /**
+   * Id de la sucursal
+   * @required
+   */
+  branch_id: number;
 
-   /**
-    * Id del area
-    */
-   area_id: string;
+  /**
+   * Id del area
+   */
+  area_id: string;
 
-   /**
-    * Numero de la pagina
-    * @optional
-    */
-   page_number?: number;
+  /**
+   * Numero de la pagina
+   * @optional
+   */
+  page_number?: number;
 
-   /**
-    * Tamaño de la pagina
-    * @optional
-    */
-   page_size?: number;
+  /**
+   * Tamaño de la pagina
+   * @optional
+   */
+  page_size?: number;
 
-   /**
-    * Estado del colaborador
-    * @example "Activo"
-    * @optional
-    */
-   status?: string;
+  /**
+   * Estado del colaborador
+   * @example "Activo"
+   * @optional
+   */
+  status?: string;
 }

@@ -42,6 +42,7 @@ export function Tabs(props: TabProps<string>): React.ReactNode {
 	const [direction, setDirection] = useState(0);
 
 	const activeItem = props.tabItems.find((item) => item.id === activeTab);
+	const keepMounted = props.keepMounted === true;
 
 	const handleTabChange = (nextTab: string) => {
 		if (animation === "slide") {
@@ -64,29 +65,48 @@ export function Tabs(props: TabProps<string>): React.ReactNode {
 			/>
 
 			<div className="relative w-full min-w-0 overflow-hidden">
-				<LazyMotion features={loadFeatures} strict>
-					<AnimatePresence
-						mode="wait"
-						initial={false}
-						custom={animation === "slide" ? direction : undefined}
-					>
-						{activeItem && (
-							<m.div
-								key={activeItem.id}
+				{keepMounted ? (
+					props.tabItems.map((item) => {
+						const isActive = item.id === activeTab;
+						return (
+							<div
+								key={item.id}
 								role="tabpanel"
-								custom={animation === "slide" ? direction : undefined}
-								variants={getVariants(animation)}
-								initial="enter"
-								animate="center"
-								exit="exit"
-								transition={{ duration: 0.22, ease: "easeOut" }}
-								className="w-full min-w-0"
+								hidden={!isActive}
+								aria-hidden={!isActive}
+								className={`w-full min-w-0 ${isActive ? "" : "hidden"}`}
 							>
-								{activeItem.render(activeItem.id)}
-							</m.div>
-						)}
-					</AnimatePresence>
-				</LazyMotion>
+								{item.render(item.id)}
+							</div>
+						);
+					})
+				) : (
+					<LazyMotion features={loadFeatures} strict>
+						<AnimatePresence
+							mode="wait"
+							initial={false}
+							custom={animation === "slide" ? direction : undefined}
+						>
+							{activeItem && (
+								<m.div
+									key={activeItem.id}
+									role="tabpanel"
+									custom={animation === "slide" ? direction : undefined}
+									variants={getVariants(animation)}
+									initial="enter"
+									animate="center"
+									exit="exit"
+									transition={{ duration: 0.22, ease: "easeOut" }}
+									className="w-full min-w-0"
+								>
+									{activeItem.render(activeItem.id)}
+								</m.div>
+							)}
+						</AnimatePresence>
+					</LazyMotion>
+				)
+
+				
 			</div>
 		</div>
 	);

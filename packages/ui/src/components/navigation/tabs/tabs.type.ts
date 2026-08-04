@@ -7,8 +7,13 @@ export interface TabItem<T extends string> extends TabOption<T> {
 }
 
 export interface TabProps<T extends string> {
-    tabItems: TabItem<T>[];
-    activeTab: T;
+  tabItems: TabItem<T>[];
+  activeTab: T;
     /** `"fade"` (default): opacidad. `"slide"`: desliza según dirección del tab. */
     animation?: TabsAnimation;
+  /**
+   * Keep all tab panels mounted (CSS-hidden when inactive).
+   * Prevents form/input display state from resetting on tab change.
+   */
+  keepMounted?: boolean;
 }

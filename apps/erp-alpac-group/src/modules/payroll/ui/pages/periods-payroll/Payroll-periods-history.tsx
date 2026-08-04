@@ -218,7 +218,11 @@ export function PayrollPeriodsHistoryPage() {
       <div className="flex justify-start">
         <Breadcrumb
           items={[
-            { label: "Dashboard", url: `/${alias_company}/dashboard`, onClick: (url) => navigate(url) },
+            {
+              label: "Dashboard",
+              url: `/${alias_company}/dashboard`,
+              onClick: (url) => navigate(url),
+            },
             {
               label: "Historial de periodos",
               url: `/${alias_company}/dashboard/payroll/historial-periodos-nomina`,
