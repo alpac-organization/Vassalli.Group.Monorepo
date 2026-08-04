@@ -1,16 +1,7 @@
-export interface UpdateCollaboratorProfileDetailsRequest {
-  /**
-   * Id de la empresa
-   * @example "123e4567-e89b-12d3-a456-426614174000"
-   * @required
-   */
-  company_id: string;
-  /**
-   * Codigo del modulo de Nomina, Contabilidad, Facturacion, Inventario, etc
-   * @example "123e4567-e89b-12d3-a456-426614174000"
-   * @required
-   */
-  module_code: string;
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+
+export interface UpdateCollaboratorProfileDetailsRequest extends BaseRequest {
+  
   /*
    * Numero de identificación del colaborador
    * @example "001-120395-0000X"

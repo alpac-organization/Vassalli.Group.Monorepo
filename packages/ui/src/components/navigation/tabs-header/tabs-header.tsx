@@ -145,7 +145,7 @@ export const TabHeader = <T extends string>({
             onClick={() => onTabChange(tab.id)}
             className={`min-h-0 w-auto shrink-0 touch-manipulation rounded-t-md border-b-2 px-3 py-3 text-left text-sm font-medium transition-colors duration-200 -mb-px ${
               activeTab === tab.id
-                ? "border-blue-600 bg-blue-600/15 text-blue-400"
+                ? "border-blue-600 bg-transparent text-blue-400"
                 : "border-transparent text-slate-400 hover:text-slate-200"
             }`}
           >

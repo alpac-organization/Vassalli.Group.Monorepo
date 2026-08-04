@@ -1,12 +1,10 @@
-interface CreateDeductionBase {
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+
+interface CreateDeductionBase extends BaseRequest {
 
    payroll_id: string;
 
    branch_id: string;
-
-   company_id: string;
-
-   module_code: string;
 
    deduction_type: number;
 }

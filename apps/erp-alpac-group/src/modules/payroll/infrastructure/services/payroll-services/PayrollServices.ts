@@ -96,7 +96,7 @@ export class PayrollServices implements IPayrollServices {
     payload: GenerateReportPayrollRequest,
   ): Promise<GetPayrollReportsPayloadResponse> {
     const {
-      companie_id,
+      company_id,
       report_type,
       payroll_id,
       payroll_type,
@@ -106,7 +106,7 @@ export class PayrollServices implements IPayrollServices {
     try {
       const response =
         await this.apiHandler.get<GetPayrollReportsPayloadResponse>(
-          `companies/${companie_id}/modules/${module_code}/reports`,
+          `companies/${company_id}/modules/${module_code}/reports`,
           {
             params: {
               report_type,

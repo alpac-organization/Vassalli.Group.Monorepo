@@ -1,28 +1,17 @@
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+
 /**
  * @interface CollaboratorProfileDetailsRequest
  * @description Define la estructura para las solicitud de detalles de colaboradores
  * este contrato asegura que los datos enviados al backend cumplan con los requisitos del servidor
  */
-
-export interface CollaboratorProfileDetailsRequest {
+export interface CollaboratorProfileDetailsRequest extends BaseRequest {
    /**
     * Puede ser cedula nicaraguense, cedula de residencia o pasaporte
     * @example "0011203950000X"
     * @required
     */
-   identification_number: string;
-   /**
-    * Id de la empresa
-    * @example "123e4567-e89b-12d3-a456-426614174000"
-    * @required
-    */
-   company_id: string;
-
-   /**
-    * Codigo del modulo de Nomina, Contabilidad, Facturacion, Inventario, etc
-    * @required
-    */
-   module_code: string;
+   identification_number: string;   
 
    /**
     * Indica si la consulta debe ser ejecutada o no

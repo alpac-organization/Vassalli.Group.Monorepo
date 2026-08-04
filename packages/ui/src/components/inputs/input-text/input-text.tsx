@@ -1,6 +1,7 @@
-import { forwardRef, useId, useState } from "react";
+import { forwardRef, useId, useRef, useState } from "react";
 import { Check, Pencil } from "lucide-react";
 
+import { ErrorTooltip } from "../shared/error-tooltip";
 import { InputProps } from "./input-text.types";
 export const InputText = forwardRef<HTMLInputElement, InputProps>(
   (
@@ -24,6 +25,7 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
     const [isEditing, setIsEditing] = useState(false);
     const generatedId = useId();
     const inputId = rest.id ?? generatedId;
+    const fieldRef = useRef<HTMLDivElement>(null);
 
     const inputType = isPassword ? (showPassword ? "text" : "password") : type;
     const isInputDisabled = editable ? !isEditing : disabled;
@@ -45,7 +47,7 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
         )}
 
         <div className="flex items-center gap-2">
-          <div className="relative w-full isolate">
+          <div className="relative w-full isolate" ref={fieldRef}>
             {icon && (
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
                 {icon}
@@ -118,18 +120,7 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
             )}
 
             {error && errorVariant === "tooltip" && (
-              <span
-                role="tooltip"
-                className="pointer-events-none absolute top-full left-1 z-1000 mt-1 flex flex-col items-start transition-all duration-200 ease-out"
-              >
-                <span
-                  className="h-0 w-0 ml-3 shrink-0 border-x-[6px] border-b-[6px] border-x-transparent border-b-red-500 dark:border-b-red-600"
-                  aria-hidden={true}
-                />
-                <span className="whitespace-nowrap rounded-lg bg-red-500 dark:bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-lg">
-                  {error}
-                </span>
-              </span>
+              <ErrorTooltip message={error} anchorRef={fieldRef} />
             )}
           </div>
 
