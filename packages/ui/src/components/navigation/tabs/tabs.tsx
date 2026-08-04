@@ -104,9 +104,7 @@ export function Tabs(props: TabProps<string>): React.ReactNode {
 							)}
 						</AnimatePresence>
 					</LazyMotion>
-				)
-
-				
+				)}
 			</div>
 		</div>
 	);
