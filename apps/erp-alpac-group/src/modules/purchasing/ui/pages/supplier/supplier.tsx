@@ -1,4 +1,3 @@
-import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
 import {
 	Alert,
@@ -26,6 +25,7 @@ const inputClassName =
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
+const contextMenuButton = "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 const PAGE_SIZE = 5;
 
 const statusOptions = [
@@ -113,6 +113,7 @@ export const Supplier = () => {
 							{ label: "Editar", onClick: () => onEditSupplier(row) },
 							{ label: "Ver detalle", onClick: () => onViewDetails(row) },
 						]}
+						triggerClassName={contextMenuButton}
 					/>
 				),
 			},
@@ -121,13 +122,7 @@ export const Supplier = () => {
 	);
 
 	return (
-		<m.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			exit={{ opacity: 0, y: -20 }}
-			transition={{ duration: 0.5 }}
-			className="flex flex-col gap-4"
-		>
+		<div className="flex flex-col gap-4">
 			{GetSuppliers.isPending && (
 				<Loader title="Cargando proveedores..." />
 			)}
@@ -252,6 +247,6 @@ export const Supplier = () => {
 					onClose={handleCloseAlert}
 				/>
 			</AnimatedAlertWrapper>
-		</m.div>
+		</div>
 	);
 };

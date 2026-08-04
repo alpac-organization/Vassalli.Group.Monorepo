@@ -1,22 +1,33 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, ContextMenu, DataTable, Dropdown, InputText, Pagination, type ContextMenuItem, type TableColumn } from "@alpac/design-system";
+import { Badges, Button, ContextMenu, DataTable, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
 import { PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "../../purchase-request-modal/purchase-request-modal";
-import type { RequisitionTabProps } from "./requisition-tab.types";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
+import { PurchaseRequestStatusEnum, PurchaseRequestStatusOptions } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
-import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { PurchaseRequestDetailModal } from "../../purchase-request-detail-modal/purchase-request-detail-modal";
+import { statusBadgeColor } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/statusBadgeColor";
+import { typeBadgeColor } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/typeBadgeColor";
+import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
+
+import { type RequisitionContextMenu, type RequisitionTabProps } from "./requisition-tab.types";
+import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
+import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
+import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
+const contextMenuButton = "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
+const deleteButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
+const cancelButtonClass = "rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
 const PAGE_SIZE = 5;
 
 export const RequisitionTab = ({
@@ -26,10 +37,12 @@ export const RequisitionTab = ({
 }: RequisitionTabProps) => {
 
 	const { companyId, moduleCode, role } = useUserStore();
+	const { getMappedError } = useMappedError();
 	const [isRequisitionModalOpen, setIsRequisitionModalOpen] = useState(false);
 	const [isRequisitionDetailModalOpen, setIsRequisitionDetailModalOpen] = useState(false);
+	const [isDeleteRequisitionModalOpen, setisDeleteRequisitionModalOpen] = useState(false);
 	const [requisitionNumber, setRequisitionNumber] = useState("");
-	const [status, setStatus] = useState<string>("");
+	const [status, setStatus] = useState<number | null>(null);
 	const [requisitionDetail, setRequisitionDetail] = useState<GetPurchaseRequestResponse | null>(null);
 
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
@@ -41,7 +54,7 @@ export const RequisitionTab = ({
 		page_size: PAGE_SIZE,
 	});
 
-	const { GetPurchaseRequests } = usePurchase({
+	const { GetPurchaseRequests, DeletePurchaseRequest } = usePurchase({
 		getPurchaseRequestsPayload: {
 			...filters,
 			company_id: companyId,
@@ -66,34 +79,58 @@ export const RequisitionTab = ({
 			page_size: PAGE_SIZE,
 		});
 		setRequisitionNumber("");
-		setStatus("");
+		setStatus(null);
 	}, [currentBranchId, companyId, moduleCode]);
 
-	const administratorOptions = (row: GetPurchaseRequestResponse): ContextMenuItem[] =>
+	const getBaseOptions = (row: GetPurchaseRequestResponse): RequisitionContextMenu[] =>
 		[
-			{ label: "Editar", onClick: () => onEditRequisition(row) },
-			{ label: "Ver detalle", onClick: () => onViewDetails(row) },
-			{ label: "Eliminar", onClick: () => onDeleteRequisition(row) }
+			{ id: "edit", label: "Editar", onClick: () => onEditRequisition(row) },
+			{ id: "viewDatail", label: "Ver detalle", onClick: () => onViewDetails(row) },
+			{ id: "delete", label: "Eliminar", onClick: () => onDeleteRequisition(row) },
 		];
 
-	const managerOptions = (row: GetPurchaseRequestResponse): ContextMenuItem[] =>
-		[
-			{ label: "Editar", onClick: () => onEditRequisition(row) },
-			{ label: "Ver detalle", onClick: () => onViewDetails(row) }
-		];
+	const administratorOptions = (row: GetPurchaseRequestResponse): RequisitionContextMenu[] => {
 
-	const operatorOptions = (row: GetPurchaseRequestResponse): ContextMenuItem[] =>
-		[
-			{ label: "Ver detalle", onClick: () => onViewDetails(row) }
-		];
+		const isApproved = row.request_status === PurchaseRequestStatusEnum.Approved.textValue;
+		const isRejected = row.request_status === PurchaseRequestStatusEnum.Rejected.textValue;
+		const isCanceled = row.request_status === PurchaseRequestStatusEnum.Canceled.textValue;
 
-	const mapContextMenuOptions = new Map<RoleEnum, (row: GetPurchaseRequestResponse) => ContextMenuItem[]>([
+		const isProcessed = isApproved || isRejected || isCanceled;
+
+
+		const options = getBaseOptions(row)
+			.filter(item =>
+				(item.id === "edit" && !isProcessed) ||
+				(item.id === "delete" && !isProcessed) ||
+				item.id === "viewDatail"
+			);
+
+		return options.filter(item => item.id);
+	}
+
+	const managerOptions = (row: GetPurchaseRequestResponse): RequisitionContextMenu[] => {
+
+		const options = getBaseOptions(row)
+			.filter(item => item.id === "viewDatail");
+
+		return options.filter(item => item.id);
+	}
+
+	const operatorOptions = (row: GetPurchaseRequestResponse): RequisitionContextMenu[] => {
+
+		const options = getBaseOptions(row)
+			.filter(item => item.id === "viewDatail");
+
+		return options.filter(item => item.id);
+	}
+
+	const mapContextMenuOptions = new Map<RoleEnum, (row: GetPurchaseRequestResponse) => RequisitionContextMenu[]>([
 		[RoleEnum.ADMINISTRATOR, administratorOptions],
 		[RoleEnum.MANAGER, managerOptions],
 		[RoleEnum.OPERATOR, operatorOptions]
 	]);
 
-	const contexMenuOptions: ((row: GetPurchaseRequestResponse) => ContextMenuItem[]) =
+	const contexMenuOptions: ((row: GetPurchaseRequestResponse) => RequisitionContextMenu[]) =
 		mapContextMenuOptions.get(role as RoleEnum)!;
 
 	const handleApplyFilters = () => {
@@ -106,12 +143,13 @@ export const RequisitionTab = ({
 			code: requisitionNumber.trim() || undefined,
 			page_number: 1,
 			page_size: PAGE_SIZE,
+			status: status || undefined
 		}));
 	};
 
 	const handleClearFilters = () => {
 		setRequisitionNumber("");
-		setStatus("");
+		setStatus(null);
 		setFilters({
 			company_id: companyId,
 			module_code: moduleCode,
@@ -130,7 +168,7 @@ export const RequisitionTab = ({
 	}, []);
 
 	const onEditRequisition = (data: GetPurchaseRequestResponse) => {
-		console.log(data);
+		setRequisitionDetail(data);
 		setIsRequisitionModalOpen(true);
 	};
 
@@ -140,21 +178,86 @@ export const RequisitionTab = ({
 	};
 
 	const onDeleteRequisition = (data: GetPurchaseRequestResponse) => {
-		console.log(data);
+		setRequisitionDetail(data);
+		setisDeleteRequisitionModalOpen(true)
+	};
+
+	const handleDeleteRequisition = () => {
+		const purchaseRequestId = requisitionDetail?.purchase_request_id;
+		if (!purchaseRequestId) return;
+
+		const payload: DeletePurchaseRequestPayload = {
+			company_id: companyId,
+			module_code: moduleCode,
+			purchase_request_id: purchaseRequestId,
+		};
+
+		DeletePurchaseRequest.mutate(payload, {
+			onSuccess() {
+				setisDeleteRequisitionModalOpen(false);
+				setRequisitionDetail(null);
+				onRequestSuccess("Requisición eliminada con éxito.");
+			},
+			onError(error) {
+				const mappedError = getMappedError(error);
+				onRequestError(mappedError.description);
+			},
+		});
 	};
 
 	const columnConfig: TableColumn<GetPurchaseRequestResponse>[] = useMemo(
 		() => [
 			{ key: "code", label: "Código" },
 			{ key: "request_date", label: "Fecha de Solicitud" },
-			{ key: "request_status", label: "Estado" },
-			{ key: "request_type", label: "Tipo" },
-			{ key: "revision_date", label: "Fecha de revisión" },
+			{
+				key: "request_status",
+				label: "Estado",
+				render: (row: GetPurchaseRequestResponse) => {
+					const statusLabel =
+						Object.values(PurchaseRequestStatusEnum).find(
+							(status) => status.textValue === row.request_status,
+						)?.label ?? row.request_status;
+
+					return (
+						<Badges
+							label={statusLabel}
+							color={statusBadgeColor(row.request_status)}
+						/>
+					);
+				},
+			},
+			{
+				key: "request_type",
+				label: "Tipo",
+				render: (row: GetPurchaseRequestResponse) => {
+					const typeLabel =
+						Object.values(PurchaseRequestEnum).find(
+							(type) => type.textValue === row.request_type,
+						)?.label ?? row.request_type;
+
+					return (
+						<Badges
+							label={typeLabel}
+							color={typeBadgeColor(row.request_type)}
+						/>
+					);
+				},
+			},
+			{
+				key: "revision_date",
+				label: "Fecha de revisión",
+				render: (row: GetPurchaseRequestResponse) => {
+					return formatDateToSpanishWords(row.request_date ?? "")
+				}
+			},
 			{
 				key: "actions",
 				label: "Acciones",
 				render: (row: GetPurchaseRequestResponse) => (
-					<ContextMenu items={contexMenuOptions(row)} />
+					<ContextMenu
+						items={contexMenuOptions(row)}
+						triggerClassName={contextMenuButton}
+					/>
 				)
 			},
 		],
@@ -163,7 +266,7 @@ export const RequisitionTab = ({
 
 	return (
 		<div>
-			{GetPurchaseRequests.isPending && (
+			{(GetPurchaseRequests.isPending || GetPurchaseRequests.isFetching) && (
 				<Loader title="Cargando requisiciones..." />
 			)}
 
@@ -193,7 +296,7 @@ export const RequisitionTab = ({
 			>
 				<InputText
 					label="N° Requisición"
-					placeholder="Ej. REQ-2026-001"
+					placeholder="Ej. ALP-MGA-REQ-01"
 					className={inputClassName}
 					labelClassName={labelClassName}
 					value={requisitionNumber}
@@ -204,9 +307,9 @@ export const RequisitionTab = ({
 					label="Estado"
 					placeholder="Seleccione..."
 					appearance="dark"
-					options={[]}
+					options={PurchaseRequestStatusOptions ?? []}
 					value={status}
-					onChange={(value) => setStatus(String(value))}
+					onChange={(value) => setStatus(value)}
 					className={dropdownClassName}
 					labelClassName={labelClassName}
 					valueClassName={labelClassName}
@@ -257,8 +360,29 @@ export const RequisitionTab = ({
 			<PurchaseRequestDetailModal
 				isOpen={isRequisitionDetailModalOpen}
 				onClose={() => setIsRequisitionDetailModalOpen(false)}
-				purchaseRequest={requisitionDetail!}
+				purchaseRequest={requisitionDetail}
+				onRequestSuccess={onRequestSuccess}
+				onRequestError={onRequestError}
 			/>
+
+			<ConfirmModal
+				type="DELETE"
+				title="¿Está seguro que desea eliminar requisición?"
+				isOpen={isDeleteRequisitionModalOpen}
+				handleFinalAction={(actionType) => {
+					if (actionType === "DELETE") handleDeleteRequisition();
+				}}
+				onClose={() => {
+					if (DeletePurchaseRequest.isPending) return;
+					setisDeleteRequisitionModalOpen(false);
+				}}
+				buttonActionLabel="Eliminar"
+				buttonActionClass={deleteButtonClass}
+				buttonCancelClass={cancelButtonClass}
+				isLoading={DeletePurchaseRequest.isPending}
+				disabled={DeletePurchaseRequest.isPending}
+			/>
+
 		</div>
 	);
 };

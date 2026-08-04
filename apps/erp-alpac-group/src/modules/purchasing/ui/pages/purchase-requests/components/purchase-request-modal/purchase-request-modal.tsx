@@ -13,6 +13,7 @@ import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurcha
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { RoleEnum } from "@app/core/enums/role.enum";
+import { Loader } from "@app/shared/components/loaders/loader";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -70,7 +71,10 @@ export const PurchaseRequestModal = ({
 		reset(emptyFormValues());
 	}, [isOpen, reset]);
 
+	const isCreating = CreatePurchaseRequest.isPending;
+
 	const handleClose = () => {
+		if (isCreating) return;
 		reset(emptyFormValues());
 		onClose();
 	};
@@ -118,7 +122,12 @@ export const PurchaseRequestModal = ({
 	});
 
 	return (
-		<Modal
+		<>
+			{isOpen && isCreating && (
+				<Loader title="Creando solicitud..." />
+			)}
+
+			<Modal
 			isOpen={isOpen}
 			onClose={handleClose}
 			title={`Registrar ${requestType.label}`}
@@ -202,15 +211,15 @@ export const PurchaseRequestModal = ({
 								size="giant"
 								label="Cancelar"
 								onClick={handleClose}
-								disabled={CreatePurchaseRequest.isPending}
+								disabled={isCreating}
 								className="text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
 							/>
 							<Button
 								type="submit"
 								size="giant"
 								label="Crear Solicitud"
-								disabled={CreatePurchaseRequest.isPending}
-								isLoading={CreatePurchaseRequest.isPending}
+								disabled={isCreating}
+								isLoading={isCreating}
 								className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
 							/>
 						</div>
@@ -218,5 +227,6 @@ export const PurchaseRequestModal = ({
 				</form>
 			</FormProvider>
 		</Modal>
+		</>
 	);
 };

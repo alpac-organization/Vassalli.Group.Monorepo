@@ -10,9 +10,8 @@ import {
 } from "@alpac/design-system";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
-import { m } from "framer-motion";
 import { BlocksIcon } from "lucide-react";
-import { useCallback, useMemo, useState, type SubmitEventHandler } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useProduct } from "../../hooks/useProduct";
 import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product.request";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
@@ -23,6 +22,7 @@ import { CreateProductModal } from "../../views/create-product-modal/create-prod
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
+const contextMenuButton = "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 const PAGE_SIZE = 5;
 
 export const Product = () => {
@@ -127,6 +127,7 @@ export const Product = () => {
 						items={[
 							{ label: "Ver detalle", onClick: () => onViewDetails(row) },
 						]}
+						triggerClassName={contextMenuButton}
 					/>
 				),
 			},
@@ -135,13 +136,7 @@ export const Product = () => {
 	);
 
 	return (
-		<m.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			exit={{ opacity: 0, y: -20 }}
-			transition={{ duration: 0.5 }}
-			className="flex flex-col gap-4"
-		>
+		<div className="flex flex-col gap-4">
 			{isLoadingProducts && <Loader title="Cargando productos..." />}
 
 			<div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
@@ -235,6 +230,6 @@ export const Product = () => {
 					onClose={handleCloseAlert}
 				/>
 			</AnimatedAlertWrapper>
-		</m.div>
+		</div>
 	);
 };

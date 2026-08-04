@@ -5,6 +5,7 @@ export interface GetPurchaseRequestPayload extends BaseRequest {
    branch_id?: string;
    request_type?: number;
    area_id?: string,
+   status?: number;
    page_size?: number;
    page_number?: number;
 }

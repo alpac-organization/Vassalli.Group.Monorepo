@@ -1,8 +1,10 @@
 import type { IHttpHandler } from "@app/core/ports";
 import type { IPurchaseServices } from "@app/modules/purchasing/application/interfaces/purchase/IPurchaseServices";
 import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
+import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import type { GetPurchaseRequestDetailPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-details-payload";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
+import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import type { GetPurchaseRequestDetailResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { GetPurchaseRequestResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import { cleanParams } from "@app/shared/utils/object.utils";
@@ -13,7 +15,7 @@ export class PurchaseServices implements IPurchaseServices {
 
    constructor(httpHandler: IHttpHandler) {
       this.apiHandler = httpHandler;
-   }   
+   }
 
    async GetPurchaseRequests(payload: GetPurchaseRequestPayload): Promise<GetPurchaseRequestResponseList> {
       try {
@@ -48,10 +50,12 @@ export class PurchaseServices implements IPurchaseServices {
    async GetPurchaseRequestDetails(payload: GetPurchaseRequestDetailPayload): Promise<GetPurchaseRequestDetailResponse> {
       try {
          const { company_id, module_code, purchase_request_id, ...rest } = payload;
-         
+
          const url = `/companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/details`;
 
          const response = await this.apiHandler.get<GetPurchaseRequestDetailResponse>(url, { params: cleanParams(rest) });
+
+         console.log("Response purchase request details : ", response);
 
          return response;
 
@@ -61,11 +65,31 @@ export class PurchaseServices implements IPurchaseServices {
       }
    }
 
-   ProcesssPurchaseRequest(payload: any): Promise<void> {
-    try {
-      throw Error("Todo: crear proceso de aprobacion o rechazo de solicitud");
-    } catch (error) {
-      throw error;
-    }
+   async ProcesssPurchaseRequest(payload: ProcessPurchaseRequestPayload): Promise<void> {
+      try {
+         const { company_id, module_code, purchase_request_id, ...rest } = payload;
+
+         const url = `/companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/process`;
+
+         await this.apiHandler.post<void>(url, rest);
+
+      } catch (error) {
+
+         throw error;
+      }
+   }
+
+   async DeletePurchaseRequest(payload: DeletePurchaseRequestPayload): Promise<void> {
+      try {
+         const { company_id, module_code, purchase_request_id } = payload;
+
+         const url = `companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}`;
+
+         await this.apiHandler.delete<void>(url);
+
+      } catch (error) {
+         
+         throw error;
+      }
    }
 }

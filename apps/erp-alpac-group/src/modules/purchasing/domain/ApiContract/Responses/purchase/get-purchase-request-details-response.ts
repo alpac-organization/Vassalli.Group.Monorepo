@@ -5,6 +5,7 @@ export interface GetPurchaseRequestDetailResponse
 	extends Omit<GetPurchaseRequestResponse, "revision_date"> {
 	justification: string | null;
 	reason_rejection: string | null;
+	reviewed_by: string | null;
 	user_information: PurchaseRequestUserInformation;
 	branch_information: PurchaseRequestBranchInformation;
 	requested_products: PurchaseRequestProductInformation[];
@@ -40,8 +41,7 @@ export interface PurchaseRequestProductDetails {
 	category_information: PurchaseRequestCategoryInformation;
 }
 
-export interface PurchaseRequestCategoryInformation {
-	/** Typo del backend: CatagoryId */
+export interface PurchaseRequestCategoryInformation {	
 	catagory_id: string;
 	name: string | null;
 	code: string | null;
