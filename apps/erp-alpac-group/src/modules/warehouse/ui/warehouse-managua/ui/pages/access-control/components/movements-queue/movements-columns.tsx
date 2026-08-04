@@ -39,7 +39,7 @@ export function getMovementsColumns({
     },
     {
       key: "status",
-      label: "Estado",
+      label: "Estado de mercancía",
       render: (item) => (
         <Badges
           label={getStatusBadgeLabel(item.status)}

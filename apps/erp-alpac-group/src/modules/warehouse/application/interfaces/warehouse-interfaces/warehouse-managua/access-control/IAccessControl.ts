@@ -3,7 +3,6 @@ import type { GetAccessControlRequest } from "@app/modules/warehouse/domain/ApiC
 import type { GetReceptionEntranceDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-access-control-detail";
 import type { GetVehiclesRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-vehicles";
 import type { UpdateReceptionEntranceRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/update-access-control";
-import type { UpdateDucatRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/update-ducat";
 import type { ReceptionEntranceDetail } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control-detail";
 import type { GetReceptionEntrancesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import type { GetVehiclesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-vehicles";
@@ -20,8 +19,6 @@ export interface IAccessControl {
   createAccessControl(payload: CreateAccessControlRequest): Promise<void>;
 
   updateAccessControl(payload: UpdateReceptionEntranceRequest): Promise<void>;
-
-  updateDucat(payload: UpdateDucatRequest): Promise<void>;
 
   getVehicles(payload: GetVehiclesRequest): Promise<GetVehiclesResponse>;
 }
