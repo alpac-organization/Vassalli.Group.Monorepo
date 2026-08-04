@@ -4,7 +4,8 @@ export interface GetAccessControlRequest {
   driver_name: string;
   plate_number: string;
   ducat_number: string;
-  date: string;
+  start_date: string;
+  end_date: string;
   page_number: number;
   page_size: number;
 }

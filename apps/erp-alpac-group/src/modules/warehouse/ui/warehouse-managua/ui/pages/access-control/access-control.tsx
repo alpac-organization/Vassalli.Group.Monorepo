@@ -35,7 +35,8 @@ const EMPTY_FILTERS: AccessControlFilters = {
   ducat_number: "",
   plate_number: "",
   driver_name: "",
-  date: null,
+  start_date: null,
+  end_date: null,
 };
 
 const UPDATABLE_FIELDS = new Set<Path<MovementDetailFormValues>>([
@@ -82,7 +83,8 @@ export function AccessControlPage() {
       driver_name: appliedFilters.driver_name.trim(),
       plate_number: appliedFilters.plate_number.trim(),
       ducat_number: appliedFilters.ducat_number.trim(),
-      date: toApiDate(appliedFilters.date),
+      start_date: toApiDate(appliedFilters.start_date),
+      end_date: toApiDate(appliedFilters.end_date),
       page_number: pageNumber,
       page_size: PAGE_SIZE,
     }),
@@ -114,7 +116,6 @@ export function AccessControlPage() {
     GetAccessControlDetail,
     CreateAccessControl,
     UpdateAccessControl,
-    UpdateDucat,
     GetVehicles,
   } = useAccessControl({
     payloadAccessControl,
@@ -145,7 +146,8 @@ export function AccessControlPage() {
       ducat_number: filters.ducat_number.trim(),
       plate_number: filters.plate_number.trim(),
       driver_name: filters.driver_name.trim(),
-      date: filters.date,
+      start_date: filters.start_date,
+      end_date: filters.end_date,
     });
     setPageNumber(1);
   }, []);
@@ -206,7 +208,7 @@ export function AccessControlPage() {
           payload.aduana = value.trim();
           break;
         case "customs_decaration_number":
-          payload.customs_decaration_number = value.trim();
+          payload.customs_declaration_number = value.trim();
           break;
         case "customer":
           payload.customer = value.trim();
@@ -227,6 +229,7 @@ export function AccessControlPage() {
       try {
         await UpdateAccessControl.mutateAsync(payload);
         handleRequestSuccess("Campo actualizado exitosamente");
+        setSelectedReceptionId(null);
       } catch (error) {
         const mappedError = getMappedError(error as ApiErrorResponse);
         handleRequestError(
@@ -254,14 +257,14 @@ export function AccessControlPage() {
       }
 
       try {
-        await UpdateDucat.mutateAsync({
+        await UpdateAccessControl.mutateAsync({
           company_id: companyId,
           module_code: moduleCode,
           reception_id: selectedReceptionId,
-          ducat_id: ducatId,
-          ducat_number: ducatNumber.trim(),
+          ducats: [{ id: ducatId, ducat_number: ducatNumber.trim() }],
         });
         handleRequestSuccess("DUCA actualizada exitosamente");
+        setSelectedReceptionId(null);
       } catch (error) {
         const mappedError = getMappedError(error as ApiErrorResponse);
         handleRequestError(
@@ -274,7 +277,7 @@ export function AccessControlPage() {
       companyId,
       moduleCode,
       selectedReceptionId,
-      UpdateDucat,
+      UpdateAccessControl,
       getMappedError,
       handleRequestError,
       handleRequestSuccess,

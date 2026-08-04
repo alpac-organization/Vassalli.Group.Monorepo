@@ -3,7 +3,8 @@ export type AccessControlFilters = {
   ducat_number: string;
   plate_number: string;
   driver_name: string;
-  date: DatePickerValue | null;
+  start_date: DatePickerValue | null;
+  end_date: DatePickerValue | null;
 };
 export type AccessControlMetrics = {
   totalIngresos: number;
