@@ -13,12 +13,14 @@ import {
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { PackagePlusIcon } from "lucide-react";
 import { SupplierModal } from "./components/supplier-modal/supplier-modal";
-import { ConstitutionOptions } from "@app/core/enums/constitution.enum";
+import { ConstitutionEnum, ConstitutionOptions } from "@app/core/enums/constitution.enum";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
 import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
 import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
 import { Loader } from "@app/shared/components/loaders/loader";
+import { Controller, useForm } from "react-hook-form";
+import { formatIdentificationNumber, formatRuc } from "@app/shared/utils/string.utils";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -28,25 +30,20 @@ const labelClassName = "text-black! dark:text-white!";
 const contextMenuButton = "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 const PAGE_SIZE = 5;
 
-const statusOptions = [
-	{ label: "Activo", value: "active" },
-	{ label: "Inactivo", value: "inactive" },
-];
-
 export const Supplier = () => {
-	const { companyId, moduleCode } = useUserStore();
 
-	const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
-	const [identification, setIdentification] = useState("");
-	const [status, setStatus] = useState<string>("");
-	const [constitutionType, setConstitutionType] = useState<number | null>(null);
-	const [selectedSupplier, setSelectedSupplier] = useState<GetSuppliersResponse | null>(null)
-	const [filters, setFilters] = useState<GetSuppliersRequest>({
+	const buildBaseFilters = (): GetSuppliersRequest => ({
 		companie_id: companyId,
 		module_code: moduleCode,
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	});
+
+	const { companyId, moduleCode } = useUserStore();
+
+	const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+	const [selectedSupplier, setSelectedSupplier] = useState<GetSuppliersResponse | null>(null)
+	const [filters, setFilters] = useState<GetSuppliersRequest>(buildBaseFilters);
 
 	const {
 		alertState,
@@ -54,6 +51,23 @@ export const Supplier = () => {
 		handleRequestError,
 		handleRequestSuccess,
 	} = useAlertState();
+
+	const defaultFilters: Pick<
+		GetSuppliersRequest, "identification_number" | "constitution_type"
+	> = {
+		identification_number: "",
+		constitution_type: undefined
+	}
+
+	const {
+		register,
+		handleSubmit,
+		control,
+		reset,
+		watch
+	} = useForm<GetSuppliersRequest>({
+		defaultValues: { ...defaultFilters }
+	});
 
 	const { GetSuppliers } = useSupplier({
 		suppliersFilters: {
@@ -67,26 +81,20 @@ export const Supplier = () => {
 	const suppliers = GetSuppliers.data?.data ?? [];
 	const totalRecords = GetSuppliers.data?.total ?? 0;
 	const currentPage = filters.page_number ?? 1;
+	const constitutionType = watch("constitution_type");
+	const isLegalPerson = constitutionType === ConstitutionEnum.Legal.value;
+	const isNaturalPerson = constitutionType === ConstitutionEnum.Natural.value;
 
 	const handleClearFilters = () => {
-		setIdentification("");
-		setStatus("");
-		setConstitutionType(null);
-		setFilters({
-			companie_id: companyId,
-			module_code: moduleCode,
-			page_number: 1,
-			page_size: PAGE_SIZE,
-		});
+		reset(defaultFilters)
+		setFilters(buildBaseFilters());
 	};
 
 	const handlePageChange = useCallback((page: number) => {
-
 		setFilters((prev) => ({
 			...prev,
 			page_number: page,
 		}));
-
 	}, []);
 
 	const onEditSupplier = (data: GetSuppliersResponse) => {
@@ -121,12 +129,28 @@ export const Supplier = () => {
 		[],
 	);
 
+	const handleFilterSuppliers = (data: GetSuppliersRequest) => {
+
+		const identification = data?.identification_number?.trim() || undefined;
+		const constitutionType = (
+			data.constitution_type === undefined ||
+			data.constitution_type === null ||
+			Number(data.constitution_type) === -1
+		) ? undefined : Number(data.constitution_type);
+
+		setFilters((prev) => ({
+			...prev,
+			identification_number: identification,
+			constitution_type: constitutionType
+
+		}));
+	}
+
 	return (
 		<div className="flex flex-col gap-4">
 			{GetSuppliers.isPending && (
 				<Loader title="Cargando proveedores..." />
 			)}
-
 
 			<div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
 				<Button
@@ -142,7 +166,6 @@ export const Supplier = () => {
 				/>
 			</div>
 
-
 			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
 				<div className="flex flex-col justify-center">
 					<h3 className="p-0! m-0!">Filtros</h3>
@@ -152,43 +175,51 @@ export const Supplier = () => {
 				</div>
 			</div>
 
-			<form
-				onSubmit={(event) => {
-					event.preventDefault();
-				}}
+			<form onSubmit={handleSubmit(handleFilterSuppliers)}
 				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
 			>
+
+				<Controller
+					name="constitution_type"
+					control={control}
+					render={({ field }) => (
+						<Dropdown
+							label="Tipo de constitución"
+							placeholder="Seleccione..."
+							appearance="dark"
+							options={ConstitutionOptions ?? []}
+							value={field.value ?? null}
+							onChange={(value) => {
+								const parsed = value === null || value === undefined || value === ""
+									? undefined
+									: Number(value);
+								field.onChange(
+									parsed === -1 || Number.isNaN(parsed) ? undefined : parsed,
+								);
+							}}
+							className={dropdownClassName}
+							labelClassName={labelClassName}
+							valueClassName={labelClassName}
+						/>
+					)}
+				/>
+
 				<InputText
 					label="Identificación"
 					placeholder="Ej. J0310000000001"
 					className={inputClassName}
 					labelClassName={labelClassName}
-					value={identification}
-					onChange={(event) => setIdentification(event.target.value)}
-				/>
-
-				<Dropdown
-					label="Tipo de constitución"
-					placeholder="Seleccione..."
-					appearance="dark"
-					options={ConstitutionOptions}
-					value={constitutionType}
-					onChange={(value) => setConstitutionType(Number(value))}
-					className={dropdownClassName}
-					labelClassName={labelClassName}
-					valueClassName={labelClassName}
-				/>
-
-				<Dropdown
-					label="Estado"
-					placeholder="Seleccione..."
-					appearance="dark"
-					options={statusOptions}
-					value={status}
-					onChange={(value) => setStatus(String(value))}
-					className={dropdownClassName}
-					labelClassName={labelClassName}
-					valueClassName={labelClassName}
+					{...register("identification_number", {
+						setValueAs: (value: string) => value ? value.toString().replace(/-/g, "").toUpperCase() : "",
+						onChange: (evt) => {
+							if (isLegalPerson) {
+								evt.target.value = formatRuc(evt.target.value);
+							} else if (isNaturalPerson) {
+								evt.target.value = formatIdentificationNumber(evt.target.value);
+							}
+						}
+					})
+					}
 				/>
 
 				<Button
