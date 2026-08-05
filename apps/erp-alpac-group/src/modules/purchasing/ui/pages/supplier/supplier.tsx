@@ -23,7 +23,7 @@ import { Controller, useForm } from "react-hook-form";
 import { formatIdentificationNumber, formatRuc } from "@app/shared/utils/string.utils";
 import { PackagePlusIcon } from "lucide-react";
 import { constitutionTypeBadgeVariants, idenitificationTypeBadgeVariants } from "./supplier.variants";
-import { hasSelectedTypeValue } from "./utils/hasSelectedTypeValue";
+import { isValidateValue } from "@app/shared/utils/values.utils";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -106,7 +106,6 @@ export const Supplier = () => {
 	}
 
 	const onViewDetails = (data: GetSuppliersResponse) => {
-		console.log(data)
 	}
 
 	const columnConfig: TableColumn<GetSuppliersResponse>[] = [
@@ -115,33 +114,30 @@ export const Supplier = () => {
 			key: "constitution_type",
 			label: "Tipo de constitución",
 			render(row: GetSuppliersResponse) {
-				if (!hasSelectedTypeValue(row.constitution_type)) {
+				if (!isValidateValue(row.constitution_type)) {
 					return "—";
 				}
-				return (
-					<Badges
-						label={row.constitution_type ?? ""}
-						color={constitutionTypeBadgeVariants[
-							row.constitution_type as keyof typeof constitutionTypeBadgeVariants
-						] ?? constitutionTypeBadgeVariants.default}
-					/>
-				);
+
+				const propValue = constitutionTypeBadgeVariants[
+					row.constitution_type as keyof typeof constitutionTypeBadgeVariants
+				] ?? constitutionTypeBadgeVariants.default;
+
+				return <Badges label={propValue.label} color={propValue.badgeColor} />;
 			},
 		},
 		{
 			key: "identification_type",
 			label: "Tipo de identificación",
 			render(row: GetSuppliersResponse) {
-				if (!hasSelectedTypeValue(row.identification_type)) {
+				if (!isValidateValue(row.identification_type)) {
 					return "—";
 				}
-				return (
-					<Badges label={row.identification_type ?? ""}
-						color={idenitificationTypeBadgeVariants[
-							row.identification_type as keyof typeof idenitificationTypeBadgeVariants
-						] ?? idenitificationTypeBadgeVariants.default}
-					/>
-				)
+
+				const propValue = idenitificationTypeBadgeVariants[
+					row.identification_type as keyof typeof idenitificationTypeBadgeVariants
+				] ?? idenitificationTypeBadgeVariants.default;
+
+				return <Badges label={propValue.label} color={propValue.badgeColor} />
 			}
 		},
 		{ key: "identification_number", label: "Número de identificación" },

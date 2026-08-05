@@ -17,7 +17,7 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import { useFieldTracker } from "@app/shared/hooks/useFieldTracker";
 import type { EnumType } from "@app/shared/types/enum.type";
-import { hasSelectedTypeValue } from "../../utils/hasSelectedTypeValue";
+import { isValidateValue } from "@app/shared/utils/values.utils";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -125,7 +125,7 @@ export const SupplierModal = ({
    const hasCredit = watch("supplier_details.has_credit");
    const isLegalPerson = constitutionType === ConstitutionEnum.Legal.value;
    const isNaturalPerson = constitutionType === ConstitutionEnum.Natural.value;
-   const hasIdentificationType = hasSelectedTypeValue(identificationType);
+   const hasIdentificationType = isValidateValue(identificationType);
 
    const filteredIdentificationTypes = useMemo(() => {
       const filter = isLegalPerson ? IdentificationEnum.RUC.value : isNaturalPerson ? IdentificationEnum.NATIONAL_ID.value : null;
@@ -174,7 +174,7 @@ export const SupplierModal = ({
       if (hasConstitutionData(constitution_type)) {
          payload.constitution_type = constitution_type;
 
-         if (hasSelectedTypeValue(identification_type)) {
+         if (isValidateValue(identification_type)) {
             payload.identification_type = identification_type;
             payload.identification_number = identification_number;
          }
@@ -367,7 +367,7 @@ export const SupplierModal = ({
                         onChange={(value) => {
                            const nextType = Number(value);
                            field.onChange(nextType);
-                           if (!hasSelectedTypeValue(nextType)) {
+                           if (!isValidateValue(nextType)) {
                               setValue("identification_number", "");
                               trackField("identification_type", undefined);
                               trackField("identification_number", undefined);
@@ -397,13 +397,13 @@ export const SupplierModal = ({
                         value ? value.toString().replace(/-/g, "").toUpperCase() : "",
                      validate: {
                         requiredWhenTypeSelected: (value?: string) => {
-                           if (!hasSelectedTypeValue(getValues("identification_type"))) {
+                           if (!isValidateValue(getValues("identification_type"))) {
                               return true;
                            }
                            return Boolean(value?.trim()) || "El número de identificación es requerido";
                         },
                         validIdentification: (value?: string) => {
-                           if (!hasSelectedTypeValue(getValues("identification_type"))) {
+                           if (!isValidateValue(getValues("identification_type"))) {
                               return true;
                            }
 
