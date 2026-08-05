@@ -21,9 +21,6 @@ export function VehicleDataStep({
   onChangeDocumentType,
   vehicleOptions = [],
 }: VehicleDataStepProps) {
-  const [selectedModality, setSelectedModality] = useState<
-    "reception" | "dispatch"
-  >("reception");
   const [selectedDocumentType, setSelectedDocumentType] =
     useState<DocumentType>(documentType);
   const transportUnitId = watch("transportUnitId");
@@ -49,10 +46,6 @@ export function VehicleDataStep({
     });
   }, [register]);
 
-  const handleModalityChange = (modality: "reception" | "dispatch") => {
-    setSelectedModality(modality);
-  };
-
   const handleTransportUnitChange = (value: string | number) => {
     const id = String(value);
 
@@ -65,46 +58,32 @@ export function VehicleDataStep({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-3 px-2">
       <div className="sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-3 items-start">
-        <div className="flex flex-col min-w-0">
-          <span className={gateEntryLabelClassName}>Modalidad de acceso</span>
-          <div className="flex flex-row gap-4 items-center h-12">
+        <div className="flex flex-col min-w-0 mb-2">
+          <span className={gateEntryLabelClassName}>
+            Seleccione Tipo de documento:
+          </span>
+          <div className="flex flex-row flex-wrap gap-3 sm:gap-4 items-center min-h-12">
             <RadioButton
-              label="Para Recepción"
-              value="reception"
-              checked={selectedModality === "reception"}
-              onChange={() => handleModalityChange("reception")}
+              label="DUCA"
+              value={DocumentEnum.DUCA.value}
+              checked={selectedDocumentType === DocumentEnum.DUCA}
+              onChange={() => {
+                setSelectedDocumentType(DocumentEnum.DUCA);
+                onChangeDocumentType(DocumentEnum.DUCA);
+              }}
+            />
+
+            <RadioButton
+              label="Declaración Aduanera"
+              value={DocumentEnum.CustomsDeclaration.value}
+              checked={selectedDocumentType === DocumentEnum.CustomsDeclaration}
+              onChange={() => {
+                setSelectedDocumentType(DocumentEnum.CustomsDeclaration);
+                onChangeDocumentType(DocumentEnum.CustomsDeclaration);
+              }}
             />
           </div>
         </div>
-
-        {selectedModality === "reception" && (
-          <div className="flex flex-col min-w-0">
-            <span className={gateEntryLabelClassName}>Tipo de documento</span>
-            <div className="flex flex-row flex-wrap gap-3 sm:gap-4 items-center min-h-12">
-              <RadioButton
-                label="DUCA"
-                value={DocumentEnum.DUCA.value}
-                checked={selectedDocumentType === DocumentEnum.DUCA}
-                onChange={() => {
-                  setSelectedDocumentType(DocumentEnum.DUCA);
-                  onChangeDocumentType(DocumentEnum.DUCA);
-                }}
-              />
-
-              <RadioButton
-                label="Declaración Aduanera"
-                value={DocumentEnum.CustomsDeclaration.value}
-                checked={
-                  selectedDocumentType === DocumentEnum.CustomsDeclaration
-                }
-                onChange={() => {
-                  setSelectedDocumentType(DocumentEnum.CustomsDeclaration);
-                  onChangeDocumentType(DocumentEnum.CustomsDeclaration);
-                }}
-              />
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="sm:col-span-2 lg:col-span-1 min-w-0">
