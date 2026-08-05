@@ -114,7 +114,7 @@ export function AccessControlPage() {
     GetAccessControlDetail,
     CreateAccessControl,
     UpdateAccessControl,
-    UpdateDucat,
+    AddDucatsToReception,
     GetVehicles,
   } = useAccessControl({
     payloadAccessControl,
@@ -206,7 +206,7 @@ export function AccessControlPage() {
           payload.aduana = value.trim();
           break;
         case "customs_decaration_number":
-          payload.customs_decaration_number = value.trim();
+          payload.customs_declaration_number = value.trim();
           break;
         case "customer":
           payload.customer = value.trim();
@@ -254,12 +254,11 @@ export function AccessControlPage() {
       }
 
       try {
-        await UpdateDucat.mutateAsync({
+        await UpdateAccessControl.mutateAsync({
           company_id: companyId,
           module_code: moduleCode,
           reception_id: selectedReceptionId,
-          ducat_id: ducatId,
-          ducat_number: ducatNumber.trim(),
+          ducats: [{ id: ducatId, ducat_number: ducatNumber.trim() }],
         });
         handleRequestSuccess("DUCA actualizada exitosamente");
       } catch (error) {
@@ -274,7 +273,41 @@ export function AccessControlPage() {
       companyId,
       moduleCode,
       selectedReceptionId,
-      UpdateDucat,
+      UpdateAccessControl,
+      getMappedError,
+      handleRequestError,
+      handleRequestSuccess,
+    ],
+  );
+
+  const handleAddDucats = useCallback(
+    async (ducatNumbers: string[]) => {
+      if (!companyId || !moduleCode || !selectedReceptionId) {
+        handleRequestError("No se pudo agregar la DUCA.");
+        throw new Error("Missing context");
+      }
+
+      try {
+        await AddDucatsToReception.mutateAsync({
+          company_id: companyId,
+          module_code: moduleCode,
+          reception_id: selectedReceptionId,
+          ducat_numbers: ducatNumbers,
+        });
+        handleRequestSuccess("DUCA agregada exitosamente");
+      } catch (error) {
+        const mappedError = getMappedError(error as ApiErrorResponse);
+        handleRequestError(
+          mappedError?.description || "Error al agregar la DUCA",
+        );
+        throw error;
+      }
+    },
+    [
+      companyId,
+      moduleCode,
+      selectedReceptionId,
+      AddDucatsToReception,
       getMappedError,
       handleRequestError,
       handleRequestSuccess,
@@ -387,6 +420,7 @@ export function AccessControlPage() {
         onClose={() => setSelectedReceptionId(null)}
         onFieldUpdate={handleFieldUpdate}
         onDucatUpdate={handleDucatUpdate}
+        onDucatAdd={handleAddDucats}
       />
 
       <GateEntryModal

@@ -8,6 +8,7 @@ import type { UpdateReceptionEntranceRequest } from "@app/modules/warehouse/doma
 import type { ReceptionEntranceDetail } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control-detail";
 import type { GetReceptionEntrancesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import type { GetVehiclesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-vehicles";
+import type { AddDucatsToReceptionRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/add-ducats-to-reception";
 import { cleanParams } from "@app/shared/utils/object.utils";
 
 export class AccessControlServices implements IAccessControl {
@@ -47,6 +48,14 @@ export class AccessControlServices implements IAccessControl {
     const { company_id, module_code, reception_id, ...rest } = payload;
     const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}`;
     return this.httpHandler.patch<void>(url, cleanParams(rest));
+  }
+
+  public async addDucatsToReception(
+    payload: AddDucatsToReceptionRequest,
+  ): Promise<void> {
+    const { company_id, module_code, reception_id, ducat_numbers } = payload;
+    const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}/ducats`;
+    return this.httpHandler.post<void>(url, { ducat_numbers });
   }
 
   public async getVehicles(
