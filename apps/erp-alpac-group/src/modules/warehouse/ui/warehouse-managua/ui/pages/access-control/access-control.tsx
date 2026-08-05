@@ -116,6 +116,7 @@ export function AccessControlPage() {
     GetAccessControlDetail,
     CreateAccessControl,
     UpdateAccessControl,
+    AddDucatsToReception,
     GetVehicles,
   } = useAccessControl({
     payloadAccessControl,
@@ -167,7 +168,7 @@ export function AccessControlPage() {
 
   const handleFieldUpdate = useCallback(
     async (name: Path<MovementDetailFormValues>, value: string) => {
-      if (!companyId || !moduleCode || !selectedReceptionId) {
+      if (!selectedReceptionId) {
         handleRequestError("No se pudo actualizar el registro.");
         throw new Error("Missing context");
       }
@@ -239,11 +240,8 @@ export function AccessControlPage() {
       }
     },
     [
-      companyId,
-      moduleCode,
       selectedReceptionId,
       UpdateAccessControl,
-      getMappedError,
       handleRequestError,
       handleRequestSuccess,
     ],
@@ -251,7 +249,7 @@ export function AccessControlPage() {
 
   const handleDucatUpdate = useCallback(
     async (ducatId: string, ducatNumber: string) => {
-      if (!companyId || !moduleCode || !selectedReceptionId) {
+      if (!selectedReceptionId) {
         handleRequestError("No se pudo actualizar la DUCA.");
         throw new Error("Missing context");
       }
@@ -274,11 +272,39 @@ export function AccessControlPage() {
       }
     },
     [
-      companyId,
-      moduleCode,
       selectedReceptionId,
       UpdateAccessControl,
-      getMappedError,
+      handleRequestError,
+      handleRequestSuccess,
+    ],
+  );
+
+  const handleAddDucats = useCallback(
+    async (ducatNumbers: string[]) => {
+      if (!selectedReceptionId) {
+        handleRequestError("No se pudo agregar la DUCA.");
+        throw new Error("Missing context");
+      }
+
+      try {
+        await AddDucatsToReception.mutateAsync({
+          company_id: companyId,
+          module_code: moduleCode,
+          reception_id: selectedReceptionId,
+          ducat_numbers: ducatNumbers,
+        });
+        handleRequestSuccess("DUCA agregada exitosamente");
+      } catch (error) {
+        const mappedError = getMappedError(error as ApiErrorResponse);
+        handleRequestError(
+          mappedError?.description || "Error al agregar la DUCA",
+        );
+        throw error;
+      }
+    },
+    [
+      selectedReceptionId,
+      AddDucatsToReception,
       handleRequestError,
       handleRequestSuccess,
     ],
@@ -300,11 +326,6 @@ export function AccessControlPage() {
 
   const handleGateEntrySubmit = useCallback(
     (data: GateEntryFormValues, documentType: DocumentType) => {
-      if (!companyId || !moduleCode) {
-        handleRequestError("No se pudo obtener la empresa o el módulo activo.");
-        return;
-      }
-
       if (!data.transportUnitId.trim()) {
         handleRequestError("Debe seleccionar una unidad de transporte.");
         return;
@@ -341,11 +362,8 @@ export function AccessControlPage() {
       });
     },
     [
-      companyId,
-      moduleCode,
       entryStartedAt,
       CreateAccessControl,
-      getMappedError,
       handleRequestError,
       handleRequestSuccess,
     ],
@@ -390,6 +408,7 @@ export function AccessControlPage() {
         onClose={() => setSelectedReceptionId(null)}
         onFieldUpdate={handleFieldUpdate}
         onDucatUpdate={handleDucatUpdate}
+        onDucatAdd={handleAddDucats}
       />
 
       <GateEntryModal
