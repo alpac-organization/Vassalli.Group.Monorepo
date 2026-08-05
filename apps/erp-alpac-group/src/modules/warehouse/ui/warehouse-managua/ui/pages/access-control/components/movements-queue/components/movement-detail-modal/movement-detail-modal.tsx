@@ -11,14 +11,7 @@ import {
   type TabItem,
 } from "@alpac/design-system";
 import { Check, Loader2, Pencil, MessageCircleX, X, Plus } from "lucide-react";
-import {
-  formatTimeWithSeconds,
-  formatDateToSpanishWords,
-  formatDuration,
-  formatTime,
-} from "@app/shared/utils/string.utils";
 import { EditableField } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/editable-field/editable-field";
-import { RecordEntranceStatusEnum } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import {
   getStatusBadgeClass,
   getStatusBadgeLabel,
@@ -94,7 +87,6 @@ export function MovementDetailModal({
     ducatOptions.find((option) => String(option.value) === selectedDucatId)
       ?.label ?? "";
   const showCustomsDeclaration = detail ? !isDucaDocumentType(detail) : false;
-  const canAddDucat = detail?.status === "Queue" || detail?.status === RecordEntranceStatusEnum.Queue.label || String(detail?.status).toLowerCase() === "queue";
 
   useEffect(() => {
     if (!isOpen) {
@@ -222,17 +214,15 @@ export function MovementDetailModal({
                       }
                     />
                   </div>
-                  {canAddDucat && !isAddingDucat && (
+                  {!isAddingDucat && (
                     <div className="flex shrink-0 mt-[24px] sm:mt-[26px]">
-                      <button
+                      <Button
                         type="button"
-                        title="Agregar DUCA"
-                        aria-label="Agregar DUCA"
+                        ariaLabel="Agregar DUCA"
                         onClick={startDucatAdd}
-                        className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
-                      >
-                        <Plus size={16} />
-                      </button>
+                        icon={<Plus size={16} />}
+                        className="h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-slate-200! dark:border-slate-700/50! bg-white! dark:bg-[#1e2229]! text-slate-500! dark:text-slate-400! hover:text-blue-600! dark:hover:text-white! hover:border-cyan-300! dark:hover:border-blue-600! hover:bg-cyan-50! dark:hover:bg-cyan-500/10! transition-all duration-200"
+                      />
                     </div>
                   )}
                 </div>
@@ -250,34 +240,32 @@ export function MovementDetailModal({
                       value={newDucatDraft}
                       onChange={(event) => setNewDucatDraft(event.target.value)}
                       className={`${baseInputClasses} text-slate-800 dark:text-white!`}
-                      placeholder="Ingrese número de DUCA"
+                      placeholder="Ingrese Nº Duca"
                     />
                   </div>
                   <div className="flex shrink-0 gap-1.5 sm:gap-2 mt-[24px] sm:mt-[26px]">
-                    <button
+                    <Button
                       type="button"
-                      title="Cancelar"
-                      aria-label="Cancelar agregar DUCA"
+                      ariaLabel="Cancelar agregar DUCA"
                       disabled={isSavingNewDucat}
                       onClick={cancelDucatAdd}
-                      className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex items-center justify-center rounded-lg border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-300 transition-all duration-200 disabled:opacity-40"
-                    >
-                      <MessageCircleX size={16} />
-                    </button>
-                    <button
+                      icon={<MessageCircleX size={16} />}
+                      className="h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-red-200! dark:border-red-500/30! bg-red-50! dark:bg-red-500/10! text-red-600! dark:text-red-400! hover:bg-red-100! dark:hover:bg-red-500/20! hover:border-red-300! transition-all duration-200 disabled:opacity-40!"
+                    />
+                    <Button
                       type="button"
-                      title="Confirmar"
-                      aria-label="Confirmar agregar DUCA"
+                      ariaLabel="Confirmar agregar DUCA"
                       disabled={isSavingNewDucat || !newDucatDraft.trim()}
                       onClick={confirmDucatAdd}
-                      className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex items-center justify-center rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 disabled:opacity-40 transition-all duration-200"
-                    >
-                      {isSavingNewDucat ? (
-                        <Loader2 size={16} className="animate-spin" />
-                      ) : (
-                        <Check size={16} />
-                      )}
-                    </button>
+                      icon={
+                        isSavingNewDucat ? (
+                          <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                          <Check size={16} />
+                        )
+                      }
+                      className="h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-emerald-200! dark:border-emerald-500/30! bg-emerald-50! dark:bg-emerald-500/10! text-emerald-600! dark:text-emerald-400! hover:bg-emerald-100! disabled:opacity-40! transition-all duration-200"
+                    />
                   </div>
                 </div>
               </div>
@@ -309,46 +297,42 @@ export function MovementDetailModal({
                   </div>
                   <div className="flex shrink-0 gap-1.5 sm:gap-2 mt-[24px] sm:mt-[26px]">
                     {!isEditingDucat ? (
-                      <button
+                      <Button
                         type="button"
-                        title="Editar DUCA"
-                        aria-label="Editar DUCA"
+                        ariaLabel="Editar DUCA"
                         onClick={() => {
                           const option = ducatOptions.find(
                             (item) => String(item.value) === selectedDucatId,
                           );
                           if (option) startDucatEdit(option);
                         }}
-                        className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
-                      >
-                        <Pencil size={16} />
-                      </button>
+                        icon={<Pencil size={16} />}
+                        className="h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-slate-200! dark:border-slate-700/50! bg-white! dark:bg-[#1e2229]! text-slate-500! dark:text-slate-400! hover:text-blue-600! dark:hover:text-white! hover:border-cyan-300! dark:hover:border-blue-600! hover:bg-cyan-50! dark:hover:bg-cyan-500/10! transition-all duration-200"
+                      />
                     ) : (
                       <>
-                        <button
+                        <Button
                           type="button"
-                          title="Cancelar"
-                          aria-label="Cancelar edición de DUCA"
+                          ariaLabel="Cancelar edición de DUCA"
                           disabled={isSavingDucat}
                           onClick={cancelDucatEdit}
-                          className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex items-center justify-center rounded-lg border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-300 transition-all duration-200 disabled:opacity-40"
-                        >
-                          <MessageCircleX size={16} />
-                        </button>
-                        <button
+                          icon={<MessageCircleX size={16} />}
+                          className="h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-red-200! dark:border-red-500/30! bg-red-50! dark:bg-red-500/10! text-red-600! dark:text-red-400! hover:bg-red-100! dark:hover:bg-red-500/20! hover:border-red-300! transition-all duration-200 disabled:opacity-40!"
+                        />
+                        <Button
                           type="button"
-                          title="Confirmar"
-                          aria-label="Confirmar edición de DUCA"
+                          ariaLabel="Confirmar edición de DUCA"
                           disabled={isSavingDucat || !ducatDraft.trim()}
                           onClick={confirmDucatEdit}
-                          className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex items-center justify-center rounded-lg border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 disabled:opacity-40 transition-all duration-200"
-                        >
-                          {isSavingDucat ? (
-                            <Loader2 size={16} className="animate-spin" />
-                          ) : (
-                            <Check size={16} />
-                          )}
-                        </button>
+                          icon={
+                            isSavingDucat ? (
+                              <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                              <Check size={16} />
+                            )
+                          }
+                          className="h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-emerald-200! dark:border-emerald-500/30! bg-emerald-50! dark:bg-emerald-500/10! text-emerald-600! dark:text-emerald-400! hover:bg-emerald-100! disabled:opacity-40! transition-all duration-200"
+                        />
                       </>
                     )}
                   </div>
