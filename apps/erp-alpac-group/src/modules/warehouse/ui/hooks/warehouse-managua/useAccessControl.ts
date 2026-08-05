@@ -2,7 +2,6 @@ import type { GetAccessControlRequest } from "@app/modules/warehouse/domain/ApiC
 import type { GetReceptionEntranceDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-access-control-detail";
 import type { CreateAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/create-access-control";
 import type { UpdateReceptionEntranceRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/update-access-control";
-import type { UpdateDucatRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/update-ducat";
 import type { GetVehiclesRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-vehicles";
 import type { GetReceptionEntrancesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import type { ReceptionEntranceDetail } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control-detail";
@@ -84,17 +83,6 @@ export const useAccessControl = (props: UseAccessControlProps) => {
     },
   });
 
-  const UpdateDucat = useMutation<
-    void | null,
-    ApiErrorResponse,
-    UpdateDucatRequest
-  >({
-    mutationFn: (payload) => warehouseManaguaServices.updateDucat(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["access-control"] });
-      queryClient.invalidateQueries({ queryKey: ["access-control-detail"] });
-    },
-  });
   const GetVehicles = useQuery<GetVehiclesResponse, ApiErrorResponse>({
     queryKey: ["vehicles", vehiclesPayload],
     queryFn: () => warehouseManaguaServices.getVehicles(vehiclesPayload!),
@@ -112,7 +100,6 @@ export const useAccessControl = (props: UseAccessControlProps) => {
     GetAccessControlDetail,
     CreateAccessControl,
     UpdateAccessControl,
-    UpdateDucat,
     GetVehicles,
   };
 };
