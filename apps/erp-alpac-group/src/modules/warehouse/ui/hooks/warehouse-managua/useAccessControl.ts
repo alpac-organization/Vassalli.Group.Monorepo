@@ -3,6 +3,7 @@ import type { GetReceptionEntranceDetailRequest } from "@app/modules/warehouse/d
 import type { CreateAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/create-access-control";
 import type { UpdateReceptionEntranceRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/update-access-control";
 import type { GetVehiclesRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-vehicles";
+import type { AddDucatsToReceptionRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/add-ducats-to-reception";
 import type { GetReceptionEntrancesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import type { ReceptionEntranceDetail } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control-detail";
 import type { GetVehiclesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-vehicles";
@@ -83,6 +84,19 @@ export const useAccessControl = (props: UseAccessControlProps) => {
     },
   });
 
+  const AddDucatsToReception = useMutation<
+    void | null,
+    ApiErrorResponse,
+    AddDucatsToReceptionRequest
+  >({
+    mutationFn: (payload) =>
+      warehouseManaguaServices.addDucatsToReception(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["access-control"] });
+      queryClient.invalidateQueries({ queryKey: ["access-control-detail"] });
+    },
+  });
+
   const GetVehicles = useQuery<GetVehiclesResponse, ApiErrorResponse>({
     queryKey: ["vehicles", vehiclesPayload],
     queryFn: () => warehouseManaguaServices.getVehicles(vehiclesPayload!),
@@ -100,6 +114,7 @@ export const useAccessControl = (props: UseAccessControlProps) => {
     GetAccessControlDetail,
     CreateAccessControl,
     UpdateAccessControl,
+    AddDucatsToReception,
     GetVehicles,
   };
 };

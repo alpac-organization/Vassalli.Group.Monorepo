@@ -9,13 +9,12 @@ const QUEUE_STATUS_CLASS =
 const ENTRY_MOVEMENT_STATUS_CLASS: Record<string, string> = {
   queue: QUEUE_STATUS_CLASS,
   unloading:
-    "bg-green-100 text-green-900 border border-green-200 dark:bg-green-900/40 dark:text-green-200 dark:border-green-700/50",
+    "bg-blue-100 text-blue-900 border border-blue-200 dark:bg-[#20666ba6] dark:text-slate-100 dark:border-blue-600/50",
   completed:
-    "bg-blue-100 text-blue-900 border border-blue-200 dark:bg-blue-900/40 dark:text-blue-200 dark:border-blue-700/50",
+    "bg-green-100 text-green-900 border border-green-200 dark:bg-green-900/40 dark:text-green-200 dark:border-green-700/50",
   abandoned:
-    "bg-slate-200 text-slate-800 border border-slate-300 dark:bg-slate-700/60 dark:text-slate-200 dark:border-slate-600/50",
+    "bg-[#B1B37A]! text-[#1a1c0d]! border border-[#8f915f]! dark:bg-[#4B5563]! dark:text-[#DAD3C6]! dark:border-[#8f915f]!",
 };
-
 function normalizeStatusKey(status: string): string {
   return status.replace(/[_\s-]/g, "").toLowerCase();
 }

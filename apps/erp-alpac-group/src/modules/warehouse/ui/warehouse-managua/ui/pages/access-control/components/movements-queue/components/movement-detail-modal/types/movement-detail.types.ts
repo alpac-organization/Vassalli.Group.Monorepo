@@ -44,6 +44,7 @@ export type MovementDetailModalProps = {
     value: string,
   ) => Promise<void>;
   onDucatUpdate: (ducatId: string, ducatNumber: string) => Promise<void>;
+  onDucatAdd?: (ducatNumbers: string[]) => Promise<void>;
 };
 export const MOVEMENT_DETAIL_DEFAULT_VALUES: MovementDetailFormValues = {
   status: "",
