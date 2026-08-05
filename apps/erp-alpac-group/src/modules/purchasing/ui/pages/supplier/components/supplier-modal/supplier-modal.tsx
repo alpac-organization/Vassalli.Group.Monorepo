@@ -15,9 +15,11 @@ import {
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
+import type { SupplierDetailsInformation } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-details";
 import { useFieldTracker } from "@app/shared/hooks/useFieldTracker";
 import type { EnumType } from "@app/shared/types/enum.type";
 import { isValidateValue } from "@app/shared/utils/values.utils";
+import { Loader } from "@app/shared/components/loaders/loader";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -30,18 +32,22 @@ const constitutionEnumMap = new Map<string, number>([
    [ConstitutionEnum.Natural.stringValue, ConstitutionEnum.Natural.value]
 ]);
 
+const identificationEnumMap = new Map<string, number>([
+   [IdentificationEnum.RUC.stringValue, IdentificationEnum.RUC.value],
+   [IdentificationEnum.NATIONAL_ID.stringValue, IdentificationEnum.NATIONAL_ID.value],
+]);
+
 const resolveConstitutionType = (value: string): number => {
    return constitutionEnumMap.get(value) ?? 0;
 };
 
-const resolveIdentificationType = (constitutionType: number): number | undefined => {
-   if (constitutionType === ConstitutionEnum.Legal.value) {
-      return IdentificationEnum.RUC.value;
-   }
-   if (constitutionType === ConstitutionEnum.Natural.value) {
-      return IdentificationEnum.NATIONAL_ID.value;
-   }
-   return undefined;
+const resolveIdentificationType = (identificationType?: string | null, constitutionType?: string | null): number => {
+   if (!identificationType) return 0;
+   if (
+      ConstitutionEnum.Legal.stringValue === constitutionType &&
+      IdentificationEnum.NATIONAL_ID.stringValue === identificationType
+   ) return 0;   
+   return identificationEnumMap.get(identificationType) ?? 0;
 };
 
 const hasConstitutionData = (constitutionType?: number) =>
@@ -73,36 +79,65 @@ export const SupplierModal = ({
    selectedSupplier,
 }: SupplierModalProps) => {
 
-
-   const { CreateSupplier, UpdateSupplier } = useSupplier();
    const { companyId, moduleCode } = useUserStore();
-   const { getMappedError } = useMappedError();
    const isEditMode = Boolean(selectedSupplier?.supplier_id);
 
+   const {
+      CreateSupplier,
+      UpdateSupplier,
+      GetSupplierDetails
+   } = useSupplier({
+      supplierDetailFilters:
+         isOpen && selectedSupplier?.supplier_id
+            ? {
+               company_id: companyId,
+               module_code: moduleCode,
+               supplier_id: selectedSupplier.supplier_id,
+            }
+            : undefined,
+   });
+
+   const { data: supplierDetails, isPending: isSupplierDetailsPending } = GetSupplierDetails;
+
+   const { getMappedError } = useMappedError();
+
    const trackerInitial = useMemo((): UpdateSupplierRequest => {
-      if (!selectedSupplier) {
+      if (!selectedSupplier || !supplierDetails) {
          return {} as UpdateSupplierRequest;
       }
 
-      const constitutionType = resolveConstitutionType(selectedSupplier.constitution_type);
-      const identificationNumber = String(selectedSupplier.identification_number ?? "")
+      const constitutionType = resolveConstitutionType(supplierDetails.constitution_type);
+      const identificationType = resolveIdentificationType(supplierDetails.identification_type);
+      const identificationNumber = String(supplierDetails.identification_number ?? "")
          .replace(/-/g, "")
          .toUpperCase();
+      const details = supplierDetails.supplier_details;
 
       return {
          company_id: companyId,
          module_code: moduleCode,
          supplier_id: selectedSupplier.supplier_id,
-         suppliers_legal_name: selectedSupplier.supplier_legal_name,
+         suppliers_legal_name: supplierDetails.supplier_legal_name,
+         supplier_details: {
+            address: details?.address ?? undefined,
+            email_support: details?.email_support ?? undefined,
+            contact_name: details?.contact_name ?? undefined,
+            contact_email: details?.contact_email ?? undefined,
+            contact_phone_number: details?.contact_phone_number ?? undefined,
+            credit_days: details?.credit_days ?? 0,
+            has_credit: Boolean(details?.has_credit),
+         },
          ...(hasConstitutionData(constitutionType)
             ? {
                identification_number: identificationNumber,
                constitution_type: constitutionType,
-               identification_type: 0,
+               identification_type: isValidateValue(identificationType)
+                  ? identificationType
+                  : undefined,
             }
             : {}),
       };
-   }, [selectedSupplier, companyId, moduleCode]);
+   }, [selectedSupplier, supplierDetails, companyId, moduleCode]);
 
    const { updateData, updateFiledTracker, resetFieldTracker } =
       useFieldTracker<UpdateSupplierRequest>(trackerInitial);
@@ -115,6 +150,7 @@ export const SupplierModal = ({
       watch,
       setValue,
       getValues,
+      clearErrors,
       formState: { errors },
    } = useForm<CreateSupplierRequest>({
       defaultValues: emptyFormValues as CreateSupplierRequest,
@@ -141,6 +177,38 @@ export const SupplierModal = ({
    ) => {
       if (!isEditMode) return;
       updateFiledTracker(field, value);
+   };
+
+   const trackDetailFields = (changes: Partial<SupplierDetailsInformation>) => {
+      if (!isEditMode) return;
+
+      const initialDetails = trackerInitial.supplier_details ?? {};
+      const nextDetails: Partial<SupplierDetailsInformation> = {
+         ...(updateData.supplier_details ?? {}),
+      };
+
+      (Object.keys(changes) as (keyof SupplierDetailsInformation)[]).forEach((field) => {
+         const value = changes[field];
+         if (initialDetails[field] === value) {
+            delete nextDetails[field];
+            return;
+         }
+         nextDetails[field] = value as never;
+      });
+
+      if (Object.keys(nextDetails).length === 0) {
+         updateFiledTracker("supplier_details", trackerInitial.supplier_details);
+         return;
+      }
+
+      updateFiledTracker("supplier_details", nextDetails);
+   };
+
+   const trackDetailField = <K extends keyof SupplierDetailsInformation>(
+      field: K,
+      value: SupplierDetailsInformation[K],
+   ) => {
+      trackDetailFields({ [field]: value } as Partial<SupplierDetailsInformation>);
    };
 
    const handleClose = () => {
@@ -185,16 +253,37 @@ export const SupplierModal = ({
 
    const buildUpdatePayload = (): UpdateSupplierRequest => {
       const payload: UpdateSupplierRequest = {
-         ...updateData,
          company_id: companyId,
          module_code: moduleCode,
          supplier_id: selectedSupplier!.supplier_id,
+         ...updateData,
       };
+
+      if (
+         payload.supplier_details &&
+         Object.keys(payload.supplier_details).length === 0
+      ) {
+         delete payload.supplier_details;
+      }
 
       if (!hasConstitutionData(constitutionType)) {
          delete payload.constitution_type;
-         delete payload.identification_type;
-         delete payload.identification_number;
+      }
+
+      const hasIdentificationTypeChange = "identification_type" in updateData;
+      const hasIdentificationNumberChange = "identification_number" in updateData;
+
+      if (hasIdentificationTypeChange && !isValidateValue(payload.identification_type)) {
+         payload.identification_type = null;
+         payload.identification_number = null;
+      }
+
+      if (
+         hasIdentificationNumberChange &&
+         (payload.identification_number === undefined ||
+            payload.identification_number === "")
+      ) {
+         payload.identification_number = null;
       }
 
       return payload;
@@ -255,33 +344,45 @@ export const SupplierModal = ({
          return;
       }
 
-      if (selectedSupplier) {
-         const constitutionTypeValue = resolveConstitutionType(
-            selectedSupplier.constitution_type,
-         );
-         const hasConstitution = hasConstitutionData(constitutionTypeValue);
-         const identificationTypeValue = hasConstitution
-            ? resolveIdentificationType(constitutionTypeValue)
-            : undefined;
-         const identificationNumber = hasConstitution
-            ? String(selectedSupplier.identification_number ?? "")
-               .replace(/-/g, "")
-               .toUpperCase()
-            : "";
-
-         reset({
-            suppliers_legal_name: selectedSupplier.supplier_legal_name,
-            constitution_type: constitutionTypeValue,
-            identification_type: identificationTypeValue,
-            identification_number: identificationNumber,
-         });
+      if (!selectedSupplier) {
+         reset(emptyFormValues);
          resetFieldTracker();
          return;
       }
 
-      reset(emptyFormValues);
+      if (!supplierDetails) return;
+
+      const constitutionTypeValue = resolveConstitutionType(supplierDetails.constitution_type);
+
+      const hasConstitution = hasConstitutionData(constitutionTypeValue);
+
+      const identificationTypeValue = resolveIdentificationType(supplierDetails.identification_type, supplierDetails.constitution_type);      
+
+      const identificationNumber = hasConstitution
+         ? String(supplierDetails.identification_number ?? "")
+            .replace(/-/g, "")
+            .toUpperCase()
+         : "";
+
+      const details = supplierDetails.supplier_details;
+
+      reset({
+         suppliers_legal_name: supplierDetails.supplier_legal_name,
+         constitution_type: constitutionTypeValue,
+         identification_type: identificationTypeValue,
+         identification_number: identificationNumber,
+         supplier_details: {
+            credit_days: details?.credit_days ?? 0,
+            has_credit: Boolean(details?.has_credit),
+            contact_name: details?.contact_name ?? "",
+            contact_phone_number: details?.contact_phone_number ?? "",
+            contact_email: details?.contact_email ?? "",
+            email_support: details?.email_support ?? "",
+            address: details?.address ?? "",
+         },
+      });
       resetFieldTracker();
-   }, [isOpen, selectedSupplier, reset, resetFieldTracker]);
+   }, [isOpen, selectedSupplier, supplierDetails, reset, resetFieldTracker]);
 
    return (
       <Modal
@@ -296,6 +397,9 @@ export const SupplierModal = ({
                : "Complete la información del proveedor"
          }
       >
+         {isEditMode && isSupplierDetailsPending && (
+            <Loader title="Cargando detalle del proveedor..." />
+         )}
          <form
             className="flex flex-col gap-5"
             onSubmit={handleSubmit(handleSupplier)}
@@ -336,14 +440,15 @@ export const SupplierModal = ({
                            field.onChange(nextType);
                            setValue("identification_type", 0);
                            setValue("identification_number", "");
+                           clearErrors("identification_number");
                            if (hasConstitutionData(nextType)) {
                               trackField("constitution_type", nextType);
-                              trackField("identification_type", 0);
-                              trackField("identification_number", "");
+                              trackField("identification_type", null);
+                              trackField("identification_number", null);
                            } else {
                               trackField("constitution_type", undefined);
-                              trackField("identification_type", undefined);
-                              trackField("identification_number", undefined);
+                              trackField("identification_type", null);
+                              trackField("identification_number", null);
                            }
                         }}
                         appearance="dark"
@@ -369,8 +474,9 @@ export const SupplierModal = ({
                            field.onChange(nextType);
                            if (!isValidateValue(nextType)) {
                               setValue("identification_number", "");
-                              trackField("identification_type", undefined);
-                              trackField("identification_number", undefined);
+                              clearErrors("identification_number");
+                              trackField("identification_type", null);
+                              trackField("identification_number", null);
                               return;
                            }
                            trackField("identification_type", nextType);
@@ -446,7 +552,7 @@ export const SupplierModal = ({
                   className={inputClassName}
                   labelClassName={labelClassName}
                   {...register("supplier_details.contact_name", {
-                     onChange: (evt) => trackField("contact_name", evt.target.value),
+                     onChange: (evt) => trackDetailField("contact_name", evt.target.value),
                   })}
                   error={errors.supplier_details?.contact_name?.message}
                />
@@ -458,7 +564,7 @@ export const SupplierModal = ({
                   labelClassName={labelClassName}
                   {...register("supplier_details.contact_phone_number", {
                      onChange: (evt) =>
-                        trackField("contact_phone_number", evt.target.value),
+                        trackDetailField("contact_phone_number", evt.target.value),
                   })}
                   error={errors.supplier_details?.contact_phone_number?.message}
                />
@@ -475,7 +581,8 @@ export const SupplierModal = ({
                      validate: {
                         validEmail: (value?: string) => validateEmail(value),
                      },
-                     onChange: (evt) => trackField("contact_email", evt.target.value?.trim()),
+                     onChange: (evt) =>
+                        trackDetailField("contact_email", evt.target.value?.trim()),
                   })}
                   error={errors.supplier_details?.contact_email?.message}
                />
@@ -492,7 +599,8 @@ export const SupplierModal = ({
                      validate: {
                         validEmail: (value?: string) => validateEmail(value),
                      },
-                     onChange: (evt) => trackField("email_support", evt.target.value?.trim()),
+                     onChange: (evt) =>
+                        trackDetailField("email_support", evt.target.value?.trim()),
                   })}
                   error={errors.supplier_details?.email_support?.message}
                />
@@ -510,7 +618,13 @@ export const SupplierModal = ({
                               field.onChange(checked);
                               if (!checked) {
                                  setValue("supplier_details.credit_days", 0);
+                                 trackDetailFields({
+                                    has_credit: checked,
+                                    credit_days: 0,
+                                 });
+                                 return;
                               }
+                              trackDetailField("has_credit", checked);
                            }}
                            className="whitespace-nowrap"
                         />
@@ -547,6 +661,9 @@ export const SupplierModal = ({
                               }
                               return true;
                            },
+                           onChange: (evt) => {
+                              trackDetailField("credit_days", Number(evt.target.value) || 0);
+                           },
                         })}
                         error={errors.supplier_details?.credit_days?.message}
                      />
@@ -561,7 +678,7 @@ export const SupplierModal = ({
                      className={inputClassName}
                      labelClassName={labelClassName}
                      {...register("supplier_details.address", {
-                        onChange: (evt) => trackField("address", evt.target.value),
+                        onChange: (evt) => trackDetailField("address", evt.target.value),
                      })}
                      error={errors.supplier_details?.address?.message}
                      maxLength={500}

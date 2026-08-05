@@ -1,6 +1,7 @@
 import { httpHandler } from "@app/core/adapters";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/create-supplier-request";
+import type { GetSupplierDetailsRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-supplier-details-request";
 import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
@@ -11,18 +12,25 @@ const suppliersServices = new SupplierServices(httpHandler);
 
 type useSuppliersProps = {
 	suppliersFilters?: GetSuppliersRequest;
+	supplierDetailFilters?: GetSupplierDetailsRequest;
 };
 
 export const useSupplier = (props?: useSuppliersProps) => {
 
 	const queryClient = useQueryClient();
 
-	const { suppliersFilters } = props || {};
+	const { suppliersFilters, supplierDetailFilters } = props || {};
 
 	const suppliersListEnabled = Boolean(
 		suppliersFilters?.companie_id?.trim() &&
-		suppliersFilters.module_code?.trim() && 
+		suppliersFilters.module_code?.trim() &&
 		suppliersFilters?.page_number
+	);
+
+	const supplierDetailsEnabled = Boolean(
+		supplierDetailFilters?.company_id?.trim() &&
+		supplierDetailFilters.module_code?.trim() &&
+		supplierDetailFilters?.supplier_id
 	);
 
 	const GetSuppliers = useQuery({
@@ -32,6 +40,14 @@ export const useSupplier = (props?: useSuppliersProps) => {
 		enabled: suppliersListEnabled,
 		refetchOnWindowFocus: false,
 		refetchOnMount: false,
+		retry: 1,
+	});
+
+	const GetSupplierDetails = useQuery({
+		queryKey: ["supplier-details", supplierDetailFilters],
+		queryFn: () => suppliersServices.GetSupplierDetails(supplierDetailFilters!),
+		enabled: supplierDetailsEnabled,
+		refetchOnWindowFocus: false,
 		retry: 1,
 	});
 
@@ -49,8 +65,9 @@ export const useSupplier = (props?: useSuppliersProps) => {
 		mutationFn: (payload: UpdateSupplierRequest) => suppliersServices.UpdateSupplier(payload),
 		onSuccess() {
 			queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
 		}
 	});
 
-	return { GetSuppliers, CreateSupplier, UpdateSupplier };
+	return { GetSuppliers, GetSupplierDetails, CreateSupplier, UpdateSupplier };
 };
