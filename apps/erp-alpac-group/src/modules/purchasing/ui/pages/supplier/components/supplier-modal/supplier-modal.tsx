@@ -17,6 +17,7 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import { useFieldTracker } from "@app/shared/hooks/useFieldTracker";
 import type { EnumType } from "@app/shared/types/enum.type";
+import { hasSelectedTypeValue } from "../../utils/hasSelectedTypeValue";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -24,14 +25,13 @@ const dropdownClassName =
    `${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
 const labelClassName = "text-black! dark:text-white!";
 
-const resolveConstitutionType = (value: number | string | null | undefined): number => {
+const constitutionEnumMap = new Map<string, number>([
+   [ConstitutionEnum.Legal.stringValue, ConstitutionEnum.Legal.value],
+   [ConstitutionEnum.Natural.stringValue, ConstitutionEnum.Natural.value]
+]);
 
-   if (typeof value === "number") return value;
-   if (value === ConstitutionEnum.Natural.stringValue) return ConstitutionEnum.Natural.value;
-   if (value === ConstitutionEnum.Legal.stringValue) return ConstitutionEnum.Legal.value;
-
-   const parsed = Number(value);
-   return Number.isFinite(parsed) ? parsed : 0;
+const resolveConstitutionType = (value: string): number => {
+   return constitutionEnumMap.get(value) ?? 0;
 };
 
 const resolveIdentificationType = (constitutionType: number): number | undefined => {
@@ -125,16 +125,13 @@ export const SupplierModal = ({
    const hasCredit = watch("supplier_details.has_credit");
    const isLegalPerson = constitutionType === ConstitutionEnum.Legal.value;
    const isNaturalPerson = constitutionType === ConstitutionEnum.Natural.value;
-   const hasIdentificationType =
-      identificationType !== undefined &&
-      identificationType !== null &&
-      Number(identificationType) !== 0;
+   const hasIdentificationType = hasSelectedTypeValue(identificationType);
 
    const filteredIdentificationTypes = useMemo(() => {
       const filter = isLegalPerson ? IdentificationEnum.RUC.value : isNaturalPerson ? IdentificationEnum.NATIONAL_ID.value : null;
       const none: EnumType = { label: "Ninguno", value: 0 }
       const identifications = IdentificationOptions.filter(item => item.value === filter);
-      identifications.unshift(none);      
+      identifications.unshift(none);
       return identifications;
    }, [isLegalPerson, isNaturalPerson]);
 
@@ -177,11 +174,7 @@ export const SupplierModal = ({
       if (hasConstitutionData(constitution_type)) {
          payload.constitution_type = constitution_type;
 
-         if (
-            identification_type !== undefined &&
-            identification_type !== null &&
-            Number(identification_type) !== 0
-         ) {
+         if (hasSelectedTypeValue(identification_type)) {
             payload.identification_type = identification_type;
             payload.identification_number = identification_number;
          }
@@ -339,7 +332,7 @@ export const SupplierModal = ({
                         value={field.value}
                         onChange={(value) => {
                            const nextType = Number(value);
-                           
+
                            field.onChange(nextType);
                            setValue("identification_type", 0);
                            setValue("identification_number", "");
@@ -374,7 +367,7 @@ export const SupplierModal = ({
                         onChange={(value) => {
                            const nextType = Number(value);
                            field.onChange(nextType);
-                           if (nextType === 0) {
+                           if (!hasSelectedTypeValue(nextType)) {
                               setValue("identification_number", "");
                               trackField("identification_type", undefined);
                               trackField("identification_number", undefined);
@@ -404,13 +397,15 @@ export const SupplierModal = ({
                         value ? value.toString().replace(/-/g, "").toUpperCase() : "",
                      validate: {
                         requiredWhenTypeSelected: (value?: string) => {
-                           const type = Number(getValues("identification_type"));
-                           if (!type || type === 0) return true;
+                           if (!hasSelectedTypeValue(getValues("identification_type"))) {
+                              return true;
+                           }
                            return Boolean(value?.trim()) || "El número de identificación es requerido";
                         },
                         validIdentification: (value?: string) => {
-                           const type = Number(getValues("identification_type"));
-                           if (!type || type === 0) return true;
+                           if (!hasSelectedTypeValue(getValues("identification_type"))) {
+                              return true;
+                           }
 
                            if (isNaturalPerson) {
                               return validateIdentificationNumber(

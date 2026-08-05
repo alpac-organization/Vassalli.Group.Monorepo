@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import {
 	Alert,
 	AnimatedAlertWrapper,
@@ -21,9 +21,9 @@ import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiCon
 import { Loader } from "@app/shared/components/loaders/loader";
 import { Controller, useForm } from "react-hook-form";
 import { formatIdentificationNumber, formatRuc } from "@app/shared/utils/string.utils";
-import { getIdentificationTypeBadgeColor } from "./utils/identificationTypeBadgeColor";
-import { getConstitutionTypeBadgeColor } from "./utils/constitutionTypeBadgeColor";
 import { PackagePlusIcon } from "lucide-react";
+import { constitutionTypeBadgeVariants, idenitificationTypeBadgeVariants } from "./supplier.variants";
+import { hasSelectedTypeValue } from "./utils/hasSelectedTypeValue";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -109,55 +109,56 @@ export const Supplier = () => {
 		console.log(data)
 	}
 
-	const columnConfig: TableColumn<GetSuppliersResponse>[] = useMemo(
-		() => [
-			{ key: "supplier_legal_name", label: "Razón social" },
-			{
-				key: "identification_type",
-				label: "Tipo de identificación",
-				render(row: GetSuppliersResponse) {
-					if (row.identification_type === undefined || row.identification_type === null || Number(row.identification_type) === 0) {
-						return "—";
-					}
-					return (
-						<Badges label={row.identification_type ?? ""}
-							color={getIdentificationTypeBadgeColor(row.identification_type ?? "")}
-						/>
-					)
+	const columnConfig: TableColumn<GetSuppliersResponse>[] = [
+		{ key: "supplier_legal_name", label: "Razón social" },
+		{
+			key: "constitution_type",
+			label: "Tipo de constitución",
+			render(row: GetSuppliersResponse) {
+				if (!hasSelectedTypeValue(row.constitution_type)) {
+					return "—";
 				}
-			},
-			{ key: "identification_number", label: "Número de identificación" },
-			{
-				key: "constitution_type",
-				label: "Tipo de constitución",
-				render(row: GetSuppliersResponse) {
-					if (row.constitution_type === undefined || row.constitution_type === null || Number(row.constitution_type) === 0) {
-						return "—";
-					}
-					return (
-						<Badges
-							label={row.constitution_type ?? ""}
-							color={getConstitutionTypeBadgeColor(row.constitution_type ?? "")}
-						/>
-					);
-				},
-			},
-			{
-				key: "actions",
-				label: "Acciones",
-				render: (row: GetSuppliersResponse) => (
-					<ContextMenu
-						items={[
-							{ label: "Editar", onClick: () => onEditSupplier(row) },
-							{ label: "Ver detalle", onClick: () => onViewDetails(row) },
-						]}
-						triggerClassName={contextMenuButton}						
+				return (
+					<Badges
+						label={row.constitution_type ?? ""}
+						color={constitutionTypeBadgeVariants[
+							row.constitution_type as keyof typeof constitutionTypeBadgeVariants
+						] ?? constitutionTypeBadgeVariants.default}
 					/>
-				),
+				);
 			},
-		],
-		[],
-	);
+		},
+		{
+			key: "identification_type",
+			label: "Tipo de identificación",
+			render(row: GetSuppliersResponse) {
+				if (!hasSelectedTypeValue(row.identification_type)) {
+					return "—";
+				}
+				return (
+					<Badges label={row.identification_type ?? ""}
+						color={idenitificationTypeBadgeVariants[
+							row.identification_type as keyof typeof idenitificationTypeBadgeVariants
+						] ?? idenitificationTypeBadgeVariants.default}
+					/>
+				)
+			}
+		},
+		{ key: "identification_number", label: "Número de identificación" },
+		{
+			key: "actions",
+			label: "Acciones",
+			render: (row: GetSuppliersResponse) => (
+				<ContextMenu
+					triggerClassName={contextMenuButton}
+					items={[
+						{ label: "Editar", onClick: () => onEditSupplier(row) },
+						{ label: "Ver detalle", onClick: () => onViewDetails(row) },
+					]}
+				/>
+			),
+		},
+	];
 
 	const handleFilterSuppliers = (data: GetSuppliersRequest) => {
 
