@@ -11,6 +11,7 @@ import {
    formatRuc,
    validateEmail,
    validateIdentificationNumber,
+   validateNicaraguaPhone,
 } from "@app/shared/utils/string.utils";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -46,7 +47,7 @@ const resolveIdentificationType = (identificationType?: string | null, constitut
    if (
       ConstitutionEnum.Legal.stringValue === constitutionType &&
       IdentificationEnum.NATIONAL_ID.stringValue === identificationType
-   ) return 0;   
+   ) return 0;
    return identificationEnumMap.get(identificationType) ?? 0;
 };
 
@@ -179,36 +180,27 @@ export const SupplierModal = ({
       updateFiledTracker(field, value);
    };
 
-   const trackDetailFields = (changes: Partial<SupplierDetailsInformation>) => {
-      if (!isEditMode) return;
-
-      const initialDetails = trackerInitial.supplier_details ?? {};
-      const nextDetails: Partial<SupplierDetailsInformation> = {
-         ...(updateData.supplier_details ?? {}),
-      };
-
-      (Object.keys(changes) as (keyof SupplierDetailsInformation)[]).forEach((field) => {
-         const value = changes[field];
-         if (initialDetails[field] === value) {
-            delete nextDetails[field];
-            return;
-         }
-         nextDetails[field] = value as never;
-      });
-
-      if (Object.keys(nextDetails).length === 0) {
-         updateFiledTracker("supplier_details", trackerInitial.supplier_details);
-         return;
-      }
-
-      updateFiledTracker("supplier_details", nextDetails);
-   };
-
    const trackDetailField = <K extends keyof SupplierDetailsInformation>(
       field: K,
       value: SupplierDetailsInformation[K],
    ) => {
-      trackDetailFields({ [field]: value } as Partial<SupplierDetailsInformation>);
+      if (!isEditMode) return;
+
+      const initialValue = trackerInitial.supplier_details?.[field];
+      const current = { ...(updateData.supplier_details ?? {}) };
+
+      if (initialValue === value) {
+         delete current[field];
+      } else {
+         current[field] = value;
+      }      
+
+      updateFiledTracker(
+         "supplier_details",
+         Object.keys(current).length === 0
+            ? trackerInitial.supplier_details
+            : current,
+      );
    };
 
    const handleClose = () => {
@@ -356,7 +348,7 @@ export const SupplierModal = ({
 
       const hasConstitution = hasConstitutionData(constitutionTypeValue);
 
-      const identificationTypeValue = resolveIdentificationType(supplierDetails.identification_type, supplierDetails.constitution_type);      
+      const identificationTypeValue = resolveIdentificationType(supplierDetails.identification_type, supplierDetails.constitution_type);
 
       const identificationNumber = hasConstitution
          ? String(supplierDetails.identification_number ?? "")
@@ -565,6 +557,7 @@ export const SupplierModal = ({
                   {...register("supplier_details.contact_phone_number", {
                      onChange: (evt) =>
                         trackDetailField("contact_phone_number", evt.target.value),
+                     validate: (value) => !value || validateNicaraguaPhone(value),
                   })}
                   error={errors.supplier_details?.contact_phone_number?.message}
                />
@@ -618,10 +611,8 @@ export const SupplierModal = ({
                               field.onChange(checked);
                               if (!checked) {
                                  setValue("supplier_details.credit_days", 0);
-                                 trackDetailFields({
-                                    has_credit: checked,
-                                    credit_days: 0,
-                                 });
+                                 trackDetailField("has_credit", checked);
+                                 trackDetailField("credit_days", 0);
                                  return;
                               }
                               trackDetailField("has_credit", checked);

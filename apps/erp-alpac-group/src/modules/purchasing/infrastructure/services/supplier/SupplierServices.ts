@@ -49,7 +49,7 @@ export class SupplierServices implements ISupplierServices {
 		try {
 			const { company_id, module_code, supplier_id, ...rest } = payload;			
 
-			const url = `companies/${company_id}/modules/${module_code}/suppliers/${supplier_id}`;
+			const url = `companies/${company_id}/modules/${module_code}/suppliers/${supplier_id}`;			
 
 			await this.httpHandler.patch<void>(url, rest);
 		} catch (error) {
