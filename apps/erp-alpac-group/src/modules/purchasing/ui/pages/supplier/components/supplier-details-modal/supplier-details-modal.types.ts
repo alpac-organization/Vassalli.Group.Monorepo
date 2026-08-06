@@ -2,6 +2,6 @@ import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiCon
 
 export interface SupplierDetailsModalProps {
    isOpen: boolean;
-	onClose: () => void;
+   onClose: () => void;
    selectedSupplier?: GetSuppliersResponse | null;
 }

@@ -10,14 +10,13 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
-import { statusBadgeColor } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/statusBadgeColor";
-import { typeBadgeColor } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/typeBadgeColor";
 
 import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
 import type { PurchaseRequestDetailModalProps } from "./purchase-request-detail-modal.types";
 import type { GetPurchaseRequestDetailResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
+import { purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../purchase-request.variants";
 
 const approveButtonClass = "rounded-md! h-11 px-6! border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-40 shadow-sm transition-all duration-200";
 const rejectButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
@@ -67,14 +66,14 @@ export const PurchaseRequestDetailModal = ({
 
 	const isProcessing = ProcessPurchaseRequest.isPending;
 
-	const currentStatus =
+	const currentStatus: string =
 		purchaseRequest?.request_status ?? details?.request_status ?? "";
 
 	const isFinalStatus = [
 		PurchaseRequestStatusEnum.Approved.textValue,
 		PurchaseRequestStatusEnum.Rejected.textValue,
 		PurchaseRequestStatusEnum.Canceled.textValue,
-	].includes(currentStatus);
+	].includes(currentStatus as Exclude<keyof typeof PurchaseRequestStatusEnum, "Pending">);
 
 	const areActionButtonsDisabled = isProcessing || isFinalStatus;
 
@@ -176,11 +175,16 @@ export const PurchaseRequestDetailModal = ({
 												value={
 													<Badges
 														label={
-															Object.values(PurchaseRequestStatusEnum).find(
-																(status) => status.textValue === details.request_status,
-															)?.label ?? details.request_status
+															PurchaseRequestStatusEnum[
+																details.request_status as (keyof typeof PurchaseRequestStatusEnum)
+															].label ?? details.request_status
 														}
-														color={statusBadgeColor(details.request_status)}
+														color={
+															purchaseRequestStatusBadgeVariants[
+																details.request_status as keyof typeof purchaseRequestStatusBadgeVariants
+															]?.badgeColor ??
+															purchaseRequestStatusBadgeVariants.default.badgeColor
+														}
 													/>
 												}
 											/>
@@ -189,11 +193,16 @@ export const PurchaseRequestDetailModal = ({
 												value={
 													<Badges
 														label={
-															Object.values(PurchaseRequestEnum).find(
-																(type) => type.textValue === details.request_type,
-															)?.label ?? details.request_type
+															PurchaseRequestEnum[
+																details.request_type as (keyof typeof PurchaseRequestEnum)
+															].label ?? details.request_type
 														}
-														color={typeBadgeColor(details.request_type)}
+														color={
+															purchaseRequestTypeBadgeVariants[
+																details.request_type as keyof typeof purchaseRequestTypeBadgeVariants
+															]?.badgeColor ??
+															purchaseRequestTypeBadgeVariants.default.badgeColor
+														}
 													/>
 												}
 											/>
