@@ -53,12 +53,16 @@ export function EditableField<TFieldValues extends FieldValues>({
     onEditStart(String(name));
   };
 
-  const handleCancel = () => {
+  const revertToOriginal = () => {
     setValue(name, originalValue as never, {
       shouldValidate: true,
       shouldDirty: true,
     });
     onEditEnd(String(name));
+  };
+
+  const handleCancel = () => {
+    revertToOriginal();
   };
 
   const handleConfirm = async () => {
@@ -75,13 +79,12 @@ export function EditableField<TFieldValues extends FieldValues>({
     try {
       await onConfirmUpdate(name, formatValueForSubmit(currentValue));
       onEditEnd(String(name));
-    } catch (error) {
-      throw error;
+    } catch {
+      revertToOriginal();
     } finally {
       setIsUpdating(false);
     }
   };
-
   const isConfirmDisabled =
     isUpdating ||
     (!allowEmptySubmit &&

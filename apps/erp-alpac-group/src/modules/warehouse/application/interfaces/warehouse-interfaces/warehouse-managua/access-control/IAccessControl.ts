@@ -7,6 +7,7 @@ import type { ReceptionEntranceDetail } from "@app/modules/warehouse/domain/ApiC
 import type { GetReceptionEntrancesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import type { GetVehiclesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-vehicles";
 import type { AddDucatsToReceptionRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/add-ducats-to-reception";
+import type { GenerateExitAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/generate-exit";
 
 export interface IAccessControl {
   getAccessControl(
@@ -24,4 +25,8 @@ export interface IAccessControl {
   addDucatsToReception(payload: AddDucatsToReceptionRequest): Promise<void>;
 
   getVehicles(payload: GetVehiclesRequest): Promise<GetVehiclesResponse>;
+
+  generateExitAccessControl(
+    payload: GenerateExitAccessControlRequest,
+  ): Promise<void>;
 }

@@ -8,4 +8,5 @@ export type MovementsQueueProps = {
   onPageChange: (page: number) => void;
   isFetching?: boolean;
   onDetailClick?: (item: ReceptionEntranceListItem) => void;
+  onExitClick?: (item: ReceptionEntranceListItem) => void;
 };
