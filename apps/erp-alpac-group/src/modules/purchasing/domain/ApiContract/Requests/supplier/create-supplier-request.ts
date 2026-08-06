@@ -1,3 +1,5 @@
+import type { SupplierDetailsInformation } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-details";
+
 export interface CreateSupplierRequest {
    company_id: string;
    module_code: string;
@@ -5,15 +7,5 @@ export interface CreateSupplierRequest {
    identification_number?: string;
    constitution_type?: number;
    identification_type?: number;
-   supplier_details: SupplierDetails;
-}
-
-export interface SupplierDetails {
-   credit_days: number;
-   has_credit: boolean;
-   address?: string;
-   email_support?: string;
-   contact_name?: string;
-   contact_email?: string;
-   contact_phone_number?: string;
+   supplier_details: SupplierDetailsInformation;
 }
