@@ -59,9 +59,25 @@ const fieldSx = {
 } as const;
 
 const paperSx = {
+  width: 204,
+  maxWidth: "calc(100vw - 16px)",
   bgcolor: COLORS.background,
   color: COLORS.text,
   border: `1px solid ${COLORS.border}`,
+  overflow: "hidden",
+  "& .MuiPickersLayout-root": {
+    width: "100%",
+    gridTemplateColumns: "minmax(0, 1fr)",
+  },
+  "& .MuiPickersLayout-contentWrapper": {
+    gridColumn: "1 !important",
+    minWidth: 0,
+    alignItems: "center",
+  },
+  "& .MuiPickersLayout-actionBar": {
+    gridColumn: "1 !important",
+    justifyContent: "center",
+  },
   "& .MuiMenuItem-root": {
     color: COLORS.text,
     fontSize: 14,
@@ -78,10 +94,13 @@ const paperSx = {
     backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
   "& .MuiMultiSectionDigitalClock-root": {
-    width: "100%",
+    width: "100% !important",
+    maxWidth: "100%",
+    minWidth: 0,
     justifyContent: "center",
   },
   "& .MuiMultiSectionDigitalClockSection-root": {
+    flex: "0 0 56px",
     "&::-webkit-scrollbar": { width: 6 },
     "&::-webkit-scrollbar-track": { background: "transparent" },
     "&::-webkit-scrollbar-thumb": {
