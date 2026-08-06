@@ -7,9 +7,10 @@ import { MainRouter } from "@app/routers/main-router"
 import { DatePickerProvider, ThemeProvider } from "@alpac/design-system"
 import { InactivityProvider } from "@app/shared/providers/inactivity-provider"
 import { MotionConfig } from "framer-motion"
+import { withErrorElement } from "./shared/components/error-boundary/error-boundary.helper"
 
 const queryClient = new QueryClient()
-const router = createBrowserRouter(MainRouter)
+const router = createBrowserRouter(withErrorElement(MainRouter));
 const container = document.getElementById("root")!
 
 const root = createRoot(container)

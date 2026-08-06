@@ -12,8 +12,8 @@ import {
 	AccordionGroup,
 	Alert,
 	AnimatedAlertWrapper,
+	Badges,
 	Button,
-	ContextMenu,
 	DatePicker,
 	Dropdown,
 	Modal,
@@ -27,37 +27,35 @@ import {
 	quoteFormSecondaryButtonClassName,
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
 
-import { PlusIcon, SaveIcon, XIcon } from "lucide-react";
+import { FileTextIcon, SaveIcon, XIcon } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { QuoteDetailAccordion } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/quote-detail-accordion/quote-detail-accordion";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { toDateOnly } from "@app/shared/utils/date.utils";
-import { SelectProductModal } from "@app/modules/product/ui/views/select-product-modal/select-product-modal";
-import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
+// import { SelectProductModal } from "@app/modules/product/ui/views/select-product-modal/select-product-modal";
+// import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal.types";
 import type { SelectableCatalogProduct } from "@app/modules/product/ui/views/select-product-modal/select-product-modal.types";
 import { type CreateQuote } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-form.types";
-import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
+// import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
+import { purchaseRequestTypeBadgeVariants } from "../../../purchase-requests/purchase-request.variants";
+import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 
 export function CreateQuoteModal({
 	isOpen,
 	onClose,
 	onQuoteCreated,
+	purchaseRequest,
 }: CreateQuoteModalProps) {
-	const { companyId } = useUserStore();
+	const { companyId, moduleCode } = useUserStore();
 
 	const methods = useForm<CreateQuote>({
 		defaultValues: {
 			branch_id: "",
 			quote_date: "",
 			observations: "",
-			quote_details: [
-				/* {
-					product_id: "",
-					suppliers: [],
-				}, */
-			],
+			quote_details: [],
 		},
 		mode: "onSubmit",
 	});
@@ -77,8 +75,8 @@ export function CreateQuoteModal({
 	});
 
 	const [openProducts, setOpenProducts] = useState<string[]>([]);
-	const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-	const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
+	// const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+	// const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
 	const [productsById, setProductsById] = useState<Record<string, SelectableCatalogProduct>>({});
 
 	const {
@@ -92,6 +90,14 @@ export function CreateQuoteModal({
 		company_id: companyId,
 	});
 
+	const { GetPurchaseRequestDetails } = usePurchase({
+		getPurchaseRequestDetailsPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+			purchase_request_id: purchaseRequest?.purchase_request_id!
+		}
+	});
+
 	const { data: branches } = GetBranchesQuery;
 
 	const branchOptions = useMemo(() => {
@@ -102,13 +108,13 @@ export function CreateQuoteModal({
 		}));
 	}, [branches]);
 
-	const assignedProductIds = useMemo(
+	/* const assignedProductIds = useMemo(
 		() =>
 			fields
 				.map((field) => field.product_id)
 				.filter((id): id is string => Boolean(id)),
 		[fields],
-	);
+	); */
 
 	const resetForm = () => {
 		reset({
@@ -126,9 +132,8 @@ export function CreateQuoteModal({
 		onClose();
 	};
 
-	const handleSelectRegisteredProducts = (
-		products: SelectableCatalogProduct[],
-	) => {
+/* 	const handleSelectRegisteredProducts = (products: SelectableCatalogProduct[]) => {
+
 		const existingIds = new Set(
 			(getValues("quote_details") ?? []).map((detail) => detail.product_id),
 		);
@@ -153,9 +158,9 @@ export function CreateQuoteModal({
 				suppliers: [],
 			})),
 		);
-	};
+	}; */
 
-	const handleCreatedProduct = (product: CreatedProductDto) => {
+/* 	const handleCreatedProduct = (product: CreatedProductDto) => {
 		const productId = product.data.product_id;
 
 		const existingIds = new Set(
@@ -185,7 +190,7 @@ export function CreateQuoteModal({
 			product_id: productId,
 			suppliers: [],
 		});
-	};
+	}; */
 
 	const onSubmit = (values: CreateQuote) => {
 		onQuoteCreated(values);
@@ -201,7 +206,11 @@ export function CreateQuoteModal({
 				variant="form"
 				size="9xl"
 				title="Nueva cotización"
-				description="Complete el formulario para registrar una nueva cotización."
+				description={
+					purchaseRequest?.code
+						? `Complete el formulario para registrar una cotización de la solicitud ${purchaseRequest.code}.`
+						: "Complete el formulario para registrar una nueva cotización."
+				}
 				panelClassName={[
 					"flex h-[54rem] w-[56rem] min-w-0 flex-col"
 				].join(" ")}
@@ -215,6 +224,43 @@ export function CreateQuoteModal({
 					>
 						<div className="scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
 							<div className="flex flex-col gap-4 pb-2">
+								{purchaseRequest?.code ? (
+									<section className="flex items-center gap-5 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 dark:border-neutral-600 dark:bg-[#1e2229]">
+										<span className="flex shrink-0 items-center justify-center rounded-md bg-alpac-primary-500/10 text-alpac-primary-600 dark:text-alpac-primary-300">
+											<FileTextIcon size={18} />
+										</span>
+										<div className="flex min-w-0 items-center gap-2">
+											<span className="text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+												Código Solicitud:
+											</span>
+											<Badges
+												label={purchaseRequest?.code ?? ""}
+												color="bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"
+											/>
+										</div>
+										<div className="flex min-w-0 items-center gap-2">
+											<span className="text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+												Tipo de solicitud:
+											</span>
+											<span>
+												<Badges
+													label={
+														purchaseRequestTypeBadgeVariants[
+															purchaseRequest.request_type as keyof typeof purchaseRequestTypeBadgeVariants
+														]?.label ?? ""
+													}
+													color={
+														purchaseRequestTypeBadgeVariants[
+															purchaseRequest.request_type as keyof typeof purchaseRequestTypeBadgeVariants
+														]?.badgeColor ?? purchaseRequestTypeBadgeVariants.default.badgeColor
+													}
+												/>
+											</span>
+
+										</div>
+									</section>
+								) : null}
+
 								<section className="flex flex-col gap-6 p-1">
 									<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 										<Controller
@@ -259,7 +305,7 @@ export function CreateQuoteModal({
 
 									<Textarea
 										label="Observaciones generales"
-										placeholder="Ej: Cotización solicitada para reposición de inventario de bodega central..."
+										placeholder="Ej: Cotización solicitada para reposición de inventario..."
 										rows={4}
 										className={`${quoteFormInputClassName} resize-none`}
 										labelClassName={quoteFormLabelClassName}
@@ -272,10 +318,10 @@ export function CreateQuoteModal({
 								<section className="flex flex-col gap-4 dark:border-t-neutral-600">
 									<div className="flex items-center justify-between gap-2">
 										<h3 className="m-0! text-[16px]! font-bold text-slate-800 dark:text-white!">
-											Cotizaciones por producto
+											Productos
 										</h3>
 
-										<ContextMenu
+										{/* <ContextMenu
 											items={[
 												{
 													label: "Agregar Nuevo Producto",
@@ -293,7 +339,7 @@ export function CreateQuoteModal({
 											triggerLabel="Agregar Producto"
 											triggerIcon={<PlusIcon size={18} />}
 											triggerClassName={quoteFormPrimaryButtonClassName}
-										/>
+										/> */}
 									</div>
 
 									{fields.length === 0 ? (
@@ -370,7 +416,7 @@ export function CreateQuoteModal({
 				</FormProvider>
 			</Modal>
 
-			<SelectProductModal
+			{/* <SelectProductModal
 				isOpen={isSelectProductOpen}
 				onClose={() => setIsSelectProductOpen(false)}
 				onSelect={handleSelectRegisteredProducts}
@@ -384,7 +430,7 @@ export function CreateQuoteModal({
 				onRequestSuccess={handleRequestSuccess}
 				onSubmit={handleCreatedProduct}
 				onRequestError={handleRequestError}
-			/>
+			/> */}
 
 			<AnimatedAlertWrapper open={alertState?.open ?? false}>
 				<Alert
