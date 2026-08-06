@@ -1,8 +1,8 @@
 import { AccessControlPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/access-control";
 import { CuadrillaPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/cuadrillas/cuadrilla";
-import { GoodsReceiptsPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/goods-receipts/goods-receipts";
 import { WarehouseAllocationPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-allocation/warehouse-allocation";
 import type { RouteObject } from "react-router-dom";
+import { MerchandisePage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/merchandise";
 
 export const WarehouseManaguaRouter: RouteObject[] = [
   {
@@ -10,8 +10,8 @@ export const WarehouseManaguaRouter: RouteObject[] = [
     element: <AccessControlPage />,
   },
   {
-    path: "merchandise-registration",
-    element: <GoodsReceiptsPage />,
+    path: "mercaderia",
+    element: <MerchandisePage />,
   },
   {
     path: "warehouse-allocation",
