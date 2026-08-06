@@ -24,6 +24,7 @@ import { formatIdentificationNumber, formatRuc } from "@app/shared/utils/string.
 import { PackagePlusIcon } from "lucide-react";
 import { constitutionTypeBadgeVariants, idenitificationTypeBadgeVariants } from "./supplier.variants";
 import { isValidateValue } from "@app/shared/utils/values.utils";
+import { SupplierDetailsModal } from "./components/supplier-details-modal/supplier-details-modal";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -45,6 +46,7 @@ export const Supplier = () => {
 	const { companyId, moduleCode } = useUserStore();
 
 	const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+	const [isSupplierDetailModalOpen, setIsSupplierDetailModalOpen] = useState(false);
 	const [selectedSupplier, setSelectedSupplier] = useState<GetSuppliersResponse | null>(null)
 	const [filters, setFilters] = useState<GetSuppliersRequest>(buildBaseFilters);
 
@@ -106,6 +108,8 @@ export const Supplier = () => {
 	}
 
 	const onViewDetails = (data: GetSuppliersResponse) => {
+		setSelectedSupplier(data);
+		setIsSupplierDetailModalOpen(true);
 	}
 
 	const columnConfig: TableColumn<GetSuppliersResponse>[] = [
@@ -294,6 +298,15 @@ export const Supplier = () => {
 				}}
 				onRequestSuccess={handleRequestSuccess}
 				onRequestError={handleRequestError}
+				selectedSupplier={selectedSupplier}
+			/>
+
+			<SupplierDetailsModal
+				isOpen={isSupplierDetailModalOpen}
+				onClose={() => {					
+					setIsSupplierDetailModalOpen(false);
+					setSelectedSupplier(null);
+				}}
 				selectedSupplier={selectedSupplier}
 			/>
 

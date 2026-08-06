@@ -9,8 +9,6 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { PurchaseRequestDetailModal } from "../../purchase-request-detail-modal/purchase-request-detail-modal";
-import { statusBadgeColor } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/statusBadgeColor";
-import { typeBadgeColor } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/typeBadgeColor";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
@@ -19,6 +17,7 @@ import { type RequisitionContextMenu, type RequisitionTabProps } from "./requisi
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
+import { purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../../purchase-request.variants";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -221,7 +220,12 @@ export const RequisitionTab = ({
 					return (
 						<Badges
 							label={statusLabel}
-							color={statusBadgeColor(row.request_status)}
+							color={
+								purchaseRequestStatusBadgeVariants[
+									row.request_status as keyof typeof purchaseRequestStatusBadgeVariants
+								]?.badgeColor ??
+								purchaseRequestStatusBadgeVariants.default.badgeColor
+							}
 						/>
 					);
 				},
@@ -238,7 +242,12 @@ export const RequisitionTab = ({
 					return (
 						<Badges
 							label={typeLabel}
-							color={typeBadgeColor(row.request_type)}
+							color={
+								purchaseRequestTypeBadgeVariants[
+									row.request_type as keyof typeof purchaseRequestTypeBadgeVariants
+								]?.badgeColor ??
+								purchaseRequestTypeBadgeVariants.default.badgeColor
+							}
 						/>
 					);
 				},
