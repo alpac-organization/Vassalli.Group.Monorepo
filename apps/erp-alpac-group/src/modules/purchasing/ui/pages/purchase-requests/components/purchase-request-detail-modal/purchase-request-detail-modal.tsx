@@ -4,24 +4,24 @@ import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurcha
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { Loader } from "@app/shared/components/loaders/loader";
-import { PurchaseRequestDetailField } from "../purchase-request-detail-field/purchase-request-detail-field";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import { BanIcon, CheckIcon, XIcon } from "lucide-react";
+import { BanIcon, BuildingIcon, CalendarCheckIcon, CalendarIcon, CheckIcon, MailIcon, NotebookTextIcon, User2Icon, UserRoundCheckIcon, XIcon } from "lucide-react";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
-import { statusBadgeColor } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/statusBadgeColor";
-import { typeBadgeColor } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/typeBadgeColor";
 
 import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
 import type { PurchaseRequestDetailModalProps } from "./purchase-request-detail-modal.types";
 import type { GetPurchaseRequestDetailResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
+import { DetailField } from "@app/shared/components/detail-field/detail-field";
+import { purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../purchase-request.variants";
 
 const approveButtonClass = "rounded-md! h-11 px-6! border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-40 shadow-sm transition-all duration-200";
 const rejectButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
 const cancelButtonClass = "rounded-md! h-11 px-6! border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-500/20 hover:border-orange-400 dark:hover:border-orange-500/60 hover:text-orange-700 dark:hover:text-orange-300 disabled:opacity-40";
+const sectionTitleClassName = "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
 
 export const PurchaseRequestDetailModal = ({
 	isOpen,
@@ -66,14 +66,14 @@ export const PurchaseRequestDetailModal = ({
 
 	const isProcessing = ProcessPurchaseRequest.isPending;
 
-	const currentStatus =
+	const currentStatus: string =
 		purchaseRequest?.request_status ?? details?.request_status ?? "";
 
 	const isFinalStatus = [
 		PurchaseRequestStatusEnum.Approved.textValue,
 		PurchaseRequestStatusEnum.Rejected.textValue,
 		PurchaseRequestStatusEnum.Canceled.textValue,
-	].includes(currentStatus);
+	].includes(currentStatus as Exclude<keyof typeof PurchaseRequestStatusEnum, "Pending">);
 
 	const areActionButtonsDisabled = isProcessing || isFinalStatus;
 
@@ -146,7 +146,7 @@ export const PurchaseRequestDetailModal = ({
 				title={details?.code ? `Detalle ${details.code}` : "Detalle de solicitud"}
 				panelClassName={[
 					"!max-w-5xl w-[min(calc(100vw-1rem),56rem)] min-w-0",
-					"flex max-h-[min(94dvh,46rem)] flex-col overflow-hidden",
+					"flex max-h-[min(94dvh,50rem)] flex-col overflow-hidden",
 					"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
 					"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
 				].join(" ")}
@@ -165,168 +165,186 @@ export const PurchaseRequestDetailModal = ({
 						<>
 							<div className="scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
 								<div className="flex flex-col gap-5 pb-2">
-							<section className="flex flex-col gap-3">
-								<h5 className="m-0 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-									Información general
-								</h5>
-								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-									<PurchaseRequestDetailField
-										label="Estado"
-										value={
-											<Badges
-												label={
-													Object.values(PurchaseRequestStatusEnum).find(
-														(status) => status.textValue === details.request_status,
-													)?.label ?? details.request_status
+									<section className="flex flex-col gap-3">
+										<h5 className={sectionTitleClassName}>
+											Información general
+										</h5>
+										<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+											<DetailField
+												label="Estado"
+												value={
+													<Badges
+														label={
+															PurchaseRequestStatusEnum[
+																details.request_status as (keyof typeof PurchaseRequestStatusEnum)
+															].label ?? details.request_status
+														}
+														color={
+															purchaseRequestStatusBadgeVariants[
+																details.request_status as keyof typeof purchaseRequestStatusBadgeVariants
+															]?.badgeColor ??
+															purchaseRequestStatusBadgeVariants.default.badgeColor
+														}
+													/>
 												}
-												color={statusBadgeColor(details.request_status)}
 											/>
-										}
-									/>
-									<PurchaseRequestDetailField
-										label="Tipo"
-										value={
-											<Badges
-												label={
-													Object.values(PurchaseRequestEnum).find(
-														(type) => type.textValue === details.request_type,
-													)?.label ?? details.request_type
+											<DetailField
+												label="Tipo"
+												value={
+													<Badges
+														label={
+															PurchaseRequestEnum[
+																details.request_type as (keyof typeof PurchaseRequestEnum)
+															].label ?? details.request_type
+														}
+														color={
+															purchaseRequestTypeBadgeVariants[
+																details.request_type as keyof typeof purchaseRequestTypeBadgeVariants
+															]?.badgeColor ??
+															purchaseRequestTypeBadgeVariants.default.badgeColor
+														}
+													/>
 												}
-												color={typeBadgeColor(details.request_type)}
 											/>
-										}
-									/>
-									<PurchaseRequestDetailField
-										label="Fecha"
-										value={formatDateToSpanishWords(details.request_date ?? "")}
-									/>
-									<PurchaseRequestDetailField
-										label="Fecha de revisión"
-										value={formatDateToSpanishWords(details.revision_date ?? "")}
-									/>
-								</div>
-								<div className="grid grid-cols-1 gap-4">
-									<PurchaseRequestDetailField
-										label="Justificación"
-										value={details.justification}
-									/>
-									{details.reason_rejection ? (
-										<PurchaseRequestDetailField
-											label="Motivo de rechazo"
-											value={details.reason_rejection}
-										/>
-									) : null}
-								</div>
-							</section>
-
-							<section className="flex flex-col gap-3">
-								<h5 className="m-0 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-									Solicitante y sucursal
-								</h5>
-								<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-									<PurchaseRequestDetailField
-										label="Solicitante"
-										value={details.user_information.fullname}
-									/>
-									<PurchaseRequestDetailField
-										label="Email"
-										value={details.user_information.email}
-									/>
-									<PurchaseRequestDetailField
-										label="Sucursal"
-										value={details.branch_information.branch_name}
-									/>
-								</div>
-							</section>
-
-							<section className="flex flex-col gap-3">
-								<h5 className="m-0 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-									Productos
-								</h5>
-							</section>
-
-							<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">
-								<div className="hidden border-b border-slate-200 bg-slate-100 sm:grid sm:grid-cols-5 dark:border-neutral-700 dark:bg-neutral-800">
-									<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-										Producto
-									</div>
-									<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-										Cantidad
-									</div>
-									<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-										Unidad
-									</div>
-									<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-										Categoría
-									</div>
-									<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-										Justificación
-									</div>
-								</div>
-
-								<div className="flex flex-col divide-y divide-slate-100 dark:divide-neutral-700">
-									{products.length === 0 ? (
-										<div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
-											No hay productos registrados.
+											<DetailField
+												label="Fecha de Registro"
+												value={formatDateToSpanishWords(details.request_date ?? "")}
+												icon={<CalendarIcon size={18} />}
+											/>
+											<DetailField
+												label="Fecha de revisión"
+												value={formatDateToSpanishWords(details.revision_date ?? "")}
+												icon={<CalendarCheckIcon size={18} />}
+											/>
 										</div>
-									) : (
-										products.map((product, index) => (
-											<div
-												key={`${product.purchase_request_id}-${product.product_details.product_id}-${index}`}
-												className="grid grid-cols-1 gap-1 px-3 py-3 sm:grid-cols-5 sm:items-center sm:gap-0"
-											>
-												<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-													Producto
-												</span>
-												<span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-													{product.product_details.product_name?.trim() || "—"}
-												</span>
+										<div className="grid grid-cols-1 gap-4">
+											<DetailField
+												label="Justificación"
+												value={details.justification}
+												icon={<NotebookTextIcon size={18} />}
+											/>
+											{details.reason_rejection ? (
+												<DetailField
+													label="Motivo de rechazo"
+													value={details.reason_rejection}
+													icon={<BanIcon size={18} />}
+												/>
+											) : null}
+										</div>
+									</section>
 
-												<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-													Cantidad
-												</span>
-												<span className="text-sm text-slate-700 dark:text-slate-200">
-													{product.quantity}
-													{product.quantity_unit != null
-														? ` × ${product.quantity_unit}`
-														: ""}
-												</span>
+									<section className="flex flex-col gap-3">
+										<h5 className={sectionTitleClassName}>
+											Solicitante y sucursal
+										</h5>
+										<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+											<DetailField
+												label="Solicitante"
+												value={details.user_information.fullname}
+												icon={<User2Icon size={18} />}
+											/>
+											<DetailField
+												label="Email"
+												value={details.user_information.email}
+												icon={<MailIcon size={18} />}
+											/>
+											<DetailField
+												label="Sucursal"
+												value={details.branch_information.branch_name}
+												icon={<BuildingIcon size={18} />}
+											/>
+										</div>
+									</section>
 
-												<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-													Unidad
-												</span>
-												<span className="text-sm text-slate-700 dark:text-slate-200">
-													{product.unit_measure_information.name?.trim() ||
-														product.unit_measure_information.symbol?.trim() ||
-														"—"}
-												</span>
+									<section className="flex flex-col gap-3">
+										<h5 className={sectionTitleClassName}>
+											Productos
+										</h5>
+									</section>
 
-												<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-													Categoría
-												</span>
-												<span className="text-sm text-slate-700 dark:text-slate-200">
-													{product.product_details.category_information.name?.trim() ||
-														"—"}
-												</span>
-
-												<span className="text-xs font-bold col-end-3 uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-													Justificación
-												</span>
-												<span className="text-sm text-slate-700 dark:text-slate-200">
-													{product.justification?.trim() || "—"}
-												</span>
+									<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">
+										<div className="hidden border-b border-slate-200 bg-slate-100 sm:grid sm:grid-cols-5 dark:border-neutral-700 dark:bg-neutral-800">
+											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+												Producto
 											</div>
-										))
-									)}
-								</div>
-							</div>
+											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+												Cantidad
+											</div>
+											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+												Unidad
+											</div>
+											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+												Categoría
+											</div>
+											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+												Justificación
+											</div>
+										</div>
 
-							<div className="grid grid-cols-1">
-								<PurchaseRequestDetailField
-									label="Aprobado por"
-									value={details.reviewed_by}
-								/>
-							</div>
+										<div className="flex flex-col divide-y divide-slate-100 dark:divide-neutral-700">
+											{products.length === 0 ? (
+												<div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+													No hay productos registrados.
+												</div>
+											) : (
+												products.map((product, index) => (
+													<div
+														key={`${product.purchase_request_id}-${product.product_details.product_id}-${index}`}
+														className="grid grid-cols-1 gap-1 px-3 py-3 sm:grid-cols-5 sm:items-center sm:gap-0"
+													>
+														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
+															Producto
+														</span>
+														<span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+															{product.product_details.product_name?.trim() || "—"}
+														</span>
+
+														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
+															Cantidad
+														</span>
+														<span className="text-sm text-slate-700 dark:text-slate-200">
+															{product.quantity}
+															{product.quantity_unit != null
+																? ` × ${product.quantity_unit}`
+																: ""}
+														</span>
+
+														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
+															Unidad
+														</span>
+														<span className="text-sm text-slate-700 dark:text-slate-200">
+															{product.unit_measure_information.name?.trim() ||
+																product.unit_measure_information.symbol?.trim() ||
+																"—"}
+														</span>
+
+														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
+															Categoría
+														</span>
+														<span className="text-sm text-slate-700 dark:text-slate-200">
+															{product.product_details.category_information.name?.trim() ||
+																"—"}
+														</span>
+
+														<span className="text-xs font-bold col-end-3 uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
+															Justificación
+														</span>
+														<span className="text-sm text-slate-700 dark:text-slate-200">
+															{product.justification?.trim() || "—"}
+														</span>
+													</div>
+												))
+											)}
+										</div>
+									</div>
+
+									<div className="grid grid-cols-1">
+										<DetailField
+											label="Aprobado por"
+											value={details.reviewed_by}
+											icon={<UserRoundCheckIcon size={18} />}
+										/>
+									</div>
 								</div>
 							</div>
 

@@ -7,9 +7,10 @@ type ErrorTooltipProps = {
 };
 
 export function ErrorTooltip({ message, anchorRef }: ErrorTooltipProps) {
-  const [position, setPosition] = useState<{ top: number; left: number } | null>(
-    null,
-  );
+  const [position, setPosition] = useState<{
+    top: number;
+    left: number;
+  } | null>(null);
 
   useLayoutEffect(() => {
     const update = () => {
@@ -33,14 +34,14 @@ export function ErrorTooltip({ message, anchorRef }: ErrorTooltipProps) {
   return createPortal(
     <span
       role="tooltip"
-      className="pointer-events-none fixed z-[9999] flex flex-col items-start"
+      className="pointer-events-none fixed z-9999 flex flex-col items-start"
       style={{ top: position.top, left: position.left }}
     >
       <span
-        className="h-0 w-0 ml-3 shrink-0 border-x-[6px] border-b-[6px] border-x-transparent border-b-red-500 dark:border-b-red-600"
+        className="h-0 w-0 ml-3 shrink-0 border-x-[6px] border-b-[6px] border-x-transparent border-b-[#7a1f2b] dark:border-b-[#6b1e2a]"
         aria-hidden={true}
       />
-      <span className="whitespace-nowrap rounded-lg bg-red-500 dark:bg-red-600 px-3 py-2 text-sm font-semibold text-white">
+      <span className="whitespace-nowrap rounded-lg bg-[#7a1f2b] dark:bg-[#6b1e2a] px-3 py-2 text-sm font-semibold text-white">
         {message}
       </span>
     </span>,

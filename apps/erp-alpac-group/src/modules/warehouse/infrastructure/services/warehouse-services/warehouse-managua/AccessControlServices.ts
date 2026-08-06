@@ -24,9 +24,13 @@ export class AccessControlServices implements IAccessControl {
   ): Promise<GetReceptionEntrancesResponse> {
     const { company_id, module_code, ...rest } = payload;
     const url = `/companies/${company_id}/modules/${module_code}/reception-entrances`;
-    return this.httpHandler.get<GetReceptionEntrancesResponse>(url, {
-      params: cleanParams(rest),
-    });
+    const response = await this.httpHandler.get<GetReceptionEntrancesResponse>(
+      url,
+      {
+        params: cleanParams(rest),
+      },
+    );
+    return response;
   }
   public async getAccessControlById(
     payload: GetReceptionEntranceDetailRequest,
