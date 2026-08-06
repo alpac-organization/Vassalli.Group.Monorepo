@@ -12,6 +12,7 @@ import {
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/utils/styles";
 
 const EMPTY_FILTERS: AccessControlFilters = {
+  ducat_number: "",
   document_number: "",
   document_type: "",
   plate_number: "",
@@ -49,10 +50,11 @@ function buildFiltersPayload(
   values: AccessControlFilters,
 ): AccessControlFilters {
   return {
-    document_number: values.document_number.trim(),
-    document_type: values.document_type.trim(),
-    plate_number: values.plate_number.trim(),
-    driver_name: values.driver_name.trim(),
+    ducat_number: (values.ducat_number ?? "").trim(),
+    document_number: (values.document_number ?? "").trim(),
+    document_type: (values.document_type ?? "").trim(),
+    plate_number: (values.plate_number ?? "").trim(),
+    driver_name: (values.driver_name ?? "").trim(),
     start_date: values.start_date,
     end_date: values.end_date,
   };
@@ -109,8 +111,8 @@ export function AccessControlFiltersBar({
         <div className="flex flex-col justify-center gap-2">
           <h3 className="p-0! m-0!">Filtros</h3>
           <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
-            Filtra por número de documento (DUCA o declaración), tipo, placa,
-            conductor o rango de fechas. Puede enviar solo fecha inicio.
+            Filtra por número de DUCA, declaración aduanera, tipo, placa,
+            conductor o rango de fechas. Puede enviar solo fecha inicio
           </small>
         </div>
       </div>
@@ -122,16 +124,28 @@ export function AccessControlFiltersBar({
           if (isStartAfterEnd(values.start_date, values.end_date)) return;
           onApply(buildFiltersPayload(values));
         })}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-8 gap-4 items-end"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-4 items-end"
       >
         <div className="flex flex-col min-w-0">
           <InputText
-            label="Número de documento"
+            label="Número de DUCA"
             className={inputClassName}
             labelClassName={labelClassName}
             type="text"
             errorVariant="tooltip"
-            placeholder="Buscar N.º documento"
+            placeholder="Buscar N.º DUCA"
+            {...register("ducat_number")}
+          />
+        </div>
+
+        <div className="flex flex-col min-w-0">
+          <InputText
+            label="N.º Declaración aduanera"
+            className={inputClassName}
+            labelClassName={labelClassName}
+            type="text"
+            errorVariant="tooltip"
+            placeholder="Buscar N.º declaración"
             {...register("document_number")}
           />
         </div>
@@ -144,7 +158,6 @@ export function AccessControlFiltersBar({
               <Dropdown
                 appearance="dark"
                 label="Tipo de documento"
-                optional
                 placeholder="Todos"
                 options={DOCUMENT_TYPE_OPTIONS}
                 value={field.value || undefined}
@@ -245,20 +258,17 @@ export function AccessControlFiltersBar({
           />
         </div>
 
-        <div className="flex flex-col min-w-0">
+        <div className="flex flex-row gap-3 min-w-0 w-full items-end self-end">
           <Button
             type="submit"
             size="giant"
-            className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+            className="flex-1! sm:flex-none! w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
             label="Aplicar filtros"
           />
-        </div>
-
-        <div className="flex flex-col min-w-0">
           <Button
             type="button"
             size="giant"
-            className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+            className="flex-1! sm:flex-none! w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
             label="Limpiar filtros"
             onClick={handleClear}
           />
