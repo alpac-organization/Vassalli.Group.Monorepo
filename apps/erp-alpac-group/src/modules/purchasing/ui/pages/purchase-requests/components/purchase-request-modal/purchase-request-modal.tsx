@@ -23,8 +23,8 @@ const labelClassName = "text-black! dark:text-white!";
 
 const emptyFormValues = (): CreatePurchaseRequestFormValues => ({
 	area_id: "",
-	justification: "",
-	requested_products: [],
+	observations: "",
+	purchase_request_items: [],
 });
 
 export const PurchaseRequestModal = ({
@@ -89,13 +89,14 @@ export const PurchaseRequestModal = ({
 			branch_id: currentBranchId,
 			request_date: dayjs().format("YYYY-MM-DD"),
 			request_type: Number(requestType.value),
-			justification: values.justification.trim(),
-			requested_products: values.requested_products.map((item) => {
+			observations: values.observations.trim(),						
+			purchase_request_items: values.purchase_request_items.map((item) => {
 				const productJustification = item.justification?.trim() ?? "";
 
 				return {
 					product_id: item.product_id,
 					quantity: Number(item.quantity),
+					description: item.description,
 					unit_measure_id: item.unit_measure_id,
 					...(productJustification
 						? { justification: productJustification }
@@ -128,105 +129,105 @@ export const PurchaseRequestModal = ({
 			)}
 
 			<Modal
-			isOpen={isOpen}
-			onClose={handleClose}
-			title={`Registrar ${requestType.label}`}
-			variant="form"
-			size="9xl"
-			description="Complete la información de la solicitud de compra"
-			panelClassName="flex h-[min(94dvh,54rem)] w-[min(calc(100vw-1rem),56rem)] min-w-0 flex-col"
-			contentClassName="flex min-h-0 flex-1 flex-col"
-		>
-			<FormProvider {...methods}>
-				<form
-					onSubmit={handleFormSubmit}
-					className="flex min-h-0 flex-1 flex-col"
-					noValidate
-				>
-					<div ref={scrollContainerRef} className="scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
-						<div className="flex flex-col gap-4 pb-2">
+				isOpen={isOpen}
+				onClose={handleClose}
+				title={`Registrar ${requestType.label}`}
+				variant="form"
+				size="9xl"
+				description="Complete la información de la solicitud de compra"
+				panelClassName="flex h-[min(94dvh,54rem)] w-[min(calc(100vw-1rem),56rem)] min-w-0 flex-col"
+				contentClassName="flex min-h-0 flex-1 flex-col"
+			>
+				<FormProvider {...methods}>
+					<form
+						onSubmit={handleFormSubmit}
+						className="flex min-h-0 flex-1 flex-col"
+						noValidate
+					>
+						<div ref={scrollContainerRef} className="scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+							<div className="flex flex-col gap-4 pb-2">
 
-							{
-								isAdministrator &&
+								{
+									isAdministrator &&
+									<Controller
+										name="area_id"
+										control={control}
+										rules={{
+											required: "El área es requerida",
+										}}
+										render={({ field }) => (
+											<Dropdown
+												label="Área de trabajo"
+												isRequired
+												appearance="dark"
+												placeholder="Todas las áreas"
+												value={field.value}
+												onChange={(value) => field.onChange(value)}
+												options={areaOptions}
+												labelClassName={labelClassName}
+												valueClassName={labelClassName}
+												className={dropdownClassName}
+												error={errors.area_id?.message}
+											/>
+										)}
+									/>
+								}
+
 								<Controller
-									name="area_id"
+									name="observations"
 									control={control}
 									rules={{
-										required: "El área es requerida",
+										required: "Las observaciones son requerida",
+										validate: (value) =>
+											value.trim().length > 0 || "Las observaciones son requerida",
 									}}
 									render={({ field }) => (
-										<Dropdown
-											label="Área de trabajo"
+										<Textarea
+											label="Observaciones"
+											placeholder="Observaciones de la solicitud..."
 											isRequired
-											appearance="dark"
-											placeholder="Todas las áreas"
-											value={field.value}
-											onChange={(value) => field.onChange(value)}
-											options={areaOptions}
+											className={inputClassName}
 											labelClassName={labelClassName}
-											valueClassName={labelClassName}
-											className={dropdownClassName}
-											error={errors.area_id?.message}
+											value={field.value}
+											onChange={field.onChange}
+											error={errors.observations?.message}
+											maxLength={500}
+											enableCharacterCount
+											style={{
+												resize: "none",
+												minHeight: "100px",
+											}}
 										/>
 									)}
 								/>
-							}
 
-							<Controller
-								name="justification"
-								control={control}
-								rules={{
-									required: "La justificación es requerida",
-									validate: (value) =>
-										value.trim().length > 0 || "La justificación es requerida",
-								}}
-								render={({ field }) => (
-									<Textarea
-										label="Justificación"
-										placeholder="Justificación de la solicitud..."
-										isRequired
-										className={inputClassName}
-										labelClassName={labelClassName}
-										value={field.value}
-										onChange={field.onChange}
-										error={errors.justification?.message}
-										maxLength={500}
-										enableCharacterCount
-										style={{
-											resize: "none",
-											minHeight: "100px",
-										}}
-									/>
-								)}
-							/>
-
-							<PurchaseRequestDetail />
+								<PurchaseRequestDetail />
+							</div>
 						</div>
-					</div>
 
-					<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
-						<div className="flex justify-end gap-3">
-							<Button
-								type="button"
-								size="giant"
-								label="Cancelar"
-								onClick={handleClose}
-								disabled={isCreating}
-								className="text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
-							/>
-							<Button
-								type="submit"
-								size="giant"
-								label="Crear Solicitud"
-								disabled={isCreating}
-								isLoading={isCreating}
-								className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-							/>
+						<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
+							<div className="flex justify-end gap-3">
+								<Button
+									type="button"
+									size="giant"
+									label="Cancelar"
+									onClick={handleClose}
+									disabled={isCreating}
+									className="text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+								/>
+								<Button
+									type="submit"
+									size="giant"
+									label="Crear Solicitud"
+									disabled={isCreating}
+									isLoading={isCreating}
+									className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+								/>
+							</div>
 						</div>
-					</div>
-				</form>
-			</FormProvider>
-		</Modal>
+					</form>
+				</FormProvider>
+			</Modal>
 		</>
 	);
 };
