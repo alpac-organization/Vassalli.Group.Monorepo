@@ -9,7 +9,7 @@ const HumanResourceDocuments: Record<string, EnumType> = {
 
 const TransportDocuments: Record<string, EnumType> = {
   DUCA: { value: 3, label: "Duca" },
-  CustomsDeclaration: { value: 4, label: "Declaración Aduanera" },
+  CustomsDeclaration: { value: 4, label: "D. Aduanera" },
 };
 
 export const DocumentEnum: Record<string, EnumType> = {
