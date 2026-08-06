@@ -16,6 +16,7 @@ import { getAccessControlMetrics } from "@app/modules/warehouse/ui/warehouse-man
 import {
   toApiDate,
   mapGateEntryToCreateRequest,
+  resolveDocumentNumberFilters,
   type EntryStartedAt,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/mapping-access-control";
 import { useAccessControl } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAccessControl";
@@ -32,10 +33,12 @@ import type { Path } from "react-hook-form";
 
 const PAGE_SIZE = 10;
 const EMPTY_FILTERS: AccessControlFilters = {
-  ducat_number: "",
+  document_number: "",
+  document_type: "",
   plate_number: "",
   driver_name: "",
-  date: null,
+  start_date: null,
+  end_date: null,
 };
 
 const UPDATABLE_FIELDS = new Set<Path<MovementDetailFormValues>>([
@@ -75,19 +78,26 @@ export function AccessControlPage() {
     null,
   );
 
-  const payloadAccessControl = useMemo<GetAccessControlRequest>(
-    () => ({
+  const payloadAccessControl = useMemo<GetAccessControlRequest>(() => {
+    const documentNumbers = resolveDocumentNumberFilters(
+      appliedFilters.document_number,
+      appliedFilters.document_type,
+    );
+
+    return {
       company_id: companyId,
       module_code: moduleCode,
       driver_name: appliedFilters.driver_name.trim(),
       plate_number: appliedFilters.plate_number.trim(),
-      ducat_number: appliedFilters.ducat_number.trim(),
-      date: toApiDate(appliedFilters.date),
+      document_type: appliedFilters.document_type.trim(),
+      ducat_number: documentNumbers.ducat_number,
+      customs_declaration_number: documentNumbers.customs_declaration_number,
+      start_date: toApiDate(appliedFilters.start_date),
+      end_date: toApiDate(appliedFilters.end_date),
       page_number: pageNumber,
       page_size: PAGE_SIZE,
-    }),
-    [companyId, moduleCode, appliedFilters, pageNumber],
-  );
+    };
+  }, [companyId, moduleCode, appliedFilters, pageNumber]);
 
   const vehiclesPayload = useMemo(
     () => ({
@@ -142,10 +152,12 @@ export function AccessControlPage() {
 
   const handleApplyFilters = useCallback((filters: AccessControlFilters) => {
     setAppliedFilters({
-      ducat_number: filters.ducat_number.trim(),
+      document_number: filters.document_number.trim(),
+      document_type: filters.document_type.trim(),
       plate_number: filters.plate_number.trim(),
       driver_name: filters.driver_name.trim(),
-      date: filters.date,
+      start_date: filters.start_date,
+      end_date: filters.end_date,
     });
     setPageNumber(1);
   }, []);
@@ -227,6 +239,7 @@ export function AccessControlPage() {
       try {
         await UpdateAccessControl.mutateAsync(payload);
         handleRequestSuccess("Campo actualizado exitosamente");
+        setSelectedReceptionId(null);
       } catch (error) {
         const mappedError = getMappedError(error as ApiErrorResponse);
         handleRequestError(
@@ -258,6 +271,7 @@ export function AccessControlPage() {
           ducats: [{ id: ducatId, ducat_number: ducatNumber.trim() }],
         });
         handleRequestSuccess("DUCA actualizada exitosamente");
+        setSelectedReceptionId(null);
       } catch (error) {
         const mappedError = getMappedError(error as ApiErrorResponse);
         handleRequestError(
