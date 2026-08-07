@@ -53,8 +53,10 @@ export function mapDetailToFormValues(
     customer: customs?.customer ?? "",
     product: customs?.product ?? "",
     container_number: customs?.container_number ?? "",
-    transport_unit_exit_date: detail.transport_unit_exit_date ?? "",
-    transport_unit_exit_time: detail.transport_unit_exit_time ?? "",
+    transport_unit_exit_date:
+      formatDateToSpanishWords(detail.transport_unit_exit_date ?? "") ?? "",
+    transport_unit_exit_time:
+      formatTime(detail.transport_unit_exit_time ?? "") ?? "",
     updated_by_user_name: detail.updated_by_user_name ?? "",
     updated_date: formatDateToSpanishWords(detail.updated_date ?? "") ?? "",
     updated_time: formatTime(detail.updated_time ?? "") ?? "",

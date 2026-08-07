@@ -7,7 +7,6 @@ import type { VehicleDataStepProps } from "@app/modules/warehouse/ui/warehouse-m
 import {
   validateOnlyLettersWithAccentsAndDiacritics,
   isAlfaNumericValue,
-  isNumericValueWithHyphen,
 } from "@app/shared/utils/string.utils";
 import { useEffect, useMemo, useState } from "react";
 import { DocumentEnum, type DocumentType } from "@app/core/enums/document.enum";
@@ -217,7 +216,8 @@ export function VehicleDataStep({
           setValueAs: (value: string) => value?.trim(),
           validate: {
             onlyLetters: (value: string) =>
-              validateOnlyLettersWithAccentsAndDiacritics(value || "", true),
+              validateOnlyLettersWithAccentsAndDiacritics(value || "", true) ||
+              ".",
           },
         })}
         error={errors.transportista?.message}

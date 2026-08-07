@@ -1,13 +1,15 @@
 import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
 import dayjs from "dayjs";
-import { Alert, AnimatedAlertWrapper } from "@alpac/design-system";
+import { Alert, AnimatedAlertWrapper, Modal } from "@alpac/design-system";
 import { AccessControlHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-header/access-control-header";
 import { AccessControlStats } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-stats/access-control-stats";
 import { AccessControlActions } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-actions/access-control-actions";
 import { AccessControlFiltersBar } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/access-control-filters";
 import { MovementsQueue } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/movements-queue";
 import { MovementDetailModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/movement-detail-modal";
+import { GenerateExitModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/generate-exit-modal/generate-exit-modal";
+import type { GenerateExitFormValues } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/generate-exit-modal/types/generate-exit-modal.types";
 import { GateEntryModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/gate-entry-modal";
 import type { GateEntryFormValues } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/types/gate-entry-modal.types";
 import type { AccessControlFilters } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
@@ -77,6 +79,7 @@ export function AccessControlPage() {
   const [selectedReceptionId, setSelectedReceptionId] = useState<string | null>(
     null,
   );
+  const [exitReception, setExitReception] = useState<ReceptionEntranceListItem | null>(null);
 
   const payloadAccessControl = useMemo<GetAccessControlRequest>(() => {
     return {
@@ -102,16 +105,18 @@ export function AccessControlPage() {
     [companyId, moduleCode],
   );
 
+  const detailReceptionId = selectedReceptionId ?? exitReception?.id ?? null;
+
   const detailPayload = useMemo(
     () =>
-      selectedReceptionId
+      detailReceptionId
         ? {
             company_id: companyId,
             module_code: moduleCode,
-            reception_id: selectedReceptionId,
+            reception_id: detailReceptionId,
           }
         : null,
-    [companyId, moduleCode, selectedReceptionId],
+    [companyId, moduleCode, detailReceptionId],
   );
 
   const {
@@ -121,6 +126,7 @@ export function AccessControlPage() {
     UpdateAccessControl,
     AddDucatsToReception,
     GetVehicles,
+    GenerateExitAccessControl,
   } = useAccessControl({
     payloadAccessControl,
     vehiclesPayload,
@@ -170,6 +176,47 @@ export function AccessControlPage() {
   const handleDetailClick = useCallback((item: ReceptionEntranceListItem) => {
     setSelectedReceptionId(item.id);
   }, []);
+
+  const handleExitClick = useCallback((item: ReceptionEntranceListItem) => {
+    setExitReception(item);
+  }, []);
+
+  const handleCloseExit = useCallback(() => {
+    setExitReception(null);
+  }, []);
+
+  const handleGenerateExit = useCallback(
+    async (data: GenerateExitFormValues) => {
+      if (!exitReception) return;
+
+      try {
+        await GenerateExitAccessControl.mutateAsync({
+          company_id: companyId,
+          module_code: moduleCode,
+          reception_id: exitReception.id,
+          exit_date: data.specifyDateTime ? toApiDate(data.exitDate) : undefined,
+          exit_time: data.specifyDateTime ? dayjs(data.exitTime as any).second(0).format("HH:mm:ss") : undefined,
+        });
+        handleRequestSuccess("Salida registrada exitosamente");
+      } catch (error) {
+        const mappedError = getMappedError(error as ApiErrorResponse);
+        handleRequestError(
+          mappedError?.description || "Error al registrar la salida",
+        );
+      } finally {
+        setExitReception(null);
+      }
+    },
+    [
+      exitReception,
+      GenerateExitAccessControl,
+      companyId,
+      moduleCode,
+      handleRequestSuccess,
+      handleRequestError,
+      getMappedError,
+    ],
+  );
 
   const handleFieldUpdate = useCallback(
     async (name: Path<MovementDetailFormValues>, value: string) => {
@@ -403,7 +450,41 @@ export function AccessControlPage() {
         onPageChange={handlePageChange}
         isFetching={isFetching}
         onDetailClick={handleDetailClick}
+        onExitClick={handleExitClick}
       />
+
+      <Modal
+        isOpen={Boolean(exitReception)}
+        onClose={handleCloseExit}
+        variant="warning"
+        size="md"
+        panelClassName="overflow-visible"
+      >
+        <div className="flex flex-col gap-4 min-w-0">
+          <p className="text-slate-600 dark:text-slate-300 text-center">
+            ¿Desea registrar la salida de la unidad con placa{" "}
+            <span className="font-bold">{exitReception?.plate_number}</span> y conductor{" "}
+            <span className="font-bold">{exitReception?.driver_name}</span>?
+          </p>
+          <GenerateExitModal
+            onClose={handleCloseExit}
+            onSubmit={handleGenerateExit}
+            isSubmitting={GenerateExitAccessControl.isPending}
+            entryDate={
+              exitReception && detail?.id === exitReception.id
+                ? (detail?.execution_log?.start_date ??
+                  exitReception.arrival_date)
+                : exitReception?.arrival_date
+            }
+            entryTime={
+              exitReception && detail?.id === exitReception.id
+                ? (detail?.execution_log?.start_time ??
+                  exitReception.arrival_time)
+                : exitReception?.arrival_time
+            }
+          />
+        </div>
+      </Modal>
 
       <MovementDetailModal
         isOpen={Boolean(selectedReceptionId)}
