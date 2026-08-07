@@ -233,7 +233,7 @@ export function VehicleDataStep({
           required: "El número de marchamo es obligatorio.",
           setValueAs: (value: string) => value?.trim(),
           validate: (value: string) => {
-            if (!isNumericValueWithHyphen(value)) {
+            if (!isAlfaNumericValue(value)) {
               return "Digite un número de sello válido.";
             }
             return true;
