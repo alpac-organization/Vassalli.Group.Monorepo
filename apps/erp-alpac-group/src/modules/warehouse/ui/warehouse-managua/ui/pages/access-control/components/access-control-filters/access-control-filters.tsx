@@ -112,7 +112,7 @@ export function AccessControlFiltersBar({
           <h3 className="p-0! m-0!">Filtros</h3>
           <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
             Filtra por número de DUCA, declaración aduanera, tipo, placa,
-            conductor o rango de fechas. Puede enviar solo fecha inicio.
+            conductor o rango de fechas. Puede enviar solo fecha inicio
           </small>
         </div>
       </div>
@@ -158,7 +158,6 @@ export function AccessControlFiltersBar({
               <Dropdown
                 appearance="dark"
                 label="Tipo de documento"
-                optional
                 placeholder="Todos"
                 options={DOCUMENT_TYPE_OPTIONS}
                 value={field.value || undefined}
