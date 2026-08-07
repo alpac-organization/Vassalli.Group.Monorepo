@@ -1,6 +1,7 @@
 import type { DatePickerValue } from "@alpac/design-system";
 
 export type AccessControlFilters = {
+  ducat_number: string;
   document_number: string;
   document_type: string;
   plate_number: string;
