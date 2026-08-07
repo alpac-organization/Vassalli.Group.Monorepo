@@ -3,6 +3,7 @@ import { TimePicker as MuiTimePicker } from "@mui/x-date-pickers/TimePicker";
 import type { TimePickerProps } from "./time-picker.types";
 import { getTimePickerSlotProps } from "./time-picker-slot-props";
 import { ErrorTooltip } from "../shared/error-tooltip";
+import { blurActiveElement } from "../shared/blur-active-element";
 
 export function TimePicker({
   id,
@@ -13,6 +14,8 @@ export function TimePicker({
   isRequired = false,
   labelClassName,
   errorVariant = "text",
+  hideErrorOnMobile = false,
+  onOpen,
   ...rest
 }: TimePickerProps) {
   const generatedId = useId();
@@ -45,20 +48,28 @@ export function TimePicker({
         ampm={false}
         views={["hours", "minutes"]}
         format="HH:mm"
+        timeSteps={{ minutes: 1 }}
+        minutesStep={1}
         {...rest}
         label={labelAbove ? undefined : label}
         slotProps={slotProps}
+        onOpen={() => {
+          blurActiveElement();
+          onOpen?.();
+        }}
       />
 
-      {error && errorVariant === "tooltip" && (
-        <ErrorTooltip message={error} anchorRef={fieldRef} />
-      )}
+      <div className={hideErrorOnMobile ? "hidden sm:block" : undefined}>
+        {error && errorVariant === "tooltip" && (
+          <ErrorTooltip message={error} anchorRef={fieldRef} />
+        )}
 
-      {error && errorVariant === "text" && (
-        <span className="text-xs text-red-500 dark:text-red-400 font-medium ml-1 mt-0.5">
-          {error}
-        </span>
-      )}
+        {error && errorVariant === "text" && (
+          <span className="text-xs text-red-500 dark:text-red-400 font-medium ml-1 mt-0.5">
+            {error}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

@@ -14,6 +14,7 @@ export type ContextMenuProps = {
   triggerClassName?: string;
   triggerIcon?: ReactNode;
   triggerButtonSize?: ButtonSize;
+  openUpOnMobile?: boolean;
 };
 
 export type MenuPosition = {
@@ -21,26 +22,3 @@ export type MenuPosition = {
   left: number;
   openUp: boolean;
 };
-
-export function judgeCircle(moves: string): boolean {
-  if (moves == null || moves.length == 0) return false;
-  const origin = 0;
-  const sizeMoves = moves.length;
-  let ejeX = 0;
-  let ejeY = 0;
-  let i = 0;
-  while (i < sizeMoves) {
-    const current = moves[i];
-    if (current == "U") {
-      ejeY++;
-    } else if (current == "D") {
-      ejeY--;
-    } else if (current == "L") {
-      ejeX--;
-    } else if (current == "R") {
-      ejeX++;
-    }
-    i++;
-  }
-  return ejeX == origin && ejeY == origin;
-}

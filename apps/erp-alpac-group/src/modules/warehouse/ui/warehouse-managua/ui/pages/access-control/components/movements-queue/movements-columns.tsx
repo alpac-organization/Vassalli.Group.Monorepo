@@ -15,10 +15,12 @@ const contextMenuButton =
 type MovementsColumnsOptions = {
   onDetailClick?: (item: ReceptionEntranceListItem) => void;
   onExitClick?: (item: ReceptionEntranceListItem) => void;
+  lastItemId?: string;
 };
 export function getMovementsColumns({
   onDetailClick,
   onExitClick,
+  lastItemId,
 }: MovementsColumnsOptions = {}): TableColumn<ReceptionEntranceListItem>[] {
   return [
     {
@@ -75,6 +77,7 @@ export function getMovementsColumns({
             { label: "Dar salida", onClick: () => onExitClick?.(item) },
           ]}
           triggerClassName={contextMenuButton}
+          openUpOnMobile={item.id === lastItemId}
         />
       ),
     },

@@ -10,6 +10,7 @@ export type TimePickerProps = Omit<MuiTimePickerProps, "slotProps"> & {
   isRequired?: boolean;
   labelClassName?: string;
   errorVariant?: "text" | "tooltip";
+  hideErrorOnMobile?: boolean;
 };
 
 export type TimePickerValue = TimePickerProps["value"];

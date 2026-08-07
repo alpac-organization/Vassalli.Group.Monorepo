@@ -1,7 +1,9 @@
 import { Button, DatePicker, TimePicker, Checkbox } from "@alpac/design-system";
 import { AnimatePresence, m } from "framer-motion";
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import dayjs from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
 import type {
   GenerateExitFormValues,
   GenerateExitModalProps,
@@ -10,43 +12,75 @@ import {
   buttonCancelClass,
   buttonActionClass,
   EXIT_DATE_BEFORE_ENTRY_MESSAGE,
-  EXIT_TIME_BEFORE_ENTRY_MESSAGE,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/generate-exit-modal/utils/style.exit-modal";
+import { isMobileViewport } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/utils/utils";
 
-function parseEntryAt(entryAt?: string | null) {
-  if (!entryAt?.trim()) return null;
-  const parsed = dayjs(entryAt.trim());
-  return parsed.isValid() ? parsed : null;
+dayjs.extend(customParseFormat);
+
+const DATE_FORMATS = [
+  "YYYY-MM-DD",
+  "DD/MM/YYYY",
+  "YYYY-MM-DDTHH:mm:ss",
+  "YYYY-MM-DDTHH:mm:ssZ",
+  "YYYY-MM-DDTHH:mm:ss.SSSZ",
+] as const;
+
+function parseEntryDate(entryDate?: string | null): Dayjs | null {
+  const raw = entryDate?.trim();
+  if (!raw) return null;
+
+  const strict = dayjs(raw, DATE_FORMATS as unknown as string[], true);
+  if (strict.isValid()) return strict.startOf("day");
+
+  const fallback = dayjs(raw);
+  return fallback.isValid() ? fallback.startOf("day") : null;
 }
 
-function combineExitDateTime(
-  exitDate: GenerateExitFormValues["exitDate"],
-  exitTime: GenerateExitFormValues["exitTime"],
-) {
-  if (!exitDate || !exitTime) return null;
+function toDayjsValue(value: unknown): Dayjs | null {
+  if (value == null) return null;
+  if (dayjs.isDayjs(value)) return value.isValid() ? value : null;
 
-  const date = dayjs(exitDate);
-  const time = dayjs(exitTime);
-  if (!date.isValid() || !time.isValid()) return null;
+  if (value instanceof Date) {
+    const parsed = dayjs(value);
+    return parsed.isValid() ? parsed : null;
+  }
 
-  return date.hour(time.hour()).minute(time.minute()).second(0).millisecond(0);
+  if (typeof value === "string" || typeof value === "number") {
+    const parsed = dayjs(value);
+    return parsed.isValid() ? parsed : null;
+  }
+
+  if (typeof value === "object" && "$d" in value) {
+    const nativeDate = (value as { $d?: Date }).$d;
+    if (!(nativeDate instanceof Date)) return null;
+    const parsed = dayjs(nativeDate);
+    return parsed.isValid() ? parsed : null;
+  }
+
+  return null;
 }
 
 export function GenerateExitModal({
   onClose,
   onSubmit,
   isSubmitting = false,
-  entryAt,
+  entryDate,
+  entryTime: _entryTime,
 }: GenerateExitModalProps) {
-  const entryMoment = parseEntryAt(entryAt);
+  const entryDay = parseEntryDate(entryDate);
+  const [isExitDatePickerOpen, setIsExitDatePickerOpen] = useState(false);
 
   const {
     control,
     handleSubmit,
     watch,
     trigger,
+    getValues,
+    clearErrors,
     formState: { errors },
   } = useForm<GenerateExitFormValues>({
+    mode: "onSubmit",
+    reValidateMode: "onChange",
     defaultValues: {
       specifyDateTime: false,
       exitDate: null,
@@ -55,34 +89,19 @@ export function GenerateExitModal({
   });
 
   const specifyDateTime = watch("specifyDateTime");
-  const exitDate = watch("exitDate");
+  const hideExitDateErrorOnMobile =
+    isMobileViewport() && isExitDatePickerOpen;
 
   const validateExitDate = (
     value: GenerateExitFormValues["exitDate"],
   ): true | string => {
     if (!value) return true;
-    if (!entryMoment) return true;
 
-    const date = dayjs(value);
-    if (!date.isValid()) return "La fecha no es válida.";
+    const date = toDayjsValue(value);
+    if (!date) return "La fecha no es válida.";
 
-    if (date.isBefore(entryMoment, "day")) {
+    if (entryDay && date.isBefore(entryDay, "day")) {
       return EXIT_DATE_BEFORE_ENTRY_MESSAGE;
-    }
-
-    return true;
-  };
-
-  const validateExitTime = (
-    value: GenerateExitFormValues["exitTime"],
-  ): true | string => {
-    if (!value || !exitDate || !entryMoment) return true;
-
-    const exitMoment = combineExitDateTime(exitDate, value);
-    if (!exitMoment) return true;
-
-    if (exitMoment.isBefore(entryMoment)) {
-      return EXIT_TIME_BEFORE_ENTRY_MESSAGE;
     }
 
     return true;
@@ -131,12 +150,42 @@ export function GenerateExitModal({
                     isRequired
                     fieldWidth="large"
                     value={field.value}
-                    minDate={entryMoment ?? undefined}
+                    onOpen={() => {
+                      if (!isMobileViewport()) return;
+                      setIsExitDatePickerOpen(true);
+                      clearErrors("exitDate");
+                    }}
+                    onClose={() => {
+                      if (!isMobileViewport()) return;
+                      setIsExitDatePickerOpen(false);
+                      void trigger("exitDate");
+                      if (getValues("exitTime")) {
+                        void trigger("exitTime");
+                      } else {
+                        clearErrors("exitTime");
+                      }
+                    }}
                     onChange={(value) => {
                       field.onChange(value);
-                      void trigger(["exitDate", "exitTime"]);
+                      if (isMobileViewport()) {
+                        clearErrors("exitDate");
+                        return;
+                      }
+                      void trigger("exitDate");
+                      if (getValues("exitTime")) {
+                        void trigger("exitTime");
+                      } else {
+                        clearErrors("exitTime");
+                      }
                     }}
-                    error={errors.exitDate?.message as string | undefined}
+                    error={
+                      hideExitDateErrorOnMobile
+                        ? undefined
+                        : typeof errors.exitDate?.message === "string"
+                          ? errors.exitDate.message
+                          : undefined
+                    }
+                    errorVariant="tooltip"
                   />
                 )}
               />
@@ -147,7 +196,6 @@ export function GenerateExitModal({
                 control={control}
                 rules={{
                   required: "La hora es requerida",
-                  validate: validateExitTime,
                 }}
                 render={({ field }) => (
                   <TimePicker
@@ -158,9 +206,18 @@ export function GenerateExitModal({
                     value={field.value}
                     onChange={(value) => {
                       field.onChange(value);
-                      void trigger(["exitDate", "exitTime"]);
+                      void trigger("exitTime");
+                      if (getValues("exitDate")) {
+                        void trigger("exitDate");
+                      }
                     }}
-                    error={errors.exitTime?.message as string | undefined}
+                    error={
+                      typeof errors.exitTime?.message === "string"
+                        ? errors.exitTime.message
+                        : undefined
+                    }
+                    errorVariant="text"
+                    hideErrorOnMobile
                   />
                 )}
               />

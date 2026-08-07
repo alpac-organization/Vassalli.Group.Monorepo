@@ -14,6 +14,7 @@ export interface ReceptionEntranceListItem {
   plate_number: string;
   driver_name: string;
   document_type: DocumentType;
+  arrival_date: string;
   arrival_time: string;
   status: RecordEntranceStatusKey | string;
   vehicle_status: RecordEntranceVehicleStatusKey | string;

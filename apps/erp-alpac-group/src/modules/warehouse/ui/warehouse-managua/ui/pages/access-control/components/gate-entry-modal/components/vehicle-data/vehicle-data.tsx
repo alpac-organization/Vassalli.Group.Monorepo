@@ -217,7 +217,8 @@ export function VehicleDataStep({
           setValueAs: (value: string) => value?.trim(),
           validate: {
             onlyLetters: (value: string) =>
-              validateOnlyLettersWithAccentsAndDiacritics(value || "", true),
+              validateOnlyLettersWithAccentsAndDiacritics(value || "", true) ||
+              ".",
           },
         })}
         error={errors.transportista?.message}

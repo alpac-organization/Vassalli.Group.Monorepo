@@ -76,7 +76,13 @@ const paperSx = {
   },
   "& .MuiPickersLayout-actionBar": {
     gridColumn: "1 !important",
+    display: "flex",
+    width: "100%",
     justifyContent: "center",
+    alignItems: "center",
+    gap: 1,
+    px: 1,
+    boxSizing: "border-box",
   },
   "& .MuiMenuItem-root": {
     color: COLORS.text,
@@ -126,6 +132,34 @@ const paperSx = {
   },
 } as const;
 
+const mobilePaperSx = {
+  ...paperSx,
+  "& .MuiTimePickerToolbar-root": {
+    width: "100%",
+    alignItems: "center",
+    boxSizing: "border-box",
+  },
+  "& .MuiTimePickerToolbar-hourMinuteLabel": {
+    width: "100%",
+    justifyContent: "center",
+  },
+  "& .MuiPickersLayout-actionBar, & .MuiDialogActions-root": {
+    gridColumn: "2 !important",
+    display: "flex",
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 1,
+    px: 0,
+    boxSizing: "border-box",
+    "& .MuiButton-root": {
+      color: `${COLORS.text} !important`,
+      minWidth: "auto",
+      mx: 0,
+      px: 1,
+    },
+  },
+} as const;
 export function getTimePickerSlotProps({
   fieldWidth,
   id,
@@ -156,7 +190,21 @@ export function getTimePickerSlotProps({
       },
     },
     actionBar: {
-      sx: { "& .MuiButton-root": { color: COLORS.text } },
+      sx: {
+        display: "flex",
+        width: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: 1,
+        px: 1,
+        boxSizing: "border-box",
+        "& .MuiButton-root": {
+          color: COLORS.text,
+          minWidth: "auto",
+          mx: 0,
+          px: 1,
+        },
+      },
     },
     popper: {
       disablePortal: true,
@@ -168,7 +216,7 @@ export function getTimePickerSlotProps({
     },
     mobilePaper: {
       className: "rounded-md shadow-lg",
-      sx: paperSx,
+      sx: mobilePaperSx,
     },
   };
 }

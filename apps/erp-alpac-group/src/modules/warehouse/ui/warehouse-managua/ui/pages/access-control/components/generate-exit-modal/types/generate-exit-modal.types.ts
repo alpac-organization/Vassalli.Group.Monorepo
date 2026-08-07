@@ -10,5 +10,6 @@ export type GenerateExitModalProps = {
   onClose: () => void;
   onSubmit: (data: GenerateExitFormValues) => void;
   isSubmitting?: boolean;
-  entryAt?: string | null;
+  entryDate?: string | null;
+  entryTime?: string | null;
 };

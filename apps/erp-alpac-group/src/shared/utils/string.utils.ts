@@ -504,7 +504,7 @@ export const validateOnlyLettersWithAccentsAndDiacritics = (
 ): boolean | string => {
   if (!value) return true;
   const regex = withSpace
-    ? /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]*$/
+    ? /^[A-Za-zñÑáéíóúÁÉÍÓÚ.\s]*$/
     : /^[A-Za-zñÑáéíóúÁÉÍÓÚ]*$/;
   return regex.test(value) || "Solo se permiten letras";
 };

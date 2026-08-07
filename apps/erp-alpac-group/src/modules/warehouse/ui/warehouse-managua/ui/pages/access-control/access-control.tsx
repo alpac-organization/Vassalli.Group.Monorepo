@@ -105,16 +105,18 @@ export function AccessControlPage() {
     [companyId, moduleCode],
   );
 
+  const detailReceptionId = selectedReceptionId ?? exitReception?.id ?? null;
+
   const detailPayload = useMemo(
     () =>
-      selectedReceptionId
+      detailReceptionId
         ? {
             company_id: companyId,
             module_code: moduleCode,
-            reception_id: selectedReceptionId,
+            reception_id: detailReceptionId,
           }
         : null,
-    [companyId, moduleCode, selectedReceptionId],
+    [companyId, moduleCode, detailReceptionId],
   );
 
   const {
@@ -468,7 +470,18 @@ export function AccessControlPage() {
             onClose={handleCloseExit}
             onSubmit={handleGenerateExit}
             isSubmitting={GenerateExitAccessControl.isPending}
-            entryAt={exitReception?.arrival_time}
+            entryDate={
+              exitReception && detail?.id === exitReception.id
+                ? (detail?.execution_log?.start_date ??
+                  exitReception.arrival_date)
+                : exitReception?.arrival_date
+            }
+            entryTime={
+              exitReception && detail?.id === exitReception.id
+                ? (detail?.execution_log?.start_time ??
+                  exitReception.arrival_time)
+                : exitReception?.arrival_time
+            }
           />
         </div>
       </Modal>

@@ -29,8 +29,13 @@ export function MovementsQueue({
   );
 
   const columns = useMemo(
-    () => getMovementsColumns({ onDetailClick: handleDetailClick, onExitClick: handleExitClick }),
-    [handleDetailClick, handleExitClick],
+    () =>
+      getMovementsColumns({
+        onDetailClick: handleDetailClick,
+        onExitClick: handleExitClick,
+        lastItemId: data.at(-1)?.id,
+      }),
+    [data, handleDetailClick, handleExitClick],
   );
 
   return (

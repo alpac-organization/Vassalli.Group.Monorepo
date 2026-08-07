@@ -158,7 +158,6 @@ export function AccessControlFiltersBar({
               <Dropdown
                 appearance="dark"
                 label="Tipo de documento"
-                optional
                 placeholder="Todos"
                 options={DOCUMENT_TYPE_OPTIONS}
                 value={field.value || undefined}
