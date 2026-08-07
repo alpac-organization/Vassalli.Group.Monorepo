@@ -12,6 +12,7 @@ export function MovementsQueue({
   onPageChange,
   isFetching = false,
   onDetailClick,
+  onExitClick,
 }: MovementsQueueProps) {
   const handleDetailClick = useCallback(
     (item: ReceptionEntranceListItem) => {
@@ -20,9 +21,21 @@ export function MovementsQueue({
     [onDetailClick],
   );
 
+  const handleExitClick = useCallback(
+    (item: ReceptionEntranceListItem) => {
+      onExitClick?.(item);
+    },
+    [onExitClick],
+  );
+
   const columns = useMemo(
-    () => getMovementsColumns({ onDetailClick: handleDetailClick }),
-    [handleDetailClick],
+    () =>
+      getMovementsColumns({
+        onDetailClick: handleDetailClick,
+        onExitClick: handleExitClick,
+        lastItemId: data.at(-1)?.id,
+      }),
+    [data, handleDetailClick, handleExitClick],
   );
 
   return (

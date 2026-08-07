@@ -27,6 +27,4 @@ export interface DucaPayload extends BaseCreateReceptionEntrance {
   ducat_numbers: string[];
 }
 
-export type CreateAccessControlRequest =
-  | DeclarationAduanaPayload
-  | DucaPayload;
+export type CreateAccessControlRequest = DeclarationAduanaPayload | DucaPayload;

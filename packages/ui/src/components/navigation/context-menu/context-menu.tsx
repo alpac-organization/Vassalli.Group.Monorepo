@@ -19,6 +19,7 @@ export const ContextMenu = ({
 	triggerClassName,
 	triggerIcon,
 	triggerButtonSize,
+	openUpOnMobile = false,
 }: ContextMenuProps) => {
 	const [open, setOpen] = useState(false);
 	const [position, setPosition] = useState<MenuPosition | null>(null);
@@ -37,8 +38,11 @@ export const ContextMenu = ({
 
 		const spaceBelow = window.innerHeight - rect.bottom;
 		const spaceAbove = rect.top;
+		const forceOpenUp =
+			openUpOnMobile && window.matchMedia("(max-width: 639px)").matches;
 		const openUp =
-			spaceBelow < menuHeight + MENU_GAP && spaceAbove > spaceBelow;
+			forceOpenUp ||
+			(spaceBelow < menuHeight + MENU_GAP && spaceAbove > spaceBelow);
 
 		let top = openUp
 			? rect.top - menuHeight - MENU_GAP

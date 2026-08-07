@@ -1,14 +1,17 @@
 import { Button, DatePicker, Dropdown, InputText } from "@alpac/design-system";
-import type { DatePickerValue, Option } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
-import dayjs from "dayjs";
-import { DocumentEnum } from "@app/core/enums/document.enum";
 import type { AccessControlFilters } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/types/movement.types";
 import type { AccessControlFiltersProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/types/access-control.types";
+import { isStartAfterEnd } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/utils/validate-date";
+import {
+  buildFiltersPayload,
+  DOCUMENT_TYPE_OPTIONS,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/utils/utils";
 import {
   inputClassName,
   labelClassName,
   datePickerClassName,
+  DATE_RANGE_ERROR,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/utils/styles";
 
 const EMPTY_FILTERS: AccessControlFilters = {
@@ -20,45 +23,6 @@ const EMPTY_FILTERS: AccessControlFilters = {
   start_date: null,
   end_date: null,
 };
-
-const DOCUMENT_TYPE_OPTIONS: Option[] = [
-  { value: "DUCA", label: DocumentEnum.DUCA.label },
-  {
-    value: "CustomsDeclaration",
-    label: DocumentEnum.CustomsDeclaration.label,
-  },
-];
-
-const DATE_RANGE_ERROR = "La fecha inicio no puede ser mayor a la fecha fin";
-
-function toDayjs(value: DatePickerValue | null) {
-  if (!value) return null;
-  return dayjs((value as { $d?: Date }).$d ?? value).startOf("day");
-}
-
-function isStartAfterEnd(
-  start: DatePickerValue | null,
-  end: DatePickerValue | null,
-) {
-  const startDay = toDayjs(start);
-  const endDay = toDayjs(end);
-  if (!startDay || !endDay) return false;
-  return startDay.isAfter(endDay);
-}
-
-function buildFiltersPayload(
-  values: AccessControlFilters,
-): AccessControlFilters {
-  return {
-    ducat_number: (values.ducat_number ?? "").trim(),
-    document_number: (values.document_number ?? "").trim(),
-    document_type: (values.document_type ?? "").trim(),
-    plate_number: (values.plate_number ?? "").trim(),
-    driver_name: (values.driver_name ?? "").trim(),
-    start_date: values.start_date,
-    end_date: values.end_date,
-  };
-}
 
 export function AccessControlFiltersBar({
   onApply,
