@@ -1,8 +1,6 @@
-import dayjs from "dayjs";
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
-	Controller,
 	FormProvider,
 	useFieldArray,
 	useForm,
@@ -14,15 +12,10 @@ import {
 	AnimatedAlertWrapper,
 	Badges,
 	Button,
-	DatePicker,
-	Dropdown,
 	Modal,
-	Textarea,
 } from "@alpac/design-system";
 
 import {
-	quoteFormInputClassName,
-	quoteFormLabelClassName,
 	quoteFormPrimaryButtonClassName,
 	quoteFormSecondaryButtonClassName,
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
@@ -30,17 +23,19 @@ import {
 import { FileTextIcon, SaveIcon, XIcon } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { QuoteDetailAccordion } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/quote-detail-accordion/quote-detail-accordion";
-import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
-import { toDateOnly } from "@app/shared/utils/date.utils";
-// import { SelectProductModal } from "@app/modules/product/ui/views/select-product-modal/select-product-modal";
-// import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal.types";
-import type { SelectableCatalogProduct } from "@app/modules/product/ui/views/select-product-modal/select-product-modal.types";
 import { type CreateQuote } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-form.types";
-// import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
 import { purchaseRequestTypeBadgeVariants } from "../../../purchase-requests/purchase-request.variants";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { Loader } from "@app/shared/components/loaders/loader";
+
+const defaultFormValues: CreateQuote = {
+	branch_id: "",
+	quote_date: "",
+	observations: "",
+	requested_products: [],
+};
 
 export function CreateQuoteModal({
 	isOpen,
@@ -51,168 +46,103 @@ export function CreateQuoteModal({
 	const { companyId, moduleCode } = useUserStore();
 
 	const methods = useForm<CreateQuote>({
-		defaultValues: {
-			branch_id: "",
-			quote_date: "",
-			observations: "",
-			quote_details: [],
-		},
+		defaultValues: defaultFormValues,
 		mode: "onSubmit",
 	});
 
 	const {
 		control,
-		register,
 		handleSubmit,
 		reset,
-		getValues,
 		formState: { isSubmitting },
 	} = methods;
 
-	const { fields, append, remove } = useFieldArray({
+	const { fields, remove } = useFieldArray({
 		control,
-		name: "quote_details",
+		name: "requested_products",
 	});
 
 	const [openProducts, setOpenProducts] = useState<string[]>([]);
-	// const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-	// const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
-	const [productsById, setProductsById] = useState<Record<string, SelectableCatalogProduct>>({});
+	const hydratedRequestIdRef = useRef<string | null>(null);
 
 	const {
 		alertState,
 		handleCloseAlert,
-		handleRequestError,
-		handleRequestSuccess,
 	} = useAlertState();
 
-	const { GetBranchesQuery } = useCompanies({
-		company_id: companyId,
-	});
+	const purchaseRequestId = isOpen
+		? (purchaseRequest?.purchase_request_id ?? "")
+		: "";
 
 	const { GetPurchaseRequestDetails } = usePurchase({
 		getPurchaseRequestDetailsPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
-			purchase_request_id: purchaseRequest?.purchase_request_id!
-		}
+			purchase_request_id: purchaseRequestId,
+		},
 	});
 
-	const { data: branches } = GetBranchesQuery;
+	const {
+		data: purchaseRequestDetails,
+		isLoading: isLoadingPurchaseRequestDetails,
+		isFetching: isFetchingPurchaseRequestDetails,
+	} = GetPurchaseRequestDetails;
 
-	const branchOptions = useMemo(() => {
-		if (!branches || !Array.isArray(branches)) return [];
-		return branches.map((branch) => ({
-			value: branch.branch_id,
-			label: branch.branch_name,
-		}));
-	}, [branches]);
+	const isLoading =
+		isOpen &&
+		(isLoadingPurchaseRequestDetails || isFetchingPurchaseRequestDetails);
 
-	/* const assignedProductIds = useMemo(
-		() =>
-			fields
-				.map((field) => field.product_id)
-				.filter((id): id is string => Boolean(id)),
-		[fields],
-	); */
+	useEffect(() => {
+		if (!isOpen) {
+			reset(defaultFormValues);
+			setOpenProducts([]);
+			hydratedRequestIdRef.current = null;
+			return;
+		}
 
-	const resetForm = () => {
+		const requestId = purchaseRequestDetails?.purchase_request_id;
+		if (!purchaseRequestDetails || !requestId) return;
+		if (hydratedRequestIdRef.current === requestId) return;
+
+		hydratedRequestIdRef.current = requestId;
 		reset({
-			branch_id: "",
-			quote_date: "",
-			observations: "",
-			quote_details: [],
+			...defaultFormValues,
+			requested_products: purchaseRequestDetails.requested_products ?? [],
 		});
 		setOpenProducts([]);
-		setProductsById({});
-	};
+	}, [isOpen, purchaseRequestDetails, reset]);
 
 	const handleCancel = () => {
-		resetForm();
+		reset(defaultFormValues);
+		setOpenProducts([]);
+		hydratedRequestIdRef.current = null;
 		onClose();
 	};
 
-/* 	const handleSelectRegisteredProducts = (products: SelectableCatalogProduct[]) => {
-
-		const existingIds = new Set(
-			(getValues("quote_details") ?? []).map((detail) => detail.product_id),
-		);
-
-		const productsToAdd = products.filter(
-			(product) => !existingIds.has(product.product_id)
-		);
-
-		if (productsToAdd.length === 0) return;
-
-		setProductsById((current) => {
-			const next = { ...current };
-			productsToAdd.forEach((product) => {
-				next[product.product_id] = product;
-			});
-			return next;
-		});
-
-		append(
-			productsToAdd.map((product) => ({
-				product_id: product.product_id,
-				suppliers: [],
-			})),
-		);
-	}; */
-
-/* 	const handleCreatedProduct = (product: CreatedProductDto) => {
-		const productId = product.data.product_id;
-
-		const existingIds = new Set(
-			(getValues("quote_details") ?? []).map((detail) => detail.product_id),
-		);
-
-		if (existingIds.has(productId)) return;
-
-		setProductsById((current) => ({
-			...current,
-			[productId]: {
-				product_id: productId,
-				product_name: product.product_name,
-				description: "",
-				category_id: "",
-				category: {
-					id: "",
-					name: product.category_name,
-					code: "",
-					is_active: true,
-					sub_category: [],
-				},
-			},
-		}));
-
-		append({
-			product_id: productId,
-			suppliers: [],
-		});
-	}; */
-
 	const onSubmit = (values: CreateQuote) => {
 		onQuoteCreated(values);
-		resetForm();
+		reset(defaultFormValues);
+		setOpenProducts([]);
+		hydratedRequestIdRef.current = null;
 		onClose();
 	};
 
 	return (
 		<>
+			{isLoading && <Loader title="Cargando Productos Solicitados..." />}
 			<Modal
 				isOpen={isOpen}
 				onClose={handleCancel}
 				variant="form"
 				size="9xl"
-				title="Nueva cotización"
+				title="Detalle de solicitud de compras"
 				description={
 					purchaseRequest?.code
 						? `Complete el formulario para registrar una cotización de la solicitud ${purchaseRequest.code}.`
 						: "Complete el formulario para registrar una nueva cotización."
 				}
 				panelClassName={[
-					"flex h-[54rem] w-[56rem] min-w-0 flex-col"
+					"flex h-[54rem] w-[56rem] min-w-0 flex-col",
 				].join(" ")}
 				contentClassName="flex min-h-0 flex-1 flex-col"
 			>
@@ -234,7 +164,7 @@ export function CreateQuoteModal({
 												Código Solicitud:
 											</span>
 											<Badges
-												label={purchaseRequest?.code ?? ""}
+												label={purchaseRequest.code}
 												color="bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"
 											/>
 										</div>
@@ -252,94 +182,20 @@ export function CreateQuoteModal({
 													color={
 														purchaseRequestTypeBadgeVariants[
 															purchaseRequest.request_type as keyof typeof purchaseRequestTypeBadgeVariants
-														]?.badgeColor ?? purchaseRequestTypeBadgeVariants.default.badgeColor
+														]?.badgeColor ??
+														purchaseRequestTypeBadgeVariants.default.badgeColor
 													}
 												/>
 											</span>
-
 										</div>
 									</section>
 								) : null}
-
-								<section className="flex flex-col gap-6 p-1">
-									<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-										<Controller
-											name="branch_id"
-											control={control}
-											rules={{ required: "Seleccione una sede de ALPAC." }}
-											render={({ field }) => (
-												<Dropdown
-													value={field.value}
-													onChange={(value) => field.onChange(value)}
-													label="Sede"
-													placeholder="Seleccione una sede de ALPAC"
-													appearance="dark"
-													labelClassName={quoteFormLabelClassName}
-													valueClassName={quoteFormLabelClassName}
-													className={quoteFormInputClassName}
-													options={branchOptions ?? []}
-												/>
-											)}
-										/>
-
-										<Controller
-											name="quote_date"
-											control={control}
-											rules={{
-												required: "La fecha de cotización es requerida.",
-											}}
-											render={({ field }) => (
-												<DatePicker
-													fieldWidth="large"
-													label="Fecha de cotización"
-													labelAbove
-													isRequired
-													value={field.value ? dayjs(field.value) : null}
-													onChange={(value) => {
-														field.onChange(toDateOnly(value));
-													}}
-												/>
-											)}
-										/>
-									</div>
-
-									<Textarea
-										label="Observaciones generales"
-										placeholder="Ej: Cotización solicitada para reposición de inventario..."
-										rows={4}
-										className={`${quoteFormInputClassName} resize-none`}
-										labelClassName={quoteFormLabelClassName}
-										enableCharacterCount
-										maxLength={500}
-										{...register("observations")}
-									/>
-								</section>
 
 								<section className="flex flex-col gap-4 dark:border-t-neutral-600">
 									<div className="flex items-center justify-between gap-2">
 										<h3 className="m-0! text-[16px]! font-bold text-slate-800 dark:text-white!">
 											Productos
 										</h3>
-
-										{/* <ContextMenu
-											items={[
-												{
-													label: "Agregar Nuevo Producto",
-													onClick() {
-														setIsProductModalOpen(true);
-													},
-												},
-												{
-													label: "Agregar Producto Existente",
-													onClick() {
-														setIsSelectProductOpen(true);
-													},
-												},
-											]}
-											triggerLabel="Agregar Producto"
-											triggerIcon={<PlusIcon size={18} />}
-											triggerClassName={quoteFormPrimaryButtonClassName}
-										/> */}
 									</div>
 
 									{fields.length === 0 ? (
@@ -365,21 +221,8 @@ export function CreateQuoteModal({
 													key={field.id}
 													accordionValue={field.id}
 													quoteDetailIndex={index}
-													product={productsById[field.product_id]}
-													onRemove={() => {
-														const productId = field.product_id;
-														remove(index);
-														setOpenProducts((current) =>
-															current.filter((value) => value !== field.id),
-														);
-														if (productId) {
-															setProductsById((current) => {
-																const next = { ...current };
-																delete next[productId];
-																return next;
-															});
-														}
-													}}
+													requestedProduct={field}
+													onRemove={() => remove(index)}
 												/>
 											))}
 										</AccordionGroup>
@@ -415,22 +258,6 @@ export function CreateQuoteModal({
 					</form>
 				</FormProvider>
 			</Modal>
-
-			{/* <SelectProductModal
-				isOpen={isSelectProductOpen}
-				onClose={() => setIsSelectProductOpen(false)}
-				onSelect={handleSelectRegisteredProducts}
-				selectionType="multiple"
-				excludeProductIds={assignedProductIds}
-			/>
-
-			<CreateProductModal
-				isOpen={isProductModalOpen}
-				onClose={() => setIsProductModalOpen(false)}
-				onRequestSuccess={handleRequestSuccess}
-				onSubmit={handleCreatedProduct}
-				onRequestError={handleRequestError}
-			/> */}
 
 			<AnimatedAlertWrapper open={alertState?.open ?? false}>
 				<Alert

@@ -2,8 +2,8 @@ import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/
 
 export type QuotesTableProps = {
 	data: GetPurchaseRequestResponse[];
-	onViewDetail: (purchaseRequest: GetPurchaseRequestResponse) => void;
-	onCreateQuote: (purchaseRequest: GetPurchaseRequestResponse) => void;
+	onViewDetail: (purchaseRequest: GetPurchaseRequestResponse) => void;	
+	onSendForReview: (purchaseRequest: GetPurchaseRequestResponse) => void;
 	currentPage: number;
 	pageSize: number;
 	totalRecords: number;

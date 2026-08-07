@@ -20,8 +20,8 @@ const contextMenuButton =
 	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 const buildColumns = (
-	onViewDetail: (row: GetPurchaseRequestResponse) => void,
-	onCreateQuote: (row: GetPurchaseRequestResponse) => void,
+	onViewDetail: (row: GetPurchaseRequestResponse) => void,	
+	onSendForReview: (row: GetPurchaseRequestResponse) => void,
 ): TableColumn<GetPurchaseRequestResponse>[] => [
 	{ key: "code", label: "Código" },
 	{
@@ -83,12 +83,20 @@ const buildColumns = (
 		},
 	},
 	{
+		key: "revision_date",
+		label: "Fecha de revisión",
+		render: (row: GetPurchaseRequestResponse) => {
+			
+			return formatDateToSpanishWords(row.revision_date ?? "");
+		},
+	},
+	{
 		key: "actions",
 		label: "Acciones",
 		render: (row: GetPurchaseRequestResponse) => (
 			<ContextMenu
 				items={[
-					{ label: "Crear cotización", onClick: () => onCreateQuote(row) },
+					{ label: "Enviar a revisión", onClick: () => onSendForReview(row) },					
 					{ label: "Ver detalle", onClick: () => onViewDetail(row) },
 				]}
 				triggerClassName={contextMenuButton}
@@ -99,17 +107,18 @@ const buildColumns = (
 
 export function QuotesTable({
 	data,
-	onViewDetail,
-	onCreateQuote,
 	currentPage,
 	pageSize,
 	totalRecords,
 	onPageChange,
+	onViewDetail,	
+	onSendForReview,
 	isPaginationDisabled = false,
 }: QuotesTableProps) {
+
 	const columns = useMemo(
-		() => buildColumns(onViewDetail, onCreateQuote),
-		[onViewDetail, onCreateQuote],
+		() => buildColumns(onViewDetail, onSendForReview),
+		[onViewDetail, onSendForReview],
 	);
 
 	return (

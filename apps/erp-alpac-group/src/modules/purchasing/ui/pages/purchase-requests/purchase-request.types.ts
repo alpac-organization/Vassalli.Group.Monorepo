@@ -1,4 +1,4 @@
 export type PurchaseRequestVariants = {
-   label?: string;
+   label: string;
    badgeColor: string;
 }

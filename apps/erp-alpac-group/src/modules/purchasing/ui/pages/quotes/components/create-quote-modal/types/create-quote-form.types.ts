@@ -1,14 +1,16 @@
+import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+
 export type CreateQuote = {
   branch_id: string;
   quote_date: string;
   observations: string;
-  quote_details: QuoteDetails[];
+  requested_products: PurchaseRequestProductInformation[];
 };
 
-export type QuoteDetails = {
-  product_id: string;
-  suppliers: Supplier[];
-};
+/* export type QuoteDetails = {
+  products: GetPurchaseRequestDetailResponse;
+  // suppliers: Supplier[];
+}; */
 
 export type Supplier = {
   supplier_id: string;  
