@@ -81,15 +81,7 @@ const buildColumns = (
 		render: (row: GetPurchaseRequestResponse) => {
 			return formatDateToSpanishWords(row.revision_date ?? "");
 		},
-	},
-	{
-		key: "revision_date",
-		label: "Fecha de revisión",
-		render: (row: GetPurchaseRequestResponse) => {
-			
-			return formatDateToSpanishWords(row.revision_date ?? "");
-		},
-	},
+	},	
 	{
 		key: "actions",
 		label: "Acciones",

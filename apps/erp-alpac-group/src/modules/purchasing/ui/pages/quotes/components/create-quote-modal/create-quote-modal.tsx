@@ -194,7 +194,7 @@ export function CreateQuoteModal({
 								<section className="flex flex-col gap-4 dark:border-t-neutral-600">
 									<div className="flex items-center justify-between gap-2">
 										<h3 className="m-0! text-[16px]! font-bold text-slate-800 dark:text-white!">
-											Productos
+											Productos solicitados
 										</h3>
 									</div>
 
