@@ -55,7 +55,7 @@ export class PurchaseServices implements IPurchaseServices {
 
          const response = await this.apiHandler.get<GetPurchaseRequestDetailResponse>(url, { params: cleanParams(rest) });
          
-         // console.log("Revisando detalle de solicitud de compra: ", response);
+         console.log("Revisando detalle de solicitud de compra: ", response);
 
          return response;
 

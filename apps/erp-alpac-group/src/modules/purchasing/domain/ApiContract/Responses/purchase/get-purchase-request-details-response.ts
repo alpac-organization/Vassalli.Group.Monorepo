@@ -27,6 +27,8 @@ export interface PurchaseRequestBranchInformation {
 }
 
 export interface PurchaseRequestProductInformation {
+	description: string;
+	has_quotation: boolean;
 	quantity: number;
 	quantity_unit: number | null;
 	justification: string | null;

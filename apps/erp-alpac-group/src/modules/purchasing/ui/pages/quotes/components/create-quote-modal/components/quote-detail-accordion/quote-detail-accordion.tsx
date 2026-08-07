@@ -1,5 +1,7 @@
-import { AccordionItem, Button } from "@alpac/design-system";
+import { AccordionItem } from "@alpac/design-system";
 import {
+	CircleCheckBigIcon,
+	CircleXIcon,
 	HashIcon,
 	LayersIcon,
 	NotebookTextIcon,
@@ -21,7 +23,9 @@ export function QuoteDetailAccordion({
 
 	const categoryName =
 		requestedProduct?.product_details?.category_information?.name?.trim() || null;
-	
+
+	const hasQuotation = requestedProduct?.has_quotation ?? false;
+
 	const quantity = requestedProduct?.quantity;
 	const quantityUnit = requestedProduct?.quantity_unit;
 	const quantityLabel =
@@ -39,6 +43,8 @@ export function QuoteDetailAccordion({
 
 	const justification = requestedProduct?.justification?.trim() || null;
 
+	const quotationStatusColor = hasQuotation ? "text-[#22c55e]" : "text-[#94a3b8]";
+
 	return (
 		<AccordionItem
 			value={accordionValue}
@@ -54,14 +60,22 @@ export function QuoteDetailAccordion({
 							{productName}
 						</span>
 						{categoryName ? (
-							<span className="block text-[12px] font-normal text-slate-500 dark:text-slate-400">
+							<span className="block text-[13px] font-normal text-slate-500 dark:text-slate-300">
 								{categoryName}
 							</span>
 						) : null}
+
+						<span className={`flex items-center gap-1 text-[13px] font-normal ${quotationStatusColor}`}>
+							{
+								hasQuotation ?
+									<CircleCheckBigIcon size={15} color="#22c55e" /> :
+									<CircleXIcon size={15} color="#94a3b8" />
+							}
+							{hasQuotation ? "Cotizado" : "Sin cotizar"}
+						</span>
 					</span>
 				</div>
-			}
-		>
+			}>
 
 			<div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-4">
 				<DetailField
