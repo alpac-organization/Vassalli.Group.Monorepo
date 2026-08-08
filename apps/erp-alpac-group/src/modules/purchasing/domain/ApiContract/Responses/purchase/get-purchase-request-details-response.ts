@@ -34,7 +34,7 @@ export interface PurchaseRequestProductInformation {
 	justification: string | null;
 	purchase_request_id: string;
 	product_details: PurchaseRequestProductDetails;
-	unit_measure_information: PurchaseRequestUnitMeasureInformation;
+	unit_measure_information: PurchaseRequestUnitMeasureInformation;	
 }
 
 export interface PurchaseRequestProductDetails {

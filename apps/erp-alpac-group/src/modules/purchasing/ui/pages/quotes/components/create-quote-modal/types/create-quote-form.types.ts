@@ -4,21 +4,17 @@ export type CreateQuote = {
   branch_id: string;
   quote_date: string;
   observations: string;
-  requested_products: PurchaseRequestProductInformation[];
+  requested_products: RequestedProduct[];
 };
 
-/* export type QuoteDetails = {
-  products: GetPurchaseRequestDetailResponse;
-  // suppliers: Supplier[];
-}; */
+export type RequestedProduct = PurchaseRequestProductInformation & {
+  suppliers: Supplier[];
+}
 
 export type Supplier = {
   supplier_id: string;  
   supplier_legal_name: string;
-  is_wholesale: boolean;
-  quantity: number;
-  quantity_per_unit: number;
-  price: number;
+  is_wholesale: boolean;  
   additional_data: AdditionalData[];
 };
 

@@ -57,7 +57,7 @@ export function CreateQuoteModal({
 		formState: { isSubmitting },
 	} = methods;
 
-	const { fields, remove } = useFieldArray({
+	const { fields } = useFieldArray({
 		control,
 		name: "requested_products",
 	});
@@ -107,7 +107,12 @@ export function CreateQuoteModal({
 		hydratedRequestIdRef.current = requestId;
 		reset({
 			...defaultFormValues,
-			requested_products: purchaseRequestDetails.requested_products ?? [],
+			requested_products: (purchaseRequestDetails.requested_products ?? []).map(
+				(product) => ({
+					...product,
+					suppliers: [],
+				}),
+			),
 		});
 		setOpenProducts([]);
 	}, [isOpen, purchaseRequestDetails, reset]);
@@ -221,8 +226,7 @@ export function CreateQuoteModal({
 													key={field.id}
 													accordionValue={field.id}
 													quoteDetailIndex={index}
-													requestedProduct={field}
-													onRemove={() => remove(index)}
+													requestedProduct={field}													
 												/>
 											))}
 										</AccordionGroup>
