@@ -145,7 +145,7 @@ export const PurchaseRequestDetailModal = ({
 				variant="form"
 				title={details?.code ? `Detalle ${details.code}` : "Detalle de solicitud"}
 				panelClassName={[
-					"!max-w-5xl w-[min(calc(100vw-1rem),56rem)] min-w-0",
+					"!max-w-6xl w-[min(calc(100vw-1rem),56rem)] min-w-0",
 					"flex max-h-[min(94dvh,50rem)] flex-col overflow-hidden",
 					"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
 					"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
@@ -176,12 +176,12 @@ export const PurchaseRequestDetailModal = ({
 													<Badges
 														label={
 															PurchaseRequestStatusEnum[
-																details.request_status as (keyof typeof PurchaseRequestStatusEnum)
-															].label ?? details.request_status
+																details?.request_status as (keyof typeof PurchaseRequestStatusEnum)
+															].label ?? details?.request_status
 														}
 														color={
 															purchaseRequestStatusBadgeVariants[
-																details.request_status as keyof typeof purchaseRequestStatusBadgeVariants
+																details?.request_status as keyof typeof purchaseRequestStatusBadgeVariants
 															]?.badgeColor ??
 															purchaseRequestStatusBadgeVariants.default.badgeColor
 														}
@@ -208,19 +208,19 @@ export const PurchaseRequestDetailModal = ({
 											/>
 											<DetailField
 												label="Fecha de Registro"
-												value={formatDateToSpanishWords(details.request_date ?? "")}
+												value={formatDateToSpanishWords(details?.request_date ?? "")}
 												icon={<CalendarIcon size={18} />}
 											/>
 											<DetailField
 												label="Fecha de revisión"
-												value={formatDateToSpanishWords(details.revision_date ?? "")}
+												value={formatDateToSpanishWords(details?.revision_date ?? "")}
 												icon={<CalendarCheckIcon size={18} />}
 											/>
 										</div>
 										<div className="grid grid-cols-1 gap-4">
 											<DetailField
-												label="Justificación"
-												value={details.justification}
+												label="Observaciones"
+												value={details.observations}
 												icon={<NotebookTextIcon size={18} />}
 											/>
 											{details.reason_rejection ? (
@@ -240,17 +240,17 @@ export const PurchaseRequestDetailModal = ({
 										<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 											<DetailField
 												label="Solicitante"
-												value={details.user_information.fullname}
+												value={details.creator_user_information?.fullname}
 												icon={<User2Icon size={18} />}
 											/>
 											<DetailField
 												label="Email"
-												value={details.user_information.email}
+												value={details.creator_user_information?.email}
 												icon={<MailIcon size={18} />}
 											/>
 											<DetailField
 												label="Sucursal"
-												value={details.branch_information.branch_name}
+												value={details.branch_information?.branch_name}
 												icon={<BuildingIcon size={18} />}
 											/>
 										</div>
@@ -262,10 +262,13 @@ export const PurchaseRequestDetailModal = ({
 										</h5>
 									</section>
 
-									<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">
-										<div className="hidden border-b border-slate-200 bg-slate-100 sm:grid sm:grid-cols-5 dark:border-neutral-700 dark:bg-neutral-800">
+									<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">										
+										<div className="hidden border-b border-slate-200 bg-slate-100 sm:grid sm:grid-cols-6 dark:border-neutral-700 dark:bg-neutral-800">
 											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
 												Producto
+											</div>
+											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+												Descripción
 											</div>
 											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
 												Cantidad
@@ -290,13 +293,20 @@ export const PurchaseRequestDetailModal = ({
 												products.map((product, index) => (
 													<div
 														key={`${product.purchase_request_id}-${product.product_details.product_id}-${index}`}
-														className="grid grid-cols-1 gap-1 px-3 py-3 sm:grid-cols-5 sm:items-center sm:gap-0"
+														className="grid grid-cols-1 gap-1 px-3 py-3 sm:grid-cols-6 sm:items-center sm:gap-0"
 													>
 														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
 															Producto
 														</span>
 														<span className="text-sm font-medium text-slate-700 dark:text-slate-200">
 															{product.product_details.product_name?.trim() || "—"}
+														</span>
+
+														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
+															Descripción
+														</span>
+														<span className="text-sm text-slate-700 dark:text-slate-200">
+															{product.description?.trim() || "—"}
 														</span>
 
 														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
@@ -326,7 +336,7 @@ export const PurchaseRequestDetailModal = ({
 																"—"}
 														</span>
 
-														<span className="text-xs font-bold col-end-3 uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
+														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
 															Justificación
 														</span>
 														<span className="text-sm text-slate-700 dark:text-slate-200">
@@ -338,13 +348,20 @@ export const PurchaseRequestDetailModal = ({
 										</div>
 									</div>
 
-									<div className="grid grid-cols-1">
-										<DetailField
-											label="Aprobado por"
-											value={details.reviewed_by}
-											icon={<UserRoundCheckIcon size={18} />}
-										/>
-									</div>
+									<section className="flex flex-col gap-3">
+										<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+											<DetailField
+												label="Revisado por"
+												value={details.reviewer_user_information?.fullname}
+												icon={<UserRoundCheckIcon size={18} />}
+											/>
+											<DetailField
+												label="Email del revisor"
+												value={details.reviewer_user_information?.email}
+												icon={<MailIcon size={18} />}
+											/>
+										</div>
+									</section>
 								</div>
 							</div>
 

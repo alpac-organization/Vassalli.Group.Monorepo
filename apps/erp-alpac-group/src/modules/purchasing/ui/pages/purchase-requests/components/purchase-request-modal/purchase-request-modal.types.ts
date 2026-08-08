@@ -1,12 +1,13 @@
 import type {	
-	RequestedProduct,
+	PurchaseRequestItem,
 } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import type { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 
 export type RequestedProductFormItem = Omit<
-	RequestedProduct,
+	PurchaseRequestItem,
 	"quantity" | "quantity_unit"
 > & {
+	product_name?: string;
 	description?: string;
 	quantity: number | "";
 	quantity_unit?: number | "";
@@ -14,8 +15,8 @@ export type RequestedProductFormItem = Omit<
 
 export type CreatePurchaseRequestFormValues = {
 	area_id: string;	
-	justification: string;
-	requested_products: RequestedProductFormItem[];
+	observations: string;
+	purchase_request_items: RequestedProductFormItem[];
 };
 
 export interface PurchaseRequestModalProps {
