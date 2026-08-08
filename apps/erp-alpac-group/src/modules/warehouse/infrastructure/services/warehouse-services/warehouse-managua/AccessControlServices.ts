@@ -54,7 +54,6 @@ export class AccessControlServices implements IAccessControl {
     const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}`;
     return this.httpHandler.patch<void>(url, cleanParams(rest));
   }
-
   public async addDucatsToReception(
     payload: AddDucatsToReceptionRequest,
   ): Promise<void> {
@@ -78,5 +77,19 @@ export class AccessControlServices implements IAccessControl {
     const { company_id, module_code, reception_id, ...rest } = payload;
     const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}/exit`;
     return this.httpHandler.post<void>(url, cleanParams(rest));
+  }
+}
+
+function countBinarySubstrings(s: string): number {
+  let i = 0;
+  const sizeS = s.length;
+  while (i < sizeS) {
+    let j = i + 1;
+    const current = s[i];
+    const next = s[j];
+    while (current == next) {
+      j++;
+    }
+    i++;
   }
 }

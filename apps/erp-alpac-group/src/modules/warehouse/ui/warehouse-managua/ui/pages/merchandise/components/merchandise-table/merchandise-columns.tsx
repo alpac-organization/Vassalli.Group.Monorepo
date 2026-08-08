@@ -1,4 +1,4 @@
-import { Badges, type TableColumn } from "@alpac/design-system";
+import { Badges, ContextMenu, type TableColumn } from "@alpac/design-system";
 import type { MerchandiseRegisterItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandise";
 import { resolveDocumentTypeLabel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/resolveStatus";
 import { getDocumentTypeBadgeClass } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-table/utils/merchandise-columns.utils";
@@ -7,7 +7,18 @@ import {
   formatDateToSpanishWords,
 } from "@app/shared/utils/string.utils";
 
-export function getMerchandiseColumns(): TableColumn<MerchandiseRegisterItem>[] {
+const contextMenuButton =
+  "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
+
+type MerchandiseColumnsOptions = {
+  onDetailClick?: (item: MerchandiseRegisterItem) => void;
+  lastItemId?: string;
+};
+
+export function getMerchandiseColumns({
+  onDetailClick,
+  lastItemId,
+}: MerchandiseColumnsOptions = {}): TableColumn<MerchandiseRegisterItem>[] {
   return [
     {
       key: "plate_number",
@@ -51,6 +62,19 @@ export function getMerchandiseColumns(): TableColumn<MerchandiseRegisterItem>[] 
           </div>
         );
       },
+    },
+    {
+      key: "actions",
+      label: "Acciones",
+      render: (item) => (
+        <ContextMenu
+          items={[
+            { label: "Ver detalle", onClick: () => onDetailClick?.(item) },
+          ]}
+          triggerClassName={contextMenuButton}
+          openUpOnMobile={item.id === lastItemId}
+        />
+      ),
     },
   ];
 }

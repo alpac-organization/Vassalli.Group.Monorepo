@@ -9,8 +9,8 @@ import type { GetMerchandiseDetailResponse } from "@app/modules/warehouse/domain
 const merchandiseServices = new MerchandiseServices(warehouseHttpHandler);
 
 type UseMerchandiseProps = {
-  payloadGetMerchandise: GetMerchandiseRequest;
-  payloadGetMerchandiseDetail: GetMerchandiseDetailRequest;
+  payloadGetMerchandise?: GetMerchandiseRequest;
+  payloadGetMerchandiseDetail?: GetMerchandiseDetailRequest;
 };
 
 export const useMerchandise = (props: UseMerchandiseProps) => {
@@ -20,9 +20,12 @@ export const useMerchandise = (props: UseMerchandiseProps) => {
     ApiErrorResponse
   >({
     queryKey: ["merchandise", payloadGetMerchandise],
-    queryFn: () => merchandiseServices.getMerchandise(payloadGetMerchandise),
+    queryFn: () =>
+      merchandiseServices.getMerchandise(
+        payloadGetMerchandise as GetMerchandiseRequest,
+      ),
     enabled: Boolean(
-      payloadGetMerchandise.company_id && payloadGetMerchandise.module_code,
+      payloadGetMerchandise?.company_id && payloadGetMerchandise?.module_code,
     ),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -35,11 +38,13 @@ export const useMerchandise = (props: UseMerchandiseProps) => {
   >({
     queryKey: ["merchandise-detail", payloadGetMerchandiseDetail],
     queryFn: () =>
-      merchandiseServices.getMerchandiseById(payloadGetMerchandiseDetail),
+      merchandiseServices.getMerchandiseById(
+        payloadGetMerchandiseDetail as GetMerchandiseDetailRequest,
+      ),
     enabled: Boolean(
-      payloadGetMerchandiseDetail.company_id &&
-      payloadGetMerchandiseDetail.module_code &&
-      payloadGetMerchandiseDetail.reception_id,
+      payloadGetMerchandiseDetail?.company_id &&
+      payloadGetMerchandiseDetail?.module_code &&
+      payloadGetMerchandiseDetail?.reception_id,
     ),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,

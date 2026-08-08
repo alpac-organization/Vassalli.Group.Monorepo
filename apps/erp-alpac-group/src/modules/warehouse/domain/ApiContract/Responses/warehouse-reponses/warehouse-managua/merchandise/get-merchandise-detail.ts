@@ -1,3 +1,4 @@
+import type { DocumentType } from "@app/core/enums/document.enum";
 import type { RecordEntranceStatusKey } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import type { DucaStatusType } from "@app/modules/warehouse/domain/enums/warehouse-managua/duca-satus";
 
@@ -5,85 +6,89 @@ export interface GetMerchandiseDetailResponse {
   id: string;
   status: RecordEntranceStatusKey;
   reception: MerchandiseReceptionDetailDto;
-  merchandiseRegistration: MerchandiseRegistrationLog;
-  ducaRegistry: MerchandiseDucaRegistryDetail | null;
-  customsDeclaration: MerchandiseCustomsDeclarationDetail | null;
+  merchandise_registration: MerchandiseRegistrationLog;
+  duca_registry: MerchandiseDucaRegistryDetail | null;
+  customs_declaration: MerchandiseDeclarationAduanaDetail | null;
 }
 
-interface MerchandiseReceptionDetailDto {
-  countryOfOrigin: string;
+export interface MerchandiseReceptionDetailDto {
+  country_of_origin: string;
   aduana: string;
-  plateNumber: string;
-  trailerChassis: string;
-  driverLicense: string;
+  plate_number: string;
+  trailer_chassis: string;
+  driver_license: string;
   transportista: string;
-  transportUnitId: string;
-  transportUnitName: string | null;
-  driverName: string;
-  sealNumber: string;
-  documentType: DocumentType;
-  transportUnitExitDate: string | null;
-  transportUnitExitTime: string | null;
-  containerNumber: string | null;
-}
-interface MerchandiseRegistrationLog {
-  merchandiseRegistrationEndDate: string | null;
-  merchandiseRegistrationEndTime: string | null;
-  merchandiseFinishedByUserName: string | null;
-  durationTotalSeconds: number | null;
-  durationFormatted: string | null;
-  merchandiseRegistrationDate: string | null;
-  merchandiseRegistrationTime: string | null;
-  merchandiseRegisteredByUserName: string | null;
+  transport_unit_id: string;
+  transport_unit_name: string | null;
+  driver_name: string;
+  seal_number: string;
+  document_type: DocumentType;
+  transport_unit_exit_date: string | null;
+  transport_unit_exit_time: string | null;
+  container_number: string | null;
 }
 
-interface MerchandiseDucaRegistryDetail {
+export interface MerchandiseRegistrationLog {
+  merchandise_registration_end_date: string | null;
+  merchandise_registration_end_time: string | null;
+  merchandise_finished_by_user_name: string | null;
+  duration_total_seconds: number | null;
+  duration_formatted: string | null;
+  merchandise_registration_date: string | null;
+  merchandise_registration_time: string | null;
+  merchandise_registered_by_user_name: string | null;
+}
+
+export interface MerchandiseDucaRegistryDetail {
   empresa: string | null;
-  generalObservations: string | null;
-  isInTransit: boolean | null;
+  general_observations: string | null;
+  is_in_transit: boolean | null;
 
-  registeredByUserName: string | null;
-  registeredStartDate: string | null;
-  registeredEndDate: string | null;
-  registeredStartTime: string | null;
-  registeredEndTime: string | null;
+  registered_by_user_name: string | null;
+  registered_start_date: string | null;
+  registered_end_date: string | null;
+  registered_start_time: string | null;
+  registered_end_time: string | null;
 
-  updatedByUserName: string | null;
-  updatedDate: string | null;
-  updatedTime: string | null;
+  updated_by_user_name: string | null;
+  updated_date: string | null;
+  updated_time: string | null;
 
-  durationInSeconds: number | null;
-  durationFormatted: string | null;
+  duration_in_seconds: number | null;
+  duration_formatted: string | null;
   ducats: MerchandiseDucatDetailDto[] | null;
 }
-interface MerchandiseDucatDetailDto {
+
+export interface MerchandiseDucatDetailDto {
   id: string;
-  ducatNumber: string;
+  ducat_number: string;
   status: DucaStatusType;
-
-  productId: string | null;
-  productName: string | null;
-  totalBultos: number | null;
-  totalWeight: number | null;
-  productDescription: string | null;
+  merchandise_id: string | null;
+  merchandise_name: string | null;
+  total_bultos: number | null;
+  total_weight: number | null;
+  product_description: string | null;
   remitente: string | null;
-  destinationAreaObservation: string | null;
-
-  registeredByUserName: string | null;
-  registeredStartDate: string | null;
-  registeredEndDate: string | null;
-  registeredStartTime: string | null;
-  registeredEndTime: string | null;
-  durationInSeconds: number | null;
-  durationFormatted: string | null;
-
-  updatedByUserName: string | null;
-  updatedDate: string | null;
-  updatedTime: string | null;
+  destination_area_observation: string | null;
+  service_order_id: string | null;
+  service_order_code: string | null;
+  registered_by_user_name: string | null;
+  registered_start_date: string | null;
+  registered_end_date: string | null;
+  registered_start_time: string | null;
+  registered_end_time: string | null;
+  duration_in_seconds: number | null;
+  duration_formatted: string | null;
+  updated_by_user_name: string | null;
+  updated_date: string | null;
+  updated_time: string | null;
 }
-interface MerchandiseCustomsDeclarationDetail {
-  customsDeclarationNumber: string;
+
+export interface MerchandiseDeclarationAduanaDetail {
+  customs_declaration_number: string;
   packages: number | null;
   customer: string | null;
   product: string | null;
+  service_order_id: string | null;
+  service_order_code: string | null;
 }

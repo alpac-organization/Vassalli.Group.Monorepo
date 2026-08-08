@@ -186,19 +186,19 @@ export function GenerateExitModal({
 
       <div className="flex justify-center gap-3 mt-4">
         <Button
+          type="submit"
+          label="Dar salida"
+          size="giant"
+          className={buttonActionClass}
+          isLoading={isSubmitting}
+        />
+        <Button
           type="button"
           label="Cancelar"
           size="giant"
           className={buttonCancelClass}
           onClick={onClose}
           disabled={isSubmitting}
-        />
-        <Button
-          type="submit"
-          label="Dar salida"
-          size="giant"
-          className={buttonActionClass}
-          isLoading={isSubmitting}
         />
       </div>
     </form>
