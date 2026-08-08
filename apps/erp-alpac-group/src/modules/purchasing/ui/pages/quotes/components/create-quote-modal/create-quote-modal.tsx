@@ -20,21 +20,23 @@ import {
 	quoteFormSecondaryButtonClassName,
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
 
-import { FileTextIcon, SaveIcon, XIcon } from "lucide-react";
+import { FileTextIcon, PlusIcon, SaveIcon, XIcon } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { QuoteDetailAccordion } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/quote-detail-accordion/quote-detail-accordion";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
-import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal.types";
-import { type CreateQuote } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-form.types";
 import { purchaseRequestTypeBadgeVariants } from "../../../purchase-requests/purchase-request.variants";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { Loader } from "@app/shared/components/loaders/loader";
+import { SelectSupplierModal } from "./components/select-supplier-modal/select-supplier-modal";
 
-const defaultFormValues: CreateQuote = {
-	branch_id: "",
-	quote_date: "",
-	observations: "",
-	requested_products: [],
+import { type RegisterQuotation } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-form.types";
+import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal.types";
+import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+
+const defaultFormValues: RegisterQuotation = {
+	quotation_item: [],
+	requested_products: []
 };
 
 export function CreateQuoteModal({
@@ -45,7 +47,7 @@ export function CreateQuoteModal({
 }: CreateQuoteModalProps) {
 	const { companyId, moduleCode } = useUserStore();
 
-	const methods = useForm<CreateQuote>({
+	const methods = useForm<RegisterQuotation>({
 		defaultValues: defaultFormValues,
 		mode: "onSubmit",
 	});
@@ -63,7 +65,8 @@ export function CreateQuoteModal({
 	});
 
 	const [openProducts, setOpenProducts] = useState<string[]>([]);
-	const hydratedRequestIdRef = useRef<string | null>(null);
+	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
+	const [selectedProducts, setSelectedProducts] = useState<PurchaseRequestProductInformation[]>();
 
 	const {
 		alertState,
@@ -96,18 +99,18 @@ export function CreateQuoteModal({
 		if (!isOpen) {
 			reset(defaultFormValues);
 			setOpenProducts([]);
-			hydratedRequestIdRef.current = null;
 			return;
 		}
 
 		const requestId = purchaseRequestDetails?.purchase_request_id;
-		if (!purchaseRequestDetails || !requestId) return;
-		if (hydratedRequestIdRef.current === requestId) return;
 
-		hydratedRequestIdRef.current = requestId;
+		if (!purchaseRequestDetails || !requestId) return;
+
+		const requestedProducts = purchaseRequestDetails.requested_products ?? [];
+
 		reset({
 			...defaultFormValues,
-			requested_products: (purchaseRequestDetails.requested_products ?? []).map(
+			requested_products: requestedProducts.map(
 				(product) => ({
 					...product,
 					suppliers: [],
@@ -117,18 +120,27 @@ export function CreateQuoteModal({
 		setOpenProducts([]);
 	}, [isOpen, purchaseRequestDetails, reset]);
 
+
+	const handleSelectRegisteredSuppliers = (suppliers: GetSuppliersResponse[]) => {
+
+	};
+
 	const handleCancel = () => {
 		reset(defaultFormValues);
 		setOpenProducts([]);
-		hydratedRequestIdRef.current = null;
 		onClose();
 	};
 
-	const onSubmit = (values: CreateQuote) => {
+	const handleSelectProduct = (product: PurchaseRequestProductInformation, isSelected: boolean) => {
+		const products = selectedProducts?.filter(item => item.purchase_request_id !== product.purchase_request_id);
+		setSelectedProducts(([...products!, product]));
+	}
+
+	const onSubmit = (values: RegisterQuotation) => {
 		onQuoteCreated(values);
 		reset(defaultFormValues);
 		setOpenProducts([]);
-		hydratedRequestIdRef.current = null;
+
 		onClose();
 	};
 
@@ -169,7 +181,7 @@ export function CreateQuoteModal({
 												Código Solicitud:
 											</span>
 											<Badges
-												label={purchaseRequest.code}
+												label={purchaseRequest?.code ?? ""}
 												color="bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"
 											/>
 										</div>
@@ -201,6 +213,21 @@ export function CreateQuoteModal({
 										<h3 className="m-0! text-[16px]! font-bold text-slate-800 dark:text-white!">
 											Productos solicitados
 										</h3>
+
+										{!!selectedProducts?.length &&
+											<Button
+												type="button"
+												label="Asignar proveedor"
+												size="giant"
+												disabled={false}
+												onClick={() => { }}
+												icon={<PlusIcon size={20} />}
+												className={quoteFormPrimaryButtonClassName}
+												isHiddenLabelOnMobile
+											/>
+										}
+
+
 									</div>
 
 									{fields.length === 0 ? (
@@ -226,7 +253,8 @@ export function CreateQuoteModal({
 													key={field.id}
 													accordionValue={field.id}
 													quoteDetailIndex={index}
-													requestedProduct={field}													
+													requestedProduct={field}
+													onSelectedChange={handleSelectProduct}
 												/>
 											))}
 										</AccordionGroup>
@@ -262,6 +290,14 @@ export function CreateQuoteModal({
 					</form>
 				</FormProvider>
 			</Modal>
+
+			<SelectSupplierModal
+				isOpen={isSelectSupplierOpen}
+				onClose={() => setIsSelectSupplierOpen(false)}
+				selectionType="multiple"
+				excludeSupplierIds={[]}
+				onSelect={handleSelectRegisteredSuppliers}
+			/>
 
 			<AnimatedAlertWrapper open={alertState?.open ?? false}>
 				<Alert

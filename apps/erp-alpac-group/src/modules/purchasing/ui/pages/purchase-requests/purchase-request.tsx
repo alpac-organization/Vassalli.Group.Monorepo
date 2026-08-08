@@ -4,7 +4,9 @@ import {
 	AnimatedAlertWrapper,
 	Breadcrumb,
 	Button,
+	SectionHeader,
 	Tabs,
+	useTheme,
 	type TabItem,
 } from "@alpac/design-system";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -15,10 +17,15 @@ import { RequisitionTab } from "./components/tabs/requisition-tab/requisition-ta
 import { MonthlyMaterialTab } from "./components/tabs/monthly-materials-tab/monthly-materials-tab";
 import { OccasionalMaterialTab } from "./components/tabs/occasional-materials-tab/occasional-materials-tab";
 import { SelectBranchModal } from "./components/select-branch-modal/select-branch-modal";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 
 export const PurchaseRequest = () => {
 	const navigate = useNavigate();
 	const { baseUrl } = useBaseUrl();
+	const { theme } = useTheme();
+   const { urlImage, neutralUrlImage } = useCompanyStore();
+
+   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
 	const {
 		alertState,
@@ -42,7 +49,7 @@ export const PurchaseRequest = () => {
 	}, [baseUrl, isBranchSelected, navigate]);
 
 	const handleBranchConfirm = useCallback(
-		(branchId: string, branchName: string) => {			
+		(branchId: string, branchName: string) => {
 			setSelectedBranchId(branchId);
 			setSelectedBranchName(branchName);
 			setIsBranchModalOpen(false);
@@ -56,9 +63,9 @@ export const PurchaseRequest = () => {
 			label: "Requisiciones",
 			render: () => (
 				<RequisitionTab
-					currentBranchId={selectedBranchId!}					
+					currentBranchId={selectedBranchId!}
 					onRequestError={handleRequestError}
-					onRequestSuccess={handleRequestSuccess}					
+					onRequestSuccess={handleRequestSuccess}
 				/>
 			),
 		},
@@ -67,7 +74,7 @@ export const PurchaseRequest = () => {
 			label: "Solicitud de Materiales Mensuales",
 			render: () => (
 				<MonthlyMaterialTab
-					currentBranchId={selectedBranchId!}					
+					currentBranchId={selectedBranchId!}
 					onRequestError={handleRequestError}
 					onRequestSuccess={handleRequestSuccess}
 				/>
@@ -78,7 +85,7 @@ export const PurchaseRequest = () => {
 			label: "Solicitud de Materiales Eventuales",
 			render: () => (
 				<OccasionalMaterialTab
-					currentBranchId={selectedBranchId!}					
+					currentBranchId={selectedBranchId!}
 					onRequestError={handleRequestError}
 					onRequestSuccess={handleRequestSuccess}
 				/>
@@ -118,6 +125,12 @@ export const PurchaseRequest = () => {
 				/>
 			</div>
 
+			<SectionHeader
+				title={"Solicitudes de compras"}
+				subtitle={"Gestione requisiciones, solicitudes mensuales y eventuales"}
+				logoImage={activeLogo}
+			/>
+
 			{isBranchSelected ? (
 				<>
 					<div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
@@ -139,7 +152,7 @@ export const PurchaseRequest = () => {
 					</div>
 
 					<div className="relative mx-auto w-full rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
-						<Tabs tabItems={tabs ?? []} activeTab="requisitions" animation="slide"/>
+						<Tabs tabItems={tabs ?? []} activeTab="requisitions" animation="slide" />
 					</div>
 				</>
 			) : null}
