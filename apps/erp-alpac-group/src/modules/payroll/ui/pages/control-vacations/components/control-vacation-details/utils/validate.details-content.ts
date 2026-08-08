@@ -22,6 +22,5 @@ export function formatDateOrDash(iso?: string | null): string {
 export function formatTimeOrDash(time?: string | null): string {
   if (!hasText(time)) return dashOrText(time);
   const formatted = formatTime(time!.trim());
-  if (formatted === "--:-- --") return EM_DASH;
-  return formatted;
+  return formatted.trim() ? formatted : EM_DASH;
 }

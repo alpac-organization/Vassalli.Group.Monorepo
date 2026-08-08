@@ -13,10 +13,6 @@ import {
 import { Check, Loader2, Pencil, MessageCircleX, X, Plus } from "lucide-react";
 import { EditableField } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/editable-field/editable-field";
 import {
-  getStatusBadgeClass,
-  getStatusBadgeLabel,
-} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
-import {
   MOVEMENT_DETAIL_DEFAULT_VALUES,
   type MovementDetailFormValues,
   type MovementDetailModalProps,
@@ -679,11 +675,6 @@ export function MovementDetailModal({
               <section className="w-full dark:bg-[#272b34] bg-white border border-slate-200 dark:border-neutral-700 shadow-sm rounded-xl">
                 <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
                   <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:justify-end">
-                    <Badges
-                      label={getStatusBadgeLabel(detail.status)}
-                      color="transparent"
-                      className={getStatusBadgeClass(detail.status)}
-                    />
                     <Badges
                       label={
                         detail.is_consolidated

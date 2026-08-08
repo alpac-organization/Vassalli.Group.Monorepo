@@ -5,7 +5,7 @@ export interface GetAccessControlRequest {
   plate_number: string;
   document_type: string;
   ducat_number: string;
-  customs_declaration_number: string;
+  document_number: string;
   start_date: string;
   end_date: string;
   page_number: number;

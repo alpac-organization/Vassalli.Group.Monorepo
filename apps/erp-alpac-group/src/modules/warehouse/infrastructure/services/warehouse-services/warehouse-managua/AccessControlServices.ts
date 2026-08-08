@@ -10,6 +10,7 @@ import type { GetReceptionEntrancesResponse } from "@app/modules/warehouse/domai
 import type { GetVehiclesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-vehicles";
 import type { AddDucatsToReceptionRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/add-ducats-to-reception";
 import { cleanParams } from "@app/shared/utils/object.utils";
+import type { GenerateExitAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/generate-exit";
 
 export class AccessControlServices implements IAccessControl {
   private readonly httpHandler: IHttpHandler;
@@ -69,5 +70,13 @@ export class AccessControlServices implements IAccessControl {
     const url = `/companies/${company_id}/modules/${module_code}/transport-units`;
     const response = await this.httpHandler.get<GetVehiclesResponse>(url);
     return response;
+  }
+
+  public async generateExitAccessControl(
+    payload: GenerateExitAccessControlRequest,
+  ): Promise<void> {
+    const { company_id, module_code, reception_id, ...rest } = payload;
+    const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}/exit`;
+    return this.httpHandler.post<void>(url, cleanParams(rest));
   }
 }

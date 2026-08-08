@@ -23,6 +23,7 @@ export function DatePickerProvider({
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={adapterLocale}
       localeText={{
       datePickerToolbarTitle: "Seleccionar fecha",
+      timePickerToolbarTitle: "Seleccionar hora",
       okButtonLabel: "Aceptar",
       cancelButtonLabel: "Cancelar",
   }}>
