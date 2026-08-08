@@ -1,18 +1,26 @@
-import { Badges, Button, type TableColumn } from "@alpac/design-system";
-import { EyeIcon } from "lucide-react";
+import { Badges, ContextMenu, type TableColumn } from "@alpac/design-system";
 import type { ReceptionEntranceListItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import {
   getStatusBadgeClass,
   getStatusBadgeLabel,
+  getVehicleStatusBadgeClass,
+  getVehicleStatusBadgeLabel,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
 import { formatTime } from "@app/shared/utils/string.utils";
 import { resolveDocumentTypeLabel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/resolveStatus";
 
+const contextMenuButton =
+  "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
+
 type MovementsColumnsOptions = {
   onDetailClick?: (item: ReceptionEntranceListItem) => void;
+  onExitClick?: (item: ReceptionEntranceListItem) => void;
+  lastItemId?: string;
 };
 export function getMovementsColumns({
   onDetailClick,
+  onExitClick,
+  lastItemId,
 }: MovementsColumnsOptions = {}): TableColumn<ReceptionEntranceListItem>[] {
   return [
     {
@@ -49,17 +57,27 @@ export function getMovementsColumns({
       ),
     },
     {
+      key: "vehicle_status",
+      label: "Estado del registro",
+      render: (item) => (
+        <Badges
+          label={getVehicleStatusBadgeLabel(item.vehicle_status)}
+          color="transparent"
+          className={getVehicleStatusBadgeClass(item.vehicle_status)}
+        />
+      ),
+    },
+    {
       key: "actions",
       label: "Acciones",
       render: (item) => (
-        <Button
-          type="button"
-          size="small"
-          icon={<EyeIcon size={16} />}
-          onClick={() => onDetailClick?.(item)}
-          className="text-[13px]! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-          label="Ver detalle"
-          ariaLabel="Ver detalle"
+        <ContextMenu
+          items={[
+            { label: "Ver detalle", onClick: () => onDetailClick?.(item) },
+            { label: "Dar salida", onClick: () => onExitClick?.(item) },
+          ]}
+          triggerClassName={contextMenuButton}
+          openUpOnMobile={item.id === lastItemId}
         />
       ),
     },

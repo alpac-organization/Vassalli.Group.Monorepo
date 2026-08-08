@@ -51,14 +51,14 @@ export const PurchaseRequestDetail = () => {
 	const {
 		control,
 		watch,
-		setValue,		
+		setValue,
 		clearErrors,
 		formState: { errors },
 	} = useFormContext<CreatePurchaseRequestFormValues>();
 
 	const { fields, append, remove } = useFieldArray({
 		control,
-		name: "requested_products",
+		name: "purchase_request_items",
 	});
 
 	const { GetUnitMeasurements } = useUnitOfMeasurement({
@@ -89,7 +89,8 @@ export const PurchaseRequestDetail = () => {
 
 			append({
 				product_id: product.product_id,
-				description: product.product_name,
+				product_name: product.product_name,
+				description: "",
 				quantity: "",
 				quantity_unit: "",
 				unit_measure_id: "",
@@ -130,11 +131,11 @@ export const PurchaseRequestDetail = () => {
 				/>
 			</div>
 
-			{errors.requested_products?.root?.message ||
-			errors.requested_products?.message ? (
+			{errors.purchase_request_items?.root?.message ||
+				errors.purchase_request_items?.message ? (
 				<p className="m-0 text-sm text-red-500 dark:text-red-400">
-					{errors.requested_products?.root?.message ||
-						errors.requested_products?.message}
+					{errors.purchase_request_items?.root?.message ||
+						errors.purchase_request_items?.message}
 				</p>
 			) : null}
 
@@ -146,7 +147,7 @@ export const PurchaseRequestDetail = () => {
 
 			{fields.map((item, index) => {
 				const selectedUnitId = watch(
-					`requested_products.${index}.unit_measure_id`,
+					`purchase_request_items.${index}.unit_measure_id`,
 				);
 				const selectedUnit = unitsOfMeasurementOptions.find(
 					(option) => option.value === selectedUnitId,
@@ -159,7 +160,7 @@ export const PurchaseRequestDetail = () => {
 				return (
 					<div
 						key={item.id}
-						className="grid w-full grid-cols-1 items-end gap-3 md:grid-cols-[minmax(0,1fr)_7rem_12rem_12rem_minmax(0,1fr)_2.75rem] dark:border-neutral-600"
+						className="grid w-full grid-cols-1 items-end gap-3 md:grid-cols-[minmax(0,1fr)_7rem_12rem_12rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] dark:border-neutral-600"
 					>
 						<div>
 							<InputText
@@ -167,14 +168,14 @@ export const PurchaseRequestDetail = () => {
 								placeholder="Producto seleccionado"
 								className={inputClassName}
 								labelClassName={labelClassName}
-								value={item.description ?? ""}
+								value={item.product_name ?? ""}
 								disabled
 							/>
 						</div>
 
 						<div>
 							<Controller
-								name={`requested_products.${index}.quantity`}
+								name={`purchase_request_items.${index}.quantity`}
 								control={control}
 								rules={{
 									required: "La cantidad es requerida",
@@ -197,7 +198,7 @@ export const PurchaseRequestDetail = () => {
 											field.onChange(parseIntegerInput(e.target.value))
 										}
 										error={
-											errors.requested_products?.[index]?.quantity?.message
+											errors.purchase_request_items?.[index]?.quantity?.message
 										}
 										errorVariant="tooltip"
 									/>
@@ -207,7 +208,7 @@ export const PurchaseRequestDetail = () => {
 
 						<div>
 							<Controller
-								name={`requested_products.${index}.unit_measure_id`}
+								name={`purchase_request_items.${index}.unit_measure_id`}
 								control={control}
 								rules={{ required: "La unidad es requerida" }}
 								render={({ field }) => (
@@ -232,14 +233,14 @@ export const PurchaseRequestDetail = () => {
 
 											if (!nextIsBoxOrPackage) {
 												setValue(
-													`requested_products.${index}.quantity_unit`,
+													`purchase_request_items.${index}.quantity_unit`,
 													"",
 													{ shouldValidate: true },
 												);
 											}
 										}}
 										error={
-											errors.requested_products?.[index]?.unit_measure_id
+											errors.purchase_request_items?.[index]?.unit_measure_id
 												?.message
 										}
 										errorVariant="tooltip"
@@ -255,19 +256,19 @@ export const PurchaseRequestDetail = () => {
 
 						<div>
 							<Controller
-								name={`requested_products.${index}.quantity_unit`}
+								name={`purchase_request_items.${index}.quantity_unit`}
 								control={control}
 								rules={
 									isBoxOrPackage
 										? {
-												required: "Agregue las unidades por presentación",
-												validate: {
-													validateInteger: (value) =>
-														validateIntegerNumber(value),
-													validatePositive: (value) =>
-														validatePositiveNumber(value),
-												},
-											}
+											required: "Agregue las unidades por presentación",
+											validate: {
+												validateInteger: (value) =>
+													validateIntegerNumber(value),
+												validatePositive: (value) =>
+													validatePositiveNumber(value),
+											},
+										}
 										: undefined
 								}
 								render={({ field }) => (
@@ -285,7 +286,7 @@ export const PurchaseRequestDetail = () => {
 											field.onChange(parseIntegerInput(e.target.value))
 										}
 										error={
-											errors.requested_products?.[index]?.quantity_unit
+											errors.purchase_request_items?.[index]?.quantity_unit
 												?.message
 										}
 										errorVariant="tooltip"
@@ -296,7 +297,32 @@ export const PurchaseRequestDetail = () => {
 
 						<div>
 							<Controller
-								name={`requested_products.${index}.justification`}
+								name={`purchase_request_items.${index}.description`}
+								control={control}
+								rules={{
+									required: false,
+								}}
+								render={({ field }) => (
+									<InputText
+										label="Descripción"
+										placeholder="Descripción del producto"
+										className={inputClassName}
+										labelClassName={labelClassName}
+										value={field.value ?? ""}
+										onChange={field.onChange}
+										error={
+											errors.purchase_request_items?.[index]?.justification
+												?.message
+										}
+										errorVariant="tooltip"
+									/>
+								)}
+							/>
+						</div>
+
+						<div>
+							<Controller
+								name={`purchase_request_items.${index}.justification`}
 								control={control}
 								rules={{
 									required: "La justificación de compra es requerida",
@@ -311,7 +337,7 @@ export const PurchaseRequestDetail = () => {
 										value={field.value ?? ""}
 										onChange={field.onChange}
 										error={
-											errors.requested_products?.[index]?.justification
+											errors.purchase_request_items?.[index]?.justification
 												?.message
 										}
 										errorVariant="tooltip"
@@ -337,7 +363,7 @@ export const PurchaseRequestDetail = () => {
 			})}
 
 			<Controller
-				name="requested_products"
+				name="purchase_request_items"
 				control={control}
 				rules={{
 					validate: (value) =>

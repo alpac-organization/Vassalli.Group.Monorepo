@@ -364,22 +364,22 @@ export const validateLaboralHours = (time?: string): boolean | string => {
 /**
  * Formatea una fecha ISO a un formato legible para el usuario
  * @param time - Fecha a formatear
- * @returns Fecha formateada o "—" si la fecha es inválida
+ * @returns Hora formateada o cadena vacía si no hay dato o es inválido
  */
 export const formatTime = (time?: string): string => {
-  if (!time) return "--:-- --";
+  if (!time?.trim()) return "";
 
   let validatedTime = new Date(time);
 
   if (validatedTime.toString() === "Invalid Date") {
     const [hours, minutes] = time.split(":").map(Number);
 
-    if (isNaN(hours) || isNaN(minutes)) return "--:-- --";
+    if (isNaN(hours) || isNaN(minutes)) return "";
 
     validatedTime = new Date(0, 0, 0, hours, minutes, 0);
   }
 
-  if (isNaN(validatedTime.getTime())) return "--:-- --";
+  if (isNaN(validatedTime.getTime())) return "";
 
   return new Intl.DateTimeFormat("es-NI", {
     hour: "numeric",
@@ -389,14 +389,14 @@ export const formatTime = (time?: string): string => {
 };
 
 export const formatTimeWithSeconds = (time?: string): string => {
-  if (!time) return "--:--:-- --";
+  if (!time?.trim()) return "";
 
   let validatedTime = new Date(time);
 
   if (validatedTime.toString() === "Invalid Date") {
     const [hours, minutes, seconds = 0] = time.split(":").map(Number);
 
-    if (isNaN(hours) || isNaN(minutes)) return "--:--:-- --";
+    if (isNaN(hours) || isNaN(minutes)) return "";
 
     validatedTime = new Date(
       0,
@@ -408,7 +408,7 @@ export const formatTimeWithSeconds = (time?: string): string => {
     );
   }
 
-  if (isNaN(validatedTime.getTime())) return "--:--:-- --";
+  if (isNaN(validatedTime.getTime())) return "";
 
   return new Intl.DateTimeFormat("es-NI", {
     hour: "numeric",
@@ -504,7 +504,7 @@ export const validateOnlyLettersWithAccentsAndDiacritics = (
 ): boolean | string => {
   if (!value) return true;
   const regex = withSpace
-    ? /^[A-Za-zñÑáéíóúÁÉÍÓÚ\s]*$/
+    ? /^[A-Za-zñÑáéíóúÁÉÍÓÚ.\s]*$/
     : /^[A-Za-zñÑáéíóúÁÉÍÓÚ]*$/;
   return regex.test(value) || "Solo se permiten letras";
 };

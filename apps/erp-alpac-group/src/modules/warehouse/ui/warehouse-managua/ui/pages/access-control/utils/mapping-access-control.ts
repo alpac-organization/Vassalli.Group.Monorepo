@@ -62,5 +62,6 @@ export function mapGateEntryToCreateRequest(
 
 export const toApiDate = (date: DatePickerValue | null): string => {
   if (!date) return "";
-  return dayjs(date.$d ?? date).format("YYYY-MM-DD");
+  const parsed = dayjs.isDayjs(date) ? date : dayjs(date.$d ?? date);
+  return parsed.isValid() ? parsed.format("YYYY-MM-DD") : "";
 };

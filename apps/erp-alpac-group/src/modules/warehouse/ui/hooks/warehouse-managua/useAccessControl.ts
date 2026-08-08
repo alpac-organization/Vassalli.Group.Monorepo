@@ -11,6 +11,7 @@ import { AccessControlServices } from "@app/modules/warehouse/infrastructure/ser
 import { warehouseHttpHandler } from "@app/core/adapters/axiosAdapter";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { GenerateExitAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/generate-exit";
 
 type UseAccessControlProps = {
   payloadAccessControl: GetAccessControlRequest;
@@ -109,6 +110,19 @@ export const useAccessControl = (props: UseAccessControlProps) => {
     retry: 1,
   });
 
+  const GenerateExitAccessControl = useMutation<
+    void | null,
+    ApiErrorResponse,
+    GenerateExitAccessControlRequest
+  >({
+    mutationFn: (payload) =>
+      warehouseManaguaServices.generateExitAccessControl(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["access-control"] });
+      queryClient.invalidateQueries({ queryKey: ["access-control-detail"] });
+    },
+  });
+
   return {
     GetAccessControl,
     GetAccessControlDetail,
@@ -116,5 +130,6 @@ export const useAccessControl = (props: UseAccessControlProps) => {
     UpdateAccessControl,
     AddDucatsToReception,
     GetVehicles,
+    GenerateExitAccessControl,
   };
 };

@@ -1,12 +1,11 @@
 import type { GetPurchaseRequestResponse } from "./get-purchase-request-response";
 
-/** Equivale a PurchaseRequestDetailsDto del backend */
 export interface GetPurchaseRequestDetailResponse
 	extends Omit<GetPurchaseRequestResponse, "revision_date"> {
-	justification: string | null;
+	observations: string | null;
 	reason_rejection: string | null;
-	reviewed_by: string | null;
-	user_information: PurchaseRequestUserInformation;
+	creator_user_information: PurchaseRequestUserInformation;
+	reviewer_user_information: PurchaseRequestUserInformation | null;
 	branch_information: PurchaseRequestBranchInformation;
 	requested_products: PurchaseRequestProductInformation[];
 	revision_date: string | null;
@@ -31,6 +30,7 @@ export interface PurchaseRequestProductInformation {
 	has_quotation: boolean;
 	quantity: number;
 	quantity_unit: number | null;
+	description: string | null;
 	justification: string | null;
 	purchase_request_id: string;
 	product_details: PurchaseRequestProductDetails;
@@ -43,7 +43,7 @@ export interface PurchaseRequestProductDetails {
 	category_information: PurchaseRequestCategoryInformation;
 }
 
-export interface PurchaseRequestCategoryInformation {	
+export interface PurchaseRequestCategoryInformation {
 	catagory_id: string;
 	name: string | null;
 	code: string | null;

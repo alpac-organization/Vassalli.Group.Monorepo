@@ -13,11 +13,12 @@ export type ContextMenuProps = {
   triggerLabel?: string;
   triggerClassName?: string;
   triggerIcon?: ReactNode;
-  triggerButtonSize?: ButtonSize
+  triggerButtonSize?: ButtonSize;
+  openUpOnMobile?: boolean;
 };
 
 export type MenuPosition = {
-	top: number;
-	left: number;
-	openUp: boolean;
+  top: number;
+  left: number;
+  openUp: boolean;
 };
