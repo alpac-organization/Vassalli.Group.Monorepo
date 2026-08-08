@@ -2,18 +2,22 @@
 export interface CreatePurchaseRequestPayload {
    company_id: string;
    module_code: string;
+
    area_id?: string;
    branch_id: string;
    request_date: string;
    request_type: number;
-   justification: string;
-   requested_products: RequestedProduct[];
+   observations: string;
+
+
+   purchase_request_items: PurchaseRequestItem[];
 }
 
-export interface RequestedProduct {
+export interface PurchaseRequestItem {
    quantity: number;
    quantity_unit?: number;
-   unit_measure_id: string;
    product_id: string;
+   unit_measure_id: string;
+   description: string;
    justification?: string;
 }

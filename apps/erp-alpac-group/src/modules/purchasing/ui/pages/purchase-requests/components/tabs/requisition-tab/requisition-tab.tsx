@@ -18,6 +18,7 @@ import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domai
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import { purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../../purchase-request.variants";
+import { isValidateValue } from "@app/shared/utils/values.utils";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -207,7 +208,6 @@ export const RequisitionTab = ({
 	const columnConfig: TableColumn<GetPurchaseRequestResponse>[] = useMemo(
 		() => [
 			{ key: "code", label: "Código" },
-			{ key: "request_date", label: "Fecha de Solicitud" },
 			{
 				key: "request_status",
 				label: "Estado",
@@ -253,10 +253,19 @@ export const RequisitionTab = ({
 				},
 			},
 			{
+				key: "request_date",
+				label: "Fecha de Solicitud",
+				render(row: GetPurchaseRequestResponse) {
+					if (!isValidateValue(row.request_date)) return "—";
+					return formatDateToSpanishWords(row.request_date ?? "");
+				}
+			},
+			{
 				key: "revision_date",
 				label: "Fecha de revisión",
 				render: (row: GetPurchaseRequestResponse) => {
-					return formatDateToSpanishWords(row.request_date ?? "")
+					if (!isValidateValue(row.revision_date)) return "—";
+					return formatDateToSpanishWords(row.revision_date ?? "");
 				}
 			},
 			{
