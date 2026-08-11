@@ -5,4 +5,6 @@ export type CreateQuoteModalProps = {
   onClose: () => void;
   onQuoteCreated: (quote: any) => void;
   purchaseRequest?: GetPurchaseRequestResponse | null;
+  onRequestSuccess?: (message: string) => void;
+  onRequestError?: (message?: string) => void;
 };

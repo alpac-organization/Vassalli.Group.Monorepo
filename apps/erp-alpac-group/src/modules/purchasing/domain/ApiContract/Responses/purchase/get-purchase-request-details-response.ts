@@ -26,7 +26,7 @@ export interface PurchaseRequestBranchInformation {
 }
 
 export interface PurchaseRequestProductInformation {
-	description: string;
+	purchase_request_item_id: string;
 	has_quotation: boolean;
 	quantity: number;
 	quantity_unit: number | null;
@@ -34,7 +34,7 @@ export interface PurchaseRequestProductInformation {
 	justification: string | null;
 	purchase_request_id: string;
 	product_details: PurchaseRequestProductDetails;
-	unit_measure_information: PurchaseRequestUnitMeasureInformation;	
+	unit_measure_information: PurchaseRequestUnitMeasureInformation;
 }
 
 export interface PurchaseRequestProductDetails {

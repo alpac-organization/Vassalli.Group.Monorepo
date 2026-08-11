@@ -4,5 +4,5 @@ export interface QuoteDetailAccordionProps {
 	quoteDetailIndex: number;
 	accordionValue: string;
 	requestedProduct?: PurchaseRequestProductInformation;	
-	onSelectedChange?: (requestedProduct: PurchaseRequestProductInformation, selected: boolean) => void;
+	onSelectedChange?: (requestedProduct: PurchaseRequestProductInformation, isSelected: boolean) => void;
 }

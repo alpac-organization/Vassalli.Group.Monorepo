@@ -44,7 +44,7 @@ export function QuoteDetailAccordion({
 
 	const justification = requestedProduct?.justification?.trim() || null;
 
-	const quotationStatusColor = hasQuotation ? "text-[#22c55e]" : "text-[#94a3b8]";
+	const quotationStatusColor = hasQuotation ? "text-[#22c55e]" : "text-slate-500 dark:text-slate-300";
 
 	const [isSelected, setIsSelected] = useState(false);
 
@@ -56,43 +56,51 @@ export function QuoteDetailAccordion({
 				contentClassName="p-4"
 				title={
 					<div className="flex min-w-0 items-center gap-3">
+						<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
+							{quoteDetailIndex + 1}
+						</span>
 						<span
-							className="flex shrink-0 items-center"
+							className="flex h-8 shrink-0 items-center "
 							onClick={(evt) => evt.stopPropagation()}
 							onKeyDown={(evt) => evt.stopPropagation()}
 						>
 							<Checkbox
 								name={`select-quote-product-${quoteDetailIndex}`}
 								checked={isSelected}
+								label={productName}
+								labelClassName="block truncate text-[15px] font-semibold text-slate-800 dark:text-white"
 								onChange={(evt) => {
-									const value = evt.target.checked;
-									setIsSelected(value);
-									onSelectedChange?.(requestedProduct!, value);
+									const isChecked = evt.target.checked ?? false;
+									setIsSelected(isChecked);
+									onSelectedChange?.(requestedProduct!, isChecked);
 								}}
 								aria-label={`Seleccionar ${productName}`}
 							/>
 						</span>
-						<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
-							{quoteDetailIndex + 1}
-						</span>
-						<span className="flex min-w-0 flex-row items-center justify-center gap-4">
-							<span className="block truncate text-[15px] font-semibold text-slate-800 dark:text-white">
-								{productName}
-							</span>
-							{categoryName ? (
-								<span className="block text-[13px] font-normal text-slate-500 dark:text-slate-300">
-									{categoryName}
-								</span>
-							) : null}
 
-							<span className={`flex items-center gap-1 text-[13px] font-normal ${quotationStatusColor}`}>
-								{
-									hasQuotation ?
-										<CircleCheckBigIcon size={15} color="#22c55e" /> :
-										<CircleXIcon size={15} color="#94a3b8" />
-								}
-								{hasQuotation ? "Cotizado" : "Sin cotizar"}
-							</span>
+						{categoryName ?
+							<span className="flex h-8 min-w-0 flex-row items-center justify-center font-normal text-slate-500 dark:text-slate-300">
+								/
+							</span> : null
+						}
+
+						{categoryName ?
+							<span className="block text-[14px] font-normal text-slate-500 dark:text-slate-300">
+								{categoryName ?? ""}
+							</span> : null
+						}
+
+						<span className="flex h-8 min-w-0 flex-row items-center justify-center font-normal text-slate-500 dark:text-slate-300">
+							/
+						</span>
+
+						<span className={`flex items-center gap-1 text-[14px] font-normal ${quotationStatusColor}`}>
+							{
+								hasQuotation ?
+									<CircleCheckBigIcon size={15} color="#22c55e" /> :
+									<CircleXIcon size={15} color="#94a3b8" />
+							}
+							{hasQuotation ? "Cotizado" : "Sin cotizar"}
 						</span>
 					</div>
 				}>

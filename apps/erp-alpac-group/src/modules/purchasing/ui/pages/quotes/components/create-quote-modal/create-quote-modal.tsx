@@ -29,13 +29,13 @@ import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurcha
 import { Loader } from "@app/shared/components/loaders/loader";
 import { SelectSupplierModal } from "./components/select-supplier-modal/select-supplier-modal";
 
-import { type RegisterQuotation } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-form.types";
 import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
-import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal.types";
+import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-modal.types";
 import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import { QuoteProductModal } from "./components/quote-products-modal/quote-product-modal";
+import type { RequestedProducts } from "./types/create-quote-form.types";
 
-const defaultFormValues: RegisterQuotation = {
-	quotation_item: [],
+const defaultFormValues: RequestedProducts = {	
 	requested_products: []
 };
 
@@ -44,10 +44,12 @@ export function CreateQuoteModal({
 	onClose,
 	onQuoteCreated,
 	purchaseRequest,
+	onRequestError,
+	onRequestSuccess
 }: CreateQuoteModalProps) {
 	const { companyId, moduleCode } = useUserStore();
 
-	const methods = useForm<RegisterQuotation>({
+	const methods = useForm<RequestedProducts>({
 		defaultValues: defaultFormValues,
 		mode: "onSubmit",
 	});
@@ -66,7 +68,8 @@ export function CreateQuoteModal({
 
 	const [openProducts, setOpenProducts] = useState<string[]>([]);
 	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
-	const [selectedProducts, setSelectedProducts] = useState<PurchaseRequestProductInformation[]>();
+	const [isQuoteProductModalOpen, setIsQuoteProductModalOpen] = useState(false);
+	const [selectedProducts, setSelectedProducts] = useState<PurchaseRequestProductInformation[]>([]);
 
 	const {
 		alertState,
@@ -132,11 +135,32 @@ export function CreateQuoteModal({
 	};
 
 	const handleSelectProduct = (product: PurchaseRequestProductInformation, isSelected: boolean) => {
-		const products = selectedProducts?.filter(item => item.purchase_request_id !== product.purchase_request_id);
-		setSelectedProducts(([...products!, product]));
+
+		const productSet = new Set();
+		const productIds = selectedProducts?.map(item => item?.product_details?.product_id);
+		productSet.add([...productIds]);
+
+		const hasProduct = productSet.has(product.product_details.product_id) && isSelected;
+
+		if (hasProduct) return;
+
+		if (!isSelected) {
+			setSelectedProducts((prevArray) => prevArray.filter(item => item.product_details.product_id !== product.product_details.product_id));
+		} else {
+			setSelectedProducts((prevArray) => [...prevArray, product]);
+		}
 	}
 
-	const onSubmit = (values: RegisterQuotation) => {
+	const handleQuoteProducts = () => {
+		if (selectedProducts.length < 1) {
+			onRequestError?.("Seleccione al menos un producto para cotizar");
+			return;
+		}
+
+		setIsQuoteProductModalOpen(true);
+	}
+
+	const onSubmit = (values: RequestedProducts) => {
 		onQuoteCreated(values);
 		reset(defaultFormValues);
 		setOpenProducts([]);
@@ -217,10 +241,10 @@ export function CreateQuoteModal({
 										{!!selectedProducts?.length &&
 											<Button
 												type="button"
-												label="Asignar proveedor"
+												label={`Cotizar Producto${selectedProducts?.length > 1 ? "s" : ""}`}
 												size="giant"
 												disabled={false}
-												onClick={() => { }}
+												onClick={handleQuoteProducts}
 												icon={<PlusIcon size={20} />}
 												className={quoteFormPrimaryButtonClassName}
 												isHiddenLabelOnMobile
@@ -297,6 +321,16 @@ export function CreateQuoteModal({
 				selectionType="multiple"
 				excludeSupplierIds={[]}
 				onSelect={handleSelectRegisteredSuppliers}
+			/>
+
+			<QuoteProductModal
+				isOpen={isQuoteProductModalOpen}
+				onClose={() => setIsQuoteProductModalOpen(false)}
+				products={selectedProducts}
+				onConfirm={(items) => {
+					setIsQuoteProductModalOpen(false);
+					setSelectedProducts([]);
+				}}
 			/>
 
 			<AnimatedAlertWrapper open={alertState?.open ?? false}>
