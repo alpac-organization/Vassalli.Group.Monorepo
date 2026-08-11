@@ -5,6 +5,7 @@ export const ModuleEnum = {
   WAREHOUSE_CORINTO: "ALM-COR-2KE4",
   ADMINISTRATION: "ADM-1IF2",
   PURCHASING: "COM-129U",
+  FINANCE: "FIN-567W",
   PUBLIC: "PUBLIC",
 } as const;
 

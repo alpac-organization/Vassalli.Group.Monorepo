@@ -10,15 +10,19 @@ import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purcha
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { QuotesModalType } from "../../../types/quotes-modal.types";
+import type { OccasionalMaterialsQuoteTabProps } from "./occasional-materials-quote-tab.types";
 
 const PAGE_SIZE = 5;
 
-export function OccasionalMaterialsQuoteTab() {
-
+export function OccasionalMaterialsQuoteTab({
+	onRequestError,
+	onRequestSuccess,
+}: OccasionalMaterialsQuoteTabProps) {
 	const { companyId, moduleCode } = useUserStore();
 
 	const [activeModal, setActiveModal] = useState<QuotesModalType>(null);
-	const [selectedPurchaseRequest, setSelectedPurchaseRequest] = useState<GetPurchaseRequestResponse | null>();
+	const [selectedPurchaseRequest, setSelectedPurchaseRequest] =
+		useState<GetPurchaseRequestResponse | null>();
 
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
 		company_id: companyId,
@@ -50,22 +54,26 @@ export function OccasionalMaterialsQuoteTab() {
 		}));
 	}, []);
 
-	const handleViewDetail = useCallback((purchaseRequest: GetPurchaseRequestResponse) => {
-		setSelectedPurchaseRequest(purchaseRequest);
-		setActiveModal("view-purchase-request-details");
-	}, []);
+	const handleViewDetail = useCallback(
+		(purchaseRequest: GetPurchaseRequestResponse) => {
+			setSelectedPurchaseRequest(purchaseRequest);
+			setActiveModal("view-purchase-request-details");
+		},
+		[],
+	);
 
-	const handleSendForReview = useCallback((purchaseRequest: GetPurchaseRequestResponse) => {
-		setSelectedPurchaseRequest(purchaseRequest);
-		setActiveModal("send-purchase-request-for-review");
-	}, []);
+	const handleSendForReview = useCallback(
+		(purchaseRequest: GetPurchaseRequestResponse) => {
+			setSelectedPurchaseRequest(purchaseRequest);
+			setActiveModal("send-purchase-request-for-review");
+		},
+		[],
+	);
 
 	const handleCloseModal = useCallback(() => {
 		setActiveModal(null);
 		setSelectedPurchaseRequest(null);
 	}, []);
-
-	const handleQuoteCreated = useCallback(() => { }, []);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -74,14 +82,13 @@ export function OccasionalMaterialsQuoteTab() {
 			)}
 
 			<div className="flex flex-col gap-4">
-
 				<QuotesTable
 					data={purchaseRequests}
 					currentPage={currentPage}
 					pageSize={PAGE_SIZE}
 					totalRecords={totalRecords}
 					onPageChange={handlePageChange}
-					isPaginationDisabled={GetPurchaseRequests.isFetching}					
+					isPaginationDisabled={GetPurchaseRequests.isFetching}
 					onViewDetail={handleViewDetail}
 					onSendForReview={handleSendForReview}
 				/>
@@ -89,8 +96,9 @@ export function OccasionalMaterialsQuoteTab() {
 				<CreateQuoteModal
 					isOpen={activeModal === "view-purchase-request-details"}
 					onClose={handleCloseModal}
-					onQuoteCreated={handleQuoteCreated}
 					purchaseRequest={selectedPurchaseRequest}
+					onRequestError={onRequestError}
+					onRequestSuccess={onRequestSuccess}
 				/>
 			</div>
 		</div>

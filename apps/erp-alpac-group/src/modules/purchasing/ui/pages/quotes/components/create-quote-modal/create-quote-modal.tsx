@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
 	FormProvider,
@@ -7,9 +7,7 @@ import {
 } from "react-hook-form";
 
 import {
-	AccordionGroup,
-	Alert,
-	AnimatedAlertWrapper,
+	AccordionGroup,	
 	Badges,
 	Button,
 	Modal,
@@ -23,26 +21,24 @@ import {
 import { FileTextIcon, PlusIcon, SaveIcon, XIcon } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { QuoteDetailAccordion } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/quote-detail-accordion/quote-detail-accordion";
-import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { purchaseRequestTypeBadgeVariants } from "../../../purchase-requests/purchase-request.variants";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { Loader } from "@app/shared/components/loaders/loader";
-import { SelectSupplierModal } from "./components/select-supplier-modal/select-supplier-modal";
-
-import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+import { QuoteProductModal } from "./components/quote-products-modal/quote-product-modal";
 import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-modal.types";
 import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
-import { QuoteProductModal } from "./components/quote-products-modal/quote-product-modal";
 import type { RequestedProducts } from "./types/create-quote-form.types";
+import type { QuotationItem, RegisterQuoteRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
+import { useQuotes } from "@app/modules/purchasing/ui/hooks/quote/useQuote";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
 
-const defaultFormValues: RequestedProducts = {	
+const defaultFormValues: RequestedProducts = {
 	requested_products: []
 };
 
 export function CreateQuoteModal({
 	isOpen,
-	onClose,
-	onQuoteCreated,
+	onClose,	
 	purchaseRequest,
 	onRequestError,
 	onRequestSuccess
@@ -67,14 +63,9 @@ export function CreateQuoteModal({
 	});
 
 	const [openProducts, setOpenProducts] = useState<string[]>([]);
-	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
 	const [isQuoteProductModalOpen, setIsQuoteProductModalOpen] = useState(false);
 	const [selectedProducts, setSelectedProducts] = useState<PurchaseRequestProductInformation[]>([]);
-
-	const {
-		alertState,
-		handleCloseAlert,
-	} = useAlertState();
+	const [quotationItems, setQuotationItems] = useState<QuotationItem[]>();
 
 	const purchaseRequestId = isOpen
 		? (purchaseRequest?.purchase_request_id ?? "")
@@ -86,17 +77,24 @@ export function CreateQuoteModal({
 			module_code: moduleCode,
 			purchase_request_id: purchaseRequestId,
 		},
-	});
+	});	
+
+	const { RegisterQuote } = useQuotes();
+	const { getMappedError } = useMappedError();
 
 	const {
 		data: purchaseRequestDetails,
 		isLoading: isLoadingPurchaseRequestDetails,
 		isFetching: isFetchingPurchaseRequestDetails,
-	} = GetPurchaseRequestDetails;
+	} = GetPurchaseRequestDetails;	
+
+	const isRegisteringQuote = RegisterQuote.isPending;
 
 	const isLoading =
 		isOpen &&
-		(isLoadingPurchaseRequestDetails || isFetchingPurchaseRequestDetails);
+		(isLoadingPurchaseRequestDetails ||
+			isFetchingPurchaseRequestDetails ||
+			isRegisteringQuote);
 
 	useEffect(() => {
 		if (!isOpen) {
@@ -123,10 +121,6 @@ export function CreateQuoteModal({
 		setOpenProducts([]);
 	}, [isOpen, purchaseRequestDetails, reset]);
 
-
-	const handleSelectRegisteredSuppliers = (suppliers: GetSuppliersResponse[]) => {
-
-	};
 
 	const handleCancel = () => {
 		reset(defaultFormValues);
@@ -160,17 +154,49 @@ export function CreateQuoteModal({
 		setIsQuoteProductModalOpen(true);
 	}
 
-	const onSubmit = (values: RequestedProducts) => {
-		onQuoteCreated(values);
-		reset(defaultFormValues);
-		setOpenProducts([]);
+	const onSubmit = (_values: RequestedProducts) => {
+		if (!quotationItems?.length) {
+			onRequestError?.(
+				"Debe cotizar al menos un producto con sus proveedores antes de guardar.",
+			);
+			return;
+		}
 
-		onClose();
+		const payload: RegisterQuoteRequest = {
+			company_id: companyId,
+			module_code: moduleCode,
+			quotation_items: quotationItems,
+		};
+
+		RegisterQuote.mutate(payload, {
+			onSuccess() {
+				onRequestSuccess?.("Cotización registrada con éxito.");
+				reset(defaultFormValues);
+				setOpenProducts([]);
+				setSelectedProducts([]);
+				setQuotationItems(undefined);
+				onClose();
+			},
+			onError(error) {
+				const mappedError = getMappedError(error);
+				onRequestError?.(
+					mappedError.description || "Error al registrar la cotización.",
+				);
+			},
+		});
 	};
 
 	return (
 		<>
-			{isLoading && <Loader title="Cargando Productos Solicitados..." />}
+			{isLoading && (
+				<Loader
+					title={
+						isRegisteringQuote
+							? "Registrando cotización..."
+							: "Cargando Productos Solicitados..."
+					}
+				/>
+			)}
 			<Modal
 				isOpen={isOpen}
 				onClose={handleCancel}
@@ -189,7 +215,7 @@ export function CreateQuoteModal({
 			>
 				<FormProvider {...methods}>
 					<form
-						onSubmit={handleSubmit(onSubmit, () => { })}
+						onSubmit={handleSubmit(onSubmit)}
 						className="flex min-h-0 flex-1 flex-col"
 						noValidate
 					>
@@ -293,7 +319,7 @@ export function CreateQuoteModal({
 									type="button"
 									label="Descartar"
 									size="giant"
-									disabled={isSubmitting}
+									disabled={isSubmitting || isRegisteringQuote}
 									onClick={handleCancel}
 									isHiddenLabelOnMobile
 									icon={<XIcon size={20} />}
@@ -303,8 +329,8 @@ export function CreateQuoteModal({
 									type="submit"
 									label="Guardar cotización"
 									size="giant"
-									isLoading={isSubmitting}
-									disabled={isSubmitting}
+									isLoading={isSubmitting || isRegisteringQuote}
+									disabled={isSubmitting || isRegisteringQuote}
 									isHiddenLabelOnMobile
 									icon={<SaveIcon size={20} />}
 									className={quoteFormPrimaryButtonClassName}
@@ -315,32 +341,16 @@ export function CreateQuoteModal({
 				</FormProvider>
 			</Modal>
 
-			<SelectSupplierModal
-				isOpen={isSelectSupplierOpen}
-				onClose={() => setIsSelectSupplierOpen(false)}
-				selectionType="multiple"
-				excludeSupplierIds={[]}
-				onSelect={handleSelectRegisteredSuppliers}
-			/>
-
 			<QuoteProductModal
 				isOpen={isQuoteProductModalOpen}
 				onClose={() => setIsQuoteProductModalOpen(false)}
 				products={selectedProducts}
-				onConfirm={(items) => {
+				onConfirm={(items) => {					
+					setQuotationItems(items);
 					setIsQuoteProductModalOpen(false);
 					setSelectedProducts([]);
 				}}
 			/>
-
-			<AnimatedAlertWrapper open={alertState?.open ?? false}>
-				<Alert
-					type={alertState?.type!}
-					title={alertState?.title}
-					message={alertState?.message!}
-					onClose={handleCloseAlert}
-				/>
-			</AnimatedAlertWrapper>
 		</>
 	);
 }

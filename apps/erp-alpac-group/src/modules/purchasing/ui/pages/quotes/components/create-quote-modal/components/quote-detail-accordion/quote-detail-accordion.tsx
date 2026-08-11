@@ -44,7 +44,7 @@ export function QuoteDetailAccordion({
 
 	const justification = requestedProduct?.justification?.trim() || null;
 
-	const quotationStatusColor = hasQuotation ? "text-[#22c55e]" : "text-slate-500 dark:text-slate-300";
+	const quotationStatusColor = hasQuotation ? "text-[#22c55e]" : "text-slate-500 dark:text-slate-300";	
 
 	const [isSelected, setIsSelected] = useState(false);
 
@@ -64,18 +64,28 @@ export function QuoteDetailAccordion({
 							onClick={(evt) => evt.stopPropagation()}
 							onKeyDown={(evt) => evt.stopPropagation()}
 						>
-							<Checkbox
-								name={`select-quote-product-${quoteDetailIndex}`}
-								checked={isSelected}
-								label={productName}
-								labelClassName="block truncate text-[15px] font-semibold text-slate-800 dark:text-white"
-								onChange={(evt) => {
-									const isChecked = evt.target.checked ?? false;
-									setIsSelected(isChecked);
-									onSelectedChange?.(requestedProduct!, isChecked);
-								}}
-								aria-label={`Seleccionar ${productName}`}
-							/>
+							{
+								hasQuotation ?
+									<Checkbox
+										labelClassName="block truncate text-[15px] font-semibold text-slate-800 dark:text-white"
+										label={productName}
+										checked
+										disabled
+									/> :
+									<Checkbox
+										name={`select-quote-product-${quoteDetailIndex}`}
+										checked={isSelected}
+										label={productName}
+										labelClassName="block truncate text-[15px] font-semibold text-slate-800 dark:text-white"
+										onChange={(evt) => {
+											const isChecked = evt.target.checked ?? false;
+											setIsSelected(isChecked);
+											onSelectedChange?.(requestedProduct!, isChecked);
+										}}
+										aria-label={`Seleccionar ${productName}`}
+									/>
+							}
+
 						</span>
 
 						{categoryName ?
@@ -97,10 +107,14 @@ export function QuoteDetailAccordion({
 						<span className={`flex items-center gap-1 text-[14px] font-normal ${quotationStatusColor}`}>
 							{
 								hasQuotation ?
-									<CircleCheckBigIcon size={15} color="#22c55e" /> :
+									<CircleCheckBigIcon size={14} color="#22c55e" /> :
 									<CircleXIcon size={15} color="#94a3b8" />
 							}
-							{hasQuotation ? "Cotizado" : "Sin cotizar"}
+							{
+								hasQuotation ?
+									<span>Cotizado</span> :
+									<span>Sin cotizar</span>
+							}
 						</span>
 					</div>
 				}>

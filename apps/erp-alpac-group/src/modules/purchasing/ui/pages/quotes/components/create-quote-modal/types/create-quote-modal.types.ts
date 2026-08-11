@@ -2,8 +2,7 @@ import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/
 
 export type CreateQuoteModalProps = {
   isOpen: boolean;
-  onClose: () => void;
-  onQuoteCreated: (quote: any) => void;
+  onClose: () => void;  
   purchaseRequest?: GetPurchaseRequestResponse | null;
   onRequestSuccess?: (message: string) => void;
   onRequestError?: (message?: string) => void;

@@ -14,7 +14,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
-import { QuoteAnalysisTable } from "@app/modules/purchasing/ui/pages/quote-analisys/components/quote-analysis-table/quote-analysis-table";
+import { QuoteAnalysisTable } from "./components/quote-analysis-table/quote-analysis-table";
 
 export function QuoteAnalisys() {
 	const navigate = useNavigate();

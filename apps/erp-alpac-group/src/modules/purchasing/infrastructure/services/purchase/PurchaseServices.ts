@@ -90,4 +90,12 @@ export class PurchaseServices implements IPurchaseServices {
          throw error;
       }
    }
+
+   async SendPurchaseRequestToReview(payload: any): Promise<void> {
+      try {
+         
+      } catch (error) {
+         throw error;
+      }
+   }
 }

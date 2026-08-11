@@ -30,21 +30,30 @@ export const QuotePage = () => {
          id: "requisitions",
          label: "Requisiciones",
          render: () => (
-            <RequisitionQuoteTab />
+            <RequisitionQuoteTab
+               onRequestError={handleRequestError}
+               onRequestSuccess={handleRequestSuccess}
+            />
          ),
       },
       {
          id: "monthly-applications",
          label: "Solicitud de Materiales Mensuales",
          render: () => (
-            <MonthlyMaterialsQuoteTab />
+            <MonthlyMaterialsQuoteTab
+               onRequestError={handleRequestError}
+               onRequestSuccess={handleRequestSuccess}
+            />
          ),
       },
       {
          id: "occasional-applications",
          label: "Solicitud de Materiales Eventuales",
          render: () => (
-            <OccasionalMaterialsQuoteTab />
+            <OccasionalMaterialsQuoteTab
+               onRequestError={handleRequestError}
+               onRequestSuccess={handleRequestSuccess}
+            />
          ),
       },
    ];
