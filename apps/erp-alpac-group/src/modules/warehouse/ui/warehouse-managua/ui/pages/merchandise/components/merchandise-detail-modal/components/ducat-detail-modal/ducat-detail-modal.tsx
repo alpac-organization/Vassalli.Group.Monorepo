@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Badges, Button, Modal } from "@alpac/design-system";
-import { Eye, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { MerchandiseDucatDetailDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandise-detail";
 import {
   getDucaStatusBadgeClass,
@@ -13,54 +13,14 @@ import {
   fieldsGridClasses,
   mobileOnlyScrollClasses,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/variants/global-variants";
+import { type ViewingTextField } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/ducat-detail-modal/utils/style.eye";
+import { FieldWithEye } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/ducat-detail-modal/field-eye";
 
 type DucatDetailModalProps = {
   isOpen: boolean;
   ducat: MerchandiseDucatDetailDto | null;
   onClose: () => void;
 };
-
-type ViewingTextField = "description" | "destination" | null;
-
-const eyeButtonClasses =
-  "h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-slate-200! dark:border-slate-700/50! bg-white! dark:bg-[#1e2229]! text-slate-500! dark:text-slate-400! hover:text-blue-600! dark:hover:text-white! hover:border-cyan-300! dark:hover:border-blue-600! hover:bg-cyan-50! dark:hover:bg-cyan-500/10! transition-all duration-200";
-
-function FieldWithEye({
-  label,
-  value,
-  missingMessage,
-  ariaLabel,
-  onView,
-}: {
-  label: string;
-  value: string;
-  missingMessage: string;
-  ariaLabel: string;
-  onView: () => void;
-}) {
-  return (
-    <div className="min-w-0">
-      <div className="flex items-start gap-2">
-        <div className="flex-1 min-w-0">
-          <ReadOnlyField
-            label={label}
-            value={value}
-            missingMessage={missingMessage}
-          />
-        </div>
-        <div className="flex shrink-0 mt-[24px] sm:mt-[26px]">
-          <Button
-            type="button"
-            ariaLabel={ariaLabel}
-            onClick={onView}
-            icon={<Eye size={16} />}
-            className={eyeButtonClasses}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function DucatDetailModal({
   isOpen,
@@ -115,7 +75,7 @@ export function DucatDetailModal({
       <Modal
         isOpen={isOpen}
         onClose={onClose}
-        title="Detalle específico"
+        title="Detalle específico de Duca"
         variant="info"
         size="4xl"
         panelClassName="max-md:max-h-[min(92dvh,56rem)]! md:max-h-none! flex! flex-col! max-md:overflow-hidden! md:overflow-visible! p-4! sm:p-6!"
