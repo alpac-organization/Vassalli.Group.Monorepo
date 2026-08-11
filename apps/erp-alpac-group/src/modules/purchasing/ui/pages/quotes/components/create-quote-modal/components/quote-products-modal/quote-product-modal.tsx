@@ -558,8 +558,7 @@ export function QuoteProductModal({
 					? `Complete la cotización para ${productsCount} producto${productsCount === 1 ? "" : "s"}. Use "Agregar Proveedor" para buscar y seleccionar al menos ${MIN_SUPPLIERS_PER_PRODUCT} proveedores por producto.`
 					: "Complete la información de cotización de los productos seleccionados."
 			}			
-			panelClassName={[
-				"flex h-200 w-[min(calc(100vw-1rem),52rem)] min-w-0 flex-col overflow-hidden",
+			panelClassName={[				
 				"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
 				"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
 			].join(" ")}

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { QuotesTable } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-table/quotes-table";
 import { CreateQuoteModal } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -7,6 +7,7 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
 
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
@@ -23,9 +24,11 @@ export function RequisitionQuoteTab({
 }: RequisitionQuoteTabProps) {
 
 	const { companyId, moduleCode } = useUserStore();
+	const { getMappedError } = useMappedError();
 
 	const [activeModal, setActiveModal] = useState<QuotesModalType>(null);
 	const [selectedPurchaseRequest, setSelectedPurchaseRequest] = useState<GetPurchaseRequestResponse | null>();
+	const [purchaseRequestIdToSend, setPurchaseRequestIdToSend] = useState("");
 
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
 		company_id: companyId,
@@ -35,7 +38,7 @@ export function RequisitionQuoteTab({
 		page_size: PAGE_SIZE,
 	});
 
-	const { GetPurchaseRequests } = usePurchase({
+	const { GetPurchaseRequests, SendPurchaseRequestToReview } = usePurchase({
 		getPurchaseRequestsPayload: {
 			...filters,
 			company_id: companyId,
@@ -44,11 +47,34 @@ export function RequisitionQuoteTab({
 			request_type: PurchaseRequestEnum.Requisition.value,
 			page_size: PAGE_SIZE,
 		},
+		getSendPurchaseRequestToReviewPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+			purchase_request_id: purchaseRequestIdToSend,
+		},
 	});
 
 	const purchaseRequests = GetPurchaseRequests.data?.data ?? [];
 	const totalRecords = GetPurchaseRequests.data?.total ?? 0;
 	const currentPage = filters.page_number ?? 1;
+
+	useEffect(() => {
+		if (!purchaseRequestIdToSend) return;
+
+		if (SendPurchaseRequestToReview.isSuccess) {
+			onRequestSuccess("Solicitud enviada a revisión con éxito.");
+			setPurchaseRequestIdToSend("");
+			setActiveModal(null);
+			setSelectedPurchaseRequest(null);
+			GetPurchaseRequests.refetch();
+		}
+
+		if (SendPurchaseRequestToReview.isError) {
+			const mappedError = getMappedError(SendPurchaseRequestToReview.error);
+			onRequestError(mappedError.description);
+			setPurchaseRequestIdToSend("");
+		}
+	}, [SendPurchaseRequestToReview.data, SendPurchaseRequestToReview.isError, SendPurchaseRequestToReview.fetchStatus]);
 
 	const handlePageChange = useCallback((page: number) => {
 		setFilters((prev) => ({
@@ -70,7 +96,14 @@ export function RequisitionQuoteTab({
 	const handleCloseModal = useCallback(() => {
 		setActiveModal(null);
 		setSelectedPurchaseRequest(null);
-	}, []);	
+	}, []);
+
+	const handleSendPurchaseRequestToReview = () => {
+		const purchaseRequestId = selectedPurchaseRequest?.purchase_request_id;
+		if (!purchaseRequestId) return;
+
+		setPurchaseRequestIdToSend(purchaseRequestId);
+	}
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -104,11 +137,13 @@ export function RequisitionQuoteTab({
 					type="SEND"
 					title="¿Está seguro de enviar esta solicitud a revisión?"
 					isOpen={activeModal === "send-purchase-request-for-review"}
-					handleFinalAction={() => { }}
+					handleFinalAction={handleSendPurchaseRequestToReview}
 					buttonActionLabel="Enviar"
 					onClose={handleCloseModal}
 					buttonActionClass={sendButtonClass}
 					buttonCancelClass={cancelButtonClass}
+					isLoading={Boolean(purchaseRequestIdToSend) && SendPurchaseRequestToReview.isFetching}
+					disabled={Boolean(purchaseRequestIdToSend) && SendPurchaseRequestToReview.isFetching}
 				/>
 			</div>
 		</div>

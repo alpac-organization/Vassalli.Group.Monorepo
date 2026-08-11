@@ -3,6 +3,7 @@ import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domai
 import type { GetPurchaseRequestDetailPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-details-payload";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
+import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
 import type { GetPurchaseRequestDetailResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { GetPurchaseRequestResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 
@@ -19,5 +20,5 @@ export interface IPurchaseServices {
 
    DeletePurchaseRequest(payload: DeletePurchaseRequestPayload): Promise<void>;
 
-   SendPurchaseRequestToReview(payload: any): Promise<void>;
+   SendPurchaseRequestToReview(payload: SendPurchaseRequestToReviewPayload): Promise<any>;
 }

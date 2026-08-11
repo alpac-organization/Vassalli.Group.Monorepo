@@ -5,6 +5,7 @@ import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domai
 import type { GetPurchaseRequestDetailPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-details-payload";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
+import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
 import { PurchaseServices } from "@app/modules/purchasing/infrastructure/services/purchase/PurchaseServices"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -12,12 +13,17 @@ const purchaseServices = new PurchaseServices(warehouseHttpHandler);
 
 type usePurchasePayloads = {
    getPurchaseRequestsPayload?: GetPurchaseRequestPayload,
-   getPurchaseRequestDetailsPayload?: GetPurchaseRequestDetailPayload
+   getPurchaseRequestDetailsPayload?: GetPurchaseRequestDetailPayload,
+   getSendPurchaseRequestToReviewPayload?: SendPurchaseRequestToReviewPayload
 }
 
 export const usePurchase = (props?: usePurchasePayloads) => {
 
-   const { getPurchaseRequestsPayload, getPurchaseRequestDetailsPayload } = props || {};
+   const {
+      getPurchaseRequestsPayload,
+      getPurchaseRequestDetailsPayload,
+      getSendPurchaseRequestToReviewPayload
+   } = props || {};
 
    const queryClient = useQueryClient();
 
@@ -33,12 +39,18 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       getPurchaseRequestDetailsPayload?.purchase_request_id
    );
 
+   const sendPurchaseRequestToReviewEnabled = Boolean(
+      getSendPurchaseRequestToReviewPayload?.company_id?.trim() &&
+      getSendPurchaseRequestToReviewPayload.module_code?.trim() &&
+      getSendPurchaseRequestToReviewPayload?.purchase_request_id
+   );
+
    const GetPurchaseRequests = useQuery({
       queryKey: ["get-purchase-requests", getPurchaseRequestsPayload],
       queryFn: () => purchaseServices.GetPurchaseRequests(getPurchaseRequestsPayload!),
       enabled: purchaseRequestListEnabled,
       staleTime: 1000 * 60 * 1,
-      refetchOnWindowFocus: false,      
+      refetchOnWindowFocus: false,
       retry: 1,
    });
 
@@ -80,8 +92,17 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       retry: 1
    });
 
+   const SendPurchaseRequestToReview = useQuery<any, ApiErrorResponse>({
+      queryKey: ["send-purchase-request-to-review", getSendPurchaseRequestToReviewPayload],
+      queryFn: () => purchaseServices.SendPurchaseRequestToReview(getSendPurchaseRequestToReviewPayload!),
+      enabled: sendPurchaseRequestToReviewEnabled,      
+      refetchOnWindowFocus: false,
+      retry: 1,
+   });
+
    return {
-      GetPurchaseRequests, GetPurchaseRequestDetails, 
-      CreatePurchaseRequest, ProcessPurchaseRequest, DeletePurchaseRequest
+      GetPurchaseRequests, GetPurchaseRequestDetails,
+      CreatePurchaseRequest, ProcessPurchaseRequest, DeletePurchaseRequest,
+      SendPurchaseRequestToReview
    }
 }
