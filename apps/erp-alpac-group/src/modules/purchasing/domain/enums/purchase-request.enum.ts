@@ -4,11 +4,11 @@ type PurchaseRequestEnumType = EnumType & {
    textValue: string;
 }
 
-export const PurchaseRequestEnum: Record<string, PurchaseRequestEnumType> = {
+export const PurchaseRequestEnum = {
    Requisition: { value: 1, label: "Requisición", textValue: "Requisition"},
    Eventual: { value: 2, label: "Eventual", textValue: "Eventual"},
    Monthly: { value: 3, label: "Mensual", textValue: "Monthly"},
-} as const;
+} as const satisfies Record<string, PurchaseRequestEnumType>
 
 export type PurchaseRequestEnum = (typeof PurchaseRequestEnum)[keyof typeof PurchaseRequestEnum];
 

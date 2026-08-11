@@ -18,4 +18,6 @@ export interface IPurchaseServices {
    ProcesssPurchaseRequest(payload: ProcessPurchaseRequestPayload): Promise<void>;
 
    DeletePurchaseRequest(payload: DeletePurchaseRequestPayload): Promise<void>;
+
+   SendPurchaseRequestToReview(payload: any): Promise<void>;
 }

@@ -1,80 +1,132 @@
 import { useMemo } from "react";
 import {
-  Button,
-  DataTable,
-  Pagination,
-  type TableColumn,
+	Badges,
+	ContextMenu,
+	DataTable,
+	Pagination,
+	type TableColumn,
 } from "@alpac/design-system";
-import { formatCurrency } from "@app/shared/utils/currency.utils";
 import type { QuotesTableProps } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-table/quotes-table.types";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
+import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
+import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
+import {
+	purchaseRequestStatusBadgeVariants,
+	purchaseRequestTypeBadgeVariants,
+} from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
+import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
+
+const contextMenuButton =
+	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 const buildColumns = (
-  onViewDetail: (row: any) => void,
-): TableColumn<any>[] => [
-  {
-    key: "made_by",
-    label: "Responsable",
-    render: (row) => row.made_by?.trim() || "—",
-  },
-  {
-    key: "quote_date",
-    label: "Fecha",
-    render: (row) => formatDateToSpanishWords(row.quote_date ?? ""),
-  },
-  {
-    key: "approximate_cost",
-    label: "Costo aproximado",
-    render: (row) =>
-      formatCurrency(row.approximate_cost ?? 0, row.currency ?? "NIO") ?? "—",
-  },
-  {
-    key: "observations",
-    label: "Observaciones",
-    render: (row) => (
-      <span className="line-clamp-2 max-w-xs text-neutral-700 dark:text-neutral-300">
-        {row.observations?.trim() || "—"}
-      </span>
-    ),
-  },
-  {
-    key: "suppliers_count",
-    label: "Proveedores",
-    render: (row) => row.additional_data?.quotes_made?.length ?? 0,
-  },
-  {
-    key: "actions",
-    label: "Acciones",
-    render: (row) => (
-      <Button
-        type="button"
-        label="Ver detalle"
-        size="small"
-        className="text-[13px]! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-        onClick={(event) => {
-          event.stopPropagation();
-          onViewDetail(row);
-        }}
-      />
-    ),
-  },
+	onViewDetail: (row: GetPurchaseRequestResponse) => void,	
+	onSendForReview: (row: GetPurchaseRequestResponse) => void,
+): TableColumn<GetPurchaseRequestResponse>[] => [
+	{ key: "code", label: "Código" },
+	{
+		key: "request_date",
+		label: "Fecha de Solicitud",
+		render: (row: GetPurchaseRequestResponse) => {
+			return formatDateToSpanishWords(row.request_date ?? "");
+		},
+	},
+	{
+		key: "request_status",
+		label: "Estado",
+		render: (row: GetPurchaseRequestResponse) => {
+			const statusLabel =
+				Object.values(PurchaseRequestStatusEnum).find(
+					(status) => status.textValue === row.request_status,
+				)?.label ?? row.request_status;
+
+			return (
+				<Badges
+					label={statusLabel}
+					color={
+						purchaseRequestStatusBadgeVariants[
+							row.request_status as keyof typeof purchaseRequestStatusBadgeVariants
+						]?.badgeColor ??
+						purchaseRequestStatusBadgeVariants.default.badgeColor
+					}
+				/>
+			);
+		},
+	},
+	{
+		key: "request_type",
+		label: "Tipo",
+		render: (row: GetPurchaseRequestResponse) => {
+			const typeLabel =
+				Object.values(PurchaseRequestEnum).find(
+					(type) => type.textValue === row.request_type,
+				)?.label ?? row.request_type;
+
+			return (
+				<Badges
+					label={typeLabel}
+					color={
+						purchaseRequestTypeBadgeVariants[
+							row.request_type as keyof typeof purchaseRequestTypeBadgeVariants
+						]?.badgeColor ??
+						purchaseRequestTypeBadgeVariants.default.badgeColor
+					}
+				/>
+			);
+		},
+	},
+	{
+		key: "revision_date",
+		label: "Fecha de revisión",
+		render: (row: GetPurchaseRequestResponse) => {
+			return formatDateToSpanishWords(row.revision_date ?? "");
+		},
+	},	
+	{
+		key: "actions",
+		label: "Acciones",
+		render: (row: GetPurchaseRequestResponse) => (
+			<ContextMenu
+				items={[
+					{ label: "Enviar a revisión", onClick: () => onSendForReview(row) },					
+					{ label: "Ver detalle", onClick: () => onViewDetail(row) },
+				]}
+				triggerClassName={contextMenuButton}
+			/>
+		),
+	},
 ];
 
-export function QuotesTable({ data, onViewDetail }: QuotesTableProps) {
-  const columns = useMemo(() => buildColumns(onViewDetail), [onViewDetail]);
-  return (
-    <DataTable
-      title="Historial de cotizaciones"
-      data={data}
-      columns={columns}
-      pagination={
-        <Pagination
-          currentPage={1}
-          pageSize={10}
-          totalRecords={data.length}
-          onPageChange={() => {}}
-        />
-      }
-    />
-  );
+export function QuotesTable({
+	data,
+	currentPage,
+	pageSize,
+	totalRecords,
+	onPageChange,
+	onViewDetail,	
+	onSendForReview,
+	isPaginationDisabled = false,
+}: QuotesTableProps) {
+
+	const columns = useMemo(
+		() => buildColumns(onViewDetail, onSendForReview),
+		[onViewDetail, onSendForReview],
+	);
+
+	return (
+		<DataTable
+			title="Historial de cotizaciones"
+			data={data}
+			columns={columns}
+			pagination={
+				<Pagination
+					currentPage={currentPage}
+					pageSize={pageSize}
+					totalRecords={totalRecords}
+					onPageChange={onPageChange}
+					disabled={isPaginationDisabled}
+				/>
+			}
+		/>
+	);
 }

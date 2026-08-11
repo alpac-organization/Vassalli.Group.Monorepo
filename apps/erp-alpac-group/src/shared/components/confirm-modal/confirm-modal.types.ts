@@ -12,11 +12,12 @@ export type ConfirmActionProps = {
    handleFinalAction: (type: ConfirmActionType, reason?: string) => void;
 }
 
-export type ConfirmActionType = "APPROVE" | "REJECT" | "CANCEL" | "DELETE";
+export type ConfirmActionType = "APPROVE" | "REJECT" | "CANCEL" | "DELETE" | "SEND";
 
 export const ConfirmActionValueMap: Record<ConfirmActionType, boolean | null> = {
    APPROVE: true,
    REJECT: false,
    CANCEL: null,
    DELETE: null,
+   SEND: null
 };

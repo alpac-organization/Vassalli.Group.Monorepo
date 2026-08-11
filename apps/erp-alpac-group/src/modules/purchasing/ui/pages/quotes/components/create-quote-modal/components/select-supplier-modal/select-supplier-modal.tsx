@@ -3,6 +3,8 @@ import {
 	Button,
 	Checkbox,
 	DataTable,
+	Dropdown,
+	InputText,
 	Modal,
 	Pagination,
 	RadioButton,
@@ -17,86 +19,130 @@ import {
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
 import { Loader } from "@app/shared/components/loaders/loader";
-
-type SelectSupplierModalProps = {
-	isOpen: boolean;
-	selectionType?: "single" | "multiple";
-	excludeSupplierIds?: string[];
-	onClose: () => void;
-	onSelect: (suppliers: GetSuppliersResponse[]) => void;
-};
+import { Controller, useForm } from "react-hook-form";
+import {
+	ConstitutionEnum,
+	ConstitutionOptions,
+} from "@app/core/enums/constitution.enum";
+import {
+	formatIdentificationNumber,
+	formatRuc,
+} from "@app/shared/utils/string.utils";
+import type { SelectSupplierModalProps } from "./select-supplier-modal.types";
+import { isValidateValue } from "@app/shared/utils/values.utils";
 
 const PAGE_SIZE = 5;
+
+const inputClassName =
+	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+const dropdownClassName =
+	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
+const labelClassName = "text-black! dark:text-white!";
 
 export function SelectSupplierModal({
 	isOpen,
 	onClose,
 	onSelect,
-	selectionType = "single",	
+	selectionType = "single",
 }: SelectSupplierModalProps) {
 	const { companyId, moduleCode } = useUserStore();
 
-	const [error, setError] = useState("");
-	const [pageNumber, setPageNumber] = useState(1);
-	const [tempSelected, setTempSelected] = useState<GetSuppliersResponse | null>(
-		null,
-	);
-	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<
-		GetSuppliersResponse[]
-	>([]);
-	const [filters, setFilters] = useState<GetSuppliersRequest>({
+	const buildBaseFilters = (): GetSuppliersRequest => ({
 		companie_id: companyId,
 		module_code: moduleCode,
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	});
 
+	const defaultFilters: Pick<
+		GetSuppliersRequest,
+		"identification_number" | "constitution_type"
+	> = {
+		identification_number: "",
+		constitution_type: undefined,
+	};
+
+	const [error, setError] = useState("");
+	const [tempSelected, setTempSelected] = useState<GetSuppliersResponse | null>(
+		null,
+	);
+	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<
+		GetSuppliersResponse[]
+	>([]);
+	const [filters, setFilters] = useState<GetSuppliersRequest>(buildBaseFilters);
+
+	const { register, handleSubmit, control, reset, watch } =
+		useForm<GetSuppliersRequest>({
+			defaultValues: { ...defaultFilters },
+		});
+
 	const { GetSuppliers } = useSupplier({
-		suppliersFilters: filters,
+		suppliersFilters: {
+			...filters,
+			companie_id: companyId,
+			module_code: moduleCode,
+			page_size: PAGE_SIZE,
+		},
 	});
+
+	const constitutionType = watch("constitution_type");
+	const isLegalPerson = constitutionType === ConstitutionEnum.Legal.value;
+	const isNaturalPerson = constitutionType === ConstitutionEnum.Natural.value;
 
 	const registeredSuppliers = useMemo(() => {
 		return GetSuppliers.data?.data ?? [];
 	}, [GetSuppliers.data?.data]);
 
-	const totalRecords = useMemo(() => {
-		return GetSuppliers.data?.total ?? 0;
-	}, [GetSuppliers.data]);
+	const totalRecords = GetSuppliers.data?.total ?? 0;
+	const currentPage = filters.page_number ?? 1;
 
 	useEffect(() => {
 		if (!isOpen) {
 			setError("");
-			setPageNumber(1);
 			setTempSelected(null);
 			setTempSelectedMultiple([]);
+			reset(defaultFilters);
 			return;
 		}
 
-		const initial: GetSuppliersRequest = {
-			companie_id: companyId,
-			module_code: moduleCode,
-			page_number: 1,
-			page_size: PAGE_SIZE,
-		};
+		reset(defaultFilters);
+		setFilters(buildBaseFilters());
+	}, [isOpen, companyId, moduleCode, reset]);
 
-		setFilters(initial);
-		setPageNumber(1);
-	}, [isOpen, companyId, moduleCode]);
+	const handleClearFilters = () => {
+		reset(defaultFilters);
+		setFilters(buildBaseFilters());
+	};
 
 	const handlePageChange = useCallback((page: number) => {
-		setPageNumber(page);
 		setFilters((prev) => ({
 			...prev,
 			page_number: page,
-			page_size: PAGE_SIZE,
 		}));
 	}, []);
 
+	const handleFilterSuppliers = (data: GetSuppliersRequest) => {
+		const identification = data?.identification_number?.trim() || undefined;
+		const constitutionType =
+			data.constitution_type === undefined ||
+				data.constitution_type === null ||
+				Number(data.constitution_type) === -1
+				? undefined
+				: Number(data.constitution_type);
+
+		setFilters((prev) => ({
+			...prev,
+			identification_number: identification,
+			constitution_type: constitutionType,
+		}));
+	};
+
 	const handleClose = () => {
 		setError("");
-		setPageNumber(1);
 		setTempSelected(null);
 		setTempSelectedMultiple([]);
+		reset(defaultFilters);
+		setFilters(buildBaseFilters());
 		onClose();
 	};
 
@@ -215,6 +261,76 @@ export function SelectSupplierModal({
 			{isLoadingSuppliers && <Loader title="Cargando proveedores..." />}
 
 			<div className="flex flex-col gap-6">
+
+
+				<form
+					onSubmit={handleSubmit(handleFilterSuppliers)}
+					className="flex items-end gap-4"
+				>
+
+					<Controller
+						name="constitution_type"
+						control={control}
+						render={({ field }) => (
+							<Dropdown
+								label="Tipo de constitución"
+								placeholder="Seleccione..."
+								appearance="dark"
+								options={ConstitutionOptions ?? []}
+								value={field.value ?? null}
+								onChange={(value) => {
+									const parsed = !isValidateValue(value) ? undefined : Number(value);
+									field.onChange(
+										parsed === -1 || Number.isNaN(parsed)
+											? undefined
+											: parsed,
+									);
+								}}
+								className={dropdownClassName}
+								labelClassName={labelClassName}
+								valueClassName={labelClassName}
+							/>
+						)}
+					/>
+
+					<InputText
+						label="Identificación"
+						placeholder="Ej. J0310000000001"
+						className={inputClassName}
+						labelClassName={labelClassName}
+						{...register("identification_number", {
+							setValueAs: (value: string) =>
+								value
+									? value.toString().replace(/-/g, "").toUpperCase()
+									: "",
+							onChange: (evt) => {
+								if (isLegalPerson) {
+									evt.target.value = formatRuc(evt.target.value);
+								} else if (isNaturalPerson) {
+									evt.target.value = formatIdentificationNumber(
+										evt.target.value,
+									);
+								}
+							},
+						})}
+					/>
+
+					<Button
+						type="submit"
+						size="giant"
+						label="Aplicar filtros"
+						className="w-full! rounded-md! bg-alpac-primary-500! text-[15px]! text-white! dark:bg-alpac-primary-700!"
+					/>
+
+					<Button
+						type="button"
+						size="giant"
+						label="Limpiar filtros"
+						onClick={handleClearFilters}
+						className="w-full! rounded-md! bg-slate-500! text-[15px]! text-white! dark:bg-slate-700!"
+					/>
+				</form>
+
 				{error ? (
 					<p className="m-0 text-sm text-red-500 dark:text-red-400">{error}</p>
 				) : null}
@@ -225,10 +341,11 @@ export function SelectSupplierModal({
 					columns={columnConfig}
 					pagination={
 						<Pagination
-							currentPage={pageNumber}
+							currentPage={currentPage}
 							pageSize={PAGE_SIZE}
 							totalRecords={totalRecords}
 							onPageChange={handlePageChange}
+							disabled={GetSuppliers.isFetching}
 						/>
 					}
 				/>

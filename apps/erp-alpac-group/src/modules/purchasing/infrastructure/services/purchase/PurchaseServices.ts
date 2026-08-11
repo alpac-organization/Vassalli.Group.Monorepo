@@ -55,8 +55,6 @@ export class PurchaseServices implements IPurchaseServices {
 
          const response = await this.apiHandler.get<GetPurchaseRequestDetailResponse>(url, { params: cleanParams(rest) });
 
-         console.log("Response purchase request details : ", response);
-
          return response;
 
       } catch (error) {
@@ -88,7 +86,15 @@ export class PurchaseServices implements IPurchaseServices {
          await this.apiHandler.delete<void>(url);
 
       } catch (error) {
+
+         throw error;
+      }
+   }
+
+   async SendPurchaseRequestToReview(payload: any): Promise<void> {
+      try {
          
+      } catch (error) {
          throw error;
       }
    }
