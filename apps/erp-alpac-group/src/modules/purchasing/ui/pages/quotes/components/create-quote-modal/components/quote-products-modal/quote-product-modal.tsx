@@ -54,14 +54,6 @@ const emptyQuotationItem = (
 	warranty_period_time_type: undefined,
 });
 
-/* const resolvePurchaseRequestItemId = (
-	product: PurchaseRequestProductInformation,
-	index: number,
-) =>
-	product.purchase_request_item_id?.trim() ||
-	product.product_details?.product_id?.trim() ||
-	`product-${index}`; */
-
 const toNumberOrUndefined = (value: unknown) => {
 	if (value === "" || value === null || value === undefined) return undefined;
 	const parsed = Number(value);
