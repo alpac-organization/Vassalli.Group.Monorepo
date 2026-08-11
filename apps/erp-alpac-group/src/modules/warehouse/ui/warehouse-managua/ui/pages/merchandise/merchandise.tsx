@@ -4,6 +4,7 @@ import { Alert, AnimatedAlertWrapper } from "@alpac/design-system";
 import { MerchandiseHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-header/merchandise-header";
 import { MerchandiseFiltersBar } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-filters/merchandise-filters";
 import { MerchandiseTable } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-table/merchandise-table";
+import { MerchandiseDetailModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/merchandise-detail-modal";
 import {
   EMPTY_MERCHANDISE_FILTERS,
   type MerchandiseFilters,
@@ -12,6 +13,8 @@ import { resolveDocumentNumberFilters } from "@app/modules/warehouse/ui/warehous
 import { useMerchandise } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useMerchandise";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetMerchandiseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/get-merchandise";
+import type { GetMerchandiseDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/get-merchandise-detail";
+import type { MerchandiseRegisterItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandise";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -26,6 +29,9 @@ export function MerchandisePage() {
   const [pageNumber, setPageNumber] = useState(1);
   const [appliedFilters, setAppliedFilters] = useState<MerchandiseFilters>(
     EMPTY_MERCHANDISE_FILTERS,
+  );
+  const [selectedReceptionId, setSelectedReceptionId] = useState<string | null>(
+    null,
   );
 
   const payloadGetMerchandise = useMemo<GetMerchandiseRequest>(() => {
@@ -47,8 +53,31 @@ export function MerchandisePage() {
     };
   }, [companyId, moduleCode, appliedFilters, pageNumber]);
 
-  const { GetMerchandiseRegister } = useMerchandise({ payloadGetMerchandise });
+  const payloadGetMerchandiseDetail =
+    useMemo<GetMerchandiseDetailRequest | null>(
+      () =>
+        selectedReceptionId
+          ? {
+              company_id: companyId,
+              module_code: moduleCode,
+              reception_id: selectedReceptionId,
+            }
+          : null,
+      [companyId, moduleCode, selectedReceptionId],
+    );
+
+  const { GetMerchandiseRegister, GetMerchandiseDetail } = useMerchandise({
+    payloadGetMerchandise,
+    payloadGetMerchandiseDetail: payloadGetMerchandiseDetail ?? undefined,
+  });
   const { data, isLoading, isFetching, isError, error } = GetMerchandiseRegister;
+  const {
+    data: detail,
+    isLoading: isDetailLoading,
+    isFetching: isDetailFetching,
+    isError: isDetailError,
+    error: detailError,
+  } = GetMerchandiseDetail;
 
   const items = data?.data ?? [];
   const totalRecords = data?.total_count ?? 0;
@@ -60,6 +89,21 @@ export function MerchandisePage() {
       mappedError?.description || "Error al cargar la mercancía",
     );
   }, [isError, error, getMappedError, handleRequestError]);
+
+  useEffect(() => {
+    if (!isDetailError || !detailError || !selectedReceptionId) return;
+    const mappedError = getMappedError(detailError as ApiErrorResponse);
+    handleRequestError(
+      mappedError?.description || "Error al cargar el detalle de mercancía",
+    );
+    setSelectedReceptionId(null);
+  }, [
+    isDetailError,
+    detailError,
+    selectedReceptionId,
+    getMappedError,
+    handleRequestError,
+  ]);
 
   const handleApplyFilters = useCallback((filters: MerchandiseFilters) => {
     setAppliedFilters({
@@ -78,6 +122,10 @@ export function MerchandisePage() {
 
   const handlePageChange = useCallback((page: number) => {
     setPageNumber(page);
+  }, []);
+
+  const handleDetailClick = useCallback((item: MerchandiseRegisterItem) => {
+    setSelectedReceptionId(item.id);
   }, []);
 
   return (
@@ -103,7 +151,15 @@ export function MerchandisePage() {
         totalRecords={totalRecords}
         pageSize={data?.page_size ?? PAGE_SIZE}
         onPageChange={handlePageChange}
+        onDetailClick={handleDetailClick}
         isFetching={isFetching}
+      />
+
+      <MerchandiseDetailModal
+        isOpen={Boolean(selectedReceptionId)}
+        detail={detail}
+        isLoading={isDetailLoading || isDetailFetching}
+        onClose={() => setSelectedReceptionId(null)}
       />
 
       <AnimatedAlertWrapper open={alertState?.open ?? false}>

@@ -6,5 +6,6 @@ export type MerchandiseTableProps = {
   totalRecords: number;
   pageSize: number;
   onPageChange: (page: number) => void;
+  onDetailClick?: (item: MerchandiseRegisterItem) => void;
   isFetching?: boolean;
 };

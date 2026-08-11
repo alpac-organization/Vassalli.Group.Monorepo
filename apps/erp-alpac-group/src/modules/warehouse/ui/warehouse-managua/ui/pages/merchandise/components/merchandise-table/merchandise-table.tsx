@@ -9,9 +9,14 @@ export function MerchandiseTable({
   totalRecords,
   pageSize,
   onPageChange,
+  onDetailClick,
   isFetching = false,
 }: MerchandiseTableProps) {
-  const columns = useMemo(() => getMerchandiseColumns(), []);
+  const lastItemId = data.at(-1)?.id;
+  const columns = useMemo(
+    () => getMerchandiseColumns({ onDetailClick, lastItemId }),
+    [onDetailClick, lastItemId],
+  );
 
   return (
     <div className="flex flex-col min-w-0 w-full overflow-x-auto">

@@ -54,7 +54,6 @@ export class AccessControlServices implements IAccessControl {
     const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}`;
     return this.httpHandler.patch<void>(url, cleanParams(rest));
   }
-
   public async addDucatsToReception(
     payload: AddDucatsToReceptionRequest,
   ): Promise<void> {
