@@ -3,7 +3,10 @@ import type {
   MerchandiseDucatDetailDto,
 } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandise-detail";
 import { resolveDocumentTypeLabel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/resolveStatus";
-import type { MerchandiseDetailDisplayValues } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/types/merchandise-detail-modal.types";
+import type {
+  DucatDisplayValues,
+  MerchandiseDetailDisplayValues,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/types/merchandise-detail-modal.types";
 import {
   formatDateToSpanishWords,
   formatDuration,
@@ -49,10 +52,6 @@ export function mapMerchandiseDetailToDisplay(
       formatTimeWithSeconds(
         registration?.merchandise_registration_time ?? "",
       ) ?? "",
-    registrationEndDate:
-      formatDateToSpanishWords(
-        registration?.merchandise_registration_end_date ?? "",
-      ) ?? "",
     registrationEndTime:
       formatTimeWithSeconds(
         registration?.merchandise_registration_end_time ?? "",
@@ -85,15 +84,11 @@ export function mapMerchandiseDetailToDisplay(
     serviceOrderCode: display(customs?.service_order_code),
     ducaEmpresa: display(duca?.empresa),
     ducaObservations: display(duca?.general_observations),
-    ducaIsInTransit:
-      duca?.is_in_transit == null ? "" : duca.is_in_transit ? "Sí" : "No",
     ducaRegisteredBy: display(duca?.registered_by_user_name),
     ducaRegisteredStartDate:
       formatDateToSpanishWords(duca?.registered_start_date ?? "") ?? "",
     ducaRegisteredStartTime:
       formatTimeWithSeconds(duca?.registered_start_time ?? "") ?? "",
-    ducaRegisteredEndDate:
-      formatDateToSpanishWords(duca?.registered_end_date ?? "") ?? "",
     ducaRegisteredEndTime:
       formatTimeWithSeconds(duca?.registered_end_time ?? "") ?? "",
     ducaDuration: formatDuration(duca?.duration_formatted ?? "") ?? "",
@@ -103,13 +98,11 @@ export function mapMerchandiseDetailToDisplay(
   };
 }
 
-export function mapDucatToDisplay(ducat: MerchandiseDucatDetailDto) {
+export function mapDucatToDisplay(
+  ducat: MerchandiseDucatDetailDto,
+): DucatDisplayValues {
   return {
     ducatNumber: display(ducat.ducat_number),
-    status:
-      typeof ducat.status === "object" && ducat.status
-        ? ((ducat.status as { label?: string }).label ?? "")
-        : display(ducat.status as unknown as string),
     merchandiseName: display(ducat.merchandise_name),
     totalBultos: ducat.total_bultos != null ? String(ducat.total_bultos) : "",
     totalWeight: ducat.total_weight != null ? String(ducat.total_weight) : "",
@@ -122,8 +115,6 @@ export function mapDucatToDisplay(ducat: MerchandiseDucatDetailDto) {
       formatDateToSpanishWords(ducat.registered_start_date ?? "") ?? "",
     registeredStartTime:
       formatTimeWithSeconds(ducat.registered_start_time ?? "") ?? "",
-    registeredEndDate:
-      formatDateToSpanishWords(ducat.registered_end_date ?? "") ?? "",
     registeredEndTime:
       formatTimeWithSeconds(ducat.registered_end_time ?? "") ?? "",
     durationFormatted: formatDuration(ducat.duration_formatted ?? "") ?? "",

@@ -79,17 +79,3 @@ export class AccessControlServices implements IAccessControl {
     return this.httpHandler.post<void>(url, cleanParams(rest));
   }
 }
-
-function countBinarySubstrings(s: string): number {
-  let i = 0;
-  const sizeS = s.length;
-  while (i < sizeS) {
-    let j = i + 1;
-    const current = s[i];
-    const next = s[j];
-    while (current == next) {
-      j++;
-    }
-    i++;
-  }
-}

@@ -1,6 +1,5 @@
 import type { DocumentType } from "@app/core/enums/document.enum";
 import type { RecordEntranceStatusKey } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
-import type { DucaStatusType } from "@app/modules/warehouse/domain/enums/warehouse-managua/duca-satus";
 
 export interface GetMerchandiseDetailResponse {
   id: string;
@@ -62,7 +61,7 @@ export interface MerchandiseDucaRegistryDetail {
 export interface MerchandiseDucatDetailDto {
   id: string;
   ducat_number: string;
-  status: DucaStatusType;
+  status: string;
   merchandise_id: string | null;
   merchandise_name: string | null;
   total_bultos: number | null;

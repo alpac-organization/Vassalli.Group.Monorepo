@@ -12,7 +12,6 @@ export type MerchandiseDetailDisplayValues = {
   countryOfOrigin: string;
   registrationDate: string;
   registrationTime: string;
-  registrationEndDate: string;
   registrationEndTime: string;
   durationFormatted: string;
   registeredByUserName: string;
@@ -35,14 +34,31 @@ export type MerchandiseDetailDisplayValues = {
   serviceOrderCode: string;
   ducaEmpresa: string;
   ducaObservations: string;
-  ducaIsInTransit: string;
   ducaRegisteredBy: string;
   ducaRegisteredStartDate: string;
   ducaRegisteredStartTime: string;
-  ducaRegisteredEndDate: string;
   ducaRegisteredEndTime: string;
   ducaDuration: string;
   ducaUpdatedBy: string;
   ducaUpdatedDate: string;
   ducaUpdatedTime: string;
+};
+
+export type DucatDisplayValues = {
+  ducatNumber: string;
+  merchandiseName: string;
+  totalBultos: string;
+  totalWeight: string;
+  productDescription: string;
+  remitente: string;
+  destinationAreaObservation: string;
+  serviceOrderCode: string;
+  registeredByUserName: string;
+  registeredStartDate: string;
+  registeredStartTime: string;
+  registeredEndTime: string;
+  durationFormatted: string;
+  updatedByUserName: string;
+  updatedDate: string;
+  updatedTime: string;
 };
