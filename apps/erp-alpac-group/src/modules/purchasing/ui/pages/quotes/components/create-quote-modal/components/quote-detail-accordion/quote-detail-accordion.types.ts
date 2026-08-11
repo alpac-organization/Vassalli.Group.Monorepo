@@ -1,8 +1,8 @@
-import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
+import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 
 export interface QuoteDetailAccordionProps {
 	quoteDetailIndex: number;
 	accordionValue: string;
-	product?: GetProductResponse;
-	onRemove: () => void;
+	requestedProduct?: PurchaseRequestProductInformation;	
+	onSelectedChange?: (requestedProduct: PurchaseRequestProductInformation, isSelected: boolean) => void;
 }

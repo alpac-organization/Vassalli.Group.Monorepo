@@ -1,6 +1,8 @@
 import {
    Breadcrumb,
+   SectionHeader,
    Tabs,
+   useTheme,
    type TabItem
 } from "@alpac/design-system";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -8,10 +10,16 @@ import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Supplier } from "../supplier/supplier";
 import { Product } from "@app/modules/product/ui/pages/product/product";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 
 export const SupplierProduct = () => {
+
    const navigate = useNavigate();
-   const { baseUrl } = useBaseUrl();   
+   const { baseUrl } = useBaseUrl();
+   const { theme } = useTheme();
+   const { urlImage, neutralUrlImage } = useCompanyStore();
+
+   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
    const tabs: TabItem<string>[] = [
       {
@@ -52,9 +60,15 @@ export const SupplierProduct = () => {
             />
          </div>
 
+         <SectionHeader
+            title={"Proveedores y Productos"}
+            subtitle={"Gestione a sus proveedores e insumos utilizados"}
+            logoImage={activeLogo}
+         />
+
          <div className="relative mx-auto w-full rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
             <Tabs tabItems={tabs ?? []} activeTab="suppliers" animation="slide" />
-         </div>         
+         </div>
 
       </m.div>
    );
