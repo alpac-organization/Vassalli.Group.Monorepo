@@ -7,9 +7,11 @@ export type ConfirmActionProps = {
    buttonCancelClass?: string;
    isLoading?: boolean;
    disabled?: boolean;
-   hasReason?: boolean;
+   hasObservation?: boolean;
+   observationLabel?: string,
+	isObservationRequired?: boolean,
    onClose?: () => void;
-   handleFinalAction: (type: ConfirmActionType, reason?: string) => void;
+   handleFinalAction: (type: ConfirmActionType, observation?: string) => void;
 }
 
 export type ConfirmActionType = "APPROVE" | "REJECT" | "CANCEL" | "DELETE" | "SEND";

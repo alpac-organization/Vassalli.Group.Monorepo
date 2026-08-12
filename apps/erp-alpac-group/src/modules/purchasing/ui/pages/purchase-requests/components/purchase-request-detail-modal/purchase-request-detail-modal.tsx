@@ -423,7 +423,9 @@ export const PurchaseRequestDetailModal = ({
 				isLoading={isProcessing}
 				disabled={isProcessing}
 				handleFinalAction={handleProcessPurchaseRequest}
-				hasReason={confirmModal.type === "REJECT"}
+				hasObservation={confirmModal.type === "REJECT"}
+				isObservationRequired
+				observationLabel="Razón / Motivo"
 			/>
 		</>
 	);

@@ -92,15 +92,13 @@ export class PurchaseServices implements IPurchaseServices {
       }
    }
 
-   async SendPurchaseRequestToReview(payload: SendPurchaseRequestToReviewPayload): Promise<any> {
+   async SendPurchaseRequestToReview(payload: SendPurchaseRequestToReviewPayload): Promise<void> {
       try {
          const { company_id, module_code, purchase_request_id, ...rest } = payload;
 
          const url = `companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/send`;
 
-         const response = await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
-
-         return response;
+         await this.apiHandler.post<void>(url, rest);         
 
       } catch (error) {
 

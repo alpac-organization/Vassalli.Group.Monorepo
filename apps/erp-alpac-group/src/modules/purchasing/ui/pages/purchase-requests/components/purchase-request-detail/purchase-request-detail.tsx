@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Button, Dropdown, InputText } from "@alpac/design-system";
+import { Button, ContextMenu, Dropdown, InputText } from "@alpac/design-system";
 import { PlusIcon, X } from "lucide-react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
@@ -13,11 +13,15 @@ import {
 	validateIntegerNumber,
 	validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
+import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
+import type { PurchaseRequestDetailProps } from "./purchase-request-detail.types";
+import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const dropdownClassName = `${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
 const labelClassName = "text-black! dark:text-white!";
+const contextMenuButton = "text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
 
 const parseIntegerInput = (value: string): number | "" => {
 	const formatted = formatAmount(value, 10, 0);
@@ -44,9 +48,13 @@ const hasUnitsPerPackage = (label?: string, symbol?: string) => {
 	);
 };
 
-export const PurchaseRequestDetail = () => {
+export const PurchaseRequestDetail = (
+	{ onRequestError, onRequestSuccess }: PurchaseRequestDetailProps
+) => {
+
 	const { companyId, moduleCode } = useUserStore();
 	const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
+	const [isCreateProductOpen, setIsCreateProductOpen] = useState(false);
 
 	const {
 		control,
@@ -82,6 +90,7 @@ export const PurchaseRequestDetail = () => {
 	}, [unitsOfMeasurement, isLoadingUnits]);
 
 	const handleSelectProduct = (products: GetProductResponse[]) => {
+
 		const existingIds = new Set(fields.map((item) => item.product_id));
 
 		products.forEach((product) => {
@@ -98,6 +107,24 @@ export const PurchaseRequestDetail = () => {
 			});
 		});
 	};
+	
+	const handleCreateProduct = (product: CreatedProductDto) => {
+		console.log(product);
+
+		const existingIds = new Set(fields.map((item) => item.product_id));
+
+		if (existingIds.has(product?.data?.product_id)) return;
+
+		append({
+			product_id: product?.data?.product_id,
+			product_name: product?.product_name,
+			description: "",
+			quantity: "",
+			quantity_unit: "",
+			unit_measure_id: "",
+			justification: "",
+		});
+	}
 
 	const assignedProductIds = useMemo(
 		() =>
@@ -118,16 +145,27 @@ export const PurchaseRequestDetail = () => {
 						Seleccione los productos y complete cantidad y unidad de medida
 					</small>
 				</div>
-				<Button
-					type="button"
-					size="giant"
-					label="Agregar producto"
-					icon={<PlusIcon size={18} />}
-					onClick={() => {
-						setIsSelectProductOpen(true);
-						clearErrors();
-					}}
-					className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+
+				<ContextMenu
+					triggerClassName={contextMenuButton}
+					triggerLabel="Agregar Producto"
+					triggerIcon={<PlusIcon size={18} />}
+					items={[
+						{
+							label: "Agregar Producto Existente",
+							onClick: () => {
+								setIsSelectProductOpen(true);
+								clearErrors();
+							}
+						},
+						{
+							label: "Crear Nuevo Producto",
+							onClick: () => {
+								setIsCreateProductOpen(true);
+								clearErrors();
+							}
+						},
+					]}
 				/>
 			</div>
 
@@ -387,6 +425,14 @@ export const PurchaseRequestDetail = () => {
 				onSelect={handleSelectProduct}
 				selectionType="multiple"
 				excludeProductIds={assignedProductIds}
+			/>
+
+			<CreateProductModal
+				isOpen={isCreateProductOpen}
+				onClose={() => setIsCreateProductOpen(false)}
+				onRequestSuccess={onRequestSuccess}
+				onRequestError={onRequestError}
+				onSubmit={handleCreateProduct}
 			/>
 		</div>
 	);

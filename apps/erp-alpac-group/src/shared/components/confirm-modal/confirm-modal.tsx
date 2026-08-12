@@ -17,7 +17,9 @@ export const ConfirmModal = ({
 	buttonActionLabel,
 	buttonActionClass,
 	buttonCancelClass,
-	hasReason,
+	hasObservation,
+	observationLabel,
+	isObservationRequired,
 	onClose,
 	handleFinalAction,
 	isLoading = false,
@@ -30,26 +32,26 @@ export const ConfirmModal = ({
 		handleRequestWarning,
 	} = useAlertState();
 
-	const [reason, setReason] = useState<string>();
+	const [observation, setObservation] = useState<string>();
 
-	const handleInternalFinalAction = (type: ConfirmActionType) => {
-		if (hasReason && !reason?.trim()) {
-			handleRequestWarning("Debe ingresar una razón.", "Campo requerido");
+	const handleInternalFinalAction = (type: ConfirmActionType) => {		
+		if (hasObservation && !observation?.trim() && isObservationRequired) {
+			handleRequestWarning(`Debe ingresar una ${observationLabel ?? "observación"}.`, "Campo requerido");
 			return;
 		}
 
-		handleFinalAction(type, reason);
-		setReason("")
+		handleFinalAction(type, observation);
+		setObservation("")
 	};
 
 	const handleInternalClose = () => {
-		setReason("")
+		setObservation("")
 		onClose?.();
 	}
 
 	return (
 		<Modal
-			size={hasReason ? "2xl" : "md"}
+			size={hasObservation ? "2xl" : "md"}
 			variant="warning"
 			isOpen={isOpen}
 			onClose={() => !isLoading && handleInternalClose()}
@@ -58,17 +60,17 @@ export const ConfirmModal = ({
 				<p className="text-slate-600 dark:text-slate-300 text-center">{title}</p>
 
 				{
-					hasReason &&
+					hasObservation &&
 					<Textarea
-						label="Razón / Motivo"
-						isRequired
-						placeholder="Razón o Motivo..."
+						label={observationLabel ?? "Observación"}
+						isRequired={isObservationRequired}
+						placeholder={`Escriba su ${observationLabel ?? "Observación"}...`}
 						className={inputClassName}
 						labelClassName={labelClassName}
-						value={reason}
+						value={observation}
 						onChange={(e) => {
 							handleCloseAlert();
-							setReason(e.target.value)
+							setObservation(e.target.value)
 						}}
 						maxLength={500}
 						enableCharacterCount
@@ -79,7 +81,7 @@ export const ConfirmModal = ({
 					/>
 				}
 
-				<div className={`flex ${hasReason ? "justify-end" : "justify-center"}  gap-3 mt-4`}>
+				<div className={`flex ${hasObservation ? "justify-end" : "justify-center"}  gap-3 mt-4`}>
 					<Button
 						type="button"
 						label="Salir"

@@ -149,9 +149,9 @@ export const CreateProductModal = ({
 								value.trim().length > 0 ||
 								"El nombre del producto es obligatorio.",
 							maxLength: {
-								value: 200,
+								value: 50,
 								message:
-									"El nombre del producto no puede exceder los 200 caracteres.",
+									"El nombre del producto no puede exceder los 50 caracteres.",
 							},
 						})}
 					/>

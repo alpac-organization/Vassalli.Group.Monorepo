@@ -89,7 +89,7 @@ export const PurchaseRequestModal = ({
 			branch_id: currentBranchId,
 			request_date: dayjs().format("YYYY-MM-DD"),
 			request_type: Number(requestType.value),
-			observations: values.observations.trim(),						
+			observations: values.observations.trim(),
 			purchase_request_items: values.purchase_request_items.map((item) => {
 				const productJustification = item.justification?.trim() ?? "";
 
@@ -201,7 +201,10 @@ export const PurchaseRequestModal = ({
 									)}
 								/>
 
-								<PurchaseRequestDetail />
+								<PurchaseRequestDetail
+									onRequestError={onRequestError}
+									onRequestSuccess={onRequestSuccess}
+								/>
 							</div>
 						</div>
 
