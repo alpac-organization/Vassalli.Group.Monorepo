@@ -82,6 +82,14 @@ export const DashboardLayout = () => {
                items={authorizedPaths}
             />
 
+            {isOpenSidebar && (
+               <div
+                  className="fixed inset-0 z-40 bg-black/50 xl:hidden"
+                  onClick={() => setIsOpenSidebar(false)}
+                  aria-hidden
+               />
+            )}
+
             <div className="flex flex-col flex-1 w-full overflow-hidden transition-all duration-300">
                <TopNavbar
                   isOpen={isOpenSidebar}
