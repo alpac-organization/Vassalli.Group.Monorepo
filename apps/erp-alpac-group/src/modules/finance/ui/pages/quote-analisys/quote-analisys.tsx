@@ -1,128 +1,110 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { m } from "framer-motion";
-import {
-	Breadcrumb,
-	Dropdown,
-	StatsCard,
-} from "@alpac/design-system";
-import {
-	BanknoteIcon,
-	PackageIcon,
-	TrendingDownIcon,
-	UsersIcon,
-} from "lucide-react";
+import { Breadcrumb } from "@alpac/design-system";
 import { useNavigate } from "react-router-dom";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { Loader } from "@app/shared/components/loaders/loader";
 import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
+import { useQuoteAnalysis } from "@app/modules/finance/ui/hooks/quotes-analysis/useQuoteAnalysis";
+import {
+  AccountingReviewStatus,
+  type accountingReviewStatusType,
+} from "@app/modules/finance/enum/analysis-quotation/accounting-review-status";
+import type { GetQuotesAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/get-quote-analysis";
+import { QuoteAnalysisFilters } from "./components/quote-analysis-filters/quote-analysis-filters";
 import { QuoteAnalysisTable } from "./components/quote-analysis-table/quote-analysis-table";
 
+const PAGE_SIZE = 10;
+
 export function QuoteAnalisys() {
-	const navigate = useNavigate();
-	const { baseUrl } = useBaseUrl();
+  const navigate = useNavigate();
+  const { baseUrl } = useBaseUrl();
+  const { companyId, moduleCode } = useUserStore();
+  const [pageNumber, setPageNumber] = useState(1);
+  const [appliedStatus, setAppliedStatus] = useState<string>("");
 
-	const [selectedQuoteId, setSelectedQuoteId] = useState();
+  const payloadGetQuoteAnalysis = useMemo<GetQuotesAnalysisRequest>(
+    () => ({
+      company_id: companyId,
+      module_code: moduleCode,
+      page_number: pageNumber,
+      page_size: PAGE_SIZE,
+      status: appliedStatus as accountingReviewStatusType,
+    }),
+    [companyId, moduleCode, pageNumber, appliedStatus],
+  );
 
-	const quoteOptions = useMemo(
-		() => [], [],
-	);
+  const { GetQuoteAnalysis } = useQuoteAnalysis({
+    payloadGetQuoteAnalysis,
+  });
 
-	const selectedQuote = useMemo(
-		() => [],
-		[selectedQuoteId],
-	);
+  const { data: quoteAnalysis, isLoading, isFetching } = GetQuoteAnalysis;
+  const quotes = quoteAnalysis?.data ?? [];
+  const totalRecords = quoteAnalysis?.total ?? 0;
 
-	return (
-		<m.div
-			initial={{ opacity: 0, y: 20 }}
-			animate={{ opacity: 1, y: 0 }}
-			exit={{ opacity: 0, y: -20 }}
-			transition={{ duration: 0.5 }}
-			className="flex flex-col gap-4"
-		>
-			<div className="flex flex-col gap-4">
-				<div className="flex justify-start">
-					<Breadcrumb
-						items={[
-							{
-								label: "Dashboard",
-								url: `${baseUrl}/`,
-								onClick: (url) => navigate(url),
-							},
-							{
-								label: "Análisis comparativo",
-								url: `${baseUrl}/purchasing/analisys`,
-								onClick: (url) => navigate(url),
-							},
-						]}
-					/>
-				</div>
+  const handleApplyFilters = useCallback(
+    (status: accountingReviewStatusType) => {
+      setAppliedStatus(status);
+      setPageNumber(1);
+    },
+    [],
+  );
 
-				<QuotesPageHeader
-					title="Análisis comparativo"
-					subtitle="Compare precios por producto entre proveedores de una cotización"
-				/>
+  const handleClearFilters = useCallback(() => {
+    setAppliedStatus("");
+    setPageNumber(1);
+  }, []);
 
-				<div className="max-w-md">
-					<Dropdown
-						label="Cotización a analizar"
-						appearance="dark"
-						placeholder="Seleccione una cotización"
-						options={quoteOptions}
-						value={selectedQuoteId}
-						onChange={(value) => setSelectedQuoteId(value)}
-						labelClassName="text-black! dark:text-white!"
-						valueClassName="text-black! dark:text-white!"
-						className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600!"
-					/>
-				</div>
+  const handlePageChange = useCallback((page: number) => {
+    setPageNumber(page);
+  }, []);
 
-				<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-					<StatsCard
-						title="Proveedores cotizados"
-						value={""}
-						icon={<UsersIcon size={28} />}
-						borderColor="border-blue-600! dark:border-blue-400!"
-					/>
-					<StatsCard
-						title="Productos comparados"
-						value={""}
-						icon={<PackageIcon size={28} />}
-						borderColor="border-violet-600! dark:border-violet-400!"
-					/>
-					<StatsCard
-						title="Mejor total"
-						value={""}
-						icon={<BanknoteIcon size={28} />}
-						borderColor="border-emerald-600! dark:border-emerald-400!"
-					/>
-					<StatsCard
-						title="Ahorro potencial"
-						value={""}
-						icon={<TrendingDownIcon size={28} />}
-						borderColor="border-amber-600! dark:border-amber-400!"
-					/>
-				</div>
+  return (
+    <m.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5 }}
+      className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full"
+    >
+      {isLoading && <Loader title="Cargando análisis de cotizaciones..." />}
 
-				{selectedQuote ? (
-					<div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
-						<p className="m-0 text-sm text-slate-600 dark:text-slate-300">
-							<span className="font-semibold text-slate-900 dark:text-white">
-								Observaciones:
-							</span>{" "}
-							{"Sin observaciones"}
-						</p>
-					</div>
-				) : null}
+      <div className="flex justify-start">
+        <Breadcrumb
+          items={[
+            {
+              label: "Dashboard",
+              url: `${baseUrl}/`,
+              onClick: (url) => navigate(url),
+            },
+            {
+              label: "Análisis comparativo",
+              url: `${baseUrl}/finance/analisys`,
+              onClick: (url) => navigate(url),
+            },
+          ]}
+        />
+      </div>
 
+      <QuotesPageHeader
+        title="Análisis comparativo"
+        subtitle="Revise y compare las solicitudes de cotización enviadas a revisión contable"
+      />
 
-				<div className="rounded-xl border border-dashed border-slate-300 p-8 text-center dark:border-slate-600">
-					<p className="m-0 text-sm text-slate-500 dark:text-slate-400">
-						Seleccione una cotización con productos para ver el cuadro
-						comparativo.
-					</p>
-				</div>
+      <QuoteAnalysisFilters
+        onApply={handleApplyFilters}
+        onClear={handleClearFilters}
+      />
 
-			</div>
-		</m.div>
-	);
+      <QuoteAnalysisTable
+        data={quotes}
+        currentPage={quoteAnalysis?.page_number ?? pageNumber}
+        totalRecords={totalRecords}
+        pageSize={quoteAnalysis?.page_size ?? PAGE_SIZE}
+        onPageChange={handlePageChange}
+        isFetching={isFetching}
+      />
+    </m.div>
+  );
 }
