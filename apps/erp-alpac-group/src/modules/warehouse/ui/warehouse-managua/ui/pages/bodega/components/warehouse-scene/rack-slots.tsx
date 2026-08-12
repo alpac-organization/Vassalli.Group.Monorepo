@@ -37,10 +37,11 @@ function buildRackBorders(tramos: RackTramo[]) {
   for (const tramo of tramos) {
     tramo.levels.forEach((code, level) => {
       const isFloor = level === 0;
+      const two = 2;
       const h = isFloor ? FLOOR_PLATE_HEIGHT : SHELF_THICKNESS;
       const y = isFloor
         ? FLOOR_PLATE_HEIGHT / 2
-        : LEVEL_HEIGHT * level + SHELF_THICKNESS / 2;
+        : LEVEL_HEIGHT * level + SHELF_THICKNESS / two;
 
       pushRectBorder(rails, {
         x: tramo.position.x,
