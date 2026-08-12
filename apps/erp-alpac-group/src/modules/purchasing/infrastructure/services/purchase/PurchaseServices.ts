@@ -98,7 +98,7 @@ export class PurchaseServices implements IPurchaseServices {
 
          const url = `companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/send`;
 
-         await this.apiHandler.post<void>(url, rest);         
+         await this.apiHandler.post<void>(url, rest);
 
       } catch (error) {
 

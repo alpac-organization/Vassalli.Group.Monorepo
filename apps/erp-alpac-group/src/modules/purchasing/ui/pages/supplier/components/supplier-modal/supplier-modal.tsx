@@ -382,7 +382,7 @@ export const SupplierModal = ({
          onClose={handleClose}
          title={isEditMode ? "Actualizar proveedor" : "Registro de nuevo proveedor"}
          variant="form"
-         size="5xl"
+         size="4xl"
          description={
             isEditMode
                ? "Modifique la información del proveedor"

@@ -1,4 +1,4 @@
-import type {	
+import type {
 	PurchaseRequestItem,
 } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import type { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
@@ -14,7 +14,8 @@ export type RequestedProductFormItem = Omit<
 };
 
 export type CreatePurchaseRequestFormValues = {
-	area_id: string;	
+	area_id: string;
+	cost_center_id: string;
 	observations: string;
 	purchase_request_items: RequestedProductFormItem[];
 };
@@ -28,3 +29,5 @@ export interface PurchaseRequestModalProps {
 	currentBranchId: string;
 	requestType: PurchaseRequestEnum;
 }
+
+export type PurchaseRequestOriginType = "administration" | "serviceOrder" | "externalCustomer";

@@ -49,7 +49,7 @@ export const HeaderHome = function ({ company_name, username }: HeaderProps) {
           </span>
           <h1 className="text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
             <span
-              className={`header-gradient-flow bg-gradient-to-r ${gradient} bg-[length:200%_auto] bg-clip-text text-transparent`}
+              className={`header-gradient-flow bg-linear-to-r ${gradient} bg-size-[200%_auto] bg-clip-text text-transparent`}
             >
               {text}
             </span>{" "}

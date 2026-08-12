@@ -24,6 +24,7 @@ const emptyFormValues = (
 ): CreateProductRequest => ({
 	company_id: companyId,
 	module_code: moduleCode,
+	product_code: "",
 	product_name: "",
 	description: "",
 	category_id: "",
@@ -94,9 +95,10 @@ export const CreateProductModal = ({
 			...values,
 			company_id: companyId,
 			module_code: moduleCode,
-			product_name: values.product_name.trim(),
+			product_name: values.product_name?.trim(),
+			product_code: values.product_code?.trim(),
 			description: values.description?.trim() || undefined,
-		};
+		};		
 
 		CreateProduct.mutate(payload, {
 			onSuccess(product) {
@@ -135,6 +137,30 @@ export const CreateProductModal = ({
 				noValidate
 			>
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+					<InputText
+						label="Código de producto"
+						placeholder="Ingrese el código de producto"
+						isRequired
+						error={errors.product_code?.message}
+						className={inputClassName}
+						labelClassName={labelClassName}
+						{...register("product_code", {
+							required: "El código del producto es obligatorio.",
+							validate: (value) =>
+								value.trim().length > 0 ||
+								"El código del producto es obligatorio.",
+							maxLength: {
+								value: 100,
+								message:
+									"El código del producto no puede exceder los 100 caracteres.",
+							},
+							onChange(evt) {
+								evt.target.value = evt.target.value.toUpperCase();
+							}
+						})}
+					/>
+
 					<InputText
 						label="Nombre del producto"
 						placeholder="Ej: Aceite Motor 15W40"

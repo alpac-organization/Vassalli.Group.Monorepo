@@ -54,7 +54,7 @@ export const PurchaseRequestDetailModal = ({
 
 	const details = GetPurchaseRequestDetails.data as
 		| GetPurchaseRequestDetailResponse
-		| undefined;
+		| undefined;	
 
 	const isLoading =
 		GetPurchaseRequestDetails.isPending || GetPurchaseRequestDetails.isFetching;

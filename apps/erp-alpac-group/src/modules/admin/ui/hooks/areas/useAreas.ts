@@ -6,7 +6,9 @@ import type { CreateAreaRequest } from "@app/modules/admin/domain/ApiContract/re
 import type { DeleteAreaRequest } from "@app/modules/admin/domain/ApiContract/requests/areas/delete-cost-center";
 const areasServices = new AreasServices(httpHandler);
 export const useAreas = (payload: GetAreasRequest) => {
+
   const queryClient = useQueryClient();
+
   const GetAreasByCompany = useQuery({
     queryKey: ["areas", payload.company_id],
     queryFn: () => areasServices.getAreas(payload),
@@ -18,23 +20,19 @@ export const useAreas = (payload: GetAreasRequest) => {
 
   const CreateArea = useMutation({
     mutationKey: ["create-area"],
-    mutationFn: (payload: CreateAreaRequest) =>
-      areasServices.createArea(payload),
+    mutationFn: (payload: CreateAreaRequest) => areasServices.createArea(payload),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["areas", variables.company_id],
-      });
+      queryClient.invalidateQueries({ queryKey: ["areas", variables.company_id] });
     },
   });
+
   const deleteArea = useMutation({
     mutationKey: ["delete-area"],
-    mutationFn: (payload: DeleteAreaRequest) =>
-      areasServices.deleteArea(payload),
+    mutationFn: (payload: DeleteAreaRequest) => areasServices.deleteArea(payload),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["areas", variables.company_id],
-      });
+      queryClient.invalidateQueries({ queryKey: ["areas", variables.company_id] });
     },
   });
+  
   return { GetAreasByCompany, CreateArea, deleteArea };
 };
