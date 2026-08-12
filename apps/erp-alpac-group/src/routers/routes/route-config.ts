@@ -41,20 +41,18 @@ const {
 const {
   warehouseManaguaSection,
   DucaPanel,
-  warehouseSection4,
   warehouseSection12,
+  BodegaSection,
 } = getManaguaWarehouseRoutes();
 
 const {
   supplierSection,
   purchaseRequestSection,
   quotesSection,
-  purchaseOrderSection  
+  purchaseOrderSection,
 } = getPurchasingRoutes();
 
-const {    
-  quoteAnalisysSection
-} = getFinanceRoutes();
+const { quoteAnalisysSection } = getFinanceRoutes();
 
 export const routeConfig = {
   [ModuleEnum.PAYROLL]: {
@@ -101,7 +99,7 @@ export const routeConfig = {
     [RoleEnum.OPERATOR]: [
       warehouseManaguaSection,
       DucaPanel,
-      warehouseSection4,
+      BodegaSection,
       warehouseSection12,
       warehouseReportSection,
     ],
@@ -110,19 +108,13 @@ export const routeConfig = {
     [RoleEnum.ADMINISTRATOR]: [
       supplierSection,
       purchaseRequestSection,
-      quotesSection,      
-      purchaseOrderSection
+      quotesSection,
+      purchaseOrderSection,
     ],
-    [RoleEnum.MANAGER]: [
-      purchaseRequestSection,
-    ],
-    [RoleEnum.OPERATOR]: [
-      purchaseRequestSection,
-    ],
+    [RoleEnum.MANAGER]: [purchaseRequestSection],
+    [RoleEnum.OPERATOR]: [purchaseRequestSection],
   },
   [ModuleEnum.FINANCE]: {
-    [RoleEnum.ADMINISTRATOR]: [
-      quoteAnalisysSection,      
-    ],
-  }
+    [RoleEnum.ADMINISTRATOR]: [quoteAnalisysSection],
+  },
 };
