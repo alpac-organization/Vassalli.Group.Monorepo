@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Button, Dropdown, Modal, Textarea } from "@alpac/design-system";
+import { Button, Dropdown, InputText, Modal, Textarea } from "@alpac/design-system";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import dayjs from "dayjs";
 import type {
@@ -144,7 +144,7 @@ export const PurchaseRequestModal = ({
 						className="flex min-h-0 flex-1 flex-col"
 						noValidate
 					>
-						<div ref={scrollContainerRef} className="scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+						<div ref={scrollContainerRef} className="p-1 scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
 							<div className="flex flex-col gap-4 pb-2">
 
 								{
@@ -172,6 +172,18 @@ export const PurchaseRequestModal = ({
 										)}
 									/>
 								}
+
+								<div className="flex flex-col gap-2">
+									<span className="text-sm text-gray-500">Centro de costos</span>
+									<InputText
+										readOnly={true}	
+										label="Centro de costos"
+										placeholder="Centro de costos"
+										className={inputClassName}
+										labelClassName={labelClassName}
+										value={"Testing"}
+									/>
+								</div>
 
 								<Controller
 									name="observations"

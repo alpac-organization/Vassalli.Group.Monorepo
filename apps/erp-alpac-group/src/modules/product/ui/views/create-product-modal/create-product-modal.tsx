@@ -8,7 +8,6 @@ import { useProduct } from "../../hooks/useProduct";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { EnumType } from "@app/shared/types/enum.type";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
