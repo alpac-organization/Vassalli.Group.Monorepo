@@ -1,19 +1,16 @@
-export function resolveDocumentNumberFilters(
-  documentNumber: string,
+import {
+  DocumentEnum,
+  type TransportDocumentType,
+} from "@app/core/enums/document.enum";
+
+export function resolveTransportDocumentType(
   documentType: string,
-): { ducat_number: string; customs_declaration_number: string } {
-  const number = documentNumber.trim();
-  if (!number) {
-    return { ducat_number: "", customs_declaration_number: "" };
-  }
+): TransportDocumentType | "" {
+  const key = documentType.trim();
+  if (!key) return "";
 
-  if (documentType === "DUCA") {
-    return { ducat_number: number, customs_declaration_number: "" };
-  }
+  if (key === "DUCA") return DocumentEnum.DUCA;
+  if (key === "CustomsDeclaration") return DocumentEnum.CustomsDeclaration;
 
-  if (documentType === "CustomsDeclaration") {
-    return { ducat_number: "", customs_declaration_number: number };
-  }
-
-  return { ducat_number: number, customs_declaration_number: number };
+  return "";
 }

@@ -9,7 +9,7 @@ import {
   EMPTY_MERCHANDISE_FILTERS,
   type MerchandiseFilters,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/types/merchandise.types";
-import { resolveDocumentNumberFilters } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/utils/mapping-merchandise";
+import { resolveTransportDocumentType } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/utils/mapping-merchandise";
 import { useMerchandise } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useMerchandise";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetMerchandiseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/get-merchandise";
@@ -35,19 +35,13 @@ export function MerchandisePage() {
   );
 
   const payloadGetMerchandise = useMemo<GetMerchandiseRequest>(() => {
-    const documentNumbers = resolveDocumentNumberFilters(
-      appliedFilters.document_number,
-      appliedFilters.document_type,
-    );
-
     return {
       company_id: companyId,
       module_code: moduleCode,
       driver_name: appliedFilters.driver_name.trim(),
       plate_number: appliedFilters.plate_number.trim(),
-      document_type: appliedFilters.document_type.trim(),
-      ducat_number: documentNumbers.ducat_number,
-      customs_declaration_number: documentNumbers.customs_declaration_number,
+      document_type: resolveTransportDocumentType(appliedFilters.document_type),
+      service_order_code: appliedFilters.service_order_code.trim(),
       page_number: pageNumber,
       page_size: PAGE_SIZE,
     };
@@ -107,7 +101,7 @@ export function MerchandisePage() {
 
   const handleApplyFilters = useCallback((filters: MerchandiseFilters) => {
     setAppliedFilters({
-      document_number: filters.document_number.trim(),
+      service_order_code: filters.service_order_code.trim(),
       document_type: filters.document_type.trim(),
       plate_number: filters.plate_number.trim(),
       driver_name: filters.driver_name.trim(),
