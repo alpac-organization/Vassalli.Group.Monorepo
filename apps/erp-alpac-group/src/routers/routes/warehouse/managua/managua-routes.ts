@@ -28,11 +28,18 @@ export const getManaguaWarehouseRoutes = () => {
     path: "section12",
     icon: FilePenIcon,
   };
+  const BodegaSection: SidebarLink = {
+    id: "Bodegas",
+    label: "Asignaciones de Bodegas",
+    path: "bodegas",
+    icon: FilePenIcon,
+  };
 
   return {
     warehouseManaguaSection,
     DucaPanel,
     warehouseSection4,
+    BodegaSection,
     warehouseSection12,
   };
 };

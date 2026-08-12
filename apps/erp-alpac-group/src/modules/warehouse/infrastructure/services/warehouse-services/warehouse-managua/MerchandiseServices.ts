@@ -16,10 +16,16 @@ export class MerchandiseServices implements IMerchandiseServices {
   public async getMerchandise(
     payload: GetMerchandiseRequest,
   ): Promise<GetMerchandiseResponse> {
-    const { company_id, module_code, ...rest } = payload;
+    const { company_id, module_code, document_type, ...rest } = payload;
     const url = `/companies/${company_id}/modules/${module_code}/merchandise-registry`;
     const response = await this.httpHandler.get<GetMerchandiseResponse>(url, {
-      params: cleanParams(rest),
+      params: cleanParams({
+        ...rest,
+        document_type:
+          typeof document_type === "object" && document_type !== null
+            ? document_type.value
+            : document_type,
+      }),
     });
     return response;
   }

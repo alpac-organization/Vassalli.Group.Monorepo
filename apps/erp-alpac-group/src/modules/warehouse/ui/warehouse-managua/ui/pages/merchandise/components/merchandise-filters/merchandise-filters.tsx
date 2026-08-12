@@ -22,7 +22,7 @@ const DOCUMENT_TYPE_OPTIONS: Option[] = [
 
 function buildFiltersPayload(values: MerchandiseFilters): MerchandiseFilters {
   return {
-    document_number: values.document_number.trim(),
+    service_order_code: values.service_order_code.trim(),
     document_type: values.document_type.trim(),
     plate_number: values.plate_number.trim(),
     driver_name: values.driver_name.trim(),
@@ -51,8 +51,7 @@ export function MerchandiseFiltersBar({
         <div className="flex flex-col justify-center gap-2">
           <h3 className="p-0! m-0!">Filtros</h3>
           <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
-            Filtra por número de documento (DUCA o declaración), tipo, placa o
-            conductor.
+            Filtra por orden de servicio, tipo de documento, placa o conductor.
           </small>
         </div>
       </div>
@@ -65,13 +64,13 @@ export function MerchandiseFiltersBar({
       >
         <div className="flex flex-col min-w-0">
           <InputText
-            label="Número de documento"
+            label="Código de orden de servicio"
             className={inputClassName}
             labelClassName={labelClassName}
             type="text"
             errorVariant="tooltip"
-            placeholder="Buscar N.º documento"
-            {...register("document_number")}
+            placeholder="Buscar orden de servicio"
+            {...register("service_order_code")}
           />
         </div>
 

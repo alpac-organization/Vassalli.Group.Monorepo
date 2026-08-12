@@ -1,0 +1,34 @@
+import type { WarehouseLayout } from "../../types/warehouse-3d.types";
+
+interface AisleMarkersProps {
+  layout: WarehouseLayout;
+}
+
+export function AisleMarkers({ layout }: AisleMarkersProps) {
+  const { wallClearance, aisleWidth, depth, sideTramoWidth, centerBlockWidth } =
+    layout.building;
+
+  const aisleLen = depth - wallClearance * 2;
+  const aisleZ = wallClearance + aisleLen / 2;
+
+  const aisle1X = wallClearance + sideTramoWidth + aisleWidth / 2;
+  const aisle2X =
+    wallClearance +
+    sideTramoWidth +
+    aisleWidth +
+    centerBlockWidth +
+    aisleWidth / 2;
+
+  return (
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[aisle1X, 0.02, aisleZ]}>
+        <planeGeometry args={[aisleWidth * 0.92, aisleLen]} />
+        <meshStandardMaterial color="#0f172a" roughness={0.95} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[aisle2X, 0.02, aisleZ]}>
+        <planeGeometry args={[aisleWidth * 0.92, aisleLen]} />
+        <meshStandardMaterial color="#0f172a" roughness={0.95} />
+      </mesh>
+    </group>
+  );
+}
