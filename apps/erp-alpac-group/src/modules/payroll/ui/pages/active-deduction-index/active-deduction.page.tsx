@@ -101,7 +101,7 @@ export const ActiveDeductionsPage = () => {
 
   const filters = useMemo<GetDeductionsRequest>(
     () => ({
-      companie_id: companyId,
+      company_id: companyId,
       module_code: moduleCode,
       status: "Progress",
       page_number: pageNumber,
@@ -115,7 +115,7 @@ export const ActiveDeductionsPage = () => {
   );
 
   const detailFIlters = {
-    companie_id: companyId,
+    company_id: companyId,
     module_code: moduleCode,
     deduction_id: selectedDeduction?.deduction_id ?? "",
     identification_number: selectedDeduction?.identification_number,

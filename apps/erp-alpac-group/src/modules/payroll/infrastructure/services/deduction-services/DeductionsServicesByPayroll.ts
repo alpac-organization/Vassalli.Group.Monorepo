@@ -32,10 +32,10 @@ export class DeductionsServicesByPayroll implements IDeductionsServicesByPayroll
     payload: GetDeductionDetailsRequest,
   ): Promise<DeductionDetailsDto> {
     try {
-      const { companie_id, module_code, deduction_id, identification_number } =
+      const { company_id, module_code, deduction_id, identification_number } =
         payload;
 
-      const url = `/companies/${companie_id}/modules/${module_code}/deductions/${deduction_id}/details`;
+      const url = `/companies/${company_id}/modules/${module_code}/deductions/${deduction_id}/details`;
 
       const response = await this.httpHandler.get<DeductionDetailsDto>(url, {
         params: { identification_number },
@@ -51,10 +51,10 @@ export class DeductionsServicesByPayroll implements IDeductionsServicesByPayroll
     payload: GetDeductionPaymentsRequest,
   ): Promise<GetDeductionPaymentsResponse> {
     try {
-      const { companie_id, module_code, deduction_id, ...queryParams } =
+      const { company_id, module_code, deduction_id, ...queryParams } =
         payload;
 
-      const url = `/companies/${companie_id}/modules/${module_code}/deductions/${deduction_id}/payments`;
+      const url = `/companies/${company_id}/modules/${module_code}/deductions/${deduction_id}/payments`;
 
       const response = await this.httpHandler.get<GetDeductionPaymentsResponse>(
         url,

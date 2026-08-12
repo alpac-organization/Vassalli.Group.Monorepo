@@ -1,19 +1,25 @@
 import { PurchaseOrder } from "@app/modules/purchasing/ui/pages/purchase-order/purchase-order";
-import { Requisition } from "@app/modules/purchasing/ui/pages/requsition/requisition";
-import { Supplier } from "@app/modules/purchasing/ui/pages/supplier/supplier";
+import { PurchaseRequest } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request";
+import { SupplierProduct } from "@app/modules/purchasing/ui/pages/supplier-product/supplier-product";
 import type { RouteObject } from "react-router-dom";
+import { QuotePage } from "@app/modules/purchasing/ui/pages/quotes/quote-page";
 
 export const PurchasingRouter: RouteObject[] = [
    {
       path: "suppliers",
-      element: <Supplier />,
+      element: <SupplierProduct />,
+      
    },
    {
-      path: "requisitions",
-      element: <Requisition />,
+      path: "purchase-requests",
+      element: <PurchaseRequest />,
+   },
+   {
+      path: "quotes",
+      element: <QuotePage />,
    },
    {
       path: "purchase-orders",
       element: <PurchaseOrder />,
-   },
+   },   
 ];

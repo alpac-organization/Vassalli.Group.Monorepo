@@ -29,6 +29,7 @@ export interface ModalProps {
   description?: string | ReactNode;
   children?: ReactNode;
   panelClassName?: string;
+  contentClassName?: string;
   closeButtonClassName?: string;
 }
 export type ModalVariantConfig = {

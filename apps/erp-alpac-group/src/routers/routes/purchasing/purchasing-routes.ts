@@ -1,11 +1,11 @@
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
-import { NotebookIcon, PackageSearchIcon, ShoppingBasketIcon } from "lucide-react";
+import { BanknoteIcon, ChartLineIcon, NotebookIcon, PackageSearchIcon, ShoppingBasketIcon } from "lucide-react";
 
 export const getPurchasingRoutes = () => {
 
    const supplierSection: SidebarLink = {
       id: "supplier",
-      label: "Proveedores",
+      label: "Proveedores y Productos",
       path: "suppliers",
       icon: PackageSearchIcon
    };
@@ -17,16 +17,32 @@ export const getPurchasingRoutes = () => {
       icon: ShoppingBasketIcon
    };
 
-   const requisitionSection: SidebarLink = {
-      id: "requisition",
-      label: "Requisiciones",
-      path: "requisitions",
+   const purchaseRequestSection: SidebarLink = {
+      id: "purchase-request",
+      label: "Solicitudes de Compra",
+      path: "purchase-requests",
       icon: NotebookIcon
+   }
+
+   const quotesSection: SidebarLink = {
+      id: "quote",
+      label: "Cotizaciones",
+      path: "quotes",
+      icon: BanknoteIcon
+   }
+
+   const quoteAnalisysSection: SidebarLink = {
+      id: "analisys",
+      label: "Análisis comparativo",
+      path: "analisys",
+      icon: ChartLineIcon
    }
 
    return {
       supplierSection,
-      requisitionSection,
+      purchaseRequestSection,
+      quotesSection,
+      quoteAnalisysSection,
       purchaseOrderSection
    }
 }

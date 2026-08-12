@@ -6,4 +6,6 @@ export interface TextareaProps
    error?: string;
    labelClassName?: string;
    isRequired?: boolean;
+   enableCharacterCount?: boolean;
+   maxLength?: number;
 }

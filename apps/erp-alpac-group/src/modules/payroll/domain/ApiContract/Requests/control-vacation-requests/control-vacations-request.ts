@@ -1,8 +1,8 @@
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+
 export type VacationReportType = "VacationAccrual" | "VacationRequest";
 
-export interface ControlVacationHistoryRequest {
-  company_id: string;
-  module_code: string;
+export interface ControlVacationHistoryRequest extends BaseRequest {
   type: VacationReportType;
   branch_id?: string;
   work_area_id?: number;

@@ -1,140 +1,253 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { EllipsisVerticalIcon } from "lucide-react";
-import type { ContextMenuProps } from "./context-menu.type";
+import type { ContextMenuProps, MenuPosition } from "./context-menu.type";
+import { Button } from "../../buttons";
+import { createPortal } from "react-dom";
 
 const loadFeatures = () =>
-   import("framer-motion").then((res) => res.domAnimation);
+	import("framer-motion").then((res) => res.domAnimation);
 
-export const ContextMenu = ({ items, triggerLabel }: ContextMenuProps) => {
-   const [open, setOpen] = useState(false);
-   const containerRef = useRef<HTMLDivElement>(null);
+const MENU_GAP = 6;
+const VIEWPORT_PADDING = 8;
+const FALLBACK_MENU_WIDTH = 160;
+const FALLBACK_ITEM_HEIGHT = 40;
 
-   const getScrollParent = (el: HTMLElement | null): HTMLElement | null => {
-      let parent = el?.parentElement ?? null;
+export const ContextMenu = ({
+	items,
+	triggerLabel,
+	triggerClassName,
+	triggerIcon,
+	triggerButtonSize,
+	openUpOnMobile = false,
+}: ContextMenuProps) => {
+	const [open, setOpen] = useState(false);
+	const [position, setPosition] = useState<MenuPosition | null>(null);
+	const containerRef = useRef<HTMLDivElement>(null);
+	const menuRef = useRef<HTMLUListElement>(null);
 
-      while (parent) {
-         const style = getComputedStyle(parent);
-         const overflow = style.overflow + style.overflowX + style.overflowY;
-         if (/(auto|scroll)/.test(overflow)) return parent;
-         parent = parent.parentElement;
-      }
+	const updatePosition = () => {
+		const trigger = containerRef.current;
+		if (!trigger) return;
 
-      return null;
-   };
+		const rect = trigger.getBoundingClientRect();
+		const menuWidth = menuRef.current?.offsetWidth || FALLBACK_MENU_WIDTH;
+		const menuHeight =
+			menuRef.current?.offsetHeight ||
+			Math.max(items.length, 1) * FALLBACK_ITEM_HEIGHT;
 
-   const isScrollbarClick = (event: MouseEvent, el: HTMLElement) => {
-      const rect = el.getBoundingClientRect();
+		const spaceBelow = window.innerHeight - rect.bottom;
+		const spaceAbove = rect.top;
+		const forceOpenUp =
+			openUpOnMobile && window.matchMedia("(max-width: 639px)").matches;
+		const openUp =
+			forceOpenUp ||
+			(spaceBelow < menuHeight + MENU_GAP && spaceAbove > spaceBelow);
 
-      const onVertical = event.clientX >= rect.left + el.clientWidth;
-      const onHorizontal = event.clientY >= rect.top + el.clientHeight;
+		let top = openUp
+			? rect.top - menuHeight - MENU_GAP
+			: rect.bottom + MENU_GAP;
 
-      return onVertical || onHorizontal;
-   };
+		let left = rect.right - menuWidth;
 
-   useEffect(() => {
-      if (!open) return;
+		if (left < VIEWPORT_PADDING) {
+			left = rect.left;
+		}
 
-      const scrollParent = getScrollParent(containerRef.current);
+		if (left + menuWidth > window.innerWidth - VIEWPORT_PADDING) {
+			left = window.innerWidth - menuWidth - VIEWPORT_PADDING;
+		}
 
-      const handleClickOutside = (event: MouseEvent) => {
+		if (top < VIEWPORT_PADDING) {
+			top = VIEWPORT_PADDING;
+		}
 
-         if (containerRef.current?.contains(event.target as Node)) return;
+		if (top + menuHeight > window.innerHeight - VIEWPORT_PADDING) {
+			top = Math.max(
+				VIEWPORT_PADDING,
+				window.innerHeight - menuHeight - VIEWPORT_PADDING,
+			);
+		}
 
-         if (scrollParent && isScrollbarClick(event, scrollParent)) return;
+		setPosition((prev) => {
+			if (
+				prev &&
+				prev.top === top &&
+				prev.left === left &&
+				prev.openUp === openUp
+			) {
+				return prev;
+			}
 
-         setOpen(false);
-      };
+			return { top, left, openUp };
+		});
+	};
 
-      const handleEscape = (event: KeyboardEvent) => {
-         if (event.key === "Escape") setOpen(false);
-      };
+	const getScrollParent = (el: HTMLElement | null): HTMLElement | null => {
+		let parent = el?.parentElement ?? null;
 
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleEscape);
+		while (parent) {
+			const style = getComputedStyle(parent);
+			const overflow = style.overflow + style.overflowX + style.overflowY;
+			if (/(auto|scroll)/.test(overflow)) return parent;
+			parent = parent.parentElement;
+		}
 
-      return () => {
-         document.removeEventListener("mousedown", handleClickOutside);
-         document.removeEventListener("keydown", handleEscape);
-      };
-   }, [open]);
+		return null;
+	};
 
-   return (
-      <div ref={containerRef} className="relative inline-block">
-         <button
-            type="button"
-            aria-expanded={open}
-            aria-haspopup="menu"
-            onClick={() => setOpen((prev) => !prev)}
-            className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 transition-colors
-                   hover:bg-slate-50
-                   dark:border-slate-600 dark:bg-[#272b34] dark:text-slate-200 dark:hover:bg-slate-700/40"
-         >
-            {triggerLabel ? (
-               triggerLabel
-            ) : (
-               <EllipsisVerticalIcon size={20} />
-            )}
-         </button>
+	const isScrollbarClick = (event: MouseEvent, el: HTMLElement) => {
+		const rect = el.getBoundingClientRect();
+		const onVertical = event.clientX >= rect.left + el.clientWidth;
+		const onHorizontal = event.clientY >= rect.top + el.clientHeight;
+		return onVertical || onHorizontal;
+	};
 
-         <LazyMotion features={loadFeatures} strict>
-            <AnimatePresence>
-               {open && (
-                  <m.ul
-                     role="menu"
-                     initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                     exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                     transition={{ duration: 0.16, ease: "easeOut" }}
-                     className="m-0! absolute right-0 z-50 mt-2 min-w-40 origin-top-right overflow-hidden rounded-lg border border-slate-200
-                         bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:bg-[#272b34] dark:border-slate-600 dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]"
-                  >
-                     {items.map((item, index) => {
-                        if (item.separator) {
-                           return (
-                              <li
-                                 key={`separator-${index}`}
-                                 role="separator"
-                                 className="my-1 border-t border-slate-200 dark:border-slate-600"
-                              />
-                           );
-                        }
+	useLayoutEffect(() => {
+		if (!open) {
+			setPosition(null);
+			return;
+		}
 
-                        const showDivider =
-                           index < items.length - 1 && !items[index + 1]?.separator;
+		updatePosition();
+	}, [open, items.length]);
 
-                        return (
-                           <li
-                              key={item.label}
-                              role="none"
-                              className={
-                                 showDivider
-                                    ? "border-b border-slate-200 dark:border-slate-600"
-                                    : undefined
-                              }
-                           >
-                              <button
-                                 type="button"
-                                 role="menuitem"
-                                 disabled={item.disabled}
-                                 onClick={() => {
-                                    item.onClick();
-                                    setOpen(false);
-                                 }}
-                                 className="w-full px-3 py-2 text-left text-sm text-slate-700 transition-colors
-                                 hover:bg-slate-100
+	useLayoutEffect(() => {
+		if (!open || !position || !menuRef.current) return;
+		updatePosition();
+	}, [open, position?.top, position?.left, position?.openUp]);
+
+	useEffect(() => {
+		if (!open) return;
+
+		const scrollParent = getScrollParent(containerRef.current);
+
+		const handleClickOutside = (event: MouseEvent) => {
+			const target = event.target as Node;
+
+			if (containerRef.current?.contains(target)) return;
+			if (menuRef.current?.contains(target)) return;
+			if (scrollParent && isScrollbarClick(event, scrollParent)) return;
+
+			setOpen(false);
+		};
+
+		const handleEscape = (event: KeyboardEvent) => {
+			if (event.key === "Escape") setOpen(false);
+		};
+
+		const handleReposition = () => {
+			updatePosition();
+		};
+
+		document.addEventListener("mousedown", handleClickOutside);
+		document.addEventListener("keydown", handleEscape);
+		window.addEventListener("resize", handleReposition);
+		window.addEventListener("scroll", handleReposition, true);
+
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+			document.removeEventListener("keydown", handleEscape);
+			window.removeEventListener("resize", handleReposition);
+			window.removeEventListener("scroll", handleReposition, true);
+		};
+	}, [open]);
+
+	const menu =
+		open && position
+			? createPortal(
+					<LazyMotion features={loadFeatures} strict>
+						<AnimatePresence>
+							<m.ul
+								ref={menuRef}
+								role="menu"
+								initial={{
+									opacity: 0,
+									y: position.openUp ? 6 : -6,
+									scale: 0.98,
+								}}
+								animate={{ opacity: 1, y: 0, scale: 1 }}
+								exit={{
+									opacity: 0,
+									y: position.openUp ? 4 : -4,
+									scale: 0.98,
+								}}
+								transition={{ duration: 0.16, ease: "easeOut" }}
+								style={{
+									position: "fixed",
+									top: position.top,
+									left: position.left,
+								}}
+								className={[
+									"m-0! z-50 min-w-40 overflow-hidden rounded-lg border border-slate-200",
+									"bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]",
+									"dark:bg-[#272b34] dark:border-slate-600 dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]",
+									position.openUp ? "origin-bottom-right" : "origin-top-right",
+								].join(" ")}
+							>
+								{items.map((item, index) => {
+									if (item.separator) {
+										return (
+											<li
+												key={`separator-${index}`}
+												role="separator"
+												className="my-1 border-t border-slate-200 dark:border-slate-600"
+											/>
+										);
+									}
+
+									const showDivider =
+										index < items.length - 1 && !items[index + 1]?.separator;
+
+									return (
+										<li
+											key={item.label}
+											role="none"
+											className={
+												showDivider
+													? "border-b border-slate-200 dark:border-slate-600"
+													: undefined
+											}
+										>
+											<button
+												type="button"
+												role="menuitem"
+												disabled={item.disabled}
+												onClick={() => {
+													item.onClick();
+													setOpen(false);
+												}}
+												className="w-full px-3 py-2 text-left text-sm text-slate-700 transition-colors
+                                 hover:bg-slate-100 whitespace-nowrap
                                  disabled:cursor-not-allowed disabled:opacity-50
                                  dark:text-slate-200 dark:hover:bg-slate-700/60"
-                              >
-                                 {item.label}
-                              </button>
-                           </li>
-                        );
-                     })}
-                  </m.ul>
-               )}
-            </AnimatePresence>
-         </LazyMotion>
-      </div>
-   );
+											>
+												{item.label}
+											</button>
+										</li>
+									);
+								})}
+							</m.ul>
+						</AnimatePresence>
+					</LazyMotion>,
+					document.body,
+				)
+			: null;
+
+	return (
+		<div ref={containerRef} className="relative inline-block">
+			<Button
+				type="button"
+				aria-expanded={open}
+				aria-haspopup="menu"
+				size={triggerButtonSize ?? "giant"}
+				onClick={() => setOpen((prev) => !prev)}
+				className={[triggerClassName].filter(Boolean).join(" ")}
+				label={triggerLabel ?? ""}
+				icon={triggerIcon ?? <EllipsisVerticalIcon size={20} />}
+			/>
+
+			{menu}
+		</div>
+	);
 };

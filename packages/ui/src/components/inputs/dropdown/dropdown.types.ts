@@ -1,22 +1,29 @@
+import type { ReactNode } from "react";
+
 export interface Option {
-   label: string;
-   value: string | number;
+  label: string;
+  value: string | number;
 }
 
 export type DropdownAppearance = "default" | "dark";
 
+export type ErrorVariant = "text" | "tooltip";
+
 export interface DropdownProps {
-   label?: string;
-   options: Option[];
-   placeholder?: string;
-   error?: string;
-   name?: string;
-   onChange?: (value: any) => void;
-   value?: any;
-   className?: string;
-   labelClassName?: string;
-   isRequired?: boolean;
-   valueClassName?: string;
-   /** Dark panel surface (#272b34); matches dark modals. */
-   appearance?: DropdownAppearance;
+  label?: string;
+  options: Option[];
+  placeholder?: string;
+  error?: string;
+  errorVariant?: ErrorVariant;
+  name?: string;
+  onChange?: (value: any) => void;
+  value?: any;
+  className?: string;
+  labelClassName?: string;
+  isRequired?: boolean;
+  optional?: boolean;
+  valueClassName?: string;
+  appearance?: DropdownAppearance;
+  renderOptionAction?: (option: Option) => ReactNode;
+  onEditOption?: (option: Option) => void;
 }

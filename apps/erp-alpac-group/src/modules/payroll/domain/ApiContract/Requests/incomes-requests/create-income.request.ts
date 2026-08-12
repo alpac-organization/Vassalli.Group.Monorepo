@@ -1,17 +1,10 @@
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+
 /**
  * Este payload es para crear ingresos en la nomina
  */
-export interface CreateIncomeRequest {
-  /**
-   * Identificador único de la empresa
-   */
-  company_id: string;
-
-  /**
-   * Código del módulo
-   */
-  module_code: string;
-
+export interface CreateIncomeRequest extends BaseRequest {
+  
   /**
    * Identificador único de la nomina
    */

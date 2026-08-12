@@ -511,7 +511,7 @@ export function PayrollClosedHistoryPage() {
       const svc = new PayrollServices(httpHandler);
       const [reportResponse, payrollItems] = await Promise.all([
         svc.generateReportsPayroll({
-          companie_id: companyId,
+          company_id: companyId,
           module_code: moduleCode,
           payroll_type: type_payroll,
           payroll_id,
@@ -585,7 +585,7 @@ export function PayrollClosedHistoryPage() {
 
       const [reportResponse, allItems, allPermissions] = await Promise.all([
         payrollServices.generateReportsPayroll({
-          companie_id: companyId,
+          company_id: companyId,
           module_code: moduleCode,
           payroll_type: type_payroll,
           payroll_id,
@@ -655,7 +655,7 @@ export function PayrollClosedHistoryPage() {
 
       const [reportResponse, allItems, allPermissions] = await Promise.all([
         payrollServices.generateReportsPayroll({
-          companie_id: companyId,
+          company_id: companyId,
           module_code: moduleCode,
           payroll_type: type_payroll,
           payroll_id,
@@ -829,7 +829,7 @@ export function PayrollClosedHistoryPage() {
     const payrollServices = new PayrollServices(httpHandler);
     const [reportResponse, allItems] = await Promise.all([
       payrollServices.generateReportsPayroll({
-        companie_id: companyId,
+        company_id: companyId,
         module_code: moduleCode,
         payroll_type: type_payroll,
         payroll_id,
@@ -1025,7 +1025,7 @@ export function PayrollClosedHistoryPage() {
       const svc = new PayrollServices(httpHandler);
       const [reportResponse, payrollItems] = await Promise.all([
         svc.generateReportsPayroll({
-          companie_id: companyId,
+          company_id: companyId,
           module_code: moduleCode,
           payroll_type: type_payroll,
           payroll_id,
@@ -1184,7 +1184,7 @@ export function PayrollClosedHistoryPage() {
       const allItems = await fetchAllItems();
       const payrollServices = new PayrollServices(httpHandler);
       const inssResponse = await payrollServices.generateReportsPayroll({
-        companie_id: companyId,
+        company_id: companyId,
         report_type: "InssFortnightly",
         payroll_id: payroll_id,
         payroll_type: type_payroll,
@@ -1339,7 +1339,7 @@ export function PayrollClosedHistoryPage() {
       const allItems = await fetchAllItems();
       const payrollServices = new PayrollServices(httpHandler);
       const inssResponse = await payrollServices.generateReportsPayroll({
-        companie_id: companyId,
+        company_id: companyId,
         report_type: "InssFortnightly",
         payroll_id: payroll_id,
         payroll_type: payrollType,
@@ -1430,7 +1430,7 @@ export function PayrollClosedHistoryPage() {
         : "InssMonthly";
 
       const payload = {
-        companie_id: companyId,
+        company_id: companyId,
         report_type: reportType,
         payroll_id: payroll_id,
         payroll_type: type_payroll,
@@ -1531,7 +1531,7 @@ export function PayrollClosedHistoryPage() {
     const payrollServices = new PayrollServices(httpHandler);
 
     const payload = {
-      companie_id: companyId,
+      company_id: companyId,
       report_type: "IrAndSalaryEarned" as const,
       payroll_id: payroll_id,
       payroll_type: type_payroll,
@@ -1617,7 +1617,7 @@ export function PayrollClosedHistoryPage() {
     const payrollServices = new PayrollServices(httpHandler);
 
     const payload = {
-      companie_id: companyId,
+      company_id: companyId,
       report_type: "Depreciations" as const,
       payroll_id: payroll_id,
       payroll_type: type_payroll,
@@ -1789,7 +1789,7 @@ export function PayrollClosedHistoryPage() {
     const payrollServices = new PayrollServices(httpHandler);
 
     const reportPayload = {
-      companie_id: companyId,
+      company_id: companyId,
       payroll_id: payroll_id,
       payroll_type: type_payroll,
       module_code: moduleCode,
@@ -1863,7 +1863,7 @@ export function PayrollClosedHistoryPage() {
     const payrollServices = new PayrollServices(httpHandler);
 
     const payload = {
-      companie_id: companyId,
+      company_id: companyId,
       report_type: "Subsidies" as const,
       payroll_id: payroll_id,
       payroll_type: type_payroll,

@@ -1,10 +1,10 @@
 import type { PayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
-export interface GenerateReportPayrollRequest {
-  report_type: ReportPayrollType;
-  companie_id: string;
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+
+export interface GenerateReportPayrollRequest extends BaseRequest {
+  report_type: ReportPayrollType;  
   payroll_id: string;
-  payroll_type: PayrollType;
-  module_code: string;
+  payroll_type: PayrollType;  
   identification_number?: string;
   area_id?: string;
 }
