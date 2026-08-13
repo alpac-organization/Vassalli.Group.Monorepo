@@ -1,72 +1,40 @@
 import type { accountingReviewStatusType } from "@app/modules/finance/enum/analysis-quotation/accounting-review-status";
-export interface GetQuotesAnalysisResponse {
-  data: QuoteDetails[];
+import type { UserStatusKey } from "@app/shared/enum/user-status";
+export interface GetRequisitionAccountingReviewsResponse {
+  data: RequisitionAccountingReviewDto[];
   page_number: number;
   page_size: number;
   total: number;
 }
 
-export interface QuoteDetails {
-  requisition_accounting_review_id: string;
+export interface RequisitionAccountingReviewDto {
   comments: string;
+  sent_to_review_at: string;
   status: accountingReviewStatusType;
-  reviewer_user_information: UserInformation;
-  purchase_request: PurchaseRequest;
+  requisition_accounting_review_id: string;
+  sent_by_user_information: SentByUserInformation;
 }
 
-interface UserInformation {
+export interface SentByUserInformation {
   user_id: string;
   email: string;
   fullname: string;
   picture_url: string;
+  user_status: UserStatusKey;
+  work_area_information: WorkAreaInformation;
 }
 
-interface PurchaseRequest {
-  code: string;
-  purchase_request_id: string;
-  request_type: "";
-  request_date: string;
-  revision_date: string;
-  observations: string;
-  reason_rejection: string;
-  branch_information: BranchInformation;
-  creator_user_information: UserInformation;
-  reviewer_user_information: UserInformation;
-  requested_products: RequestedProduct[];
-}
+export type ReviewerUserInformation = SentByUserInformation;
 
-interface BranchInformation {
-  branch_id: string;
-  branch_code: string;
-  branch_name: string;
-  company_alias: string;
+export interface GetRequisitionAccountingReviewsParams {
+  area_id?: string;
+  status?: accountingReviewStatusType;
+  page_number?: number;
+  page_size?: number;
 }
-
-interface RequestedProduct {
-  has_quotation: boolean;
-  quantity: number;
-  quantity_unit: number;
-  description: string;
-  justification: string;
-  purchase_request_id: string;
-  product_details: ProductDetails;
-  unit_measure_information: UnitMeasureInformation;
-}
-
-interface ProductDetails {
-  product_id: string;
-  product_name: string;
-  category_information: CategoryInformation;
-}
-
-interface CategoryInformation {
-  catagory_id: string;
-  name: string;
-  code: string;
-}
-
-interface UnitMeasureInformation {
-  code: string;
-  name: string;
-  symbol: string;
+interface WorkAreaInformation {
+  work_area_id: string;
+  work_area_code: string;
+  description?: string;
+  work_area_name?: string;
 }
