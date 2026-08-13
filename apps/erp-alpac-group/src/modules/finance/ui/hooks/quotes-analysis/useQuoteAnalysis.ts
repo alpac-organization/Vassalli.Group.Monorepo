@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { warehouseHttpHandler } from "@app/core/adapters/axiosAdapter";
 import type { GetQuotesAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/get-quote-analysis";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { GetQuotesAnalysisResponse } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
+import type { GetRequisitionAccountingReviewsResponse } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
 const quoteAnalysisService = new QuoteAnalysisServices(warehouseHttpHandler);
 type UseQuoteAnalysisProps = {
   payloadGetQuoteAnalysis?: GetQuotesAnalysisRequest;
@@ -11,7 +11,7 @@ type UseQuoteAnalysisProps = {
 export const useQuoteAnalysis = (props: UseQuoteAnalysisProps) => {
   const { payloadGetQuoteAnalysis } = props;
   const GetQuoteAnalysis = useQuery<
-    GetQuotesAnalysisResponse,
+    GetRequisitionAccountingReviewsResponse,
     ApiErrorResponse
   >({
     queryKey: ["quotes-analysis", payloadGetQuoteAnalysis],

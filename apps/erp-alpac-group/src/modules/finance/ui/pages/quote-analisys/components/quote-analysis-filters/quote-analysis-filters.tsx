@@ -1,5 +1,5 @@
 import { Button, Dropdown } from "@alpac/design-system";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   AccountingReviewStatus,
   AccountingTypeOptions,
@@ -10,6 +10,8 @@ import {
   dropdownClassName,
   labelClassName,
 } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-filters/utils/styles";
+import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 const resolveStatus = (value: string | number): accountingReviewStatusType =>
   AccountingTypeOptions.find((option) => option.value === value)?.value ??
@@ -19,10 +21,26 @@ export function QuoteAnalysisFilters({
   onApply,
   onClear,
 }: QuoteAnalysisFiltersProps) {
+  const { companyId } = useUserStore();
   const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedAreaId, setSelectedAreaId] = useState<string>("");
+
+  const { GetAreasByCompany } = useAreas({
+    company_id: companyId ?? "",
+  });
+
+  const areaOptions = useMemo(
+    () =>
+      (GetAreasByCompany.data ?? []).map((area) => ({
+        label: area.work_area_name,
+        value: area.work_area_id,
+      })),
+    [GetAreasByCompany.data],
+  );
 
   const handleClear = () => {
     setSelectedStatus("");
+    setSelectedAreaId("");
     onClear();
   };
 
@@ -32,7 +50,7 @@ export function QuoteAnalysisFilters({
         <div className="flex flex-col justify-center gap-2">
           <h3 className="p-0! m-0!">Filtros</h3>
           <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
-            Filtra las solicitudes de revisión contable por estado.
+            Filtra las solicitudes de revisión contable por estado y área.
           </small>
         </div>
       </div>
@@ -40,7 +58,10 @@ export function QuoteAnalysisFilters({
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          onApply(selectedStatus as accountingReviewStatusType);
+          onApply({
+            status: (selectedStatus || "") as accountingReviewStatusType | "",
+            area_id: selectedAreaId,
+          });
         }}
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end"
       >
@@ -52,6 +73,20 @@ export function QuoteAnalysisFilters({
             options={AccountingTypeOptions}
             value={selectedStatus}
             onChange={(value) => setSelectedStatus(resolveStatus(value))}
+            labelClassName={labelClassName}
+            valueClassName={labelClassName}
+            className={`${dropdownClassName} h-[42px]! sm:h-[46px]!`}
+          />
+        </div>
+
+        <div className="flex flex-col min-w-0">
+          <Dropdown
+            appearance="dark"
+            label="Área"
+            placeholder="Seleccione un área"
+            options={areaOptions}
+            value={selectedAreaId}
+            onChange={(value) => setSelectedAreaId(String(value))}
             labelClassName={labelClassName}
             valueClassName={labelClassName}
             className={`${dropdownClassName} h-[42px]! sm:h-[46px]!`}
