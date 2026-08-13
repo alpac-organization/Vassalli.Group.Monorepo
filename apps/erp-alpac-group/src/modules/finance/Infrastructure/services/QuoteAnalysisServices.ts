@@ -3,7 +3,8 @@ import type { IHttpHandler } from "@app/core/ports";
 import type { GetQuotesAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/get-quote-analysis";
 import type { GetRequisitionAccountingReviewsResponse } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
 import { cleanParams } from "@app/shared/utils/object.utils";
-
+import type { RequisitionAccountingReviewDetailsDto } from "@app/modules/finance/domain/ApiContract/responses/quote-analysis-details";
+import type { GetQuoteAnalysisDetailsRequest } from "@app/modules/finance/domain/ApiContract/requests/quote-analysis-detail";
 export class QuoteAnalysisServices implements IQuoteAnalysis {
   private readonly httpClient: IHttpHandler;
   constructor(httpClient: IHttpHandler) {
@@ -25,6 +26,16 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
           area_id,
         }),
       });
+    return response;
+  }
+  public async GetQuoteAnalysisDetails(
+    payload: GetQuoteAnalysisDetailsRequest,
+  ): Promise<RequisitionAccountingReviewDetailsDto> {
+    const { company_id, module_code, requisition_accounting_review_id } =
+      payload;
+    const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${requisition_accounting_review_id}`;
+    const response =
+      await this.httpClient.get<RequisitionAccountingReviewDetailsDto>(url);
     return response;
   }
 }

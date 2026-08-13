@@ -64,6 +64,7 @@ export interface PurchaseRequestProductInformation {
 	purchase_request_item_id: string;
 	product_details: PurchaseRequestProductDetails;
 	unit_measure_information: PurchaseRequestUnitMeasureInformation;
+	quotations: PurchaseRequestProductQuotation[];
 }
 
 export interface PurchaseRequestProductDetails {
@@ -82,4 +83,32 @@ export interface PurchaseRequestUnitMeasureInformation {
 	code: string | null;
 	name: string | null;
 	symbol: string | null;
+}
+
+export interface PurchaseRequestProductQuotationSupplier {
+	supplier_id: string;
+	image_url: string | null;
+	suppliers_legal_name: string | null;
+	identification_number: string | null;
+	identification_type: string | null;
+}
+
+export interface PurchaseRequestProductQuotation {
+	quotation_id: string;
+	is_active: boolean;
+	has_delivery: boolean;
+	has_guarantee: boolean;
+	is_accepted_for_purchase: boolean;
+	iva: number;
+	price: number;
+	price_unit: number;
+	price_total: number;
+	quote_date: string;
+	brand_product: string | null;
+	delivery_time: number | null;
+	delivery_time_type: string | null;
+	warranty_period: number | null;
+	warranty_period_time_type: string | null;
+	supplier_id: string;
+	supplier_information: PurchaseRequestProductQuotationSupplier;
 }
