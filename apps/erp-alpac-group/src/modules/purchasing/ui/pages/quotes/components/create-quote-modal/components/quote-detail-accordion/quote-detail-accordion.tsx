@@ -52,8 +52,10 @@ export function QuoteDetailAccordion({
 		<>
 			<AccordionItem
 				value={accordionValue}
+				isOpen={true}
 				className="rounded-md! border-slate-300! dark:border-slate-600! dark:bg-[#272b34]!"
 				contentClassName="p-4"
+
 				title={
 					<div className="flex min-w-0 items-center gap-3">
 						<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">

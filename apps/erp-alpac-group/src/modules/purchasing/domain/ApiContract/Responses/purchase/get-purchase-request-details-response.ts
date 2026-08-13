@@ -2,13 +2,18 @@ import type { GetPurchaseRequestResponse } from "./get-purchase-request-response
 
 export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResponse {
 	observations: string | null;
-	reason_rejection: string | null;
-	branch_information: PurchaseRequestBranchInformation;
-
+	reason_rejection: string | null;	
 	information_from_requesting_area: WorkArea;
 	creator_user_information: PurchaseRequestUserInformation;
 	reviewer_user_information: PurchaseRequestUserInformation | null;
-	requested_products: PurchaseRequestProductInformation[];
+	branch_information: PurchaseRequestBranchInformation;		
+}
+
+export interface PurchaseRequestUserInformation {
+	user_id: string;
+	email: string | null;
+	fullname: string | null;
+	picture_url: string | null;
 }
 
 export interface PurchaseRequestBranchInformation {
@@ -16,6 +21,13 @@ export interface PurchaseRequestBranchInformation {
 	branch_code: string | null;
 	branch_name: string | null;
 	company_alias: string | null;
+}
+
+export interface PurchaseRequestProductInformationList {
+	data: PurchaseRequestProductInformation[];
+	page_number: number;
+	page_size: number;
+	total: number;
 }
 
 export interface WorkArea {
@@ -49,7 +61,7 @@ export interface PurchaseRequestProductInformation {
 	quantity_unit: number | null;
 	description: string | null;
 	justification: string | null;
-	purchase_request_id: string;
+	purchase_request_item_id: string;
 	product_details: PurchaseRequestProductDetails;
 	unit_measure_information: PurchaseRequestUnitMeasureInformation;
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badges, Button, Modal } from "@alpac/design-system";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -13,7 +13,7 @@ import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal
 
 import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
 import type { PurchaseRequestDetailModalProps } from "./purchase-request-detail-modal.types";
-import type { GetPurchaseRequestDetailResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import type { GetPurchaseRequestDetailResponse, PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../purchase-request.variants";
@@ -43,9 +43,19 @@ export const PurchaseRequestDetailModal = ({
 	});
 
 	const [actionType, setActionType] = useState<string | null>(null);
+	const [message, setMessage] = useState<string>("")
 
-	const { GetPurchaseRequestDetails, ProcessPurchaseRequest } = usePurchase({
+	const { 
+		GetPurchaseRequestDetails,
+		GetPurchaseRequestProducts,
+		ProcessPurchaseRequest 
+	} = usePurchase({
 		getPurchaseRequestDetailsPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+			purchase_request_id: purchaseRequest?.purchase_request_id ?? "",
+		},
+		getPurchaseRequestProductsPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
 			purchase_request_id: purchaseRequest?.purchase_request_id ?? "",
@@ -56,10 +66,17 @@ export const PurchaseRequestDetailModal = ({
 		| GetPurchaseRequestDetailResponse
 		| undefined;	
 
-	const isLoading =
-		GetPurchaseRequestDetails.isPending || GetPurchaseRequestDetails.isFetching;
+	const productsResponse = GetPurchaseRequestProducts.data as
+		| PurchaseRequestProductInformationList
+		| undefined;
 
-	const products = details?.requested_products ?? [];
+	const isLoading =
+		GetPurchaseRequestDetails.isPending ||
+		GetPurchaseRequestDetails.isFetching ||
+		GetPurchaseRequestProducts.isPending ||
+		GetPurchaseRequestProducts.isFetching;
+
+	const products = productsResponse?.data ?? [];
 
 	const canProcessRequest =
 		role === RoleEnum.ADMINISTRATOR || role === RoleEnum.MANAGER;
@@ -98,6 +115,17 @@ export const PurchaseRequestDetailModal = ({
 		if (type === "REJECT") return "Solicitud rechazada con éxito.";
 		return "Solicitud cancelada con éxito.";
 	};
+
+	useEffect(() => {
+		const confirmType: ConfirmActionType = confirmModal.type;
+
+		const message = confirmType === "APPROVE" ?
+			`La solicitud será aprovada y pasará al proceso de cotización ¿Está seguro de proceder a ${actionType} la Solicitud?` :
+			`¿Está seguro de proceder a ${actionType} la Solicitud?`;
+
+		setMessage(message);
+
+	}, [confirmModal.type]);
 
 	const handleProcessPurchaseRequest = (type: ConfirmActionType, reason?: string) => {
 
@@ -262,7 +290,7 @@ export const PurchaseRequestDetailModal = ({
 										</h5>
 									</section>
 
-									<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">										
+									<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">
 										<div className="hidden border-b border-slate-200 bg-slate-100 sm:grid sm:grid-cols-6 dark:border-neutral-700 dark:bg-neutral-800">
 											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
 												Producto
@@ -407,7 +435,7 @@ export const PurchaseRequestDetailModal = ({
 			</Modal>
 
 			<ConfirmModal
-				title={`¿Está seguro de proceder a ${actionType} la Solicitud?`}
+				title={message}
 				buttonActionLabel={actionType!}
 				buttonActionClass={
 					confirmModal.type === "APPROVE"

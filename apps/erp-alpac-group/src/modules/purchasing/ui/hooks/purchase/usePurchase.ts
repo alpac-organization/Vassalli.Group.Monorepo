@@ -4,6 +4,7 @@ import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domai
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import type { GetPurchaseRequestDetailPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-details-payload";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
+import type { GetPurchaseRequestProductPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-product-payload";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
 import { PurchaseServices } from "@app/modules/purchasing/infrastructure/services/purchase/PurchaseServices"
@@ -13,28 +14,37 @@ const purchaseServices = new PurchaseServices(warehouseHttpHandler);
 
 type usePurchasePayloads = {
    getPurchaseRequestsPayload?: GetPurchaseRequestPayload,
-   getPurchaseRequestDetailsPayload?: GetPurchaseRequestDetailPayload
+   getPurchaseRequestDetailsPayload?: GetPurchaseRequestDetailPayload,
+   sendPurchaseRequestToReviewPayload?: SendPurchaseRequestToReviewPayload,
+   getPurchaseRequestProductsPayload?: GetPurchaseRequestProductPayload
 }
 
 export const usePurchase = (props?: usePurchasePayloads) => {
 
    const {
       getPurchaseRequestsPayload,
-      getPurchaseRequestDetailsPayload
+      getPurchaseRequestDetailsPayload,      
+      getPurchaseRequestProductsPayload
    } = props || {};
 
    const queryClient = useQueryClient();
 
    const purchaseRequestListEnabled = Boolean(
       (getPurchaseRequestsPayload?.company_id?.trim() &&
-         getPurchaseRequestsPayload.module_code?.trim()) ||
+         getPurchaseRequestsPayload?.module_code?.trim()) ||
       getPurchaseRequestsPayload?.page_number
    );
 
    const purchaseRequestDatailEnabled = Boolean(
       getPurchaseRequestDetailsPayload?.company_id?.trim() &&
-      getPurchaseRequestDetailsPayload.module_code?.trim() &&
+      getPurchaseRequestDetailsPayload?.module_code?.trim() &&
       getPurchaseRequestDetailsPayload?.purchase_request_id
+   );   
+
+   const purchaseRequestProductEnabled = Boolean(
+      getPurchaseRequestProductsPayload?.company_id?.trim() &&
+      getPurchaseRequestProductsPayload?.module_code?.trim() &&
+      getPurchaseRequestProductsPayload?.purchase_request_id
    );
 
    const GetPurchaseRequests = useQuery({
@@ -50,6 +60,15 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       queryKey: ["get-purchase-request-details", getPurchaseRequestDetailsPayload],
       queryFn: () => purchaseServices.GetPurchaseRequestDetails(getPurchaseRequestDetailsPayload!),
       enabled: purchaseRequestDatailEnabled,
+      staleTime: 0,
+      refetchOnWindowFocus: false,
+      retry: 1,
+   });
+
+   const GetPurchaseRequestProducts = useQuery({
+      queryKey: ["get-purchase-request-products", getPurchaseRequestProductsPayload],
+      queryFn: () => purchaseServices.GetPurchaseRequestProducts(getPurchaseRequestProductsPayload!),
+      enabled: purchaseRequestProductEnabled,
       staleTime: 0,
       refetchOnWindowFocus: false,
       retry: 1,
@@ -96,6 +115,6 @@ export const usePurchase = (props?: usePurchasePayloads) => {
    return {
       GetPurchaseRequests, GetPurchaseRequestDetails,
       CreatePurchaseRequest, ProcessPurchaseRequest, DeletePurchaseRequest,
-      SendPurchaseRequestToReview
+      SendPurchaseRequestToReview, GetPurchaseRequestProducts
    }
 }
