@@ -1,4 +1,4 @@
-import { Badges, type TableColumn } from "@alpac/design-system";
+import { Badges, ContextMenu, type TableColumn } from "@alpac/design-system";
 import type { RequisitionAccountingReviewDto } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
 import {
   getInitials,
@@ -6,7 +6,12 @@ import {
 } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-table/utils/quote-analysis.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 
-export function getQuoteAnalysisColumns(): TableColumn<RequisitionAccountingReviewDto>[] {
+const contextMenuButton =
+  "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
+
+export function getQuoteAnalysisColumns(
+  onViewDetail?: (row: RequisitionAccountingReviewDto) => void,
+): TableColumn<RequisitionAccountingReviewDto>[] {
   return [
     {
       key: "enviado_por",
@@ -38,6 +43,11 @@ export function getQuoteAnalysisColumns(): TableColumn<RequisitionAccountingRevi
       },
     },
     {
+      key: "email",
+      label: "Email",
+      render: (row) => row.sent_by_user_information?.email?.trim() || "—",
+    },
+    {
       key: "area",
       label: "Área",
       render: (row) =>
@@ -61,6 +71,21 @@ export function getQuoteAnalysisColumns(): TableColumn<RequisitionAccountingRevi
       key: "comment",
       label: "Comentario",
       render: (row) => row.comments || "—",
+    },
+    {
+      key: "actions",
+      label: "Acciones",
+      render: (row) => (
+        <ContextMenu
+          items={[
+            {
+              label: "Ver detalle",
+              onClick: () => onViewDetail?.(row),
+            },
+          ]}
+          triggerClassName={contextMenuButton}
+        />
+      ),
     },
   ];
 }

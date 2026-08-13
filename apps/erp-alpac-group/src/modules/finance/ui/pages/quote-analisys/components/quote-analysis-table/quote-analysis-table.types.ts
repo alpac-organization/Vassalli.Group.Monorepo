@@ -8,4 +8,5 @@ export type QuoteAnalysisTableProps = {
   onPageChange: (page: number) => void;
   isFetching?: boolean;
   onRowClick?: (row: RequisitionAccountingReviewDto) => void;
+  onViewDetail?: (row: RequisitionAccountingReviewDto) => void;
 };

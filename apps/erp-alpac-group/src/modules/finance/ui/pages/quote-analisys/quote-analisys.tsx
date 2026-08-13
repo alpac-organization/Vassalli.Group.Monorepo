@@ -61,6 +61,13 @@ export function QuoteAnalisys() {
     setPageNumber(page);
   }, []);
 
+  const handleViewDetail = useCallback(
+    (row: { requisition_accounting_review_id: string }) => {
+      navigate(`${baseUrl}/finance/analisys/${row.requisition_accounting_review_id}`);
+    },
+    [navigate, baseUrl],
+  );
+
   return (
     <m.div
       initial={{ opacity: 0, y: 20 }}
@@ -105,6 +112,7 @@ export function QuoteAnalisys() {
         pageSize={quoteAnalysis?.page_size ?? PAGE_SIZE}
         onPageChange={handlePageChange}
         isFetching={isFetching}
+        onViewDetail={handleViewDetail}
       />
     </m.div>
   );

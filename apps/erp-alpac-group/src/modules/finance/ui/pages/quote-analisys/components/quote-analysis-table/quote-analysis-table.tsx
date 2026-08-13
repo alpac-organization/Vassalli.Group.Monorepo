@@ -11,8 +11,9 @@ export function QuoteAnalysisTable({
   onPageChange,
   isFetching = false,
   onRowClick,
+  onViewDetail,
 }: QuoteAnalysisTableProps) {
-  const columns = useMemo(() => getQuoteAnalysisColumns(), []);
+  const columns = useMemo(() => getQuoteAnalysisColumns(onViewDetail), [onViewDetail]);
 
   return (
     <div className="flex flex-col min-w-0 w-full overflow-x-auto">

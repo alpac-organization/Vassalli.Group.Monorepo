@@ -7,7 +7,8 @@ export const getFinanceRoutes = () => {
       id: "analisys",
       label: "Análisis comparativo",
       path: "analisys",
-      icon: ChartLineIcon
+      icon: ChartLineIcon,
+      allowsRubRoutes: true
    }
 
    return {
