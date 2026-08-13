@@ -6,8 +6,7 @@ export interface GetPurchaseRequestDetailResponse
 	reason_rejection: string | null;
 	creator_user_information: PurchaseRequestUserInformation;
 	reviewer_user_information: PurchaseRequestUserInformation | null;
-	branch_information: PurchaseRequestBranchInformation;
-	requested_products: PurchaseRequestProductInformation[];
+	branch_information: PurchaseRequestBranchInformation;	
 	revision_date: string | null;
 }
 

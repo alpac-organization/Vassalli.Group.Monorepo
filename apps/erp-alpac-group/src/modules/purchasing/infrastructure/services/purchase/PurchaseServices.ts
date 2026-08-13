@@ -4,6 +4,7 @@ import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domai
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import type { GetPurchaseRequestDetailPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-details-payload";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
+import type { GetPurchaseRequestProductPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-product-payload";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
 import type { GetPurchaseRequestDetailResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
@@ -52,9 +53,25 @@ export class PurchaseServices implements IPurchaseServices {
       try {
          const { company_id, module_code, purchase_request_id, ...rest } = payload;
 
-         const url = `/companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/details`;
+         const url = `/companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}`;
 
          const response = await this.apiHandler.get<GetPurchaseRequestDetailResponse>(url, { params: cleanParams(rest) });
+
+         return response;
+
+      } catch (error) {
+
+         throw error;
+      }
+   }
+
+   async GetPurchaseRequestProducts(payload: GetPurchaseRequestProductPayload): Promise<any> {
+      try {
+         const { company_id, module_code, purchase_request_id, ...rest } = payload;
+
+         const url = `companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/products`;
+
+         const response = await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
 
          return response;
 
@@ -97,22 +114,6 @@ export class PurchaseServices implements IPurchaseServices {
          const { company_id, module_code, purchase_request_id, ...rest } = payload;
 
          const url = `companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/send`;
-
-         const response = await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
-
-         return response;
-
-      } catch (error) {
-
-         throw error;
-      }
-   }
-
-   async GetPurchaseRequestProducts(payload: any): Promise<any> {
-      try {
-         const { company_id, module_code, purchase_request_id, ...rest } = payload;         
-
-         const url = `companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/products`;
 
          const response = await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
 

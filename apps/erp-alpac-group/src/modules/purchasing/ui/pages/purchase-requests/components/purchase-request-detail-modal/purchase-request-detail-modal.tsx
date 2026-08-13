@@ -13,7 +13,7 @@ import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal
 
 import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
 import type { PurchaseRequestDetailModalProps } from "./purchase-request-detail-modal.types";
-import type { GetPurchaseRequestDetailResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import type { GetPurchaseRequestDetailResponse, PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../purchase-request.variants";
@@ -45,8 +45,17 @@ export const PurchaseRequestDetailModal = ({
 	const [actionType, setActionType] = useState<string | null>(null);
 	const [message, setMessage] = useState<string>("")
 
-	const { GetPurchaseRequestDetails, ProcessPurchaseRequest } = usePurchase({
+	const { 
+		GetPurchaseRequestDetails,
+		GetPurchaseRequestProducts,
+		ProcessPurchaseRequest 
+	} = usePurchase({
 		getPurchaseRequestDetailsPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+			purchase_request_id: purchaseRequest?.purchase_request_id ?? "",
+		},
+		getPurchaseRequestProductsPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
 			purchase_request_id: purchaseRequest?.purchase_request_id ?? "",
@@ -57,10 +66,17 @@ export const PurchaseRequestDetailModal = ({
 		| GetPurchaseRequestDetailResponse
 		| undefined;
 
-	const isLoading =
-		GetPurchaseRequestDetails.isPending || GetPurchaseRequestDetails.isFetching;
+	const productsResponse = GetPurchaseRequestProducts.data as
+		| PurchaseRequestProductInformationList
+		| undefined;
 
-	const products = details?.requested_products ?? [];
+	const isLoading =
+		GetPurchaseRequestDetails.isPending ||
+		GetPurchaseRequestDetails.isFetching ||
+		GetPurchaseRequestProducts.isPending ||
+		GetPurchaseRequestProducts.isFetching;
+
+	const products = productsResponse?.data ?? [];
 
 	const canProcessRequest =
 		role === RoleEnum.ADMINISTRATOR || role === RoleEnum.MANAGER;

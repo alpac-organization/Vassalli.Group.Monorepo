@@ -7,7 +7,7 @@ import {
 } from "react-hook-form";
 
 import {
-	AccordionGroup,	
+	AccordionGroup,
 	Badges,
 	Button,
 	Modal,
@@ -38,7 +38,7 @@ const defaultFormValues: RequestedProducts = {
 
 export function CreateQuoteModal({
 	isOpen,
-	onClose,	
+	onClose,
 	purchaseRequest,
 	onRequestError,
 	onRequestSuccess
@@ -71,13 +71,18 @@ export function CreateQuoteModal({
 		? (purchaseRequest?.purchase_request_id ?? "")
 		: "";
 
-	const { GetPurchaseRequestDetails } = usePurchase({
+	const { GetPurchaseRequestDetails, GetPurchaseRequestProducts } = usePurchase({
 		getPurchaseRequestDetailsPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
-			purchase_request_id: purchaseRequestId,
+			purchase_request_id: purchaseRequestId
 		},
-	});	
+		getPurchaseRequestProductsPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+			purchase_request_id: purchaseRequestId
+		}
+	});
 
 	const { RegisterQuote } = useQuotes();
 	const { getMappedError } = useMappedError();
@@ -86,15 +91,23 @@ export function CreateQuoteModal({
 		data: purchaseRequestDetails,
 		isLoading: isLoadingPurchaseRequestDetails,
 		isFetching: isFetchingPurchaseRequestDetails,
-	} = GetPurchaseRequestDetails;	
+	} = GetPurchaseRequestDetails;
+
+	const {
+		data: purchaseRequestProducts,
+		isLoading: isLoadingPurchaseRequestProducts,
+		isFetching: isFetchingPurchaseRequestProducts
+	} = GetPurchaseRequestProducts;
 
 	const isRegisteringQuote = RegisterQuote.isPending;
 
-	const isLoading =
-		isOpen &&
-		(isLoadingPurchaseRequestDetails ||
+	const isLoading = isOpen &&
+		((
+			isLoadingPurchaseRequestDetails ||
 			isFetchingPurchaseRequestDetails ||
-			isRegisteringQuote);
+			isLoadingPurchaseRequestProducts ||
+			isFetchingPurchaseRequestProducts
+		) || isRegisteringQuote);
 
 	useEffect(() => {
 		if (!isOpen) {
@@ -107,16 +120,13 @@ export function CreateQuoteModal({
 
 		if (!purchaseRequestDetails || !requestId) return;
 
-		const requestedProducts = purchaseRequestDetails.requested_products ?? [];
+		const requestedProducts = purchaseRequestProducts ?? [];
 
 		reset({
 			...defaultFormValues,
 			requested_products: requestedProducts.map(
-				(product) => ({
-					...product,
-					suppliers: [],
-				}),
-			),
+				(product) => ({ ...product, suppliers: [] })
+			)
 		});
 		setOpenProducts([]);
 	}, [isOpen, purchaseRequestDetails, reset]);
@@ -345,7 +355,7 @@ export function CreateQuoteModal({
 				isOpen={isQuoteProductModalOpen}
 				onClose={() => setIsQuoteProductModalOpen(false)}
 				products={selectedProducts}
-				onConfirm={(items) => {					
+				onConfirm={(items) => {
 					setQuotationItems(items);
 					setIsQuoteProductModalOpen(false);
 					setSelectedProducts([]);
