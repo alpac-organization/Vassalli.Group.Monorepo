@@ -32,6 +32,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api-warehouse/, "/api/v1"),
       },
     },
+    host: true
   },
   resolve: {
     alias: {

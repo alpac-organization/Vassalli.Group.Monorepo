@@ -2,4 +2,5 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
 
 export interface SendPurchaseRequestToReviewPayload extends BaseRequest {
    purchase_request_id: string;
+   comments?: string; 
 }

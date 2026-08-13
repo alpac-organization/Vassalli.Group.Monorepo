@@ -77,15 +77,15 @@ export function SelectProductModal({
 	}, [GetProductCategories.data]);
 
 	const registeredProducts = useMemo(() => {
-		
+
 		const products = normalizeProducts(
 			GetProducts.data?.data as
 			| GetProductResponse
 			| GetProductResponse[]
 			| null
 			| undefined,
-		);		
-		
+		);
+
 		return products;
 
 	}, [GetProducts.data]);
@@ -123,7 +123,7 @@ export function SelectProductModal({
 
 		reset(initial);
 		setFilters(initial);
-		
+
 	}, [isOpen, companyId, moduleCode, reset]);
 
 	const onApplyFilters = handleSubmit((values) => {

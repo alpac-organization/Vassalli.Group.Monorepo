@@ -13,16 +13,14 @@ const purchaseServices = new PurchaseServices(warehouseHttpHandler);
 
 type usePurchasePayloads = {
    getPurchaseRequestsPayload?: GetPurchaseRequestPayload,
-   getPurchaseRequestDetailsPayload?: GetPurchaseRequestDetailPayload,
-   getSendPurchaseRequestToReviewPayload?: SendPurchaseRequestToReviewPayload
+   getPurchaseRequestDetailsPayload?: GetPurchaseRequestDetailPayload
 }
 
 export const usePurchase = (props?: usePurchasePayloads) => {
 
    const {
       getPurchaseRequestsPayload,
-      getPurchaseRequestDetailsPayload,
-      getSendPurchaseRequestToReviewPayload
+      getPurchaseRequestDetailsPayload
    } = props || {};
 
    const queryClient = useQueryClient();
@@ -37,12 +35,6 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       getPurchaseRequestDetailsPayload?.company_id?.trim() &&
       getPurchaseRequestDetailsPayload.module_code?.trim() &&
       getPurchaseRequestDetailsPayload?.purchase_request_id
-   );
-
-   const sendPurchaseRequestToReviewEnabled = Boolean(
-      getSendPurchaseRequestToReviewPayload?.company_id?.trim() &&
-      getSendPurchaseRequestToReviewPayload.module_code?.trim() &&
-      getSendPurchaseRequestToReviewPayload?.purchase_request_id
    );
 
    const GetPurchaseRequests = useQuery({
@@ -92,12 +84,13 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       retry: 1
    });
 
-   const SendPurchaseRequestToReview = useQuery<any, ApiErrorResponse>({
-      queryKey: ["send-purchase-request-to-review", getSendPurchaseRequestToReviewPayload],
-      queryFn: () => purchaseServices.SendPurchaseRequestToReview(getSendPurchaseRequestToReviewPayload!),
-      enabled: sendPurchaseRequestToReviewEnabled,      
-      refetchOnWindowFocus: false,
-      retry: 1,
+   const SendPurchaseRequestToReview = useMutation<void, ApiErrorResponse, SendPurchaseRequestToReviewPayload>({
+      mutationKey: ["send-purchase-request-to-review"],
+      mutationFn: (payload: SendPurchaseRequestToReviewPayload) => purchaseServices.SendPurchaseRequestToReview(payload),
+      onSuccess() {
+         queryClient.invalidateQueries({ queryKey: ["get-purchase-requests"] });
+      },
+      retry: 1
    });
 
    return {

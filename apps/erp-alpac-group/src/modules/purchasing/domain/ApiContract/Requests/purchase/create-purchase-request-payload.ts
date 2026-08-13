@@ -2,14 +2,12 @@
 export interface CreatePurchaseRequestPayload {
    company_id: string;
    module_code: string;
-
    area_id?: string;
+   cost_center_id: string;
    branch_id: string;
    request_date: string;
    request_type: number;
-   observations: string;
-
-
+   observations: string; 
    purchase_request_items: PurchaseRequestItem[];
 }
 

@@ -1,21 +1,14 @@
 import type { GetPurchaseRequestResponse } from "./get-purchase-request-response";
 
-export interface GetPurchaseRequestDetailResponse
-	extends Omit<GetPurchaseRequestResponse, "revision_date"> {
+export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResponse {
 	observations: string | null;
 	reason_rejection: string | null;
+	branch_information: PurchaseRequestBranchInformation;
+
+	information_from_requesting_area: WorkArea;
 	creator_user_information: PurchaseRequestUserInformation;
 	reviewer_user_information: PurchaseRequestUserInformation | null;
-	branch_information: PurchaseRequestBranchInformation;
 	requested_products: PurchaseRequestProductInformation[];
-	revision_date: string | null;
-}
-
-export interface PurchaseRequestUserInformation {
-	user_id: string;
-	email: string | null;
-	fullname: string | null;
-	picture_url: string | null;
 }
 
 export interface PurchaseRequestBranchInformation {
@@ -25,8 +18,32 @@ export interface PurchaseRequestBranchInformation {
 	company_alias: string | null;
 }
 
+export interface WorkArea {
+	work_area_id: string;
+	work_area_code: number;
+	description: string;
+	work_area_name: string;
+	cost_centers: CostCenter[];
+}
+
+export interface CostCenter {
+	cost_center_id: string;
+	description: string;
+	cost_center_name: string;
+	coil_code: number;
+	cost_center_code: number;
+}
+
+export interface PurchaseRequestUserInformation {
+	user_id: string;
+	email: string | null;
+	fullname: string | null;
+	picture_url: string | null;
+	user_status: string | null;
+	work_area_information: WorkArea;
+}
+
 export interface PurchaseRequestProductInformation {
-	purchase_request_item_id: string;
 	has_quotation: boolean;
 	quantity: number;
 	quantity_unit: number | null;

@@ -10,10 +10,9 @@ export const SelectBranchModal = ({
 	onConfirm,
 	currentBranchId = null,
 }: SelectBranchModalProps) => {
+
 	const { companyId } = useUserStore();
-	const [selectedBranch, setSelectedBranch] = useState<string | null>(
-		currentBranchId,
-	);
+	const [selectedBranch, setSelectedBranch] = useState<string | null>(currentBranchId);
 
 	const { GetBranchesQuery: branchesQuery } = useCompanies({
 		company_id: companyId,
