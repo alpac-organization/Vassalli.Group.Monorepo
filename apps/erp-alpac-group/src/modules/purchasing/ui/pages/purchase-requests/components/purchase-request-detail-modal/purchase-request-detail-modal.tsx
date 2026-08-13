@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badges, Button, Modal } from "@alpac/design-system";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -43,6 +43,7 @@ export const PurchaseRequestDetailModal = ({
 	});
 
 	const [actionType, setActionType] = useState<string | null>(null);
+	const [message, setMessage] = useState<string>("")
 
 	const { GetPurchaseRequestDetails, ProcessPurchaseRequest } = usePurchase({
 		getPurchaseRequestDetailsPayload: {
@@ -98,6 +99,17 @@ export const PurchaseRequestDetailModal = ({
 		if (type === "REJECT") return "Solicitud rechazada con éxito.";
 		return "Solicitud cancelada con éxito.";
 	};
+
+	useEffect(() => {
+		const confirmType: ConfirmActionType = confirmModal.type;
+
+		const message = confirmType === "APPROVE" ?
+			`La solicitud será aprovada y pasará al proceso de cotización ¿Está seguro de proceder a ${actionType} la Solicitud?` :
+			`¿Está seguro de proceder a ${actionType} la Solicitud?`;
+
+		setMessage(message);
+
+	}, [confirmModal.type]);
 
 	const handleProcessPurchaseRequest = (type: ConfirmActionType, reason?: string) => {
 
@@ -262,7 +274,7 @@ export const PurchaseRequestDetailModal = ({
 										</h5>
 									</section>
 
-									<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">										
+									<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">
 										<div className="hidden border-b border-slate-200 bg-slate-100 sm:grid sm:grid-cols-6 dark:border-neutral-700 dark:bg-neutral-800">
 											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
 												Producto
@@ -407,7 +419,7 @@ export const PurchaseRequestDetailModal = ({
 			</Modal>
 
 			<ConfirmModal
-				title={`¿Está seguro de proceder a ${actionType} la Solicitud?`}
+				title={message}
 				buttonActionLabel={actionType!}
 				buttonActionClass={
 					confirmModal.type === "APPROVE"

@@ -107,4 +107,20 @@ export class PurchaseServices implements IPurchaseServices {
          throw error;
       }
    }
+
+   async GetPurchaseRequestProducts(payload: any): Promise<any> {
+      try {
+         const { company_id, module_code, purchase_request_id, ...rest } = payload;         
+
+         const url = `companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/products`;
+
+         const response = await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
+
+         return response;
+
+      } catch (error) {
+
+         throw error;
+      }
+   }
 }

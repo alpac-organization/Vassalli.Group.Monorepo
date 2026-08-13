@@ -25,6 +25,13 @@ export interface PurchaseRequestBranchInformation {
 	company_alias: string | null;
 }
 
+export interface PurchaseRequestProductInformationList {
+	data: PurchaseRequestProductInformation[];
+	page_number: number;
+	page_size: number;
+	total: number;
+}
+
 export interface PurchaseRequestProductInformation {
 	purchase_request_item_id: string;
 	has_quotation: boolean;
