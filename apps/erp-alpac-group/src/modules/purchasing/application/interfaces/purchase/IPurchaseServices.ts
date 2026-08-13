@@ -22,5 +22,5 @@ export interface IPurchaseServices {
 
    DeletePurchaseRequest(payload: DeletePurchaseRequestPayload): Promise<void>;
 
-   SendPurchaseRequestToReview(payload: SendPurchaseRequestToReviewPayload): Promise<any>;
+   SendPurchaseRequestToReview(payload: SendPurchaseRequestToReviewPayload): Promise<void>;
 }

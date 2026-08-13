@@ -64,7 +64,7 @@ export const PurchaseRequestDetailModal = ({
 
 	const details = GetPurchaseRequestDetails.data as
 		| GetPurchaseRequestDetailResponse
-		| undefined;
+		| undefined;	
 
 	const productsResponse = GetPurchaseRequestProducts.data as
 		| PurchaseRequestProductInformationList
@@ -451,7 +451,9 @@ export const PurchaseRequestDetailModal = ({
 				isLoading={isProcessing}
 				disabled={isProcessing}
 				handleFinalAction={handleProcessPurchaseRequest}
-				hasReason={confirmModal.type === "REJECT"}
+				hasObservation={confirmModal.type === "REJECT"}
+				isObservationRequired
+				observationLabel="Razón / Motivo"
 			/>
 		</>
 	);

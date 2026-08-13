@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { Button, Dropdown, InputText } from "@alpac/design-system";
-import { PlusIcon, X } from "lucide-react";
+import { Button, ContextMenu, Dropdown, InputText } from "@alpac/design-system";
+import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -13,11 +13,15 @@ import {
 	validateIntegerNumber,
 	validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
+import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
+import type { PurchaseRequestDetailProps } from "./purchase-request-detail.types";
+import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const dropdownClassName = `${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
 const labelClassName = "text-black! dark:text-white!";
+const contextMenuButton = "text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
 
 const parseIntegerInput = (value: string): number | "" => {
 	const formatted = formatAmount(value, 10, 0);
@@ -44,9 +48,13 @@ const hasUnitsPerPackage = (label?: string, symbol?: string) => {
 	);
 };
 
-export const PurchaseRequestDetail = () => {
+export const PurchaseRequestDetail = (
+	{ onRequestError, onRequestSuccess }: PurchaseRequestDetailProps
+) => {
+
 	const { companyId, moduleCode } = useUserStore();
 	const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
+	const [isCreateProductOpen, setIsCreateProductOpen] = useState(false);
 
 	const {
 		control,
@@ -82,6 +90,7 @@ export const PurchaseRequestDetail = () => {
 	}, [unitsOfMeasurement, isLoadingUnits]);
 
 	const handleSelectProduct = (products: GetProductResponse[]) => {
+
 		const existingIds = new Set(fields.map((item) => item.product_id));
 
 		products.forEach((product) => {
@@ -99,6 +108,23 @@ export const PurchaseRequestDetail = () => {
 		});
 	};
 
+	const handleCreateProduct = (product: CreatedProductDto) => {
+
+		const existingIds = new Set(fields.map((item) => item.product_id));
+
+		if (existingIds.has(product?.data?.product_id)) return;
+
+		append({
+			product_id: product?.data?.product_id,
+			product_name: product?.product_name,
+			description: "",
+			quantity: "",
+			quantity_unit: "",
+			unit_measure_id: "",
+			justification: "",
+		});
+	}
+
 	const assignedProductIds = useMemo(
 		() =>
 			fields
@@ -109,8 +135,8 @@ export const PurchaseRequestDetail = () => {
 
 	return (
 		<div className="flex flex-col gap-3 border-t border-t-slate-300 pt-2 dark:border-t-neutral-600">
-			<div className="flex items-center justify-between gap-3">
-				<div className="flex flex-col">
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div className="min-w-0 flex flex-col">
 					<span className="text-[15px] font-medium text-black dark:text-white">
 						Productos solicitados
 					</span>
@@ -118,17 +144,30 @@ export const PurchaseRequestDetail = () => {
 						Seleccione los productos y complete cantidad y unidad de medida
 					</small>
 				</div>
-				<Button
-					type="button"
-					size="giant"
-					label="Agregar producto"
-					icon={<PlusIcon size={18} />}
-					onClick={() => {
-						setIsSelectProductOpen(true);
-						clearErrors();
-					}}
-					className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-				/>
+
+				<div className="shrink-0 self-stretch sm:self-auto">
+					<ContextMenu
+						triggerClassName={contextMenuButton}
+						triggerLabel="Agregar Producto"
+						triggerIcon={<PlusIcon size={18} />}
+						items={[
+							{
+								label: "Agregar Producto Existente",
+								onClick: () => {
+									setIsSelectProductOpen(true);
+									clearErrors();
+								}
+							},
+							{
+								label: "Crear Nuevo Producto",
+								onClick: () => {
+									setIsCreateProductOpen(true);
+									clearErrors();
+								}
+							},
+						]}
+					/>
+				</div>
 			</div>
 
 			{errors.purchase_request_items?.root?.message ||
@@ -160,8 +199,22 @@ export const PurchaseRequestDetail = () => {
 				return (
 					<div
 						key={item.id}
-						className="grid w-full grid-cols-1 items-end gap-3 md:grid-cols-[minmax(0,1fr)_7rem_12rem_12rem_minmax(0,1fr)_minmax(0,1fr)_2.75rem] dark:border-neutral-600"
+						className="flex w-full flex-col gap-3 rounded-md border border-slate-200 p-4 dark:border-neutral-600 dark:bg-[#1e2229]"
 					>
+						<div className="flex min-w-0 items-center justify-between gap-3">
+							<span className="min-w-0 truncate text-[15px] font-semibold text-slate-700 dark:text-slate-200">
+								{index + 1} · Producto · {item.product_name || `#${index + 1}`}
+							</span>
+							<Button
+								type="button"
+								size="small"
+								tooltip="Quitar producto"
+								icon={<Trash2Icon size={18} />}
+								onClick={() => remove(index)}
+								className="h-10 w-10! shrink-0 rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!"
+							/>
+						</div>
+
 						<div>
 							<InputText
 								label={`Producto #${index + 1}`}
@@ -173,189 +226,176 @@ export const PurchaseRequestDetail = () => {
 							/>
 						</div>
 
-						<div>
-							<Controller
-								name={`purchase_request_items.${index}.quantity`}
-								control={control}
-								rules={{
-									required: "La cantidad es requerida",
-									validate: {
-										validateInteger: (value) => validateIntegerNumber(value),
-										validatePositive: (value) => validatePositiveNumber(value),
-									},
-								}}
-								render={({ field }) => (
-									<InputText
-										label="Cantidad"
-										type="text"
-										inputMode="numeric"
-										placeholder="0"
-										isRequired
-										className={inputClassName}
-										labelClassName={labelClassName}
-										value={formatIntegerDisplay(field.value)}
-										onChange={(e) =>
-											field.onChange(parseIntegerInput(e.target.value))
-										}
-										error={
-											errors.purchase_request_items?.[index]?.quantity?.message
-										}
-										errorVariant="tooltip"
-									/>
-								)}
-							/>
-						</div>
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+							<div>
+								<Controller
+									name={`purchase_request_items.${index}.quantity`}
+									control={control}
+									rules={{
+										required: "La cantidad es requerida",
+										validate: {
+											validateInteger: (value) => validateIntegerNumber(value),
+											validatePositive: (value) => validatePositiveNumber(value),
+										},
+									}}
+									render={({ field }) => (
+										<InputText
+											label="Cantidad"
+											type="text"
+											inputMode="numeric"
+											placeholder="0"
+											isRequired
 
-						<div>
-							<Controller
-								name={`purchase_request_items.${index}.unit_measure_id`}
-								control={control}
-								rules={{ required: "La unidad es requerida" }}
-								render={({ field }) => (
-									<Dropdown
-										label="Unidad de Medida"
-										isRequired
-										options={unitsOfMeasurementOptions}
-										placeholder={
-											isLoadingUnits ? "Cargando unidades..." : "Seleccione..."
-										}
-										onChange={(value) => {
-											const nextUnitId = String(value ?? "");
-											field.onChange(nextUnitId);
-
-											const nextUnit = unitsOfMeasurementOptions.find(
-												(option) => option.value === nextUnitId,
-											);
-											const nextIsBoxOrPackage = hasUnitsPerPackage(
-												nextUnit?.label,
-												nextUnit?.symbol,
-											);
-
-											if (!nextIsBoxOrPackage) {
-												setValue(
-													`purchase_request_items.${index}.quantity_unit`,
-													"",
-													{ shouldValidate: true },
-												);
+											className={inputClassName}
+											labelClassName={labelClassName}
+											value={formatIntegerDisplay(field.value)}
+											onChange={(e) =>
+												field.onChange(parseIntegerInput(e.target.value))
 											}
-										}}
-										error={
-											errors.purchase_request_items?.[index]?.unit_measure_id
-												?.message
-										}
-										errorVariant="tooltip"
-										value={field.value}
-										appearance="dark"
-										labelClassName={labelClassName}
-										valueClassName={labelClassName}
-										className={dropdownClassName}
-									/>
-								)}
-							/>
+											error={
+												errors.purchase_request_items?.[index]?.quantity?.message
+											}
+											errorVariant="text"
+										/>
+									)}
+								/>
+							</div>
+
+							<div>
+								<Controller
+									name={`purchase_request_items.${index}.unit_measure_id`}
+									control={control}
+									rules={{ required: "La unidad es requerida" }}
+									render={({ field }) => (
+										<Dropdown
+											label="Unidad de Medida"
+											isRequired
+											options={unitsOfMeasurementOptions}
+											placeholder={
+												isLoadingUnits ? "Cargando unidades..." : "Seleccione..."
+											}
+											onChange={(value) => {
+												const nextUnitId = String(value ?? "");
+												field.onChange(nextUnitId);
+
+												const nextUnit = unitsOfMeasurementOptions.find(
+													(option) => option.value === nextUnitId,
+												);
+												const nextIsBoxOrPackage = hasUnitsPerPackage(
+													nextUnit?.label,
+													nextUnit?.symbol,
+												);
+
+												if (!nextIsBoxOrPackage) {
+													setValue(
+														`purchase_request_items.${index}.quantity_unit`,
+														"",
+														{ shouldValidate: true },
+													);
+												}
+											}}
+											error={
+												errors.purchase_request_items?.[index]?.unit_measure_id
+													?.message
+											}
+											errorVariant="text"
+											value={field.value}
+											appearance="dark"
+											labelClassName={labelClassName}
+											valueClassName={labelClassName}
+											className={dropdownClassName}
+										/>
+									)}
+								/>
+							</div>
+
+							<div>
+								<Controller
+									name={`purchase_request_items.${index}.quantity_unit`}
+									control={control}
+									rules={
+										isBoxOrPackage
+											? {
+												required: "Agregue las unidades por presentación",
+												validate: {
+													validateInteger: (value) =>
+														validateIntegerNumber(value),
+													validatePositive: (value) =>
+														validatePositiveNumber(value),
+												},
+											}
+											: undefined
+									}
+									render={({ field }) => (
+										<InputText
+											label="Unidades por presentación"
+											type="text"
+											inputMode="numeric"
+											placeholder="0"
+											isRequired={isBoxOrPackage}
+											disabled={!isBoxOrPackage}
+											className={inputClassName}
+											labelClassName={labelClassName}
+											value={formatIntegerDisplay(field.value)}
+											onChange={(e) =>
+												field.onChange(parseIntegerInput(e.target.value))
+											}
+											error={
+												errors.purchase_request_items?.[index]?.quantity_unit
+													?.message
+											}
+											errorVariant="text"
+										/>
+									)}
+								/>
+							</div>
 						</div>
 
-						<div>
-							<Controller
-								name={`purchase_request_items.${index}.quantity_unit`}
-								control={control}
-								rules={
-									isBoxOrPackage
-										? {
-											required: "Agregue las unidades por presentación",
-											validate: {
-												validateInteger: (value) =>
-													validateIntegerNumber(value),
-												validatePositive: (value) =>
-													validatePositiveNumber(value),
-											},
-										}
-										: undefined
-								}
-								render={({ field }) => (
-									<InputText
-										label="Unidades por presentación"
-										type="text"
-										inputMode="numeric"
-										placeholder="0"
-										isRequired={isBoxOrPackage}
-										disabled={!isBoxOrPackage}
-										className={inputClassName}
-										labelClassName={labelClassName}
-										value={formatIntegerDisplay(field.value)}
-										onChange={(e) =>
-											field.onChange(parseIntegerInput(e.target.value))
-										}
-										error={
-											errors.purchase_request_items?.[index]?.quantity_unit
-												?.message
-										}
-										errorVariant="tooltip"
-									/>
-								)}
-							/>
-						</div>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+							<div>
+								<Controller
+									name={`purchase_request_items.${index}.description`}
+									control={control}
+									rules={{
+										required: false,
+									}}
+									render={({ field }) => (
+										<InputText
+											label="Descripción"
+											placeholder="Descripción del producto"
+											className={inputClassName}
+											labelClassName={labelClassName}
+											value={field.value ?? ""}
+											onChange={field.onChange}
+										/>
+									)}
+								/>
+							</div>
 
-						<div>
-							<Controller
-								name={`purchase_request_items.${index}.description`}
-								control={control}
-								rules={{
-									required: false,
-								}}
-								render={({ field }) => (
-									<InputText
-										label="Descripción"
-										placeholder="Descripción del producto"
-										className={inputClassName}
-										labelClassName={labelClassName}
-										value={field.value ?? ""}
-										onChange={field.onChange}
-										error={
-											errors.purchase_request_items?.[index]?.justification
-												?.message
-										}
-										errorVariant="tooltip"
-									/>
-								)}
-							/>
-						</div>
-
-						<div>
-							<Controller
-								name={`purchase_request_items.${index}.justification`}
-								control={control}
-								rules={{
-									required: "La justificación de compra es requerida",
-								}}
-								render={({ field }) => (
-									<InputText
-										label="Justificación"
-										isRequired
-										placeholder="Justificación del producto"
-										className={inputClassName}
-										labelClassName={labelClassName}
-										value={field.value ?? ""}
-										onChange={field.onChange}
-										error={
-											errors.purchase_request_items?.[index]?.justification
-												?.message
-										}
-										errorVariant="tooltip"
-									/>
-								)}
-							/>
-						</div>
-
-						<div className="flex h-11 md:items-center md:justify-end">
-							<div className="group relative flex items-center">
-								<button
-									type="button"
-									className="rounded-full bg-red-500! p-1 text-white! transition-all dark:bg-red-700!"
-									onClick={() => remove(index)}
-									aria-label="Quitar producto"
-								>
-									<X size={16} />
-								</button>
+							<div>
+								<Controller
+									name={`purchase_request_items.${index}.justification`}
+									control={control}
+									rules={{
+										required: "La justificación de compra es requerida",
+									}}
+									render={({ field }) => (
+										<InputText
+											label="Justificación"
+											isRequired
+											placeholder="Justificación del producto"
+											className={inputClassName}
+											labelClassName={labelClassName}
+											value={field.value ?? ""}
+											onChange={field.onChange}
+											error={
+												errors.purchase_request_items?.[index]?.justification
+													?.message
+											}
+											errorVariant="text"
+										/>
+									)}
+								/>
 							</div>
 						</div>
 					</div>
@@ -387,6 +427,14 @@ export const PurchaseRequestDetail = () => {
 				onSelect={handleSelectProduct}
 				selectionType="multiple"
 				excludeProductIds={assignedProductIds}
+			/>
+
+			<CreateProductModal
+				isOpen={isCreateProductOpen}
+				onClose={() => setIsCreateProductOpen(false)}
+				onRequestSuccess={onRequestSuccess}
+				onRequestError={onRequestError}
+				onSubmit={handleCreateProduct}
 			/>
 		</div>
 	);

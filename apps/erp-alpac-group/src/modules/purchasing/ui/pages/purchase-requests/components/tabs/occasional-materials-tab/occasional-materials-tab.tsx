@@ -17,6 +17,8 @@ import type { OccasionalMaterialContextMenu, OccasionalMaterialTabProps } from "
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../../purchase-request.variants";
+import { isValidateValue } from "@app/shared/utils/values.utils";
+import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -204,8 +206,7 @@ export const OccasionalMaterialTab = ({
 
 	const columnConfig: TableColumn<GetPurchaseRequestResponse>[] = useMemo(
 		() => [
-			{ key: "code", label: "Código" },
-			{ key: "request_date", label: "Fecha de Solicitud" },
+			{ key: "code", label: "Código" },			
 			{
 				key: "request_status",
 				label: "Estado",
@@ -250,7 +251,22 @@ export const OccasionalMaterialTab = ({
 					);
 				},
 			},
-			{ key: "revision_date", label: "Fecha de revisión" },
+			{
+				key: "request_date",
+				label: "Fecha de Solicitud",
+				render(row: GetPurchaseRequestResponse) {
+					if (!isValidateValue(row.request_date)) return "—";
+					return formatDateToSpanishWords(row.request_date ?? "");
+				}
+			},
+			{
+				key: "revision_date",
+				label: "Fecha de revisión",
+				render: (row: GetPurchaseRequestResponse) => {
+					if (!isValidateValue(row.revision_date)) return "—";
+					return formatDateToSpanishWords(row.revision_date ?? "");
+				}
+			},
 			{
 				key: "actions",
 				label: "Acciones",

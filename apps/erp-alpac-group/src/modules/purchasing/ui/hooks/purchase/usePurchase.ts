@@ -110,12 +110,13 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       retry: 1
    });
 
-   const SendPurchaseRequestToReview = useQuery<any, ApiErrorResponse>({
-      queryKey: ["send-purchase-request-to-review", sendPurchaseRequestToReviewPayload],
-      queryFn: () => purchaseServices.SendPurchaseRequestToReview(sendPurchaseRequestToReviewPayload!),
-      enabled: sendPurchaseRequestToReviewEnabled,
-      refetchOnWindowFocus: false,
-      retry: 1,
+   const SendPurchaseRequestToReview = useMutation<void, ApiErrorResponse, SendPurchaseRequestToReviewPayload>({
+      mutationKey: ["send-purchase-request-to-review"],
+      mutationFn: (payload: SendPurchaseRequestToReviewPayload) => purchaseServices.SendPurchaseRequestToReview(payload),
+      onSuccess() {
+         queryClient.invalidateQueries({ queryKey: ["get-purchase-requests"] });
+      },
+      retry: 1
    });
 
    return {

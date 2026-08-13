@@ -16,8 +16,9 @@ import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 import { useTheme } from '@alpac/design-system';
 import { NotificationSidebar } from '@app/shared/components/notification/notification-sidebar/notification-sidebar';
 import { SettingIndex } from '@app/modules/setting/ui/pages/setting-index/setting-index';
-import type { ModulesAvailableResponse } from '@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response';
 import { routeConfig } from '@app/routers/routes/route-config';
+
+import type { ModulesAvailableResponse } from '@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response';
 import type { SidebarLink } from '@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types';
 
 const loadFeatures = () => import('framer-motion').then((res) => res.domAnimation);
@@ -103,10 +104,10 @@ export const HomePage = function () {
    return (
       <LazyMotion features={loadFeatures} strict>
          <m.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.5 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
          >
             {(obtainActiveModulesByCompanyId.isLoading ||
                startProcessToCloseSession.isPending) && (
@@ -132,14 +133,24 @@ export const HomePage = function () {
                      {(modulesAvailables || []).length === 0 ? (
                         <EmptyModulesState />
                      ) : (
-                        (modulesAvailables || []).map((module) => (
-                           <DashBoardCard
-                              key={module.module_name}
-                              title={module.module_name}
-                              image={module.image_url}
-                              onClick={() => handleSelectModule(module)}
-                              description={module.description}
-                           />
+                        (modulesAvailables || []).map((module, index) => (
+
+                           <m.div key={index}
+                              initial={{ opacity: 0, y: 12 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{
+                                 duration: 0.3,
+                                 delay: index * 0.05,
+                                 ease: "easeOut",
+                              }}
+                           >
+                              <DashBoardCard
+                                 title={module.module_name}
+                                 image={module.image_url}
+                                 onClick={() => handleSelectModule(module)}
+                                 description={module.description}
+                              />
+                           </m.div>
                         ))
                      )}
                   </div>

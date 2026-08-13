@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { QuotesTable } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-table/quotes-table";
 import { CreateQuoteModal } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -11,8 +11,10 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
-import type { QuotesModalType } from "../../../types/quotes-modal.types";
+import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
+import type { QuotesModalType } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-modal.types";
 import type { OccasionalMaterialsQuoteTabProps } from "./occasional-materials-quote-tab.types";
+import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
 
 const PAGE_SIZE = 5;
 const sendButtonClass = "rounded-md! h-11 px-6! border border-blue-200 dark:border-blue-500/70 bg-blue-50 dark:bg-blue-500/30 text-blue-600 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-500/20 hover:border-blue-400 dark:hover:border-blue-500/60 hover:text-blue-700 dark:hover:text-blue-300 shadow-sm transition-all duration-200";
@@ -28,7 +30,6 @@ export function OccasionalMaterialsQuoteTab({
 	const [activeModal, setActiveModal] = useState<QuotesModalType>(null);
 	const [selectedPurchaseRequest, setSelectedPurchaseRequest] =
 		useState<GetPurchaseRequestResponse | null>();
-	const [purchaseRequestIdToSend, setPurchaseRequestIdToSend] = useState("");
 
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
 		company_id: companyId,
@@ -46,35 +47,12 @@ export function OccasionalMaterialsQuoteTab({
 			status: PurchaseRequestStatusEnum.Approved.value,
 			request_type: PurchaseRequestEnum.Eventual.value,
 			page_size: PAGE_SIZE,
-		},
-		getSendPurchaseRequestToReviewPayload: {
-			company_id: companyId,
-			module_code: moduleCode,
-			purchase_request_id: purchaseRequestIdToSend,
-		},
+		}
 	});
 
 	const purchaseRequests = GetPurchaseRequests.data?.data ?? [];
 	const totalRecords = GetPurchaseRequests.data?.total ?? 0;
 	const currentPage = filters.page_number ?? 1;
-
-	useEffect(() => {
-		if (!purchaseRequestIdToSend) return;
-
-		if (SendPurchaseRequestToReview.isSuccess) {
-			onRequestSuccess("Solicitud enviada a revisión con éxito.");
-			setPurchaseRequestIdToSend("");
-			setActiveModal(null);
-			setSelectedPurchaseRequest(null);
-			GetPurchaseRequests.refetch();
-		}
-
-		if (SendPurchaseRequestToReview.isError) {
-			const mappedError = getMappedError(SendPurchaseRequestToReview.error);
-			onRequestError(mappedError.description);
-			setPurchaseRequestIdToSend("");
-		}
-	}, [SendPurchaseRequestToReview.data, SendPurchaseRequestToReview.isError, SendPurchaseRequestToReview.fetchStatus]);
 
 	const handlePageChange = useCallback((page: number) => {
 		setFilters((prev) => ({
@@ -104,11 +82,31 @@ export function OccasionalMaterialsQuoteTab({
 		setSelectedPurchaseRequest(null);
 	}, []);
 
-	const handleSendPurchaseRequestToReview = () => {
+	const handleSendPurchaseRequestToReview = (type: ConfirmActionType, observation?: string) => {
+
+		if (type !== "SEND") return;
+
 		const purchaseRequestId = selectedPurchaseRequest?.purchase_request_id;
 		if (!purchaseRequestId) return;
 
-		setPurchaseRequestIdToSend(purchaseRequestId);
+		const payload: SendPurchaseRequestToReviewPayload = {
+			company_id: companyId,
+			module_code: moduleCode,
+			purchase_request_id: purchaseRequestId,
+			comments: observation
+		};
+
+		SendPurchaseRequestToReview.mutate(payload, {
+			onSuccess() {
+				onRequestSuccess("Solicitud enviada a revisión con éxito.");
+				setActiveModal(null);
+				setSelectedPurchaseRequest(null);
+			},
+			onError(error) {
+				const mappedError = getMappedError(error);
+				onRequestError(mappedError.description);
+			}
+		})
 	}
 
 	return (
@@ -142,12 +140,15 @@ export function OccasionalMaterialsQuoteTab({
 					title="¿Está seguro de enviar esta solicitud a revisión?"
 					isOpen={activeModal === "send-purchase-request-for-review"}
 					handleFinalAction={handleSendPurchaseRequestToReview}
+					hasObservation={true}
+					isObservationRequired={false}
+					observationLabel="Comentarios"
 					buttonActionLabel="Enviar"
 					onClose={handleCloseModal}
 					buttonActionClass={sendButtonClass}
 					buttonCancelClass={cancelButtonClass}
-					isLoading={Boolean(purchaseRequestIdToSend) && SendPurchaseRequestToReview.isFetching}
-					disabled={Boolean(purchaseRequestIdToSend) && SendPurchaseRequestToReview.isFetching}
+					isLoading={SendPurchaseRequestToReview.isPending}
+					disabled={SendPurchaseRequestToReview.isPending}
 				/>
 			</div>
 		</div>
