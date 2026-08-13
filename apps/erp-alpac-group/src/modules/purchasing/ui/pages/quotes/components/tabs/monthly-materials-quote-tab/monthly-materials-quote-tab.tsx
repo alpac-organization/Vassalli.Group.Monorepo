@@ -82,8 +82,6 @@ export function MonthlyMaterialsQuoteTab({
 
 	const handleSendPurchaseRequestToReview = (type: ConfirmActionType, observation?: string) => {
 
-		console.log("Testing send purchase request to review:", type, observation)
-
 		if (type !== "SEND") return;
 
 		const purchaseRequestId = selectedPurchaseRequest?.purchase_request_id;

@@ -23,8 +23,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
 
    const {
       getPurchaseRequestsPayload,
-      getPurchaseRequestDetailsPayload,
-      sendPurchaseRequestToReviewPayload,
+      getPurchaseRequestDetailsPayload,      
       getPurchaseRequestProductsPayload
    } = props || {};
 
@@ -40,13 +39,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       getPurchaseRequestDetailsPayload?.company_id?.trim() &&
       getPurchaseRequestDetailsPayload?.module_code?.trim() &&
       getPurchaseRequestDetailsPayload?.purchase_request_id
-   );
-
-   const sendPurchaseRequestToReviewEnabled = Boolean(
-      sendPurchaseRequestToReviewPayload?.company_id?.trim() &&
-      sendPurchaseRequestToReviewPayload?.module_code?.trim() &&
-      sendPurchaseRequestToReviewPayload?.purchase_request_id
-   );
+   );   
 
    const purchaseRequestProductEnabled = Boolean(
       getPurchaseRequestProductsPayload?.company_id?.trim() &&

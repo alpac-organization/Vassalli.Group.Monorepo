@@ -7,7 +7,7 @@ import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/A
 import type { GetPurchaseRequestProductPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-product-payload";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
-import type { GetPurchaseRequestDetailResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import type { GetPurchaseRequestDetailResponse, PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { GetPurchaseRequestResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import { cleanParams } from "@app/shared/utils/object.utils";
 
@@ -65,13 +65,13 @@ export class PurchaseServices implements IPurchaseServices {
       }
    }
 
-   async GetPurchaseRequestProducts(payload: GetPurchaseRequestProductPayload): Promise<any> {
+   async GetPurchaseRequestProducts(payload: GetPurchaseRequestProductPayload): Promise<PurchaseRequestProductInformationList> {
       try {
          const { company_id, module_code, purchase_request_id, ...rest } = payload;
 
          const url = `companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/products`;
 
-         const response = await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
+         const response = await this.apiHandler.get<PurchaseRequestProductInformationList>(url, { params: cleanParams(rest) });
 
          return response;
 

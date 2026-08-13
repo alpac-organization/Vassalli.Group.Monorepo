@@ -120,16 +120,18 @@ export function CreateQuoteModal({
 
 		if (!purchaseRequestDetails || !requestId) return;
 
-		const requestedProducts = purchaseRequestProducts ?? [];
+		const requestedProducts = purchaseRequestProducts?.data ?? [];
 
 		reset({
 			...defaultFormValues,
-			requested_products: requestedProducts.map(
-				(product) => ({ ...product, suppliers: [] })
-			)
-		});
-		setOpenProducts([]);
-	}, [isOpen, purchaseRequestDetails, reset]);
+			requested_products: requestedProducts.map((product: PurchaseRequestProductInformation) => ({ ...product, suppliers: [] }))
+		});		
+	}, [isOpen, purchaseRequestDetails, purchaseRequestProducts, reset]);
+
+	useEffect(() => {
+		if (!isOpen || fields.length === 0) return;
+		setOpenProducts(fields.map((field) => field.id));
+	}, [isOpen, fields]);
 
 
 	const handleCancel = () => {
@@ -165,6 +167,7 @@ export function CreateQuoteModal({
 	}
 
 	const onSubmit = (_values: RequestedProducts) => {
+
 		if (!quotationItems?.length) {
 			onRequestError?.(
 				"Debe cotizar al menos un producto con sus proveedores antes de guardar.",

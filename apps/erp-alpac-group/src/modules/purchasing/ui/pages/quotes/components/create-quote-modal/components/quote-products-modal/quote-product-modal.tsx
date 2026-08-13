@@ -35,6 +35,10 @@ import type {
 } from "./quote-product-modal.types";
 import { MIN_SUPPLIERS_PER_PRODUCT } from "./quote-product-modal.types";
 
+const IVA_RATE = 0.15;
+
+const roundMoney = (value: number) => Math.round(value * 100) / 100;
+
 const emptyQuotationItem = (
 	purchaseRequestItemId: string,
 	supplier?: Pick<GetSuppliersResponse, "supplier_id" | "supplier_legal_name">,
@@ -44,7 +48,8 @@ const emptyQuotationItem = (
 	purchase_request_item_id: purchaseRequestItemId,
 	has_delivery: false,
 	has_guarantee: false,
-	price: 0,	
+	has_iva: false,
+	price: 0,
 	iva: undefined,
 	price_unit: undefined,
 	brand_product: "",
@@ -70,6 +75,7 @@ function QuotationItemFields({
 	itemIndex,
 	canRemove,
 	supplierLegalName,
+	quantity,
 	onRemove,
 }: QuotationItemFieldsProps) {
 	const {
@@ -87,9 +93,28 @@ function QuotationItemFields({
 		control,
 		name: `products.${productIndex}.items.${itemIndex}.has_guarantee`,
 	});
+	const hasIva = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.has_iva`,
+	});
+	const priceUnit = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.price_unit`,
+	});
 
 	const itemErrors = errors.products?.[productIndex]?.items?.[itemIndex];
 	const fieldPath = `products.${productIndex}.items.${itemIndex}` as const;
+
+	useEffect(() => {
+		const unit = Number(priceUnit) || 0;
+		const calculatedPrice = roundMoney(quantity * unit);
+
+		setValue(`${fieldPath}.price`, calculatedPrice, { shouldValidate: true });
+		setValue(
+			`${fieldPath}.iva`,
+			hasIva ? roundMoney(calculatedPrice * IVA_RATE) : undefined,
+		);
+	}, [fieldPath, hasIva, priceUnit, quantity, setValue]);
 
 	return (
 		<div className="flex flex-col gap-3 rounded-md border border-slate-200 p-4 dark:border-neutral-600 dark:bg-[#1e2229]">
@@ -139,7 +164,7 @@ function QuotationItemFields({
 				/>
 
 				<InputText
-					label="Precio"
+					label="Precio unitario"
 					type="number"
 					min="0"
 					step="0.01"
@@ -147,8 +172,26 @@ function QuotationItemFields({
 					placeholder="0.00"
 					className={quoteFormInputClassName}
 					labelClassName={quoteFormLabelClassName}
+					{...register(`${fieldPath}.price_unit`, {
+						required: "El precio unitario es requerido.",
+						setValueAs: toNumberOrUndefined,
+						validate: (value) =>
+							(value != null && Number(value) > 0) ||
+							"El precio unitario debe ser mayor a 0.",
+					})}
+					error={itemErrors?.price_unit?.message}
+				/>
+
+				<InputText
+					label="Precio"
+					type="number"
+					min="0"
+					step="0.01"
+					disabled
+					placeholder="0.00"
+					className={quoteFormInputClassName}
+					labelClassName={quoteFormLabelClassName}
 					{...register(`${fieldPath}.price`, {
-						required: "El precio es requerido.",
 						setValueAs: (value) => Number(value) || 0,
 						validate: (value) =>
 							Number(value) > 0 || "El precio debe ser mayor a 0.",
@@ -156,31 +199,33 @@ function QuotationItemFields({
 					error={itemErrors?.price?.message}
 				/>
 
-				<InputText
-					label="Precio unitario"
-					type="number"
-					min="0"
-					step="0.01"
-					placeholder="0.00"
-					className={quoteFormInputClassName}
-					labelClassName={quoteFormLabelClassName}
-					{...register(`${fieldPath}.price_unit`, {
-						setValueAs: toNumberOrUndefined,
-					})}
-				/>
+				<div className="flex items-end">
+					<Controller
+						control={control}
+						name={`${fieldPath}.has_iva`}
+						render={({ field }) => (
+							<Checkbox
+								label={`Incluye IVA (${IVA_RATE * 100}%)`}
+								checked={Boolean(field.value)}
+								onChange={(event) => field.onChange(event.target.checked)}
+							/>
+						)}
+					/>
+				</div>
 
 				<InputText
 					label="IVA"
 					type="number"
 					min="0"
 					step="0.01"
+					disabled
 					placeholder="0.00"
 					className={quoteFormInputClassName}
 					labelClassName={quoteFormLabelClassName}
 					{...register(`${fieldPath}.iva`, {
 						setValueAs: toNumberOrUndefined,
 					})}
-				/>				
+				/>
 
 			</div>
 
@@ -337,6 +382,7 @@ function QuoteProductGroupFields({
 	productIndex,
 	productName,
 	categoryName,
+	quantity,
 }: QuoteProductGroupFieldsProps) {
 	const {
 		control,
@@ -451,6 +497,7 @@ function QuoteProductGroupFields({
 							itemIndex={itemIndex}
 							canRemove
 							supplierLegalName={field.supplier_legal_name || ""}
+							quantity={quantity}
 							onRemove={() => remove(itemIndex)}
 						/>
 					))}
@@ -475,7 +522,7 @@ export function QuoteProductModal({
 	onConfirm,
 }: QuoteProductModalProps) {
 
-	const productsCount = products.length;	
+	const productsCount = products.length;
 
 	const methods = useForm<QuoteProductFormValues>({
 		defaultValues: { products: [] },
@@ -503,7 +550,7 @@ export function QuoteProductModal({
 		reset({
 			products: products.map((product) => {
 
-				const purchaseRequestItemId = product?.purchase_request_id ?? "";
+				const purchaseRequestItemId = product?.purchase_request_item_id ?? "";
 
 				return {
 					purchase_request_item_id: purchaseRequestItemId,
@@ -513,6 +560,7 @@ export function QuoteProductModal({
 					category_name:
 						product.product_details?.category_information?.name?.trim() ||
 						null,
+					quantity: product.quantity,
 					items: [],
 				};
 			}),
@@ -534,15 +582,15 @@ export function QuoteProductModal({
 
 		const items: QuotationItem[] = values.products.flatMap((product) =>
 			product.items.map(
-				({ supplier_legal_name: _supplierLegalName, ...item }) => ({
+				({ supplier_legal_name: _supplierLegalName, has_iva: _hasIva, ...item }) => ({
 					...item,
 					purchase_request_item_id: product.purchase_request_item_id,
 				}),
 			),
 		);
-		
+
 		onConfirm?.(items);
-		
+
 		handleClose();
 	};
 
@@ -557,8 +605,8 @@ export function QuoteProductModal({
 				productsCount > 0
 					? `Complete la cotización para ${productsCount} producto${productsCount === 1 ? "" : "s"}. Use "Agregar Proveedor" para buscar y seleccionar al menos ${MIN_SUPPLIERS_PER_PRODUCT} proveedores por producto.`
 					: "Complete la información de cotización de los productos seleccionados."
-			}			
-			panelClassName={[				
+			}
+			panelClassName={[
 				"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
 				"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
 			].join(" ")}
@@ -585,6 +633,7 @@ export function QuoteProductModal({
 												productIndex={index}
 												productName={field.product_name}
 												categoryName={field.category_name}
+												quantity={field.quantity}
 											/>
 										))}
 									</ul>

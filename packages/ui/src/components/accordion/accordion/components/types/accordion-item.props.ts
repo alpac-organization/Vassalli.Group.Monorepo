@@ -10,4 +10,5 @@ export type AccordionItemProps = {
   triggerClassName?: string;
   contentClassName?: string;
   icon?: LucideIcon;
+  isOpen?: boolean;
 };

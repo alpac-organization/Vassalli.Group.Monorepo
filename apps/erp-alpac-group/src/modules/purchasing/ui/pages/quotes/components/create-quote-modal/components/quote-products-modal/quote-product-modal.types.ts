@@ -12,12 +12,14 @@ export type QuoteProductModalProps = {
 
 export type QuotationItemForm = QuotationItem & {
 	supplier_legal_name?: string;
+	has_iva?: boolean;
 };
 
 export type QuoteProductGroup = {
 	purchase_request_item_id: string;
 	product_name: string;
 	category_name?: string | null;
+	quantity: number;
 	items: QuotationItemForm[];
 };
 
@@ -30,6 +32,7 @@ export type QuotationItemFieldsProps = {
 	itemIndex: number;
 	canRemove: boolean;
 	supplierLegalName: string;
+	quantity: number;
 	onRemove: () => void;
 };
 
@@ -37,4 +40,5 @@ export type QuoteProductGroupFieldsProps = {
 	productIndex: number;
 	productName: string;
 	categoryName?: string | null;
+	quantity: number;
 };

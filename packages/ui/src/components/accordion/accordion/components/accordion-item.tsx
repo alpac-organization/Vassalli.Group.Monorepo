@@ -10,8 +10,9 @@ export function AccordionItem({
   className,
   triggerClassName,
   contentClassName,
-  icon,
+  icon
 }: AccordionItemProps): ReactElement {
+
   const ctx = useContext(AccordionGroupContext);
   const baseId = useId();
 
@@ -19,12 +20,12 @@ export function AccordionItem({
     throw new Error("AccordionItem debe usarse dentro de un AccordionGroup.");
   }
 
-  const isOpen = ctx.openValues.includes(value);
+  const isOpenItem = ctx.openValues.includes(value);
 
   return (
     <AccordionPanel
       title={title}
-      isOpen={isOpen}
+      isOpen={isOpenItem}
       onToggle={() => {
         if (!disabled) ctx.toggle(value);
       }}
