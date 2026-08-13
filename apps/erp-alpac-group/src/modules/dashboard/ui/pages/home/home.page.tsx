@@ -3,7 +3,7 @@ import { DashBoardCard, Modal } from '@alpac/design-system';
 import { useModules } from '@app/modules/dashboard/ui/hooks/useModules';
 import { HeaderHome } from '@app/modules/dashboard/ui/pages/home/hearder/header';
 
-import { m, LazyMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useAuth } from '@app/modules/auth/ui/hooks/useAuth';
 import { Loader } from '@app/shared/components/loaders/loader';
 import { Navbar } from '@app/shared/components/navbar/navbar';
@@ -20,8 +20,6 @@ import { routeConfig } from '@app/routers/routes/route-config';
 
 import type { ModulesAvailableResponse } from '@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response';
 import type { SidebarLink } from '@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types';
-
-const loadFeatures = () => import('framer-motion').then((res) => res.domAnimation);
 
 export const HomePage = function () {
    const navigate = useNavigate();
@@ -102,73 +100,74 @@ export const HomePage = function () {
    }
 
    return (
-      <LazyMotion features={loadFeatures} strict>
-         <m.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-         >
-            {(obtainActiveModulesByCompanyId.isLoading ||
-               startProcessToCloseSession.isPending) && (
-                  <Loader
-                     title={isLogout ? 'Cerrando Sesión...' : 'Cargando Modulos...'}
-                  />
-               )}
-
-            <Navbar
-               isSettingPage={isSettingPage}
-               onLogout={handleLogout}
-               user_name={firstName}
-               email={validatedEmail}
-               urlImage={activeLogo}
-            />
-
-            {isSettingPage ? (
-               <SettingIndex />
-            ) : (
-               <>
-                  <HeaderHome company_name={companyName} username={validatedName} />
-                  <div className="max-w-330 m-auto mt-2 p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full">
-                     {(modulesAvailables || []).length === 0 ? (
-                        <EmptyModulesState />
-                     ) : (
-                        (modulesAvailables || []).map((module, index) => (
-
-                           <m.div key={index}
-                              initial={{ opacity: 0, y: 12 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{
-                                 duration: 0.3,
-                                 delay: index * 0.05,
-                                 ease: "easeOut",
-                              }}
-                           >
-                              <DashBoardCard
-                                 title={module.module_name}
-                                 image={module.image_url}
-                                 onClick={() => handleSelectModule(module)}
-                                 description={module.description}
-                              />
-                           </m.div>
-                        ))
-                     )}
-                  </div>
-               </>
+      <motion.div
+         initial={{ opacity: 0 }}
+         animate={{ opacity: 1 }}
+         exit={{ opacity: 0 }}
+         transition={{ duration: 0.3 }}
+      >
+         {(obtainActiveModulesByCompanyId.isLoading ||
+            startProcessToCloseSession.isPending) && (
+               <Loader
+                  title={isLogout ? 'Cerrando Sesión...' : 'Cargando Modulos...'}
+               />
             )}
 
-            <Modal
-               isOpen={showModal}
-               title="Ha ocurrido un error"
-               variant="warning"
-               description="No se ha podido cargar el modulo seleccionado."
-               onClose={() => {
-                  setShowModal(false);
-               }}
-            />
+         <Navbar
+            isSettingPage={isSettingPage}
+            onLogout={handleLogout}
+            user_name={firstName}
+            email={validatedEmail}
+            urlImage={activeLogo}
+         />
 
-            <NotificationSidebar />
-         </m.div>
-      </LazyMotion>
+         {isSettingPage ? (
+            <SettingIndex />
+         ) : (
+            <>
+               <HeaderHome company_name={companyName} username={validatedName} />
+               
+               <div className="max-w-330 m-auto mt-2 p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full">
+                  {
+                     (modulesAvailables || []).length === 0 ? (
+                        <EmptyModulesState />
+                     ) : (
+                     (modulesAvailables || []).map((module, index) => (
+                        <motion.div 
+                        key={module.module_code || index} // 1. Usar un identificador único real
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        style={{ willChange: 'transform, opacity' }} // 2. Fuerza aceleración por GPU
+                        transition={{
+                           duration: 0.25, // Un poco más rápida para que se sienta fluida
+                           delay: Math.min(index * 0.03, 0.3), // 3. Cap en el delay para evitar acumular timers
+                           ease: "backIn",
+                        }}
+                        >
+                        <DashBoardCard
+                           title={module.module_name}
+                           image={module.image_url}
+                           onClick={() => handleSelectModule(module)}
+                           description={module.description}
+                        />
+                        </motion.div>
+                     ))
+                  )}
+               </div>
+            </>
+         )}
+
+         <Modal
+            isOpen={showModal}
+            title="Ha ocurrido un error"
+            variant="warning"
+            description="No se ha podido cargar el modulo seleccionado."
+            onClose={() => {
+               setShowModal(false);
+            }}
+         />
+
+         <NotificationSidebar />
+      </motion.div>
    );
 };
