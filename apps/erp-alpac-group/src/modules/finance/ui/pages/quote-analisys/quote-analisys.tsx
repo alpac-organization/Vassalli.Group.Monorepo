@@ -7,11 +7,9 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
 import { useQuoteAnalysis } from "@app/modules/finance/ui/hooks/quotes-analysis/useQuoteAnalysis";
-import {
-  AccountingReviewStatus,
-  type accountingReviewStatusType,
-} from "@app/modules/finance/enum/analysis-quotation/accounting-review-status";
+import type { accountingReviewStatusType } from "@app/modules/finance/enum/analysis-quotation/accounting-review-status";
 import type { GetQuotesAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/get-quote-analysis";
+import type { QuoteAnalysisFiltersValues } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-filters/types/quote-analysis-filters.types";
 import { QuoteAnalysisFilters } from "./components/quote-analysis-filters/quote-analysis-filters";
 import { QuoteAnalysisTable } from "./components/quote-analysis-table/quote-analysis-table";
 
@@ -22,7 +20,10 @@ export function QuoteAnalisys() {
   const { baseUrl } = useBaseUrl();
   const { companyId, moduleCode } = useUserStore();
   const [pageNumber, setPageNumber] = useState(1);
-  const [appliedStatus, setAppliedStatus] = useState<string>("");
+  const [appliedStatus, setAppliedStatus] = useState<
+    accountingReviewStatusType | ""
+  >("");
+  const [appliedAreaId, setAppliedAreaId] = useState("");
 
   const payloadGetQuoteAnalysis = useMemo<GetQuotesAnalysisRequest>(
     () => ({
@@ -30,9 +31,10 @@ export function QuoteAnalisys() {
       module_code: moduleCode,
       page_number: pageNumber,
       page_size: PAGE_SIZE,
-      status: appliedStatus as accountingReviewStatusType,
+      ...(appliedStatus && { status: appliedStatus }),
+      ...(appliedAreaId && { area_id: appliedAreaId }),
     }),
-    [companyId, moduleCode, pageNumber, appliedStatus],
+    [companyId, moduleCode, pageNumber, appliedStatus, appliedAreaId],
   );
 
   const { GetQuoteAnalysis } = useQuoteAnalysis({
@@ -43,16 +45,15 @@ export function QuoteAnalisys() {
   const quotes = quoteAnalysis?.data ?? [];
   const totalRecords = quoteAnalysis?.total ?? 0;
 
-  const handleApplyFilters = useCallback(
-    (status: accountingReviewStatusType) => {
-      setAppliedStatus(status);
-      setPageNumber(1);
-    },
-    [],
-  );
+  const handleApplyFilters = useCallback((filters: QuoteAnalysisFiltersValues) => {
+    setAppliedStatus(filters.status);
+    setAppliedAreaId(filters.area_id);
+    setPageNumber(1);
+  }, []);
 
   const handleClearFilters = useCallback(() => {
     setAppliedStatus("");
+    setAppliedAreaId("");
     setPageNumber(1);
   }, []);
 
