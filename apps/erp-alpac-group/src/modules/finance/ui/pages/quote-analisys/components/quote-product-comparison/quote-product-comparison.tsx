@@ -129,18 +129,51 @@ function EmptyQuoteCells({ count }: { count: number }) {
   );
 }
 
+function QuoteAcceptButton({
+  isSelected,
+  isAccepting,
+  onAccept,
+}: {
+  isSelected: boolean;
+  isAccepting?: boolean;
+  onAccept: () => void;
+}) {
+  if (isSelected) {
+    return (
+      <Button
+        type="button"
+        size="small"
+        label="Oferta seleccionada"
+        disabled
+        className="w-full! rounded-md! border! border-blue-500! bg-blue-600! dark:bg-alpac-primary-700! text-[13px]! text-white! opacity-100!"
+      />
+    );
+  }
+
+  return (
+    <Button
+      type="button"
+      size="small"
+      label="Aceptar esta oferta"
+      onClick={onAccept}
+      disabled={isAccepting}
+      className="w-full! rounded-md! border! border-slate-400! bg-transparent! text-[13px]! text-slate-700! hover:bg-slate-100! dark:border-slate-500! dark:text-slate-200! dark:hover:bg-slate-700/40!"
+    />
+  );
+}
+
 function QuoteCard({
   quote,
   isSelected,
   isBestPrice,
-  onSelect,
-  onDeselect,
+  isAccepting,
+  onAccept,
 }: {
   quote: PurchaseRequestProductQuotation;
   isSelected: boolean;
   isBestPrice: boolean;
-  onSelect: () => void;
-  onDeselect: () => void;
+  isAccepting?: boolean;
+  onAccept: () => void;
 }) {
   return (
     <div
@@ -162,32 +195,11 @@ function QuoteCard({
             </span>
           )}
         </div>
-        {isSelected ? (
-          <div className="flex w-full flex-col gap-2">
-            <Button
-              type="button"
-              size="small"
-              label="Oferta seleccionada"
-              disabled
-              className="w-full! rounded-md! border! border-blue-500! bg-blue-600! text-[13px]! text-white! opacity-100!"
-            />
-            <Button
-              type="button"
-              size="small"
-              label="Desmarcar oferta"
-              onClick={onDeselect}
-              className="w-full! rounded-md! border! border-slate-400! bg-transparent! text-[13px]! text-slate-700! hover:bg-slate-100! dark:border-slate-500! dark:text-slate-200! dark:hover:bg-slate-700/40!"
-            />
-          </div>
-        ) : (
-          <Button
-            type="button"
-            size="small"
-            label="Aceptar esta oferta"
-            onClick={onSelect}
-            className="w-full! rounded-md! border! border-slate-400! bg-transparent! text-[13px]! text-slate-700! hover:bg-slate-100! dark:border-slate-500! dark:text-slate-200! dark:hover:bg-slate-700/40!"
-          />
-        )}
+        <QuoteAcceptButton
+          isSelected={isSelected}
+          isAccepting={isAccepting}
+          onAccept={onAccept}
+        />
       </div>
 
       <div className="flex flex-col">
@@ -228,8 +240,8 @@ export function QuoteProductComparison({
   itemId,
   quotations,
   selectedQuotationId,
-  onSelectQuotation,
-  onDeselectQuotation,
+  onRequestAccept,
+  isAccepting,
 }: QuoteProductComparisonProps) {
   const activeQuotations = quotations.filter((quote) => quote.is_active);
   const bestPriceId = getBestPriceQuotationId(activeQuotations);
@@ -246,16 +258,22 @@ export function QuoteProductComparison({
   return (
     <div className="w-full min-w-0">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:hidden">
-        {activeQuotations.map((quote) => (
-          <QuoteCard
-            key={quote.quotation_id}
-            quote={quote}
-            isSelected={selectedQuotationId === quote.quotation_id}
-            isBestPrice={bestPriceId === quote.quotation_id}
-            onSelect={() => onSelectQuotation(itemId, quote.quotation_id)}
-            onDeselect={() => onDeselectQuotation(itemId)}
-          />
-        ))}
+        {activeQuotations.map((quote) => {
+          const isSelected =
+            selectedQuotationId === quote.quotation_id ||
+            quote.is_accepted_for_purchase;
+
+          return (
+            <QuoteCard
+              key={quote.quotation_id}
+              quote={quote}
+              isSelected={isSelected}
+              isBestPrice={bestPriceId === quote.quotation_id}
+              isAccepting={isAccepting}
+              onAccept={() => onRequestAccept(itemId, quote)}
+            />
+          );
+        })}
       </div>
 
       <div className="hidden flex-col gap-4 lg:flex">
@@ -278,7 +296,9 @@ export function QuoteProductComparison({
                   Cotización
                 </div>
                 {chunk.map((quote, quoteIndex) => {
-                  const isSelected = selectedQuotationId === quote.quotation_id;
+                  const isSelected =
+                    selectedQuotationId === quote.quotation_id ||
+                    quote.is_accepted_for_purchase;
                   const isBestPrice = bestPriceId === quote.quotation_id;
                   const isLastFilled = quoteIndex === chunk.length - 1;
 
@@ -307,34 +327,11 @@ export function QuoteProductComparison({
                             </span>
                           )}
                         </div>
-                        {isSelected ? (
-                          <div className="flex w-full flex-col gap-2">
-                            <Button
-                              type="button"
-                              size="small"
-                              label="Oferta seleccionada"
-                              disabled
-                              className="w-full! rounded-md! border! border-blue-500! dark:bg-alpac-primary-700! text-[13px]! text-white! opacity-100!"
-                            />
-                            <Button
-                              type="button"
-                              size="small"
-                              label="Desmarcar oferta"
-                              onClick={() => onDeselectQuotation(itemId)}
-                              className="w-full! rounded-md! border! border-slate-400! bg-transparent! text-[13px]! text-slate-700! hover:bg-slate-100! dark:border-slate-500! dark:text-slate-200! dark:hover:bg-slate-700/40!"
-                            />
-                          </div>
-                        ) : (
-                          <Button
-                            type="button"
-                            size="small"
-                            label="Aceptar esta oferta"
-                            onClick={() =>
-                              onSelectQuotation(itemId, quote.quotation_id)
-                            }
-                            className="w-full! rounded-md! border! border-slate-400! bg-transparent! text-[13px]! text-slate-700! hover:bg-slate-100! dark:border-slate-500! dark:text-slate-200! dark:hover:bg-slate-700/40!"
-                          />
-                        )}
+                        <QuoteAcceptButton
+                          isSelected={isSelected}
+                          isAccepting={isAccepting}
+                          onAccept={() => onRequestAccept(itemId, quote)}
+                        />
                       </div>
                     </div>
                   );
@@ -358,7 +355,8 @@ export function QuoteProductComparison({
                       </div>
                       {chunk.map((quote, quoteIndex) => {
                         const isSelected =
-                          selectedQuotationId === quote.quotation_id;
+                          selectedQuotationId === quote.quotation_id ||
+                          quote.is_accepted_for_purchase;
                         const isLastFilled = quoteIndex === chunk.length - 1;
                         return (
                           <div
