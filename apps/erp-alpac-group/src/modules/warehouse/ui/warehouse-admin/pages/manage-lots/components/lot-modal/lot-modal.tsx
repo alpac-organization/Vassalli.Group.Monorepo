@@ -181,10 +181,10 @@ export const LotModal = ({ isOpen, sectionId, onClose, onSubmit }: LotModalProps
 						return (
 							<div
 								key={field.id}
-								className="rounded-xl border border-[#2a2d3d] bg-[#1b1e27] p-4"
+								className="rounded-md border border-slate-600 dark:border-neutral-600 dark:bg-[#272b34]! p-4"
 							>
 								<div className="mb-3 flex items-center justify-between">
-									<p className="text-sm font-medium text-slate-300">
+									<p className="text-sm font-medium text-black dark:text-white">
 										Grupo de tramos #{index + 1}
 									</p>
 									{fields.length > 1 && (

@@ -3,6 +3,7 @@ import {
 	AnimatedAlertWrapper,
 	Breadcrumb,
 	Button,
+	ContextMenu,
 	DataTable,
 	Dropdown,
 	InputText,
@@ -11,7 +12,7 @@ import {
 	useTheme,
 	type TableColumn,
 } from "@alpac/design-system";
-import { LayoutGrid, Rows3, Rows4 } from "lucide-react";
+import { LayoutGrid } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { m } from "framer-motion";
@@ -38,10 +39,11 @@ import {
 	dropdownClassName,
 	inputClassName,
 	labelClassName,
-	primaryActionButtonClassName,
 	primaryButtonClassName,
-	secondaryActionButtonClassName,
 } from "@app/modules/warehouse/ui/warehouse-admin/utils/page-styles";
+
+const contextMenuButton =
+	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 type SectionRow = {
 	section_id: string;
@@ -205,25 +207,26 @@ export const ManageSectionsPage = () => {
 			key: "action",
 			label: "Acciones",
 			render(row) {
+				const isLastItem =
+					paginatedData.length > 0 &&
+					paginatedData[paginatedData.length - 1]?.section_id ===
+						row.section_id;
+
 				return (
-					<div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:gap-3">
-						<Button
-							type="button"
-							size="medium"
-							label="Ver tramos"
-							icon={<Rows3 size={16} />}
-							onClick={() => handleGoToLots(row.section_id)}
-							className={primaryActionButtonClassName}
-						/>
-						<Button
-							type="button"
-							size="medium"
-							label="Ver racks"
-							icon={<Rows4 size={16} />}
-							onClick={() => handleGoToRacks(row.section_id)}
-							className={secondaryActionButtonClassName}
-						/>
-					</div>
+					<ContextMenu
+						items={[
+							{
+								label: "Ver tramos",
+								onClick: () => handleGoToLots(row.section_id),
+							},
+							{
+								label: "Ver racks",
+								onClick: () => handleGoToRacks(row.section_id),
+							},
+						]}
+						triggerClassName={contextMenuButton}
+						openUpOnMobile={isLastItem}
+					/>
 				);
 			},
 		},
@@ -276,20 +279,41 @@ export const ManageSectionsPage = () => {
 				logoImage={activeLogo}
 			/>
 
-			<div className="flex flex-col gap-4">
-				<div className="flex justify-between items-center">
-					<div className="flex flex-col justify-center gap-2">
-						<h3 className="p-0! m-0!">Filtros</h3>
-						<small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
-							Filtra por nombre, código, tipo, almacenamiento o estado
-						</small>
-					</div>
+			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+				<div className="flex flex-col justify-center">
+					<h3 className="p-0! m-0!">Acciones</h3>
+					<small className="text-gray-500 dark:text-gray-300">
+						Registre una nueva sección
+					</small>
 				</div>
+			</div>
 
-				<form
-					onSubmit={handleApplyFilters}
-					className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 items-end"
-				>
+			<div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+				<div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
+					<Button
+						type="button"
+						size="giant"
+						label="Registrar Nueva Sección"
+						icon={<LayoutGrid size={20} />}
+						className={primaryButtonClassName}
+						onClick={() => setIsSectionModalOpen(true)}
+					/>
+				</div>
+			</div>
+
+			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+				<div className="flex flex-col justify-center">
+					<h3 className="p-0! m-0!">Filtros</h3>
+					<small className="text-gray-500 dark:text-gray-300">
+						Filtra por nombre, código, tipo, almacenamiento o estado
+					</small>
+				</div>
+			</div>
+
+			<form
+				onSubmit={handleApplyFilters}
+				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 items-end"
+			>
 					<div className="flex flex-col min-w-0">
 						<InputText
 							label="Búsqueda"
@@ -380,18 +404,6 @@ export const ManageSectionsPage = () => {
 						/>
 					</div>
 				</form>
-			</div>
-
-			<div className="flex justify-end">
-				<Button
-					type="button"
-					size="giant"
-					label="Registrar Nueva Sección"
-					icon={<LayoutGrid size={20} />}
-					className={primaryButtonClassName}
-					onClick={() => setIsSectionModalOpen(true)}
-				/>
-			</div>
 
 			<DataTable
 				title="Lista de secciones"

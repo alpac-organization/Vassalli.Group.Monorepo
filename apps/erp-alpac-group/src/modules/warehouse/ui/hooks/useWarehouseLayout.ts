@@ -6,10 +6,11 @@ import type { CreateRacksRequest } from "@app/modules/warehouse/domain/ApiContra
 import type { CreateSectionRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-section-request";
 import type { GetLotDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-lot-detail-request";
 import type { GetLotsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-lots-request";
+import type { GetRackDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-rack-detail-request";
 import type { GetRacksRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-racks-request";
 import type { GetSectionsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-sections-request";
 import type { LotDetailResponse, LotListItemResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/lot-response";
-import type { RackSectionFilterResultResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/rack-response";
+import type { RackDetailResponse, RackSectionFilterResultResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/rack-response";
 import type { SectionResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/section-response";
 import { WarehouseLayoutServices } from "@app/modules/warehouse/infrastructure/services/warehouse-services/WarehouseLayoutServices";
 
@@ -20,6 +21,7 @@ interface useWarehouseLayoutProps {
 	getLotsPayload?: GetLotsRequest;
 	getLotDetailPayload?: GetLotDetailRequest;
 	getRacksPayload?: GetRacksRequest;
+	getRackDetailPayload?: GetRackDetailRequest;
 }
 
 const hasCompanyContext = (payload?: {
@@ -30,7 +32,7 @@ const hasCompanyContext = (payload?: {
 export const useWarehouseLayout = (props?: useWarehouseLayoutProps) => {
 	const queryClient = useQueryClient();
 
-	const { getSectionsPayload, getLotsPayload, getLotDetailPayload, getRacksPayload } =
+	const { getSectionsPayload, getLotsPayload, getLotDetailPayload, getRacksPayload, getRackDetailPayload } =
 		props || {};
 
 	const GetSections = useQuery<SectionResponse[], ApiErrorResponse>({
@@ -63,6 +65,14 @@ export const useWarehouseLayout = (props?: useWarehouseLayoutProps) => {
 		queryKey: ["get-section-racks-records", getRacksPayload],
 		queryFn: () => warehouseLayoutServices.GetRacks(getRacksPayload!),
 		enabled: hasCompanyContext(getRacksPayload) && Boolean(getRacksPayload?.section_id),
+		refetchOnWindowFocus: false,
+		retry: 1,
+	});
+
+	const GetRackById = useQuery<RackDetailResponse, ApiErrorResponse>({
+		queryKey: ["get-rack-detail-record", getRackDetailPayload],
+		queryFn: () => warehouseLayoutServices.GetRackById(getRackDetailPayload!),
+		enabled: hasCompanyContext(getRackDetailPayload) && Boolean(getRackDetailPayload?.rack_id),
 		refetchOnWindowFocus: false,
 		retry: 1,
 	});
@@ -102,5 +112,5 @@ export const useWarehouseLayout = (props?: useWarehouseLayoutProps) => {
 		},
 	});
 
-	return { GetSections, GetLots, GetLotById, GetRacks, CreateSection, CreateLots, CreateRacks };
+	return { GetSections, GetLots, GetLotById, GetRacks, GetRackById, CreateSection, CreateLots, CreateRacks };
 };

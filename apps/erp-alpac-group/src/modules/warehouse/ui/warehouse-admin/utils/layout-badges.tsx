@@ -2,7 +2,7 @@ import { Badges } from "@alpac/design-system";
 import { RackStatusEnum } from "@app/modules/warehouse/domain/enums/rack-status.enum";
 import { SectionStorageTypeEnum } from "@app/modules/warehouse/domain/enums/section-storage-type.enum";
 import { SectionTypeEnum } from "@app/modules/warehouse/domain/enums/section-type.enum";
-import { getRackStatusLabel, getSectionStorageTypeLabel, getSectionTypeLabel } from "./layout-badges.utils";
+import { getRackStatusLabel, getSectionStorageTypeLabel, getSectionTypeLabel, resolveRackStatus } from "./layout-badges.utils";
 
 export const SectionTypeBadge = ({ value }: { value: string | null }) => {
 	const isStorage = value === SectionTypeEnum.Storage.textValue;
@@ -29,20 +29,22 @@ export const SectionStorageTypeBadge = ({ value }: { value: string | null }) => 
 	return <Badges label={getSectionStorageTypeLabel(value)} color="transparent" className={className} />;
 };
 
-export const RackStatusBadge = ({ value }: { value: string | null }) => {
-	switch (value) {
+export const RackStatusBadge = ({ value }: { value: string | number | null }) => {
+	const status = resolveRackStatus(value);
+
+	switch (status?.textValue) {
 		case RackStatusEnum.Available.textValue:
 			return (
 				<Badges
-					label="Disponible"
-					color="success"
-					className="bg-[#132a22]! border! border-[#1b3b30]! text-[#4ade80]!"
+					label={RackStatusEnum.Available.label}
+					color="transparent"
+					className="bg-blue-100! text-blue-900! border! border-blue-200! dark:bg-[#09365C]! dark:text-[#93C5FD]! dark:border-[#3B82F6]!"
 				/>
 			);
 		case RackStatusEnum.Occupied.textValue:
 			return (
 				<Badges
-					label="Ocupado"
+					label={RackStatusEnum.Occupied.label}
 					color="info"
 					className="bg-[#123C69]! border! border-[#2F6FB2]! text-[#D6ECFF]!"
 				/>
@@ -50,7 +52,7 @@ export const RackStatusBadge = ({ value }: { value: string | null }) => {
 		case RackStatusEnum.UnderMaintenance.textValue:
 			return (
 				<Badges
-					label="En mantenimiento"
+					label={RackStatusEnum.UnderMaintenance.label}
 					color="warning"
 					className="bg-[#3a2c0a]! border! border-[#5c4a12]! text-[#fbbf24]!"
 				/>
@@ -58,7 +60,7 @@ export const RackStatusBadge = ({ value }: { value: string | null }) => {
 		case RackStatusEnum.Blocked.textValue:
 			return (
 				<Badges
-					label="Bloqueado"
+					label={RackStatusEnum.Blocked.label}
 					color="error"
 					className="bg-[#3a1d1d]! border! border-[#5c2424]! text-[#f87171]!"
 				/>

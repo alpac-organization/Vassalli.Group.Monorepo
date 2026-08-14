@@ -3,10 +3,11 @@ import type { CreateRacksRequest } from "@app/modules/warehouse/domain/ApiContra
 import type { CreateSectionRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-section-request";
 import type { GetLotDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-lot-detail-request";
 import type { GetLotsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-lots-request";
+import type { GetRackDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-rack-detail-request";
 import type { GetRacksRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-racks-request";
 import type { GetSectionsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-sections-request";
 import type { LotDetailResponse, LotListItemResponse, RegisterLotsResultResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/lot-response";
-import type { RackSectionFilterResultResponse, RegisterRacksResultResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/rack-response";
+import type { RackDetailResponse, RackSectionFilterResultResponse, RegisterRacksResultResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/rack-response";
 import type { SectionResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/section-response";
 
 /**
@@ -21,5 +22,6 @@ export interface IWarehouseLayoutServices {
 	GetLotById(payload: GetLotDetailRequest): Promise<LotDetailResponse>;
 	CreateLots(payload: CreateLotsRequest): Promise<RegisterLotsResultResponse>;
 	GetRacks(payload: GetRacksRequest): Promise<RackSectionFilterResultResponse>;
+	GetRackById(payload: GetRackDetailRequest): Promise<RackDetailResponse>;
 	CreateRacks(payload: CreateRacksRequest): Promise<RegisterRacksResultResponse>;
 }

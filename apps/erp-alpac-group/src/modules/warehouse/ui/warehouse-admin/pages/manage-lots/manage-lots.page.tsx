@@ -3,6 +3,7 @@ import {
 	AnimatedAlertWrapper,
 	Breadcrumb,
 	Button,
+	ContextMenu,
 	DataTable,
 	InputText,
 	Pagination,
@@ -10,7 +11,7 @@ import {
 	useTheme,
 	type TableColumn,
 } from "@alpac/design-system";
-import { Eye, Rows3 } from "lucide-react";
+import { Rows3 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { m } from "framer-motion";
@@ -29,9 +30,11 @@ import type { LotListItemResponse } from "@app/modules/warehouse/domain/ApiContr
 import {
 	inputClassName,
 	labelClassName,
-	primaryActionButtonClassName,
 	primaryButtonClassName,
 } from "@app/modules/warehouse/ui/warehouse-admin/utils/page-styles";
+
+const contextMenuButton =
+	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 type LotRow = {
 	lot_id: string;
@@ -160,14 +163,20 @@ export const ManageLotsPage = () => {
 			key: "action",
 			label: "Acciones",
 			render(row) {
+				const isLastItem =
+					paginatedData.length > 0 &&
+					paginatedData[paginatedData.length - 1]?.lot_id === row.lot_id;
+
 				return (
-					<Button
-						type="button"
-						size="medium"
-						label="Ver detalle"
-						icon={<Eye size={16} />}
-						onClick={() => handleViewDetail(row.lot_id)}
-						className={primaryActionButtonClassName}
+					<ContextMenu
+						items={[
+							{
+								label: "Ver detalle",
+								onClick: () => handleViewDetail(row.lot_id),
+							},
+						]}
+						triggerClassName={contextMenuButton}
+						openUpOnMobile={isLastItem}
 					/>
 				);
 			},
@@ -230,6 +239,28 @@ export const ManageLotsPage = () => {
 
 			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
 				<div className="flex flex-col justify-center">
+					<h3 className="p-0! m-0!">Acciones</h3>
+					<small className="text-gray-500 dark:text-gray-300">
+						Registre nuevos tramos
+					</small>
+				</div>
+			</div>
+
+			<div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+				<div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
+					<Button
+						type="button"
+						size="giant"
+						label="Registrar Nuevos Tramos"
+						icon={<Rows3 size={20} />}
+						className={primaryButtonClassName}
+						onClick={() => setIsLotModalOpen(true)}
+					/>
+				</div>
+			</div>
+
+			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+				<div className="flex flex-col justify-center">
 					<h3 className="p-0! m-0!">Filtros</h3>
 					<small className="text-gray-500 dark:text-gray-300">
 						Filtra por código de tramo
@@ -271,17 +302,6 @@ export const ManageLotsPage = () => {
 					/>
 				</div>
 			</form>
-
-			<div className="flex justify-end">
-				<Button
-					type="button"
-					size="giant"
-					label="Registrar Nuevos Tramos"
-					icon={<Rows3 size={20} />}
-					className={primaryButtonClassName}
-					onClick={() => setIsLotModalOpen(true)}
-				/>
-			</div>
 
 			<DataTable
 				title="Lista de tramos"

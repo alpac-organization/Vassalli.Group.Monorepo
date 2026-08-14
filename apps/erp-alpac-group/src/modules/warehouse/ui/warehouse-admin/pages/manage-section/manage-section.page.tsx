@@ -1,6 +1,7 @@
 import {
 	Breadcrumb,
 	Button,
+	ContextMenu,
 	DataTable,
 	Dropdown,
 	InputText,
@@ -25,9 +26,11 @@ import {
 	dropdownClassName,
 	inputClassName,
 	labelClassName,
-	primaryActionButtonClassName,
 	primaryButtonClassName,
 } from "@app/modules/warehouse/ui/warehouse-admin/utils/page-styles";
+
+const contextMenuButton =
+	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 type WarehouseRow = {
 	warehouse_id: string;
@@ -73,20 +76,24 @@ export const ManageSectionPage = () => {
 
 	const warehouseData = useMemo<WarehouseRow[]>(() => {
 		const payload = GetWarehouses.data;
-		const list = Array.isArray(payload)
+		const list: unknown[] = Array.isArray(payload)
 			? payload
 			: Array.isArray(payload?.data)
 				? payload.data
 				: [];
 
 		return list
-			.map((item: any) => ({
-				warehouse_id: item.warehouse_id ?? "",
-				warehouse_name: item.warehouse_name ?? "-",
-				warehouse_code: item.warehouse_code ?? "-",
-				warehouse_type: item.warehouse_type ?? "-",
-				is_active: Boolean(item.is_active),
-			}))
+			.map((item): WarehouseRow => {
+				const warehouse = item as Partial<WarehouseRow>;
+
+				return {
+					warehouse_id: warehouse.warehouse_id ?? "",
+					warehouse_name: warehouse.warehouse_name ?? "-",
+					warehouse_code: warehouse.warehouse_code ?? "-",
+					warehouse_type: warehouse.warehouse_type ?? "-",
+					is_active: Boolean(warehouse.is_active),
+				};
+			})
 			.filter((item) => {
 				const matchesSearch =
 					appliedFilters.searchTerm === "" ||
@@ -153,15 +160,24 @@ export const ManageSectionPage = () => {
 			key: "action",
 			label: "Acciones",
 			render(row) {
+				const isLastItem =
+					paginatedData.length > 0 &&
+					paginatedData[paginatedData.length - 1]?.warehouse_id ===
+						row.warehouse_id;
+
 				return (
-					<Button
-						type="button"
-						size="medium"
-						label="Ver secciones"
-						onClick={() =>
-							navigate(`${baseUrl}/warehouse-admin/management/sections/${row.warehouse_id}`)
-						}
-						className={primaryActionButtonClassName}
+					<ContextMenu
+						items={[
+							{
+								label: "Ver secciones",
+								onClick: () =>
+									navigate(
+										`${baseUrl}/warehouse-admin/management/sections/${row.warehouse_id}`,
+									),
+							},
+						]}
+						triggerClassName={contextMenuButton}
+						openUpOnMobile={isLastItem}
 					/>
 				);
 			},
@@ -199,20 +215,41 @@ export const ManageSectionPage = () => {
 				logoImage={activeLogo}
 			/>
 
-			<div className="flex flex-col gap-4">
-				<div className="flex justify-between items-center">
-					<div className="flex flex-col justify-center gap-2">
-						<h3 className="p-0! m-0!">Filtros</h3>
-						<small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
-							Filtra por nombre, código, tipo o estado de la bodega
-						</small>
-					</div>
+			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+				<div className="flex flex-col justify-center">
+					<h3 className="p-0! m-0!">Acciones</h3>
+					<small className="text-gray-500 dark:text-gray-300">
+						Registre una nueva bodega
+					</small>
 				</div>
+			</div>
 
-				<form
-					onSubmit={handleApplyFilters}
-					className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end"
-				>
+			<div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+				<div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
+					<Button
+						type="button"
+						size="giant"
+						label="Registrar Nueva Bodega"
+						icon={<Warehouse size={20} />}
+						className={primaryButtonClassName}
+						onClick={() => setIsWarehouseModalOpen(true)}
+					/>
+				</div>
+			</div>
+
+			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+				<div className="flex flex-col justify-center">
+					<h3 className="p-0! m-0!">Filtros</h3>
+					<small className="text-gray-500 dark:text-gray-300">
+						Filtra por nombre, código, tipo o estado de la bodega
+					</small>
+				</div>
+			</div>
+
+			<form
+				onSubmit={handleApplyFilters}
+				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end"
+			>
 					<div className="flex flex-col min-w-0">
 						<InputText
 							label="Búsqueda"
@@ -286,18 +323,6 @@ export const ManageSectionPage = () => {
 						/>
 					</div>
 				</form>
-			</div>
-
-			<div className="flex justify-end">
-				<Button
-					type="button"
-					size="giant"
-					label="Registrar Nueva Bodega"
-					icon={<Warehouse size={20} />}
-					className={primaryButtonClassName}
-					onClick={() => setIsWarehouseModalOpen(true)}
-				/>
-			</div>
 
 			<DataTable
 				title="Lista de bodegas"

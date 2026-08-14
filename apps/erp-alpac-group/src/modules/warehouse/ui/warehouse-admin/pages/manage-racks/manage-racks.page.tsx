@@ -3,6 +3,7 @@ import {
 	AnimatedAlertWrapper,
 	Breadcrumb,
 	Button,
+	ContextMenu,
 	DataTable,
 	Dropdown,
 	InputText,
@@ -16,6 +17,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { m } from "framer-motion";
 import { RackModal } from "./components/rack-modal/rack-modal";
+import { RackDetailModal } from "./components/rack-detail-modal/rack-detail-modal";
 import { useWarehouseLayout } from "@app/modules/warehouse/ui/hooks/useWarehouseLayout";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -37,6 +39,9 @@ import {
 	labelClassName,
 	primaryButtonClassName,
 } from "@app/modules/warehouse/ui/warehouse-admin/utils/page-styles";
+
+const contextMenuButton =
+	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 type RackRow = {
 	rack_id: string;
@@ -61,6 +66,8 @@ export const ManageRacksPage = () => {
 	const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
 	const [isRackModalOpen, setIsRackModalOpen] = useState(false);
+	const [selectedRackId, setSelectedRackId] = useState<string | null>(null);
+	const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
 	const [filterLevel, setFilterLevel] = useState("");
 	const [filterStatus, setFilterStatus] = useState("");
@@ -85,7 +92,14 @@ export const ManageRacksPage = () => {
 		[companyId, moduleCode, sectionId, appliedFilters],
 	);
 
-	const { GetRacks } = useWarehouseLayout({ getRacksPayload });
+	const { GetRacks, GetRackById } = useWarehouseLayout({
+		getRacksPayload,
+		getRackDetailPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+			rack_id: selectedRackId ?? "",
+		},
+	});
 
 	const racksData = useMemo<RackRow[]>(() => {
 		const payload = GetRacks.data;
@@ -110,6 +124,13 @@ export const ManageRacksPage = () => {
 			handleRequestError(mappedError.description);
 		}
 	}, [GetRacks.isError, GetRacks.error, getMappedError, handleRequestError]);
+
+	useEffect(() => {
+		if (GetRackById.isError && GetRackById.error) {
+			const mappedError = getMappedError(GetRackById.error as ApiErrorResponse);
+			handleRequestError(mappedError.description);
+		}
+	}, [GetRackById.isError, GetRackById.error, getMappedError, handleRequestError]);
 
 	useEffect(() => {
 		setCurrentPage(1);
@@ -139,6 +160,11 @@ export const ManageRacksPage = () => {
 		return racksData.slice(start, start + PAGE_SIZE);
 	}, [racksData, currentPage]);
 
+	const handleViewDetail = (rackId: string) => {
+		setSelectedRackId(rackId);
+		setIsDetailModalOpen(true);
+	};
+
 	const columns: TableColumn<RackRow>[] = [
 		{ key: "code", label: "Código" },
 		{ key: "level_number", label: "Nivel" },
@@ -148,6 +174,28 @@ export const ManageRacksPage = () => {
 			label: "Estado",
 			render(row) {
 				return <RackStatusBadge value={row.status} />;
+			},
+		},
+		{
+			key: "action",
+			label: "Acciones",
+			render(row) {
+				const isLastItem =
+					paginatedData.length > 0 &&
+					paginatedData[paginatedData.length - 1]?.rack_id === row.rack_id;
+
+				return (
+					<ContextMenu
+						items={[
+							{
+								label: "Ver detalle",
+								onClick: () => handleViewDetail(row.rack_id),
+							},
+						]}
+						triggerClassName={contextMenuButton}
+						openUpOnMobile={isLastItem}
+					/>
+				);
 			},
 		},
 	];
@@ -160,7 +208,9 @@ export const ManageRacksPage = () => {
 			transition={{ duration: 0.5 }}
 			className="flex flex-col gap-4"
 		>
-			{GetRacks.isLoading && <Loader title="Cargando racks..." />}
+			{(GetRacks.isLoading || (isDetailModalOpen && GetRackById.isLoading)) && (
+				<Loader title="Cargando racks..." />
+			)}
 
 			<AnimatedAlertWrapper open={alertState?.open ?? false}>
 				<Alert
@@ -204,20 +254,41 @@ export const ManageRacksPage = () => {
 				logoImage={activeLogo}
 			/>
 
-			<div className="flex flex-col gap-4">
-				<div className="flex justify-between items-center">
-					<div className="flex flex-col justify-center gap-2">
-						<h3 className="p-0! m-0!">Filtros</h3>
-						<small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
-							Filtra por nivel, estado o perfil de uso
-						</small>
-					</div>
+			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+				<div className="flex flex-col justify-center">
+					<h3 className="p-0! m-0!">Acciones</h3>
+					<small className="text-gray-500 dark:text-gray-300">
+						Registre nuevos racks
+					</small>
 				</div>
+			</div>
 
-				<form
-					onSubmit={handleApplyFilters}
-					className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end"
-				>
+			<div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
+				<div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
+					<Button
+						type="button"
+						size="giant"
+						label="Registrar Nuevos Racks"
+						icon={<Rows4 size={20} />}
+						className={primaryButtonClassName}
+						onClick={() => setIsRackModalOpen(true)}
+					/>
+				</div>
+			</div>
+
+			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+				<div className="flex flex-col justify-center">
+					<h3 className="p-0! m-0!">Filtros</h3>
+					<small className="text-gray-500 dark:text-gray-300">
+						Filtra por nivel, estado o perfil de uso
+					</small>
+				</div>
+			</div>
+
+			<form
+				onSubmit={handleApplyFilters}
+				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end"
+			>
 					<div className="flex flex-col min-w-0">
 						<InputText
 							label="Nivel"
@@ -282,18 +353,6 @@ export const ManageRacksPage = () => {
 						/>
 					</div>
 				</form>
-			</div>
-
-			<div className="flex justify-end">
-				<Button
-					type="button"
-					size="giant"
-					label="Registrar Nuevos Racks"
-					icon={<Rows4 size={20} />}
-					className={primaryButtonClassName}
-					onClick={() => setIsRackModalOpen(true)}
-				/>
-			</div>
 
 			<DataTable
 				title="Lista de racks"
@@ -318,6 +377,16 @@ export const ManageRacksPage = () => {
 					GetRacks.refetch();
 				}}
 				onClose={() => setIsRackModalOpen(false)}
+			/>
+
+			<RackDetailModal
+				isOpen={isDetailModalOpen}
+				rack={GetRackById.data ?? null}
+				isLoading={GetRackById.isLoading}
+				onClose={() => {
+					setIsDetailModalOpen(false);
+					setSelectedRackId(null);
+				}}
 			/>
 		</m.div>
 	);
