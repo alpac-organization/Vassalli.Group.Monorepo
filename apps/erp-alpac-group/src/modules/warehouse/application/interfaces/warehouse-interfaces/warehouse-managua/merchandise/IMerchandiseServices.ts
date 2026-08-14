@@ -1,7 +1,13 @@
 import type { GetMerchandiseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/get-merchandise";
 import type { GetMerchandiseDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/get-merchandise-detail";
+import type { GetMerchandisesRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/get-merchandises";
+import type { CreateDucatRegistryRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/create-ducat-registry";
+import type { CreateDucatRegistryDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/create-ducat-registry-detail";
+import type { AssignServiceOrderToCustomsDeclarationRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/assign-service-order-to-customs-declaration";
+import type { RegisterMerchandiseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/register-merchandise";
 import type { GetMerchandiseResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandise";
 import type { GetMerchandiseDetailResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandise-detail";
+import type { GetMerchandisesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandises";
 
 export interface IMerchandiseServices {
   getMerchandise(
@@ -10,4 +16,15 @@ export interface IMerchandiseServices {
   getMerchandiseById(
     payload: GetMerchandiseDetailRequest,
   ): Promise<GetMerchandiseDetailResponse>;
+  createDucatRegistry(
+    payload: CreateDucatRegistryRequest,
+  ): Promise<boolean>;
+  createDucatRegistryDetail(
+    payload: CreateDucatRegistryDetailRequest,
+  ): Promise<boolean>;
+  assignServiceOrderToCustomsDeclaration(
+    payload: AssignServiceOrderToCustomsDeclarationRequest,
+  ): Promise<boolean>;
+  getMerchandises(payload: GetMerchandisesRequest): Promise<GetMerchandisesResponse>;
+  registerMerchandise(payload: RegisterMerchandiseRequest): Promise<string>;
 }

@@ -1,5 +1,5 @@
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
-import { ArchiveRestoreIcon, FilePenIcon, TruckIcon } from "lucide-react";
+import { ArchiveRestoreIcon, TruckIcon, ClipboardListIcon, UsersIcon, WarehouseIcon } from "lucide-react";
 
 export const getManaguaWarehouseRoutes = () => {
   const warehouseManaguaSection: SidebarLink = {
@@ -16,23 +16,23 @@ export const getManaguaWarehouseRoutes = () => {
     icon: ArchiveRestoreIcon,
   };
   const warehouseSection4: SidebarLink = {
-    id: "warehouse7",
-    label: "Asignaciones de Bodegas",
-    path: "section4",
-    icon: FilePenIcon,
+    id: "warehouse-allocation",
+    label: "Asignación de Bodega",
+    path: "warehouse-allocation",
+    icon: ClipboardListIcon,
   };
 
   const warehouseSection12: SidebarLink = {
-    id: "warehouse15",
+    id: "warehouse-crews",
     label: "Cuadrillas",
-    path: "section12",
-    icon: FilePenIcon,
+    path: "cuadrillas",
+    icon: UsersIcon,
   };
   const BodegaSection: SidebarLink = {
-    id: "Bodegas",
-    label: "Asignaciones de Bodegas",
+    id: "warehouse-3d",
+    label: "Bodegas (3D)",
     path: "bodegas",
-    icon: FilePenIcon,
+    icon: WarehouseIcon,
   };
 
   return {
