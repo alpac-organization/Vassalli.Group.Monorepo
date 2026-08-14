@@ -12,4 +12,6 @@ export const WarehouseTypeEnum = {
 export type WarehouseTypeEnum =
     (typeof WarehouseTypeEnum)[keyof typeof WarehouseTypeEnum];
 
-export const WarehouseTypeOptions: EnumType[] = Object.values(WarehouseTypeEnum);
+export const WarehouseTypeOptions: EnumType[] = Object.values(WarehouseTypeEnum).filter(
+    (option) => option.value !== WarehouseTypeEnum.GaleronTechado.value
+);

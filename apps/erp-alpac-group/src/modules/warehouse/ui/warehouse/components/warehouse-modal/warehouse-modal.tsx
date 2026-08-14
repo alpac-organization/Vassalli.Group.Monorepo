@@ -2,7 +2,9 @@ import { useEffect } from "react";
 import { Alert, AnimatedAlertWrapper, Button, Dropdown, InputText, Modal } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
 import type { WarehouseModalProps } from "./warehouse-modal.types";
-import { WarehouseTypeOptions } from "@app/modules/warehouse/domain/enums/warehouse.enum";
+import {
+  WarehouseTypeOptions,
+} from "@app/modules/warehouse/domain/enums/warehouse.enum";
 import type { CreateWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-warehouse-request";
 import {
 	formatAmount,
@@ -11,6 +13,7 @@ import {
 	validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
+import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -26,9 +29,28 @@ const parseDecimal = (value: unknown) => {
 	return trimmed ? parseFloat(trimmed.replace(/,/g, "")) : undefined;
 };
 
-export const WarehouseModal = ({ isOpen, onClose }: WarehouseModalProps) => {
+type FormValues = {
+	branch_id: string;
+	code: string;
+	warehouse_name: string;
+	warehouse_type: number;
+	warehouse_details: {
+		width_metres?: number;
+		length_metres?: number;
+		ramps_count?: number;
+		parking_spaces_count?: number;
+	};
+};
+
+export const WarehouseModal = ({ isOpen, onClose, onSubmit }: WarehouseModalProps) => {
 
 	const { companyId, moduleCode } = useUserStore();
+	
+	const { GetBranchesQuery } = useCompanies({ company_id: companyId });
+	const branchOptions = GetBranchesQuery.data?.map(branch => ({
+		value: branch.branch_id,
+		label: branch.branch_name
+	})) || [];
 	const { getMappedError } = useMappedError();
 	const {
 		alertState,
@@ -43,22 +65,46 @@ export const WarehouseModal = ({ isOpen, onClose }: WarehouseModalProps) => {
 		handleSubmit,
 		reset,
 		formState: { errors },
-	} = useForm<CreateWarehouseRequest>();
+	} = useForm<FormValues>({
+		defaultValues: {
+			warehouse_details: {
+				ramps_count: 0,
+				parking_spaces_count: 0
+			}
+		}
+	});
 
 	const { CreateWarehouse } = useWarehouse();
 
-	const handleCreateWarehouse = (data: CreateWarehouseRequest) => {
+	const handleCreateWarehouse = (data: FormValues) => {
+		const warehouseTypeOption = WarehouseTypeOptions.find(opt => opt.value === Number(data.warehouse_type));
+		
 		const payload: CreateWarehouseRequest = {
-			...data,
 			company_id: companyId,
 			module_code: moduleCode,
-			branch_id: "b90caa3f-83ae-4aac-a57e-2546052e9f6d",
+			branch_id: data.branch_id,
+			code: data.code,
+			is_owner: true,
+			warehouse_name: data.warehouse_name,
+			warehouse_type: warehouseTypeOption ? warehouseTypeOption.label : "General",
+			parent_warehouse_id: null,
+			warehouse_details: {
+				width_metres: data.warehouse_details.width_metres,
+				length_metres: data.warehouse_details.length_metres,
+				ramps_count: data.warehouse_details.ramps_count,
+				parking_spaces_count: data.warehouse_details.parking_spaces_count,
+			}
 		};
 
 		CreateWarehouse.mutate(payload, {
 			onSuccess() {
 				handleRequestSuccess("Bodega registrada exitosamente.");
 				reset();
+				if (onSubmit) onSubmit(payload);
+				
+				setTimeout(() => {
+					onClose();
+				}, 2000);
 			},
 			onError(error) {
 				const mappedError = getMappedError(error);
@@ -104,12 +150,51 @@ export const WarehouseModal = ({ isOpen, onClose }: WarehouseModalProps) => {
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 					<Controller
 						control={control}
+						name="branch_id"
+						rules={{ required: "La sucursal es requerida" }}
+						render={({ field }) => (
+							<Dropdown
+								label="Sucursal"
+								placeholder="Seleccione..."
+								isRequired
+								options={branchOptions}
+								value={field.value}
+								appearance="dark"
+								className={dropdownClassName}
+								labelClassName={labelClassName}
+								onChange={(val) => field.onChange(val)}
+								error={errors.branch_id?.message}
+								disabled={GetBranchesQuery.isLoading}
+							/>
+						)}
+					/>
+
+					<Controller
+						control={control}
+						name="code"
+						rules={{ required: "El código es requerido" }}
+						render={({ field }) => (
+							<InputText
+								label="Código"
+								placeholder="Ej. B2F"
+								isRequired
+								className={inputClassName}
+								labelClassName={labelClassName}
+								value={field.value ?? ""}
+								onChange={field.onChange}
+								error={errors.code?.message}
+							/>
+						)}
+					/>
+
+					<Controller
+						control={control}
 						name="warehouse_name"
 						rules={{ required: "El nombre de la bodega es requerido" }}
 						render={({ field }) => (
 							<InputText
 								label="Nombre de la bodega"
-								placeholder="Ej. Bodega 1"
+								placeholder="Ej. Bodega 2 Fiscal"
 								isRequired
 								className={inputClassName}
 								labelClassName={labelClassName}
@@ -122,7 +207,7 @@ export const WarehouseModal = ({ isOpen, onClose }: WarehouseModalProps) => {
 
 					<Controller
 						control={control}
-						name="warehouse_information.warehouse_type"
+						name="warehouse_type"
 						rules={{ required: "El tipo de bodega es requerido" }}
 						render={({ field }) => (
 							<Dropdown
@@ -134,165 +219,94 @@ export const WarehouseModal = ({ isOpen, onClose }: WarehouseModalProps) => {
 								appearance="dark"
 								className={dropdownClassName}
 								labelClassName={labelClassName}
-								valueClassName="text-black! dark:text-white!"
-								onChange={(value) => field.onChange(Number(value))}
-								error={errors.warehouse_information?.warehouse_type?.message}
+								onChange={(val) => field.onChange(val)}
+								error={errors.warehouse_type?.message}
 							/>
 						)}
 					/>
 
 					<InputText
-						label="Capacidad cúbica total (m3)"
+						label="Ancho (m)"
 						type="text"
 						inputMode="decimal"
 						placeholder="0.00"
 						isRequired
 						className={inputClassName}
 						labelClassName={labelClassName}
-						{...register("warehouse_information.total_cubic_capacity", {
-							required: "La capacidad cúbica total es requerida",
+						{...register("warehouse_details.width_metres", {
+							required: "El ancho es requerido",
 							validate: {
-								validateDecimal: (value) => validateDecimalNumber(value),
-								validatePositive: (value) => validatePositiveNumber(value),
+								validateDecimal: (value) => !value || validateDecimalNumber(value),
+								validatePositive: (value) => !value || validatePositiveNumber(value),
 							},
 							setValueAs: parseDecimal,
 							onChange: (evt) => {
 								evt.target.value = formatAmount(evt.target.value, 10, 2);
 							},
 						})}
-						error={errors.warehouse_information?.total_cubic_capacity?.message}
+						error={errors.warehouse_details?.width_metres?.message}
 					/>
 
 					<InputText
-						label="Área total (m2)"
+						label="Largo (m)"
 						type="text"
 						inputMode="decimal"
 						placeholder="0.00"
 						isRequired
 						className={inputClassName}
 						labelClassName={labelClassName}
-						{...register("warehouse_information.total_area", {
-							required: "El área total es requerida",
+						{...register("warehouse_details.length_metres", {
+							required: "El largo es requerido",
 							validate: {
-								validateDecimal: (value) => validateDecimalNumber(value),
-								validatePositive: (value) => validatePositiveNumber(value),
+								validateDecimal: (value) => !value || validateDecimalNumber(value),
+								validatePositive: (value) => !value || validatePositiveNumber(value, true),
 							},
 							setValueAs: parseDecimal,
 							onChange: (evt) => {
 								evt.target.value = formatAmount(evt.target.value, 10, 2);
 							},
 						})}
-						error={errors.warehouse_information?.total_area?.message}
-					/>
-
-					<InputText
-						label="Área no utilizable (m2)"
-						type="text"
-						inputMode="decimal"
-						placeholder="0.00"
-						isRequired
-						className={inputClassName}
-						labelClassName={labelClassName}
-						{...register("warehouse_information.unusable_area", {
-							required: "El área no utilizable es requerida",
-							validate: {
-								validateDecimal: (value) => validateDecimalNumber(value),
-								validatePositive: (value) => validatePositiveNumber(value, true),
-							},
-							setValueAs: parseDecimal,
-							onChange: (evt) => {
-								evt.target.value = formatAmount(evt.target.value, 10, 2);
-							},
-						})}
-						error={errors.warehouse_information?.unusable_area?.message}
-					/>
-
-					<InputText
-						label="Altura máxima (m)"
-						type="text"
-						inputMode="decimal"
-						placeholder="0.00"
-						isRequired
-						className={inputClassName}
-						labelClassName={labelClassName}
-						{...register("warehouse_information.max_height", {
-							required: "La altura máxima es requerida",
-							validate: {
-								validateDecimal: (value) => validateDecimalNumber(value),
-								validatePositive: (value) => validatePositiveNumber(value),
-							},
-							setValueAs: parseDecimal,
-							onChange: (evt) => {
-								evt.target.value = formatAmount(evt.target.value, 10, 2);
-							},
-						})}
-						error={errors.warehouse_information?.max_height?.message}
-					/>
-
-					<InputText
-						label="Altura mínima (m)"
-						type="text"
-						inputMode="decimal"
-						placeholder="0.00"
-						isRequired
-						className={inputClassName}
-						labelClassName={labelClassName}
-						{...register("warehouse_information.min_height", {
-							required: "La altura mínima es requerida",
-							validate: {
-								validateDecimal: (value) => validateDecimalNumber(value),
-								validatePositive: (value) => validatePositiveNumber(value),
-							},
-							setValueAs: parseDecimal,
-							onChange: (evt) => {
-								evt.target.value = formatAmount(evt.target.value, 10, 2);
-							},
-						})}
-						error={errors.warehouse_information?.min_height?.message}
+						error={errors.warehouse_details?.length_metres?.message}
 					/>
 
 					<InputText
 						label="Cantidad de rampas"
 						type="text"
 						inputMode="decimal"
-						placeholder="0.0"
-						isRequired
+						placeholder="0"
 						className={inputClassName}
 						labelClassName={labelClassName}
-						{...register("warehouse_information.rampas_count", {
-							required: "La cantidad de rampas es requerida",
+						{...register("warehouse_details.ramps_count", {
 							validate: {
-								validateDecimal: (value) => validateIntegerNumber(value),
-								validatePositive: (value) => validatePositiveNumber(value, true),
+								validateDecimal: (value) => value === undefined || value === null || value === "" || validateIntegerNumber(value),
+								validatePositive: (value) => value === undefined || value === null || value === "" || validatePositiveNumber(value, true),
 							},
 							setValueAs: parseDecimal,
 							onChange: (evt) => {
 								evt.target.value = formatAmount(evt.target.value, 3, 0);
 							},
 						})}
-						error={errors.warehouse_information?.rampas_count?.message}
+						error={errors.warehouse_details?.ramps_count?.message}
 					/>
 
 					<InputText
 						label="Espacios de parqueo"
 						type="text"
 						inputMode="decimal"
-						placeholder="0.0"
-						isRequired
+						placeholder="0"
 						className={inputClassName}
 						labelClassName={labelClassName}
-						{...register("warehouse_information.parking_spaces_count", {
-							required: "Los espacios de parqueo son requeridos",
+						{...register("warehouse_details.parking_spaces_count", {
 							validate: {
-								validateDecimal: (value) => validateIntegerNumber(value),
-								validatePositive: (value) => validatePositiveNumber(value, true),
+								validateDecimal: (value) => value === undefined || value === null || value === "" || validateIntegerNumber(value),
+								validatePositive: (value) => value === undefined || value === null || value === "" || validatePositiveNumber(value, true),
 							},
 							setValueAs: parseDecimal,
 							onChange: (evt) => {
 								evt.target.value = formatAmount(evt.target.value, 3, 0);
 							},
 						})}
-						error={errors.warehouse_information?.parking_spaces_count?.message}
+						error={errors.warehouse_details?.parking_spaces_count?.message}
 					/>
 				</div>
 

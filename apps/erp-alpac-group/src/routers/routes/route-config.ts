@@ -7,6 +7,7 @@ import { getCorintoWarehouseRoutes } from "@app/routers/routes/warehouse/corinto
 import { getManaguaWarehouseRoutes } from "@app/routers/routes/warehouse/managua/managua-routes";
 import { getPurchasingRoutes } from "./purchasing/purchasing-routes";
 import { getFinanceRoutes } from "./finance/finance-routes";
+import { getWarehouseAdminRoutes } from "./warehouse-admin/warehouse-admin-routes";
 
 const {
   collboratorSection,
@@ -44,6 +45,10 @@ const {
   warehouseSection12,
   BodegaSection,
 } = getManaguaWarehouseRoutes();
+
+const {
+  manageSection
+} = getWarehouseAdminRoutes();
 
 const {
   supplierSection,
@@ -103,6 +108,9 @@ export const routeConfig = {
       warehouseSection12,
       warehouseReportSection,
     ],
+  },
+  [ModuleEnum.WAREHOUSE_ADMIN]: {
+    [RoleEnum.OPERATOR]: [manageSection],
   },
   [ModuleEnum.PURCHASING]: {
     [RoleEnum.ADMINISTRATOR]: [

@@ -3,7 +3,9 @@ import type { IHttpHandler } from "@app/core/ports";
 import type { GetQuotesAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/get-quote-analysis";
 import type { GetRequisitionAccountingReviewsResponse } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
 import { cleanParams } from "@app/shared/utils/object.utils";
-
+import type { RequisitionAccountingReviewDetailsDto } from "@app/modules/finance/domain/ApiContract/responses/quote-analysis-details";
+import type { GetQuoteAnalysisDetailsRequest } from "@app/modules/finance/domain/ApiContract/requests/quote-analysis-detail";
+import type { AcceptOfferPurchaseRequest } from "@app/modules/finance/domain/ApiContract/requests/accept-offer-purchase";
 export class QuoteAnalysisServices implements IQuoteAnalysis {
   private readonly httpClient: IHttpHandler;
   constructor(httpClient: IHttpHandler) {
@@ -26,5 +28,23 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
         }),
       });
     return response;
+  }
+  public async GetQuoteAnalysisDetails(
+    payload: GetQuoteAnalysisDetailsRequest,
+  ): Promise<RequisitionAccountingReviewDetailsDto> {
+    const { company_id, module_code, requisition_accounting_review_id } =
+      payload;
+    const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${requisition_accounting_review_id}`;
+    const response =
+      await this.httpClient.get<RequisitionAccountingReviewDetailsDto>(url);
+    return response;
+  }
+  public async accceptQuotationToPurchase(
+    payload: AcceptOfferPurchaseRequest,
+  ): Promise<void> {
+    const { company_id, module_code, quotation_id, purchase_request_item_id } =
+      payload;
+    const url = `/companies/${company_id}/modules/${module_code}/quotations/${quotation_id}/accept-for-purchase`;
+    await this.httpClient.patch<void>(url, { purchase_request_item_id });
   }
 }
