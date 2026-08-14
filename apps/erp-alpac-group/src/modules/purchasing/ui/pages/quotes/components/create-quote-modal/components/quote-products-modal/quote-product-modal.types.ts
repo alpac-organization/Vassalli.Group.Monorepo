@@ -3,11 +3,17 @@ import type { QuotationItem } from "@app/modules/purchasing/domain/ApiContract/R
 
 export const MIN_SUPPLIERS_PER_PRODUCT = 2;
 
+export type DraftQuotationItem = QuotationItem & {
+	product_id: string;
+	supplier_legal_name?: string;
+};
+
 export type QuoteProductModalProps = {
 	isOpen: boolean;
 	products: PurchaseRequestProductInformation[];
+	existingItems?: DraftQuotationItem[];
 	onClose: () => void;
-	onConfirm?: (items: QuotationItem[]) => void;
+	onConfirm?: (items: DraftQuotationItem[]) => void;
 };
 
 export type QuotationItemForm = QuotationItem & {
@@ -16,6 +22,7 @@ export type QuotationItemForm = QuotationItem & {
 };
 
 export type QuoteProductGroup = {
+	product_id: string;
 	purchase_request_item_id: string;
 	product_name: string;
 	category_name?: string | null;

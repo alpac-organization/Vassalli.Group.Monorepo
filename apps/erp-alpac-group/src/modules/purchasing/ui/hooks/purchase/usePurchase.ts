@@ -23,7 +23,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
 
    const {
       getPurchaseRequestsPayload,
-      getPurchaseRequestDetailsPayload,      
+      getPurchaseRequestDetailsPayload,
       getPurchaseRequestProductsPayload
    } = props || {};
 
@@ -39,7 +39,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       getPurchaseRequestDetailsPayload?.company_id?.trim() &&
       getPurchaseRequestDetailsPayload?.module_code?.trim() &&
       getPurchaseRequestDetailsPayload?.purchase_request_id
-   );   
+   );
 
    const purchaseRequestProductEnabled = Boolean(
       getPurchaseRequestProductsPayload?.company_id?.trim() &&
@@ -108,6 +108,10 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       mutationFn: (payload: SendPurchaseRequestToReviewPayload) => purchaseServices.SendPurchaseRequestToReview(payload),
       onSuccess() {
          queryClient.invalidateQueries({ queryKey: ["get-purchase-requests"] });
+         queryClient.invalidateQueries({
+            queryKey: ["quotes-analysis"],
+            refetchType: "all",
+         });
       },
       retry: 1
    });

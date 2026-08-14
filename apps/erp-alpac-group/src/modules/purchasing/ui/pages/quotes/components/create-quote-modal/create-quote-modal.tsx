@@ -29,7 +29,8 @@ import { QuoteProductModal } from "./components/quote-products-modal/quote-produ
 import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-modal.types";
 import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { RequestedProducts } from "./types/create-quote-form.types";
-import type { QuotationItem, RegisterQuoteRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
+import type { RegisterQuoteRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
+import type { DraftQuotationItem } from "./components/quote-products-modal/quote-product-modal.types";
 import { useQuotes } from "@app/modules/purchasing/ui/hooks/quote/useQuote";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
@@ -67,7 +68,7 @@ export function CreateQuoteModal({
 	const [openProducts, setOpenProducts] = useState<string[]>([]);
 	const [isQuoteProductModalOpen, setIsQuoteProductModalOpen] = useState(false);
 	const [selectedProducts, setSelectedProducts] = useState<PurchaseRequestProductInformation[]>([]);
-	const [quotationItems, setQuotationItems] = useState<QuotationItem[]>();
+	const [quotationItems, setQuotationItems] = useState<DraftQuotationItem[]>([]);
 
 	const purchaseRequestId = isOpen
 		? (purchaseRequest?.purchase_request_id ?? "")
@@ -115,7 +116,7 @@ export function CreateQuoteModal({
 		reset(defaultFormValues);
 		setOpenProducts([]);
 		setSelectedProducts([]);
-		setQuotationItems(undefined);
+		setQuotationItems([]);
 		setIsQuoteProductModalOpen(false);
 	};
 
@@ -180,7 +181,7 @@ export function CreateQuoteModal({
 
 	const onSubmit = (_values: RequestedProducts) => {
 
-		if (!quotationItems?.length) {
+		if (!quotationItems.length) {
 			onRequestError?.(
 				"Debe cotizar al menos un producto con sus proveedores antes de guardar.",
 			);
@@ -190,7 +191,10 @@ export function CreateQuoteModal({
 		const payload: RegisterQuoteRequest = {
 			company_id: companyId,
 			module_code: moduleCode,
-			quotation_items: quotationItems,
+			quotation_items: quotationItems.map(
+				({ product_id: _productId, supplier_legal_name: _supplierName, ...item }) =>
+					item,
+			),
 		};
 
 		RegisterQuote.mutate(payload, {
@@ -340,18 +344,30 @@ export function CreateQuoteModal({
 											}}
 											className="gap-3 pb-3"
 										>
-											{fields.map((field, index) => (
+											{fields.map((field, index) => {
+												const productId = field.product_details?.product_id;
+												const assignedSuppliersCount = quotationItems.filter(
+													(item) =>
+														(productId && item.product_id === productId) ||
+														(field.purchase_request_item_id &&
+															item.purchase_request_item_id ===
+																field.purchase_request_item_id),
+												).length;
+
+												return (
 												<QuoteDetailAccordion
 													key={field.id}
 													accordionValue={field.id}
 													quoteDetailIndex={index}
 													requestedProduct={field}
+													assignedSuppliersCount={assignedSuppliersCount}
 													isSelected={selectedProducts.some(
 														(item) => item.product_details.product_id === field.product_details?.product_id,
 													)}
 													onSelectedChange={handleSelectProduct}
 												/>
-											))}
+												);
+											})}
 										</AccordionGroup>
 									)}
 								</section>
@@ -390,8 +406,60 @@ export function CreateQuoteModal({
 				isOpen={isQuoteProductModalOpen}
 				onClose={handleCloseQuoteProductModal}
 				products={selectedProducts}
+				existingItems={quotationItems}
 				onConfirm={(items) => {
-					setQuotationItems(items);
+					const selectedProductIds = selectedProducts
+						.map((product) => product.product_details?.product_id)
+						.filter(Boolean);
+
+					const itemsWithProductId = items.map((item) => {
+						if (item.product_id) return item;
+
+						if (selectedProductIds.length === 1) {
+							return { ...item, product_id: selectedProductIds[0] };
+						}
+
+						const selectedProduct = selectedProducts.find(
+							(product) =>
+								Boolean(product.purchase_request_item_id) &&
+								product.purchase_request_item_id ===
+									item.purchase_request_item_id,
+						);
+
+						return selectedProduct?.product_details?.product_id
+							? {
+									...item,
+									product_id: selectedProduct.product_details.product_id,
+								}
+							: item;
+					});
+
+					const quotedProductIds = new Set(
+						itemsWithProductId.map((item) => item.product_id).filter(Boolean),
+					);
+					const quotedItemIds = new Set(
+						itemsWithProductId
+							.map((item) => item.purchase_request_item_id)
+							.filter(Boolean),
+					);
+
+					setQuotationItems((prevItems) => [
+						...prevItems.filter((item) => {
+							if (item.product_id && quotedProductIds.has(item.product_id)) {
+								return false;
+							}
+
+							if (
+								item.purchase_request_item_id &&
+								quotedItemIds.has(item.purchase_request_item_id)
+							) {
+								return false;
+							}
+
+							return true;
+						}),
+						...itemsWithProductId,
+					]);
 					handleCloseQuoteProductModal();
 				}}
 			/>

@@ -189,7 +189,7 @@ export const PurchaseRequestDetail = (
 					`purchase_request_items.${index}.unit_measure_id`,
 				);
 				const selectedUnit = unitsOfMeasurementOptions.find(
-					(option) => option.value === selectedUnitId,
+					(option) => String(option.value) === String(selectedUnitId),
 				);
 				const isBoxOrPackage = hasUnitsPerPackage(
 					selectedUnit?.label,
@@ -279,8 +279,8 @@ export const PurchaseRequestDetail = (
 												field.onChange(nextUnitId);
 
 												const nextUnit = unitsOfMeasurementOptions
-													.find((option) => option.value === nextUnitId);
-													
+													.find((option) => String(option.value) === nextUnitId);
+
 												const nextIsBoxOrPackage = hasUnitsPerPackage(
 													nextUnit?.label,
 													nextUnit?.symbol,
@@ -290,7 +290,10 @@ export const PurchaseRequestDetail = (
 													setValue(
 														`purchase_request_items.${index}.quantity_unit`,
 														"",
-														{ shouldValidate: true },
+														{ shouldValidate: false },
+													);
+													clearErrors(
+														`purchase_request_items.${index}.quantity_unit`,
 													);
 												}
 											}}
@@ -313,19 +316,31 @@ export const PurchaseRequestDetail = (
 								<Controller
 									name={`purchase_request_items.${index}.quantity_unit`}
 									control={control}
-									rules={
-										isBoxOrPackage
-											? {
-												required: isBoxOrPackage ? "Agregue las unidades por presentación" : false,
-												validate: {
-													validateInteger: (value) =>
-														validateIntegerNumber(value),
-													validatePositive: (value) =>
-														validatePositiveNumber(value),
-												},
+									rules={{
+										validate: (value, formValues) => {
+											const unitId =
+												formValues.purchase_request_items?.[index]
+													?.unit_measure_id;
+											const unit = unitsOfMeasurementOptions.find(
+												(option) => String(option.value) === String(unitId),
+											);
+											const requiresUnitsPerPackage = hasUnitsPerPackage(
+												unit?.label,
+												unit?.symbol,
+											);
+
+											if (!requiresUnitsPerPackage) return true;
+
+											if (value === "" || value === undefined || value === null) {
+												return "Agregue las unidades por presentación";
 											}
-											: undefined
-									}
+
+											const integerResult = validateIntegerNumber(value);
+											if (integerResult !== true) return integerResult;
+
+											return validatePositiveNumber(value);
+										},
+									}}
 									render={({ field }) => (
 										<InputText
 											label="Unidades por presentación"

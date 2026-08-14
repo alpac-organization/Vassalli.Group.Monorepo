@@ -16,6 +16,7 @@ export function QuoteDetailAccordion({
 	accordionValue,
 	requestedProduct,
 	isSelected = false,
+	assignedSuppliersCount = 0,
 	onSelectedChange,
 }: QuoteDetailAccordionProps) {
 
@@ -25,7 +26,8 @@ export function QuoteDetailAccordion({
 	const categoryName =
 		requestedProduct?.product_details?.category_information?.name?.trim() || null;
 
-	const hasQuotation = requestedProduct?.has_quotation ?? false;
+	const hasQuotation =
+		(requestedProduct?.has_quotation ?? false) || assignedSuppliersCount > 0;
 
 	const quantity = requestedProduct?.quantity;
 	const quantityUnit = requestedProduct?.quantity_unit;
@@ -111,7 +113,12 @@ export function QuoteDetailAccordion({
 							}
 							{
 								hasQuotation ?
-									<span>Cotizado</span> :
+									<span>
+										Cotizado
+										{assignedSuppliersCount > 0
+											? ` · ${assignedSuppliersCount} proveedor${assignedSuppliersCount === 1 ? "" : "es"}`
+											: ""}
+									</span> :
 									<span>Sin cotizar</span>
 							}
 						</span>

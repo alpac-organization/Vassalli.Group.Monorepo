@@ -5,5 +5,6 @@ export interface QuoteDetailAccordionProps {
 	accordionValue: string;
 	requestedProduct?: PurchaseRequestProductInformation;
 	isSelected?: boolean;
+	assignedSuppliersCount?: number;
 	onSelectedChange?: (requestedProduct: PurchaseRequestProductInformation, isSelected: boolean) => void;
 }

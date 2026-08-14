@@ -23,10 +23,10 @@ import {
 	quoteFormSecondaryButtonClassName,
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
 import { TimeTypeEnum, TimeTypeOptions } from "@app/core/enums/time-type.enum";
-import type { QuotationItem } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
 import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
 import { SelectSupplierModal } from "../select-supplier-modal/select-supplier-modal";
 import type {
+	DraftQuotationItem,
 	QuotationItemFieldsProps,
 	QuotationItemForm,
 	QuoteProductFormValues,
@@ -393,6 +393,7 @@ function QuoteProductGroupFields({
 }: QuoteProductGroupFieldsProps) {
 	const {
 		control,
+		register,
 		formState: { errors },
 	} = useFormContext<QuoteProductFormValues>();
 
@@ -454,6 +455,14 @@ function QuoteProductGroupFields({
 
 	return (
 		<li className="flex flex-col gap-4 border-b border-slate-200 py-10 last:border-b-0 dark:border-neutral-600">
+			<input
+				type="hidden"
+				{...register(`products.${productIndex}.product_id`)}
+			/>
+			<input
+				type="hidden"
+				{...register(`products.${productIndex}.purchase_request_item_id`)}
+			/>
 			<div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
 				<div className="flex min-w-0 items-center gap-2">
 					<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
@@ -525,6 +534,7 @@ function QuoteProductGroupFields({
 export function QuoteProductModal({
 	isOpen,
 	products,
+	existingItems = [],
 	onClose,
 	onConfirm,
 }: QuoteProductModalProps) {
@@ -556,10 +566,18 @@ export function QuoteProductModal({
 
 		reset({
 			products: products.map((product) => {
-
+				const productId = product.product_details?.product_id ?? "";
 				const purchaseRequestItemId = product?.purchase_request_item_id ?? "";
 
+				const productItems = existingItems.filter(
+					(item) =>
+						item.product_id === productId ||
+						(purchaseRequestItemId &&
+							item.purchase_request_item_id === purchaseRequestItemId),
+				);
+
 				return {
+					product_id: productId,
 					purchase_request_item_id: purchaseRequestItemId,
 					product_name:
 						product.product_details?.product_name?.trim() ||
@@ -568,11 +586,14 @@ export function QuoteProductModal({
 						product.product_details?.category_information?.name?.trim() ||
 						null,
 					quantity: product.quantity,
-					items: [],
+					items: productItems.map((item) => ({
+						...item,
+						has_iva: item.iva != null && item.iva > 0,
+					})),
 				};
 			}),
 		});
-	}, [isOpen, products, reset]);
+	}, [isOpen, products, existingItems, reset]);
 
 	const handleClose = () => {
 		reset({ products: [] });
@@ -587,13 +608,12 @@ export function QuoteProductModal({
 
 		if (invalidProduct) return;
 
-		const items: QuotationItem[] = values.products.flatMap((product) =>
-			product.items.map(
-				({ supplier_legal_name: _supplierLegalName, has_iva: _hasIva, ...item }) => ({
-					...item,
-					purchase_request_item_id: product.purchase_request_item_id,
-				}),
-			),
+		const items: DraftQuotationItem[] = values.products.flatMap((product) =>
+			product.items.map(({ has_iva: _hasIva, ...item }) => ({
+				...item,
+				product_id: product.product_id,
+				purchase_request_item_id: product.purchase_request_item_id,
+			})),
 		);
 
 		onConfirm?.(items);
