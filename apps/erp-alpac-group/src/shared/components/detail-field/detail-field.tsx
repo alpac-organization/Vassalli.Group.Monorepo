@@ -14,7 +14,7 @@ export const DetailField = ({
 
          {
             !!icon &&
-               <span className="mr-2">
+               <span className="mr-2 flex h-9 w-9 shrink-0 items-center justify-center ring-1 ring-slate-200 dark:ring-neutral-600 rounded-full">
                   {icon}
                </span>
             }

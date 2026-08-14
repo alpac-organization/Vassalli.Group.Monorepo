@@ -72,6 +72,7 @@ export const PurchaseRequest = () => {
 		{
 			id: "monthly-applications",
 			label: "Solicitud de Materiales Mensuales",
+			disabled: true,
 			render: () => (
 				<MonthlyMaterialTab
 					currentBranchId={selectedBranchId!}

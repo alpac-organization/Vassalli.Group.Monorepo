@@ -278,9 +278,9 @@ export const PurchaseRequestDetail = (
 												const nextUnitId = String(value ?? "");
 												field.onChange(nextUnitId);
 
-												const nextUnit = unitsOfMeasurementOptions.find(
-													(option) => option.value === nextUnitId,
-												);
+												const nextUnit = unitsOfMeasurementOptions
+													.find((option) => option.value === nextUnitId);
+													
 												const nextIsBoxOrPackage = hasUnitsPerPackage(
 													nextUnit?.label,
 													nextUnit?.symbol,
@@ -316,7 +316,7 @@ export const PurchaseRequestDetail = (
 									rules={
 										isBoxOrPackage
 											? {
-												required: "Agregue las unidades por presentación",
+												required: isBoxOrPackage ? "Agregue las unidades por presentación" : false,
 												validate: {
 													validateInteger: (value) =>
 														validateIntegerNumber(value),

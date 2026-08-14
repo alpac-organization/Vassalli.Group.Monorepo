@@ -24,6 +24,7 @@ export interface DropdownProps {
   optional?: boolean;
   valueClassName?: string;
   appearance?: DropdownAppearance;
+  disabled?: boolean;
   renderOptionAction?: (option: Option) => ReactNode;
   onEditOption?: (option: Option) => void;
 }

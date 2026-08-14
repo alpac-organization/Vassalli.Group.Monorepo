@@ -158,33 +158,12 @@ export const PurchaseOrder = () => {
 				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
 			>
 				<InputText
-					label="N° Orden"
+					label="Campo de filtro"
 					placeholder="Ej. OC-2026-001"
 					className={inputClassName}
 					labelClassName={labelClassName}
 					value={orderNumber}
 					onChange={(event) => setOrderNumber(event.target.value)}
-				/>
-
-				<InputText
-					label="Proveedor"
-					placeholder="Ej. Distribuidora del Pacífico"
-					className={inputClassName}
-					labelClassName={labelClassName}
-					value={supplierName}
-					onChange={(event) => setSupplierName(event.target.value)}
-				/>
-
-				<Dropdown
-					label="Estado"
-					placeholder="Seleccione..."
-					appearance="dark"
-					options={statusOptions}
-					value={status}
-					onChange={(value) => setStatus(String(value))}
-					className={dropdownClassName}
-					labelClassName={labelClassName}
-					valueClassName={labelClassName}
 				/>
 
 				<Button

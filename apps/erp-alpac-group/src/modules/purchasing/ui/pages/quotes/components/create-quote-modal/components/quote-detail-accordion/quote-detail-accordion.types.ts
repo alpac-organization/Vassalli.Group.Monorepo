@@ -3,6 +3,7 @@ import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/
 export interface QuoteDetailAccordionProps {
 	quoteDetailIndex: number;
 	accordionValue: string;
-	requestedProduct?: PurchaseRequestProductInformation;	
+	requestedProduct?: PurchaseRequestProductInformation;
+	isSelected?: boolean;
 	onSelectedChange?: (requestedProduct: PurchaseRequestProductInformation, isSelected: boolean) => void;
 }

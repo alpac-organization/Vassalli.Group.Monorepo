@@ -40,6 +40,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
       className,
       labelClassName,
       isRequired,
+      disabled = false,
       optional = false,
       valueClassName,
       appearance = "default",
@@ -134,6 +135,12 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     }, [searchTerm]);
 
     useEffect(() => {
+      if (disabled) {
+        setIsOpen(false);
+      }
+    }, [disabled]);
+
+    useEffect(() => {
       if (activeIndex >= 0 && listRef.current && isOpen) {
         const targetComponent = listRef.current?.children[
           activeIndex
@@ -200,9 +207,9 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
         <button
           type="button"
           title="Editar"
-          aria-label={`Editar ${option.label}`}
+          aria-label={`Editar ${option.label}`}          
           onClick={(event) => {
-            event.stopPropagation();
+            event.stopPropagation();            
             onEditOption(option);
             setIsOpen(false);
           }}
@@ -333,9 +340,14 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           <div className="relative w-full min-w-0" ref={ref}>
             <div
               ref={triggerRef}
-              tabIndex={0}
-              onClick={() => setIsOpen(!isOpen)}
+              tabIndex={disabled ? -1 : 0}
+              aria-disabled={disabled}
+              onClick={() => {
+                if (disabled) return;
+                setIsOpen(!isOpen);
+              }}
               onKeyDown={(e) => {
+                if (disabled) return;
                 if (e.key === "Enter") {
                   e.preventDefault();
                   if (
@@ -372,8 +384,9 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
                 }
               }}
               className={`
-                    flex items-center justify-between w-full min-w-0 h-11 sm:h-12 px-3 sm:px-4 rounded-[10px] cursor-pointer
+                    flex items-center justify-between w-full min-w-0 h-11 sm:h-12 px-3 sm:px-4 rounded-[10px]
                     transition-all duration-200 text-[14px] sm:text-[15px] outline-none
+                    ${disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"}
                     ${triggerSurface}
                     ${className ?? ""}
                  `}
@@ -384,7 +397,11 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
+                  disabled={disabled}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (disabled) return;
+                  }}
                   className={`bg-transparent outline-none w-full min-w-0 truncate ${valueColorClass} ${inputPlaceholderClass}`}
                   placeholder={
                     selectedOption
@@ -403,10 +420,11 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
               <m.svg
                 onClick={(e) => {
                   e.stopPropagation();
+                  if (disabled) return;
                   setIsOpen(!isOpen);
                 }}
                 animate={{ rotate: isOpen ? 180 : 0 }}
-                className="w-5 h-5 text-slate-400 shrink-0 cursor-pointer ml-2"
+                className={`w-5 h-5 text-slate-400 shrink-0 ml-2 ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

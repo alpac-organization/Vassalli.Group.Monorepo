@@ -25,7 +25,7 @@ export class PurchaseServices implements IPurchaseServices {
 
          const url = `/companies/${company_id}/modules/${module_code}/purchase-requests`;
 
-         const response = await this.apiHandler.get<GetPurchaseRequestResponseList>(url, { params: cleanParams(rest) });
+         const response = await this.apiHandler.get<any>(url, { params: cleanParams(rest) });         
 
          return response;
 
@@ -113,7 +113,7 @@ export class PurchaseServices implements IPurchaseServices {
       try {
          const { company_id, module_code, purchase_request_id, ...rest } = payload;
 
-         const url = `companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/send`;
+         const url = `companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/send-accounting-review`;
 
          await this.apiHandler.post<void>(url, rest);
 

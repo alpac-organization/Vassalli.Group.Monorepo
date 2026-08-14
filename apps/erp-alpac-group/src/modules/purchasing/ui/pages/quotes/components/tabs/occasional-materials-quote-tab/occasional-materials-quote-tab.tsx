@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { QuotesTable } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-table/quotes-table";
 import { CreateQuoteModal } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -21,6 +21,7 @@ const sendButtonClass = "rounded-md! h-11 px-6! border border-blue-200 dark:bord
 const cancelButtonClass = "rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
 
 export function OccasionalMaterialsQuoteTab({
+	currentBranchId,
 	onRequestError,
 	onRequestSuccess,
 }: OccasionalMaterialsQuoteTabProps) {
@@ -34,6 +35,7 @@ export function OccasionalMaterialsQuoteTab({
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
 		company_id: companyId,
 		module_code: moduleCode,
+		branch_id: currentBranchId,
 		status: PurchaseRequestStatusEnum.Approved.value,
 		page_number: 1,
 		page_size: PAGE_SIZE,
@@ -46,6 +48,7 @@ export function OccasionalMaterialsQuoteTab({
 			module_code: moduleCode,
 			status: PurchaseRequestStatusEnum.Approved.value,
 			request_type: PurchaseRequestEnum.Eventual.value,
+			branch_id: currentBranchId,
 			page_size: PAGE_SIZE,
 		}
 	});
@@ -53,6 +56,17 @@ export function OccasionalMaterialsQuoteTab({
 	const purchaseRequests = GetPurchaseRequests.data?.data ?? [];
 	const totalRecords = GetPurchaseRequests.data?.total ?? 0;
 	const currentPage = filters.page_number ?? 1;
+
+	useEffect(() => {
+		setFilters({
+			company_id: companyId,
+			module_code: moduleCode,
+			branch_id: currentBranchId,
+			status: PurchaseRequestStatusEnum.Approved.value,
+			page_number: 1,
+			page_size: PAGE_SIZE,
+		});
+	}, [currentBranchId, companyId, moduleCode]);
 
 	const handlePageChange = useCallback((page: number) => {
 		setFilters((prev) => ({

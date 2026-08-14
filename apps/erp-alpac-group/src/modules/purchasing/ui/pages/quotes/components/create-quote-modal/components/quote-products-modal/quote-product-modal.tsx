@@ -22,7 +22,7 @@ import {
 	quoteFormPrimaryButtonClassName,
 	quoteFormSecondaryButtonClassName,
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
-import { TimeTypeOptions } from "@app/core/enums/time-type.enum";
+import { TimeTypeEnum, TimeTypeOptions } from "@app/core/enums/time-type.enum";
 import type { QuotationItem } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
 import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
 import { SelectSupplierModal } from "../select-supplier-modal/select-supplier-modal";
@@ -64,6 +64,13 @@ const toNumberOrUndefined = (value: unknown) => {
 	const parsed = Number(value);
 	return Number.isNaN(parsed) ? undefined : parsed;
 };
+
+const deliveryTime = TimeTypeOptions.filter(option => option.value !== TimeTypeEnum.Years.value);
+
+const deliveryTimeOptions = deliveryTime.map((option) => ({
+	value: String(option.value),
+	label: option.label,
+}));
 
 const timeTypeOptions = TimeTypeOptions.map((option) => ({
 	value: String(option.value),
@@ -307,7 +314,7 @@ function QuotationItemFields({
 								placeholder="Seleccione"
 								appearance="dark"
 								isRequired
-								options={timeTypeOptions}
+								options={deliveryTimeOptions}
 								value={field.value != null ? String(field.value) : ""}
 								onChange={(value) =>
 									field.onChange(value ? Number(value) : undefined)

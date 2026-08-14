@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Dropdown, Modal } from "@alpac/design-system";
+import { Button, Dropdown, Modal, Spinner, useTheme } from "@alpac/design-system";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { SelectBranchModalProps } from "./select-branch-modal.types";
@@ -11,6 +11,7 @@ export const SelectBranchModal = ({
 	currentBranchId = null,
 }: SelectBranchModalProps) => {
 
+	const theme = useTheme();
 	const { companyId } = useUserStore();
 	const [selectedBranch, setSelectedBranch] = useState<string | null>(currentBranchId);
 
@@ -51,7 +52,7 @@ export const SelectBranchModal = ({
 			title="Seleccionar sucursal"
 			description="Seleccione la sucursal para consultar las solicitudes de compra."
 		>
-			<div className="mt-4 flex flex-col gap-4">
+			<div className="mt-4 flex flex-col gap-4 relative">
 				<Dropdown
 					label="Sucursal"
 					isRequired
@@ -63,11 +64,15 @@ export const SelectBranchModal = ({
 					options={branchOptions}
 					value={selectedBranch || undefined}
 					appearance="dark"
+					disabled={branchesQuery.isLoading || branchesQuery.isFetching}
 					labelClassName="text-white!"
 					onChange={(value) => {
 						setSelectedBranch(String(value));
 					}}
 				/>
+				{branchesQuery.isLoading && branchesQuery.isFetching && (
+					<Spinner color={theme.theme === "dark" ? "#ffffff" : "#2b3d89"} size="medium" className="absolute top-10 right-10" />
+				)}
 			</div>
 			<div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
 				<Button

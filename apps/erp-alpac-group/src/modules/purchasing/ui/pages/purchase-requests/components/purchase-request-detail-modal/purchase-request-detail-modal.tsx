@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Badges, Button, Modal } from "@alpac/design-system";
+import { Avatar, Badges, Button, Modal } from "@alpac/design-system";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
@@ -45,10 +45,10 @@ export const PurchaseRequestDetailModal = ({
 	const [actionType, setActionType] = useState<string | null>(null);
 	const [message, setMessage] = useState<string>("")
 
-	const { 
+	const {
 		GetPurchaseRequestDetails,
 		GetPurchaseRequestProducts,
-		ProcessPurchaseRequest 
+		ProcessPurchaseRequest
 	} = usePurchase({
 		getPurchaseRequestDetailsPayload: {
 			company_id: companyId,
@@ -64,7 +64,7 @@ export const PurchaseRequestDetailModal = ({
 
 	const details = GetPurchaseRequestDetails.data as
 		| GetPurchaseRequestDetailResponse
-		| undefined;	
+		| undefined;
 
 	const productsResponse = GetPurchaseRequestProducts.data as
 		| PurchaseRequestProductInformationList
@@ -197,7 +197,7 @@ export const PurchaseRequestDetailModal = ({
 										<h5 className={sectionTitleClassName}>
 											Información general
 										</h5>
-										<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+										<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 											<DetailField
 												label="Estado"
 												value={
@@ -205,7 +205,7 @@ export const PurchaseRequestDetailModal = ({
 														label={
 															PurchaseRequestStatusEnum[
 																details?.request_status as (keyof typeof PurchaseRequestStatusEnum)
-															].label ?? details?.request_status
+															]?.label ?? details?.request_status
 														}
 														color={
 															purchaseRequestStatusBadgeVariants[
@@ -223,7 +223,7 @@ export const PurchaseRequestDetailModal = ({
 														label={
 															PurchaseRequestEnum[
 																details.request_type as (keyof typeof PurchaseRequestEnum)
-															].label ?? details.request_type
+															]?.label ?? details.request_type
 														}
 														color={
 															purchaseRequestTypeBadgeVariants[
@@ -245,7 +245,7 @@ export const PurchaseRequestDetailModal = ({
 												icon={<CalendarCheckIcon size={18} />}
 											/>
 										</div>
-										<div className="grid grid-cols-1 gap-4">
+										<div className="grid grid-cols-1 p-1 gap-4">
 											<DetailField
 												label="Observaciones"
 												value={details.observations}
@@ -265,20 +265,20 @@ export const PurchaseRequestDetailModal = ({
 										<h5 className={sectionTitleClassName}>
 											Solicitante y sucursal
 										</h5>
-										<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+										<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 											<DetailField
 												label="Solicitante"
-												value={details.creator_user_information?.fullname}
-												icon={<User2Icon size={18} />}
+												value={details?.creator_user_information?.fullname ?? ""}
+												icon={<Avatar label={details?.creator_user_information?.fullname ?? ""} hasLabel={false} />}
 											/>
 											<DetailField
 												label="Email"
-												value={details.creator_user_information?.email}
+												value={details?.creator_user_information?.email ?? ""}
 												icon={<MailIcon size={18} />}
 											/>
 											<DetailField
 												label="Sucursal"
-												value={details.branch_information?.branch_name}
+												value={details?.branch_information?.branch_name ?? ""}
 												icon={<BuildingIcon size={18} />}
 											/>
 										</div>
@@ -320,7 +320,7 @@ export const PurchaseRequestDetailModal = ({
 											) : (
 												products.map((product, index) => (
 													<div
-														key={`${product.purchase_request_id}-${product.product_details.product_id}-${index}`}
+														key={`${product?.purchase_request_item_id}-${product.product_details.product_id}-${index}`}
 														className="grid grid-cols-1 gap-1 px-3 py-3 sm:grid-cols-6 sm:items-center sm:gap-0"
 													>
 														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
@@ -377,15 +377,16 @@ export const PurchaseRequestDetailModal = ({
 									</div>
 
 									<section className="flex flex-col gap-3">
-										<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+										<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2">
 											<DetailField
 												label="Revisado por"
-												value={details.reviewer_user_information?.fullname}
-												icon={<UserRoundCheckIcon size={18} />}
-											/>
+												value={details?.reviewer_user_information?.fullname}
+												icon={<Avatar label={details?.reviewer_user_information?.fullname ?? ""} hasLabel={false} />}
+											/>											
+
 											<DetailField
 												label="Email del revisor"
-												value={details.reviewer_user_information?.email}
+												value={details?.reviewer_user_information?.email}
 												icon={<MailIcon size={18} />}
 											/>
 										</div>

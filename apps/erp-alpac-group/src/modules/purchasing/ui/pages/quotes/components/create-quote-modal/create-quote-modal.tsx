@@ -8,6 +8,7 @@ import {
 
 import {
 	AccordionGroup,
+	Avatar,
 	Badges,
 	Button,
 	Modal,
@@ -31,6 +32,7 @@ import type { RequestedProducts } from "./types/create-quote-form.types";
 import type { QuotationItem, RegisterQuoteRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
 import { useQuotes } from "@app/modules/purchasing/ui/hooks/quote/useQuote";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { DetailField } from "@app/shared/components/detail-field/detail-field";
 
 const defaultFormValues: RequestedProducts = {
 	requested_products: []
@@ -109,10 +111,17 @@ export function CreateQuoteModal({
 			isFetchingPurchaseRequestProducts
 		) || isRegisteringQuote);
 
+	const resetQuoteDraft = () => {
+		reset(defaultFormValues);
+		setOpenProducts([]);
+		setSelectedProducts([]);
+		setQuotationItems(undefined);
+		setIsQuoteProductModalOpen(false);
+	};
+
 	useEffect(() => {
 		if (!isOpen) {
-			reset(defaultFormValues);
-			setOpenProducts([]);
+			resetQuoteDraft();
 			return;
 		}
 
@@ -125,7 +134,7 @@ export function CreateQuoteModal({
 		reset({
 			...defaultFormValues,
 			requested_products: requestedProducts.map((product: PurchaseRequestProductInformation) => ({ ...product, suppliers: [] }))
-		});		
+		});
 	}, [isOpen, purchaseRequestDetails, purchaseRequestProducts, reset]);
 
 	useEffect(() => {
@@ -135,27 +144,30 @@ export function CreateQuoteModal({
 
 
 	const handleCancel = () => {
-		reset(defaultFormValues);
-		setOpenProducts([]);
+		resetQuoteDraft();
 		onClose();
 	};
 
-	const handleSelectProduct = (product: PurchaseRequestProductInformation, isSelected: boolean) => {
+	const handleSelectProduct = (product: PurchaseRequestProductInformation, isChecked: boolean) => {
+		const productId = product.product_details.product_id;
 
-		const productSet = new Set();
-		const productIds = selectedProducts?.map(item => item?.product_details?.product_id);
-		productSet.add([...productIds]);
+		setSelectedProducts((prevArray) => {
+			if (!isChecked) {
+				return prevArray.filter((item) => item.product_details.product_id !== productId);
+			}
 
-		const hasProduct = productSet.has(product.product_details.product_id) && isSelected;
+			if (prevArray.some((item) => item.product_details.product_id === productId)) {
+				return prevArray;
+			}
 
-		if (hasProduct) return;
+			return [...prevArray, product];
+		});
+	};
 
-		if (!isSelected) {
-			setSelectedProducts((prevArray) => prevArray.filter(item => item.product_details.product_id !== product.product_details.product_id));
-		} else {
-			setSelectedProducts((prevArray) => [...prevArray, product]);
-		}
-	}
+	const handleCloseQuoteProductModal = () => {
+		setIsQuoteProductModalOpen(false);
+		setSelectedProducts([]);
+	};
 
 	const handleQuoteProducts = () => {
 		if (selectedProducts.length < 1) {
@@ -184,10 +196,7 @@ export function CreateQuoteModal({
 		RegisterQuote.mutate(payload, {
 			onSuccess() {
 				onRequestSuccess?.("Cotización registrada con éxito.");
-				reset(defaultFormValues);
-				setOpenProducts([]);
-				setSelectedProducts([]);
-				setQuotationItems(undefined);
+				resetQuoteDraft();
 				onClose();
 			},
 			onError(error) {
@@ -214,7 +223,7 @@ export function CreateQuoteModal({
 				isOpen={isOpen}
 				onClose={handleCancel}
 				variant="form"
-				size="9xl"
+				size="8xl"
 				title="Detalle de solicitud de compras"
 				description={
 					purchaseRequest?.code
@@ -235,38 +244,60 @@ export function CreateQuoteModal({
 						<div className="scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
 							<div className="flex flex-col gap-4 pb-2">
 								{purchaseRequest?.code ? (
-									<section className="flex items-center gap-5 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 dark:border-neutral-600 dark:bg-[#1e2229]">
-										<span className="flex shrink-0 items-center justify-center rounded-md bg-alpac-primary-500/10 text-alpac-primary-600 dark:text-alpac-primary-300">
+									<section className="flex items-start gap-3 overflow-hidden rounded-md border border-slate-200 bg-slate-50 px-4 py-3 dark:border-neutral-600 dark:bg-[#1e2229]">
+										<span className="mt-0.5 flex shrink-0 items-center justify-center rounded-md bg-alpac-primary-500/10 text-alpac-primary-600 dark:text-alpac-primary-300">
 											<FileTextIcon size={18} />
 										</span>
-										<div className="flex min-w-0 items-center gap-2">
-											<span className="text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-												Código Solicitud:
-											</span>
-											<Badges
-												label={purchaseRequest?.code ?? ""}
-												color="bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"
-											/>
-										</div>
-										<div className="flex min-w-0 items-center gap-2">
-											<span className="text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-												Tipo de solicitud:
-											</span>
-											<span>
-												<Badges
-													label={
-														purchaseRequestTypeBadgeVariants[
-															purchaseRequest.request_type as keyof typeof purchaseRequestTypeBadgeVariants
-														]?.label ?? ""
-													}
-													color={
-														purchaseRequestTypeBadgeVariants[
-															purchaseRequest.request_type as keyof typeof purchaseRequestTypeBadgeVariants
-														]?.badgeColor ??
-														purchaseRequestTypeBadgeVariants.default.badgeColor
-													}
+
+										<div className="grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
+											<div className="flex min-w-0 flex-col gap-1">
+												<span className="whitespace-nowrap text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+													Código Solicitud
+												</span>
+												<span className="min-w-0 max-w-full overflow-hidden">
+													<Badges
+														label={purchaseRequest?.code ?? ""}
+														color="bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"
+													/>
+												</span>
+											</div>
+
+											<div className="flex min-w-0 flex-col gap-1">
+												<span className="whitespace-nowrap text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+													Tipo de solicitud
+												</span>
+												<span className="min-w-0 max-w-full overflow-hidden">
+													<Badges
+														label={
+															purchaseRequestTypeBadgeVariants[
+																purchaseRequest.request_type as keyof typeof purchaseRequestTypeBadgeVariants
+															]?.label ?? ""
+														}
+														color={
+															purchaseRequestTypeBadgeVariants[
+																purchaseRequest.request_type as keyof typeof purchaseRequestTypeBadgeVariants
+															]?.badgeColor ??
+															purchaseRequestTypeBadgeVariants.default.badgeColor
+														}
+													/>
+												</span>
+											</div>
+
+											<div className="flex min-w-0 flex-col gap-1">
+												<DetailField
+													label="Solicitante"
+													value={purchaseRequestDetails?.creator_user_information?.fullname ?? ""}
+													icon={<Avatar label={purchaseRequestDetails?.creator_user_information?.fullname ?? ""} hasLabel={false} />}
 												/>
-											</span>
+											</div>
+
+											<div className="flex min-w-0 flex-col gap-1">
+												<DetailField
+													label="Aprobado Por"
+													value={purchaseRequestDetails?.reviewer_user_information?.fullname ?? ""}
+													icon={<Avatar label={purchaseRequestDetails?.reviewer_user_information?.fullname ?? ""} hasLabel={false} />}
+												/>
+											</div>
 										</div>
 									</section>
 								) : null}
@@ -289,8 +320,6 @@ export function CreateQuoteModal({
 												isHiddenLabelOnMobile
 											/>
 										}
-
-
 									</div>
 
 									{fields.length === 0 ? (
@@ -317,6 +346,9 @@ export function CreateQuoteModal({
 													accordionValue={field.id}
 													quoteDetailIndex={index}
 													requestedProduct={field}
+													isSelected={selectedProducts.some(
+														(item) => item.product_details.product_id === field.product_details?.product_id,
+													)}
 													onSelectedChange={handleSelectProduct}
 												/>
 											))}
@@ -356,12 +388,11 @@ export function CreateQuoteModal({
 
 			<QuoteProductModal
 				isOpen={isQuoteProductModalOpen}
-				onClose={() => setIsQuoteProductModalOpen(false)}
+				onClose={handleCloseQuoteProductModal}
 				products={selectedProducts}
 				onConfirm={(items) => {
 					setQuotationItems(items);
-					setIsQuoteProductModalOpen(false);
-					setSelectedProducts([]);
+					handleCloseQuoteProductModal();
 				}}
 			/>
 		</>
