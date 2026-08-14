@@ -4,6 +4,6 @@ export type QuoteProductComparisonProps = {
   itemId: string;
   quotations: PurchaseRequestProductQuotation[];
   selectedQuotationId?: string;
-  onSelectQuotation: (itemId: string, quotationId: string) => void;
-  onDeselectQuotation: (itemId: string) => void;
+  onRequestAccept: (itemId: string, quotation: PurchaseRequestProductQuotation) => void;
+  isAccepting?: boolean;
 };

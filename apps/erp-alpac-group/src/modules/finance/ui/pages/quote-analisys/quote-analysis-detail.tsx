@@ -1,6 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
 import { m } from "framer-motion";
-import { Breadcrumb, Badges, Accordion, Button } from "@alpac/design-system";
+import {
+  Breadcrumb,
+  Badges,
+  Accordion,
+  Button,
+  Modal,
+} from "@alpac/design-system";
 import { useNavigate, useParams } from "react-router-dom";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -10,7 +16,10 @@ import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurcha
 import { getStatusBadge } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-table/utils/quote-analysis.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { QuoteProductComparison } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-product-comparison/quote-product-comparison";
-import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import type {
+  PurchaseRequestProductInformation,
+  PurchaseRequestProductQuotation,
+} from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import {
   Building2,
   Calendar,
@@ -31,6 +40,10 @@ export function QuoteAnalysisDetail() {
   const [selectedQuotes, setSelectedQuotes] = useState<Record<string, string>>(
     {},
   );
+  const [pendingAccept, setPendingAccept] = useState<{
+    itemId: string;
+    quotation: PurchaseRequestProductQuotation;
+  } | null>(null);
 
   const payloadGetQuoteAnalysisDetails = useMemo(
     () => ({
@@ -41,9 +54,10 @@ export function QuoteAnalysisDetail() {
     [companyId, moduleCode, reviewId],
   );
 
-  const { GetQuoteAnalysisDetails } = useQuoteAnalysis({
-    payloadGetQuoteAnalysisDetails,
-  });
+  const { GetQuoteAnalysisDetails, AcceptQuotationToPurchase } =
+    useQuoteAnalysis({
+      payloadGetQuoteAnalysisDetails,
+    });
 
   const {
     data: detailData,
@@ -71,26 +85,46 @@ export function QuoteAnalysisDetail() {
   const { data: productsData, isLoading: isLoadingProducts } =
     GetPurchaseRequestProducts;
 
-  const handleSelectQuote = useCallback(
-    (itemId: string, quotationId: string) => {
-      setSelectedQuotes((prev) => ({
-        ...prev,
-        [itemId]: quotationId,
-      }));
+  const handleRequestAccept = useCallback(
+    (itemId: string, quotation: PurchaseRequestProductQuotation) => {
+      setPendingAccept({ itemId, quotation });
     },
     [],
   );
 
-  const handleDeselectQuote = useCallback((itemId: string) => {
-    setSelectedQuotes((prev) => {
-      const next = { ...prev };
-      delete next[itemId];
-      return next;
-    });
-  }, []);
+  const handleCloseAcceptModal = useCallback(() => {
+    if (AcceptQuotationToPurchase.isPending) return;
+    setPendingAccept(null);
+  }, [AcceptQuotationToPurchase.isPending]);
+
+  const handleConfirmAccept = useCallback(() => {
+    if (!pendingAccept || !companyId || !moduleCode) return;
+
+    AcceptQuotationToPurchase.mutate(
+      {
+        company_id: companyId,
+        module_code: moduleCode,
+        quotation_id: pendingAccept.quotation.quotation_id,
+        purchase_request_item_id: pendingAccept.itemId,
+      },
+      {
+        onSuccess: () => {
+          setSelectedQuotes((prev) => ({
+            ...prev,
+            [pendingAccept.itemId]: pendingAccept.quotation.quotation_id,
+          }));
+          setPendingAccept(null);
+        },
+      },
+    );
+  }, [AcceptQuotationToPurchase, companyId, moduleCode, pendingAccept]);
 
   const productsToDisplay: PurchaseRequestProductInformation[] =
     productsData?.data ?? [];
+
+  const pendingSupplierName =
+    pendingAccept?.quotation.supplier_information?.suppliers_legal_name?.trim() ||
+    "este proveedor";
 
   if (
     isLoadingDetail ||
@@ -411,8 +445,8 @@ export function QuoteAnalysisDetail() {
                         itemId={productKey}
                         quotations={quotations}
                         selectedQuotationId={selectedQuotes[productKey]}
-                        onSelectQuotation={handleSelectQuote}
-                        onDeselectQuotation={handleDeselectQuote}
+                        onRequestAccept={handleRequestAccept}
+                        isAccepting={AcceptQuotationToPurchase.isPending}
                       />
                     </div>
                   </Accordion>
@@ -422,6 +456,34 @@ export function QuoteAnalysisDetail() {
           )}
         </div>
       </div>
+
+      <Modal
+        isOpen={Boolean(pendingAccept)}
+        onClose={handleCloseAcceptModal}
+        variant="warning"
+        size="md"
+        title="Confirmar oferta"
+        description={`¿Desea aceptar la oferta de ${pendingSupplierName}? Esta acción no se puede deshacer.`}
+      >
+        <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            size="giant"
+            label="Cancelar"
+            onClick={handleCloseAcceptModal}
+            disabled={AcceptQuotationToPurchase.isPending}
+            className="w-full! rounded-md! border! border-slate-400! bg-transparent! text-[15px]! text-slate-700! hover:bg-slate-100! dark:border-slate-500! dark:text-slate-200! dark:hover:bg-slate-700/40! sm:w-auto!"
+          />
+          <Button
+            type="button"
+            size="giant"
+            label="Aceptar oferta"
+            onClick={handleConfirmAccept}
+            isLoading={AcceptQuotationToPurchase.isPending}
+            className="w-full! rounded-md! bg-alpac-primary-500! text-[15px]! text-white! dark:bg-alpac-primary-700! sm:w-auto!"
+          />
+        </div>
+      </Modal>
     </m.div>
   );
 }
