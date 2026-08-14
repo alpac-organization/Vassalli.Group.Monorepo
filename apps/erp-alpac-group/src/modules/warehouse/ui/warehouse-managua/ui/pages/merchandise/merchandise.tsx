@@ -153,6 +153,8 @@ export function MerchandisePage() {
         isOpen={Boolean(selectedReceptionId)}
         detail={detail}
         isLoading={isDetailLoading || isDetailFetching}
+        company_id={companyId}
+        module_code={moduleCode}
         onClose={() => setSelectedReceptionId(null)}
       />
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Badges, Button, Modal } from "@alpac/design-system";
+import { Badges, Button, Modal, type DatePickerValue, type TimePickerValue } from "@alpac/design-system";
 import { X } from "lucide-react";
 import type { MerchandiseDucatDetailDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandise-detail";
 import {
@@ -15,16 +15,27 @@ import {
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/variants/global-variants";
 import { type ViewingTextField } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/ducat-detail-modal/utils/style.eye";
 import { FieldWithEye } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/ducat-detail-modal/field-eye";
+import { RegisterDucatDetailForm } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-ducat-detail-form/register-ducat-detail-form";
 
 type DucatDetailModalProps = {
   isOpen: boolean;
   ducat: MerchandiseDucatDetailDto | null;
+  receptionId: string;
+  companyId: string;
+  moduleCode: string;
+  initialStartDate: DatePickerValue | null;
+  initialStartTime: TimePickerValue | null;
   onClose: () => void;
 };
 
 export function DucatDetailModal({
   isOpen,
   ducat,
+  receptionId,
+  companyId,
+  moduleCode,
+  initialStartDate,
+  initialStartTime,
   onClose,
 }: DucatDetailModalProps) {
   const [viewingTextField, setViewingTextField] =
@@ -91,6 +102,17 @@ export function DucatDetailModal({
                 />
               </div>
 
+              {ducat && !ducat.merchandise_id ? (
+                <RegisterDucatDetailForm
+                  reception_id={receptionId}
+                  ducat_id={ducat.id}
+                  company_id={companyId}
+                  module_code={moduleCode}
+                  ducatNumber={values.ducatNumber}
+                  initialStartDate={initialStartDate}
+                  initialStartTime={initialStartTime}
+                />
+              ) : (
               <div className={`min-w-0 pt-1 sm:pt-2 ${fieldsGridClasses}`}>
                 <ReadOnlyField
                   label="Número DUCA"
@@ -177,6 +199,7 @@ export function DucatDetailModal({
                   missingMessage="No registrado"
                 />
               </div>
+              )}
             </div>
 
             <div className="shrink-0 flex justify-end pt-3 border-t border-slate-200 dark:border-neutral-600">

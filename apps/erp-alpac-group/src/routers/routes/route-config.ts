@@ -42,6 +42,7 @@ const {
 const {
   warehouseManaguaSection,
   DucaPanel,
+  warehouseSection4,
   warehouseSection12,
   BodegaSection,
 } = getManaguaWarehouseRoutes();
@@ -104,8 +105,9 @@ export const routeConfig = {
     [RoleEnum.OPERATOR]: [
       warehouseManaguaSection,
       DucaPanel,
-      BodegaSection,
+      warehouseSection4,
       warehouseSection12,
+      BodegaSection,
       warehouseReportSection,
     ],
   },

@@ -1,4 +1,5 @@
 import type { CreateServiceOrderRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/service-order-requests/create-service-order.request";
+import type { CreateServiceOrderResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/service-order-responses/create-service-order.response";
 
 /**
  * @interface IServiceOrderServices
@@ -6,5 +7,5 @@ import type { CreateServiceOrderRequest } from "@app/modules/warehouse/domain/Ap
  */
 export interface IServiceOrderServices {
 
-   CreateServiceOrder(payload: CreateServiceOrderRequest): Promise<void>;   
+   CreateServiceOrder(payload: CreateServiceOrderRequest): Promise<CreateServiceOrderResponse>;
 }

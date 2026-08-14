@@ -64,6 +64,26 @@ export function getMerchandiseColumns({
       },
     },
     {
+      key: "total_documents",
+      label: "Total documentos",
+      render: (item) => item.total_documents,
+    },
+    {
+      key: "completed_documents",
+      label: "Completados",
+      render: (item) => (
+        <Badges
+          label={String(item.completed_documents)}
+          color="transparent"
+          className={`w-fit! ${
+            item.completed_documents === item.total_documents
+              ? "bg-alpac-success-100! text-alpac-success-700! dark:bg-alpac-success-900! dark:text-alpac-success-300!"
+              : "bg-alpac-warning-100! text-alpac-warning-700! dark:bg-alpac-warning-900! dark:text-alpac-warning-300!"
+          }`}
+        />
+      ),
+    },
+    {
       key: "actions",
       label: "Acciones",
       render: (item) => (
