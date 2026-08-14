@@ -11,6 +11,7 @@ const contextMenuButton =
 
 export function getQuoteAnalysisColumns(
   onViewDetail?: (row: RequisitionAccountingReviewDto) => void,
+  onSendToReview?: (row: RequisitionAccountingReviewDto) => void,
 ): TableColumn<RequisitionAccountingReviewDto>[] {
   return [
     {
@@ -81,6 +82,10 @@ export function getQuoteAnalysisColumns(
             {
               label: "Ver detalle",
               onClick: () => onViewDetail?.(row),
+            },
+            {
+              label: "Enviar a revisión",
+              onClick: () => onSendToReview?.(row),
             },
           ]}
           triggerClassName={contextMenuButton}

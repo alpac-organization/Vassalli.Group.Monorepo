@@ -9,4 +9,5 @@ export type QuoteAnalysisTableProps = {
   isFetching?: boolean;
   onRowClick?: (row: RequisitionAccountingReviewDto) => void;
   onViewDetail?: (row: RequisitionAccountingReviewDto) => void;
+  onSendToReview?: (row: RequisitionAccountingReviewDto) => void;
 };
