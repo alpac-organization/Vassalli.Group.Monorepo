@@ -7,6 +7,7 @@ import { WorkManagementRouter } from "@app/routers/routes/work-management/work-m
 import { ApplicationRouter } from "@app/routers/routes/application/application-router";
 import { WarehouseCorintoRouter } from "@app/routers/routes/warehouse/corinto/corinto-router";
 import { WarehouseManaguaRouter } from "@app/routers/routes/warehouse/managua/managua-router";
+import { WarehouseAdminRouter } from "@app/routers/routes/warehouse-admin/warehouse-admin-router";
 import { AdminRouter } from "@app/routers/routes/admin/admin-router";
 import { PurchasingRouter } from "@app/routers/routes/purchasing/purchasing-router";
 import { FinanceRouter } from "../finance/finance-router";
@@ -43,6 +44,10 @@ export const DashboardRouter: RouteObject[] = [
       {
         path: "warehouse-mga",
         children: WarehouseManaguaRouter,
+      },
+      {
+        path: "warehouse-admin",
+        children: WarehouseAdminRouter,
       },
       {
         path: "administration",
