@@ -6,6 +6,7 @@ import { cleanParams } from "@app/shared/utils/object.utils";
 import type { RequisitionAccountingReviewDetailsDto } from "@app/modules/finance/domain/ApiContract/responses/quote-analysis-details";
 import type { GetQuoteAnalysisDetailsRequest } from "@app/modules/finance/domain/ApiContract/requests/quote-analysis-detail";
 import type { AcceptOfferPurchaseRequest } from "@app/modules/finance/domain/ApiContract/requests/accept-offer-purchase";
+import type { SendReviewToManagementRequest } from "@app/modules/finance/domain/ApiContract/requests/send-review-to-management";
 export class QuoteAnalysisServices implements IQuoteAnalysis {
   private readonly httpClient: IHttpHandler;
   constructor(httpClient: IHttpHandler) {
@@ -46,5 +47,22 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
       payload;
     const url = `/companies/${company_id}/modules/${module_code}/quotations/${quotation_id}/accept-for-purchase`;
     await this.httpClient.patch<void>(url, { purchase_request_item_id });
+  }
+  public async sendReviewToManagement(
+    payload: SendReviewToManagementRequest,
+  ): Promise<void> {
+    const {
+      company_id,
+      module_code,
+      requisition_accounting_review_id,
+      comments,
+      is_approved,
+    } = payload;
+
+    const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${requisition_accounting_review_id}`;
+    await this.httpClient.post<void>(url, {
+      comments: comments?.trim() ? comments.trim() : null,
+      is_approved,
+    });
   }
 }

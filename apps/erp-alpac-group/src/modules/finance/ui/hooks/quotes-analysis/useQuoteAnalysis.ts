@@ -7,6 +7,7 @@ import type { GetRequisitionAccountingReviewsResponse } from "@app/modules/finan
 import type { RequisitionAccountingReviewDetailsDto } from "@app/modules/finance/domain/ApiContract/responses/quote-analysis-details";
 import type { GetQuoteAnalysisDetailsRequest } from "@app/modules/finance/domain/ApiContract/requests/quote-analysis-detail";
 import type { AcceptOfferPurchaseRequest } from "@app/modules/finance/domain/ApiContract/requests/accept-offer-purchase";
+import type { SendReviewToManagementRequest } from "@app/modules/finance/domain/ApiContract/requests/send-review-to-management";
 const quoteAnalysisService = new QuoteAnalysisServices(warehouseHttpHandler);
 type UseQuoteAnalysisProps = {
   payloadGetQuoteAnalysis?: GetQuotesAnalysisRequest;
@@ -55,12 +56,27 @@ export const useQuoteAnalysis = (props: UseQuoteAnalysisProps) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quotes-analysis"] });
       queryClient.invalidateQueries({ queryKey: ["quotes-analysis-details"] });
-      queryClient.invalidateQueries({ queryKey: ["get-purchase-request-products"] });
+      queryClient.invalidateQueries({
+        queryKey: ["get-purchase-request-products"],
+      });
+    },
+  });
+  const SendReviewToManagement = useMutation<
+    void,
+    ApiErrorResponse,
+    SendReviewToManagementRequest
+  >({
+    mutationFn: (payload: SendReviewToManagementRequest) =>
+      quoteAnalysisService.sendReviewToManagement(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["quotes-analysis"] });
+      queryClient.invalidateQueries({ queryKey: ["quotes-analysis-details"] });
     },
   });
   return {
     GetQuoteAnalysis,
     GetQuoteAnalysisDetails,
     AcceptQuotationToPurchase,
+    SendReviewToManagement,
   };
 };

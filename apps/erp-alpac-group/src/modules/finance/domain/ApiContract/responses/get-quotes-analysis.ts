@@ -13,6 +13,10 @@ export interface RequisitionAccountingReviewDto {
   status: accountingReviewStatusType;
   requisition_accounting_review_id: string;
   sent_by_user_information: SentByUserInformation;
+  purchase_request?: {
+    purchase_request_id: string;
+    code?: string | null;
+  } | null;
 }
 
 export interface SentByUserInformation {
