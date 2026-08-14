@@ -1,13 +1,27 @@
-import { Alert, AnimatedAlertWrapper, Button, DataTable, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
-import { ArrowLeft, Rows4, Search } from "lucide-react";
+import {
+	Alert,
+	AnimatedAlertWrapper,
+	Breadcrumb,
+	Button,
+	DataTable,
+	Dropdown,
+	InputText,
+	Pagination,
+	SectionHeader,
+	useTheme,
+	type TableColumn,
+} from "@alpac/design-system";
+import { Rows4 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { m } from "framer-motion";
 import { RackModal } from "./components/rack-modal/rack-modal";
 import { useWarehouseLayout } from "@app/modules/warehouse/ui/hooks/useWarehouseLayout";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { RackStatusBadge } from "@app/modules/warehouse/ui/warehouse-admin/utils/layout-badges";
@@ -15,13 +29,21 @@ import { RackStatusOptions } from "@app/modules/warehouse/domain/enums/rack-stat
 import { RackUsageProfileOptions } from "@app/modules/warehouse/domain/enums/rack-usage-profile.enum";
 import type { GetRacksRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-racks-request";
 import type { RackSummaryResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/rack-response";
+import {
+	applyFiltersButtonClassName,
+	clearFiltersButtonClassName,
+	dropdownClassName,
+	inputClassName,
+	labelClassName,
+	primaryButtonClassName,
+} from "@app/modules/warehouse/ui/warehouse-admin/utils/page-styles";
 
 type RackRow = {
 	rack_id: string;
 	code: string;
 	level_number: number;
 	row_number: number;
-	status: string;
+	status: string | null;
 };
 
 const PAGE_SIZE = 10;
@@ -34,6 +56,9 @@ export const ManageRacksPage = () => {
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
 	const { alertState, handleCloseAlert, handleRequestError } = useAlertState();
+	const { theme } = useTheme();
+	const { urlImage, neutralUrlImage } = useCompanyStore();
+	const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
 	const [isRackModalOpen, setIsRackModalOpen] = useState(false);
 
@@ -79,11 +104,6 @@ export const ManageRacksPage = () => {
 		}));
 	}, [GetRacks.data]);
 
-	const totalRacks = useMemo(
-		() => GetRacks.data?.total_racks_count ?? racksData.length,
-		[GetRacks.data, racksData.length],
-	);
-
 	useEffect(() => {
 		if (GetRacks.isError && GetRacks.error) {
 			const mappedError = getMappedError(GetRacks.error as ApiErrorResponse);
@@ -95,13 +115,17 @@ export const ManageRacksPage = () => {
 		setCurrentPage(1);
 	}, [appliedFilters]);
 
-	const handleApplyFilters = useCallback(() => {
-		setAppliedFilters({
-			level: filterLevel,
-			status: filterStatus,
-			usage: filterUsage,
-		});
-	}, [filterLevel, filterStatus, filterUsage]);
+	const handleApplyFilters = useCallback(
+		(event: React.FormEvent) => {
+			event.preventDefault();
+			setAppliedFilters({
+				level: filterLevel.trim(),
+				status: filterStatus,
+				usage: filterUsage,
+			});
+		},
+		[filterLevel, filterStatus, filterUsage],
+	);
 
 	const handleClearFilters = useCallback(() => {
 		setFilterLevel("");
@@ -117,20 +141,8 @@ export const ManageRacksPage = () => {
 
 	const columns: TableColumn<RackRow>[] = [
 		{ key: "code", label: "Código" },
-		{
-			key: "level_number",
-			label: "Nivel",
-			render(row) {
-				return <span className="text-slate-300">{row.level_number}</span>;
-			},
-		},
-		{
-			key: "row_number",
-			label: "Fila",
-			render(row) {
-				return <span className="text-slate-300">{row.row_number}</span>;
-			},
-		},
+		{ key: "level_number", label: "Nivel" },
+		{ key: "row_number", label: "Fila" },
 		{
 			key: "status",
 			label: "Estado",
@@ -141,7 +153,13 @@ export const ManageRacksPage = () => {
 	];
 
 	return (
-		<div className="space-y-4 p-6 bg-[#14161c] min-h-screen">
+		<m.div
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			exit={{ opacity: 0, y: -20 }}
+			transition={{ duration: 0.5 }}
+			className="flex flex-col gap-4"
+		>
 			{GetRacks.isLoading && <Loader title="Cargando racks..." />}
 
 			<AnimatedAlertWrapper open={alertState?.open ?? false}>
@@ -153,91 +171,128 @@ export const ManageRacksPage = () => {
 				/>
 			</AnimatedAlertWrapper>
 
-			<div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
-				<div className="flex items-center gap-4">
-					<Button
-						type="button"
-						size="medium"
-						label="Volver"
-						icon={<ArrowLeft size={16} />}
-						onClick={() =>
-							navigate(`${baseUrl}/warehouse-admin/management/sections/${warehouseId}`)
-						}
-						className="w-full min-w-0 shrink-0 text-[14px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30! sm:w-auto!"
-					/>
-					<div className="flex items-center gap-4">
-						<h1 className="text-2xl font-bold text-white tracking-tight">Racks de la sección</h1>
-						<span className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-xs font-medium">
-							{totalRacks} registros
-						</span>
+			<div className="flex justify-start">
+				<Breadcrumb
+					items={[
+						{
+							label: "Dashboard",
+							url: `${baseUrl}/`,
+							onClick: (url) => navigate(url),
+						},
+						{
+							label: "Gestión de Bodega",
+							url: `${baseUrl}/warehouse-admin/management`,
+							onClick: (url) => navigate(url),
+						},
+						{
+							label: "Secciones",
+							url: `${baseUrl}/warehouse-admin/management/sections/${warehouseId}`,
+							onClick: (url) => navigate(url),
+						},
+						{
+							label: "Racks",
+							url: `${baseUrl}/warehouse-admin/management/sections/${warehouseId}/racks/${sectionId}`,
+							onClick: (url) => navigate(url),
+						},
+					]}
+				/>
+			</div>
+
+			<SectionHeader
+				title="Racks de la sección"
+				subtitle="Consulte y registre racks de la sección seleccionada"
+				logoImage={activeLogo}
+			/>
+
+			<div className="flex flex-col gap-4">
+				<div className="flex justify-between items-center">
+					<div className="flex flex-col justify-center gap-2">
+						<h3 className="p-0! m-0!">Filtros</h3>
+						<small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
+							Filtra por nivel, estado o perfil de uso
+						</small>
 					</div>
 				</div>
 
+				<form
+					onSubmit={handleApplyFilters}
+					className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end"
+				>
+					<div className="flex flex-col min-w-0">
+						<InputText
+							label="Nivel"
+							placeholder="Número de nivel..."
+							className={inputClassName}
+							labelClassName={labelClassName}
+							value={filterLevel}
+							onChange={(e) => setFilterLevel(e.target.value)}
+						/>
+					</div>
+
+					<div className="flex flex-col min-w-0">
+						<Dropdown
+							label="Estado"
+							placeholder="Todos"
+							appearance="dark"
+							className={`${dropdownClassName} h-[42px]! sm:h-[46px]!`}
+							labelClassName={labelClassName}
+							valueClassName={labelClassName}
+							value={filterStatus}
+							onChange={(val) => setFilterStatus(val)}
+							options={[
+								{ value: "", label: "Todos" },
+								...RackStatusOptions,
+							]}
+						/>
+					</div>
+
+					<div className="flex flex-col min-w-0">
+						<Dropdown
+							label="Perfil de uso"
+							placeholder="Todos"
+							appearance="dark"
+							className={`${dropdownClassName} h-[42px]! sm:h-[46px]!`}
+							labelClassName={labelClassName}
+							valueClassName={labelClassName}
+							value={filterUsage}
+							onChange={(val) => setFilterUsage(val)}
+							options={[
+								{ value: "", label: "Todos" },
+								...RackUsageProfileOptions,
+							]}
+						/>
+					</div>
+
+					<div className="flex flex-col min-w-0">
+						<Button
+							type="submit"
+							size="giant"
+							className={applyFiltersButtonClassName}
+							label="Aplicar filtros"
+						/>
+					</div>
+
+					<div className="flex flex-col min-w-0">
+						<Button
+							type="button"
+							size="giant"
+							className={clearFiltersButtonClassName}
+							label="Limpiar filtros"
+							onClick={handleClearFilters}
+						/>
+					</div>
+				</form>
+			</div>
+
+			<div className="flex justify-end">
 				<Button
 					type="button"
 					size="giant"
 					label="Registrar Nuevos Racks"
 					icon={<Rows4 size={20} />}
-					className="w-full! md:w-auto! mt-4! sm:mt-0! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+					className={primaryButtonClassName}
 					onClick={() => setIsRackModalOpen(true)}
 				/>
-			</div>
-
-			<div className="bg-[#1b1e27] border border-[#2a2d3d] rounded-xl p-4 mb-6 flex flex-col md:flex-row items-center gap-4">
-				<div className="w-full md:w-48">
-					<InputText
-						placeholder="Nivel..."
-						className="w-full! bg-[#14161c]! border! border-[#2a2d3d]! text-slate-200! rounded-lg! focus:ring-indigo-500! focus:border-indigo-500! placeholder-slate-500!"
-						value={filterLevel}
-						onChange={(e) => setFilterLevel(e.target.value)}
-					/>
-				</div>
-
-				<div className="w-full md:w-52">
-					<Dropdown
-						placeholder="Todos los estados"
-						appearance="dark"
-						className="w-full! bg-[#14161c]! border! border-[#2a2d3d]! text-slate-200! rounded-lg! focus:ring-indigo-500! focus:border-indigo-500!"
-						value={filterStatus}
-						onChange={(val) => setFilterStatus(val)}
-						options={[
-							{ value: "", label: "Todos los estados" },
-							...RackStatusOptions,
-						]}
-					/>
-				</div>
-
-				<div className="w-full md:w-52">
-					<Dropdown
-						placeholder="Todo perfil de uso"
-						appearance="dark"
-						className="w-full! bg-[#14161c]! border! border-[#2a2d3d]! text-slate-200! rounded-lg! focus:ring-indigo-500! focus:border-indigo-500!"
-						value={filterUsage}
-						onChange={(val) => setFilterUsage(val)}
-						options={[
-							{ value: "", label: "Todo perfil de uso" },
-							...RackUsageProfileOptions,
-						]}
-					/>
-				</div>
-
-				<div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
-					<Button
-						type="button"
-						size="medium"
-						label="Aplicar filtros"
-						icon={<Search size={16} />}
-						onClick={handleApplyFilters}
-						className="w-full! text-[14px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
-					/>
-					<Button
-						type="button"
-						size="medium"
-						label="Limpiar"
-						onClick={handleClearFilters}
-						className="w-full! text-[14px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30! sm:w-auto!"
-					/>
-				</div>
 			</div>
 
 			<DataTable
@@ -264,6 +319,6 @@ export const ManageRacksPage = () => {
 				}}
 				onClose={() => setIsRackModalOpen(false)}
 			/>
-		</div>
+		</m.div>
 	);
 };

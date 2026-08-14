@@ -21,12 +21,11 @@ import { useWarehouseLayout } from "@app/modules/warehouse/ui/hooks/useWarehouse
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
-
-const inputClassName =
-	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-const dropdownClassName =
-	`${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
-const labelClassName = "text-black! dark:text-white!";
+import {
+	dropdownClassName,
+	inputClassName,
+	labelClassName,
+} from "@app/modules/warehouse/ui/warehouse-admin/utils/page-styles";
 
 const parseDecimal = (value: unknown) => {
 	const trimmed = String(value ?? "").trim();

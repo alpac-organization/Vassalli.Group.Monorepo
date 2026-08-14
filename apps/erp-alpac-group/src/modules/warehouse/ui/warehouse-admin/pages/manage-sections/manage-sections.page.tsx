@@ -1,13 +1,27 @@
-import { Alert, AnimatedAlertWrapper, Button, DataTable, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
-import { ArrowLeft, LayoutGrid, Rows3, Rows4 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+	Alert,
+	AnimatedAlertWrapper,
+	Breadcrumb,
+	Button,
+	DataTable,
+	Dropdown,
+	InputText,
+	Pagination,
+	SectionHeader,
+	useTheme,
+	type TableColumn,
+} from "@alpac/design-system";
+import { LayoutGrid, Rows3, Rows4 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { m } from "framer-motion";
 import { SectionModal } from "./components/section-modal/section-modal";
 import { useWarehouseLayout } from "@app/modules/warehouse/ui/hooks/useWarehouseLayout";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { SectionTypeOptions } from "@app/modules/warehouse/domain/enums/section-type.enum";
 import { SectionStorageTypeOptions } from "@app/modules/warehouse/domain/enums/section-storage-type.enum";
@@ -18,6 +32,16 @@ import {
 	SectionStorageTypeBadge,
 	SectionTypeBadge,
 } from "@app/modules/warehouse/ui/warehouse-admin/utils/layout-badges";
+import {
+	applyFiltersButtonClassName,
+	clearFiltersButtonClassName,
+	dropdownClassName,
+	inputClassName,
+	labelClassName,
+	primaryActionButtonClassName,
+	primaryButtonClassName,
+	secondaryActionButtonClassName,
+} from "@app/modules/warehouse/ui/warehouse-admin/utils/page-styles";
 
 type SectionRow = {
 	section_id: string;
@@ -28,6 +52,20 @@ type SectionRow = {
 	is_active: boolean;
 };
 
+type SectionFilters = {
+	searchTerm: string;
+	filterType: string;
+	filterStorage: string;
+	filterStatus: string;
+};
+
+const EMPTY_FILTERS: SectionFilters = {
+	searchTerm: "",
+	filterType: "",
+	filterStorage: "",
+	filterStatus: "",
+};
+
 export const ManageSectionsPage = () => {
 	const { warehouseId } = useParams<{ warehouseId: string }>();
 	const navigate = useNavigate();
@@ -35,13 +73,14 @@ export const ManageSectionsPage = () => {
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
 	const { alertState, handleCloseAlert, handleRequestError } = useAlertState();
+	const { theme } = useTheme();
+	const { urlImage, neutralUrlImage } = useCompanyStore();
+	const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
 	const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
 
-	const [searchTerm, setSearchTerm] = useState("");
-	const [filterType, setFilterType] = useState("");
-	const [filterStorage, setFilterStorage] = useState("");
-	const [filterStatus, setFilterStatus] = useState("");
+	const [draftFilters, setDraftFilters] = useState<SectionFilters>(EMPTY_FILTERS);
+	const [appliedFilters, setAppliedFilters] = useState<SectionFilters>(EMPTY_FILTERS);
 
 	const [currentPage, setCurrentPage] = useState(1);
 	const pageSize = 10;
@@ -69,28 +108,36 @@ export const ManageSectionsPage = () => {
 			}))
 			.filter((item: SectionRow) => {
 				const matchesSearch =
-					searchTerm === "" ||
-					item.section_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-					item.section_code.toLowerCase().includes(searchTerm.toLowerCase());
+					appliedFilters.searchTerm === "" ||
+					item.section_name
+						.toLowerCase()
+						.includes(appliedFilters.searchTerm.toLowerCase()) ||
+					item.section_code
+						.toLowerCase()
+						.includes(appliedFilters.searchTerm.toLowerCase());
 
-				const matchesType = filterType === "" || item.section_type === filterType;
+				const matchesType =
+					appliedFilters.filterType === "" ||
+					item.section_type === appliedFilters.filterType;
 
-				const matchesStorage = filterStorage === "" || item.storage_type === filterStorage;
+				const matchesStorage =
+					appliedFilters.filterStorage === "" ||
+					item.storage_type === appliedFilters.filterStorage;
 
 				let matchesStatus = true;
-				if (filterStatus === "Activa") {
+				if (appliedFilters.filterStatus === "Activa") {
 					matchesStatus = item.is_active === true;
-				} else if (filterStatus === "Inactiva") {
+				} else if (appliedFilters.filterStatus === "Inactiva") {
 					matchesStatus = item.is_active === false;
 				}
 
 				return matchesSearch && matchesType && matchesStorage && matchesStatus;
 			});
-	}, [GetSections.data, searchTerm, filterType, filterStorage, filterStatus]);
+	}, [GetSections.data, appliedFilters]);
 
 	useEffect(() => {
 		setCurrentPage(1);
-	}, [searchTerm, filterType, filterStorage, filterStatus]);
+	}, [appliedFilters]);
 
 	useEffect(() => {
 		if (GetSections.isError && GetSections.error) {
@@ -103,6 +150,24 @@ export const ManageSectionsPage = () => {
 		const start = (currentPage - 1) * pageSize;
 		return sectionsData.slice(start, start + pageSize);
 	}, [sectionsData, currentPage, pageSize]);
+
+	const handleApplyFilters = useCallback(
+		(event: React.FormEvent) => {
+			event.preventDefault();
+			setAppliedFilters({
+				searchTerm: draftFilters.searchTerm.trim(),
+				filterType: draftFilters.filterType,
+				filterStorage: draftFilters.filterStorage,
+				filterStatus: draftFilters.filterStatus,
+			});
+		},
+		[draftFilters],
+	);
+
+	const handleClearFilters = useCallback(() => {
+		setDraftFilters(EMPTY_FILTERS);
+		setAppliedFilters(EMPTY_FILTERS);
+	}, []);
 
 	const handleGoToLots = (sectionId: string) => {
 		navigate(`${baseUrl}/warehouse-admin/management/sections/${warehouseId}/lots/${sectionId}`);
@@ -148,7 +213,7 @@ export const ManageSectionsPage = () => {
 							label="Ver tramos"
 							icon={<Rows3 size={16} />}
 							onClick={() => handleGoToLots(row.section_id)}
-							className="w-full min-w-0 shrink-0 text-[14px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
+							className={primaryActionButtonClassName}
 						/>
 						<Button
 							type="button"
@@ -156,7 +221,7 @@ export const ManageSectionsPage = () => {
 							label="Ver racks"
 							icon={<Rows4 size={16} />}
 							onClick={() => handleGoToRacks(row.section_id)}
-							className="w-full min-w-0 shrink-0 text-[14px]! rounded-md! bg-slate-600! dark:bg-slate-700! text-white! sm:w-auto!"
+							className={secondaryActionButtonClassName}
 						/>
 					</div>
 				);
@@ -165,7 +230,13 @@ export const ManageSectionsPage = () => {
 	];
 
 	return (
-		<div className="space-y-4 p-6 bg-[#14161c] min-h-screen">
+		<m.div
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			exit={{ opacity: 0, y: -20 }}
+			transition={{ duration: 0.5 }}
+			className="flex flex-col gap-4"
+		>
 			{GetSections.isLoading && <Loader title="Cargando secciones..." />}
 
 			<AnimatedAlertWrapper open={alertState?.open ?? false}>
@@ -177,86 +248,149 @@ export const ManageSectionsPage = () => {
 				/>
 			</AnimatedAlertWrapper>
 
-			<div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4">
-				<div className="flex items-center gap-4">
-					<Button
-						type="button"
-						size="medium"
-						label="Volver"
-						icon={<ArrowLeft size={16} />}
-						onClick={() => navigate(`${baseUrl}/warehouse-admin/management`)}
-						className="w-full min-w-0 shrink-0 text-[14px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30! sm:w-auto!"
-					/>
-					<div className="flex items-center gap-4">
-						<h1 className="text-2xl font-bold text-white tracking-tight">Secciones de la bodega</h1>
-						<span className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-xs font-medium">
-							{sectionsData.length} registros
-						</span>
+			<div className="flex justify-start">
+				<Breadcrumb
+					items={[
+						{
+							label: "Dashboard",
+							url: `${baseUrl}/`,
+							onClick: (url) => navigate(url),
+						},
+						{
+							label: "Gestión de Bodega",
+							url: `${baseUrl}/warehouse-admin/management`,
+							onClick: (url) => navigate(url),
+						},
+						{
+							label: "Secciones",
+							url: `${baseUrl}/warehouse-admin/management/sections/${warehouseId}`,
+							onClick: (url) => navigate(url),
+						},
+					]}
+				/>
+			</div>
+
+			<SectionHeader
+				title="Secciones de la bodega"
+				subtitle="Gestione las secciones y acceda a tramos o racks"
+				logoImage={activeLogo}
+			/>
+
+			<div className="flex flex-col gap-4">
+				<div className="flex justify-between items-center">
+					<div className="flex flex-col justify-center gap-2">
+						<h3 className="p-0! m-0!">Filtros</h3>
+						<small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
+							Filtra por nombre, código, tipo, almacenamiento o estado
+						</small>
 					</div>
 				</div>
 
+				<form
+					onSubmit={handleApplyFilters}
+					className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 items-end"
+				>
+					<div className="flex flex-col min-w-0">
+						<InputText
+							label="Búsqueda"
+							placeholder="Buscar por nombre o código..."
+							className={inputClassName}
+							labelClassName={labelClassName}
+							value={draftFilters.searchTerm}
+							onChange={(e) =>
+								setDraftFilters((prev) => ({ ...prev, searchTerm: e.target.value }))
+							}
+						/>
+					</div>
+
+					<div className="flex flex-col min-w-0">
+						<Dropdown
+							label="Tipo"
+							placeholder="Todos"
+							appearance="dark"
+							className={`${dropdownClassName} h-[42px]! sm:h-[46px]!`}
+							labelClassName={labelClassName}
+							valueClassName={labelClassName}
+							value={draftFilters.filterType}
+							onChange={(val) =>
+								setDraftFilters((prev) => ({ ...prev, filterType: val }))
+							}
+							options={[
+								{ value: "", label: "Todos" },
+								...SectionTypeOptions,
+							]}
+						/>
+					</div>
+
+					<div className="flex flex-col min-w-0">
+						<Dropdown
+							label="Almacenamiento"
+							placeholder="Todos"
+							appearance="dark"
+							className={`${dropdownClassName} h-[42px]! sm:h-[46px]!`}
+							labelClassName={labelClassName}
+							valueClassName={labelClassName}
+							value={draftFilters.filterStorage}
+							onChange={(val) =>
+								setDraftFilters((prev) => ({ ...prev, filterStorage: val }))
+							}
+							options={[
+								{ value: "", label: "Todos" },
+								...SectionStorageTypeOptions,
+							]}
+						/>
+					</div>
+
+					<div className="flex flex-col min-w-0">
+						<Dropdown
+							label="Estado"
+							placeholder="Todos"
+							appearance="dark"
+							className={`${dropdownClassName} h-[42px]! sm:h-[46px]!`}
+							labelClassName={labelClassName}
+							valueClassName={labelClassName}
+							value={draftFilters.filterStatus}
+							onChange={(val) =>
+								setDraftFilters((prev) => ({ ...prev, filterStatus: val }))
+							}
+							options={[
+								{ value: "", label: "Todos" },
+								{ value: "Activa", label: "Activa" },
+								{ value: "Inactiva", label: "Inactiva" },
+							]}
+						/>
+					</div>
+
+					<div className="flex flex-col min-w-0">
+						<Button
+							type="submit"
+							size="giant"
+							className={applyFiltersButtonClassName}
+							label="Aplicar filtros"
+						/>
+					</div>
+
+					<div className="flex flex-col min-w-0">
+						<Button
+							type="button"
+							size="giant"
+							className={clearFiltersButtonClassName}
+							label="Limpiar filtros"
+							onClick={handleClearFilters}
+						/>
+					</div>
+				</form>
+			</div>
+
+			<div className="flex justify-end">
 				<Button
 					type="button"
 					size="giant"
 					label="Registrar Nueva Sección"
 					icon={<LayoutGrid size={20} />}
-					className="w-full! md:w-auto! mt-4! sm:mt-0! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+					className={primaryButtonClassName}
 					onClick={() => setIsSectionModalOpen(true)}
 				/>
-			</div>
-
-			<div className="bg-[#1b1e27] border border-[#2a2d3d] rounded-xl p-4 mb-6 flex flex-col md:flex-row items-center gap-4">
-				<div className="relative flex-1 w-full">
-					<InputText
-						placeholder="Buscar por nombre o código..."
-						className="w-full! bg-[#14161c]! border! border-[#2a2d3d]! text-slate-200! rounded-lg! focus:ring-indigo-500! focus:border-indigo-500! placeholder-slate-500!"
-						value={searchTerm}
-						onChange={(e) => setSearchTerm(e.target.value)}
-					/>
-				</div>
-
-				<div className="w-full md:w-52">
-					<Dropdown
-						placeholder="Todos los tipos"
-						appearance="dark"
-						className="w-full! bg-[#14161c]! border! border-[#2a2d3d]! text-slate-200! rounded-lg! focus:ring-indigo-500! focus:border-indigo-500!"
-						value={filterType}
-						onChange={(val) => setFilterType(val)}
-						options={[
-							{ value: "", label: "Todos los tipos" },
-							...SectionTypeOptions,
-						]}
-					/>
-				</div>
-
-				<div className="w-full md:w-52">
-					<Dropdown
-						placeholder="Todo almacenamiento"
-						appearance="dark"
-						className="w-full! bg-[#14161c]! border! border-[#2a2d3d]! text-slate-200! rounded-lg! focus:ring-indigo-500! focus:border-indigo-500!"
-						value={filterStorage}
-						onChange={(val) => setFilterStorage(val)}
-						options={[
-							{ value: "", label: "Todo almacenamiento" },
-							...SectionStorageTypeOptions,
-						]}
-					/>
-				</div>
-
-				<div className="w-full md:w-52">
-					<Dropdown
-						placeholder="Todos los estados"
-						appearance="dark"
-						className="w-full! bg-[#14161c]! border! border-[#2a2d3d]! text-slate-200! rounded-lg! focus:ring-indigo-500! focus:border-indigo-500!"
-						value={filterStatus}
-						onChange={(val) => setFilterStatus(val)}
-						options={[
-							{ value: "", label: "Todos los estados" },
-							{ value: "Activa", label: "Activa" },
-							{ value: "Inactiva", label: "Inactiva" },
-						]}
-					/>
-				</div>
 			</div>
 
 			<DataTable
@@ -283,6 +417,6 @@ export const ManageSectionsPage = () => {
 				}}
 				onClose={() => setIsSectionModalOpen(false)}
 			/>
-		</div>
+		</m.div>
 	);
 };
