@@ -1,9 +1,11 @@
 import { Button, DataTable, Pagination, type TableColumn, InputText, Dropdown, Badges } from "@alpac/design-system";
 import { Plus, Warehouse } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { WarehouseModal } from "@app/modules/warehouse/ui/warehouse/components/warehouse-modal/warehouse-modal";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 
 type WarehouseRow = {
   warehouse_id: string;
@@ -16,6 +18,8 @@ type WarehouseRow = {
 export const ManageSectionPage = () => {
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
   const { companyId, moduleCode } = useUserStore();
+  const navigate = useNavigate();
+  const { baseUrl } = useBaseUrl();
 
   // Filter States
   const [searchTerm, setSearchTerm] = useState("");
@@ -112,10 +116,10 @@ export const ManageSectionPage = () => {
           <Button
             type="button"
             size="medium"
-            label="Ver detalle"
-            onClick={() => {
-              console.log(row);
-            }}
+            label="Ver secciones"
+            onClick={() =>
+              navigate(`${baseUrl}/warehouse-admin/management/sections/${row.warehouse_id}`)
+            }
             className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
           />
         );
