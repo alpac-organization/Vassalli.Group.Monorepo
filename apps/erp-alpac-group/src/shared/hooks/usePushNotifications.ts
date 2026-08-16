@@ -7,7 +7,6 @@ import {
 } from "firebase/messaging";
 import { messaging } from "@app/firebase-config";
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
-// import { getBrowserName } from "@app/core/enums/user-agent.enum";
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY as string | undefined;
 
@@ -136,6 +135,13 @@ export async function initPushNotifications(): Promise<void> {
   } catch (error) {
     fail(`Error inicializando push: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+/**
+ * Devuelve el token FCM del dispositivo actual (null si aun no se genero).
+ */
+export function getCurrentToken(): string | null {
+   return currentToken;
 }
 
 /**
