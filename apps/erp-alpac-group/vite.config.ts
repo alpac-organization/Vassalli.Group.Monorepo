@@ -3,6 +3,7 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react-swc";
 import { fileURLToPath } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
+import { VitePWA } from "vite-plugin-pwa";
 // 1. Importamos el plugin de polyfills
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
@@ -16,6 +17,59 @@ export default defineConfig({
       include: ["buffer"],
       globals: {
         Buffer: true,
+      },
+    }),
+    VitePWA({
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
+      registerType: "autoUpdate",
+      includeAssets: [
+        "favicon.ico",
+        "favicon.svg",
+        "favicon-96x96.png",
+        "apple-touch-icon.png",
+        "web-app-manifest-192x192.png",
+        "web-app-manifest-512x512.png",
+      ],
+      manifest: {
+        id: "/",
+        name: "ALPAC - Grupo Vassalli",
+        short_name: "ALPAC",
+        description: "ERP Multiempresa - Grupo Vassalli",
+        start_url: "/",
+        scope: "/",
+        display: "standalone",
+        theme_color: "#ffffff",
+        background_color: "#ffffff",
+        icons: [
+          {
+            src: "/web-app-manifest-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
+          },
+          {
+            src: "/web-app-manifest-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+          {
+            src: "/web-app-manifest-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any",
+          },
+        ],
+      },
+      devOptions: {
+        enabled: true,
+        type: "module",
+      },
+      injectManifest: {
+        // El bundle principal supera el limite por defecto de Workbox (2 MiB).
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
       },
     }),
   ],

@@ -12,6 +12,10 @@ import {
 
 import type { LoginRequest } from "@app/modules/auth/domain/ApiContract/Requests/login.request";
 import type { LogoutRequest } from "@app/modules/auth/domain/ApiContract/Requests/logout.request";
+import {
+  initPushNotifications,
+  unlinkPushOnLogout,
+} from "@app/shared/hooks/usePushNotifications";
 
 const authService = new AuthenticationServices(httpHandler);
 httpHandler.setAuthenticationService(authService);
@@ -50,6 +54,10 @@ export const useAuth = function () {
         });
       }
 
+      // Registramos el token push de este dispositivo para el usuario.
+      // PushNotificationsRegistrar tambien lo hara al montar el dashboard.
+      void initPushNotifications();
+
       navigate(`/${companyAlias}/dashboard`, {
         replace: true,
       });
@@ -62,7 +70,9 @@ export const useAuth = function () {
     mutationKey: ["logout"],
     mutationFn: (payload: LogoutRequest) =>
       authService.StartProcessToCloseSession(payload),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await unlinkPushOnLogout();
+
       clearControlVacationsSelectionStorage();
       clearPayrollSelectionStorage();
       CookieStorageAdapter.clearAuth();
@@ -72,7 +82,9 @@ export const useAuth = function () {
         replace: true,
       });
     },
-    onError: () => {
+    onError: async () => {
+      await unlinkPushOnLogout();
+
       clearControlVacationsSelectionStorage();
       clearPayrollSelectionStorage();
       CookieStorageAdapter.clearAuth();
