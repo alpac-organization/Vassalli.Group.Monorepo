@@ -2,7 +2,7 @@ import { Button } from "@alpac/design-system";
 import { Warehouse } from "lucide-react";
 import { useCallback, useState } from "react";
 import type { WarehouseTabProps } from "./warehouse-tab.types";
-import { WarehouseModal } from "@app/modules/warehouse/ui/warehouse/components/warehouse-modal/warehouse-modal";
+import { WarehouseModal } from "@app/modules/warehouse/ui/view/warehouse/components/warehouse-modal/warehouse-modal";
 import { WarehouseTable } from "./components/warehouse-table/warehouse-table";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { useUserStore } from "@app/shared/stores/useUserStore";

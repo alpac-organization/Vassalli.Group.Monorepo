@@ -3,6 +3,8 @@ import { CuadrillaPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pa
 import { WarehouseAllocationPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-allocation/warehouse-allocation";
 import type { RouteObject } from "react-router-dom";
 import { MerchandisePage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/merchandise";
+import { WarehousePage } from "@app/modules/warehouse/ui/view/warehouse/warehouse";
+import { SectionsPage } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/sections";
 import Bodega from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/Bodega";
 
 export const WarehouseManaguaRouter: RouteObject[] = [
@@ -25,6 +27,14 @@ export const WarehouseManaguaRouter: RouteObject[] = [
   {
     path: "gate-entry",
     element: <h1>Gate Entry</h1>,
+  },
+  {
+    path: "warehouse",
+    element: <WarehousePage />,
+  },
+  {
+    path: "warehouse/:warehouseId/sections",
+    element: <SectionsPage />,
   },
   {
     path: "bodegas",

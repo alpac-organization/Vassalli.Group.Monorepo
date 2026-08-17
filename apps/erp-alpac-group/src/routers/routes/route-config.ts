@@ -44,6 +44,7 @@ const {
   DucaPanel,
   warehouseSection4,
   warehouseSection12,
+  warehouseListSection,
   BodegaSection,
 } = getManaguaWarehouseRoutes();
 
@@ -107,6 +108,7 @@ export const routeConfig = {
       DucaPanel,
       warehouseSection4,
       warehouseSection12,
+      warehouseListSection,
       BodegaSection,
       warehouseReportSection,
     ],

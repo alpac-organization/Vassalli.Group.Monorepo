@@ -3,19 +3,19 @@ import type { IWarehouseAdminService } from "@app/modules/admin-warehouse/wareho
 import type { GetSectionsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-sections-req";
 import type { SectionResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
 import { cleanParams } from "@app/shared/utils/object.utils";
-import type { CreateSectionRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-section-request";
-import type { GetLotsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-lots-request";
-import type { LotListItemResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/lot-response";
-import type { GetLotDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-lot-detail-request";
-import type { LotDetailResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/lot-response";
-import type { CreateLotsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-lots-request";
-import type { RegisterLotsResultResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/lot-response";
-import type { GetRacksRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-racks-request";
-import type { RackSectionFilterResultResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/rack-response";
-import type { GetRackDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-rack-detail-request";
-import type { RackDetailResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/rack-response";
-import type { CreateRacksRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-racks-request";
-import type { RegisterRacksResultResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/rack-response";
+import type { CreateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-section-req";
+import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
+import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
+import type { GetLotDetailRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-details-req";
+import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-detail";
+import type { CreateLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
+import type { RegisterLotsResultResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
+import type { GetRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-racks";
+import type { GetRackResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-res";
+import type { GetRackDetailRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-rack-detail";
+import type { GetRackDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-detail";
+import type { CreateRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-racks-req";
+import type { CreateRackResultResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/create-rack-result";
 export class WarehouseAdminServices implements IWarehouseAdminService {
   private readonly apiHandler: IHttpHandler;
   constructor(apiHandler: IHttpHandler) {
@@ -59,37 +59,35 @@ export class WarehouseAdminServices implements IWarehouseAdminService {
     return await this.apiHandler.post<RegisterLotsResultResponse>(url, rest);
   }
 
-  async GetRacks(
-    payload: GetRacksRequest,
-  ): Promise<RackSectionFilterResultResponse> {
+  async GetRacks(payload: GetRacksRequest): Promise<GetRackResponse> {
     const { company_id, module_code, section_id, ...rest } = payload;
 
     const url = `companies/${company_id}/modules/${module_code}/sections/${section_id}/racks`;
 
-    return await this.apiHandler.get<RackSectionFilterResultResponse>(url, {
+    return await this.apiHandler.get<GetRackResponse>(url, {
       params: cleanParams(rest),
     });
   }
 
   async GetRackById(
     payload: GetRackDetailRequest,
-  ): Promise<RackDetailResponse> {
+  ): Promise<GetRackDetailResponse> {
     const { company_id, module_code, rack_id, ...rest } = payload;
 
     const url = `companies/${company_id}/modules/${module_code}/racks/${rack_id}`;
 
-    return await this.apiHandler.get<RackDetailResponse>(url, {
+    return await this.apiHandler.get<GetRackDetailResponse>(url, {
       params: cleanParams(rest),
     });
   }
 
   async CreateRacks(
     payload: CreateRacksRequest,
-  ): Promise<RegisterRacksResultResponse> {
+  ): Promise<CreateRackResultResponse> {
     const { company_id, module_code, section_id, ...rest } = payload;
 
     const url = `companies/${company_id}/modules/${module_code}/sections/${section_id}/racks`;
 
-    return await this.apiHandler.post<RegisterRacksResultResponse>(url, rest);
+    return await this.apiHandler.post<CreateRackResultResponse>(url, rest);
   }
 }

@@ -1,10 +1,9 @@
 import { warehouseHttpHandler } from "@app/core/adapters";
-import { WarehouseServices } from "../../infrastructure/services/warehouse-services/WarehouseServices";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import type { CreateWarehouseRequest } from "../../domain/ApiContract/Requests/warehouse-requests/create-warehouse-request";
+import { WarehouseServices } from "@app/modules/warehouse/infrastructure/services/warehouse-services/WarehouseServices";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { GetWarehouseRequest } from "../../domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
-
+import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
+import type { CreateWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-warehouse";
 const warehouseServices = new WarehouseServices(warehouseHttpHandler);
 
 interface useWarehouseProps {
@@ -12,6 +11,7 @@ interface useWarehouseProps {
 }
 
 export const useWarehouse = (props?: useWarehouseProps) => {
+  const queryClient = useQueryClient();
   const { getWarehousesPayload } = props || {};
 
   const getWarehouseEnabled = Boolean(
@@ -34,8 +34,10 @@ export const useWarehouse = (props?: useWarehouseProps) => {
     mutationKey: ["createWarehouse"],
     mutationFn: (payload: CreateWarehouseRequest) =>
       warehouseServices.CreateWarehouse(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["get-warehouses-records"] });
+    },
     retry: 1,
   });
-
   return { GetWarehouses, CreateWarehouse };
 };
