@@ -18,6 +18,7 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import type { CostCenters } from "@app/modules/admin/domain/ApiContract/responses/areas/get-areas.response";
 import { SelectServiceOrderModal } from "../select-service-order-modal/select-service-order-modal";
 import type { SelectableServiceOrder } from "../select-service-order-modal/select-service-order-modal.types";
+import type { EnumType } from "@app/shared/types/enum.type";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -25,9 +26,17 @@ const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
 
+const priorityLevel: EnumType[] = [
+	{ label: "Critico", value: "Critical" },
+	{ label: "Imprevisto", value: "Unforeseen" },
+	{ label: "Normal", value: "Normal" },
+	{ label: "Papelería Impresa", value: "PrintedMaterials" },
+];
+
 const emptyFormValues = (): CreatePurchaseRequestFormValues => ({
 	area_id: "",
 	cost_center_id: "",
+	priority_level_id: "",
 	observations: "",
 	purchase_request_items: [],
 });
@@ -46,10 +55,9 @@ export const PurchaseRequestModal = ({
 	const { getMappedError } = useMappedError();
 
 	const [costCenters, setCostCenters] = useState<CostCenters[]>([]);
-	const [selectedOrigen, setSelectedOrigin] = useState<PurchaseRequestOriginType>("administration");
+	const [selectedOrigen, setSelectedOrigin] = useState<PurchaseRequestOriginType>("supplies");
 	const [isSelectServiceOrderModalOpen, setIsSelectServiceOrderModalOpen] = useState(false);
-	const [selectedServiceOrder, setSelectedServiceOrder] =
-		useState<SelectableServiceOrder | null>(null);
+	const [selectedServiceOrder, setSelectedServiceOrder] = useState<SelectableServiceOrder | null>(null);
 
 	const methods = useForm<CreatePurchaseRequestFormValues>({
 		defaultValues: emptyFormValues(),
@@ -64,6 +72,18 @@ export const PurchaseRequestModal = ({
 		reset,
 		formState: { errors },
 	} = methods;
+
+	const areaId = methods.watch("area_id");
+	const costCenterId = methods.watch("cost_center_id");
+	const priorityLevelId = methods.watch("priority_level_id");
+	const observations = methods.watch("observations");
+	const isDisabledActions = Boolean(
+		!areaId?.trim() || !priorityLevelId?.trim() ||
+		!costCenterId?.trim() || !observations?.trim() ||
+		!selectedOrigen?.trim() ||
+		(selectedOrigen === "serviceOrder" && !selectedServiceOrder?.service_order_code)
+	);
+
 
 	const { GetAreasByCompany } = useAreas({ company_id: companyId });
 	const { CreatePurchaseRequest } = usePurchase();
@@ -80,7 +100,7 @@ export const PurchaseRequestModal = ({
 	);
 
 	const costCenterOptions = useMemo(
-		() => {			
+		() => {
 			return costCenters.map(center => ({
 				label: center.cost_center_name, value: center.cost_center_id
 			}))
@@ -92,7 +112,7 @@ export const PurchaseRequestModal = ({
 
 	useEffect(() => {
 		reset(emptyFormValues());
-		setSelectedOrigin("administration");
+		setSelectedOrigin("supplies");
 		setSelectedServiceOrder(null);
 		setIsSelectServiceOrderModalOpen(false);
 	}, [isOpen, reset]);
@@ -102,7 +122,7 @@ export const PurchaseRequestModal = ({
 	const handleClose = () => {
 		if (isCreating) return;
 		reset(emptyFormValues());
-		setSelectedOrigin("administration");
+		setSelectedOrigin("supplies");
 		setSelectedServiceOrder(null);
 		setIsSelectServiceOrderModalOpen(false);
 		onClose();
@@ -110,7 +130,7 @@ export const PurchaseRequestModal = ({
 
 	const handleOriginChange = (origin: PurchaseRequestOriginType) => {
 		setSelectedOrigin(origin);
-		if (origin === "administration") {
+		if (origin === "supplies") {
 			setSelectedServiceOrder(null);
 		}
 	};
@@ -183,10 +203,10 @@ export const PurchaseRequestModal = ({
 					>
 						<div ref={scrollContainerRef} className="p-1 scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
 
-
 							<div className="flex flex-col gap-4 pb-2">
 
 								<div className="grid grid-cols-1 items-end gap-4 md:grid-cols-2">
+
 									{isAdministrator && (
 										<div className="min-w-0">
 											<Controller
@@ -218,6 +238,7 @@ export const PurchaseRequestModal = ({
 											/>
 										</div>
 									)}
+
 
 									<div className="min-w-0">
 										{
@@ -257,26 +278,51 @@ export const PurchaseRequestModal = ({
 
 									</div>
 
+									<div className="min-w-0 w-full">
+										<Controller
+											name="priority_level_id"
+											control={control}
+											rules={{
+												required: "El nivel de prioridad es requerida",
+											}}
+											render={({ field }) => (
+												<Dropdown
+													label="Nivel de prioridad"
+													isRequired
+													appearance="dark"
+													placeholder="Seleccione la prioridad de la solicitud"
+													value={field.value}
+													onChange={(value) => { field.onChange(value) }}
+													options={priorityLevel}
+													labelClassName={labelClassName}
+													valueClassName={labelClassName}
+													className={`${dropdownClassName} `}
+													error={errors.priority_level_id?.message}
+												/>
+											)}
+										/>
+									</div>
+
 									<div
 										className={
 											isAdministrator
-												? "flex min-w-0 flex-col gap-1 md:col-span-2"
-												: "flex min-w-0 flex-col justify-center gap-1"
+												? "flex min-w-0 w-full flex-col gap-1"
+												: "flex min-w-0 w-full flex-col gap-1 md:col-span-2"
 										}
 									>
 										<span className="text-[15px] text-black dark:text-white">
-											Origen de solicitud:
+											Asociar a:
 										</span>
 
-										<div className="flex min-h-12 min-w-0 flex-row flex-wrap items-center gap-x-6 gap-y-3 rounded-md border border-slate-300 bg-[#f5f5f5] px-4 py-2 dark:border-neutral-600 dark:bg-[#1e2229]">
+										<div className="flex min-h-12 min-w-0 w-full flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3">
 											<RadioButton
-												id="administrationRadiusButton"
-												value="administration"
-												label="Administrativo"
+												id="suppliesRadiusButton"
+												value="supplies"
+												label="Insumos"
 												labelPosition="right"
 												labelClassName={labelClassName}
-												checked={selectedOrigen === "administration"}
-												onChange={() => { handleOriginChange("administration") }}
+												checked={selectedOrigen === "supplies"}
+												onChange={() => { handleOriginChange("supplies") }}
 											/>
 
 											<RadioButton
@@ -289,43 +335,33 @@ export const PurchaseRequestModal = ({
 												onChange={() => { handleOriginChange("serviceOrder") }}
 											/>
 
-											<RadioButton
-												id="customerRadiusButton"
-												value="externalCustomer"
-												label="Cliente Externo"
-												labelPosition="right"
-												labelClassName={labelClassName}
-												checked={selectedOrigen === "externalCustomer"}
-												onChange={() => { setSelectedOrigin("externalCustomer") }}
-											/>
 										</div>
 									</div>
 								</div>
 
-								{(selectedOrigen === "serviceOrder" ||
-									selectedOrigen === "externalCustomer") && (
-										<div className="flex flex-wrap items-center gap-3">
-											{selectedServiceOrder ? (
-												<div className="flex flex-row flex-wrap items-center gap-2">
-													<span className="text-[14px] font-medium text-black dark:text-white">
-														Orden de Servicio Vinculada:
-													</span>
-													<Chips
-														label={selectedServiceOrder.service_order_code}
-														onClick={() => setSelectedServiceOrder(null)}
-													/>
-												</div>
-											) : (
-												<Button
-													type="button"
-													size="giant"
-													label="Buscar Orden de Servicio"
-													className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-													onClick={() => setIsSelectServiceOrderModalOpen(true)}
+								{(selectedOrigen === "serviceOrder") && (
+									<div className="flex flex-wrap items-center gap-3">
+										{selectedServiceOrder ? (
+											<div className="flex flex-row flex-wrap items-center gap-2">
+												<span className="text-[14px] font-medium text-black dark:text-white">
+													Orden de Servicio Vinculada:
+												</span>
+												<Chips
+													label={selectedServiceOrder.service_order_code}
+													onClose={() => setSelectedServiceOrder(null)}
 												/>
-											)}
-										</div>
-									)}
+											</div>
+										) : (
+											<Button
+												type="button"
+												size="giant"
+												label="Buscar Orden de Servicio"
+												className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+												onClick={() => setIsSelectServiceOrderModalOpen(true)}
+											/>
+										)}
+									</div>
+								)}
 
 								<Controller
 									name="observations"
@@ -356,6 +392,7 @@ export const PurchaseRequestModal = ({
 								/>
 
 								<PurchaseRequestDetail
+									disableActions={isDisabledActions}
 									onRequestError={onRequestError}
 									onRequestSuccess={onRequestSuccess}
 								/>

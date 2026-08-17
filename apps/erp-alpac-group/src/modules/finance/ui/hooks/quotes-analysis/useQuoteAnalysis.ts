@@ -8,11 +8,14 @@ import type { RequisitionAccountingReviewDetailsDto } from "@app/modules/finance
 import type { GetQuoteAnalysisDetailsRequest } from "@app/modules/finance/domain/ApiContract/requests/quote-analysis-detail";
 import type { AcceptOfferPurchaseRequest } from "@app/modules/finance/domain/ApiContract/requests/accept-offer-purchase";
 import type { SendReviewToManagementRequest } from "@app/modules/finance/domain/ApiContract/requests/send-review-to-management";
+
 const quoteAnalysisService = new QuoteAnalysisServices(warehouseHttpHandler);
+
 type UseQuoteAnalysisProps = {
 	payloadGetQuoteAnalysis?: GetQuotesAnalysisRequest;
 	payloadGetQuoteAnalysisDetails?: GetQuoteAnalysisDetailsRequest;
 };
+
 export const useQuoteAnalysis = (props: UseQuoteAnalysisProps) => {
 	const { payloadGetQuoteAnalysis, payloadGetQuoteAnalysisDetails } = props;
 	const queryClient = useQueryClient();

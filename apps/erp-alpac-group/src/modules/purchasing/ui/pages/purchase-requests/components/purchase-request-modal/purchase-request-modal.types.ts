@@ -16,6 +16,7 @@ export type RequestedProductFormItem = Omit<
 export type CreatePurchaseRequestFormValues = {
 	area_id: string;
 	cost_center_id: string;
+	priority_level_id: string;
 	observations: string;
 	purchase_request_items: RequestedProductFormItem[];
 };
@@ -30,4 +31,4 @@ export interface PurchaseRequestModalProps {
 	requestType: PurchaseRequestEnum;
 }
 
-export type PurchaseRequestOriginType = "administration" | "serviceOrder" | "externalCustomer";
+export type PurchaseRequestOriginType = "supplies" | "serviceOrder";

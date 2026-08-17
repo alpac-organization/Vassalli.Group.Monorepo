@@ -30,6 +30,15 @@ const deleteButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:bor
 const cancelButtonClass = "rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
 const PAGE_SIZE = 5;
 
+const allowedStatus: string[] = [	
+	PurchaseRequestStatusEnum.Pending.textValue,
+	PurchaseRequestStatusEnum.Approved.textValue,
+	PurchaseRequestStatusEnum.Rejected.textValue,
+	PurchaseRequestStatusEnum.Canceled.textValue,
+	PurchaseRequestStatusEnum.Revision.textValue,
+	PurchaseRequestStatusEnum.Finished.textValue
+];
+
 export const RequisitionTab = ({
 	currentBranchId,
 	onRequestError,
@@ -91,37 +100,44 @@ export const RequisitionTab = ({
 
 	const administratorOptions = (row: GetPurchaseRequestResponse): RequisitionContextMenu[] => {
 
-		const isApproved = row.request_status === PurchaseRequestStatusEnum.Approved.textValue;
-		const isRejected = row.request_status === PurchaseRequestStatusEnum.Rejected.textValue;
-		const isCanceled = row.request_status === PurchaseRequestStatusEnum.Canceled.textValue;
+		const isAllowedStatus = allowedStatus.includes(row.request_status);
 
-		const isProcessed = isApproved || isRejected || isCanceled;
+		if (!isAllowedStatus) return [];
 
+		const canModify = row.request_status === PurchaseRequestStatusEnum.Pending.textValue;		
 
 		const options = getBaseOptions(row)
 			.filter(item =>
-				(item.id === "edit" && !isProcessed) ||
-				(item.id === "delete" && !isProcessed) ||
-				item.id === "viewDatail"
+				(item.id === "edit" && canModify) ||
+				(item.id === "delete" && canModify) ||
+				(item.id === "viewDatail")
 			);
 
-		return options.filter(item => item.id);
+		return options;
 	}
 
 	const managerOptions = (row: GetPurchaseRequestResponse): RequisitionContextMenu[] => {
 
-		const options = getBaseOptions(row)
-			.filter(item => item.id === "viewDatail");
+		const isAllowedStatus = allowedStatus.includes(row.request_status);
+		if (!isAllowedStatus) return [];
 
-		return options.filter(item => item.id);
+		const canModify = row.request_status === PurchaseRequestStatusEnum.Pending.textValue;
+
+		const options = getBaseOptions(row).filter(item => (item.id === "viewDatail" && canModify));
+
+		return options;
 	}
 
 	const operatorOptions = (row: GetPurchaseRequestResponse): RequisitionContextMenu[] => {
 
-		const options = getBaseOptions(row)
-			.filter(item => item.id === "viewDatail");
+		const isAllowedStatus = allowedStatus.includes(row.request_status);
+		if (!isAllowedStatus) return [];
 
-		return options.filter(item => item.id);
+		const canModify = row.request_status === PurchaseRequestStatusEnum.Pending.textValue;
+
+		const options = getBaseOptions(row).filter(item => (item.id === "viewDatail" && canModify));
+
+		return options;
 	}
 
 	const mapContextMenuOptions = new Map<RoleEnum, (row: GetPurchaseRequestResponse) => RequisitionContextMenu[]>([

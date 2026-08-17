@@ -15,6 +15,7 @@ export type ContextMenuProps = {
   triggerIcon?: ReactNode;
   triggerButtonSize?: ButtonSize;
   openUpOnMobile?: boolean;
+  disabled?: boolean;
 };
 
 export type MenuPosition = {

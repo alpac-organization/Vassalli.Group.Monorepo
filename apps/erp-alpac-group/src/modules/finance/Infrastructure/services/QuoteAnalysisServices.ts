@@ -49,8 +49,6 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
 			comments,
 			is_approved,
 		} = payload;
-
-		console.log("revision de payload:", payload);
 		
 		const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${requisition_accounting_review_id}/send-management-review`;
 		await this.httpClient.post<void>(url, {

@@ -49,7 +49,7 @@ const hasUnitsPerPackage = (label?: string, symbol?: string) => {
 };
 
 export const PurchaseRequestDetail = (
-	{ onRequestError, onRequestSuccess }: PurchaseRequestDetailProps
+	{ disableActions, onRequestError, onRequestSuccess }: PurchaseRequestDetailProps
 ) => {
 
 	const { companyId, moduleCode } = useUserStore();
@@ -148,8 +148,9 @@ export const PurchaseRequestDetail = (
 				<div className="shrink-0 self-stretch sm:self-auto">
 					<ContextMenu
 						triggerClassName={contextMenuButton}
-						triggerLabel="Agregar Producto"
+						triggerLabel="Agregar Producto"						
 						triggerIcon={<PlusIcon size={18} />}
+						disabled={disableActions}
 						items={[
 							{
 								label: "Agregar Producto Existente",
