@@ -9,6 +9,7 @@ import {
   type TabItem,
 } from "@alpac/design-system";
 import { Eye, X } from "lucide-react";
+import dayjs from "dayjs";
 import {
   getStatusBadgeClass,
   getStatusBadgeLabel,
@@ -24,16 +25,21 @@ import type { MerchandiseDetailModalProps } from "@app/modules/warehouse/ui/ware
 import { DucatDetailModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/ducat-detail-modal/ducat-detail-modal";
 import { ObservationDetailModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/observation-detail-modal/observation-detail-modal";
 import { ReadOnlyField } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/read-only-field/read-only-field";
+import { RegisterDucatGeneralForm } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-ducat-general-form/register-ducat-general-form";
+import { AssignServiceOrderForm } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/assign-service-order-form/assign-service-order-form";
 import {
   isDucaMerchandiseDocument,
   mapMerchandiseDetailToDisplay,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/utils/map-merchandise-detail";
 import { Loader } from "@app/shared/components/loaders/loader";
+import { getDucaStatusBadgeLabel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/ducat-detail-modal/utils/duca-status";
 
 export function MerchandiseDetailModal({
   isOpen,
   detail,
   isLoading = false,
+  company_id,
+  module_code,
   onClose,
 }: MerchandiseDetailModalProps) {
   const [selectedDucatId, setSelectedDucatId] = useState("");
@@ -49,13 +55,31 @@ export function MerchandiseDetailModal({
   const isDucaDocument = detail ? isDucaMerchandiseDocument(detail) : false;
   const showCustomsDeclaration = detail ? !isDucaDocument : false;
 
+  const merchandiseStart = useMemo(() => {
+    const registration = detail?.merchandise_registration;
+    const dateStr = registration?.merchandise_registration_date;
+    const timeStr = registration?.merchandise_registration_time;
+    if (dateStr) {
+      const date = dayjs(dateStr);
+      if (timeStr) {
+        const [hours, minutes, seconds] = timeStr.split(":").map(Number);
+        return date
+          .hour(hours ?? 0)
+          .minute(minutes ?? 0)
+          .second(seconds ?? 0);
+      }
+      return date;
+    }
+    return dayjs();
+  }, [detail]);
+
   const ducats = detail?.duca_registry?.ducats;
 
   const ducatOptions = useMemo<Option[]>(
     () =>
       (ducats ?? []).map((ducat) => ({
         value: ducat.id,
-        label: ducat.ducat_number,
+        label: `${ducat.ducat_number} (${getDucaStatusBadgeLabel(ducat.status ?? "")})`,
       })),
     [ducats],
   );
@@ -81,6 +105,15 @@ export function MerchandiseDetailModal({
       ducats?.find((item) => item.id === String(option.value)) ?? null;
     setViewingDucat(ducat);
   };
+
+  const viewingDucatId = viewingDucat?.id ?? null;
+  const freshViewingDucat = useMemo(
+    () =>
+      viewingDucatId
+        ? (ducats?.find((item) => item.id === viewingDucatId) ?? viewingDucat)
+        : null,
+    [ducats, viewingDucatId, viewingDucat],
+  );
 
   const tabItems: TabItem<string>[] = values
     ? [
@@ -200,7 +233,21 @@ export function MerchandiseDetailModal({
               {
                 id: "duca",
                 label: "Registro DUCA",
-                render: () => (
+                render: () =>
+                  detail && !detail.duca_registry ? (
+                    <div className="min-w-0 pt-1 sm:pt-2">
+                      <RegisterDucatGeneralForm
+                        reception_id={detail.id}
+                        company_id={company_id}
+                        module_code={module_code}
+                        defaultContainerNumber={
+                          detail.reception?.container_number ?? ""
+                        }
+                        initialStartDate={merchandiseStart}
+                        initialStartTime={merchandiseStart}
+                      />
+                    </div>
+                  ) : (
                   <div className="min-w-0 pt-1 sm:pt-2">
                     <div className={fieldsGridClasses}>
                       <div className="min-w-0">
@@ -308,7 +355,7 @@ export function MerchandiseDetailModal({
                       />
                     </div>
                   </div>
-                ),
+                  ),
               } satisfies TabItem<string>,
             ]
           : []),
@@ -318,37 +365,51 @@ export function MerchandiseDetailModal({
                 id: "declaracion",
                 label: "Declaración aduanera",
                 render: () => (
-                  <div className={`min-w-0 pt-1 sm:pt-2 ${fieldsGridClasses}`}>
-                    <ReadOnlyField
-                      label="Número de declaración"
-                      value={values.customsDeclarationNumber}
-                      missingMessage="Declaración no registrada"
-                    />
-                    <ReadOnlyField
-                      label="Paquetes"
-                      value={values.packages}
-                      missingMessage="Bultos no registrados"
-                    />
-                    <ReadOnlyField
-                      label="Cliente"
-                      value={values.customer}
-                      missingMessage="Cliente no registrado"
-                    />
-                    <ReadOnlyField
-                      label="Producto"
-                      value={values.product}
-                      missingMessage="Producto no registrado"
-                    />
-                    <ReadOnlyField
-                      label="Número de contenedor"
-                      value={values.containerNumber}
-                      missingMessage="Contenedor no registrado"
-                    />
-                    <ReadOnlyField
-                      label="Orden de servicio"
-                      value={values.serviceOrderCode}
-                      missingMessage="Orden no registrada"
-                    />
+                  <div className="min-w-0 pt-1 sm:pt-2 flex flex-col gap-4">
+                    {detail && !detail.customs_declaration?.service_order_id && (
+                      <div className="p-4 rounded-xl border border-amber-200! dark:border-amber-500/30! bg-amber-50! dark:bg-amber-500/10!">
+                        <AssignServiceOrderForm
+                          reception_id={detail.id}
+                          company_id={company_id}
+                          module_code={module_code}
+                          customsDeclarationNumber={
+                            values.customsDeclarationNumber
+                          }
+                        />
+                      </div>
+                    )}
+                    <div className={fieldsGridClasses}>
+                      <ReadOnlyField
+                        label="Número de declaración"
+                        value={values.customsDeclarationNumber}
+                        missingMessage="Declaración no registrada"
+                      />
+                      <ReadOnlyField
+                        label="Paquetes"
+                        value={values.packages}
+                        missingMessage="Bultos no registrados"
+                      />
+                      <ReadOnlyField
+                        label="Cliente"
+                        value={values.customer}
+                        missingMessage="Cliente no registrado"
+                      />
+                      <ReadOnlyField
+                        label="Producto"
+                        value={values.product}
+                        missingMessage="Producto no registrado"
+                      />
+                      <ReadOnlyField
+                        label="Número de contenedor"
+                        value={values.containerNumber}
+                        missingMessage="Contenedor no registrado"
+                      />
+                      <ReadOnlyField
+                        label="Orden de servicio"
+                        value={values.serviceOrderCode}
+                        missingMessage="Orden no registrada"
+                      />
+                    </div>
                   </div>
                 ),
               } satisfies TabItem<string>,
@@ -412,7 +473,12 @@ export function MerchandiseDetailModal({
 
       <DucatDetailModal
         isOpen={Boolean(viewingDucat)}
-        ducat={viewingDucat}
+        ducat={freshViewingDucat}
+        receptionId={detail?.id ?? ""}
+        companyId={company_id}
+        moduleCode={module_code}
+        initialStartDate={merchandiseStart}
+        initialStartTime={merchandiseStart}
         onClose={() => setViewingDucat(null)}
       />
 

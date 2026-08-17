@@ -4,6 +4,8 @@ export type MerchandiseDetailModalProps = {
   isOpen: boolean;
   detail: GetMerchandiseDetailResponse | null | undefined;
   isLoading?: boolean;
+  company_id: string;
+  module_code: string;
   onClose: () => void;
 };
 

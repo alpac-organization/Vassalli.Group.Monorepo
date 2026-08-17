@@ -8,6 +8,7 @@ export const getWarehouseAdminRoutes = () => {
       label: "Gestion de Bodega",  
       path: "management",
       icon: WarehouseIcon,
+      allowsRubRoutes: true,
    };
 
       return {
