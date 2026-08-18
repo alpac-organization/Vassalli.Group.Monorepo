@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 
-const DEFAULT_ENTITY_NAME = "Grupo Vasalli";
+const DEFAULT_ENTITY_NAME = "Grupo Vassalli";
 
 export const CopyRight = function () {
   return (

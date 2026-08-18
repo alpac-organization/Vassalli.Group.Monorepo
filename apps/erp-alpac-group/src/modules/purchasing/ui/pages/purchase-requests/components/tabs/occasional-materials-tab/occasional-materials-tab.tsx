@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badges, Button, ContextMenu, DataTable, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
+import { useCallback, useEffect, useState } from "react";
+import { Button, DataTable, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
 import { PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "../../purchase-request-modal/purchase-request-modal";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
@@ -16,16 +16,13 @@ import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/
 import type { OccasionalMaterialContextMenu, OccasionalMaterialTabProps } from "./occasional-materials-tab.types";
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
-import { purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../../purchase-request.variants";
-import { isValidateValue } from "@app/shared/utils/values.utils";
-import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
+import { getPurchaseRequestColumnConfig } from "../../../utils/purchase-request-table-config";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
-const contextMenuButton = "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 const deleteButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
 const cancelButtonClass = "rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
 const PAGE_SIZE = 5;
@@ -220,82 +217,8 @@ export const OccasionalMaterialTab = ({
 		});
 	};
 
-	const columnConfig: TableColumn<GetPurchaseRequestResponse>[] = useMemo(
-		() => [
-			{ key: "code", label: "Código" },
-			{
-				key: "request_status",
-				label: "Estado",
-				render: (row: GetPurchaseRequestResponse) => {
-					const statusLabel =
-						Object.values(PurchaseRequestStatusEnum).find(
-							(item) => item.textValue === row.request_status,
-						)?.label ?? row.request_status;
-
-					return (
-						<Badges
-							label={statusLabel}
-							color={
-								purchaseRequestStatusBadgeVariants[
-									row.request_status as keyof typeof purchaseRequestStatusBadgeVariants
-								]?.badgeColor ??
-								purchaseRequestStatusBadgeVariants.default.badgeColor
-							}
-						/>
-					);
-				},
-			},
-			{
-				key: "request_type",
-				label: "Tipo",
-				render: (row: GetPurchaseRequestResponse) => {
-					const typeLabel =
-						Object.values(PurchaseRequestEnum).find(
-							(type) => type.textValue === row.request_type,
-						)?.label ?? row.request_type;
-
-					return (
-						<Badges
-							label={typeLabel}
-							color={
-								purchaseRequestTypeBadgeVariants[
-									row.request_type as keyof typeof purchaseRequestTypeBadgeVariants
-								]?.badgeColor ??
-								purchaseRequestTypeBadgeVariants.default.badgeColor
-							}
-						/>
-					);
-				},
-			},
-			{
-				key: "request_date",
-				label: "Fecha de Solicitud",
-				render(row: GetPurchaseRequestResponse) {
-					if (!isValidateValue(row.request_date)) return "—";
-					return formatDateToSpanishWords(row.request_date ?? "");
-				}
-			},
-			{
-				key: "revision_date",
-				label: "Fecha de revisión",
-				render: (row: GetPurchaseRequestResponse) => {
-					if (!isValidateValue(row.revision_date)) return "—";
-					return formatDateToSpanishWords(row.revision_date ?? "");
-				}
-			},
-			{
-				key: "actions",
-				label: "Acciones",
-				render: (row: GetPurchaseRequestResponse) => (
-					<ContextMenu
-						items={contexMenuOptions(row)}
-						triggerClassName={contextMenuButton}
-					/>
-				),
-			},
-		],
-		[],
-	);
+	const columnConfig: TableColumn<GetPurchaseRequestResponse>[] =
+		getPurchaseRequestColumnConfig(contexMenuOptions, PurchaseRequestEnum.Eventual);
 
 	return (
 		<div>

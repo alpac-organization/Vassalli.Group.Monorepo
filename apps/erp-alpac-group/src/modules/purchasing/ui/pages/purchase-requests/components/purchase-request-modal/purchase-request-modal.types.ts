@@ -5,18 +5,19 @@ import type { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/p
 
 export type RequestedProductFormItem = Omit<
 	PurchaseRequestItem,
-	"quantity" | "quantity_unit"
+	"quantity" | "quantity_unit" | "additional_data"
 > & {
 	product_name?: string;
 	description?: string;
 	quantity: number | "";
 	quantity_unit?: number | "";
+	product_images?: string[];
 };
 
 export type CreatePurchaseRequestFormValues = {
 	area_id: string;
 	cost_center_id: string;
-	priority_level_id: string;
+	priority_level_id: string | number;
 	observations: string;
 	purchase_request_items: RequestedProductFormItem[];
 };
@@ -30,5 +31,3 @@ export interface PurchaseRequestModalProps {
 	currentBranchId: string;
 	requestType: PurchaseRequestEnum;
 }
-
-export type PurchaseRequestOriginType = "supplies" | "serviceOrder";

@@ -16,9 +16,13 @@ export type QuoteProductModalProps = {
 	onConfirm?: (items: DraftQuotationItem[]) => void;
 };
 
+export type IvaRateOption = "10" | "15" | "other";
+
 export type QuotationItemForm = QuotationItem & {
 	supplier_legal_name?: string;
 	has_iva?: boolean;
+	iva_rate?: IvaRateOption;
+	custom_iva_rate?: string | number;
 };
 
 export type QuoteProductGroup = {

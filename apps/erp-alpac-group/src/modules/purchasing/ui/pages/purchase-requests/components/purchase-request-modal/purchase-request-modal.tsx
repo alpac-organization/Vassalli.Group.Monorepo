@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Chips, Dropdown, InputText, Modal, RadioButton, Textarea } from "@alpac/design-system";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import dayjs from "dayjs";
 import type {
 	CreatePurchaseRequestFormValues,
-	PurchaseRequestModalProps,
-	PurchaseRequestOriginType,
+	PurchaseRequestModalProps
 } from "./purchase-request-modal.types";
 import { PurchaseRequestDetail } from "../purchase-request-detail/purchase-request-detail";
-import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
+import type {
+	CreatePurchaseRequestPayload,
+	PurchaseRequestItemAdditionalData,
+} from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -18,20 +19,15 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import type { CostCenters } from "@app/modules/admin/domain/ApiContract/responses/areas/get-areas.response";
 import { SelectServiceOrderModal } from "../select-service-order-modal/select-service-order-modal";
 import type { SelectableServiceOrder } from "../select-service-order-modal/select-service-order-modal.types";
-import type { EnumType } from "@app/shared/types/enum.type";
+import { PriorityLevelOptions } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
+import { PurchaseRequestDestinationEnum, type PurchaseRequestDestinationType } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
+import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
-
-const priorityLevel: EnumType[] = [
-	{ label: "Critico", value: "Critical" },
-	{ label: "Imprevisto", value: "Unforeseen" },
-	{ label: "Normal", value: "Normal" },
-	{ label: "Papelería Impresa", value: "PrintedMaterials" },
-];
 
 const emptyFormValues = (): CreatePurchaseRequestFormValues => ({
 	area_id: "",
@@ -55,7 +51,7 @@ export const PurchaseRequestModal = ({
 	const { getMappedError } = useMappedError();
 
 	const [costCenters, setCostCenters] = useState<CostCenters[]>([]);
-	const [selectedOrigen, setSelectedOrigin] = useState<PurchaseRequestOriginType>("supplies");
+	const [selectedOrigen, setSelectedOrigin] = useState<PurchaseRequestDestinationType>("Internal");
 	const [isSelectServiceOrderModalOpen, setIsSelectServiceOrderModalOpen] = useState(false);
 	const [selectedServiceOrder, setSelectedServiceOrder] = useState<SelectableServiceOrder | null>(null);
 
@@ -65,11 +61,13 @@ export const PurchaseRequestModal = ({
 	});
 
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+	const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
 
 	const {
 		control,
 		handleSubmit,
 		reset,
+		setValue,
 		formState: { errors },
 	} = methods;
 
@@ -77,11 +75,15 @@ export const PurchaseRequestModal = ({
 	const costCenterId = methods.watch("cost_center_id");
 	const priorityLevelId = methods.watch("priority_level_id");
 	const observations = methods.watch("observations");
+
+	const hasPrioritySelected = Number(priorityLevelId) > 0;
+
 	const isDisabledActions = Boolean(
-		!areaId?.trim() || !priorityLevelId?.trim() ||
-		!costCenterId?.trim() || !observations?.trim() ||
-		!selectedOrigen?.trim() ||
-		(selectedOrigen === "serviceOrder" && !selectedServiceOrder?.service_order_code)
+		(isAdministrator && !areaId?.trim()) ||
+		(isAdministrator && !costCenterId?.trim()) ||
+		(isRequisition && !hasPrioritySelected) ||
+		!observations?.trim() ||
+		(selectedOrigen === "ServiceOrder" && !selectedServiceOrder?.service_order_code)
 	);
 
 
@@ -112,7 +114,7 @@ export const PurchaseRequestModal = ({
 
 	useEffect(() => {
 		reset(emptyFormValues());
-		setSelectedOrigin("supplies");
+		setSelectedOrigin("Internal");
 		setSelectedServiceOrder(null);
 		setIsSelectServiceOrderModalOpen(false);
 	}, [isOpen, reset]);
@@ -122,15 +124,15 @@ export const PurchaseRequestModal = ({
 	const handleClose = () => {
 		if (isCreating) return;
 		reset(emptyFormValues());
-		setSelectedOrigin("supplies");
+		setSelectedOrigin("Internal");
 		setSelectedServiceOrder(null);
 		setIsSelectServiceOrderModalOpen(false);
 		onClose();
 	};
 
-	const handleOriginChange = (origin: PurchaseRequestOriginType) => {
+	const handleOriginChange = (origin: PurchaseRequestDestinationType) => {
 		setSelectedOrigin(origin);
-		if (origin === "supplies") {
+		if (origin !== "ServiceOrder") {
 			setSelectedServiceOrder(null);
 		}
 	};
@@ -144,17 +146,28 @@ export const PurchaseRequestModal = ({
 			...(isAdministrator ? { area_id: values.area_id } : {}),
 			cost_center_id: values.cost_center_id,
 			branch_id: currentBranchId,
-			request_date: dayjs().format("YYYY-MM-DD"),
 			request_type: Number(requestType.value),
+			...(isRequisition
+				? { priority_level: Number(values.priority_level_id) }
+				: {}),
+			destination: PurchaseRequestDestinationEnum[selectedOrigen].value,
 			observations: values.observations.trim(),
 			purchase_request_items: values.purchase_request_items.map((item) => {
 				const productJustification = item.justification?.trim() ?? "";
+				const productImages = item.product_images?.filter(Boolean) ?? [];
+				const additionalData: PurchaseRequestItemAdditionalData | null =
+					productImages.length
+						? { images_product_to_changed: productImages }
+						: null;
 
 				return {
 					product_id: item.product_id,
 					quantity: Number(item.quantity),
 					description: item.description,
 					unit_measure_id: item.unit_measure_id,
+					additional_data: additionalData
+						? JSON.stringify(additionalData)
+						: null,
 					...(productJustification
 						? { justification: productJustification }
 						: {}),
@@ -227,6 +240,7 @@ export const PurchaseRequestModal = ({
 															const filteredCostCenters = filteredAreas?.cost_centers;
 															setCostCenters(filteredCostCenters ?? []);
 															field.onChange(value);
+															setValue("cost_center_id", "");
 														}}
 														options={areaOptions}
 														labelClassName={labelClassName}
@@ -261,7 +275,7 @@ export const PurchaseRequestModal = ({
 															labelClassName={labelClassName}
 															valueClassName={labelClassName}
 															className={`${dropdownClassName} `}
-															error={errors.area_id?.message}
+															error={errors.cost_center_id?.message}
 														/>
 													)}
 												/> :
@@ -278,30 +292,32 @@ export const PurchaseRequestModal = ({
 
 									</div>
 
-									<div className="min-w-0 w-full">
-										<Controller
-											name="priority_level_id"
-											control={control}
-											rules={{
-												required: "El nivel de prioridad es requerida",
-											}}
-											render={({ field }) => (
-												<Dropdown
-													label="Nivel de prioridad"
-													isRequired
-													appearance="dark"
-													placeholder="Seleccione la prioridad de la solicitud"
-													value={field.value}
-													onChange={(value) => { field.onChange(value) }}
-													options={priorityLevel}
-													labelClassName={labelClassName}
-													valueClassName={labelClassName}
-													className={`${dropdownClassName} `}
-													error={errors.priority_level_id?.message}
-												/>
-											)}
-										/>
-									</div>
+									{isRequisition && (
+										<div className="min-w-0 w-full">
+											<Controller
+												name="priority_level_id"
+												control={control}
+												rules={{
+													required: isRequisition ? "El nivel de prioridad es requerida" : false,
+												}}
+												render={({ field }) => (
+													<Dropdown
+														label="Nivel de prioridad"
+														isRequired
+														appearance="dark"
+														placeholder="Seleccione la prioridad de la solicitud"
+														value={field.value}
+														onChange={(value) => { field.onChange(value) }}
+														options={PriorityLevelOptions ?? []}
+														labelClassName={labelClassName}
+														valueClassName={labelClassName}
+														className={`${dropdownClassName} `}
+														error={errors.priority_level_id?.message}
+													/>
+												)}
+											/>
+										</div>
+									)}
 
 									<div
 										className={
@@ -317,29 +333,29 @@ export const PurchaseRequestModal = ({
 										<div className="flex min-h-12 min-w-0 w-full flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3">
 											<RadioButton
 												id="suppliesRadiusButton"
-												value="supplies"
+												value={PurchaseRequestDestinationEnum.Internal.textValue}
 												label="Insumos"
 												labelPosition="right"
 												labelClassName={labelClassName}
-												checked={selectedOrigen === "supplies"}
-												onChange={() => { handleOriginChange("supplies") }}
+												checked={selectedOrigen === "Internal"}
+												onChange={() => { handleOriginChange("Internal") }}
 											/>
 
 											<RadioButton
 												id="serviceOrderRadiusButton"
-												value="serviceOrder"
+												value={PurchaseRequestDestinationEnum.ServiceOrder.textValue}
 												label="Orden de Servicio"
 												labelPosition="right"
 												labelClassName={labelClassName}
-												checked={selectedOrigen === "serviceOrder"}
-												onChange={() => { handleOriginChange("serviceOrder") }}
+												checked={selectedOrigen === "ServiceOrder"}
+												onChange={() => { handleOriginChange("ServiceOrder") }}
 											/>
 
 										</div>
 									</div>
 								</div>
 
-								{(selectedOrigen === "serviceOrder") && (
+								{(selectedOrigen === "ServiceOrder") && (
 									<div className="flex flex-wrap items-center gap-3">
 										{selectedServiceOrder ? (
 											<div className="flex flex-row flex-wrap items-center gap-2">
@@ -373,8 +389,8 @@ export const PurchaseRequestModal = ({
 									}}
 									render={({ field }) => (
 										<Textarea
-											label="Observaciones"
-											placeholder="Observaciones de la solicitud..."
+											label="Contexto"
+											placeholder="Ej. Solicitud de material de oficina para reposición en el área de finanzas."
 											isRequired
 											className={inputClassName}
 											labelClassName={labelClassName}

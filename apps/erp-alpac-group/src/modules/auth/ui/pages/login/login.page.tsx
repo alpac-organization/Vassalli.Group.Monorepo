@@ -15,7 +15,7 @@ import { setDocumentFavicon } from "@app/shared/utils/set-document-favicon";
 import defaultColorLogo from "@app/assets/logos/color/vasalli-neutral-logo.png";
 import defaultNeutralLogo from "@app/assets/logos/blanco/vasalli-logo.png";
 
-const DEFAULT_LOGIN_BRANDING = "Grupo Vasalli";
+const DEFAULT_LOGIN_BRANDING = "Grupo Vassalli";
 
 function resolveGrupoVasalliCompanyId(
   companies: GetCompaniesResponse[] | undefined,

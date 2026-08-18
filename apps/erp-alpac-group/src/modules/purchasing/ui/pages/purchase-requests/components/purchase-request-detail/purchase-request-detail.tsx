@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Button, ContextMenu, Dropdown, InputText } from "@alpac/design-system";
+import { Button, ContextMenu, Dropdown, InputText, Textarea } from "@alpac/design-system";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
@@ -16,6 +16,7 @@ import {
 import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import type { PurchaseRequestDetailProps } from "./purchase-request-detail.types";
 import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
+import { PurchaseRequestImageUploader } from "../purchase-request-image-uploader/purchase-request-image-uploader";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -104,6 +105,7 @@ export const PurchaseRequestDetail = (
 				quantity_unit: "",
 				unit_measure_id: "",
 				justification: "",
+				product_images: [],
 			});
 		});
 	};
@@ -122,6 +124,7 @@ export const PurchaseRequestDetail = (
 			quantity_unit: "",
 			unit_measure_id: "",
 			justification: "",
+			product_images: [],
 		});
 	}
 
@@ -148,7 +151,7 @@ export const PurchaseRequestDetail = (
 				<div className="shrink-0 self-stretch sm:self-auto">
 					<ContextMenu
 						triggerClassName={contextMenuButton}
-						triggerLabel="Agregar Producto"						
+						triggerLabel="Agregar Producto"
 						triggerIcon={<PlusIcon size={18} />}
 						disabled={disableActions}
 						items={[
@@ -200,7 +203,7 @@ export const PurchaseRequestDetail = (
 				return (
 					<div
 						key={item.id}
-						className="flex w-full flex-col gap-3 rounded-md border border-slate-200 p-4 dark:border-neutral-600 dark:bg-[#1e2229]"
+						className="flex w-full flex-col gap-5 rounded-md border border-slate-200 p-4 dark:border-neutral-600 dark:bg-[#1e2229]"
 					>
 						<div className="flex min-w-0 items-center justify-between gap-3">
 							<span className="min-w-0 truncate text-[15px] font-semibold text-slate-700 dark:text-slate-200">
@@ -216,18 +219,19 @@ export const PurchaseRequestDetail = (
 							/>
 						</div>
 
-						<div>
-							<InputText
-								label={`Producto #${index + 1}`}
-								placeholder="Producto seleccionado"
-								className={inputClassName}
-								labelClassName={labelClassName}
-								value={item.product_name ?? ""}
-								disabled
-							/>
-						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+							<div>
+								<InputText
+									label={`Producto #${index + 1}`}
+									placeholder="Producto seleccionado"
+									className={inputClassName}
+									labelClassName={labelClassName}
+									value={item.product_name ?? ""}
+									disabled
+								/>
+							</div>
 							<div>
 								<Controller
 									name={`purchase_request_items.${index}.quantity`}
@@ -367,7 +371,7 @@ export const PurchaseRequestDetail = (
 							</div>
 						</div>
 
-						<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div className="grid grid-cols-1 gap-4">
 							<div>
 								<Controller
 									name={`purchase_request_items.${index}.description`}
@@ -376,13 +380,14 @@ export const PurchaseRequestDetail = (
 										required: false,
 									}}
 									render={({ field }) => (
-										<InputText
+										<Textarea
 											label="Descripción"
-											placeholder="Descripción del producto"
+											placeholder="Ej. Resma de papel bond carta, 75 g, paquete de 500 hojas."
 											className={inputClassName}
 											labelClassName={labelClassName}
 											value={field.value ?? ""}
 											onChange={field.onChange}
+											enableCharacterCount
 										/>
 									)}
 								/>
@@ -396,24 +401,35 @@ export const PurchaseRequestDetail = (
 										required: "La justificación de compra es requerida",
 									}}
 									render={({ field }) => (
-										<InputText
+										<Textarea
 											label="Justificación"
 											isRequired
-											placeholder="Justificación del producto"
+											placeholder="Ej. Se requiere para reponer el inventario de papelería del área, el stock actual no cubre la demanda."
 											className={inputClassName}
 											labelClassName={labelClassName}
 											value={field.value ?? ""}
 											onChange={field.onChange}
+											enableCharacterCount
 											error={
 												errors.purchase_request_items?.[index]?.justification
 													?.message
 											}
-											errorVariant="text"
 										/>
 									)}
 								/>
 							</div>
 						</div>
+
+						<Controller
+							name={`purchase_request_items.${index}.product_images`}
+							control={control}
+							render={({ field }) => (
+								<PurchaseRequestImageUploader
+									value={field.value ?? []}
+									onChange={field.onChange}
+								/>
+							)}
+						/>
 					</div>
 				);
 			})}

@@ -27,6 +27,7 @@ import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiCon
 import { SelectSupplierModal } from "../select-supplier-modal/select-supplier-modal";
 import type {
 	DraftQuotationItem,
+	IvaRateOption,
 	QuotationItemFieldsProps,
 	QuotationItemForm,
 	QuoteProductFormValues,
@@ -34,10 +35,53 @@ import type {
 	QuoteProductModalProps,
 } from "./quote-product-modal.types";
 import { MIN_SUPPLIERS_PER_PRODUCT } from "./quote-product-modal.types";
+import { formatNumberWithDecimals } from "@app/shared/utils/string.utils";
+import { validateDecimalNumber, validatePositiveNumber } from "@app/shared/utils/number.utils";
 
-const IVA_RATE = 0.15;
+const PRESET_IVA_RATES = ["10", "15"] as const;
+
+const IVA_RATE_OPTIONS = [
+	{ value: "10", label: "10%" },
+	{ value: "15", label: "15%" },
+	{ value: "other", label: "Otro" },
+];
 
 const roundMoney = (value: number) => Math.round(value * 100) / 100;
+
+const resolveIvaRate = (
+	rate?: IvaRateOption,
+	customRate?: string | number,
+) => {
+	if (rate === "other") return (Number(customRate) || 0) / 100;
+	if (!rate) return 0;
+	return Number(rate) / 100;
+};
+
+const inferIvaFields = (
+	price?: number,
+	iva?: number,
+): Pick<QuotationItemForm, "has_iva" | "iva_rate" | "custom_iva_rate"> => {
+	if (iva == null || iva <= 0 || !price || price <= 0) {
+		return { has_iva: false, iva_rate: undefined, custom_iva_rate: undefined };
+	}
+
+	const percent = roundMoney((iva / price) * 100);
+	const percentKey = String(percent);
+
+	if (PRESET_IVA_RATES.includes(percentKey as (typeof PRESET_IVA_RATES)[number])) {
+		return {
+			has_iva: true,
+			iva_rate: percentKey as IvaRateOption,
+			custom_iva_rate: undefined,
+		};
+	}
+
+	return {
+		has_iva: true,
+		iva_rate: "other",
+		custom_iva_rate: percent,
+	};
+};
 
 const emptyQuotationItem = (
 	purchaseRequestItemId: string,
@@ -49,6 +93,8 @@ const emptyQuotationItem = (
 	has_delivery: false,
 	has_guarantee: false,
 	has_iva: false,
+	iva_rate: undefined,
+	custom_iva_rate: undefined,
 	price: 0,
 	iva: undefined,
 	price_unit: undefined,
@@ -104,6 +150,14 @@ function QuotationItemFields({
 		control,
 		name: `products.${productIndex}.items.${itemIndex}.has_iva`,
 	});
+	const ivaRate = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.iva_rate`,
+	});
+	const customIvaRate = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.custom_iva_rate`,
+	});
 	const priceUnit = useWatch({
 		control,
 		name: `products.${productIndex}.items.${itemIndex}.price_unit`,
@@ -115,13 +169,14 @@ function QuotationItemFields({
 	useEffect(() => {
 		const unit = Number(priceUnit) || 0;
 		const calculatedPrice = roundMoney(quantity * unit);
+		const rate = hasIva ? resolveIvaRate(ivaRate, customIvaRate) : 0;
 
 		setValue(`${fieldPath}.price`, calculatedPrice, { shouldValidate: true });
 		setValue(
 			`${fieldPath}.iva`,
-			hasIva ? roundMoney(calculatedPrice * IVA_RATE) : undefined,
+			hasIva ? roundMoney(calculatedPrice * rate) : undefined,
 		);
-	}, [fieldPath, hasIva, priceUnit, quantity, setValue]);
+	}, [customIvaRate, fieldPath, hasIva, ivaRate, priceUnit, quantity, setValue]);
 
 	return (
 		<div className="flex flex-col gap-3 rounded-md border border-slate-200 p-4 dark:border-neutral-600 dark:bg-[#1e2229]">
@@ -206,37 +261,123 @@ function QuotationItemFields({
 					error={itemErrors?.price?.message}
 				/>
 
-				<div className="flex items-end">
+				<div className="flex flex-col gap-2 mt-1">
 					<Controller
 						control={control}
 						name={`${fieldPath}.has_iva`}
 						render={({ field }) => (
 							<Checkbox
-								label={`Incluye IVA (${IVA_RATE * 100}%)`}
+								label="Incluye IVA"
 								checked={Boolean(field.value)}
-								onChange={(event) => field.onChange(event.target.checked)}
+								onChange={(event) => {
+									const checked = event.target.checked;
+									field.onChange(checked);
+
+									if (!checked) {
+										setValue(`${fieldPath}.iva_rate`, undefined);
+										setValue(`${fieldPath}.custom_iva_rate`, undefined);
+										setValue(`${fieldPath}.iva`, undefined);
+										return;
+									}
+
+									if (!ivaRate) {
+										setValue(`${fieldPath}.iva_rate`, "15");
+									}
+								}}
 							/>
 						)}
 					/>
+
+					<InputText
+						type="number"
+						min="0"
+						step="0.01"
+						disabled
+						placeholder="0.00"
+						className={quoteFormInputClassName}
+						labelClassName={quoteFormLabelClassName}
+						{...register(`${fieldPath}.iva`, {
+							setValueAs: toNumberOrUndefined,
+						})}
+					/>
 				</div>
 
-				<InputText
-					label="IVA"
-					type="number"
-					min="0"
-					step="0.01"
-					disabled
-					placeholder="0.00"
-					className={quoteFormInputClassName}
-					labelClassName={quoteFormLabelClassName}
-					{...register(`${fieldPath}.iva`, {
-						setValueAs: toNumberOrUndefined,
-					})}
-				/>
+				{hasIva ? (
+					<Controller
+						control={control}
+						name={`${fieldPath}.iva_rate`}
+						rules={{
+							validate: (value) =>
+								!hasIva || Boolean(value) || "Seleccione la tasa de IVA.",
+						}}
+						render={({ field }) => (
+							<Dropdown
+								label="Tasa de IVA"
+								placeholder="Seleccione"
+								appearance="dark"
+								isRequired
+								options={IVA_RATE_OPTIONS}
+								value={field.value ?? ""}
+								onChange={(value) => {
+									const nextRate = (value || undefined) as IvaRateOption | undefined;
+									field.onChange(nextRate);
+
+									if (nextRate !== "other") {
+										setValue(`${fieldPath}.custom_iva_rate`, undefined);
+									}
+								}}
+								labelClassName={quoteFormLabelClassName}
+								valueClassName={quoteFormLabelClassName}
+								className={quoteFormInputClassName}
+								error={itemErrors?.iva_rate?.message}
+							/>
+						)}
+					/>
+				) : null}
+
+				{hasIva && ivaRate === "other" ? (
+					<InputText
+						label="Otro %"
+						type="text"
+						inputMode="decimal"
+						isRequired
+						placeholder="Ej. 12"
+						className={quoteFormInputClassName}
+						labelClassName={quoteFormLabelClassName}
+						{...register(`${fieldPath}.custom_iva_rate`, {
+							required: hasIva && ivaRate === "other"
+								? "El porcentaje de IVA es requerido."
+								: false,
+							validate: (value) => {
+								if (!hasIva || ivaRate !== "other") return true;
+
+								const decimalValidation = validateDecimalNumber(value);
+								if (decimalValidation !== true) return decimalValidation;
+
+								const positiveValidation = validatePositiveNumber(value);
+								if (positiveValidation !== true) return positiveValidation;
+
+								const percent = Number(value);
+								return (
+									(percent >= 1 && percent <= 30) ||
+									"El porcentaje debe estar entre 1 y 30."
+								);
+							},
+							onChange: (event) => {
+								event.target.value = formatNumberWithDecimals(
+									event.target.value,
+									true,
+									30
+								);
+							},
+						})}
+						error={itemErrors?.custom_iva_rate?.message}
+					/>
+				) : null}
 
 			</div>
 
-			<div className="flex flex-wrap gap-4">
+			<div className="flex flex-wrap gap-4 -mx-4 border-t border-slate-200 p-4 dark:border-neutral-600">
 				<Controller
 					control={control}
 					name={`${fieldPath}.has_delivery`}
@@ -588,7 +729,7 @@ export function QuoteProductModal({
 					quantity: product.quantity,
 					items: productItems.map((item) => ({
 						...item,
-						has_iva: item.iva != null && item.iva > 0,
+						...inferIvaFields(item.price, item.iva),
 					})),
 				};
 			}),
@@ -609,7 +750,7 @@ export function QuoteProductModal({
 		if (invalidProduct) return;
 
 		const items: DraftQuotationItem[] = values.products.flatMap((product) =>
-			product.items.map(({ has_iva: _hasIva, ...item }) => ({
+			product.items.map(({ has_iva: _hasIva, iva_rate: _ivaRate, custom_iva_rate: _customIvaRate, ...item }) => ({
 				...item,
 				product_id: product.product_id,
 				purchase_request_item_id: product.purchase_request_item_id,
