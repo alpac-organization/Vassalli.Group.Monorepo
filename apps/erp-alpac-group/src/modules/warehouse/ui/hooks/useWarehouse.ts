@@ -4,15 +4,17 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import type { CreateWarehouseRequest } from "../../domain/ApiContract/Requests/warehouse-requests/create-warehouse-request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { GetWarehouseRequest } from "../../domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
+import type { GetCustomBranchesRequest } from "../../domain/ApiContract/Requests/warehouse-requests/get-custom-branches";
 
 const warehouseServices = new WarehouseServices(warehouseHttpHandler);
 
 interface useWarehouseProps {
   getWarehousesPayload?: GetWarehouseRequest;
+  getCustomBranchesPayload?: GetCustomBranchesRequest;
 }
 
 export const useWarehouse = (props?: useWarehouseProps) => {
-  const { getWarehousesPayload } = props || {};
+  const { getWarehousesPayload, getCustomBranchesPayload } = props || {};
 
   const getWarehouseEnabled = Boolean(
     getWarehousesPayload?.company_id?.trim() &&
@@ -37,5 +39,11 @@ export const useWarehouse = (props?: useWarehouseProps) => {
     retry: 1,
   });
 
-  return { GetWarehouses, CreateWarehouse };
+ const GetCustomBranches = useQuery({
+    queryKey: ["get-custom-branches", getCustomBranchesPayload],
+    queryFn: () => warehouseServices.getCustomBranches(getCustomBranchesPayload!),
+    enabled: Boolean(getCustomBranchesPayload?.company_id && getCustomBranchesPayload?.module_code),
+    refetchOnWindowFocus: false,
+  });
+  return { GetWarehouses, CreateWarehouse, GetCustomBranches };
 };

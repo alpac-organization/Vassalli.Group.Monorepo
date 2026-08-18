@@ -1,9 +1,7 @@
 import type { DocumentType } from "@app/core/enums/document.enum";
-import type { VehicleItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-vehicles";
-
 export type GateEntryFormValues = {
   countryOfOrigin: string;
-  aduana: string;
+  customBranchId: string;
   plateNumber: string;
   trailerChassis: string;
   driverName: string;
@@ -11,6 +9,7 @@ export type GateEntryFormValues = {
   transportista: string;
   consignee: string;
   sealNumber: string;
+  sealEvidence: { file: File | null; imageBase64: string; contentType: string }[];
   transportUnitId: string;
   customsDeclarationNumber: string;
   packages: string;
@@ -25,12 +24,11 @@ export type GateEntryModalProps = {
   onClose: () => void;
   onSubmit: (data: GateEntryFormValues, documentType: DocumentType) => void;
   isSubmitting?: boolean;
-  vehicleOptions?: VehicleItem[];
 };
 
 export const GATE_ENTRY_DEFAULT_VALUES: GateEntryFormValues = {
   countryOfOrigin: "",
-  aduana: "",
+  customBranchId: "",
   plateNumber: "",
   trailerChassis: "",
   driverName: "",
@@ -38,6 +36,7 @@ export const GATE_ENTRY_DEFAULT_VALUES: GateEntryFormValues = {
   transportista: "",
   consignee: "",
   sealNumber: "",
+  sealEvidence: [],
   transportUnitId: "",
   customsDeclarationNumber: "",
   packages: "",

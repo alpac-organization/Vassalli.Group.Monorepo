@@ -89,24 +89,6 @@ export function CustomsDeclaration({
         })}
         error={errors.product?.message}
       />
-
-      <InputText
-        label="Número de contenedor"
-        labelClassName={gateEntryLabelClassName}
-        className={gateEntryInputClassName}
-        isRequired
-        placeholder="Número de contenedor"
-        {...register("containerNumber", {
-          required: "El número de contenedor es obligatorio.",
-          setValueAs: (value: string) => value?.trim(),
-          validate: {
-            notEmpty: (value: string) =>
-              Boolean(value?.trim()) ||
-              "El número de contenedor es obligatorio.",
-          },
-        })}
-        error={errors.containerNumber?.message}
-      />
     </div>
   );
 }

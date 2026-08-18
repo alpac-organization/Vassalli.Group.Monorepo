@@ -26,8 +26,9 @@ const VEHICLE_STATUS_CLASS: Record<string, string> = {
     "bg-slate-100 text-slate-800 border border-slate-200 dark:bg-[#3A0F19] dark:text-[#F9A8D4] dark:border-[#9F1239]",
 };
 
-function normalizeStatusKey(status: string): string {
-  return status.replace(/[_\s-]/g, "").toLowerCase();
+function normalizeStatusKey(status: string | null | undefined): string {
+  if (!status) return "";
+  return String(status).replace(/[_\s-]/g, "").toLowerCase();
 }
 
 function resolveEnumLabel(

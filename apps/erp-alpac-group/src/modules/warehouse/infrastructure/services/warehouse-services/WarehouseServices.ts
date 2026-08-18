@@ -2,8 +2,10 @@ import type { IHttpHandler } from "@app/core/ports";
 import type { IWarehouseServices } from "@app/modules/warehouse/application/interfaces/warehouse-interfaces/IWarehouseServices";
 import type { AssignWarehouseZoneRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/assign-warehouse-zone-request";
 import type { CreateWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-warehouse-request";
+import type { GetCustomBranchesRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-custom-branches";
 import type { GetWarehouseZoneRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouse-zones-request";
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
+import type { GetCustomBranchesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/custom-branches-response";
 import { cleanParams } from "@app/shared/utils/object.utils";
 
 export class WarehouseServices implements IWarehouseServices {
@@ -70,4 +72,10 @@ export class WarehouseServices implements IWarehouseServices {
       }
    }
 
+   async getCustomBranches(payload: GetCustomBranchesRequest): Promise<GetCustomBranchesResponse> {
+      const { company_id, module_code } = payload;
+      const url = `companies/${company_id}/modules/${module_code}/customs-branches`;
+      const response = await this.apiHandler.get<GetCustomBranchesResponse>(url);
+      return response;
+   }
 }
