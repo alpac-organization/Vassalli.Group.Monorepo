@@ -3,6 +3,7 @@ export interface ImageOutput {
   file: File;
   base64: string;
   preview: string;
+  contentType: string;
 }
 
 export interface ImageUploaderProps {
@@ -17,5 +18,4 @@ export interface ImageUploaderProps {
   error?: string | null;
   isRequired?: boolean;
   capture?: "user" | "environment";   /** Native capture attribute for mobile cameras user=> frontal, environment=> back */
-  extensions?: string[];
 }

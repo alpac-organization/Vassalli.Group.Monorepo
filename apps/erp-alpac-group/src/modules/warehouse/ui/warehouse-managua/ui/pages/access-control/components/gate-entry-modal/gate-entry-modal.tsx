@@ -43,7 +43,6 @@ export function GateEntryModal({
   onClose,
   onSubmit,
   isSubmitting = false,
-  vehicleOptions = [],
 }: GateEntryModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [stepDirection, setStepDirection] = useState(1);
@@ -303,7 +302,6 @@ export function GateEntryModal({
                     errors={errors}
                     documentType={documentType}
                     onChangeDocumentType={handleDocumentTypeChange}
-                    vehicleOptions={vehicleOptions}
                   />
                 </m.div>
               ) : (

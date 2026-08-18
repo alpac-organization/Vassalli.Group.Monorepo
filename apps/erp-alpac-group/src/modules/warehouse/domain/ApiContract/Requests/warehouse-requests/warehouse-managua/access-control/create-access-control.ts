@@ -29,8 +29,8 @@ export interface DucaPayload extends BaseCreateReceptionEntrance {
 }
 
 export interface SealEvidenceFile {
-  imageBase64: string;
-  contentType: string;
+  image_base64: string;
+  content_type: string;
 }
 
 export type CreateAccessControlRequest = DeclarationAduanaPayload | DucaPayload;

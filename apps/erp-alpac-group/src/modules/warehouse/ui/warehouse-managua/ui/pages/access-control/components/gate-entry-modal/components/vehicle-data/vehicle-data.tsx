@@ -84,7 +84,7 @@ export function VehicleDataStep({
     const mappedImages = images.map((img) => ({
       file: img.file,
       imageBase64: img.base64,
-      contentType: img.file.type,
+      contentType: img.contentType,
     }));
     setValue("sealEvidence", mappedImages, { shouldValidate: true, shouldDirty: true });
   };

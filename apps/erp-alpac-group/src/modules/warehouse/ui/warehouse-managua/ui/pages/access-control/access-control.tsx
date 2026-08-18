@@ -97,13 +97,6 @@ export function AccessControlPage() {
     };
   }, [companyId, moduleCode, appliedFilters, pageNumber]);
 
-  const vehiclesPayload = useMemo(
-    () => ({
-      company_id: companyId,
-      module_code: moduleCode,
-    }),
-    [companyId, moduleCode],
-  );
 
   const detailReceptionId = selectedReceptionId ?? exitReception?.id ?? null;
 
@@ -125,11 +118,9 @@ export function AccessControlPage() {
     CreateAccessControl,
     UpdateAccessControl,
     AddDucatsToReception,
-    GetVehicles,
     GenerateExitAccessControl,
   } = useAccessControl({
     payloadAccessControl,
-    vehiclesPayload,
     detailPayload,
   });
 
@@ -142,9 +133,6 @@ export function AccessControlPage() {
 
   const movements = accessControl?.data ?? [];
   const totalRecords = accessControl?.total_count ?? 0;
-  const vehicleOptions = Array.isArray(GetVehicles.data)
-    ? GetVehicles.data
-    : [];
 
   const metrics = useMemo(
     () => getAccessControlMetrics(accessControl?.stats, totalRecords),
@@ -502,7 +490,6 @@ export function AccessControlPage() {
         onClose={handleCloseGateEntry}
         onSubmit={handleGateEntrySubmit}
         isSubmitting={CreateAccessControl.isPending}
-        vehicleOptions={vehicleOptions}
       />
 
       <AnimatedAlertWrapper open={alertState?.open ?? false}>
