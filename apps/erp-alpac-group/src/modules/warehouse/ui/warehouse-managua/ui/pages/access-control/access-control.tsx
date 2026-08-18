@@ -237,10 +237,10 @@ export function AccessControlPage() {
           payload.packages = value.trim() ? Number(value) : undefined;
           break;
         case "plate_number":
-          payload.plate_number = value.trim();
+          payload.vehicle_plate_number = value.trim();
           break;
         case "trailer_chassis":
-          payload.trailer_chassis = value.trim();
+          payload.vehicle_chassis_number = value.trim();
           break;
         case "driver_name":
           payload.driver_name = value.trim();
@@ -258,7 +258,7 @@ export function AccessControlPage() {
           payload.country_of_origin = value.trim();
           break;
         case "aduana":
-          payload.aduana = value.trim();
+          payload.custom_branch_id = value.trim();
           break;
         case "customs_decaration_number":
           payload.customs_declaration_number = value.trim();
@@ -273,7 +273,7 @@ export function AccessControlPage() {
           payload.container_number = value.trim();
           break;
         case "transport_unit_id":
-          payload.transport_unit_id = value.trim();
+          payload.transport_unit = value.trim() ? Number(value) : undefined;
           break;
         default:
           return;

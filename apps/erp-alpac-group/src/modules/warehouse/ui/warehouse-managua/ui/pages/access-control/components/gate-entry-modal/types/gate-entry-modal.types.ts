@@ -3,7 +3,7 @@ import type { VehicleItem } from "@app/modules/warehouse/domain/ApiContract/Resp
 
 export type GateEntryFormValues = {
   countryOfOrigin: string;
-  aduana: string;
+  customBranchId: string;
   plateNumber: string;
   trailerChassis: string;
   driverName: string;
@@ -11,6 +11,7 @@ export type GateEntryFormValues = {
   transportista: string;
   consignee: string;
   sealNumber: string;
+  sealEvidence: { file: File | null; imageBase64: string; contentType: string }[];
   transportUnitId: string;
   customsDeclarationNumber: string;
   packages: string;
@@ -30,7 +31,7 @@ export type GateEntryModalProps = {
 
 export const GATE_ENTRY_DEFAULT_VALUES: GateEntryFormValues = {
   countryOfOrigin: "",
-  aduana: "",
+  customBranchId: "",
   plateNumber: "",
   trailerChassis: "",
   driverName: "",
@@ -38,6 +39,7 @@ export const GATE_ENTRY_DEFAULT_VALUES: GateEntryFormValues = {
   transportista: "",
   consignee: "",
   sealNumber: "",
+  sealEvidence: [],
   transportUnitId: "",
   customsDeclarationNumber: "",
   packages: "",

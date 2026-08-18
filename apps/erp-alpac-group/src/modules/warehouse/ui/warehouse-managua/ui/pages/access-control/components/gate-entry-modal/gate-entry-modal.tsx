@@ -28,9 +28,10 @@ import { CustomsDeclaration } from "@app/modules/warehouse/ui/warehouse-managua/
 const GENERAL_STEP_FIELDS: (keyof GateEntryFormValues)[] = [
   "transportUnitId",
   "countryOfOrigin",
-  "aduana",
+  "customBranchId",
   "plateNumber",
   "trailerChassis",
+  "containerNumber",
   "driverName",
   "driverLicense",
   "transportista",
@@ -119,19 +120,16 @@ export function GateEntryModal({
         "packages",
         "customer",
         "product",
-        "containerNumber",
       ]);
       setValue("customsDeclarationNumber", "");
       setValue("packages", "");
       setValue("customer", "");
       setValue("product", "");
-      setValue("containerNumber", "");
       clearErrors([
         "customsDeclarationNumber",
         "packages",
         "customer",
         "product",
-        "containerNumber",
       ]);
       if (fields.length === 0) {
         replace([{ value: "" }]);
@@ -215,7 +213,7 @@ export function GateEntryModal({
         isOpen={isOpen}
         onClose={handleClose}
         title="Registro de Entrada de Vehículo"
-        variant="form"
+        variant="default"
         size={modalSize}
         panelClassName={[
           "flex! flex-col!",
@@ -244,7 +242,7 @@ export function GateEntryModal({
           className="flex flex-col flex-1 min-h-0 h-full overflow-hidden"
         >
           <div
-            className={`shrink-0 px-1 ${currentStep === 1 ? "mb-5 sm:mb-6" : "mb-12"}`}
+            className={`shrink-0 px-1 ${currentStep === 1 ? "mb-5 sm:mb-6" : "mb-2"}`}
           >
             <Stepper
               steps={stepperLabels}
