@@ -15,7 +15,7 @@ import {
 import { FilePlus2, PackagePlus, Save } from "lucide-react";
 import dayjs from "dayjs";
 import { useMerchandise } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useMerchandise";
-import type { CreateServiceOrderResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/service-order-responses/create-service-order.response";
+import type { CreateServiceOrderResponse } from "@app/modules/service-order/domain/ApiContract/Responses/service-order-responses/create-service-order.response";
 import type {
   RegisterDucatDetailFormProps,
   RegisterDucatDetailFormValues,

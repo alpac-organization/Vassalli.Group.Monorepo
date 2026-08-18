@@ -6,7 +6,7 @@ import {
 } from "@alpac/design-system";
 import { Link2 } from "lucide-react";
 import { useMerchandise } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useMerchandise";
-import type { CreateServiceOrderResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/service-order-responses/create-service-order.response";
+import type { CreateServiceOrderResponse } from "@app/modules/service-order/domain/ApiContract/Responses/service-order-responses/create-service-order.response";
 import type { AssignServiceOrderFormProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/assign-service-order-form/types/assign-service-order-form.types";
 import { CreateServiceOrderModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/create-service-order-modal/create-service-order-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";

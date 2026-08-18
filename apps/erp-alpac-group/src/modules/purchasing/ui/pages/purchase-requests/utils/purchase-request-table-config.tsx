@@ -17,9 +17,28 @@ export function getPurchaseRequestColumnConfig(
 
    const isRequisition = purchaseRequestType.textValue === PurchaseRequestEnum.Requisition.textValue;
 
-   let priorityLevelColumn = null;
+   const priorityColumn: TableColumn<GetPurchaseRequestResponse> = {
+      key: "priority_level",
+      label: "Prioridad",
+      render(row: GetPurchaseRequestResponse) {
 
-   const configuration = [
+         const variant =
+            purchaseRequestPriorityBadgeVariants[
+            row.priority_level as keyof typeof purchaseRequestPriorityBadgeVariants
+            ] ?? purchaseRequestPriorityBadgeVariants.default;
+
+         const priorityLabel =
+            Object.values(PriorityLevelEnum).find(
+               (priority) => priority.textValue === row.priority_level,
+            )?.label ?? row.priority_level;
+
+         return <Badges
+            label={priorityLabel} color={variant.badgeColor}
+         />
+      }
+   };
+
+   return [
       { key: "code", label: "Código" },
       {
          key: "request_status",
@@ -67,6 +86,8 @@ export function getPurchaseRequestColumnConfig(
          },
       },
 
+      ...(isRequisition ? [priorityColumn] : []),
+
       {
          key: "request_date",
          label: "Fecha de Solicitud",
@@ -95,36 +116,5 @@ export function getPurchaseRequestColumnConfig(
             />
          )
       }
-   ];
-
-
-   if (isRequisition) {
-      priorityLevelColumn = (row: GetPurchaseRequestResponse) =>
-      ({
-         key: "priority_level",
-         label: "Prioridad",
-         render() {
-
-            const priorityLabel =
-               Object.values(PriorityLevelEnum).find(
-                  (priority) => priority.textValue === row?.request_status,
-               )?.label ?? row?.priority_level;
-
-            return <Badges
-               label={priorityLabel}
-               color={
-                  purchaseRequestPriorityBadgeVariants[
-                     row.request_status as keyof typeof purchaseRequestPriorityBadgeVariants
-                  ]?.badgeColor ??
-                  purchaseRequestPriorityBadgeVariants.default.badgeColor
-               }
-            />
-         }
-      });
-
-
-      // configuration.push(priorityLevelColumn())
-   }
-
-   return configuration;
+   ] satisfies TableColumn<GetPurchaseRequestResponse>[];
 }

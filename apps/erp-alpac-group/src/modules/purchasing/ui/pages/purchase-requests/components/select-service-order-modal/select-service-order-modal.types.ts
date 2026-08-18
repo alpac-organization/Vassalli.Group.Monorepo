@@ -1,14 +1,8 @@
-export type SelectableServiceOrder = {
-	service_order_id: string;
-	service_order_code: string;
-	customer_name: string;
-	description: string;
-	status: string;
-};
+import type { GetServiceOrdersResponse } from "@app/modules/service-order/domain/ApiContract/Responses/service-order-responses/get-service-orders.response";
 
 export type SelectServiceOrderModalProps = {
 	isOpen: boolean;
 	selectionType?: "single" | "multiple";
 	onClose: () => void;
-	onSelect: (serviceOrders: SelectableServiceOrder[]) => void;
+	onSelect: (serviceOrders: GetServiceOrdersResponse[]) => void;
 };

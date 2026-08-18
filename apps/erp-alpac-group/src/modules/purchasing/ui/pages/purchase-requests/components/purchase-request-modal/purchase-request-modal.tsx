@@ -18,10 +18,11 @@ import { RoleEnum } from "@app/core/enums/role.enum";
 import { Loader } from "@app/shared/components/loaders/loader";
 import type { CostCenters } from "@app/modules/admin/domain/ApiContract/responses/areas/get-areas.response";
 import { SelectServiceOrderModal } from "../select-service-order-modal/select-service-order-modal";
-import type { SelectableServiceOrder } from "../select-service-order-modal/select-service-order-modal.types";
+import type { GetServiceOrdersResponse } from "@app/modules/service-order/domain/ApiContract/Responses/service-order-responses/get-service-orders.response";
 import { PriorityLevelOptions } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { PurchaseRequestDestinationEnum, type PurchaseRequestDestinationType } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
+import { PlusIcon } from "lucide-react";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -53,7 +54,7 @@ export const PurchaseRequestModal = ({
 	const [costCenters, setCostCenters] = useState<CostCenters[]>([]);
 	const [selectedOrigen, setSelectedOrigin] = useState<PurchaseRequestDestinationType>("Internal");
 	const [isSelectServiceOrderModalOpen, setIsSelectServiceOrderModalOpen] = useState(false);
-	const [selectedServiceOrder, setSelectedServiceOrder] = useState<SelectableServiceOrder | null>(null);
+	const [selectedServiceOrder, setSelectedServiceOrder] = useState<GetServiceOrdersResponse | null>(null);
 
 	const methods = useForm<CreatePurchaseRequestFormValues>({
 		defaultValues: emptyFormValues(),
@@ -62,6 +63,7 @@ export const PurchaseRequestModal = ({
 
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
 	const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
+	const isEventual = requestType.textValue === PurchaseRequestEnum.Eventual.textValue;
 
 	const {
 		control,
@@ -83,9 +85,8 @@ export const PurchaseRequestModal = ({
 		(isAdministrator && !costCenterId?.trim()) ||
 		(isRequisition && !hasPrioritySelected) ||
 		!observations?.trim() ||
-		(selectedOrigen === "ServiceOrder" && !selectedServiceOrder?.service_order_code)
+		(selectedOrigen === "ServiceOrder" && !selectedServiceOrder)
 	);
-
 
 	const { GetAreasByCompany } = useAreas({ company_id: companyId });
 	const { CreatePurchaseRequest } = usePurchase();
@@ -218,7 +219,7 @@ export const PurchaseRequestModal = ({
 
 							<div className="flex flex-col gap-4 pb-2">
 
-								<div className="grid grid-cols-1 items-end gap-4 md:grid-cols-2">
+								<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 
 									{isAdministrator && (
 										<div className="min-w-0">
@@ -321,61 +322,98 @@ export const PurchaseRequestModal = ({
 
 									<div
 										className={
-											isAdministrator
-												? "flex min-w-0 w-full flex-col gap-1"
-												: "flex min-w-0 w-full flex-col gap-1 md:col-span-2"
+											isEventual || !isAdministrator
+												? "flex min-w-0 w-full flex-col gap-3 md:col-span-2"
+												: "flex min-w-0 w-full flex-col gap-3"
 										}
 									>
 										<span className="text-[15px] text-black dark:text-white">
 											Asociar a:
 										</span>
 
-										<div className="flex min-h-12 min-w-0 w-full flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3">
-											<RadioButton
-												id="suppliesRadiusButton"
-												value={PurchaseRequestDestinationEnum.Internal.textValue}
-												label="Insumos"
-												labelPosition="right"
-												labelClassName={labelClassName}
-												checked={selectedOrigen === "Internal"}
-												onChange={() => { handleOriginChange("Internal") }}
-											/>
+										<div
+											className={
+												isEventual
+													? "flex min-w-0 w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+													: "flex min-h-12 min-w-0 w-full flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3"
+											}
+										>
+											<div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3">
+												<RadioButton
+													id="suppliesRadiusButton"
+													value={PurchaseRequestDestinationEnum.Internal.textValue}
+													label="Insumos"
+													labelPosition="right"
+													labelClassName={labelClassName}
+													checked={selectedOrigen === "Internal"}
+													onChange={() => { handleOriginChange("Internal") }}
+												/>
 
-											<RadioButton
-												id="serviceOrderRadiusButton"
-												value={PurchaseRequestDestinationEnum.ServiceOrder.textValue}
-												label="Orden de Servicio"
-												labelPosition="right"
-												labelClassName={labelClassName}
-												checked={selectedOrigen === "ServiceOrder"}
-												onChange={() => { handleOriginChange("ServiceOrder") }}
-											/>
+												<RadioButton
+													id="serviceOrderRadiusButton"
+													value={PurchaseRequestDestinationEnum.ServiceOrder.textValue}
+													label="Orden de Servicio"
+													labelPosition="right"
+													labelClassName={labelClassName}
+													checked={selectedOrigen === "ServiceOrder"}
+													onChange={() => { handleOriginChange("ServiceOrder") }}
+												/>
+											</div>
 
+											{isEventual && selectedOrigen === "ServiceOrder" && (
+												<div className="flex min-w-0 w-full flex-col gap-2 sm:w-auto sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+													<span className="text-[14px] font-medium text-black dark:text-white">
+														Orden de Servicio Vinculada:
+													</span>
+													{selectedServiceOrder ? (
+														<Chips
+															key={selectedServiceOrder.service_order_id}
+															label={selectedServiceOrder.code}
+															onClose={() => setSelectedServiceOrder(null)}
+														/>
+													) : (
+														<Button
+															type="button"
+															size="medium"
+															icon={<PlusIcon size={16} />}
+															label="Asignar orden de servicio"
+															className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+															onClick={() => setIsSelectServiceOrderModalOpen(true)}
+														/>
+													)}
+												</div>
+											)}
 										</div>
 									</div>
 								</div>
 
-								{(selectedOrigen === "ServiceOrder") && (
+								{selectedOrigen === "ServiceOrder" && !isEventual && (
 									<div className="flex flex-wrap items-center gap-3">
-										{selectedServiceOrder ? (
-											<div className="flex flex-row flex-wrap items-center gap-2">
-												<span className="text-[14px] font-medium text-black dark:text-white">
-													Orden de Servicio Vinculada:
-												</span>
+
+										<div className="flex flex-row flex-wrap items-center gap-2">
+											<span className="text-[14px] font-medium text-black dark:text-white">
+												Orden de Servicio Vinculada:
+											</span>
+											{selectedServiceOrder && (
 												<Chips
-													label={selectedServiceOrder.service_order_code}
+													key={selectedServiceOrder?.service_order_id}
+													label={selectedServiceOrder?.code}
 													onClose={() => setSelectedServiceOrder(null)}
 												/>
-											</div>
-										) : (
+											)}
+										</div>
+
+										{!selectedServiceOrder && (
 											<Button
 												type="button"
-												size="giant"
-												label="Buscar Orden de Servicio"
+												size="medium"
+												icon={<PlusIcon size={16} />}
+												label="Asignar orden de servicio"
 												className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
 												onClick={() => setIsSelectServiceOrderModalOpen(true)}
 											/>
 										)}
+
 									</div>
 								)}
 
@@ -420,7 +458,12 @@ export const PurchaseRequestModal = ({
 							isOpen={isSelectServiceOrderModalOpen}
 							onClose={() => setIsSelectServiceOrderModalOpen(false)}
 							onSelect={(serviceOrders) => {
-								setSelectedServiceOrder(serviceOrders[0] ?? null);
+
+								const existingCodes = selectedServiceOrder?.code ? new Set([selectedServiceOrder?.code]) : new Set();
+
+								const newOrder = serviceOrders.find(item => !existingCodes.has(item.code));
+
+								setSelectedServiceOrder(newOrder ?? null);
 							}}
 						/>
 
