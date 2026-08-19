@@ -3,11 +3,9 @@ import type { IAccessControl } from "@app/modules/warehouse/application/interfac
 import type { CreateAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/create-access-control";
 import type { GetAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-access-control";
 import type { GetReceptionEntranceDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-access-control-detail";
-import type { GetVehiclesRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-vehicles";
 import type { UpdateReceptionEntranceRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/update-access-control";
 import type { ReceptionEntranceDetail } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control-detail";
 import type { GetReceptionEntrancesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
-import type { GetVehiclesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-vehicles";
 import type { AddDucatsToReceptionRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/add-ducats-to-reception";
 import { cleanParams } from "@app/shared/utils/object.utils";
 import type { GenerateExitAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/generate-exit";
@@ -60,15 +58,6 @@ export class AccessControlServices implements IAccessControl {
     const { company_id, module_code, reception_id, ducat_numbers } = payload;
     const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}/ducats`;
     return this.httpHandler.post<void>(url, { ducat_numbers });
-  }
-
-  public async getVehicles(
-    payload: GetVehiclesRequest,
-  ): Promise<GetVehiclesResponse> {
-    const { company_id, module_code } = payload;
-    const url = `/companies/${company_id}/modules/${module_code}/transport-units`;
-    const response = await this.httpHandler.get<GetVehiclesResponse>(url);
-    return response;
   }
 
   public async generateExitAccessControl(
