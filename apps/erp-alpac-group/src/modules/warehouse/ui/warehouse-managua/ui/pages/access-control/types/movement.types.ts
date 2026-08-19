@@ -14,4 +14,6 @@ export type AccessControlMetrics = {
   totalIngresos: number;
   totalesEnPlanta: number;
   totalDespachados: number;
+  totalContainerEnSitio: number;
+  totalContainerFuera: number;
 };

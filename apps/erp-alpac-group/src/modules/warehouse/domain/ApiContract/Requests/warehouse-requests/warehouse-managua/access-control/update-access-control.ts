@@ -17,6 +17,7 @@ export interface UpdateReceptionEntranceRequest {
   transport_unit?: number;
   driver_name?: string;
   seal_number?: string;
+  seal_evidence?: string;
   customs_declaration_number?: string;
   packages?: number;
   customer?: string;
