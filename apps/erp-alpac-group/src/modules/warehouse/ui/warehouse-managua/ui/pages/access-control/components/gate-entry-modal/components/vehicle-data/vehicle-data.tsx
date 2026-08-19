@@ -10,7 +10,11 @@ import {
 } from "@app/shared/utils/string.utils";
 import { useEffect, useMemo, useState } from "react";
 import { DocumentEnum, type DocumentType } from "@app/core/enums/document.enum";
-
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
+import { TransportUnitOptions } from "@app/modules/warehouse/domain/enums/warehouse-managua/transport-unit";
+import { ImageUploader } from "@app/shared/components/image-uploader/image-uploader";
+import type { ImageOutput } from "@app/shared/components/image-uploader/image-uploader.types";
 export function VehicleDataStep({
   register,
   setValue,
@@ -18,20 +22,28 @@ export function VehicleDataStep({
   errors,
   documentType,
   onChangeDocumentType,
-  vehicleOptions = [],
 }: VehicleDataStepProps) {
   const [selectedDocumentType, setSelectedDocumentType] =
     useState<DocumentType>(documentType);
   const transportUnitId = watch("transportUnitId");
+  const customBranchId = watch("customBranchId");
 
-  const vehicleDropdownOptions = useMemo(
-    () =>
-      vehicleOptions.map((vehicle) => ({
-        value: vehicle.id,
-        label: vehicle.name,
-      })),
-    [vehicleOptions],
-  );
+  const { companyId, moduleCode } = useUserStore();
+
+  const { GetCustomBranches } = useWarehouse({
+    getCustomBranchesPayload: {
+      company_id: companyId,
+      module_code: moduleCode,
+    },
+  });
+
+  const customBranchesOptions = useMemo(() => {
+    if (!GetCustomBranches.data) return [];
+    return GetCustomBranches.data.map((branch: any) => ({
+      value: branch.id,
+      label: branch.name,
+    }));
+  }, [GetCustomBranches.data]);
 
   useEffect(() => {
     setSelectedDocumentType(documentType);
@@ -52,6 +64,29 @@ export function VehicleDataStep({
       shouldValidate: true,
       shouldDirty: true,
     });
+  };
+
+  const initialSealEvidence = watch("sealEvidence");
+  const [sealEvidenceImages, setSealEvidenceImages] = useState<ImageOutput[]>(() => {
+    if (!initialSealEvidence || !Array.isArray(initialSealEvidence)) return [];
+    return initialSealEvidence.map((img: any) => ({
+      id: typeof crypto !== "undefined" && crypto.randomUUID 
+          ? crypto.randomUUID() 
+          : Date.now().toString(36) + Math.random().toString(36).substring(2),
+      file: img.file,
+      base64: img.imageBase64,
+      preview: img.file ? URL.createObjectURL(img.file) : "",
+    }));
+  });
+
+  const handleSealEvidenceSelect = (images: ImageOutput[]) => {
+    setSealEvidenceImages(images);
+    const mappedImages = images.map((img) => ({
+      file: img.file,
+      imageBase64: img.base64,
+      contentType: img.contentType,
+    }));
+    setValue("sealEvidence", mappedImages, { shouldValidate: true, shouldDirty: true });
   };
 
   return (
@@ -90,13 +125,9 @@ export function VehicleDataStep({
           label="Unidad de transporte"
           appearance="dark"
           isRequired
-          placeholder={
-            vehicleDropdownOptions.length === 0
-              ? "No hay unidades disponibles"
-              : "Seleccione una unidad"
-          }
-          options={vehicleDropdownOptions}
-          value={transportUnitId || undefined}
+          placeholder="Seleccione una unidad"
+          options={TransportUnitOptions}
+          value={Number(transportUnitId)}
           onChange={handleTransportUnitChange}
           error={errors.transportUnitId?.message}
           labelClassName={gateEntryLabelClassName}
@@ -105,7 +136,7 @@ export function VehicleDataStep({
       </div>
 
       <InputText
-        label="País de Origen"
+        label="País de origen"
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
         isRequired
@@ -120,24 +151,39 @@ export function VehicleDataStep({
         error={errors.countryOfOrigin?.message}
       />
 
-      <InputText
-        label="Aduana de Ingreso"
-        labelClassName={gateEntryLabelClassName}
-        className={gateEntryInputClassName}
-        isRequired
-        {...register("aduana", {
-          required: "La Aduana de ingreso es obligatoria.",
-          setValueAs: (value: string) => value?.trim(),
-          validate: {
-            onlyLetters: (value: string) =>
-              validateOnlyLettersWithAccentsAndDiacritics(value || "", true),
-          },
-        })}
-        error={errors.aduana?.message}
-      />
+      <div className="min-w-0">
+        <Dropdown
+          label="Aduana de ingreso"
+          appearance="dark"
+          isRequired
+          placeholder={
+            customBranchesOptions.length === 0
+              ? "Cargando aduanas..."
+              : "Seleccione una aduana"
+          }
+          options={customBranchesOptions}
+          value={customBranchId || undefined}
+          onChange={(value) => {
+            setValue("customBranchId", String(value), {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+          }}
+          error={errors.customBranchId?.message}
+          labelClassName={gateEntryLabelClassName}
+          className={`${gateEntryInputClassName} h-[42px]! sm:h-[46px]!`}
+        />
+        {/* Register input hidden so react-hook-form tracks its validation rules */}
+        <input
+          type="hidden"
+          {...register("customBranchId", {
+            required: "La Aduana de ingreso es obligatoria.",
+          })}
+        />
+      </div>
 
       <InputText
-        label="Numero de Placa"
+        label="Numero de placa"
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
         isRequired
@@ -155,7 +201,7 @@ export function VehicleDataStep({
       />
 
       <InputText
-        label="Chasis de Remolque"
+        label="Chasis de remolque"
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
         isRequired
@@ -173,7 +219,25 @@ export function VehicleDataStep({
       />
 
       <InputText
-        label="Conductor"
+        label="Número de Contenedor"
+        labelClassName={gateEntryLabelClassName}
+        className={gateEntryInputClassName}
+        isRequired
+        {...register("containerNumber", {
+          required: "El número de contenedor es obligatorio.",
+          setValueAs: (value: string) => value?.trim(),
+          validate: (value: string) => {
+            if (!isAlfaNumericValue(value)) {
+              return "Digite un número de contenedor válido.";
+            }
+            return true;
+          },
+        })}
+        error={errors.containerNumber?.message}
+      />
+
+      <InputText
+        label="Nombre del donductor"
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
         isRequired
@@ -189,7 +253,7 @@ export function VehicleDataStep({
       />
 
       <InputText
-        label="Licencia"
+        label="Codigo de licencia"
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
         isRequired
@@ -207,7 +271,7 @@ export function VehicleDataStep({
       />
 
       <InputText
-        label="Transportista"
+        label="Agencia transportista"
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
         isRequired
@@ -240,6 +304,19 @@ export function VehicleDataStep({
         })}
         error={errors.sealNumber?.message}
       />
+
+      <div className="sm:col-span-2 lg:col-span-3">
+        <ImageUploader
+          value={sealEvidenceImages}
+          label="Evidencia"
+          isRequired
+          maxFiles={5}
+          maxSizeMB={5}
+          description="Arrastre, seleccione una imagen o tome una foto. Se permiten múltiples fotos."        
+          onChange={handleSealEvidenceSelect}
+          error={errors.sealEvidence?.message}
+        />
+      </div>
     </div>
   );
 }

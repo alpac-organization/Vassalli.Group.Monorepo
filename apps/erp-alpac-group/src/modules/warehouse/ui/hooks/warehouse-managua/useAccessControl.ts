@@ -2,11 +2,9 @@ import type { GetAccessControlRequest } from "@app/modules/warehouse/domain/ApiC
 import type { GetReceptionEntranceDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-access-control-detail";
 import type { CreateAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/create-access-control";
 import type { UpdateReceptionEntranceRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/update-access-control";
-import type { GetVehiclesRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-vehicles";
 import type { AddDucatsToReceptionRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/add-ducats-to-reception";
 import type { GetReceptionEntrancesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import type { ReceptionEntranceDetail } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control-detail";
-import type { GetVehiclesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-vehicles";
 import { AccessControlServices } from "@app/modules/warehouse/infrastructure/services/warehouse-services/warehouse-managua/AccessControlServices";
 import { warehouseHttpHandler } from "@app/core/adapters/axiosAdapter";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
@@ -15,7 +13,6 @@ import type { GenerateExitAccessControlRequest } from "@app/modules/warehouse/do
 
 type UseAccessControlProps = {
   payloadAccessControl: GetAccessControlRequest;
-  vehiclesPayload?: GetVehiclesRequest;
   detailPayload?: GetReceptionEntranceDetailRequest | null;
 };
 
@@ -25,7 +22,7 @@ const warehouseManaguaServices = new AccessControlServices(
 
 export const useAccessControl = (props: UseAccessControlProps) => {
   const queryClient = useQueryClient();
-  const { payloadAccessControl, vehiclesPayload, detailPayload } = props;
+  const { payloadAccessControl, detailPayload } = props;
 
   const GetAccessControl = useQuery<
     GetReceptionEntrancesResponse,
@@ -98,18 +95,6 @@ export const useAccessControl = (props: UseAccessControlProps) => {
     },
   });
 
-  const GetVehicles = useQuery<GetVehiclesResponse, ApiErrorResponse>({
-    queryKey: ["vehicles", vehiclesPayload],
-    queryFn: () => warehouseManaguaServices.getVehicles(vehiclesPayload!),
-    enabled: Boolean(
-      vehiclesPayload?.company_id && vehiclesPayload?.module_code,
-    ),
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    retry: 1,
-  });
-
   const GenerateExitAccessControl = useMutation<
     void | null,
     ApiErrorResponse,
@@ -129,7 +114,6 @@ export const useAccessControl = (props: UseAccessControlProps) => {
     CreateAccessControl,
     UpdateAccessControl,
     AddDucatsToReception,
-    GetVehicles,
     GenerateExitAccessControl,
   };
 };

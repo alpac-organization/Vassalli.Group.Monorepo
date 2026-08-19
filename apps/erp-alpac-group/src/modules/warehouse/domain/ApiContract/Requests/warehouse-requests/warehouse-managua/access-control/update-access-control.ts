@@ -9,12 +9,12 @@ export interface UpdateReceptionEntranceRequest {
   reception_id: string;
   ducats?: UpdateDucatItem[];
   country_of_origin?: string;
-  aduana?: string;
-  plate_number?: string;
-  trailer_chassis?: string;
+  custom_branch_id?: string;
+  vehicle_plate_number?: string;
+  vehicle_chassis_number?: string;
   driver_license?: string;
   transportista?: string;
-  transport_unit_id?: string;
+  transport_unit?: number;
   driver_name?: string;
   seal_number?: string;
   customs_declaration_number?: string;
