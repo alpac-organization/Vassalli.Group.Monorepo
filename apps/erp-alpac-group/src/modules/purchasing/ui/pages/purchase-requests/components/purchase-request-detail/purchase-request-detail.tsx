@@ -5,8 +5,6 @@ import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { SelectProductModal } from "@app/modules/product/ui/views/select-product-modal/select-product-modal";
-
-import type { CreatePurchaseRequestFormValues } from "../purchase-request-modal/purchase-request-modal.types";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import {
 	formatAmount,
@@ -17,6 +15,7 @@ import { CreateProductModal } from "@app/modules/product/ui/views/create-product
 import type { PurchaseRequestDetailProps } from "./purchase-request-detail.types";
 import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
 import { PurchaseRequestImageUploader } from "../purchase-request-image-uploader/purchase-request-image-uploader";
+import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -63,7 +62,7 @@ export const PurchaseRequestDetail = (
 		setValue,
 		clearErrors,
 		formState: { errors },
-	} = useFormContext<CreatePurchaseRequestFormValues>();
+	} = useFormContext<CreatePurchaseRequestPayload>();
 
 	const { fields, append, remove } = useFieldArray({
 		control,
@@ -101,11 +100,13 @@ export const PurchaseRequestDetail = (
 				product_id: product.product_id,
 				product_name: product.product_name,
 				description: "",
-				quantity: "",
-				quantity_unit: "",
+				quantity: 0,
+				quantity_unit: 0,
 				unit_measure_id: "",
 				justification: "",
-				product_images: [],
+				images: {
+					images_product_to_changed: [],
+				},
 			});
 		});
 	};
@@ -120,11 +121,13 @@ export const PurchaseRequestDetail = (
 			product_id: product?.data?.product_id,
 			product_name: product?.product_name,
 			description: "",
-			quantity: "",
-			quantity_unit: "",
+			quantity: 0,
+			quantity_unit: 0,
 			unit_measure_id: "",
 			justification: "",
-			product_images: [],
+			images: {
+				images_product_to_changed: [],
+			},
 		});
 	}
 
@@ -294,7 +297,7 @@ export const PurchaseRequestDetail = (
 												if (!nextIsBoxOrPackage) {
 													setValue(
 														`purchase_request_items.${index}.quantity_unit`,
-														"",
+														0,
 														{ shouldValidate: false },
 													);
 													clearErrors(
@@ -336,7 +339,7 @@ export const PurchaseRequestDetail = (
 
 											if (!requiresUnitsPerPackage) return true;
 
-											if (value === "" || value === undefined || value === null) {
+											if (value === 0 || value === undefined || value === null) {
 												return "Agregue las unidades por presentación";
 											}
 
@@ -356,7 +359,7 @@ export const PurchaseRequestDetail = (
 											disabled={!isBoxOrPackage}
 											className={inputClassName}
 											labelClassName={labelClassName}
-											value={formatIntegerDisplay(field.value)}
+											value={formatIntegerDisplay(field.value ?? 0)}
 											onChange={(e) =>
 												field.onChange(parseIntegerInput(e.target.value))
 											}
@@ -421,12 +424,12 @@ export const PurchaseRequestDetail = (
 						</div>
 
 						<Controller
-							name={`purchase_request_items.${index}.product_images`}
+							name={`purchase_request_items.${index}.images.images_product_to_changed`}
 							control={control}
 							render={({ field }) => (
 								<PurchaseRequestImageUploader
 									value={field.value ?? []}
-									onChange={field.onChange}
+									onChange={(value) => field.onChange(value)}
 								/>
 							)}
 						/>

@@ -123,7 +123,7 @@ export function PurchaseRequestImageUploader({
 							<img
 								src={image}
 								alt={`Imagen ${index + 1} del producto`}
-								className={`h-24 w-full object-cover ${isRemoving ? "opacity-40" : ""}`}
+								className={`h-60 w-full object-cover ${isRemoving ? "opacity-40" : ""}`}
 							/>
 
 							{isRemoving ? (
@@ -154,7 +154,7 @@ export function PurchaseRequestImageUploader({
 				{(remainingSlots > 0 || isUploading) && (
 					<div
 						{...getRootProps()}
-						className={`relative flex h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed px-2 text-center transition-colors ${
+						className={`relative flex h-60 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed px-2 text-center transition-colors ${
 							isUploading
 								? "pointer-events-none border-alpac-primary-500 bg-alpac-primary-50 dark:bg-alpac-primary-900/10"
 								: isDragActive

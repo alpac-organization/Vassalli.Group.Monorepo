@@ -1,6 +1,6 @@
 import type { IHttpHandler } from "@app/core/ports";
 import type { IPurchaseServices } from "@app/modules/purchasing/application/interfaces/purchase/IPurchaseServices";
-import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
+import type { PurchaseRequestMainPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import type { GetPurchaseRequestDetailPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-details-payload";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
@@ -25,7 +25,7 @@ export class PurchaseServices implements IPurchaseServices {
 
          const url = `/companies/${company_id}/modules/${module_code}/purchase-requests`;
 
-         const response = await this.apiHandler.get<any>(url, { params: cleanParams(rest) });         
+         const response = await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
 
          return response;
 
@@ -35,13 +35,14 @@ export class PurchaseServices implements IPurchaseServices {
       }
    }
 
-   async CreatePurchaseRequest(payload: CreatePurchaseRequestPayload): Promise<void> {
+   async CreatePurchaseRequest(payload: PurchaseRequestMainPayload): Promise<void> {
       try {
-         const { company_id, module_code, ...rest } = payload;
+         const { company_id, module_code, purchase_requests } = payload;
 
          const url = `/companies/${company_id}/modules/${module_code}/purchase-requests`;
 
-         await this.apiHandler.post<void>(url, rest);
+         await this.apiHandler.post<void>(url, [...purchase_requests]);
+         console.log(url, [...purchase_requests], payload)
 
       } catch (error) {
 
