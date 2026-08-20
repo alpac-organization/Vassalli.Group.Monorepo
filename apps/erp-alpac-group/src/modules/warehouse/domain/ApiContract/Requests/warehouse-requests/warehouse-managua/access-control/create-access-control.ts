@@ -12,7 +12,7 @@ export interface BaseCreateReceptionEntrance {
   vehicle_plate_number: string;
   container_number: string;
   seal_number: string;
-  seal_evidence: SealEvidenceFile[];
+  evidence_base64: string[];
   start_date: string;
   start_time: string;
 }
@@ -26,11 +26,6 @@ export interface DeclarationAduanaPayload extends BaseCreateReceptionEntrance {
 
 export interface DucaPayload extends BaseCreateReceptionEntrance {
   ducat_numbers: string[];
-}
-
-export interface SealEvidenceFile {
-  image_base64: string;
-  content_type: string;
 }
 
 export type CreateAccessControlRequest = DeclarationAduanaPayload | DucaPayload;

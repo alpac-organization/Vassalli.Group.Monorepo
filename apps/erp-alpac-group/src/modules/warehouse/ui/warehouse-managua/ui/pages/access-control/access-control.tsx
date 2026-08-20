@@ -1,7 +1,7 @@
 import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
 import dayjs from "dayjs";
-import { Alert, AnimatedAlertWrapper, Modal } from "@alpac/design-system";
+import { Alert, AnimatedAlertWrapper, Modal, Button } from "@alpac/design-system";
 import { AccessControlHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-header/access-control-header";
 import { AccessControlStats } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-stats/access-control-stats";
 import { AccessControlActions } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-actions/access-control-actions";
@@ -80,6 +80,7 @@ export function AccessControlPage() {
     null,
   );
   const [exitReception, setExitReception] = useState<ReceptionEntranceListItem | null>(null);
+  const [deleteReception, setDeleteReception] = useState<ReceptionEntranceListItem | null>(null);
 
   const payloadAccessControl = useMemo<GetAccessControlRequest>(() => {
     return {
@@ -119,6 +120,7 @@ export function AccessControlPage() {
     UpdateAccessControl,
     AddDucatsToReception,
     GenerateExitAccessControl,
+    DeleteAccessControl,
   } = useAccessControl({
     payloadAccessControl,
     detailPayload,
@@ -206,6 +208,81 @@ export function AccessControlPage() {
       handleRequestError,
       getMappedError,
     ],
+  );
+
+  const handleDeleteClick = useCallback((item: ReceptionEntranceListItem) => {
+    setDeleteReception(item);
+  }, []);
+
+  const handleCloseDelete = useCallback(() => {
+    setDeleteReception(null);
+  }, []);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!deleteReception) return;
+    try {
+      await DeleteAccessControl.mutateAsync({
+        company_id: companyId,
+        module_code: moduleCode,
+        reception_id: deleteReception.id,
+      });
+      handleRequestSuccess("Registro eliminado exitosamente");
+      if (movements.length === 1 && pageNumber > 1) {
+        setPageNumber((p) => p - 1);
+      }
+    } catch (error) {
+      const mappedError = getMappedError(error as ApiErrorResponse);
+      handleRequestError(
+        mappedError?.description || "Error al eliminar el registro",
+      );
+    } finally {
+      setDeleteReception(null);
+    }
+  }, [
+    deleteReception,
+    DeleteAccessControl,
+    companyId,
+    moduleCode,
+    handleRequestSuccess,
+    handleRequestError,
+    getMappedError,
+    movements.length,
+    pageNumber,
+  ]);
+
+  const handleEvidenceUpdate = useCallback(
+    async (toAdd: string[], toDelete: string[]) => {
+      if (!selectedReceptionId) return;
+      const payload: UpdateReceptionEntranceRequest = {
+        company_id: companyId,
+        module_code: moduleCode,
+        reception_id: selectedReceptionId,
+        evidence_to_add: toAdd.length > 0 ? toAdd : undefined,
+        evidence_to_delete: toDelete.length > 0 ? toDelete : undefined,
+      };
+
+      try {
+        await UpdateAccessControl.mutateAsync(payload);
+        handleRequestSuccess("Evidencia actualizada exitosamente");
+        GetAccessControlDetail.refetch();
+      } catch (error) {
+        const mappedError = getMappedError(error as ApiErrorResponse);
+        handleRequestError(
+          mappedError?.description || "Error al actualizar la evidencia",
+        );
+        throw error;
+      }
+    },
+    [
+      selectedReceptionId,
+      UpdateAccessControl,
+      companyId,
+      moduleCode,
+      handleRequestSuccess,
+      handleRequestError,
+      getMappedError,
+      GetAccessControlDetail,
+    ]
   );
 
   const handleFieldUpdate = useCallback(
@@ -441,7 +518,40 @@ export function AccessControlPage() {
         isFetching={isFetching}
         onDetailClick={handleDetailClick}
         onExitClick={handleExitClick}
+        onDeleteClick={handleDeleteClick}
       />
+
+      <Modal
+        isOpen={Boolean(deleteReception)}
+        onClose={handleCloseDelete}
+        variant="warning"
+        size="md"
+        title="Confirmar eliminación"
+      >
+        <div className="flex flex-col gap-4 min-w-0 p-4">
+          <p className="text-slate-600 dark:text-slate-300 text-center">
+            ¿Está seguro que desea eliminar el registro de la unidad con placa{" "}
+            <span className="font-bold">{deleteReception?.plate_number}</span> y conductor{" "}
+            <span className="font-bold">{deleteReception?.driver_name}</span>?
+          </p>
+          <div className="flex justify-end gap-3 mt-4">
+            <Button
+              type="button"
+              label="Cancelar"
+              onClick={handleCloseDelete}
+              disabled={DeleteAccessControl.isPending}
+              className="bg-transparent! border! border-slate-300! text-slate-700! hover:bg-slate-50! dark:border-slate-600! dark:text-slate-300! dark:hover:bg-slate-800!"
+            />
+            <Button
+              type="button"
+              label={DeleteAccessControl.isPending ? "Eliminando..." : "Eliminar"}
+              onClick={handleConfirmDelete}
+              disabled={DeleteAccessControl.isPending}
+              className="bg-red-600! hover:bg-red-700! text-white!"
+            />
+          </div>
+        </div>
+      </Modal>
 
       <Modal
         isOpen={Boolean(exitReception)}
@@ -485,6 +595,7 @@ export function AccessControlPage() {
         onFieldUpdate={handleFieldUpdate}
         onDucatUpdate={handleDucatUpdate}
         onDucatAdd={handleAddDucats}
+        onEvidenceUpdate={handleEvidenceUpdate}
       />
 
       <GateEntryModal

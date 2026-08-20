@@ -19,7 +19,7 @@ export type MovementDetailFormValues = {
   transportista: string;
   transport_unit: string;
   seal_number: string;
-  seal_evidence: string;
+  evidence_urls: string[];
   country_of_origin: string;
   custom_branch: string;
   customs_decaration_number: string;
@@ -47,6 +47,7 @@ export type MovementDetailModalProps = {
   ) => Promise<void>;
   onDucatUpdate: (ducatId: string, ducatNumber: string) => Promise<void>;
   onDucatAdd?: (ducatNumbers: string[]) => Promise<void>;
+  onEvidenceUpdate?: (toAdd: string[], toDelete: string[]) => Promise<void>;
 };
 export const MOVEMENT_DETAIL_DEFAULT_VALUES: MovementDetailFormValues = {
   status: "",
@@ -72,7 +73,7 @@ export const MOVEMENT_DETAIL_DEFAULT_VALUES: MovementDetailFormValues = {
   packages: "",
   customer: "",
   product: "",
-  seal_evidence: "",
+  evidence_urls: [],
   vehicle_exit_date: "",
   vehicle_exit_time: "",
   container_exit_date: "",

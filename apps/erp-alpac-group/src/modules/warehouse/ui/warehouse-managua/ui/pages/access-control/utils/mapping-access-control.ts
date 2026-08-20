@@ -34,10 +34,7 @@ export function mapGateEntryToCreateRequest(
     transportista: data.transportista.trim(),
     driver_name: data.driverName.trim(),
     seal_number: data.sealNumber.trim(),
-    seal_evidence: (data.sealEvidence ?? []).map((img) => ({
-      image_base64: img.imageBase64,
-      content_type: img.contentType,
-    })),
+    evidence_base64: (data.sealEvidence ?? []).map((img) => img.imageBase64),
     start_date: entryStartedAt.start_date,
     start_time: entryStartedAt.start_time,
   };
