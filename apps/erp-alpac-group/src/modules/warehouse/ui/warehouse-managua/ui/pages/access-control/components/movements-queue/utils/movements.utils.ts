@@ -1,6 +1,5 @@
 import {
   RecordEntranceStatusEnum,
-  RecordEntranceVehicleStatusEnum,
 } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 
 const FALLBACK_STATUS_BADGE_CLASS =
@@ -70,15 +69,3 @@ export function getVehicleStatusBadgeClass(status: string): string {
   );
 }
 
-export function getVehicleStatusBadgeLabel(status: string): string {
-  const normalized = normalizeStatusKey(status);
-  const fromEnum = resolveEnumLabel(status, RecordEntranceVehicleStatusEnum);
-  if (fromEnum) return fromEnum;
-
-  const legacyLabels: Record<string, string> = {
-    onsite: "En sitio",
-    exited: "Retirado",
-  };
-
-  return legacyLabels[normalized] ?? status;
-}

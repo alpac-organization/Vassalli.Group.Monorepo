@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { FieldValues } from "react-hook-form";
 import { Check, Loader2, Pencil, X } from "lucide-react";
-import { InputText } from "@alpac/design-system";
+import { InputText, Dropdown } from "@alpac/design-system";
 import type { AccessControlEditableFieldProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/types/editable-field.types";
 import {
   isValueMissing,
@@ -29,6 +29,8 @@ export function EditableField<TFieldValues extends FieldValues>({
   missingMessage = "No registrado",
   allowEdit = true,
   allowEmptySubmit = false,
+  options,
+  placeholder,
 }: AccessControlEditableFieldProps<TFieldValues>) {
   const {
     register,
@@ -100,25 +102,40 @@ export function EditableField<TFieldValues extends FieldValues>({
     ? missingDataInInputClassName
     : "text-slate-800 dark:text-white!";
 
+  const selectedOption = options?.find((o) => String(o.value) === String(currentValue));
   const displayValue = showMissingStyle
     ? missingMessage
-    : formatValueForSubmit(currentValue);
+    : selectedOption ? selectedOption.label : formatValueForSubmit(currentValue);
 
   return (
     <div className="flex min-w-0 flex-col gap-2 w-full max-w-full">
       <div className="flex min-w-0 items-start gap-2 sm:gap-2.5">
         <div className="min-w-0 flex-1 relative">
           {isEditing ? (
-            <InputText
-              label={label}
-              labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
-              type={type}
-              disabled={isUpdating}
-              editable={false}
-              error={errorMessage}
-              className={`${inputClassBase} ${className} text-slate-800 dark:text-white!`}
-              {...register(name, validation)}
-            />
+            options ? (
+              <Dropdown
+                label={label}
+                labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
+                appearance="dark"
+                disabled={isUpdating}
+                options={options}
+                value={selectedOption ? selectedOption.value : undefined}
+                placeholder={placeholder}
+                onChange={(value) => setValue(name, value as never, { shouldDirty: true, shouldValidate: true })}
+                className={`${inputClassBase} ${className} h-[42px]! sm:h-[46px]! px-3!`}
+              />
+            ) : (
+              <InputText
+                label={label}
+                labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
+                type={type}
+                disabled={isUpdating}
+                editable={false}
+                error={errorMessage}
+                className={`${inputClassBase} ${className} text-slate-800 dark:text-white!`}
+                {...register(name, validation)}
+              />
+            )
           ) : (
             <div className="flex flex-col gap-1.5 w-full max-w-full box-border">
               {label ? (

@@ -15,19 +15,21 @@ export type MovementDetailFormValues = {
   driver_name: string;
   driver_license: string;
   trailer_chassis: string;
+  container_number: string;
   transportista: string;
-  transport_unit_id: string;
-  transport_unit_name: string;
+  transport_unit: string;
   seal_number: string;
+  seal_evidence: string;
   country_of_origin: string;
-  aduana: string;
+  custom_branch: string;
   customs_decaration_number: string;
   packages: string;
   customer: string;
   product: string;
-  container_number: string;
-  transport_unit_exit_date: string;
-  transport_unit_exit_time: string;
+  vehicle_exit_date: string | null;
+  vehicle_exit_time: string | null;
+  container_exit_date: string | null;
+  container_exit_time: string | null;
   updated_by_user_name: string;
   updated_date: string;
   updated_time: string;
@@ -60,19 +62,21 @@ export const MOVEMENT_DETAIL_DEFAULT_VALUES: MovementDetailFormValues = {
   driver_name: "",
   driver_license: "",
   trailer_chassis: "",
+  container_number: "",
   transportista: "",
-  transport_unit_id: "",
-  transport_unit_name: "",
+  transport_unit: "",
   seal_number: "",
   country_of_origin: "",
-  aduana: "",
+  custom_branch: "",
   customs_decaration_number: "",
   packages: "",
   customer: "",
   product: "",
-  container_number: "",
-  transport_unit_exit_date: "",
-  transport_unit_exit_time: "",
+  seal_evidence: "",
+  vehicle_exit_date: "",
+  vehicle_exit_time: "",
+  container_exit_date: "",
+  container_exit_time: "",
   updated_by_user_name: "",
   updated_date: "",
   updated_time: "",

@@ -1,4 +1,5 @@
 import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
+import type { Option } from "@alpac/design-system";
 
 export type AccessControlEditableFieldProps<TFieldValues extends FieldValues> = {
   name: Path<TFieldValues>;
@@ -14,4 +15,6 @@ export type AccessControlEditableFieldProps<TFieldValues extends FieldValues> = 
   missingMessage?: string;
   allowEdit?: boolean;
   allowEmptySubmit?: boolean;
+  options?: Option[];
+  placeholder?: string;
 };
