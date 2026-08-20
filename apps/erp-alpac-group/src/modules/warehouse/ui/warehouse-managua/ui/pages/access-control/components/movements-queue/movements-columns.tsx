@@ -3,11 +3,11 @@ import type { ReceptionEntranceListItem } from "@app/modules/warehouse/domain/Ap
 import {
   getStatusBadgeClass,
   getStatusBadgeLabel,
-  getVehicleStatusBadgeClass,
-  getVehicleStatusBadgeLabel,
+  
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
 import { formatTime } from "@app/shared/utils/string.utils";
 import { resolveDocumentTypeLabel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/resolveStatus";
+import { ArrowBigDown, ArrowBigUp } from "lucide-react";
 
 const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
@@ -26,7 +26,36 @@ export function getMovementsColumns({
     {
       key: "plate_number",
       label: "Placa",
-      render: (item) => item.plate_number || "—",
+      render: (item) => (
+        <div className="flex items-center gap-2">
+          <span>{item.plate_number || "—"}</span>
+          {item.plate_number && (
+            <span
+              title={item.vehicle_exited ? "Despachado" : "En sitio"}
+              className={item.vehicle_exited ? "text-amber-500" : "text-emerald-500"}
+            >
+              {item.vehicle_exited ? <ArrowBigUp size={18} /> : <ArrowBigDown size={18} />}
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "container_number",
+      label: "Número  de contenedor",
+      render: (item) => (
+        <div className="flex items-center gap-2">
+          <span>{item.container_number || "—"}</span>
+          {item.container_number && typeof item.container_exited === "boolean" && (
+            <span
+              title={item.container_exited ? "Despachado" : "En sitio"}
+              className={item.container_exited ? "text-amber-500" : "text-emerald-500"}
+            >
+              {item.container_exited ? <ArrowBigUp size={18} /> : <ArrowBigDown size={18} />}
+            </span>
+          )}
+        </div>
+      ),
     },
     {
       key: "driver_name",
@@ -53,17 +82,6 @@ export function getMovementsColumns({
           label={getStatusBadgeLabel(item.status)}
           color="transparent"
           className={getStatusBadgeClass(item.status)}
-        />
-      ),
-    },
-    {
-      key: "vehicle_status",
-      label: "Estado del registro",
-      render: (item) => (
-        <Badges
-          label={getVehicleStatusBadgeLabel(item.vehicle_status)}
-          color="transparent"
-          className={getVehicleStatusBadgeClass(item.vehicle_status)}
         />
       ),
     },

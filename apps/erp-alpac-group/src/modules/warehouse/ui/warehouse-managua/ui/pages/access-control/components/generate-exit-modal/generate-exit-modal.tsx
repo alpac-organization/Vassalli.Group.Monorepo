@@ -24,7 +24,6 @@ export function GenerateExitModal({
   onSubmit,
   isSubmitting = false,
   entryDate,
-  entryTime: _entryTime,
 }: GenerateExitModalProps) {
   const entryDay = parseEntryDate(entryDate);
   const [isExitDatePickerOpen, setIsExitDatePickerOpen] = useState(false);
@@ -44,6 +43,8 @@ export function GenerateExitModal({
       specifyDateTime: false,
       exitDate: null,
       exitTime: null,
+      exit_vehicle: false,
+      exit_container: false,
     },
   });
 
@@ -70,6 +71,31 @@ export function GenerateExitModal({
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col gap-4 mt-2"
     >
+      <div className="flex flex-col gap-3 pb-4 mb-2 border-b border-slate-200 dark:border-slate-700/50">
+        <Controller
+          name="exit_vehicle"
+          control={control}
+          render={({ field }) => (
+            <Checkbox
+              label="Dar salida al vehículo"
+              checked={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+        <Controller
+          name="exit_container"
+          control={control}
+          render={({ field }) => (
+            <Checkbox
+              label="Dar salida al contenedor"
+              checked={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+      </div>
+
       <div className="flex items-center">
         <Controller
           name="specifyDateTime"
