@@ -41,8 +41,7 @@ export class PurchaseServices implements IPurchaseServices {
 
          const url = `/companies/${company_id}/modules/${module_code}/purchase-requests`;
 
-         await this.apiHandler.post<void>(url, [...purchase_requests]);
-         console.log(url, [...purchase_requests], payload)
+         await this.apiHandler.post<void>(url, { purchase_requests });
 
       } catch (error) {
 

@@ -261,75 +261,62 @@ export const PurchaseRequestFormBlock = ({
                            : "flex min-w-0 w-full flex-col gap-3"
                      }
                   >
-                     <span className="text-[15px] text-black dark:text-white">
-                        Asociar a:
-                     </span>
+                     {isRequisition &&
+                        <>
+                           <span className="text-[15px] text-black dark:text-white">
+                              Asociar a:
+                           </span>
 
-                     <div
-                        className={
-                           isEventual
-                              ? "flex min-w-0 w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
-                              : "flex min-h-12 min-w-0 w-full flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3"
-                        }
-                     >
-                        <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3">
-                           <RadioButton
-                              id={`suppliesRadiusButton-${index}`}
-                              value={PurchaseRequestDestinationEnum.Internal.textValue}
-                              label="Insumos"
-                              labelPosition="right"
-                              labelClassName={labelClassName}
-                              checked={selectedOrigen === "Internal"}
-                              onChange={() => {
-                                 handleOriginChange("Internal");
-                              }}
-                           />
+                           <div className={
+                              isEventual
+                                 ? "flex min-w-0 w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between"
+                                 : "flex min-h-12 min-w-0 w-full flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3"}>
 
-                           <RadioButton
-                              id={`serviceOrderRadiusButton-${index}`}
-                              value={PurchaseRequestDestinationEnum.ServiceOrder.textValue}
-                              label={`Orden de Servicio${(isRequisition && selectedServiceOrder) ? ":" : ""}`}
-                              labelPosition="right"
-                              labelClassName={labelClassName}
-                              checked={selectedOrigen === "ServiceOrder"}
-                              onChange={() => {
-                                 handleOriginChange("ServiceOrder");
-                                 setIsSelectServiceOrderModalOpen(true);
-                              }}
-                           />
-
-                           {isRequisition && selectedServiceOrder && (
-                              <div className="flex min-w-0 w-full flex-col gap-2 sm:w-auto sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
-                                 <Chips
-                                    key={selectedServiceOrder.service_order_id}
-                                    label={selectedServiceOrder.code}
-                                    onClose={() => {
-                                       setSelectedServiceOrder(null);
-                                       setSelectedOrigin("Internal");
+                              <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3">
+                                 <RadioButton
+                                    id={`suppliesRadiusButton-${index}`}
+                                    value={PurchaseRequestDestinationEnum.Internal.textValue}
+                                    label="Insumos"
+                                    labelPosition="right"
+                                    labelClassName={labelClassName}
+                                    checked={selectedOrigen === "Internal"}
+                                    onChange={() => {
+                                       handleOriginChange("Internal");
                                     }}
                                  />
+
+                                 <RadioButton
+                                    id={`serviceOrderRadiusButton-${index}`}
+                                    value={PurchaseRequestDestinationEnum.ServiceOrder.textValue}
+                                    label={`Orden de Servicio${(isRequisition && selectedServiceOrder) ? ":" : ""}`}
+                                    labelPosition="right"
+                                    labelClassName={labelClassName}
+                                    checked={selectedOrigen === "ServiceOrder"}
+                                    onChange={() => {
+                                       handleOriginChange("ServiceOrder");
+                                       setIsSelectServiceOrderModalOpen(true);
+                                    }}
+                                 />
+
+                                 {isRequisition && selectedServiceOrder && (
+                                    <div className="flex min-w-0 w-full flex-col gap-2 sm:w-auto sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+                                       <Chips
+                                          key={selectedServiceOrder.service_order_id}
+                                          label={selectedServiceOrder.code}
+                                          onClose={() => {
+                                             setSelectedServiceOrder(null);
+                                             setSelectedOrigin("Internal");
+                                          }}
+                                       />
+                                    </div>
+                                 )}
                               </div>
-                           )}
-                        </div>
-                     </div>
+                           </div>
+                        </>
+                     }
+
                   </div>
                </div>
-
-               {isEventual && selectedServiceOrder && (
-                  <div className="flex flex-wrap items-center gap-3">
-                     <span className="text-[14px] font-medium text-black dark:text-white">
-                        Orden de Servicio Vinculada: {selectedOrigen === "ServiceOrder" ? "ServiceOrder" : "Internal"}
-                     </span>
-                     <Chips
-                        key={selectedServiceOrder.service_order_id}
-                        label={selectedServiceOrder.code}
-                        onClose={() => {
-                           setSelectedServiceOrder(null);
-                           setSelectedOrigin("Internal");
-                        }}
-                     />
-                  </div>
-               )}
 
                <Controller
                   name="observations"

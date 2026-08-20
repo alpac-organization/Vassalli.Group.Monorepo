@@ -43,6 +43,7 @@ export const MonthlyMaterialTab = ({
 }: MonthlyMaterialTabProps) => {
 	const { companyId, moduleCode, role } = useUserStore();
 	const { getMappedError } = useMappedError();
+	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -53,7 +54,7 @@ export const MonthlyMaterialTab = ({
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
 		company_id: companyId,
 		module_code: moduleCode,
-		branch_id: currentBranchId,
+		...(isAdministrator ? {} : { branch_id: currentBranchId }),
 		request_type: Number(PurchaseRequestEnum.Monthly.value),
 		page_number: 1,
 		page_size: PAGE_SIZE,
@@ -64,7 +65,7 @@ export const MonthlyMaterialTab = ({
 			...filters,
 			company_id: companyId,
 			module_code: moduleCode,
-			branch_id: currentBranchId,
+			branch_id: isAdministrator ? undefined : currentBranchId,
 			request_type: Number(PurchaseRequestEnum.Monthly.value),
 			page_size: PAGE_SIZE,
 		},
@@ -78,7 +79,7 @@ export const MonthlyMaterialTab = ({
 		setFilters({
 			company_id: companyId,
 			module_code: moduleCode,
-			branch_id: currentBranchId,
+			...(isAdministrator ? {} : { branch_id: currentBranchId }),
 			request_type: Number(PurchaseRequestEnum.Monthly.value),
 			page_number: 1,
 			page_size: PAGE_SIZE,
@@ -150,7 +151,7 @@ export const MonthlyMaterialTab = ({
 			...prev,
 			company_id: companyId,
 			module_code: moduleCode,
-			branch_id: currentBranchId,
+			branch_id: isAdministrator ? undefined : currentBranchId,
 			request_type: Number(PurchaseRequestEnum.Monthly.value),
 			code: requestNumber.trim() || undefined,
 			page_number: 1,
@@ -165,7 +166,7 @@ export const MonthlyMaterialTab = ({
 		setFilters({
 			company_id: companyId,
 			module_code: moduleCode,
-			branch_id: currentBranchId,
+			...(isAdministrator ? {} : { branch_id: currentBranchId }),
 			request_type: Number(PurchaseRequestEnum.Monthly.value),
 			page_number: 1,
 			page_size: PAGE_SIZE,

@@ -1,13 +1,12 @@
 import type { GetPurchaseRequestResponse } from "./get-purchase-request-response";
 
-export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResponse {	
+export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResponse {
 	observations: string | null;
 	reason_rejection: string | null;
 	information_from_requesting_area: WorkArea;
 	creator_user_information: PurchaseRequestUserInformation;
 	reviewer_user_information: PurchaseRequestUserInformation | null;
 	branch_information: PurchaseRequestBranchInformation;
-	
 }
 
 export interface PurchaseRequestUserInformation {

@@ -51,10 +51,12 @@ export const RequisitionTab = ({
 	const [status, setStatus] = useState<number | null>(null);
 	const [requisitionDetail, setRequisitionDetail] = useState<GetPurchaseRequestResponse | null>(null);
 
+	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
 		company_id: companyId,
 		module_code: moduleCode,
-		branch_id: currentBranchId,
+		...(isAdministrator ? {} : { branch_id: currentBranchId }),
 		request_type: Number(PurchaseRequestEnum.Requisition.value),
 		page_number: 1,
 		page_size: PAGE_SIZE,
@@ -65,7 +67,7 @@ export const RequisitionTab = ({
 			...filters,
 			company_id: companyId,
 			module_code: moduleCode,
-			branch_id: currentBranchId,
+			branch_id: isAdministrator ? undefined : currentBranchId,
 			request_type: Number(PurchaseRequestEnum.Requisition.value),
 			page_size: PAGE_SIZE,
 		},
@@ -79,7 +81,7 @@ export const RequisitionTab = ({
 		setFilters({
 			company_id: companyId,
 			module_code: moduleCode,
-			branch_id: currentBranchId,
+			...(isAdministrator ? {} : { branch_id: currentBranchId }),
 			request_type: Number(PurchaseRequestEnum.Requisition.value),
 			page_number: 1,
 			page_size: PAGE_SIZE,
@@ -151,7 +153,7 @@ export const RequisitionTab = ({
 			...prev,
 			company_id: companyId,
 			module_code: moduleCode,
-			branch_id: currentBranchId,
+			branch_id: isAdministrator ? undefined : currentBranchId,
 			request_type: Number(PurchaseRequestEnum.Requisition.value),
 			code: requisitionNumber.trim() || undefined,
 			page_number: 1,
@@ -166,7 +168,7 @@ export const RequisitionTab = ({
 		setFilters({
 			company_id: companyId,
 			module_code: moduleCode,
-			branch_id: currentBranchId,
+			...(isAdministrator ? {} : { branch_id: currentBranchId }),
 			request_type: Number(PurchaseRequestEnum.Requisition.value),
 			page_number: 1,
 			page_size: PAGE_SIZE,

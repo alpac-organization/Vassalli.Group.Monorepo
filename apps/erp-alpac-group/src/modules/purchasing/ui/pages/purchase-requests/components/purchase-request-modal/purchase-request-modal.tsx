@@ -56,7 +56,7 @@ export const PurchaseRequestModal = ({
 	onRequestSuccess,
 }: PurchaseRequestModalProps) => {
 
-	const { companyId, moduleCode, role,  } = useUserStore();	
+	const { companyId, moduleCode, role, } = useUserStore();
 
 	const { getMappedError } = useMappedError();
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
@@ -121,8 +121,6 @@ export const PurchaseRequestModal = ({
 
 	const buildPayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => {
 
-		console.log("Testing de orden de servicio: ", values.service_order_id)
-
 		return ({
 			...(isAdministrator ? { area_id: values.area_id } : {}),
 			branch_id: currentBranchId,
@@ -151,7 +149,6 @@ export const PurchaseRequestModal = ({
 				};
 			})
 		})
-
 	}
 
 	const handleFormSubmit = async () => {

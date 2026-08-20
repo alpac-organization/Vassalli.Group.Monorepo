@@ -5,7 +5,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import { BanIcon, BuildingIcon, CalendarCheckIcon, CalendarIcon, CheckIcon, MailIcon, NotebookTextIcon, XIcon } from "lucide-react";
+import { BanIcon, BuildingIcon, CalendarCheckIcon, CalendarIcon, CheckIcon, FileTextIcon, MailIcon, NotebookTextIcon, XIcon } from "lucide-react";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
@@ -18,10 +18,13 @@ import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/doma
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { purchaseRequestPriorityBadgeVariants, purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../purchase-request.variants";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
+import { pdf } from "@react-pdf/renderer";
+import { PurchaseRequestPDF } from "../reports/purchase-request-pdf/purchase-request-pdf";
 
 const approveButtonClass = "rounded-md! h-11 px-6! border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-40 shadow-sm transition-all duration-200";
 const rejectButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
 const cancelButtonClass = "rounded-md! h-11 px-6! border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-500/20 hover:border-orange-400 dark:hover:border-orange-500/60 hover:text-orange-700 dark:hover:text-orange-300 disabled:opacity-40";
+const pdfButtonClass = "rounded-md! h-11 px-6! border border-sky-200 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-500/20 hover:border-sky-400 dark:hover:border-sky-500/60 hover:text-sky-700 dark:hover:text-sky-300 disabled:opacity-40 shadow-sm transition-all duration-200";
 const sectionTitleClassName = "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
 
 export const PurchaseRequestDetailModal = ({
@@ -44,7 +47,8 @@ export const PurchaseRequestDetailModal = ({
 	});
 
 	const [actionType, setActionType] = useState<string | null>(null);
-	const [message, setMessage] = useState<string>("")
+	const [message, setMessage] = useState<string>("");
+	const [isGeneratingPurchaseRequestPdf, setIsGeneratingPurchaseRequestPdf] = useState(false);
 
 	const {
 		GetPurchaseRequestDetails,
@@ -71,8 +75,6 @@ export const PurchaseRequestDetailModal = ({
 		| PurchaseRequestProductInformationList
 		| undefined;
 
-	console.log(details);
-
 	const isLoading =
 		GetPurchaseRequestDetails.isPending ||
 		GetPurchaseRequestDetails.isFetching ||
@@ -98,6 +100,9 @@ export const PurchaseRequestDetailModal = ({
 	].includes(currentStatus as Exclude<keyof typeof PurchaseRequestStatusEnum, "Pending">);
 
 	const areActionButtonsDisabled = isProcessing || isFinalStatus;
+	const isApproved = currentStatus === PurchaseRequestStatusEnum.Approved.textValue;
+	const showProcessActions = canProcessRequest && !areActionButtonsDisabled;
+	const showFooter = isApproved || showProcessActions;
 
 	const openConfirm = (type: ConfirmActionType) => {
 
@@ -131,6 +136,21 @@ export const PurchaseRequestDetailModal = ({
 		setMessage(message);
 
 	}, [confirmModal.type]);
+
+	const handleGeneratePurchaseRequestPdf = async () => {
+		if (!details || !products) return;
+
+		try {
+			setIsGeneratingPurchaseRequestPdf(true);
+			const blob = await pdf(<PurchaseRequestPDF data={{ ...details, products }} />);
+			const url = URL.createObjectURL(await blob.toBlob());
+			window.open(url, "_blank");
+		} catch (error) {
+			onRequestError?.("Error al generar el PDF de la solicitud de compra.");
+		} finally {
+			setIsGeneratingPurchaseRequestPdf(false);
+		}
+	}
 
 	const handleProcessPurchaseRequest = (type: ConfirmActionType, reason?: string) => {
 
@@ -175,9 +195,9 @@ export const PurchaseRequestDetailModal = ({
 			<Modal
 				isOpen={isOpen}
 				onClose={onClose}
-				variant="default"				
+				variant="default"
 				size="7xl"
-				panelClassName={[					
+				panelClassName={[
 					"flex max-h-[min(94dvh,50rem)] flex-col overflow-hidden",
 					"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
 					"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
@@ -281,7 +301,7 @@ export const PurchaseRequestDetailModal = ({
 											<DetailField
 												label="Observaciones"
 												value={`${details?.observations}`}
-												containerClass={(details?.observations?.length && details?.observations?.length > 50) ? "col-span-3" : ""}
+												containerClass={(details?.observations?.length && details?.observations?.length > 80) ? "col-span-3" : ""}
 												icon={<NotebookTextIcon size={18} />}
 											/>
 
@@ -290,11 +310,11 @@ export const PurchaseRequestDetailModal = ({
 												<DetailField
 													label="Motivo de rechazo"
 													value={`${details?.reason_rejection}`}
-													containerClass={(details?.reason_rejection?.length && details?.reason_rejection?.length > 50) ? "col-span-3" : ""}
+													containerClass={(details?.reason_rejection?.length && details?.reason_rejection?.length > 80) ? "col-span-3" : ""}
 													icon={<BanIcon size={18} />}
 												/>
 											) : null}
-										</div>										
+										</div>
 
 									</section>
 
@@ -431,39 +451,55 @@ export const PurchaseRequestDetailModal = ({
 								</div>
 							</div>
 
-							{canProcessRequest && !areActionButtonsDisabled && (
+							{showFooter && (
 								<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
 									<div className="flex justify-end gap-3">
-										<Button
-											type="button"
-											label="Cancelar"
-											className={cancelButtonClass}
-											icon={<BanIcon size={20} />}
-											isHiddenLabelOnMobile
-											disabled={areActionButtonsDisabled}
-											isLoading={isProcessing && confirmModal.type === "CANCEL"}
-											onClick={() => openConfirm("CANCEL")}
-										/>
-										<Button
-											type="button"
-											label="Rechazar"
-											className={rejectButtonClass}
-											icon={<XIcon size={20} />}
-											isHiddenLabelOnMobile
-											disabled={areActionButtonsDisabled}
-											isLoading={isProcessing && confirmModal.type === "REJECT"}
-											onClick={() => openConfirm("REJECT")}
-										/>
-										<Button
-											type="button"
-											label="Aprobar"
-											className={approveButtonClass}
-											icon={<CheckIcon size={20} />}
-											isHiddenLabelOnMobile
-											disabled={areActionButtonsDisabled}
-											isLoading={isProcessing && confirmModal.type === "APPROVE"}
-											onClick={() => openConfirm("APPROVE")}
-										/>
+										{isApproved && (
+											<Button
+												type="button"
+												label="Descargar PDF"
+												className={pdfButtonClass}
+												icon={<FileTextIcon size={20} />}
+												isHiddenLabelOnMobile
+												disabled={!details || isGeneratingPurchaseRequestPdf}
+												isLoading={isGeneratingPurchaseRequestPdf}
+												onClick={handleGeneratePurchaseRequestPdf}
+											/>
+										)}
+										{showProcessActions && (
+											<>
+												<Button
+													type="button"
+													label="Cancelar"
+													className={cancelButtonClass}
+													icon={<BanIcon size={20} />}
+													isHiddenLabelOnMobile
+													disabled={areActionButtonsDisabled}
+													isLoading={isProcessing && confirmModal.type === "CANCEL"}
+													onClick={() => openConfirm("CANCEL")}
+												/>
+												<Button
+													type="button"
+													label="Rechazar"
+													className={rejectButtonClass}
+													icon={<XIcon size={20} />}
+													isHiddenLabelOnMobile
+													disabled={areActionButtonsDisabled}
+													isLoading={isProcessing && confirmModal.type === "REJECT"}
+													onClick={() => openConfirm("REJECT")}
+												/>
+												<Button
+													type="button"
+													label="Aprobar"
+													className={approveButtonClass}
+													icon={<CheckIcon size={20} />}
+													isHiddenLabelOnMobile
+													disabled={areActionButtonsDisabled}
+													isLoading={isProcessing && confirmModal.type === "APPROVE"}
+													onClick={() => openConfirm("APPROVE")}
+												/>
+											</>
+										)}
 									</div>
 								</div>
 							)}
