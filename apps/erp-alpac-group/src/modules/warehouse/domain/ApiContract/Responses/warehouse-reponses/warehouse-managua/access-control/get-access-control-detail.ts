@@ -38,7 +38,7 @@ export interface ReceptionEntranceDetail {
   transport_unit: string;
   driver_name: string;
   seal_number: string;
-  seal_evidence: string;
+  evidence_urls: string[];
   document_type: DocumentType;
   vehicle_exit_date: string | null;
   vehicle_exit_time: string | null;

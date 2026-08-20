@@ -8,18 +8,19 @@ import {
 import { formatTime } from "@app/shared/utils/string.utils";
 import { resolveDocumentTypeLabel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/resolveStatus";
 import { ArrowBigDown, ArrowBigUp } from "lucide-react";
-
 const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 type MovementsColumnsOptions = {
   onDetailClick?: (item: ReceptionEntranceListItem) => void;
   onExitClick?: (item: ReceptionEntranceListItem) => void;
+  onDeleteClick?: (item: ReceptionEntranceListItem) => void;
   lastItemId?: string;
 };
 export function getMovementsColumns({
   onDetailClick,
   onExitClick,
+  onDeleteClick,
   lastItemId,
 }: MovementsColumnsOptions = {}): TableColumn<ReceptionEntranceListItem>[] {
   return [
@@ -93,6 +94,7 @@ export function getMovementsColumns({
           items={[
             { label: "Ver detalle", onClick: () => onDetailClick?.(item) },
             { label: "Dar salida", onClick: () => onExitClick?.(item) },
+            { label: "Eliminar", onClick: () => onDeleteClick?.(item) },
           ]}
           triggerClassName={contextMenuButton}
           openUpOnMobile={item.id === lastItemId}

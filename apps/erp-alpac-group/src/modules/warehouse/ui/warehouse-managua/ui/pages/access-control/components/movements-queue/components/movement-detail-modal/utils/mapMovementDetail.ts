@@ -47,7 +47,7 @@ export function mapDetailToFormValues(
     seal_number: detail.seal_number ?? "",
     country_of_origin: detail.country_of_origin ?? "",
     custom_branch: detail.custom_branch ?? "",
-    seal_evidence: detail.seal_evidence ?? "",
+    evidence_urls: detail.evidence_urls ?? [],
     customs_decaration_number: customs?.customs_decaration_number ?? "",
     packages: customs?.packages != null ? String(customs.packages) : "",
     customer: customs?.customer ?? "",

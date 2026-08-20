@@ -13,6 +13,7 @@ export function MovementsQueue({
   isFetching = false,
   onDetailClick,
   onExitClick,
+  onDeleteClick,
 }: MovementsQueueProps) {
   const handleDetailClick = useCallback(
     (item: ReceptionEntranceListItem) => {
@@ -28,14 +29,22 @@ export function MovementsQueue({
     [onExitClick],
   );
 
+  const handleDeleteClick = useCallback(
+    (item: ReceptionEntranceListItem) => {
+      onDeleteClick?.(item);
+    },
+    [onDeleteClick],
+  );
+
   const columns = useMemo(
     () =>
       getMovementsColumns({
         onDetailClick: handleDetailClick,
         onExitClick: handleExitClick,
+        onDeleteClick: handleDeleteClick,
         lastItemId: data.at(-1)?.id,
       }),
-    [data, handleDetailClick, handleExitClick],
+    [data, handleDetailClick, handleExitClick, handleDeleteClick],
   );
 
   return (
