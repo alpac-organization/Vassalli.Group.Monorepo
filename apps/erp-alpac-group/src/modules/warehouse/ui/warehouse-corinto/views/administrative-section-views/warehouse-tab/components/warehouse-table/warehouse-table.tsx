@@ -41,6 +41,7 @@ export const WarehouseTable = ({ data }: WarehouseTableProps) => {
 						}}
 						className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
 					/>
+					
 				);
 			},
 		},

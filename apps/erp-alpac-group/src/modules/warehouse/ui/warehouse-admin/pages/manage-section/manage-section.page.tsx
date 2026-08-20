@@ -1,14 +1,10 @@
 import {
 	Breadcrumb,
 	Button,
-	ContextMenu,
-	DataTable,
 	Dropdown,
 	InputText,
-	Pagination,
 	SectionHeader,
 	useTheme,
-	type TableColumn,
 } from "@alpac/design-system";
 import { Warehouse } from "lucide-react";
 import { useCallback, useMemo, useState, useEffect } from "react";
@@ -19,7 +15,7 @@ import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import { ActiveStatusBadge } from "@app/modules/warehouse/ui/warehouse-admin/utils/layout-badges";
+
 import {
 	applyFiltersButtonClassName,
 	clearFiltersButtonClassName,
@@ -29,16 +25,10 @@ import {
 	primaryButtonClassName,
 } from "@app/modules/warehouse/ui/warehouse-admin/utils/page-styles";
 
-const contextMenuButton =
-	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
-type WarehouseRow = {
-	warehouse_id: string;
-	warehouse_name: string;
-	warehouse_code: string;
-	warehouse_type: string;
-	is_active: boolean;
-};
+
+import { WarehouseList } from "@app/modules/warehouse/ui/warehouse-admin/pages/manage-section/components/warehouse-list/warehouse-list";
+import type { WarehouseRow } from "@app/modules/warehouse/ui/warehouse-admin/pages/manage-section/components/warehouse-list/warehouse-columns";
 
 type WarehouseFilters = {
 	searchTerm: string;
@@ -67,75 +57,49 @@ export const ManageSectionPage = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const pageSize = 10;
 
+	// Preparar boolean para is_active
+	const mapIsActive = (status: string) => {
+		if (status === "Activa") return true;
+		if (status === "Inactiva") return false;
+		return undefined;
+	};
+
 	const { GetWarehouses } = useWarehouse({
 		getWarehousesPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
+			warehouse_name: appliedFilters.searchTerm.trim() || undefined, // Backend will likely match name or code
+			warehouse_type: appliedFilters.filterType || undefined,
+			is_active: mapIsActive(appliedFilters.filterStatus),
+			page_number: currentPage,
+			page_size: pageSize,
 		},
 	});
 
+	const { data: warehouseResponse, isLoading, isFetching } = GetWarehouses;
+
 	const warehouseData = useMemo<WarehouseRow[]>(() => {
-		const payload = GetWarehouses.data;
-		const list: unknown[] = Array.isArray(payload)
-			? payload
-			: Array.isArray(payload?.data)
-				? payload.data
-				: [];
+		const list = warehouseResponse?.data ?? [];
+		return list.map((item: any) => ({
+			warehouse_id: item.warehouse_id ?? "",
+			warehouse_name: item.warehouse_name ?? "-",
+			warehouse_code: item.warehouse_code ?? "-",
+			warehouse_type: item.warehouse_type ?? "-",
+			is_active: Boolean(item.is_active),
+		}));
+	}, [warehouseResponse?.data]);
 
-		return list
-			.map((item): WarehouseRow => {
-				const warehouse = item as Partial<WarehouseRow>;
-
-				return {
-					warehouse_id: warehouse.warehouse_id ?? "",
-					warehouse_name: warehouse.warehouse_name ?? "-",
-					warehouse_code: warehouse.warehouse_code ?? "-",
-					warehouse_type: warehouse.warehouse_type ?? "-",
-					is_active: Boolean(warehouse.is_active),
-				};
-			})
-			.filter((item) => {
-				const matchesSearch =
-					appliedFilters.searchTerm === "" ||
-					item.warehouse_name
-						.toLowerCase()
-						.includes(appliedFilters.searchTerm.toLowerCase()) ||
-					item.warehouse_code
-						.toLowerCase()
-						.includes(appliedFilters.searchTerm.toLowerCase());
-
-				const matchesType =
-					appliedFilters.filterType === "" ||
-					item.warehouse_type === appliedFilters.filterType;
-
-				let matchesStatus = true;
-				if (appliedFilters.filterStatus === "Activa") {
-					matchesStatus = item.is_active === true;
-				} else if (appliedFilters.filterStatus === "Inactiva") {
-					matchesStatus = item.is_active === false;
-				}
-
-				return matchesSearch && matchesType && matchesStatus;
-			});
-	}, [GetWarehouses.data, appliedFilters]);
-
-	useEffect(() => {
-		setCurrentPage(1);
-	}, [appliedFilters]);
-
-	const paginatedData = useMemo(() => {
-		const start = (currentPage - 1) * pageSize;
-		return warehouseData.slice(start, start + pageSize);
-	}, [warehouseData, currentPage, pageSize]);
+	const totalRecords = warehouseResponse?.total ?? 0;
 
 	const handleApplyFilters = useCallback(
 		(event: React.FormEvent) => {
 			event.preventDefault();
 			setAppliedFilters({
-				searchTerm: draftFilters.searchTerm.trim(),
+				searchTerm: draftFilters.searchTerm,
 				filterType: draftFilters.filterType,
 				filterStatus: draftFilters.filterStatus,
 			});
+			setCurrentPage(1);
 		},
 		[draftFilters],
 	);
@@ -143,46 +107,10 @@ export const ManageSectionPage = () => {
 	const handleClearFilters = useCallback(() => {
 		setDraftFilters(EMPTY_FILTERS);
 		setAppliedFilters(EMPTY_FILTERS);
+		setCurrentPage(1);
 	}, []);
 
-	const columns: TableColumn<WarehouseRow>[] = [
-		{ key: "warehouse_name", label: "Nombre" },
-		{ key: "warehouse_code", label: "Código" },
-		{ key: "warehouse_type", label: "Tipo" },
-		{
-			key: "is_active",
-			label: "Estado",
-			render(row) {
-				return <ActiveStatusBadge isActive={row.is_active} />;
-			},
-		},
-		{
-			key: "action",
-			label: "Acciones",
-			render(row) {
-				const isLastItem =
-					paginatedData.length > 0 &&
-					paginatedData[paginatedData.length - 1]?.warehouse_id ===
-						row.warehouse_id;
 
-				return (
-					<ContextMenu
-						items={[
-							{
-								label: "Ver secciones",
-								onClick: () =>
-									navigate(
-										`${baseUrl}/warehouse-admin/management/sections/${row.warehouse_id}`,
-									),
-							},
-						]}
-						triggerClassName={contextMenuButton}
-						openUpOnMobile={isLastItem}
-					/>
-				);
-			},
-		},
-	];
 
 	return (
 		<m.div
@@ -324,19 +252,14 @@ export const ManageSectionPage = () => {
 					</div>
 				</form>
 
-			<DataTable
-				title="Lista de bodegas"
-				data={paginatedData}
-				columns={columns}
-				pagination={
-					<Pagination
-						currentPage={currentPage}
-						pageSize={pageSize}
-						totalRecords={warehouseData.length}
-						onPageChange={(page) => setCurrentPage(page)}
-						disabled={warehouseData.length === 0}
-					/>
-				}
+			<WarehouseList
+				data={warehouseData}
+				currentPage={currentPage}
+				totalRecords={totalRecords}
+				pageSize={pageSize}
+				onPageChange={setCurrentPage}
+				isFetching={isLoading || isFetching}
+				onViewSections={(id) => navigate(`${baseUrl}/warehouse-admin/management/sections/${id}`)}
 			/>
 
 			<WarehouseModal
