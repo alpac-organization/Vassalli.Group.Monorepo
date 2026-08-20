@@ -17,6 +17,7 @@ import {
   type MovementDetailFormValues,
   type MovementDetailModalProps,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/types/movement-detail.types";
+import { EvidenceManager } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/evidence-manager/evidence-manager";
 import { ConsolidatedVariations } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/variants/global-variants";
 import { Loader } from "@app/shared/components/loaders/loader";
 import {
@@ -51,6 +52,7 @@ export function MovementDetailModal({
   onFieldUpdate,
   onDucatUpdate,
   onDucatAdd,
+  onEvidenceUpdate,
 }: MovementDetailModalProps) {
   const [editingFields, setEditingFields] = useState<Record<string, boolean>>(
     {},
@@ -63,6 +65,7 @@ export function MovementDetailModal({
   const [isAddingDucat, setIsAddingDucat] = useState(false);
   const [newDucatDraft, setNewDucatDraft] = useState("");
   const [isSavingNewDucat, setIsSavingNewDucat] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const { companyId, moduleCode } = useUserStore();
   const { GetCustomBranches } = useWarehouse({
@@ -118,6 +121,7 @@ export function MovementDetailModal({
       setIsAddingDucat(false);
       setNewDucatDraft("");
       setIsSavingNewDucat(false);
+      setPreviewImage(null);
     }
   }, [isOpen]);
 
@@ -179,6 +183,7 @@ export function MovementDetailModal({
       setIsSavingNewDucat(false);
     }
   };
+
 
   const tabItems: TabItem<string>[] = [
     {
@@ -590,19 +595,6 @@ export function MovementDetailModal({
             className={editableFieldInputClasses}
           />
           <EditableField
-            name="seal_evidence"
-            label="Evidencia de sello"
-            formMethods={formMethods}
-            isEditing={false}
-            onEditStart={handleEditStart}
-            onEditEnd={handleEditEnd}
-            onConfirmUpdate={onFieldUpdate}
-            allowEdit={false}
-            allowEmptySubmit
-            missingMessage="Imagenes no registradas"
-            className={editableFieldInputClasses}
-          />
-          <EditableField
             name="custom_branch"
             label="Aduana"
             formMethods={formMethods}
@@ -615,7 +607,13 @@ export function MovementDetailModal({
             options={customBranchesOptions}
             placeholder="Seleccione aduana"
           />
+          <EvidenceManager
+            initialEvidences={formMethods.getValues("evidence_urls") || []}
+            onSave={onEvidenceUpdate ? async (toAdd, toDelete) => await onEvidenceUpdate(toAdd, toDelete) : undefined}
+            onPreviewImage={setPreviewImage}
+          />
         </div>
+        
       ),
     },
     {
@@ -720,6 +718,7 @@ export function MovementDetailModal({
   ];
 
   return (
+    <>
     <Modal
       isOpen={isOpen}
       onClose={onClose}
@@ -778,5 +777,21 @@ export function MovementDetailModal({
         </div>
       )}
     </Modal>
+    
+    <Modal
+      isOpen={!!previewImage}
+      onClose={() => setPreviewImage(null)}
+      title="Vista previa de evidencia"
+      size="md"
+    >
+      <div className="flex justify-center items-center p-2 sm:p-4 bg-slate-900 rounded-md">
+        <img
+          src={previewImage || ""}
+          alt="Vista previa de la evidencia"
+          className="max-w-full max-h-[80vh] object-contain rounded-md"
+        />
+      </div>
+    </Modal>
+    </>
   );
 }

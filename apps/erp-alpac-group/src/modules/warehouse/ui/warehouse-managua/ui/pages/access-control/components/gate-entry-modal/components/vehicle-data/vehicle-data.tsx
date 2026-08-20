@@ -15,6 +15,7 @@ import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { TransportUnitOptions } from "@app/modules/warehouse/domain/enums/warehouse-managua/transport-unit";
 import { ImageUploader } from "@app/shared/components/image-uploader/image-uploader";
 import type { ImageOutput } from "@app/shared/components/image-uploader/image-uploader.types";
+import type { CustomBranch } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/custom-branches-response";
 export function VehicleDataStep({
   register,
   setValue,
@@ -39,7 +40,7 @@ export function VehicleDataStep({
 
   const customBranchesOptions = useMemo(() => {
     if (!GetCustomBranches.data) return [];
-    return GetCustomBranches.data.map((branch: any) => ({
+    return GetCustomBranches.data.map((branch: CustomBranch) => ({
       value: branch.id,
       label: branch.name,
     }));
@@ -173,7 +174,6 @@ export function VehicleDataStep({
           labelClassName={gateEntryLabelClassName}
           className={`${gateEntryInputClassName} h-[42px]! sm:h-[46px]!`}
         />
-        {/* Register input hidden so react-hook-form tracks its validation rules */}
         <input
           type="hidden"
           {...register("customBranchId", {
