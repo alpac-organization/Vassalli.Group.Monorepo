@@ -16,21 +16,37 @@ import type { GetRackDetailRequest } from "@app/modules/admin-warehouse/warehous
 import type { GetRackDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-detail";
 import type { CreateRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-racks-req";
 import type { CreateRackResultResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/create-rack-result";
+
 export class WarehouseAdminServices implements IWarehouseAdminService {
   private readonly apiHandler: IHttpHandler;
   constructor(apiHandler: IHttpHandler) {
     this.apiHandler = apiHandler;
   }
+
   async GetSections(payload: GetSectionsRequest): Promise<SectionResponse[]> {
     const { company_id, module_code, warehouse_id, ...rest } = payload;
-    const url = `companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections`;
-    return await this.apiHandler.get<SectionResponse[]>(url, {
+    const url = `companies/${company_id}/modules/${module_code}/warehouse/${warehouse_id}/sections`;
+    const response = await this.apiHandler.get<unknown>(url, {
       params: cleanParams(rest),
     });
+
+    if (Array.isArray(response)) {
+      return response as SectionResponse[];
+    }
+
+    if (
+      response &&
+      typeof response === "object" &&
+      Array.isArray((response as { data?: unknown }).data)
+    ) {
+      return (response as { data: SectionResponse[] }).data;
+    }
+
+    return [];
   }
   async CreateSection(payload: CreateSectionRequest): Promise<void> {
     const { company_id, module_code, warehouse_id, ...rest } = payload;
-    const url = `companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections`;
+    const url = `companies/${company_id}/modules/${module_code}/warehouse/${warehouse_id}/sections`;
     await this.apiHandler.post<void>(url, rest);
   }
   async GetLots(payload: GetLotsRequest): Promise<LotListItemResponse[]> {

@@ -1,8 +1,8 @@
 import { Button, Dropdown, InputText } from "@alpac/design-system";
 import type { Option } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
-import { SectionTypeEnum } from "@app/modules/warehouse/domain/enums/section-type.enum";
-import { SectionStorageTypeEnum } from "@app/modules/warehouse/domain/enums/section-storage-type.enum";
+import { SectionTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
+import { SectionStorageTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
 import {
   EMPTY_SECTION_FILTERS,
   type SectionFilters,

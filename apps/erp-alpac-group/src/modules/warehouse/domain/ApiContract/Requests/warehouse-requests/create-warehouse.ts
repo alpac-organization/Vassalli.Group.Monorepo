@@ -5,7 +5,7 @@ export interface CreateWarehouseRequest {
   branch_id: string;
   is_owner: boolean;
   warehouse_name: string;
-  warehouse_type: string;
+  warehouse_type: number;
   parent_warehouse_id?: string | null;
   warehouse_details: WarehouseDetails;
 }

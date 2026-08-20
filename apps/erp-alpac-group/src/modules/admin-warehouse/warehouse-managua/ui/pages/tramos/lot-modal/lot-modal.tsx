@@ -14,7 +14,7 @@ import type { LotModalProps } from "./lot-modal.types";
 import {
   RackStatusEnum,
   RackStatusOptions,
-} from "@app/modules/warehouse/domain/enums/rack-status.enum";
+} from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
 import type {
   CreateLotsRequest,
   RegisterLotGroupRequest,

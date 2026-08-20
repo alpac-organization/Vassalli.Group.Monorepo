@@ -16,28 +16,22 @@ export class WarehouseServices implements IWarehouseServices {
 
   async GetWarehouses(
     payload: GetWarehouseRequest,
-  ): Promise<GetWarehousesResponse[]> {
-    try {
-      const { company_id, module_code, ...rest } = payload;
+  ): Promise<GetWarehousesResponse> {
+    const { company_id, module_code, ...rest } = payload;
 
-      const url = `companies/${company_id}/modules/${module_code}/warehouse`;
+    const url = `companies/${company_id}/modules/${module_code}/warehouse`;
 
-      return await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
-    } catch (error) {
-      throw error;
-    }
+    return await this.apiHandler.get<GetWarehousesResponse>(url, {
+      params: cleanParams(rest),
+    });
   }
 
   async CreateWarehouse(payload: CreateWarehouseRequest): Promise<void> {
-    try {
-      const { company_id, module_code, ...rest } = payload;
+    const { company_id, module_code, ...rest } = payload;
 
-      const url = `companies/${company_id}/modules/${module_code}/warehouse`;
+    const url = `companies/${company_id}/modules/${module_code}/warehouse`;
 
-      await this.apiHandler.post<void>(url, rest);
-    } catch (error) {
-      throw error;
-    }
+    await this.apiHandler.post<void>(url, rest);
   }
 
   async getCustomBranches(
@@ -45,7 +39,6 @@ export class WarehouseServices implements IWarehouseServices {
   ): Promise<GetCustomBranchesResponse> {
     const { company_id, module_code } = payload;
     const url = `companies/${company_id}/modules/${module_code}/customs-branches`;
-    const response = await this.apiHandler.get<GetCustomBranchesResponse>(url);
-    return response;
+    return await this.apiHandler.get<GetCustomBranchesResponse>(url);
   }
 }

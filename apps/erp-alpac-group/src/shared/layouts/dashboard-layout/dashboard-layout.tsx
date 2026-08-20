@@ -112,7 +112,7 @@ export const DashboardLayout = () => {
                         description="No tienes permiso para acceder a esta ruta"
                         onClose={() => {
                            setShowModal(false);
-                           navigate("/dashboard");
+                           navigate(companyAlias ? `/${companyAlias}/dashboard` : "/dashboard");
                         }}
                      />
                   )}

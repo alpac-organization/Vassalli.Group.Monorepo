@@ -9,63 +9,68 @@ import { WarehouseTable } from "@app/modules/warehouse/ui/view/warehouse/compone
 import { WarehouseModal } from "@app/modules/warehouse/ui/view/warehouse/components/warehouse-modal/warehouse-modal";
 import {
   EMPTY_WAREHOUSE_FILTERS,
+  filtersToGetWarehouseParams,
   type WarehouseFilters,
 } from "@app/modules/warehouse/ui/view/warehouse/types/warehouse.types";
-import {
-  filterWarehouses,
-  normalizeWarehouses,
-} from "@app/modules/warehouse/ui/view/warehouse/utils/map-warehouses";
+import { flattenWarehouseRows } from "@app/modules/warehouse/ui/view/warehouse/components/warehouse-table/types/warehouse-table.types";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { Loader } from "@app/shared/components/loaders/loader";
-import type { GetWarehousesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses";
+import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses";
+import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
 
 const PAGE_SIZE = 10;
 
 export function WarehousePage() {
   const navigate = useNavigate();
   const { baseUrl } = useBaseUrl();
-  const { companyId, moduleCode } = useUserStore();
+  const { companyId, moduleCode, moduleBasePath } = useUserStore();
+  const isWarehouseAdmin = moduleBasePath.includes("warehouse-admin");
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] = useState<WarehouseFilters>(
     EMPTY_WAREHOUSE_FILTERS,
   );
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { GetWarehouses } = useWarehouse({
-    getWarehousesPayload: {
+  const getWarehousesPayload = useMemo<GetWarehouseRequest>(
+    () => ({
       company_id: companyId,
       module_code: moduleCode,
-    },
-  });
-
-  const warehouseData = useMemo(
-    () =>
-      filterWarehouses(normalizeWarehouses(GetWarehouses.data), appliedFilters),
-    [GetWarehouses.data, appliedFilters],
+      ...filtersToGetWarehouseParams(appliedFilters),
+      page_number: currentPage,
+      page_size: PAGE_SIZE,
+    }),
+    [companyId, moduleCode, appliedFilters, currentPage],
   );
 
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return warehouseData.slice(start, start + PAGE_SIZE);
-  }, [warehouseData, currentPage]);
+  const { GetWarehouses } = useWarehouse({ getWarehousesPayload });
+
+  const warehouseData = useMemo(
+    () => flattenWarehouseRows(GetWarehouses.data?.data ?? []),
+    [GetWarehouses.data?.data],
+  );
+
+  const totalRecords = GetWarehouses.data?.total ?? 0;
 
   const handleApplyFilters = useCallback((filters: WarehouseFilters) => {
     setAppliedFilters(filters);
     setCurrentPage(1);
   }, []);
+
   const handleClearFilters = useCallback(() => {
     setAppliedFilters(EMPTY_WAREHOUSE_FILTERS);
     setCurrentPage(1);
   }, []);
+
   const handleViewSections = useCallback(
-    (warehouse: GetWarehousesResponse) => {
-      navigate(
-        `${baseUrl}/warehouse-mga/warehouse/${warehouse.warehouse_id}/sections`,
-      );
+    (warehouse: WarehouseDto) => {
+      const sectionsPath = isWarehouseAdmin
+        ? `${baseUrl}/warehouse-admin/management/sections/${warehouse.warehouse_id}`
+        : `${baseUrl}/warehouse-mga/warehouse/${warehouse.warehouse_id}/sections`;
+      navigate(sectionsPath);
     },
-    [baseUrl, navigate],
+    [baseUrl, isWarehouseAdmin, navigate],
   );
 
   return (
@@ -108,10 +113,10 @@ export function WarehousePage() {
       />
 
       <WarehouseTable
-        data={paginatedData}
-        currentPage={currentPage}
-        totalRecords={warehouseData.length}
-        pageSize={PAGE_SIZE}
+        data={warehouseData}
+        currentPage={GetWarehouses.data?.page_number ?? currentPage}
+        totalRecords={totalRecords}
+        pageSize={GetWarehouses.data?.page_size ?? PAGE_SIZE}
         onPageChange={setCurrentPage}
         onViewSections={handleViewSections}
         isFetching={GetWarehouses.isFetching}

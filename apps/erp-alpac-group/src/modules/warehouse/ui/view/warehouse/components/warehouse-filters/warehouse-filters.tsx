@@ -15,7 +15,7 @@ import {
 const WAREHOUSE_TYPE_FILTER_OPTIONS: Option[] = [
   { value: "", label: "Todos" },
   ...WarehouseTypeOptions.map((option) => ({
-    value: option.label,
+    value: String(option.value),
     label: option.label,
   })),
 ];
@@ -28,8 +28,8 @@ const STATUS_FILTER_OPTIONS: Option[] = [
 
 function buildFiltersPayload(values: WarehouseFilters): WarehouseFilters {
   return {
-    searchTerm: values.searchTerm.trim(),
-    filterType: values.filterType,
+    warehouse_code: values.warehouse_code.trim(),
+    warehouse_type: values.warehouse_type,
     filterStatus: values.filterStatus,
   };
 }
@@ -55,7 +55,7 @@ export function WarehouseFiltersBar({
         <div className="flex flex-col justify-center gap-2">
           <h3 className="p-0! m-0!">Filtros</h3>
           <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
-            Filtra por nombre, código, tipo o estado de la bodega
+            Filtra por código, tipo o estado de la bodega
           </small>
         </div>
       </div>
@@ -68,18 +68,18 @@ export function WarehouseFiltersBar({
       >
         <div className="flex flex-col min-w-0">
           <InputText
-            label="Búsqueda"
+            label="Código"
             className={inputClassName}
             labelClassName={labelClassName}
             type="text"
-            placeholder="Buscar por nombre o código..."
-            {...register("searchTerm")}
+            placeholder="Buscar por código..."
+            {...register("warehouse_code")}
           />
         </div>
 
         <div className="flex flex-col min-w-0">
           <Controller
-            name="filterType"
+            name="warehouse_type"
             control={control}
             render={({ field }) => (
               <Dropdown

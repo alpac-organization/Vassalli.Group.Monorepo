@@ -39,18 +39,28 @@ export function TramosPage() {
   );
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { GetLots, GetLotById } = useWarehouseAdmin({
-    getLotsPayload: {
+  const getLotsPayload = useMemo(
+    () => ({
       company_id: companyId,
       module_code: moduleCode,
       section_id: sectionId,
-    },
-    getLotDetailPayload: {
+    }),
+    [companyId, moduleCode, sectionId],
+  );
+
+  const getLotDetailPayload = useMemo(
+    () => ({
       company_id: companyId,
       module_code: moduleCode,
       section_id: sectionId,
       lot_id: selectedLotId ?? "",
-    },
+    }),
+    [companyId, moduleCode, sectionId, selectedLotId],
+  );
+
+  const { GetLots, GetLotById } = useWarehouseAdmin({
+    getLotsPayload,
+    getLotDetailPayload,
   });
 
   const tramosData = useMemo(

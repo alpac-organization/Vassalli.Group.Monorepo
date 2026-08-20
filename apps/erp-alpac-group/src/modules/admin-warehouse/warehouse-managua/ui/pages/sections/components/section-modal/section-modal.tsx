@@ -13,11 +13,11 @@ import type { SectionModalProps } from "./section-modal.types";
 import {
   SectionStorageTypeEnum,
   SectionStorageTypeOptions,
-} from "@app/modules/warehouse/domain/enums/section-storage-type.enum";
+} from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
 import {
   SectionTypeEnum,
   SectionTypeOptions,
-} from "@app/modules/warehouse/domain/enums/section-type.enum";
+} from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
 import type { CreateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-section-req";
 import {
   formatAmount,

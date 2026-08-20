@@ -4,7 +4,7 @@ import {
   ActiveStatusBadge,
   SectionStorageTypeBadge,
   SectionTypeBadge,
-} from "@app/modules/warehouse/ui/warehouse-admin/utils/layout-badges";
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-warehouses-badges";
 
 const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
@@ -34,12 +34,14 @@ export function getSectionsColumns({
     {
       key: "section_type",
       label: "Tipo",
-      render: (item) => <SectionTypeBadge value={item.section_type} />,
+      render: (item) => <SectionTypeBadge value={item.section_type || ""} />,
     },
     {
       key: "storage_type",
       label: "Almacenamiento",
-      render: (item) => <SectionStorageTypeBadge value={item.storage_type} />,
+      render: (item) => (
+        <SectionStorageTypeBadge value={item.storage_type || ""} />
+      ),
     },
     {
       key: "is_active",

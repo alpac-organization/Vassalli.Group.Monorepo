@@ -13,6 +13,7 @@ import type { GetRackDetailRequest } from "@app/modules/admin-warehouse/warehous
 import type { GetRackDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-detail";
 import type { CreateRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-racks-req";
 import type { CreateRackResultResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/create-rack-result";
+
 export interface IWarehouseAdminService {
   GetSections(payload: GetSectionsRequest): Promise<SectionResponse[]>;
   CreateSection(payload: CreateSectionRequest): Promise<void>;

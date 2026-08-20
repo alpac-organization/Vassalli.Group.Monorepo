@@ -28,9 +28,6 @@ export function AnimatedAlertWrapper({
 
   useEffect(() => {
     if (open) {
-      if (children) {
-        savedRef.current = children;
-      }
       setMounted(true);
       setVisible(false);
       let innerRaf = 0;
@@ -50,7 +47,7 @@ export function AnimatedAlertWrapper({
     }, TRANSITION_MS);
 
     return () => window.clearTimeout(timer);
-  }, [open, children]);
+  }, [open]);
 
   if (typeof document === "undefined") {
     return null;

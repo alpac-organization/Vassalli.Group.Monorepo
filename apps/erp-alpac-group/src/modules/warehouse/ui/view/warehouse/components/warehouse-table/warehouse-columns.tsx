@@ -1,11 +1,14 @@
 import { Badges, ContextMenu, type TableColumn } from "@alpac/design-system";
-import type { GetWarehousesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses";
+import { CornerDownRight } from "lucide-react";
+import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses";
+import { getWarehouseTypeLabel } from "@app/modules/warehouse/domain/enums/warehouse.enum";
+import type { WarehouseTableRow } from "@app/modules/warehouse/ui/view/warehouse/components/warehouse-table/types/warehouse-table.types";
 
 const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 type WarehouseColumnsOptions = {
-  onViewSections: (warehouse: GetWarehousesResponse) => void;
+  onViewSections: (warehouse: WarehouseDto) => void;
   lastItemId?: string;
 };
 
@@ -25,15 +28,37 @@ function ActiveStatusBadge({ isActive }: { isActive: boolean }) {
   );
 }
 
+function WarehouseNameCell({ item }: { item: WarehouseTableRow }) {
+  const isChild = item.depth > 0;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 min-w-0 ${
+        isChild ? "text-slate-300" : ""
+      }`}
+      style={{ paddingLeft: isChild ? `${item.depth * 1.25}rem` : 0 }}
+    >
+      {isChild && (
+        <CornerDownRight
+          size={14}
+          className="shrink-0 text-slate-400 dark:text-slate-500"
+          aria-hidden
+        />
+      )}
+      <span className="truncate">{item.warehouse_name || "—"}</span>
+    </span>
+  );
+}
+
 export function getWarehouseColumns({
   onViewSections,
   lastItemId,
-}: WarehouseColumnsOptions): TableColumn<GetWarehousesResponse>[] {
+}: WarehouseColumnsOptions): TableColumn<WarehouseTableRow>[] {
   return [
     {
       key: "warehouse_name",
       label: "Nombre",
-      render: (item) => item.warehouse_name || "—",
+      render: (item) => <WarehouseNameCell item={item} />,
     },
     {
       key: "warehouse_code",
@@ -43,7 +68,7 @@ export function getWarehouseColumns({
     {
       key: "warehouse_type",
       label: "Tipo",
-      render: (item) => item.warehouse_type || "—",
+      render: (item) => getWarehouseTypeLabel(item.warehouse_type),
     },
     {
       key: "is_active",

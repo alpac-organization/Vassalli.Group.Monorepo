@@ -9,7 +9,10 @@ import {
 } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
 import type { WarehouseModalProps } from "./types/warehouse-modal.types";
-import { WarehouseTypeOptions } from "@app/modules/warehouse/domain/enums/warehouse.enum";
+import {
+  WarehouseTypeEnum,
+  WarehouseTypeOptions,
+} from "@app/modules/warehouse/domain/enums/warehouse.enum";
 import type { CreateWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-warehouse";
 import {
   formatAmount,
@@ -95,9 +98,9 @@ export function WarehouseModal({
       code: data.code,
       is_owner: true,
       warehouse_name: data.warehouse_name,
-      warehouse_type: warehouseTypeOption
-        ? warehouseTypeOption.label
-        : "General",
+      warehouse_type: Number(
+        warehouseTypeOption?.value ?? WarehouseTypeEnum.General.value,
+      ),
       parent_warehouse_id: null,
       warehouse_details: {
         width_metres: data.warehouse_details.width_metres,

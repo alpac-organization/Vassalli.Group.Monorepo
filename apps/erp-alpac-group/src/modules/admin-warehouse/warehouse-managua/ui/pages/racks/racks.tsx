@@ -38,20 +38,30 @@ export function RacksPage() {
   );
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { GetRacks, GetRackById } = useWarehouseAdmin({
-    getRacksPayload: {
+  const getRacksPayload = useMemo(
+    () => ({
       company_id: companyId,
       module_code: moduleCode,
       section_id: sectionId,
       level_number: appliedFilters.level ? Number(appliedFilters.level) : null,
       status: appliedFilters.status || null,
       usage_profile: appliedFilters.usage || null,
-    },
-    getRackDetailPayload: {
+    }),
+    [companyId, moduleCode, sectionId, appliedFilters],
+  );
+
+  const getRackDetailPayload = useMemo(
+    () => ({
       company_id: companyId,
       module_code: moduleCode,
       rack_id: selectedRackId ?? "",
-    },
+    }),
+    [companyId, moduleCode, selectedRackId],
+  );
+
+  const { GetRacks, GetRackById } = useWarehouseAdmin({
+    getRacksPayload,
+    getRackDetailPayload,
   });
 
   const racksData = GetRacks.data?.racks ?? [];

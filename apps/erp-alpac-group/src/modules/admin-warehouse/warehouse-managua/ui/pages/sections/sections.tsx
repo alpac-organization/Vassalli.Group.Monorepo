@@ -11,7 +11,7 @@ import {
   EMPTY_SECTION_FILTERS,
   type SectionFilters,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/types/sections.types";
-import { filterSections } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/filter-sections";
+import { filterSections, normalizeSections } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/filter-sections";
 import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -36,16 +36,19 @@ export function SectionsPage() {
   );
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { GetSections } = useWarehouseAdmin({
-    getSectionsPayload: {
+  const getSectionsPayload = useMemo(
+    () => ({
       company_id: companyId,
       module_code: moduleCode,
       warehouse_id: warehouseId,
-    },
-  });
+    }),
+    [companyId, moduleCode, warehouseId],
+  );
+
+  const { GetSections } = useWarehouseAdmin({ getSectionsPayload });
 
   const sectionsData = useMemo(
-    () => filterSections(GetSections.data ?? [], appliedFilters),
+    () => filterSections(normalizeSections(GetSections.data), appliedFilters),
     [GetSections.data, appliedFilters],
   );
 
@@ -56,14 +59,15 @@ export function SectionsPage() {
 
   useEffect(() => {
     if (!GetSections.isError || !GetSections.error) return;
-    const mappedError = getMappedError(GetSections.error as ApiErrorResponse);
-    handleRequestError(mappedError.description);
-  }, [
-    GetSections.isError,
-    GetSections.error,
-    getMappedError,
-    handleRequestError,
-  ]);
+    try {
+      const mappedError = getMappedError(GetSections.error as ApiErrorResponse);
+      handleRequestError(
+        mappedError?.description || "Error al cargar las secciones",
+      );
+    } catch {
+      handleRequestError("Error al cargar las secciones");
+    }
+  }, [GetSections.isError, GetSections.error, getMappedError, handleRequestError]);
 
   const handleApplyFilters = useCallback((filters: SectionFilters) => {
     setAppliedFilters(filters);
@@ -103,14 +107,16 @@ export function SectionsPage() {
     >
       {GetSections.isPending && <Loader title="Cargando secciones..." />}
 
-      <AnimatedAlertWrapper open={alertState?.open ?? false}>
-        <Alert
-          type={alertState?.type!}
-          title={alertState?.title}
-          message={alertState?.message!}
-          onClose={handleCloseAlert}
-        />
-      </AnimatedAlertWrapper>
+      {alertState?.open ? (
+        <AnimatedAlertWrapper open>
+          <Alert
+            type={alertState.type}
+            title={alertState.title}
+            message={alertState.message}
+            onClose={handleCloseAlert}
+          />
+        </AnimatedAlertWrapper>
+      ) : null}
 
       <SectionsHeader warehouseId={warehouseId} />
 

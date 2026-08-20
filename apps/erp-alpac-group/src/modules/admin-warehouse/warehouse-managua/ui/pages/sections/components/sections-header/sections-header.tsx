@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from "react";
 import { Breadcrumb, useTheme } from "@alpac/design-system";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -15,27 +16,37 @@ export function SectionsHeader({ warehouseId }: SectionsHeaderProps) {
 
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
+  const goTo = useCallback(
+    (url: string) => {
+      navigate(url);
+    },
+    [navigate],
+  );
+
+  const breadcrumbItems = useMemo(
+    () => [
+      {
+        label: "Dashboard",
+        url: baseUrl,
+        onClick: goTo,
+      },
+      {
+        label: "Lista de bodegas",
+        url: `${baseUrl}/warehouse-admin/management`,
+        onClick: goTo,
+      },
+      {
+        label: "Secciones",
+        url: `${baseUrl}/warehouse-admin/management/sections/${warehouseId}`,
+      },
+    ],
+    [baseUrl, goTo, warehouseId],
+  );
+
   return (
     <div className="flex flex-col gap-3 sm:gap-4 min-w-0">
       <div className="flex justify-start min-w-0 overflow-x-auto">
-        <Breadcrumb
-          items={[
-            {
-              label: "Dashboard",
-              url: `${baseUrl}/`,
-              onClick: (url) => navigate(url),
-            },
-            {
-              label: "Lista de bodegas",
-              url: `${baseUrl}/warehouse-mga/warehouse`,
-              onClick: (url) => navigate(url),
-            },
-            {
-              label: "Secciones",
-              url: `${baseUrl}/warehouse-mga/warehouse/${warehouseId}/sections`,
-            },
-          ]}
-        />
+        <Breadcrumb items={breadcrumbItems} />
       </div>
 
       <div className="flex flex-row justify-between items-start sm:items-center gap-3 min-w-0">

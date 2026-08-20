@@ -2,7 +2,7 @@ import { Button, Modal } from "@alpac/design-system";
 import { Boxes, Layers, MapPin, Ruler, X } from "lucide-react";
 import type { LotDetailModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-detail-modal/types/lot-detail-modal.types";
 import { getLotPositionMap } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/utils/map-lot-positions";
-import { RackStatusBadge } from "@app/modules/warehouse/ui/warehouse-admin/utils/layout-badges";
+import { RackStatusBadge } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-warehouses-badges";
 
 const positionCellClassName =
   "flex flex-col items-center justify-center gap-0.5 rounded-md border px-2 py-2 text-center text-[11px]";
@@ -103,7 +103,7 @@ export const LotDetailModal = ({
                 <span className="text-xs">Estado</span>
               </div>
               <div className="mt-1">
-                <RackStatusBadge value={lot.status ?? null} />
+                <RackStatusBadge value={lot.status ?? ""} />
               </div>
             </div>
           </div>

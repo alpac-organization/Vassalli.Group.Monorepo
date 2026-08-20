@@ -1,7 +1,7 @@
 import { Button, Dropdown, InputText } from "@alpac/design-system";
 import type { Option } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
-import { RackStatusEnum } from "@app/modules/warehouse/domain/enums/rack-status.enum";
+import { RackStatusEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
 import {
   EMPTY_TRAMO_FILTERS,
   type TramoFilters,

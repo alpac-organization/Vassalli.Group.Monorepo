@@ -3,7 +3,7 @@ import { Boxes, Layers, MapPin, Ruler, Workflow, X } from "lucide-react";
 import type { RackDetailModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/rack-detail-modal.types";
 import { getUsageProfileLabel } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/get-usage-profile-label";
 import { sortRackPositions } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/sort-rack-positions";
-import { RackStatusBadge } from "@app/modules/warehouse/ui/warehouse-admin/utils/layout-badges";
+import { RackStatusBadge } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-warehouses-badges";
 
 const positionCellClassName =
   "flex flex-col items-center justify-center gap-0.5 rounded-md border px-2 py-2 text-center text-[11px]";
