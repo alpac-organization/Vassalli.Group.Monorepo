@@ -5,7 +5,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import { BanIcon, BuildingIcon, CalendarCheckIcon, CalendarIcon, CheckIcon, MailIcon, NotebookTextIcon, User2Icon, UserRoundCheckIcon, XIcon } from "lucide-react";
+import { BanIcon, BuildingIcon, CalendarCheckIcon, CalendarIcon, CheckIcon, MailIcon, NotebookTextIcon, XIcon } from "lucide-react";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
@@ -16,7 +16,8 @@ import type { PurchaseRequestDetailModalProps } from "./purchase-request-detail-
 import type { GetPurchaseRequestDetailResponse, PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
-import { purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../purchase-request.variants";
+import { purchaseRequestPriorityBadgeVariants, purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../purchase-request.variants";
+import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 
 const approveButtonClass = "rounded-md! h-11 px-6! border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-40 shadow-sm transition-all duration-200";
 const rejectButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
@@ -70,6 +71,8 @@ export const PurchaseRequestDetailModal = ({
 		| PurchaseRequestProductInformationList
 		| undefined;
 
+	console.log(details);
+
 	const isLoading =
 		GetPurchaseRequestDetails.isPending ||
 		GetPurchaseRequestDetails.isFetching ||
@@ -90,6 +93,8 @@ export const PurchaseRequestDetailModal = ({
 		PurchaseRequestStatusEnum.Approved.textValue,
 		PurchaseRequestStatusEnum.Rejected.textValue,
 		PurchaseRequestStatusEnum.Canceled.textValue,
+		PurchaseRequestStatusEnum.Revision.textValue,
+		PurchaseRequestStatusEnum.Finished.textValue
 	].includes(currentStatus as Exclude<keyof typeof PurchaseRequestStatusEnum, "Pending">);
 
 	const areActionButtonsDisabled = isProcessing || isFinalStatus;
@@ -170,14 +175,14 @@ export const PurchaseRequestDetailModal = ({
 			<Modal
 				isOpen={isOpen}
 				onClose={onClose}
-				variant="form"
-				title={details?.code ? `Detalle ${details.code}` : "Detalle de solicitud"}
-				panelClassName={[
-					"!max-w-6xl w-[min(calc(100vw-1rem),56rem)] min-w-0",
+				variant="default"				
+				size="7xl"
+				panelClassName={[					
 					"flex max-h-[min(94dvh,50rem)] flex-col overflow-hidden",
 					"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
 					"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
 				].join(" ")}
+
 				contentClassName="flex min-h-0 flex-1 flex-col"
 			>
 				<div className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -194,10 +199,13 @@ export const PurchaseRequestDetailModal = ({
 							<div className="scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
 								<div className="flex flex-col gap-5 pb-2">
 									<section className="flex flex-col gap-3">
-										<h5 className={sectionTitleClassName}>
+
+										<h4 className={sectionTitleClassName}>
 											Información general
-										</h5>
+										</h4>
+
 										<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
 											<DetailField
 												label="Estado"
 												value={
@@ -216,6 +224,7 @@ export const PurchaseRequestDetailModal = ({
 													/>
 												}
 											/>
+
 											<DetailField
 												label="Tipo"
 												value={
@@ -234,37 +243,65 @@ export const PurchaseRequestDetailModal = ({
 													/>
 												}
 											/>
+
+											<DetailField
+												label="Prioridad"
+												value={
+													<Badges
+														label={
+															PriorityLevelEnum[
+																details?.priority_level as (keyof typeof PriorityLevelEnum)
+															]?.label ?? details?.priority_level
+														}
+														color={
+															purchaseRequestPriorityBadgeVariants[
+																details?.priority_level as keyof typeof purchaseRequestPriorityBadgeVariants
+															]?.badgeColor ??
+															purchaseRequestPriorityBadgeVariants.default.badgeColor
+														}
+													/>
+												}
+											/>
+
+										</div>
+
+										<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 											<DetailField
 												label="Fecha de Registro"
 												value={formatDateToSpanishWords(details?.request_date ?? "")}
 												icon={<CalendarIcon size={18} />}
 											/>
+
 											<DetailField
 												label="Fecha de revisión"
 												value={formatDateToSpanishWords(details?.revision_date ?? "")}
 												icon={<CalendarCheckIcon size={18} />}
 											/>
-										</div>
-										<div className="grid grid-cols-1 p-1 gap-4">
+
 											<DetailField
 												label="Observaciones"
-												value={details.observations}
+												value={`${details?.observations}`}
+												containerClass={(details?.observations?.length && details?.observations?.length > 50) ? "col-span-3" : ""}
 												icon={<NotebookTextIcon size={18} />}
 											/>
+
+
 											{details.reason_rejection ? (
 												<DetailField
 													label="Motivo de rechazo"
-													value={details.reason_rejection}
+													value={`${details?.reason_rejection}`}
+													containerClass={(details?.reason_rejection?.length && details?.reason_rejection?.length > 50) ? "col-span-3" : ""}
 													icon={<BanIcon size={18} />}
 												/>
 											) : null}
-										</div>
+										</div>										
+
 									</section>
 
 									<section className="flex flex-col gap-3">
-										<h5 className={sectionTitleClassName}>
+										<h4 className={sectionTitleClassName}>
 											Solicitante y sucursal
-										</h5>
+										</h4>
 										<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 											<DetailField
 												label="Solicitante"
@@ -285,9 +322,9 @@ export const PurchaseRequestDetailModal = ({
 									</section>
 
 									<section className="flex flex-col gap-3">
-										<h5 className={sectionTitleClassName}>
+										<h4 className={sectionTitleClassName}>
 											Productos
-										</h5>
+										</h4>
 									</section>
 
 									<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">
@@ -382,7 +419,7 @@ export const PurchaseRequestDetailModal = ({
 												label="Revisado por"
 												value={details?.reviewer_user_information?.fullname}
 												icon={<Avatar label={details?.reviewer_user_information?.fullname ?? ""} hasLabel={false} />}
-											/>											
+											/>
 
 											<DetailField
 												label="Email del revisor"

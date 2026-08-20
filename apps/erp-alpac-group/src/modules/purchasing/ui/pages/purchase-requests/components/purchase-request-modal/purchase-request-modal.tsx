@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button, Modal } from "@alpac/design-system";
 import { PlusIcon } from "lucide-react";
-import type { PurchaseRequestModalProps } from "./purchase-request-modal.types";
+import type { PurchaseRequestEntry, PurchaseRequestModalProps } from "./purchase-request-modal.types";
 import type {
 	CreatePurchaseRequestPayload,
 	PurchaseRequestItem,
@@ -19,13 +19,8 @@ import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purcha
 import { PurchaseRequestFormBlock } from "../purchase-request-form-block/purchase-request-form-block";
 import type { PurchaseRequestFormBlockHandle } from "../purchase-request-form-block/purchase-request-form-block.types";
 
-type PurchaseRequestEntry = {
-	id: string;
-	defaults: CreatePurchaseRequestPayload;
-};
-
-const emptyFormValues = (): CreatePurchaseRequestPayload => ({	
-	area_id: "",	
+const emptyFormValues = (): CreatePurchaseRequestPayload => ({
+	area_id: "",
 	branch_id: "",
 	request_type: 0,
 	priority_level: undefined,
@@ -34,9 +29,7 @@ const emptyFormValues = (): CreatePurchaseRequestPayload => ({
 	purchase_request_items: [],
 });
 
-const createEntry = (
-	defaults: CreatePurchaseRequestPayload = emptyFormValues(),
-): PurchaseRequestEntry => ({
+const createEntry = (defaults: CreatePurchaseRequestPayload = emptyFormValues()): PurchaseRequestEntry => ({
 	id: crypto.randomUUID(),
 	defaults: {
 		...defaults,
@@ -62,7 +55,9 @@ export const PurchaseRequestModal = ({
 	onRequestError,
 	onRequestSuccess,
 }: PurchaseRequestModalProps) => {
-	const { companyId, moduleCode, role } = useUserStore();
+
+	const { companyId, moduleCode, role,  } = useUserStore();	
+
 	const { getMappedError } = useMappedError();
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
 	const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
@@ -71,11 +66,23 @@ export const PurchaseRequestModal = ({
 	const blockRefs = useRef<Map<string, PurchaseRequestFormBlockHandle>>(new Map());
 	const lastBlockRef = useRef<HTMLDivElement>(null);
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
+	const defaultData: PurchaseRequestEntry = {
+		id: crypto.randomUUID(),
+		defaults: {
+			branch_id: "",
+			destination: -1,
+			observations: "",
+			request_type: -1,
+			priority_level: -1,
+			purchase_request_items: []
+		}
+	}
+
 
 	const { CreatePurchaseRequest } = usePurchase();
 
 	useEffect(() => {
-		setEntries([]);
+		setEntries([defaultData]);
 		blockRefs.current.clear();
 	}, [isOpen]);
 
@@ -112,33 +119,40 @@ export const PurchaseRequestModal = ({
 		setEntries((prev) => prev.filter((entry) => entry.id !== id));
 	};
 
-	const buildPayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => ({		
-		...(isAdministrator ? { area_id: values.area_id } : {}),		
-		branch_id: currentBranchId,
-		request_type: Number(requestType.value),
-		...(isRequisition ? { priority_level: Number(values.priority_level) } : {}),
-		destination: values.destination,
-		observations: values.observations.trim(),
-		purchase_request_items: values.purchase_request_items.map((item: PurchaseRequestItem) => {
-			const productJustification = item.justification?.trim() ?? "";
-			const productImages = item.images?.images_product_to_changed ?? [];
-			const additionalData: PurchaseRequestItemAdditionalData | null = productImages.length
-				? { images_product_to_changed: productImages }
-				: null;
+	const buildPayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => {
 
-			return {
-				product_id: item.product_id,
-				quantity: Number(item.quantity),
-				description: item.description,
-				unit_measure_id: item.unit_measure_id,
-				additional_data: additionalData ? JSON.stringify(additionalData) : null,
-				...(productJustification ? { justification: productJustification } : {}),
-				...(item.quantity_unit != null && Number(item.quantity_unit) > 0
-					? { quantity_unit: Number(item.quantity_unit) }
-					: {}),
-			};
-		}),
-	});
+		console.log("Testing de orden de servicio: ", values.service_order_id)
+
+		return ({
+			...(isAdministrator ? { area_id: values.area_id } : {}),
+			branch_id: currentBranchId,
+			request_type: Number(requestType.value),
+			...(isRequisition ? { priority_level: Number(values.priority_level) } : {}),
+			...(values.service_order_id && { service_order_id: values.service_order_id }),
+			destination: values.destination,
+			observations: values.observations.trim(),
+			purchase_request_items: values.purchase_request_items.map((item: PurchaseRequestItem) => {
+				const productJustification = item.justification?.trim() ?? "";
+				const productImages = item.images?.images_product_to_changed ?? [];
+				const additionalData: PurchaseRequestItemAdditionalData | null = productImages.length
+					? { images_product_to_changed: productImages }
+					: null;
+
+				return {
+					product_id: item.product_id,
+					quantity: Number(item.quantity),
+					description: item.description,
+					unit_measure_id: item.unit_measure_id,
+					additional_data: additionalData ? JSON.stringify(additionalData) : null,
+					...(productJustification ? { justification: productJustification } : {}),
+					...(item.quantity_unit != null && Number(item.quantity_unit) > 0
+						? { quantity_unit: Number(item.quantity_unit) }
+						: {}),
+				};
+			})
+		})
+
+	}
 
 	const handleFormSubmit = async () => {
 
@@ -159,7 +173,7 @@ export const PurchaseRequestModal = ({
 		try {
 			const mainPayload: PurchaseRequestMainPayload = {
 				company_id: companyId,
-				module_code: moduleCode,				
+				module_code: moduleCode,
 				purchase_requests: valuesList.map((values) => buildPayload(values)),
 			};
 
@@ -204,17 +218,6 @@ export const PurchaseRequestModal = ({
 					className="flex min-h-0 flex-1 flex-col"
 					noValidate
 				>
-					<div className="sticky top-0 right-0 z-10 bg-white dark:bg-[#272b34]">
-						<Button
-							type="button"
-							size="medium"
-							icon={<PlusIcon size={16} />}
-							label={`Crear ${requestType.label}`}
-							onClick={handleCreate}
-							className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-						/>
-					</div>
-
 					<div
 						ref={scrollContainerRef}
 						className="p-1 scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
@@ -254,6 +257,17 @@ export const PurchaseRequestModal = ({
 								))
 							)}
 						</div>
+					</div>
+
+					<div className="sticky top-0 right-0 z-10 bg-white dark:bg-[#272b34] py-4">
+						<Button
+							type="button"
+							size="medium"
+							icon={<PlusIcon size={16} />}
+							label={`Crear ${requestType.label}`}
+							onClick={handleCreate}
+							className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+						/>
 					</div>
 
 					<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">

@@ -1,7 +1,6 @@
 import { useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { Button, Chips, ContextMenu, Dropdown, RadioButton, Textarea } from "@alpac/design-system";
-import { PlusIcon } from "lucide-react";
+import { Chips, ContextMenu, Dropdown, RadioButton, Textarea } from "@alpac/design-system";
 import { PurchaseRequestDetail } from "../purchase-request-detail/purchase-request-detail";
 import { SelectServiceOrderModal } from "../select-service-order-modal/select-service-order-modal";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -17,6 +16,7 @@ import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domai
 import type { CostCenters } from "@app/modules/admin/domain/ApiContract/responses/areas/get-areas.response";
 import type { GetServiceOrdersResponse } from "@app/modules/service-order/domain/ApiContract/Responses/service-order-responses/get-service-orders.response";
 import type { PurchaseRequestFormBlockProps } from "./purchase-request-form-block.types";
+import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -43,7 +43,7 @@ export const PurchaseRequestFormBlock = ({
    ref,
 }: PurchaseRequestFormBlockProps) => {
 
-   const { companyId } = useUserStore();
+   const { companyId, areaId } = useUserStore();
    const isAdministrator = role === RoleEnum.ADMINISTRATOR;
    const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
    const isEventual = requestType.textValue === PurchaseRequestEnum.Eventual.textValue;
@@ -68,6 +68,11 @@ export const PurchaseRequestFormBlock = ({
 
    const { GetAreasByCompany } = useAreas({ company_id: companyId });
 
+   const { GetCostCenters } = useCostCenters({
+      company_id: companyId,
+      area_id: areaId
+   });
+
    const areaOptions = useMemo(() => {
       const areas = GetAreasByCompany.data ?? [];
       return areas.map((area) => ({
@@ -77,26 +82,38 @@ export const PurchaseRequestFormBlock = ({
       }));
    }, [GetAreasByCompany.data]);
 
-   const areaId = methods.watch("area_id");
+   const selectedAreaId = methods.watch("area_id");
 
    const priorityLevelId = methods.watch("priority_level");
    const observations = methods.watch("observations");
    const hasPrioritySelected = Number(priorityLevelId) > 0;
 
    const isDisabledActions = Boolean(
-      (isAdministrator && !areaId?.trim()) ||
+      (isAdministrator && !selectedAreaId?.trim()) ||
       (isRequisition && !hasPrioritySelected) ||
       !observations?.trim() ||
       (selectedOrigen === "ServiceOrder" && !selectedServiceOrder),
    );
 
    const costCenterOptions = useMemo(
-      () =>
-         costCenters.map((center) => ({
+      () => {
+
+         if (!isAdministrator) {
+
+            if (!GetCostCenters?.data) return [];
+
+            return GetCostCenters?.data?.map(item => ({
+               label: item.cost_center_name,
+               value: item.cost_center_id
+            }));
+         }
+
+         return costCenters.map((center) => ({
             label: center.cost_center_name,
             value: center.cost_center_id,
-         })),
-      [costCenters],
+         }))
+      },
+      [costCenters, GetCostCenters.data]
    );
 
    useEffect(() => {
@@ -109,6 +126,10 @@ export const PurchaseRequestFormBlock = ({
       getValues: () => ({
          ...methods.getValues(),
          destination: PurchaseRequestDestinationEnum[selectedOrigen].value,
+         ...(selectedOrigen === "ServiceOrder" &&
+            selectedServiceOrder?.service_order_id
+            ? { service_order_id: selectedServiceOrder.service_order_id }
+            : {}),
       }),
    }));
 
@@ -188,8 +209,6 @@ export const PurchaseRequestFormBlock = ({
                   )}
 
                   <div className="min-w-0">
-
-
                      <Dropdown
                         label="Centro de costo"
                         isRequired
@@ -202,8 +221,6 @@ export const PurchaseRequestFormBlock = ({
                         valueClassName={labelClassName}
                         className={`${dropdownClassName}`}
                      />
-
-
                   </div>
 
                   {isRequisition && (
@@ -271,7 +288,7 @@ export const PurchaseRequestFormBlock = ({
                            <RadioButton
                               id={`serviceOrderRadiusButton-${index}`}
                               value={PurchaseRequestDestinationEnum.ServiceOrder.textValue}
-                              label="Orden de Servicio"
+                              label={`Orden de Servicio${(isRequisition && selectedServiceOrder) ? ":" : ""}`}
                               labelPosition="right"
                               labelClassName={labelClassName}
                               checked={selectedOrigen === "ServiceOrder"}
@@ -280,29 +297,25 @@ export const PurchaseRequestFormBlock = ({
                                  setIsSelectServiceOrderModalOpen(true);
                               }}
                            />
+
+                           {isRequisition && selectedServiceOrder && (
+                              <div className="flex min-w-0 w-full flex-col gap-2 sm:w-auto sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+                                 <Chips
+                                    key={selectedServiceOrder.service_order_id}
+                                    label={selectedServiceOrder.code}
+                                    onClose={() => {
+                                       setSelectedServiceOrder(null);
+                                       setSelectedOrigin("Internal");
+                                    }}
+                                 />
+                              </div>
+                           )}
                         </div>
-
-                        {isEventual && selectedServiceOrder && (
-                           <div className="flex min-w-0 w-full flex-col gap-2 sm:w-auto sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
-                              <span className="text-[14px] font-medium text-black dark:text-white">
-                                 Orden de Servicio Vinculada: {selectedOrigen === "ServiceOrder" ? "ServiceOrder" : "Internal"}
-                              </span>
-
-                              <Chips
-                                 key={selectedServiceOrder.service_order_id}
-                                 label={selectedServiceOrder.code}
-                                 onClose={() => {
-                                    setSelectedServiceOrder(null);
-                                    setSelectedOrigin("Internal");
-                                 }}
-                              />
-                           </div>
-                        )}
                      </div>
                   </div>
                </div>
 
-               {isRequisition && selectedServiceOrder && (
+               {isEventual && selectedServiceOrder && (
                   <div className="flex flex-wrap items-center gap-3">
                      <span className="text-[14px] font-medium text-black dark:text-white">
                         Orden de Servicio Vinculada: {selectedOrigen === "ServiceOrder" ? "ServiceOrder" : "Internal"}

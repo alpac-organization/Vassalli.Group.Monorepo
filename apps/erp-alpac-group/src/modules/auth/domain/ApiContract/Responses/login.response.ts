@@ -52,6 +52,11 @@ export interface LoginResponse {
     * Tipo de usuario.
     */
    user_type: string;
+
+   /**
+    * Area asociada al usuario
+    */
+   area_id: string;
 }
 
 /**

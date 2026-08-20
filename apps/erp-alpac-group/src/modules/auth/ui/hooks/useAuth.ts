@@ -45,6 +45,7 @@ export const useAuth = function () {
         companyAlias: response.company_information.alias,
         identificationNumber: response.identification_number,
         userType: response.user_type,
+        areaId: response.area_id
       });
 
       const sessionLogo = response.company_information.image_url;

@@ -1,4 +1,5 @@
 import type {
+	CreatePurchaseRequestPayload,
 	PurchaseRequestItem,
 } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import type { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
@@ -16,3 +17,8 @@ export interface PurchaseRequestModalProps {
 	currentBranchId: string;
 	requestType: PurchaseRequestEnum;
 }
+
+export type PurchaseRequestEntry = {
+	id: string;
+	defaults: CreatePurchaseRequestPayload;
+};
