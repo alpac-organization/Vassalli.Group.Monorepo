@@ -4,6 +4,8 @@ export type GenerateExitFormValues = {
   specifyDateTime: boolean;
   exitDate: DatePickerValue | null;
   exitTime: TimePickerValue | null;
+  exit_vehicle: boolean;
+  exit_container: boolean;
 };
 
 export type GenerateExitModalProps = {

@@ -34,6 +34,14 @@ import {
   isDucaDocumentType,
   mapDetailToFormValues,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/mapMovementDetail";
+import { TransportUnit } from "@app/modules/warehouse/domain/enums/warehouse-managua/transport-unit";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
+
+const transportUnitOptions = Object.values(TransportUnit).map((unit) => ({
+  value: unit.value,
+  label: unit.label,
+}));
 
 export function MovementDetailModal({
   isOpen,
@@ -55,6 +63,22 @@ export function MovementDetailModal({
   const [isAddingDucat, setIsAddingDucat] = useState(false);
   const [newDucatDraft, setNewDucatDraft] = useState("");
   const [isSavingNewDucat, setIsSavingNewDucat] = useState(false);
+
+  const { companyId, moduleCode } = useUserStore();
+  const { GetCustomBranches } = useWarehouse({
+    getCustomBranchesPayload: {
+      company_id: companyId,
+      module_code: moduleCode,
+    },
+  });
+
+  const customBranchesOptions = useMemo(() => {
+    if (!GetCustomBranches.data) return [];
+    return GetCustomBranches.data.map((branch: any) => ({
+      value: branch.id,
+      label: branch.name,
+    }));
+  }, [GetCustomBranches.data]);
 
   const formValues = useMemo(
     () =>
@@ -464,18 +488,6 @@ export function MovementDetailModal({
                   missingMessage="Producto no registrado"
                   className={editableFieldInputClasses}
                 />
-                <EditableField
-                  name="container_number"
-                  label="Número de contenedor"
-                  formMethods={formMethods}
-                  isEditing={Boolean(editingFields.container_number)}
-                  onEditStart={handleEditStart}
-                  onEditEnd={handleEditEnd}
-                  onConfirmUpdate={onFieldUpdate}
-                  allowEmptySubmit
-                  missingMessage="Contenedor no registrado"
-                  className={editableFieldInputClasses}
-                />
               </div>
             </div>
           ) : null}
@@ -507,6 +519,17 @@ export function MovementDetailModal({
             onEditEnd={handleEditEnd}
             onConfirmUpdate={onFieldUpdate}
             missingMessage="Chasis no registrado"
+            className={editableFieldInputClasses}
+          />
+          <EditableField
+            name="container_number"
+            label="Número de Contenedor"
+            formMethods={formMethods}
+            isEditing={Boolean(editingFields.container_number)}
+            onEditStart={handleEditStart}
+            onEditEnd={handleEditEnd}
+            onConfirmUpdate={onFieldUpdate}
+            missingMessage="Número de contenedor no registrado"
             className={editableFieldInputClasses}
           />
           <EditableField
@@ -543,17 +566,17 @@ export function MovementDetailModal({
             className={editableFieldInputClasses}
           />
           <EditableField
-            name="transport_unit_name"
+            name="transport_unit"
             label="Unidad de transporte"
             formMethods={formMethods}
-            isEditing={false}
+            isEditing={Boolean(editingFields.transport_unit)}
             onEditStart={handleEditStart}
             onEditEnd={handleEditEnd}
             onConfirmUpdate={onFieldUpdate}
-            allowEdit={false}
-            allowEmptySubmit
             missingMessage="Unidad no registrada"
             className={editableFieldInputClasses}
+            options={transportUnitOptions}
+            placeholder="Transporte"
           />
           <EditableField
             name="seal_number"
@@ -567,15 +590,30 @@ export function MovementDetailModal({
             className={editableFieldInputClasses}
           />
           <EditableField
-            name="aduana"
+            name="seal_evidence"
+            label="Evidencia de sello"
+            formMethods={formMethods}
+            isEditing={false}
+            onEditStart={handleEditStart}
+            onEditEnd={handleEditEnd}
+            onConfirmUpdate={onFieldUpdate}
+            allowEdit={false}
+            allowEmptySubmit
+            missingMessage="Imagenes no registradas"
+            className={editableFieldInputClasses}
+          />
+          <EditableField
+            name="custom_branch"
             label="Aduana"
             formMethods={formMethods}
-            isEditing={Boolean(editingFields.aduana)}
+            isEditing={Boolean(editingFields.custom_branch)}
             onEditStart={handleEditStart}
             onEditEnd={handleEditEnd}
             onConfirmUpdate={onFieldUpdate}
             missingMessage="Aduana no registrada"
             className={editableFieldInputClasses}
+            options={customBranchesOptions}
+            placeholder="Seleccione aduana"
           />
         </div>
       ),
@@ -625,8 +663,8 @@ export function MovementDetailModal({
             className={editableFieldInputClasses}
           />
           <EditableField
-            name="transport_unit_exit_date"
-            label="Fecha de salida"
+            name="vehicle_exit_date"
+            label="Fecha de salida vehículo"
             formMethods={formMethods}
             isEditing={false}
             onEditStart={handleEditStart}
@@ -638,8 +676,34 @@ export function MovementDetailModal({
             className={editableFieldInputClasses}
           />
           <EditableField
-            name="transport_unit_exit_time"
-            label="Hora de salida"
+            name="vehicle_exit_time"
+            label="Hora de salida vehículo"
+            formMethods={formMethods}
+            isEditing={false}
+            onEditStart={handleEditStart}
+            onEditEnd={handleEditEnd}
+            onConfirmUpdate={onFieldUpdate}
+            allowEdit={false}
+            allowEmptySubmit
+            missingMessage="No registrado"
+            className={editableFieldInputClasses}
+          />
+          <EditableField
+            name="container_exit_date"
+            label="Fecha de salida contenedor"
+            formMethods={formMethods}
+            isEditing={false}
+            onEditStart={handleEditStart}
+            onEditEnd={handleEditEnd}
+            onConfirmUpdate={onFieldUpdate}
+            allowEdit={false}
+            allowEmptySubmit
+            missingMessage="No registrado"
+            className={editableFieldInputClasses}
+          />
+          <EditableField
+            name="container_exit_time"
+            label="Hora de salida contenedor"
             formMethods={formMethods}
             isEditing={false}
             onEditStart={handleEditStart}

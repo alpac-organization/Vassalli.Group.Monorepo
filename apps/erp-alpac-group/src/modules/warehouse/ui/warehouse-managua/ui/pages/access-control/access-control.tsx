@@ -51,13 +51,13 @@ const UPDATABLE_FIELDS = new Set<Path<MovementDetailFormValues>>([
   "transportista",
   "seal_number",
   "country_of_origin",
-  "aduana",
+  "custom_branch",
   "customs_decaration_number",
   "packages",
   "customer",
   "product",
   "container_number",
-  "transport_unit_id",
+  "transport_unit",
 ]);
 
 export function AccessControlPage() {
@@ -182,6 +182,8 @@ export function AccessControlPage() {
           company_id: companyId,
           module_code: moduleCode,
           reception_id: exitReception.id,
+          exit_vehicle: data.exit_vehicle,
+          exit_container: data.exit_container,
           exit_date: data.specifyDateTime ? toApiDate(data.exitDate) : undefined,
           exit_time: data.specifyDateTime ? dayjs(data.exitTime as any).second(0).format("HH:mm:ss") : undefined,
         });
@@ -245,7 +247,7 @@ export function AccessControlPage() {
         case "country_of_origin":
           payload.country_of_origin = value.trim();
           break;
-        case "aduana":
+        case "custom_branch":
           payload.custom_branch_id = value.trim();
           break;
         case "customs_decaration_number":
@@ -260,7 +262,7 @@ export function AccessControlPage() {
         case "container_number":
           payload.container_number = value.trim();
           break;
-        case "transport_unit_id":
+        case "transport_unit":
           payload.transport_unit = value.trim() ? Number(value) : undefined;
           break;
         default:

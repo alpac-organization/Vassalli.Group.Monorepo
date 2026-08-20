@@ -12,18 +12,22 @@ export interface GetReceptionEntrancesResponse {
 export interface ReceptionEntranceListItem {
   id: string;
   plate_number: string;
+  container_number: string;
   driver_name: string;
   document_type: DocumentType;
   arrival_date: string;
   arrival_time: string;
   status: RecordEntranceStatusKey | string;
-  vehicle_status: RecordEntranceVehicleStatusKey | string;
+  vehicle_exited : boolean;
+  container_exited? : boolean;
 }
 
 export interface ReceptionEntranceStatsResponse {
   total_entries: number;
   total_on_site: number;
   total_exists: number;
+  total_container_on_site: number;
+  total_container_exited: number;
 }
 
 export const RecordEntranceStatusEnum: Record<string, EnumType> = {
@@ -34,9 +38,7 @@ export const RecordEntranceStatusEnum: Record<string, EnumType> = {
 };
 export const RecordEntranceVehicleStatusEnum: Record<string, EnumType> = {
   OnSite: { value: 1, label: "En sitio" },
-  Exited: { value: 2, label: "Retirado" },
+  Exited: { value: 2, label: "Despachado" },
 };
 
 export type RecordEntranceStatusKey = keyof typeof RecordEntranceStatusEnum;
-export type RecordEntranceVehicleStatusKey =
-  keyof typeof RecordEntranceVehicleStatusEnum;
