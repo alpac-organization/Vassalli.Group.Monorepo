@@ -108,6 +108,19 @@ export const useAccessControl = (props: UseAccessControlProps) => {
     },
   });
 
+  const DeleteAccessControl = useMutation<
+    boolean,
+    ApiErrorResponse,
+    GetReceptionEntranceDetailRequest
+  >({
+    mutationFn: (payload) =>
+      warehouseManaguaServices.deleteAccessControlById(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["access-control"] });
+      queryClient.invalidateQueries({ queryKey: ["access-control-detail"] });
+    },
+  });
+
   return {
     GetAccessControl,
     GetAccessControlDetail,
@@ -115,5 +128,6 @@ export const useAccessControl = (props: UseAccessControlProps) => {
     UpdateAccessControl,
     AddDucatsToReception,
     GenerateExitAccessControl,
+    DeleteAccessControl,
   };
 };
