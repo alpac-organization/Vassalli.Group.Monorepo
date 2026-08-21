@@ -101,8 +101,9 @@ export const PurchaseRequestDetailModal = ({
 
 	const areActionButtonsDisabled = isProcessing || isFinalStatus;
 	const isApproved = currentStatus === PurchaseRequestStatusEnum.Approved.textValue;
+	const canDownloadPdf = canProcessRequest && isApproved;
 	const showProcessActions = canProcessRequest && !areActionButtonsDisabled;
-	const showFooter = isApproved || showProcessActions;
+	const showFooter = canDownloadPdf || showProcessActions;
 
 	const openConfirm = (type: ConfirmActionType) => {
 
@@ -138,12 +139,14 @@ export const PurchaseRequestDetailModal = ({
 	}, [confirmModal.type]);
 
 	const handleGeneratePurchaseRequestPdf = async () => {
-		if (!details || !products) return;
+		if (!details || !canDownloadPdf) return;
 
 		try {
 			setIsGeneratingPurchaseRequestPdf(true);
-			const blob = await pdf(<PurchaseRequestPDF data={{ ...details, products }} />);
-			const url = URL.createObjectURL(await blob.toBlob());
+			const blob = await pdf(
+				<PurchaseRequestPDF data={{ ...details, products }} />,
+			).toBlob();
+			const url = URL.createObjectURL(blob);
 			window.open(url, "_blank");
 		} catch (error) {
 			onRequestError?.("Error al generar el PDF de la solicitud de compra.");
@@ -378,7 +381,7 @@ export const PurchaseRequestDetailModal = ({
 												products.map((product, index) => (
 													<div
 														key={`${product?.purchase_request_item_id}-${product.product_details.product_id}-${index}`}
-														className="grid grid-cols-1 gap-1 px-3 py-3 sm:grid-cols-6 sm:items-center sm:gap-0"
+														className="grid grid-cols-1 gap-6 px-3 py-3 sm:grid-cols-6 sm:items-center"
 													>
 														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
 															Producto
@@ -454,7 +457,7 @@ export const PurchaseRequestDetailModal = ({
 							{showFooter && (
 								<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
 									<div className="flex justify-end gap-3">
-										{isApproved && (
+										{canDownloadPdf && (
 											<Button
 												type="button"
 												label="Descargar PDF"

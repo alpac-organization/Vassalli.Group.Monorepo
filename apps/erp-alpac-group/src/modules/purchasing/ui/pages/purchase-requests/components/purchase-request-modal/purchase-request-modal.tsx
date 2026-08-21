@@ -232,6 +232,17 @@ export const PurchaseRequestModal = ({
 										key={entry.id}
 										ref={index === entries.length - 1 ? lastBlockRef : undefined}
 									>
+
+										{index > 0 && (
+											<div className="my-2 flex items-center gap-3" aria-hidden>
+												<div className="h-px flex-1 bg-slate-300 dark:bg-neutral-600" />
+												<span className="shrink-0 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+													{requestType.label} {index + 1}
+												</span>
+												<div className="h-px flex-1 bg-slate-300 dark:bg-neutral-600" />
+											</div>
+										)}
+
 										<PurchaseRequestFormBlock
 											key={entry.id}
 											index={index}

@@ -2,7 +2,6 @@ import {
    Alert,
    AnimatedAlertWrapper,
    Breadcrumb,
-   Button,
    Tabs,
    type TabItem,
 } from "@alpac/design-system";
@@ -14,35 +13,13 @@ import { RequisitionQuoteTab } from "./components/tabs/requisition-quote-tab/req
 import { MonthlyMaterialsQuoteTab } from "./components/tabs/monthly-materials-quote-tab/monthly-materials-quote-tab";
 import { OccasionalMaterialsQuoteTab } from "./components/tabs/occasional-materials-quote-tab/occasional-materials-quote-tab";
 import { QuotesPageHeader } from "./components/quotes-page-header/quotes-page-header";
-import { useCallback, useState } from "react";
-import { SelectBranchModal } from "../purchase-requests/components/select-branch-modal/select-branch-modal";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 export const QuotePage = () => {
+
    const navigate = useNavigate();
    const { baseUrl } = useBaseUrl();
-
-   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
-   const [selectedBranchName, setSelectedBranchName] = useState("");
-   const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
-
-   const isBranchSelected = selectedBranchId !== null;
-
-   const handleBranchModalClose = useCallback(() => {
-      if (!isBranchSelected) {
-         navigate(`${baseUrl}/`);
-         return;
-      }
-      setIsBranchModalOpen(false);
-   }, [baseUrl, isBranchSelected, navigate]);
-
-   const handleBranchConfirm = useCallback(
-      (branchId: string, branchName: string) => {
-         setSelectedBranchId(branchId);
-         setSelectedBranchName(branchName);
-         setIsBranchModalOpen(false);
-      },
-      [],
-   );
+   const { branchId } = useUserStore();
 
    const {
       alertState,
@@ -57,7 +34,7 @@ export const QuotePage = () => {
          label: "Requisiciones",
          render: () => (
             <RequisitionQuoteTab
-               currentBranchId={selectedBranchId!}
+               currentBranchId={branchId!}
                onRequestError={handleRequestError}
                onRequestSuccess={handleRequestSuccess}
             />
@@ -69,7 +46,7 @@ export const QuotePage = () => {
          disabled: true,
          render: () => (
             <MonthlyMaterialsQuoteTab
-               currentBranchId={selectedBranchId!}
+               currentBranchId={branchId!}
                onRequestError={handleRequestError}
                onRequestSuccess={handleRequestSuccess}
             />
@@ -80,7 +57,7 @@ export const QuotePage = () => {
          label: "Solicitud de Materiales Eventuales",
          render: () => (
             <OccasionalMaterialsQuoteTab
-               currentBranchId={selectedBranchId!}
+               currentBranchId={branchId!}
                onRequestError={handleRequestError}
                onRequestSuccess={handleRequestSuccess}
             />
@@ -96,13 +73,6 @@ export const QuotePage = () => {
          transition={{ duration: 0.5 }}
          className="flex flex-col gap-4"
       >
-         <SelectBranchModal
-            isOpen={!isBranchSelected || isBranchModalOpen}
-            onClose={handleBranchModalClose}
-            onConfirm={handleBranchConfirm}
-            currentBranchId={selectedBranchId}
-         />
-
          <div className="flex justify-start">
             <Breadcrumb
                items={[
@@ -122,31 +92,9 @@ export const QuotePage = () => {
 
          <QuotesPageHeader />
 
-         {isBranchSelected ? (
-            <>
-               <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-end">
-                  <div className="min-w-0">
-                     <p className="m-0 text-sm text-slate-500 dark:text-slate-300">
-                        Sucursal seleccionada:{" "}
-                        <span className="font-medium text-slate-800 dark:text-white">
-                           {selectedBranchName}
-                        </span>
-                     </p>
-                  </div>
-                  <Button
-                     type="button"
-                     size="giant"
-                     label="Cambiar sucursal"
-                     onClick={() => setIsBranchModalOpen(true)}
-                     className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-primary!"
-                  />
-               </div>
-
-               <div className="relative mx-auto w-full rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
-                  <Tabs tabItems={tabs ?? []} activeTab="requisitions" animation="slide" />
-               </div>
-            </>
-         ) : null}
+         <div className="relative mx-auto w-full rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
+            <Tabs tabItems={tabs ?? []} activeTab="requisitions" animation="slide" />
+         </div>
 
          <AnimatedAlertWrapper open={alertState?.open ?? false}>
             <Alert

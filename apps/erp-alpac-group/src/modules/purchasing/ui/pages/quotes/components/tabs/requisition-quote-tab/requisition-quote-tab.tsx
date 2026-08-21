@@ -8,6 +8,7 @@ import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurcha
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { RoleEnum } from "@app/core/enums/role.enum";
 
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
@@ -26,8 +27,9 @@ export function RequisitionQuoteTab({
 	onRequestSuccess,
 }: RequisitionQuoteTabProps) {
 
-	const { companyId, moduleCode } = useUserStore();
+	const { companyId, moduleCode, role } = useUserStore();
 	const { getMappedError } = useMappedError();
+	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
 
 	const [activeModal, setActiveModal] = useState<QuotesModalType>(null);
 	const [selectedPurchaseRequest, setSelectedPurchaseRequest] = useState<GetPurchaseRequestResponse | null>();
@@ -36,7 +38,7 @@ export function RequisitionQuoteTab({
 		company_id: companyId,
 		module_code: moduleCode,
 		status: PurchaseRequestStatusEnum.Approved.value,
-		branch_id: currentBranchId,
+		...(isAdministrator ? {} : { branch_id: currentBranchId }),
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	});
@@ -48,7 +50,7 @@ export function RequisitionQuoteTab({
 			module_code: moduleCode,
 			status: PurchaseRequestStatusEnum.Approved.value,
 			request_type: PurchaseRequestEnum.Requisition.value,
-			branch_id: currentBranchId,
+			branch_id: isAdministrator ? undefined : currentBranchId,
 			page_size: PAGE_SIZE,
 		}
 	});
@@ -62,11 +64,11 @@ export function RequisitionQuoteTab({
 			company_id: companyId,
 			module_code: moduleCode,
 			status: PurchaseRequestStatusEnum.Approved.value,
-			branch_id: currentBranchId,
+			...(isAdministrator ? {} : { branch_id: currentBranchId }),
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		});
-	}, [currentBranchId, companyId, moduleCode]);
+	}, [currentBranchId, companyId, moduleCode, isAdministrator]);
 
 	const handlePageChange = useCallback((page: number) => {
 		setFilters((prev) => ({

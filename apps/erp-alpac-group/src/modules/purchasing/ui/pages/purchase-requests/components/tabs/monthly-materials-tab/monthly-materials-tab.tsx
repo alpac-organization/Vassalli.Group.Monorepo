@@ -118,9 +118,7 @@ export const MonthlyMaterialTab = ({
 		const isAllowedStatus = allowedStatus.includes(row.request_status);
 		if (!isAllowedStatus) return [];
 
-		const canModify = row.request_status === PurchaseRequestStatusEnum.Pending.textValue;
-
-		const options = getBaseOptions(row).filter(item => (item.id === "viewDatail" && canModify));
+		const options = getBaseOptions(row).filter(item => (item.id === "viewDatail"));
 
 		return options;
 	}
@@ -130,9 +128,7 @@ export const MonthlyMaterialTab = ({
 		const isAllowedStatus = allowedStatus.includes(row.request_status);
 		if (!isAllowedStatus) return [];
 
-		const canModify = row.request_status === PurchaseRequestStatusEnum.Pending.textValue;
-
-		const options = getBaseOptions(row).filter(item => (item.id === "viewDatail" && canModify));
+		const options = getBaseOptions(row).filter(item => (item.id === "viewDatail"));
 
 		return options;
 	}

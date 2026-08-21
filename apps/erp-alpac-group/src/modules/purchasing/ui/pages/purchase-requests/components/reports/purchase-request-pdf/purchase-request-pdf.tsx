@@ -3,6 +3,8 @@ import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { purchaseRequestPdfStyle } from "./purchase-request-pdf.styles";
 
 import type { GetPurchaseRequestDetailResponse, PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { formatDate } from "@app/shared/utils/string.utils";
 
 export interface RequisitionDocumentProps {
    data: GetPurchaseRequestDetailResponse & {
@@ -13,6 +15,7 @@ export interface RequisitionDocumentProps {
 export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
 
    const { urlImage } = useCompanyStore();
+   const { companyAlias } = useUserStore();
 
    const styles = purchaseRequestPdfStyle;
 
@@ -25,11 +28,8 @@ export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
                   <Text style={styles.requisitionNumber}>{data?.code}</Text>
                </View>
                <View style={styles.headerCenter}>
-                  <Text style={styles.companyName}>{"Nombre de la compañia"}</Text>
+                  <Text style={styles.companyName}>{companyAlias}</Text>
                   <Text style={styles.documentTitle}>REQUISICION DE COMPRAS</Text>
-               </View>
-               <View style={styles.headerRight}>
-                  <Text style={styles.formCode}>{"Codigo del formulario"}</Text>
                </View>
             </View>
 
@@ -71,9 +71,9 @@ export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
                      Solicitante del Area: {data?.creator_user_information?.fullname ?? ""}
                   </Text>
                   <View style={styles.authLine} />
-                  <Text style={styles.metaLine}>Solicitado: {data?.request_date ?? ""}</Text>
+                  <Text style={styles.metaLine}>Solicitado: {formatDate(data?.request_date ?? "")}</Text>
                   <View style={styles.authLine} />
-                  <Text style={styles.metaLine}>Modificado: {data?.request_date ?? ""}</Text>
+                  <Text style={styles.metaLine}>Modificado: {formatDate(data?.request_date ?? "")}</Text>
                   <View style={styles.authLine} />
                </View>
                <View style={styles.metaRight}>
@@ -92,19 +92,19 @@ export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
                <View style={styles.receiptRight}>
                   <View style={styles.receiptDateLine}>
                      <Text style={styles.receiptLabel}>Fecha:</Text>
-                     <Text style={styles.receiptDateValue}>{data?.request_date ?? ""}</Text>
+                     <Text style={styles.receiptDateValue}>{formatDate(data?.request_date ?? "")}</Text>
                   </View>
                   <View style={styles.receiptDateLine}>
                      <Text style={styles.receiptLabel}>Hora:</Text>
-                     <Text style={styles.receiptDateValue}>{data?.revision_date ?? ""}</Text>
+                     <Text style={styles.receiptDateValue}>{"-"}</Text>
                   </View>
                </View>
             </View>
 
             <View style={styles.statusBar}>
-               <Text style={styles.statusItem}>Solicitado: {data?.request_date ?? ""}</Text>
-               <Text style={styles.statusItem}>Autorizado: {data?.revision_date ?? ""}</Text>
-               <Text style={styles.statusItem}>Revisado: {data?.revision_date ?? ""}</Text>
+               <Text style={styles.statusItem}>Solicitado: {formatDate(data?.request_date ?? "")}</Text>
+               <Text style={styles.statusItem}>Autorizado: {formatDate(data?.revision_date ?? "")}</Text>
+               <Text style={styles.statusItem}>Revisado por: {data?.reviewer_user_information?.fullname ?? ""}</Text>
             </View>
          </Page>
       </Document>
