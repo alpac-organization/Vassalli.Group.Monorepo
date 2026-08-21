@@ -8,6 +8,22 @@ export function chunkQuotations<T>(items: T[], size: number): T[][] {
   }
   return chunks;
 }
+
+export function getQuoteTotalPrice(
+  quote: Pick<PurchaseRequestProductQuotation, "price" | "iva">,
+): number {
+  return (quote.price ?? 0) + (quote.iva ?? 0);
+}
+
+export function getQuoteIvaPercentage(
+  quote: Pick<PurchaseRequestProductQuotation, "price" | "iva">,
+): number | null {
+  const price = quote.price ?? 0;
+  const iva = quote.iva ?? 0;
+  if (price <= 0) return null;
+  return Math.round((iva / price) * 10000) / 100;
+}
+
 export function getBestPriceQuotationId(
   quotations: PurchaseRequestProductQuotation[],
 ): string | null {
@@ -16,7 +32,7 @@ export function getBestPriceQuotationId(
 
   let best = active[0];
   for (const quote of active) {
-    if (quote.price_total < best.price_total) {
+    if (getQuoteTotalPrice(quote) < getQuoteTotalPrice(best)) {
       best = quote;
     }
   }

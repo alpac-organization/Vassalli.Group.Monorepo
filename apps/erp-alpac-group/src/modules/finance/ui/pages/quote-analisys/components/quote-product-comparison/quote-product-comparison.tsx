@@ -4,6 +4,7 @@ import {
   Calendar,
   Hash,
   Package,
+  Percent,
   ShieldCheck,
   Tag,
   Truck,
@@ -17,6 +18,8 @@ import {
   chunkQuotations,
   formatPeriodLabel,
   getBestPriceQuotationId,
+  getQuoteIvaPercentage,
+  getQuoteTotalPrice,
 } from "./quote-product-comparison.utils";
 
 const MAX_COLUMNS = 3;
@@ -66,13 +69,22 @@ const COMPARISON_ROWS: ComparisonRow[] = [
     key: "iva",
     label: "IVA",
     icon: Package,
-    getValue: (quote) => `${Number(quote.iva ?? 0).toFixed(2)}%`,
+    getValue: (quote) => formatCurrency(quote.iva ?? 0),
+  },
+  {
+    key: "iva_percent",
+    label: "IVA (%)",
+    icon: Percent,
+    getValue: (quote) => {
+      const percent = getQuoteIvaPercentage(quote);
+      return percent == null ? "—" : `${percent.toFixed(2)}%`;
+    },
   },
   {
     key: "total",
     label: "Precio total",
     icon: Package,
-    getValue: (quote) => formatCurrency(quote.price_total ?? 0),
+    getValue: (quote) => formatCurrency(getQuoteTotalPrice(quote)),
     emphasize: true,
   },
   {

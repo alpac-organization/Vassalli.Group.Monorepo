@@ -1,34 +1,29 @@
 import { useCallback, useMemo, useState } from "react";
 import { m } from "framer-motion";
-import {
-	Breadcrumb,
-	Button,
-	Modal,
-	RadioButton,
-	Textarea,
-} from "@alpac/design-system";
+import { Alert, AnimatedAlertWrapper, Breadcrumb } from "@alpac/design-system";
 import { useNavigate } from "react-router-dom";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
 import { useQuoteAnalysis } from "@app/modules/finance/ui/hooks/quotes-analysis/useQuoteAnalysis";
-import type { accountingReviewStatusType } from "@app/modules/finance/enum/analysis-quotation/accounting-review-status";
+import type { accountingReviewStatusType } from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
 import type { GetQuotesAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/get-quote-analysis";
 import type { RequisitionAccountingReviewDto } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
 import type { QuoteAnalysisFiltersValues } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-filters/types/quote-analysis-filters.types";
+import type { SendReviewModalConfirmPayload } from "@app/modules/finance/ui/pages/quote-analisys/components/send-review-modal/send-review-modal.types";
 import { QuoteAnalysisFilters } from "./components/quote-analysis-filters/quote-analysis-filters";
 import { QuoteAnalysisTable } from "./components/quote-analysis-table/quote-analysis-table";
+import { SendReviewModal } from "./components/send-review-modal/send-review-modal";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
 
 const PAGE_SIZE = 10;
-
-const textareaClassName =
-	"w-full! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500! dark:text-white!";
-const textareaLabelClassName = "text-black! dark:text-white!";
 
 export function QuoteAnalisys() {
 	const navigate = useNavigate();
 	const { baseUrl } = useBaseUrl();
+	const { getMappedError } = useMappedError();
 	const { companyId, moduleCode } = useUserStore();
 	const [pageNumber, setPageNumber] = useState(1);
 	const [appliedStatus, setAppliedStatus] = useState<
@@ -37,8 +32,8 @@ export function QuoteAnalisys() {
 	const [appliedAreaId, setAppliedAreaId] = useState("");
 	const [pendingReview, setPendingReview] =
 		useState<RequisitionAccountingReviewDto | null>(null);
-	const [comments, setComments] = useState("");
-	const [isApproved, setIsApproved] = useState(true);
+	const { alertState, handleCloseAlert, handleRequestSuccess, handleRequestError } =
+		useAlertState();
 
 	const payloadGetQuoteAnalysis = useMemo<GetQuotesAnalysisRequest>(
 		() => ({
@@ -89,50 +84,48 @@ export function QuoteAnalisys() {
 	);
 
 	const handleSendToReview = useCallback((row: RequisitionAccountingReviewDto) => {
-		setComments("");
-		setIsApproved(true);
 		setPendingReview(row);
 	}, []);
 
 	const handleCloseSendModal = useCallback(() => {
 		if (SendReviewToManagement.isPending) return;
 		setPendingReview(null);
-		setComments("");
-		setIsApproved(true);
 	}, [SendReviewToManagement.isPending]);
 
-	const handleConfirmSendToReview = useCallback(() => {
+	const handleConfirmSendToReview = useCallback(
+		(payload: SendReviewModalConfirmPayload) => {
+			if (!pendingReview || !companyId || !moduleCode) return;
 
-		if (!pendingReview || !companyId || !moduleCode) return;
-
-		SendReviewToManagement.mutate(
-			{
-				company_id: companyId,
-				module_code: moduleCode,
-				requisition_accounting_review_id:
-					pendingReview.requisition_accounting_review_id,
-				comments: comments.trim() || null,
-				is_approved: isApproved,
-			},
-			{
-				onSuccess: () => {
-					setPendingReview(null);
-					setComments("");
-					setIsApproved(true);
+			SendReviewToManagement.mutate(
+				{
+					company_id: companyId,
+					module_code: moduleCode,
+					requisition_accounting_review_id:
+						pendingReview.requisition_accounting_review_id,
+					comments: payload.comments,
+					is_approved: payload.isApproved,
 				},
-				onError() {
-
-				}
-			},
-		);
-	}, [
-		SendReviewToManagement,
-		comments,
-		companyId,
-		isApproved,
-		moduleCode,
-		pendingReview,
-	]);
+				{
+					onSuccess: () => {
+						setPendingReview(null);
+						handleRequestSuccess("La solicitud se envió a revisión gerencial.");
+					},
+					onError: (error) => {
+						const errorMessage = getMappedError(error);
+						handleRequestError(errorMessage.description ?? "Error al enviar la solicitud a revisión gerencial.");
+					},
+				},
+			);
+		},
+		[
+			SendReviewToManagement,
+			companyId,
+			handleRequestSuccess,
+			handleRequestError,
+			moduleCode,
+			pendingReview,
+		],
+	);
 
 	const pendingLabel =
 		pendingReview?.purchase_request?.code?.trim() ||
@@ -187,72 +180,22 @@ export function QuoteAnalisys() {
 				onSendToReview={handleSendToReview}
 			/>
 
-			<Modal
+			<SendReviewModal
 				isOpen={Boolean(pendingReview)}
+				pendingLabel={pendingLabel}
+				isSubmitting={SendReviewToManagement.isPending}
 				onClose={handleCloseSendModal}
-				variant="form"
-				size="lg"
-				title="Enviar a revisión"
-				description={`Envíe la solicitud de ${pendingLabel} a revisión gerencial. El comentario es opcional.`}
-			>
-				<div className="mt-4 flex flex-col gap-4">
-					<div className="flex flex-col gap-2">
-						<p className="m-0 text-sm font-medium text-slate-800 dark:text-white">
-							Decisión
-						</p>
-						<div className="flex flex-wrap gap-4">
-							<RadioButton
-								label="Aprobar"
-								name="review-decision"
-								value="approved"
-								checked={isApproved}
-								onChange={() => setIsApproved(true)}
-							/>
-							<RadioButton
-								label="Rechazar"
-								name="review-decision"
-								value="rejected"
-								checked={!isApproved}
-								onChange={() => setIsApproved(false)}
-							/>
-						</div>
-					</div>
+				onConfirm={handleConfirmSendToReview}
+			/>
 
-					<Textarea
-						label="Comentarios"
-						placeholder="Escriba un comentario (opcional)..."
-						className={textareaClassName}
-						labelClassName={textareaLabelClassName}
-						value={comments}
-						onChange={(e) => setComments(e.target.value)}
-						maxLength={500}
-						enableCharacterCount
-						style={{
-							resize: "none",
-							minHeight: "100px",
-						}}
-					/>
-
-					<div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
-						<Button
-							type="button"
-							size="giant"
-							label="Cancelar"
-							onClick={handleCloseSendModal}
-							disabled={SendReviewToManagement.isPending}
-							className="w-full! rounded-md! border! border-slate-400! bg-transparent! text-[15px]! text-slate-700! hover:bg-slate-100! dark:border-slate-500! dark:text-slate-200! dark:hover:bg-slate-700/40! sm:w-auto!"
-						/>
-						<Button
-							type="button"
-							size="giant"
-							label="Enviar a revisión"
-							onClick={handleConfirmSendToReview}
-							isLoading={SendReviewToManagement.isPending}
-							className="w-full! rounded-md! bg-alpac-primary-500! text-[15px]! text-white! dark:bg-alpac-primary-700! sm:w-auto!"
-						/>
-					</div>
-				</div>
-			</Modal>
+			<AnimatedAlertWrapper open={alertState?.open ?? false}>
+				<Alert
+					type={alertState?.type!}
+					title={alertState?.title}
+					message={alertState?.message!}
+					onClose={handleCloseAlert}
+				/>
+			</AnimatedAlertWrapper>
 		</m.div>
 	);
 }

@@ -83,10 +83,14 @@ export function getQuoteAnalysisColumns(
 							label: "Ver detalle",
 							onClick: () => onViewDetail?.(row),
 						},
-						{
-							label: "Enviar a revisión",
-							onClick: () => onSendToReview?.(row),
-						},
+						...(onSendToReview
+							? [
+									{
+										label: "Enviar a revisión",
+										onClick: () => onSendToReview(row),
+									},
+								]
+							: []),
 					]}
 					triggerClassName={contextMenuButton}
 				/>

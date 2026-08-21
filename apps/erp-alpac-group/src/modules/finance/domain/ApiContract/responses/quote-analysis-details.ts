@@ -1,4 +1,4 @@
-import type { accountingReviewStatusType } from "@app/modules/finance/enum/analysis-quotation/accounting-review-status";
+import type { accountingReviewStatusType } from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
 import type { UserStatusKey } from "@app/shared/enum/user-status";
 import type { PurchaseRequestType } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import type { PurchaseRequestStatusType } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
@@ -10,7 +10,9 @@ export interface PurchaseRequestDto {
   revision_date: string | null;
   request_type: PurchaseRequestType;
   request_status: PurchaseRequestStatusType;
+  priority_level: string;
 }
+
 export interface PurchaseRequestDetailsDto extends PurchaseRequestDto {
   observations: string | null;
   reason_rejection: string | null;
