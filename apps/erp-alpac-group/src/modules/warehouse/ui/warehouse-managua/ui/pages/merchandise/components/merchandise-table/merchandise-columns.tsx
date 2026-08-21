@@ -3,6 +3,10 @@ import type { MerchandiseRegisterItem } from "@app/modules/warehouse/domain/ApiC
 import { resolveDocumentTypeLabel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/resolveStatus";
 import { getDocumentTypeBadgeClass } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-table/utils/merchandise-columns.utils";
 import {
+  getStatusBadgeClass,
+  getStatusBadgeLabel,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/utils/movements.utils";
+import {
   formatTime,
   formatDateToSpanishWords,
 } from "@app/shared/utils/string.utils";
@@ -21,9 +25,9 @@ export function getMerchandiseColumns({
 }: MerchandiseColumnsOptions = {}): TableColumn<MerchandiseRegisterItem>[] {
   return [
     {
-      key: "plate_number",
+      key: "vehicle_plate_number",
       label: "Placa",
-      render: (item) => item.plate_number || "—",
+      render: (item) => item.vehicle_plate_number || "—",
     },
     {
       key: "driver_name",
@@ -80,6 +84,17 @@ export function getMerchandiseColumns({
               ? "bg-alpac-success-100! text-alpac-success-700! dark:bg-alpac-success-900! dark:text-alpac-success-300!"
               : "bg-alpac-warning-100! text-alpac-warning-700! dark:bg-alpac-warning-900! dark:text-alpac-warning-300!"
           }`}
+        />
+      ),
+    },
+    {
+      key: "status",
+      label: "Estado",
+      render: (item) => (
+        <Badges
+          label={getStatusBadgeLabel(item.status ?? "") || "No registrado"}
+          color="transparent"
+          className={getStatusBadgeClass(item.status ?? "")}
         />
       ),
     },
