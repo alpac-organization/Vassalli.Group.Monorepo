@@ -1,0 +1,72 @@
+import { ContextMenu, type TableColumn } from "@alpac/design-system";
+import type { SectionResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
+import {
+  ActiveStatusBadge,
+  SectionStorageTypeBadge,
+  SectionTypeBadge,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-warehouses-badges";
+
+const contextMenuButton =
+  "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
+
+type SectionsColumnsOptions = {
+  onViewLots: (section: SectionResponse) => void;
+  onViewRacks: (section: SectionResponse) => void;
+  lastItemId?: string;
+};
+
+export function getSectionsColumns({
+  onViewLots,
+  onViewRacks,
+  lastItemId,
+}: SectionsColumnsOptions): TableColumn<SectionResponse>[] {
+  return [
+    {
+      key: "section_code",
+      label: "Código",
+      render: (item) => item.section_code || "—",
+    },
+    {
+      key: "section_name",
+      label: "Nombre",
+      render: (item) => item.section_name || "—",
+    },
+    {
+      key: "section_type",
+      label: "Tipo",
+      render: (item) => <SectionTypeBadge value={item.section_type || ""} />,
+    },
+    {
+      key: "storage_type",
+      label: "Almacenamiento",
+      render: (item) => (
+        <SectionStorageTypeBadge value={item.storage_type || ""} />
+      ),
+    },
+    {
+      key: "is_active",
+      label: "Estado",
+      render: (item) => <ActiveStatusBadge isActive={item.is_active} />,
+    },
+    {
+      key: "action",
+      label: "Acciones",
+      render: (item) => (
+        <ContextMenu
+          items={[
+            {
+              label: "Ver tramos",
+              onClick: () => onViewLots(item),
+            },
+            {
+              label: "Ver racks",
+              onClick: () => onViewRacks(item),
+            },
+          ]}
+          triggerClassName={contextMenuButton}
+          openUpOnMobile={item.section_id === lastItemId}
+        />
+      ),
+    },
+  ];
+}

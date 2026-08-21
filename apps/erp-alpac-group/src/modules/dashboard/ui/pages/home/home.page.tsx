@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 import { DashBoardCard, Modal } from '@alpac/design-system';
 import { useModules } from '@app/modules/dashboard/ui/hooks/useModules';
 import { HeaderHome } from '@app/modules/dashboard/ui/pages/home/hearder/header';
 
-import { motion } from 'framer-motion';
 import { useAuth } from '@app/modules/auth/ui/hooks/useAuth';
 import { Loader } from '@app/shared/components/loaders/loader';
 import { Navbar } from '@app/shared/components/navbar/navbar';
@@ -11,43 +13,25 @@ import { CookieStorageAdapter } from '@app/core/adapters/cookie-storage-adapter'
 import { EmptyModulesState } from './empty-modules-state/empty-modules-state';
 import { useUserStore } from '@app/shared/stores/useUserStore';
 import { validateNameAndLastName } from '@app/shared/utils/string.utils';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { useCompanyStore } from '@app/shared/stores/useCompanyStore';
 import { useTheme } from '@alpac/design-system';
 import { NotificationSidebar } from '@app/shared/components/notification/notification-sidebar/notification-sidebar';
 import { SettingIndex } from '@app/modules/setting/ui/pages/setting-index/setting-index';
 import { routeConfig } from '@app/routers/routes/route-config';
-import { getCurrentToken } from '@app/shared/hooks/usePushNotifications';
 
 import type { ModulesAvailableResponse } from '@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response';
 import type { SidebarLink } from '@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types';
+import { useNotification } from '@app/shared/hooks/useNotifications';
 
 export const HomePage = function () {
    const navigate = useNavigate();
+   const { requestPermission } = useNotification();
+
    const { theme } = useTheme();
    const { pathname } = useLocation();
 
    const [isLogout, setLogout] = useState(false);
    const [showModal, setShowModal] = useState(false);
-   const [deviceToken, setDeviceToken] = useState<string | null>(() => getCurrentToken());
-
-   useEffect(() => {
-      let interval: ReturnType<typeof setInterval> | undefined;
-
-      const getToken = () => {
-         const token = getCurrentToken();
-         if (token) {
-            setDeviceToken(token);
-            if (interval) clearInterval(interval);
-         }
-      };
-
-      interval = setInterval(getToken, 500);
-
-      return () => {
-         if (interval) clearInterval(interval);
-      };
-   }, []);
 
    const { userName, fullName, email, companyId, companyName } = useUserStore();
 
@@ -120,6 +104,13 @@ export const HomePage = function () {
 
       navigate(`${module.path_redirect}/${firstRouteConfig.path}`);
    }
+
+   useEffect(() => {
+      (async () => {
+         await requestPermission()
+      })();
+   },[])
+
          
    return (
       <motion.div
@@ -148,13 +139,6 @@ export const HomePage = function () {
          ) : (
             <>
                <HeaderHome company_name={companyName} username={validatedName} />
-
-               <div className="max-w-330 m-auto mt-2 p-3">
-                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs break-all dark:border-gray-700 dark:bg-gray-800">
-                     <span className="font-semibold">Dispositivo Token: </span>
-                     {deviceToken ?? "Esperando token FCM..."}
-                  </div>
-               </div>
                
                <div className="max-w-330 m-auto mt-2 p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full">
                   {

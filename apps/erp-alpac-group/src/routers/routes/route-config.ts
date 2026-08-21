@@ -42,14 +42,12 @@ const {
 const {
   warehouseManaguaSection,
   DucaPanel,
-  warehouseSection4,
   warehouseSection12,
+  warehouseListSection,
   BodegaSection,
 } = getManaguaWarehouseRoutes();
 
-const {
-  manageSection
-} = getWarehouseAdminRoutes();
+const { manageSection } = getWarehouseAdminRoutes();
 
 const {
   supplierSection,
@@ -105,14 +103,17 @@ export const routeConfig = {
     [RoleEnum.OPERATOR]: [
       warehouseManaguaSection,
       DucaPanel,
-      warehouseSection4,
       warehouseSection12,
+      warehouseListSection,
       BodegaSection,
       warehouseReportSection,
     ],
   },
   [ModuleEnum.WAREHOUSE_ADMIN]: {
     [RoleEnum.OPERATOR]: [manageSection],
+    [RoleEnum.ADMINISTRATOR]: [manageSection],
+    [RoleEnum.MANAGER]: [manageSection],
+    [RoleEnum.SUPERVISOR]: [manageSection],
   },
   [ModuleEnum.PURCHASING]: {
     [RoleEnum.ADMINISTRATOR]: [

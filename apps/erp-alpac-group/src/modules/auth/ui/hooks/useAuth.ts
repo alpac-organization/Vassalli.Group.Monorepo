@@ -12,10 +12,6 @@ import {
 
 import type { LoginRequest } from "@app/modules/auth/domain/ApiContract/Requests/login.request";
 import type { LogoutRequest } from "@app/modules/auth/domain/ApiContract/Requests/logout.request";
-import {
-  initPushNotifications,
-  unlinkPushOnLogout,
-} from "@app/shared/hooks/usePushNotifications";
 
 const authService = new AuthenticationServices(httpHandler);
 httpHandler.setAuthenticationService(authService);
@@ -56,10 +52,8 @@ export const useAuth = function () {
         });
       }
 
-      // Registramos el token push de este dispositivo para el usuario.
-      // PushNotificationsRegistrar tambien lo hara al montar el dashboard.
-      void initPushNotifications();
-
+      // El registro del token push se delega a PushNotificationsRegistrar,
+      // que se monta una unica vez dentro del AuthGuard tras el login.
       navigate(`/${companyAlias}/dashboard`, {
         replace: true,
       });
@@ -73,7 +67,6 @@ export const useAuth = function () {
     mutationFn: (payload: LogoutRequest) =>
       authService.StartProcessToCloseSession(payload),
     onSuccess: async () => {
-      await unlinkPushOnLogout();
 
       clearControlVacationsSelectionStorage();
       clearPayrollSelectionStorage();
@@ -85,8 +78,7 @@ export const useAuth = function () {
       });
     },
     onError: async () => {
-      await unlinkPushOnLogout();
-
+      
       clearControlVacationsSelectionStorage();
       clearPayrollSelectionStorage();
       CookieStorageAdapter.clearAuth();
