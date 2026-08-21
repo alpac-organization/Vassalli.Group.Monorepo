@@ -34,7 +34,6 @@ export const WarehouseTypeOptions: EnumType[] =
 export type WarehouseTypeValue =
   (typeof WarehouseTypeEnum)[keyof typeof WarehouseTypeEnum]["textValue"];
 
-/** Label amigable desde el `warehouse_type` del contrato (`"Fiscal"`, `"GaleronTechado"`, …). */
 export function getWarehouseTypeLabel(
   warehouseType: string | null | undefined,
 ): string {

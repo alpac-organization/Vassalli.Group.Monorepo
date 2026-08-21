@@ -4,4 +4,5 @@ export interface WarehouseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (data: CreateWarehouseRequest) => void;
+  parentWarehouseId?: string | null;
 }

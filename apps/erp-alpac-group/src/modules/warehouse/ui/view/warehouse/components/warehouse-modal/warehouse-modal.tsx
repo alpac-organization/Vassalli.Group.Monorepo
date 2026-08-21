@@ -53,6 +53,7 @@ export function WarehouseModal({
   isOpen,
   onClose,
   onSubmit,
+  parentWarehouseId,
 }: WarehouseModalProps) {
   const { companyId, moduleCode } = useUserStore();
   const { GetBranchesQuery } = useCompanies({ company_id: companyId });
@@ -101,7 +102,7 @@ export function WarehouseModal({
       warehouse_type: Number(
         warehouseTypeOption?.value ?? WarehouseTypeEnum.General.value,
       ),
-      parent_warehouse_id: null,
+      parent_warehouse_id: parentWarehouseId ?? null,
       warehouse_details: {
         width_metres: data.warehouse_details.width_metres,
         length_metres: data.warehouse_details.length_metres,
@@ -112,7 +113,7 @@ export function WarehouseModal({
 
     CreateWarehouse.mutate(payload, {
       onSuccess() {
-        handleRequestSuccess("Bodega registrada exitosamente.");
+        handleRequestSuccess(parentWarehouseId ? "Sub-bodega registrada exitosamente." : "Bodega registrada exitosamente.");
         reset();
         onSubmit?.(payload);
 
@@ -143,10 +144,10 @@ export function WarehouseModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Registro de nueva bodega"
+      title={parentWarehouseId ? "Anexar subwarehouse" : "Registro de nueva bodega"}
       variant="form"
       size="6xl"
-      description="Complete el registro de bodega"
+      description={parentWarehouseId ? "Complete el registro de la sub-bodega" : "Complete el registro de bodega"}
     >
       <form
         className="flex flex-col gap-5"

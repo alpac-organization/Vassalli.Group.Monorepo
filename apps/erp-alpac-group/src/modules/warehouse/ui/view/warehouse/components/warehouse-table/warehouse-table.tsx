@@ -10,12 +10,13 @@ export function WarehouseTable({
   pageSize,
   onPageChange,
   onViewSections,
+  onAttachSubwarehouse,
   isFetching = false,
 }: WarehouseTableProps) {
   const lastItemId = data.at(-1)?.warehouse_id;
   const columns = useMemo(
-    () => getWarehouseColumns({ onViewSections, lastItemId }),
-    [onViewSections, lastItemId],
+    () => getWarehouseColumns({ onViewSections, onAttachSubwarehouse, lastItemId }),
+    [onViewSections, onAttachSubwarehouse, lastItemId],
   );
 
   return (

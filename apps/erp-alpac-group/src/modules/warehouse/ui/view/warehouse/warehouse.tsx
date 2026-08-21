@@ -28,6 +28,7 @@ export function WarehousePage() {
   const { companyId, moduleCode, moduleBasePath } = useUserStore();
   const isWarehouseAdmin = moduleBasePath.includes("warehouse-admin");
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+  const [parentWarehouseId, setParentWarehouseId] = useState<string | null>(null);
   const [appliedFilters, setAppliedFilters] = useState<WarehouseFilters>(
     EMPTY_WAREHOUSE_FILTERS,
   );
@@ -73,6 +74,21 @@ export function WarehousePage() {
     [baseUrl, isWarehouseAdmin, navigate],
   );
 
+  const handleAttachSubwarehouse = useCallback((warehouse: WarehouseDto) => {
+    setParentWarehouseId(warehouse.warehouse_id);
+    setIsWarehouseModalOpen(true);
+  }, []);
+
+  const handleCreateWarehouseClick = useCallback(() => {
+    setParentWarehouseId(null);
+    setIsWarehouseModalOpen(true);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setIsWarehouseModalOpen(false);
+    setParentWarehouseId(null);
+  }, []);
+
   return (
     <m.div
       initial={{ opacity: 0, y: 20 }}
@@ -102,7 +118,7 @@ export function WarehousePage() {
             label="Registrar Nueva Bodega"
             icon={<Warehouse size={20} />}
             className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-            onClick={() => setIsWarehouseModalOpen(true)}
+            onClick={handleCreateWarehouseClick}
           />
         </div>
       </div>
@@ -119,12 +135,14 @@ export function WarehousePage() {
         pageSize={GetWarehouses.data?.page_size ?? PAGE_SIZE}
         onPageChange={setCurrentPage}
         onViewSections={handleViewSections}
+        onAttachSubwarehouse={handleAttachSubwarehouse}
         isFetching={GetWarehouses.isFetching}
       />
 
       <WarehouseModal
         isOpen={isWarehouseModalOpen}
-        onClose={() => setIsWarehouseModalOpen(false)}
+        onClose={handleCloseModal}
+        parentWarehouseId={parentWarehouseId}
       />
     </m.div>
   );
