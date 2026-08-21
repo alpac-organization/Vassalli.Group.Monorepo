@@ -178,13 +178,23 @@ export function MerchandiseDetailModal({
                 missingMessage="Contenedor no registrado"
               />
               <ReadOnlyField
-                label="Fecha de salida"
-                value={values.transportUnitExitDate}
+                label="Fecha de salida del vehículo"
+                value={values.vehicleExitDate}
                 missingMessage="No registrado"
               />
               <ReadOnlyField
-                label="Hora de salida"
-                value={values.transportUnitExitTime}
+                label="Hora de salida del vehículo"
+                value={values.vehicleExitTime}
+                missingMessage="No registrado"
+              />
+              <ReadOnlyField
+                label="Fecha de salida del contenedor"
+                value={values.containerExitDate}
+                missingMessage="No registrado"
+              />
+              <ReadOnlyField
+                label="Hora de salida del contenedor"
+                value={values.containerExitTime}
                 missingMessage="No registrado"
               />
             </div>

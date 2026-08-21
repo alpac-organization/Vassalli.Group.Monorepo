@@ -10,11 +10,17 @@ const QUEUE_STATUS_CLASS =
 
 const ENTRY_MOVEMENT_STATUS_CLASS: Record<string, string> = {
   queue: QUEUE_STATUS_CLASS,
+  pending: QUEUE_STATUS_CLASS,
+  pendiente: QUEUE_STATUS_CLASS,
   unloading:
     "bg-blue-100 text-blue-900 border border-blue-200 dark:bg-[#09365C] dark:text-[#93C5FD] dark:border-[#3B82F6]",
   completed:
     "bg-green-100 text-green-900 border border-green-200 dark:bg-green-900/40 dark:text-green-200 dark:border-green-700/50",
+  completado:
+    "bg-green-100 text-green-900 border border-green-200 dark:bg-green-900/40 dark:text-green-200 dark:border-green-700/50",
   abandoned:
+    "bg-[#B1B37A]! text-[#1a1c0d]! border border-[#8f915f]! dark:bg-[#4B5563]! dark:text-[#DAD3C6]! dark:border-[#8f915f]!",
+  abandonado:
     "bg-[#B1B37A]! text-[#1a1c0d]! border border-[#8f915f]! dark:bg-[#4B5563]! dark:text-[#DAD3C6]! dark:border-[#8f915f]!",
 };
 
@@ -54,8 +60,12 @@ export function getStatusBadgeLabel(status: string): string {
 
   const legacyLabels: Record<string, string> = {
     completed: "Completado",
+    completado: "Completado",
     abandoned: "Abandonado",
+    abandonado: "Abandonado",
     queue: "En cola",
+    pending: "Pendiente",
+    pendiente: "Pendiente",
     unloading: "En descarga",
   };
 
