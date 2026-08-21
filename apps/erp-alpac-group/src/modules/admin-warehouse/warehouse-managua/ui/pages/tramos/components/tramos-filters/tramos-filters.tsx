@@ -15,7 +15,7 @@ import {
 const STATUS_FILTER_OPTIONS: Option[] = [
   { value: "", label: "Todos" },
   ...Object.values(RackStatusEnum).map((option) => ({
-    value: option.textValue,
+    value: String(option.value),
     label: option.label,
   })),
 ];

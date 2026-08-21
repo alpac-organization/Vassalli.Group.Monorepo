@@ -5,11 +5,13 @@ import type { GetSectionsResponse } from "@app/modules/admin-warehouse/warehouse
 import { cleanParams } from "@app/shared/utils/object.utils";
 import type { CreateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-section-req";
 import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
-import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
+import type {
+  GetLotsResponse,
+  RegisterLotsResultResponse,
+} from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { GetLotDetailRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-details-req";
 import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-detail";
 import type { CreateLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
-import type { RegisterLotsResultResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { GetRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-racks";
 import type { GetRackResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-res";
 import type { GetRackDetailRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-rack-detail";
@@ -35,10 +37,10 @@ export class WarehouseAdminServices implements IWarehouseAdminService {
     const url = `companies/${company_id}/modules/${module_code}/warehouse/${warehouse_id}/sections`;
     await this.apiHandler.post<void>(url, rest);
   }
-  async GetLots(payload: GetLotsRequest): Promise<LotListItemResponse[]> {
+  async GetLots(payload: GetLotsRequest): Promise<GetLotsResponse> {
     const { company_id, module_code, section_id, ...rest } = payload;
     const url = `companies/${company_id}/modules/${module_code}/sections/${section_id}/lots`;
-    return await this.apiHandler.get<LotListItemResponse[]>(url, {
+    return await this.apiHandler.get<GetLotsResponse>(url, {
       params: cleanParams(rest),
     });
   }

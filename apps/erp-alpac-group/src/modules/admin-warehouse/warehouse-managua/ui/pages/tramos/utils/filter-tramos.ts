@@ -1,19 +1,16 @@
-import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
+import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
 import type { TramoFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/types/tramos.types";
 
-export function filterTramos(
-  lots: LotListItemResponse[],
+export function filtersToGetLotsParams(
   filters: TramoFilters,
-): LotListItemResponse[] {
-  const search = filters.searchTerm.toLowerCase();
+): Pick<GetLotsRequest, "code" | "status"> {
+  const status = filters.filterStatus
+    ? Number(filters.filterStatus)
+    : undefined;
 
-  return lots.filter((item) => {
-    const matchesSearch =
-      search === "" || item.code.toLowerCase().includes(search);
-
-    const matchesStatus =
-      filters.filterStatus === "" || item.status === filters.filterStatus;
-
-    return matchesSearch && matchesStatus;
-  });
+  return {
+    code: filters.searchTerm.trim() || undefined,
+    status:
+      status != null && !Number.isNaN(status) ? status : undefined,
+  };
 }
