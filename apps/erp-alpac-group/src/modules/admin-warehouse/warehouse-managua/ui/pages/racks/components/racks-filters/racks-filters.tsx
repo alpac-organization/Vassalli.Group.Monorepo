@@ -1,8 +1,5 @@
 import { Button, Dropdown, InputText } from "@alpac/design-system";
-import type { Option } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
-import { RackStatusEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
-import { RackUsageProfileEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-usage-profile";
 import {
   EMPTY_RACK_FILTERS,
   type RackFilters,
@@ -12,30 +9,11 @@ import {
   inputClassName,
   labelClassName,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-filters/utils/styles";
-
-const STATUS_FILTER_OPTIONS: Option[] = [
-  { value: "", label: "Todos" },
-  ...Object.values(RackStatusEnum).map((option) => ({
-    value: option.textValue,
-    label: option.label,
-  })),
-];
-
-const USAGE_FILTER_OPTIONS: Option[] = [
-  { value: "", label: "Todos" },
-  ...Object.values(RackUsageProfileEnum).map((option) => ({
-    value: option.textValue,
-    label: option.label,
-  })),
-];
-
-function buildFiltersPayload(values: RackFilters): RackFilters {
-  return {
-    level: values.level.trim(),
-    status: values.status,
-    usage: values.usage,
-  };
-}
+import {
+  buildFiltersPayload,
+  STATUS_FILTER_OPTIONS,
+  USAGE_FILTER_OPTIONS,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-filters/utils/rack-filters-util";
 
 export function RacksFiltersBar({
   onApply,

@@ -1,3 +1,5 @@
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+
 export interface RegisterLotGroupRequest {
   codes?: string[] | null;
   code_prefix?: string | null;
@@ -12,9 +14,7 @@ export interface RegisterLotGroupRequest {
   unavailable_reason?: string | null;
 }
 
-export interface CreateLotsRequest {
-  company_id: string;
-  module_code: string;
+export interface CreateLotsRequest extends BaseRequest {
   section_id: string;
   groups: RegisterLotGroupRequest[];
 }

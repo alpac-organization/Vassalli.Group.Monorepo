@@ -3,11 +3,7 @@ import { Breadcrumb, useTheme } from "@alpac/design-system";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useNavigate } from "react-router-dom";
-
-type RacksHeaderProps = {
-  warehouseId: string;
-  sectionId: string;
-};
+import type { RacksHeaderProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-header/types/racks-header";
 
 export function RacksHeader({ warehouseId, sectionId }: RacksHeaderProps) {
   const navigate = useNavigate();

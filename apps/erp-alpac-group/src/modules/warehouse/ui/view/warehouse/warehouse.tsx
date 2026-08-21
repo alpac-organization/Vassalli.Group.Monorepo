@@ -9,7 +9,6 @@ import { WarehouseTable } from "@app/modules/warehouse/ui/view/warehouse/compone
 import { WarehouseModal } from "@app/modules/warehouse/ui/view/warehouse/components/warehouse-modal/warehouse-modal";
 import {
   EMPTY_WAREHOUSE_FILTERS,
-  filtersToGetWarehouseParams,
   type WarehouseFilters,
 } from "@app/modules/warehouse/ui/view/warehouse/types/warehouse.types";
 import { flattenWarehouseRows } from "@app/modules/warehouse/ui/view/warehouse/components/warehouse-table/types/warehouse-table.types";
@@ -19,6 +18,7 @@ import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { Loader } from "@app/shared/components/loaders/loader";
 import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses";
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
+import { filtersToGetWarehouseParams } from "@app/modules/warehouse/ui/view/warehouse/utils/warehouse-utils";
 
 const PAGE_SIZE = 10;
 
@@ -28,7 +28,9 @@ export function WarehousePage() {
   const { companyId, moduleCode, moduleBasePath } = useUserStore();
   const isWarehouseAdmin = moduleBasePath.includes("warehouse-admin");
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
-  const [parentWarehouseId, setParentWarehouseId] = useState<string | null>(null);
+  const [parentWarehouseId, setParentWarehouseId] = useState<string | null>(
+    null,
+  );
   const [appliedFilters, setAppliedFilters] = useState<WarehouseFilters>(
     EMPTY_WAREHOUSE_FILTERS,
   );

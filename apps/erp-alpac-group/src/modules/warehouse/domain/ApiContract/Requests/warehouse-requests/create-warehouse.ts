@@ -1,6 +1,6 @@
-export interface CreateWarehouseRequest {
-  company_id: string;
-  module_code: string;
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+
+export interface CreateWarehouseRequest extends BaseRequest {
   code: string;
   branch_id: string;
   is_owner: boolean;

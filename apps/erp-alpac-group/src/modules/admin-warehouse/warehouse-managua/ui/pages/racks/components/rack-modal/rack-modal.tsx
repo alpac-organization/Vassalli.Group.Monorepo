@@ -9,7 +9,7 @@ import {
 } from "@alpac/design-system";
 import { Plus, Trash2 } from "lucide-react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import type { RackModalProps } from "./rack-modal.types";
+import type { RackModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-modal/types/rack-modal.types";
 import {
   RackStatusEnum,
   RackStatusOptions,
@@ -37,33 +37,11 @@ import {
   inputClassName,
   labelClassName,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/style.racks";
-
-const parseDecimal = (value: unknown) => {
-  const trimmed = String(value ?? "").trim();
-  return trimmed ? parseFloat(trimmed.replace(/,/g, "")) : undefined;
-};
-
-type RackLevelFormValues = {
-  level_number?: string;
-  racks_count?: string;
-  width_metres?: string;
-  length_metres?: string;
-  height_metres?: string;
-  usage_profile: number;
-  max_pulleys?: string;
-  status: number;
-  unavailable_reason?: string;
-};
-
-type FormValues = {
-  shelf_code: string;
-  starting_deposit_number?: string;
-  levels: RackLevelFormValues[];
-};
-
-const isUnavailableStatus = (status: number) =>
-  status === RackStatusEnum.UnderMaintenance.value ||
-  status === RackStatusEnum.Blocked.value;
+import type { FormValues } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-modal/types/rack-modal.types";
+import {
+  parseDecimal,
+  isUnavailableStatus,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-modal/utils/rack.utils";
 
 export const RackModal = ({
   isOpen,
@@ -320,7 +298,11 @@ export const RackModal = ({
                       },
                       setValueAs: parseDecimal,
                       onChange: (evt) => {
-                        evt.target.value = formatAmount(evt.target.value, 10, 2);
+                        evt.target.value = formatAmount(
+                          evt.target.value,
+                          10,
+                          2,
+                        );
                       },
                     })}
                     error={errors.levels?.[index]?.width_metres?.message}
@@ -344,7 +326,11 @@ export const RackModal = ({
                       },
                       setValueAs: parseDecimal,
                       onChange: (evt) => {
-                        evt.target.value = formatAmount(evt.target.value, 10, 2);
+                        evt.target.value = formatAmount(
+                          evt.target.value,
+                          10,
+                          2,
+                        );
                       },
                     })}
                     error={errors.levels?.[index]?.length_metres?.message}
@@ -366,7 +352,11 @@ export const RackModal = ({
                       },
                       setValueAs: parseDecimal,
                       onChange: (evt) => {
-                        evt.target.value = formatAmount(evt.target.value, 10, 2);
+                        evt.target.value = formatAmount(
+                          evt.target.value,
+                          10,
+                          2,
+                        );
                       },
                     })}
                     error={errors.levels?.[index]?.height_metres?.message}

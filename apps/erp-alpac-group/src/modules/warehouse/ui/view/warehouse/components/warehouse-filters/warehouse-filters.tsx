@@ -1,7 +1,5 @@
 import { Button, Dropdown, InputText } from "@alpac/design-system";
-import type { Option } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
-import { WarehouseTypeOptions } from "@app/modules/warehouse/domain/enums/warehouse.enum";
 import {
   EMPTY_WAREHOUSE_FILTERS,
   type WarehouseFilters,
@@ -11,26 +9,11 @@ import {
   inputClassName,
   labelClassName,
 } from "@app/modules/warehouse/ui/view/warehouse/components/warehouse-filters/utils/styles";
-
-const WAREHOUSE_TYPE_FILTER_OPTIONS: Option[] = [
-  ...WarehouseTypeOptions.map((option) => ({
-    value: String(option.value),
-    label: option.label,
-  })),
-];
-
-const STATUS_FILTER_OPTIONS: Option[] = [
-  { value: "Activa", label: "Activa" },
-  { value: "Inactiva", label: "Inactiva" },
-];
-
-function buildFiltersPayload(values: WarehouseFilters): WarehouseFilters {
-  return {
-    warehouse_code: values.warehouse_code.trim(),
-    warehouse_type: values.warehouse_type,
-    filterStatus: values.filterStatus,
-  };
-}
+import {
+  buildFiltersPayload,
+  WAREHOUSE_TYPE_FILTER_OPTIONS,
+  STATUS_FILTER_OPTIONS,
+} from "@app/modules/warehouse/ui/view/warehouse/components/warehouse-filters/utils/warehouse-filters";
 
 export function WarehouseFiltersBar({
   onApply,

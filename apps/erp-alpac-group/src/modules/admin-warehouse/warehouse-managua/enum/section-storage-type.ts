@@ -16,19 +16,3 @@ export const SectionStorageTypeOptions: EnumType[] = Object.values(
 
 export type SectionStorageTypeValue =
   (typeof SectionStorageTypeEnum)[keyof typeof SectionStorageTypeEnum]["textValue"];
-
-//   type SectionTypeProps = {
-//    path:string;
-//    params: {company:string,module_code:Object}
-//   }
-//   type ErrorProneSection = {
-//    error:{status:number,message:string};
-//   }
-//   type ResolveSection = {
-//    data:string[];
-//   }
-//   function GetSection(value:{isValid:boolean, capacity:number, type:SectionTypeProps }){
-//    if(!value.isValid){
-//       return
-//    }
-//   }

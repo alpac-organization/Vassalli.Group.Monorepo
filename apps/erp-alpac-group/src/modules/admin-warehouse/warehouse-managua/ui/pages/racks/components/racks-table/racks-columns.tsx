@@ -33,7 +33,7 @@ export function getRacksColumns({
     {
       key: "status",
       label: "Estado",
-      render: (item) => <RackStatusBadge value={item.status} />,
+      render: (item) => <RackStatusBadge value={item.status ?? ""} />,
     },
     {
       key: "action",

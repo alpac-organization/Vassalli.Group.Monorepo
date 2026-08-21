@@ -37,7 +37,6 @@ const hasCompanyContext = (payload?: {
 
 export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
   const queryClient = useQueryClient();
-  console.log("QueryClient", queryClient);
   const {
     getSectionsPayload,
     getLotsPayload,

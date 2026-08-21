@@ -8,7 +8,10 @@ import {
   Modal,
 } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
-import type { WarehouseModalProps } from "./types/warehouse-modal.types";
+import type {
+  WarehouseModalProps,
+  FormValues,
+} from "./types/warehouse-modal.types";
 import {
   WarehouseTypeEnum,
   WarehouseTypeOptions,
@@ -34,19 +37,6 @@ import {
 const parseDecimal = (value: unknown) => {
   const trimmed = String(value ?? "").trim();
   return trimmed ? parseFloat(trimmed.replace(/,/g, "")) : undefined;
-};
-
-type FormValues = {
-  branch_id: string;
-  code: string;
-  warehouse_name: string;
-  warehouse_type: number;
-  warehouse_details: {
-    width_metres?: number;
-    length_metres?: number;
-    ramps_count?: number;
-    parking_spaces_count?: number;
-  };
 };
 
 export function WarehouseModal({
@@ -113,7 +103,11 @@ export function WarehouseModal({
 
     CreateWarehouse.mutate(payload, {
       onSuccess() {
-        handleRequestSuccess(parentWarehouseId ? "Sub-bodega registrada exitosamente." : "Bodega registrada exitosamente.");
+        handleRequestSuccess(
+          parentWarehouseId
+            ? "Sub-bodega registrada exitosamente."
+            : "Bodega registrada exitosamente.",
+        );
         reset();
         onSubmit?.(payload);
 
@@ -144,10 +138,16 @@ export function WarehouseModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={parentWarehouseId ? "Anexar subwarehouse" : "Registro de nueva bodega"}
+      title={
+        parentWarehouseId ? "Anexar subwarehouse" : "Registro de nueva bodega"
+      }
       variant="form"
       size="6xl"
-      description={parentWarehouseId ? "Complete el registro de la sub-bodega" : "Complete el registro de bodega"}
+      description={
+        parentWarehouseId
+          ? "Complete el registro de la sub-bodega"
+          : "Complete el registro de bodega"
+      }
     >
       <form
         className="flex flex-col gap-5"

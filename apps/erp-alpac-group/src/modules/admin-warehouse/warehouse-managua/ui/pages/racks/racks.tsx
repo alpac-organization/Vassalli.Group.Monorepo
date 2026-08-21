@@ -6,8 +6,8 @@ import { useParams } from "react-router-dom";
 import { RacksHeader } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-header/racks-header";
 import { RacksFiltersBar } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-filters/racks-filters";
 import { RacksTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-table/racks-table";
-import { RackModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/rack-modal";
-import { RackDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/rack-detail-modal";
+import { RackModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-modal/rack-modal";
+import { RackDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-detail-modal/rack-detail-modal";
 import {
   EMPTY_RACK_FILTERS,
   type RackFilters,
@@ -33,9 +33,8 @@ export function RacksPage() {
   const [isRackModalOpen, setIsRackModalOpen] = useState(false);
   const [selectedRackId, setSelectedRackId] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<RackFilters>(
-    EMPTY_RACK_FILTERS,
-  );
+  const [appliedFilters, setAppliedFilters] =
+    useState<RackFilters>(EMPTY_RACK_FILTERS);
   const [currentPage, setCurrentPage] = useState(1);
 
   const getRacksPayload = useMemo(

@@ -1,6 +1,6 @@
-export interface GetRacksRequest {
-  company_id: string;
-  module_code: string;
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+
+export interface GetRacksRequest extends BaseRequest {
   section_id: string;
   level_number?: number | null;
   status?: string | null;

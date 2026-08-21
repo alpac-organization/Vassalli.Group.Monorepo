@@ -1,6 +1,6 @@
 import { Button, Modal } from "@alpac/design-system";
 import { Boxes, Layers, MapPin, Ruler, Workflow, X } from "lucide-react";
-import type { RackDetailModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/rack-detail-modal.types";
+import type { RackDetailModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-detail-modal/types/rack-detail-modal.types";
 import { getUsageProfileLabel } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/get-usage-profile-label";
 import { sortRackPositions } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/sort-rack-positions";
 import { RackStatusBadge } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-warehouses-badges";
@@ -80,7 +80,7 @@ export const RackDetailModal = ({
                 <span className="text-xs">Estado</span>
               </div>
               <div className="mt-1">
-                <RackStatusBadge value={rack.status ?? null} />
+                <RackStatusBadge value={rack.status ?? ""} />
               </div>
             </div>
           </div>
