@@ -9,15 +9,14 @@ export class ModuleServices implements IModuleServices {
     this.apiHandler = httpHandler;
   }
 
-  public async ObtainActiveModulesByCompanyId(
-    company_id: string,
-  ): Promise<ModulesAvailableResponse[]> {
+  public async ObtainActiveModulesByCompanyId(company_id: string): Promise<ModulesAvailableResponse[]> {
     try {
       const modules = await this.apiHandler.get<ModulesAvailableResponse[]>(
         `/companies/${company_id}/users/modules`,
       );
       return modules;
-    } catch (error) {
+    } 
+    catch (error) {
       throw error;
     }
   }
