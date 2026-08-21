@@ -13,7 +13,6 @@ import {
 } from "@app/modules/warehouse/ui/view/warehouse/components/warehouse-filters/utils/styles";
 
 const WAREHOUSE_TYPE_FILTER_OPTIONS: Option[] = [
-  { value: "", label: "Todos" },
   ...WarehouseTypeOptions.map((option) => ({
     value: String(option.value),
     label: option.label,
@@ -21,7 +20,6 @@ const WAREHOUSE_TYPE_FILTER_OPTIONS: Option[] = [
 ];
 
 const STATUS_FILTER_OPTIONS: Option[] = [
-  { value: "", label: "Todos" },
   { value: "Activa", label: "Activa" },
   { value: "Inactiva", label: "Inactiva" },
 ];
@@ -85,7 +83,7 @@ export function WarehouseFiltersBar({
               <Dropdown
                 appearance="dark"
                 label="Tipo"
-                placeholder="Todos"
+                placeholder="Seleccione un tipo"
                 options={WAREHOUSE_TYPE_FILTER_OPTIONS}
                 value={field.value || undefined}
                 onChange={(value) => field.onChange(String(value ?? ""))}
@@ -105,7 +103,7 @@ export function WarehouseFiltersBar({
               <Dropdown
                 appearance="dark"
                 label="Estado"
-                placeholder="Todos"
+                placeholder="Seleccione un estado"
                 options={STATUS_FILTER_OPTIONS}
                 value={field.value || undefined}
                 onChange={(value) => field.onChange(String(value ?? ""))}

@@ -11,10 +11,13 @@ export type WarehouseTableProps = {
   pageSize: number;
   onPageChange: (page: number) => void;
   onViewSections: (warehouse: WarehouseDto) => void;
+  onAttachSubwarehouse: (warehouse: WarehouseDto) => void;
   isFetching?: boolean;
 };
 
-/** Aplana el árbol de `sub_warehouses` para filas de tabla con indentación. */
+// Esta función toma una lista de bodegas (y sus posibles sub-bodegas anidadas)
+// y las convierte en una lista plana, asignando a cada una un nivel de profundidad .
+// Es útil aui para mostrar estructuras jerárquicas en la tabla donde se necesita una representación lineal.
 export function flattenWarehouseRows(
   warehouses: WarehouseDto[],
   depth = 0,

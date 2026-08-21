@@ -9,6 +9,7 @@ const contextMenuButton =
 
 type WarehouseColumnsOptions = {
   onViewSections: (warehouse: WarehouseDto) => void;
+  onAttachSubwarehouse: (warehouse: WarehouseDto) => void;
   lastItemId?: string;
 };
 
@@ -40,7 +41,7 @@ function WarehouseNameCell({ item }: { item: WarehouseTableRow }) {
     >
       {isChild && (
         <CornerDownRight
-          size={14}
+          size={18}
           className="shrink-0 text-slate-400 dark:text-slate-500"
           aria-hidden
         />
@@ -52,6 +53,7 @@ function WarehouseNameCell({ item }: { item: WarehouseTableRow }) {
 
 export function getWarehouseColumns({
   onViewSections,
+  onAttachSubwarehouse,
   lastItemId,
 }: WarehouseColumnsOptions): TableColumn<WarehouseTableRow>[] {
   return [
@@ -84,6 +86,10 @@ export function getWarehouseColumns({
             {
               label: "Ver secciones",
               onClick: () => onViewSections(item),
+            },
+            {
+              label: "Anexar subwarehouse",
+              onClick: () => onAttachSubwarehouse(item),
             },
           ]}
           triggerClassName={contextMenuButton}
