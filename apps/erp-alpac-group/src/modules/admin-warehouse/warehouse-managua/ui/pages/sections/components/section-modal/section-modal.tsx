@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import {
+  Accordion,
   Alert,
   AnimatedAlertWrapper,
   Button,
@@ -8,6 +9,8 @@ import {
   InputText,
   Modal,
 } from "@alpac/design-system";
+import { AnimatePresence, m } from "framer-motion";
+import { ChevronDown, Layers } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import type { SectionModalProps } from "./section-modal.types";
 import {
@@ -34,25 +37,11 @@ import {
   dropdownClassName,
   labelClassName,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-modal/utils/style.sections";
-
-const parseDecimal = (value: unknown) => {
-  const trimmed = String(value ?? "").trim();
-  return trimmed ? parseFloat(trimmed.replace(/,/g, "")) : undefined;
-};
-
-type FormValues = {
-  code: string;
-  name: string;
-  section_type: number;
-  storage_type: number;
-  width_metres?: number;
-  length_metres?: number;
-  overflow: {
-    allows_overflow_storage: boolean;
-    is_overflow_enabled: boolean;
-    max_overflow_polines?: number;
-  };
-};
+import type { FormValues } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-modal/section-modal.types";
+import {
+  parseDecimal,
+  overflowAccordionTransition,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-modal/utils/style.sections";
 
 export const SectionModal = ({
   isOpen,
@@ -299,68 +288,91 @@ export const SectionModal = ({
           />
         </div>
 
-        {isAisle && (
-          <div className="rounded-xl border border-[#2a2d3d] bg-[#1b1e27] p-4">
-            <p className="mb-3 text-sm font-medium text-slate-300">
-              Capacidad de desborde (solo pasillos)
-            </p>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <Controller
-                control={control}
-                name="overflow.allows_overflow_storage"
-                render={({ field }) => (
-                  <Checkbox
-                    label="Permite almacenamiento de desborde"
-                    labelPosition="right"
-                    className="text-slate-300!"
-                    checked={field.value}
-                    onChange={field.onChange}
+        <AnimatePresence initial={false}>
+          {isAisle ? (
+            <m.div
+              key="overflow-capacity-accordion"
+              initial={{ opacity: 0, y: 10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: 8, height: 0 }}
+              transition={overflowAccordionTransition}
+              className="mx-2 overflow-hidden sm:mx-0"
+            >
+              <Accordion
+                title={
+                  <span className="flex min-w-0 items-center gap-2">
+                    <Layers
+                      className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-300"
+                      aria-hidden
+                    />
+                    <span>Capacidad de desborde (solo pasillos)</span>
+                  </span>
+                }
+                defaultOpen
+                icon={ChevronDown}
+                className="rounded-md! border! border-slate-300! bg-transparent! dark:border-slate-600! dark:bg-[#272b34]! dark:hover:border-neutral-600!"
+                triggerClassName="h-auto! min-h-10! rounded-md! bg-transparent! px-3! py-2.5! sm:px-4! dark:bg-transparent! hover:bg-slate-50! dark:hover:bg-white/5!"
+                contentClassName="border-t border-slate-300 px-3 py-3 sm:px-4 sm:py-4 dark:border-slate-600"
+              >
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <Controller
+                    control={control}
+                    name="overflow.allows_overflow_storage"
+                    render={({ field }) => (
+                      <Checkbox
+                        label="Permite almacenamiento de desborde"
+                        labelPosition="right"
+                        className="text-slate-300!"
+                        checked={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
                   />
-                )}
-              />
 
-              <Controller
-                control={control}
-                name="overflow.is_overflow_enabled"
-                render={({ field }) => (
-                  <Checkbox
-                    label="Desborde habilitado"
-                    labelPosition="right"
-                    className="text-slate-300!"
-                    checked={field.value}
-                    onChange={field.onChange}
+                  <Controller
+                    control={control}
+                    name="overflow.is_overflow_enabled"
+                    render={({ field }) => (
+                      <Checkbox
+                        label="Desborde habilitado"
+                        labelPosition="right"
+                        className="text-slate-300!"
+                        checked={field.value}
+                        onChange={field.onChange}
+                      />
+                    )}
                   />
-                )}
-              />
 
-              <InputText
-                label="Máximo de polines"
-                type="text"
-                inputMode="numeric"
-                placeholder="0"
-                className={inputClassName}
-                labelClassName={labelClassName}
-                {...register("overflow.max_overflow_polines", {
-                  validate: {
-                    validateInteger: (value) =>
-                      value === undefined ||
-                      value === null ||
-                      validateIntegerNumber(value),
-                    validatePositive: (value) =>
-                      value === undefined ||
-                      value === null ||
-                      validatePositiveNumber(value, true),
-                  },
-                  setValueAs: parseDecimal,
-                  onChange: (evt) => {
-                    evt.target.value = formatAmount(evt.target.value, 6, 0);
-                  },
-                })}
-                error={errors.overflow?.max_overflow_polines?.message}
-              />
-            </div>
-          </div>
-        )}
+                  <InputText
+                    label="Máximo de polines"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    className={inputClassName}
+                    labelClassName={labelClassName}
+                    {...register("overflow.max_overflow_polines", {
+                      validate: {
+                        validateInteger: (value) =>
+                          value === undefined ||
+                          value === null ||
+                          validateIntegerNumber(value),
+                        validatePositive: (value) =>
+                          value === undefined ||
+                          value === null ||
+                          validatePositiveNumber(value, true),
+                      },
+                      setValueAs: parseDecimal,
+                      onChange: (evt) => {
+                        evt.target.value = formatAmount(evt.target.value, 6, 0);
+                      },
+                    })}
+                    error={errors.overflow?.max_overflow_polines?.message}
+                  />
+                </div>
+              </Accordion>
+            </m.div>
+          ) : null}
+        </AnimatePresence>
 
         <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6" />
 

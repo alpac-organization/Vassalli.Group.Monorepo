@@ -28,10 +28,10 @@ export function SectionsTable({
         pagination={
           <Pagination
             currentPage={currentPage}
-            totalRecords={totalRecords}
             pageSize={pageSize}
+            totalRecords={totalRecords}
             onPageChange={onPageChange}
-            disabled={isFetching || totalRecords === 0}
+            disabled={isFetching}
           />
         }
       />

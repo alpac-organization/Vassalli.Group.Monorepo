@@ -3,10 +3,7 @@ import { Breadcrumb, useTheme } from "@alpac/design-system";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useNavigate } from "react-router-dom";
-
-type SectionsHeaderProps = {
-  warehouseId: string;
-};
+import type { SectionsHeaderProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-header/types/section-header.types";
 
 export function SectionsHeader({ warehouseId }: SectionsHeaderProps) {
   const navigate = useNavigate();

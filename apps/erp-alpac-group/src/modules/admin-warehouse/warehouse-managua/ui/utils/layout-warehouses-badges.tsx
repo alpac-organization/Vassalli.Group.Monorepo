@@ -5,38 +5,51 @@ import { SectionTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/
 import {
   getSectionTypeLabel,
   getSectionStorageTypeLabel,
+  resolveSectionType,
+  resolveSectionStorageType,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/section-status-badge";
 import { resolveRackStatus } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
 import { getRackStatusLabel } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
 
 // Esta funcion Representa un badge visual para indicar el tipo de seccion
-// @param value - string  - El valor del tipo de seccion
+// @param value - string | number - El valor del tipo de seccion
 // @returns - ReactNode - Un badge visual para indicar el tipo de seccion
-export const SectionTypeBadge = ({ value }: { value: string }) => {
-  const isStorage = value === SectionTypeEnum.Storage.textValue;
+export const SectionTypeBadge = ({ value }: { value: string | number }) => {
+  const resolved = resolveSectionType(value);
+  const isStorage = resolved?.textValue === SectionTypeEnum.Storage.textValue;
   return (
     <Badges
       label={getSectionTypeLabel(value)}
       color={isStorage ? "success" : "gray"}
       className={
         isStorage
-          ? "bg-[#132a22]! border! border-[#1b3b30]! text-[#4ade80]!"
-          : "bg-slate-800! border! border-slate-700! text-slate-400!"
+          ? "bg-emerald-500/15! border! border-emerald-500/40! text-emerald-400!"
+          : "bg-blue-500/10! border! border-blue-400/30! text-blue-300!"
       }
     />
   );
 };
 
 // Esta funcion Representa un badge visual para indicar el tipo de almacenamiento de una seccion
-// @param value - string  - El valor del tipo de almacenamiento de una seccion
+// @param value - string | number - El valor del tipo de almacenamiento de una seccion
 // @returns - ReactNode - Un badge visual para indicar el tipo de almacenamiento de una seccion
-export const SectionStorageTypeBadge = ({ value }: { value: string }) => {
-  let className = "bg-slate-800! border! border-slate-700! text-slate-400!";
-  if (value === SectionStorageTypeEnum.Racks.textValue) {
-    className = "bg-[#123C69]! border! border-[#2F6FB2]! text-[#D6ECFF]!";
-  } else if (value === SectionStorageTypeEnum.Lots.textValue) {
-    className = "bg-[#234A2F]! border! border-[#4FA56A]! text-[#D9FBE2]!";
+export const SectionStorageTypeBadge = ({
+  value,
+}: {
+  value: string | number;
+}) => {
+  const resolved = resolveSectionStorageType(value);
+
+  let className =
+    "bg-slate-500/15! border! border-slate-400/30! text-slate-300!";
+
+  if (resolved?.textValue === SectionStorageTypeEnum.Racks.textValue) {
+    className =
+      "bg-violet-500/15! border! border-violet-400/40! text-violet-300!";
+  } else if (resolved?.textValue === SectionStorageTypeEnum.Lots.textValue) {
+    className = "bg-amber-500/15! border! border-amber-400/40! text-amber-300!";
   }
+
   return (
     <Badges
       label={getSectionStorageTypeLabel(value)}
@@ -45,7 +58,6 @@ export const SectionStorageTypeBadge = ({ value }: { value: string }) => {
     />
   );
 };
-
 // Esta funcion Representa un badge visual para indicar el estado de un rack
 // @param value - string  - El valor del estado del rack
 // @returns - ReactNode - Un badge visual para indicar el estado de un rack

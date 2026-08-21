@@ -15,7 +15,7 @@ import { WarehouseAdminServices } from "@app/modules/admin-warehouse/warehouse-m
 import { warehouseHttpHandler } from "@app/core/adapters";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { SectionResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
+import type { GetSectionsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 const warehouseLayoutServices = new WarehouseAdminServices(
@@ -45,7 +45,7 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
     getRackDetailPayload,
   } = props || {};
 
-  const GetSections = useQuery<SectionResponse[], ApiErrorResponse>({
+  const GetSections = useQuery<GetSectionsResponse, ApiErrorResponse>({
     queryKey: ["get-warehouse-sections-records", getSectionsPayload],
     queryFn: () => warehouseLayoutServices.GetSections(getSectionsPayload!),
     enabled:

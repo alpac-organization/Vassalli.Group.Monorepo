@@ -5,15 +5,10 @@ import {
   SectionStorageTypeBadge,
   SectionTypeBadge,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-warehouses-badges";
+import type { SectionsColumnsOptions } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-table/types/sections-table.types";
 
 const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
-
-type SectionsColumnsOptions = {
-  onViewLots: (section: SectionResponse) => void;
-  onViewRacks: (section: SectionResponse) => void;
-  lastItemId?: string;
-};
 
 export function getSectionsColumns({
   onViewLots,
@@ -34,13 +29,13 @@ export function getSectionsColumns({
     {
       key: "section_type",
       label: "Tipo",
-      render: (item) => <SectionTypeBadge value={item.section_type || ""} />,
+      render: (item) => <SectionTypeBadge value={item.section_type ?? ""} />,
     },
     {
       key: "storage_type",
       label: "Almacenamiento",
       render: (item) => (
-        <SectionStorageTypeBadge value={item.storage_type || ""} />
+        <SectionStorageTypeBadge value={item.storage_type ?? ""} />
       ),
     },
     {

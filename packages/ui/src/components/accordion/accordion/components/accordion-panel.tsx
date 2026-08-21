@@ -3,11 +3,11 @@ import { AccordionProps } from "../types/accordion.type";
 import { ReactElement } from "react";
 
 const panelTransition =
-  "grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none motion-reduce:duration-0";
+  "grid overflow-hidden transition-[grid-template-rows] duration-500 ease-in-out motion-reduce:transition-none motion-reduce:duration-0";
 const contentFade =
-  "transition-opacity duration-300 ease-out motion-reduce:transition-none";
+  "transition-opacity duration-500 ease-in-out motion-reduce:transition-none";
 const chevronTransition =
-  "h-4 w-4 shrink-0 text-slate-500 transition-transform duration-300 ease-out motion-reduce:transition-none dark:text-slate-400";
+  "h-4 w-4 shrink-0 text-slate-500 transition-transform duration-500 ease-in-out motion-reduce:transition-none dark:text-slate-400";
 
 export function AccordionPanel({
   title,
@@ -36,7 +36,7 @@ export function AccordionPanel({
 }): ReactElement {
   return (
     <div
-      className={`${isOpen ? "overflow-visible" : "overflow-hidden"} h-fit rounded-lg border border-slate-200 bg-white dark:border-slate-600/50 dark:bg-[#272b34] ${className}`}
+      className={`overflow-hidden h-fit rounded-lg border border-slate-200 bg-white dark:border-slate-600/50 dark:bg-[#272b34] ${className}`}
     >
       <h3 className="m-0!">
         <button
@@ -63,9 +63,9 @@ export function AccordionPanel({
         aria-hidden={!isOpen}
         className={`${panelTransition} ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
       >
-        <div className={isOpen ? "overflow-visible" : "min-h-0 overflow-hidden"}>
+        <div className="min-h-0 overflow-hidden">
           <div
-            className={`${isOpen ? "overflow-visible" : "overflow-hidden"} ${contentFade} text-sm text-slate-600 dark:text-slate-300 ${
+            className={`${contentFade} text-sm text-slate-600 dark:text-slate-300 ${
               isOpen ? "opacity-100" : "opacity-0"
             } ${contentClassName}`}
           >
