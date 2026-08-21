@@ -10,7 +10,7 @@ export interface GetMerchandiseResponse {
 
 export interface MerchandiseRegisterItem {
   id: string;
-  plate_number: string;
+  vehicle_plate_number: string;
   driver_name: string;
   container_number: string | null;
   arrival_date: string;
@@ -18,4 +18,5 @@ export interface MerchandiseRegisterItem {
   document_type: DocumentType;
   total_documents: number;
   completed_documents: number;
+  status: string | null;
 }
