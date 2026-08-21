@@ -10,3 +10,9 @@ export type SectionsTableProps = {
   onViewRacks: (section: SectionResponse) => void;
   isFetching?: boolean;
 };
+
+export type SectionsColumnsOptions = {
+  onViewLots: (section: SectionResponse) => void;
+  onViewRacks: (section: SectionResponse) => void;
+  lastItemId?: string;
+};

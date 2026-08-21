@@ -1,7 +1,7 @@
 import type { IHttpHandler } from "@app/core/ports";
 import type { IWarehouseAdminService } from "@app/modules/admin-warehouse/warehouse-managua/applications/interfaces/IWarehouseAdmin";
 import type { GetSectionsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-sections-req";
-import type { SectionResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
+import type { GetSectionsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
 import { cleanParams } from "@app/shared/utils/object.utils";
 import type { CreateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-section-req";
 import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
@@ -23,26 +23,12 @@ export class WarehouseAdminServices implements IWarehouseAdminService {
     this.apiHandler = apiHandler;
   }
 
-  async GetSections(payload: GetSectionsRequest): Promise<SectionResponse[]> {
+  async GetSections(payload: GetSectionsRequest): Promise<GetSectionsResponse> {
     const { company_id, module_code, warehouse_id, ...rest } = payload;
     const url = `companies/${company_id}/modules/${module_code}/warehouse/${warehouse_id}/sections`;
-    const response = await this.apiHandler.get<unknown>(url, {
+    return await this.apiHandler.get<GetSectionsResponse>(url, {
       params: cleanParams(rest),
     });
-
-    if (Array.isArray(response)) {
-      return response as SectionResponse[];
-    }
-
-    if (
-      response &&
-      typeof response === "object" &&
-      Array.isArray((response as { data?: unknown }).data)
-    ) {
-      return (response as { data: SectionResponse[] }).data;
-    }
-
-    return [];
   }
   async CreateSection(payload: CreateSectionRequest): Promise<void> {
     const { company_id, module_code, warehouse_id, ...rest } = payload;
