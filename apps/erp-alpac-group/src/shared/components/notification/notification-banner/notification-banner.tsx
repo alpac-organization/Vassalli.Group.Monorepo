@@ -40,6 +40,7 @@ export function NotificationPermissionBanner({ permissionGranted, requestPermiss
 
 									<div className="flex shrink-0 gap-2">
 										<button
+											type="button"
 											className="rounded-lg bg-white px-2.5 py-1.5 text-xs font-medium text-[#5b2d8f] transition hover:bg-white/90"
 											onClick={() => setIsConfirmOpen(true)}
 										>
