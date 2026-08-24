@@ -1,4 +1,4 @@
-import type { AlertProps } from "@alpac/design-system";
+import { Alert, AnimatedAlertWrapper, type AlertProps } from "@alpac/design-system";
 import { useCallback, useEffect, useState } from "react";
 
 interface AlertConfig {
@@ -58,12 +58,24 @@ export const useAlertState = () => {
       setAlertState(undefined);
    }, []);
 
+   const AlertComponent = (
+      <AnimatedAlertWrapper open={alertState?.open ?? false}>
+         <Alert
+            type={alertState?.type ?? "error"}
+            title={alertState?.title}
+            message={alertState?.message ?? ""}
+            onClose={handleCloseAlert}
+         />
+      </AnimatedAlertWrapper>
+   );
+
    return {
       alertState,
       handleCloseAlert,
       handleRequestError,
       handleRequestSuccess,
       handleRequestWarning,
-      handleRequestInfo
+      handleRequestInfo,
+      AlertComponent
    }
 }

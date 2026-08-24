@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { ImagePlus, X, Upload } from "lucide-react";
+import { ImagePlus, X } from "lucide-react";
 import { Modal } from "@alpac/design-system";
 import { fileToBase64 } from "@app/shared/utils/fileToBase64";
 import type {ImageUploaderProps,ImageOutput} from "./image-uploader.types";
@@ -59,19 +59,15 @@ export function ImageUploader({
   error,
   isRequired = false,
   capture,
-  multiple = true,
 }: ImageUploaderProps) {
   const [dropError, setDropError] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState<string | null>(null);
   const valueRef = useRef(value);
-  valueRef.current = value;
+  useEffect(() => {
+    valueRef.current = value;
+  }, [value]);
 
   const nativeInputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    return () => {
-      valueRef.current.forEach((item) => URL.revokeObjectURL(item.preview));
-    };
-  }, []);
 
   const handleFiles = useCallback(
     async (files: File[]) => {
@@ -112,7 +108,7 @@ export function ImageUploader({
   const remainingSlots = maxFiles ? maxFiles - value.length : 999;
   const canAdd = remainingSlots > 0;
 
-  const { getRootProps, isDragActive } = useDropzone({
+  const { getRootProps } = useDropzone({
     noClick: true,
     noKeyboard: true,
     accept: { "image/*": [] },
@@ -203,7 +199,6 @@ export function ImageUploader({
       <input
         ref={nativeInputRef}
         type="file"
-        multiple={multiple}
         accept="image/*"
         capture={capture}
         onChange={handleNativeInputChange}

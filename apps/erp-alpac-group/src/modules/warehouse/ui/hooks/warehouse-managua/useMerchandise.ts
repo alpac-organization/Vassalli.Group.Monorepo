@@ -28,8 +28,10 @@ export const useMerchandise = (props?: UseMerchandiseProps) => {
   } = props ?? {};
   const queryClient = useQueryClient();
 
-  const invalidateMerchandiseRegistry = () =>
+  const invalidateMerchandiseRegistry = () => {
     queryClient.invalidateQueries({ queryKey: ["merchandise"] });
+    queryClient.invalidateQueries({ queryKey: ["merchandise-detail"] });
+  };
 
   const GetMerchandiseRegister = useQuery<
     GetMerchandiseResponse,

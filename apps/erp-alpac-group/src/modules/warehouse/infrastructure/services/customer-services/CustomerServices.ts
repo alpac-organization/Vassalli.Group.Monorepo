@@ -1,8 +1,11 @@
 import type { IHttpHandler } from "@app/core/ports";
 import type { ICustomerServices } from "@app/modules/warehouse/application/interfaces/customer-interfaces/ICustomerServices";
-import type { GetCustomerDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/get-customer-details.request";
+import type { CreateCustomerTypeRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/create-customer-type.request";
 import type { GetCustomerTypeRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/get-customer-types.request";
+import type { CreateCustomerRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/create-customer.request";
 import type { GetCustomerRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/get-customer.request";
+import type { GetCustomerTypesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/customer-responses/get-customer-types.response";
+import type { GetCustomerResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/customer-responses/get-customer.response";
 import { cleanParams } from "@app/shared/utils/object.utils";
 
 export class CustomerServices implements ICustomerServices {
@@ -13,42 +16,35 @@ export class CustomerServices implements ICustomerServices {
 		this.apiHandler = httpHandler;
 	}
 
-	async GetCustomerRecords(payload: GetCustomerRequest): Promise<any> {
-		try {
-			const { company_id, ...rest } = payload;
+	async GetCustomerRecords(payload: GetCustomerRequest): Promise<GetCustomerResponse[]> {
 
-			const url = `companies/${company_id}/customers`;
+		const { company_id, module_code, ...rest } = payload;
 
-			return await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
+		const url = `companies/${company_id}/modules/${module_code}/customers`;
 
-		} catch (error) {
-			throw error;
-		}
+		return await this.apiHandler.get<GetCustomerResponse[]>(url, { params: cleanParams(rest) });
+
 	}
 
-	async GetCustomerDetails(payload: GetCustomerDetailRequest): Promise<any> {
-		try {
-			const { company_id, customer_id, ...rest } = payload;
+	async GetCustomerTypes(payload: GetCustomerTypeRequest): Promise<GetCustomerTypesResponse[]> {
 
-			const url = `companies/${company_id}/customers/${customer_id}/details`;
+		const { company_id, module_code, ...rest } = payload;
 
-			return await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
+		const url = `companies/${company_id}/modules/${module_code}/customer-types`;
 
-		} catch (error) {
-			throw error;
-		}
+		return await this.apiHandler.get<GetCustomerTypesResponse[]>(url, { params: cleanParams(rest) });
+		
 	}
 
-	async GetCustomerTypes(payload: GetCustomerTypeRequest): Promise<any> {
-		try {
-			const { company_id, ...rest } = payload;
+	async CreateCustomer(payload: CreateCustomerRequest): Promise<string> {
+		const { company_id, module_code, ...rest } = payload;
+		const url = `companies/${company_id}/modules/${module_code}/customers`;
+		return await this.apiHandler.post<string>(url, rest);
+	}
 
-			const url = `companies/${company_id}/types-customers`;
-
-			return await this.apiHandler.get<any>(url, { params: cleanParams(rest) });
-
-		} catch (error) {
-			throw error;
-		}
+	async CreateCustomerType(payload: CreateCustomerTypeRequest): Promise<string> {
+		const { company_id, module_code, ...rest } = payload;
+		const url = `companies/${company_id}/modules/${module_code}/customer-types`;
+		return await this.apiHandler.post<string>(url, rest);
 	}
 }
