@@ -1,48 +1,20 @@
 import { Button, Dropdown, InputText } from "@alpac/design-system";
-import type { Option } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
-import { SectionTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
-import { SectionStorageTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
 import {
   EMPTY_SECTION_FILTERS,
   type SectionFilters,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/types/sections.types";
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-filters/types/sections-filters.types";
 import type { SectionsFiltersProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-filters/types/sections-filters.types";
 import {
   inputClassName,
   labelClassName,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-filters/utils/styles";
-
-const SECTION_TYPE_FILTER_OPTIONS: Option[] = [
-  { value: "", label: "Todos" },
-  ...Object.values(SectionTypeEnum).map((option) => ({
-    value: option.textValue,
-    label: option.label,
-  })),
-];
-
-const STORAGE_TYPE_FILTER_OPTIONS: Option[] = [
-  { value: "", label: "Todos" },
-  ...Object.values(SectionStorageTypeEnum).map((option) => ({
-    value: option.textValue,
-    label: option.label,
-  })),
-];
-
-const STATUS_FILTER_OPTIONS: Option[] = [
-  { value: "", label: "Todos" },
-  { value: "Activa", label: "Activa" },
-  { value: "Inactiva", label: "Inactiva" },
-];
-
-function buildFiltersPayload(values: SectionFilters): SectionFilters {
-  return {
-    searchTerm: values.searchTerm.trim(),
-    filterType: values.filterType,
-    filterStorage: values.filterStorage,
-    filterStatus: values.filterStatus,
-  };
-}
+import {
+  buildFiltersPayload,
+  SECTION_TYPE_FILTER_OPTIONS,
+  STORAGE_TYPE_FILTER_OPTIONS,
+  STATUS_FILTER_OPTIONS,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-filters/utils/section-filters.util";
 
 export function SectionsFiltersBar({
   onApply,
@@ -65,7 +37,7 @@ export function SectionsFiltersBar({
         <div className="flex flex-col justify-center gap-2">
           <h3 className="p-0! m-0!">Filtros</h3>
           <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
-            Filtra por nombre, código, tipo, almacenamiento o estado
+            Filtra por código, tipo, almacenamiento o estado
           </small>
         </div>
       </div>
@@ -78,11 +50,11 @@ export function SectionsFiltersBar({
       >
         <div className="flex flex-col min-w-0">
           <InputText
-            label="Búsqueda"
+            label="Código"
             className={inputClassName}
             labelClassName={labelClassName}
             type="text"
-            placeholder="Buscar por nombre o código..."
+            placeholder="Buscar por código..."
             {...register("searchTerm")}
           />
         </div>
@@ -95,7 +67,7 @@ export function SectionsFiltersBar({
               <Dropdown
                 appearance="dark"
                 label="Tipo"
-                placeholder="Todos"
+                placeholder="Seleccionar tipo"
                 options={SECTION_TYPE_FILTER_OPTIONS}
                 value={field.value || undefined}
                 onChange={(value) => field.onChange(String(value ?? ""))}
@@ -115,7 +87,7 @@ export function SectionsFiltersBar({
               <Dropdown
                 appearance="dark"
                 label="Almacenamiento"
-                placeholder="Todos"
+                placeholder="Selec. almacenamiento"
                 options={STORAGE_TYPE_FILTER_OPTIONS}
                 value={field.value || undefined}
                 onChange={(value) => field.onChange(String(value ?? ""))}
@@ -135,7 +107,7 @@ export function SectionsFiltersBar({
               <Dropdown
                 appearance="dark"
                 label="Estado"
-                placeholder="Todos"
+                placeholder="Seleccionar estado"
                 options={STATUS_FILTER_OPTIONS}
                 value={field.value || undefined}
                 onChange={(value) => field.onChange(String(value ?? ""))}

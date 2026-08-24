@@ -1,5 +1,5 @@
 import type { GetSectionsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-sections-req";
-import type { SectionResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
+import type { GetSectionsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
 import type { CreateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-section-req";
 import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
 import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
@@ -15,7 +15,7 @@ import type { CreateRacksRequest } from "@app/modules/admin-warehouse/warehouse-
 import type { CreateRackResultResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/create-rack-result";
 
 export interface IWarehouseAdminService {
-  GetSections(payload: GetSectionsRequest): Promise<SectionResponse[]>;
+  GetSections(payload: GetSectionsRequest): Promise<GetSectionsResponse>;
   CreateSection(payload: CreateSectionRequest): Promise<void>;
   GetLots(payload: GetLotsRequest): Promise<LotListItemResponse[]>;
   GetLotsById(payload: GetLotDetailRequest): Promise<LotDetailResponse>;

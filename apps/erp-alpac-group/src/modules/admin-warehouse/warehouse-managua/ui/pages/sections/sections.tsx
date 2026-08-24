@@ -10,8 +10,8 @@ import { SectionModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/
 import {
   EMPTY_SECTION_FILTERS,
   type SectionFilters,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/types/sections.types";
-import { filterSections, normalizeSections } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/filter-sections";
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-filters/types/sections-filters.types";
+import { filtersToGetSectionsParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/filter-sections";
 import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -20,6 +20,7 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { Loader } from "@app/shared/components/loaders/loader";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { SectionResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
+import type { GetSectionsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-sections-req";
 
 const PAGE_SIZE = 10;
 
@@ -36,26 +37,22 @@ export function SectionsPage() {
   );
   const [currentPage, setCurrentPage] = useState(1);
 
-  const getSectionsPayload = useMemo(
+  const getSectionsPayload = useMemo<GetSectionsRequest>(
     () => ({
       company_id: companyId,
       module_code: moduleCode,
       warehouse_id: warehouseId,
+      ...filtersToGetSectionsParams(appliedFilters),
+      page_number: currentPage,
+      page_size: PAGE_SIZE,
     }),
-    [companyId, moduleCode, warehouseId],
+    [companyId, moduleCode, warehouseId, appliedFilters, currentPage],
   );
 
   const { GetSections } = useWarehouseAdmin({ getSectionsPayload });
 
-  const sectionsData = useMemo(
-    () => filterSections(normalizeSections(GetSections.data), appliedFilters),
-    [GetSections.data, appliedFilters],
-  );
-
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return sectionsData.slice(start, start + PAGE_SIZE);
-  }, [sectionsData, currentPage]);
+  const sectionsData = GetSections.data?.data ?? [];
+  const totalRecords = GetSections.data?.total ?? 0;
 
   useEffect(() => {
     if (!GetSections.isError || !GetSections.error) return;
@@ -67,7 +64,12 @@ export function SectionsPage() {
     } catch {
       handleRequestError("Error al cargar las secciones");
     }
-  }, [GetSections.isError, GetSections.error, getMappedError, handleRequestError]);
+  }, [
+    GetSections.isError,
+    GetSections.error,
+    getMappedError,
+    handleRequestError,
+  ]);
 
   const handleApplyFilters = useCallback((filters: SectionFilters) => {
     setAppliedFilters(filters);
@@ -148,9 +150,9 @@ export function SectionsPage() {
       />
 
       <SectionsTable
-        data={paginatedData}
+        data={sectionsData}
         currentPage={currentPage}
-        totalRecords={sectionsData.length}
+        totalRecords={totalRecords}
         pageSize={PAGE_SIZE}
         onPageChange={setCurrentPage}
         onViewLots={handleViewLots}
