@@ -2,7 +2,6 @@ import axios, { AxiosError, type AxiosInstance } from "axios";
 import type { IHttpHandler } from "@app/core/ports";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
-import { getBrowserName } from "@app/core/enums/user-agent.enum";
 import type { CustomInternalAxiosRequestConfig } from "../interfaces/CustomInternalAxiosRequestConfig";
 import type { IAuthenticationServices } from "@app/modules/auth/application/interfaces/IAuthenticationServices";
 import { useInactivityStore } from "@app/shared/stores/useInactivityStore";
@@ -11,6 +10,7 @@ import {
   clearControlVacationsSelectionStorage,
   clearPayrollSelectionStorage,
 } from "@app/modules/auth/utils/save-state-storage";
+import { getDeviceName } from "@app/shared/utils/device-name.utils";
 
 type ConfigType = {
   baseUrl?: string;
@@ -34,7 +34,7 @@ class AxiosHttpAdapter implements IHttpHandler {
       headers: {
         "Content-Type": "application/json",
         "x-api-key": apiKey,
-        "x-device-name": getBrowserName(navigator.userAgent),
+        "x-device-name": getDeviceName(),
       },
     });
 

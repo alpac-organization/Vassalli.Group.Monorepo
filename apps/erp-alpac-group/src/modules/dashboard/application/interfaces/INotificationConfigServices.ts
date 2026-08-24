@@ -1,3 +1,6 @@
+import type { RegisterPushTokenRequest } from "../../domain/ApiContract/Requests/register-push-token.request";
+import type { UnlinkPushTokenRequest } from "../../domain/ApiContract/Requests/unlink-push-token.request";
+
 /**
  * Contrato de servicios para la configuración de notificaciones push (FCM)
  * dentro del ecosistema ERP.
@@ -7,20 +10,18 @@ export interface INotificationConfigServices {
   /**
    * Registra el token FCM del dispositivo en el perfil del usuario
    * dentro de la empresa especificada.
-   * @param {string} company_id - Identificador único de la empresa (Tenant ID).
-   * @param {string} token - Token FCM del dispositivo.
+   * @param {RegisterPushTokenRequest} payload - payload para registrar el token FCM.
    * @returns {Promise<void>} Promesa que resuelve cuando el token fue registrado.
    * @throws {Error} Si el servidor no responde o si el company_id no es válido.
    */
-  RegisterPushToken(company_id: string, token: string): Promise<void>;
+  RegisterPushToken(payload: RegisterPushTokenRequest): Promise<void>;
 
   /**
    * Desvincula el token FCM del dispositivo del perfil del usuario
    * dentro de la empresa especificada.
-   * @param {string} company_id - Identificador único de la empresa (Tenant ID).
-   * @param {string} token - Token FCM del dispositivo.
+   * @param {UnlinkPushTokenRequest} payload - payload para desvincular el token FCM.
    * @returns {Promise<void>} Promesa que resuelve cuando el token fue desvinculado.
    * @throws {Error} Si el servidor no responde o si el company_id no es válido.
    */
-  UnlinkPushToken(company_id: string, token: string): Promise<void>;
+  UnlinkPushToken(payload: UnlinkPushTokenRequest): Promise<void>;
 }
