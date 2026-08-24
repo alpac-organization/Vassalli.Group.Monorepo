@@ -1,6 +1,5 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import { getMessaging, isSupported, type Messaging } from "firebase/messaging";
-import { getInstallations, type Installations } from "firebase/installations";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,8 +13,6 @@ const firebaseConfig = {
 
 export const app: FirebaseApp = initializeApp(firebaseConfig);
 export { firebaseConfig };
-
-export const installations: Installations = getInstallations(app);
 
 let messagingInstance: Messaging | null = null;
 
