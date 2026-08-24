@@ -70,6 +70,7 @@ export const useNotification = (): UseNotificationResult => {
          }
 
          setFcmToken(token);
+         console.log('Token FCM obtenido:', token);
          // Enviar token al backend en AWS
 
 
