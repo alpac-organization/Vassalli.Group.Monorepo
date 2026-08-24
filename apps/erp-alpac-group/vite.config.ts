@@ -36,7 +36,7 @@ export default defineConfig({
       manifest: {
         id: "/",
         name: "Grupo Vassalli",
-        short_name: "ALPAC",
+        short_name: "Grupo Vassalli",
         description: "ERP Multiempresa - Grupo Vassalli",
         start_url: "/",
         scope: "/",
