@@ -1,12 +1,13 @@
-﻿import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm, Controller } from "react-hook-form";
-import { Alert, AnimatedAlertWrapper, Button, Dropdown, Modal, Textarea, type Option } from "@alpac/design-system";
-import { FilePlus2, X } from "lucide-react";
+import { Button, Dropdown, Modal, Textarea, type Option } from "@alpac/design-system";
+import { FilePlus2, Plus } from "lucide-react";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { useCustomer } from "@app/modules/warehouse/ui/hooks/useCustomer";
 import { ServiceOrderServices } from "@app/modules/warehouse/infrastructure/services/service-order-services/ServiceOrderServices";
 import { warehouseHttpHandler } from "@app/core/adapters/axiosAdapter";
+import type { GetCustomerResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/customer-responses/get-customer.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type {
   CreateServiceOrderFormValues,
@@ -14,6 +15,8 @@ import type {
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/create-service-order-modal/types/create-service-order-modal.types";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+
+import type { GetBranchesResponse } from "@app/modules/auth/domain/ApiContract/Responses/get-branches.response";
 
 const labelClassName =
   "text-slate-600! dark:text-slate-300! text-[13px]! font-medium!";
@@ -26,41 +29,39 @@ export function CreateServiceOrderModal({
   module_code,
   onClose,
   onCreated,
+  onRequestRegisterCustomer,
+  newlyCreatedCustomerId,
 }: CreateServiceOrderModalProps) {
   const { getMappedError } = useMappedError();
-  const { alertState, handleCloseAlert, handleRequestError } = useAlertState();
-  const { GetBranchesQuery } = useCompanies({ company_id });
+  const { alertState, handleCloseAlert, handleRequestError, AlertComponent } = useAlertState();
+  const { GetBranchesQuery: { data: branchesData } } = useCompanies({ company_id });
 
-  const branches = GetBranchesQuery.data ?? [];
-
-  const branchOptions = useMemo<Option[]>(
-    () =>
-      branches.map((branch) => ({
-        value: branch.branch_id,
-        label: `${branch.company_alias ?? ""} - ${branch.branch_name}`.trim(),
-      })),
-    [branches],
-  );
+  const branchOptions = useMemo<Option[]>(() => {
+    if (!Array.isArray(branchesData)) return [];
+    
+    return branchesData.map((branch: GetBranchesResponse  ) => ({
+      value: branch.branch_id,
+      label: `${branch.company_alias ?? ""} - ${branch.branch_name}`.trim(),
+    }));
+  }, [branchesData]);
 
   const { GetCustomer } = useCustomer();
-  const { data: customersData } = GetCustomer({ company_id });
+  const { data: customersData, refetch: refetchCustomers } = GetCustomer({ company_id, module_code, page_number: 1, page_size: 100 });
 
-  const customerOptions = useMemo<Option[]>(
-    () =>
-      (customersData ?? []).map((customer: { customer_id: string; legal_name?: string | null; identification_number?: string | null }) => ({
-        value: customer.customer_id,
-        label:
-          customer.legal_name ||
-          customer.identification_number ||
-          customer.customer_id,
-      })),
-    [customersData],
-  );
+  const customerOptions = useMemo<Option[]>(() => {
+    if (!Array.isArray(customersData)) return [];
+    
+    return customersData.map((customer: GetCustomerResponse) => ({
+      value: customer.customer_id,
+      label: customer.legal_name || customer.identification_number || customer.customer_id,
+    }));
+  }, [customersData]);
 
   const {
     control,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<CreateServiceOrderFormValues>({
     mode: "onSubmit",
@@ -71,6 +72,14 @@ export function CreateServiceOrderModal({
       observations: "",
     },
   });
+
+  useEffect(() => {
+    if (newlyCreatedCustomerId) {
+      refetchCustomers().then(() => {
+        setValue("customer_id", newlyCreatedCustomerId, { shouldValidate: true });
+      });
+    }
+  }, [newlyCreatedCustomerId, refetchCustomers, setValue]);
 
   const createServiceOrderMutation = useMutation({
     mutationFn: (values: CreateServiceOrderFormValues) =>
@@ -84,25 +93,11 @@ export function CreateServiceOrderModal({
   });
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="flex w-[min(600px,calc(100vw-2rem))] flex-col gap-5 rounded-2xl bg-white dark:bg-neutral-900 p-5 shadow-xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FilePlus2 size={20} className="text-amber-500 dark:text-amber-400" />
-            <h2 className="text-lg! font-semibold! text-slate-800! dark:text-slate-100!">
-              Crear orden de servicio
-            </h2>
-          </div>
-          <Button
-            type="button"
-            size="small"
-            icon={<X size={16} />}
-            ariaLabel="Cerrar modal de orden de servicio"
-            onClick={onClose}
-            className="text-slate-500! dark:text-slate-400! bg-transparent! hover:bg-slate-100! dark:hover:bg-slate-800!"
-          />
-        </div>
-
+    <Modal isOpen={isOpen} onClose={onClose}
+      title="Crear orden de servicio"
+      size="lg"
+    >
+      <div className="flex flex-col gap-4 min-w-0">
         <form
           onSubmit={handleSubmit((values) =>
             createServiceOrderMutation
@@ -127,6 +122,7 @@ export function CreateServiceOrderModal({
               rules={{ required: "La sucursal es requerida" }}
               render={({ field }) => (
                 <Dropdown
+                appearance="dark"
                   label="Sucursal"
                   labelClassName={labelClassName}
                   isRequired
@@ -144,17 +140,31 @@ export function CreateServiceOrderModal({
               control={control}
               rules={{ required: "El cliente es requerido" }}
               render={({ field }) => (
-                <Dropdown
-                  label="Cliente"
-                  labelClassName={labelClassName}
-                  isRequired
-                  placeholder="Seleccione el cliente"
-                  options={customerOptions}
-                  value={field.value}
-                  onChange={field.onChange}
-                  error={errors.customer_id?.message}
-                  errorVariant="text"
-                />
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0 relative">
+                    <Dropdown
+                      appearance="dark"
+                      label="Cliente"
+                      labelClassName={labelClassName}
+                      isRequired
+                      placeholder="Seleccione el cliente"
+                      options={customerOptions}
+                      value={field.value}
+                      onChange={field.onChange}
+                      error={errors.customer_id?.message}
+                      errorVariant="text"
+                    />
+                  </div>
+                  <div className="flex shrink-0 mt-[24px] sm:mt-[26px]">
+                    <Button
+                      type="button"
+                      tooltip="Registrar cliente nuevo"
+                      onClick={() => onRequestRegisterCustomer?.()}
+                      icon={<Plus size={16} />}
+                      className="h-[42px]! sm:h-[46px]! w-[42px]! sm:w-[46px]! bg-slate-100! hover:bg-slate-200! dark:bg-[#20242d]! dark:hover:bg-slate-800/80! text-slate-600! dark:text-slate-400! border border-slate-200! dark:border-slate-700! rounded-lg!"
+                    />
+                  </div>
+                </div>
               )}
             />
             <Controller
@@ -196,14 +206,7 @@ export function CreateServiceOrderModal({
           </div>
         </form>
 
-        <AnimatedAlertWrapper open={alertState?.open ?? false}>
-          <Alert
-            type={alertState?.type!}
-            title={alertState?.title}
-            message={alertState?.message!}
-            onClose={handleCloseAlert}
-          />
-        </AnimatedAlertWrapper>
+        {AlertComponent}
       </div>
     </Modal>
   );

@@ -67,11 +67,6 @@ export function ImageUploader({
   valueRef.current = value;
 
   const nativeInputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    return () => {
-      valueRef.current.forEach((item) => URL.revokeObjectURL(item.preview));
-    };
-  }, []);
 
   const handleFiles = useCallback(
     async (files: File[]) => {

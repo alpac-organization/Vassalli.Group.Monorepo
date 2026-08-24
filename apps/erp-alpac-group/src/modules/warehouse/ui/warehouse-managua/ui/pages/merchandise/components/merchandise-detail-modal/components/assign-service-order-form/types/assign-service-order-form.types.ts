@@ -3,4 +3,6 @@ export type AssignServiceOrderFormProps = {
   company_id: string;
   module_code: string;
   customsDeclarationNumber: string;
+  onSuccess?: (message: string) => void;
+  onError?: (message: string) => void;
 };

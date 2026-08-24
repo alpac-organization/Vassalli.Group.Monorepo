@@ -1,6 +1,9 @@
-import type { GetCustomerDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/get-customer-details.request";
+import type { CreateCustomerTypeRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/create-customer-type.request";
 import type { GetCustomerTypeRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/get-customer-types.request";
+import type { CreateCustomerRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/create-customer.request";
 import type { GetCustomerRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/get-customer.request";
+import type { GetCustomerTypesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/customer-responses/get-customer-types.response";
+import type { GetCustomerResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/customer-responses/get-customer.response";
 
 /**
  * @interface ICustomerServices
@@ -8,9 +11,11 @@ import type { GetCustomerRequest } from "@app/modules/warehouse/domain/ApiContra
  */
 export interface ICustomerServices {
 
-   GetCustomerRecords(payload: GetCustomerRequest): Promise<any>;
+   GetCustomerRecords(payload: GetCustomerRequest): Promise<GetCustomerResponse[]>;
 
-   GetCustomerDetails(payload: GetCustomerDetailRequest): Promise<any>;
+   GetCustomerTypes(payload: GetCustomerTypeRequest): Promise<GetCustomerTypesResponse[]>;
 
-   GetCustomerTypes(payload: GetCustomerTypeRequest): Promise<any>;
+   CreateCustomer(payload: CreateCustomerRequest): Promise<string>;
+
+   CreateCustomerType(payload: CreateCustomerTypeRequest): Promise<string>;
 }

@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 import {
+  Alert,
+  AnimatedAlertWrapper,
   Badges,
   Button,
   Dropdown,
@@ -46,6 +49,7 @@ export function MerchandiseDetailModal({
   const [viewingDucat, setViewingDucat] =
     useState<MerchandiseDucatDetailDto | null>(null);
   const [isViewingObservation, setIsViewingObservation] = useState(false);
+  const { alertState, handleCloseAlert, handleRequestError, handleRequestSuccess } = useAlertState();
 
   const values = useMemo(
     () => (detail ? mapMerchandiseDetailToDisplay(detail) : null),
@@ -385,6 +389,8 @@ export function MerchandiseDetailModal({
                           customsDeclarationNumber={
                             values.customsDeclarationNumber
                           }
+                          onSuccess={(msg) => handleRequestSuccess(msg)}
+                          onError={(msg) => handleRequestError(msg)}
                         />
                       </div>
                     )}
@@ -443,7 +449,7 @@ export function MerchandiseDetailModal({
             <Loader title="Cargando detalle..." />
           </div>
         ) : (
-          <div className="flex flex-col flex-1 min-h-0 gap-4 max-md:overflow-hidden md:overflow-visible">
+          <div className="flex flex-col flex-1 min-h-0 gap-4 max-md:overflow-hidden md:overflow-visible relative">
             <div className={`flex-1 min-h-0 ${mobileOnlyScrollClasses}`}>
               <div className="w-full max-w-full">
                 <section className="w-full dark:bg-[#272b34] bg-white border border-slate-200 dark:border-neutral-700 shadow-sm rounded-xl">
@@ -465,6 +471,15 @@ export function MerchandiseDetailModal({
                 </section>
               </div>
             </div>
+
+            <AnimatedAlertWrapper open={alertState?.open ?? false} className="absolute bottom-16 left-0 right-0 z-50">
+              <Alert
+                type={alertState?.type!}
+                title={alertState?.title}
+                message={alertState?.message!}
+                onClose={handleCloseAlert}
+              />
+            </AnimatedAlertWrapper>
 
             <div className="shrink-0 flex justify-end pt-3 border-t border-slate-200 dark:border-neutral-600">
               <Button
