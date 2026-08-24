@@ -14,12 +14,20 @@ declare let self: ServiceWorkerGlobalScope & typeof globalThis & {
   __WB_MANIFEST: (string | PrecacheEntry)[];
 };
 
+self.skipWaiting();
 clientsClaim();
+
+// Precache de assets compilados
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-if (!import.meta.env.DEV) {
+// Habilitar la ruta de navegación siempre (necesario para el prompt de instalación)
+try {
   registerRoute(new NavigationRoute(createHandlerBoundToURL("index.html")));
+} 
+catch (e) {
+  // Manejo defensivo para entornos de dev donde index.html no está compilado en precache
+  console.warn("Navegación Workbox no disponible en modo dev estricto:", e);
 }
 
 // Firebase Cloud Messaging (background push)

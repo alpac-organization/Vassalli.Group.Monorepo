@@ -19,11 +19,12 @@ export default defineConfig({
         Buffer: true,
       },
     }),
-    VitePWA({
+VitePWA({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
       registerType: "autoUpdate",
+      injectRegister: "auto", // Registra automáticamente el SW en el HTML
       includeAssets: [
         "favicon.ico",
         "favicon.svg",
@@ -34,20 +35,26 @@ export default defineConfig({
       ],
       manifest: {
         id: "/",
-        name: "ALPAC - Grupo Vassalli",
+        name: "Grupo Vassalli",
         short_name: "ALPAC",
         description: "ERP Multiempresa - Grupo Vassalli",
         start_url: "/",
         scope: "/",
         display: "standalone",
-        theme_color: "#ffffff",
-        background_color: "#ffffff",
+        theme_color: "#272b34",
+        background_color: "#272b34",
         icons: [
           {
-            src: "/web-app-manifest-192x192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "maskable",
+            "src": "/web-app-manifest-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+          },
+          {
+            "src": "/web-app-manifest-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
           },
           {
             src: "/web-app-manifest-512x512.png",
@@ -66,9 +73,9 @@ export default defineConfig({
       devOptions: {
         enabled: true,
         type: "module",
+        navigateFallback: "index.html",
       },
       injectManifest: {
-        // El bundle principal supera el limite por defecto de Workbox (2 MiB).
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
       },
     }),
