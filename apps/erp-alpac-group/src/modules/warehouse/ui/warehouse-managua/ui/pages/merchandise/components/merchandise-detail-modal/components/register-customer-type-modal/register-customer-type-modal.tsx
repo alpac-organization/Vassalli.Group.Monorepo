@@ -27,7 +27,6 @@ export function RegisterCustomerTypeModal({
 }: RegisterCustomerTypeModalProps) {
   const { getMappedError } = useMappedError();
   const { handleRequestError, handleRequestSuccess, AlertComponent } = useAlertState();
-
   const { CreateCustomerType } = useCustomer();
 
   const {
@@ -43,6 +42,7 @@ export function RegisterCustomerTypeModal({
       name: "",
     },
   });
+
 
   const onSubmit = handleSubmit((values) => {
     CreateCustomerType.mutateAsync({

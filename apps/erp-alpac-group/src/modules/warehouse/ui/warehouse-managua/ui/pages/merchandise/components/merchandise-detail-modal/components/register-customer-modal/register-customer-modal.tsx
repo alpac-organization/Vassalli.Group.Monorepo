@@ -71,6 +71,7 @@ export function RegisterCustomerModal({
     },
   });
 
+
   useEffect(() => {
     if (newlyCreatedCustomerTypeId) {
       refetchCustomerTypes().then(() => {

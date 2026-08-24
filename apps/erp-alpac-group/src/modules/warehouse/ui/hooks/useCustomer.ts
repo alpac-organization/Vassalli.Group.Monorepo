@@ -1,6 +1,6 @@
 import { httpHandler } from "@app/core/adapters";
 import { CustomerServices } from "@app/modules/warehouse/infrastructure/services/customer-services/CustomerServices";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { GetCustomerRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/get-customer.request";
 import type { GetCustomerTypeRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/get-customer-types.request";
 
@@ -10,13 +10,20 @@ import type { CreateCustomerTypeRequest } from "@app/modules/warehouse/domain/Ap
 const customerService = new CustomerServices(httpHandler);
 
 export const useCustomer = () => {
+	const queryClient = useQueryClient();
 
 	const CreateCustomer = useMutation({
-		mutationFn: (payload: CreateCustomerRequest) => customerService.CreateCustomer(payload)
+		mutationFn: (payload: CreateCustomerRequest) => customerService.CreateCustomer(payload),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ["get-customer-records", variables.company_id] });
+		}
 	});
 
 	const CreateCustomerType = useMutation({
-		mutationFn: (payload: CreateCustomerTypeRequest) => customerService.CreateCustomerType(payload)
+		mutationFn: (payload: CreateCustomerTypeRequest) => customerService.CreateCustomerType(payload),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: ["get-customer-types", variables.company_id] });
+		}
 	});
 
 	const GetCustomer = (payload: GetCustomerRequest, options?: { enabled?: boolean }) => {

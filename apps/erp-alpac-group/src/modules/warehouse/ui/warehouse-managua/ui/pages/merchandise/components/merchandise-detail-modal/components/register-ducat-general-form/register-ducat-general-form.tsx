@@ -1,8 +1,6 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
-  Alert,
-  AnimatedAlertWrapper,
   Button,
   Checkbox,
   DatePicker,
@@ -35,7 +33,7 @@ export function RegisterDucatGeneralForm({
   initialStartTime,
 }: RegisterDucatGeneralFormProps) {
   const { getMappedError } = useMappedError();
-  const { alertState, handleCloseAlert, handleRequestError, handleRequestSuccess } =
+  const { alertState, handleCloseAlert, handleRequestError, handleRequestSuccess, AlertComponent } =
     useAlertState();
   const { CreateDucatRegistry } = useMerchandise();
 
@@ -201,7 +199,7 @@ export function RegisterDucatGeneralForm({
             label="Restablecer"
             icon={<RotateCcw size={16} />}
             ariaLabel="Restablecer formulario del detalle general"
-            onClick={() =>
+            onClick={() => {
               reset({
                 container_number: defaultContainerNumber,
                 empresa: "",
@@ -209,8 +207,9 @@ export function RegisterDucatGeneralForm({
                 is_in_transit: false,
                 registered_start_date: initialStartDate,
                 registered_start_time: initialStartTime,
-              })
-            }
+              });
+              handleCloseAlert();
+            }}
             disabled={CreateDucatRegistry.isPending}
             className="w-full sm:w-auto text-[13px]! text-slate-600! dark:text-slate-300! bg-slate-100! dark:bg-slate-700! hover:bg-slate-200! dark:hover:bg-slate-600!"
           />
@@ -226,14 +225,7 @@ export function RegisterDucatGeneralForm({
         </div>
       </form>
 
-      <AnimatedAlertWrapper open={alertState?.open ?? false}>
-        <Alert
-          type={alertState?.type!}
-          title={alertState?.title}
-          message={alertState?.message!}
-          onClose={handleCloseAlert}
-        />
-      </AnimatedAlertWrapper>
+      {AlertComponent}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm, Controller } from "react-hook-form";
 import { Button, Dropdown, Modal, Textarea, type Option } from "@alpac/design-system";
@@ -33,7 +33,7 @@ export function CreateServiceOrderModal({
   newlyCreatedCustomerId,
 }: CreateServiceOrderModalProps) {
   const { getMappedError } = useMappedError();
-  const { alertState, handleCloseAlert, handleRequestError, AlertComponent } = useAlertState();
+  const { handleRequestError, handleCloseAlert, AlertComponent } = useAlertState();
   const { GetBranchesQuery: { data: branchesData } } = useCompanies({ company_id });
 
   const branchOptions = useMemo<Option[]>(() => {
@@ -46,7 +46,7 @@ export function CreateServiceOrderModal({
   }, [branchesData]);
 
   const { GetCustomer } = useCustomer();
-  const { data: customersData, refetch: refetchCustomers } = GetCustomer({ company_id, module_code, page_number: 1, page_size: 100 });
+  const { data: customersData, refetch: refetchCustomers } = GetCustomer({ company_id, module_code});
 
   const customerOptions = useMemo<Option[]>(() => {
     if (!Array.isArray(customersData)) return [];
@@ -72,6 +72,7 @@ export function CreateServiceOrderModal({
       observations: "",
     },
   });
+
 
   useEffect(() => {
     if (newlyCreatedCustomerId) {

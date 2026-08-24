@@ -52,56 +52,62 @@ export function AssignServiceOrderForm({
         />
       </div>
 
-      <CreateServiceOrderModal
-        isOpen={openCreateServiceOrderModal}
-        company_id={company_id}
-        module_code={module_code}
-        onClose={() => setOpenCreateServiceOrderModal(false)}
-        onRequestRegisterCustomer={() => setOpenRegisterCustomer(true)}
-        newlyCreatedCustomerId={newlyCreatedCustomerId}
-        onCreated={(createdServiceOrder: CreateServiceOrderResponse) => {
-          setOpenCreateServiceOrderModal(false);
-          AssignServiceOrderToCustomsDeclaration.mutateAsync({
-            company_id,
-            module_code,
-            reception_id,
-            service_order_id: createdServiceOrder.service_order_id,
-          })
-            .then(() => {
-              onSuccess?.(
-                `Orden de servicio ${createdServiceOrder.code} asignada correctamente a la declaración.`,
-              );
+      {openCreateServiceOrderModal && (
+        <CreateServiceOrderModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setOpenCreateServiceOrderModal(false)}
+          onRequestRegisterCustomer={() => setOpenRegisterCustomer(true)}
+          newlyCreatedCustomerId={newlyCreatedCustomerId}
+          onCreated={(createdServiceOrder: CreateServiceOrderResponse) => {
+            setOpenCreateServiceOrderModal(false);
+            AssignServiceOrderToCustomsDeclaration.mutateAsync({
+              company_id,
+              module_code,
+              reception_id,
+              service_order_id: createdServiceOrder.service_order_id,
             })
-            .catch((error) => {
-              const mappedError = getMappedError(error as ApiErrorResponse);
-              onError?.(
-                mappedError?.description || "Error al asignar la orden de servicio",
-              );
-            });
-        }}
-      />
+              .then(() => {
+                onSuccess?.(
+                  `Orden de servicio ${createdServiceOrder.code} asignada correctamente a la declaración.`,
+                );
+              })
+              .catch((error) => {
+                const mappedError = getMappedError(error as ApiErrorResponse);
+                onError?.(
+                  mappedError?.description || "Error al asignar la orden de servicio",
+                );
+              });
+          }}
+        />
+      )}
       
-      <RegisterCustomerModal
-        isOpen={openRegisterCustomer}
-        company_id={company_id}
-        module_code={module_code}
-        onClose={() => setOpenRegisterCustomer(false)}
-        onRequestRegisterCustomerType={() => setOpenRegisterCustomerType(true)}
-        newlyCreatedCustomerTypeId={newlyCreatedCustomerTypeId}
-        onCreated={(customerId) => {
-          setNewlyCreatedCustomerId(customerId);
-        }}
-      />
+      {openRegisterCustomer && (
+        <RegisterCustomerModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setOpenRegisterCustomer(false)}
+          onRequestRegisterCustomerType={() => setOpenRegisterCustomerType(true)}
+          newlyCreatedCustomerTypeId={newlyCreatedCustomerTypeId}
+          onCreated={(customerId) => {
+            setNewlyCreatedCustomerId(customerId);
+          }}
+        />
+      )}
 
-      <RegisterCustomerTypeModal
-        isOpen={openRegisterCustomerType}
-        company_id={company_id}
-        module_code={module_code}
-        onClose={() => setOpenRegisterCustomerType(false)}
-        onCreated={(customerTypeId) => {
-          setNewlyCreatedCustomerTypeId(customerTypeId);
-        }}
-      />
+      {openRegisterCustomerType && (
+        <RegisterCustomerTypeModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setOpenRegisterCustomerType(false)}
+          onCreated={(customerTypeId) => {
+            setNewlyCreatedCustomerTypeId(customerTypeId);
+          }}
+        />
+      )}
     </div>
   );
 }

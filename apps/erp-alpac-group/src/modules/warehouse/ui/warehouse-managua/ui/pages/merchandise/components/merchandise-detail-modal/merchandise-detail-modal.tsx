@@ -1,8 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import {
-  Alert,
-  AnimatedAlertWrapper,
   Badges,
   Button,
   Dropdown,
@@ -49,7 +47,7 @@ export function MerchandiseDetailModal({
   const [viewingDucat, setViewingDucat] =
     useState<MerchandiseDucatDetailDto | null>(null);
   const [isViewingObservation, setIsViewingObservation] = useState(false);
-  const { alertState, handleCloseAlert, handleRequestError, handleRequestSuccess } = useAlertState();
+  const { handleRequestError, handleRequestSuccess, handleCloseAlert, AlertComponent } = useAlertState();
 
   const values = useMemo(
     () => (detail ? mapMerchandiseDetailToDisplay(detail) : null),
@@ -90,19 +88,20 @@ export function MerchandiseDetailModal({
 
   const ducatsMissing = ducatOptions.length === 0;
 
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (!isOpen) {
       setSelectedDucatId("");
       setViewingDucat(null);
       setIsViewingObservation(false);
+      handleCloseAlert();
     }
-  }, [isOpen]);
+  }
 
-  useEffect(() => {
-    if (!selectedDucatId && ducatOptions[0]?.value != null) {
-      setSelectedDucatId(String(ducatOptions[0].value));
-    }
-  }, [ducatOptions, selectedDucatId]);
+  if (!selectedDucatId && ducatOptions[0]?.value != null) {
+    setSelectedDucatId(String(ducatOptions[0].value));
+  }
 
   const handleViewDucat = (option: Option) => {
     const ducat =
@@ -304,7 +303,7 @@ export function MerchandiseDetailModal({
                       </div>
                       <ReadOnlyField
                         label="Empresa"
-                        value={values.ducaEmpresa}
+                        value={values.ducaName}
                         missingMessage="Empresa no registrada"
                       />
                       <div className="min-w-0">
@@ -472,14 +471,7 @@ export function MerchandiseDetailModal({
               </div>
             </div>
 
-            <AnimatedAlertWrapper open={alertState?.open ?? false} className="absolute bottom-16 left-0 right-0 z-50">
-              <Alert
-                type={alertState?.type!}
-                title={alertState?.title}
-                message={alertState?.message!}
-                onClose={handleCloseAlert}
-              />
-            </AnimatedAlertWrapper>
+            {AlertComponent}
 
             <div className="shrink-0 flex justify-end pt-3 border-t border-slate-200 dark:border-neutral-600">
               <Button

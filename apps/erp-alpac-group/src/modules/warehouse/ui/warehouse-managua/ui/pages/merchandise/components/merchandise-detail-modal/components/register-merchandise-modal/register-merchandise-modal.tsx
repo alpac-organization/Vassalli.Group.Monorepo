@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
   Button,
@@ -80,6 +80,7 @@ export function RegisterMerchandiseModal({
       description: "",
     },
   });
+
 
   return (
     <Modal
