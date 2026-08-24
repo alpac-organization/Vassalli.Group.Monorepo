@@ -22,10 +22,11 @@ import { routeConfig } from '@app/routers/routes/route-config';
 import type { ModulesAvailableResponse } from '@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response';
 import type { SidebarLink } from '@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types';
 import { useNotification } from '@app/shared/hooks/useNotifications';
+import { Check, Copy } from 'lucide-react';
 
 export const HomePage = function () {
    const navigate = useNavigate();
-   const { requestPermission } = useNotification();
+   const { requestPermission, fcmToken } = useNotification();
 
    const { theme } = useTheme();
    const { pathname } = useLocation();
@@ -47,6 +48,14 @@ export const HomePage = function () {
 
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
    const isSettingPage = pathname.endsWith('/setting');
+
+   const [copied, setCopied] = useState(false);
+
+	const handleCopy = async () => {
+		await navigator.clipboard.writeText(fcmToken ?? '');
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	};
 
    const handleLogout = async function () {
       try {
@@ -133,6 +142,20 @@ export const HomePage = function () {
             email={validatedEmail}
             urlImage={activeLogo}
          />
+
+         <div className="flex items-center gap-2 rounded-lg border border-slate-600 bg-[#1c1f26] px-3 py-2">
+            <span className="min-w-0 flex-1 truncate font-mono text-xs text-[#89909E]">
+               {fcmToken ?? ""}
+            </span>
+
+            <button
+               onClick={handleCopy}
+               className="flex-shrink-0 rounded-md p-1.5 text-[#89909E] transition hover:bg-white/5 hover:text-white"
+               aria-label="Copiar token"
+            >
+               {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+            </button>
+         </div>
 
          {isSettingPage ? (
             <SettingIndex />

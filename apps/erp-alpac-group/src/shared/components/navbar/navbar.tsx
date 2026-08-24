@@ -1,17 +1,18 @@
 import { ButtonRounded } from "@alpac/design-system";
-import { Bell, LogOut, Settings } from "lucide-react";
+import { Bell,LogOut, Settings } from "lucide-react";
 import { useNotificationSidebarStore } from "@app/shared/stores/useNotificationSidebarStore";
 import { useNavigate } from "react-router-dom";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import type { NavbarProps } from "./navbar.types";
+import { useNotification } from "@app/shared/hooks/useNotifications";
+import { NotificationPermissionBanner } from "../notification/notification-banner/notification-banner";
 
-export const Navbar = function (
-   { user_name, email, urlImage, onLogout, isSettingPage }: NavbarProps
-) {
+export const Navbar = function ({ user_name, email, urlImage, onLogout, isSettingPage }: NavbarProps) {
 
    const navigate = useNavigate();
 
    const { openNotifications } = useNotificationSidebarStore();
+   const { permissionGranted, requestPermission } = useNotification();
 
    const handleSettingsClick = () => {
       const alias = CookieStorageAdapter.getCompanyAlias();
@@ -45,14 +46,12 @@ export const Navbar = function (
                      <span className="text-[#89909E] text-xs">{email}</span>
                   </div>
 
-
                   <ButtonRounded
                      hasIcon
                      icon={LogOut}
                      label="Cerrar Sesión"
                      onClick={() => onLogout()}
                   />
-
 
                   <ButtonRounded
                      hasIcon
@@ -72,6 +71,13 @@ export const Navbar = function (
                </div>
             </div>
          </nav>
+
+         {permissionGranted === false && (
+            <NotificationPermissionBanner
+               permissionGranted={permissionGranted}
+               requestPermission={requestPermission}
+            />
+         )}
 
          {!isSettingPage && (
             <div className="md:hidden fixed bottom-20 right-3 z-50">
