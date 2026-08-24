@@ -30,7 +30,7 @@ export function TramosTable({
             totalRecords={totalRecords}
             pageSize={pageSize}
             onPageChange={onPageChange}
-            disabled={isFetching || totalRecords === 0}
+            disabled={isFetching}
           />
         }
       />

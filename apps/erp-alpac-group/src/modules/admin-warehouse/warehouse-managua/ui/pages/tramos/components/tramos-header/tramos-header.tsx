@@ -3,11 +3,7 @@ import { Breadcrumb, useTheme } from "@alpac/design-system";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useNavigate } from "react-router-dom";
-
-type TramosHeaderProps = {
-  warehouseId: string;
-  sectionId: string;
-};
+import type { TramosHeaderProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-header/types/tramos-header";
 
 export function TramosHeader({ warehouseId, sectionId }: TramosHeaderProps) {
   const navigate = useNavigate();
@@ -68,7 +64,7 @@ export function TramosHeader({ warehouseId, sectionId }: TramosHeaderProps) {
           <img
             className="h-10 sm:h-16 md:h-20 w-auto max-w-[35%] sm:max-w-none object-contain shrink-0 self-start sm:self-center"
             src={activeLogo}
-            alt="vasalli group"
+            alt="vassalli group"
           />
         )}
       </div>
