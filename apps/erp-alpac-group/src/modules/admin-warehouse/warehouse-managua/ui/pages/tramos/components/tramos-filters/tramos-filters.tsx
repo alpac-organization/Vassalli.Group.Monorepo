@@ -1,5 +1,5 @@
-import { Button, Dropdown, InputText } from "@alpac/design-system";
-import { Controller, useForm } from "react-hook-form";
+import { InputText } from "@alpac/design-system";
+import { useForm } from "react-hook-form";
 import {
   EMPTY_TRAMO_FILTERS,
   type TramoFilters,
@@ -13,6 +13,8 @@ import {
   buildFiltersPayload,
   STATUS_FILTER_OPTIONS,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-filters/utils/tramos-filter.utils";
+import { FilterActions } from "@app/shared/components/filters/filter-actions/filter-actions";
+import { StatusFilterDropdown } from "@app/shared/components/filters/status-filter-dropdown/filter-dropdown";
 
 export function TramosFiltersBar({
   onApply,
@@ -57,44 +59,14 @@ export function TramosFiltersBar({
           />
         </div>
 
-        <div className="flex flex-col min-w-0">
-          <Controller
-            name="filterStatus"
-            control={control}
-            render={({ field }) => (
-              <Dropdown
-                appearance="dark"
-                label="Estado"
-                placeholder="Seleccionar estado"
-                options={STATUS_FILTER_OPTIONS}
-                value={field.value || undefined}
-                onChange={(value) => field.onChange(String(value ?? ""))}
-                labelClassName={labelClassName}
-                valueClassName={labelClassName}
-                className={`${inputClassName} h-[42px]! sm:h-[46px]!`}
-              />
-            )}
-          />
-        </div>
+        <StatusFilterDropdown
+          control={control}
+          options={STATUS_FILTER_OPTIONS}
+          inputClassName={inputClassName}
+          labelClassName={labelClassName}
+        />
 
-        <div className="flex flex-col min-w-0">
-          <Button
-            type="submit"
-            size="giant"
-            className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-            label="Aplicar filtros"
-          />
-        </div>
-
-        <div className="flex flex-col min-w-0">
-          <Button
-            type="button"
-            size="giant"
-            className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
-            label="Limpiar filtros"
-            onClick={handleClear}
-          />
-        </div>
+        <FilterActions onClear={handleClear} />
       </form>
     </div>
   );

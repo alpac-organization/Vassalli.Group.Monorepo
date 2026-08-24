@@ -22,11 +22,10 @@ import type {
   RegisterLotGroupRequest,
 } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import {
-  formatAmount,
-  validateDecimalNumber,
   validateIntegerNumber,
   validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
+import { getDecimalFieldConfig } from "@app/shared/utils/get-decimal.config";
 import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -80,7 +79,6 @@ export const LotModal = ({
     control,
     name: "groups",
   });
-
   const { CreateLots } = useWarehouseAdmin();
 
   const handleCreateLots = (data: FormValues) => {
@@ -330,23 +328,10 @@ export const LotModal = ({
                         isRequired
                         className={inputClassName}
                         labelClassName={labelClassName}
-                        {...register(`groups.${index}.width_metres`, {
-                          required: "El ancho es requerido",
-                          validate: {
-                            validateDecimal: (value) =>
-                              !value || validateDecimalNumber(value),
-                            validatePositive: (value) =>
-                              !value || validatePositiveNumber(value),
-                          },
-                          setValueAs: parseDecimal,
-                          onChange: (evt) => {
-                            evt.target.value = formatAmount(
-                              evt.target.value,
-                              10,
-                              2,
-                            );
-                          },
-                        })}
+                        {...register(
+                          `groups.${index}.width_metres`,
+                          getDecimalFieldConfig("El ancho es requerido"),
+                        )}
                         error={errors.groups?.[index]?.width_metres?.message}
                       />
 
@@ -358,23 +343,10 @@ export const LotModal = ({
                         isRequired
                         className={inputClassName}
                         labelClassName={labelClassName}
-                        {...register(`groups.${index}.length_metres`, {
-                          required: "El largo es requerido",
-                          validate: {
-                            validateDecimal: (value) =>
-                              !value || validateDecimalNumber(value),
-                            validatePositive: (value) =>
-                              !value || validatePositiveNumber(value, true),
-                          },
-                          setValueAs: parseDecimal,
-                          onChange: (evt) => {
-                            evt.target.value = formatAmount(
-                              evt.target.value,
-                              10,
-                              2,
-                            );
-                          },
-                        })}
+                        {...register(
+                          `groups.${index}.length_metres`,
+                          getDecimalFieldConfig("El largo es requerido", true),
+                        )}
                         error={errors.groups?.[index]?.length_metres?.message}
                       />
 
