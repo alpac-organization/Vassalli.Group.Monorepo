@@ -1,11 +1,18 @@
 export interface LotListItemResponse {
   lot_id: string;
-  code: string;
+  code: string | null;
   width_metres: number;
   length_metres: number;
-  status: string | null;
+  status: string | number | null;
   total_positions: number;
   occupied_positions: number;
+}
+
+export interface GetLotsResponse {
+  data: LotListItemResponse[];
+  page_number: number;
+  page_size: number;
+  total: number;
 }
 
 export interface LotSummaryResponse {

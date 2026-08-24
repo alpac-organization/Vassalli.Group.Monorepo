@@ -61,8 +61,12 @@ export const SectionStorageTypeBadge = ({
 // Esta funcion Representa un badge visual para indicar el estado de un rack
 // @param value - string  - El valor del estado del rack
 // @returns - ReactNode - Un badge visual para indicar el estado de un rack
-export const RackStatusBadge = ({ value }: { value: string }) => {
-  const status = resolveRackStatus(value);
+export const RackStatusBadge = ({
+  value,
+}: {
+  value: string | number | null;
+}) => {
+  const status = resolveRackStatus(value ?? "");
 
   switch (status?.textValue) {
     case RackStatusEnum.Available.textValue:
@@ -70,7 +74,7 @@ export const RackStatusBadge = ({ value }: { value: string }) => {
         <Badges
           label={RackStatusEnum.Available.label}
           color="transparent"
-          className="bg-blue-100! text-blue-900! border! border-blue-200! dark:bg-[#09365C]! dark:text-[#93C5FD]! dark:border-[#3B82F6]!"
+          className="bg-emerald-500/15! text-emerald-400! border! border-emerald-500/40! dark:bg-emerald-500/15! dark:text-emerald-400! dark:border-emerald-500/40!"
         />
       );
     case RackStatusEnum.Occupied.textValue:
@@ -100,7 +104,7 @@ export const RackStatusBadge = ({ value }: { value: string }) => {
     default:
       return (
         <Badges
-          label={getRackStatusLabel(value)}
+          label={getRackStatusLabel(value ?? "")}
           color="gray"
           className="bg-slate-800! border! border-slate-700! text-slate-400!"
         />
