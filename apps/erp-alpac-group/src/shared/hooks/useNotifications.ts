@@ -1,5 +1,5 @@
 import { getToken } from 'firebase/messaging';
-import { firebaseConfig, getMessagingInstance } from '@app/firebase-config';
+import { getMessagingInstance } from '@app/firebase-config';
 import { useState, useEffect, useCallback } from 'react';
 
 interface UseNotificationResult {
@@ -21,24 +21,6 @@ const isStandalone = (): boolean => {
    return (
       window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true
    );
-};
-
-const registerFirebaseServiceWorker = async (): Promise<ServiceWorkerRegistration> => {
-   const params = new URLSearchParams({
-      apiKey: firebaseConfig.apiKey,
-      authDomain: firebaseConfig.authDomain,
-      projectId: firebaseConfig.projectId,
-      storageBucket: firebaseConfig.storageBucket,
-      messagingSenderId: firebaseConfig.messagingSenderId,
-      appId: firebaseConfig.appId,
-   });
-
-   const swUrl = `/firebase-messaging-sw.js?${params.toString()}`;
-
-   const existing = await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
-   if (existing) return existing;
-
-   return navigator.serviceWorker.register(swUrl);
 };
 
 export const useNotification = (): UseNotificationResult => {
@@ -64,6 +46,7 @@ export const useNotification = (): UseNotificationResult => {
    const getAndSendToken = useCallback(async (): Promise<boolean> => {
       try {
          const messaging = await getMessagingInstance();
+ 
          if (!messaging) {
             console.warn('Firebase Messaging no está soportado en este navegador.');
             return false;
@@ -74,7 +57,7 @@ export const useNotification = (): UseNotificationResult => {
             return false;
          }
 
-         const registration = await registerFirebaseServiceWorker();
+         const registration = await navigator.serviceWorker.ready;
 
          const token = await getToken(messaging, {
             vapidKey: VAPID_KEY,
@@ -88,7 +71,6 @@ export const useNotification = (): UseNotificationResult => {
 
          setFcmToken(token);
          // Enviar token al backend en AWS
-         
 
 
          return true;

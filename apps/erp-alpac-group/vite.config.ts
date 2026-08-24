@@ -19,7 +19,7 @@ export default defineConfig({
         Buffer: true,
       },
     }),
-VitePWA({
+    VitePWA({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
