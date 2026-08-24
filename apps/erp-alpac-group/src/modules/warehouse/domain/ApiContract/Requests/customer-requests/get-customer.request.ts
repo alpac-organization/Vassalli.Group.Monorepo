@@ -1,6 +1,3 @@
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
 
-export interface GetCustomerRequest {
-  company_id: string;
-  module_code: string;
-
-}
+export type GetCustomerRequest = BaseRequest
