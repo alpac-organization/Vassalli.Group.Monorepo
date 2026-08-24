@@ -1,6 +1,6 @@
-import { app } from '@app/firebase-config';
-import { useState, useEffect } from 'react';
-import { getId, getInstallations } from 'firebase/installations';
+import { getToken } from 'firebase/messaging';
+import { getMessagingInstance } from '@app/firebase-config';
+import { useState, useEffect, useCallback } from 'react';
 
 interface UseNotificationResult {
   permissionGranted: boolean | null;
@@ -8,7 +8,10 @@ interface UseNotificationResult {
   isLoading: boolean;
   needsInstallOnIOS: boolean;
   isIOS: boolean;
+  fcmToken: string | null;
 }
+
+const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 
 const isIOSDevice = (): boolean => {
    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
@@ -21,12 +24,12 @@ const isStandalone = (): boolean => {
 };
 
 export const useNotification = (): UseNotificationResult => {
-   
-   const [isIOS] = useState(isIOSDevice());
 
+   const [isIOS] = useState(isIOSDevice());
    const [isLoading, setIsLoading] = useState(false);
    const [needsInstallOnIOS, setNeedsInstallOnIOS] = useState(false);
    const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null);
+   const [fcmToken, setFcmToken] = useState<string | null>(null);
 
    useEffect(() => {
       if (isIOS && !isStandalone()) {
@@ -39,30 +42,49 @@ export const useNotification = (): UseNotificationResult => {
       }
    }, [isIOS]);
 
-   //Obtener token del dispositivo
-   const getAndSendToken = async () => {
+   // Obtiene el token FCM y lo envía al backend en AWS
+   const getAndSendToken = useCallback(async (): Promise<boolean> => {
       try {
-         console.log("Obteniendo device-installation-id (FID)...");
-
-         if (Notification.permission === 'denied') {
-            console.log("Permiso denegado");
+         const messaging = await getMessagingInstance();
+ 
+         if (!messaging) {
+            console.warn('Firebase Messaging no está soportado en este navegador.');
             return false;
          }
 
-         const installations = getInstallations(app);
-         const fid = await getId(installations);
-         
-         console.log(JSON.stringify(fid, null, 3));
-      } 
-      catch (error) {
-         console.error('Error obteniendo el FID de Firebase:', error);
-      }
-   };
+         if (!VAPID_KEY) {
+            console.error('Falta VITE_FIREBASE_VAPID_KEY en las variables de entorno.');
+            return false;
+         }
 
-   //Solicitar o verificar permisos de las notificaciones.
-   const requestPermission = async () => {
-      
-      if (isIOS && !isStandalone()) {   
+         const registration = await navigator.serviceWorker.ready;
+
+         const token = await getToken(messaging, {
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: registration,
+         });
+
+         if (!token) {
+            console.warn('No se pudo generar el token FCM.');
+            return false;
+         }
+
+         setFcmToken(token);
+         console.log('Token FCM obtenido:', token);
+         // Enviar token al backend en AWS
+
+
+         return true;
+      }
+      catch (error) {
+         console.error('Error obteniendo/enviando el token FCM:', error);
+         return false;
+      }
+   }, []);
+
+   const requestPermission = useCallback(async () => {
+
+      if (isIOS && !isStandalone()) {
          setNeedsInstallOnIOS(true);
          return;
       }
@@ -75,43 +97,39 @@ export const useNotification = (): UseNotificationResult => {
       try {
          setIsLoading(true);
          const currentPermission = Notification.permission;
-         
-         // Ya existe un permiso autorizado.
+
          if (currentPermission === 'granted') {
             setPermissionGranted(true);
             await getAndSendToken();
-         } 
-         // Ya existe un permiso denegado.
+         }
          else if (currentPermission === 'denied') {
             setPermissionGranted(false);
-         } 
-         // Es la primera vez que solicita permisos.
+         }
          else {
             const result = await Notification.requestPermission();
             const granted = result === 'granted';
-
             setPermissionGranted(granted);
 
-            if(Notification.permission === "granted"){
-               //Obtener y registrar token en el backend, para poder enviar la push
+            if (granted) {
                await getAndSendToken();
             }
          }
-      } 
+      }
       catch (error) {
          console.error('Error solicitando permiso de notificaciones:', error);
          setPermissionGranted(false);
-      } 
+      }
       finally {
          setIsLoading(false);
       }
-   };
+   }, [isIOS, getAndSendToken]);
 
-   return { 
-      permissionGranted, 
+   return {
+      permissionGranted,
       requestPermission,
       isLoading,
-      needsInstallOnIOS, 
-      isIOS 
+      needsInstallOnIOS,
+      isIOS,
+      fcmToken,
    };
 };

@@ -1,5 +1,5 @@
 import { Button } from "@alpac/design-system";
-import { ChevronDown, LogOut, User, ArrowLeftRight } from "lucide-react";
+import { ChevronDown, LogOut, User, ArrowLeftRight, Menu } from "lucide-react";
 import { useState } from "react";
 
 interface TopNavbarProps {
@@ -24,7 +24,7 @@ export const TopNavbar = ({
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 cursor-pointer hover:bg-neutral-800 text-white rounded-lg transition-colors "
         >
-          <ArrowLeftRight />
+          <Menu />
         </button>
         {/* De momento este hola no tiene relevancia */}
       </div>
