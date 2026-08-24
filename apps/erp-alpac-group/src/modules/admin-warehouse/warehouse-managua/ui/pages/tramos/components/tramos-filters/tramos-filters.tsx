@@ -1,7 +1,5 @@
 import { Button, Dropdown, InputText } from "@alpac/design-system";
-import type { Option } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
-import { RackStatusEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
 import {
   EMPTY_TRAMO_FILTERS,
   type TramoFilters,
@@ -11,21 +9,10 @@ import {
   inputClassName,
   labelClassName,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-filters/utils/styles";
-
-const STATUS_FILTER_OPTIONS: Option[] = [
-  { value: "", label: "Todos" },
-  ...Object.values(RackStatusEnum).map((option) => ({
-    value: String(option.value),
-    label: option.label,
-  })),
-];
-
-function buildFiltersPayload(values: TramoFilters): TramoFilters {
-  return {
-    searchTerm: values.searchTerm.trim(),
-    filterStatus: values.filterStatus,
-  };
-}
+import {
+  buildFiltersPayload,
+  STATUS_FILTER_OPTIONS,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-filters/utils/tramos-filter.utils";
 
 export function TramosFiltersBar({
   onApply,
@@ -78,7 +65,7 @@ export function TramosFiltersBar({
               <Dropdown
                 appearance="dark"
                 label="Estado"
-                placeholder="Todos"
+                placeholder="Seleccionar estado"
                 options={STATUS_FILTER_OPTIONS}
                 value={field.value || undefined}
                 onChange={(value) => field.onChange(String(value ?? ""))}

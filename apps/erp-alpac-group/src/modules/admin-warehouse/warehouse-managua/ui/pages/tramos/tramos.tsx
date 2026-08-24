@@ -35,9 +35,8 @@ export function TramosPage() {
   const [isLotModalOpen, setIsLotModalOpen] = useState(false);
   const [selectedLotId, setSelectedLotId] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<TramoFilters>(
-    EMPTY_TRAMO_FILTERS,
-  );
+  const [appliedFilters, setAppliedFilters] =
+    useState<TramoFilters>(EMPTY_TRAMO_FILTERS);
   const [currentPage, setCurrentPage] = useState(1);
 
   const getLotsPayload = useMemo<GetLotsRequest>(
@@ -99,9 +98,7 @@ export function TramosPage() {
       transition={{ duration: 0.5 }}
       className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full"
     >
-      {(GetLots.isPending || (isDetailModalOpen && GetLotById.isPending)) && (
-        <Loader title="Cargando tramos..." />
-      )}
+      {GetLots.isPending && <Loader title="Cargando tramos..." />}
 
       <AnimatedAlertWrapper open={alertState?.open ?? false}>
         <Alert

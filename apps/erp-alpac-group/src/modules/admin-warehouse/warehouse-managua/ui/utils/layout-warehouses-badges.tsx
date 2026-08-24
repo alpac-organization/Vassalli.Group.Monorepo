@@ -74,7 +74,7 @@ export const RackStatusBadge = ({
         <Badges
           label={RackStatusEnum.Available.label}
           color="transparent"
-          className="bg-blue-100! text-blue-900! border! border-blue-200! dark:bg-[#09365C]! dark:text-[#93C5FD]! dark:border-[#3B82F6]!"
+          className="bg-emerald-500/15! text-emerald-400! border! border-emerald-500/40! dark:bg-emerald-500/15! dark:text-emerald-400! dark:border-emerald-500/40!"
         />
       );
     case RackStatusEnum.Occupied.textValue:
