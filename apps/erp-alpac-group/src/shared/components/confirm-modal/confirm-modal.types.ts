@@ -1,7 +1,12 @@
+import type { ModalVariant } from "@alpac/design-system";
+import type { ReactNode } from "react";
+
 export type ConfirmActionProps = {
    isOpen: boolean;
    type: ConfirmActionType;
    title: string;
+   children?: ReactNode;
+   variant?: ModalVariant | undefined
    buttonActionLabel: string;
    buttonActionClass?: string;
    buttonCancelClass?: string;

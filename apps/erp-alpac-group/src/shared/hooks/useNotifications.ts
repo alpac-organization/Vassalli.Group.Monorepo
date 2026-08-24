@@ -1,14 +1,17 @@
-import { getToken } from 'firebase/messaging';
+import { getToken, type Messaging } from 'firebase/messaging';
 import { getMessagingInstance } from '@app/firebase-config';
 import { useState, useEffect, useCallback } from 'react';
+import { useNotificationConfig } from '@app/modules/dashboard/ui/hooks/useNotificationConfig';
+import { useUserStore } from '../stores/useUserStore';
+import { getDeviceName } from '@app/shared/utils/device-name.utils';
 
 interface UseNotificationResult {
-  permissionGranted: boolean | null;
-  requestPermission: () => Promise<void>;
-  isLoading: boolean;
-  needsInstallOnIOS: boolean;
-  isIOS: boolean;
-  fcmToken: string | null;
+   permissionGranted: boolean | null;
+   requestPermission: () => Promise<void>;
+   isLoading: boolean;
+   needsInstallOnIOS: boolean;
+   isIOS: boolean;
+   fcmToken: string | null;
 }
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
@@ -23,7 +26,19 @@ const isStandalone = (): boolean => {
    );
 };
 
+export const getFirebaseCloudMessagingToken = async (messaging: Messaging) => {
+   const registration = await navigator.serviceWorker.ready;
+
+   return await getToken(messaging, {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: registration,
+   });
+}
+
 export const useNotification = (): UseNotificationResult => {
+
+   const { RegisterPushToken } = useNotificationConfig();
+   const companyId = useUserStore((state) => state.companyId);
 
    const [isIOS] = useState(isIOSDevice());
    const [isLoading, setIsLoading] = useState(false);
@@ -37,8 +52,30 @@ export const useNotification = (): UseNotificationResult => {
          return;
       }
 
-      if (typeof Notification !== 'undefined') {
+      const syncPermission = () => {
          setPermissionGranted(Notification.permission === 'granted');
+      }
+
+      syncPermission();
+
+      let permissionStatus: PermissionStatus | null = null;
+
+      navigator.permissions
+         .query({ name: "notifications" })
+         .then((status: PermissionStatus) => {
+            permissionStatus = status;
+            status.onchange = syncPermission;
+         });
+
+      const handleVisibilityChange = () => {
+         if (document.visibilityState === 'visible') syncPermission();
+      }
+
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+
+      return () => {
+         if (permissionStatus) permissionStatus.onchange = null;
+         document.removeEventListener("visibilitychange", handleVisibilityChange);
       }
    }, [isIOS]);
 
@@ -46,7 +83,7 @@ export const useNotification = (): UseNotificationResult => {
    const getAndSendToken = useCallback(async (): Promise<boolean> => {
       try {
          const messaging = await getMessagingInstance();
- 
+
          if (!messaging) {
             console.warn('Firebase Messaging no está soportado en este navegador.');
             return false;
@@ -57,12 +94,7 @@ export const useNotification = (): UseNotificationResult => {
             return false;
          }
 
-         const registration = await navigator.serviceWorker.ready;
-
-         const token = await getToken(messaging, {
-            vapidKey: VAPID_KEY,
-            serviceWorkerRegistration: registration,
-         });
+         const token = await getFirebaseCloudMessagingToken(messaging);
 
          if (!token) {
             console.warn('No se pudo generar el token FCM.');
@@ -70,9 +102,11 @@ export const useNotification = (): UseNotificationResult => {
          }
 
          setFcmToken(token);
-         console.log('Token FCM obtenido:', token);
-         // Enviar token al backend en AWS
 
+         await RegisterPushToken.mutateAsync({
+            company_id: companyId, token,
+            device_name: getDeviceName()
+         });
 
          return true;
       }
@@ -80,7 +114,8 @@ export const useNotification = (): UseNotificationResult => {
          console.error('Error obteniendo/enviando el token FCM:', error);
          return false;
       }
-   }, []);
+
+   }, [RegisterPushToken, companyId]);
 
    const requestPermission = useCallback(async () => {
 

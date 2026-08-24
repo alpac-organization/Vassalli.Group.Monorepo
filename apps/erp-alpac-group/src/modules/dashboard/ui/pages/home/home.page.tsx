@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -21,12 +21,12 @@ import { routeConfig } from '@app/routers/routes/route-config';
 
 import type { ModulesAvailableResponse } from '@app/modules/dashboard/domain/ApiContract/Responses/modules-available.response';
 import type { SidebarLink } from '@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types';
-import { useNotification } from '@app/shared/hooks/useNotifications';
-import { Check, Copy } from 'lucide-react';
+import { useNotificationConfig } from '../../hooks/useNotificationConfig';
+import { getMessagingInstance } from '@app/firebase-config';
+import { getFirebaseCloudMessagingToken } from '@app/shared/hooks/useNotifications';
 
 export const HomePage = function () {
    const navigate = useNavigate();
-   const { requestPermission, fcmToken } = useNotification();
 
    const { theme } = useTheme();
    const { pathname } = useLocation();
@@ -37,6 +37,7 @@ export const HomePage = function () {
    const { userName, fullName, email, companyId, companyName } = useUserStore();
 
    const { startProcessToCloseSession } = useAuth();
+   const { UnlinkPushToken } = useNotificationConfig();
    const { obtainActiveModulesByCompanyId } = useModules(companyId);
    const { data: modulesAvailables } = obtainActiveModulesByCompanyId;
    const { urlImage, neutralUrlImage } = useCompanyStore();
@@ -49,29 +50,28 @@ export const HomePage = function () {
    const activeLogo = theme === 'dark' ? neutralUrlImage : urlImage;
    const isSettingPage = pathname.endsWith('/setting');
 
-   const [copied, setCopied] = useState(false);
-
-	const handleCopy = async () => {
-		await navigator.clipboard.writeText(fcmToken ?? '');
-		setCopied(true);
-		setTimeout(() => setCopied(false), 2000);
-	};
-
    const handleLogout = async function () {
       try {
          setLogout(true);
 
          const companyId = useUserStore.getState().companyId ?? '';
          const refreshToken = CookieStorageAdapter.getRefreshToken() ?? '';
+         const messagingInstance = await getMessagingInstance();
+         const firebaseMessagingToken = await getFirebaseCloudMessagingToken(messagingInstance!) ?? '';         
 
          await startProcessToCloseSession.mutateAsync({
             company_id: companyId,
             refresh_token: refreshToken,
          });
-      } 
+
+         await UnlinkPushToken.mutateAsync({
+            company_id: companyId,
+            token: firebaseMessagingToken
+         });
+      }
       catch (error) {
          throw error;
-      } 
+      }
       finally {
          setLogout(false);
       }
@@ -114,13 +114,6 @@ export const HomePage = function () {
       navigate(`${module.path_redirect}/${firstRouteConfig.path}`);
    }
 
-   useEffect(() => {
-      (async () => {
-         await requestPermission()
-      })();
-   },[])
-
-         
    return (
       <motion.div
          initial={{ opacity: 0 }}
@@ -143,52 +136,38 @@ export const HomePage = function () {
             urlImage={activeLogo}
          />
 
-         <div className="flex items-center gap-2 rounded-lg border border-slate-600 bg-[#1c1f26] px-3 py-2">
-            <span className="min-w-0 flex-1 truncate font-mono text-xs text-[#89909E]">
-               {fcmToken ?? ""}
-            </span>
-
-            <button
-               onClick={handleCopy}
-               className="flex-shrink-0 rounded-md p-1.5 text-[#89909E] transition hover:bg-white/5 hover:text-white"
-               aria-label="Copiar token"
-            >
-               {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
-            </button>
-         </div>
-
          {isSettingPage ? (
             <SettingIndex />
          ) : (
             <>
                <HeaderHome company_name={companyName} username={validatedName} />
-               
+
                <div className="max-w-330 m-auto mt-2 p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full">
                   {
                      (modulesAvailables || []).length === 0 ? (
                         <EmptyModulesState />
                      ) : (
-                     (modulesAvailables || []).map((module, index) => (
-                        <motion.div 
-                        key={module.module_code || index} // 1. Usar un identificador único real
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        style={{ willChange: 'transform, opacity' }} // 2. Fuerza aceleración por GPU
-                        transition={{
-                           duration: 0.25, // Un poco más rápida para que se sienta fluida
-                           delay: Math.min(index * 0.03, 0.3), // 3. Cap en el delay para evitar acumular timers
-                           ease: "backIn",
-                        }}
-                        >
-                        <DashBoardCard
-                           title={module.module_name}
-                           image={module.image_url}
-                           onClick={() => handleSelectModule(module)}
-                           description={module.description}
-                        />
-                        </motion.div>
-                     ))
-                  )}
+                        (modulesAvailables || []).map((module, index) => (
+                           <motion.div
+                              key={module.module_code || index} // 1. Usar un identificador único real
+                              initial={{ opacity: 0, y: 12 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              style={{ willChange: 'transform, opacity' }} // 2. Fuerza aceleración por GPU
+                              transition={{
+                                 duration: 0.25, // Un poco más rápida para que se sienta fluida
+                                 delay: Math.min(index * 0.03, 0.3), // 3. Cap en el delay para evitar acumular timers
+                                 ease: "backIn",
+                              }}
+                           >
+                              <DashBoardCard
+                                 title={module.module_name}
+                                 image={module.image_url}
+                                 onClick={() => handleSelectModule(module)}
+                                 description={module.description}
+                              />
+                           </motion.div>
+                        ))
+                     )}
                </div>
             </>
          )}
