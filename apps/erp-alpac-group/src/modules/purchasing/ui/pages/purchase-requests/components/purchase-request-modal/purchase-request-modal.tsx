@@ -1,35 +1,49 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Button, Chips, Dropdown, InputText, Modal, RadioButton, Textarea } from "@alpac/design-system";
-import { Controller, FormProvider, useForm } from "react-hook-form";
-import dayjs from "dayjs";
+import { useEffect, useRef, useState } from "react";
+import { Button, Modal } from "@alpac/design-system";
+import { PlusIcon } from "lucide-react";
+import type { PurchaseRequestEntry, PurchaseRequestModalProps } from "./purchase-request-modal.types";
 import type {
-	CreatePurchaseRequestFormValues,
-	PurchaseRequestModalProps,
-	PurchaseRequestOriginType,
-} from "./purchase-request-modal.types";
-import { PurchaseRequestDetail } from "../purchase-request-detail/purchase-request-detail";
-import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
+	CreatePurchaseRequestPayload,
+	PurchaseRequestItem,
+	PurchaseRequestItemAdditionalData,
+	PurchaseRequestMainPayload,
+} from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
-import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { RoleEnum } from "@app/core/enums/role.enum";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { Loader } from "@app/shared/components/loaders/loader";
-import type { CostCenters } from "@app/modules/admin/domain/ApiContract/responses/areas/get-areas.response";
-import { SelectServiceOrderModal } from "../select-service-order-modal/select-service-order-modal";
-import type { SelectableServiceOrder } from "../select-service-order-modal/select-service-order-modal.types";
+import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
+import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
+import { PurchaseRequestFormBlock } from "../purchase-request-form-block/purchase-request-form-block";
+import type { PurchaseRequestFormBlockHandle } from "../purchase-request-form-block/purchase-request-form-block.types";
 
-const inputClassName =
-	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-const dropdownClassName =
-	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
-const labelClassName = "text-black! dark:text-white!";
-
-const emptyFormValues = (): CreatePurchaseRequestFormValues => ({
+const emptyFormValues = (): CreatePurchaseRequestPayload => ({
 	area_id: "",
-	cost_center_id: "",
+	branch_id: "",
+	request_type: 0,
+	priority_level: undefined,
+	destination: PurchaseRequestDestinationEnum.Internal.value,
 	observations: "",
 	purchase_request_items: [],
+});
+
+const createEntry = (defaults: CreatePurchaseRequestPayload = emptyFormValues()): PurchaseRequestEntry => ({
+	id: crypto.randomUUID(),
+	defaults: {
+		...defaults,
+		purchase_request_items: defaults.purchase_request_items.map((item) => ({
+			...item,
+			images: item.images
+				? {
+					images_product_to_changed: [
+						...(item.images.images_product_to_changed ?? []),
+					],
+				}
+				: undefined,
+		})),
+	},
 });
 
 export const PurchaseRequestModal = ({
@@ -39,360 +53,252 @@ export const PurchaseRequestModal = ({
 	currentBranchId,
 	requestType,
 	onRequestError,
-	onRequestSuccess
+	onRequestSuccess,
 }: PurchaseRequestModalProps) => {
 
-	const { companyId, moduleCode, role } = useUserStore();
+	const { companyId, moduleCode, role, } = useUserStore();
+
 	const { getMappedError } = useMappedError();
-
-	const [costCenters, setCostCenters] = useState<CostCenters[]>([]);
-	const [selectedOrigen, setSelectedOrigin] = useState<PurchaseRequestOriginType>("administration");
-	const [isSelectServiceOrderModalOpen, setIsSelectServiceOrderModalOpen] = useState(false);
-	const [selectedServiceOrder, setSelectedServiceOrder] =
-		useState<SelectableServiceOrder | null>(null);
-
-	const methods = useForm<CreatePurchaseRequestFormValues>({
-		defaultValues: emptyFormValues(),
-		mode: "onSubmit",
-	});
-
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+	const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
 
-	const {
-		control,
-		handleSubmit,
-		reset,
-		formState: { errors },
-	} = methods;
+	const [entries, setEntries] = useState<PurchaseRequestEntry[]>([]);
+	const blockRefs = useRef<Map<string, PurchaseRequestFormBlockHandle>>(new Map());
+	const lastBlockRef = useRef<HTMLDivElement>(null);
+	const scrollContainerRef = useRef<HTMLDivElement>(null);
+	const defaultData: PurchaseRequestEntry = {
+		id: crypto.randomUUID(),
+		defaults: {
+			branch_id: "",
+			destination: -1,
+			observations: "",
+			request_type: -1,
+			priority_level: -1,
+			purchase_request_items: []
+		}
+	}
 
-	const { GetAreasByCompany } = useAreas({ company_id: companyId });
+
 	const { CreatePurchaseRequest } = usePurchase();
 
-	const areaOptions = useMemo(
-		() => {
-			const areas = GetAreasByCompany.data ?? [];
-			return areas.map(area => ({
-				label: area.work_area_name,
-				value: area.work_area_id,
-				cost_centers: area.cost_centers
-			}))
-		}, [GetAreasByCompany.data]
-	);
-
-	const costCenterOptions = useMemo(
-		() => {			
-			return costCenters.map(center => ({
-				label: center.cost_center_name, value: center.cost_center_id
-			}))
-		},
-		[costCenters, GetAreasByCompany.data]
-	);
-
-	const scrollContainerRef = useRef<HTMLDivElement>(null);
-
 	useEffect(() => {
-		reset(emptyFormValues());
-		setSelectedOrigin("administration");
-		setSelectedServiceOrder(null);
-		setIsSelectServiceOrderModalOpen(false);
-	}, [isOpen, reset]);
+		setEntries([defaultData]);
+		blockRefs.current.clear();
+	}, [isOpen]);
 
 	const isCreating = CreatePurchaseRequest.isPending;
 
 	const handleClose = () => {
 		if (isCreating) return;
-		reset(emptyFormValues());
-		setSelectedOrigin("administration");
-		setSelectedServiceOrder(null);
-		setIsSelectServiceOrderModalOpen(false);
+		setEntries([]);
+		blockRefs.current.clear();
 		onClose();
 	};
 
-	const handleOriginChange = (origin: PurchaseRequestOriginType) => {
-		setSelectedOrigin(origin);
-		if (origin === "administration") {
-			setSelectedServiceOrder(null);
-		}
+	const handleCreate = () => {
+		setEntries((prev) => [...prev, createEntry()]);
 	};
 
-	const handleFormSubmit = handleSubmit((values) => {
-		if (!currentBranchId) return;
+	useEffect(() => {
+		const container = scrollContainerRef.current;
+		const block = lastBlockRef.current;
 
-		const payload: CreatePurchaseRequestPayload = {
-			company_id: companyId,
-			module_code: moduleCode,
+		if (!container || !block) return;
+
+		const top = block.offsetTop - container.offsetTop;
+
+		container.scrollTo({ top, behavior: "smooth" });
+	}, [entries.length]);
+
+	const handleDuplicate = (purchaseRequestPayload: CreatePurchaseRequestPayload) => {
+		setEntries((prev) => [...prev, createEntry(purchaseRequestPayload)]);
+	};
+
+	const handleRemove = (id: string) => {
+		blockRefs.current.delete(id);
+		setEntries((prev) => prev.filter((entry) => entry.id !== id));
+	};
+
+	const buildPayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => {
+
+		return ({
 			...(isAdministrator ? { area_id: values.area_id } : {}),
-			cost_center_id: values.cost_center_id,
 			branch_id: currentBranchId,
-			request_date: dayjs().format("YYYY-MM-DD"),
 			request_type: Number(requestType.value),
+			...(isRequisition ? { priority_level: Number(values.priority_level) } : {}),
+			...(values.service_order_id && { service_order_id: values.service_order_id }),
+			destination: values.destination,
 			observations: values.observations.trim(),
-			purchase_request_items: values.purchase_request_items.map((item) => {
+			purchase_request_items: values.purchase_request_items.map((item: PurchaseRequestItem) => {
 				const productJustification = item.justification?.trim() ?? "";
+				const productImages = item.images?.images_product_to_changed ?? [];
+				const additionalData: PurchaseRequestItemAdditionalData | null = productImages.length
+					? { images_product_to_changed: productImages }
+					: null;
 
 				return {
 					product_id: item.product_id,
 					quantity: Number(item.quantity),
 					description: item.description,
 					unit_measure_id: item.unit_measure_id,
-					...(productJustification
-						? { justification: productJustification }
-						: {}),
+					additional_data: additionalData ? JSON.stringify(additionalData) : null,
+					...(productJustification ? { justification: productJustification } : {}),
 					...(item.quantity_unit != null && Number(item.quantity_unit) > 0
 						? { quantity_unit: Number(item.quantity_unit) }
 						: {}),
 				};
-			}),
-		};
+			})
+		})
+	}
 
-		CreatePurchaseRequest.mutate(payload, {
-			onSuccess() {
-				onRequestSuccess?.("Solicitud de compra creada con éxito.");
-				reset(emptyFormValues());
-				onSubmit?.();
-				onClose();
-			},
-			onError(error) {
-				const mappedError = getMappedError(error);
-				onRequestError?.(mappedError.description);
-			},
-		});
-	});
+	const handleFormSubmit = async () => {
+
+		if (!currentBranchId || entries.length === 0) return;
+
+		const valuesList: CreatePurchaseRequestPayload[] = [];
+
+		for (const entry of entries) {
+			const block = blockRefs.current.get(entry.id);
+			if (!block) continue;
+
+			const isValid = await block.validate();
+			if (!isValid) return;
+
+			valuesList.push(block.getValues());
+		}
+
+		try {
+			const mainPayload: PurchaseRequestMainPayload = {
+				company_id: companyId,
+				module_code: moduleCode,
+				purchase_requests: valuesList.map((values) => buildPayload(values)),
+			};
+
+			await CreatePurchaseRequest.mutateAsync(mainPayload);
+
+			onRequestSuccess?.(
+				valuesList.length === 1
+					? "Solicitud de compra creada con éxito."
+					: `${valuesList.length} solicitudes de compra creadas con éxito.`,
+			);
+			setEntries([]);
+			blockRefs.current.clear();
+			onSubmit?.();
+			onClose();
+
+			console.log("valuesList: ", valuesList);
+		} catch (error) {
+			const mappedError = getMappedError(error as ApiErrorResponse);
+			onRequestError?.(mappedError.description);
+		}
+	};
 
 	return (
 		<>
-			{isOpen && isCreating && (
-				<Loader title="Creando solicitud..." />
-			)}
+			{isOpen && isCreating && <Loader title="Creando solicitud..." />}
 
 			<Modal
 				isOpen={isOpen}
 				onClose={handleClose}
 				title={`Registrar ${requestType.label}`}
-				variant="form"
+				variant="default"
 				size="8xl"
 				description="Complete la información de la solicitud de compra"
-				panelClassName="flex h-[min(94dvh,54rem)] w-[min(calc(100vw-1rem),56rem)] min-w-0 flex-col"
+				panelClassName="flex h-[54rem] w-[min(calc(100vw-1rem),56rem)] min-w-0 flex-col"
 				contentClassName="flex min-h-0 flex-1 flex-col"
 			>
-				<FormProvider {...methods}>
-					<form
-						onSubmit={handleFormSubmit}
-						className="flex min-h-0 flex-1 flex-col"
-						noValidate
-					>
-						<div ref={scrollContainerRef} className="p-1 scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
+				<form
+					onSubmit={(evt) => {
+						evt.preventDefault();
+						handleFormSubmit();
+					}}
+					className="flex min-h-0 flex-1 flex-col"
+					noValidate
+				>
+					<div
+						ref={scrollContainerRef}
+						className="p-1 scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
 
+						<div className="flex flex-col gap-4 pb-2">
 
-							<div className="flex flex-col gap-4 pb-2">
-
-								<div className="grid grid-cols-1 items-end gap-4 md:grid-cols-2">
-									{isAdministrator && (
-										<div className="min-w-0">
-											<Controller
-												name="area_id"
-												control={control}
-												rules={{
-													required: "El área es requerida",
-												}}
-												render={({ field }) => (
-													<Dropdown
-														label="Área de trabajo"
-														isRequired
-														appearance="dark"
-														placeholder="Seleccione una de las áreas de la empresa"
-														value={field.value}
-														onChange={(value) => {
-															const [filteredAreas] = areaOptions.filter(area => area.value === value);
-															const filteredCostCenters = filteredAreas?.cost_centers;
-															setCostCenters(filteredCostCenters ?? []);
-															field.onChange(value);
-														}}
-														options={areaOptions}
-														labelClassName={labelClassName}
-														valueClassName={labelClassName}
-														className={`${dropdownClassName} `}
-														error={errors.area_id?.message}
-													/>
-												)}
-											/>
-										</div>
-									)}
-
-									<div className="min-w-0">
-										{
-											isAdministrator ?
-												<Controller
-													name="cost_center_id"
-													control={control}
-													rules={{
-														required: "El centro de costo asociado es requerido",
-													}}
-													render={({ field }) => (
-														<Dropdown
-															label="Centro de costo"
-															isRequired
-															appearance="dark"
-															placeholder="Seleccione un centro de costo"
-															value={field.value}
-															onChange={(value) => field.onChange(value)}
-															options={costCenterOptions ?? []}
-															labelClassName={labelClassName}
-															valueClassName={labelClassName}
-															className={`${dropdownClassName} `}
-															error={errors.area_id?.message}
-														/>
-													)}
-												/> :
-												<InputText
-													readOnly
-													value={"Aquí va el centro de costo"}
-													label="Centro de costo"
-													className={`${inputClassName} cursor-not-allowed`}
-													labelClassName={labelClassName}
-													disabled
-
-												/>
-										}
-
-									</div>
-
+							{entries.length === 0 ? (
+								<p className="m-0 text-[15px] text-slate-500 dark:text-slate-400">
+									Aún no hay registros. Use “Crear {requestType?.label}” para
+									agregar el primero.
+								</p>
+							) : (
+								entries.map((entry, index) => (
 									<div
-										className={
-											isAdministrator
-												? "flex min-w-0 flex-col gap-1 md:col-span-2"
-												: "flex min-w-0 flex-col justify-center gap-1"
-										}
+										key={entry.id}
+										ref={index === entries.length - 1 ? lastBlockRef : undefined}
 									>
-										<span className="text-[15px] text-black dark:text-white">
-											Origen de solicitud:
-										</span>
 
-										<div className="flex min-h-12 min-w-0 flex-row flex-wrap items-center gap-x-6 gap-y-3 rounded-md border border-slate-300 bg-[#f5f5f5] px-4 py-2 dark:border-neutral-600 dark:bg-[#1e2229]">
-											<RadioButton
-												id="administrationRadiusButton"
-												value="administration"
-												label="Administrativo"
-												labelPosition="right"
-												labelClassName={labelClassName}
-												checked={selectedOrigen === "administration"}
-												onChange={() => { handleOriginChange("administration") }}
-											/>
+										{index > 0 && (
+											<div className="my-2 flex items-center gap-3" aria-hidden>
+												<div className="h-px flex-1 bg-slate-300 dark:bg-neutral-600" />
+												<span className="shrink-0 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+													{requestType.label} {index + 1}
+												</span>
+												<div className="h-px flex-1 bg-slate-300 dark:bg-neutral-600" />
+											</div>
+										)}
 
-											<RadioButton
-												id="serviceOrderRadiusButton"
-												value="serviceOrder"
-												label="Orden de Servicio"
-												labelPosition="right"
-												labelClassName={labelClassName}
-												checked={selectedOrigen === "serviceOrder"}
-												onChange={() => { handleOriginChange("serviceOrder") }}
-											/>
-
-											<RadioButton
-												id="customerRadiusButton"
-												value="externalCustomer"
-												label="Cliente Externo"
-												labelPosition="right"
-												labelClassName={labelClassName}
-												checked={selectedOrigen === "externalCustomer"}
-												onChange={() => { setSelectedOrigin("externalCustomer") }}
-											/>
-										</div>
-									</div>
-								</div>
-
-								{(selectedOrigen === "serviceOrder" ||
-									selectedOrigen === "externalCustomer") && (
-										<div className="flex flex-wrap items-center gap-3">
-											{selectedServiceOrder ? (
-												<div className="flex flex-row flex-wrap items-center gap-2">
-													<span className="text-[14px] font-medium text-black dark:text-white">
-														Orden de Servicio Vinculada:
-													</span>
-													<Chips
-														label={selectedServiceOrder.service_order_code}
-														onClick={() => setSelectedServiceOrder(null)}
-													/>
-												</div>
-											) : (
-												<Button
-													type="button"
-													size="giant"
-													label="Buscar Orden de Servicio"
-													className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-													onClick={() => setIsSelectServiceOrderModalOpen(true)}
-												/>
-											)}
-										</div>
-									)}
-
-								<Controller
-									name="observations"
-									control={control}
-									rules={{
-										required: "Las observaciones son requerida",
-										validate: (value) =>
-											value.trim().length > 0 || "Las observaciones son requerida",
-									}}
-									render={({ field }) => (
-										<Textarea
-											label="Observaciones"
-											placeholder="Observaciones de la solicitud..."
-											isRequired
-											className={inputClassName}
-											labelClassName={labelClassName}
-											value={field.value}
-											onChange={field.onChange}
-											error={errors.observations?.message}
-											maxLength={500}
-											enableCharacterCount
-											style={{
-												resize: "none",
-												minHeight: "100px",
+										<PurchaseRequestFormBlock
+											key={entry.id}
+											index={index}
+											defaults={entry.defaults}
+											role={role as RoleEnum}
+											requestType={requestType}
+											onDuplicate={handleDuplicate}
+											onRemove={() => handleRemove(entry.id)}
+											onRequestError={onRequestError}
+											onRequestSuccess={onRequestSuccess}
+											ref={(instance) => {
+												if (instance) {
+													blockRefs.current.set(entry.id, instance);
+												} else {
+													blockRefs.current.delete(entry.id);
+												}
 											}}
 										/>
-									)}
-								/>
-
-								<PurchaseRequestDetail
-									onRequestError={onRequestError}
-									onRequestSuccess={onRequestSuccess}
-								/>
-							</div>
+									</div>
+								))
+							)}
 						</div>
+					</div>
 
-						<SelectServiceOrderModal
-							selectionType="single"
-							isOpen={isSelectServiceOrderModalOpen}
-							onClose={() => setIsSelectServiceOrderModalOpen(false)}
-							onSelect={(serviceOrders) => {
-								setSelectedServiceOrder(serviceOrders[0] ?? null);
-							}}
+					<div className="sticky top-0 right-0 z-10 bg-white dark:bg-[#272b34] py-4">
+						<Button
+							type="button"
+							size="medium"
+							icon={<PlusIcon size={16} />}
+							label={`Crear ${requestType.label}`}
+							onClick={handleCreate}
+							className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
 						/>
+					</div>
 
-						<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
-							<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-								<Button
-									type="button"
-									size="giant"
-									label="Cancelar"
-									onClick={handleClose}
-									disabled={isCreating}
-									className="text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
-								/>
-								<Button
-									type="submit"
-									size="giant"
-									label="Crear Solicitud"
-									disabled={isCreating}
-									isLoading={isCreating}
-									className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-								/>
-							</div>
+					<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
+						<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+							<Button
+								type="button"
+								size="giant"
+								label="Cancelar"
+								onClick={handleClose}
+								disabled={isCreating}
+								className="text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+							/>
+							<Button
+								type="submit"
+								size="giant"
+								label="Crear Solicitud"
+								disabled={isCreating || entries.length === 0}
+								isLoading={isCreating}
+								className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+							/>
 						</div>
-					</form>
-				</FormProvider>
+					</div>
+				</form>
 			</Modal>
 		</>
 	);

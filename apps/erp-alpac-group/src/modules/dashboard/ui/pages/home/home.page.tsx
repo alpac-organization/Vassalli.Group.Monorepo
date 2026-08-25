@@ -57,16 +57,16 @@ export const HomePage = function () {
          const companyId = useUserStore.getState().companyId ?? '';
          const refreshToken = CookieStorageAdapter.getRefreshToken() ?? '';
          const messagingInstance = await getMessagingInstance();
-         const firebaseMessagingToken = await getFirebaseCloudMessagingToken(messagingInstance!) ?? '';         
-
-         await startProcessToCloseSession.mutateAsync({
-            company_id: companyId,
-            refresh_token: refreshToken,
-         });
+         const firebaseMessagingToken = await getFirebaseCloudMessagingToken(messagingInstance!) ?? '';
 
          await UnlinkPushToken.mutateAsync({
             company_id: companyId,
             token: firebaseMessagingToken
+         });
+
+         await startProcessToCloseSession.mutateAsync({
+            company_id: companyId,
+            refresh_token: refreshToken,
          });
       }
       catch (error) {

@@ -1,4 +1,4 @@
-import type { CreateServiceOrderResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/service-order-responses/create-service-order.response";
+import type { CreateServiceOrderResponse } from "@app/modules/service-order/domain/ApiContract/Responses/service-order-responses/create-service-order.response";
 
 export type CreateServiceOrderFormValues = {
   branch_id: string;

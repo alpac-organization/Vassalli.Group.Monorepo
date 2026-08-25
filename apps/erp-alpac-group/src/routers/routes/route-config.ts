@@ -8,6 +8,7 @@ import { getManaguaWarehouseRoutes } from "@app/routers/routes/warehouse/managua
 import { getPurchasingRoutes } from "./purchasing/purchasing-routes";
 import { getFinanceRoutes } from "./finance/finance-routes";
 import { getWarehouseAdminRoutes } from "./warehouse-admin/warehouse-admin-routes";
+import { getManagementRoutes } from "./management/management-routes";
 
 const {
   collboratorSection,
@@ -57,6 +58,8 @@ const {
 } = getPurchasingRoutes();
 
 const { quoteAnalisysSection } = getFinanceRoutes();
+
+const { analyzedQuoteSection } = getManagementRoutes();
 
 export const routeConfig = {
   [ModuleEnum.PAYROLL]: {
@@ -127,5 +130,8 @@ export const routeConfig = {
   },
   [ModuleEnum.FINANCE]: {
     [RoleEnum.ADMINISTRATOR]: [quoteAnalisysSection],
+  },
+  [ModuleEnum.MANAGEMENT]: {
+    [RoleEnum.ADMINISTRATOR]: [analyzedQuoteSection],
   },
 };

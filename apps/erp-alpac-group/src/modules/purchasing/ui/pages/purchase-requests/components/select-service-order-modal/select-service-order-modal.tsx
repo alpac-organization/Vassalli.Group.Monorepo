@@ -1,50 +1,32 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-	Alert,
+	Badges,
 	Button,
 	Checkbox,
 	DataTable,
 	InputText,
 	Modal,
+	Pagination,
 	RadioButton,
 	type TableColumn,
 } from "@alpac/design-system";
-import type {
-	SelectableServiceOrder,
-	SelectServiceOrderModalProps,
-} from "./select-service-order-modal.types";
+import type { SelectServiceOrderModalProps } from "./select-service-order-modal.types";
+import { useServiceOrder } from "@app/modules/warehouse/ui/hooks/useServiceOrder";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import type { GetServiceOrdersResponse } from "@app/modules/service-order/domain/ApiContract/Responses/service-order-responses/get-service-orders.response";
+import type { GetServiceOrdersRequest } from "@app/modules/service-order/domain/ApiContract/Requests/service-order-requests/get-service-orders.request";
+import { Loader } from "@app/shared/components/loaders/loader";
+import { ServiceOrderStatusEnum, type ServiceOrderStatusType } from "@app/modules/service-order/domain/enums/service-order-status.enum";
+import { serviceOrderStatusBadgeVariants } from "@app/modules/service-order/ui/service-order.variants";
 
+const PAGE_SIZE = 5;
 const primaryButtonClassName =
 	"text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
 const secondaryButtonClassName =
 	"text-[15px]! rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!";
 const inputClassName =
-	"w-full! sm:w-[500px]! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
-
-const MOCK_SERVICE_ORDERS: SelectableServiceOrder[] = [
-	{
-		service_order_id: "os-001",
-		service_order_code: "OS-2026-001",
-		customer_name: "Empresa 1",
-		description: "Mantenimiento preventivo de equipos",
-		status: "Procesada",
-	},
-	{
-		service_order_id: "os-002",
-		service_order_code: "OS-2026-002",
-		customer_name: "Empresa 2",
-		description: "Reparación de sistema eléctrico",
-		status: "En proceso",
-	},
-	{
-		service_order_id: "os-003",
-		service_order_code: "OS-2026-003",
-		customer_name: "Empresa 3",
-		description: "Reparación de sistema fluvial",
-		status: "En proceso",
-	},
-];
 
 export function SelectServiceOrderModal({
 	isOpen,
@@ -52,44 +34,85 @@ export function SelectServiceOrderModal({
 	onSelect,
 	selectionType = "single",
 }: SelectServiceOrderModalProps) {
+	const { companyId, moduleCode } = useUserStore();
+
+	const buildBaseFilters = (): GetServiceOrdersRequest => ({
+		company_id: companyId,
+		module_code: moduleCode,
+		page_number: 1,
+		page_size: PAGE_SIZE,
+	});
+
 	const [error, setError] = useState("");
 	const [searchCode, setSearchCode] = useState("");
-	const [appliedSearchCode, setAppliedSearchCode] = useState("");
-	const [tempSelected, setTempSelected] =
-		useState<SelectableServiceOrder | null>(null);
-	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<
-		SelectableServiceOrder[]
-	>([]);
+	const [searchCif, setSearchCif] = useState("");
+	const [filters, setFilters] = useState<GetServiceOrdersRequest>(buildBaseFilters);
+	const [tempSelected, setTempSelected] = useState<GetServiceOrdersResponse | null>(null);
+	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<GetServiceOrdersResponse[]>([]);
+
+	const { GetServiceOrders } = useServiceOrder({
+		getServiceOrdersPayload: isOpen
+			? {
+				...filters,
+				company_id: companyId,
+				module_code: moduleCode,
+				page_size: PAGE_SIZE,
+			}
+			: undefined,
+	});
+
+	const registeredServiceOrders = GetServiceOrders.data?.data ?? [];
+	const totalRecords = GetServiceOrders.data?.total ?? 0;
+	const currentPage = filters.page_number ?? 1;
 
 	useEffect(() => {
 		if (!isOpen) {
 			setError("");
 			setSearchCode("");
-			setAppliedSearchCode("");
+			setSearchCif("");
 			setTempSelected(null);
 			setTempSelectedMultiple([]);
+			return;
 		}
-	}, [isOpen]);
 
-	const registeredServiceOrders = useMemo(() => {
-		const query = appliedSearchCode.trim().toLowerCase();
-		if (!query) return MOCK_SERVICE_ORDERS;
-
-		return MOCK_SERVICE_ORDERS.filter((order) =>
-			order.service_order_code.toLowerCase().includes(query),
-		);
-	}, [appliedSearchCode]);
+		setFilters(buildBaseFilters());
+	}, [isOpen, companyId, moduleCode]);
 
 	const handleClose = () => {
 		setError("");
 		setSearchCode("");
-		setAppliedSearchCode("");
+		setSearchCif("");
 		setTempSelected(null);
 		setTempSelectedMultiple([]);
+		setFilters(buildBaseFilters());
 		onClose();
 	};
 
-	const handleToggleMultipleSelection = (order: SelectableServiceOrder) => {
+	const handleApplyFilters = () => {
+		setError("");
+		setFilters((prev) => ({
+			...prev,
+			code: searchCode.trim() || undefined,
+			cif: searchCif.trim() || undefined,
+			page_number: 1,
+		}));
+	};
+
+	const handleClearFilters = () => {
+		setSearchCode("");
+		setSearchCif("");
+		setError("");
+		setFilters(buildBaseFilters());
+	};
+
+	const handlePageChange = useCallback((page: number) => {
+		setFilters((prev) => ({
+			...prev,
+			page_number: page,
+		}));
+	}, []);
+
+	const handleToggleMultipleSelection = (order: GetServiceOrdersResponse) => {
 		setError("");
 		setTempSelectedMultiple((prev) => {
 			const alreadySelected = prev.some(
@@ -127,57 +150,73 @@ export function SelectServiceOrderModal({
 		handleClose();
 	};
 
-	const handleApplyFilters = (evt: React.SubmitEvent<HTMLFormElement>) => {
-		evt.preventDefault();
-		setAppliedSearchCode(searchCode);
-		setError("");
-	};
-
-	const handleClearFilters = () => {
-		setSearchCode("");
-		setAppliedSearchCode("");
-		setError("");
-	};
-
-	const columnConfig: TableColumn<SelectableServiceOrder>[] = useMemo(
-		() => [
+	const columnConfig: TableColumn<GetServiceOrdersResponse>[] =
+		[
 			{
 				key: "select",
 				label: "",
-				render: (row) => {
+				render: (row: GetServiceOrdersResponse) => {
 					return selectionType === "single" ? (
 						<RadioButton
 							name="select-service-order-single"
-							disabled={row.status === "Procesada"}
-							checked={
-								tempSelected?.service_order_id === row.service_order_id
-							}
+							checked={tempSelected?.service_order_id === row.service_order_id}
 							onChange={() => {
 								setError("");
 								setTempSelected(row);
 							}}
-							aria-label={`Seleccionar ${row.service_order_code}`}
+							aria-label={`Seleccionar ${row.code}`}
 						/>
 					) : (
 						<Checkbox
 							name="select-service-order-multiple"
-							disabled={row.status === "Procesada"}
 							checked={tempSelectedMultiple.some(
 								(item) => item.service_order_id === row.service_order_id,
 							)}
 							onChange={() => handleToggleMultipleSelection(row)}
-							aria-label={`Seleccionar ${row.service_order_code}`}
+							aria-label={`Seleccionar ${row.code}`}
 						/>
 					);
 				},
 			},
-			{ key: "service_order_code", label: "Código" },
-			{ key: "customer_name", label: "Cliente" },
-			{ key: "description", label: "Descripción" },
-			{ key: "status", label: "Estado" },
-		],
-		[selectionType, tempSelected, tempSelectedMultiple],
-	);
+			{ key: "code", label: "Código" },
+			{
+				key: "customer",
+				label: "Cliente",
+				render: (row: GetServiceOrdersResponse) => row.customer?.legal_name ?? "—",
+			},
+			{
+				key: "cif",
+				label: "CIF",
+				render: (row: GetServiceOrdersResponse) => row.customer?.cif ?? "—",
+			},
+			{
+				key: "observations",
+				label: "Observaciones",
+				render: (row: GetServiceOrdersResponse) => row.observations?.trim() || "—",
+			},
+			{
+				key: "status",
+				label: "Estado",
+				render: (row: GetServiceOrdersResponse) => {
+
+					const statusItem = Object.values(ServiceOrderStatusEnum)
+						.find((status) => status.textValue === row.status as ServiceOrderStatusType);
+
+					const statusKey = statusItem?.textValue ?? "default";
+
+					const variant = serviceOrderStatusBadgeVariants[
+						statusKey as keyof typeof serviceOrderStatusBadgeVariants
+					] ?? serviceOrderStatusBadgeVariants.default;
+
+					return (
+						<Badges
+							label={statusItem?.label ?? variant.label ?? "—"}
+							color={variant.badgeColor}
+						/>
+					);
+				},
+			},
+		] satisfies TableColumn<GetServiceOrdersResponse>[];
 
 	const isConfirmDisabled =
 		registeredServiceOrders.length === 0 ||
@@ -197,7 +236,7 @@ export function SelectServiceOrderModal({
 			isOpen={isOpen}
 			onClose={handleClose}
 			variant="form"
-			size="5xl"
+			size="6xl"
 			title="Seleccionar orden de servicio"
 			description={
 				selectionType === "multiple"
@@ -205,48 +244,52 @@ export function SelectServiceOrderModal({
 					: "Elija una orden de servicio para vincularla a la solicitud."
 			}
 		>
+			{(GetServiceOrders.isPending || GetServiceOrders.isFetching) && (
+				<Loader title="Cargando órdenes de servicio..." />
+			)}
 
 			<div className="flex flex-col gap-4">
 				{error ? (
 					<p className="m-0 text-sm text-red-500 dark:text-red-400">{error}</p>
 				) : null}
 
-				<div className="flex justify-between items-center">
-					<div className="flex flex-col justify-center">
-						<form
-							onSubmit={handleApplyFilters}
-							className="flex items-end gap-4"
-						>
-							<InputText
-								label="Filtrar por código"
-								placeholder="Ej. OS-2026-001"
-								value={searchCode}
-								onChange={(event) => setSearchCode(event.target.value)}
-								className={inputClassName}
-								labelClassName={labelClassName}
-							/>
+				<form
+					onSubmit={handleApplyFilters}
+					className="grid grid-cols-4 gap-4 items-end"
+				>
+					<InputText
+						label="Filtrar por código"
+						placeholder="Ej. OS-2026-001"
+						value={searchCode}
+						onChange={(event) => setSearchCode(event.target.value)}
+						className={inputClassName}
+						labelClassName={labelClassName}
+					/>
 
-							<div className="flex flex-col">
-								<Button
-									type="submit"
-									size="giant"
-									className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-									label="Aplicar filtros"
-								/>
-							</div>
+					<InputText
+						label="Filtrar por CIF"
+						placeholder="Ej. J0310000000000"
+						value={searchCif}
+						onChange={(event) => setSearchCif(event.target.value)}
+						className={inputClassName}
+						labelClassName={labelClassName}
+					/>
 
-							<div className="flex flex-col">
-								<Button
-									type="button"
-									size="giant"
-									className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
-									label="Limpiar filtros"
-									onClick={handleClearFilters}
-								/>
-							</div>
-						</form>
-					</div>
-				</div>
+					<Button
+						type="submit"
+						size="giant"
+						className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+						label="Aplicar filtros"
+					/>
+
+					<Button
+						type="button"
+						size="giant"
+						className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+						label="Limpiar filtros"
+						onClick={handleClearFilters}
+					/>
+				</form>
 
 				<DataTable
 					title={
@@ -256,12 +299,15 @@ export function SelectServiceOrderModal({
 					}
 					data={registeredServiceOrders}
 					columns={columnConfig}
-				/>
-
-				<Alert
-					type="info"
-					title="Aviso"
-					message="Esta funcionalidad se encuentra en desarrollo."
+					pagination={
+						<Pagination
+							currentPage={currentPage}
+							pageSize={PAGE_SIZE}
+							totalRecords={totalRecords}
+							onPageChange={handlePageChange}
+							disabled={GetServiceOrders.isFetching}
+						/>
+					}
 				/>
 
 				<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

@@ -512,6 +512,7 @@ export const validateOnlyLettersWithAccentsAndDiacritics = (
 export const formatNumberWithDecimals = (
   value: string,
   isPercentage: boolean = false,
+  maxValue: number = 100,
 ): string => {
   if (!value) return "";
 
@@ -522,8 +523,7 @@ export const formatNumberWithDecimals = (
   const finalValue =
     parts.length > 2 ? `${parts[0]}.${parts.slice(1).join("")}` : cleanValue;
 
-  // Siempre string: devolver el número 100 hacía que RHF validara el valor crudo ("100a") como NaN.
-  if (isPercentage && Number(finalValue) >= 100) return "100";
+  if (isPercentage && Number(finalValue) >= maxValue) return maxValue.toString();
 
   return finalValue;
 };

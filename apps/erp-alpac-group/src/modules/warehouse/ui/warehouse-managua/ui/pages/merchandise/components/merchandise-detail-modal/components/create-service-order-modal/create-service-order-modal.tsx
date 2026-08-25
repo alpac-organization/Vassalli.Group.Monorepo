@@ -5,7 +5,7 @@ import { Button, Dropdown, Modal, Textarea, type Option } from "@alpac/design-sy
 import { FilePlus2, Plus } from "lucide-react";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { useCustomer } from "@app/modules/warehouse/ui/hooks/useCustomer";
-import { ServiceOrderServices } from "@app/modules/warehouse/infrastructure/services/service-order-services/ServiceOrderServices";
+import { ServiceOrderServices } from "@app/modules/service-order/infrastructure/services/service-order-services/ServiceOrderServices";
 import { warehouseHttpHandler } from "@app/core/adapters/axiosAdapter";
 import type { GetCustomerResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/customer-responses/get-customer.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";

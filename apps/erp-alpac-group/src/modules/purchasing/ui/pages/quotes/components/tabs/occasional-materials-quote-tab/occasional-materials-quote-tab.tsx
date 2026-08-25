@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { QuotesTable } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-table/quotes-table";
 import { CreateQuoteModal } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/create-quote-modal";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -8,6 +8,7 @@ import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurcha
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { RoleEnum } from "@app/core/enums/role.enum";
 
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
@@ -21,11 +22,13 @@ const sendButtonClass = "rounded-md! h-11 px-6! border border-blue-200 dark:bord
 const cancelButtonClass = "rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
 
 export function OccasionalMaterialsQuoteTab({
+	currentBranchId,
 	onRequestError,
 	onRequestSuccess,
 }: OccasionalMaterialsQuoteTabProps) {
-	const { companyId, moduleCode } = useUserStore();
+	const { companyId, moduleCode, role } = useUserStore();
 	const { getMappedError } = useMappedError();
+	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
 
 	const [activeModal, setActiveModal] = useState<QuotesModalType>(null);
 	const [selectedPurchaseRequest, setSelectedPurchaseRequest] =
@@ -34,6 +37,7 @@ export function OccasionalMaterialsQuoteTab({
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
 		company_id: companyId,
 		module_code: moduleCode,
+		...(isAdministrator ? {} : { branch_id: currentBranchId }),
 		status: PurchaseRequestStatusEnum.Approved.value,
 		page_number: 1,
 		page_size: PAGE_SIZE,
@@ -46,6 +50,7 @@ export function OccasionalMaterialsQuoteTab({
 			module_code: moduleCode,
 			status: PurchaseRequestStatusEnum.Approved.value,
 			request_type: PurchaseRequestEnum.Eventual.value,
+			branch_id: isAdministrator ? undefined : currentBranchId,
 			page_size: PAGE_SIZE,
 		}
 	});
@@ -53,6 +58,17 @@ export function OccasionalMaterialsQuoteTab({
 	const purchaseRequests = GetPurchaseRequests.data?.data ?? [];
 	const totalRecords = GetPurchaseRequests.data?.total ?? 0;
 	const currentPage = filters.page_number ?? 1;
+
+	useEffect(() => {
+		setFilters({
+			company_id: companyId,
+			module_code: moduleCode,
+			...(isAdministrator ? {} : { branch_id: currentBranchId }),
+			status: PurchaseRequestStatusEnum.Approved.value,
+			page_number: 1,
+			page_size: PAGE_SIZE,
+		});
+	}, [currentBranchId, companyId, moduleCode, isAdministrator]);
 
 	const handlePageChange = useCallback((page: number) => {
 		setFilters((prev) => ({

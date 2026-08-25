@@ -1,4 +1,4 @@
-import type { accountingReviewStatusType } from "@app/modules/finance/enum/analysis-quotation/accounting-review-status";
+import type { accountingReviewStatusType } from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
 import type { UserStatusKey } from "@app/shared/enum/user-status";
 export interface GetRequisitionAccountingReviewsResponse {
   data: RequisitionAccountingReviewDto[];
@@ -13,6 +13,10 @@ export interface RequisitionAccountingReviewDto {
   status: accountingReviewStatusType;
   requisition_accounting_review_id: string;
   sent_by_user_information: SentByUserInformation;
+  purchase_request?: {
+    purchase_request_id: string;
+    code?: string | null;
+  } | null;
 }
 
 export interface SentByUserInformation {

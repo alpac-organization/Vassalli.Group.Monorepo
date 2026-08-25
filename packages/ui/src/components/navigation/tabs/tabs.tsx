@@ -37,6 +37,7 @@ const getVariants = (animation: TabsAnimation): Variants =>
 	animation === "slide" ? slideVariants : fadeVariants;
 
 export function Tabs(props: TabProps<string>): React.ReactNode {
+
 	const animation = props.animation ?? "slide";
 	const [activeTab, setActiveTab] = useState(props.activeTab);
 	const [direction, setDirection] = useState(0);
@@ -61,7 +62,7 @@ export function Tabs(props: TabProps<string>): React.ReactNode {
 			<TabHeader
 				tabs={props.tabItems}
 				activeTab={activeTab}
-				onTabChange={handleTabChange}
+				onTabChange={handleTabChange}				
 			/>
 
 			<div className="relative w-full min-w-0 overflow-hidden">

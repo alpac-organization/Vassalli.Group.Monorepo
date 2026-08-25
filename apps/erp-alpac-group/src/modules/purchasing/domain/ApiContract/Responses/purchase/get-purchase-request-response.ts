@@ -6,6 +6,7 @@ export interface GetPurchaseRequestResponse {
    request_status: string;
    request_type: string;
    revision_date: string;
+   priority_level: string;
 }
 
 export interface GetPurchaseRequestResponseList {

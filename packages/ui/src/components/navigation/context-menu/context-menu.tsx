@@ -20,6 +20,7 @@ export const ContextMenu = ({
 	triggerIcon,
 	triggerButtonSize,
 	openUpOnMobile = false,
+	disabled = false,
 }: ContextMenuProps) => {
 	const [open, setOpen] = useState(false);
 	const [position, setPosition] = useState<MenuPosition | null>(null);
@@ -241,6 +242,7 @@ export const ContextMenu = ({
 				aria-expanded={open}
 				aria-haspopup="menu"
 				size={triggerButtonSize ?? "giant"}
+				disabled={disabled}
 				onClick={() => {
 					if (items.length === 0) {
 						setOpen(false);

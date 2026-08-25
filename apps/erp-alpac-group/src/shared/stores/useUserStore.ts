@@ -13,6 +13,8 @@ interface UserState {
   userType: string;
   role: string;
   moduleBasePath: string;
+  areaId: string;
+  branchId: string;
 }
 
 export const useUserStore = create<UserState>()(
@@ -28,7 +30,9 @@ export const useUserStore = create<UserState>()(
       moduleCode: '',
       userType: '',
       role: '',
-      moduleBasePath: ''
+      moduleBasePath: '',
+      areaId: '',
+      branchId: ''
     }),
     {
       name: 'user-data',

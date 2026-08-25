@@ -1,4 +1,4 @@
-import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
+import type { PurchaseRequestMainPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import type { GetPurchaseRequestDetailPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-details-payload";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
@@ -16,7 +16,7 @@ export interface IPurchaseServices {
 
    GetPurchaseRequestProducts(payload: any): Promise<PurchaseRequestProductInformationList>;
 
-   CreatePurchaseRequest(payload: CreatePurchaseRequestPayload): Promise<void>;
+   CreatePurchaseRequest(payload: PurchaseRequestMainPayload): Promise<void>;
 
    ProcesssPurchaseRequest(payload: ProcessPurchaseRequestPayload): Promise<void>;
 

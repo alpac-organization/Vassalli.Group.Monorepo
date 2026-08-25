@@ -11,6 +11,7 @@ import { WarehouseAdminRouter } from "@app/routers/routes/warehouse-admin/wareho
 import { AdminRouter } from "@app/routers/routes/admin/admin-router";
 import { PurchasingRouter } from "@app/routers/routes/purchasing/purchasing-router";
 import { FinanceRouter } from "../finance/finance-router";
+import { ManagementRouter } from "../management/management-router";
 
 export const DashboardRouter: RouteObject[] = [
   {
@@ -60,6 +61,10 @@ export const DashboardRouter: RouteObject[] = [
       {
         path: "finance",
         children: FinanceRouter,
+      },
+      {
+        path: "management",
+        children: ManagementRouter,
       },
     ],
   },

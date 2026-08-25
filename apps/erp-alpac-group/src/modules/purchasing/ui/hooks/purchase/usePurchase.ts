@@ -1,6 +1,6 @@
 import { warehouseHttpHandler } from "@app/core/adapters";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
+import type { PurchaseRequestMainPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import type { GetPurchaseRequestDetailPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-details-payload";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
@@ -23,7 +23,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
 
    const {
       getPurchaseRequestsPayload,
-      getPurchaseRequestDetailsPayload,      
+      getPurchaseRequestDetailsPayload,
       getPurchaseRequestProductsPayload
    } = props || {};
 
@@ -39,7 +39,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       getPurchaseRequestDetailsPayload?.company_id?.trim() &&
       getPurchaseRequestDetailsPayload?.module_code?.trim() &&
       getPurchaseRequestDetailsPayload?.purchase_request_id
-   );   
+   );
 
    const purchaseRequestProductEnabled = Boolean(
       getPurchaseRequestProductsPayload?.company_id?.trim() &&
@@ -74,9 +74,9 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       retry: 1,
    });
 
-   const CreatePurchaseRequest = useMutation<void, ApiErrorResponse, CreatePurchaseRequestPayload>({
+   const CreatePurchaseRequest = useMutation<void, ApiErrorResponse, PurchaseRequestMainPayload>({
       mutationKey: ["create-purchase-request"],
-      mutationFn: (payload: CreatePurchaseRequestPayload) => purchaseServices.CreatePurchaseRequest(payload),
+      mutationFn: (payload: PurchaseRequestMainPayload) => purchaseServices.CreatePurchaseRequest(payload),
       onSuccess() {
          queryClient.invalidateQueries({ queryKey: ["get-purchase-requests"] });
       },
@@ -108,6 +108,10 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       mutationFn: (payload: SendPurchaseRequestToReviewPayload) => purchaseServices.SendPurchaseRequestToReview(payload),
       onSuccess() {
          queryClient.invalidateQueries({ queryKey: ["get-purchase-requests"] });
+         queryClient.invalidateQueries({
+            queryKey: ["quotes-analysis"],
+            refetchType: "all",
+         });
       },
       retry: 1
    });

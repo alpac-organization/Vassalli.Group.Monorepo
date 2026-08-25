@@ -58,17 +58,15 @@ function MobileTabSelect<T extends string>({
         aria-controls={listboxId}
         aria-haspopup="listbox"
         onClick={() => setIsOpen((o) => !o)}
-        className={`flex h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg border bg-[#1e2229] px-3 text-left text-sm font-medium text-slate-100 outline-none transition-all duration-300 ease-out hover:border-slate-500/70 focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/25 ${
-          isOpen
-            ? "border-blue-600/60 ring-1 ring-blue-600/25"
-            : "border-slate-600/50"
-        }`}
+        className={`flex h-11 w-full min-w-0 cursor-pointer items-center justify-between gap-2 rounded-lg border bg-[#1e2229] px-3 text-left text-sm font-medium text-slate-100 outline-none transition-all duration-300 ease-out hover:border-slate-500/70 focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/25 ${isOpen
+          ? "border-blue-600/60 ring-1 ring-blue-600/25"
+          : "border-slate-600/50"
+          }`}
       >
         <span className="min-w-0 flex-1 truncate">{activeLabel}</span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 text-blue-400 transition-transform duration-300 ease-out ${
-            isOpen ? "rotate-180" : "rotate-0"
-          }`}
+          className={`h-4 w-4 shrink-0 text-blue-400 transition-transform duration-300 ease-out ${isOpen ? "rotate-180" : "rotate-0"
+            }`}
           aria-hidden
         />
       </button>
@@ -78,11 +76,10 @@ function MobileTabSelect<T extends string>({
         role="listbox"
         aria-labelledby={`${baseId}-label`}
         aria-hidden={!isOpen}
-        className={`absolute left-0 right-0 top-full z-50 mt-2 max-h-60 origin-top overflow-auto rounded-xl border border-slate-600/50 bg-[#1b1e23] py-1 shadow-xl shadow-black/50 ring-1 ring-white/5 transition-all duration-300 ease-out motion-reduce:transition-none ${
-          isOpen
-            ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
-            : "pointer-events-none -translate-y-1.5 scale-[0.98] opacity-0"
-        }`}
+        className={`absolute left-0 right-0 top-full z-50 mt-2 max-h-60 origin-top overflow-auto rounded-xl border border-slate-600/50 bg-[#1b1e23] py-1 shadow-xl shadow-black/50 ring-1 ring-white/5 transition-all duration-300 ease-out motion-reduce:transition-none ${isOpen
+          ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
+          : "pointer-events-none -translate-y-1.5 scale-[0.98] opacity-0"
+          }`}
       >
         {tabs.map((tab) => {
           const selected = activeTab === tab.id;
@@ -94,11 +91,10 @@ function MobileTabSelect<T extends string>({
                 aria-selected={selected}
                 tabIndex={isOpen ? 0 : -1}
                 onClick={() => handlePick(tab.id)}
-                className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors duration-200 ease-out ${
-                  selected
-                    ? "bg-blue-600/15 font-medium text-blue-400"
-                    : "text-slate-200 hover:bg-white/5 hover:text-white"
-                }`}
+                className={`flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm transition-colors duration-200 ease-out ${selected
+                  ? "bg-blue-600/15 font-medium text-blue-400"
+                  : "text-slate-200 hover:bg-white/5 hover:text-white"
+                  }`}
               >
                 <span className="min-w-0 flex-1 truncate">{tab.label}</span>
                 {selected ? (
@@ -137,20 +133,24 @@ export const TabHeader = <T extends string>({
         className="hidden min-w-0 border-b border-slate-600/40 sm:flex sm:flex-wrap sm:items-end sm:gap-x-4 sm:gap-y-0 sm:overflow-x-auto items-center"
       >
         {tabs.map((tab) => (
-          <button
+          <span
             key={tab.id}
-            type="button"
-            role="tab"
-            aria-selected={activeTab === tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className={`min-h-0 w-auto shrink-0 touch-manipulation rounded-t-md border-b-2 px-3 py-3 text-left text-sm font-medium transition-colors duration-200 -mb-px ${
-              activeTab === tab.id
+            className={`${tab?.disabled ? "cursor-not-allowed" : undefined} touch-manipulation`}
+          >
+            <button
+              type="button"
+              role="tab"
+              disabled={tab?.disabled ?? false}
+              aria-selected={activeTab === tab.id}
+              onClick={() => onTabChange(tab.id)}
+              className={`min-h-0 w-auto shrink-0 touch-manipulation rounded-t-md border-b-2 px-3 py-3 text-left text-sm font-medium transition-colors duration-200 -mb-px disabled:pointer-events-none disabled:text-slate-600 disabled:hover:text-slate-600 ${activeTab === tab.id
                 ? "border-blue-600 bg-transparent text-blue-400"
                 : "border-transparent text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            {tab.label}
-          </button>
+                }`}
+            >
+              {tab.label}
+            </button>
+          </span>
         ))}
       </div>
     </div>

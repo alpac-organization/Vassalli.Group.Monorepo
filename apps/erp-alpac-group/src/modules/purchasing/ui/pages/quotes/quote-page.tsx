@@ -13,10 +13,13 @@ import { RequisitionQuoteTab } from "./components/tabs/requisition-quote-tab/req
 import { MonthlyMaterialsQuoteTab } from "./components/tabs/monthly-materials-quote-tab/monthly-materials-quote-tab";
 import { OccasionalMaterialsQuoteTab } from "./components/tabs/occasional-materials-quote-tab/occasional-materials-quote-tab";
 import { QuotesPageHeader } from "./components/quotes-page-header/quotes-page-header";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 export const QuotePage = () => {
+
    const navigate = useNavigate();
    const { baseUrl } = useBaseUrl();
+   const { branchId } = useUserStore();
 
    const {
       alertState,
@@ -31,6 +34,7 @@ export const QuotePage = () => {
          label: "Requisiciones",
          render: () => (
             <RequisitionQuoteTab
+               currentBranchId={branchId!}
                onRequestError={handleRequestError}
                onRequestSuccess={handleRequestSuccess}
             />
@@ -39,8 +43,10 @@ export const QuotePage = () => {
       {
          id: "monthly-applications",
          label: "Solicitud de Materiales Mensuales",
+         disabled: true,
          render: () => (
             <MonthlyMaterialsQuoteTab
+               currentBranchId={branchId!}
                onRequestError={handleRequestError}
                onRequestSuccess={handleRequestSuccess}
             />
@@ -51,6 +57,7 @@ export const QuotePage = () => {
          label: "Solicitud de Materiales Eventuales",
          render: () => (
             <OccasionalMaterialsQuoteTab
+               currentBranchId={branchId!}
                onRequestError={handleRequestError}
                onRequestSuccess={handleRequestSuccess}
             />
@@ -66,7 +73,6 @@ export const QuotePage = () => {
          transition={{ duration: 0.5 }}
          className="flex flex-col gap-4"
       >
-
          <div className="flex justify-start">
             <Breadcrumb
                items={[

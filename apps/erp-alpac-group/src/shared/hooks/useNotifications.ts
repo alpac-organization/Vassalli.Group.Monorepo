@@ -1,6 +1,6 @@
 import { getToken, type Messaging } from 'firebase/messaging';
 import { getMessagingInstance } from '@app/firebase-config';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNotificationConfig } from '@app/modules/dashboard/ui/hooks/useNotificationConfig';
 import { useUserStore } from '../stores/useUserStore';
 import { getDeviceName } from '@app/shared/utils/device-name.utils';
@@ -45,6 +45,9 @@ export const useNotification = (): UseNotificationResult => {
    const [needsInstallOnIOS, setNeedsInstallOnIOS] = useState(false);
    const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null);
    const [fcmToken, setFcmToken] = useState<string | null>(null);
+
+   const hasRegisteredToken = useRef(false);
+   const { mutateAsync: registerPushToken } = RegisterPushToken;
 
    useEffect(() => {
       if (isIOS && !isStandalone()) {
@@ -101,9 +104,9 @@ export const useNotification = (): UseNotificationResult => {
             return false;
          }
 
-         setFcmToken(token);
+         setFcmToken(token);         
 
-         await RegisterPushToken.mutateAsync({
+         await registerPushToken({
             company_id: companyId, token,
             device_name: getDeviceName()
          });
@@ -115,7 +118,17 @@ export const useNotification = (): UseNotificationResult => {
          return false;
       }
 
-   }, [RegisterPushToken, companyId]);
+   }, [registerPushToken, companyId]);
+
+    useEffect(() => {
+      if (!companyId) return;
+      if (hasRegisteredToken.current) return;
+      if (Notification.permission !== "granted") return;
+
+      void getAndSendToken().then(() => {
+         hasRegisteredToken.current = true;
+      });
+   }, [companyId]);
 
    const requestPermission = useCallback(async () => {
 

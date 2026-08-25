@@ -4,7 +4,7 @@ import {
   AccountingReviewStatus,
   AccountingTypeOptions,
   type accountingReviewStatusType,
-} from "@app/modules/finance/enum/analysis-quotation/accounting-review-status";
+} from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
 import type { QuoteAnalysisFiltersProps } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-filters/types/quote-analysis-filters.types";
 import {
   dropdownClassName,

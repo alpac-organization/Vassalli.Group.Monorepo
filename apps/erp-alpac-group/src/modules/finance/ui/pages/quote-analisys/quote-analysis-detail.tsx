@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { m } from "framer-motion";
 import {
+  Alert,
+  AnimatedAlertWrapper,
   Breadcrumb,
   Badges,
   Accordion,
@@ -10,12 +12,15 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useQuoteAnalysis } from "@app/modules/finance/ui/hooks/quotes-analysis/useQuoteAnalysis";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { getStatusBadge } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-table/utils/quote-analysis.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { QuoteProductComparison } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-product-comparison/quote-product-comparison";
+import { SendReviewModal } from "@app/modules/finance/ui/pages/quote-analisys/components/send-review-modal/send-review-modal";
+import type { SendReviewModalConfirmPayload } from "@app/modules/finance/ui/pages/quote-analisys/components/send-review-modal/send-review-modal.types";
 import type {
   PurchaseRequestProductInformation,
   PurchaseRequestProductQuotation,
@@ -30,20 +35,31 @@ import {
   AlertCircle,
   Package,
 } from "lucide-react";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
+import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
+import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
+import {
+  purchaseRequestPriorityBadgeVariants,
+  purchaseRequestStatusBadgeVariants,
+  purchaseRequestTypeBadgeVariants,
+} from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 
 export function QuoteAnalysisDetail() {
   const { reviewId } = useParams<{ reviewId: string }>();
   const navigate = useNavigate();
   const { baseUrl } = useBaseUrl();
+  const { getMappedError } = useMappedError();
   const { companyId, moduleCode } = useUserStore();
 
-  const [selectedQuotes, setSelectedQuotes] = useState<Record<string, string>>(
-    {},
-  );
+  const [selectedQuotes, setSelectedQuotes] = useState<Record<string, string>>({});
   const [pendingAccept, setPendingAccept] = useState<{
     itemId: string;
     quotation: PurchaseRequestProductQuotation;
   } | null>(null);
+  const [isSendReviewOpen, setIsSendReviewOpen] = useState(false);
+  const { alertState, handleCloseAlert, handleRequestSuccess, handleRequestError } =
+    useAlertState();
 
   const payloadGetQuoteAnalysisDetails = useMemo(
     () => ({
@@ -54,10 +70,13 @@ export function QuoteAnalysisDetail() {
     [companyId, moduleCode, reviewId],
   );
 
-  const { GetQuoteAnalysisDetails, AcceptQuotationToPurchase } =
-    useQuoteAnalysis({
-      payloadGetQuoteAnalysisDetails,
-    });
+  const {
+    GetQuoteAnalysisDetails,
+    AcceptQuotationToPurchase,
+    SendReviewToManagement,
+  } = useQuoteAnalysis({
+    payloadGetQuoteAnalysisDetails,
+  });
 
   const {
     data: detailData,
@@ -69,11 +88,11 @@ export function QuoteAnalysisDetail() {
     () =>
       detailData?.purchase_request?.purchase_request_id
         ? {
-            company_id: companyId,
-            module_code: moduleCode,
-            purchase_request_id:
-              detailData.purchase_request.purchase_request_id,
-          }
+          company_id: companyId,
+          module_code: moduleCode,
+          purchase_request_id:
+            detailData.purchase_request.purchase_request_id,
+        }
         : undefined,
     [companyId, moduleCode, detailData?.purchase_request?.purchase_request_id],
   );
@@ -118,6 +137,44 @@ export function QuoteAnalysisDetail() {
       },
     );
   }, [AcceptQuotationToPurchase, companyId, moduleCode, pendingAccept]);
+
+  const handleCloseSendModal = useCallback(() => {
+    if (SendReviewToManagement.isPending) return;
+    setIsSendReviewOpen(false);
+  }, [SendReviewToManagement.isPending]);
+
+  const handleConfirmSendToReview = useCallback(
+    (payload: SendReviewModalConfirmPayload) => {
+      if (!reviewId || !companyId || !moduleCode) return;
+
+      SendReviewToManagement.mutate(
+        {
+          company_id: companyId,
+          module_code: moduleCode,
+          requisition_accounting_review_id: reviewId,
+          comments: payload.comments,
+          is_approved: payload.isApproved,
+        },
+        {
+          onSuccess: () => {
+            setIsSendReviewOpen(false);
+            handleRequestSuccess("La solicitud se envió a revisión gerencial.");
+          },
+          onError: (error) => {
+            const errorMessage = getMappedError(error);
+            handleRequestError(errorMessage.description ?? "Error al enviar la solicitud a revisión gerencial.");
+          },
+        },
+      );
+    },
+    [
+      SendReviewToManagement,
+      companyId,
+      handleRequestSuccess,
+      moduleCode,
+      reviewId,
+    ],
+  );
 
   const productsToDisplay: PurchaseRequestProductInformation[] =
     productsData?.data ?? [];
@@ -187,7 +244,7 @@ export function QuoteAnalysisDetail() {
       </div>
 
       <div className="flex min-w-0 flex-col gap-4 rounded-xl border border-slate-200 bg-white p-3 sm:gap-6 sm:p-5 md:p-6 dark:border-slate-700/50 dark:bg-[#272b34]">
-        <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:gap-4 sm:pb-6 sm:flex-row sm:items-start sm:justify-between dark:border-slate-700/50">
+        <div className="sticky -top-10 z-20 -mx-3 -mt-3 flex flex-col gap-3 border-b border-slate-200 bg-white px-3 pt-3 pb-4 sm:-mx-5 sm:-mt-5 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:px-5 sm:pt-5 sm:pb-6 md:-mx-6 md:-mt-6 md:px-6 md:pt-6 dark:border-slate-700/50 dark:bg-[#272b34]">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <h3 className="m-0 break-all text-base font-semibold text-slate-900 dark:text-white sm:text-lg md:text-xl">
@@ -207,8 +264,17 @@ export function QuoteAnalysisDetail() {
               </span>
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-3">
+
+          <div className="flex shrink-0 flex-wrap items-center gap-3">
             <Badges label={badge.label} color={badge.color} />
+            <Button
+              type="button"
+              size="giant"
+              label="Enviar a revisión"
+              onClick={() => setIsSendReviewOpen(true)}
+              disabled={SendReviewToManagement.isPending}
+              className="rounded-md! bg-alpac-primary-500! text-white! dark:bg-alpac-primary-700!"
+            />
           </div>
         </div>
 
@@ -223,9 +289,39 @@ export function QuoteAnalysisDetail() {
                 <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                   <FileText className="h-3.5 w-3.5 shrink-0" /> Tipo
                 </span>
-                <span className="break-words text-sm font-medium text-slate-900 dark:text-slate-200">
-                  {purchase_request.request_type || "—"}
+                <Badges
+                  label={
+                    PurchaseRequestEnum[
+                      purchase_request.request_type as keyof typeof PurchaseRequestEnum
+                    ]?.label ?? purchase_request.request_type
+                  }
+                  color={
+                    purchaseRequestTypeBadgeVariants[
+                      purchase_request.request_type as keyof typeof purchaseRequestTypeBadgeVariants
+                    ]?.badgeColor ??
+                    purchaseRequestTypeBadgeVariants.default.badgeColor
+                  }
+                  className="w-fit"
+                />
+              </div>
+              <div className="flex min-w-0 flex-col gap-1">
+                <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
+                  <FileText className="h-3.5 w-3.5 shrink-0" /> Prioridad
                 </span>
+                <Badges
+                  label={
+                    PriorityLevelEnum[
+                      purchase_request.priority_level as keyof typeof PriorityLevelEnum
+                    ]?.label ?? purchase_request.priority_level
+                  }
+                  color={
+                    purchaseRequestPriorityBadgeVariants[
+                      purchase_request.priority_level as keyof typeof purchaseRequestPriorityBadgeVariants
+                    ]?.badgeColor ??
+                    purchaseRequestPriorityBadgeVariants.default.badgeColor
+                  }
+                  className="w-fit"
+                />
               </div>
               <div className="flex min-w-0 flex-col gap-1">
                 <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
@@ -249,9 +345,20 @@ export function QuoteAnalysisDetail() {
                 <span className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                   <CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> Estado
                 </span>
-                <span className="break-words text-sm font-medium text-slate-900 dark:text-slate-200">
-                  {purchase_request.request_status || "—"}
-                </span>
+                <Badges
+                  label={
+                    PurchaseRequestStatusEnum[
+                      purchase_request.request_status as keyof typeof PurchaseRequestStatusEnum
+                    ]?.label ?? purchase_request.request_status
+                  }
+                  color={
+                    purchaseRequestStatusBadgeVariants[
+                      purchase_request.request_status as keyof typeof purchaseRequestStatusBadgeVariants
+                    ]?.badgeColor ??
+                    purchaseRequestStatusBadgeVariants.default.badgeColor
+                  }
+                  className="w-fit"
+                />
               </div>
             </div>
 
@@ -415,11 +522,10 @@ export function QuoteAnalysisDetail() {
                               </span>
                             )}
                             <span
-                              className={`rounded-md px-2 py-1 text-[10px] font-medium sm:text-[11px] ${
-                                quotesCount > 0
-                                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
-                                  : "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"
-                              }`}
+                              className={`rounded-md px-2 py-1 text-[10px] font-medium sm:text-[11px] ${quotesCount > 0
+                                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
+                                : "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"
+                                }`}
                             >
                               {quotesCount} cotización(es)
                             </span>
@@ -457,6 +563,18 @@ export function QuoteAnalysisDetail() {
         </div>
       </div>
 
+      <SendReviewModal
+        isOpen={isSendReviewOpen}
+        pendingLabel={
+          purchase_request.code?.trim() ||
+          sent_by_user_information?.fullname?.trim() ||
+          "esta solicitud"
+        }
+        isSubmitting={SendReviewToManagement.isPending}
+        onClose={handleCloseSendModal}
+        onConfirm={handleConfirmSendToReview}
+      />
+
       <Modal
         isOpen={Boolean(pendingAccept)}
         onClose={handleCloseAcceptModal}
@@ -484,6 +602,15 @@ export function QuoteAnalysisDetail() {
           />
         </div>
       </Modal>
+
+      <AnimatedAlertWrapper open={alertState?.open ?? false}>
+        <Alert
+          type={alertState?.type!}
+          title={alertState?.title}
+          message={alertState?.message!}
+          onClose={handleCloseAlert}
+        />
+      </AnimatedAlertWrapper>
     </m.div>
   );
 }

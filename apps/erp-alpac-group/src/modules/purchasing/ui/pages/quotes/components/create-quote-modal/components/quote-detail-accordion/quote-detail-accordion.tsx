@@ -10,12 +10,13 @@ import {
 } from "lucide-react";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import type { QuoteDetailAccordionProps } from "./quote-detail-accordion.types";
-import { useState } from "react";
 
 export function QuoteDetailAccordion({
 	quoteDetailIndex,
 	accordionValue,
 	requestedProduct,
+	isSelected = false,
+	assignedSuppliersCount = 0,
 	onSelectedChange,
 }: QuoteDetailAccordionProps) {
 
@@ -25,7 +26,8 @@ export function QuoteDetailAccordion({
 	const categoryName =
 		requestedProduct?.product_details?.category_information?.name?.trim() || null;
 
-	const hasQuotation = requestedProduct?.has_quotation ?? false;
+	const hasQuotation =
+		(requestedProduct?.has_quotation ?? false) || assignedSuppliersCount > 0;
 
 	const quantity = requestedProduct?.quantity;
 	const quantityUnit = requestedProduct?.quantity_unit;
@@ -45,8 +47,6 @@ export function QuoteDetailAccordion({
 	const justification = requestedProduct?.justification?.trim() || null;
 
 	const quotationStatusColor = hasQuotation ? "text-[#22c55e]" : "text-slate-500 dark:text-slate-300";	
-
-	const [isSelected, setIsSelected] = useState(false);
 
 	return (
 		<>
@@ -81,7 +81,6 @@ export function QuoteDetailAccordion({
 										labelClassName="block truncate text-[15px] font-semibold text-slate-800 dark:text-white"
 										onChange={(evt) => {
 											const isChecked = evt.target.checked ?? false;
-											setIsSelected(isChecked);
 											onSelectedChange?.(requestedProduct!, isChecked);
 										}}
 										aria-label={`Seleccionar ${productName}`}
@@ -114,7 +113,12 @@ export function QuoteDetailAccordion({
 							}
 							{
 								hasQuotation ?
-									<span>Cotizado</span> :
+									<span>
+										Cotizado
+										{assignedSuppliersCount > 0
+											? ` · ${assignedSuppliersCount} proveedor${assignedSuppliersCount === 1 ? "" : "es"}`
+											: ""}
+									</span> :
 									<span>Sin cotizar</span>
 							}
 						</span>

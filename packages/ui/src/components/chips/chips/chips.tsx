@@ -1,7 +1,7 @@
 import { XIcon } from "lucide-react";
 import { ChipProps } from "./chips.type";
 
-export const Chips = ({label, onClick, ...rest}: ChipProps) => {
+export const Chips = ({label, onClose, ...rest}: ChipProps) => {
 
    return (
       <span
@@ -12,7 +12,7 @@ export const Chips = ({label, onClick, ...rest}: ChipProps) => {
          <button
             type="button"
             aria-label={`chips ${label}`}
-            onClick={onClick}
+            onClick={onClose}
             className="inline-flex h-4 w-4 items-center justify-center rounded text-slate-500 hover:bg-slate-200 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
          >
             <XIcon size={12} />
