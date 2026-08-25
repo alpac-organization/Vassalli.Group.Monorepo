@@ -27,12 +27,32 @@ const cancelButtonClass = "rounded-md! h-11 px-6! border border-orange-200 dark:
 const pdfButtonClass = "rounded-md! h-11 px-6! border border-sky-200 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-500/20 hover:border-sky-400 dark:hover:border-sky-500/60 hover:text-sky-700 dark:hover:text-sky-300 disabled:opacity-40 shadow-sm transition-all duration-200";
 const sectionTitleClassName = "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
 
+
+const getSuccessMessage = (type: ConfirmActionType) => {
+	if (type === "APPROVE") return "Solicitud aprobada con éxito.";
+	if (type === "REJECT") return "Solicitud rechazada con éxito.";
+	return "Solicitud cancelada con éxito.";
+};
+
+const getActionText = (type: ConfirmActionType) => {
+	if (type === 'APPROVE') return "Aprobar";
+	if (type === 'REJECT') return "Rechazar";
+	if (type === 'CANCEL') return "Cancelar"
+	else null;
+}
+
+const getConfirmQuestion = (type: ConfirmActionType) => {
+	const action = getActionText(type);
+	if (type === "APPROVE") return `La solicitud será aprovada y pasará al proceso de cotización ¿Está seguro de proceder a ${action} la Solicitud?`;
+	else return `¿Está seguro de proceder a ${action} la Solicitud?`;
+}
+
 export const PurchaseRequestDetailModal = ({
 	isOpen,
 	onClose,
 	purchaseRequest,
 	onRequestSuccess,
-	onRequestError,
+	onRequestError
 }: PurchaseRequestDetailModalProps) => {
 
 	const { companyId, moduleCode, role } = useUserStore();
@@ -121,18 +141,10 @@ export const PurchaseRequestDetailModal = ({
 		setConfirmModal({ isOpen: false, type: "CANCEL" });
 	};
 
-	const getSuccessMessage = (type: ConfirmActionType) => {
-		if (type === "APPROVE") return "Solicitud aprobada con éxito.";
-		if (type === "REJECT") return "Solicitud rechazada con éxito.";
-		return "Solicitud cancelada con éxito.";
-	};
-
 	useEffect(() => {
 		const confirmType: ConfirmActionType = confirmModal.type;
 
-		const message = confirmType === "APPROVE" ?
-			`La solicitud será aprovada y pasará al proceso de cotización ¿Está seguro de proceder a ${actionType} la Solicitud?` :
-			`¿Está seguro de proceder a ${actionType} la Solicitud?`;
+		const message = getConfirmQuestion(confirmType);
 
 		setMessage(message);
 
