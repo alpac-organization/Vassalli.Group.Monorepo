@@ -36,15 +36,21 @@ const getSuccessMessage = (type: ConfirmActionType) => {
 
 const getActionText = (type: ConfirmActionType) => {
 	if (type === 'APPROVE') return "Aprobar";
-	if (type === 'REJECT') return "Rechazar";
-	if (type === 'CANCEL') return "Cancelar"
-	else null;
+	else if (type === 'REJECT') return "Rechazar";
+	else if (type === 'CANCEL') return "Cancelar"
+	else return null;
 }
 
 const getConfirmQuestion = (type: ConfirmActionType) => {
 	const action = getActionText(type);
 	if (type === "APPROVE") return `La solicitud será aprovada y pasará al proceso de cotización ¿Está seguro de proceder a ${action} la Solicitud?`;
 	else return `¿Está seguro de proceder a ${action} la Solicitud?`;
+}
+
+const LoadingMessage = ({ isOpen, isLoading }: { isOpen: boolean, isLoading: boolean }) => {
+	if (!isOpen) return null;
+	if (!isLoading) return null;
+	return <Loader title="Cargando detalle de la solicitud..." />;
 }
 
 export const PurchaseRequestDetailModal = ({
@@ -127,12 +133,10 @@ export const PurchaseRequestDetailModal = ({
 
 	const openConfirm = (type: ConfirmActionType) => {
 
-		const action =
-			type === 'APPROVE' ? "Aprobar" :
-				type === 'REJECT' ? "Rechazar" :
-					type === 'CANCEL' ? "Cancelar" : null;
+		const action = getActionText(type);
 
 		setActionType(action);
+
 		setConfirmModal({ isOpen: true, type });
 	};
 
@@ -203,9 +207,7 @@ export const PurchaseRequestDetailModal = ({
 
 	return (
 		<>
-			{isOpen && isLoading && (
-				<Loader title="Cargando detalle de la solicitud..." />
-			)}
+			<LoadingMessage isOpen={isOpen} isLoading={isLoading} />
 
 			<Modal
 				isOpen={isOpen}
@@ -217,10 +219,10 @@ export const PurchaseRequestDetailModal = ({
 					"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
 					"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
 				].join(" ")}
-
 				contentClassName="flex min-h-0 flex-1 flex-col"
 			>
-				<div className="flex min-h-0 min-w-0 flex-1 flex-col">
+				<div className="flex min-h-0 min-w-0 flex-1 flex-col">							
+
 					{isLoading ? (
 						<div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
 							Cargando detalle...
@@ -520,6 +522,9 @@ export const PurchaseRequestDetailModal = ({
 							)}
 						</>
 					)}
+
+
+
 				</div>
 			</Modal>
 
