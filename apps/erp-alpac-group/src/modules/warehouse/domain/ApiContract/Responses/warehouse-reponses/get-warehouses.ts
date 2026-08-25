@@ -4,7 +4,10 @@ export interface WarehouseDto {
   warehouse_code: string | null;
   is_active: boolean;
   warehouse_type: string | null;
-  sub_warehouses: WarehouseDto[];
+  has_children: boolean;
+  sections_count: number;
+  is_owner: boolean;
+  capacity: Capacity;
 }
 
 export interface GetWarehousesResponse {
@@ -12,4 +15,14 @@ export interface GetWarehousesResponse {
   page_number: number;
   page_size: number;
   total: number;
+}
+
+export interface Capacity {
+  total_area_m2: number;
+  usable_area_m2?: number | null;
+  unusable_area_m2?: number | null;
+  occupied_area_m2?: number | null;
+  free_area_m2?: number | null;
+  occupancy_percentage?: number | null;
+  last_calculated_at?: string | null;
 }
