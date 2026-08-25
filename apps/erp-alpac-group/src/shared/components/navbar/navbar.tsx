@@ -1,5 +1,5 @@
 import { ButtonRounded } from "@alpac/design-system";
-import { Bell,LogOut, Settings } from "lucide-react";
+import { Bell, LogOut, Settings } from "lucide-react";
 import { useNotificationSidebarStore } from "@app/shared/stores/useNotificationSidebarStore";
 import { useNavigate } from "react-router-dom";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
@@ -12,7 +12,7 @@ export const Navbar = function ({ user_name, email, urlImage, onLogout, isSettin
    const navigate = useNavigate();
 
    const { openNotifications } = useNotificationSidebarStore();
-   const { permissionGranted, requestPermission } = useNotification();
+   const { permissionGranted, requestPermission, isLoading } = useNotification();
 
    const handleSettingsClick = () => {
       const alias = CookieStorageAdapter.getCompanyAlias();
@@ -72,12 +72,11 @@ export const Navbar = function ({ user_name, email, urlImage, onLogout, isSettin
             </div>
          </nav>
 
-         {permissionGranted === false && (
-            <NotificationPermissionBanner
-               permissionGranted={permissionGranted}
-               requestPermission={requestPermission}
-            />
-         )}
+         <NotificationPermissionBanner
+            permissionGranted={permissionGranted}
+            requestPermission={requestPermission}
+            isLoading={isLoading}
+         />
 
          {!isSettingPage && (
             <div className="md:hidden fixed bottom-20 right-3 z-50">

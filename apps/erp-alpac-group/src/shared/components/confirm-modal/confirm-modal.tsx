@@ -14,6 +14,8 @@ export const ConfirmModal = ({
 	isOpen,
 	title,
 	type,
+	children,
+	variant,
 	buttonActionLabel,
 	buttonActionClass,
 	buttonCancelClass,
@@ -34,7 +36,7 @@ export const ConfirmModal = ({
 
 	const [observation, setObservation] = useState<string>();
 
-	const handleInternalFinalAction = (type: ConfirmActionType) => {		
+	const handleInternalFinalAction = (type: ConfirmActionType) => {
 		if (hasObservation && !observation?.trim() && isObservationRequired) {
 			handleRequestWarning(`Debe ingresar una ${observationLabel ?? "observación"}.`, "Campo requerido");
 			return;
@@ -52,12 +54,14 @@ export const ConfirmModal = ({
 	return (
 		<Modal
 			size={hasObservation ? "2xl" : "md"}
-			variant="warning"
+			variant={variant ?? "default"}
 			isOpen={isOpen}
 			onClose={() => !isLoading && handleInternalClose()}
 		>
 			<div className="flex flex-col gap-4">
 				<p className="text-slate-600 dark:text-slate-300 text-center">{title}</p>
+
+				{children ?? null}
 
 				{
 					hasObservation &&

@@ -170,7 +170,6 @@ export const SectionModal = ({
             render={({ field }) => (
               <InputText
                 label="Código"
-                placeholder="Ej. SEC-001"
                 isRequired
                 className={inputClassName}
                 labelClassName={labelClassName}

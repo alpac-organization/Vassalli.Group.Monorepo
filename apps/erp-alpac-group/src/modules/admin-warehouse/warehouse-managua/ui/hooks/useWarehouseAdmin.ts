@@ -5,7 +5,7 @@ import type { GetLotDetailRequest } from "@app/modules/admin-warehouse/warehouse
 import type { GetRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-racks";
 import type { GetRackDetailRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-rack-detail";
 
-import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
+import type { GetLotsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-detail";
 import type { CreateLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import type { GetRackResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-res";
@@ -54,7 +54,7 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
     refetchOnWindowFocus: false,
     retry: 1,
   });
-  const GetLots = useQuery<LotListItemResponse[], ApiErrorResponse>({
+  const GetLots = useQuery<GetLotsResponse, ApiErrorResponse>({
     queryKey: ["get-section-lots-records", getLotsPayload],
     queryFn: () => warehouseLayoutServices.GetLots(getLotsPayload!),
     enabled:

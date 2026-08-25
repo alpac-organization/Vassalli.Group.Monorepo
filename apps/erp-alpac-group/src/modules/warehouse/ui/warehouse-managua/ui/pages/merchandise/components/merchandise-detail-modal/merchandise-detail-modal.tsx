@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 import {
   Badges,
   Button,
@@ -46,6 +47,7 @@ export function MerchandiseDetailModal({
   const [viewingDucat, setViewingDucat] =
     useState<MerchandiseDucatDetailDto | null>(null);
   const [isViewingObservation, setIsViewingObservation] = useState(false);
+  const { handleRequestError, handleRequestSuccess, handleCloseAlert, AlertComponent } = useAlertState();
 
   const values = useMemo(
     () => (detail ? mapMerchandiseDetailToDisplay(detail) : null),
@@ -86,19 +88,20 @@ export function MerchandiseDetailModal({
 
   const ducatsMissing = ducatOptions.length === 0;
 
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (!isOpen) {
       setSelectedDucatId("");
       setViewingDucat(null);
       setIsViewingObservation(false);
+      handleCloseAlert();
     }
-  }, [isOpen]);
+  }
 
-  useEffect(() => {
-    if (!selectedDucatId && ducatOptions[0]?.value != null) {
-      setSelectedDucatId(String(ducatOptions[0].value));
-    }
-  }, [ducatOptions, selectedDucatId]);
+  if (!selectedDucatId && ducatOptions[0]?.value != null) {
+    setSelectedDucatId(String(ducatOptions[0].value));
+  }
 
   const handleViewDucat = (option: Option) => {
     const ducat =
@@ -300,7 +303,7 @@ export function MerchandiseDetailModal({
                       </div>
                       <ReadOnlyField
                         label="Empresa"
-                        value={values.ducaEmpresa}
+                        value={values.ducaName}
                         missingMessage="Empresa no registrada"
                       />
                       <div className="min-w-0">
@@ -385,6 +388,8 @@ export function MerchandiseDetailModal({
                           customsDeclarationNumber={
                             values.customsDeclarationNumber
                           }
+                          onSuccess={(msg) => handleRequestSuccess(msg)}
+                          onError={(msg) => handleRequestError(msg)}
                         />
                       </div>
                     )}
@@ -443,7 +448,7 @@ export function MerchandiseDetailModal({
             <Loader title="Cargando detalle..." />
           </div>
         ) : (
-          <div className="flex flex-col flex-1 min-h-0 gap-4 max-md:overflow-hidden md:overflow-visible">
+          <div className="flex flex-col flex-1 min-h-0 gap-4 max-md:overflow-hidden md:overflow-visible relative">
             <div className={`flex-1 min-h-0 ${mobileOnlyScrollClasses}`}>
               <div className="w-full max-w-full">
                 <section className="w-full dark:bg-[#272b34] bg-white border border-slate-200 dark:border-neutral-700 shadow-sm rounded-xl">
@@ -465,6 +470,8 @@ export function MerchandiseDetailModal({
                 </section>
               </div>
             </div>
+
+            {AlertComponent}
 
             <div className="shrink-0 flex justify-end pt-3 border-t border-slate-200 dark:border-neutral-600">
               <Button

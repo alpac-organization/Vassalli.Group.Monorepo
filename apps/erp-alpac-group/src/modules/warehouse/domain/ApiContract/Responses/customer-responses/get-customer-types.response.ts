@@ -1,6 +1,6 @@
 export interface GetCustomerTypesResponse {
-	type_customer_id: string;
-	customer_name: string;
-	description: string;
-	type_customer_code: string;
+	customer_type_id: string;
+	code: string;
+	name: string;
+	is_active: boolean;
 }

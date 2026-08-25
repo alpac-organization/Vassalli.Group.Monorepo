@@ -1,8 +1,6 @@
-﻿import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
-  Alert,
-  AnimatedAlertWrapper,
   Button,
   Dropdown,
   InputText,
@@ -10,7 +8,7 @@ import {
   Textarea,
   type Option,
 } from "@alpac/design-system";
-import { PackagePlus, X } from "lucide-react";
+import { PackagePlus } from "lucide-react";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useMerchandise } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useMerchandise";
 import type { RegisterMerchandiseModalProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-merchandise-modal/types/register-merchandise-modal.types";
@@ -53,7 +51,7 @@ export function RegisterMerchandiseModal({
   onCreated,
 }: RegisterMerchandiseModalProps) {
   const { getMappedError } = useMappedError();
-  const { alertState, handleCloseAlert, handleRequestError, handleRequestSuccess } =
+  const { alertState, handleCloseAlert, handleRequestError, handleRequestSuccess, AlertComponent } =
     useAlertState();
   const { GetProductCategories } = useProduct({
     getProductCategoryPayload: { company_id, module_code },
@@ -83,26 +81,15 @@ export function RegisterMerchandiseModal({
     },
   });
 
-  return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <div className="flex w-[min(600px,calc(100vw-2rem))] flex-col gap-5 rounded-2xl bg-white dark:bg-neutral-900 p-5 shadow-xl">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <PackagePlus size={20} className="text-blue-600 dark:text-blue-400" />
-            <h2 className="text-lg! font-semibold! text-slate-800! dark:text-slate-100!">
-              Registrar nueva mercancía
-            </h2>
-          </div>
-          <Button
-            type="button"
-            size="small"
-            icon={<X size={16} />}
-            ariaLabel="Cerrar modal de nueva mercancía"
-            onClick={onClose}
-            className="text-slate-500! dark:text-slate-400! bg-transparent! hover:bg-slate-100! dark:hover:bg-slate-800!"
-          />
-        </div>
 
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Registrar nueva mercancía"
+      size="lg"
+    >
+      <div className="flex flex-col gap-4 min-w-0">
         <form
           onSubmit={handleSubmit((values) =>
             RegisterMerchandise.mutateAsync({
@@ -202,14 +189,7 @@ export function RegisterMerchandiseModal({
           </div>
         </form>
 
-        <AnimatedAlertWrapper open={alertState?.open ?? false}>
-          <Alert
-            type={alertState?.type!}
-            title={alertState?.title}
-            message={alertState?.message!}
-            onClose={handleCloseAlert}
-          />
-        </AnimatedAlertWrapper>
+        {AlertComponent}
       </div>
     </Modal>
   );

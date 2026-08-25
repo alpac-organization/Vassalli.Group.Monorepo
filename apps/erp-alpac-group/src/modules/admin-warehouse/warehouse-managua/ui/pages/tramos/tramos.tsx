@@ -12,7 +12,7 @@ import {
   EMPTY_TRAMO_FILTERS,
   type TramoFilters,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/types/tramos.types";
-import { filterTramos } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/utils/filter-tramos";
+import { filtersToGetLotsParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/utils/filter-tramos";
 import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -20,6 +20,7 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { Loader } from "@app/shared/components/loaders/loader";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
+import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
 
 const PAGE_SIZE = 10;
 
@@ -34,18 +35,20 @@ export function TramosPage() {
   const [isLotModalOpen, setIsLotModalOpen] = useState(false);
   const [selectedLotId, setSelectedLotId] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<TramoFilters>(
-    EMPTY_TRAMO_FILTERS,
-  );
+  const [appliedFilters, setAppliedFilters] =
+    useState<TramoFilters>(EMPTY_TRAMO_FILTERS);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const getLotsPayload = useMemo(
+  const getLotsPayload = useMemo<GetLotsRequest>(
     () => ({
       company_id: companyId,
       module_code: moduleCode,
       section_id: sectionId,
+      ...filtersToGetLotsParams(appliedFilters),
+      page_number: currentPage,
+      page_size: PAGE_SIZE,
     }),
-    [companyId, moduleCode, sectionId],
+    [companyId, moduleCode, sectionId, appliedFilters, currentPage],
   );
 
   const getLotDetailPayload = useMemo(
@@ -63,15 +66,8 @@ export function TramosPage() {
     getLotDetailPayload,
   });
 
-  const tramosData = useMemo(
-    () => filterTramos(GetLots.data ?? [], appliedFilters),
-    [GetLots.data, appliedFilters],
-  );
-
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return tramosData.slice(start, start + PAGE_SIZE);
-  }, [tramosData, currentPage]);
+  const tramosData = GetLots.data?.data ?? [];
+  const totalRecords = GetLots.data?.total ?? 0;
 
   useEffect(() => {
     if (!GetLots.isError || !GetLots.error) return;
@@ -102,9 +98,7 @@ export function TramosPage() {
       transition={{ duration: 0.5 }}
       className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full"
     >
-      {(GetLots.isPending || (isDetailModalOpen && GetLotById.isPending)) && (
-        <Loader title="Cargando tramos..." />
-      )}
+      {GetLots.isPending && <Loader title="Cargando tramos..." />}
 
       <AnimatedAlertWrapper open={alertState?.open ?? false}>
         <Alert
@@ -145,9 +139,9 @@ export function TramosPage() {
       />
 
       <TramosTable
-        data={paginatedData}
+        data={tramosData}
         currentPage={currentPage}
-        totalRecords={tramosData.length}
+        totalRecords={totalRecords}
         pageSize={PAGE_SIZE}
         onPageChange={setCurrentPage}
         onViewDetail={handleViewDetail}

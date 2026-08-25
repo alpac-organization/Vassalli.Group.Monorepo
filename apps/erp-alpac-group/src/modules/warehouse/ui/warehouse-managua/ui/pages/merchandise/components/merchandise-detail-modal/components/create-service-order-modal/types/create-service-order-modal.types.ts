@@ -12,4 +12,6 @@ export type CreateServiceOrderModalProps = {
   module_code: string;
   onClose: () => void;
   onCreated: (serviceOrder: CreateServiceOrderResponse) => void;
+  onRequestRegisterCustomer?: () => void;
+  newlyCreatedCustomerId?: string | null;
 };

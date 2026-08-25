@@ -1,7 +1,5 @@
 import { useState } from "react";
 import {
-  Alert,
-  AnimatedAlertWrapper,
   Button,
 } from "@alpac/design-system";
 import { Link2 } from "lucide-react";
@@ -9,7 +7,8 @@ import { useMerchandise } from "@app/modules/warehouse/ui/hooks/warehouse-managu
 import type { CreateServiceOrderResponse } from "@app/modules/service-order/domain/ApiContract/Responses/service-order-responses/create-service-order.response";
 import type { AssignServiceOrderFormProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/assign-service-order-form/types/assign-service-order-form.types";
 import { CreateServiceOrderModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/create-service-order-modal/create-service-order-modal";
-import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { RegisterCustomerModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-customer-modal/register-customer-modal";
+import { RegisterCustomerTypeModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-customer-type-modal/register-customer-type-modal";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
@@ -18,13 +17,17 @@ export function AssignServiceOrderForm({
   company_id,
   module_code,
   customsDeclarationNumber,
+  onSuccess,
+  onError,
 }: AssignServiceOrderFormProps) {
   const { getMappedError } = useMappedError();
-  const { alertState, handleCloseAlert, handleRequestError, handleRequestSuccess } =
-    useAlertState();
   const { AssignServiceOrderToCustomsDeclaration } = useMerchandise();
-  const [openCreateServiceOrderModal, setOpenCreateServiceOrderModal] =
-    useState(false);
+  const [openCreateServiceOrderModal, setOpenCreateServiceOrderModal] = useState(false);
+  const [openRegisterCustomer, setOpenRegisterCustomer] = useState(false);
+  const [openRegisterCustomerType, setOpenRegisterCustomerType] = useState(false);
+  
+  const [newlyCreatedCustomerId, setNewlyCreatedCustomerId] = useState<string | null>(null);
+  const [newlyCreatedCustomerTypeId, setNewlyCreatedCustomerTypeId] = useState<string | null>(null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -49,41 +52,62 @@ export function AssignServiceOrderForm({
         />
       </div>
 
-      <CreateServiceOrderModal
-        isOpen={openCreateServiceOrderModal}
-        company_id={company_id}
-        module_code={module_code}
-        onClose={() => setOpenCreateServiceOrderModal(false)}
-        onCreated={(createdServiceOrder: CreateServiceOrderResponse) => {
-          setOpenCreateServiceOrderModal(false);
-          AssignServiceOrderToCustomsDeclaration.mutateAsync({
-            company_id,
-            module_code,
-            reception_id,
-            service_order_id: createdServiceOrder.service_order_id,
-          })
-            .then(() => {
-              handleRequestSuccess(
-                `Orden de servicio ${createdServiceOrder.code} asignada correctamente a la declaración.`,
-              );
+      {openCreateServiceOrderModal && (
+        <CreateServiceOrderModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setOpenCreateServiceOrderModal(false)}
+          onRequestRegisterCustomer={() => setOpenRegisterCustomer(true)}
+          newlyCreatedCustomerId={newlyCreatedCustomerId}
+          onCreated={(createdServiceOrder: CreateServiceOrderResponse) => {
+            setOpenCreateServiceOrderModal(false);
+            AssignServiceOrderToCustomsDeclaration.mutateAsync({
+              company_id,
+              module_code,
+              reception_id,
+              service_order_id: createdServiceOrder.service_order_id,
             })
-            .catch((error) => {
-              const mappedError = getMappedError(error as ApiErrorResponse);
-              handleRequestError(
-                mappedError?.description || "Error al asignar la orden de servicio",
-              );
-            });
-        }}
-      />
-
-      <AnimatedAlertWrapper open={alertState?.open ?? false}>
-        <Alert
-          type={alertState?.type!}
-          title={alertState?.title}
-          message={alertState?.message!}
-          onClose={handleCloseAlert}
+              .then(() => {
+                onSuccess?.(
+                  `Orden de servicio ${createdServiceOrder.code} asignada correctamente a la declaración.`,
+                );
+              })
+              .catch((error) => {
+                const mappedError = getMappedError(error as ApiErrorResponse);
+                onError?.(
+                  mappedError?.description || "Error al asignar la orden de servicio",
+                );
+              });
+          }}
         />
-      </AnimatedAlertWrapper>
+      )}
+      
+      {openRegisterCustomer && (
+        <RegisterCustomerModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setOpenRegisterCustomer(false)}
+          onRequestRegisterCustomerType={() => setOpenRegisterCustomerType(true)}
+          newlyCreatedCustomerTypeId={newlyCreatedCustomerTypeId}
+          onCreated={(customerId) => {
+            setNewlyCreatedCustomerId(customerId);
+          }}
+        />
+      )}
+
+      {openRegisterCustomerType && (
+        <RegisterCustomerTypeModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setOpenRegisterCustomerType(false)}
+          onCreated={(customerTypeId) => {
+            setNewlyCreatedCustomerTypeId(customerTypeId);
+          }}
+        />
+      )}
     </div>
   );
 }

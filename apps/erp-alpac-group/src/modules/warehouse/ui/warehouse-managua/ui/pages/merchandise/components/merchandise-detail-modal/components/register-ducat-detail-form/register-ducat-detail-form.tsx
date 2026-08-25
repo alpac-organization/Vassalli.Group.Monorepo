@@ -1,8 +1,6 @@
 ﻿import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
-  Alert,
-  AnimatedAlertWrapper,
   Badges,
   Button,
   DatePicker,
@@ -41,7 +39,7 @@ export function RegisterDucatDetailForm({
   initialStartTime,
 }: RegisterDucatDetailFormProps) {
   const { getMappedError } = useMappedError();
-  const { alertState, handleCloseAlert, handleRequestError, handleRequestSuccess, handleRequestWarning } =
+  const {handleCloseAlert,handleRequestError, handleRequestSuccess, handleRequestWarning, AlertComponent } =
     useAlertState();
   const { GetMerchandises, CreateDucatRegistryDetail } = useMerchandise({
     payloadGetMerchandises: { company_id, module_code },
@@ -327,7 +325,7 @@ export function RegisterDucatDetailForm({
             label="Restablecer"
             icon={<Save size={16} />}
             ariaLabel="Restablecer formulario del detalle del DUCA"
-            onClick={() =>
+            onClick={() => {
               reset({
                 merchandise_id: "",
                 total_bultos: "0",
@@ -337,8 +335,9 @@ export function RegisterDucatDetailForm({
                 destination_area_observation: "",
                 registered_start_date: initialStartDate,
                 registered_start_time: initialStartTime,
-              })
-            }
+              });
+              handleCloseAlert();
+            }}
             disabled={CreateDucatRegistryDetail.isPending}
             className="w-full sm:w-auto text-[13px]! text-slate-600! dark:text-slate-300! bg-slate-100! dark:bg-slate-700! hover:bg-slate-200! dark:hover:bg-slate-600!"
           />
@@ -354,35 +353,33 @@ export function RegisterDucatDetailForm({
         </div>
       </form>
 
-      <CreateServiceOrderModal
-        isOpen={openCreateServiceOrderModal}
-        company_id={company_id}
-        module_code={module_code}
-        onClose={() => setOpenCreateServiceOrderModal(false)}
-        onCreated={(createdServiceOrder) => {
-          setServiceOrder(createdServiceOrder);
-          setOpenCreateServiceOrderModal(false);
-          handleRequestSuccess(
-            `Orden de servicio ${createdServiceOrder.code} creada correctamente.`,
-          );
-        }}
-      />
-      <RegisterMerchandiseModal
-        isOpen={openRegisterMerchandiseModal}
-        company_id={company_id}
-        module_code={module_code}
-        onClose={() => setOpenRegisterMerchandiseModal(false)}
-        onCreated={() => setOpenRegisterMerchandiseModal(false)}
-      />
-
-      <AnimatedAlertWrapper open={alertState?.open ?? false}>
-        <Alert
-          type={alertState?.type!}
-          title={alertState?.title}
-          message={alertState?.message!}
-          onClose={handleCloseAlert}
+      {openCreateServiceOrderModal && (
+        <CreateServiceOrderModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setOpenCreateServiceOrderModal(false)}
+          onCreated={(createdServiceOrder) => {
+            setServiceOrder(createdServiceOrder);
+            setOpenCreateServiceOrderModal(false);
+            handleRequestSuccess(
+              `Orden de servicio ${createdServiceOrder.code} creada correctamente.`,
+            );
+          }}
         />
-      </AnimatedAlertWrapper>
+      )}
+      
+      {openRegisterMerchandiseModal && (
+        <RegisterMerchandiseModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setOpenRegisterMerchandiseModal(false)}
+          onCreated={() => setOpenRegisterMerchandiseModal(false)}
+        />
+      )}
+
+      {AlertComponent}
     </div>
   );
 }
