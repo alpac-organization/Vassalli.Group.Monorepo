@@ -121,8 +121,7 @@ export const useNotification = (): UseNotificationResult => {
    }, [registerPushToken, companyId]);
 
    useEffect(() => {
-      if (isIOS) return;
-      if (!isStandalone()) return;
+      if (isIOS && !isStandalone()) return;
       if (!companyId) return;
       if (hasRegisteredToken.current) return;
       if (Notification.permission !== "granted") return;
