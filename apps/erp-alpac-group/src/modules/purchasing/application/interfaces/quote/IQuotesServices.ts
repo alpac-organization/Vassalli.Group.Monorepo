@@ -3,8 +3,6 @@ import type { UpdateQuoteRequest } from "@app/modules/purchasing/domain/ApiContr
 
 export interface IQuotesServices {
 
-  GetQuoteDetails(payload: any): Promise<any>;
-
   RegisterQuote(payload: RegisterQuoteRequest): Promise<void>;
 
   UpdateQuote(payload: UpdateQuoteRequest): Promise<void>;
