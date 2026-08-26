@@ -6,6 +6,6 @@ export type RacksTableProps = {
   totalRecords: number;
   pageSize: number;
   onPageChange: (page: number) => void;
-  onViewDetail: (rack: RackListItemResponse) => void;
+  onViewPositions: (rack: RackListItemResponse) => void;
   isFetching?: boolean;
 };
