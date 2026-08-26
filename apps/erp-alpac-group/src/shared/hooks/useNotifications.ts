@@ -104,7 +104,7 @@ export const useNotification = (): UseNotificationResult => {
             return false;
          }
 
-         setFcmToken(token);         
+         setFcmToken(token);
 
          await registerPushToken({
             company_id: companyId, token,
@@ -120,7 +120,9 @@ export const useNotification = (): UseNotificationResult => {
 
    }, [registerPushToken, companyId]);
 
-    useEffect(() => {
+   useEffect(() => {
+      if (isIOS) return;
+      if (!isStandalone()) return;
       if (!companyId) return;
       if (hasRegisteredToken.current) return;
       if (Notification.permission !== "granted") return;

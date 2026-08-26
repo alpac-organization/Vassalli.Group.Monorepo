@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, DataTable, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
 import { PackagePlusIcon } from "lucide-react";
-import { PurchaseRequestModal } from "../../purchase-request-modal/purchase-request-modal";
+import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PurchaseRequestStatusEnum, PurchaseRequestStatusOptions } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import { PurchaseRequestDetailModal } from "../../purchase-request-detail-modal/purchase-request-detail-modal";
+import { PurchaseRequestDetailModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/purchase-request-detail-modal";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
@@ -16,7 +16,7 @@ import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/
 import type { OccasionalMaterialContextMenu, OccasionalMaterialTabProps } from "./occasional-materials-tab.types";
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
-import { getPurchaseRequestColumnConfig } from "../../../utils/purchase-request-table-config";
+import { getPurchaseRequestColumnConfig } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-table-config";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -177,7 +177,7 @@ export const OccasionalMaterialTab = ({
 	}, []);
 
 	const onEditRequest = (data: GetPurchaseRequestResponse) => {
-		console.log(data);
+		setRequestDetail(data);
 		setIsModalOpen(true);
 	};
 
@@ -187,7 +187,7 @@ export const OccasionalMaterialTab = ({
 	};
 
 	const onDeleteRequest = (data: GetPurchaseRequestResponse) => {
-		console.log(data);
+		setRequestDetail(data);
 		setIsDeleteModalOpen(true);
 	};
 
