@@ -7,7 +7,7 @@ import {
   Modal,
   type Option,
 } from "@alpac/design-system";
-import { UserRoundPlus, Plus } from "lucide-react";
+import { UserRoundPlus, Plus, XIcon } from "lucide-react";
 import { useCustomer } from "@app/modules/warehouse/ui/hooks/useCustomer";
 import type {
   RegisterCustomerModalProps,
@@ -254,21 +254,22 @@ export function RegisterCustomerModal({
           <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-neutral-600 mt-2">
             <Button
               type="button"
-              size="medium"
+              size="giant"
               label="Cancelar"
-              ariaLabel="Cancelar registro de cliente"
+              icon={<XIcon size={20} />}
+              isHiddenLabelOnMobile
               onClick={onClose}
               disabled={CreateCustomer.isPending}
-              className="w-full sm:w-auto text-[13px]! text-slate-600! dark:text-slate-300! bg-slate-100! dark:bg-slate-700! hover:bg-slate-200! dark:hover:bg-slate-600!"
+              className="text-[15px]! rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!"
             />
             <Button
               type="submit"
-              size="medium"
+              size="giant"
               label="Registrar cliente"
               icon={<UserRoundPlus size={16} />}
-              ariaLabel="Guardar nuevo cliente"
+              isHiddenLabelOnMobile
               isLoading={CreateCustomer.isPending}
-              className="w-full sm:w-auto text-[13px]! text-white! bg-blue-600! hover:bg-blue-700!"
+              className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
             />
           </div>
         </form>

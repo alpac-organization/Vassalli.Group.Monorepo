@@ -1,7 +1,6 @@
 ﻿import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
-  Badges,
   Button,
   DatePicker,
   Dropdown,
@@ -10,7 +9,7 @@ import {
   TimePicker,
   type Option,
 } from "@alpac/design-system";
-import { FilePlus2, PackagePlus, Save } from "lucide-react";
+import { FilePlus2, PackagePlus, RotateCcw, Save } from "lucide-react";
 import dayjs from "dayjs";
 import { useMerchandise } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useMerchandise";
 import type { CreateServiceOrderResponse } from "@app/modules/service-order/domain/ApiContract/Responses/service-order-responses/create-service-order.response";
@@ -19,6 +18,8 @@ import type {
   RegisterDucatDetailFormValues,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-ducat-detail-form/types/register-ducat-detail-form.types";
 import { CreateServiceOrderModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/create-service-order-modal/create-service-order-modal";
+import { RegisterCustomerModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-customer-modal/register-customer-modal";
+import { RegisterCustomerTypeModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-customer-type-modal/register-customer-type-modal";
 import { RegisterMerchandiseModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-merchandise-modal/register-merchandise-modal";
 import { toApiDate } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/mapping-access-control";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -34,7 +35,6 @@ export function RegisterDucatDetailForm({
   ducat_id,
   company_id,
   module_code,
-  ducatNumber,
   initialStartDate,
   initialStartTime,
 }: RegisterDucatDetailFormProps) {
@@ -54,8 +54,11 @@ export function RegisterDucatDetailForm({
     [GetMerchandises.data],
   );
 
-  const [openCreateServiceOrderModal, setOpenCreateServiceOrderModal] =
-    useState(false);
+  const [openCreateServiceOrderModal, setOpenCreateServiceOrderModal] = useState(false);
+  const [openRegisterCustomer, setOpenRegisterCustomer] = useState(false);
+  const [openRegisterCustomerType, setOpenRegisterCustomerType] = useState(false);
+  const [newlyCreatedCustomerId, setNewlyCreatedCustomerId] = useState<string | null>(null);
+  const [newlyCreatedCustomerTypeId, setNewlyCreatedCustomerTypeId] = useState<string | null>(null);
   const [openRegisterMerchandiseModal, setOpenRegisterMerchandiseModal] =
     useState(false);
   const [serviceOrder, setServiceOrder] =
@@ -122,43 +125,38 @@ export function RegisterDucatDetailForm({
         })}
         className="flex flex-col gap-4"
       >
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Badges
-              label={`DUCA: ${ducatNumber}`}
-              color="transparent"
-              className="bg-blue-50! dark:bg-blue-500/10! text-blue-700! dark:text-blue-300! border! border-blue-200! dark:border-blue-500/30!"
-            />
-          </div>
-          <Button
-            type="button"
-            size="small"
-            label="Nueva mercancía"
-            icon={<PackagePlus size={14} />}
-            ariaLabel="Registrar nueva mercancía"
-            onClick={() => setOpenRegisterMerchandiseModal(true)}
-            className="text-[13px]! text-slate-600! dark:text-slate-300! bg-slate-100! dark:bg-slate-700! hover:bg-slate-200! dark:hover:bg-slate-600!"
-          />
-        </div>
-
         <div className={`min-w-0 pt-1 sm:pt-2 ${fieldsGridClasses}`}>
           <Controller
             name="merchandise_id"
             control={control}
             rules={{ required: "La mercancía es requerida" }}
             render={({ field }) => (
-              <Dropdown
-                label="Mercancía"
-                labelClassName={labelClassName}
-                isRequired
-                placeholder="Seleccione la mercancía"
-                options={merchandiseOptions}
-                value={field.value}
-                onChange={field.onChange}
-                error={errors.merchandise_id?.message}
-                errorVariant="text"
-                className="min-w-0"
-              />
+              <div className="flex items-start gap-2">
+                <div className="flex-1 min-w-0 relative">
+                  <Dropdown
+                    appearance="dark"
+                    label="Mercancía"
+                    labelClassName={labelClassName}
+                    isRequired
+                    placeholder="Seleccione la mercancía"
+                    options={merchandiseOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={errors.merchandise_id?.message}
+                    errorVariant="text"
+                    className="min-w-0"
+                  />
+                </div>
+                <div className="flex shrink-0 mt-[24px] sm:mt-[26px]">
+                  <Button
+                    type="button"
+                    tooltip="Registrar nueva mercancía"
+                    onClick={() => setOpenRegisterMerchandiseModal(true)}
+                    icon={<PackagePlus size={16} />}
+                    className="h-[42px]! sm:h-[46px]! w-[42px]! sm:w-[46px]! bg-slate-100! hover:bg-slate-200! dark:bg-[#20242d]! dark:hover:bg-slate-800/80! text-slate-600! dark:text-slate-400! border border-slate-200! dark:border-slate-700! rounded-lg!"
+                  />
+                </div>
+              </div>
             )}
           />
           <Controller
@@ -260,34 +258,6 @@ export function RegisterDucatDetailForm({
               )}
             />
           </div>
-          <Controller
-            name="registered_start_date"
-            control={control}
-            render={({ field }) => (
-              <DatePicker
-                label="Fecha de inicio del registro"
-                labelAbove
-                labelClassName={labelClassName}
-                fieldWidth="large"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-          <Controller
-            name="registered_start_time"
-            control={control}
-            render={({ field }) => (
-              <TimePicker
-                label="Hora de inicio del registro"
-                labelAbove
-                labelClassName={labelClassName}
-                fieldWidth="large"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
         </div>
 
         <div className="flex flex-col gap-3 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-3">
@@ -323,7 +293,7 @@ export function RegisterDucatDetailForm({
             type="button"
             size="medium"
             label="Restablecer"
-            icon={<Save size={16} />}
+            icon={<RotateCcw size={16} />}
             ariaLabel="Restablecer formulario del detalle del DUCA"
             onClick={() => {
               reset({
@@ -355,10 +325,12 @@ export function RegisterDucatDetailForm({
 
       {openCreateServiceOrderModal && (
         <CreateServiceOrderModal
-          isOpen={true}
-          company_id={company_id}
-          module_code={module_code}
-          onClose={() => setOpenCreateServiceOrderModal(false)}
+            isOpen={true}
+            company_id={company_id}
+            module_code={module_code}
+            onClose={() => setOpenCreateServiceOrderModal(false)}
+            onRequestRegisterCustomer={() => setOpenRegisterCustomer(true)}
+            newlyCreatedCustomerId={newlyCreatedCustomerId}
           onCreated={(createdServiceOrder) => {
             setServiceOrder(createdServiceOrder);
             setOpenCreateServiceOrderModal(false);
@@ -369,7 +341,33 @@ export function RegisterDucatDetailForm({
         />
       )}
       
-      {openRegisterMerchandiseModal && (
+      {openRegisterCustomer && (
+        <RegisterCustomerModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setOpenRegisterCustomer(false)}
+          onRequestRegisterCustomerType={() => setOpenRegisterCustomerType(true)}
+          newlyCreatedCustomerTypeId={newlyCreatedCustomerTypeId}
+          onCreated={(customerId) => {
+            setNewlyCreatedCustomerId(customerId);
+          }}
+        />
+      )}
+
+      {openRegisterCustomerType && (
+        <RegisterCustomerTypeModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setOpenRegisterCustomerType(false)}
+          onCreated={(customerTypeId) => {
+            setNewlyCreatedCustomerTypeId(customerTypeId);
+          }}
+        />
+      )}
+
+        {openRegisterMerchandiseModal && (
         <RegisterMerchandiseModal
           isOpen={true}
           company_id={company_id}
@@ -383,3 +381,5 @@ export function RegisterDucatDetailForm({
     </div>
   );
 }
+
+

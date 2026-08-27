@@ -1,8 +1,8 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm, Controller } from "react-hook-form";
 import { Button, Dropdown, Modal, Textarea, type Option } from "@alpac/design-system";
-import { FilePlus2, Plus } from "lucide-react";
+import { FilePlus2, Plus, XIcon } from "lucide-react";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { useCustomer } from "@app/modules/warehouse/ui/hooks/useCustomer";
 import { ServiceOrderServices } from "@app/modules/service-order/infrastructure/services/service-order-services/ServiceOrderServices";
@@ -33,7 +33,7 @@ export function CreateServiceOrderModal({
   newlyCreatedCustomerId,
 }: CreateServiceOrderModalProps) {
   const { getMappedError } = useMappedError();
-  const { handleRequestError, handleCloseAlert, AlertComponent } = useAlertState();
+  const { handleRequestError, AlertComponent } = useAlertState();
   const { GetBranchesQuery: { data: branchesData } } = useCompanies({ company_id });
 
   const branchOptions = useMemo<Option[]>(() => {
@@ -185,26 +185,27 @@ export function CreateServiceOrderModal({
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-neutral-600">
-            <Button
-              type="button"
-              size="medium"
-              label="Cancelar"
-              ariaLabel="Cancelar creación de orden de servicio"
-              onClick={onClose}
-              disabled={createServiceOrderMutation.isPending}
-              className="w-full sm:w-auto text-[13px]! text-slate-600! dark:text-slate-300! bg-slate-100! dark:bg-slate-700! hover:bg-slate-200! dark:hover:bg-slate-600!"
-            />
-            <Button
-              type="submit"
-              size="medium"
-              label="Crear orden de servicio"
-              icon={<FilePlus2 size={16} />}
-              ariaLabel="Crear nueva orden de servicio"
-              isLoading={createServiceOrderMutation.isPending}
-              className="w-full sm:w-auto text-[13px]! text-white! bg-amber-500! hover:bg-amber-600!"
-            />
-          </div>
+            <div className="flex w-full items-center justify-end gap-3 pt-3 mt-4 border-t border-slate-200 dark:border-neutral-600">
+              <Button
+                type="button"
+                size="giant"
+                label="Cancelar"
+                icon={<XIcon size={20} />}
+                onClick={onClose}
+                isHiddenLabelOnMobile
+                disabled={createServiceOrderMutation.isPending}
+                className="text-[15px]! rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!"
+              />
+              <Button
+                type="submit"
+                size="giant"
+                label="Crear orden de servicio"
+                icon={<FilePlus2 size={16} />}
+                isHiddenLabelOnMobile
+                isLoading={createServiceOrderMutation.isPending}
+                className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+              />
+            </div>
         </form>
 
         {AlertComponent}

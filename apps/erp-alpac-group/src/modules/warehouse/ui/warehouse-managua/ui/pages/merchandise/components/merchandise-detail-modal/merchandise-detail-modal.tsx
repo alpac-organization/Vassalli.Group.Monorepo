@@ -9,7 +9,7 @@ import {
   type Option,
   type TabItem,
 } from "@alpac/design-system";
-import { Eye, X } from "lucide-react";
+import { Eye, X, FilePlus2, XIcon } from "lucide-react";
 import dayjs from "dayjs";
 import {
   getStatusBadgeClass,
@@ -44,6 +44,8 @@ export function MerchandiseDetailModal({
   onClose,
 }: MerchandiseDetailModalProps) {
   const [selectedDucatId, setSelectedDucatId] = useState("");
+  const [isRegisteringDucatGeneral, setIsRegisteringDucatGeneral] = useState(false);
+  const [ducatStartedAt, setDucatStartedAt] = useState<{ start_date: string; start_time: string } | null>(null);
   const [viewingDucat, setViewingDucat] =
     useState<MerchandiseDucatDetailDto | null>(null);
   const [isViewingObservation, setIsViewingObservation] = useState(false);
@@ -93,6 +95,7 @@ export function MerchandiseDetailModal({
     setPrevIsOpen(isOpen);
     if (!isOpen) {
       setSelectedDucatId("");
+      setIsRegisteringDucatGeneral(false);
       setViewingDucat(null);
       setIsViewingObservation(false);
       handleCloseAlert();
@@ -247,18 +250,62 @@ export function MerchandiseDetailModal({
                 id: "duca",
                 label: "Registro DUCA",
                 render: () =>
-                  detail && !detail.duca_registry ? (
-                    <div className="min-w-0 pt-1 sm:pt-2">
-                      <RegisterDucatGeneralForm
-                        reception_id={detail.id}
-                        company_id={company_id}
-                        module_code={module_code}
-                        defaultContainerNumber={
-                          detail.reception?.container_number ?? ""
-                        }
-                        initialStartDate={merchandiseStart}
-                        initialStartTime={merchandiseStart}
-                      />
+                  detail && !detail.duca_registry?.shipping_company_id ? (
+                    <div className="min-w-0 pt-1 sm:pt-2 flex flex-col gap-4">
+                      {!isRegisteringDucatGeneral ? (
+                        <div className="flex flex-col gap-3 rounded-xl border border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10 p-3">
+                          <div className="flex items-center justify-between gap-3 flex-wrap">
+                            <div className="flex flex-col">
+                              <span className="text-[13px]! font-medium! text-slate-700! dark:text-slate-200!">
+                                Detalle general
+                              </span>
+                              <span className="text-[12px]! text-slate-500! dark:text-slate-400!">
+                                Registre el detalle general de la mercancía para poder registrar las DUCAs correspondientes.
+                              </span>
+                            </div>
+                            <Button
+                              type="button"
+                              size="medium"
+                              icon={<FilePlus2 size={14} />}
+                              label="Crear detalle general"
+                              onClick={() => {
+                                const now = dayjs();
+                                setDucatStartedAt({
+                                  start_date: now.format("YYYY-MM-DD"),
+                                  start_time: now.format("HH:mm:ss"),
+                                });
+                                setIsRegisteringDucatGeneral(true);
+                              }}
+                              className="text-[13px]! text-white! bg-amber-500! hover:bg-amber-600!"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[14px]! font-semibold! text-slate-800! dark:text-slate-100!">
+                              Completar detalle general
+                            </span>
+                            <Button
+                              type="button"
+                              size="small"
+                              label="Cancelar"
+                              icon={<XIcon size={20} />}
+                              isHiddenLabelOnMobile
+                              onClick={() => setIsRegisteringDucatGeneral(false)}
+                              className="text-[12px]! text-slate-600! dark:text-slate-300! bg-slate-100! dark:bg-slate-700! hover:bg-slate-200! dark:hover:bg-slate-600!"
+                            />
+                          </div>
+                          <RegisterDucatGeneralForm
+                            reception_id={detail.id}
+                            company_id={company_id}
+                            module_code={module_code}
+                            startedAt={ducatStartedAt}
+                            onSuccess={(msg) => handleRequestSuccess(msg)}
+                            onError={(msg) => handleRequestError(msg)}
+                          />
+                        </>
+                      )}
                     </div>
                   ) : (
                   <div className="min-w-0 pt-1 sm:pt-2">
