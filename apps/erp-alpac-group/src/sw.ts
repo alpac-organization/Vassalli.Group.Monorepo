@@ -48,18 +48,20 @@ const firebaseApp = initializeApp({
 const messaging = getMessaging(firebaseApp);
 
 onBackgroundMessage(messaging, (payload) => {
-  const title = payload.notification?.title ?? "ALPAC";
-  const body = payload.notification?.body ?? "";
-  const image = payload.notification?.image;
-  const url = (payload.data as { url?: string } | undefined)?.url ?? "/";
+  const title = payload.data?.title ?? "ALPAC";
+  const body = payload.data?.body ?? "";
+  const image = payload.data?.image;
+  
+  const icon = payload.data?.icon ?? "/web-app-manifest-192x192.png";
+  const url = payload.data?.url ?? "/";
 
   const uniqueTag =
     payload.messageId ?? `notif-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
   const notificationOptions: ExtendedNotificationOptions = {
     body,
-    icon: "/web-app-manifest-192x192.png",
-    badge: "/web-app-manifest-192x192.png",
+    icon,
+    badge: icon,
     image,
     tag: uniqueTag,
     data: { url },
