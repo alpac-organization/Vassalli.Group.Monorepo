@@ -41,3 +41,30 @@ export const getInstructions = (platform: Platform): { title: string; steps: str
             };
     }
 };
+
+// Intenta abrir la configuración de notificaciones del dispositivo. Los deep
+// links del sistema no son 100% confiables desde la web/PWA: se intentan y, si
+// fallan, queda visible el instructivo del modal (getInstructions) en pantalla.
+export const redirectToSettings = (platform: Platform): void => {
+    switch (platform) {
+        case "ios":
+            try {
+                window.location.href = "app-settings:root=Notifications";
+            } catch {
+                /* deep link no disponible */
+            }
+            break;
+        case "android":
+            try {
+                window.location.href = "intent:#Intent;action=android.settings.APP_NOTIFICATION_SETTINGS;end";
+            } catch {
+                /* deep link no disponible */
+            }
+            break;
+        case "desktop":
+        default:
+            // Chrome/Firefox/Edge no exponen una URL de ajustes por sitio desde la web.
+            // El instructivo del modal es la guía a seguir.
+            break;
+    }
+};

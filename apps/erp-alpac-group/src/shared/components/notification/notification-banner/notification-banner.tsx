@@ -4,13 +4,36 @@ import type { NotificationBannerProps } from "./notification-banner.types";
 import { Button } from "@alpac/design-system";
 import { NotificationConfirm } from "../notification-confirm/notification-confirm";
 import { AnimatePresence, motion } from "framer-motion";
+import { detectPlatform, redirectToSettings } from "./notification-banner.variants";
 
 export function NotificationPermissionBanner({ permissionGranted, requestPermission, isLoading }: NotificationBannerProps) {
 	const [dismissed] = useState(false);
 	const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 	const [willChange, setWillChange] = useState("transform, opacity");
 
-	const isDenied = typeof Notification !== "undefined" && Notification.permission === "denied";
+	const permission = typeof Notification !== "undefined" ? Notification.permission : null;
+	const isDenied = permission === "denied";
+
+	// 1ro: intenta levantar el popup nativo de permisos.
+	// Si no lo levanta (denegado / no soportado / no se preguntó de nuevo),
+	// se abre la modal con el instructivo según la plataforma.
+	const handleActivate = async () => {
+		const outcome = await requestPermission();
+		if (outcome === "granted") return;
+		setIsConfirmOpen(true);
+	};
+
+	// Dentro de la modal: reintenta el popup nativo. Si tampoco se levanta,
+	// redirige a la configuración de notificaciones según el dispositivo.
+	const handleModalAction = async () => {
+		const outcome = await requestPermission();
+		if (outcome === "granted") {
+			setIsConfirmOpen(false);
+			return;
+		}
+		redirectToSettings(detectPlatform());
+		setIsConfirmOpen(false);
+	};
 
 	return (
 		<>
@@ -42,7 +65,7 @@ export function NotificationPermissionBanner({ permissionGranted, requestPermiss
 										<button
 											type="button"
 											className="rounded-lg bg-white px-2.5 py-1.5 text-xs font-medium text-[#5b2d8f] transition hover:bg-white/90"
-											onClick={() => setIsConfirmOpen(true)}
+											onClick={handleActivate}
 										>
 											Activar
 										</button>
@@ -59,7 +82,7 @@ export function NotificationPermissionBanner({ permissionGranted, requestPermiss
 										label={isDenied ? "Cómo activar" : "Activar notificaciones"}
 										size="medium"
 										className="shrink-0! rounded-lg! bg-white! px-4! py-1.5! text-[16px]! font-medium! text-[#5b2d8f]! transition! hover:bg-white/90!"
-										onClick={() => setIsConfirmOpen(true)}
+										onClick={handleActivate}
 									/>
 
 								</div>
@@ -72,9 +95,7 @@ export function NotificationPermissionBanner({ permissionGranted, requestPermiss
 			<NotificationConfirm
 				isOpen={isConfirmOpen}
 				onClose={() => setIsConfirmOpen(false)}
-				onConfirm={async () => {
-					await requestPermission();
-				}}
+				onConfirm={handleModalAction}
 				isLoading={isLoading}
 			/>
 		</>
