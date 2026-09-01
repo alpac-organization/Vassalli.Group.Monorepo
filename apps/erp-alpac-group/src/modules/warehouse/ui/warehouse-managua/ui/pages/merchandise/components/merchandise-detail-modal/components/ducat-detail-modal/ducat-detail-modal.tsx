@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Badges, Button, Modal, type DatePickerValue, type TimePickerValue } from "@alpac/design-system";
 import { X } from "lucide-react";
 import type { MerchandiseDucatDetailDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandise-detail";
@@ -49,9 +49,17 @@ export function DucatDetailModal({
   const statusLabel = ducat ? getDucaStatusBadgeLabel(ducat.status ?? "") : "";
   const statusClass = ducat ? getDucaStatusBadgeClass(ducat.status ?? "") : "";
 
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (!isOpen) {
       setViewingTextField(null);
+    }
+  }
+
+  useEffect(() => {
+    if (!isOpen) {
       return;
     }
 

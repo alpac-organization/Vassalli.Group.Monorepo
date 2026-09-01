@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
   Button,
@@ -18,8 +18,6 @@ import type {
   RegisterDucatDetailFormValues,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-ducat-detail-form/types/register-ducat-detail-form.types";
 import { CreateServiceOrderModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/create-service-order-modal/create-service-order-modal";
-import { RegisterCustomerModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-customer-modal/register-customer-modal";
-import { RegisterCustomerTypeModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-customer-type-modal/register-customer-type-modal";
 import { RegisterMerchandiseModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-merchandise-modal/register-merchandise-modal";
 import { toApiDate } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/mapping-access-control";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -55,12 +53,7 @@ export function RegisterDucatDetailForm({
   );
 
   const [openCreateServiceOrderModal, setOpenCreateServiceOrderModal] = useState(false);
-  const [openRegisterCustomer, setOpenRegisterCustomer] = useState(false);
-  const [openRegisterCustomerType, setOpenRegisterCustomerType] = useState(false);
-  const [newlyCreatedCustomerId, setNewlyCreatedCustomerId] = useState<string | null>(null);
-  const [newlyCreatedCustomerTypeId, setNewlyCreatedCustomerTypeId] = useState<string | null>(null);
-  const [openRegisterMerchandiseModal, setOpenRegisterMerchandiseModal] =
-    useState(false);
+  const [openRegisterMerchandiseModal, setOpenRegisterMerchandiseModal] = useState(false);
   const [serviceOrder, setServiceOrder] =
     useState<CreateServiceOrderResponse | null>(null);
 
@@ -325,49 +318,18 @@ export function RegisterDucatDetailForm({
 
       {openCreateServiceOrderModal && (
         <CreateServiceOrderModal
-            isOpen={true}
-            company_id={company_id}
-            module_code={module_code}
-            onClose={() => setOpenCreateServiceOrderModal(false)}
-            onRequestRegisterCustomer={() => setOpenRegisterCustomer(true)}
-            newlyCreatedCustomerId={newlyCreatedCustomerId}
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setOpenCreateServiceOrderModal(false)}
           onCreated={(createdServiceOrder) => {
             setServiceOrder(createdServiceOrder);
             setOpenCreateServiceOrderModal(false);
-            handleRequestSuccess(
-              `Orden de servicio ${createdServiceOrder.code} creada correctamente.`,
-            );
-          }}
-        />
-      )}
-      
-      {openRegisterCustomer && (
-        <RegisterCustomerModal
-          isOpen={true}
-          company_id={company_id}
-          module_code={module_code}
-          onClose={() => setOpenRegisterCustomer(false)}
-          onRequestRegisterCustomerType={() => setOpenRegisterCustomerType(true)}
-          newlyCreatedCustomerTypeId={newlyCreatedCustomerTypeId}
-          onCreated={(customerId) => {
-            setNewlyCreatedCustomerId(customerId);
           }}
         />
       )}
 
-      {openRegisterCustomerType && (
-        <RegisterCustomerTypeModal
-          isOpen={true}
-          company_id={company_id}
-          module_code={module_code}
-          onClose={() => setOpenRegisterCustomerType(false)}
-          onCreated={(customerTypeId) => {
-            setNewlyCreatedCustomerTypeId(customerTypeId);
-          }}
-        />
-      )}
-
-        {openRegisterMerchandiseModal && (
+      {openRegisterMerchandiseModal && (
         <RegisterMerchandiseModal
           isOpen={true}
           company_id={company_id}
@@ -381,5 +343,3 @@ export function RegisterDucatDetailForm({
     </div>
   );
 }
-
-
