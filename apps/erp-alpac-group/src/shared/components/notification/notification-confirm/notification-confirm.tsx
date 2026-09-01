@@ -13,9 +13,7 @@ export const NotificationConfirm = ({
 
    const platform = detectPlatform();
 
-   const instructions = getInstructions(platform);
-
-   const { title, steps } = instructions;
+   const { title, steps } = getInstructions(platform);
 
    const handleFinalAction = async () => {
 
@@ -30,7 +28,7 @@ export const NotificationConfirm = ({
          type="APPROVE"
          title={title}
          variant="info"
-         buttonActionLabel="Activar"
+         buttonActionLabel="Reintentar"
          buttonActionClass={approveButtonClass}
          buttonCancelClass="rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
          onClose={onClose}
