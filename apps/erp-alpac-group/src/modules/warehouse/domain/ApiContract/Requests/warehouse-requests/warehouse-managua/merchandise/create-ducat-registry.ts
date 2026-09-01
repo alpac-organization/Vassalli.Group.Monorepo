@@ -1,9 +1,8 @@
-export interface CreateDucatRegistryRequest {
-    company_id: string;
-    module_code: string;
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+
+export interface CreateDucatRegistryRequest extends BaseRequest {
     reception_id: string;
-    container_number: string;
-    empresa: string;
+    shipping_company_id: string;
     general_observations?: string;
     is_in_transit: boolean;
     registered_start_date?: string;

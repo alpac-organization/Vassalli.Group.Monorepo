@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+﻿import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
   Button,
@@ -8,8 +8,9 @@ import {
   Textarea,
   type Option,
 } from "@alpac/design-system";
-import { PackagePlus } from "lucide-react";
+import { PackagePlus, RotateCcw } from "lucide-react";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
+import { RegisterCategoryModal } from "../register-category-modal/register-category-modal";
 import { useMerchandise } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useMerchandise";
 import type { RegisterMerchandiseModalProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-merchandise-modal/types/register-merchandise-modal.types";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -71,6 +72,7 @@ export function RegisterMerchandiseModal({
     handleSubmit,
     reset,
     formState: { errors },
+      setValue,
   } = useForm({
     mode: "onSubmit",
     reValidateMode: "onChange",
@@ -81,6 +83,8 @@ export function RegisterMerchandiseModal({
     },
   });
 
+
+  const [showRegisterCategoryModal, setShowRegisterCategoryModal] = useState(false);
 
   return (
     <Modal
@@ -102,7 +106,9 @@ export function RegisterMerchandiseModal({
               .then((createdMerchandiseId) => {
                 handleRequestSuccess("Mercancía registrada correctamente.");
                 reset();
-                onCreated?.(createdMerchandiseId, values.merchandise_name);
+                setTimeout(() => {
+                  onCreated?.(createdMerchandiseId, values.merchandise_name);
+                }, 1500);
               })
               .catch((error) => {
                 const mappedError = getMappedError(error as ApiErrorResponse);
@@ -137,7 +143,10 @@ export function RegisterMerchandiseModal({
               control={control}
               rules={{ required: "La categoría es requerida" }}
               render={({ field }) => (
+              <div className="flex items-start gap-2">
+              <div className="flex-1 min-w-0 relative">
                 <Dropdown
+                  appearance="dark"
                   label="Categoría"
                   labelClassName={labelClassName}
                   isRequired
@@ -147,8 +156,20 @@ export function RegisterMerchandiseModal({
                   onChange={field.onChange}
                   error={errors.category_id?.message}
                   errorVariant="text"
+                  className="min-w-0"
                 />
-              )}
+            </div>
+            <div className="flex shrink-0 mt-[24px] sm:mt-[26px]">
+              <Button
+              type="button"
+              tooltip="Registrar nueva categoría"
+              onClick={() => setShowRegisterCategoryModal(true)}
+              icon={<PackagePlus size={16} />}
+              className="h-[42px]! sm:h-[46px]! w-[42px]! sm:w-[46px]! bg-slate-100! hover:bg-slate-200! dark:bg-[#20242d]! dark:hover:bg-slate-800/80! text-slate-600! dark:text-slate-400! border border-slate-200! dark:border-slate-700! rounded-lg!"
+              />
+              </div>
+              </div>
+             )}
             />
             <Controller
               name="description"
@@ -170,9 +191,9 @@ export function RegisterMerchandiseModal({
           <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-neutral-600">
             <Button
               type="button"
-              size="medium"
+              size="giant"
               label="Cancelar"
-              ariaLabel="Cancelar registro de mercancía"
+              icon={<RotateCcw size={16} />}
               onClick={onClose}
               disabled={RegisterMerchandise.isPending}
               className="w-full sm:w-auto text-[13px]! text-slate-600! dark:text-slate-300! bg-slate-100! dark:bg-slate-700! hover:bg-slate-200! dark:hover:bg-slate-600!"
@@ -182,7 +203,6 @@ export function RegisterMerchandiseModal({
               size="medium"
               label="Registrar mercancía"
               icon={<PackagePlus size={16} />}
-              ariaLabel="Registrar nueva mercancía"
               isLoading={RegisterMerchandise.isPending}
               className="w-full sm:w-auto text-[13px]! text-white! bg-blue-600! hover:bg-blue-700!"
             />
@@ -191,6 +211,19 @@ export function RegisterMerchandiseModal({
 
         {AlertComponent}
       </div>
+      {showRegisterCategoryModal && (
+        <RegisterCategoryModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setShowRegisterCategoryModal(false)}
+          onCreated={() => { setShowRegisterCategoryModal(false); }}
+        />
+      )}
     </Modal>
   );
 }
+
+
+
+

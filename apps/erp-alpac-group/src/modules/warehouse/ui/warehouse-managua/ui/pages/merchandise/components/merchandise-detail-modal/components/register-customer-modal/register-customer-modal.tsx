@@ -7,7 +7,7 @@ import {
   Modal,
   type Option,
 } from "@alpac/design-system";
-import { UserRoundPlus, Plus } from "lucide-react";
+import { UserRoundPlus, Plus, XIcon } from "lucide-react";
 import { useCustomer } from "@app/modules/warehouse/ui/hooks/useCustomer";
 import type {
   RegisterCustomerModalProps,
@@ -15,6 +15,7 @@ import type {
 } from "./types/register-customer-modal.types";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { RegisterCustomerTypeModal } from "../register-customer-type-modal/register-customer-type-modal";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { baseInputClasses } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/variants/global-variants";
 import { IdentificationTypeOptions } from "@app/modules/warehouse/domain/enums/customer.enum";
@@ -31,12 +32,13 @@ export function RegisterCustomerModal({
   module_code,
   onClose,
   onCreated,
-  onRequestRegisterCustomerType,
-  newlyCreatedCustomerTypeId,
 }: RegisterCustomerModalProps) {
   const [pictureImages, setPictureImages] = useState<ImageOutput[]>([]);
   const { getMappedError } = useMappedError();
   const { handleRequestError, handleRequestSuccess, AlertComponent } = useAlertState();
+
+  const [openRegisterCustomerType, setOpenRegisterCustomerType] = useState(false);
+  const [newlyCreatedCustomerTypeId, setNewlyCreatedCustomerTypeId] = useState<string | null>(null);
 
   const { CreateCustomer, GetCustomerTypes } = useCustomer();
   const { data: customerTypesData, refetch: refetchCustomerTypes } = GetCustomerTypes({ company_id, module_code });
@@ -120,13 +122,15 @@ export function RegisterCustomerModal({
   });
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Registrar cliente nuevo"
-      size="lg"
-    >
-      <div className="flex flex-col gap-4 min-w-0">
+    <>
+      {isOpen && (
+        <Modal
+          isOpen={isOpen}
+          onClose={onClose}
+          title="Registrar cliente nuevo"
+          size="lg"
+        >
+          <div className="flex flex-col gap-4 min-w-0">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Controller
@@ -228,7 +232,7 @@ export function RegisterCustomerModal({
                       <Button
                         type="button"
                         tooltip="Registrar tipo de cliente"
-                        onClick={() => onRequestRegisterCustomerType?.()}
+                        onClick={() => setOpenRegisterCustomerType(true)}
                         icon={<Plus size={16} />}
                         className="h-[42px]! sm:h-[46px]! w-[42px]! sm:w-[46px]! bg-slate-100! hover:bg-slate-200! dark:bg-[#20242d]! dark:hover:bg-slate-800/80! text-slate-600! dark:text-slate-400! border border-slate-200! dark:border-slate-700! rounded-lg!"
                       />
@@ -254,27 +258,42 @@ export function RegisterCustomerModal({
           <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-neutral-600 mt-2">
             <Button
               type="button"
-              size="medium"
+              size="giant"
               label="Cancelar"
-              ariaLabel="Cancelar registro de cliente"
+              icon={<XIcon size={20} />}
+              isHiddenLabelOnMobile
               onClick={onClose}
               disabled={CreateCustomer.isPending}
-              className="w-full sm:w-auto text-[13px]! text-slate-600! dark:text-slate-300! bg-slate-100! dark:bg-slate-700! hover:bg-slate-200! dark:hover:bg-slate-600!"
+              className="text-[15px]! rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!"
             />
             <Button
               type="submit"
-              size="medium"
+              size="giant"
               label="Registrar cliente"
               icon={<UserRoundPlus size={16} />}
-              ariaLabel="Guardar nuevo cliente"
+              isHiddenLabelOnMobile
               isLoading={CreateCustomer.isPending}
-              className="w-full sm:w-auto text-[13px]! text-white! bg-blue-600! hover:bg-blue-700!"
+              className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
             />
           </div>
         </form>
 
-        {AlertComponent}
-      </div>
-    </Modal>
+            {AlertComponent}
+          </div>
+        </Modal>
+      )}
+
+      {openRegisterCustomerType && (
+        <RegisterCustomerTypeModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setOpenRegisterCustomerType(false)}
+          onCreated={(customerTypeId: string) => {
+            setNewlyCreatedCustomerTypeId(customerTypeId);
+          }}
+        />
+      )}
+    </>
   );
 }

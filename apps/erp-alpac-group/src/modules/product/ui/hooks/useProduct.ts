@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+﻿import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ProductServices } from "@app/modules/product/infrastructure/services/ProductServices";
 import { httpHandler } from "@app/core/adapters";
 
@@ -7,7 +7,7 @@ import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/
 import type { CreateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/create-product.request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { CreateProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/create-product.response";
-
+import type { CreateProductCategoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product-category/create-product-category.request";
 const productServices = new ProductServices(httpHandler);
 
 interface useProductProps {
@@ -57,5 +57,14 @@ export const useProduct = (props?: useProductProps) => {
 		retry: 1,
 	});
 
-	return { GetProductCategories, GetProducts, CreateProduct };
+		const CreateProductCategory = useMutation<boolean, ApiErrorResponse, CreateProductCategoryRequest>({
+		mutationKey: ["create-product-category"],
+		mutationFn: (payload: CreateProductCategoryRequest) => productServices.CreateProductCategory(payload),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["get-product-categories"] }),
+		retry: 1,
+	});
+
+	return { GetProductCategories, GetProducts, CreateProduct, CreateProductCategory };
 };
+
+
