@@ -1,9 +1,9 @@
+import { useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { TopNavbar } from "@app/shared/layouts/dashboard-layout/components/navbar/top-navbar";
 import { m, LazyMotion, AnimatePresence } from "framer-motion";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Modal } from "@alpac/design-system";
-import { useEffect, useRef, useState } from "react";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import { useAuth } from "@app/modules/auth/ui/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -72,7 +72,7 @@ export const DashboardLayout = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
-            className="flex h-screen text-white overflow-hidden"
+            className="flex h-screen text-white overflow-hidden border-t border-slate-900 dark:border-slate-600"
          >
             <Sidebarlayout
                setIsOpen={setIsOpenSidebar}
