@@ -48,12 +48,22 @@ const firebaseApp = initializeApp({
 const messaging = getMessaging(firebaseApp);
 
 onBackgroundMessage(messaging, (payload) => {
-  const title = payload.data?.title ?? "ALPAC";
-  const body = payload.data?.body ?? "";
-  const image = payload.data?.image;
-  
-  const icon = payload.data?.icon ?? "/web-app-manifest-192x192.png";
-  const url = payload.data?.url ?? "/";
+  // Si el payload trae 'notification', el SDK de Firebase lo muestra
+  // automáticamente (tanto en Android/Chrome como en iOS/Safari). Volver a
+  // renderizarlo acá duplica el aviso (2 push por cada envío). Por eso, para
+  // tener UN solo aviso, NO mostramos nada cuando existe 'notification'.
+  if (payload.notification) {
+    return;
+  }
+
+  // Los mensajes de solo 'data' no se muestran solos: el Service Worker debe
+  // renderizarlos. Fusionamos los datos para que funcione en ambas plataformas.
+  const data = payload.data ?? {};
+  const title = data.title ?? "ALPAC";
+  const body = data.body ?? "";
+  const image = data.image;
+  const icon = data.icon ?? "/web-app-manifest-192x192.png";
+  const url = data.url ?? "/";
 
   const uniqueTag =
     payload.messageId ?? `notif-${Date.now()}-${Math.random().toString(36).slice(2)}`;
