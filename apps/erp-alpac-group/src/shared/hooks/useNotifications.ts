@@ -5,9 +5,11 @@ import { useNotificationConfig } from '@app/modules/dashboard/ui/hooks/useNotifi
 import { useUserStore } from '../stores/useUserStore';
 import { getDeviceName } from '@app/shared/utils/device-name.utils';
 
+export type PermissionRequestOutcome = "granted" | "denied" | "no-prompt";
+
 interface UseNotificationResult {
    permissionGranted: boolean | null;
-   requestPermission: () => Promise<void>;
+   requestPermission: () => Promise<PermissionRequestOutcome>;
    isLoading: boolean;
    needsInstallOnIOS: boolean;
    isIOS: boolean;
@@ -131,47 +133,58 @@ export const useNotification = (): UseNotificationResult => {
       });
    }, [companyId]);
 
-   const requestPermission = useCallback(async () => {
+   // Indica si el navegador puede levantar el popup nativo de permisos.
+   // En iOS el popup nativo solo aparece si el PWA está instalado (standalone).
+   const canAskNative = useCallback((): boolean => {
+      if (typeof Notification === "undefined") return false;
+      if (isIOS && !isStandalone()) return false;
+      return true;
+   }, [isIOS]);
 
-      if (isIOS && !isStandalone()) {
-         setNeedsInstallOnIOS(true);
-         return;
+   const requestPermission = useCallback(async (): Promise<PermissionRequestOutcome> => {
+
+      if (!canAskNative()) {
+         if (isIOS && !isStandalone()) setNeedsInstallOnIOS(true);
+         return "no-prompt";
       }
 
-      if (typeof Notification === 'undefined') {
-         console.warn('Este navegador no soporta notificaciones.');
-         return;
+      const currentPermission = Notification.permission;
+
+      if (currentPermission === "granted") {
+         setPermissionGranted(true);
+         await getAndSendToken();
+         return "granted";
+      }
+
+      if (currentPermission === "denied") {
+         setPermissionGranted(false);
+         return "denied";
       }
 
       try {
          setIsLoading(true);
-         const currentPermission = Notification.permission;
+         const result = await Notification.requestPermission();
+         const granted = result === "granted";
+         setPermissionGranted(granted);
 
-         if (currentPermission === 'granted') {
-            setPermissionGranted(true);
+         if (granted) {
             await getAndSendToken();
+            return "granted";
          }
-         else if (currentPermission === 'denied') {
-            setPermissionGranted(false);
-         }
-         else {
-            const result = await Notification.requestPermission();
-            const granted = result === 'granted';
-            setPermissionGranted(granted);
 
-            if (granted) {
-               await getAndSendToken();
-            }
-         }
+         // 'denied' => el usuario (o el navegador) lo bloqueó, no se repregunta.
+         // 'default' => el popup no se levantó o se descartó: no se obtuvo permiso.
+         return result === "denied" ? "denied" : "no-prompt";
       }
       catch (error) {
          console.error('Error solicitando permiso de notificaciones:', error);
          setPermissionGranted(false);
+         return "no-prompt";
       }
       finally {
          setIsLoading(false);
       }
-   }, [isIOS, getAndSendToken]);
+   }, [canAskNative, isIOS, getAndSendToken]);
 
    return {
       permissionGranted,

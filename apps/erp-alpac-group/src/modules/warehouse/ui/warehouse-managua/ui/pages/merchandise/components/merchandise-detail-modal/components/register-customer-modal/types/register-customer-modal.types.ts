@@ -4,8 +4,6 @@ export interface RegisterCustomerModalProps {
   module_code: string;
   onClose: () => void;
   onCreated?: (customerId: string) => void;
-  onRequestRegisterCustomerType?: () => void;
-  newlyCreatedCustomerTypeId?: string | null;
 }
 
 export interface RegisterCustomerFormValues {

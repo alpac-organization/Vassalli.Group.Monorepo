@@ -8,6 +8,9 @@ import type { RegisterMerchandiseRequest } from "@app/modules/warehouse/domain/A
 import type { GetMerchandiseResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandise";
 import type { GetMerchandiseDetailResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandise-detail";
 import type { GetMerchandisesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandises";
+import type { CreateShippingCompanyRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/create-shipping-company";
+import type { GetShippingCompanyRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/get-shipping-company";
+import type { GetShippingCompanyResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-shipping-company";
 
 export interface IMerchandiseServices {
   getMerchandise(
@@ -27,4 +30,6 @@ export interface IMerchandiseServices {
   ): Promise<boolean>;
   getMerchandises(payload: GetMerchandisesRequest): Promise<GetMerchandisesResponse>;
   registerMerchandise(payload: RegisterMerchandiseRequest): Promise<string>;
+  createShippingCompany(payload: CreateShippingCompanyRequest): Promise<boolean>;
+  getShippingCompany(payload: GetShippingCompanyRequest): Promise<GetShippingCompanyResponse>;
 }

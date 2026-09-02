@@ -12,12 +12,16 @@ import type { CreateDucatRegistryRequest } from "@app/modules/warehouse/domain/A
 import type { CreateDucatRegistryDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/create-ducat-registry-detail";
 import type { AssignServiceOrderToCustomsDeclarationRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/assign-service-order-to-customs-declaration";
 import type { RegisterMerchandiseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/register-merchandise";
+import type { CreateShippingCompanyRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/create-shipping-company";
+import type { GetShippingCompanyRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/merchandise/get-shipping-company";
+import type { GetShippingCompanyResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-shipping-company";
 const merchandiseServices = new MerchandiseServices(warehouseHttpHandler);
 
 type UseMerchandiseProps = {
   payloadGetMerchandise?: GetMerchandiseRequest;
   payloadGetMerchandiseDetail?: GetMerchandiseDetailRequest;
   payloadGetMerchandises?: GetMerchandisesRequest;
+  payloadGetShippingCompany?: GetShippingCompanyRequest;
 };
 
 export const useMerchandise = (props?: UseMerchandiseProps) => {
@@ -25,12 +29,14 @@ export const useMerchandise = (props?: UseMerchandiseProps) => {
     payloadGetMerchandise,
     payloadGetMerchandiseDetail,
     payloadGetMerchandises,
+    payloadGetShippingCompany,
   } = props ?? {};
   const queryClient = useQueryClient();
 
   const invalidateMerchandiseRegistry = () => {
     queryClient.invalidateQueries({ queryKey: ["merchandise"] });
     queryClient.invalidateQueries({ queryKey: ["merchandise-detail"] });
+    queryClient.invalidateQueries({ queryKey: ["shipping-companies"] });
   };
 
   const GetMerchandiseRegister = useQuery<
@@ -129,6 +135,32 @@ export const useMerchandise = (props?: UseMerchandiseProps) => {
     retry: 1,
   });
 
+  const CreateShippingCompany = useMutation<
+    boolean,
+    ApiErrorResponse,
+    CreateShippingCompanyRequest
+  >({
+    mutationFn: (payload) => merchandiseServices.createShippingCompany(payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["shipping-companies"] }),
+    retry: 1,
+  });
+
+  const GetShippingCompany = useQuery<
+    GetShippingCompanyResponse,
+    ApiErrorResponse
+  >({
+    queryKey: ["shipping-companies", payloadGetShippingCompany],
+    queryFn: () =>
+      merchandiseServices.getShippingCompany(payloadGetShippingCompany as GetShippingCompanyRequest),
+    enabled: Boolean(
+      payloadGetShippingCompany?.company_id && payloadGetShippingCompany?.module_code,
+    ),
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
   return {
     GetMerchandiseRegister,
     GetMerchandiseDetail,
@@ -137,5 +169,7 @@ export const useMerchandise = (props?: UseMerchandiseProps) => {
     CreateDucatRegistryDetail,
     AssignServiceOrderToCustomsDeclaration,
     RegisterMerchandise,
+    CreateShippingCompany,
+    GetShippingCompany,
   };
 };
