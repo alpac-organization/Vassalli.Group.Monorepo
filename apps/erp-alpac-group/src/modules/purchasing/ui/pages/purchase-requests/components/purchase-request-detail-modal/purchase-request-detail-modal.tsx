@@ -28,6 +28,12 @@ const pdfButtonClass = "rounded-md! h-11 px-6! border border-sky-200 dark:border
 const sectionTitleClassName = "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
 
 
+const getConfirmButtonClass = (type: ConfirmActionType) => {
+	if (type === "APPROVE") return approveButtonClass;
+	if (type === "REJECT") return rejectButtonClass;
+	return cancelButtonClass;
+};
+
 const getSuccessMessage = (type: ConfirmActionType) => {
 	if (type === "APPROVE") return "Solicitud aprobada con éxito.";
 	if (type === "REJECT") return "Solicitud rechazada con éxito.";
@@ -126,7 +132,8 @@ export const PurchaseRequestDetailModal = ({
 	].includes(currentStatus as Exclude<keyof typeof PurchaseRequestStatusEnum, "Pending">);
 
 	const areActionButtonsDisabled = isProcessing || isFinalStatus;
-	const isApproved = currentStatus === PurchaseRequestStatusEnum.Approved.textValue;
+	const isApproved = currentStatus === PurchaseRequestStatusEnum.Approved.textValue || currentStatus === PurchaseRequestStatusEnum.Revision.textValue;
+
 	const canDownloadPdf = canProcessRequest && isApproved;
 	const showProcessActions = canProcessRequest && !areActionButtonsDisabled;
 	const showFooter = canDownloadPdf || showProcessActions;
@@ -531,13 +538,7 @@ export const PurchaseRequestDetailModal = ({
 			<ConfirmModal
 				title={message}
 				buttonActionLabel={actionType!}
-				buttonActionClass={
-					confirmModal.type === "APPROVE"
-						? approveButtonClass
-						: confirmModal.type === "REJECT"
-							? rejectButtonClass
-							: cancelButtonClass
-				}
+				buttonActionClass={getConfirmButtonClass(confirmModal.type)}
 				buttonCancelClass="rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
 				isOpen={confirmModal.isOpen}
 				onClose={closeConfirm}

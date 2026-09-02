@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, DataTable, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
-import { PackagePlusIcon } from "lucide-react";
+import { Alert, Button, DataTable, DatePicker, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
+import { FileTextIcon, PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PurchaseRequestStatusEnum, PurchaseRequestStatusOptions } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
@@ -8,15 +8,19 @@ import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurcha
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { RoleEnum } from "@app/core/enums/role.enum";
+import { CompanyMatadata, type CompanyType } from "@app/core/enums/company.enum";
 import { PurchaseRequestDetailModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/purchase-request-detail-modal";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
-import type { MonthlyMaterialContextMenu, MonthlyMaterialTabProps } from "./monthly-materials-tab.types";
+import type { MonthlyMaterialContextMenu, MonthlyMaterialFilterForm, MonthlyMaterialTabProps } from "./monthly-materials-tab.types";
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { getPurchaseRequestColumnConfig } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-table-config";
+import { PurchaseRequestReportsModal } from "../../purchase-request-reports-modal/purchase-request-reports-modal";
+import { Controller, useForm } from "react-hook-form";
+import { toYearMonthObject } from "@app/shared/utils/date.utils";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -26,6 +30,12 @@ const labelClassName = "text-black! dark:text-white!";
 const deleteButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
 const cancelButtonClass = "rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
 const PAGE_SIZE = 5;
+
+const defaultFilterForm: MonthlyMaterialFilterForm = {
+	code: "",
+	status: null,
+	date: null,
+};
 
 const allowedStatus: string[] = [
 	PurchaseRequestStatusEnum.Pending.textValue,
@@ -41,23 +51,32 @@ export const MonthlyMaterialTab = ({
 	onRequestError,
 	onRequestSuccess,
 }: MonthlyMaterialTabProps) => {
-	const { companyId, moduleCode, role } = useUserStore();
+
+	const { companyId, moduleCode, role, companyAlias } = useUserStore();
+	const companyAcronym =
+		CompanyMatadata[companyAlias.toUpperCase() as CompanyType]?.acronym ??
+		CompanyMatadata.ALPAC.acronym;
 	const { getMappedError } = useMappedError();
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [requestNumber, setRequestNumber] = useState("");
-	const [status, setStatus] = useState<number | null>(null);
+	const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 	const [requestDetail, setRequestDetail] = useState<GetPurchaseRequestResponse | null>(null);
 
-	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
+	const getDefaultFilters = (): GetPurchaseRequestPayload => ({
 		company_id: companyId,
 		module_code: moduleCode,
 		...(isAdministrator ? {} : { branch_id: currentBranchId }),
 		request_type: Number(PurchaseRequestEnum.Monthly.value),
 		page_number: 1,
 		page_size: PAGE_SIZE,
+	});
+
+	const [filters, setFilters] = useState<GetPurchaseRequestPayload>(getDefaultFilters);
+
+	const { register, control, handleSubmit, reset } = useForm<MonthlyMaterialFilterForm>({
+		defaultValues: defaultFilterForm,
 	});
 
 	const { GetPurchaseRequests, DeletePurchaseRequest } = usePurchase({
@@ -76,16 +95,8 @@ export const MonthlyMaterialTab = ({
 	const currentPage = filters.page_number ?? 1;
 
 	useEffect(() => {
-		setFilters({
-			company_id: companyId,
-			module_code: moduleCode,
-			...(isAdministrator ? {} : { branch_id: currentBranchId }),
-			request_type: Number(PurchaseRequestEnum.Monthly.value),
-			page_number: 1,
-			page_size: PAGE_SIZE,
-		});
-		setRequestNumber("");
-		setStatus(null);
+		reset(defaultFilterForm);
+		setFilters(getDefaultFilters());
 	}, [currentBranchId, companyId, moduleCode]);
 
 	const getBaseOptions = (row: GetPurchaseRequestResponse): MonthlyMaterialContextMenu[] =>
@@ -142,31 +153,26 @@ export const MonthlyMaterialTab = ({
 	const contexMenuOptions: ((row: GetPurchaseRequestResponse) => MonthlyMaterialContextMenu[]) =
 		mapContextMenuOptions.get(role as RoleEnum)!;
 
-	const handleApplyFilters = () => {
-		setFilters((prev) => ({
-			...prev,
-			company_id: companyId,
-			module_code: moduleCode,
-			branch_id: isAdministrator ? undefined : currentBranchId,
-			request_type: Number(PurchaseRequestEnum.Monthly.value),
-			code: requestNumber.trim() || undefined,
-			page_number: 1,
-			page_size: PAGE_SIZE,
-			status: status || undefined
-		}));
-	};
+	const handleApplyFilters = (data: MonthlyMaterialFilterForm) => {
+		
+		const { year, month } = toYearMonthObject(data.date);
 
-	const handleClearFilters = () => {
-		setRequestNumber("");
-		setStatus(null);
 		setFilters({
 			company_id: companyId,
 			module_code: moduleCode,
 			...(isAdministrator ? {} : { branch_id: currentBranchId }),
 			request_type: Number(PurchaseRequestEnum.Monthly.value),
+			code: data.code?.trim() || undefined,
+			status: data.status || undefined,
+			year, month,
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		});
+	};
+
+	const handleClearFilters = () => {
+		reset(defaultFilterForm);
+		setFilters(getDefaultFilters());
 	};
 
 	const handlePageChange = useCallback((page: number) => {
@@ -223,16 +229,31 @@ export const MonthlyMaterialTab = ({
 				<Loader title="Cargando solicitudes mensuales..." />
 			)}
 
-			<Button
-				type="button"
-				size="giant"
-				label="Crear Solicitud Mensual"
-				icon={<PackagePlusIcon size={20} />}
-				className="w-full! md:w-auto! mb-4! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-				onClick={() => {
-					setIsModalOpen(true);
-				}}
-			/>
+			<div className="mb-4 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end">
+				<Button
+					type="button"
+					size="giant"
+					label="Crear Solicitud Mensual"
+					icon={<PackagePlusIcon size={20} />}
+					className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+					onClick={() => {
+						setIsModalOpen(true);
+					}}
+				/>
+
+				<Button
+					type="button"
+					size="giant"
+					label="Generar reporte"
+					icon={<FileTextIcon size={20} />}
+					className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+					disabled={false}
+					isLoading={false}
+					onClick={() => {
+						setIsReportModalOpen(true);
+					}}
+				/>
+			</div>
 
 			<div className="flex justify-between items-center pt-4 pb-4 border-t border-t-slate-600 dark:border-t-neutral-600">
 				<div className="flex flex-col justify-center">
@@ -241,31 +262,58 @@ export const MonthlyMaterialTab = ({
 			</div>
 
 			<form
-				onSubmit={(event) => {
-					event.preventDefault();
-					handleApplyFilters();
-				}}
-				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end mb-4!"
-			>
+				onSubmit={handleSubmit(handleApplyFilters)}
+				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end mb-4!">
+
 				<InputText
 					label="N° Solicitud"
-					placeholder="Ej. ALP-MGA-MEN-01"
+					placeholder={`Ej. ${companyAcronym}-MGA-MEN-01`}
+					{...register("code")}
 					className={inputClassName}
 					labelClassName={labelClassName}
-					value={requestNumber}
-					onChange={(event) => setRequestNumber(event.target.value)}
 				/>
 
-				<Dropdown
-					label="Estado"
-					placeholder="Seleccione..."
-					appearance="dark"
-					options={PurchaseRequestStatusOptions ?? []}
-					value={status}
-					onChange={(value) => setStatus(value)}
-					className={dropdownClassName}
-					labelClassName={labelClassName}
-					valueClassName={labelClassName}
+				<Controller
+					control={control}
+					name="status"
+					render={({ field }) => {
+						return (
+							<Dropdown
+								label="Estado"
+								placeholder="Seleccione..."
+								appearance="dark"
+								options={PurchaseRequestStatusOptions ?? []}
+								value={field.value}
+								onChange={(value) => field.onChange(value)}
+								className={dropdownClassName}
+								labelClassName={labelClassName}
+								valueClassName={labelClassName}
+							/>
+						);
+					}}
+				/>
+
+				<Controller
+					control={control}
+					name="date"
+					render={({ field }) => (
+						<DatePicker
+							label="Mes"
+							labelAbove
+							views={["year", "month"]}
+							openTo="month"
+							format="MMMM YYYY"
+							disableFuture
+							className={inputClassName}
+							value={field.value}
+							onChange={(value) => field.onChange(value)}
+							slotProps={{
+								popper: {
+									disablePortal: false, sx: { zIndex: 2000 }
+								}
+							}}
+						/>
+					)}
 				/>
 
 				<Button
@@ -284,7 +332,8 @@ export const MonthlyMaterialTab = ({
 				/>
 			</form>
 
-			<div className="flex flex-col">
+			<div className="flex flex-col gap-4">
+
 				<DataTable
 					title="Lista de solicitudes mensuales"
 					data={purchaseRequests}
@@ -299,6 +348,8 @@ export const MonthlyMaterialTab = ({
 						/>
 					}
 				/>
+
+				<Alert type="warning" title="Nota" message="Recuerda llenar tu solicitud 2 días antes de finalizar el mes" />
 			</div>
 
 			<PurchaseRequestModal
@@ -316,6 +367,12 @@ export const MonthlyMaterialTab = ({
 				purchaseRequest={requestDetail}
 				onRequestSuccess={onRequestSuccess}
 				onRequestError={onRequestError}
+			/>
+
+			<PurchaseRequestReportsModal
+				isOpen={isReportModalOpen}
+				onClose={() => setIsReportModalOpen(false)}
+				onGenerate={() => { }}
 			/>
 
 			<ConfirmModal

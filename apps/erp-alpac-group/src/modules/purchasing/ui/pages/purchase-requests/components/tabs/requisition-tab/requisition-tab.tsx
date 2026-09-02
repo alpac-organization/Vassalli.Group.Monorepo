@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, DataTable, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
+import { Button, DataTable, DatePicker, Dropdown, InputText, Pagination, type TableColumn } from "@alpac/design-system";
 import { PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
@@ -8,15 +8,19 @@ import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurcha
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { RoleEnum } from "@app/core/enums/role.enum";
+import { CompanyMatadata, type CompanyType } from "@app/core/enums/company.enum";
 import { PurchaseRequestDetailModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/purchase-request-detail-modal";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 
-import { type RequisitionContextMenu, type RequisitionTabProps } from "./requisition-tab.types";
+import { type RequisitionContextMenu, type RequisitionFilterForm, type RequisitionTabProps } from "./requisition-tab.types";
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import { getPurchaseRequestColumnConfig } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-table-config";
+import { PurchaseRequestReportsModal } from "../../purchase-request-reports-modal/purchase-request-reports-modal";
+import { Controller, useForm } from "react-hook-form";
+import { toYearMonthObject } from "@app/shared/utils/date.utils";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -26,6 +30,12 @@ const labelClassName = "text-black! dark:text-white!";
 const deleteButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
 const cancelButtonClass = "rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
 const PAGE_SIZE = 5;
+
+const defaultFilterForm: RequisitionFilterForm = {
+	code: "",
+	status: null,
+	date: null
+};
 
 const allowedStatus: string[] = [
 	PurchaseRequestStatusEnum.Pending.textValue,
@@ -42,13 +52,15 @@ export const RequisitionTab = ({
 	onRequestSuccess,
 }: RequisitionTabProps) => {
 
-	const { companyId, moduleCode, role } = useUserStore();
+	const { companyId, moduleCode, role, companyAlias } = useUserStore();
+	const companyAcronym =
+		CompanyMatadata[companyAlias.toUpperCase() as CompanyType]?.acronym ??
+		CompanyMatadata.ALPAC.acronym;
 	const { getMappedError } = useMappedError();
 	const [isRequisitionModalOpen, setIsRequisitionModalOpen] = useState(false);
+	const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 	const [isRequisitionDetailModalOpen, setIsRequisitionDetailModalOpen] = useState(false);
 	const [isDeleteRequisitionModalOpen, setisDeleteRequisitionModalOpen] = useState(false);
-	const [requisitionNumber, setRequisitionNumber] = useState("");
-	const [status, setStatus] = useState<number | null>(null);
 	const [requisitionDetail, setRequisitionDetail] = useState<GetPurchaseRequestResponse | null>(null);
 
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
@@ -60,6 +72,10 @@ export const RequisitionTab = ({
 		request_type: Number(PurchaseRequestEnum.Requisition.value),
 		page_number: 1,
 		page_size: PAGE_SIZE,
+	});
+
+	const { register, control, handleSubmit, reset } = useForm<RequisitionFilterForm>({
+		defaultValues: defaultFilterForm,
 	});
 
 	const { GetPurchaseRequests, DeletePurchaseRequest } = usePurchase({
@@ -86,8 +102,7 @@ export const RequisitionTab = ({
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		});
-		setRequisitionNumber("");
-		setStatus(null);
+		reset(defaultFilterForm);
 	}, [currentBranchId, companyId, moduleCode]);
 
 	const getBaseOptions = (row: GetPurchaseRequestResponse): RequisitionContextMenu[] =>
@@ -144,23 +159,26 @@ export const RequisitionTab = ({
 	const contexMenuOptions: ((row: GetPurchaseRequestResponse) => RequisitionContextMenu[]) =
 		mapContextMenuOptions.get(role as RoleEnum)!;
 
-	const handleApplyFilters = () => {
+	const handleApplyFilters = (data: RequisitionFilterForm) => {
+
+		const { year, month } = toYearMonthObject(data.date);
+
 		setFilters((prev) => ({
 			...prev,
 			company_id: companyId,
 			module_code: moduleCode,
 			branch_id: isAdministrator ? undefined : currentBranchId,
 			request_type: Number(PurchaseRequestEnum.Requisition.value),
-			code: requisitionNumber.trim() || undefined,
+			code: data?.code?.trim(),
+			year, month,
 			page_number: 1,
 			page_size: PAGE_SIZE,
-			status: status || undefined
+			status: data.status || undefined
 		}));
 	};
 
 	const handleClearFilters = () => {
-		setRequisitionNumber("");
-		setStatus(null);
+		reset(defaultFilterForm);
 		setFilters({
 			company_id: companyId,
 			module_code: moduleCode,
@@ -225,16 +243,18 @@ export const RequisitionTab = ({
 				<Loader title="Cargando requisiciones..." />
 			)}
 
-			<Button
-				type="button"
-				size="giant"
-				label="Crear Requisición"
-				icon={<PackagePlusIcon size={20} />}
-				className="w-full! md:w-auto! mb-4! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-				onClick={() => {
-					setIsRequisitionModalOpen(true);
-				}}
-			/>
+			<div className="mb-4 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end">
+				<Button
+					type="button"
+					size="giant"
+					label="Crear Requisición"
+					icon={<PackagePlusIcon size={20} />}
+					className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+					onClick={() => {
+						setIsRequisitionModalOpen(true);
+					}}
+				/>
+			</div>
 
 			<div className="flex justify-between items-center pt-4 pb-4 border-t border-t-slate-600 dark:border-t-neutral-600">
 				<div className="flex flex-col justify-center">
@@ -243,31 +263,56 @@ export const RequisitionTab = ({
 			</div>
 
 			<form
-				onSubmit={(event) => {
-					event.preventDefault();
-					handleApplyFilters();
-				}}
+				onSubmit={handleSubmit(handleApplyFilters)}
 				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end mb-4!"
 			>
 				<InputText
 					label="N° Requisición"
-					placeholder="Ej. ALP-MGA-REQ-01"
+					placeholder={`Ej. ${companyAcronym}-MGA-REQ-01`}
 					className={inputClassName}
 					labelClassName={labelClassName}
-					value={requisitionNumber}
-					onChange={(event) => setRequisitionNumber(event.target.value)}
+					{...register("code")}
 				/>
 
-				<Dropdown
-					label="Estado"
-					placeholder="Seleccione..."
-					appearance="dark"
-					options={PurchaseRequestStatusOptions ?? []}
-					value={status}
-					onChange={(value) => setStatus(value)}
-					className={dropdownClassName}
-					labelClassName={labelClassName}
-					valueClassName={labelClassName}
+				<Controller
+					control={control}
+					name="status"
+					render={({ field }) => (
+						<Dropdown
+							label="Estado"
+							placeholder="Seleccione..."
+							appearance="dark"
+							options={PurchaseRequestStatusOptions ?? []}
+							value={field.value}
+							onChange={(value) => field.onChange(value)}
+							className={dropdownClassName}
+							labelClassName={labelClassName}
+							valueClassName={labelClassName}
+						/>
+					)}
+				/>
+
+				<Controller
+					control={control}
+					name="date"
+					render={({ field }) => (
+						<DatePicker
+							label="Mes"
+							labelAbove
+							views={["year", "month"]}
+							openTo="month"
+							format="MMMM YYYY"
+							disableFuture
+							className={inputClassName}
+							value={field.value}
+							onChange={(value) => field.onChange(value)}
+							slotProps={{
+								popper: {
+									disablePortal: false, sx: { zIndex: 2000 }
+								}
+							}}
+						/>
+					)}
 				/>
 
 				<Button
@@ -318,6 +363,12 @@ export const RequisitionTab = ({
 				purchaseRequest={requisitionDetail}
 				onRequestSuccess={onRequestSuccess}
 				onRequestError={onRequestError}
+			/>
+
+			<PurchaseRequestReportsModal
+				isOpen={isReportModalOpen}
+				onClose={() => setIsReportModalOpen(false)}
+				onGenerate={() => { }}
 			/>
 
 			<ConfirmModal

@@ -1,19 +1,18 @@
 import { useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { Chips, ContextMenu, Dropdown, RadioButton, Textarea } from "@alpac/design-system";
+import { Chips, ContextMenu, Dropdown, RadioButton, Spinner, Textarea } from "@alpac/design-system";
 import { PurchaseRequestDetail } from "../purchase-request-detail/purchase-request-detail";
 import { SelectServiceOrderModal } from "../select-service-order-modal/select-service-order-modal";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import { PriorityLevelOptions } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
+import { PriorityLevelEnum, PriorityLevelOptions } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import {
    PurchaseRequestDestinationEnum,
    type PurchaseRequestDestinationType,
 } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
-import type { CostCenters } from "@app/modules/admin/domain/ApiContract/responses/areas/get-areas.response";
 import type { GetServiceOrdersResponse } from "@app/modules/service-order/domain/ApiContract/Responses/service-order-responses/get-service-orders.response";
 import type { PurchaseRequestFormBlockProps } from "./purchase-request-form-block.types";
 import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters";
@@ -59,7 +58,6 @@ export const PurchaseRequestFormBlock = ({
       formState: { errors },
    } = methods;
 
-   const [costCenters, setCostCenters] = useState<CostCenters[]>([]);
    const [selectedOrigen, setSelectedOrigin] = useState<PurchaseRequestDestinationType>(originFromDestination(defaults.destination));
    const [selectedServiceOrder, setSelectedServiceOrder] = useState<GetServiceOrdersResponse | null>(null);
    const [isSelectServiceOrderModalOpen, setIsSelectServiceOrderModalOpen] = useState(false);
@@ -68,21 +66,22 @@ export const PurchaseRequestFormBlock = ({
 
    const { GetAreasByCompany } = useAreas({ company_id: companyId });
 
-   const { GetCostCenters } = useCostCenters({
-      company_id: companyId,
-      area_id: areaId
-   });
-
    const areaOptions = useMemo(() => {
       const areas = GetAreasByCompany.data ?? [];
       return areas.map((area) => ({
          label: area.work_area_name,
          value: area.work_area_id,
-         cost_centers: area.cost_centers,
       }));
    }, [GetAreasByCompany.data]);
 
    const selectedAreaId = methods.watch("area_id");
+   const costCenterAreaId = isAdministrator ? selectedAreaId : areaId;
+
+   const { GetCostCenters } = useCostCenters(
+      companyId && costCenterAreaId
+         ? { company_id: companyId, area_id: costCenterAreaId }
+         : undefined,
+   );
 
    const priorityLevelId = methods.watch("priority_level");
    const observations = methods.watch("observations");
@@ -95,31 +94,24 @@ export const PurchaseRequestFormBlock = ({
       (selectedOrigen === "ServiceOrder" && !selectedServiceOrder),
    );
 
-   const costCenterOptions = useMemo(
-      () => {
-
-         if (!isAdministrator) {
-
-            if (!GetCostCenters?.data) return [];
-
-            return GetCostCenters?.data?.map(item => ({
-               label: item.cost_center_name,
-               value: item.cost_center_id
-            }));
-         }
-
-         return costCenters.map((center) => ({
-            label: center.cost_center_name,
-            value: center.cost_center_id,
-         }))
-      },
-      [costCenters, GetCostCenters.data]
+   const isLoadingCostCenters = Boolean(
+      costCenterAreaId && (GetCostCenters.isPending || GetCostCenters.isFetching),
    );
 
    useEffect(() => {
-      const area = areaOptions.find((item) => item.value === defaults.area_id);
-      setCostCenters(area?.cost_centers ?? []);
-   }, [areaOptions, defaults.area_id]);
+      setSelectedCostCenter(null)
+   }, [costCenterAreaId]);
+
+   const costCenterOptions = useMemo(
+      () => (GetCostCenters.data ?? []).map((item) => ({
+         label: item.cost_center_name,
+         value: item.cost_center_id,
+      })),
+      [GetCostCenters.data]
+   );
+
+   const filteredPriorityOptions = PriorityLevelOptions
+      .filter(priority => PriorityLevelEnum.None.textValue !== priority.textValue);
 
    useImperativeHandle(ref, () => ({
       validate: () => methods.trigger(),
@@ -190,12 +182,8 @@ export const PurchaseRequestFormBlock = ({
                                  placeholder="Seleccione una de las áreas de la empresa"
                                  value={field.value}
                                  onChange={(value) => {
-                                    const [filteredAreas] = areaOptions.filter(
-                                       (area) => area.value === value,
-                                    );
-                                    const filteredCostCenters = filteredAreas?.cost_centers;
-                                    setCostCenters(filteredCostCenters ?? []);
                                     field.onChange(value);
+                                    setSelectedCostCenter(null);
                                  }}
                                  options={areaOptions}
                                  labelClassName={labelClassName}
@@ -208,18 +196,23 @@ export const PurchaseRequestFormBlock = ({
                      </div>
                   )}
 
-                  <div className="min-w-0">
+                  <div className="relative min-w-0">
+
+                     {isLoadingCostCenters && (
+                        <Spinner className="absolute top-10 right-4" size="medium" />
+                     )}
+
                      <Dropdown
                         label="Centro de costo"
-                        isRequired
                         appearance="dark"
                         placeholder="Seleccione un centro de costo"
-                        value={selectedCostCenter}
-                        onChange={(value) => setSelectedCostCenter(value)}
                         options={costCenterOptions ?? []}
                         labelClassName={labelClassName}
                         valueClassName={labelClassName}
                         className={`${dropdownClassName}`}
+                        disabled={isLoadingCostCenters || costCenterOptions.length === 0}
+                        value={selectedCostCenter}
+                        onChange={(value) => setSelectedCostCenter(value)}
                      />
                   </div>
 
@@ -229,9 +222,9 @@ export const PurchaseRequestFormBlock = ({
                            name="priority_level"
                            control={control}
                            rules={{
-                              required: isRequisition
-                                 ? "El nivel de prioridad es requerida"
-                                 : false,
+                              required: true,
+                              validate: (value) =>
+                                 Number(value) > 0 || "El nivel de prioridad es requerida",
                            }}
                            render={({ field }) => (
                               <Dropdown
@@ -243,7 +236,7 @@ export const PurchaseRequestFormBlock = ({
                                  onChange={(value) => {
                                     field.onChange(value);
                                  }}
-                                 options={PriorityLevelOptions ?? []}
+                                 options={filteredPriorityOptions ?? []}
                                  labelClassName={labelClassName}
                                  valueClassName={labelClassName}
                                  className={`${dropdownClassName} `}
@@ -276,7 +269,7 @@ export const PurchaseRequestFormBlock = ({
                                  <RadioButton
                                     id={`suppliesRadiusButton-${index}`}
                                     value={PurchaseRequestDestinationEnum.Internal.textValue}
-                                    label="Insumos"
+                                    label={PurchaseRequestDestinationEnum.Internal.label}
                                     labelPosition="right"
                                     labelClassName={labelClassName}
                                     checked={selectedOrigen === "Internal"}
