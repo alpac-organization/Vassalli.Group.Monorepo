@@ -6,12 +6,12 @@ const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 type RacksColumnsOptions = {
-  onViewDetail: (rack: RackListItemResponse) => void;
+  onViewPositions: (rack: RackListItemResponse) => void;
   lastItemId?: string;
 };
 
 export function getRacksColumns({
-  onViewDetail,
+  onViewPositions,
   lastItemId,
 }: RacksColumnsOptions): TableColumn<RackListItemResponse>[] {
   return [
@@ -31,6 +31,15 @@ export function getRacksColumns({
       render: (item) => item.row_number,
     },
     {
+      key: "positions",
+      label: "Posiciones",
+      render: (item) => (
+        <span>
+          {item.occupied_positions} / {item.total_positions}
+        </span>
+      ),
+    },
+    {
       key: "status",
       label: "Estado",
       render: (item) => <RackStatusBadge value={item.status ?? ""} />,
@@ -42,8 +51,8 @@ export function getRacksColumns({
         <ContextMenu
           items={[
             {
-              label: "Ver detalle",
-              onClick: () => onViewDetail(item),
+              label: "Ver posiciones",
+              onClick: () => onViewPositions(item),
             },
           ]}
           triggerClassName={contextMenuButton}

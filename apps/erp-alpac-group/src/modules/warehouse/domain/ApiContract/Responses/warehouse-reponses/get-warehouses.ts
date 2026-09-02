@@ -3,6 +3,7 @@ export interface WarehouseDto {
   warehouse_name: string | null;
   warehouse_code: string | null;
   is_active: boolean;
+  branch_code: string | null;
   warehouse_type: string | null;
   has_children: boolean;
   sections_count: number;
