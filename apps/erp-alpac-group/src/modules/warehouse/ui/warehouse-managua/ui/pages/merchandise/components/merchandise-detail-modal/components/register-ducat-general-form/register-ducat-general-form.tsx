@@ -1,25 +1,23 @@
-import { useEffect } from "react";
+import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
   Button,
   Checkbox,
-  DatePicker,
-  InputText,
+  Dropdown,
   Textarea,
-  TimePicker,
 } from "@alpac/design-system";
-import { ClipboardCheck, RotateCcw } from "lucide-react";
-import dayjs from "dayjs";
+import { ClipboardCheck, Plus, RotateCcw } from "lucide-react";
 import { useMerchandise } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useMerchandise";
 import type {
-  RegisterDucatGeneralFormProps,
   RegisterDucatGeneralFormValues,
+  RegisterDucatGeneralFormProps,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-ducat-general-form/types/register-ducat-general-form.types";
-import { toApiDate } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/mapping-access-control";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import { baseInputClasses, fieldsGridClasses } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/variants/global-variants";
+import { fieldsGridClasses } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/variants/global-variants";
+import type { GetShippingCompanyResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-shipping-company";
+import { RegisterNavieraModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-naviera-modal/register-naviera-modal";
 
 const labelClassName =
   "text-slate-600! dark:text-slate-300! text-[13px]! font-medium!";
@@ -28,40 +26,42 @@ export function RegisterDucatGeneralForm({
   reception_id,
   company_id,
   module_code,
-  defaultContainerNumber,
-  initialStartDate,
-  initialStartTime,
+  startedAt,
+  onSuccess,
+  onError,
 }: RegisterDucatGeneralFormProps) {
   const { getMappedError } = useMappedError();
-  const { alertState, handleCloseAlert, handleRequestError, handleRequestSuccess, AlertComponent } =
+  const { handleCloseAlert, handleRequestError, handleRequestSuccess, AlertComponent } =
     useAlertState();
-  const { CreateDucatRegistry } = useMerchandise();
+
+  const { CreateDucatRegistry, GetShippingCompany } = useMerchandise({
+    payloadGetShippingCompany: { company_id, module_code },
+  });
+  const { data: ShippingCompany } = GetShippingCompany;
+
+  const [isNavieraModalOpen, setIsNavieraModalOpen] = useState(false);
 
   const {
     control,
     handleSubmit,
     reset,
-    formState: { errors },
   } = useForm<RegisterDucatGeneralFormValues>({
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: {
-      container_number: defaultContainerNumber,
-      empresa: "",
+      shipping_company_id: "",
       general_observations: "",
       is_in_transit: false,
-      registered_start_date: initialStartDate,
-      registered_start_time: initialStartTime,
     },
   });
 
-  useEffect(() => {
-    if (!defaultContainerNumber) return;
-    reset((current) => ({
-      ...current,
-      container_number: defaultContainerNumber,
+  const shippingOptions = useMemo<{ value: string; label: string }[]>(() => {
+    if (!Array.isArray(ShippingCompany)) return [];
+    return ShippingCompany.map((company: GetShippingCompanyResponse) => ({
+      value: company.id,
+      label: company.name,
     }));
-  }, [defaultContainerNumber, reset]);
+  }, [ShippingCompany]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -71,66 +71,66 @@ export function RegisterDucatGeneralForm({
             company_id,
             module_code,
             reception_id,
-            container_number: values.container_number,
-            empresa: values.empresa,
+            shipping_company_id: values.shipping_company_id,
             general_observations: values.general_observations,
             is_in_transit: values.is_in_transit,
-            registered_start_date: toApiDate(values.registered_start_date),
-            registered_start_time: values.registered_start_time
-              ? dayjs(values.registered_start_time as unknown as Date).second(0).format("HH:mm:ss")
-              : undefined,
+            registered_start_date: startedAt?.start_date,
+            registered_start_time: startedAt?.start_time,
           })
             .then(() => {
-              handleRequestSuccess(
-                "Detalle general del DUCA registrado correctamente.",
-              );
+              if (onSuccess) {
+                onSuccess("Detalle general del DUCA registrado correctamente.");
+              } else {
+                handleRequestSuccess("Detalle general del DUCA registrado correctamente.");
+              }
             })
             .catch((error) => {
               const mappedError = getMappedError(error as ApiErrorResponse);
-              handleRequestError(
-                mappedError?.description || "Error al registrar el detalle general del DUCA",
-              );
+              const errorMsg = mappedError?.description || "Error al registrar el detalle general del DUCA";
+              if (onError) {
+                onError(errorMsg);
+              } else {
+                handleRequestError(errorMsg);
+              }
             }),
         )}
         className="flex flex-col gap-4"
       >
         <div className={`min-w-0 pt-1 sm:pt-2 ${fieldsGridClasses}`}>
-          <Controller
-            name="container_number"
-            control={control}
-            rules={{ required: "El número de contenedor es requerido" }}
-            render={({ field }) => (
-              <InputText
-                label="Número de contenedor"
-                labelClassName={labelClassName}
-                isRequired
-                placeholder="Ej. TCNU1234567"
-                value={field.value}
-                onChange={field.onChange}
-                error={errors.container_number?.message}
-                errorVariant="text"
-                className={`${baseInputClasses} h-[42px]! sm:h-[46px]! px-3!`}
-              />
-            )}
-          />
-          <Controller
-            name="empresa"
-            control={control}
-            rules={{ required: "La empresa es requerida" }}
-            render={({ field }) => (
-              <InputText
-                label="Empresa"
-                labelClassName={labelClassName}
-                isRequired
-                placeholder="Empresa del registro"
-                value={field.value}
-                onChange={field.onChange}
-                error={errors.empresa?.message}
-                errorVariant="text"
-                className={`${baseInputClasses} h-[42px]! sm:h-[46px]! px-3!`}
-              />
-            )}
-          />
+          <div className="min-w-0">
+            <Controller
+              name="shipping_company_id"
+              control={control}
+              rules={{ required: "La naviera es requerida" }}
+              render={({ field }) => (
+                <div className="flex items-start gap-2">
+                  <div className="flex-1 min-w-0 relative">
+                    <Dropdown
+                      appearance="dark"
+                      label="Naviera"
+                      labelClassName={labelClassName}
+                      isRequired
+                      placeholder="Seleccione naviera"
+                      options={shippingOptions}
+                      value={field.value}
+                      onChange={field.onChange}
+                      errorVariant="text"
+                    />
+                  </div>
+                  <div className="flex shrink-0 mt-[24px] sm:mt-[26px]">
+                    <Button
+                      type="button"
+                      tooltip="Registrar nueva naviera"
+                      onClick={() => setIsNavieraModalOpen(true)}
+                      icon={<Plus size={16} />}
+                      className="h-[42px]! sm:h-[46px]! w-[42px]! sm:w-[46px]! bg-slate-100! hover:bg-slate-200! dark:bg-[#20242d]! dark:hover:bg-slate-800/80! text-slate-600! dark:text-slate-400! border border-slate-200! dark:border-slate-700! rounded-lg!"
+                    />
+                  </div>
+                </div>
+              )}
+            />
+          </div>
+
           <div className="min-w-0">
             <Controller
               name="general_observations"
@@ -148,35 +148,8 @@ export function RegisterDucatGeneralForm({
               )}
             />
           </div>
-          <Controller
-            name="registered_start_date"
-            control={control}
-            render={({ field }) => (
-              <DatePicker
-                label="Fecha de inicio del registro"
-                labelAbove
-                labelClassName={labelClassName}
-                fieldWidth="large"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-          <Controller
-            name="registered_start_time"
-            control={control}
-            render={({ field }) => (
-              <TimePicker
-                label="Hora de inicio del registro"
-                labelAbove
-                labelClassName={labelClassName}
-                fieldWidth="large"
-                value={field.value}
-                onChange={field.onChange}
-              />
-            )}
-          />
-          <div className="flex items-center">
+
+          <div className="min-w-0 flex items-center pt-2 sm:pt-6">
             <Controller
               name="is_in_transit"
               control={control}
@@ -201,12 +174,9 @@ export function RegisterDucatGeneralForm({
             ariaLabel="Restablecer formulario del detalle general"
             onClick={() => {
               reset({
-                container_number: defaultContainerNumber,
-                empresa: "",
+                shipping_company_id: "",
                 general_observations: "",
                 is_in_transit: false,
-                registered_start_date: initialStartDate,
-                registered_start_time: initialStartTime,
               });
               handleCloseAlert();
             }}
@@ -218,12 +188,20 @@ export function RegisterDucatGeneralForm({
             size="medium"
             label="Registrar detalle general"
             icon={<ClipboardCheck size={16} />}
-            ariaLabel="Registrar detalle general del DUCA"
             isLoading={CreateDucatRegistry.isPending}
-            className="w-full sm:w-auto text-[13px]! text-white! bg-blue-600! hover:bg-blue-700!"
+            className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
           />
         </div>
       </form>
+
+      {isNavieraModalOpen && (
+        <RegisterNavieraModal
+          isOpen={true}
+          company_id={company_id}
+          module_code={module_code}
+          onClose={() => setIsNavieraModalOpen(false)}
+        />
+      )}
 
       {AlertComponent}
     </div>

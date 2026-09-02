@@ -25,15 +25,17 @@ export function FieldWithEye({
             missingMessage={missingMessage}
           />
         </div>
-        <div className="flex shrink-0 mt-[24px] sm:mt-[26px]">
-          <Button
-            type="button"
-            ariaLabel={ariaLabel}
-            onClick={onView}
-            icon={<Eye size={16} />}
-            className={eyeButtonClasses}
-          />
-        </div>
+        {!!value && (
+          <div className="flex shrink-0 mt-[24px] sm:mt-[26px]">
+            <Button
+              type="button"
+              ariaLabel={ariaLabel}
+              onClick={onView}
+              icon={<Eye size={16} />}
+              className={eyeButtonClasses}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

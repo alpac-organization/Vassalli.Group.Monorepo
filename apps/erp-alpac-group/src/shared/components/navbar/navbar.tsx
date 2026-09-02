@@ -1,11 +1,11 @@
 import { ButtonRounded } from "@alpac/design-system";
 import { Bell, LogOut, Settings } from "lucide-react";
-import { useNotificationSidebarStore } from "@app/shared/stores/useNotificationSidebarStore";
 import { useNavigate } from "react-router-dom";
-import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
-import type { NavbarProps } from "./navbar.types";
 import { useNotification } from "@app/shared/hooks/useNotifications";
+import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
+import { useNotificationSidebarStore } from "@app/shared/stores/useNotificationSidebarStore";
 import { NotificationPermissionBanner } from "../notification/notification-banner/notification-banner";
+import type { NavbarProps } from "./navbar.types";
 
 export const Navbar = function ({ user_name, email, urlImage, onLogout, isSettingPage }: NavbarProps) {
 
@@ -29,7 +29,7 @@ export const Navbar = function ({ user_name, email, urlImage, onLogout, isSettin
 
    return (
       <>
-         <nav className="dark:bg-[#272b34] h-24 md:h-28 border-b border-slate-600 flex items-center px-4">
+         <nav className="dark:bg-[#272b34] h-24 md:h-28 border-b border-slate-600 flex items-center px-4 border-t">
             <div className="container max-w-330 flex h-full justify-between items-center m-auto">
 
                {/* Logo area */}

@@ -1,6 +1,8 @@
 import { cleanParams } from "@app/shared/utils/object.utils";
 import type { IHttpHandler } from "@app/core/ports";
 import type { IProductServices } from "../../application/interfaces/IProductServices";
+import type { CreateProductCategoryRequest } from "../../domain/ApiContract/Requests/product-category/create-product-category.request";
+import type { CreateProductCategoryResponse } from "../../domain/ApiContract/Responses/product-category/create-product-category.response";
 import type { GetProductCategoryRequest } from "../../domain/ApiContract/Requests/product-category/get-product-category.request";
 import type { GetProductCategoryResponse } from "../../domain/ApiContract/Responses/product-category/get-product-category.response";
 import type { GetProductRequest } from "../../domain/ApiContract/Requests/product/get-product.request";
@@ -60,6 +62,17 @@ export class ProductServices implements IProductServices {
 
       const response = await this.apiHandler.post<CreateProductResponse>(url, rest);
 
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async CreateProductCategory(payload: CreateProductCategoryRequest): Promise<CreateProductCategoryResponse> {
+    try {
+      const { company_id, module_code, ...rest } = payload;
+      const url = `companies/${company_id}/modules/${module_code}/category-products`;
+      const response = await this.apiHandler.post<CreateProductCategoryResponse>(url, rest);
       return response;
     } catch (error) {
       throw error;

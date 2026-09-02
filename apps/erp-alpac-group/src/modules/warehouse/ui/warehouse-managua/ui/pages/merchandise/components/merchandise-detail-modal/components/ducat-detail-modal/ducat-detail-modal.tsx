@@ -49,9 +49,17 @@ export function DucatDetailModal({
   const statusLabel = ducat ? getDucaStatusBadgeLabel(ducat.status ?? "") : "";
   const statusClass = ducat ? getDucaStatusBadgeClass(ducat.status ?? "") : "";
 
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (!isOpen) {
       setViewingTextField(null);
+    }
+  }
+
+  useEffect(() => {
+    if (!isOpen) {
       return;
     }
 
@@ -94,7 +102,12 @@ export function DucatDetailModal({
         {!values ? null : (
           <div className="flex flex-col flex-1 min-h-0 gap-4 max-md:overflow-hidden md:overflow-visible">
             <div className={`flex-1 min-h-0 ${mobileOnlyScrollClasses}`}>
-              <div className="flex w-full flex-wrap items-center justify-end gap-2 mb-4 sm:mb-5">
+              <div className="flex w-full flex-wrap items-center justify-between gap-2 mb-4 sm:mb-5">
+                <Badges
+                  label={`DUCA: ${values.ducatNumber}`}
+                  color="transparent"
+                  className="bg-blue-50! dark:bg-blue-500/10! text-blue-700! dark:text-blue-300! border! border-blue-200! dark:border-blue-500/30!"
+                />
                 <Badges
                   label={statusLabel}
                   color="transparent"
@@ -227,3 +240,4 @@ export function DucatDetailModal({
     </>
   );
 }
+
