@@ -1,13 +1,8 @@
+import { ArchiveRestoreIcon, TruckIcon } from "lucide-react";
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
-import {
-  ArchiveRestoreIcon,
-  Building2,
-  TruckIcon,
-  UsersIcon,
-  WarehouseIcon,
-} from "lucide-react";
 
 export const getManaguaWarehouseRoutes = () => {
+
   const warehouseManaguaSection: SidebarLink = {
     id: "warehouse-mga",
     label: "Control de Acceso",
@@ -22,31 +17,16 @@ export const getManaguaWarehouseRoutes = () => {
     icon: ArchiveRestoreIcon,
   };
 
-  const warehouseSection12: SidebarLink = {
-    id: "warehouse-crews",
-    label: "Cuadrillas",
-    path: "cuadrillas",
-    icon: UsersIcon,
-  };
-  const warehouseListSection: SidebarLink = {
-    id: "warehouse-list",
-    label: "Lista de bodegas",
-    path: "warehouse",
-    icon: Building2,
-  };
-
-  const BodegaSection: SidebarLink = {
-    id: "warehouse-3d",
-    label: "Bodegas (3D)",
-    path: "bodegas",
-    icon: WarehouseIcon,
+  const MerchandiseUnloadingControl: SidebarLink = {
+    id: "merchandise-unloading",
+    label: "Descarge de Mercancía",
+    path: "merchandise-unloading",
+    icon: ArchiveRestoreIcon,
   };
 
   return {
     warehouseManaguaSection,
     DucaPanel,
-    warehouseListSection,
-    BodegaSection,
-    warehouseSection12,
+    MerchandiseUnloadingControl,
   };
 };

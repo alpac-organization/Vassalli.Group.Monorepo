@@ -5,6 +5,7 @@ import { MerchandisePage } from "@app/modules/warehouse/ui/warehouse-managua/ui/
 import { WarehousePage } from "@app/modules/warehouse/ui/view/warehouse/warehouse";
 import { SectionsPage } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/sections";
 import Bodega from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/Bodega";
+import { MerchandiseUnloadingControl } from "@app/modules/warehouse/ui/warehouse-managua/pages/merchandise-unloading-control/merchandise-unloading-control";
 
 export const WarehouseManaguaRouter: RouteObject[] = [
   {
@@ -35,4 +36,8 @@ export const WarehouseManaguaRouter: RouteObject[] = [
     path: "bodegas",
     element: <Bodega />,
   },
+  {
+    path: "merchandise-unloading",
+    element: <MerchandiseUnloadingControl />,
+  }
 ];
