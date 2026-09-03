@@ -14,6 +14,7 @@ export function createSkeletonRow(
     warehouse_name: null,
     warehouse_code: null,
     is_active: false,
+    branch_code: null,
     warehouse_type: null,
     has_children: false,
     sections_count: 0,

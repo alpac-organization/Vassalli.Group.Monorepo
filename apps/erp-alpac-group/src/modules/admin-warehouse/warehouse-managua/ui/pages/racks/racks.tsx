@@ -19,6 +19,8 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { Loader } from "@app/shared/components/loaders/loader";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { RackListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-res";
+import type { GetRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-racks";
+import { filtersToGetRacksParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/filter-racks";
 
 const PAGE_SIZE = 10;
 
@@ -31,61 +33,38 @@ export function RacksPage() {
   const { getMappedError } = useMappedError();
   const { alertState, handleCloseAlert, handleRequestError } = useAlertState();
   const [isRackModalOpen, setIsRackModalOpen] = useState(false);
-  const [selectedRackId, setSelectedRackId] = useState<string | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedRack, setSelectedRack] = useState<RackListItemResponse | null>(
+    null,
+  );
+  const [isPositionsModalOpen, setIsPositionsModalOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] =
     useState<RackFilters>(EMPTY_RACK_FILTERS);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const getRacksPayload = useMemo(
+  const getRacksPayload = useMemo<GetRacksRequest>(
     () => ({
       company_id: companyId,
       module_code: moduleCode,
       section_id: sectionId,
-      level_number: appliedFilters.level ? Number(appliedFilters.level) : null,
-      status: appliedFilters.status || null,
-      usage_profile: appliedFilters.usage || null,
+      ...filtersToGetRacksParams(appliedFilters),
+      page_number: currentPage,
+      page_size: PAGE_SIZE,
     }),
-    [companyId, moduleCode, sectionId, appliedFilters],
+    [companyId, moduleCode, sectionId, appliedFilters, currentPage],
   );
 
-  const getRackDetailPayload = useMemo(
-    () => ({
-      company_id: companyId,
-      module_code: moduleCode,
-      rack_id: selectedRackId ?? "",
-    }),
-    [companyId, moduleCode, selectedRackId],
-  );
-
-  const { GetRacks, GetRackById } = useWarehouseAdmin({
+  const { GetRacks } = useWarehouseAdmin({
     getRacksPayload,
-    getRackDetailPayload,
   });
 
-  const racksData = GetRacks.data?.racks ?? [];
-
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return racksData.slice(start, start + PAGE_SIZE);
-  }, [racksData, currentPage]);
+  const racksData = GetRacks.data?.data ?? [];
+  const totalRecords = GetRacks.data?.total ?? 0;
 
   useEffect(() => {
     if (!GetRacks.isError || !GetRacks.error) return;
     const mappedError = getMappedError(GetRacks.error as ApiErrorResponse);
     handleRequestError(mappedError.description);
   }, [GetRacks.isError, GetRacks.error, getMappedError, handleRequestError]);
-
-  useEffect(() => {
-    if (!GetRackById.isError || !GetRackById.error) return;
-    const mappedError = getMappedError(GetRackById.error as ApiErrorResponse);
-    handleRequestError(mappedError.description);
-  }, [
-    GetRackById.isError,
-    GetRackById.error,
-    getMappedError,
-    handleRequestError,
-  ]);
 
   const handleApplyFilters = useCallback((filters: RackFilters) => {
     setAppliedFilters(filters);
@@ -97,9 +76,9 @@ export function RacksPage() {
     setCurrentPage(1);
   }, []);
 
-  const handleViewDetail = useCallback((rack: RackListItemResponse) => {
-    setSelectedRackId(rack.rack_id);
-    setIsDetailModalOpen(true);
+  const handleViewPositions = useCallback((rack: RackListItemResponse) => {
+    setSelectedRack(rack);
+    setIsPositionsModalOpen(true);
   }, []);
 
   return (
@@ -110,9 +89,7 @@ export function RacksPage() {
       transition={{ duration: 0.5 }}
       className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full"
     >
-      {(GetRacks.isPending || (isDetailModalOpen && GetRackById.isPending)) && (
-        <Loader title="Cargando racks..." />
-      )}
+      {GetRacks.isPending && <Loader title="Cargando racks..." />}
 
       <AnimatedAlertWrapper open={alertState?.open ?? false}>
         <Alert
@@ -153,12 +130,12 @@ export function RacksPage() {
       />
 
       <RacksTable
-        data={paginatedData}
+        data={racksData}
         currentPage={currentPage}
-        totalRecords={racksData.length}
+        totalRecords={totalRecords}
         pageSize={PAGE_SIZE}
         onPageChange={setCurrentPage}
-        onViewDetail={handleViewDetail}
+        onViewPositions={handleViewPositions}
         isFetching={GetRacks.isFetching}
       />
 
@@ -169,12 +146,11 @@ export function RacksPage() {
       />
 
       <RackDetailModal
-        isOpen={isDetailModalOpen}
-        rack={GetRackById.data ?? null}
-        isLoading={GetRackById.isPending}
+        isOpen={isPositionsModalOpen}
+        rack={selectedRack}
         onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedRackId(null);
+          setIsPositionsModalOpen(false);
+          setSelectedRack(null);
         }}
       />
     </m.div>
