@@ -38,8 +38,11 @@ function AvatarWithTooltip({
    );
 }
 
-export const PurchaseOrderTableColumns: TableColumn<GetPurchaseOrdersResponse>[] =
-   [
+export function getPurchaseOrderTableColumns(
+   onViewDetail?: (row: GetPurchaseOrdersResponse) => void
+): TableColumn<GetPurchaseOrdersResponse>[] {
+
+   return [
       {
          key: "sent_by",
          label: "Enviado por",
@@ -87,7 +90,7 @@ export const PurchaseOrderTableColumns: TableColumn<GetPurchaseOrdersResponse>[]
             const items: ContextMenuItem[] = [
                {
                   label: "Ver detalle",
-                  onClick: () => console.log(row),
+                  onClick: () => onViewDetail?.(row),
                },
             ];
 
@@ -100,3 +103,4 @@ export const PurchaseOrderTableColumns: TableColumn<GetPurchaseOrdersResponse>[]
          },
       },
    ];
+}

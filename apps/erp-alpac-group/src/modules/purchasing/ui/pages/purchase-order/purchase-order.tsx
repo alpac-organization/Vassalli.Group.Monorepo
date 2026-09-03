@@ -17,7 +17,9 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import type { GetPurchaseOrdersPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-orders-payload";
-import { PurchaseOrderTableColumns } from "./utils/purchase-order-table-columns";
+import { getPurchaseOrderTableColumns } from "./utils/purchase-order-table-columns";
+import type { GetPurchaseOrdersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
+import { PurchaseOrderDetailsModal } from "./components/purchase-order-details-modal/purchase-order-details-modal";
 
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
@@ -33,6 +35,8 @@ export const PurchaseOrder = () => {
 
 	const [selectedAreaId, setSelectedAreaId] = useState("");
 	const [selectedBranchId, setSelectedBranchId] = useState("");
+	const [isPurchaseOrderDetailsOpen, setIsPurchaseOrderDetailsOpen] = useState(false);
+	const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState<GetPurchaseOrdersResponse | null>(null);
 	const [filters, setFilters] = useState<GetPurchaseOrdersPayload>({
 		company_id: companyId,
 		module_code: moduleCode,
@@ -102,6 +106,16 @@ export const PurchaseOrder = () => {
 			page_number: page,
 		}));
 	}, []);
+
+	const onViewDetail = (data: GetPurchaseOrdersResponse) => {
+		setSelectedPurchaseOrder(data);
+		setIsPurchaseOrderDetailsOpen(true);
+	};
+
+	const columnsConfig = useMemo(
+		() => getPurchaseOrderTableColumns(onViewDetail),
+		[onViewDetail]
+	);
 
 	return (
 		<m.div
@@ -206,7 +220,7 @@ export const PurchaseOrder = () => {
 				<DataTable
 					title="Lista de órdenes de compra"
 					data={purchaseOrders}
-					columns={PurchaseOrderTableColumns}
+					columns={columnsConfig}
 					pagination={
 						<Pagination
 							currentPage={currentPage}
@@ -217,6 +231,12 @@ export const PurchaseOrder = () => {
 					}
 				/>
 			</div>
+
+			<PurchaseOrderDetailsModal
+				isOpen={isPurchaseOrderDetailsOpen}
+				onClose={() => setIsPurchaseOrderDetailsOpen(false)}
+				purchaseOrder={selectedPurchaseOrder}
+			/>
 		</m.div>
 	);
 };
