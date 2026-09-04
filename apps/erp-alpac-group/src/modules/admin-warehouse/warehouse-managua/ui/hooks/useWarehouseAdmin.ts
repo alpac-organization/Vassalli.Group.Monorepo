@@ -141,6 +141,7 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
     retry: 1,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-section-lots-records"] });
+      queryClient.invalidateQueries({ queryKey: ["section-layout-entities"] });
       queryClient.invalidateQueries({
         queryKey: ["get-warehouse-section-by-id-records"],
       });
@@ -159,6 +160,7 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
       queryClient.invalidateQueries({
         queryKey: ["get-section-racks-records"],
       });
+      queryClient.invalidateQueries({ queryKey: ["section-layout-entities"] });
       queryClient.invalidateQueries({
         queryKey: ["get-warehouse-section-by-id-records"],
       });

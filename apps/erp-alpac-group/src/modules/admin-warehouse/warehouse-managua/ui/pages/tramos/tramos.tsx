@@ -7,7 +7,8 @@ import { TramosFiltersBar } from "@app/modules/admin-warehouse/warehouse-managua
 import { TramosTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-table/tramos-table";
 import { LotModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/lot-modal";
 import { LotDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-detail-modal/lot-detail-modal";
-import { LayoutBuilder2D, type ExistingEntity, type SpatialDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d";
+import { type ExistingEntity, type SpatialDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d";
+import { SectionContextLayoutBuilder2D } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/section-context-layout-builder-2d";
 import { Button } from "@alpac/design-system";
 import type { FormValues as LotFormValues } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/types/lot-modal.types";
 import { RackStatusEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
@@ -17,11 +18,9 @@ import {
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/utils/lots.utils";
 import type {
   CreateLotsRequest,
-  LotPlacementCommand,
 } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import {
   buildLotLayoutEntity,
-  mapLotsToLayoutEntities,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/utils/layout-entity.mapper";
 import {
   EMPTY_TRAMO_FILTERS,
@@ -37,7 +36,8 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
 import type { GetSectionByIdRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-section-ById";
-import { LAYOUT_FETCH_PAGE_SIZE } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d.constants";
+import { useSectionLayoutEntities } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSectionLayoutEntities";
+import { SectionStorageTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
 
 const PAGE_SIZE = 10;
 const FALLBACK_SECTION_SIZE_METRES = 50;
@@ -72,17 +72,6 @@ export function TramosPage() {
     [companyId, moduleCode, sectionId, appliedFilters, currentPage],
   );
 
-  const getLayoutLotsPayload = useMemo<GetLotsRequest>(
-    () => ({
-      company_id: companyId,
-      module_code: moduleCode,
-      section_id: sectionId,
-      page_number: 1,
-      page_size: LAYOUT_FETCH_PAGE_SIZE,
-    }),
-    [companyId, moduleCode, sectionId],
-  );
-
   const getLotDetailPayload = useMemo(
     () => ({
       company_id: companyId,
@@ -109,36 +98,36 @@ export function TramosPage() {
     getSectionByIdPayload,
   });
 
-  const { GetLots: GetLayoutLots } = useWarehouseAdmin({
-    getLotsPayload: getLayoutLotsPayload,
+  const { entities: layoutEntities } = useSectionLayoutEntities({
+    companyId,
+    moduleCode,
+    sectionId,
+    kind: "lot",
+    sessionEntities,
   });
 
   const tramosData = GetLots.data?.data ?? [];
   const totalRecords = GetLots.data?.total ?? 0;
 
+  const rawSectionWidth = Number(GetSectionById.data?.width_metres);
+  const rawSectionLength = Number(GetSectionById.data?.length_metres);
   const sectionWidthMetres =
-    GetSectionById.data?.width_metres && GetSectionById.data.width_metres > 0
-      ? GetSectionById.data.width_metres
+    rawSectionWidth > 0
+      ? rawSectionWidth
       : FALLBACK_SECTION_SIZE_METRES;
 
   const sectionLengthMetres =
-    GetSectionById.data?.length_metres && GetSectionById.data.length_metres > 0
-      ? GetSectionById.data.length_metres
+    rawSectionLength > 0
+      ? rawSectionLength
       : FALLBACK_SECTION_SIZE_METRES;
 
   const sectionTotalArea = GetSectionById.data?.total_area_m2 ?? 0;
   const sectionUsedArea = GetSectionById.data?.used_area_m2 ?? 0;
   const isSectionFull =
     sectionTotalArea > 0 && sectionUsedArea >= sectionTotalArea;
-
-  const layoutEntities = useMemo(() => {
-    const fromApi = mapLotsToLayoutEntities(GetLayoutLots.data?.data ?? []);
-    const apiNames = new Set(fromApi.map((entity) => entity.name));
-    const pendingSession = sessionEntities.filter(
-      (entity) => !apiNames.has(entity.name),
-    );
-    return [...fromApi, ...pendingSession];
-  }, [GetLayoutLots.data?.data, sessionEntities]);
+  const isCompatibleSection =
+    GetSectionById.data?.storage_type ===
+    SectionStorageTypeEnum.Lots.textValue;
 
   useEffect(() => {
     if (!GetLots.isError || !GetLots.error) return;
@@ -182,7 +171,10 @@ export function TramosPage() {
         ? statusOption.textValue
         : RackStatusEnum.Available.textValue;
 
-      const placement: LotPlacementCommand = {
+      const payload: CreateLotsRequest = {
+        company_id: companyId,
+        module_code: moduleCode,
+        section_id: sectionId,
         code: pendingFormValues.code.trim(),
         width_metres: Number(pendingFormValues.width_metres),
         length_metres: Number(pendingFormValues.length_metres),
@@ -201,21 +193,14 @@ export function TramosPage() {
           : null,
       };
 
-      const payload: CreateLotsRequest = {
-        company_id: companyId,
-        module_code: moduleCode,
-        section_id: sectionId,
-        placements_lots: [placement],
-      };
-
       CreateLots.mutate(payload, {
         onSuccess: () => {
           handleRequestSuccess("Tramo registrado exitosamente.");
           setSessionEntities((current) => [
             ...current,
             buildLotLayoutEntity({
-              id: `session-${placement.code}-${current.length}`,
-              name: placement.code,
+              id: `session-${payload.code}-${current.length}`,
+              name: payload.code,
               spatialDraft,
             }),
           ]);
@@ -281,14 +266,20 @@ export function TramosPage() {
           <Button
             label="Añadir Tramo"
             onClick={() => setIsLotModalOpen(true)}
-            disabled={isSectionFull}
+            disabled={isSectionFull || !isCompatibleSection}
             size="small"
             className="bg-alpac-primary-500 hover:bg-alpac-primary-600 text-white rounded-md px-4 py-2"
           />
         </div>
 
         <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-          {isSectionFull ? (
+          {!isCompatibleSection ? (
+            <Alert
+              type="warning"
+              title="Sección incompatible"
+              message="Solo las secciones de almacenamiento tipo Lots permiten registrar tramos."
+            />
+          ) : isSectionFull ? (
             <Alert
               type="warning"
               title="Sección sin espacio disponible"
@@ -302,9 +293,13 @@ export function TramosPage() {
                 tamaño real de la sección ({sectionWidthMetres.toFixed(1)}m ×{" "}
                 {sectionLengthMetres.toFixed(1)}m).
               </p>
-              <LayoutBuilder2D
-                containerWidthMetres={sectionWidthMetres}
-                containerLengthMetres={sectionLengthMetres}
+              <SectionContextLayoutBuilder2D
+                companyId={companyId}
+                moduleCode={moduleCode}
+                warehouseId={warehouseId}
+                sectionId={sectionId}
+                sectionWidthMetres={sectionWidthMetres}
+                sectionLengthMetres={sectionLengthMetres}
                 entityKind="lot"
                 existingEntities={layoutEntities}
                 placementDraft={placementDraft}

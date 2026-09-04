@@ -84,7 +84,6 @@ export class WarehouseAdminServices implements IWarehouseAdminService {
     const { company_id, module_code, rack_id, ...rest } = payload;
 
     const url = `companies/${company_id}/modules/${module_code}/racks/${rack_id}`;
-
     return await this.apiHandler.get<GetRackDetailResponse>(url, {
       params: cleanParams(rest),
     });

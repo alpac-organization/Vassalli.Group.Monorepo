@@ -24,7 +24,6 @@ import {
   RackUsageProfileOptions,
 } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-usage-profile";
 import {
-  formatAmount,
   validateDecimalNumber,
   validateIntegerNumber,
   validatePositiveNumber,
@@ -59,6 +58,7 @@ export const RackModal = ({
   } = useForm<FormValues>({
     defaultValues: {
       shelf_code: "",
+      rack_count: "1",
       levels: [
         {
           level_number: "1",
@@ -109,6 +109,10 @@ export const RackModal = ({
   }, [baseLength, baseWidth, fields, setValue]);
 
   const handleCreateRacks = (data: FormValues) => {
+    const levelNumbers = data.levels.map((level) => Number(level.level_number));
+    if (new Set(levelNumbers).size !== levelNumbers.length) {
+      return;
+    }
     onSubmit?.(data);
     onClose();
   };
@@ -170,6 +174,25 @@ export const RackModal = ({
               required: "El código del estante es requerido",
             })}
             error={errors.shelf_code?.message}
+          />
+          <InputText
+            label="Cantidad de bases"
+            type="text"
+            inputMode="numeric"
+            isRequired
+            className={inputClassName}
+            labelClassName={labelClassName}
+            {...register("rack_count", {
+              required: "La cantidad es requerida",
+              validate: {
+                validateInteger: (value) =>
+                  !value || validateIntegerNumber(value),
+                validatePositive: (value) =>
+                  !value || validatePositiveNumber(value),
+              },
+              setValueAs: parseDecimal,
+            })}
+            error={errors.rack_count?.message}
           />
         </div>
 
@@ -267,34 +290,6 @@ export const RackModal = ({
                       setValueAs: parseDecimal,
                     })}
                     error={errors.levels?.[index]?.length_metres?.message}
-                  />
-
-                  <InputText
-                    label="Altura (m)"
-                    type="text"
-                    inputMode="decimal"
-                    placeholder="0.00"
-                    isRequired
-                    className={inputClassName}
-                    labelClassName={labelClassName}
-                    {...register(`levels.${index}.height_metres`, {
-                      required: "La altura es requerida para calcular el nivel Y",
-                      validate: {
-                        validateDecimal: (value) =>
-                          !value || validateDecimalNumber(value),
-                        validatePositive: (value) =>
-                          !value || validatePositiveNumber(value),
-                      },
-                      setValueAs: parseDecimal,
-                      onChange: (evt) => {
-                        evt.target.value = formatAmount(
-                          evt.target.value,
-                          10,
-                          2,
-                        );
-                      },
-                    })}
-                    error={errors.levels?.[index]?.height_metres?.message}
                   />
 
                   <Controller

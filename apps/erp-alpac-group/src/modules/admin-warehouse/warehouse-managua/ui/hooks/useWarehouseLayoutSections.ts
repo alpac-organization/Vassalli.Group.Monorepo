@@ -127,9 +127,16 @@ export function useWarehouseLayoutSections({
 
   const entities = useMemo(() => {
     const fromApi = query.data ?? [];
-    const apiNames = new Set(fromApi.map((entity) => entity.name));
+    const apiIdentities = new Set(
+      fromApi.flatMap((entity) => [
+        `id:${entity.id}`,
+        entity.name ? `name:${entity.name}` : "",
+      ]),
+    );
     const pendingSession = sessionEntities.filter(
-      (entity) => !apiNames.has(entity.name),
+      (entity) =>
+        !apiIdentities.has(`id:${entity.id}`) &&
+        (!entity.name || !apiIdentities.has(`name:${entity.name}`)),
     );
     return [...fromApi, ...pendingSession];
   }, [query.data, sessionEntities]);

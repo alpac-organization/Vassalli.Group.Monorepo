@@ -11,7 +11,6 @@ export type RackLevelFormValues = {
   level_number?: string;
   width_metres?: string;
   length_metres?: string;
-  height_metres?: string;
   usage_profile: number;
   max_pulleys?: string;
   status: number;
@@ -20,5 +19,6 @@ export type RackLevelFormValues = {
 
 export type FormValues = {
   shelf_code: string;
+  rack_count?: string;
   levels: RackLevelFormValues[];
 };

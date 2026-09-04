@@ -28,6 +28,7 @@ export const buildSectionLayoutEntity = ({
   position_x: spatialDraft.position_x,
   position_y: spatialDraft.position_y,
   position_z: spatialDraft.position_z,
+  rotation_y: normalizeRotation(spatialDraft.rotation_y),
   width_metres: spatialDraft.width_metres,
   length_metres: spatialDraft.length_metres,
 });
@@ -49,6 +50,7 @@ export const buildLotLayoutEntity = ({
   position_x: spatialDraft.position_x,
   position_y: spatialDraft.position_y,
   position_z: spatialDraft.position_z,
+  rotation_y: normalizeRotation(spatialDraft.rotation_y),
   width_metres: spatialDraft.width_metres,
   length_metres: spatialDraft.length_metres,
 });
@@ -70,6 +72,7 @@ export const buildRackLayoutEntity = ({
   position_x: spatialDraft.position_x,
   position_y: spatialDraft.position_y,
   position_z: spatialDraft.position_z,
+  rotation_y: normalizeRotation(spatialDraft.rotation_y),
   width_metres: spatialDraft.width_metres,
   length_metres: spatialDraft.length_metres,
 });
@@ -124,7 +127,7 @@ const normalizeTransform = (raw: unknown): LayoutTransform3DDto | null => {
   };
 };
 
-const resolveTransform = (
+export const resolveTransform = (
   source: SpatialSource,
 ): LayoutTransform3DDto | null =>
   normalizeTransform(source.transform) ??
@@ -156,12 +159,15 @@ const hasSpatialLayout = (
   );
 };
 
+export const normalizeRotation = (rotationY = 0) =>
+  ((Math.round(rotationY / 90) * 90) % 360 + 360) % 360;
+
 const getFootprintDimensions = (
   widthMetres: number,
   lengthMetres: number,
   rotationY = 0,
 ) => {
-  const normalizedRotation = ((rotationY % 180) + 180) % 180;
+  const normalizedRotation = normalizeRotation(rotationY) % 180;
   const isQuarterTurn = Math.abs(normalizedRotation - 90) < 0.001;
 
   return isQuarterTurn
@@ -199,9 +205,14 @@ export const mapSectionResponseToLayoutEntity = (
     name: section.section_code ?? section.section_name ?? "Sección",
     kind: "section",
     storage_type: storageType?.textValue as ExistingEntity["storage_type"],
+    section_type:
+      section.section_type === "Storage" || section.section_type === "Aisle"
+        ? section.section_type
+        : undefined,
     position_x: transform.position_x,
     position_y: transform.position_y,
     position_z: transform.position_z,
+    rotation_y: normalizeRotation(transform.rotation_y),
     ...dimensions,
   };
 };
@@ -229,6 +240,7 @@ export const mapLotResponseToLayoutEntity = (
     position_x: transform.position_x,
     position_y: transform.position_y,
     position_z: transform.position_z,
+    rotation_y: normalizeRotation(transform.rotation_y),
     ...dimensions,
   };
 };
@@ -256,7 +268,27 @@ export const mapRackResponseToLayoutEntity = (
     position_x: transform.position_x,
     position_y: transform.position_y,
     position_z: transform.position_z,
+    rotation_y: normalizeRotation(transform.rotation_y),
     ...dimensions,
+  };
+};
+
+export const composeSpatialTransform = (
+  parent: LayoutTransform3DDto,
+  child: LayoutTransform3DDto,
+): LayoutTransform3DDto => {
+  const radians = (normalizeRotation(parent.rotation_y) * Math.PI) / 180;
+  return {
+    position_x:
+      parent.position_x +
+      child.position_x * Math.cos(radians) -
+      child.position_z * Math.sin(radians),
+    position_y: parent.position_y + child.position_y,
+    position_z:
+      parent.position_z +
+      child.position_x * Math.sin(radians) +
+      child.position_z * Math.cos(radians),
+    rotation_y: normalizeRotation(parent.rotation_y + child.rotation_y),
   };
 };
 

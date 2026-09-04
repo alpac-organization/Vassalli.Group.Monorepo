@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Layer, Stage } from "react-konva";
+import { Group, Layer, Stage } from "react-konva";
 import useMeasure from "react-use-measure";
 import type { KonvaEventObject } from "konva/lib/Node";
 import { DraftConfirmationPopover } from "./components/draft-confirmation-popover";
@@ -36,6 +36,7 @@ export type {
   LayoutEntityKind,
   PendingDraft,
   SpatialDraft,
+  WarehouseContext,
 } from "./layout-builder-2d.types";
 
 export const LayoutBuilder2D = ({
@@ -46,6 +47,7 @@ export const LayoutBuilder2D = ({
   draftStorageType = null,
   collisionValidator = defaultCollisionValidator,
   placementDraft = null,
+  warehouseContext,
   isSaving = false,
   onPlacementConfirm,
   onPlacementCancel,
@@ -91,8 +93,12 @@ export const LayoutBuilder2D = ({
   const fitView = useCallback(() => {
     if (bounds.width <= 0 || bounds.height <= 0) return;
 
-    const layoutWidth = containerWidthMetres * METERS_TO_PIXELS;
-    const layoutHeight = containerLengthMetres * METERS_TO_PIXELS;
+    const layoutWidth =
+      (warehouseContext?.warehouseWidthMetres ?? containerWidthMetres) *
+      METERS_TO_PIXELS;
+    const layoutHeight =
+      (warehouseContext?.warehouseLengthMetres ?? containerLengthMetres) *
+      METERS_TO_PIXELS;
     const nextScale = Math.max(
       MIN_SCALE,
       Math.min(
@@ -112,6 +118,8 @@ export const LayoutBuilder2D = ({
     bounds.width,
     containerLengthMetres,
     containerWidthMetres,
+    warehouseContext?.warehouseLengthMetres,
+    warehouseContext?.warehouseWidthMetres,
   ]);
 
   useEffect(() => {
@@ -272,7 +280,7 @@ export const LayoutBuilder2D = ({
       height: draftRect.width,
     };
 
-    setRotationY((current) => (current + 90) % 180);
+    setRotationY((current) => (current + 90) % 360);
     setDraftRect(rotatedRect);
     setIsValid(evaluateRect(rotatedRect));
   }, [draftRect, evaluateRect, pendingDraft]);
@@ -394,26 +402,71 @@ export const LayoutBuilder2D = ({
         >
           <Layer listening={false}>
             <GridLayer
-              containerWidthMetres={containerWidthMetres}
-              containerLengthMetres={containerLengthMetres}
+              containerWidthMetres={
+                warehouseContext?.warehouseWidthMetres ?? containerWidthMetres
+              }
+              containerLengthMetres={
+                warehouseContext?.warehouseLengthMetres ??
+                containerLengthMetres
+              }
               scale={scale}
             />
           </Layer>
 
           <Layer listening={false}>
-            <EntitiesLayer entities={existingEntities} scale={scale} />
+            {warehouseContext ? (
+              <>
+                <EntitiesLayer
+                  entities={warehouseContext.sections}
+                  scale={scale}
+                  selectedEntityId={warehouseContext.selectedSectionId}
+                  dimUnselected
+                />
+                <Group
+                  x={
+                    warehouseContext.selectedSectionTransform.position_x *
+                    METERS_TO_PIXELS
+                  }
+                  y={
+                    warehouseContext.selectedSectionTransform.position_z *
+                    METERS_TO_PIXELS
+                  }
+                  rotation={
+                    warehouseContext.selectedSectionTransform.rotation_y
+                  }
+                >
+                  <EntitiesLayer entities={existingEntities} scale={scale} />
+                </Group>
+              </>
+            ) : (
+              <EntitiesLayer entities={existingEntities} scale={scale} />
+            )}
           </Layer>
 
           <Layer listening={tool === "place" && !pendingDraft}>
-            <DraftLayer
-              draftRect={activeDraftRect}
-              isValid={isValid}
-              scale={scale}
-              pointerPosition={null}
-              tool={tool}
-              onDragMove={handleDragMove}
-              onDragEnd={handleDragEnd}
-            />
+            <Group
+              x={
+                (warehouseContext?.selectedSectionTransform.position_x ?? 0) *
+                METERS_TO_PIXELS
+              }
+              y={
+                (warehouseContext?.selectedSectionTransform.position_z ?? 0) *
+                METERS_TO_PIXELS
+              }
+              rotation={
+                warehouseContext?.selectedSectionTransform.rotation_y ?? 0
+              }
+            >
+              <DraftLayer
+                draftRect={activeDraftRect}
+                isValid={isValid}
+                scale={scale}
+                pointerPosition={null}
+                tool={tool}
+                onDragMove={handleDragMove}
+                onDragEnd={handleDragEnd}
+              />
+            </Group>
           </Layer>
         </Stage>
       ) : null}

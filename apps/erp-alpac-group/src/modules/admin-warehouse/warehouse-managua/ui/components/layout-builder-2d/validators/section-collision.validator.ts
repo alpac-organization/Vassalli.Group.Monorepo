@@ -18,8 +18,7 @@ const isGroundLotSection = (entity: ExistingEntity) =>
   (entity.position_y ?? 0) <= 0;
 
 const isElevatedEntity = (entity: ExistingEntity) =>
-  (entity.position_y ?? 0) > 0 ||
-  entity.storage_type === SectionStorageTypeEnum.Racks.textValue;
+  (entity.position_y ?? 0) > 0;
 
 const containsRect = (container: NormalizedRect, child: NormalizedRect) =>
   child.x >= container.x - CONTAINMENT_EPSILON_PX &&
@@ -43,6 +42,14 @@ export const createSectionCollisionValidator = (
       storageType === SectionStorageTypeEnum.Racks.textValue &&
       draftPositionY > 0;
 
+    if (
+      draftPositionY > 0 &&
+      (storageType !== SectionStorageTypeEnum.Racks.textValue ||
+        context.draftKind !== "section")
+    ) {
+      return false;
+    }
+
     let hasSupportingLotSection = false;
 
     for (const entity of existing) {
@@ -52,9 +59,12 @@ export const createSectionCollisionValidator = (
       }
 
       if (isElevatedRackSection) {
-        // Same vertical column as another elevated rack section is allowed.
+        // Elevated racks may only overlap at a distinct base height.
         if (isElevatedEntity(entity)) {
-          continue;
+          if (Math.abs((entity.position_y ?? 0) - draftPositionY) > 0.001) {
+            continue;
+          }
+          return false;
         }
 
         // Must rest fully inside a ground-level Lots section.

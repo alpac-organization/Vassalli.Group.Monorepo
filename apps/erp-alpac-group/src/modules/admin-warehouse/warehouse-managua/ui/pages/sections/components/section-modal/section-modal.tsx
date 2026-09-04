@@ -94,6 +94,8 @@ export const SectionModal = ({
   useEffect(() => {
     if (isAisle) {
       setValue("storage_type", SectionStorageTypeEnum.Empty.value);
+      setValue("is_elevated", false);
+      setValue("position_y_metres", 0);
     }
   }, [isAisle, setValue]);
 
@@ -191,7 +193,6 @@ export const SectionModal = ({
                 options={SectionTypeOptions}
                 value={field.value}
                 appearance="dark"
-                disabled={isAisle}
                 className={dropdownClassName}
                 labelClassName={labelClassName}
                 onChange={(val) => field.onChange(val)}
@@ -209,8 +210,16 @@ export const SectionModal = ({
                 label="Tipo de almacenamiento"
                 placeholder="Seleccione..."
                 isRequired
-                options={SectionStorageTypeOptions}
+                options={
+                  isAisle
+                    ? [SectionStorageTypeEnum.Empty]
+                    : SectionStorageTypeOptions.filter(
+                        (option) =>
+                          option.value !== SectionStorageTypeEnum.Empty.value,
+                      )
+                }
                 value={field.value}
+                disabled={isAisle}
                 appearance="dark"
                 className={dropdownClassName}
                 labelClassName={labelClassName}

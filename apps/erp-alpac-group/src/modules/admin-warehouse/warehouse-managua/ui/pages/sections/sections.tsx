@@ -37,6 +37,7 @@ import type { FormValues } from "@app/modules/admin-warehouse/warehouse-managua/
 import { SectionTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
 import type { GetWarehouseByIdRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouse-by-id.req";
 import type { PlacementDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d.types";
+import { normalizeSectionLayoutRule } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/section-layout-rules";
 
 const PAGE_SIZE = 10;
 const FALLBACK_WAREHOUSE_SIZE_METRES = 50;
@@ -158,6 +159,12 @@ export function SectionsPage() {
       const storageTypeOption = Object.values(SectionStorageTypeEnum).find(
         (option) => option.value === Number(pendingFormValues.storage_type),
       );
+      const normalizedRule = normalizeSectionLayoutRule({
+        sectionType: sectionTypeOption?.textValue ?? SectionTypeEnum.Storage.textValue,
+        storageType: storageTypeOption?.textValue ?? SectionStorageTypeEnum.Empty.textValue,
+        isElevated: pendingFormValues.is_elevated,
+        positionY: spatialDraft.position_y,
+      });
 
       const payload: CreateSectionRequest = {
         company_id: companyId,
@@ -165,13 +172,13 @@ export function SectionsPage() {
         warehouse_id: warehouseId,
         code: pendingFormValues.code,
         name: pendingFormValues.name,
-        section_type: sectionTypeOption ? sectionTypeOption.textValue : SectionTypeEnum.Storage.textValue,
-        storage_type: storageTypeOption ? storageTypeOption.textValue : SectionStorageTypeEnum.Empty.textValue,
+        section_type: normalizedRule.sectionType,
+        storage_type: normalizedRule.storageType,
         width_metres: pendingFormValues.width_metres ?? 0,
         length_metres: pendingFormValues.length_metres ?? 0,
         layout_transform_3d_dto: {
           position_x: spatialDraft.position_x,
-          position_y: spatialDraft.position_y,
+          position_y: normalizedRule.positionY,
           position_z: spatialDraft.position_z,
           rotation_y: spatialDraft.rotation_y ?? 0,
         },
@@ -331,17 +338,24 @@ export function SectionsPage() {
         }}
         onSubmit={(formValues) => {
           setPendingFormValues(formValues);
+          const sectionTypeOption = Object.values(SectionTypeEnum).find(
+            (option) => option.value === Number(formValues.section_type),
+          );
           const storageTypeOption = Object.values(SectionStorageTypeEnum).find(
             (option) => option.value === Number(formValues.storage_type),
           );
-          if (storageTypeOption) setDraftStorageType(storageTypeOption.textValue);
+          const normalizedRule = normalizeSectionLayoutRule({
+            sectionType: sectionTypeOption?.textValue ?? SectionTypeEnum.Storage.textValue,
+            storageType: storageTypeOption?.textValue ?? SectionStorageTypeEnum.Empty.textValue,
+            isElevated: formValues.is_elevated,
+            positionY: formValues.position_y_metres,
+          });
+          setDraftStorageType(normalizedRule.storageType);
 
           setPlacementDraft({
             width_metres: formValues.width_metres ?? 0,
             length_metres: formValues.length_metres ?? 0,
-            position_y: formValues.is_elevated
-              ? (formValues.position_y_metres ?? 0)
-              : 0,
+            position_y: normalizedRule.positionY,
             rotation_y: 0,
           });
         }}

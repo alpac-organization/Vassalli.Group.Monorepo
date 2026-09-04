@@ -11,6 +11,8 @@ import { SectionStorageTypeEnum } from "@app/modules/admin-warehouse/warehouse-m
 interface EntitiesLayerProps {
   entities: ExistingEntity[];
   scale: number;
+  selectedEntityId?: string;
+  dimUnselected?: boolean;
 }
 
 const getEntityStyle = (entity: ExistingEntity) => {
@@ -68,6 +70,8 @@ const getRenderPriority = (entity: ExistingEntity) => {
 export const EntitiesLayer = memo(function EntitiesLayer({
   entities,
   scale,
+  selectedEntityId,
+  dimUnselected = false,
 }: EntitiesLayerProps) {
   const sortedEntities = useMemo(
     () =>
@@ -85,30 +89,43 @@ export const EntitiesLayer = memo(function EntitiesLayer({
         const y = entity.position_z * METERS_TO_PIXELS;
         const width = entity.width_metres * METERS_TO_PIXELS;
         const height = entity.length_metres * METERS_TO_PIXELS;
-        const isElevated =
-          (entity.position_y ?? 0) > 0 || entity.kind === "rack";
-        const dash = "dash" in style ? style.dash : undefined;
+        const isElevated = (entity.position_y ?? 0) > 0;
+        const dash =
+          "dash" in style && Array.isArray(style.dash)
+            ? (style.dash as number[])
+            : undefined;
         const hatchLines = isElevated
           ? buildHatchLines(x, y, width, height, 14 / scale)
           : [];
+        const isSelected = entity.id === selectedEntityId;
+        const opacity = dimUnselected && !isSelected ? 0.38 : 1;
 
         return (
-          <Group key={entity.id} listening={false}>
+          <Group
+            key={entity.id}
+            listening={false}
+            x={x}
+            y={y}
+            rotation={entity.rotation_y ?? 0}
+            opacity={opacity}
+          >
             <Rect
-              x={x}
-              y={y}
+              x={0}
+              y={0}
               width={width}
               height={height}
               fill={style.fill}
-              stroke={style.stroke}
-              strokeWidth={(isElevated ? 2.5 : 2) / scale}
+              stroke={isSelected ? "#f8fafc" : style.stroke}
+              strokeWidth={(isSelected ? 4 : isElevated ? 2.5 : 2) / scale}
               dash={dash ? dash.map((value: number) => value / scale) : undefined}
               cornerRadius={2 / scale}
             />
             {hatchLines.map((points, index) => (
               <Line
                 key={`${entity.id}-hatch-${index}`}
-                points={points}
+                points={points.map((value, pointIndex) =>
+                  pointIndex % 2 === 0 ? value - x : value - y,
+                )}
                 stroke={style.stroke}
                 strokeWidth={1 / scale}
                 opacity={0.35}
@@ -117,8 +134,8 @@ export const EntitiesLayer = memo(function EntitiesLayer({
             ))}
             {entity.name ? (
               <Text
-                x={x + 6 / scale}
-                y={y + 6 / scale}
+                x={6 / scale}
+                y={6 / scale}
                 text={
                   isElevated && entity.kind === "section"
                     ? `${entity.name} (Y: ${entity.position_y?.toFixed(1)}m)`
@@ -130,8 +147,8 @@ export const EntitiesLayer = memo(function EntitiesLayer({
               />
             ) : null}
             <Text
-              x={x + 6 / scale}
-              y={y + height - 18 / scale}
+              x={6 / scale}
+              y={height - 18 / scale}
               text={`${entity.width_metres.toFixed(1)}m × ${entity.length_metres.toFixed(1)}m`}
               fill="#cbd5e1"
               fontSize={10 / scale}

@@ -7,19 +7,19 @@ import { RacksFiltersBar } from "@app/modules/admin-warehouse/warehouse-managua/
 import { RacksTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-table/racks-table";
 import { RackModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-modal/rack-modal";
 import { RackDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-detail-modal/rack-detail-modal";
-import { LayoutBuilder2D, type ExistingEntity, type SpatialDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d";
+import { type ExistingEntity, type SpatialDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d";
+import { SectionContextLayoutBuilder2D } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/section-context-layout-builder-2d";
 import { Button } from "@alpac/design-system";
 import type { FormValues as RackFormValues } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-modal/types/rack-modal.types";
 import { RackStatusEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
 import { RackUsageProfileEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-usage-profile";
-import type { CreateRacksRequest, RackPlacementCommand } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-racks-req";
+import type { CreateRacksRequest, RegisterRackLevelCommand } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-racks-req";
 import type { PlacementDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d.types";
 import {
   isUnavailableStatus,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-modal/utils/rack.utils";
 import {
   buildRackLayoutEntity,
-  mapRacksToLayoutEntities,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/utils/layout-entity.mapper";
 import {
   EMPTY_RACK_FILTERS,
@@ -35,7 +35,8 @@ import type { RackListItemResponse } from "@app/modules/admin-warehouse/warehous
 import type { GetRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-racks";
 import type { GetSectionByIdRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-section-ById";
 import { filtersToGetRacksParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/filter-racks";
-import { LAYOUT_FETCH_PAGE_SIZE } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d.constants";
+import { useSectionLayoutEntities } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSectionLayoutEntities";
+import { SectionStorageTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
 
 const PAGE_SIZE = 10;
 const FALLBACK_SECTION_SIZE_METRES = 50;
@@ -72,20 +73,6 @@ export function RacksPage() {
     [companyId, moduleCode, sectionId, appliedFilters, currentPage],
   );
 
-  const getLayoutRacksPayload = useMemo<GetRacksRequest>(
-    () => ({
-      company_id: companyId,
-      module_code: moduleCode,
-      section_id: sectionId,
-      level_number: 1,
-      usage_profile: null,
-      status: null,
-      page_number: 1,
-      page_size: LAYOUT_FETCH_PAGE_SIZE,
-    }),
-    [companyId, moduleCode, sectionId],
-  );
-
   const getSectionByIdPayload = useMemo<GetSectionByIdRequest>(
     () => ({
       company_id: companyId,
@@ -101,36 +88,36 @@ export function RacksPage() {
     getSectionByIdPayload,
   });
 
-  const { GetRacks: GetLayoutRacks } = useWarehouseAdmin({
-    getRacksPayload: getLayoutRacksPayload,
+  const { entities: layoutEntities } = useSectionLayoutEntities({
+    companyId,
+    moduleCode,
+    sectionId,
+    kind: "rack",
+    sessionEntities,
   });
 
   const racksData = GetRacks.data?.data ?? [];
   const totalRecords = GetRacks.data?.total ?? 0;
 
+  const rawSectionWidth = Number(GetSectionById.data?.width_metres);
+  const rawSectionLength = Number(GetSectionById.data?.length_metres);
   const sectionWidthMetres =
-    GetSectionById.data?.width_metres && GetSectionById.data.width_metres > 0
-      ? GetSectionById.data.width_metres
+    rawSectionWidth > 0
+      ? rawSectionWidth
       : FALLBACK_SECTION_SIZE_METRES;
 
   const sectionLengthMetres =
-    GetSectionById.data?.length_metres && GetSectionById.data.length_metres > 0
-      ? GetSectionById.data.length_metres
+    rawSectionLength > 0
+      ? rawSectionLength
       : FALLBACK_SECTION_SIZE_METRES;
 
   const sectionTotalArea = GetSectionById.data?.total_area_m2 ?? 0;
   const sectionUsedArea = GetSectionById.data?.used_area_m2 ?? 0;
   const isSectionFull =
     sectionTotalArea > 0 && sectionUsedArea >= sectionTotalArea;
-
-  const layoutEntities = useMemo(() => {
-    const fromApi = mapRacksToLayoutEntities(GetLayoutRacks.data?.data ?? []);
-    const apiNames = new Set(fromApi.map((entity) => entity.name));
-    const pendingSession = sessionEntities.filter(
-      (entity) => !apiNames.has(entity.name),
-    );
-    return [...fromApi, ...pendingSession];
-  }, [GetLayoutRacks.data?.data, sessionEntities]);
+  const isCompatibleSection =
+    GetSectionById.data?.storage_type ===
+    SectionStorageTypeEnum.Racks.textValue;
 
   useEffect(() => {
     if (!GetRacks.isError || !GetRacks.error) return;
@@ -173,9 +160,7 @@ export function RacksPage() {
       const baseLength = Number(
         pendingFormValues.levels[0]?.length_metres,
       );
-      let accumulatedHeight = 0;
-
-      const placement_racks: RackPlacementCommand[] = pendingFormValues.levels.map(
+      const levels: RegisterRackLevelCommand[] = pendingFormValues.levels.map(
         (level, index) => {
           const usageProfileOption = Object.values(RackUsageProfileEnum).find(
             (option) => option.value === Number(level.usage_profile),
@@ -183,17 +168,10 @@ export function RacksPage() {
           const statusOption = Object.values(RackStatusEnum).find(
             (option) => option.value === Number(level.status),
           );
-          const heightMetres = Number(level.height_metres);
-          const positionY = accumulatedHeight;
-          accumulatedHeight += heightMetres;
-
           return {
-            code: pendingFormValues.shelf_code ?? "",
             level_number: Number(level.level_number) || index + 1,
-            row_number: 1,
             width_metres: baseWidth,
             length_metres: baseLength,
-            height_metres: heightMetres,
             usage_profile: usageProfileOption
               ? usageProfileOption.textValue
               : RackUsageProfileEnum.ActiveFlow.textValue,
@@ -201,12 +179,6 @@ export function RacksPage() {
             status: statusOption
               ? statusOption.textValue
               : RackStatusEnum.Available.textValue,
-            layout_transform_3d_dto: {
-              position_x: spatialDraft.position_x,
-              position_y: positionY,
-              position_z: spatialDraft.position_z,
-              rotation_y: spatialDraft.rotation_y ?? 0,
-            },
             unavailable_reason: isUnavailableStatus(Number(level.status))
               ? (level.unavailable_reason ?? null)
               : null,
@@ -218,23 +190,44 @@ export function RacksPage() {
         company_id: companyId,
         module_code: moduleCode,
         section_id: sectionId,
-        placement_racks,
+        placements_racks: Array.from(
+          { length: Math.max(1, Number(pendingFormValues.rack_count) || 1) },
+          (_, index) => ({
+            code: `${pendingFormValues.shelf_code?.trim() ?? ""}${
+              Number(pendingFormValues.rack_count) > 1
+                ? `-${String(index + 1).padStart(2, "0")}`
+                : ""
+            }`,
+            layout_transform_3d_dto: {
+              position_x: spatialDraft.position_x + index * baseWidth,
+              position_y: 0,
+              position_z: spatialDraft.position_z,
+              rotation_y: spatialDraft.rotation_y ?? 0,
+            },
+            levels,
+          }),
+        ),
       };
 
       CreateRacks.mutate(payload, {
         onSuccess: () => {
           handleRequestSuccess("Racks registrados exitosamente.");
-          const firstRack = payload.placement_racks[0];
-          if (firstRack?.code) {
-            setSessionEntities((current) => [
-              ...current,
+          setSessionEntities((current) => [
+            ...current,
+            ...payload.placements_racks.map((placement, index) =>
               buildRackLayoutEntity({
-                id: `${firstRack.code}-${current.length}`,
-                name: firstRack.code,
-                spatialDraft,
+                id: `${placement.code}-${current.length + index}`,
+                name: placement.code,
+                spatialDraft: {
+                  ...spatialDraft,
+                  width_metres: baseWidth,
+                  length_metres: baseLength,
+                  position_x: placement.layout_transform_3d_dto.position_x,
+                  position_z: placement.layout_transform_3d_dto.position_z,
+                },
               }),
-            ]);
-          }
+            ),
+          ]);
           setPendingFormValues(null);
           setPlacementDraft(null);
         },
@@ -297,14 +290,20 @@ export function RacksPage() {
           <Button
             label="Añadir Racks"
             onClick={() => setIsRackModalOpen(true)}
-            disabled={isSectionFull}
+            disabled={isSectionFull || !isCompatibleSection}
             size="small"
             className="bg-alpac-primary-500 hover:bg-alpac-primary-600 text-white rounded-md px-4 py-2"
           />
         </div>
 
         <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-          {isSectionFull ? (
+          {!isCompatibleSection ? (
+            <Alert
+              type="warning"
+              title="Sección incompatible"
+              message="Solo las secciones de almacenamiento tipo Racks permiten registrar racks."
+            />
+          ) : isSectionFull ? (
             <Alert
               type="warning"
               title="Sección sin espacio disponible"
@@ -319,9 +318,13 @@ export function RacksPage() {
                 {sectionLengthMetres.toFixed(1)}m). Los niveles adicionales se
                 apilan verticalmente sobre esa base.
               </p>
-              <LayoutBuilder2D
-                containerWidthMetres={sectionWidthMetres}
-                containerLengthMetres={sectionLengthMetres}
+              <SectionContextLayoutBuilder2D
+                companyId={companyId}
+                moduleCode={moduleCode}
+                warehouseId={warehouseId}
+                sectionId={sectionId}
+                sectionWidthMetres={sectionWidthMetres}
+                sectionLengthMetres={sectionLengthMetres}
                 entityKind="rack"
                 existingEntities={layoutEntities}
                 placementDraft={placementDraft}
@@ -360,7 +363,9 @@ export function RacksPage() {
         onSubmit={(formValues) => {
           setPendingFormValues(formValues);
           setPlacementDraft({
-            width_metres: Number(formValues.levels[0]?.width_metres ?? 0),
+            width_metres:
+              Number(formValues.levels[0]?.width_metres ?? 0) *
+              Math.max(1, Number(formValues.rack_count) || 1),
             length_metres: Number(formValues.levels[0]?.length_metres ?? 0),
             rotation_y: 0,
           });

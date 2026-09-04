@@ -14,6 +14,7 @@ export interface ExistingEntity {
   position_x: number;
   position_y?: number;
   position_z: number;
+  rotation_y?: number;
   width_metres: number;
   length_metres: number;
   name?: string;
@@ -62,6 +63,19 @@ export interface PlacementDraft {
 
 export type ToolMode = "pan" | "place";
 
+export interface WarehouseContext {
+  warehouseWidthMetres: number;
+  warehouseLengthMetres: number;
+  sections: ExistingEntity[];
+  selectedSectionId: string;
+  selectedSectionTransform: {
+    position_x: number;
+    position_y: number;
+    position_z: number;
+    rotation_y: number;
+  };
+}
+
 export interface LayoutBuilder2DProps {
   containerWidthMetres: number;
   containerLengthMetres: number;
@@ -70,6 +84,7 @@ export interface LayoutBuilder2DProps {
   draftStorageType?: SectionStorageTypeValue | null;
   collisionValidator?: CollisionValidator;
   placementDraft?: PlacementDraft | null;
+  warehouseContext?: WarehouseContext;
   isSaving?: boolean;
   onPlacementConfirm: (draft: SpatialDraft) => void;
   onPlacementCancel?: () => void;
