@@ -1,6 +1,4 @@
 import {
-   Alert,
-   AnimatedAlertWrapper,
    Breadcrumb,
    Tabs,
    type TabItem,
@@ -22,10 +20,9 @@ export const QuotePage = () => {
    const { branchId } = useUserStore();
 
    const {
-      alertState,
-      handleCloseAlert,
       handleRequestError,
       handleRequestSuccess,
+      AlertComponent
    } = useAlertState();
 
    const tabs: TabItem<string>[] = [
@@ -42,8 +39,7 @@ export const QuotePage = () => {
       },
       {
          id: "monthly-applications",
-         label: "Solicitud de Materiales Mensuales",
-         disabled: true,
+         label: "Solicitudes Mensuales",
          render: () => (
             <MonthlyMaterialsQuoteTab
                currentBranchId={branchId!}
@@ -54,7 +50,7 @@ export const QuotePage = () => {
       },
       {
          id: "occasional-applications",
-         label: "Solicitud de Materiales Eventuales",
+         label: "Solicitudes Eventuales",
          render: () => (
             <OccasionalMaterialsQuoteTab
                currentBranchId={branchId!}
@@ -96,14 +92,7 @@ export const QuotePage = () => {
             <Tabs tabItems={tabs ?? []} activeTab="requisitions" animation="slide" />
          </div>
 
-         <AnimatedAlertWrapper open={alertState?.open ?? false}>
-            <Alert
-               type={alertState?.type!}
-               title={alertState?.title}
-               message={alertState?.message!}
-               onClose={handleCloseAlert}
-            />
-         </AnimatedAlertWrapper>
+         {AlertComponent}
       </m.div>
    );
 };

@@ -26,13 +26,6 @@ const STATUS_BADGE_VARIANTS: Record<
   },
 };
 
-export function getInitials(fullname?: string | null): string {
-  if (!fullname?.trim()) return "?";
-  const parts = fullname.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-}
-
 export function getManagementReviewStatusBadge(
   status: managementReviewStatusType,
 ) {
