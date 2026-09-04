@@ -85,7 +85,8 @@ export const PurchaseRequestDetailModal = ({
 	const {
 		GetPurchaseRequestDetails,
 		GetPurchaseRequestProducts,
-		ProcessPurchaseRequest
+		ProcessPurchaseRequest,
+		GetPurchaseRequestDocument,
 	} = usePurchase({
 		getPurchaseRequestDetailsPayload: {
 			company_id: companyId,
@@ -120,6 +121,9 @@ export const PurchaseRequestDetailModal = ({
 
 	const isProcessing = ProcessPurchaseRequest.isPending;
 
+	const isGeneratingDocument =
+		isGeneratingPurchaseRequestPdf || GetPurchaseRequestDocument.isPending;
+
 	const currentStatus: string =
 		purchaseRequest?.request_status ?? details?.request_status ?? "";
 
@@ -132,11 +136,8 @@ export const PurchaseRequestDetailModal = ({
 	].includes(currentStatus as Exclude<keyof typeof PurchaseRequestStatusEnum, "Pending">);
 
 	const areActionButtonsDisabled = isProcessing || isFinalStatus;
-	const isApproved = currentStatus === PurchaseRequestStatusEnum.Approved.textValue || currentStatus === PurchaseRequestStatusEnum.Revision.textValue;
-
-	const canDownloadPdf = canProcessRequest && isApproved;
 	const showProcessActions = canProcessRequest && !areActionButtonsDisabled;
-	const showFooter = canDownloadPdf || showProcessActions;
+	const showFooter = Boolean(details);
 
 	const openConfirm = (type: ConfirmActionType) => {
 
@@ -162,20 +163,51 @@ export const PurchaseRequestDetailModal = ({
 	}, [confirmModal.type]);
 
 	const handleGeneratePurchaseRequestPdf = async () => {
-		if (!details || !canDownloadPdf) return;
+		if (!details) return;
 
-		try {
-			setIsGeneratingPurchaseRequestPdf(true);
-			const blob = await pdf(
-				<PurchaseRequestPDF data={{ ...details, products }} />,
-			).toBlob();
-			const url = URL.createObjectURL(blob);
-			window.open(url, "_blank");
-		} catch (error) {
-			onRequestError?.("Error al generar el PDF de la solicitud de compra.");
-		} finally {
-			setIsGeneratingPurchaseRequestPdf(false);
+		// El consolidado mensual se genera desde MonthlyMaterialTab.
+		if (details.request_type === PurchaseRequestEnum.Monthly.textValue) {
+			try {
+				setIsGeneratingPurchaseRequestPdf(true);
+				const blob = await pdf(
+					<PurchaseRequestPDF data={{ ...details, products }} />,
+				).toBlob();
+				const url = URL.createObjectURL(blob);
+				window.open(url, "_blank");
+			} catch (error) {
+				onRequestError?.("Error al generar el PDF de la solicitud de compra.");
+			} finally {
+				setIsGeneratingPurchaseRequestPdf(false);
+			}
+			return;
 		}
+
+		const purchaseRequestId = purchaseRequest?.purchase_request_id || details?.purchase_request_id;
+		if (!purchaseRequestId) return;
+
+		const documentTypeValue =
+			details.request_type === PurchaseRequestEnum.Eventual.textValue
+				? PurchaseRequestEnum.Eventual.value
+				: PurchaseRequestEnum.Requisition.value;
+
+		GetPurchaseRequestDocument.mutate(
+			{
+				company_id: companyId,
+				module_code: moduleCode,
+				document_type: documentTypeValue,
+				purchase_request_id: purchaseRequestId,
+			},
+			{
+				onSuccess: (response) => {
+					if (response?.document_url) {
+						window.open(response.document_url, "_blank", "noopener,noreferrer");
+					}
+				},
+				onError: () => {
+					onRequestError?.("Error al generar el documento de la solicitud de compra.");
+				},
+			},
+		);
 	}
 
 	const handleProcessPurchaseRequest = (type: ConfirmActionType, reason?: string) => {
@@ -478,15 +510,15 @@ export const PurchaseRequestDetailModal = ({
 							{showFooter && (
 								<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
 									<div className="flex justify-end gap-3">
-										{canDownloadPdf && (
+										{Boolean(details) && (
 											<Button
 												type="button"
 												label="Descargar PDF"
 												className={pdfButtonClass}
 												icon={<FileTextIcon size={20} />}
 												isHiddenLabelOnMobile
-												disabled={!details || isGeneratingPurchaseRequestPdf}
-												isLoading={isGeneratingPurchaseRequestPdf}
+												disabled={!details || isGeneratingDocument}
+												isLoading={isGeneratingDocument}
 												onClick={handleGeneratePurchaseRequestPdf}
 											/>
 										)}

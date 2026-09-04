@@ -3,14 +3,18 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { PurchaseRequestMainPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import type { GetPurchaseOrderDetailsPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-order-details-payload";
+import type { PurchaseOrderDocumentRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-order-request";
 import type { GetPurchaseOrdersPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-orders-payload";
 import type { GetPurchaseRequestDetailPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-details-payload";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { GetPurchaseRequestProductPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-product-payload";
+import type { GetPurchaseRequestDocumentRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-document-request";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
+import type { PurchaseOrderDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-document-response";
 import type { GetPurchaseOrdersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
+import type { PurchaseRequestDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-document-response";
 import { PurchaseServices } from "@app/modules/purchasing/infrastructure/services/purchase/PurchaseServices"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -137,6 +141,12 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       retry: 1
    });
 
+   const GetPurchaseRequestDocument = useMutation<PurchaseRequestDocumentResponse, ApiErrorResponse, GetPurchaseRequestDocumentRequest>({
+      mutationKey: ["get-purchase-request-document"],
+      mutationFn: (payload: GetPurchaseRequestDocumentRequest) => purchaseServices.GetPurchaseRequestDocument(payload),
+      retry: 1,
+   });
+
    const GetPurchaseOrders = useQuery<GetPurchaseOrdersResponseList, ApiErrorResponse>({
       queryKey: ["get-purchase-orders", getPurchaseOrdersPayload],
       queryFn: () => purchaseServices.GetPurchaseOrders(getPurchaseOrdersPayload!),
@@ -155,10 +165,17 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       retry: 1,
    });
 
+   const GetPurchaseOrderDocument = useMutation<PurchaseOrderDocumentResponse, ApiErrorResponse, PurchaseOrderDocumentRequest>({
+      mutationKey: ["get-purchase-order-document"],
+      mutationFn: (payload: PurchaseOrderDocumentRequest) => purchaseServices.GetPurchaseOrderDocument(payload),
+      retry: 1,
+   });
+
    return {
       GetPurchaseRequests, GetPurchaseRequestDetails,
       CreatePurchaseRequest, ProcessPurchaseRequest, DeletePurchaseRequest,
       SendPurchaseRequestToReview, GetPurchaseRequestProducts,
-      GetPurchaseOrders, GetPurchaseOrderDetails,
+      GetPurchaseOrders, GetPurchaseOrderDetails, GetPurchaseOrderDocument,
+      GetPurchaseRequestDocument,
    }
 }

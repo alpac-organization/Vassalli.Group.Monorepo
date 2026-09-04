@@ -1,5 +1,5 @@
-import { Avatar, Badges, Modal } from "@alpac/design-system";
-import { BuildingIcon, CalendarCheckIcon, CalendarIcon, LayoutListIcon, MailIcon, NotebookTextIcon, UserIcon } from "lucide-react";
+import { Avatar, Badges, Button, Modal } from "@alpac/design-system";
+import { BuildingIcon, CalendarCheckIcon, CalendarIcon, MailIcon, NotebookTextIcon, UserIcon } from "lucide-react";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import type { PurchaseOrderDetailsProps } from "./purchase-order-details-modal.types";
@@ -12,6 +12,8 @@ import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purcha
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
 import { Loader } from "@app/shared/components/loaders/loader";
+import { PurchaseOrderDocumentModal } from "../purchase-order-document-modal/purchase-order-document-modal";
+import { useState } from "react";
 
 const sectionTitleClassName =
    "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
@@ -22,9 +24,12 @@ export const PurchaseOrderDetailsModal = ({
    purchaseOrder,
 }: PurchaseOrderDetailsProps) => {
 
-   const { companyId, moduleCode } = useUserStore();
 
-   const { GetPurchaseOrderDetails } = usePurchase({
+	const { companyId, moduleCode } = useUserStore();
+
+	const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
+
+	const { GetPurchaseOrderDetails } = usePurchase({
       getPurchaseOrderDetailsPayload: {
          company_id: companyId,
          module_code: moduleCode,
@@ -47,6 +52,7 @@ export const PurchaseOrderDetailsModal = ({
    const isLoading = GetPurchaseOrderDetails.isPending || GetPurchaseOrderDetails.isFetching;
 
    return (
+      <>
       <Modal
          isOpen={isOpen}
          onClose={onClose}
@@ -221,6 +227,30 @@ export const PurchaseOrderDetailsModal = ({
                </div>
             </section>
          </div>
+
+         <section className="flex flex-col gap-3">
+            <h4 className={sectionTitleClassName}>Documento</h4>
+            <div className="flex flex-col gap-2">
+               <p className="m-0 text-sm text-slate-600 dark:text-slate-300">
+                  Genere la solicitud del documento de la orden de compra seleccionando el medio de pago.
+               </p>
+               <Button
+                  type="button"
+                  size="giant"
+                  label="Generar documento"
+                  onClick={() => setIsDocumentModalOpen(true)}
+                  className="w-full! rounded-md! bg-alpac-primary-500! text-[15px]! text-white! dark:bg-alpac-primary-700! sm:w-64!"
+               />
+            </div>
+         </section>
+
       </Modal>
+
+      <PurchaseOrderDocumentModal
+         isOpen={isDocumentModalOpen}
+         onClose={() => setIsDocumentModalOpen(false)}
+         purchaseOrderId={purchaseOrder?.purchase_order_id ?? ""}
+      />
+      </>
    );
 };

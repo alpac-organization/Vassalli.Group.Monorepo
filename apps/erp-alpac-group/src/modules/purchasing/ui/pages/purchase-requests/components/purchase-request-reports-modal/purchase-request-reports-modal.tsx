@@ -1,4 +1,4 @@
-import { useEffect, useState, type JSXElementConstructor, type ReactElement } from "react";
+import { useEffect, useState } from "react";
 import { Button, DatePicker, Dropdown, Modal } from "@alpac/design-system";
 import { FileTextIcon } from "lucide-react";
 import dayjs, { type Dayjs } from "dayjs";
@@ -7,10 +7,9 @@ import {
 	PurchaseRequestReportType,
 	type PurchaseRequestReportsModalProps,
 } from "./purchase-request-reports-modal.types";
-import { PurchaseRequestConsolidatedPDF } from "../reports/purchase-request-consolidated-pdf/purchase-request-consolidated-pdf";
-import { pdf, type DocumentProps } from "@react-pdf/renderer";
+import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 
 const primaryButtonClassName =
 	"text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
@@ -26,14 +25,16 @@ export const PurchaseRequestReportsModal = ({
 	isOpen,
 	onClose,
 	onGenerate,
-	isGenerating = false,
 }: PurchaseRequestReportsModalProps) => {
 
-	const { companyAlias, } = useUserStore();
-	const { urlImage } = useCompanyStore();
+	const { companyId, moduleCode } = useUserStore();
+
+	const { GetPurchaseRequestDocument } = usePurchase();
 
 	const [selectedReport, setSelectedReport] = useState<PurchaseRequestReportType | null>(null);
 	const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(null);
+
+	const isLoading = GetPurchaseRequestDocument.isPending;
 
 	useEffect(() => {
 		if (isOpen) return;
@@ -45,10 +46,10 @@ export const PurchaseRequestReportsModal = ({
 	const canGenerate =
 		selectedReport === PurchaseRequestReportType.ConsolidatedProducts &&
 		Boolean(selectedMonth?.isValid()) &&
-		!isGenerating;
+		!isLoading;
 
 	const handleClose = () => {
-		if (isGenerating) return;
+		if (isLoading) return;
 		onClose();
 	};
 
@@ -60,32 +61,26 @@ export const PurchaseRequestReportsModal = ({
 			return;
 		}
 
-		let report: ReactElement<DocumentProps, string | JSXElementConstructor<any>> | undefined = undefined;
-
-		if (selectedReport === PurchaseRequestReportType.ConsolidatedProducts) {
-			report = (<PurchaseRequestConsolidatedPDF
-				companyAlias={companyAlias}
-				logoUrl={urlImage}
-				periodLabel=""
-				data={[]}
-				requestTypeLabel=""
-				requestCount={0}
-				totalQuantity={0}
-			/>);
-		}
-
-		if (!report) {
-			onGenerate("Error al generar el PDF de la solicitud de compra.");
-			return;
-		}
-
-		try {
-			const blob = await pdf(report).toBlob();
-			const url = URL.createObjectURL(blob);
-			window.open(url, "_blank");
-		} catch (error) {
-			onGenerate("Error al generar el PDF de la solicitud de compra.");
-		}
+		GetPurchaseRequestDocument.mutate(
+			{
+				company_id: companyId,
+				module_code: moduleCode,
+				document_type: PurchaseRequestEnum.Monthly.value,
+				month: selectedMonth.month() + 1,
+				year: selectedMonth.year(),
+			},
+			{
+				onSuccess: (response) => {
+					if (response?.document_url) {
+						window.open(response.document_url, "_blank", "noopener,noreferrer");
+					}
+					onClose();
+				},
+				onError: () => {
+					onGenerate("Error al generar el consolidado mensual.");
+				},
+			},
+		);
 	};
 
 	return (
@@ -95,7 +90,7 @@ export const PurchaseRequestReportsModal = ({
 			variant="default"
 			size="lg"
 			title="Reportes"
-			description="Seleccione un reporte para generarlo"
+			description="Seleccione un reporte y el mes a generar"
 		>
 			<div className="flex flex-col gap-4">
 
@@ -136,7 +131,7 @@ export const PurchaseRequestReportsModal = ({
 						size="giant"
 						label="Cancelar"
 						className={secondaryButtonClassName}
-						disabled={isGenerating}
+						disabled={isLoading}
 						onClick={handleClose}
 					/>
 					<Button
@@ -146,7 +141,7 @@ export const PurchaseRequestReportsModal = ({
 						icon={<FileTextIcon size={20} />}
 						className={primaryButtonClassName}
 						disabled={!canGenerate}
-						isLoading={isGenerating}
+						isLoading={isLoading}
 						onClick={handleGenerate}
 					/>
 				</div>
