@@ -12,7 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { GenerateExitAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/generate-exit";
 
 type UseAccessControlProps = {
-  payloadAccessControl: GetAccessControlRequest;
+  payloadAccessControl?: GetAccessControlRequest;
   detailPayload?: GetReceptionEntranceDetailRequest | null;
 };
 
@@ -30,9 +30,9 @@ export const useAccessControl = (props: UseAccessControlProps) => {
   >({
     queryKey: ["access-control", payloadAccessControl],
     queryFn: () =>
-      warehouseManaguaServices.getAccessControl(payloadAccessControl),
+      warehouseManaguaServices.getAccessControl(payloadAccessControl!),
     enabled: Boolean(
-      payloadAccessControl.company_id && payloadAccessControl.module_code,
+      payloadAccessControl?.company_id && payloadAccessControl?.module_code,
     ),
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,

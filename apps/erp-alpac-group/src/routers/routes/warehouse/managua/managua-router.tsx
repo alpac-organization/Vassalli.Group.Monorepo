@@ -6,6 +6,7 @@ import { WarehousePage } from "@app/modules/warehouse/ui/view/warehouse/warehous
 import { SectionsPage } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/sections";
 import Bodega from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/Bodega";
 import { MerchandiseUnloadingControl } from "@app/modules/warehouse/ui/warehouse-managua/pages/merchandise-unloading-control/merchandise-unloading-control";
+import { MerchandiseManagement } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise-management/merchandise-management";
 
 export const WarehouseManaguaRouter: RouteObject[] = [
   {
@@ -37,7 +38,8 @@ export const WarehouseManaguaRouter: RouteObject[] = [
     element: <Bodega />,
   },
   {
-    path: "merchandise-unloading",
-    element: <MerchandiseUnloadingControl />,
+    path: "merchandise-management",
+    // element: <MerchandiseUnloadingControl />,
+    element: <MerchandiseManagement />
   }
 ];

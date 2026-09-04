@@ -17,16 +17,16 @@ export const getManaguaWarehouseRoutes = () => {
     icon: ArchiveRestoreIcon,
   };
 
-  const MerchandiseUnloadingControl: SidebarLink = {
-    id: "merchandise-unloading",
-    label: "Descarge de Mercancía",
-    path: "merchandise-unloading",
+  const MerchandiseManagement: SidebarLink = {
+    id: "merchandise-management",
+    label: "Gestión de Mercancía",
+    path: "merchandise-management",
     icon: ArchiveRestoreIcon,
   };
 
   return {
     warehouseManaguaSection,
     DucaPanel,
-    MerchandiseUnloadingControl,
+    MerchandiseManagement,
   };
 };

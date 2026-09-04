@@ -1,5 +1,9 @@
 import type { EnumType } from "@app/shared/types/enum.type";
 
+type UnloadingStatusEnumType = EnumType & {
+  textValue: string;
+};
+
 /**
  * Catálogo de estados posibles para el proceso de descarga de mercancía.
  *
@@ -28,45 +32,37 @@ import type { EnumType } from "@app/shared/types/enum.type";
  * console.log(estado.label); // "En Progreso"
  * ```
  */
-export const UnloadingStatus: Record<string, EnumType> = {
+export const UnloadingStatus = {
+  /**
+   * La descarga aún no ha sido iniciada.
+   */
+  Pending: { value: 1, label: "Pendiente", textValue: "Pending" },
 
-    /**
-     * La descarga aún no ha sido iniciada.
-     */
-    Pending: { 
-        value: 1, 
-        label: "Pendiente" 
-    },
+  /**
+   * La descarga se encuentra actualmente en curso.
+   */
+  InProgress: { value: 2, label: "En Progreso", textValue: "InProgress" },
 
-    /**
-     * La descarga se encuentra actualmente en curso.
-     */
-    InProgress: { 
-        value: 2, 
-        label: "En Progreso" 
-    },
+  /**
+   * La descarga fue iniciada pero se encuentra temporalmente detenida.
+   */
+  Paused: { value: 3, label: "Pausado", textValue: "Paused" },
 
-    /**
-     * La descarga fue iniciada pero se encuentra temporalmente detenida.
-     */
-    Paused: { 
-        value: 3, 
-        label: "Pausado" 
-    },
+  /**
+   * La descarga finalizó exitosamente.
+   */
+  Completed: { value: 4, label: "Completado", textValue: "Completed" },
 
-    /**
-     * La descarga finalizó exitosamente.
-     */
-    Completed: { 
-        value: 4, 
-        label: "Completado" 
-    },
+  /**
+   * La descarga fue cancelada y no será completada.
+   */
+  Cancelled: { value: 5, label: "Cancelado", textValue: "Cancelled" },
+} as const satisfies Record<string, UnloadingStatusEnumType>;
 
-    /**
-     * La descarga fue cancelada y no será completada.
-     */
-    Cancelled: { 
-        value: 5, 
-        label: "Cancelado" 
-    },
-};
+export type UnloadingStatus =
+  (typeof UnloadingStatus)[keyof typeof UnloadingStatus];
+
+export const UnloadingStatusOptions = Object.values(UnloadingStatus);
+
+export type UnloadingStatusType =
+  (typeof UnloadingStatus)[keyof typeof UnloadingStatus]["textValue"];

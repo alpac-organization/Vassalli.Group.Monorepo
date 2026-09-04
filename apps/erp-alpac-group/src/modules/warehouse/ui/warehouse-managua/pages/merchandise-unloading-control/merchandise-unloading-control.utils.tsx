@@ -1,8 +1,8 @@
-import { Badges } from "@alpac/design-system";
+import { Badges, ContextMenu } from "@alpac/design-system";
 import type { TableColumn } from "@alpac/design-system";
 import type { Option } from "@alpac/design-system";
 import { UnloadingStatus } from "@app/modules/warehouse/domain/enums/warehouse-managua/unloading-status";
-import type { PendingAssignment } from "@app/modules/warehouse/domain/ApiContract/Responses/merchandise-unloading-responses/get-pending-assignments.response";
+import type { PendingAssignment } from "@app/modules/warehouse/domain/ApiContract/Responses/merchandise-unloading/get-pending-assignments.response";
 
 const FALLBACK_STATUS_BADGE_CLASS =
     "bg-slate-100 text-slate-900 border border-slate-300 dark:bg-slate-600/60 dark:text-slate-200 dark:border-slate-600";
@@ -46,10 +46,21 @@ export const getUnloadingStatusLabel = (status: string | number | null | undefin
 export const getUnloadingStatusOptions = (): Option[] =>
     Object.values(UnloadingStatus).map((entry) => ({ value: entry.value, label: entry.label }));
 
-export const getMerchandiseUnloadingColumns = (): TableColumn<PendingAssignment>[] => [
+const contextMenuButton =
+    "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
+
+type MerchandiseUnloadingColumnsOptions = {
+    onViewDetail: (row: PendingAssignment) => void;
+    lastItemId?: string;
+};
+
+export const getMerchandiseUnloadingColumns = ({
+    onViewDetail,
+    lastItemId,
+}: MerchandiseUnloadingColumnsOptions): TableColumn<PendingAssignment>[] => [
     {
         key: "ducat_number",
-        label: "N°. de ducado",
+        label: "CÓDIGO DUCA",
         render: (row) => row.ducat_number || "—",
     },
     {
@@ -61,12 +72,7 @@ export const getMerchandiseUnloadingColumns = (): TableColumn<PendingAssignment>
         key: "warehouse_name",
         label: "Bodega",
         render: (row) => row.warehouse_name || "—",
-    },
-    {
-        key: "record_entrance_id",
-        label: "Registro de ingreso",
-        render: (row) => row.record_entrance_id || "—",
-    },
+    },    
     {
         key: "unloading_status",
         label: "Estado",
@@ -75,6 +81,22 @@ export const getMerchandiseUnloadingColumns = (): TableColumn<PendingAssignment>
                 label={getUnloadingStatusLabel(row.unloading_status)}
                 color="transparent"
                 className={getUnloadingStatusBadgeClass(row.unloading_status)}
+            />
+        ),
+    },
+    {
+        key: "actions",
+        label: "Acciones",
+        render: (row) => (
+            <ContextMenu
+                items={[
+                    {
+                        label: "Ver detalle",
+                        onClick: () => onViewDetail(row),
+                    },
+                ]}
+                triggerClassName={contextMenuButton}
+                openUpOnMobile={row.assignment_id === lastItemId}
             />
         ),
     },
