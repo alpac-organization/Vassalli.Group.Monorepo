@@ -1,4 +1,5 @@
 import { useState } from "react";
+import dayjs from "dayjs";
 import {
   Button,
 } from "@alpac/design-system";
@@ -58,6 +59,8 @@ export function AssignServiceOrderForm({
               module_code,
               reception_id,
               service_order_id: createdServiceOrder.service_order_id,
+                registered_start_date: dayjs().format("YYYY-MM-DD"),
+                registered_start_time: dayjs().format("HH:mm:ss"),
             })
               .then(() => {
                 onSuccess?.(

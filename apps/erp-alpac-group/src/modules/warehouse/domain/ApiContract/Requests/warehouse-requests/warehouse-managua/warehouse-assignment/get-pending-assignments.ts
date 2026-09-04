@@ -5,6 +5,7 @@ export interface GetPendingAssignmentsRequest {
   page_size?: number;
   driver_name?: string;
   license_plate?: string;
-  document_type?: number; // 1 = DUCA | 2 = CustomsDeclaration
+  document_type?: string;
+  service_order_code?: string;
 }
 

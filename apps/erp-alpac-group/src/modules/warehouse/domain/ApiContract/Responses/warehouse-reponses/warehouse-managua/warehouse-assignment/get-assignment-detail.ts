@@ -18,7 +18,9 @@ export interface MachineryDetailDto {
   operator_name: string | null;
   provider_name: string | null;
   invoice_number: string | null;
-  machinery_description: string | null;
+  machinery_description?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
 }
 
 export interface WarehouseAssignmentDetailResponse {
@@ -28,6 +30,8 @@ export interface WarehouseAssignmentDetailResponse {
   warehouse_name: string;
   ducat_number: string | null;
   service_order_code: string | null;
+  unloading_start_time?: string | null;
+  unloading_end_time?: string | null;
   crews: CrewDetailDto[];
   machineries: MachineryDetailDto[];
 }

@@ -64,10 +64,15 @@ export class WarehouseAssignmentServices implements IWarehouseAssignmentServices
   public async getAssignmentDetail(
     payload: GetAssignmentDetailRequest,
   ): Promise<WarehouseAssignmentDetailResponse> {
-    const { company_id, module_code, reception_id, entrance_ducat_id } = payload;
-    const url = `/companies/${company_id}/modules/${module_code}/warehouse-assignments/${reception_id}`;
+    const {
+      company_id,
+      module_code,
+      reception_id,
+      entrance_ducat_id,
+    } = payload;
+    const id = reception_id;
+    const url = `/companies/${company_id}/modules/${module_code}/warehouse-assignments/${id}`;
     return this.httpHandler.get<WarehouseAssignmentDetailResponse>(url, {
-      // cleanParams excluye undefined automáticamente — si es CustomsDeclaration no se envía el param
       params: cleanParams({ entrance_ducat_id }),
     });
   }

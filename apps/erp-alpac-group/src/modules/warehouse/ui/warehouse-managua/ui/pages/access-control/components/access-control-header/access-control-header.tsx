@@ -22,11 +22,6 @@ export function AccessControlHeader() {
               onClick: (url) => navigate(url),
             },
             {
-              label: "Managua",
-              url: `${baseUrl}/warehouse-mga/access-control`,
-              onClick: (url) => navigate(url),
-            },
-            {
               label: "Control de Acceso",
               url: `${baseUrl}/warehouse-mga/access-control`,
             },

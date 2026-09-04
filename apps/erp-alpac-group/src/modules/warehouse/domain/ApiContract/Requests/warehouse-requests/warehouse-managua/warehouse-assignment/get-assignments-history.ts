@@ -5,5 +5,7 @@ export interface GetAssignmentsHistoryRequest {
   page_size?: number;
   driver_name?: string;
   license_plate?: string;
+  document_type?: string;
+  service_order_code?: string;
 }
 

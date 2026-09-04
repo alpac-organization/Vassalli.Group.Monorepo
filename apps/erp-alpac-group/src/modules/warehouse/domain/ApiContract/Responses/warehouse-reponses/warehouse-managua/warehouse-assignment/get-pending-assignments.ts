@@ -1,19 +1,19 @@
-export interface DucaDto {
-  entrance_ducat_id: string;
-  ducat_number: string;
-  status: string;
-  service_order_code: string;
-  already_assigned: boolean; // false = pendiente de asignar | true = ya asignada
-}
-
 export interface PendingAssignmentDto {
   reception_id: string;
   license_plate: string;
   driver_name: string;
-  entrance_time: string; // ISO 8601
+  entrance_time: string;
   status: string;
   is_consolidated: boolean;
-  ducas: DucaDto[];
+  entrance_ducat_id: string | null;
+  document_type: string;
+  document_number: string;
+  service_order_code: string;
+  assignment_id?: string;
+  warehouse_name?: string;
+  ducat_number?: string | null;
+  unloading_start_time?: string;
+  unloading_end_time?: string;
 }
 
 export interface GetPendingAssignmentsResponse {
@@ -22,4 +22,3 @@ export interface GetPendingAssignmentsResponse {
   page_size: number;
   total: number;
 }
-
