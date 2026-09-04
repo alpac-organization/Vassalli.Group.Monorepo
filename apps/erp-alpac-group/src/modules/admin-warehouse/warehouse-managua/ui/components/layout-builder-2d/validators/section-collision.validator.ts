@@ -4,40 +4,79 @@ import {
   entityToNormalizedRect,
   rectsIntersect,
 } from "../layout-builder-2d.utils";
-import type { CollisionValidator } from "../layout-builder-2d.types";
+import type {
+  CollisionValidator,
+  ExistingEntity,
+  NormalizedRect,
+} from "../layout-builder-2d.types";
 
-const allowsVerticalStacking = (
-  draftStorageType: SectionStorageTypeValue,
-  existingStorageType: SectionStorageTypeValue,
-) => {
-  const isRacksOverLots =
-    draftStorageType === SectionStorageTypeEnum.Racks.textValue &&
-    existingStorageType === SectionStorageTypeEnum.Lots.textValue;
+/** Snap/float tolerance so a rack that sits on a lot is not rejected by 1px edges. */
+const CONTAINMENT_EPSILON_PX = 2;
 
-  const isLotsUnderRacks =
-    draftStorageType === SectionStorageTypeEnum.Lots.textValue &&
-    existingStorageType === SectionStorageTypeEnum.Racks.textValue;
+const isGroundLotSection = (entity: ExistingEntity) =>
+  entity.storage_type === SectionStorageTypeEnum.Lots.textValue &&
+  (entity.position_y ?? 0) <= 0;
 
-  return isRacksOverLots || isLotsUnderRacks;
-};
+const isElevatedEntity = (entity: ExistingEntity) =>
+  (entity.position_y ?? 0) > 0 ||
+  entity.storage_type === SectionStorageTypeEnum.Racks.textValue;
 
+const containsRect = (container: NormalizedRect, child: NormalizedRect) =>
+  child.x >= container.x - CONTAINMENT_EPSILON_PX &&
+  child.y >= container.y - CONTAINMENT_EPSILON_PX &&
+  child.x + child.width <= container.x + container.width + CONTAINMENT_EPSILON_PX &&
+  child.y + child.height <=
+    container.y + container.height + CONTAINMENT_EPSILON_PX;
+
+/**
+ * Floor sections cannot overlap each other.
+ * Elevated rack sections may sit on top of a ground Lots section (must fit inside it)
+ * and may share footprint with other elevated rack sections (different Y / stacking).
+ */
 export const createSectionCollisionValidator = (
   draftStorageType: SectionStorageTypeValue | null,
 ): CollisionValidator => {
-  return (draft, existing) => {
+  return (draft, existing, context) => {
+    const storageType = context.draftStorageType ?? draftStorageType;
+    const draftPositionY = context.draftPositionY ?? 0;
+    const isElevatedRackSection =
+      storageType === SectionStorageTypeEnum.Racks.textValue &&
+      draftPositionY > 0;
+
+    let hasSupportingLotSection = false;
+
     for (const entity of existing) {
-      if (!rectsIntersect(draft, entityToNormalizedRect(entity))) {
+      const entityRect = entityToNormalizedRect(entity);
+      if (!rectsIntersect(draft, entityRect)) {
         continue;
       }
 
-      if (
-        draftStorageType &&
-        entity.storage_type &&
-        allowsVerticalStacking(draftStorageType, entity.storage_type)
-      ) {
+      if (isElevatedRackSection) {
+        // Same vertical column as another elevated rack section is allowed.
+        if (isElevatedEntity(entity)) {
+          continue;
+        }
+
+        // Must rest fully inside a ground-level Lots section.
+        if (isGroundLotSection(entity) && containsRect(entityRect, draft)) {
+          hasSupportingLotSection = true;
+          continue;
+        }
+
+        // Overlap with aisles / ground non-lot sections is not allowed.
+        return false;
+      }
+
+      // Ground-level draft: may sit under an elevated rack (different height),
+      // but never overlap another ground footprint.
+      if (isElevatedEntity(entity)) {
         continue;
       }
 
+      return false;
+    }
+
+    if (isElevatedRackSection && !hasSupportingLotSection) {
       return false;
     }
 

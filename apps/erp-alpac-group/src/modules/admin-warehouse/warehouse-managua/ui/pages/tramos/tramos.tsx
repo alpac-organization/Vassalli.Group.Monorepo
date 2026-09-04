@@ -8,6 +8,17 @@ import { TramosTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/p
 import { LotModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/lot-modal";
 import { LotDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-detail-modal/lot-detail-modal";
 import { LayoutBuilder2D, type ExistingEntity, type SpatialDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d";
+import { Button } from "@alpac/design-system";
+import type { FormValues as LotFormValues } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/types/lot-modal.types";
+import { RackStatusEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
+import type { PlacementDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d.types";
+import {
+  isUnavailableStatus,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/utils/lots.utils";
+import type {
+  CreateLotsRequest,
+  LotPlacementCommand,
+} from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import {
   buildLotLayoutEntity,
   mapLotsToLayoutEntities,
@@ -26,9 +37,9 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
 import type { GetSectionByIdRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-section-ById";
+import { LAYOUT_FETCH_PAGE_SIZE } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d.constants";
 
 const PAGE_SIZE = 10;
-const LAYOUT_PAGE_SIZE = 10;
 const FALLBACK_SECTION_SIZE_METRES = 50;
 
 export function TramosPage() {
@@ -38,9 +49,10 @@ export function TramosPage() {
   }>();
   const { companyId, moduleCode } = useUserStore();
   const { getMappedError } = useMappedError();
-  const { alertState, handleCloseAlert, handleRequestError } = useAlertState();
+  const { alertState, handleCloseAlert, handleRequestError, handleRequestSuccess } = useAlertState();
   const [isLotModalOpen, setIsLotModalOpen] = useState(false);
-  const [spatialDraft, setSpatialDraft] = useState<SpatialDraft | null>(null);
+  const [pendingFormValues, setPendingFormValues] = useState<LotFormValues | null>(null);
+  const [placementDraft, setPlacementDraft] = useState<PlacementDraft | null>(null);
   const [sessionEntities, setSessionEntities] = useState<ExistingEntity[]>([]);
   const [selectedLotId, setSelectedLotId] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -66,7 +78,7 @@ export function TramosPage() {
       module_code: moduleCode,
       section_id: sectionId,
       page_number: 1,
-      page_size: LAYOUT_PAGE_SIZE,
+      page_size: LAYOUT_FETCH_PAGE_SIZE,
     }),
     [companyId, moduleCode, sectionId],
   );
@@ -91,7 +103,7 @@ export function TramosPage() {
     [companyId, moduleCode, warehouseId, sectionId],
   );
 
-  const { GetLots, GetLotById, GetSectionById } = useWarehouseAdmin({
+  const { GetLots, GetLotById, GetSectionById, CreateLots } = useWarehouseAdmin({
     getLotsPayload,
     getLotDetailPayload,
     getSectionByIdPayload,
@@ -160,21 +172,63 @@ export function TramosPage() {
   }, []);
 
   const handleLotCreated = useCallback(
-    (code: string) => {
-      if (!spatialDraft) {
-        return;
-      }
+    (spatialDraft: SpatialDraft) => {
+      if (!pendingFormValues) return;
 
-      setSessionEntities((current) => [
-        ...current,
-        buildLotLayoutEntity({
-          id: `session-${code}-${current.length}`,
-          name: code,
-          spatialDraft,
-        }),
-      ]);
+      const statusOption = Object.values(RackStatusEnum).find(
+        (option) => option.value === Number(pendingFormValues.status),
+      );
+      const status = statusOption
+        ? statusOption.textValue
+        : RackStatusEnum.Available.textValue;
+
+      const placement: LotPlacementCommand = {
+        code: pendingFormValues.code.trim(),
+        width_metres: Number(pendingFormValues.width_metres),
+        length_metres: Number(pendingFormValues.length_metres),
+        nominal_rows: Number(pendingFormValues.nominal_rows),
+        nominal_columns: Number(pendingFormValues.nominal_columns),
+        allows_stacking: pendingFormValues.allows_stacking,
+        status,
+        layout_transform_3d_dto: {
+          position_x: spatialDraft.position_x,
+          position_y: 0,
+          position_z: spatialDraft.position_z,
+          rotation_y: spatialDraft.rotation_y ?? 0,
+        },
+        unavailable_reason: isUnavailableStatus(Number(pendingFormValues.status))
+          ? (pendingFormValues.unavailable_reason ?? null)
+          : null,
+      };
+
+      const payload: CreateLotsRequest = {
+        company_id: companyId,
+        module_code: moduleCode,
+        section_id: sectionId,
+        placements_lots: [placement],
+      };
+
+      CreateLots.mutate(payload, {
+        onSuccess: () => {
+          handleRequestSuccess("Tramo registrado exitosamente.");
+          setSessionEntities((current) => [
+            ...current,
+            buildLotLayoutEntity({
+              id: `session-${placement.code}-${current.length}`,
+              name: placement.code,
+              spatialDraft,
+            }),
+          ]);
+          setPendingFormValues(null);
+          setPlacementDraft(null);
+        },
+        onError: (error) => {
+          const mappedError = getMappedError(error);
+          handleRequestError(mappedError.description);
+        }
+      });
     },
-    [spatialDraft],
+    [pendingFormValues, companyId, moduleCode, sectionId, CreateLots, handleRequestSuccess, handleRequestError, getMappedError],
   );
 
   const handleViewDetail = useCallback((lot: LotListItemResponse) => {
@@ -195,8 +249,14 @@ export function TramosPage() {
       transition={{ duration: 0.5 }}
       className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full"
     >
-      {(GetLots.isPending || GetSectionById.isPending) && (
-        <Loader title="Cargando tramos..." />
+      {(GetLots.isPending || GetSectionById.isPending || CreateLots.isPending) && (
+        <Loader
+          title={
+            CreateLots.isPending
+              ? "Registrando tramos..."
+              : "Cargando tramos..."
+          }
+        />
       )}
 
       <AnimatedAlertWrapper open={alertState?.open ?? false}>
@@ -218,6 +278,13 @@ export function TramosPage() {
               Registre nuevos tramos
             </small>
           </div>
+          <Button
+            label="Añadir Tramo"
+            onClick={() => setIsLotModalOpen(true)}
+            disabled={isSectionFull}
+            size="small"
+            className="bg-alpac-primary-500 hover:bg-alpac-primary-600 text-white rounded-md px-4 py-2"
+          />
         </div>
 
         <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
@@ -230,7 +297,7 @@ export function TramosPage() {
           ) : (
             <>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
-                Dibuje el tramo dentro de la sección
+                Primero añada el tramo y luego ubíquelo dentro de la sección
                 {sectionLabel ? ` (${sectionLabel})` : ""}. El plano usa el
                 tamaño real de la sección ({sectionWidthMetres.toFixed(1)}m ×{" "}
                 {sectionLengthMetres.toFixed(1)}m).
@@ -240,9 +307,12 @@ export function TramosPage() {
                 containerLengthMetres={sectionLengthMetres}
                 entityKind="lot"
                 existingEntities={layoutEntities}
-                onDrawComplete={(draft) => {
-                  setSpatialDraft(draft);
-                  setIsLotModalOpen(true);
+                placementDraft={placementDraft}
+                isSaving={CreateLots.isPending}
+                onPlacementConfirm={handleLotCreated}
+                onPlacementCancel={() => {
+                  setPendingFormValues(null);
+                  setPlacementDraft(null);
                 }}
               />
             </>
@@ -267,17 +337,16 @@ export function TramosPage() {
 
       <LotModal
         isOpen={isLotModalOpen}
-        sectionId={sectionId}
-        spatialDraft={spatialDraft}
         onClose={() => {
           setIsLotModalOpen(false);
-          setSpatialDraft(null);
         }}
-        onSubmit={(payload) => {
-          const firstLot = payload.placements_lots[0];
-          if (firstLot?.code) {
-            handleLotCreated(firstLot.code);
-          }
+        onSubmit={(formValues) => {
+          setPendingFormValues(formValues);
+          setPlacementDraft({
+            width_metres: Number(formValues.width_metres ?? 0),
+            length_metres: Number(formValues.length_metres ?? 0),
+            rotation_y: 0,
+          });
         }}
       />
 

@@ -12,6 +12,7 @@ export type LayoutEntityKind = "section" | "lot" | "rack";
 export interface ExistingEntity {
   id: string;
   position_x: number;
+  position_y?: number;
   position_z: number;
   width_metres: number;
   length_metres: number;
@@ -38,6 +39,7 @@ export interface NormalizedRect {
 export interface CollisionContext {
   draftStorageType?: SectionStorageTypeValue | null;
   draftKind?: LayoutEntityKind;
+  draftPositionY?: number;
 }
 
 export type CollisionValidator = (
@@ -51,7 +53,14 @@ export interface PendingDraft {
   screenPosition: { x: number; y: number };
 }
 
-export type ToolMode = "draw" | "pan";
+export interface PlacementDraft {
+  width_metres: number;
+  length_metres: number;
+  position_y?: number;
+  rotation_y?: number;
+}
+
+export type ToolMode = "pan" | "place";
 
 export interface LayoutBuilder2DProps {
   containerWidthMetres: number;
@@ -59,9 +68,9 @@ export interface LayoutBuilder2DProps {
   existingEntities?: ExistingEntity[];
   entityKind?: LayoutEntityKind;
   draftStorageType?: SectionStorageTypeValue | null;
-  showStorageTypeSelector?: boolean;
-  storageTypeOptions?: { value: SectionStorageTypeValue; label: string }[];
-  onDraftStorageTypeChange?: (value: SectionStorageTypeValue) => void;
   collisionValidator?: CollisionValidator;
-  onDrawComplete: (draft: SpatialDraft) => void;
+  placementDraft?: PlacementDraft | null;
+  isSaving?: boolean;
+  onPlacementConfirm: (draft: SpatialDraft) => void;
+  onPlacementCancel?: () => void;
 }

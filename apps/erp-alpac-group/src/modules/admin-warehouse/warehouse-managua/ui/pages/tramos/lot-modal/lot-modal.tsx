@@ -8,25 +8,18 @@ import {
   InputText,
   Modal,
 } from "@alpac/design-system";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import type { LotModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/types/lot-modal.types";
 import {
   RackStatusEnum,
   RackStatusOptions,
 } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
-import type {
-  CreateLotsRequest,
-  LotPlacementCommand,
-} from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import {
   validateIntegerNumber,
   validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
 import { getDecimalFieldConfig } from "@app/shared/utils/get-decimal.config";
-import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
-import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
-import { useMappedError } from "@app/shared/hooks/useMappedError";
 import {
   dropdownClassName,
   inputClassName,
@@ -40,26 +33,17 @@ import {
 
 export const LotModal = ({
   isOpen,
-  sectionId,
   spatialDraft,
   onClose,
   onSubmit,
 }: LotModalProps) => {
-  const { companyId, moduleCode } = useUserStore();
-  const { getMappedError } = useMappedError();
-  const {
-    alertState,
-    handleCloseAlert,
-    handleRequestError,
-    handleRequestSuccess,
-  } = useAlertState();
+  const { alertState, handleCloseAlert } = useAlertState();
 
   const {
     control,
     register,
     handleSubmit,
     reset,
-    watch,
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
@@ -70,10 +54,8 @@ export const LotModal = ({
     },
   });
 
-  const statusWatch = watch("status");
+  const statusWatch = useWatch({ control, name: "status" });
   const showUnavailableReason = isUnavailableStatus(Number(statusWatch));
-
-  const { CreateLots } = useWarehouseAdmin();
 
   useEffect(() => {
     if (spatialDraft) {
@@ -83,56 +65,8 @@ export const LotModal = ({
   }, [spatialDraft, setValue]);
 
   const handleCreateLots = (data: FormValues) => {
-    const statusOption = Object.values(RackStatusEnum).find(
-      (option) => option.value === Number(data.status),
-    );
-    const status = statusOption
-      ? statusOption.textValue
-      : RackStatusEnum.Available.textValue;
-
-    const placement: LotPlacementCommand = {
-      code: data.code.trim(),
-      width_metres: Number(data.width_metres),
-      length_metres: Number(data.length_metres),
-      nominal_rows: Number(data.nominal_rows),
-      nominal_columns: Number(data.nominal_columns),
-      allows_stacking: data.allows_stacking,
-      status,
-      layout_transform_3d_dto: spatialDraft
-        ? {
-            position_x: spatialDraft.position_x,
-            position_y: 0,
-            position_z: spatialDraft.position_z,
-            rotation_y: spatialDraft.rotation_y,
-          }
-        : null,
-      unavailable_reason: isUnavailableStatus(Number(data.status))
-        ? (data.unavailable_reason ?? null)
-        : null,
-    };
-
-    const payload: CreateLotsRequest = {
-      company_id: companyId,
-      module_code: moduleCode,
-      section_id: sectionId,
-      placements_lots: [placement],
-    };
-
-    CreateLots.mutate(payload, {
-      onSuccess() {
-        handleRequestSuccess("Tramo registrado exitosamente.");
-        reset();
-        onSubmit?.(payload);
-
-        setTimeout(() => {
-          onClose();
-        }, 1000);
-      },
-      onError(error) {
-        const mappedError = getMappedError(error);
-        handleRequestError(mappedError.description);
-      },
-    });
+    onSubmit?.(data);
+    onClose();
   };
 
   const handleClose = () => {
@@ -154,7 +88,7 @@ export const LotModal = ({
       title="Registro de tramo"
       variant="form"
       size="5xl"
-      description="Complete los datos del tramo dibujado en el plano 2D"
+      description="Defina las medidas del tramo. Después podrá ubicarlo con precisión en el plano."
     >
       <form
         className="flex flex-col gap-5"
@@ -192,7 +126,6 @@ export const LotModal = ({
             inputMode="decimal"
             placeholder="0.00"
             isRequired
-            readOnly
             className={inputClassName}
             labelClassName={labelClassName}
             {...register("width_metres", getDecimalFieldConfig("El ancho es requerido"))}
@@ -205,7 +138,6 @@ export const LotModal = ({
             inputMode="decimal"
             placeholder="0.00"
             isRequired
-            readOnly
             className={inputClassName}
             labelClassName={labelClassName}
             {...register(
@@ -319,9 +251,7 @@ export const LotModal = ({
           <Button
             type="submit"
             size="giant"
-            label="Guardar"
-            isLoading={CreateLots.isPending}
-            disabled={CreateLots.isPending}
+            label="Colocar en plano"
             className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
           />
         </div>

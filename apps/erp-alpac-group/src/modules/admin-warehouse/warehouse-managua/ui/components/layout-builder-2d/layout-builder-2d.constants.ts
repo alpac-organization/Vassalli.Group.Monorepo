@@ -4,6 +4,7 @@ export const METERS_TO_PIXELS = 20;
 export const SNAP_METRES = 0.5;
 export const SNAP_PIXELS = SNAP_METRES * METERS_TO_PIXELS;
 export const MIN_DRAW_METRES = SNAP_METRES;
+export const LAYOUT_FETCH_PAGE_SIZE = 1000;
 
 export const ENTITY_COLORS: Record<
   LayoutEntityKind,

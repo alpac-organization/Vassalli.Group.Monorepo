@@ -7,9 +7,18 @@ export interface SectionResponse {
   section_type: string | number | null;
   storage_type: string | number | null;
   is_active: boolean;
-  width_metres?: number | null;
-  length_metres?: number | null;
+  width_metres?: number | string | null;
+  length_metres?: number | string | null;
+  /** Flat pose fields some list payloads may return */
+  position_x?: number | string | null;
+  position_y?: number | string | null;
+  position_z?: number | string | null;
+  rotation_y?: number | string | null;
+  /** Canonical spatial pose from GET responses */
   transform?: LayoutTransform3DDto | null;
+  /** Alternate keys some API versions may return */
+  layout_transform_3d?: LayoutTransform3DDto | null;
+  layout_transform_3d_dto?: LayoutTransform3DDto | null;
 }
 
 export interface GetSectionsResponse {

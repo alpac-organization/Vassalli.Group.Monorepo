@@ -11,10 +11,7 @@ import {
   type ExistingEntity,
   type SpatialDraft,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d";
-import {
-  buildSectionLayoutEntity,
-  mapSectionsToLayoutEntities,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/utils/layout-entity.mapper";
+import { buildSectionLayoutEntity } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/utils/layout-entity.mapper";
 import { createSectionCollisionValidator } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/validators/section-collision.validator";
 import { SectionStorageTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
 import type { SectionStorageTypeValue } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
@@ -24,6 +21,7 @@ import {
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-filters/types/sections-filters.types";
 import { filtersToGetSectionsParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/filter-sections";
 import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
+import { useWarehouseLayoutSections } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseLayoutSections";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -33,10 +31,14 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { SectionResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
 import type { GetSectionsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-sections-req";
+import type { CreateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-section-req";
+import { Button } from "@alpac/design-system";
+import type { FormValues } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-modal/section-modal.types";
+import { SectionTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
 import type { GetWarehouseByIdRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouse-by-id.req";
+import type { PlacementDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d.types";
 
 const PAGE_SIZE = 10;
-const LAYOUT_PAGE_SIZE = 10;
 const FALLBACK_WAREHOUSE_SIZE_METRES = 50;
 
 export function SectionsPage() {
@@ -45,9 +47,10 @@ export function SectionsPage() {
   const { baseUrl } = useBaseUrl();
   const { companyId, moduleCode } = useUserStore();
   const { getMappedError } = useMappedError();
-  const { alertState, handleCloseAlert, handleRequestError } = useAlertState();
+  const { alertState, handleCloseAlert, handleRequestError, handleRequestSuccess } = useAlertState();
   const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
-  const [spatialDraft, setSpatialDraft] = useState<SpatialDraft | null>(null);
+  const [pendingFormValues, setPendingFormValues] = useState<FormValues | null>(null);
+  const [placementDraft, setPlacementDraft] = useState<PlacementDraft | null>(null);
   const [sessionEntities, setSessionEntities] = useState<ExistingEntity[]>([]);
   const [draftStorageType, setDraftStorageType] = useState<SectionStorageTypeValue>(
     SectionStorageTypeEnum.Lots.textValue,
@@ -69,17 +72,6 @@ export function SectionsPage() {
     [companyId, moduleCode, warehouseId, appliedFilters, currentPage],
   );
 
-  const getLayoutSectionsPayload = useMemo<GetSectionsRequest>(
-    () => ({
-      company_id: companyId,
-      module_code: moduleCode,
-      warehouse_id: warehouseId,
-      page_number: 1,
-      page_size: LAYOUT_PAGE_SIZE,
-    }),
-    [companyId, moduleCode, warehouseId],
-  );
-
   const getWarehouseByIdPayload = useMemo<GetWarehouseByIdRequest>(
     () => ({
       company_id: companyId,
@@ -89,9 +81,15 @@ export function SectionsPage() {
     [companyId, moduleCode, warehouseId],
   );
 
-  const { GetSections } = useWarehouseAdmin({ getSectionsPayload });
-  const { GetSections: GetLayoutSections } = useWarehouseAdmin({
-    getSectionsPayload: getLayoutSectionsPayload,
+  const { GetSections, CreateSection } = useWarehouseAdmin({ getSectionsPayload });
+  const {
+    entities: layoutEntities,
+    isPending: isLayoutPending,
+  } = useWarehouseLayoutSections({
+    companyId,
+    moduleCode,
+    warehouseId,
+    sessionEntities,
   });
   const { GetWarehouseById } = useWarehouse({ getWarehouseByIdPayload });
 
@@ -116,17 +114,6 @@ export function SectionsPage() {
   const occupiedAreaM2 = capacity?.occupied_area_m2 ?? 0;
   const isWarehouseFull =
     usableAreaM2 > 0 && occupiedAreaM2 >= usableAreaM2;
-
-  const layoutEntities = useMemo(() => {
-    const fromApi = mapSectionsToLayoutEntities(
-      GetLayoutSections.data?.data ?? [],
-    );
-    const apiNames = new Set(fromApi.map((entity) => entity.name));
-    const pendingSession = sessionEntities.filter(
-      (entity) => !apiNames.has(entity.name),
-    );
-    return [...fromApi, ...pendingSession];
-  }, [GetLayoutSections.data?.data, sessionEntities]);
 
   useEffect(() => {
     if (!GetSections.isError || !GetSections.error) return;
@@ -155,45 +142,70 @@ export function SectionsPage() {
     setCurrentPage(1);
   }, []);
 
-  const sectionStorageTypeOptions = useMemo(
-    () => [
-      {
-        value: SectionStorageTypeEnum.Lots.textValue,
-        label: SectionStorageTypeEnum.Lots.label,
-      },
-      {
-        value: SectionStorageTypeEnum.Racks.textValue,
-        label: SectionStorageTypeEnum.Racks.label,
-      },
-    ],
-    [],
-  );
-
   const sectionCollisionValidator = useMemo(
     () => createSectionCollisionValidator(draftStorageType),
     [draftStorageType],
   );
 
   const handleSectionCreated = useCallback(
-    (payload: {
-      code: string;
-      storage_type: SectionStorageTypeValue;
-    }) => {
-      if (!spatialDraft) {
-        return;
-      }
+    (spatialDraft: SpatialDraft) => {
+      if (!pendingFormValues) return;
 
-      setSessionEntities((current) => [
-        ...current,
-        buildSectionLayoutEntity({
-          id: `session-${payload.code}-${current.length}`,
-          name: payload.code,
-          spatialDraft,
-          storageType: payload.storage_type,
-        }),
-      ]);
+      const isAisle = Number(pendingFormValues.section_type) === SectionTypeEnum.Aisle.value;
+      const sectionTypeOption = Object.values(SectionTypeEnum).find(
+        (option) => option.value === Number(pendingFormValues.section_type),
+      );
+      const storageTypeOption = Object.values(SectionStorageTypeEnum).find(
+        (option) => option.value === Number(pendingFormValues.storage_type),
+      );
+
+      const payload: CreateSectionRequest = {
+        company_id: companyId,
+        module_code: moduleCode,
+        warehouse_id: warehouseId,
+        code: pendingFormValues.code,
+        name: pendingFormValues.name,
+        section_type: sectionTypeOption ? sectionTypeOption.textValue : SectionTypeEnum.Storage.textValue,
+        storage_type: storageTypeOption ? storageTypeOption.textValue : SectionStorageTypeEnum.Empty.textValue,
+        width_metres: pendingFormValues.width_metres ?? 0,
+        length_metres: pendingFormValues.length_metres ?? 0,
+        layout_transform_3d_dto: {
+          position_x: spatialDraft.position_x,
+          position_y: spatialDraft.position_y,
+          position_z: spatialDraft.position_z,
+          rotation_y: spatialDraft.rotation_y ?? 0,
+        },
+        overflow_capacity: isAisle
+          ? {
+              allows_overflow_storage: pendingFormValues.overflow.allows_overflow_storage,
+              is_overflow_enabled: pendingFormValues.overflow.is_overflow_enabled,
+              max_overflow_polines: pendingFormValues.overflow.max_overflow_polines ?? null,
+            }
+          : null,
+      };
+
+      CreateSection.mutate(payload, {
+        onSuccess: () => {
+          handleRequestSuccess("Sección registrada exitosamente.");
+          setSessionEntities((current) => [
+            ...current,
+            buildSectionLayoutEntity({
+              id: `session-${payload.code}-${current.length}`,
+              name: payload.code,
+              spatialDraft,
+              storageType: payload.storage_type,
+            }),
+          ]);
+          setPendingFormValues(null);
+          setPlacementDraft(null);
+        },
+        onError: (error) => {
+          const mappedError = getMappedError(error);
+          handleRequestError(mappedError.description);
+        }
+      });
     },
-    [spatialDraft],
+    [pendingFormValues, companyId, moduleCode, warehouseId, CreateSection, handleRequestSuccess, handleRequestError, getMappedError],
   );
 
   const handleViewLots = useCallback(
@@ -223,9 +235,16 @@ export function SectionsPage() {
       className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full"
     >
       {(GetSections.isPending ||
-        GetLayoutSections.isPending ||
-        GetWarehouseById.isPending) && (
-        <Loader title="Cargando secciones..." />
+        isLayoutPending ||
+        GetWarehouseById.isPending ||
+        CreateSection.isPending) && (
+        <Loader
+          title={
+            CreateSection.isPending
+              ? "Registrando sección..."
+              : "Cargando secciones..."
+          }
+        />
       )}
 
       {alertState?.open ? (
@@ -249,40 +268,42 @@ export function SectionsPage() {
               Registre una nueva sección
             </small>
           </div>
+          <Button
+            label="Añadir Sección"
+            onClick={() => setIsSectionModalOpen(true)}
+            size="small"
+            className="bg-alpac-primary-500 hover:bg-alpac-primary-600 text-white rounded-md px-4 py-2"
+          />
         </div>
 
         <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
           {isWarehouseFull ? (
             <Alert
               type="warning"
-              title="Bodega sin espacio disponible"
-              message="El área de la bodega ya está completamente ocupada por secciones. No es posible registrar más secciones."
+              title="Superficie de piso ocupada"
+              message="Solo podrá colocar una sección elevada de racks completamente sobre una sección de tramos existente."
             />
-          ) : (
-            <>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                Dibuje la sección en el plano ({warehouseWidthMetres.toFixed(1)}
-                m × {warehouseLengthMetres.toFixed(1)}m). Las secciones de
-                Racks pueden crearse sobre secciones de Tramos. Las demás
-                colisiones no están permitidas.
-              </p>
-              <LayoutBuilder2D
-                containerWidthMetres={warehouseWidthMetres}
-                containerLengthMetres={warehouseLengthMetres}
-                entityKind="section"
-                existingEntities={layoutEntities}
-                draftStorageType={draftStorageType}
-                showStorageTypeSelector
-                storageTypeOptions={sectionStorageTypeOptions}
-                onDraftStorageTypeChange={setDraftStorageType}
-                collisionValidator={sectionCollisionValidator}
-                onDrawComplete={(draft) => {
-                  setSpatialDraft(draft);
-                  setIsSectionModalOpen(true);
-                }}
-              />
-            </>
-          )}
+          ) : null}
+          <p className="mb-4 mt-3 text-sm text-slate-500 dark:text-slate-400">
+            Añada una sección, defina sus medidas y arrástrela a su ubicación
+            exacta ({warehouseWidthMetres.toFixed(1)}m ×{" "}
+            {warehouseLengthMetres.toFixed(1)}m).
+          </p>
+          <LayoutBuilder2D
+            containerWidthMetres={warehouseWidthMetres}
+            containerLengthMetres={warehouseLengthMetres}
+            entityKind="section"
+            existingEntities={layoutEntities}
+            draftStorageType={draftStorageType}
+            placementDraft={placementDraft}
+            isSaving={CreateSection.isPending}
+            collisionValidator={sectionCollisionValidator}
+            onPlacementConfirm={handleSectionCreated}
+            onPlacementCancel={() => {
+              setPendingFormValues(null);
+              setPlacementDraft(null);
+            }}
+          />
         </div>
       </div>
 
@@ -304,17 +325,24 @@ export function SectionsPage() {
 
       <SectionModal
         isOpen={isSectionModalOpen}
-        warehouseId={warehouseId}
-        spatialDraft={spatialDraft}
         defaultStorageType={draftStorageType}
         onClose={() => {
           setIsSectionModalOpen(false);
-          setSpatialDraft(null);
         }}
-        onSubmit={(payload) => {
-          handleSectionCreated({
-            code: payload.code,
-            storage_type: payload.storage_type,
+        onSubmit={(formValues) => {
+          setPendingFormValues(formValues);
+          const storageTypeOption = Object.values(SectionStorageTypeEnum).find(
+            (option) => option.value === Number(formValues.storage_type),
+          );
+          if (storageTypeOption) setDraftStorageType(storageTypeOption.textValue);
+
+          setPlacementDraft({
+            width_metres: formValues.width_metres ?? 0,
+            length_metres: formValues.length_metres ?? 0,
+            position_y: formValues.is_elevated
+              ? (formValues.position_y_metres ?? 0)
+              : 0,
+            rotation_y: 0,
           });
         }}
       />

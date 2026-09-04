@@ -16,13 +16,17 @@ import type {
 } from "./layout-builder-2d.types";
 import {
   defaultCollisionValidator,
-  isValidDrawSize,
   normalizePixelRect,
   pixelRectToSpatialDraft,
   snapToGrid,
   toScreenPosition,
   validateDraftRect,
 } from "./layout-builder-2d.utils";
+
+const VIEW_PADDING = 40;
+const MIN_SCALE = 0.1;
+const MAX_SCALE = 8;
+const MIN_PLACEMENT_SIZE_PX = 72;
 
 export type {
   CollisionContext,
@@ -40,74 +44,29 @@ export const LayoutBuilder2D = ({
   existingEntities = [],
   entityKind,
   draftStorageType = null,
-  showStorageTypeSelector = false,
-  storageTypeOptions = [],
-  onDraftStorageTypeChange,
   collisionValidator = defaultCollisionValidator,
-  onDrawComplete,
+  placementDraft = null,
+  isSaving = false,
+  onPlacementConfirm,
+  onPlacementCancel,
 }: LayoutBuilder2DProps) => {
   const [ref, bounds] = useMeasure();
-  const [tool, setTool] = useState<ToolMode>("draw");
+  const [tool, setTool] = useState<ToolMode>("pan");
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
-  const [isDrawing, setIsDrawing] = useState(false);
   const [draftRect, setDraftRect] = useState<PixelRect | null>(null);
-  const [pointerPosition, setPointerPosition] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
   const [isValid, setIsValid] = useState(true);
   const [pendingDraft, setPendingDraft] = useState<PendingDraft | null>(null);
+  const [rotationY, setRotationY] = useState(0);
 
   const collisionContext = useMemo(
     () => ({
       draftStorageType,
       draftKind: entityKind,
+      draftPositionY: placementDraft?.position_y ?? 0,
     }),
-    [draftStorageType, entityKind],
-  );
-
-  useEffect(() => {
-    if (bounds.width <= 0 || bounds.height <= 0) {
-      return;
-    }
-
-    const layoutPixelWidth = containerWidthMetres * METERS_TO_PIXELS;
-    const layoutPixelHeight = containerLengthMetres * METERS_TO_PIXELS;
-    const scaleX = (bounds.width - 40) / layoutPixelWidth;
-    const scaleY = (bounds.height - 40) / layoutPixelHeight;
-    const initialScale = Math.min(scaleX, scaleY, 2);
-
-    const timeoutId = window.setTimeout(() => {
-      setScale(initialScale);
-      setPosition({
-        x: (bounds.width - layoutPixelWidth * initialScale) / 2,
-        y: (bounds.height - layoutPixelHeight * initialScale) / 2,
-      });
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [bounds.width, bounds.height, containerWidthMetres, containerLengthMetres]);
-
-  const getPointerPosition = useCallback(
-    (event: KonvaEventObject<MouseEvent | TouchEvent>) => {
-      const stage = event.target.getStage();
-      if (!stage) {
-        return null;
-      }
-
-      const pointer = stage.getPointerPosition();
-      if (!pointer) {
-        return null;
-      }
-
-      return {
-        x: (pointer.x - position.x) / scale,
-        y: (pointer.y - position.y) / scale,
-      };
-    },
-    [position.x, position.y, scale],
+    [draftStorageType, entityKind, placementDraft?.position_y],
   );
 
   const evaluateRect = useCallback(
@@ -129,93 +88,232 @@ export const LayoutBuilder2D = ({
     ],
   );
 
-  const resetDraftState = useCallback(() => {
-    setIsDrawing(false);
+  const fitView = useCallback(() => {
+    if (bounds.width <= 0 || bounds.height <= 0) return;
+
+    const layoutWidth = containerWidthMetres * METERS_TO_PIXELS;
+    const layoutHeight = containerLengthMetres * METERS_TO_PIXELS;
+    const nextScale = Math.max(
+      MIN_SCALE,
+      Math.min(
+        (bounds.width - VIEW_PADDING) / layoutWidth,
+        (bounds.height - VIEW_PADDING) / layoutHeight,
+        2,
+      ),
+    );
+
+    setScale(nextScale);
+    setPosition({
+      x: (bounds.width - layoutWidth * nextScale) / 2,
+      y: (bounds.height - layoutHeight * nextScale) / 2,
+    });
+  }, [
+    bounds.height,
+    bounds.width,
+    containerLengthMetres,
+    containerWidthMetres,
+  ]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(fitView, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [fitView]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      if (!placementDraft || bounds.width <= 0 || bounds.height <= 0) {
+        setTool("pan");
+        setDraftRect(null);
+        setPendingDraft(null);
+        setRotationY(0);
+        return;
+      }
+
+      const width = placementDraft.width_metres * METERS_TO_PIXELS;
+      const height = placementDraft.length_metres * METERS_TO_PIXELS;
+      const x = snapToGrid(
+        (containerWidthMetres * METERS_TO_PIXELS - width) / 2,
+      );
+      const y = snapToGrid(
+        (containerLengthMetres * METERS_TO_PIXELS - height) / 2,
+      );
+      const nextRect = { x, y, width, height };
+      const fitScale = Math.min(
+        (bounds.width - VIEW_PADDING) /
+          (containerWidthMetres * METERS_TO_PIXELS),
+        (bounds.height - VIEW_PADDING) /
+          (containerLengthMetres * METERS_TO_PIXELS),
+      );
+      const visibilityScale =
+        MIN_PLACEMENT_SIZE_PX / Math.max(1, Math.min(width, height));
+      const nextScale = Math.min(
+        MAX_SCALE,
+        Math.max(MIN_SCALE, fitScale, visibilityScale),
+      );
+
+      setTool("place");
+      setRotationY(placementDraft.rotation_y ?? 0);
+      setPendingDraft(null);
+      setDraftRect(nextRect);
+      setIsValid(evaluateRect(nextRect));
+      setScale(nextScale);
+      setPosition({
+        x: bounds.width / 2 - (x + width / 2) * nextScale,
+        y: bounds.height / 2 - (y + height / 2) * nextScale,
+      });
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    bounds.height,
+    bounds.width,
+    containerLengthMetres,
+    containerWidthMetres,
+    evaluateRect,
+    placementDraft,
+  ]);
+
+  const clearPlacement = useCallback(() => {
     setDraftRect(null);
-    setPointerPosition(null);
     setPendingDraft(null);
     setIsValid(true);
+    setRotationY(0);
+    setTool("pan");
   }, []);
 
-  const handlePointerDown = (event: KonvaEventObject<MouseEvent | TouchEvent>) => {
-    if (tool !== "draw" || pendingDraft) {
-      return;
-    }
+  const handleDragMove = useCallback(
+    (e: KonvaEventObject<DragEvent>) => {
+      if (tool !== "place" || !draftRect) return;
 
-    const pointer = getPointerPosition(event);
-    if (!pointer) {
-      return;
-    }
+      const snappedX = snapToGrid(e.target.x());
+      const snappedY = snapToGrid(e.target.y());
 
-    setIsDrawing(true);
-    setDraftRect({
-      x: snapToGrid(pointer.x),
-      y: snapToGrid(pointer.y),
-      width: 0,
-      height: 0,
-    });
-    setPointerPosition(pointer);
-    setIsValid(true);
-  };
+      const updatedRect = {
+        ...draftRect,
+        x: snappedX,
+        y: snappedY,
+      };
 
-  const handlePointerMove = (event: KonvaEventObject<MouseEvent | TouchEvent>) => {
-    const pointer = getPointerPosition(event);
-    if (!pointer) {
-      return;
-    }
+      setDraftRect(updatedRect);
+      setIsValid(evaluateRect(updatedRect));
+      e.target.x(snappedX);
+      e.target.y(snappedY);
+    },
+    [tool, draftRect, evaluateRect]
+  );
 
-    if (!isDrawing || !draftRect || tool !== "draw") {
-      return;
-    }
+  const handleDragEnd = useCallback(
+    (e: KonvaEventObject<DragEvent>) => {
+      if (tool !== "place" || !draftRect) return;
 
-    const snappedX = snapToGrid(pointer.x);
-    const snappedY = snapToGrid(pointer.y);
-    const updatedRect: PixelRect = {
-      ...draftRect,
-      width: snappedX - draftRect.x,
-      height: snappedY - draftRect.y,
+      const snappedX = snapToGrid(e.target.x());
+      const snappedY = snapToGrid(e.target.y());
+
+      const updatedRect = {
+        ...draftRect,
+        x: snappedX,
+        y: snappedY,
+      };
+
+      const spatialDraft = pixelRectToSpatialDraft(updatedRect);
+      spatialDraft.position_y = placementDraft?.position_y ?? 0;
+      spatialDraft.rotation_y = rotationY;
+
+      const normalized = normalizePixelRect(updatedRect);
+      const valid = evaluateRect(updatedRect);
+
+      setDraftRect(updatedRect);
+      setIsValid(valid);
+      if (valid) {
+        setTool("pan");
+        setPendingDraft({
+          draft: spatialDraft,
+          screenPosition: {
+            x: Math.min(
+              Math.max(
+                toScreenPosition(normalized, position, scale).x,
+                120,
+              ),
+              Math.max(120, bounds.width - 120),
+            ),
+            y: Math.min(
+              Math.max(
+                toScreenPosition(normalized, position, scale).y,
+                90,
+              ),
+              Math.max(90, bounds.height - 90),
+            ),
+          },
+        });
+      }
+    },
+    [
+      bounds.height,
+      bounds.width,
+      draftRect,
+      evaluateRect,
+      position,
+      placementDraft?.position_y,
+      rotationY,
+      scale,
+      tool,
+    ],
+  );
+
+  const handleRotate = useCallback(() => {
+    if (!draftRect || pendingDraft) return;
+
+    const centerX = draftRect.x + draftRect.width / 2;
+    const centerY = draftRect.y + draftRect.height / 2;
+    const rotatedRect = {
+      x: snapToGrid(centerX - draftRect.height / 2),
+      y: snapToGrid(centerY - draftRect.width / 2),
+      width: draftRect.height,
+      height: draftRect.width,
     };
 
-    setDraftRect(updatedRect);
-    setPointerPosition(pointer);
-    setIsValid(evaluateRect(updatedRect));
-  };
-
-  const handlePointerUp = () => {
-    if (!isDrawing || !draftRect) {
-      return;
-    }
-
-    setIsDrawing(false);
-
-    if (!isValidDrawSize(draftRect)) {
-      resetDraftState();
-      return;
-    }
-
-    const spatialDraft = pixelRectToSpatialDraft(draftRect);
-    const normalized = normalizePixelRect(draftRect);
-    const valid = evaluateRect(draftRect);
-
-    setIsValid(valid);
-    setPendingDraft({
-      draft: spatialDraft,
-      screenPosition: toScreenPosition(normalized, position, scale),
-    });
-  };
+    setRotationY((current) => (current + 90) % 180);
+    setDraftRect(rotatedRect);
+    setIsValid(evaluateRect(rotatedRect));
+  }, [draftRect, evaluateRect, pendingDraft]);
 
   const handleConfirmDraft = () => {
-    if (!pendingDraft || !isValid) {
+    if (!pendingDraft || !isValid || isSaving) {
       return;
     }
 
-    onDrawComplete(pendingDraft.draft);
-    resetDraftState();
+    onPlacementConfirm(pendingDraft.draft);
   };
 
   const handleCancelDraft = () => {
-    resetDraftState();
+    setPendingDraft(null);
+    setTool("place");
   };
+
+  const handleCancelPlacement = () => {
+    clearPlacement();
+    onPlacementCancel?.();
+  };
+
+  const zoomAtCenter = useCallback(
+    (factor: number) => {
+      const nextScale = Math.min(
+        MAX_SCALE,
+        Math.max(MIN_SCALE, scale * factor),
+      );
+      const worldCenter = {
+        x: (bounds.width / 2 - position.x) / scale,
+        y: (bounds.height / 2 - position.y) / scale,
+      };
+
+      setScale(nextScale);
+      setPosition({
+        x: bounds.width / 2 - worldCenter.x * nextScale,
+        y: bounds.height / 2 - worldCenter.y * nextScale,
+      });
+    },
+    [bounds.height, bounds.width, position.x, position.y, scale],
+  );
 
   const handleWheel = (event: KonvaEventObject<WheelEvent>) => {
     event.evt.preventDefault();
@@ -237,7 +335,13 @@ export const LayoutBuilder2D = ({
       y: (pointer.y - stage.y()) / oldScale,
     };
 
-    const newScale = event.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy;
+    const newScale = Math.min(
+      MAX_SCALE,
+      Math.max(
+        MIN_SCALE,
+        event.evt.deltaY < 0 ? oldScale * scaleBy : oldScale / scaleBy,
+      ),
+    );
 
     setScale(newScale);
     setPosition({
@@ -257,29 +361,24 @@ export const LayoutBuilder2D = ({
 
   return (
     <div
-      className="relative h-[500px] w-full overflow-hidden rounded-md border border-slate-600 bg-slate-900 dark:border-neutral-600"
+      className="relative h-[min(70vh,680px)] min-h-[420px] w-full touch-none overflow-hidden rounded-md border border-slate-600 bg-slate-900 dark:border-neutral-600"
       ref={ref}
     >
       <LayoutToolbar
         tool={tool}
         onToolChange={setTool}
-        showStorageTypeSelector={showStorageTypeSelector}
-        storageTypeOptions={storageTypeOptions}
-        draftStorageType={draftStorageType}
-        onDraftStorageTypeChange={onDraftStorageTypeChange}
-        isDrawingDisabled={Boolean(pendingDraft)}
+        isPlacementActive={Boolean(placementDraft)}
+        onRotate={handleRotate}
+        onZoomIn={() => zoomAtCenter(1.25)}
+        onZoomOut={() => zoomAtCenter(0.8)}
+        onFit={fitView}
+        onCancelPlacement={handleCancelPlacement}
       />
 
       {bounds.width > 0 ? (
         <Stage
           width={bounds.width}
           height={bounds.height}
-          onMouseDown={handlePointerDown}
-          onMouseMove={handlePointerMove}
-          onMouseUp={handlePointerUp}
-          onTouchStart={handlePointerDown}
-          onTouchMove={handlePointerMove}
-          onTouchEnd={handlePointerUp}
           onWheel={handleWheel}
           draggable={tool === "pan" && !pendingDraft}
           x={position.x}
@@ -291,7 +390,7 @@ export const LayoutBuilder2D = ({
               setPosition({ x: event.target.x(), y: event.target.y() });
             }
           }}
-          style={{ cursor: tool === "pan" ? "grab" : "crosshair" }}
+          style={{ cursor: tool === "pan" ? "grab" : "move" }}
         >
           <Layer listening={false}>
             <GridLayer
@@ -305,21 +404,38 @@ export const LayoutBuilder2D = ({
             <EntitiesLayer entities={existingEntities} scale={scale} />
           </Layer>
 
-          <Layer listening={false}>
+          <Layer listening={tool === "place" && !pendingDraft}>
             <DraftLayer
               draftRect={activeDraftRect}
               isValid={isValid}
               scale={scale}
-              pointerPosition={isDrawing ? pointerPosition : null}
+              pointerPosition={null}
+              tool={tool}
+              onDragMove={handleDragMove}
+              onDragEnd={handleDragEnd}
             />
           </Layer>
         </Stage>
+      ) : null}
+
+      {!placementDraft ? (
+        <div className="pointer-events-none absolute inset-x-4 bottom-4 z-10 mx-auto max-w-md rounded-md border border-slate-700 bg-slate-800/90 px-4 py-3 text-center text-sm text-slate-300 shadow-lg">
+          Use el botón <strong>Añadir</strong>, configure las medidas y después
+          arrastre el objeto a su posición exacta.
+        </div>
+      ) : !isValid && !pendingDraft ? (
+        <div className="pointer-events-none absolute inset-x-4 bottom-4 z-10 mx-auto max-w-md rounded-md border border-red-500/40 bg-red-950/90 px-4 py-3 text-center text-sm text-red-200 shadow-lg">
+          {(placementDraft?.position_y ?? 0) > 0
+            ? "Sección elevada: colóquela completamente dentro de una sección de Tramos (naranja). Puede compartir espacio con otros racks elevados."
+            : "Posición no válida. Mueva el objeto dentro del área disponible y sin colisiones."}
+        </div>
       ) : null}
 
       {pendingDraft ? (
         <DraftConfirmationPopover
           pendingDraft={pendingDraft}
           isValid={isValid}
+          isSaving={isSaving}
           onConfirm={handleConfirmDraft}
           onCancel={handleCancelDraft}
         />

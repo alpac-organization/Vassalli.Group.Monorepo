@@ -120,6 +120,9 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
         queryKey: ["get-warehouse-sections-records"],
       });
       queryClient.invalidateQueries({
+        queryKey: ["warehouse-layout-sections"],
+      });
+      queryClient.invalidateQueries({
         queryKey: ["get-warehouse-section-by-id-records"],
       });
       queryClient.invalidateQueries({

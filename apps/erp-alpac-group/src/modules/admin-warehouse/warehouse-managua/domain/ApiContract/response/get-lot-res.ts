@@ -9,6 +9,8 @@ export interface LotListItemResponse {
   total_positions: number;
   occupied_positions: number;
   transform?: LayoutTransform3DDto | null;
+  layout_transform_3d?: LayoutTransform3DDto | null;
+  layout_transform_3d_dto?: LayoutTransform3DDto | null;
 }
 
 export interface GetLotsResponse {

@@ -86,9 +86,7 @@ export const EntitiesLayer = memo(function EntitiesLayer({
         const width = entity.width_metres * METERS_TO_PIXELS;
         const height = entity.length_metres * METERS_TO_PIXELS;
         const isElevated =
-          ("elevated" in style && style.elevated) ||
-          entity.storage_type === SectionStorageTypeEnum.Racks.textValue ||
-          entity.kind === "rack";
+          (entity.position_y ?? 0) > 0 || entity.kind === "rack";
         const dash = "dash" in style ? style.dash : undefined;
         const hatchLines = isElevated
           ? buildHatchLines(x, y, width, height, 14 / scale)
@@ -104,7 +102,7 @@ export const EntitiesLayer = memo(function EntitiesLayer({
               fill={style.fill}
               stroke={style.stroke}
               strokeWidth={(isElevated ? 2.5 : 2) / scale}
-              dash={dash ? dash.map((value) => value / scale) : undefined}
+              dash={dash ? dash.map((value: number) => value / scale) : undefined}
               cornerRadius={2 / scale}
             />
             {hatchLines.map((points, index) => (
@@ -123,7 +121,7 @@ export const EntitiesLayer = memo(function EntitiesLayer({
                 y={y + 6 / scale}
                 text={
                   isElevated && entity.kind === "section"
-                    ? `${entity.name} (elevado)`
+                    ? `${entity.name} (Y: ${entity.position_y?.toFixed(1)}m)`
                     : entity.name
                 }
                 fill="#f8fafc"

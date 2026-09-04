@@ -1,12 +1,10 @@
-import type { CreateLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import type { SpatialDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d";
 
 export interface LotModalProps {
   isOpen: boolean;
-  sectionId: string;
   spatialDraft?: SpatialDraft | null;
   onClose: () => void;
-  onSubmit?: (data: CreateLotsRequest) => void;
+  onSubmit?: (data: FormValues) => void;
 }
 
 export type FormValues = {

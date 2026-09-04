@@ -11,7 +11,7 @@ import {
 } from "@alpac/design-system";
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronDown, Layers } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import type { SectionModalProps } from "./section-modal.types";
 import {
   SectionStorageTypeEnum,
@@ -21,17 +21,13 @@ import {
   SectionTypeEnum,
   SectionTypeOptions,
 } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
-import type { CreateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-section-req";
 import {
   formatAmount,
   validateDecimalNumber,
   validateIntegerNumber,
   validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
-import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
-import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
-import { useMappedError } from "@app/shared/hooks/useMappedError";
 import {
   inputClassName,
   dropdownClassName,
@@ -45,41 +41,31 @@ import {
 
 export const SectionModal = ({
   isOpen,
-  warehouseId,
   spatialDraft,
   defaultStorageType,
   onClose,
   onSubmit,
 }: SectionModalProps) => {
-  const { companyId, moduleCode } = useUserStore();
-  const { getMappedError } = useMappedError();
-  const {
-    alertState,
-    handleCloseAlert,
-    handleRequestError,
-    handleRequestSuccess,
-  } = useAlertState();
+  const { alertState, handleCloseAlert } = useAlertState();
 
   const {
     control,
     register,
     handleSubmit,
     reset,
-    watch,
     setValue,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
       section_type: SectionTypeEnum.Storage.value,
       storage_type: SectionStorageTypeEnum.Empty.value,
+      is_elevated: false,
       overflow: {
         allows_overflow_storage: false,
         is_overflow_enabled: false,
       },
     },
   });
-
-  const { CreateSection } = useWarehouseAdmin();
 
   useEffect(() => {
     if (spatialDraft) {
@@ -98,61 +84,29 @@ export const SectionModal = ({
     }
   }, [defaultStorageType, spatialDraft, setValue]);
 
-  const sectionTypeWatch = watch();
-  const isAisle = Number(sectionTypeWatch?.section_type) === SectionTypeEnum.Aisle.value;
+  const sectionType = useWatch({ control, name: "section_type" });
+  const storageType = useWatch({ control, name: "storage_type" });
+  const isElevated = useWatch({ control, name: "is_elevated" });
+  const isAisle = Number(sectionType) === SectionTypeEnum.Aisle.value;
+  const isRackStorage =
+    Number(storageType) === SectionStorageTypeEnum.Racks.value;
+
+  useEffect(() => {
+    if (isAisle) {
+      setValue("storage_type", SectionStorageTypeEnum.Empty.value);
+    }
+  }, [isAisle, setValue]);
+
+  useEffect(() => {
+    if (!isRackStorage) {
+      setValue("is_elevated", false);
+      setValue("position_y_metres", 0);
+    }
+  }, [isRackStorage, setValue]);
 
   const handleCreateSection = (data: FormValues) => {
-    const sectionTypeOption = Object.values(SectionTypeEnum).find(
-      (option) => option.value === Number(data.section_type),
-    );
-    const storageTypeOption = Object.values(SectionStorageTypeEnum).find(
-      (option) => option.value === Number(data.storage_type),
-    );
-
-    const payload: CreateSectionRequest = {
-      company_id: companyId,
-      module_code: moduleCode,
-      warehouse_id: warehouseId,
-      code: data.code,
-      name: data.name,
-      section_type: sectionTypeOption
-        ? sectionTypeOption.textValue
-        : SectionTypeEnum.Storage.textValue,
-      storage_type: storageTypeOption
-        ? storageTypeOption.textValue
-        : SectionStorageTypeEnum.Empty.textValue,
-      width_metres: data.width_metres ?? 0,
-      length_metres: data.length_metres ?? 0,
-      layout_transform_3d_dto: spatialDraft ? {
-        position_x: spatialDraft.position_x,
-        position_y: 0,
-        position_z: spatialDraft.position_z,
-        rotation_y: spatialDraft.rotation_y,
-      } : null,
-      overflow_capacity: isAisle
-        ? {
-            allows_overflow_storage: data.overflow.allows_overflow_storage,
-            is_overflow_enabled: data.overflow.is_overflow_enabled,
-            max_overflow_polines: data.overflow.max_overflow_polines ?? null,
-          }
-        : null,
-    };
-
-    CreateSection.mutate(payload, {
-      onSuccess() {
-        handleRequestSuccess("Sección registrada exitosamente.");
-        reset();
-        onSubmit?.(payload);
-
-        setTimeout(() => {
-          onClose();
-        }, 2000);
-      },
-      onError(error) {
-        const mappedError = getMappedError(error);
-        handleRequestError(mappedError.description);
-      },
-    });
+    onSubmit?.(data);
+    onClose();
   };
 
   const handleClose = () => {
@@ -237,6 +191,7 @@ export const SectionModal = ({
                 options={SectionTypeOptions}
                 value={field.value}
                 appearance="dark"
+                disabled={isAisle}
                 className={dropdownClassName}
                 labelClassName={labelClassName}
                 onChange={(val) => field.onChange(val)}
@@ -271,7 +226,6 @@ export const SectionModal = ({
             inputMode="decimal"
             placeholder="0.00"
             isRequired
-            readOnly
             className={inputClassName}
             labelClassName={labelClassName}
             {...register("width_metres", {
@@ -293,7 +247,6 @@ export const SectionModal = ({
             inputMode="decimal"
             placeholder="0.00"
             isRequired
-            readOnly
             className={inputClassName}
             labelClassName={labelClassName}
             {...register("length_metres", {
@@ -308,6 +261,45 @@ export const SectionModal = ({
             })}
             error={errors.length_metres?.message}
           />
+
+          {isRackStorage ? (
+            <Controller
+              control={control}
+              name="is_elevated"
+              render={({ field }) => (
+                <Checkbox
+                  label="Elevar sobre una sección de tramos"
+                  labelPosition="right"
+                  className="text-slate-300!"
+                  checked={field.value}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+          ) : null}
+
+          {isRackStorage && isElevated ? (
+            <InputText
+              label="Altura sobre el piso · Y (m)"
+              type="text"
+              inputMode="decimal"
+              placeholder="Ej. 6.00"
+              isRequired
+              className={inputClassName}
+              labelClassName={labelClassName}
+              {...register("position_y_metres", {
+                required: "La altura es requerida para una sección elevada",
+                validate: {
+                  validateDecimal: (value) =>
+                    !value || validateDecimalNumber(value),
+                  validatePositive: (value) =>
+                    !value || validatePositiveNumber(value),
+                },
+                setValueAs: parseDecimal,
+              })}
+              error={errors.position_y_metres?.message}
+            />
+          ) : null}
         </div>
 
         <AnimatePresence initial={false}>
@@ -409,9 +401,7 @@ export const SectionModal = ({
           <Button
             type="submit"
             size="giant"
-            label="Guardar"
-            isLoading={CreateSection.isPending}
-            disabled={CreateSection.isPending}
+            label="Colocar en plano"
             className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
           />
         </div>

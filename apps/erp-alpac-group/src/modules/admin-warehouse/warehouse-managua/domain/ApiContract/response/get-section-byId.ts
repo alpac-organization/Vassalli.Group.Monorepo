@@ -9,9 +9,15 @@ export interface SectionDto {
   section_type: SectionTypeValue | null;
   storage_type: SectionStorageTypeValue | null;
   is_active: boolean;
-  width_metres: number;
-  length_metres: number;
+  width_metres: number | string;
+  length_metres: number | string;
+  position_x?: number | string | null;
+  position_y?: number | string | null;
+  position_z?: number | string | null;
+  rotation_y?: number | string | null;
   transform: LayoutTransform3DDto | null;
+  layout_transform_3d?: LayoutTransform3DDto | null;
+  layout_transform_3d_dto?: LayoutTransform3DDto | null;
   total_area_m2: number;
   used_area_m2: number;
   total_positions: number;

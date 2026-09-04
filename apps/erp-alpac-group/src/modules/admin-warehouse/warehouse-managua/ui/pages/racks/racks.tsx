@@ -8,6 +8,15 @@ import { RacksTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/pa
 import { RackModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-modal/rack-modal";
 import { RackDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-detail-modal/rack-detail-modal";
 import { LayoutBuilder2D, type ExistingEntity, type SpatialDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d";
+import { Button } from "@alpac/design-system";
+import type { FormValues as RackFormValues } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-modal/types/rack-modal.types";
+import { RackStatusEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
+import { RackUsageProfileEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-usage-profile";
+import type { CreateRacksRequest, RackPlacementCommand } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-racks-req";
+import type { PlacementDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d.types";
+import {
+  isUnavailableStatus,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-modal/utils/rack.utils";
 import {
   buildRackLayoutEntity,
   mapRacksToLayoutEntities,
@@ -26,9 +35,9 @@ import type { RackListItemResponse } from "@app/modules/admin-warehouse/warehous
 import type { GetRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-racks";
 import type { GetSectionByIdRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-section-ById";
 import { filtersToGetRacksParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/filter-racks";
+import { LAYOUT_FETCH_PAGE_SIZE } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d.constants";
 
 const PAGE_SIZE = 10;
-const LAYOUT_PAGE_SIZE = 10;
 const FALLBACK_SECTION_SIZE_METRES = 50;
 
 export function RacksPage() {
@@ -38,9 +47,10 @@ export function RacksPage() {
   }>();
   const { companyId, moduleCode } = useUserStore();
   const { getMappedError } = useMappedError();
-  const { alertState, handleCloseAlert, handleRequestError } = useAlertState();
+  const { alertState, handleCloseAlert, handleRequestError, handleRequestSuccess } = useAlertState();
   const [isRackModalOpen, setIsRackModalOpen] = useState(false);
-  const [spatialDraft, setSpatialDraft] = useState<SpatialDraft | null>(null);
+  const [pendingFormValues, setPendingFormValues] = useState<RackFormValues | null>(null);
+  const [placementDraft, setPlacementDraft] = useState<PlacementDraft | null>(null);
   const [sessionEntities, setSessionEntities] = useState<ExistingEntity[]>([]);
   const [selectedRack, setSelectedRack] = useState<RackListItemResponse | null>(
     null,
@@ -67,11 +77,11 @@ export function RacksPage() {
       company_id: companyId,
       module_code: moduleCode,
       section_id: sectionId,
-      level_number: null,
+      level_number: 1,
       usage_profile: null,
       status: null,
       page_number: 1,
-      page_size: LAYOUT_PAGE_SIZE,
+      page_size: LAYOUT_FETCH_PAGE_SIZE,
     }),
     [companyId, moduleCode, sectionId],
   );
@@ -86,7 +96,7 @@ export function RacksPage() {
     [companyId, moduleCode, warehouseId, sectionId],
   );
 
-  const { GetRacks, GetSectionById } = useWarehouseAdmin({
+  const { GetRacks, GetSectionById, CreateRacks } = useWarehouseAdmin({
     getRacksPayload,
     getSectionByIdPayload,
   });
@@ -154,21 +164,87 @@ export function RacksPage() {
   }, []);
 
   const handleRackCreated = useCallback(
-    (code: string) => {
-      if (!spatialDraft) {
-        return;
-      }
+    (spatialDraft: SpatialDraft) => {
+      if (!pendingFormValues) return;
 
-      setSessionEntities((current) => [
-        ...current,
-        buildRackLayoutEntity({
-          id: `${code}-${current.length}`,
-          name: code,
-          spatialDraft,
-        }),
-      ]);
+      const baseWidth = Number(
+        pendingFormValues.levels[0]?.width_metres,
+      );
+      const baseLength = Number(
+        pendingFormValues.levels[0]?.length_metres,
+      );
+      let accumulatedHeight = 0;
+
+      const placement_racks: RackPlacementCommand[] = pendingFormValues.levels.map(
+        (level, index) => {
+          const usageProfileOption = Object.values(RackUsageProfileEnum).find(
+            (option) => option.value === Number(level.usage_profile),
+          );
+          const statusOption = Object.values(RackStatusEnum).find(
+            (option) => option.value === Number(level.status),
+          );
+          const heightMetres = Number(level.height_metres);
+          const positionY = accumulatedHeight;
+          accumulatedHeight += heightMetres;
+
+          return {
+            code: pendingFormValues.shelf_code ?? "",
+            level_number: Number(level.level_number) || index + 1,
+            row_number: 1,
+            width_metres: baseWidth,
+            length_metres: baseLength,
+            height_metres: heightMetres,
+            usage_profile: usageProfileOption
+              ? usageProfileOption.textValue
+              : RackUsageProfileEnum.ActiveFlow.textValue,
+            max_pulleys: Number(level.max_pulleys),
+            status: statusOption
+              ? statusOption.textValue
+              : RackStatusEnum.Available.textValue,
+            layout_transform_3d_dto: {
+              position_x: spatialDraft.position_x,
+              position_y: positionY,
+              position_z: spatialDraft.position_z,
+              rotation_y: spatialDraft.rotation_y ?? 0,
+            },
+            unavailable_reason: isUnavailableStatus(Number(level.status))
+              ? (level.unavailable_reason ?? null)
+              : null,
+          };
+        },
+      );
+
+      const payload: CreateRacksRequest = {
+        company_id: companyId,
+        module_code: moduleCode,
+        section_id: sectionId,
+        placement_racks,
+      };
+
+      CreateRacks.mutate(payload, {
+        onSuccess: () => {
+          handleRequestSuccess("Racks registrados exitosamente.");
+          const firstRack = payload.placement_racks[0];
+          if (firstRack?.code) {
+            setSessionEntities((current) => [
+              ...current,
+              buildRackLayoutEntity({
+                id: `${firstRack.code}-${current.length}`,
+                name: firstRack.code,
+                spatialDraft,
+              }),
+            ]);
+          }
+          setPendingFormValues(null);
+          setPlacementDraft(null);
+        },
+        onError: (error) => {
+          const mappedError = getMappedError(error);
+          handleRequestError(mappedError.description);
+        }
+      });
     },
-    [spatialDraft],
+    [pendingFormValues, companyId, moduleCode, sectionId, CreateRacks, handleRequestSuccess, handleRequestError, getMappedError],
   );
 
   const handleViewPositions = useCallback((rack: RackListItemResponse) => {
@@ -189,8 +265,14 @@ export function RacksPage() {
       transition={{ duration: 0.5 }}
       className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full"
     >
-      {(GetRacks.isPending || GetSectionById.isPending) && (
-        <Loader title="Cargando racks..." />
+      {(GetRacks.isPending || GetSectionById.isPending || CreateRacks.isPending) && (
+        <Loader
+          title={
+            CreateRacks.isPending
+              ? "Registrando racks..."
+              : "Cargando racks..."
+          }
+        />
       )}
 
       <AnimatedAlertWrapper open={alertState?.open ?? false}>
@@ -212,6 +294,13 @@ export function RacksPage() {
               Registre nuevos racks
             </small>
           </div>
+          <Button
+            label="Añadir Racks"
+            onClick={() => setIsRackModalOpen(true)}
+            disabled={isSectionFull}
+            size="small"
+            className="bg-alpac-primary-500 hover:bg-alpac-primary-600 text-white rounded-md px-4 py-2"
+          />
         </div>
 
         <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
@@ -224,7 +313,7 @@ export function RacksPage() {
           ) : (
             <>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                Dibuje la base del rack dentro de la sección
+                Primero añada los racks y luego ubique la base dentro de la sección
                 {sectionLabel ? ` (${sectionLabel})` : ""}. El plano usa el
                 tamaño real de la sección ({sectionWidthMetres.toFixed(1)}m ×{" "}
                 {sectionLengthMetres.toFixed(1)}m). Los niveles adicionales se
@@ -235,9 +324,12 @@ export function RacksPage() {
                 containerLengthMetres={sectionLengthMetres}
                 entityKind="rack"
                 existingEntities={layoutEntities}
-                onDrawComplete={(draft) => {
-                  setSpatialDraft(draft);
-                  setIsRackModalOpen(true);
+                placementDraft={placementDraft}
+                isSaving={CreateRacks.isPending}
+                onPlacementConfirm={handleRackCreated}
+                onPlacementCancel={() => {
+                  setPendingFormValues(null);
+                  setPlacementDraft(null);
                 }}
               />
             </>
@@ -262,17 +354,16 @@ export function RacksPage() {
 
       <RackModal
         isOpen={isRackModalOpen}
-        sectionId={sectionId}
-        spatialDraft={spatialDraft}
         onClose={() => {
           setIsRackModalOpen(false);
-          setSpatialDraft(null);
         }}
-        onSubmit={(payload) => {
-          const firstRack = payload.placement_racks[0];
-          if (firstRack?.code) {
-            handleRackCreated(firstRack.code);
-          }
+        onSubmit={(formValues) => {
+          setPendingFormValues(formValues);
+          setPlacementDraft({
+            width_metres: Number(formValues.levels[0]?.width_metres ?? 0),
+            length_metres: Number(formValues.levels[0]?.length_metres ?? 0),
+            rotation_y: 0,
+          });
         }}
       />
 

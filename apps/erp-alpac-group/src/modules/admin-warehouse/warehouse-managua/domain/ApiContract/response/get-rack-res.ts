@@ -13,6 +13,8 @@ export interface RackListItemResponse {
   width_metres?: number | null;
   length_metres?: number | null;
   transform?: LayoutTransform3DDto | null;
+  layout_transform_3d?: LayoutTransform3DDto | null;
+  layout_transform_3d_dto?: LayoutTransform3DDto | null;
 }
 
 export interface Positions {
