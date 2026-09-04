@@ -1,3 +1,5 @@
+import type { LayoutTransform3DDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/layout-transform-3d";
+
 export interface LotListItemResponse {
   lot_id: string;
   code: string | null;
@@ -6,6 +8,7 @@ export interface LotListItemResponse {
   status: string | number | null;
   total_positions: number;
   occupied_positions: number;
+  transform?: LayoutTransform3DDto | null;
 }
 
 export interface GetLotsResponse {
@@ -19,11 +22,4 @@ export interface LotSummaryResponse {
   lot_id: string;
   code: string;
   positions_count: number;
-}
-
-export interface RegisterLotsResultResponse {
-  section_id: string;
-  total_requested: number;
-  total_created: number;
-  lots: LotSummaryResponse[];
 }

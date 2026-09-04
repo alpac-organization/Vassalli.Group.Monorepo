@@ -20,7 +20,7 @@ import {
 } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-usage-profile";
 import type {
   CreateRacksRequest,
-  RackLevelSpecRequest,
+  RackPlacementCommand,
 } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-racks-req";
 import {
   formatAmount,
@@ -46,6 +46,7 @@ import {
 export const RackModal = ({
   isOpen,
   sectionId,
+  spatialDraft,
   onClose,
   onSubmit,
 }: RackModalProps) => {
@@ -64,9 +65,11 @@ export const RackModal = ({
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
+      shelf_code: "",
       levels: [
         {
           level_number: "1",
@@ -83,45 +86,73 @@ export const RackModal = ({
     name: "levels",
   });
 
+  const levelsWatch = watch();
+
   const { CreateRacks } = useWarehouseAdmin();
 
-  const handleCreateRacks = (data: FormValues) => {
-    const levels: RackLevelSpecRequest[] = data.levels.map((level) => {
-      const usageProfileOption = Object.values(RackUsageProfileEnum).find(
-        (option) => option.value === Number(level.usage_profile),
-      );
-      const statusOption = Object.values(RackStatusEnum).find(
-        (option) => option.value === Number(level.status),
-      );
+  useEffect(() => {
+    if (!spatialDraft) return;
 
-      return {
-        level_number: Number(level.level_number),
-        racks_count: Number(level.racks_count),
-        width_metres: Number(level.width_metres),
-        length_metres: Number(level.length_metres),
-        height_metres: level.height_metres ? Number(level.height_metres) : null,
-        usage_profile: usageProfileOption
-          ? usageProfileOption.textValue
-          : RackUsageProfileEnum.ActiveFlow.textValue,
-        max_pulleys: Number(level.max_pulleys),
-        status: statusOption
-          ? statusOption.textValue
-          : RackStatusEnum.Available.textValue,
-        unavailable_reason: isUnavailableStatus(Number(level.status))
-          ? (level.unavailable_reason ?? null)
-          : null,
-      };
+    fields.forEach((_, index) => {
+      setValue(
+        `levels.${index}.width_metres`,
+        spatialDraft.width_metres.toString(),
+      );
+      setValue(
+        `levels.${index}.length_metres`,
+        spatialDraft.length_metres.toString(),
+      );
     });
+  }, [spatialDraft, setValue, fields.length]);
+
+  const handleCreateRacks = (data: FormValues) => {
+    const baseWidth = spatialDraft?.width_metres ?? Number(data.levels[0]?.width_metres);
+    const baseLength =
+      spatialDraft?.length_metres ?? Number(data.levels[0]?.length_metres);
+
+    const placement_racks: RackPlacementCommand[] = data.levels.map(
+      (level, index) => {
+        const usageProfileOption = Object.values(RackUsageProfileEnum).find(
+          (option) => option.value === Number(level.usage_profile),
+        );
+        const statusOption = Object.values(RackStatusEnum).find(
+          (option) => option.value === Number(level.status),
+        );
+
+        return {
+          code: data.shelf_code ?? "",
+          level_number: Number(level.level_number) || index + 1,
+          row_number: 1,
+          width_metres: baseWidth,
+          length_metres: baseLength,
+          height_metres: level.height_metres ? Number(level.height_metres) : 0,
+          usage_profile: usageProfileOption
+            ? usageProfileOption.textValue
+            : RackUsageProfileEnum.ActiveFlow.textValue,
+          max_pulleys: Number(level.max_pulleys),
+          status: statusOption
+            ? statusOption.textValue
+            : RackStatusEnum.Available.textValue,
+          layout_transform_3d_dto: spatialDraft
+            ? {
+                position_x: spatialDraft.position_x,
+                position_y: 0,
+                position_z: spatialDraft.position_z,
+                rotation_y: spatialDraft.rotation_y,
+              }
+            : null,
+          unavailable_reason: isUnavailableStatus(Number(level.status))
+            ? (level.unavailable_reason ?? null)
+            : null,
+        };
+      },
+    );
 
     const payload: CreateRacksRequest = {
       company_id: companyId,
       module_code: moduleCode,
       section_id: sectionId,
-      shelf_code: data.shelf_code ?? null,
-      starting_deposit_number: data.starting_deposit_number
-        ? Number(data.starting_deposit_number)
-        : null,
-      levels,
+      placement_racks,
     };
 
     CreateRacks.mutate(payload, {
@@ -153,6 +184,18 @@ export const RackModal = ({
     }
   }, [isOpen, reset]);
 
+  const handleAddLevel = () => {
+    const nextLevel = fields.length + 1;
+    append({
+      level_number: String(nextLevel),
+      width_metres: spatialDraft?.width_metres?.toString(),
+      length_metres: spatialDraft?.length_metres?.toString(),
+      usage_profile: RackUsageProfileEnum.ActiveFlow.value,
+      max_pulleys: "2",
+      status: RackStatusEnum.Available.value,
+    });
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -160,7 +203,7 @@ export const RackModal = ({
       title="Registro de racks"
       variant="form"
       size="7xl"
-      description="Registre los estantes y niveles de racks para la sección"
+      description="Registre la base dibujada y los niveles apilados verticalmente (mismo ancho y largo)."
     >
       <form
         className="flex flex-col gap-5"
@@ -168,9 +211,9 @@ export const RackModal = ({
       >
         <AnimatedAlertWrapper open={alertState?.open ?? false}>
           <Alert
-            type={alertState?.type!}
+            type={alertState?.type ?? "info"}
             title={alertState?.title}
-            message={alertState?.message!}
+            message={alertState?.message ?? ""}
             onClose={handleCloseAlert}
           />
         </AnimatedAlertWrapper>
@@ -179,41 +222,19 @@ export const RackModal = ({
           <InputText
             label="Código del estante"
             placeholder="Ej. EST-01"
+            isRequired
             className={inputClassName}
             labelClassName={labelClassName}
-            {...register("shelf_code")}
-            error={errors.shelf_code?.message}
-          />
-
-          <InputText
-            label="Número de depósito inicial"
-            type="text"
-            inputMode="numeric"
-            placeholder="1"
-            className={inputClassName}
-            labelClassName={labelClassName}
-            {...register("starting_deposit_number", {
-              validate: {
-                validateInteger: (value) =>
-                  value === undefined ||
-                  value === null ||
-                  value === "" ||
-                  validateIntegerNumber(value),
-                validatePositive: (value) =>
-                  value === undefined ||
-                  value === null ||
-                  value === "" ||
-                  validatePositiveNumber(value),
-              },
-              setValueAs: parseDecimal,
+            {...register("shelf_code", {
+              required: "El código del estante es requerido",
             })}
-            error={errors.starting_deposit_number?.message}
+            error={errors.shelf_code?.message}
           />
         </div>
 
         <div className="flex flex-col gap-6">
           {fields.map((field, index) => {
-            const levelStatus = Number(watch(`levels.${index}.status`));
+            const levelStatus = Number(levelsWatch?.levels?.[index]?.status);
             const showUnavailableReason = isUnavailableStatus(levelStatus);
 
             return (
@@ -224,8 +245,11 @@ export const RackModal = ({
                 <div className="mb-3 flex items-center justify-between">
                   <p className="text-sm font-medium text-black dark:text-white">
                     Nivel #{index + 1}
+                    {index === 0
+                      ? " (base dibujada en el plano 2D)"
+                      : " (apilado sobre el nivel 1)"}
                   </p>
-                  {fields.length > 1 && (
+                  {fields.length > 1 && index > 0 && (
                     <Button
                       type="button"
                       size="small"
@@ -244,6 +268,7 @@ export const RackModal = ({
                     inputMode="numeric"
                     placeholder="1"
                     isRequired
+                    readOnly
                     className={inputClassName}
                     labelClassName={labelClassName}
                     {...register(`levels.${index}.level_number`, {
@@ -260,32 +285,12 @@ export const RackModal = ({
                   />
 
                   <InputText
-                    label="Cantidad de racks"
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="5"
-                    isRequired
-                    className={inputClassName}
-                    labelClassName={labelClassName}
-                    {...register(`levels.${index}.racks_count`, {
-                      required: "La cantidad de racks es requerida",
-                      validate: {
-                        validateInteger: (value) =>
-                          !value || validateIntegerNumber(value),
-                        validatePositive: (value) =>
-                          !value || validatePositiveNumber(value),
-                      },
-                      setValueAs: parseDecimal,
-                    })}
-                    error={errors.levels?.[index]?.racks_count?.message}
-                  />
-
-                  <InputText
                     label="Ancho (m)"
                     type="text"
                     inputMode="decimal"
                     placeholder="0.00"
                     isRequired
+                    readOnly
                     className={inputClassName}
                     labelClassName={labelClassName}
                     {...register(`levels.${index}.width_metres`, {
@@ -297,13 +302,6 @@ export const RackModal = ({
                           !value || validatePositiveNumber(value),
                       },
                       setValueAs: parseDecimal,
-                      onChange: (evt) => {
-                        evt.target.value = formatAmount(
-                          evt.target.value,
-                          10,
-                          2,
-                        );
-                      },
                     })}
                     error={errors.levels?.[index]?.width_metres?.message}
                   />
@@ -314,6 +312,7 @@ export const RackModal = ({
                     inputMode="decimal"
                     placeholder="0.00"
                     isRequired
+                    readOnly
                     className={inputClassName}
                     labelClassName={labelClassName}
                     {...register(`levels.${index}.length_metres`, {
@@ -325,13 +324,6 @@ export const RackModal = ({
                           !value || validatePositiveNumber(value, true),
                       },
                       setValueAs: parseDecimal,
-                      onChange: (evt) => {
-                        evt.target.value = formatAmount(
-                          evt.target.value,
-                          10,
-                          2,
-                        );
-                      },
                     })}
                     error={errors.levels?.[index]?.length_metres?.message}
                   />
@@ -450,13 +442,7 @@ export const RackModal = ({
             size="medium"
             label="Agregar nivel"
             icon={<Plus size={16} />}
-            onClick={() =>
-              append({
-                usage_profile: RackUsageProfileEnum.ActiveFlow.value,
-                max_pulleys: "2",
-                status: RackStatusEnum.Available.value,
-              })
-            }
+            onClick={handleAddLevel}
             className="text-[14px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30!"
           />
         </div>

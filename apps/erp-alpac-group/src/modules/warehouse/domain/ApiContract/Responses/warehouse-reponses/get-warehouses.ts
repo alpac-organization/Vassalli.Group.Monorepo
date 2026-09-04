@@ -8,7 +8,7 @@ export interface WarehouseDto {
   has_children: boolean;
   sections_count: number;
   is_owner: boolean;
-  capacity: Capacity;
+  capacity?: Capacity | null;
 }
 
 export interface GetWarehousesResponse {

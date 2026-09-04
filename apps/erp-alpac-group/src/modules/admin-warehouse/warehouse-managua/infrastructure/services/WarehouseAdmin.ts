@@ -5,10 +5,7 @@ import type { GetSectionsResponse } from "@app/modules/admin-warehouse/warehouse
 import { cleanParams } from "@app/shared/utils/object.utils";
 import type { CreateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-section-req";
 import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
-import type {
-  GetLotsResponse,
-  RegisterLotsResultResponse,
-} from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
+import type { GetLotsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { GetLotDetailRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-details-req";
 import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-detail";
 import type { CreateLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
@@ -17,7 +14,8 @@ import type { GetRackResponse } from "@app/modules/admin-warehouse/warehouse-man
 import type { GetRackDetailRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-rack-detail";
 import type { GetRackDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-detail";
 import type { CreateRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-racks-req";
-import type { CreateRackResultResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/create-rack-result";
+import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-byId";
+import type { GetSectionByIdRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-section-ById";
 
 export class WarehouseAdminServices implements IWarehouseAdminService {
   private readonly apiHandler: IHttpHandler;
@@ -32,11 +30,20 @@ export class WarehouseAdminServices implements IWarehouseAdminService {
       params: cleanParams(rest),
     });
   }
+
+  async GetSectionById(payload: GetSectionByIdRequest): Promise<SectionDto> {
+    const { company_id, module_code, warehouse_id, section_id } = payload;
+    const url = `companies/${company_id}/modules/${module_code}/warehouse/${warehouse_id}/sections/${section_id}`;
+    const response = await this.apiHandler.get<SectionDto>(url);
+    return response;
+  }
+
   async CreateSection(payload: CreateSectionRequest): Promise<void> {
     const { company_id, module_code, warehouse_id, ...rest } = payload;
     const url = `companies/${company_id}/modules/${module_code}/warehouse/${warehouse_id}/sections`;
     await this.apiHandler.post<void>(url, rest);
   }
+
   async GetLots(payload: GetLotsRequest): Promise<GetLotsResponse> {
     const { company_id, module_code, section_id, ...rest } = payload;
     const url = `companies/${company_id}/modules/${module_code}/sections/${section_id}/lots`;
@@ -53,14 +60,12 @@ export class WarehouseAdminServices implements IWarehouseAdminService {
       params: cleanParams(rest),
     });
   }
-  async CreateLots(
-    payload: CreateLotsRequest,
-  ): Promise<RegisterLotsResultResponse> {
+  async CreateLots(payload: CreateLotsRequest): Promise<void> {
     const { company_id, module_code, section_id, ...rest } = payload;
 
     const url = `companies/${company_id}/modules/${module_code}/sections/${section_id}/lots`;
 
-    return await this.apiHandler.post<RegisterLotsResultResponse>(url, rest);
+    await this.apiHandler.post<void>(url, rest);
   }
 
   async GetRacks(payload: GetRacksRequest): Promise<GetRackResponse> {
@@ -85,13 +90,11 @@ export class WarehouseAdminServices implements IWarehouseAdminService {
     });
   }
 
-  async CreateRacks(
-    payload: CreateRacksRequest,
-  ): Promise<CreateRackResultResponse> {
+  async CreateRacks(payload: CreateRacksRequest): Promise<void> {
     const { company_id, module_code, section_id, ...rest } = payload;
 
     const url = `companies/${company_id}/modules/${module_code}/sections/${section_id}/racks`;
 
-    return await this.apiHandler.post<CreateRackResultResponse>(url, rest);
+    return await this.apiHandler.post<void>(url, rest);
   }
 }

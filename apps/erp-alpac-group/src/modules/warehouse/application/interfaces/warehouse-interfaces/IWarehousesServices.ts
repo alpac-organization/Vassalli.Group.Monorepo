@@ -5,9 +5,14 @@ import type { GetCustomBranchesRequest } from "@app/modules/warehouse/domain/Api
 import type { GetCustomBranchesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/custom-branches-response";
 import type { GetSubwarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-subwarehouse.req";
 import type { GetSubwarehousesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-subwarehouses";
+import type { GetWarehouseByIdRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouse-by-id.req";
+import type { WarehouseDetailResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouse-by-id";
 
 export interface IWarehouseServices {
   GetWarehouses(payload: GetWarehouseRequest): Promise<GetWarehousesResponse>;
+  GetWarehouseById(
+    payload: GetWarehouseByIdRequest,
+  ): Promise<WarehouseDetailResponse>;
   CreateWarehouse(payload: CreateWarehouseRequest): Promise<void>;
   GetSubWarehouses(
     payload: GetSubwarehouseRequest,

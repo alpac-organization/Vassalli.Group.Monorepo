@@ -46,6 +46,8 @@ import {
 export const SectionModal = ({
   isOpen,
   warehouseId,
+  spatialDraft,
+  defaultStorageType,
   onClose,
   onSubmit,
 }: SectionModalProps) => {
@@ -64,6 +66,7 @@ export const SectionModal = ({
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
@@ -78,7 +81,25 @@ export const SectionModal = ({
 
   const { CreateSection } = useWarehouseAdmin();
 
-  const isAisle = Number(watch("section_type")) === SectionTypeEnum.Aisle.value;
+  useEffect(() => {
+    if (spatialDraft) {
+      setValue("width_metres", spatialDraft.width_metres);
+      setValue("length_metres", spatialDraft.length_metres);
+    }
+
+    if (defaultStorageType) {
+      const storageTypeOption = Object.values(SectionStorageTypeEnum).find(
+        (option) => option.textValue === defaultStorageType,
+      );
+
+      if (storageTypeOption) {
+        setValue("storage_type", storageTypeOption.value);
+      }
+    }
+  }, [defaultStorageType, spatialDraft, setValue]);
+
+  const sectionTypeWatch = watch();
+  const isAisle = Number(sectionTypeWatch?.section_type) === SectionTypeEnum.Aisle.value;
 
   const handleCreateSection = (data: FormValues) => {
     const sectionTypeOption = Object.values(SectionTypeEnum).find(
@@ -102,6 +123,12 @@ export const SectionModal = ({
         : SectionStorageTypeEnum.Empty.textValue,
       width_metres: data.width_metres ?? 0,
       length_metres: data.length_metres ?? 0,
+      layout_transform_3d_dto: spatialDraft ? {
+        position_x: spatialDraft.position_x,
+        position_y: 0,
+        position_z: spatialDraft.position_z,
+        rotation_y: spatialDraft.rotation_y,
+      } : null,
       overflow_capacity: isAisle
         ? {
             allows_overflow_storage: data.overflow.allows_overflow_storage,
@@ -155,9 +182,9 @@ export const SectionModal = ({
       >
         <AnimatedAlertWrapper open={alertState?.open ?? false}>
           <Alert
-            type={alertState?.type!}
+            type={alertState?.type ?? "info"}
             title={alertState?.title}
-            message={alertState?.message!}
+            message={alertState?.message ?? ""}
             onClose={handleCloseAlert}
           />
         </AnimatedAlertWrapper>
@@ -244,6 +271,7 @@ export const SectionModal = ({
             inputMode="decimal"
             placeholder="0.00"
             isRequired
+            readOnly
             className={inputClassName}
             labelClassName={labelClassName}
             {...register("width_metres", {
@@ -255,9 +283,6 @@ export const SectionModal = ({
                   !value || validatePositiveNumber(value),
               },
               setValueAs: parseDecimal,
-              onChange: (evt) => {
-                evt.target.value = formatAmount(evt.target.value, 10, 2);
-              },
             })}
             error={errors.width_metres?.message}
           />
@@ -268,6 +293,7 @@ export const SectionModal = ({
             inputMode="decimal"
             placeholder="0.00"
             isRequired
+            readOnly
             className={inputClassName}
             labelClassName={labelClassName}
             {...register("length_metres", {
@@ -279,9 +305,6 @@ export const SectionModal = ({
                   !value || validatePositiveNumber(value, true),
               },
               setValueAs: parseDecimal,
-              onChange: (evt) => {
-                evt.target.value = formatAmount(evt.target.value, 10, 2);
-              },
             })}
             error={errors.length_metres?.message}
           />

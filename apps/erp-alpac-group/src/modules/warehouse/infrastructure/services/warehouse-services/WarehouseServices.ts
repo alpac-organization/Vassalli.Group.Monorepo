@@ -8,6 +8,8 @@ import type { GetCustomBranchesRequest } from "@app/modules/warehouse/domain/Api
 import type { GetCustomBranchesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/custom-branches-response";
 import type { GetSubwarehousesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-subwarehouses";
 import type { GetSubwarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-subwarehouse.req";
+import type { GetWarehouseByIdRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouse-by-id.req";
+import type { WarehouseDetailResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouse-by-id";
 
 export class WarehouseServices implements IWarehouseServices {
   private readonly apiHandler: IHttpHandler;
@@ -20,13 +22,21 @@ export class WarehouseServices implements IWarehouseServices {
     payload: GetWarehouseRequest,
   ): Promise<GetWarehousesResponse> {
     const { company_id, module_code, ...rest } = payload;
-
     const url = `companies/${company_id}/modules/${module_code}/warehouse`;
 
     return await this.apiHandler.get<GetWarehousesResponse>(url, {
       params: cleanParams(rest),
     });
   }
+
+  async GetWarehouseById(
+    payload: GetWarehouseByIdRequest,
+  ): Promise<WarehouseDetailResponse> {
+    const { company_id, module_code, warehouse_id } = payload;
+    const url = `companies/${company_id}/modules/${module_code}/warehouse/${warehouse_id}`;
+    return await this.apiHandler.get<WarehouseDetailResponse>(url);
+  }
+
   async GetSubWarehouses(
     payload: GetSubwarehouseRequest,
   ): Promise<GetSubwarehousesResponse> {

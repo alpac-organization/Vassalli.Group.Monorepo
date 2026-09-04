@@ -5,6 +5,7 @@ import type { GetLotDetailRequest } from "@app/modules/admin-warehouse/warehouse
 import type { GetRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-racks";
 import type { GetRackDetailRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-rack-detail";
 
+import type { GetSectionsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
 import type { GetLotsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-detail";
 import type { CreateLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
@@ -15,8 +16,9 @@ import { WarehouseAdminServices } from "@app/modules/admin-warehouse/warehouse-m
 import { warehouseHttpHandler } from "@app/core/adapters";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { GetSectionsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-byId";
+import type { GetSectionByIdRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-section-ById";
 
 const warehouseLayoutServices = new WarehouseAdminServices(
   warehouseHttpHandler,
@@ -28,6 +30,7 @@ interface useWarehouseLayoutProps {
   getLotDetailPayload?: GetLotDetailRequest;
   getRacksPayload?: GetRacksRequest;
   getRackDetailPayload?: GetRackDetailRequest;
+  getSectionByIdPayload?: GetSectionByIdRequest;
 }
 
 const hasCompanyContext = (payload?: {
@@ -39,6 +42,7 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
   const queryClient = useQueryClient();
   const {
     getSectionsPayload,
+    getSectionByIdPayload,
     getLotsPayload,
     getLotDetailPayload,
     getRacksPayload,
@@ -51,6 +55,16 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
     enabled:
       hasCompanyContext(getSectionsPayload) &&
       Boolean(getSectionsPayload?.warehouse_id),
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+  const GetSectionById = useQuery<SectionDto, ApiErrorResponse>({
+    queryKey: ["get-warehouse-section-by-id-records", getSectionByIdPayload],
+    queryFn: () =>
+      warehouseLayoutServices.GetSectionById(getSectionByIdPayload!),
+    enabled:
+      hasCompanyContext(getSectionByIdPayload) &&
+      Boolean(getSectionByIdPayload?.section_id),
     refetchOnWindowFocus: false,
     retry: 1,
   });
@@ -105,6 +119,12 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
       queryClient.invalidateQueries({
         queryKey: ["get-warehouse-sections-records"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["get-warehouse-section-by-id-records"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["get-warehouse-by-id"],
+      });
     },
   });
 
@@ -118,6 +138,9 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
     retry: 1,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-section-lots-records"] });
+      queryClient.invalidateQueries({
+        queryKey: ["get-warehouse-section-by-id-records"],
+      });
     },
   });
 
@@ -133,11 +156,15 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
       queryClient.invalidateQueries({
         queryKey: ["get-section-racks-records"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["get-warehouse-section-by-id-records"],
+      });
     },
   });
 
   return {
     GetSections,
+    GetSectionById,
     GetLots,
     GetLotById,
     GetRacks,

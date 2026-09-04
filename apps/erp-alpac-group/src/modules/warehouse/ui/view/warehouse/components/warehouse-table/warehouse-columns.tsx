@@ -15,7 +15,11 @@ import {
 const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
-function CapacityCell({ capacity }: { capacity: Capacity }) {
+function CapacityCell({ capacity }: { capacity?: Capacity | null }) {
+  if (!capacity) {
+    return <span className="text-slate-500 dark:text-slate-400">—</span>;
+  }
+
   const occupancy = Math.min(
     100,
     Math.max(0, capacity.occupancy_percentage ?? 0),
@@ -145,7 +149,7 @@ export function getWarehouseColumns({
         item.isSkeleton ? (
           <WarehouseTableSkeletonCell item={item} />
         ) : (
-          formatAreaM2(item.capacity.usable_area_m2)
+          formatAreaM2(item.capacity?.usable_area_m2)
         ),
     },
     {
@@ -155,7 +159,7 @@ export function getWarehouseColumns({
         item.isSkeleton ? (
           <WarehouseTableSkeletonCell item={item} />
         ) : (
-          formatAreaM2(item.capacity.unusable_area_m2)
+          formatAreaM2(item.capacity?.unusable_area_m2)
         ),
     },
     {
@@ -165,7 +169,7 @@ export function getWarehouseColumns({
         item.isSkeleton ? (
           <WarehouseTableSkeletonCell item={item} />
         ) : (
-          formatAreaM2(item.capacity.occupied_area_m2)
+          formatAreaM2(item.capacity?.occupied_area_m2)
         ),
     },
     {

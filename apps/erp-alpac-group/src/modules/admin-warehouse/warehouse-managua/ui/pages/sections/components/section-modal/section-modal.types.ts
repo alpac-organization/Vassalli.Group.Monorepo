@@ -1,8 +1,12 @@
 import type { CreateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-section-req";
+import type { SectionStorageTypeValue } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
+import type { SpatialDraft } from "@app/modules/admin-warehouse/warehouse-managua/ui/components/layout-builder-2d/layout-builder-2d";
 
 export interface SectionModalProps {
   isOpen: boolean;
   warehouseId: string;
+  spatialDraft?: SpatialDraft | null;
+  defaultStorageType?: SectionStorageTypeValue;
   onClose: () => void;
   onSubmit?: (data: CreateSectionRequest) => void;
 }

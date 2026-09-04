@@ -68,6 +68,9 @@ importers:
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
+      konva:
+        specifier: ^10.3.2
+        version: 10.3.2
       lucide-react:
         specifier: ^1.6.0
         version: 1.6.0(react@19.2.0)
@@ -83,9 +86,15 @@ importers:
       react-hook-form:
         specifier: ^7.71.2
         version: 7.71.2(react@19.2.0)
+      react-konva:
+        specifier: ^19.2.5
+        version: 19.2.5(@types/react@19.2.14)(konva@10.3.2)(react-dom@19.2.0)(react@19.2.0)
       react-router-dom:
         specifier: ^7.13.1
         version: 7.13.1(react-dom@19.2.0)(react@19.2.0)
+      react-use-measure:
+        specifier: ^2.1.7
+        version: 2.1.7(react-dom@19.2.0)(react@19.2.0)
       three:
         specifier: ^0.185.1
         version: 0.185.1
@@ -5810,6 +5819,14 @@ packages:
       '@types/react': 19.2.14
     dev: false
 
+  /@types/react-reconciler@0.33.0(@types/react@19.2.14):
+    resolution: {integrity: sha512-HZOXsKT0tGI9LlUw2LuedXsVeB88wFa536vVL0M6vE8zN63nI+sSr1ByxmPToP5K5bukaVscyeCJcF9guVNJ1g==}
+    peerDependencies:
+      '@types/react': 19.2.14
+    dependencies:
+      '@types/react': 19.2.14
+    dev: false
+
   /@types/react-transition-group@4.4.12(@types/react@19.2.14):
     resolution: {integrity: sha512-8TV6R3h2j7a91c+1DXdJi3Syo69zzIZbz7Lg5tORM5LEJG7X/E6a1V3drRyBRZq7/utz7A+c4OgYLiLcYGHG6w==}
     peerDependencies:
@@ -9910,6 +9927,18 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
+  /konva@10.3.2:
+    resolution: {integrity: sha512-A9GLx+Vj0PNnybjNq/St/S8utrksuSKOR8EzO2RTjA0SlmR9JipahcCXWW0vXz/9wjZCwAEtBtJFCUGe5mD/4g==}
+    peerDependencies:
+      canvas: ^3.0.0
+      skia-canvas: ^3.0.0
+    peerDependenciesMeta:
+      canvas:
+        optional: true
+      skia-canvas:
+        optional: true
+    dev: false
+
   /lazystream@1.0.1:
     resolution: {integrity: sha512-b94GiNHQNy6JNTrt5w6zNyffMrNkXZb3KTkCZJb2V1xaEGCk093vkZ2jk3tpaeP33/OiXC+WvK9AxUebnf5nbw==}
     engines: {node: '>= 0.6.3'}
@@ -11406,6 +11435,34 @@ packages:
 
   /react-is@19.2.5:
     resolution: {integrity: sha512-Dn0t8IQhCmeIT3wu+Apm1/YVsJXsGWi6k4sPdnBIdqMVtHtv0IGi6dcpNpNkNac0zB2uUAqNX3MHzN8c+z2rwQ==}
+    dev: false
+
+  /react-konva@19.2.5(@types/react@19.2.14)(konva@10.3.2)(react-dom@19.2.0)(react@19.2.0):
+    resolution: {integrity: sha512-AdsuDB59GdB86QdenTAqRzr6Tfw3z9x9Opxo4BoqDjdNLsjekF9a1VhN4FlMPvg0qtrMl3d4dNmagaUTGH7fSA==}
+    peerDependencies:
+      konva: ^8.0.1 || ^7.2.5 || ^9.0.0 || ^10.0.0
+      react: 19.2.0
+      react-dom: 19.2.0
+    dependencies:
+      '@types/react-reconciler': 0.33.0(@types/react@19.2.14)
+      its-fine: 2.0.0(@types/react@19.2.14)(react@19.2.0)
+      konva: 10.3.2
+      react: 19.2.0
+      react-dom: 19.2.0(react@19.2.0)
+      react-reconciler: 0.33.0(react@19.2.0)
+      scheduler: 0.27.0
+    transitivePeerDependencies:
+      - '@types/react'
+    dev: false
+
+  /react-reconciler@0.33.0(react@19.2.0):
+    resolution: {integrity: sha512-KetWRytFv1epdpJc3J4G75I4WrplZE5jOL7Yq0p34+OVOKF4Se7WrdIdVC45XsSSmUTlht2FM/fM1FZb1mfQeA==}
+    engines: {node: '>=0.10.0'}
+    peerDependencies:
+      react: 19.2.0
+    dependencies:
+      react: 19.2.0
+      scheduler: 0.27.0
     dev: false
 
   /react-refresh@0.18.0:
