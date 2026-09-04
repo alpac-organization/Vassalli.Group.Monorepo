@@ -375,7 +375,7 @@ export const MonthlyMaterialTab = ({
 			<PurchaseRequestReportsModal
 				isOpen={isReportModalOpen}
 				onClose={() => setIsReportModalOpen(false)}
-				onGenerate={() => { }}
+				onGenerate={onRequestError}
 			/>
 
 			<ConfirmModal

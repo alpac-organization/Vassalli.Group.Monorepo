@@ -371,7 +371,7 @@ export const RequisitionTab = ({
 			<PurchaseRequestReportsModal
 				isOpen={isReportModalOpen}
 				onClose={() => setIsReportModalOpen(false)}
-				onGenerate={() => { }}
+				onGenerate={onRequestError}
 			/>
 
 			<ConfirmModal
