@@ -28,6 +28,104 @@ const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
 
+// La funcionalidad de seleccionar orden de servicio sigue en proceso, por lo que
+// la modal se muestra bloqueada con la animación de engranajes.
+const isBlocked = true;
+
+function MaintenanceBanner() {
+	return (
+		<div
+			role="status"
+			aria-label="Funcionalidad en mantenimiento"
+			className="pointer-events-auto flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-amber-300/70 bg-amber-50/50 px-4 py-4 dark:border-amber-500/40 dark:bg-amber-500/10"
+		>
+			<svg
+				width="100%"
+				viewBox="0 0 680 220"
+				xmlns="http://www.w3.org/2000/svg"
+				role="img"
+				style={{ maxWidth: "420px", height: "auto", display: "block" }}
+			>
+				<style>{`
+					.maintenance-gear { transform-box: fill-box; transform-origin: center; }
+					.maintenance-gear-large { animation: maintenance-spin 9s linear infinite; }
+					.maintenance-gear-medium { animation: maintenance-spin-reverse 6s linear infinite; }
+					.maintenance-gear-small { animation: maintenance-spin 4s linear infinite; }
+					@keyframes maintenance-spin { to { transform: rotate(360deg); } }
+					@keyframes maintenance-spin-reverse { to { transform: rotate(-360deg); } }
+					.maintenance-dot { animation: maintenance-dot 1.4s ease-in-out infinite; }
+					.maintenance-dot:nth-child(2) { animation-delay: 0.2s; }
+					.maintenance-dot:nth-child(3) { animation-delay: 0.4s; }
+					@keyframes maintenance-dot { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+				`}</style>
+
+				<g transform="translate(300,100)">
+					<g className="maintenance-gear maintenance-gear-large">
+						<circle r="34" fill="#eeedfe" stroke="#534ab7" />
+						<g fill="#0b0b0b">
+							<rect x="-4" y="-44" width="8" height="14" rx="2" />
+							<rect x="-4" y="30" width="8" height="14" rx="2" />
+							<rect x="-44" y="-4" width="14" height="8" rx="2" />
+							<rect x="30" y="-4" width="14" height="8" rx="2" />
+							<rect x="-4" y="-44" width="8" height="14" rx="2" transform="rotate(45)" />
+							<rect x="-4" y="30" width="8" height="14" rx="2" transform="rotate(45)" />
+							<rect x="-44" y="-4" width="14" height="8" rx="2" transform="rotate(45)" />
+							<rect x="30" y="-4" width="14" height="8" rx="2" transform="rotate(45)" />
+						</g>
+						<circle r="12" fill="#fff" />
+					</g>
+				</g>
+
+				<g transform="translate(390,150)">
+					<g className="maintenance-gear maintenance-gear-medium">
+						<circle r="22" fill="#e1f5ee" stroke="#0f6e56" />
+						<g fill="#898781">
+							<rect x="-3" y="-29" width="6" height="10" rx="2" />
+							<rect x="-3" y="19" width="6" height="10" rx="2" />
+							<rect x="-29" y="-3" width="10" height="6" rx="2" />
+							<rect x="19" y="-3" width="10" height="6" rx="2" />
+							<rect x="-3" y="-29" width="6" height="10" rx="2" transform="rotate(45)" />
+							<rect x="-3" y="19" width="6" height="10" rx="2" transform="rotate(45)" />
+							<rect x="-29" y="-3" width="10" height="6" rx="2" transform="rotate(45)" />
+							<rect x="19" y="-3" width="10" height="6" rx="2" transform="rotate(45)" />
+						</g>
+						<circle r="7" fill="#fff" />
+					</g>
+				</g>
+
+				<g transform="translate(210,155)" opacity="0.7">
+					<g className="maintenance-gear maintenance-gear-small">
+						<circle r="16" fill="#faece7" stroke="#993c1d" />
+						<g fill="#fff">
+							<rect x="-2" y="-21" width="4" height="8" rx="1" />
+							<rect x="-2" y="13" width="4" height="8" rx="1" />
+							<rect x="-21" y="-2" width="8" height="4" rx="1" />
+							<rect x="13" y="-2" width="8" height="4" rx="1" />
+						</g>
+						<circle r="5" fill="#fff" />
+					</g>
+				</g>
+
+				<circle className="maintenance-dot" cx="200" cy="60" r="4" fill="#0b0b0b" opacity="0.25" />
+				<circle className="maintenance-dot" cx="220" cy="60" r="4" fill="#0b0b0b" opacity="0.25" />
+				<circle className="maintenance-dot" cx="240" cy="60" r="4" fill="#0b0b0b" opacity="0.25" />
+
+				<text
+					x="340"
+					y="195"
+					textAnchor="middle"
+					style={{ fill: "#0b0b0b", fontSize: "15px", fontWeight: 600 }}
+				>
+					Estamos trabajando en ello
+				</text>
+			</svg>
+			<p className="m-0 text-sm font-medium text-amber-800 dark:text-amber-300">
+				Esta funcionalidad se encuentra en proceso y está bloqueada temporalmente.
+			</p>
+		</div>
+	);
+}
+
 export function SelectServiceOrderModal({
 	isOpen,
 	onClose,
@@ -248,7 +346,9 @@ export function SelectServiceOrderModal({
 				<Loader title="Cargando órdenes de servicio..." />
 			)}
 
-			<div className="flex flex-col gap-4">
+			<MaintenanceBanner />
+
+			<div className="pointer-events-none flex flex-col gap-4 opacity-60 select-none">
 				{error ? (
 					<p className="m-0 text-sm text-red-500 dark:text-red-400">{error}</p>
 				) : null}
@@ -264,6 +364,7 @@ export function SelectServiceOrderModal({
 						onChange={(event) => setSearchCode(event.target.value)}
 						className={inputClassName}
 						labelClassName={labelClassName}
+						disabled={isBlocked}
 					/>
 
 					<InputText
@@ -273,6 +374,7 @@ export function SelectServiceOrderModal({
 						onChange={(event) => setSearchCif(event.target.value)}
 						className={inputClassName}
 						labelClassName={labelClassName}
+						disabled={isBlocked}
 					/>
 
 					<Button
@@ -280,6 +382,7 @@ export function SelectServiceOrderModal({
 						size="giant"
 						className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
 						label="Aplicar filtros"
+						disabled={isBlocked}
 					/>
 
 					<Button
@@ -288,6 +391,7 @@ export function SelectServiceOrderModal({
 						className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
 						label="Limpiar filtros"
 						onClick={handleClearFilters}
+						disabled={isBlocked}
 					/>
 				</form>
 
@@ -305,7 +409,7 @@ export function SelectServiceOrderModal({
 							pageSize={PAGE_SIZE}
 							totalRecords={totalRecords}
 							onPageChange={handlePageChange}
-							disabled={GetServiceOrders.isFetching}
+							disabled={isBlocked || GetServiceOrders.isFetching}
 						/>
 					}
 				/>
@@ -317,12 +421,13 @@ export function SelectServiceOrderModal({
 						label="Cancelar"
 						className={secondaryButtonClassName}
 						onClick={handleClose}
+						disabled={isBlocked}
 					/>
 					<Button
 						type="button"
 						size="giant"
 						label="Agregar a la lista"
-						disabled={isConfirmDisabled}
+						disabled={isBlocked || isConfirmDisabled}
 						className={primaryButtonClassName}
 						onClick={handleConfirm}
 					/>

@@ -5,10 +5,12 @@ import dayjs, { type Dayjs } from "dayjs";
 import {
 	PurchaseRequestReportsOptions,
 	PurchaseRequestReportType,
+	PurchaseRequestConsolidationType,
 	type PurchaseRequestReportsModalProps,
 } from "./purchase-request-reports-modal.types";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 
 const primaryButtonClassName =
@@ -30,11 +32,16 @@ export const PurchaseRequestReportsModal = ({
 	const { companyId, moduleCode } = useUserStore();
 
 	const { GetPurchaseRequestDocument } = usePurchase();
+	const { getMappedError } = useMappedError();
 
 	const [selectedReport, setSelectedReport] = useState<PurchaseRequestReportType | null>(null);
 	const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(null);
 
 	const isLoading = GetPurchaseRequestDocument.isPending;
+
+	const isMonthlyReport =
+		selectedReport === PurchaseRequestReportType.ConsolidatedProducts ||
+		selectedReport === PurchaseRequestReportType.TotalProducts;
 
 	useEffect(() => {
 		if (isOpen) return;
@@ -44,7 +51,7 @@ export const PurchaseRequestReportsModal = ({
 	}, [isOpen]);
 
 	const canGenerate =
-		selectedReport === PurchaseRequestReportType.ConsolidatedProducts &&
+		isMonthlyReport &&
 		Boolean(selectedMonth?.isValid()) &&
 		!isLoading;
 
@@ -54,21 +61,23 @@ export const PurchaseRequestReportsModal = ({
 	};
 
 	const handleGenerate = async () => {
-		if (
-			selectedReport !== PurchaseRequestReportType.ConsolidatedProducts ||
-			!selectedMonth?.isValid()
-		) {
+		if (!isMonthlyReport || !selectedMonth?.isValid()) {
 			return;
 		}
 
+		const payload = {
+			company_id: companyId,
+			module_code: moduleCode,
+			document_type: PurchaseRequestEnum.Monthly.value,
+			...(selectedReport === PurchaseRequestReportType.TotalProducts
+				? { consolidation_type: PurchaseRequestConsolidationType.TotalProducts }
+				: {}),
+			month: selectedMonth.month() + 1,
+			year: selectedMonth.year(),
+		};
+
 		GetPurchaseRequestDocument.mutate(
-			{
-				company_id: companyId,
-				module_code: moduleCode,
-				document_type: PurchaseRequestEnum.Monthly.value,
-				month: selectedMonth.month() + 1,
-				year: selectedMonth.year(),
-			},
+			payload,
 			{
 				onSuccess: (response) => {
 					if (response?.document_url) {
@@ -76,8 +85,8 @@ export const PurchaseRequestReportsModal = ({
 					}
 					onClose();
 				},
-				onError: () => {
-					onGenerate("Error al generar el consolidado mensual.");
+				onError: (error) => {
+					onGenerate(getMappedError(error).description);
 				},
 			},
 		);
@@ -106,7 +115,7 @@ export const PurchaseRequestReportsModal = ({
 					valueClassName={labelClassName}
 				/>
 
-				{selectedReport === PurchaseRequestReportType.ConsolidatedProducts && (
+				{isMonthlyReport && (
 					<DatePicker
 						views={["year", "month"]}
 						openTo="month"
