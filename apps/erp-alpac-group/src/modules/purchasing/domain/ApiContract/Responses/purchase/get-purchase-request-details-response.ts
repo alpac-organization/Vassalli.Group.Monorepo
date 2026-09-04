@@ -1,26 +1,17 @@
+import type {
+	BranchInformation,
+	UserInformation,
+	WorkAreaInformation,
+} from "@app/shared/interfaces/organization-information/organization-information";
 import type { GetPurchaseRequestResponse } from "./get-purchase-request-response";
 
 export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResponse {
 	observations: string | null;
 	reason_rejection: string | null;
-	information_from_requesting_area: WorkArea;
-	creator_user_information: PurchaseRequestUserInformation;
-	reviewer_user_information: PurchaseRequestUserInformation | null;
-	branch_information: PurchaseRequestBranchInformation;
-}
-
-export interface PurchaseRequestUserInformation {
-	user_id: string;
-	email: string | null;
-	fullname: string | null;
-	picture_url: string | null;
-}
-
-export interface PurchaseRequestBranchInformation {
-	branch_id: string;
-	branch_code: string | null;
-	branch_name: string | null;
-	company_alias: string | null;
+	information_from_requesting_area: WorkAreaInformation;
+	creator_user_information: UserInformation;
+	reviewer_user_information: UserInformation | null;
+	branch_information: BranchInformation;
 }
 
 export interface PurchaseRequestProductInformationList {
@@ -28,31 +19,6 @@ export interface PurchaseRequestProductInformationList {
 	page_number: number;
 	page_size: number;
 	total: number;
-}
-
-export interface WorkArea {
-	work_area_id: string;
-	work_area_code: number;
-	description: string;
-	work_area_name: string;
-	cost_centers: CostCenter[];
-}
-
-export interface CostCenter {
-	cost_center_id: string;
-	description: string;
-	cost_center_name: string;
-	coil_code: number;
-	cost_center_code: number;
-}
-
-export interface PurchaseRequestUserInformation {
-	user_id: string;
-	email: string | null;
-	fullname: string | null;
-	picture_url: string | null;
-	user_status: string | null;
-	work_area_information: WorkArea;
 }
 
 export interface PurchaseRequestProductInformation {

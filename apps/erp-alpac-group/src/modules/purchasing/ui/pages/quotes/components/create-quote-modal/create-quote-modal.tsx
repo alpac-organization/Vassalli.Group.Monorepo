@@ -112,6 +112,8 @@ export function CreateQuoteModal({
 			isFetchingPurchaseRequestProducts
 		) || isRegisteringQuote);
 
+	const hasQuotedProducts = quotationItems.length > 0;
+
 	const resetQuoteDraft = () => {
 		reset(defaultFormValues);
 		setOpenProducts([]);
@@ -391,7 +393,7 @@ export function CreateQuoteModal({
 									label="Guardar cotización"
 									size="giant"
 									isLoading={isSubmitting || isRegisteringQuote}
-									disabled={isSubmitting || isRegisteringQuote}
+									disabled={isSubmitting || isRegisteringQuote || !hasQuotedProducts}
 									isHiddenLabelOnMobile
 									icon={<SaveIcon size={20} />}
 									className={quoteFormPrimaryButtonClassName}

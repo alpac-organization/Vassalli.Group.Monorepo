@@ -48,8 +48,7 @@ export const PurchaseRequest = () => {
 		},
 		{
 			id: "monthly-applications",
-			label: "Solicitud de Materiales Mensuales",
-			disabled: true,
+			label: "Solicitudes Mensuales",
 			render: () => (
 				<MonthlyMaterialTab
 					currentBranchId={branchId!}
@@ -60,7 +59,7 @@ export const PurchaseRequest = () => {
 		},
 		{
 			id: "occasional-applications",
-			label: "Solicitud de Materiales Eventuales",
+			label: "Solicitudes Eventuales",
 			render: () => (
 				<OccasionalMaterialTab
 					currentBranchId={branchId!}

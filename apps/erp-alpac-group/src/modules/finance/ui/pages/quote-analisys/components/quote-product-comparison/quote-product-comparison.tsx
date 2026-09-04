@@ -21,6 +21,7 @@ import {
   getQuoteIvaPercentage,
   getQuoteTotalPrice,
 } from "./quote-product-comparison.utils";
+import type { accountingReviewStatusType } from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
 
 const MAX_COLUMNS = 3;
 
@@ -145,10 +146,12 @@ function QuoteAcceptButton({
   isSelected,
   isAccepting,
   onAccept,
+  accountingReviewStatus
 }: {
   isSelected: boolean;
   isAccepting?: boolean;
   onAccept: () => void;
+  accountingReviewStatus: accountingReviewStatusType;
 }) {
   if (isSelected) {
     return (
@@ -161,6 +164,8 @@ function QuoteAcceptButton({
       />
     );
   }
+
+  if (accountingReviewStatus !== "Pending") return;
 
   return (
     <Button
@@ -180,24 +185,25 @@ function QuoteCard({
   isBestPrice,
   isAccepting,
   onAccept,
+  accountingReviewStatus
 }: {
   quote: PurchaseRequestProductQuotation;
   isSelected: boolean;
   isBestPrice: boolean;
   isAccepting?: boolean;
   onAccept: () => void;
+  accountingReviewStatus: accountingReviewStatusType;
 }) {
   return (
     <div
-      className={`flex min-w-0 flex-col gap-3 rounded-xl border p-3 sm:p-4 ${
-        isSelected
-          ? "border-blue-500 bg-blue-50/60 dark:border-blue-500 dark:bg-blue-500/10"
-          : "border-slate-200 bg-white dark:border-slate-700/60 dark:bg-[#1e2229]"
-      }`}
+      className={`flex min-w-0 flex-col gap-3 rounded-xl border p-3 sm:p-4 ${isSelected
+        ? "border-blue-500 bg-blue-50/60 dark:border-blue-500 dark:bg-blue-500/10"
+        : "border-slate-200 bg-white dark:border-slate-700/60 dark:bg-[#1e2229]"
+        }`}
     >
       <div className="flex min-w-0 flex-col gap-2">
         <div className="flex min-w-0 items-start justify-between gap-2">
-          <p className="m-0 min-w-0 break-words text-sm font-semibold text-slate-900 dark:text-white">
+          <p className="m-0 min-w-0 wrap-break-words text-sm font-semibold text-slate-900 dark:text-white">
             {quote.supplier_information?.suppliers_legal_name?.trim() ||
               "Proveedor"}
           </p>
@@ -211,6 +217,7 @@ function QuoteCard({
           isSelected={isSelected}
           isAccepting={isAccepting}
           onAccept={onAccept}
+          accountingReviewStatus={accountingReviewStatus}
         />
       </div>
 
@@ -232,11 +239,10 @@ function QuoteCard({
                 <span className="truncate">{row.label}</span>
               </span>
               <span
-                className={`max-w-[58%] break-words text-right text-sm ${
-                  row.emphasize
-                    ? "font-semibold text-slate-900 dark:text-white"
-                    : "text-slate-700 dark:text-slate-200"
-                }`}
+                className={`max-w-[58%] wrap-break-words text-right text-sm ${row.emphasize
+                  ? "font-semibold text-slate-900 dark:text-white"
+                  : "text-slate-700 dark:text-slate-200"
+                  }`}
               >
                 {row.getValue(quote)}
               </span>
@@ -254,6 +260,7 @@ export function QuoteProductComparison({
   selectedQuotationId,
   onRequestAccept,
   isAccepting,
+  accountingReviewStatus,
 }: QuoteProductComparisonProps) {
   const activeQuotations = quotations.filter((quote) => quote.is_active);
   const bestPriceId = getBestPriceQuotationId(activeQuotations);
@@ -279,6 +286,7 @@ export function QuoteProductComparison({
             <QuoteCard
               key={quote.quotation_id}
               quote={quote}
+              accountingReviewStatus={accountingReviewStatus}
               isSelected={isSelected}
               isBestPrice={bestPriceId === quote.quotation_id}
               isAccepting={isAccepting}
@@ -298,7 +306,7 @@ export function QuoteProductComparison({
               className="w-full min-w-0 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/60"
             >
               <div
-                className="min-w-[680px]"
+                className="min-w-170"
                 style={{
                   display: "grid",
                   gridTemplateColumns: getGridTemplate(),
@@ -317,15 +325,13 @@ export function QuoteProductComparison({
                   return (
                     <div
                       key={quote.quotation_id}
-                      className={`flex flex-col gap-3 border-l border-slate-200 px-3 py-3 dark:border-slate-700/60 xl:px-4 ${
-                        isLastFilled
-                          ? "border-r border-slate-200 dark:border-slate-700/60"
-                          : ""
-                      } ${
-                        isSelected
+                      className={`flex flex-col gap-3 border-l border-slate-200 px-3 py-3 dark:border-slate-700/60 xl:px-4 ${isLastFilled
+                        ? "border-r border-slate-200 dark:border-slate-700/60"
+                        : ""
+                        } ${isSelected
                           ? "bg-blue-50/60 dark:bg-blue-500/10"
                           : "bg-white dark:bg-[#1e2229]"
-                      }`}
+                        }`}
                     >
                       <div className="flex min-w-0 flex-col gap-2">
                         <div className="flex min-w-0 items-start justify-between gap-2">
@@ -342,6 +348,7 @@ export function QuoteProductComparison({
                         <QuoteAcceptButton
                           isSelected={isSelected}
                           isAccepting={isAccepting}
+                          accountingReviewStatus={accountingReviewStatus}
                           onAccept={() => onRequestAccept(itemId, quote)}
                         />
                       </div>
@@ -373,19 +380,16 @@ export function QuoteProductComparison({
                         return (
                           <div
                             key={`${quote.quotation_id}-${row.key}`}
-                            className={`border-t border-l border-slate-200 px-3 py-2.5 text-sm break-words dark:border-slate-700/60 xl:px-4 ${
-                              isLastFilled
-                                ? "border-r border-slate-200 dark:border-slate-700/60"
-                                : ""
-                            } ${zebra} ${
-                              isSelected
+                            className={`border-t border-l border-slate-200 px-3 py-2.5 text-sm wrap-break-words dark:border-slate-700/60 xl:px-4 ${isLastFilled
+                              ? "border-r border-slate-200 dark:border-slate-700/60"
+                              : ""
+                              } ${zebra} ${isSelected
                                 ? "bg-blue-50/40 dark:bg-blue-500/5"
                                 : ""
-                            } ${
-                              row.emphasize
+                              } ${row.emphasize
                                 ? "font-semibold text-slate-900 dark:text-white"
                                 : "text-slate-700 dark:text-slate-200"
-                            }`}
+                              }`}
                           >
                             {row.getValue(quote)}
                           </div>

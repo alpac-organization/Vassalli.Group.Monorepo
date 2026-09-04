@@ -8,5 +8,5 @@ export type AnalyzedQuotesTableProps = {
   onPageChange: (page: number) => void;
   isFetching?: boolean;
   onViewDetail?: (row: RequisitionManagementReviewDto) => void;
-  onSendTo?: (row: RequisitionManagementReviewDto) => void;
+  processPurchaseOrder?: (row: RequisitionManagementReviewDto) => void;
 };
