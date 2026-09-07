@@ -3,10 +3,12 @@ import type { LucideIcon } from "lucide-react";
 import {
   Calendar,
   Hash,
+  Clock,
   Package,
   Percent,
   ShieldCheck,
   Tag,
+  Award,
   Truck,
   User,
 } from "lucide-react";
@@ -16,12 +18,12 @@ import type { PurchaseRequestProductQuotation } from "@app/modules/purchasing/do
 import type { QuoteProductComparisonProps } from "./quote-product-comparison.types";
 import {
   chunkQuotations,
-  formatPeriodLabel,
   getBestPriceQuotationId,
   getQuoteIvaPercentage,
   getQuoteTotalPrice,
 } from "./quote-product-comparison.utils";
 import type { accountingReviewStatusType } from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
+import { formatTimeTypeLabel } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-product-comparison/utils/format-type-label";
 
 const MAX_COLUMNS = 3;
 
@@ -89,30 +91,30 @@ const COMPARISON_ROWS: ComparisonRow[] = [
     emphasize: true,
   },
   {
-    key: "delivery",
-    label: "Entrega",
+    key: "delivery_time_type",
+    label: "Tipo de entrega",
     icon: Truck,
-    getValue: (quote) => {
-      if (!quote.has_delivery) return "No incluida";
-      const period = formatPeriodLabel(
-        quote.delivery_time,
-        quote.delivery_time_type,
-      );
-      return period ? `Incluida · ${period}` : "Incluida";
-    },
+    getValue: (quote) => formatTimeTypeLabel(quote.delivery_time_type),
   },
   {
-    key: "warranty",
-    label: "Garantía",
+    key: "delivery_time",
+    label: "Tiempo de entrega",
+    icon: Clock,
+    getValue: (quote) =>
+      quote.delivery_time == null ? "—" : String(quote.delivery_time),
+  },
+  {
+    key: "warranty_period",
+    label: "Período de garantía",
     icon: ShieldCheck,
-    getValue: (quote) => {
-      if (!quote.has_guarantee) return "No incluye";
-      const period = formatPeriodLabel(
-        quote.warranty_period,
-        quote.warranty_period_time_type,
-      );
-      return period ? `Incluye · ${period}` : "Incluye";
-    },
+    getValue: (quote) =>
+      quote.warranty_period == null ? "—" : String(quote.warranty_period),
+  },
+  {
+    key: "warranty_period_time_type",
+    label: "Tipo de garantía",
+    icon: Award,
+    getValue: (quote) => formatTimeTypeLabel(quote.warranty_period_time_type),
   },
   {
     key: "date",
@@ -146,7 +148,7 @@ function QuoteAcceptButton({
   isSelected,
   isAccepting,
   onAccept,
-  accountingReviewStatus
+  accountingReviewStatus,
 }: {
   isSelected: boolean;
   isAccepting?: boolean;
@@ -185,7 +187,7 @@ function QuoteCard({
   isBestPrice,
   isAccepting,
   onAccept,
-  accountingReviewStatus
+  accountingReviewStatus,
 }: {
   quote: PurchaseRequestProductQuotation;
   isSelected: boolean;
@@ -196,10 +198,11 @@ function QuoteCard({
 }) {
   return (
     <div
-      className={`flex min-w-0 flex-col gap-3 rounded-xl border p-3 sm:p-4 ${isSelected
-        ? "border-blue-500 bg-blue-50/60 dark:border-blue-500 dark:bg-blue-500/10"
-        : "border-slate-200 bg-white dark:border-slate-700/60 dark:bg-[#1e2229]"
-        }`}
+      className={`flex min-w-0 flex-col gap-3 rounded-xl border p-3 sm:p-4 ${
+        isSelected
+          ? "border-blue-500 bg-blue-50/60 dark:border-blue-500 dark:bg-blue-500/10"
+          : "border-slate-200 bg-white dark:border-slate-700/60 dark:bg-[#1e2229]"
+      }`}
     >
       <div className="flex min-w-0 flex-col gap-2">
         <div className="flex min-w-0 items-start justify-between gap-2">
@@ -239,10 +242,11 @@ function QuoteCard({
                 <span className="truncate">{row.label}</span>
               </span>
               <span
-                className={`max-w-[58%] wrap-break-words text-right text-sm ${row.emphasize
-                  ? "font-semibold text-slate-900 dark:text-white"
-                  : "text-slate-700 dark:text-slate-200"
-                  }`}
+                className={`max-w-[58%] wrap-break-words text-right text-sm ${
+                  row.emphasize
+                    ? "font-semibold text-slate-900 dark:text-white"
+                    : "text-slate-700 dark:text-slate-200"
+                }`}
               >
                 {row.getValue(quote)}
               </span>
@@ -325,13 +329,15 @@ export function QuoteProductComparison({
                   return (
                     <div
                       key={quote.quotation_id}
-                      className={`flex flex-col gap-3 border-l border-slate-200 px-3 py-3 dark:border-slate-700/60 xl:px-4 ${isLastFilled
-                        ? "border-r border-slate-200 dark:border-slate-700/60"
-                        : ""
-                        } ${isSelected
+                      className={`flex flex-col gap-3 border-l border-slate-200 px-3 py-3 dark:border-slate-700/60 xl:px-4 ${
+                        isLastFilled
+                          ? "border-r border-slate-200 dark:border-slate-700/60"
+                          : ""
+                      } ${
+                        isSelected
                           ? "bg-blue-50/60 dark:bg-blue-500/10"
                           : "bg-white dark:bg-[#1e2229]"
-                        }`}
+                      }`}
                     >
                       <div className="flex min-w-0 flex-col gap-2">
                         <div className="flex min-w-0 items-start justify-between gap-2">
@@ -380,16 +386,19 @@ export function QuoteProductComparison({
                         return (
                           <div
                             key={`${quote.quotation_id}-${row.key}`}
-                            className={`border-t border-l border-slate-200 px-3 py-2.5 text-sm wrap-break-words dark:border-slate-700/60 xl:px-4 ${isLastFilled
-                              ? "border-r border-slate-200 dark:border-slate-700/60"
-                              : ""
-                              } ${zebra} ${isSelected
+                            className={`border-t border-l border-slate-200 px-3 py-2.5 text-sm wrap-break-words dark:border-slate-700/60 xl:px-4 ${
+                              isLastFilled
+                                ? "border-r border-slate-200 dark:border-slate-700/60"
+                                : ""
+                            } ${zebra} ${
+                              isSelected
                                 ? "bg-blue-50/40 dark:bg-blue-500/5"
                                 : ""
-                              } ${row.emphasize
+                            } ${
+                              row.emphasize
                                 ? "font-semibold text-slate-900 dark:text-white"
                                 : "text-slate-700 dark:text-slate-200"
-                              }`}
+                            }`}
                           >
                             {row.getValue(quote)}
                           </div>

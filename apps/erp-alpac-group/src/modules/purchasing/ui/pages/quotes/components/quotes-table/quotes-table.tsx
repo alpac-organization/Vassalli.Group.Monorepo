@@ -1,132 +1,145 @@
 import { useMemo } from "react";
 import {
-	Badges,
-	ContextMenu,
-	DataTable,
-	Pagination,
-	type TableColumn,
+  Badges,
+  ContextMenu,
+  DataTable,
+  Pagination,
+  type TableColumn,
 } from "@alpac/design-system";
 import type { QuotesTableProps } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-table/quotes-table.types";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import {
-	purchaseRequestStatusBadgeVariants,
-	purchaseRequestTypeBadgeVariants,
+  purchaseRequestDestinationBadgeVariants,
+  purchaseRequestPriorityBadgeVariants,
+  purchaseRequestStatusBadgeVariants,
 } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
-import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
+import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
+import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
 
 const contextMenuButton =
-	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
+  "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 const buildColumns = (
-	onViewDetail: (row: GetPurchaseRequestResponse) => void,
-	onSendForReview: (row: GetPurchaseRequestResponse) => void,
+  onViewDetail: (row: GetPurchaseRequestResponse) => void,
+  onSendForReview: (row: GetPurchaseRequestResponse) => void,
 ): TableColumn<GetPurchaseRequestResponse>[] => [
-		{ key: "code", label: "Código" },
-		{
-			key: "request_status",
-			label: "Estado",
-			render: (row: GetPurchaseRequestResponse) => {
-				const statusLabel =
-					Object.values(PurchaseRequestStatusEnum).find(
-						(status) => status.textValue === row.request_status,
-					)?.label ?? row.request_status;
+  { key: "code", label: "Código" },
+  {
+    key: "request_status",
+    label: "Estado",
+    render: (row: GetPurchaseRequestResponse) => {
+      const statusLabel =
+        Object.values(PurchaseRequestStatusEnum).find(
+          (status) => status.textValue === row.request_status,
+        )?.label ?? row.request_status;
 
-				return (
-					<Badges
-						label={statusLabel}
-						color={
-							purchaseRequestStatusBadgeVariants[
-								row.request_status as keyof typeof purchaseRequestStatusBadgeVariants
-							]?.badgeColor ??
-							purchaseRequestStatusBadgeVariants.default.badgeColor
-						}
-					/>
-				);
-			},
-		},
-		{
-			key: "request_type",
-			label: "Tipo",
-			render: (row: GetPurchaseRequestResponse) => {
-				const typeLabel =
-					Object.values(PurchaseRequestEnum).find(
-						(type) => type.textValue === row.request_type,
-					)?.label ?? row.request_type;
+      return (
+        <Badges
+          label={statusLabel}
+          color={
+            purchaseRequestStatusBadgeVariants[
+              row.request_status as keyof typeof purchaseRequestStatusBadgeVariants
+            ]?.badgeColor ??
+            purchaseRequestStatusBadgeVariants.default.badgeColor
+          }
+        />
+      );
+    },
+  },
+  {
+    key: "priority_level",
+    label: "Prioridad",
+    render: (row: GetPurchaseRequestResponse) => {
+      const variant =
+        purchaseRequestPriorityBadgeVariants[
+          row.priority_level as keyof typeof purchaseRequestPriorityBadgeVariants
+        ] ?? purchaseRequestPriorityBadgeVariants.default;
 
-				return (
-					<Badges
-						label={typeLabel}
-						color={
-							purchaseRequestTypeBadgeVariants[
-								row.request_type as keyof typeof purchaseRequestTypeBadgeVariants
-							]?.badgeColor ??
-							purchaseRequestTypeBadgeVariants.default.badgeColor
-						}
-					/>
-				);
-			},
-		},
-		{
-			key: "request_date",
-			label: "Fecha de Solicitud",
-			render: (row: GetPurchaseRequestResponse) => {
-				return formatDateToSpanishWords(row.request_date ?? "");
-			},
-		},
-		{
-			key: "revision_date",
-			label: "Fecha de revisión",
-			render: (row: GetPurchaseRequestResponse) => {
-				return formatDateToSpanishWords(row.revision_date ?? "");
-			},
-		},
-		{
-			key: "actions",
-			label: "Acciones",
-			render: (row: GetPurchaseRequestResponse) => (
-				<ContextMenu
-					items={[
-						{ label: "Enviar a revisión", onClick: () => onSendForReview(row) },
-						{ label: "Ver detalle", onClick: () => onViewDetail(row) },
-					]}
-					triggerClassName={contextMenuButton}
-				/>
-			),
-		},
-	];
+      const priorityLabel =
+        Object.values(PriorityLevelEnum).find(
+          (priority) => priority.textValue === row.priority_level,
+        )?.label ?? row.priority_level;
+
+      return <Badges label={priorityLabel} color={variant.badgeColor} />;
+    },
+  },
+  {
+    key: "destination",
+    label: "Destino",
+    render: (row: GetPurchaseRequestResponse) => {
+      const variant =
+        purchaseRequestDestinationBadgeVariants[
+          row.destination as keyof typeof purchaseRequestDestinationBadgeVariants
+        ] ?? purchaseRequestDestinationBadgeVariants.default;
+
+      const destinationLabel =
+        Object.values(PurchaseRequestDestinationEnum).find(
+          (destination) => destination.textValue === row.destination,
+        )?.label ?? row.destination;
+
+      return <Badges label={destinationLabel} color={variant.badgeColor} />;
+    },
+  },
+  {
+    key: "request_date",
+    label: "Fecha de Solicitud",
+    render: (row: GetPurchaseRequestResponse) => {
+      return formatDateToSpanishWords(row.request_date ?? "");
+    },
+  },
+  {
+    key: "revision_date",
+    label: "Fecha de revisión",
+    render: (row: GetPurchaseRequestResponse) => {
+      return formatDateToSpanishWords(row.revision_date ?? "");
+    },
+  },
+  {
+    key: "actions",
+    label: "Acciones",
+    render: (row: GetPurchaseRequestResponse) => (
+      <ContextMenu
+        items={[
+          { label: "Enviar a revisión", onClick: () => onSendForReview(row) },
+          { label: "Ver detalle", onClick: () => onViewDetail(row) },
+        ]}
+        triggerClassName={contextMenuButton}
+      />
+    ),
+  },
+];
 
 export function QuotesTable({
-	data,
-	currentPage,
-	pageSize,
-	totalRecords,
-	onPageChange,
-	onViewDetail,
-	onSendForReview,
-	isPaginationDisabled = false,
+  data,
+  currentPage,
+  pageSize,
+  totalRecords,
+  onPageChange,
+  onViewDetail,
+  onSendForReview,
+  isPaginationDisabled = false,
 }: QuotesTableProps) {
+  const columns = useMemo(
+    () => buildColumns(onViewDetail, onSendForReview),
+    [onViewDetail, onSendForReview],
+  );
 
-	const columns = useMemo(
-		() => buildColumns(onViewDetail, onSendForReview),
-		[onViewDetail, onSendForReview],
-	);
-
-	return (
-		<DataTable
-			title="Historial de cotizaciones"
-			data={data}
-			columns={columns}
-			pagination={
-				<Pagination
-					currentPage={currentPage}
-					pageSize={pageSize}
-					totalRecords={totalRecords}
-					onPageChange={onPageChange}
-					disabled={isPaginationDisabled}
-				/>
-			}
-		/>
-	);
+  return (
+    <DataTable
+      title="Historial de cotizaciones"
+      data={data}
+      columns={columns}
+      pagination={
+        <Pagination
+          currentPage={currentPage}
+          pageSize={pageSize}
+          totalRecords={totalRecords}
+          onPageChange={onPageChange}
+          disabled={isPaginationDisabled}
+        />
+      }
+    />
+  );
 }
