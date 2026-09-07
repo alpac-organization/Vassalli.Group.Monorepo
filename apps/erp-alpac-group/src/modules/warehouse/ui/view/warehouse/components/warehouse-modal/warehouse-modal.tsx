@@ -3,6 +3,7 @@ import {
   Alert,
   AnimatedAlertWrapper,
   Button,
+  Checkbox,
   Dropdown,
   InputText,
   Modal,
@@ -68,6 +69,7 @@ export function WarehouseModal({
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
+      is_owner: true,
       warehouse_details: {
         ramps_count: 0,
         parking_spaces_count: 0,
@@ -87,7 +89,7 @@ export function WarehouseModal({
       module_code: moduleCode,
       branch_id: data.branch_id,
       code: data.code,
-      is_owner: true,
+      is_owner: data.is_owner,
       warehouse_name: data.warehouse_name,
       warehouse_type: Number(
         warehouseTypeOption?.value ?? WarehouseTypeEnum.General.value,
@@ -337,6 +339,22 @@ export function WarehouseModal({
               },
             })}
             error={errors.warehouse_details?.parking_spaces_count?.message}
+          />
+
+          <Controller
+            control={control}
+            name="is_owner"
+            render={({ field }) => (
+              <div className="flex items-center  min-h-[72px]">
+                <Checkbox
+                  label="Bodega propia"
+                  labelPosition="right"
+                  className="text-slate-300!"
+                  checked={Boolean(field.value)}
+                  onChange={(e) => field.onChange(e.target.checked)}
+                />
+              </div>
+            )}
           />
         </div>
 

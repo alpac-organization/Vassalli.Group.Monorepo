@@ -1,8 +1,7 @@
-import type { GetRackDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-detail";
+import type { RackListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-res";
 
 export type RackDetailModalProps = {
   isOpen: boolean;
-  rack?: GetRackDetailResponse | null;
-  isLoading: boolean;
+  rack?: RackListItemResponse | null;
   onClose: () => void;
 };

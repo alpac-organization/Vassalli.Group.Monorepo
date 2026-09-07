@@ -10,6 +10,7 @@ export interface WarehouseModalProps {
 export type FormValues = {
   branch_id: string;
   code: string;
+  is_owner: boolean;
   warehouse_name: string;
   warehouse_type: number;
   warehouse_details: {

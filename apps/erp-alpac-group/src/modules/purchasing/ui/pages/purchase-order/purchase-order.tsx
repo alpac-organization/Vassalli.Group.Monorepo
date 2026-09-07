@@ -1,106 +1,120 @@
 import { useCallback, useMemo, useState } from "react";
 import {
-	Alert,
-	AnimatedAlertWrapper,
 	Breadcrumb,
 	Button,
-	ContextMenu,
 	DataTable,
 	Dropdown,
-	InputText,
 	Pagination,
-	useTheme,
-	type TableColumn,
+	useTheme
 } from "@alpac/design-system";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
+import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
+import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { Loader } from "@app/shared/components/loaders/loader";
 import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useAlertState } from "@app/shared/hooks/useAlertState";
-import { PurchaseOrderModal } from "./components/purchase-order-modal/purchase-order-modal";
-import type { PurchaseOrderRow } from "./components/purchase-order-modal/purchase-order-modal.types";
+import type { GetPurchaseOrdersPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-orders-payload";
+import { getPurchaseOrderTableColumns } from "./utils/purchase-order-table-columns";
+import type { GetPurchaseOrdersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
+import { PurchaseOrderDetailsModal } from "./components/purchase-order-details-modal/purchase-order-details-modal";
 
-const inputClassName =
-	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
 const PAGE_SIZE = 5;
-
-const statusOptions = [
-	{ label: "Borrador", value: "draft" },
-	{ label: "Pendiente", value: "pending" },
-	{ label: "Aprobada", value: "approved" },
-	{ label: "Recibida", value: "received" },
-	{ label: "Cancelada", value: "cancelled" },
-];
 
 export const PurchaseOrder = () => {
 	const navigate = useNavigate();
 	const { baseUrl } = useBaseUrl();
 	const { theme } = useTheme();
 	const { urlImage, neutralUrlImage } = useCompanyStore();
+	const { companyId, moduleCode } = useUserStore();
 
-	const [isPurchaseOrderModalOpen, setIsPurchaseOrderModalOpen] = useState(false);
-	const [orderNumber, setOrderNumber] = useState("");
-	const [supplierName, setSupplierName] = useState("");
-	const [status, setStatus] = useState<string>("");
-	const [selectedPurchaseOrder, setSelectedPurchaseOrder] =
-		useState<PurchaseOrderRow | null>(null);
-	const [currentPage, setCurrentPage] = useState(1);
+	const [selectedAreaId, setSelectedAreaId] = useState("");
+	const [selectedBranchId, setSelectedBranchId] = useState("");
+	const [isPurchaseOrderDetailsOpen, setIsPurchaseOrderDetailsOpen] = useState(false);
+	const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState<GetPurchaseOrdersResponse | null>(null);
+	const [filters, setFilters] = useState<GetPurchaseOrdersPayload>({
+		company_id: companyId,
+		module_code: moduleCode,
+		page_number: 1,
+		page_size: PAGE_SIZE,
+	});
 
-	const {
-		alertState,
-		handleCloseAlert,
-		handleRequestError,
-		handleRequestSuccess,
-	} = useAlertState();
+	const { GetAreasByCompany } = useAreas({ company_id: companyId });
+	const { GetBranchesQuery } = useCompanies({ company_id: companyId });
+	const { GetPurchaseOrders } = usePurchase({
+		getPurchaseOrdersPayload: {
+			...filters,
+			company_id: companyId,
+			module_code: moduleCode,
+			page_size: PAGE_SIZE,
+		},
+	});
 
-	const purchaseOrders: PurchaseOrderRow[] = [];
-	const totalRecords = 0;
+	const purchaseOrders = GetPurchaseOrders.data?.data ?? [];
+	const totalRecords = GetPurchaseOrders.data?.total ?? 0;
+	const currentPage = filters.page_number;
 	const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
+	const areaOptions = useMemo(
+		() =>
+			(GetAreasByCompany.data ?? []).map((area) => ({
+				label: area.work_area_name,
+				value: area.work_area_id,
+			})),
+		[GetAreasByCompany.data],
+	);
+
+	const branchOptions = useMemo(
+		() =>
+			(GetBranchesQuery.data ?? []).map((branch) => ({
+				label: branch.branch_name,
+				value: branch.branch_id,
+			})),
+		[GetBranchesQuery.data],
+	);
+
+	const handleApplyFilters = () => {
+		setFilters({
+			company_id: companyId,
+			module_code: moduleCode,
+			page_number: 1,
+			page_size: PAGE_SIZE,
+			...(selectedAreaId && { area_id: selectedAreaId }),
+			...(selectedBranchId && { branch_id: selectedBranchId }),
+		});
+	};
+
 	const handleClearFilters = () => {
-		setOrderNumber("");
-		setSupplierName("");
-		setStatus("");
-		setCurrentPage(1);
+		setSelectedAreaId("");
+		setSelectedBranchId("");
+		setFilters({
+			company_id: companyId,
+			module_code: moduleCode,
+			page_number: 1,
+			page_size: PAGE_SIZE,
+		});
 	};
 
 	const handlePageChange = useCallback((page: number) => {
-		setCurrentPage(page);
+		setFilters((prev) => ({
+			...prev,
+			page_number: page,
+		}));
 	}, []);
 
-	const onEditPurchaseOrder = (data: PurchaseOrderRow) => {
+	const onViewDetail = (data: GetPurchaseOrdersResponse) => {
 		setSelectedPurchaseOrder(data);
-		setIsPurchaseOrderModalOpen(true);
+		setIsPurchaseOrderDetailsOpen(true);
 	};
 
-	const onViewDetails = (data: PurchaseOrderRow) => {
-		console.log(data);
-	};
-
-	const columnConfig: TableColumn<PurchaseOrderRow>[] = useMemo(
-		() => [
-			{ key: "order_number", label: "N° Orden" },
-			{ key: "supplier_name", label: "Proveedor" },
-			{ key: "order_date", label: "Fecha" },
-			{ key: "total_amount", label: "Total" },
-			{ key: "status", label: "Estado" },
-			{
-				key: "actions",
-				label: "Acciones",
-				render: (row: PurchaseOrderRow) => (
-					<ContextMenu
-						items={[
-							{ label: "Editar", onClick: () => onEditPurchaseOrder(row) },
-							{ label: "Ver detalle", onClick: () => onViewDetails(row) },
-						]}
-					/>
-				),
-			},
-		],
-		[],
+	const columnsConfig = useMemo(
+		() => getPurchaseOrderTableColumns(onViewDetail),
+		[onViewDetail]
 	);
 
 	return (
@@ -111,6 +125,8 @@ export const PurchaseOrder = () => {
 			transition={{ duration: 0.5 }}
 			className="flex flex-col gap-4"
 		>
+			{GetPurchaseOrders.isLoading && <Loader title="Cargando órdenes de compra..." />}
+
 			<div className="flex justify-start">
 				<Breadcrumb
 					items={[
@@ -142,7 +158,7 @@ export const PurchaseOrder = () => {
 						alt="logo alpac"
 					/>
 				</div>
-			</div>			
+			</div>
 
 			<div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
 				<div className="flex flex-col justify-center">
@@ -154,16 +170,34 @@ export const PurchaseOrder = () => {
 			</div>
 
 			<form
-				onSubmit={(event) => event.preventDefault()}
-				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
+				onSubmit={(event) => {
+					event.preventDefault();
+					handleApplyFilters();
+				}}
+				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end"
 			>
-				<InputText
-					label="Campo de filtro"
-					placeholder="Ej. OC-2026-001"
-					className={inputClassName}
+				<Dropdown
+					appearance="dark"
+					label="Área"
+					placeholder="Seleccione un área"
+					options={areaOptions}
+					value={selectedAreaId}
+					onChange={(value) => setSelectedAreaId(String(value))}
 					labelClassName={labelClassName}
-					value={orderNumber}
-					onChange={(event) => setOrderNumber(event.target.value)}
+					valueClassName={labelClassName}
+					className={dropdownClassName}
+				/>
+
+				<Dropdown
+					appearance="dark"
+					label="Sucursal"
+					placeholder="Seleccione una sucursal"
+					options={branchOptions}
+					value={selectedBranchId}
+					onChange={(value) => setSelectedBranchId(String(value))}
+					labelClassName={labelClassName}
+					valueClassName={labelClassName}
+					className={dropdownClassName}
 				/>
 
 				<Button
@@ -186,7 +220,7 @@ export const PurchaseOrder = () => {
 				<DataTable
 					title="Lista de órdenes de compra"
 					data={purchaseOrders}
-					columns={columnConfig}
+					columns={columnsConfig}
 					pagination={
 						<Pagination
 							currentPage={currentPage}
@@ -198,29 +232,11 @@ export const PurchaseOrder = () => {
 				/>
 			</div>
 
-			<PurchaseOrderModal
-				isOpen={isPurchaseOrderModalOpen}
-				onClose={() => {
-					setIsPurchaseOrderModalOpen(false);
-					setSelectedPurchaseOrder(null);
-				}}
-				onSubmit={() => {
-					setIsPurchaseOrderModalOpen(false);
-					setSelectedPurchaseOrder(null);
-					handleRequestSuccess("Orden de compra guardada correctamente.");
-				}}
-				onRequestError={handleRequestError}
-				selectedPurchaseOrder={selectedPurchaseOrder}
+			<PurchaseOrderDetailsModal
+				isOpen={isPurchaseOrderDetailsOpen}
+				onClose={() => setIsPurchaseOrderDetailsOpen(false)}
+				purchaseOrder={selectedPurchaseOrder}
 			/>
-
-			<AnimatedAlertWrapper open={alertState?.open ?? false}>
-				<Alert
-					type={alertState?.type!}
-					title={alertState?.title}
-					message={alertState?.message!}
-					onClose={handleCloseAlert}
-				/>
-			</AnimatedAlertWrapper>
 		</m.div>
 	);
 };

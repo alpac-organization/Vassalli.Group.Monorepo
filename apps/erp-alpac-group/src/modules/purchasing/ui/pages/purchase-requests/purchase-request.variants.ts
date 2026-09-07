@@ -3,6 +3,7 @@ import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purcha
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import type { PurchaseRequestVariants } from "./purchase-request.types";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
+import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
 
 export const purchaseRequestTypeBadgeVariants = {
    [PurchaseRequestEnum.Requisition.textValue]: { label: PurchaseRequestEnum.Requisition.label, badgeColor: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200" },
@@ -24,5 +25,12 @@ export const purchaseRequestPriorityBadgeVariants = {
    [PriorityLevelEnum.Unforeseen.textValue]: { label: PriorityLevelEnum.Unforeseen.label, badgeColor: "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200" },
    [PriorityLevelEnum.Normal.textValue]: { label: PriorityLevelEnum.Normal.label, badgeColor: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200" },
    [PriorityLevelEnum.PrintedStationery.textValue]: { label: PriorityLevelEnum.PrintedStationery.label, badgeColor: "bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200" },
+   default: { label: "", badgeColor: "bg-slate-100 text-slate-800" }
+} as const satisfies Record<string, PurchaseRequestVariants>;
+
+export const purchaseRequestDestinationBadgeVariants = {
+   [PurchaseRequestDestinationEnum.Internal.textValue]: { label: PurchaseRequestDestinationEnum.Internal.label, badgeColor: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200" },
+   [PurchaseRequestDestinationEnum.Client.textValue]: { label: PurchaseRequestDestinationEnum.Client.label, badgeColor: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/40 dark:text-cyan-200" },
+   [PurchaseRequestDestinationEnum.ServiceOrder.textValue]: { label: PurchaseRequestDestinationEnum.ServiceOrder.label, badgeColor: "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-200" },
    default: { label: "", badgeColor: "bg-slate-100 text-slate-800" }
 } as const satisfies Record<string, PurchaseRequestVariants>;

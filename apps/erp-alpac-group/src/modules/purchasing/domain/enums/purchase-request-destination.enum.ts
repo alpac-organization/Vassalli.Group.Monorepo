@@ -5,7 +5,8 @@ type PurchaseRequestDestinationEnumType = EnumType & {
 };
 
 export const PurchaseRequestDestinationEnum = {
-   Internal: { value: 1, label: "Administrativo", textValue: "Internal" },
+   Internal: { value: 0, label: "Administrativo", textValue: "Internal" },
+   Client: { value: 1, label: "Cliente Externo", textValue: "Client" },
    ServiceOrder: { value: 2, label: "Orden de Servicio", textValue: "ServiceOrder" },
 } as const satisfies Record<string, PurchaseRequestDestinationEnumType>;
 

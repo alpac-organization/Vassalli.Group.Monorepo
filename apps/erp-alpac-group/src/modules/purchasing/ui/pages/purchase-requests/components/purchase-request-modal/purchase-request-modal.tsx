@@ -23,7 +23,7 @@ const emptyFormValues = (): CreatePurchaseRequestPayload => ({
 	area_id: "",
 	branch_id: "",
 	request_type: 0,
-	priority_level: undefined,
+	priority_level: 0,
 	destination: PurchaseRequestDestinationEnum.Internal.value,
 	observations: "",
 	purchase_request_items: [],
@@ -185,8 +185,6 @@ export const PurchaseRequestModal = ({
 			blockRefs.current.clear();
 			onSubmit?.();
 			onClose();
-
-			console.log("valuesList: ", valuesList);
 		} catch (error) {
 			const mappedError = getMappedError(error as ApiErrorResponse);
 			onRequestError?.(mappedError.description);

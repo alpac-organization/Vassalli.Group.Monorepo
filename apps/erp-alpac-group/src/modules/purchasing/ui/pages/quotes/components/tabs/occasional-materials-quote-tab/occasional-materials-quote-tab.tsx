@@ -16,6 +16,12 @@ import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing
 import type { QuotesModalType } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-modal.types";
 import type { OccasionalMaterialsQuoteTabProps } from "./occasional-materials-quote-tab.types";
 import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
+import type { QuoteFilterForm } from "@app/modules/purchasing/ui/pages/quotes/components/quote-filters/quote-filters.types";
+import {
+	defaultQuoteFilterForm,
+	QuoteFilters,
+} from "@app/modules/purchasing/ui/pages/quotes/components/quote-filters/quote-filters";
+import { toYearMonthObject } from "@app/shared/utils/date.utils";
 
 const PAGE_SIZE = 5;
 const sendButtonClass = "rounded-md! h-11 px-6! border border-blue-200 dark:border-blue-500/70 bg-blue-50 dark:bg-blue-500/30 text-blue-600 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-500/20 hover:border-blue-400 dark:hover:border-blue-500/60 hover:text-blue-700 dark:hover:text-blue-300 shadow-sm transition-all duration-200";
@@ -34,7 +40,7 @@ export function OccasionalMaterialsQuoteTab({
 	const [selectedPurchaseRequest, setSelectedPurchaseRequest] =
 		useState<GetPurchaseRequestResponse | null>();
 
-	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
+	const getDefaultFilters = (): GetPurchaseRequestPayload => ({
 		company_id: companyId,
 		module_code: moduleCode,
 		...(isAdministrator ? {} : { branch_id: currentBranchId }),
@@ -43,12 +49,13 @@ export function OccasionalMaterialsQuoteTab({
 		page_size: PAGE_SIZE,
 	});
 
+	const [filters, setFilters] = useState<GetPurchaseRequestPayload>(getDefaultFilters);
+
 	const { GetPurchaseRequests, SendPurchaseRequestToReview } = usePurchase({
 		getPurchaseRequestsPayload: {
 			...filters,
 			company_id: companyId,
 			module_code: moduleCode,
-			status: PurchaseRequestStatusEnum.Approved.value,
 			request_type: PurchaseRequestEnum.Eventual.value,
 			branch_id: isAdministrator ? undefined : currentBranchId,
 			page_size: PAGE_SIZE,
@@ -60,15 +67,29 @@ export function OccasionalMaterialsQuoteTab({
 	const currentPage = filters.page_number ?? 1;
 
 	useEffect(() => {
-		setFilters({
+		setFilters(getDefaultFilters());
+	}, [currentBranchId, companyId, moduleCode, isAdministrator]);
+
+	const handleApplyFilters = (data: QuoteFilterForm) => {
+
+		const { month, year } = toYearMonthObject(data.date);
+
+		setFilters((prev) => ({
+			...prev,
 			company_id: companyId,
 			module_code: moduleCode,
-			...(isAdministrator ? {} : { branch_id: currentBranchId }),
-			status: PurchaseRequestStatusEnum.Approved.value,
+			branch_id: isAdministrator ? undefined : currentBranchId,
+			code: data.code,
+			month, year,
+			status: data.status ?? PurchaseRequestStatusEnum.Approved.value,
 			page_number: 1,
 			page_size: PAGE_SIZE,
-		});
-	}, [currentBranchId, companyId, moduleCode, isAdministrator]);
+		}));
+	};
+
+	const handleClearFilters = () => {
+		setFilters(getDefaultFilters());
+	};
 
 	const handlePageChange = useCallback((page: number) => {
 		setFilters((prev) => ({
@@ -132,6 +153,15 @@ export function OccasionalMaterialsQuoteTab({
 			)}
 
 			<div className="flex flex-col gap-4">
+				<QuoteFilters
+					key={`${companyId}-${currentBranchId}`}
+					codeLabel="N° Solicitud"
+					codeExample="MGA-EVE-01"
+					defaultValues={defaultQuoteFilterForm}
+					onApply={handleApplyFilters}
+					onClear={handleClearFilters}
+				/>
+
 				<QuotesTable
 					data={purchaseRequests}
 					currentPage={currentPage}

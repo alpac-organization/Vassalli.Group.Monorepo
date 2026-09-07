@@ -2,11 +2,9 @@ import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
   Button,
-  DatePicker,
   Dropdown,
   InputText,
   Textarea,
-  TimePicker,
   type Option,
 } from "@alpac/design-system";
 import { FilePlus2, PackagePlus, RotateCcw, Save } from "lucide-react";
@@ -99,10 +97,10 @@ export function RegisterDucatDetailForm({
             product_description: values.product_description,
             remitente: values.remitente,
             destination_area_observation: values.destination_area_observation,
-            registered_start_date: toApiDate(values.registered_start_date),
+            registered_start_date: toApiDate(values.registered_start_date) || dayjs().format("YYYY-MM-DD"),
             registered_start_time: values.registered_start_time
               ? dayjs(values.registered_start_time as unknown as Date).second(0).format("HH:mm:ss")
-              : undefined,
+              : dayjs().format("HH:mm:ss"),
           })
             .then(() => {
               handleRequestSuccess(

@@ -28,8 +28,8 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
 	}
 
 	public async GetQuoteAnalysisDetails(payload: GetQuoteAnalysisDetailsRequest): Promise<RequisitionAccountingReviewDetailsDto> {
-		const { company_id, module_code, requisition_accounting_review_id } = payload;
-		const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${requisition_accounting_review_id}`;
+		const { company_id, module_code, purchase_requests_reviewed_accounting_id } = payload;
+		const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${purchase_requests_reviewed_accounting_id}`;
 		const response = await this.httpClient.get<RequisitionAccountingReviewDetailsDto>(url);
 		return response;
 	}
@@ -45,12 +45,12 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
 		const {
 			company_id,
 			module_code,
-			requisition_accounting_review_id,
+			purchase_requests_reviewed_accounting_id,
 			comments,
 			is_approved,
 		} = payload;
-		
-		const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${requisition_accounting_review_id}/send-management-review`;
+
+		const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${purchase_requests_reviewed_accounting_id}/send-management-review`;
 		await this.httpClient.post<void>(url, {
 			comments: comments?.trim() ? comments.trim() : null,
 			is_approved,

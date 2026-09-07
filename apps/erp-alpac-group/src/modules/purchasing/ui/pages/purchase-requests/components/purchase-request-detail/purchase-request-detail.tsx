@@ -209,8 +209,8 @@ export const PurchaseRequestDetail = (
 						className="flex w-full flex-col gap-5 rounded-md border border-slate-200 p-4 dark:border-neutral-600 dark:bg-[#1e2229]"
 					>
 						<div className="flex min-w-0 items-center justify-between gap-3">
-							<span className="min-w-0 truncate text-[15px] font-semibold text-slate-700 dark:text-slate-200">
-								{index + 1} · Producto · {item.product_name || `#${index + 1}`}
+							<span className="min-w-0 truncate text-[18px] font-semibold text-slate-700 dark:text-slate-200">
+								{index + 1} · {item.product_name || `#${index + 1}`}
 							</span>
 							<Button
 								type="button"

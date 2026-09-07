@@ -22,11 +22,6 @@ export function MerchandiseHeader() {
               onClick: (url) => navigate(url),
             },
             {
-              label: "Managua",
-              url: `${baseUrl}/warehouse-mga/mercaderia`,
-              onClick: (url) => navigate(url),
-            },
-            {
               label: "Ingreso Mercancía",
               url: `${baseUrl}/warehouse-mga/mercaderia`,
             },

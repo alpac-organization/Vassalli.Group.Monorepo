@@ -9,13 +9,13 @@ export function RacksTable({
   totalRecords,
   pageSize,
   onPageChange,
-  onViewDetail,
+  onViewPositions,
   isFetching = false,
 }: RacksTableProps) {
   const lastItemId = data.at(-1)?.rack_id;
   const columns = useMemo(
-    () => getRacksColumns({ onViewDetail, lastItemId }),
-    [onViewDetail, lastItemId],
+    () => getRacksColumns({ onViewPositions, lastItemId }),
+    [onViewPositions, lastItemId],
   );
 
   return (

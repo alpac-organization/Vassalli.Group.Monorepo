@@ -5,6 +5,7 @@ type PriorityLevelEnumType = EnumType & {
 };
 
 export const PriorityLevelEnum = {
+   None: { value: 0, label: "Ninguna", textValue: "None" },
    Critical: { value: 1, label: "Critica", textValue: "Critical" },
    Unforeseen: { value: 2, label: "Imprevisto", textValue: "Unforeseen" },
    Normal: { value: 3, label: "Normal", textValue: "Normal" },

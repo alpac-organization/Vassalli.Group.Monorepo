@@ -2,6 +2,8 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
 
 export interface GetPurchaseRequestPayload extends BaseRequest {
    code?: string;
+   year?: number;
+   month?: number;
    branch_id?: string;
    request_type?: number;
    area_id?: string,

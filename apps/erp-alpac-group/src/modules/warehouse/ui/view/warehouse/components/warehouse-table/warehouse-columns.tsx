@@ -79,13 +79,13 @@ export function getWarehouseColumns({
         ),
     },
     {
-      key: "warehouse_code",
-      label: "Código",
+      key: "branch_code",
+      label: "Código de sucursal",
       render: (item) =>
         item.isSkeleton ? (
-          <WarehouseTableSkeletonCell item={item} />
+          <WarehouseTableSkeletonCell item={item} variant="text" />
         ) : (
-          item.warehouse_code || "—"
+          item.branch_code || "—"
         ),
     },
     {
@@ -96,6 +96,16 @@ export function getWarehouseColumns({
           <WarehouseTableSkeletonCell item={item} />
         ) : (
           getWarehouseTypeLabel(item.warehouse_type)
+        ),
+    },
+    {
+      key: "warehouse_code",
+      label: "Código de bodega",
+      render: (item) =>
+        item.isSkeleton ? (
+          <WarehouseTableSkeletonCell item={item} />
+        ) : (
+          item.warehouse_code || "—"
         ),
     },
     {

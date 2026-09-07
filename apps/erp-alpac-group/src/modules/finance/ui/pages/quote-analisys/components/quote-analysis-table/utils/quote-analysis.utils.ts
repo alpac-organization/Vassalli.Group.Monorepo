@@ -6,7 +6,7 @@ const FALLBACK_BADGE = {
   color: "bg-slate-100 text-slate-800 dark:bg-slate-700/60 dark:text-slate-200",
 };
 
-const STATUS_BADGE_VARIANTS: Record<
+export const STATUS_BADGE_VARIANTS: Record<
   accountingReviewStatusType,
   { label: string; color: string }
 > = {
@@ -30,13 +30,6 @@ const STATUS_BADGE_VARIANTS: Record<
       "bg-slate-100 text-slate-800 dark:bg-slate-700/60 dark:text-slate-200",
   },
 };
-
-export function getInitials(fullname?: string): string {
-  if (!fullname?.trim()) return "?";
-  const parts = fullname.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-}
 
 export function getStatusBadge(status: accountingReviewStatusType) {
   return STATUS_BADGE_VARIANTS[status] ?? FALLBACK_BADGE;

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import dayjs from "dayjs";
 import {
   Button,
   Checkbox,
@@ -74,8 +75,8 @@ export function RegisterDucatGeneralForm({
             shipping_company_id: values.shipping_company_id,
             general_observations: values.general_observations,
             is_in_transit: values.is_in_transit,
-            registered_start_date: startedAt?.start_date,
-            registered_start_time: startedAt?.start_time,
+            registered_start_date: startedAt?.start_date || dayjs().format("YYYY-MM-DD"),
+            registered_start_time: startedAt?.start_time || dayjs().format("HH:mm:ss"),
           })
             .then(() => {
               if (onSuccess) {

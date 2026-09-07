@@ -11,7 +11,7 @@ export const SectionHeader = ({ title, subtitle, logoImage, headerClassName, has
 					<h3 className="p-0! m-0! text-xl font-semibold text-neutral-900 dark:text-white">
 						{title}
 					</h3>
-					{subtitle ? <small className="mt-1 text-gray-500 dark:text-gray-300">
+					{subtitle ? <small className="mt-1 text-gray-500 dark:text-gray-300 text-[16px]!">
 						{subtitle}
 					</small> : null
 					}

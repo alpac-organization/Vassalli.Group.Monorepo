@@ -118,7 +118,7 @@ export function ErrorTooltip({ message, anchorRef }: ErrorTooltipProps) {
           aria-hidden={true}
         />
       )}
-      <span className="w-full rounded-lg bg-[#7a1f2b] dark:bg-[#6b1e2a] px-3 py-2 text-sm font-semibold leading-snug text-white break-words whitespace-normal">
+      <span className="w-full rounded-lg bg-[#7a1f2b] dark:bg-[#6b1e2a] px-3 py-2 text-sm font-semibold leading-snug text-white wrap-break-words whitespace-normal">
         {message}
       </span>
     </span>,

@@ -1,9 +1,9 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useForm, Controller } from "react-hook-form";
 import { Button, Dropdown, Modal, Textarea, type Option } from "@alpac/design-system";
 import { FilePlus2, Plus, XIcon } from "lucide-react";
-import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCustomer } from "@app/modules/warehouse/ui/hooks/useCustomer";
 import { ServiceOrderServices } from "@app/modules/service-order/infrastructure/services/service-order-services/ServiceOrderServices";
 import { warehouseHttpHandler } from "@app/core/adapters/axiosAdapter";
@@ -17,7 +17,7 @@ import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { RegisterCustomerModal } from "../register-customer-modal/register-customer-modal";
 
-import type { GetBranchesResponse } from "@app/modules/auth/domain/ApiContract/Responses/get-branches.response";
+
 
 const labelClassName =
   "text-slate-600! dark:text-slate-300! text-[13px]! font-medium!";
@@ -33,19 +33,12 @@ export function CreateServiceOrderModal({
 }: CreateServiceOrderModalProps) {
   const { getMappedError } = useMappedError();
   const { handleRequestError, AlertComponent } = useAlertState();
-  const { GetBranchesQuery: { data: branchesData } } = useCompanies({ company_id });
+  const { branchId } = useUserStore();
 
   const [openRegisterCustomer, setOpenRegisterCustomer] = useState(false);
   const [newlyCreatedCustomerId, setNewlyCreatedCustomerId] = useState<string | null>(null);
 
-  const branchOptions = useMemo<Option[]>(() => {
-    if (!Array.isArray(branchesData)) return [];
-    
-    return branchesData.map((branch: GetBranchesResponse  ) => ({
-      value: branch.branch_id,
-      label: `${branch.company_alias ?? ""} - ${branch.branch_name}`.trim(),
-    }));
-  }, [branchesData]);
+
 
   const { GetCustomer } = useCustomer();
   const { data: customersData, refetch: refetchCustomers } = GetCustomer({ company_id, module_code});
@@ -69,18 +62,13 @@ export function CreateServiceOrderModal({
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: {
-      branch_id: "",
+      branch_id: branchId,
       customer_id: "",
       observations: "",
     },
   });
 
-  const preselectedBranchId = branchesData?.[0]?.branch_id;
-  useEffect(() => {
-    if (preselectedBranchId && !control._formValues.branch_id) {
-      setValue("branch_id", preselectedBranchId, { shouldValidate: true });
-    }
-  }, [preselectedBranchId, setValue, control]);
+  
 
   useEffect(() => {
     if (newlyCreatedCustomerId) {
@@ -126,26 +114,7 @@ export function CreateServiceOrderModal({
               )}
               className="flex flex-col gap-4"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Controller
-                  name="branch_id"
-                  control={control}
-                  rules={{ required: "La sucursal es requerida" }}
-                  render={({ field }) => (
-                    <Dropdown
-                      appearance="dark"
-                      label="Sucursal"
-                      labelClassName={labelClassName}
-                      isRequired
-                      placeholder="Seleccione la sucursal"
-                      options={branchOptions}
-                      value={field.value}
-                      onChange={field.onChange}
-                      error={errors.branch_id?.message}
-                      errorVariant="text"
-                    />
-                  )}
-                />
+              <div className="grid grid-cols-1 gap-4">
                 <Controller
                   name="customer_id"
                   control={control}
@@ -178,7 +147,7 @@ export function CreateServiceOrderModal({
                     </div>
                   )}
                 />
-                <div className="md:col-span-2">
+                <div>
                   <Controller
                     name="observations"
                     control={control}

@@ -26,9 +26,7 @@ export function QuoteAnalisys() {
 	const { getMappedError } = useMappedError();
 	const { companyId, moduleCode } = useUserStore();
 	const [pageNumber, setPageNumber] = useState(1);
-	const [appliedStatus, setAppliedStatus] = useState<
-		accountingReviewStatusType | ""
-	>("");
+	const [appliedStatus, setAppliedStatus] = useState<accountingReviewStatusType | "">("");
 	const [appliedAreaId, setAppliedAreaId] = useState("");
 	const [pendingReview, setPendingReview] =
 		useState<RequisitionAccountingReviewDto | null>(null);
@@ -75,9 +73,12 @@ export function QuoteAnalisys() {
 	}, []);
 
 	const handleViewDetail = useCallback(
-		(row: { requisition_accounting_review_id: string }) => {
+		(row: { purchase_requests_reviewed_accounting_id: string }) => {
+
+			console.log("Purchase request id :", row.purchase_requests_reviewed_accounting_id);
+
 			navigate(
-				`${baseUrl}/finance/analisys/${row.requisition_accounting_review_id}`,
+				`${baseUrl}/finance/analisys/${row.purchase_requests_reviewed_accounting_id}`,
 			);
 		},
 		[navigate, baseUrl],
@@ -100,8 +101,7 @@ export function QuoteAnalisys() {
 				{
 					company_id: companyId,
 					module_code: moduleCode,
-					requisition_accounting_review_id:
-						pendingReview.requisition_accounting_review_id,
+					purchase_requests_reviewed_accounting_id: pendingReview.purchase_requests_reviewed_accounting_id,
 					comments: payload.comments,
 					is_approved: payload.isApproved,
 				},
