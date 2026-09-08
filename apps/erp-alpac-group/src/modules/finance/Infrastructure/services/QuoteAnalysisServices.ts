@@ -35,9 +35,20 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
 	}
 
 	public async accceptQuotationToPurchase(payload: AcceptOfferPurchaseRequest): Promise<void> {
-		const { company_id, module_code, quotation_id, purchase_request_item_id } = payload;
+		const {
+			company_id,
+			module_code,
+			quotation_id,
+			purchase_request_item_id,
+			supplier_selection_justification,
+			supplier_rejection_justification,
+		} = payload;
 		const url = `/companies/${company_id}/modules/${module_code}/quotations/${quotation_id}/accept-for-purchase`;
-		await this.httpClient.patch<void>(url, { purchase_request_item_id });
+		await this.httpClient.patch<void>(url, {
+			purchase_request_item_id,
+			supplier_selection_justification,
+			supplier_rejection_justification,
+		});
 	}
 
 	public async sendReviewToManagement(payload: SendReviewToManagementRequest): Promise<void> {

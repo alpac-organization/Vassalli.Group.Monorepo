@@ -155,6 +155,10 @@ export function QuoteAnalysisDetail() {
         module_code: moduleCode,
         quotation_id: pendingAccept.quotation.quotation_id,
         purchase_request_item_id: pendingAccept.itemId,
+        supplier_selection_justification:
+          pendingAccept.quotation.supplier_selection_justification ?? null,
+        supplier_rejection_justification:
+          pendingAccept.quotation.supplier_rejection_justification ?? null,
       },
       {
         onSuccess: () => {

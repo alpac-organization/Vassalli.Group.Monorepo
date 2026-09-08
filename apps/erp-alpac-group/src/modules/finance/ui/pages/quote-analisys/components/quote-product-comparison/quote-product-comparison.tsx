@@ -4,6 +4,7 @@ import {
   Calendar,
   Hash,
   Clock,
+  NotebookText,
   Package,
   Percent,
   ShieldCheck,
