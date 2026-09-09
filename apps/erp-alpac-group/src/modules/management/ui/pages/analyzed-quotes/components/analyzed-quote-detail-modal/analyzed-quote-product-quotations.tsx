@@ -66,6 +66,8 @@ export function AnalyzedQuoteProductQuotations({
 	const selectedQuote = activeQuotations.find((quote) => quote.is_accepted_for_purchase);
 	const selectedSupplier =
 		selectedQuote?.supplier_information?.suppliers_legal_name?.trim();
+	const selectionJustification =
+		selectedQuote?.supplier_selection_justification?.trim() || null;
 
 	return (
 		<div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/80 px-3 py-3 dark:border-neutral-700 dark:bg-neutral-900/40 sm:col-span-6">
@@ -89,74 +91,85 @@ export function AnalyzedQuoteProductQuotations({
 					No hay cotizaciones para este producto.
 				</div>
 			) : (
-				<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-					{activeQuotations.map((quote) => {
-						const isSelected = quote.is_accepted_for_purchase;
+				<>
+					<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+						{activeQuotations.map((quote) => {
+							const isSelected = quote.is_accepted_for_purchase;
 
-						return (
-							<div
-								key={quote.quotation_id}
-								className={`flex min-w-0 flex-col gap-3 rounded-lg border p-3 ${
-									isSelected
-										? "border-blue-500 bg-blue-50/70 dark:border-blue-500 dark:bg-blue-500/10"
-										: "border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-800"
-								}`}
-							>
-								<div className="flex min-w-0 items-start justify-between gap-2">
-									<p className="m-0 min-w-0 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
-										{quote.supplier_information?.suppliers_legal_name?.trim() ||
-											"Proveedor"}
-									</p>
-									{isSelected ? (
-										<span className="shrink-0 rounded-md bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white dark:bg-alpac-primary-700">
-											Seleccionada
-										</span>
-									) : null}
-								</div>
+							return (
+								<div
+									key={quote.quotation_id}
+									className={`flex min-w-0 flex-col gap-3 rounded-lg border p-3 ${
+										isSelected
+											? "border-blue-500 bg-blue-50/70 dark:border-blue-500 dark:bg-blue-500/10"
+											: "border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-800"
+									}`}
+								>
+									<div className="flex min-w-0 items-start justify-between gap-2">
+										<p className="m-0 min-w-0 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
+											{quote.supplier_information?.suppliers_legal_name?.trim() ||
+												"Proveedor"}
+										</p>
+										{isSelected ? (
+											<span className="shrink-0 rounded-md bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white dark:bg-alpac-primary-700">
+												Seleccionada
+											</span>
+										) : null}
+									</div>
 
-								<div className="grid grid-cols-2 gap-3">
-									<QuoteField
-										label="RUC / ID"
-										value={
-											quote.supplier_information?.identification_number?.trim() || "—"
-										}
-									/>
-									<QuoteField
-										label="Marca"
-										value={quote.brand_product?.trim() || "—"}
-									/>
-									<QuoteField
-										label="Precio unitario"
-										value={formatCurrency(quote.price_unit ?? 0)}
-									/>
-									<QuoteField
-										label="Precio"
-										value={formatCurrency(quote.price ?? 0)}
-									/>
-									<QuoteField
-										label="IVA"
-										value={formatCurrency(quote.iva ?? 0)}
-									/>
-									<QuoteField
-										label="Total"
-										value={formatCurrency(getQuoteTotalPrice(quote))}
-										emphasize
-									/>
-									<QuoteField label="Entrega" value={formatDelivery(quote)} />
-									<QuoteField label="Garantía" value={formatWarranty(quote)} />
-									<QuoteField
-										label="Fecha de cotización"
-										value={
-											quote.quote_date
-												? formatDateToSpanishWords(quote.quote_date)
-												: "—"
-										}
-									/>
+									<div className="grid grid-cols-2 gap-3">
+										<QuoteField
+											label="RUC / ID"
+											value={
+												quote.supplier_information?.identification_number?.trim() || "—"
+											}
+										/>
+										<QuoteField
+											label="Marca"
+											value={quote.brand_product?.trim() || "—"}
+										/>
+										<QuoteField
+											label="Precio unitario"
+											value={formatCurrency(quote.price_unit ?? 0)}
+										/>
+										<QuoteField
+											label="Precio"
+											value={formatCurrency(quote.price ?? 0)}
+										/>
+										<QuoteField
+											label="IVA"
+											value={formatCurrency(quote.iva ?? 0)}
+										/>
+										<QuoteField
+											label="Total"
+											value={formatCurrency(getQuoteTotalPrice(quote))}
+											emphasize
+										/>
+										<QuoteField label="Entrega" value={formatDelivery(quote)} />
+										<QuoteField label="Garantía" value={formatWarranty(quote)} />
+										<QuoteField
+											label="Fecha de cotización"
+											value={
+												quote.quote_date
+													? formatDateToSpanishWords(quote.quote_date)
+													: "—"
+											}
+										/>
+									</div>
 								</div>
-							</div>
-						);
-					})}
-				</div>
+							);
+						})}
+					</div>
+
+					{selectedQuote ? (
+						<div className="wrap-break-words rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 dark:border-neutral-700 dark:bg-neutral-800 dark:text-slate-300">
+							<span className="font-semibold text-slate-800 dark:text-slate-200">
+								Justificación de selección:{" "}
+							</span>
+							{selectionJustification || "—"}
+						</div>
+					) : null}
+				</>
 			)}
 		</div>
 	);

@@ -38,6 +38,13 @@ type ComparisonRow = {
 
 const COMPARISON_ROWS: ComparisonRow[] = [
   {
+    key: "ruc",
+    label: "RUC / ID",
+    icon: Hash,
+    getValue: (quote) =>
+      quote.supplier_information?.identification_number?.trim() || "—",
+  },
+  {
     key: "provider",
     label: "Proveedor",
     icon: User,
@@ -45,11 +52,10 @@ const COMPARISON_ROWS: ComparisonRow[] = [
       quote.supplier_information?.suppliers_legal_name?.trim() || "—",
   },
   {
-    key: "ruc",
-    label: "RUC / ID",
-    icon: Hash,
-    getValue: (quote) =>
-      quote.supplier_information?.identification_number?.trim() || "—",
+    key: "justification",
+    label: "Justificación",
+    icon: NotebookText,
+    getValue: (quote) => quote.supplier_selection_justification?.trim() || "—",
   },
   {
     key: "brand",

@@ -9,9 +9,12 @@ import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/compon
 import { useManagement } from "@app/modules/management/ui/hooks/useManagement";
 import { AnalyzedQuotesTable } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quotes-table/analyzed-quotes-table";
 import { AnalyzedQuoteDetailModal } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quote-detail-modal/analyzed-quote-detail-modal";
+import { AnalyzedQuotesFilters } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quotes-filters/analyzed-quotes-filters";
+import type { AnalyzedQuotesFiltersValues } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quotes-filters/analyzed-quotes-filters.types";
 import type { GetRequisitionManagementReviewsRequest } from "@app/modules/management/domain/ApiContract/requests/get-requisition-management-reviews";
 import type { RequisitionManagementReviewDto } from "@app/modules/management/domain/ApiContract/responses/get-requisition-management-reviews";
 import type { ProcessPurchaseOrderPayload } from "@app/modules/management/domain/ApiContract/requests/process-purchase-order-payload";
+import type { managementReviewStatusType } from "@app/modules/management/domain/enum/management-review-status";
 import { ProcessPurchaseOrderModal } from "./components/process-purchase-order-modal/process-purchase-order-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -32,6 +35,9 @@ export const AnalyzedQuotes = () => {
 	} = useAlertState();
 
 	const [pageNumber, setPageNumber] = useState(1);
+	const [appliedStatus, setAppliedStatus] = useState<managementReviewStatusType | "">("");
+	const [appliedAreaId, setAppliedAreaId] = useState("");
+	const [appliedBranchId, setAppliedBranchId] = useState("");
 	const [isAnalyzedQuoteDetailModalOpen, setIsAnalyzedQuoteDetailModalOpen] = useState(false);
 	const [isProcessPurchaseOrderModalOpen, setIsProcessPurchaseOrderModalOpen] = useState(false);
 	const [selectedReview, setSelectedReview] = useState<RequisitionManagementReviewDto | null>(null);
@@ -42,8 +48,11 @@ export const AnalyzedQuotes = () => {
 			module_code: moduleCode,
 			page_number: pageNumber,
 			page_size: PAGE_SIZE,
+			...(appliedStatus && { status: appliedStatus }),
+			...(appliedAreaId && { area_id: appliedAreaId }),
+			...(appliedBranchId && { branch_id: appliedBranchId }),
 		}),
-		[companyId, moduleCode, pageNumber],
+		[companyId, moduleCode, pageNumber, appliedStatus, appliedAreaId, appliedBranchId],
 	);
 
 	const { GetRequisitionManagementReviews, ProcessPurchaseOrder } = useManagement(
@@ -58,6 +67,20 @@ export const AnalyzedQuotes = () => {
 
 	const quotes = managementReviews?.data ?? [];
 	const totalRecords = managementReviews?.total ?? 0;
+
+	const handleApplyFilters = useCallback((filters: AnalyzedQuotesFiltersValues) => {
+		setAppliedStatus(filters.status);
+		setAppliedAreaId(filters.area_id);
+		setAppliedBranchId(filters.branch_id);
+		setPageNumber(1);
+	}, []);
+
+	const handleClearFilters = useCallback(() => {
+		setAppliedStatus("");
+		setAppliedAreaId("");
+		setAppliedBranchId("");
+		setPageNumber(1);
+	}, []);
 
 	const handlePageChange = useCallback((page: number) => {
 		setPageNumber(page);
@@ -129,6 +152,11 @@ export const AnalyzedQuotes = () => {
 			<QuotesPageHeader
 				title="Cotizaciones analizadas"
 				subtitle="Revise las solicitudes de cotización enviadas a revisión gerencial"
+			/>
+
+			<AnalyzedQuotesFilters
+				onApply={handleApplyFilters}
+				onClear={handleClearFilters}
 			/>
 
 			<AnalyzedQuotesTable
