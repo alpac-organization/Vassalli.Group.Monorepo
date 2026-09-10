@@ -25,29 +25,25 @@ import { PackagePlusIcon } from "lucide-react";
 import { constitutionTypeBadgeVariants, idenitificationTypeBadgeVariants } from "./supplier.variants";
 import { isValidateValue } from "@app/shared/utils/values.utils";
 import { SupplierDetailsModal } from "./components/supplier-details-modal/supplier-details-modal";
+import {inputClassName, labelClassName, dropdownClassName} from "@app/modules/purchasing/ui/pages/supplier/utils/style";
 
-const inputClassName =
-	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-const dropdownClassName =
-	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
-const labelClassName = "text-black! dark:text-white!";
+
 const contextMenuButton = "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 const PAGE_SIZE = 5;
 
 export const Supplier = () => {
+	const { companyId, moduleCode } = useUserStore();
 
 	const buildBaseFilters = (): GetSuppliersRequest => ({
-		companie_id: companyId,
+		company_id: companyId,
 		module_code: moduleCode,
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	});
 
-	const { companyId, moduleCode } = useUserStore();
-
 	const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
 	const [isSupplierDetailModalOpen, setIsSupplierDetailModalOpen] = useState(false);
-	const [selectedSupplier, setSelectedSupplier] = useState<GetSuppliersResponse | null>(null)
+	const [selectedSupplier, setSelectedSupplier] = useState<GetSuppliersResponse | null>(null);
 	const [filters, setFilters] = useState<GetSuppliersRequest>(buildBaseFilters);
 
 	const {
@@ -58,40 +54,41 @@ export const Supplier = () => {
 	} = useAlertState();
 
 	const defaultFilters: Pick<
-		GetSuppliersRequest, "identification_number" | "constitution_type"
+		GetSuppliersRequest, "identification_number" | "constitution_type" | "commercial_name"
 	> = {
 		identification_number: "",
-		constitution_type: undefined
-	}
+		constitution_type: undefined,
+		commercial_name: "",
+	};
 
 	const {
 		register,
 		handleSubmit,
 		control,
 		reset,
-		watch
+		watch,
 	} = useForm<GetSuppliersRequest>({
-		defaultValues: { ...defaultFilters }
+		defaultValues: { ...defaultFilters },
 	});
 
 	const { GetSuppliers } = useSupplier({
 		suppliersFilters: {
 			...filters,
-			companie_id: companyId,
+			company_id: companyId,
 			module_code: moduleCode,
-			page_size: PAGE_SIZE
+			page_size: PAGE_SIZE,
 		},
 	});
 
 	const suppliers = GetSuppliers.data?.data ?? [];
-	const totalRecords = GetSuppliers.data?.total ?? 0;
+	const totalRecords = GetSuppliers.data?.total_records ?? GetSuppliers.data?.total ?? 0;
 	const currentPage = filters.page_number ?? 1;
 	const constitutionType = watch("constitution_type");
 	const isLegalPerson = constitutionType === ConstitutionEnum.Legal.value;
 	const isNaturalPerson = constitutionType === ConstitutionEnum.Natural.value;
 
 	const handleClearFilters = () => {
-		reset(defaultFilters)
+		reset(defaultFilters);
 		setFilters(buildBaseFilters());
 	};
 
@@ -105,15 +102,36 @@ export const Supplier = () => {
 	const onEditSupplier = (data: GetSuppliersResponse) => {
 		setSelectedSupplier(data);
 		setIsSupplierModalOpen(true);
-	}
+	};
 
 	const onViewDetails = (data: GetSuppliersResponse) => {
 		setSelectedSupplier(data);
 		setIsSupplierDetailModalOpen(true);
-	}
+	};
 
 	const columnConfig: TableColumn<GetSuppliersResponse>[] = [
-		{ key: "supplier_legal_name", label: "Razón social" },
+		{
+			key: "supplier_legal_name",
+			label: "Razón social / Nombre comercial",
+			render(row: GetSuppliersResponse) {
+				const legalName =
+					row.suppliers_legal_name ?? row.supplier_legal_name ?? "—";
+				const commercialName = row.commercial_name?.trim();
+
+				return (
+					<div className="flex flex-col">
+						<span className="font-medium text-slate-900 dark:text-white">
+							{legalName}
+						</span>
+						{commercialName && (
+							<span className="text-xs text-slate-500 dark:text-slate-400">
+								{commercialName}
+							</span>
+						)}
+					</div>
+				);
+			},
+		},
 		{
 			key: "constitution_type",
 			label: "Tipo de constitución",
@@ -141,8 +159,8 @@ export const Supplier = () => {
 					row.identification_type as keyof typeof idenitificationTypeBadgeVariants
 				] ?? idenitificationTypeBadgeVariants.default;
 
-				return <Badges label={propValue.label} color={propValue.badgeColor} />
-			}
+				return <Badges label={propValue.label} color={propValue.badgeColor} />;
+			},
 		},
 		{ key: "identification_number", label: "Número de identificación" },
 		{
@@ -161,8 +179,8 @@ export const Supplier = () => {
 	];
 
 	const handleFilterSuppliers = (data: GetSuppliersRequest) => {
-
 		const identification = data?.identification_number?.trim() || undefined;
+		const commercialName = data?.commercial_name?.trim() || undefined;
 		const constitutionType = (
 			data.constitution_type === undefined ||
 			data.constitution_type === null ||
@@ -171,11 +189,12 @@ export const Supplier = () => {
 
 		setFilters((prev) => ({
 			...prev,
+			page_number: 1,
 			identification_number: identification,
-			constitution_type: constitutionType
-
+			commercial_name: commercialName,
+			constitution_type: constitutionType,
 		}));
-	}
+	};
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -206,10 +225,10 @@ export const Supplier = () => {
 				</div>
 			</div>
 
-			<form onSubmit={handleSubmit(handleFilterSuppliers)}
-				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
+			<form
+				onSubmit={handleSubmit(handleFilterSuppliers)}
+				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end"
 			>
-
 				<Controller
 					name="constitution_type"
 					control={control}
@@ -236,21 +255,29 @@ export const Supplier = () => {
 				/>
 
 				<InputText
+					label="Nombre comercial"
+					placeholder="Ej. DIMAC"
+					className={inputClassName}
+					labelClassName={labelClassName}
+					{...register("commercial_name")}
+				/>
+
+				<InputText
 					label="Identificación"
 					placeholder="Ej. J0310000000001"
 					className={inputClassName}
 					labelClassName={labelClassName}
 					{...register("identification_number", {
-						setValueAs: (value: string) => value ? value.toString().replace(/-/g, "").toUpperCase() : "",
+						setValueAs: (value: string) =>
+							value ? value.toString().replace(/-/g, "").toUpperCase() : "",
 						onChange: (evt) => {
 							if (isLegalPerson) {
 								evt.target.value = formatRuc(evt.target.value);
 							} else if (isNaturalPerson) {
 								evt.target.value = formatIdentificationNumber(evt.target.value);
 							}
-						}
-					})
-					}
+						},
+					})}
 				/>
 
 				<Button
@@ -303,7 +330,7 @@ export const Supplier = () => {
 
 			<SupplierDetailsModal
 				isOpen={isSupplierDetailModalOpen}
-				onClose={() => {					
+				onClose={() => {
 					setIsSupplierDetailModalOpen(false);
 					setSelectedSupplier(null);
 				}}
@@ -311,12 +338,14 @@ export const Supplier = () => {
 			/>
 
 			<AnimatedAlertWrapper open={alertState?.open ?? false}>
-				<Alert
-					type={alertState?.type!}
-					title={alertState?.title}
-					message={alertState?.message!}
-					onClose={handleCloseAlert}
-				/>
+				{alertState && (
+					<Alert
+						type={alertState.type}
+						title={alertState.title}
+						message={alertState.message}
+						onClose={handleCloseAlert}
+					/>
+				)}
 			</AnimatedAlertWrapper>
 		</div>
 	);

@@ -7,65 +7,83 @@ import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiCo
 import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
 import type { GetSupplierDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-supplier-details-response";
 import type { GetSuppliersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+import type {
+	CreateSupplierBankAccountPayload,
+	SupplierBankAccount,
+	UpdateSupplierBankAccountPayload,
+} from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-bank-account";
 import { cleanParams } from "@app/shared/utils/object.utils";
 
 export class SupplierServices implements ISupplierServices {
-
 	private readonly httpHandler: IHttpHandler;
 
-	constructor(htttpHandler: IHttpHandler) {
-		this.httpHandler = htttpHandler;
+	constructor(httpHandler: IHttpHandler) {
+		this.httpHandler = httpHandler;
 	}
 
 	async getSuppliers(payload: GetSuppliersRequest): Promise<GetSuppliersResponseList> {
-		try {
-			const { companie_id, module_code, ...rest } = payload;
-
-			const url = `/companies/${companie_id}/modules/${module_code}/suppliers`;
-
-			const response = await this.httpHandler.get<GetSuppliersResponseList>(url, { params: cleanParams(rest) });
-
-			return response;
-		} catch (error) {
-			throw error;
-		}
+		const { company_id, module_code, ...rest } = payload;
+		const url = `/companies/${company_id}/modules/${module_code}/suppliers`;
+		return this.httpHandler.get<GetSuppliersResponseList>(url, {
+			params: cleanParams(rest),
+		});
 	}
 
 	async CreateSupplier(payload: CreateSupplierRequest): Promise<CreateSupplierResponse> {
-		try {
-			const { company_id, module_code, ...rest } = payload;
-
-			const url = `/companies/${company_id}/modules/${module_code}/suppliers`;
-
-			const response = await this.httpHandler.post<CreateSupplierResponse>(url, rest);
-
-			return response;
-		} catch (error) {
-			throw error;
-		}
+		const { company_id, module_code, ...rest } = payload;
+		const url = `/companies/${company_id}/modules/${module_code}/suppliers`;
+		return this.httpHandler.post<CreateSupplierResponse>(url, rest);
 	}
 
 	async UpdateSupplier(payload: UpdateSupplierRequest): Promise<void> {
-		try {
-			const { company_id, module_code, supplier_id, ...rest } = payload;			
-
-			const url = `companies/${company_id}/modules/${module_code}/suppliers/${supplier_id}`;			
-
-			await this.httpHandler.patch<void>(url, rest);
-		} catch (error) {
-			throw error;
-		}
+		const { company_id, module_code, supplier_id, ...rest } = payload;
+		const url = `/companies/${company_id}/modules/${module_code}/suppliers/${supplier_id}`;
+		await this.httpHandler.patch<void>(url, rest);
 	}
 
 	async GetSupplierDetails(payload: GetSupplierDetailsRequest): Promise<GetSupplierDetailsResponse> {
-		try {
-			const { company_id, module_code, supplier_id } = payload;
+		const { company_id, module_code, supplier_id } = payload;
+		const url = `/companies/${company_id}/modules/${module_code}/suppliers/${supplier_id}/details`;
+		return this.httpHandler.get<GetSupplierDetailsResponse>(url);
+	}
 
-			const url = `/companies/${company_id}/modules/${module_code}/suppliers/${supplier_id}/details`;
+	async getBankAccounts(
+companyId: string,
+		moduleCode: string,
+		supplierId: string,
+	): Promise<SupplierBankAccount[]> {
+		const url = `/companies/${companyId}/modules/${moduleCode}/suppliers/${supplierId}/bank-accounts`;
+		return this.httpHandler.get<SupplierBankAccount[]>(url);
+	}
 
-			return await this.httpHandler.get<GetSupplierDetailsResponse>(url);
-		} catch (error) {
-			throw error;
-		}
+	async createBankAccount(
+		companyId: string,
+		moduleCode: string,
+		supplierId: string,
+		payload: CreateSupplierBankAccountPayload,
+	): Promise<SupplierBankAccount> {
+		const url = `/companies/${companyId}/modules/${moduleCode}/suppliers/${supplierId}/bank-accounts`;
+		return this.httpHandler.post<SupplierBankAccount>(url, payload);
+	}
+
+	async updateBankAccount(
+		companyId: string,
+		moduleCode: string,
+		supplierId: string,
+		bankAccountId: string,
+		payload: UpdateSupplierBankAccountPayload,
+	): Promise<void> {
+		const url = `/companies/${companyId}/modules/${moduleCode}/suppliers/${supplierId}/bank-accounts/${bankAccountId}`;
+		await this.httpHandler.patch<void>(url, payload);
+	}
+
+	async deleteBankAccount(
+		companyId: string,
+		moduleCode: string,
+		supplierId: string,
+		bankAccountId: string,
+	): Promise<void> {
+		const url = `/companies/${companyId}/modules/${moduleCode}/suppliers/${supplierId}/bank-accounts/${bankAccountId}`;
+		await this.httpHandler.delete<void>(url);
 	}
 }
