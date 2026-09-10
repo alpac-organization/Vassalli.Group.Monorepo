@@ -30,14 +30,9 @@ import {
 } from "@app/shared/utils/string.utils";
 import type { SelectSupplierModalProps } from "./select-supplier-modal.types";
 import { isValidateValue } from "@app/shared/utils/values.utils";
+import {inputClassName, labelClassName, dropdownClassName} from "@app/modules/purchasing/ui/pages/supplier/utils/style";
 
 const PAGE_SIZE = 5;
-
-const inputClassName =
-	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-const dropdownClassName =
-	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
-const labelClassName = "text-black! dark:text-white!";
 
 export function SelectSupplierModal({
 	isOpen,
@@ -48,7 +43,7 @@ export function SelectSupplierModal({
 	const { companyId, moduleCode } = useUserStore();
 
 	const buildBaseFilters = (): GetSuppliersRequest => ({
-		companie_id: companyId,
+		company_id: companyId,
 		module_code: moduleCode,
 		page_number: 1,
 		page_size: PAGE_SIZE,
@@ -56,10 +51,11 @@ export function SelectSupplierModal({
 
 	const defaultFilters: Pick<
 		GetSuppliersRequest,
-		"identification_number" | "constitution_type"
+		"identification_number" | "constitution_type" | "commercial_name"
 	> = {
 		identification_number: "",
 		constitution_type: undefined,
+		commercial_name: "",
 	};
 
 	const [error, setError] = useState("");
@@ -79,7 +75,7 @@ export function SelectSupplierModal({
 	const { GetSuppliers } = useSupplier({
 		suppliersFilters: {
 			...filters,
-			companie_id: companyId,
+			company_id: companyId,
 			module_code: moduleCode,
 			page_size: PAGE_SIZE,
 		},
@@ -93,7 +89,7 @@ export function SelectSupplierModal({
 		return GetSuppliers.data?.data ?? [];
 	}, [GetSuppliers.data?.data]);
 
-	const totalRecords = GetSuppliers.data?.total ?? 0;
+	const totalRecords = GetSuppliers.data?.total_records ?? GetSuppliers.data?.total ?? 0;
 	const currentPage = filters.page_number ?? 1;
 
 	useEffect(() => {
@@ -123,6 +119,7 @@ export function SelectSupplierModal({
 
 	const handleFilterSuppliers = (data: GetSuppliersRequest) => {
 		const identification = data?.identification_number?.trim() || undefined;
+		const commercialName = data?.commercial_name?.trim() || undefined;
 		const constitutionType =
 			data.constitution_type === undefined ||
 				data.constitution_type === null ||
@@ -132,7 +129,9 @@ export function SelectSupplierModal({
 
 		setFilters((prev) => ({
 			...prev,
+			page_number: 1,
 			identification_number: identification,
+			commercial_name: commercialName,
 			constitution_type: constitutionType,
 		}));
 	};
@@ -198,7 +197,7 @@ export function SelectSupplierModal({
 								setError("");
 								setTempSelected(row);
 							}}
-							aria-label={`Seleccionar ${row.supplier_legal_name}`}
+							aria-label={`Seleccionar ${row.suppliers_legal_name ?? row.supplier_legal_name}`}
 						/>
 					) : (
 						<Checkbox
@@ -207,12 +206,31 @@ export function SelectSupplierModal({
 								(item) => item.supplier_id === row.supplier_id,
 							)}
 							onChange={() => handleToggleMultipleSelection(row)}
-							aria-label={`Seleccionar ${row.supplier_legal_name}`}
+							aria-label={`Seleccionar ${row.suppliers_legal_name ?? row.supplier_legal_name}`}
 						/>
 					);
 				},
 			},
-			{ key: "supplier_legal_name", label: "Razón Social" },
+			{
+				key: "supplier_legal_name",
+				label: "Razón Social / Nombre Comercial",
+				render: (row) => {
+					const legal = row.suppliers_legal_name ?? row.supplier_legal_name ?? "—";
+					const comm = row.commercial_name?.trim();
+					return (
+						<div className="flex flex-col">
+							<span className="font-medium text-slate-900 dark:text-white">
+								{legal}
+							</span>
+							{comm && (
+								<span className="text-xs text-slate-500 dark:text-slate-400">
+									{comm}
+								</span>
+							)}
+						</div>
+					);
+				},
+			},
 			{ key: "identification_type", label: "Tipo de Identificación" },
 			{ key: "identification_number", label: "Número de Identificación" },
 			{ key: "constitution_type", label: "Tipo de Constitución" },
@@ -261,13 +279,10 @@ export function SelectSupplierModal({
 			{isLoadingSuppliers && <Loader title="Cargando proveedores..." />}
 
 			<div className="flex flex-col gap-6">
-
-
 				<form
 					onSubmit={handleSubmit(handleFilterSuppliers)}
-					className="flex items-end gap-4"
+					className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end"
 				>
-
 					<Controller
 						name="constitution_type"
 						control={control}
@@ -294,6 +309,14 @@ export function SelectSupplierModal({
 					/>
 
 					<InputText
+						label="Nombre comercial"
+						placeholder="Ej. DIMAC"
+						className={inputClassName}
+						labelClassName={labelClassName}
+						{...register("commercial_name")}
+					/>
+
+					<InputText
 						label="Identificación"
 						placeholder="Ej. J0310000000001"
 						className={inputClassName}
@@ -315,20 +338,22 @@ export function SelectSupplierModal({
 						})}
 					/>
 
-					<Button
-						type="submit"
-						size="giant"
-						label="Aplicar filtros"
-						className="w-full! rounded-md! bg-alpac-primary-500! text-[15px]! text-white! dark:bg-alpac-primary-700!"
-					/>
+					<div className="flex gap-2">
+						<Button
+							type="submit"
+							size="giant"
+							label="Filtrar"
+							className="w-full! rounded-md! bg-alpac-primary-500! text-[15px]! text-white! dark:bg-alpac-primary-700!"
+						/>
 
-					<Button
-						type="button"
-						size="giant"
-						label="Limpiar filtros"
-						onClick={handleClearFilters}
-						className="w-full! rounded-md! bg-slate-500! text-[15px]! text-white! dark:bg-slate-700!"
-					/>
+						<Button
+							type="button"
+							size="giant"
+							label="Limpiar"
+							onClick={handleClearFilters}
+							className="w-full! rounded-md! bg-slate-500! text-[15px]! text-white! dark:bg-slate-700!"
+						/>
+					</div>
 				</form>
 
 				{error ? (

@@ -5,6 +5,11 @@ import type { GetSupplierDetailsRequest } from "@app/modules/purchasing/domain/A
 import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
+import type {
+	CreateSupplierBankAccountPayload,
+	SupplierBankAccount,
+	UpdateSupplierBankAccountPayload,
+} from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-bank-account";
 import { SupplierServices } from "@app/modules/purchasing/infrastructure/services/supplier/SupplierServices";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -15,14 +20,35 @@ type useSuppliersProps = {
 	supplierDetailFilters?: GetSupplierDetailsRequest;
 };
 
-export const useSupplier = (props?: useSuppliersProps) => {
+export type CreateBankAccountMutationArgs = {
+	companyId: string;
+	moduleCode: string;
+	supplierId: string;
+	payload: CreateSupplierBankAccountPayload;
+};
 
+export type UpdateBankAccountMutationArgs = {
+	companyId: string;
+	moduleCode: string;
+	supplierId: string;
+	bankAccountId: string;
+	payload: UpdateSupplierBankAccountPayload;
+};
+
+export type DeleteBankAccountMutationArgs = {
+	companyId: string;
+	moduleCode: string;
+	supplierId: string;
+	bankAccountId: string;
+};
+
+export const useSupplier = (props?: useSuppliersProps) => {
 	const queryClient = useQueryClient();
 
 	const { suppliersFilters, supplierDetailFilters } = props || {};
 
 	const suppliersListEnabled = Boolean(
-		suppliersFilters?.companie_id?.trim() &&
+		suppliersFilters?.company_id?.trim() &&
 		suppliersFilters.module_code?.trim() &&
 		suppliersFilters?.page_number
 	);
@@ -57,7 +83,7 @@ export const useSupplier = (props?: useSuppliersProps) => {
 		onSuccess() {
 			queryClient.invalidateQueries({ queryKey: ["suppliers"] });
 		},
-		retry: 1
+		retry: 1,
 	});
 
 	const UpdateSupplier = useMutation<void, ApiErrorResponse, UpdateSupplierRequest>({
@@ -66,8 +92,46 @@ export const useSupplier = (props?: useSuppliersProps) => {
 		onSuccess() {
 			queryClient.invalidateQueries({ queryKey: ["suppliers"] });
 			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
-		}
+		},
 	});
 
-	return { GetSuppliers, GetSupplierDetails, CreateSupplier, UpdateSupplier };
+	const CreateBankAccount = useMutation<SupplierBankAccount, ApiErrorResponse, CreateBankAccountMutationArgs>({
+		mutationKey: ["create-supplier-bank-account"],
+		mutationFn: ({ companyId, moduleCode, supplierId, payload }) =>
+			suppliersServices.createBankAccount(companyId, moduleCode, supplierId, payload),
+		onSuccess() {
+			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+			queryClient.invalidateQueries({ queryKey: ["supplier-bank-accounts"] });
+		},
+	});
+
+	const UpdateBankAccount = useMutation<void, ApiErrorResponse, UpdateBankAccountMutationArgs>({
+		mutationKey: ["update-supplier-bank-account"],
+		mutationFn: ({ companyId, moduleCode, supplierId, bankAccountId, payload }) =>
+			suppliersServices.updateBankAccount(companyId, moduleCode, supplierId, bankAccountId, payload),
+		onSuccess() {
+			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+			queryClient.invalidateQueries({ queryKey: ["supplier-bank-accounts"] });
+		},
+	});
+
+	const DeleteBankAccount = useMutation<void, ApiErrorResponse, DeleteBankAccountMutationArgs>({
+		mutationKey: ["delete-supplier-bank-account"],
+		mutationFn: ({ companyId, moduleCode, supplierId, bankAccountId }) =>
+			suppliersServices.deleteBankAccount(companyId, moduleCode, supplierId, bankAccountId),
+		onSuccess() {
+			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+			queryClient.invalidateQueries({ queryKey: ["supplier-bank-accounts"] });
+		},
+	});
+
+	return {
+		GetSuppliers,
+		GetSupplierDetails,
+		CreateSupplier,
+		UpdateSupplier,
+		CreateBankAccount,
+		UpdateBankAccount,
+		DeleteBankAccount,
+	};
 };
