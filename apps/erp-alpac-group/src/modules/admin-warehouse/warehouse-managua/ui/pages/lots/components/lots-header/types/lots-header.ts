@@ -1,4 +1,4 @@
-export type TramosHeaderProps = {
+export type LotsHeaderProps = {
   warehouseId: string;
   sectionId: string;
 };

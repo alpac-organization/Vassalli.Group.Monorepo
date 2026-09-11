@@ -1,33 +1,33 @@
 import { InputText } from "@alpac/design-system";
 import { useForm } from "react-hook-form";
 import {
-  EMPTY_TRAMO_FILTERS,
-  type TramoFilters,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/types/tramos.types";
-import type { TramosFiltersProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-filters/types/tramos-filters.types";
+  EMPTY_LOT_FILTERS,
+  type LotFilters,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/types/lots.types";
+import type { LotsFiltersProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-filters/types/lots-filters.types";
 import {
   inputClassName,
   labelClassName,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-filters/utils/styles";
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-filters/utils/styles";
 import {
   buildFiltersPayload,
   STATUS_FILTER_OPTIONS,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-filters/utils/tramos-filter.utils";
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-filters/utils/lots-filter.utils";
 import { FilterActions } from "@app/shared/components/filters/filter-actions/filter-actions";
 import { StatusFilterDropdown } from "@app/shared/components/filters/status-filter-dropdown/filter-dropdown";
 
-export function TramosFiltersBar({
+export function LotsFiltersBar({
   onApply,
   onClear,
-  defaultValues = EMPTY_TRAMO_FILTERS,
-}: TramosFiltersProps) {
-  const { register, handleSubmit, control, reset } = useForm<TramoFilters>({
+  defaultValues = EMPTY_LOT_FILTERS,
+}: LotsFiltersProps) {
+  const { register, handleSubmit, control, reset } = useForm<LotFilters>({
     defaultValues,
     mode: "onSubmit",
   });
 
   const handleClear = () => {
-    reset(EMPTY_TRAMO_FILTERS);
+    reset(EMPTY_LOT_FILTERS);
     onClear();
   };
 
