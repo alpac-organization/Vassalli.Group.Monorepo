@@ -3,16 +3,16 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, AnimatedAlertWrapper, Button } from "@alpac/design-system";
 import { Rows3 } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { TramosHeader } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-header/tramos-header";
-import { TramosFiltersBar } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-filters/tramos-filters";
-import { TramosTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-table/tramos-table";
-import { LotModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/lot-modal";
-import { LotDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-detail-modal/lot-detail-modal";
+import { LotsHeader } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-header/lots-header";
+import { LotsFiltersBar } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-filters/lots-filters";
+import { LotsTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-table/lots-table";
+import { LotModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/lot-modal";
+import { LotDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-detail-modal/lot-detail-modal";
 import {
-  EMPTY_TRAMO_FILTERS,
-  type TramoFilters,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/types/tramos.types";
-import { filtersToGetLotsParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/utils/filter-tramos";
+  EMPTY_LOT_FILTERS,
+  type LotFilters,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/types/lots.types";
+import { filtersToGetLotsParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/utils/filter-lots";
 import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -36,7 +36,7 @@ export function TramosPage() {
   const [selectedLotId, setSelectedLotId] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [appliedFilters, setAppliedFilters] =
-    useState<TramoFilters>(EMPTY_TRAMO_FILTERS);
+    useState<LotFilters>(EMPTY_LOT_FILTERS);
   const [currentPage, setCurrentPage] = useState(1);
 
   const getLotsPayload = useMemo<GetLotsRequest>(
@@ -75,13 +75,13 @@ export function TramosPage() {
     handleRequestError(mappedError.description);
   }, [GetLots.isError, GetLots.error, getMappedError, handleRequestError]);
 
-  const handleApplyFilters = useCallback((filters: TramoFilters) => {
+  const handleApplyFilters = useCallback((filters: LotFilters) => {
     setAppliedFilters(filters);
     setCurrentPage(1);
   }, []);
 
   const handleClearFilters = useCallback(() => {
-    setAppliedFilters(EMPTY_TRAMO_FILTERS);
+    setAppliedFilters(EMPTY_LOT_FILTERS);
     setCurrentPage(1);
   }, []);
 
@@ -109,7 +109,7 @@ export function TramosPage() {
         />
       </AnimatedAlertWrapper>
 
-      <TramosHeader warehouseId={warehouseId} sectionId={sectionId} />
+      <LotsHeader warehouseId={warehouseId} sectionId={sectionId} />
 
       <div className="flex flex-col gap-4">
         <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
@@ -133,12 +133,12 @@ export function TramosPage() {
         </div>
       </div>
 
-      <TramosFiltersBar
+      <LotsFiltersBar
         onApply={handleApplyFilters}
         onClear={handleClearFilters}
       />
 
-      <TramosTable
+      <LotsTable
         data={tramosData}
         currentPage={currentPage}
         totalRecords={totalRecords}

@@ -3,9 +3,9 @@ import { Breadcrumb, useTheme } from "@alpac/design-system";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useNavigate } from "react-router-dom";
-import type { TramosHeaderProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-header/types/tramos-header";
+import type { LotsHeaderProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-header/types/lots-header";
 
-export function TramosHeader({ warehouseId, sectionId }: TramosHeaderProps) {
+export function LotsHeader({ warehouseId, sectionId }: LotsHeaderProps) {
   const navigate = useNavigate();
   const { baseUrl } = useBaseUrl();
   const { theme } = useTheme();

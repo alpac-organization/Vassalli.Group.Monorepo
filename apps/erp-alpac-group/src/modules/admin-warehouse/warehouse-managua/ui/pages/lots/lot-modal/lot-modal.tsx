@@ -12,7 +12,7 @@ import {
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronDown, Plus, Rows3, Trash2 } from "lucide-react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import type { LotModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/types/lot-modal.types";
+import type { LotModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/types/lot-modal.types";
 import {
   RackStatusEnum,
   RackStatusOptions,
@@ -34,12 +34,12 @@ import {
   dropdownClassName,
   inputClassName,
   labelClassName,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/utils/style.lots";
-import type { FormValues } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/types/lot-modal.types";
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/style.lots";
+import type { FormValues } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/types/lot-modal.types";
 import {
   parseDecimal,
   isUnavailableStatus,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/utils/lots.utils";
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/lots.utils";
 
 export const LotModal = ({
   isOpen,
