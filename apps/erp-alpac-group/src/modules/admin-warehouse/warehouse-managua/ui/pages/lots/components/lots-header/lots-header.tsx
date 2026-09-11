@@ -1,49 +1,23 @@
-import { useCallback, useMemo } from "react";
-import { Breadcrumb, useTheme } from "@alpac/design-system";
-import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
-import { useNavigate } from "react-router-dom";
+import { Breadcrumb } from "@alpac/design-system";
 import type { LotsHeaderProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-header/types/lots-header";
+import { useModulePageHeader } from "@app/shared/hooks/useModulePageHeader";
 
 export function LotsHeader({ warehouseId, sectionId }: LotsHeaderProps) {
-  const navigate = useNavigate();
-  const { baseUrl } = useBaseUrl();
-  const { theme } = useTheme();
-  const { urlImage, neutralUrlImage } = useCompanyStore();
-
-  const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
-
-  const goTo = useCallback(
-    (url: string) => {
-      navigate(url);
+  const { activeLogo, breadcrumbItems } = useModulePageHeader((baseUrl) => [
+    { label: "Dashboard", url: baseUrl },
+    {
+      label: "Lista de bodegas",
+      url: `${baseUrl}/warehouse-admin/management`,
     },
-    [navigate],
-  );
-
-  const breadcrumbItems = useMemo(
-    () => [
-      {
-        label: "Dashboard",
-        url: baseUrl,
-        onClick: goTo,
-      },
-      {
-        label: "Lista de bodegas",
-        url: `${baseUrl}/warehouse-admin/management`,
-        onClick: goTo,
-      },
-      {
-        label: "Secciones",
-        url: `${baseUrl}/warehouse-admin/management/sections/${warehouseId}`,
-        onClick: goTo,
-      },
-      {
-        label: "Tramos",
-        url: `${baseUrl}/warehouse-admin/management/sections/${warehouseId}/lots/${sectionId}`,
-      },
-    ],
-    [baseUrl, goTo, warehouseId, sectionId],
-  );
+    {
+      label: "Secciones",
+      url: `${baseUrl}/warehouse-admin/management/sections/${warehouseId}`,
+    },
+    {
+      label: "Tramos",
+      url: `${baseUrl}/warehouse-admin/management/sections/${warehouseId}/lots/${sectionId}`,
+    },
+  ]);
 
   return (
     <div className="flex flex-col gap-3 sm:gap-4 min-w-0">

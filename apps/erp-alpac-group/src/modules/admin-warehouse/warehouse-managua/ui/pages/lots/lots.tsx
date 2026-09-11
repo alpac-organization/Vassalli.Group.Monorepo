@@ -1,6 +1,6 @@
 import { m } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, AnimatedAlertWrapper, Button } from "@alpac/design-system";
+import { Button } from "@alpac/design-system";
 import { Rows3 } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { LotsHeader } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-header/lots-header";
@@ -31,7 +31,7 @@ export function TramosPage() {
   }>();
   const { companyId, moduleCode } = useUserStore();
   const { getMappedError } = useMappedError();
-  const { alertState, handleCloseAlert, handleRequestError } = useAlertState();
+  const { AlertComponent, handleRequestError } = useAlertState();
   const [isLotModalOpen, setIsLotModalOpen] = useState(false);
   const [selectedLotId, setSelectedLotId] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -43,12 +43,13 @@ export function TramosPage() {
     () => ({
       company_id: companyId,
       module_code: moduleCode,
+      warehouse_id: warehouseId,
       section_id: sectionId,
       ...filtersToGetLotsParams(appliedFilters),
       page_number: currentPage,
       page_size: PAGE_SIZE,
     }),
-    [companyId, moduleCode, sectionId, appliedFilters, currentPage],
+    [companyId, moduleCode, warehouseId, sectionId, appliedFilters, currentPage],
   );
 
   const getLotDetailPayload = useMemo(
@@ -100,14 +101,7 @@ export function TramosPage() {
     >
       {GetLots.isPending && <Loader title="Cargando tramos..." />}
 
-      <AnimatedAlertWrapper open={alertState?.open ?? false}>
-        <Alert
-          type={alertState?.type!}
-          title={alertState?.title}
-          message={alertState?.message!}
-          onClose={handleCloseAlert}
-        />
-      </AnimatedAlertWrapper>
+      {AlertComponent}
 
       <LotsHeader warehouseId={warehouseId} sectionId={sectionId} />
 
@@ -150,6 +144,7 @@ export function TramosPage() {
 
       <LotModal
         isOpen={isLotModalOpen}
+        warehouseId={warehouseId}
         sectionId={sectionId}
         onClose={() => setIsLotModalOpen(false)}
       />

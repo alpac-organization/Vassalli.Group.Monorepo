@@ -78,7 +78,7 @@ export function getSectionsColumns({
       label: "Acciones",
       render: (item) => {
         const items = getSectionActionItems(item, onViewLots, onViewRacks);
-        if (items.length === 0) return null;
+        // if (items.length === 0) return null;
 
         return (
           <ContextMenu

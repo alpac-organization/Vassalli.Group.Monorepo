@@ -1,48 +1,31 @@
 import { useEffect } from "react";
 import {
-  Accordion,
   Alert,
   AnimatedAlertWrapper,
   Button,
-  Checkbox,
-  Dropdown,
   InputText,
   Modal,
 } from "@alpac/design-system";
 import { AnimatePresence, m } from "framer-motion";
-import { ChevronDown, Plus, Rows3, Trash2 } from "lucide-react";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
-import type { LotModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/types/lot-modal.types";
+import { useForm } from "react-hook-form";
+import type { LotFormValues, LotModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/types/lot-modal.types";
 import {
   RackStatusEnum,
-  RackStatusOptions,
 } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
-import type {
-  CreateLotsRequest,
-  RegisterLotGroupRequest,
-} from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
-import {
-  validateIntegerNumber,
-  validatePositiveNumber,
-} from "@app/shared/utils/number.utils";
+import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import { getDecimalFieldConfig } from "@app/shared/utils/get-decimal.config";
 import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import {
-  dropdownClassName,
   inputClassName,
   labelClassName,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/style.lots";
-import type { FormValues } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/types/lot-modal.types";
-import {
-  parseDecimal,
-  isUnavailableStatus,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/lots.utils";
 
 export const LotModal = ({
   isOpen,
+  warehouseId,
   sectionId,
   onClose,
   onSubmit,
@@ -57,72 +40,30 @@ export const LotModal = ({
   } = useAlertState();
 
   const {
-    control,
     register,
     handleSubmit,
     reset,
-    watch,
     formState: { errors },
-  } = useForm<FormValues>({
+  } = useForm<LotFormValues>({
     defaultValues: {
-      groups: [
-        {
-          mode: "codes",
-          allows_stacking: true,
-          status: RackStatusEnum.Available.value,
-        },
-      ],
+      status: RackStatusEnum.Available.value,
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "groups",
-  });
-  const { CreateLots } = useWarehouseAdmin();
+  const { RegisterLot } = useWarehouseAdmin();
 
-  const handleCreateLots = (data: FormValues) => {
-    const groups: RegisterLotGroupRequest[] = data.groups.map((group) => {
-      const statusOption = Object.values(RackStatusEnum).find(
-        (option) => option.value === Number(group.status),
-      );
-      const status = statusOption
-        ? statusOption.textValue
-        : RackStatusEnum.Available.textValue;
-
-      return {
-        codes:
-          group.mode === "codes"
-            ? (group.codes_text ?? "")
-                .split(",")
-                .map((code) => code.trim())
-                .filter(Boolean)
-            : null,
-        code_prefix:
-          group.mode === "range" ? (group.code_prefix ?? null) : null,
-        start_number:
-          group.mode === "range" ? Number(group.start_number) : null,
-        count: group.mode === "range" ? Number(group.count) : null,
-        width_metres: Number(group.width_metres),
-        length_metres: Number(group.length_metres),
-        nominal_rows: Number(group.nominal_rows),
-        nominal_columns: Number(group.nominal_columns),
-        allows_stacking: group.allows_stacking,
-        status,
-        unavailable_reason: isUnavailableStatus(Number(group.status))
-          ? (group.unavailable_reason ?? null)
-          : null,
-      };
-    });
-
-    const payload: CreateLotsRequest = {
+  const handleCreateLot = (data: LotFormValues) => {
+    const payload: RegisterLotRequest = {
       company_id: companyId,
       module_code: moduleCode,
+      warehouse_id: warehouseId,
       section_id: sectionId,
-      groups,
+      code: data.code ?? "",
+      width_metres: Number(data.width_metres ?? 0),
+      length_metres: Number(data.length_metres ?? 0)
     };
 
-    CreateLots.mutate(payload, {
+    RegisterLot.mutate(payload, {
       onSuccess() {
         handleRequestSuccess("Tramos registrados exitosamente.");
         reset();
@@ -130,7 +71,7 @@ export const LotModal = ({
 
         setTimeout(() => {
           onClose();
-        }, 1000);
+        }, 2000);
       },
       onError(error) {
         const mappedError = getMappedError(error);
@@ -157,313 +98,82 @@ export const LotModal = ({
       onClose={handleClose}
       title="Registro de tramos"
       variant="form"
-      size="7xl"
-      description="Registre uno o varios tramos para la sección"
+      size="md"
+      description="Crear un tramo para la sección"
     >
       <form
         className="flex flex-col gap-5"
-        onSubmit={handleSubmit(handleCreateLots)}
+        onSubmit={handleSubmit(handleCreateLot)}
       >
         <AnimatedAlertWrapper open={alertState?.open ?? false}>
-          <Alert
-            type={alertState?.type!}
-            title={alertState?.title}
-            message={alertState?.message!}
-            onClose={handleCloseAlert}
-          />
+          {alertState && (
+            <Alert
+              type={alertState.type}
+              title={alertState.title}
+              message={alertState.message}
+              onClose={handleCloseAlert}
+            />
+          )}
         </AnimatedAlertWrapper>
 
         <div className="flex flex-col gap-4 sm:gap-6">
           <AnimatePresence initial={false}>
-            {fields.map((field, index) => {
-              const groupStatus = Number(watch(`groups.${index}.status`));
-              const groupMode = watch(`groups.${index}.mode`);
-              const showUnavailableReason = isUnavailableStatus(groupStatus);
+            <m.div
+              initial={{ opacity: 0, y: 10, height: 0 }}
+              animate={{ opacity: 1, y: 0, height: "auto" }}
+              exit={{ opacity: 0, y: 8, height: 0 }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              className="mx-1 overflow-hidden sm:mx-0"
+            >
+              <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <InputText
+                  label="Código"
+                  placeholder="Ej. LOT-A1"
+                  isRequired
+                  className={inputClassName}
+                  labelClassName={labelClassName}
+                  {...register(`code`, {
+                    required: "El código es requerido",
+                    validate: {
+                      hasCode: (value) =>
+                        (value ?? "").trim() !== "" || "Ingrese un código",
+                    },
+                  })}
+                  error={errors.code?.message}
+                />
 
-              return (
-                <m.div
-                  key={field.id}
-                  initial={{ opacity: 0, y: 10, height: 0 }}
-                  animate={{ opacity: 1, y: 0, height: "auto" }}
-                  exit={{ opacity: 0, y: 8, height: 0 }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  className="mx-1 overflow-hidden sm:mx-0"
-                >
-                  <Accordion
-                    title={
-                      <span className="flex min-w-0 items-center gap-2">
-                        <Rows3
-                          className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-300"
-                          aria-hidden
-                        />
-                        <span>Grupo de tramos #{index + 1}</span>
-                      </span>
-                    }
-                    defaultOpen
-                    icon={ChevronDown}
-                    className="rounded-md! border! border-slate-300! bg-transparent! dark:border-slate-600! dark:bg-[#272b34]! dark:hover:border-neutral-600!"
-                    triggerClassName="h-auto! min-h-10! rounded-md! bg-transparent! px-3! py-2.5! sm:px-4! dark:bg-transparent! hover:bg-slate-50! dark:hover:bg-white/5!"
-                    contentClassName="border-t border-slate-300 px-3 py-3 sm:px-4 sm:py-4 dark:border-slate-600"
-                  >
-                    {fields.length > 1 ? (
-                      <div className="mb-4 flex justify-end">
-                        <Button
-                          type="button"
-                          size="small"
-                          label="Eliminar"
-                          icon={<Trash2 size={14} />}
-                          onClick={() => remove(index)}
-                          className="text-[13px]! rounded-md! bg-red-600/15! border! border-red-700/40! text-red-400! hover:bg-red-600/25!"
-                        />
-                      </div>
-                    ) : null}
+                <InputText
+                  label="Ancho (m)"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  isRequired
+                  className={inputClassName}
+                  labelClassName={labelClassName}
+                  {...register(
+                    `width_metres`,
+                    getDecimalFieldConfig("El ancho es requerido"),
+                  )}
+                  error={errors.width_metres?.message}
+                />
 
-                    <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
-                      <Controller
-                        control={control}
-                        name={`groups.${index}.mode`}
-                        rules={{ required: "El modo es requerido" }}
-                        render={({ field: modeField }) => (
-                          <Dropdown
-                            label="Modo de registro"
-                            placeholder="Seleccione..."
-                            isRequired
-                            options={[
-                              { value: "codes", label: "Códigos específicos" },
-                              { value: "range", label: "Rango de códigos" },
-                            ]}
-                            value={modeField.value}
-                            appearance="dark"
-                            className={dropdownClassName}
-                            labelClassName={labelClassName}
-                            onChange={(val) => modeField.onChange(val)}
-                          />
-                        )}
-                      />
-
-                      {groupMode === "codes" ? (
-                        <InputText
-                          label="Códigos (separados por coma)"
-                          placeholder="Ej. LOT-A1, LOT-A2, LOT-A3"
-                          isRequired
-                          className={inputClassName}
-                          labelClassName={labelClassName}
-                          {...register(`groups.${index}.codes_text`, {
-                            required: "Al menos un código es requerido",
-                            validate: {
-                              hasCodes: (value) =>
-                                (value ?? "")
-                                  .split(",")
-                                  .some((code) => code.trim() !== "") ||
-                                "Ingrese al menos un código",
-                            },
-                          })}
-                          error={errors.groups?.[index]?.codes_text?.message}
-                        />
-                      ) : (
-                        <>
-                          <InputText
-                            label="Prefijo"
-                            placeholder="Ej. LOT-B"
-                            isRequired
-                            className={inputClassName}
-                            labelClassName={labelClassName}
-                            {...register(`groups.${index}.code_prefix`, {
-                              required: "El prefijo es requerido",
-                            })}
-                            error={errors.groups?.[index]?.code_prefix?.message}
-                          />
-
-                          <InputText
-                            label="Número inicial"
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="1"
-                            isRequired
-                            className={inputClassName}
-                            labelClassName={labelClassName}
-                            {...register(`groups.${index}.start_number`, {
-                              required: "El número inicial es requerido",
-                              validate: {
-                                validateInteger: (value) =>
-                                  !value || validateIntegerNumber(value),
-                                validatePositive: (value) =>
-                                  !value || validatePositiveNumber(value),
-                              },
-                              setValueAs: parseDecimal,
-                            })}
-                            error={
-                              errors.groups?.[index]?.start_number?.message
-                            }
-                          />
-
-                          <InputText
-                            label="Cantidad"
-                            type="text"
-                            inputMode="numeric"
-                            placeholder="10"
-                            isRequired
-                            className={inputClassName}
-                            labelClassName={labelClassName}
-                            {...register(`groups.${index}.count`, {
-                              required: "La cantidad es requerida",
-                              validate: {
-                                validateInteger: (value) =>
-                                  !value || validateIntegerNumber(value),
-                                validatePositive: (value) =>
-                                  !value || validatePositiveNumber(value),
-                              },
-                              setValueAs: parseDecimal,
-                            })}
-                            error={errors.groups?.[index]?.count?.message}
-                          />
-                        </>
-                      )}
-
-                      <InputText
-                        label="Ancho (m)"
-                        type="text"
-                        inputMode="decimal"
-                        placeholder="0.00"
-                        isRequired
-                        className={inputClassName}
-                        labelClassName={labelClassName}
-                        {...register(
-                          `groups.${index}.width_metres`,
-                          getDecimalFieldConfig("El ancho es requerido"),
-                        )}
-                        error={errors.groups?.[index]?.width_metres?.message}
-                      />
-
-                      <InputText
-                        label="Largo (m)"
-                        type="text"
-                        inputMode="decimal"
-                        placeholder="0.00"
-                        isRequired
-                        className={inputClassName}
-                        labelClassName={labelClassName}
-                        {...register(
-                          `groups.${index}.length_metres`,
-                          getDecimalFieldConfig("El largo es requerido", true),
-                        )}
-                        error={errors.groups?.[index]?.length_metres?.message}
-                      />
-
-                      <InputText
-                        label="Filas"
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="4"
-                        isRequired
-                        className={inputClassName}
-                        labelClassName={labelClassName}
-                        {...register(`groups.${index}.nominal_rows`, {
-                          required: "Las filas son requeridas",
-                          validate: {
-                            validateInteger: (value) =>
-                              !value || validateIntegerNumber(value),
-                            validatePositive: (value) =>
-                              !value || validatePositiveNumber(value),
-                          },
-                          setValueAs: parseDecimal,
-                        })}
-                        error={errors.groups?.[index]?.nominal_rows?.message}
-                      />
-
-                      <InputText
-                        label="Columnas"
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="5"
-                        isRequired
-                        className={inputClassName}
-                        labelClassName={labelClassName}
-                        {...register(`groups.${index}.nominal_columns`, {
-                          required: "Las columnas son requeridas",
-                          validate: {
-                            validateInteger: (value) =>
-                              !value || validateIntegerNumber(value),
-                            validatePositive: (value) =>
-                              !value || validatePositiveNumber(value),
-                          },
-                          setValueAs: parseDecimal,
-                        })}
-                        error={errors.groups?.[index]?.nominal_columns?.message}
-                      />
-
-                      <Controller
-                        control={control}
-                        name={`groups.${index}.status`}
-                        rules={{ required: "El estado es requerido" }}
-                        render={({ field: statusField }) => (
-                          <Dropdown
-                            label="Estado"
-                            placeholder="Seleccione..."
-                            isRequired
-                            options={RackStatusOptions}
-                            value={statusField.value}
-                            appearance="dark"
-                            className={dropdownClassName}
-                            labelClassName={labelClassName}
-                            onChange={(val) => statusField.onChange(val)}
-                            error={errors.groups?.[index]?.status?.message}
-                          />
-                        )}
-                      />
-
-                      <Controller
-                        control={control}
-                        name={`groups.${index}.allows_stacking`}
-                        render={({ field: stackingField }) => (
-                          <Checkbox
-                            label="Permite apilamiento"
-                            labelPosition="right"
-                            className="text-slate-300!"
-                            checked={stackingField.value}
-                            onChange={stackingField.onChange}
-                          />
-                        )}
-                      />
-
-                      {showUnavailableReason && (
-                        <InputText
-                          label="Motivo de indisponibilidad"
-                          placeholder="Ej. Reparación estructural del piso"
-                          isRequired
-                          className={inputClassName}
-                          labelClassName={labelClassName}
-                          {...register(`groups.${index}.unavailable_reason`, {
-                            required: "El motivo es requerido para este estado",
-                          })}
-                          error={
-                            errors.groups?.[index]?.unavailable_reason?.message
-                          }
-                        />
-                      )}
-                    </div>
-                  </Accordion>
-                </m.div>
-              );
-            })}
+                <InputText
+                  label="Largo (m)"
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="0.00"
+                  isRequired
+                  className={inputClassName}
+                  labelClassName={labelClassName}
+                  {...register(
+                    `length_metres`,
+                    getDecimalFieldConfig("El largo es requerido", true),
+                  )}
+                  error={errors.length_metres?.message}
+                />
+              </div>
+            </m.div>
           </AnimatePresence>
-        </div>
-
-        <div>
-          <Button
-            type="button"
-            size="medium"
-            label="Agregar grupo"
-            icon={<Plus size={16} />}
-            onClick={() =>
-              append({
-                mode: "codes",
-                allows_stacking: true,
-                status: RackStatusEnum.Available.value,
-              })
-            }
-            className="text-[14px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30!"
-          />
         </div>
 
         <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6" />
@@ -480,8 +190,8 @@ export const LotModal = ({
             type="submit"
             size="giant"
             label="Guardar"
-            isLoading={CreateLots.isPending}
-            disabled={CreateLots.isPending}
+            isLoading={RegisterLot.isPending}
+            disabled={RegisterLot.isPending}
             className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
           />
         </div>
