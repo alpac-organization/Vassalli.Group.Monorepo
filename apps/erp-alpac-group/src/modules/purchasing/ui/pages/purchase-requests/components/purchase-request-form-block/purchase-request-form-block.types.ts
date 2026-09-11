@@ -13,6 +13,7 @@ export type PurchaseRequestFormBlockProps = {
 	defaults: CreatePurchaseRequestPayload;
 	role: RoleEnum;
 	requestType: PurchaseRequestEnum;
+	isEditMode?: boolean;
 	onDuplicate: (purchaseRequestPayload: CreatePurchaseRequestPayload) => void;
 	onRemove: () => void;
 	onRequestError?: (message?: string) => void;

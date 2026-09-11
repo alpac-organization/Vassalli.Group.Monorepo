@@ -28,6 +28,7 @@ export interface PurchaseRequestProductInformation {
 	description: string | null;
 	justification: string | null;
 	purchase_request_item_id: string;
+	additional_data?: string | null;
 	product_details: PurchaseRequestProductDetails;
 	unit_measure_information: PurchaseRequestUnitMeasureInformation;
 	quotations: PurchaseRequestProductQuotation[];
@@ -46,6 +47,7 @@ export interface PurchaseRequestCategoryInformation {
 }
 
 export interface PurchaseRequestUnitMeasureInformation {
+	unit_measure_id?: string | null;
 	code: string | null;
 	name: string | null;
 	symbol: string | null;

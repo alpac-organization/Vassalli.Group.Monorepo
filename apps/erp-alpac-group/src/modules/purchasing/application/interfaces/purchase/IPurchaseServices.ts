@@ -7,6 +7,7 @@ import type { GetPurchaseRequestDetailPayload } from "@app/modules/purchasing/do
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
+import type { UpdatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/update-purchase-request-payload";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
 import type { PurchaseOrderDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-document-response";
 import type { GetPurchaseOrdersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
@@ -23,6 +24,8 @@ export interface IPurchaseServices {
    GetPurchaseRequestProducts(payload: any): Promise<PurchaseRequestProductInformationList>;
 
    CreatePurchaseRequest(payload: PurchaseRequestMainPayload): Promise<void>;
+
+   UpdatePurchaseRequest(payload: UpdatePurchaseRequestPayload): Promise<void>;
 
    ProcesssPurchaseRequest(payload: ProcessPurchaseRequestPayload): Promise<void>;
 

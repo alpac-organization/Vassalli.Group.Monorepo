@@ -35,6 +35,7 @@ export const PurchaseRequestFormBlock = ({
    defaults,
    role,
    requestType,
+   isEditMode = false,
    onDuplicate,
    onRemove,
    onRequestError,
@@ -115,14 +116,36 @@ export const PurchaseRequestFormBlock = ({
 
    useImperativeHandle(ref, () => ({
       validate: () => methods.trigger(),
-      getValues: () => ({
-         ...methods.getValues(),
-         destination: PurchaseRequestDestinationEnum[selectedOrigen].value,
-         ...(selectedOrigen === "ServiceOrder" &&
-            selectedServiceOrder?.service_order_id
-            ? { service_order_id: selectedServiceOrder.service_order_id }
-            : {}),
-      }),
+      getValues: () => {
+         const values = methods.getValues();
+         const dirtyItems = methods.formState.dirtyFields.purchase_request_items;
+
+         return {
+            ...values,
+            destination: PurchaseRequestDestinationEnum[selectedOrigen].value,
+            ...(selectedOrigen === "ServiceOrder" &&
+               selectedServiceOrder?.service_order_id
+               ? { service_order_id: selectedServiceOrder.service_order_id }
+               : {}),
+            purchase_request_items: values.purchase_request_items.map((item, index) => {
+               const imagesDirtyField =
+                  dirtyItems?.[index]?.images?.images_product_to_changed;
+               const imagesDirty =
+                  Array.isArray(imagesDirtyField) &&
+                  imagesDirtyField.some(Boolean);
+
+               return {
+                  ...item,
+                  images: {
+                     ...item.images,
+                     images_product_to_changed:
+                        item.images?.images_product_to_changed ?? [],
+                     isDirty: imagesDirty,
+                  },
+               };
+            }),
+         };
+      },
    }));
 
    const handleOriginChange = (origin: PurchaseRequestDestinationType) => {
@@ -148,20 +171,22 @@ export const PurchaseRequestFormBlock = ({
                   {requestType?.label} {index + 1}
                </h4>
 
-               <ContextMenu
-                  triggerLabel="Opciones"
-                  triggerClassName="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                  items={[
-                     {
-                        label: "Duplicar",
-                        onClick: handleDuplicate,
-                     },
-                     {
-                        label: "Eliminar",
-                        onClick: onRemove,
-                     },
-                  ]}
-               />
+               {!isEditMode && (
+                  <ContextMenu
+                     triggerLabel="Opciones"
+                     triggerClassName="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                     items={[
+                        {
+                           label: "Duplicar",
+                           onClick: handleDuplicate,
+                        },
+                        {
+                           label: "Eliminar",
+                           onClick: onRemove,
+                        },
+                     ]}
+                  />
+               )}
             </div>
 
             <div className="flex flex-col gap-4 pb-2">
@@ -341,6 +366,7 @@ export const PurchaseRequestFormBlock = ({
 
                <PurchaseRequestDetail
                   disableActions={isDisabledActions}
+                  lockItems={isEditMode}
                   onRequestError={onRequestError}
                   onRequestSuccess={onRequestSuccess}
                />

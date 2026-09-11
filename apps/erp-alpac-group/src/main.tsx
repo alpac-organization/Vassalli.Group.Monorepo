@@ -16,7 +16,7 @@ export default function Main({ router, queryClient }: MainProps) {
         <RouterProvider router={router} />
       </GlobalServerErrorProvider>
 
-      <ReactQueryDevtools buttonPosition="bottom-right" initialIsOpen={false} />
+      <ReactQueryDevtools buttonPosition="bottom-left" initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

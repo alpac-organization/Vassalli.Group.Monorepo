@@ -49,7 +49,7 @@ const hasUnitsPerPackage = (label?: string, symbol?: string) => {
 };
 
 export const PurchaseRequestDetail = (
-	{ disableActions, onRequestError, onRequestSuccess }: PurchaseRequestDetailProps
+	{ disableActions, lockItems = false, onRequestError, onRequestSuccess }: PurchaseRequestDetailProps
 ) => {
 
 	const { companyId, moduleCode } = useUserStore();
@@ -147,34 +147,38 @@ export const PurchaseRequestDetail = (
 						Productos solicitados
 					</span>
 					<small className="text-gray-500 dark:text-gray-300">
-						Seleccione los productos y complete cantidad y unidad de medida
+						{lockItems
+							? "Edite cantidad, unidad y datos de los productos existentes"
+							: "Seleccione los productos y complete cantidad y unidad de medida"}
 					</small>
 				</div>
 
-				<div className="shrink-0 self-stretch sm:self-auto">
-					<ContextMenu
-						triggerClassName={contextMenuButton}
-						triggerLabel="Agregar Producto"
-						triggerIcon={<PlusIcon size={18} />}
-						disabled={disableActions}
-						items={[
-							{
-								label: "Agregar Producto Existente",
-								onClick: () => {
-									setIsSelectProductOpen(true);
-									clearErrors();
-								}
-							},
-							{
-								label: "Crear Nuevo Producto",
-								onClick: () => {
-									setIsCreateProductOpen(true);
-									clearErrors();
-								}
-							},
-						]}
-					/>
-				</div>
+				{!lockItems && (
+					<div className="shrink-0 self-stretch sm:self-auto">
+						<ContextMenu
+							triggerClassName={contextMenuButton}
+							triggerLabel="Agregar Producto"
+							triggerIcon={<PlusIcon size={18} />}
+							disabled={disableActions}
+							items={[
+								{
+									label: "Agregar Producto Existente",
+									onClick: () => {
+										setIsSelectProductOpen(true);
+										clearErrors();
+									}
+								},
+								{
+									label: "Crear Nuevo Producto",
+									onClick: () => {
+										setIsCreateProductOpen(true);
+										clearErrors();
+									}
+								},
+							]}
+						/>
+					</div>
+				)}
 			</div>
 
 			{errors.purchase_request_items?.root?.message ||
@@ -212,14 +216,16 @@ export const PurchaseRequestDetail = (
 							<span className="min-w-0 truncate text-[18px] font-semibold text-slate-700 dark:text-slate-200">
 								{index + 1} · {item.product_name || `#${index + 1}`}
 							</span>
-							<Button
-								type="button"
-								size="small"
-								tooltip="Quitar producto"
-								icon={<Trash2Icon size={18} />}
-								onClick={() => remove(index)}
-								className="h-10 w-10! shrink-0 rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!"
-							/>
+							{!lockItems && (
+								<Button
+									type="button"
+									size="small"
+									tooltip="Quitar producto"
+									icon={<Trash2Icon size={18} />}
+									onClick={() => remove(index)}
+									className="h-10 w-10! shrink-0 rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!"
+								/>
+							)}
 						</div>
 
 

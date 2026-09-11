@@ -247,6 +247,7 @@ export const OccasionalMaterialTab = ({
 					icon={<PackagePlusIcon size={20} />}
 					className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
 					onClick={() => {
+						setRequestDetail(null);
 						setIsModalOpen(true);
 					}}
 				/>
@@ -354,6 +355,7 @@ export const OccasionalMaterialTab = ({
 				onRequestError={onRequestError}
 				currentBranchId={currentBranchId}
 				requestType={PurchaseRequestEnum.Eventual}
+				purchaseRequest={requestDetail}
 			/>
 
 			<PurchaseRequestDetailModal
