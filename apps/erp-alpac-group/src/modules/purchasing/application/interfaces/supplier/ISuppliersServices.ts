@@ -5,14 +5,26 @@ import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiCo
 import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
 import type { GetSupplierDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-supplier-details-response";
 import type { GetSuppliersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+import type {
+	CreateSupplierBankAccountPayload,
+	SupplierBankAccount,
+	UpdateSupplierBankAccountPayload,
+} from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-bank-account";
 
 export interface ISupplierServices {
+	getSuppliers(payload: GetSuppliersRequest): Promise<GetSuppliersResponseList>;
 
-  getSuppliers(payload: GetSuppliersRequest): Promise<GetSuppliersResponseList>;
+	GetSupplierDetails(payload: GetSupplierDetailsRequest): Promise<GetSupplierDetailsResponse>;
 
-  GetSupplierDetails(payload: GetSupplierDetailsRequest): Promise<GetSupplierDetailsResponse>;
+	CreateSupplier(payload: CreateSupplierRequest): Promise<CreateSupplierResponse>;
 
-  CreateSupplier(payload: CreateSupplierRequest): Promise<CreateSupplierResponse>;
+	UpdateSupplier(payload: UpdateSupplierRequest): Promise<void>;
 
-  UpdateSupplier(payload: UpdateSupplierRequest): Promise<void>;
+	getBankAccounts(companyId: string, moduleCode: string, supplierId: string): Promise<SupplierBankAccount[]>;
+
+	createBankAccount(companyId: string,moduleCode: string,supplierId: string,payload: CreateSupplierBankAccountPayload,): Promise<SupplierBankAccount>;
+
+	updateBankAccount(companyId: string,moduleCode: string,supplierId: string,bankAccountId: string,payload: UpdateSupplierBankAccountPayload,): Promise<void>;
+
+	deleteBankAccount(companyId: string,moduleCode: string,supplierId: string,bankAccountId: string,): Promise<void>;
 }
