@@ -17,16 +17,18 @@ export interface CreatePurchaseRequestPayload {
 
 export interface PurchaseRequestItemAdditionalData {
    images_product_to_changed?: string[];
+   isDirty?: boolean;
 }
 
 export interface PurchaseRequestItem {
-   quantity: number;
-   quantity_unit?: number | null;
-   product_id: string;
-   product_name?: string | null;
-   unit_measure_id: string;
-   description: string;
-   justification?: string;
-   additional_data?: string | null;
-   images?: PurchaseRequestItemAdditionalData;
+  purchase_request_item_id?: string;
+  quantity: number;
+  quantity_unit?: number | null;
+  product_id: string;
+  product_name?: string | null;
+  unit_measure_id: string;
+  description: string;
+  justification?: string;
+  additional_data?: string | null;
+  images?: PurchaseRequestItemAdditionalData;
 }

@@ -14,6 +14,7 @@ export interface QuotationItem {
 	price_unit?: number;
 	brand_product?: string;
 	delivery_time?: number;
+	supplier_selection_justification?:string;
 	delivery_time_type?: number;
 	warranty_period?: number;
 	warranty_period_time_type?: number;

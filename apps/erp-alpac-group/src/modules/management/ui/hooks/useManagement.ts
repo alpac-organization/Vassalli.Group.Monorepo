@@ -52,11 +52,13 @@ export const useManagement = (props?: UseManagementProps) => {
         refetchOnWindowFocus: false,
         retry: 1,
     });
-
     const ProcessPurchaseOrder = useMutation<void, ApiErrorResponse, ProcessPurchaseOrderPayload>({
         mutationKey: ["process-purchase-order"],
         mutationFn: (payload: ProcessPurchaseOrderPayload) => managementServices.ProcessPurchaseOrder(payload),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["requisition-management-reviews"] }),
+        onSuccess: () =>{
+            queryClient.invalidateQueries({ queryKey: ["requisition-management-reviews"],})
+            queryClient.invalidateQueries({ queryKey: ["get-purchase-orders"], })
+        } ,
         retry: 1
     });
 

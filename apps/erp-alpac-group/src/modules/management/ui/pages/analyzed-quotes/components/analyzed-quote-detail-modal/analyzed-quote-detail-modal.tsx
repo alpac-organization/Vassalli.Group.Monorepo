@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Avatar, Badges, Modal } from "@alpac/design-system";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
@@ -11,10 +11,15 @@ import { useManagement } from "@app/modules/management/ui/hooks/useManagement";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import {
+	ImagePreviewGallery,
+	type ImagePayload,
+} from "@app/shared/components/image-preview-gallery/image-preview-gallery";
+import {
 	purchaseRequestPriorityBadgeVariants,
 	purchaseRequestStatusBadgeVariants,
 	purchaseRequestTypeBadgeVariants,
 } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
+import { PurchaseRequestProductsTable } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-products-table/purchase-request-products-table";
 import type { AnalyzedQuoteDetailModalProps } from "./analyzed-quote-detail-modal.types";
 import type { PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import { AnalyzedQuoteProductQuotations } from "./analyzed-quote-product-quotations";
@@ -43,15 +48,6 @@ const EmptyPurchaseRequestMessage = ({
 	);
 }
 
-const EmptyProductsMessage = ({ productsCount }: { productsCount: number }) => {
-	if (productsCount > 0) return null;
-	return (
-		<div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
-			No hay productos registrados.
-		</div>
-	);
-}
-
 export const AnalyzedQuoteDetailModal = ({
 	isOpen,
 	onClose,
@@ -59,6 +55,10 @@ export const AnalyzedQuoteDetailModal = ({
 }: AnalyzedQuoteDetailModalProps) => {
 
 	const { companyId, moduleCode } = useUserStore();
+	const [imagesModal, setImagesModal] = useState<{
+		productName: string;
+		images: ImagePayload[];
+	} | null>(null);
 
 	const payloadGetRequisitionManagementReviewDetail = useMemo(() => {
 
@@ -259,94 +259,15 @@ export const AnalyzedQuoteDetailModal = ({
 									</h4>
 								</section>
 
-								<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">
-									<div className="hidden border-b border-slate-200 bg-slate-100 sm:grid sm:grid-cols-6 dark:border-neutral-700 dark:bg-neutral-800">
-										<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-											Producto
-										</div>
-										<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-											Descripción
-										</div>
-										<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-											Cantidad
-										</div>
-										<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-											Unidad
-										</div>
-										<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-											Categoría
-										</div>
-										<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-											Justificación
-										</div>
-									</div>
-
-									<div className="flex flex-col divide-y divide-slate-100 dark:divide-neutral-700">
-										<EmptyProductsMessage productsCount={products.length} />
-										{products.length > 0 &&
-											products.map((product, index) => (
-												<div
-													key={`${product?.purchase_request_item_id}-${product.product_details.product_id}-${index}`}
-													className="flex flex-col"
-												>
-													<div className="grid grid-cols-1 gap-6 px-3 py-3 sm:grid-cols-6 sm:items-center">
-														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-															Producto
-														</span>
-														<span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-															{product.product_details.product_name?.trim() || "—"}
-														</span>
-
-														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-															Descripción
-														</span>
-														<span className="text-sm text-slate-700 dark:text-slate-200">
-															{product.description?.trim() || "—"}
-														</span>
-
-														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-															Cantidad
-														</span>
-														<span className="text-sm text-slate-700 dark:text-slate-200">
-															{product.quantity}
-															{product.quantity_unit != null
-																? ` × ${product.quantity_unit}`
-																: ""}
-														</span>
-
-														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-															Unidad
-														</span>
-														<span className="text-sm text-slate-700 dark:text-slate-200">
-															{product.unit_measure_information.name?.trim() ||
-																product.unit_measure_information.symbol?.trim() ||
-																"—"}
-														</span>
-
-														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-															Categoría
-														</span>
-														<span className="text-sm text-slate-700 dark:text-slate-200">
-															{product.product_details.category_information.name?.trim() ||
-																"—"}
-														</span>
-
-														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-															Justificación
-														</span>
-														<span className="text-sm text-slate-700 dark:text-slate-200">
-															{product.justification?.trim() || "—"}
-														</span>
-													</div>
-
-													<AnalyzedQuoteProductQuotations
-														quotations={product.quotations ?? []}
-													/>
-												</div>
-											))
-										}
-									</div>
-								</div>
+								<PurchaseRequestProductsTable
+									products={products}
+									onViewImages={setImagesModal}
+									renderRowExtra={(product) => (
+										<AnalyzedQuoteProductQuotations
+											quotations={product.quotations ?? []}
+										/>
+									)}
+								/>
 
 								<section className="flex flex-col gap-3">
 									<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2">
@@ -367,6 +288,23 @@ export const AnalyzedQuoteDetailModal = ({
 						</div>
 					)}
 				</div>
+			</Modal>
+
+			<Modal
+				isOpen={Boolean(imagesModal)}
+				onClose={() => setImagesModal(null)}
+				title={`Imágenes · ${imagesModal?.productName ?? "producto"}`}
+				variant="default"
+				size="4xl"
+				panelClassName="!max-w-4xl w-[min(calc(100vw-1rem),56rem)]"
+			>
+				{imagesModal && (
+					<ImagePreviewGallery
+						images={imagesModal.images}
+						title=""
+						imageAlt={`Imagen de ${imagesModal.productName}`}
+					/>
+				)}
 			</Modal>
 		</>
 	);

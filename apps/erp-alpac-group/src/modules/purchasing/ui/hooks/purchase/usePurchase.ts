@@ -11,6 +11,7 @@ import type { GetPurchaseRequestProductPayload } from "@app/modules/purchasing/d
 import type { GetPurchaseRequestDocumentRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-document-request";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
+import type { UpdatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/update-purchase-request-payload";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
 import type { PurchaseOrderDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-document-response";
 import type { GetPurchaseOrdersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
@@ -108,6 +109,17 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       retry: 1
    });
 
+   const UpdatePurchaseRequest = useMutation<void, ApiErrorResponse, UpdatePurchaseRequestPayload>({
+      mutationKey: ["update-purchase-request"],
+      mutationFn: (payload: UpdatePurchaseRequestPayload) => purchaseServices.UpdatePurchaseRequest(payload),
+      onSuccess() {
+         queryClient.invalidateQueries({ queryKey: ["get-purchase-requests"] });
+         queryClient.invalidateQueries({ queryKey: ["get-purchase-request-details"] });
+         queryClient.invalidateQueries({ queryKey: ["get-purchase-request-products"] });
+      },
+      retry: 1
+   });
+
    const ProcessPurchaseRequest = useMutation<void, ApiErrorResponse, ProcessPurchaseRequestPayload>({
       mutationKey: ["process-purchase-request"],
       mutationFn: (payload: ProcessPurchaseRequestPayload) => purchaseServices.ProcesssPurchaseRequest(payload),
@@ -173,7 +185,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
 
    return {
       GetPurchaseRequests, GetPurchaseRequestDetails,
-      CreatePurchaseRequest, ProcessPurchaseRequest, DeletePurchaseRequest,
+      CreatePurchaseRequest, UpdatePurchaseRequest, ProcessPurchaseRequest, DeletePurchaseRequest,
       SendPurchaseRequestToReview, GetPurchaseRequestProducts,
       GetPurchaseOrders, GetPurchaseOrderDetails, GetPurchaseOrderDocument,
       GetPurchaseRequestDocument,

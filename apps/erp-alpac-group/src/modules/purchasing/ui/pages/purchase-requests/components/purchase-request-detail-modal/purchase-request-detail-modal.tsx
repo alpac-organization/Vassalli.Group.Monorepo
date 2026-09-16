@@ -3,61 +3,27 @@ import { Avatar, Badges, Button, Modal } from "@alpac/design-system";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
-import { Loader } from "@app/shared/components/loaders/loader";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { BanIcon, BuildingIcon, CalendarCheckIcon, CalendarIcon, CheckIcon, FileTextIcon, MailIcon, NotebookTextIcon, XIcon } from "lucide-react";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
-
+import { sectionTitleClassName } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/utils/styles.purchasing";
 import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
-import type { PurchaseRequestDetailModalProps } from "./purchase-request-detail-modal.types";
+import type { PurchaseRequestDetailModalProps } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/purchase-request-detail-modal.types";
 import type { GetPurchaseRequestDetailResponse, PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
-import { purchaseRequestPriorityBadgeVariants, purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../purchase-request.variants";
+import { ImagePreviewGallery, type ImagePayload } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
+import { purchaseRequestPriorityBadgeVariants, purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { pdf } from "@react-pdf/renderer";
-import { PurchaseRequestPDF } from "../reports/purchase-request-pdf/purchase-request-pdf";
-
-const approveButtonClass = "rounded-md! h-11 px-6! border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-40 shadow-sm transition-all duration-200";
-const rejectButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
-const cancelButtonClass = "rounded-md! h-11 px-6! border border-orange-200 dark:border-orange-500/30 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-500/20 hover:border-orange-400 dark:hover:border-orange-500/60 hover:text-orange-700 dark:hover:text-orange-300 disabled:opacity-40";
-const pdfButtonClass = "rounded-md! h-11 px-6! border border-sky-200 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-500/20 hover:border-sky-400 dark:hover:border-sky-500/60 hover:text-sky-700 dark:hover:text-sky-300 disabled:opacity-40 shadow-sm transition-all duration-200";
-const sectionTitleClassName = "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
-
-
-const getConfirmButtonClass = (type: ConfirmActionType) => {
-	if (type === "APPROVE") return approveButtonClass;
-	if (type === "REJECT") return rejectButtonClass;
-	return cancelButtonClass;
-};
-
-const getSuccessMessage = (type: ConfirmActionType) => {
-	if (type === "APPROVE") return "Solicitud aprobada con éxito.";
-	if (type === "REJECT") return "Solicitud rechazada con éxito.";
-	return "Solicitud cancelada con éxito.";
-};
-
-const getActionText = (type: ConfirmActionType) => {
-	if (type === 'APPROVE') return "Aprobar";
-	else if (type === 'REJECT') return "Rechazar";
-	else if (type === 'CANCEL') return "Cancelar"
-	else return null;
-}
-
-const getConfirmQuestion = (type: ConfirmActionType) => {
-	const action = getActionText(type);
-	if (type === "APPROVE") return `La solicitud será aprovada y pasará al proceso de cotización ¿Está seguro de proceder a ${action} la Solicitud?`;
-	else return `¿Está seguro de proceder a ${action} la Solicitud?`;
-}
-
-const LoadingMessage = ({ isOpen, isLoading }: { isOpen: boolean, isLoading: boolean }) => {
-	if (!isOpen) return null;
-	if (!isLoading) return null;
-	return <Loader title="Cargando detalle de la solicitud..." />;
-}
+import { PurchaseRequestPDF } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-pdf/purchase-request-pdf";
+import { PurchaseRequestProductsTable } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-products-table/purchase-request-products-table";
+import { approveButtonClass, cancelButtonClass, getConfirmButtonClass, getSuccessMessage, 
+	pdfButtonClass, rejectButtonClass, getActionText, 
+	getConfirmQuestion, LoadingMessage } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/utils/styles.purchasing";
 
 export const PurchaseRequestDetailModal = ({
 	isOpen,
@@ -81,6 +47,10 @@ export const PurchaseRequestDetailModal = ({
 	const [actionType, setActionType] = useState<string | null>(null);
 	const [message, setMessage] = useState<string>("");
 	const [isGeneratingPurchaseRequestPdf, setIsGeneratingPurchaseRequestPdf] = useState(false);
+	const [imagesModal, setImagesModal] = useState<{
+		productName: string;
+		images: ImagePayload[];
+	} | null>(null);
 
 	const {
 		GetPurchaseRequestDetails,
@@ -138,6 +108,10 @@ export const PurchaseRequestDetailModal = ({
 	const areActionButtonsDisabled = isProcessing || isFinalStatus;
 	const showProcessActions = canProcessRequest && !areActionButtonsDisabled;
 	const showFooter = Boolean(details);
+
+	useEffect(() => {
+		if (!isOpen) setImagesModal(null);
+	}, [isOpen]);
 
 	const openConfirm = (type: ConfirmActionType) => {
 
@@ -403,91 +377,10 @@ export const PurchaseRequestDetailModal = ({
 										</h4>
 									</section>
 
-									<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">
-										<div className="hidden border-b border-slate-200 bg-slate-100 sm:grid sm:grid-cols-6 dark:border-neutral-700 dark:bg-neutral-800">
-											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-												Producto
-											</div>
-											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-												Descripción
-											</div>
-											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-												Cantidad
-											</div>
-											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-												Unidad
-											</div>
-											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-												Categoría
-											</div>
-											<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-												Justificación
-											</div>
-										</div>
-
-										<div className="flex flex-col divide-y divide-slate-100 dark:divide-neutral-700">
-											{products.length === 0 ? (
-												<div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
-													No hay productos registrados.
-												</div>
-											) : (
-												products.map((product, index) => (
-													<div
-														key={`${product?.purchase_request_item_id}-${product.product_details.product_id}-${index}`}
-														className="grid grid-cols-1 gap-6 px-3 py-3 sm:grid-cols-6 sm:items-center"
-													>
-														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-															Producto
-														</span>
-														<span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-															{product.product_details.product_name?.trim() || "—"}
-														</span>
-
-														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-															Descripción
-														</span>
-														<span className="text-sm text-slate-700 dark:text-slate-200">
-															{product.description?.trim() || "—"}
-														</span>
-
-														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-															Cantidad
-														</span>
-														<span className="text-sm text-slate-700 dark:text-slate-200">
-															{product.quantity}
-															{product.quantity_unit != null
-																? ` × ${product.quantity_unit}`
-																: ""}
-														</span>
-
-														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-															Unidad
-														</span>
-														<span className="text-sm text-slate-700 dark:text-slate-200">
-															{product.unit_measure_information.name?.trim() ||
-																product.unit_measure_information.symbol?.trim() ||
-																"—"}
-														</span>
-
-														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-															Categoría
-														</span>
-														<span className="text-sm text-slate-700 dark:text-slate-200">
-															{product.product_details.category_information.name?.trim() ||
-																"—"}
-														</span>
-
-														<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-															Justificación
-														</span>
-														<span className="text-sm text-slate-700 dark:text-slate-200">
-															{product.justification?.trim() || "—"}
-														</span>
-													</div>
-												))
-											)}
-										</div>
-									</div>
+									<PurchaseRequestProductsTable
+										products={products}
+										onViewImages={setImagesModal}
+									/>
 
 									<section className="flex flex-col gap-3">
 										<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2">
@@ -565,6 +458,23 @@ export const PurchaseRequestDetailModal = ({
 
 
 				</div>
+			</Modal>
+
+			<Modal
+				isOpen={Boolean(imagesModal)}
+				onClose={() => setImagesModal(null)}
+				title={`Imágenes · ${imagesModal?.productName ?? "producto"}`}
+				variant="default"
+				size="4xl"
+				panelClassName="!max-w-4xl w-[min(calc(100vw-1rem),56rem)]"
+			>
+				{imagesModal && (
+					<ImagePreviewGallery
+						images={imagesModal.images}
+						title=""
+						imageAlt={`Imagen de ${imagesModal.productName}`}
+					/>
+				)}
 			</Modal>
 
 			<ConfirmModal

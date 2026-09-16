@@ -8,11 +8,14 @@ import {
 	useWatch,
 } from "react-hook-form";
 import {
+	AccordionGroup,
+	AccordionItem,
 	Button,
 	Checkbox,
 	Dropdown,
 	InputText,
 	Modal,
+	Textarea,
 } from "@alpac/design-system";
 import { PlusIcon, SaveIcon, Trash2Icon, XIcon } from "lucide-react";
 import {
@@ -100,6 +103,7 @@ const emptyQuotationItem = (
 	price_unit: undefined,
 	brand_product: "",
 	delivery_time: undefined,
+	supplier_selection_justification: "",
 	delivery_time_type: undefined,
 	warranty_period: undefined,
 	warranty_period_time_type: undefined,
@@ -126,6 +130,7 @@ const timeTypeOptions = TimeTypeOptions.map((option) => ({
 function QuotationItemFields({
 	productIndex,
 	itemIndex,
+	accordionValue,
 	canRemove,
 	supplierLegalName,
 	quantity,
@@ -165,6 +170,8 @@ function QuotationItemFields({
 
 	const itemErrors = errors.products?.[productIndex]?.items?.[itemIndex];
 	const fieldPath = `products.${productIndex}.items.${itemIndex}` as const;
+	const supplierLabel =
+		supplierLegalName || `Proveedor ${itemIndex + 1}`;
 
 	useEffect(() => {
 		const unit = Number(priceUnit) || 0;
@@ -179,23 +186,39 @@ function QuotationItemFields({
 	}, [customIvaRate, fieldPath, hasIva, ivaRate, priceUnit, quantity, setValue]);
 
 	return (
-		<div className="flex flex-col gap-3 rounded-md border border-slate-200 p-4 dark:border-neutral-600 dark:bg-[#1e2229]">
-			<div className="flex items-center justify-between gap-3">
-				<span className="min-w-0 truncate text-[14px] font-semibold text-slate-700 dark:text-slate-200">
-					Cotización · {supplierLegalName || `Proveedor ${itemIndex + 1}`}
-				</span>
-				{canRemove ? (
-					<Button
-						type="button"
-						size="small"
-						tooltip="Eliminar proveedor"
-						icon={<Trash2Icon size={18} />}
-						onClick={onRemove}
-						className={`${quoteFormDangerButtonClassName} h-10 w-10!`}
-					/>
-				) : null}
-			</div>
-
+		<AccordionItem
+			value={accordionValue}
+			className="rounded-md! border-slate-300! dark:border-slate-600! dark:bg-[#272b34]!"
+			contentClassName="p-4"
+			title={
+				<div className="flex min-w-0 flex-1 items-center justify-between gap-3">
+					<div className="flex min-w-0 items-center gap-3">
+						<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
+							{itemIndex + 1}
+						</span>
+						<span className="min-w-0 truncate text-[15px] font-semibold text-slate-800 dark:text-white">
+							Cotización · {supplierLabel}
+						</span>
+					</div>
+					{canRemove ? (
+						<span
+							className="flex shrink-0 items-center"
+							onClick={(evt) => evt.stopPropagation()}
+							onKeyDown={(evt) => evt.stopPropagation()}
+						>
+							<Button
+								type="button"
+								size="small"
+								tooltip="Eliminar proveedor"
+								icon={<Trash2Icon size={18} />}
+								onClick={onRemove}
+								className={`${quoteFormDangerButtonClassName} h-10 w-10!`}
+							/>
+						</span>
+					) : null}
+				</div>
+			}
+		>
 			<input
 				type="hidden"
 				{...register(`${fieldPath}.supplier_id`, {
@@ -377,7 +400,7 @@ function QuotationItemFields({
 
 			</div>
 
-			<div className="flex flex-wrap gap-4 -mx-4 border-t border-slate-200 p-4 dark:border-neutral-600">
+			<div className="mt-4 flex flex-wrap gap-4 border-t border-slate-200 pt-4 dark:border-neutral-600">
 				<Controller
 					control={control}
 					name={`${fieldPath}.has_delivery`}
@@ -522,7 +545,40 @@ function QuotationItemFields({
 					/>
 				</div>
 			) : null}
-		</div>
+
+			<div className="mt-4 border-t border-slate-200 pt-4 dark:border-neutral-600">
+				<Controller
+					control={control}
+					name={`${fieldPath}.supplier_selection_justification`}
+					rules={{
+						required: "La justificación de selección es requerida.",
+						validate: (value) => {
+							const trimmed = value?.trim() ?? "";
+							if (!trimmed) {
+								return "La justificación de selección es requerida.";
+							}
+							if (trimmed.length < 10) {
+								return "La justificación debe tener al menos 10 caracteres.";
+							}
+							return true;
+						},
+					}}
+					render={({ field }) => (
+						<Textarea
+							label="Justificación de selección"
+							isRequired
+							placeholder="Ej. Mejor precio, tiempo de entrega y disponibilidad del producto."
+							className={quoteFormInputClassName}
+							labelClassName={quoteFormLabelClassName}
+							value={field.value ?? ""}
+							onChange={field.onChange}
+							enableCharacterCount
+							error={itemErrors?.supplier_selection_justification?.message}
+						/>
+					)}
+				/>
+			</div>
+		</AccordionItem>
 	);
 }
 
@@ -567,10 +623,15 @@ function QuoteProductGroupFields({
 	});
 
 	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
+	const [openQuotations, setOpenQuotations] = useState<string[]>([]);
 
 	const excludeSupplierIds = fields
 		.map((field) => field.supplier_id)
 		.filter(Boolean);
+
+	useEffect(() => {
+		setOpenQuotations(fields.map((field) => field.id));
+	}, [fields]);
 
 	const groupError =
 		errors.products?.[productIndex]?.items?.root?.message ??
@@ -646,19 +707,32 @@ function QuoteProductGroupFields({
 					buscarlos y seleccionarlos.
 				</p>
 			) : (
-				<div className="flex flex-col gap-3">
+				<AccordionGroup
+					type="multiple"
+					value={openQuotations}
+					onValueChange={(value) => {
+						const nextValue = Array.isArray(value)
+							? value
+							: value
+								? [value]
+								: [];
+						setOpenQuotations(nextValue);
+					}}
+					className="gap-3"
+				>
 					{fields.map((field, itemIndex) => (
 						<QuotationItemFields
 							key={field.id}
 							productIndex={productIndex}
 							itemIndex={itemIndex}
+							accordionValue={field.id}
 							canRemove
 							supplierLegalName={field.supplier_legal_name || ""}
 							quantity={quantity}
 							onRemove={() => remove(itemIndex)}
 						/>
 					))}
-				</div>
+				</AccordionGroup>
 			)}
 
 			<SelectSupplierModal
@@ -752,6 +826,8 @@ export function QuoteProductModal({
 		const items: DraftQuotationItem[] = values.products.flatMap((product) =>
 			product.items.map(({ has_iva: _hasIva, iva_rate: _ivaRate, custom_iva_rate: _customIvaRate, ...item }) => ({
 				...item,
+				supplier_selection_justification:
+					item.supplier_selection_justification?.trim() || undefined,
 				product_id: product.product_id,
 				purchase_request_item_id: product.purchase_request_item_id,
 			})),

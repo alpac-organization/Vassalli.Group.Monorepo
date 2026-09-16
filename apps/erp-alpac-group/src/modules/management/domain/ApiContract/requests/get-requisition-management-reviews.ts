@@ -5,4 +5,6 @@ export interface GetRequisitionManagementReviewsRequest extends BaseRequest {
   page_number: number;
   page_size: number;
   status?: managementReviewStatusType;
+  area_id?: string;
+  branch_id?: string;
 }
