@@ -1,5 +1,5 @@
 import { Avatar, Badges, Button, Modal } from "@alpac/design-system";
-import { BuildingIcon, CalendarCheckIcon, CalendarIcon, ImagesIcon, MailIcon, NotebookTextIcon, UserIcon } from "lucide-react";
+import { BuildingIcon, CalendarCheckIcon, CalendarIcon, MailIcon, NotebookTextIcon, UserIcon } from "lucide-react";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import type { PurchaseOrderDetailsProps } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-details-modal/purchase-order-details-modal.types";
@@ -8,7 +8,8 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
 import type { PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
-import { purchaseRequestDestinationBadgeVariants, purchaseRequestPriorityBadgeVariants, purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "../../../purchase-requests/purchase-request.variants";
+import { purchaseRequestDestinationBadgeVariants, purchaseRequestPriorityBadgeVariants,
+	 purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
@@ -17,21 +18,10 @@ import { PurchaseOrderDocumentModal } from "@app/modules/purchasing/ui/pages/pur
 import { AnalyzedQuoteProductQuotations } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quote-detail-modal/analyzed-quote-product-quotations";
 import { useState } from "react";
 import { ImagePreviewGallery, type ImagePayload } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
-import { extractPurchaseRequestItemImages } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-item-images.utils";
-
-const viewImagesButtonClass = "rounded-md! h-9 px-3! text-[13px]! border border-sky-200 dark:border-sky-500/30 bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-500/20";
+import { PurchaseRequestProductsTable } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-products-table/purchase-request-products-table";
 
 const sectionTitleClassName =
 	"m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
-
-const EmptyProductsMessage = ({ productsCount }: { productsCount: number }) => {
-	if (productsCount > 0) return null;
-	return (
-		<div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
-			No hay productos registrados.
-		</div>
-	);
-};
 
 export const PurchaseOrderDetailsModal = ({
 	isOpen,
@@ -278,127 +268,15 @@ export const PurchaseOrderDetailsModal = ({
 					<section className="flex flex-col gap-3">
 						<h4 className={sectionTitleClassName}>Productos</h4>
 
-						<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">
-							<div className="hidden border-b border-slate-200 bg-slate-100 sm:grid sm:grid-cols-7 dark:border-neutral-700 dark:bg-neutral-800">
-								<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-									Producto
-								</div>
-								<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-									Descripción
-								</div>
-								<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-									Cantidad
-								</div>
-								<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-									Unidad
-								</div>
-								<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-									Categoría
-								</div>
-								<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-									Justificación
-								</div>
-								<div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-									Imágenes
-								</div>
-							</div>
-
-							<div className="flex flex-col divide-y divide-slate-100 dark:divide-neutral-700">
-								<EmptyProductsMessage productsCount={products.length} />
-								{products.length > 0 &&
-									products.map((product, index) => {
-										const productImages = extractPurchaseRequestItemImages(
-											product.additional_data,
-										);
-										const productName =
-											product.product_details.product_name?.trim() || "producto";
-
-										return (
-											<div
-												key={`${product?.purchase_request_item_id}-${product.product_details.product_id}-${index}`}
-												className="flex flex-col"
-											>
-												<div className="grid grid-cols-1 gap-6 px-3 py-3 sm:grid-cols-7 sm:items-center">
-													<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-														Producto
-													</span>
-													<span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-														{product.product_details.product_name?.trim() || "—"}
-													</span>
-
-													<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-														Descripción
-													</span>
-													<span className="text-sm text-slate-700 dark:text-slate-200">
-														{product.description?.trim() || "—"}
-													</span>
-
-													<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-														Cantidad
-													</span>
-													<span className="text-sm text-slate-700 dark:text-slate-200">
-														{product.quantity}
-														{product.quantity_unit != null
-															? ` × ${product.quantity_unit}`
-															: ""}
-													</span>
-
-													<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-														Unidad
-													</span>
-													<span className="text-sm text-slate-700 dark:text-slate-200">
-														{product.unit_measure_information.name?.trim() ||
-															product.unit_measure_information.symbol?.trim() ||
-															"—"}
-													</span>
-
-													<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-														Categoría
-													</span>
-													<span className="text-sm text-slate-700 dark:text-slate-200">
-														{product.product_details.category_information.name?.trim() ||
-															"—"}
-													</span>
-
-													<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-														Justificación
-													</span>
-													<span className="text-sm text-slate-700 dark:text-slate-200">
-														{product.justification?.trim() || "—"}
-													</span>
-
-													<span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden">
-														Imágenes
-													</span>
-													{productImages.length > 0 ? (
-														<Button
-															type="button"
-															size="small"
-															label="Ver imágenes"
-															icon={<ImagesIcon size={16} />}
-															className={viewImagesButtonClass}
-															onClick={() =>
-																setImagesModal({
-																	productName,
-																	images: productImages,
-																})
-															}
-														/>
-													) : (
-														<span className="text-sm text-slate-700 dark:text-slate-200">
-															—
-														</span>
-													)}
-												</div>
-
-												<AnalyzedQuoteProductQuotations
-													quotations={product.quotations ?? []}
-												/>
-											</div>
-										);
-									})}
-							</div>
-						</div>
+						<PurchaseRequestProductsTable
+							products={products}
+							onViewImages={setImagesModal}
+							renderRowExtra={(product) => (
+								<AnalyzedQuoteProductQuotations
+									quotations={product.quotations ?? []}
+								/>
+							)}
+						/>
 					</section>
 
 					<section className="flex flex-col gap-3">
