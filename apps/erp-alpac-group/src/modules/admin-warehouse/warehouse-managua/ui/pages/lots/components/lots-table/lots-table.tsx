@@ -1,9 +1,9 @@
 import { DataTable, Pagination } from "@alpac/design-system";
 import { useMemo } from "react";
-import { getTramosColumns } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-table/tramos-columns";
-import type { TramosTableProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/components/tramos-table/types/tramos-table.types";
+import { getTramosColumns } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-table/lots-columns";
+import type { LotsTableProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-table/types/lots-table.types";
 
-export function TramosTable({
+export function LotsTable({
   data,
   currentPage,
   totalRecords,
@@ -11,7 +11,7 @@ export function TramosTable({
   onPageChange,
   onViewDetail,
   isFetching = false,
-}: TramosTableProps) {
+}: LotsTableProps) {
   const lastItemId = data.at(-1)?.lot_id;
   const columns = useMemo(
     () => getTramosColumns({ onViewDetail, lastItemId }),

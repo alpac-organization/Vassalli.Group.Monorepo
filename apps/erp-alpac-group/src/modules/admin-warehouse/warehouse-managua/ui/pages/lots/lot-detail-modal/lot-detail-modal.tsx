@@ -1,7 +1,7 @@
 import { Button, Modal } from "@alpac/design-system";
 import { Boxes, Layers, MapPin, Ruler, X } from "lucide-react";
-import type { LotDetailModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-detail-modal/types/lot-detail-modal.types";
-import { getLotPositionMap } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/utils/map-lot-positions";
+import type { LotDetailModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-detail-modal/types/lot-detail-modal.types";
+import { getLotPositionMap } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/utils/map-lot-positions";
 import { RackStatusBadge } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-warehouses-badges";
 
 const positionCellClassName =

@@ -1,6 +1,6 @@
 import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 
-export type TramosTableProps = {
+export type LotsTableProps = {
   data: LotListItemResponse[];
   currentPage: number;
   totalRecords: number;
