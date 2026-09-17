@@ -346,8 +346,6 @@ export function SelectServiceOrderModal({
 				<Loader title="Cargando órdenes de servicio..." />
 			)}
 
-			<MaintenanceBanner />
-
 			<div className="pointer-events-none flex flex-col gap-4 opacity-60 select-none">
 				{error ? (
 					<p className="m-0 text-sm text-red-500 dark:text-red-400">{error}</p>

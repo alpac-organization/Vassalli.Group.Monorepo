@@ -63,63 +63,55 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
   const [showAddAllowanceModal, setShowAddAllowanceModal] = useState(false);
   const [isDaemFieldEnabled, setIsDaemFieldEnabled] = useState(false);
 
-   const [showAlert, setShowAlert] = useState<{
-     show: boolean;
-     type: "success" | "error" | "warning" | "info";
-     title: string;
-     message: string;
-   }>({
-     show: false,
-     type: "info",
-     title: "",
-     message: "",
-   });
-   const [showSelectCostCenterModal, setShowSelectCostCenterModal] = useState(false);
+  const [showAlert, setShowAlert] = useState<{
+    show: boolean;
+    type: "success" | "error" | "warning" | "info";
+    title: string;
+    message: string;
+  }>({
+    show: false,
+    type: "info",
+    title: "",
+    message: "",
+  });
 
-    const { getMappedError } = useMappedError();
-    const { PostCollaboratorQuery } = useCollaborators();
-    const { companyId, moduleCode, companyAlias } = useUserStore();
+  const { getMappedError } = useMappedError();
+  const { PostCollaboratorQuery } = useCollaborators();
+  const { companyId, moduleCode, companyAlias } = useUserStore();
 
-   const isTmnCompany = companyAlias === CompanyEnum.TMN;
-   const isVigemsaCompany = companyAlias === CompanyEnum.VIGEMSA;
-   const identificationOptions = IdentificationOptions.filter(item => item.value != IdentificationEnum.RUC.value);
+  const { GetCostCenters } = useCostCenters({
+    area_id: "",
+    module_code: moduleCode,
+    company_id: companyId
+  });
 
-   const { GetIncomeTypes } = useIncomes({ incomesTypesPayload: { company_id: companyId! } });
-   const { data: incomeTypesData } = GetIncomeTypes;
+  const isTmnCompany = companyAlias === CompanyEnum.TMN;
+  const isVigemsaCompany = companyAlias === CompanyEnum.VIGEMSA;
+  const identificationOptions = IdentificationOptions.filter(item => item.value != IdentificationEnum.RUC.value);
 
-   const steps = ["Identidad", "Personal", "Laboral", "Salarial"];
+  const { GetIncomeTypes } = useIncomes({ incomesTypesPayload: { company_id: companyId! } });
+  const { data: incomeTypesData } = GetIncomeTypes;
 
-   const {
-     register,
-     control,
-     trigger,
-     handleSubmit,
-     reset,
-     watch,
-     setValue,
-     clearErrors,
-     formState: { errors },
-   } = useForm<AddCollaboratorRequest>({
-     mode: "onChange",
-   });
+  const steps = ["Identidad", "Personal", "Laboral", "Salarial"];
 
-   const watchedAreaId = watch("working_information.area_id");
-   const identificationType = watch("identification_type");
-   const travelExpenses = watch("travel_expenses");
+  const {
+    register,
+    control,
+    trigger,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    clearErrors,
+    formState: { errors },
+  } = useForm<AddCollaboratorRequest>({
+    mode: "onChange",
+  });
 
-   const { GetCostCenters } = useCostCenters({
-     area_id: watchedAreaId,
-     module_code: moduleCode,
-     company_id: companyId
-   });
+  const identificationType = watch("identification_type");
+  const travelExpenses = watch("travel_expenses");
 
-   useEffect(() => {
-     if (GetCostCenters.data && GetCostCenters.data.length === 1 && GetCostCenters.data[0].area_id === watchedAreaId) {
-       setValue("working_information.cost_center_id", GetCostCenters.data[0].cost_center_id);
-     }
-   }, [GetCostCenters.data, watchedAreaId, setValue]);
-
-   const handleCloseModal = () => {
+  const handleCloseModal = () => {
     setCurrentStep(0);
     props.onClose?.();
     reset();
@@ -231,15 +223,15 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
     );
   }, [selectedSalaryType]);
 
-   useEffect(() => {
-     const isProfessionalServices =
-       selectedSalaryType?.value === SalaryTypeEnum.PROFESSIONAL_SERVICES.value;
-     if (isProfessionalServices) {
-       setValue("travel_expenses", []);
-     }
-   }, [selectedSalaryType, setValue]);
+  useEffect(() => {
+    const isProfessionalServices =
+      selectedSalaryType?.value === SalaryTypeEnum.PROFESSIONAL_SERVICES.value;
+    if (isProfessionalServices) {
+      setValue("travel_expenses", []);
+    }
+  }, [selectedSalaryType, setValue]);
 
-   return (
+  return (
     <Modal
       isOpen={props.isOpen}
       title="Agregar Colaborador"
@@ -616,80 +608,64 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
               </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-               <Controller
-                 name="working_information.area_id"
-                 control={control}
-                 rules={{
-                   required: "Debe seleccionar un área de trabajo",
-                   validate: (val) => !!val || "Selección inválida",
-                 }}
-                 render={({ field }) => (
-                   <Dropdown
-                     label="Área de Trabajo"
-                     isRequired
-                     options={props.optionsAreas ?? []}
-                     placeholder="Seleccione..."
-                     onChange={(value) => {
-                       field.onChange(value);
-                       setValue("working_information.cost_center_id", "");
-                     }}
-                     error={
-                       errors.working_information?.area_id &&
-                       errors.working_information?.area_id?.message
-                     }
-                     value={field.value}
-                     appearance="dark"
-                     labelClassName="text-black! dark:text-white!"
-                     valueClassName="text-black! dark:text-white!"
-                     className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                   />
-                 )}
-               />
+              <Controller
+                name="working_information.area_id"
+                control={control}
+                rules={{
+                  required: "Debe seleccionar un área de trabajo",
+                  validate: (val) => !!val || "Selección inválida",
+                }}
+                render={({ field }) => (
+                  <Dropdown
+                    label="Área de Trabajo"
+                    isRequired
+                    options={props.optionsAreas ?? []}
+                    placeholder="Seleccione..."
+                    onChange={(value) => {
+                      field.onChange(value);
+                    }}
+                    error={
+                      errors.working_information?.area_id &&
+                      errors.working_information?.area_id?.message
+                    }
+                    value={field.value}
+                    appearance="dark"
+                    labelClassName="text-black! dark:text-white!"
+                    valueClassName="text-black! dark:text-white!"
+                    className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+                  />
+                )}
+              />
 
-               <Controller
-                 name="working_information.cost_center_id"
-                 control={control}
-                 rules={{}}
-                 render={({ field }) => (
-                   <div>
-                     <Dropdown
-                       label="Centro de costo"
-                       isRequired={false}
-                       options={
-                         GetCostCenters.data && GetCostCenters.data.length > 0
-                           ? GetCostCenters.data.map((cc) => ({
-                               label: cc.cost_center_name,
-                               value: cc.cost_center_id,
-                             }))
-                           : []
-                       }
-                       placeholder="Seleccione..."
-                       onChange={(value) => {
-                         field.onChange(value);
-                       }}
-                       error={
-                         errors.working_information?.cost_center_id &&
-                         errors.working_information?.cost_center_id?.message
-                       }
-                       disabled={!(GetCostCenters.data && GetCostCenters.data.length > 0)}
-                       value={field.value}
-                       appearance="dark"
-                       labelClassName="text-black! dark:text-white!"
-                       valueClassName="text-black! dark:text-white!"
-                       className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                     />
-                     {GetCostCenters.data && GetCostCenters.data.length > 1 && (
-                       <button
-                         type="button"
-                         onClick={() => setShowSelectCostCenterModal(true)}
-                         className="text-xs text-alpac-primary-500 dark:text-alpac-primary-400 mt-1 hover:underline"
-                       >
-                         Ver todos los centros de costo
-                       </button>
-                     )}
-                   </div>
-                 )}
-               />
+              <Controller
+                name="working_information.cost_center_id"
+                control={control}
+                rules={{
+                  // required: "Debe seleccionar un área de trabajo",
+                  // validate: (val) => !!val || "Selección inválida",
+                }}
+                render={({ field }) => (
+                  <Dropdown
+                    label="Centro de costo"
+                    isRequired
+                    options={[]}
+                    placeholder="Seleccione..."
+                    onChange={(value) => {
+                      field.onChange(value);
+                    }}
+                    error={
+                      errors.working_information?.cost_center_id &&
+                      errors.working_information?.cost_center_id?.message
+                    }
+                    disabled
+                    value={field.value}
+                    appearance="dark"
+                    labelClassName="text-black! dark:text-white!"
+                    valueClassName="text-black! dark:text-white!"
+                    className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+                  />
+                )}
+              />
 
               <Controller
                 name="working_information.job_position_id"
@@ -1143,12 +1119,13 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
         />
 
         <SelectCostCenterModal
-          areaId={watchedAreaId}
-          isOpen={showSelectCostCenterModal}
-          onClose={() => setShowSelectCostCenterModal(false)}
-          onSelect={(costCenterId: string) => {
-            setValue("working_information.cost_center_id", costCenterId);
-            setShowSelectCostCenterModal(false);
+          isOpen
+          areaId=""
+          onClose={() => {
+
+          }}  
+          onSelect={()=> {
+
           }}
         />
 
