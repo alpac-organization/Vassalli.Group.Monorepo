@@ -4,7 +4,7 @@ import type { Path } from "react-hook-form";
 export type AddCollaboratorModalProps = {
   isOpen: boolean;
   optionsAreas: { label: string; value: string }[];
-  optionsJobPositions: { label: string; value: number }[];
+  optionsJobPositions: { label: string; value: string }[];
   optionsBranches: { label: string; value: number | string }[];
   optionsBanks: { label: string; value: number }[];
   onClose?: () => void;
@@ -33,8 +33,9 @@ export const fieldsToValidate: Path<AddCollaboratorRequest>[][] = [
   ],
   [
     "working_information.area_id",
-    "working_information.job_position_id",
     "working_information.branch_id",
+    "working_information.cost_center_id",
+    "working_information.job_position_id",
     "working_information.entry_date",
     "working_information.work_phone_number",
     "working_information.work_email", // correo opcional
