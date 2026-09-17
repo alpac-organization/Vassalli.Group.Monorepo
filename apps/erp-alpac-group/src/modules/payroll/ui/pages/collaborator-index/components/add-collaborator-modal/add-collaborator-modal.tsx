@@ -54,13 +54,13 @@ import type { AddCollaboratorModalProps } from "@app/modules/payroll/ui/pages/co
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
-export const AddCollaboratorModal = (
-  props: AddCollaboratorModalProps,
-): React.ReactNode => {
+export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.ReactNode => {
+
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedSalaryType, setSelectedSalaryType] = useState<SalaryTypeEnum | null>(null);
   const [showAddAllowanceModal, setShowAddAllowanceModal] = useState(false);
   const [isDaemFieldEnabled, setIsDaemFieldEnabled] = useState(false);
+
   const [showAlert, setShowAlert] = useState<{
     show: boolean;
     type: "success" | "error" | "warning" | "info";
@@ -97,6 +97,7 @@ export const AddCollaboratorModal = (
     watch,
     setValue,
     clearErrors,
+    getValues,
     formState: { errors },
   } = useForm<AddCollaboratorRequest>({
     mode: "onChange",
@@ -358,31 +359,6 @@ export const AddCollaboratorModal = (
                 error={errors.second_lastname && errors.second_lastname.message}
               />
 
-              <Controller
-                name="gender"
-                control={control}
-                rules={{
-                  required: "Debe seleccionar un género",
-                  validate: (val) => val !== 0 || "Selección inválida",
-                }}
-                render={({ field }) => (
-                  <Dropdown
-                    label="Género"
-                    isRequired
-                    placeholder="Seleccione..."
-                    options={GenderOptions ?? []}
-                    onChange={(value) => {
-                      field.onChange(value);
-                    }}
-                    error={errors.gender && errors.gender.message}
-                    value={field.value}
-                    appearance="dark"
-                    labelClassName="text-black! dark:text-white!"
-                    valueClassName="text-black! dark:text-white!"
-                    className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                  />
-                )}
-              />
 
               <Controller
                 name="identification_type"
@@ -475,7 +451,7 @@ export const AddCollaboratorModal = (
               </h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-3">
                 <InputText
                   label="Dirección"
                   placeholder="Dirección completa"
@@ -588,6 +564,32 @@ export const AddCollaboratorModal = (
                   />
                 )}
               />
+
+              <Controller
+                name="personal_information.gender"
+                control={control}
+                rules={{
+                  required: "Debe seleccionar un género",
+                  validate: (val) => val !== 0 || "Selección inválida",
+                }}
+                render={({ field }) => (
+                  <Dropdown
+                    label="Género"
+                    isRequired
+                    placeholder="Seleccione..."
+                    options={GenderOptions ?? []}
+                    onChange={(value) => {
+                      field.onChange(value);
+                    }}
+                    error={errors?.personal_information?.gender && errors?.personal_information?.gender?.message}
+                    value={field.value}
+                    appearance="dark"
+                    labelClassName="text-black! dark:text-white!"
+                    valueClassName="text-black! dark:text-white!"
+                    className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+                  />
+                )}
+              />
             </div>
           </section>
 
@@ -631,11 +633,11 @@ export const AddCollaboratorModal = (
               />
 
               <Controller
-                name="working_information.work_position_id"
+                name="working_information.job_position_id"
                 control={control}
                 rules={{
                   required: "Debe seleccionar una posición",
-                  validate: (val) => val !== 0 || "Selección inválida",
+                  validate: (val) => val !== "" || val !== null,
                 }}
                 render={({ field }) => (
                   <Dropdown
@@ -647,8 +649,8 @@ export const AddCollaboratorModal = (
                       field.onChange(value);
                     }}
                     error={
-                      errors.working_information?.work_position_id &&
-                      errors.working_information?.work_position_id?.message
+                      errors.working_information?.job_position_id &&
+                      errors.working_information?.job_position_id?.message
                     }
                     value={field.value}
                     appearance="dark"

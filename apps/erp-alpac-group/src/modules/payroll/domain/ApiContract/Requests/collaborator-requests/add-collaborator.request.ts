@@ -9,7 +9,6 @@ export interface AddCollaboratorRequest extends BaseRequest {
   second_lastname?: string;
   identification_number: string;
   identification_type: number;
-  gender: number;
   does_work_saturday: boolean;
   personal_information: AddPersonalInformationRequest;
   working_information: AddWorkingInformationRequest;
@@ -20,22 +19,24 @@ export interface AddCollaboratorRequest extends BaseRequest {
 interface AddPersonalInformationRequest {
   address?: string;
   personal_email?: string;
-  personal_phone_number: string;
-  departament: string;
+  personal_phone_number?: string;
   birthdate: string;
+  gender: number;
   marital_status: number;
 }
 
 interface AddWorkingInformationRequest {
   area_id: string;
-  work_position_id: number;
   branch_id: number;
-  bank_account_number?: string;
-  work_email?: string;
-  work_phone_number: string;
-  daem?: string;
-  inss_number?: string;
+  job_position_id: string;
+  cost_center_id: string;
   entry_date: string;
+
+  daem?: string;
+  work_email?: string;
+  inss_number?: string;
+  bank_account_number?: string;
+  work_phone_number?: string;
 }
 
 interface AddSalaryInformationRequest {
