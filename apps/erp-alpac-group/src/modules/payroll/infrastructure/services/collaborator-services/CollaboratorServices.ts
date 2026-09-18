@@ -41,7 +41,6 @@ export class CollaboratorServices implements ICollaboratorServices {
    ): Promise<void> {
       try {
          const { company_id, module_code, ...rest } = payload;
-
          await this.apiHandler.post<void>(
             `/companies/${company_id}/modules/${module_code}/collaborators`,
             rest,

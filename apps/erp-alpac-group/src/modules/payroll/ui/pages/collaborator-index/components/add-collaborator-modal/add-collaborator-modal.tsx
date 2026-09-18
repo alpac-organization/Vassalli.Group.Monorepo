@@ -108,10 +108,13 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
     mode: "onChange",
   });
 
+  //Observadores en tiempo real.
   const travelExpenses = watch("travel_expenses");
   const identificationType = watch("identification_type");
+  const workAreaSelected = watch("working_information.area_id");
 
   const handleCloseModal = () => {
+    setCostCenterSelected(null)
     setCurrentStep(0);
     props.onClose?.();
     reset();
@@ -648,6 +651,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                 placeholder="Asignar un centro de costo"
                 value={costCenterSelected ?? ""}
                 readOnly
+                disabled={!workAreaSelected}
                 className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
                 labelClassName="text-black! dark:text-white!"
                 {

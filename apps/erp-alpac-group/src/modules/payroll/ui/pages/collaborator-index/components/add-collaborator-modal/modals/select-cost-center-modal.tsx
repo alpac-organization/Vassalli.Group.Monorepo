@@ -48,7 +48,10 @@ export const SelectCostCenterModal = function (props: SelectCostCenterProps) {
    };
 
    const handleOmit = () => {
-      onSelect("", "");
+      onSelect({ 
+         costCenterId: "", 
+         costCenterName: "" 
+      });
       handleClose();
    };
 
@@ -66,7 +69,6 @@ export const SelectCostCenterModal = function (props: SelectCostCenterProps) {
          isOpen={isOpen} 
          onClose={handleClose}
       >
-
          {
             hasResults && (
                <SectionHeader
@@ -127,7 +129,10 @@ export const SelectCostCenterModal = function (props: SelectCostCenterProps) {
                      disabled={!selectedCostCenter}
                      onClick={() => {
                         if (selectedCostCenter) {
-                           onSelect(selectedCostCenter.cost_center_id);
+                           onSelect({
+                              costCenterId: selectedCostCenter.cost_center_id,
+                              costCenterName: selectedCostCenter.cost_center_name
+                           })
                            handleClose();
                         }
                      }}
