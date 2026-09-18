@@ -22,36 +22,36 @@ export class CostCentersServices implements ICostCentersServices {
 			throw error;
 		}
 	}
-	public async createCostCenter(
-		payload: CreateCostCenterRequest,
-	): Promise<void> {
-		try {
-			const { company_id, area_id, cost_center_name, coil_code, description } =
-			payload;
-			const body = {
-			cost_center_name,
-			coil_code,
-			description: description?.trim() || null,
-			};
-			const costCenter = await this.apiHandler.post<void>(
-			`/companies/${company_id}/areas/${area_id}/cost-centers`,
-			body,
-			);
-			return costCenter;
-		} catch (error) {
-			throw error;
-		}
-	}
-	public async deleteCostCenter(
-		payload: DeleteCostCentersRequest,
-	): Promise<void> {
-		try {
-			const { company_id, area_id, cost_center_id } = payload;
-			await this.apiHandler.delete<void>(
-			`/companies/${company_id}/areas/${area_id}/cost-centers/${cost_center_id}`,
-			);
-		} catch (error) {
-			throw error;
-		}
-	}
+public async createCostCenter(
+ 		payload: CreateCostCenterRequest,
+ 	): Promise<void> {
+ 		try {
+ 			const { company_id, area_id, module_code, cost_center_name, coil_code, description } =
+ 			payload;
+ 			const body = {
+ 			cost_center_name,
+ 			coil_code,
+ 			description: description?.trim() || null,
+ 			};
+ 			const costCenter = await this.apiHandler.post<void>(
+ 			`/companies/${company_id}/modules/${module_code}/areas/${area_id}/cost-centers`,
+ 			body,
+ 			);
+ 			return costCenter;
+ 		} catch (error) {
+ 			throw error;
+ 		}
+ 	}
+ 	public async deleteCostCenter(
+ 		payload: DeleteCostCentersRequest,
+ 	): Promise<void> {
+ 		try {
+ 			const { company_id, area_id, module_code, cost_center_id } = payload;
+ 			await this.apiHandler.delete<void>(
+ 			`/companies/${company_id}/modules/${module_code}/areas/${area_id}/cost-centers/${cost_center_id}`,
+ 			);
+ 		} catch (error) {
+ 			throw error;
+ 		}
+ 	}
 }
