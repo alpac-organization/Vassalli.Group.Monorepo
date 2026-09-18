@@ -29,7 +29,7 @@ import {
   getDeductionStatusBadgeColor,
   getDeductionStatusLabel,
 } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-status.enum";
-import currencyNames from "@app/modules/payroll/constants/currency";
+import currencyNames from "@app/modules/payroll/domain/constants/currency";
 import { getDeductionTypeLabel } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-type.enum";
 import {
   getDeductionPaymentStatusBadgeColor,

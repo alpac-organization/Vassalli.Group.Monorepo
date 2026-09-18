@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useParams } from "react-router-dom";
 import {
   Alert,
   AnimatedAlertWrapper,
-  Dropdown,
   InputText,
 } from "@alpac/design-system";
 import { EditableField } from "@app/modules/payroll/ui/pages/collaborator-profile/components/EditableFieldForm";
@@ -31,7 +30,7 @@ import { BankOptions } from "@app/core/enums/bank.enum";
 import { BranchSelectModal } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/components/branch-select-modal";
 import { BankSelectModal } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/components/bank-select-modal";
 import { Pencil } from "lucide-react";
-import { SelectCostCenterModal } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/modals/select-cost-center-modal";
+
 const defaultInformationWork: WorkFormData = {
   entry_date: "",
   jobPosition: "",
@@ -116,33 +115,8 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
   const [branchModalOpen, setBranchModalOpen] = useState(false);
   const [bankModalOpen, setBankModalOpen] = useState(false);
   const [costCenterModalOpen, setCostCenterModalOpen] = useState(false);
-  const [selectedCostCenterId, setSelectedCostCenterId] = useState("");
+  const [selectedCostCenterId, setSelectedCostCenterId] = useState<string|null>(null);
 
-  // Obtener el area_id del centro de costo actualmente seleccionado
-  const currentCostCenterAreaId = useMemo(() => {
-    const currentCenter = profile?.cost_centers?.find(
-      (c) => c.cost_center_id === selectedCostCenterId || c.cost_center_name === watch("costCenter")
-    );
-    return currentCenter?.area_id ?? "";
-  }, [profile?.cost_centers, selectedCostCenterId, watch]);
-
-  const costCenterOptions = useMemo(
-    () =>
-      (profile?.cost_centers ?? []).map((center) => ({
-        value: center.cost_center_id,
-        label: center.cost_center_name,
-      })),
-    [profile?.cost_centers],
-  );
-
-  const costCentersMissing = costCenterOptions.length === 0;
-
-  useEffect(() => {
-    const firstCostCenterId = costCenterOptions[0]?.value;
-    setSelectedCostCenterId(
-      firstCostCenterId != null ? String(firstCostCenterId) : "",
-    );
-  }, [costCenterOptions]);
   const handleEditStart = (name: string) =>
     setEditingFields((prev) => ({ ...prev, [name]: true }));
   const handleEditEnd = (name: string) =>
@@ -323,23 +297,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   />
                 </div>
 
-                <EditableField
-                  type="text"
-                  name="costCenter"
-                  label="Centro de Costo"
-                  formMethods={formMethods}
-                  isEditing={Boolean(editingFields.costCenter)}
-                  onEditStart={() => {
-                    handleEditStart("costCenter");
-                    setCostCenterModalOpen(true);
-                  }}
-                  onEditEnd={handleEditEnd}
-                  onConfirmUpdate={handleFieldUpdate}
-                  allowEdit={currentRole === "Administrator"}
-                  missingMessage="Centro de costo no asignado"
-                  className={editableFieldInputClasses}
-                  validation={{ validate: (value) => !value || true }}
-                />
+
 
                 <EditableField
                   name="inssNumber"
@@ -409,7 +367,8 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                     )}
                   </div>
                 </div>
-<EditableField
+                
+                <EditableField
                   name="inssNumber"
                   label="Número de INSS"
                   formMethods={formMethods}
@@ -421,6 +380,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                   missingMessage="INSS no registrado"
                   className={editableFieldInputClasses}
                 />
+
               </div>
             </div>
 
@@ -428,6 +388,7 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
               <h3 className="text-[18px]! font-semibold tracking-tight text-slate-800 dark:text-slate-100 mb-8 sm:mb-5">
                 Información salarial
               </h3>
+
               <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 <EditableField
                   name="salaryAmount"
@@ -480,16 +441,6 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
           </div>
         </section>
       </div>
-
-      <SelectCostCenterModal
-        isOpen={costCenterModalOpen}
-        areaId={currentCostCenterAreaId}
-        onClose={() => setCostCenterModalOpen(false)}
-        onSelect={(costCenterId) => {
-          handleFieldUpdate("costCenterId", costCenterId, { areaId: currentCostCenterAreaId });
-          setCostCenterModalOpen(false);
-        }}
-      />
     </div>
   );
 };

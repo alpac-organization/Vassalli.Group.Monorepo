@@ -50,8 +50,8 @@ import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
 import { useIncomes } from "@app/modules/payroll/ui/hooks/incomes/useIncomes";
 import { ServiceRatesTable } from "../service-rates-table/service-rates-table";
 import { AddAllowanceModal } from "../add-allowance-modal/add-allowance-modal";
-import { SelectCostCenterModal } from "./modals/select-cost-center-modal";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
+import { SelectCostCenterModal } from "@app/modules/payroll/ui/shared/components/modals/select-cost-center-modal";
 
 import type { AddCollaboratorModalProps } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal.types";
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";

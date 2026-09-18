@@ -21,6 +21,7 @@ interface CollaboratorProfileWorkingInformation {
   work_position?: string;
   branch_name?: string;
   entry_date?: string;
+  cost_center?: string;
 }
 
 interface CollaboratorProfileSalaryInformation {

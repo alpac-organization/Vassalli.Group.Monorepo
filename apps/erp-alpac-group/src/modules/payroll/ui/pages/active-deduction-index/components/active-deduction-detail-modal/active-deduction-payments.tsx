@@ -4,7 +4,7 @@ import type {
   GetDeductionPaymentsResponse,
 } from "@app/modules/payroll/domain/ApiContract/Responses/deduction-responses/get-deduction-payments.response";
 import { getDeductionPaymentOriginLabel } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-payment-origin.enum";
-import currencyNames from "@app/modules/payroll/constants/currency";
+import currencyNames from "@app/modules/payroll/domain/constants/currency";
 import {
   getDeductionPaymentStatusBadgeColor,
   getDeductionPaymentStatusLabel,
