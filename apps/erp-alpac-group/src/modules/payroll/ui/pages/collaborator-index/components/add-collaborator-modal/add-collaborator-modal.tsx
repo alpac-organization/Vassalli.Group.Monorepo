@@ -33,34 +33,40 @@ import {
   SalaryTypeEnum,
   SalaryTypeOptions,
 } from "@app/modules/payroll/domain/enums/salary-enums/salary-type.enum";
+
 import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  SaveIcon,
   X,
   XIcon,
+  SaveIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
 } from "lucide-react";
+import { CompanyEnum } from "@app/core/enums/company.enum";
 import { formatAmount } from "@app/shared/utils/number.utils";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { MaritalStatusOptions } from "@app/core/enums/marital-status.enum";
-import { CompanyEnum } from "@app/core/enums/company.enum";
+
+import { useIncomes } from "@app/modules/payroll/ui/hooks/incomes/useIncomes";
 import { ServiceRatesTable } from "../service-rates-table/service-rates-table";
 import { AddAllowanceModal } from "../add-allowance-modal/add-allowance-modal";
-import { useIncomes } from "@app/modules/payroll/ui/hooks/incomes/useIncomes";
+import { SelectCostCenterModal } from "./modals/select-cost-center-modal";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
 
 import type { AddCollaboratorModalProps } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/add-collaborator-modal.types";
 import type { AddCollaboratorRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/add-collaborator.request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters";
-import { SelectCostCenterModal } from "./modals/select-cost-center-modal";
 
 export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.ReactNode => {
 
   const [currentStep, setCurrentStep] = useState(0);
+  
+  const [costCenterSelected, setCostCenterSelected] = useState<string | null>(null);
   const [selectedSalaryType, setSelectedSalaryType] = useState<SalaryTypeEnum | null>(null);
+
   const [showAddAllowanceModal, setShowAddAllowanceModal] = useState(false);
+  const [showSelectCostCenterModal, setShowSelectCostCenterModal] = useState(false);
+  
   const [isDaemFieldEnabled, setIsDaemFieldEnabled] = useState(false);
 
   const [showAlert, setShowAlert] = useState<{
@@ -78,12 +84,6 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
   const { getMappedError } = useMappedError();
   const { PostCollaboratorQuery } = useCollaborators();
   const { companyId, moduleCode, companyAlias } = useUserStore();
-
-  const { GetCostCenters } = useCostCenters({
-    area_id: "",
-    module_code: moduleCode,
-    company_id: companyId
-  });
 
   const isTmnCompany = companyAlias === CompanyEnum.TMN;
   const isVigemsaCompany = companyAlias === CompanyEnum.VIGEMSA;
@@ -108,8 +108,8 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
     mode: "onChange",
   });
 
-  const identificationType = watch("identification_type");
   const travelExpenses = watch("travel_expenses");
+  const identificationType = watch("identification_type");
 
   const handleCloseModal = () => {
     setCurrentStep(0);
@@ -230,6 +230,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
       setValue("travel_expenses", []);
     }
   }, [selectedSalaryType, setValue]);
+
 
   return (
     <Modal
@@ -623,6 +624,7 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                     placeholder="Seleccione..."
                     onChange={(value) => {
                       field.onChange(value);
+                      setValue("working_information.cost_center_id", "");
                     }}
                     error={
                       errors.working_information?.area_id &&
@@ -636,35 +638,27 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
                   />
                 )}
               />
-
-              <Controller
-                name="working_information.cost_center_id"
-                control={control}
-                rules={{
-                  // required: "Debe seleccionar un área de trabajo",
-                  // validate: (val) => !!val || "Selección inválida",
+              
+              <InputText
+                type="text"
+                label="Centro de costo"
+                onClick={() => {
+                  setShowSelectCostCenterModal(true)
                 }}
-                render={({ field }) => (
-                  <Dropdown
-                    label="Centro de costo"
-                    isRequired
-                    options={[]}
-                    placeholder="Seleccione..."
-                    onChange={(value) => {
-                      field.onChange(value);
-                    }}
-                    error={
-                      errors.working_information?.cost_center_id &&
-                      errors.working_information?.cost_center_id?.message
-                    }
-                    disabled
-                    value={field.value}
-                    appearance="dark"
-                    labelClassName="text-black! dark:text-white!"
-                    valueClassName="text-black! dark:text-white!"
-                    className="w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-                  />
-                )}
+                placeholder="Asignar un centro de costo"
+                value={costCenterSelected ?? ""}
+                readOnly
+                className="w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!"
+                labelClassName="text-black! dark:text-white!"
+                {
+                  ...register("working_information.cost_center_id", {
+                  required: false,
+                  validate: (value) => !value || value !== "" || value !== null,
+                })}
+                error={
+                  errors.working_information?.cost_center_id &&
+                  errors.working_information?.cost_center_id?.message
+                }
               />
 
               <Controller
@@ -1119,13 +1113,18 @@ export const AddCollaboratorModal = (props: AddCollaboratorModalProps): React.Re
         />
 
         <SelectCostCenterModal
-          isOpen
-          areaId=""
-          onClose={() => {
+          isOpen={showSelectCostCenterModal}
+          areaId={watch("working_information.area_id")}
+          onClose={() => setShowSelectCostCenterModal(false)}
+          onSelect={({costCenterId, costCenterName }) => {
+            //Mostar centro de costo seleccionado
+            setCostCenterSelected(costCenterName);
 
-          }}  
-          onSelect={()=> {
-
+            //Asignar centro de costo seleccionado
+            setValue("working_information.cost_center_id", costCenterId ?? "", {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
           }}
         />
 
