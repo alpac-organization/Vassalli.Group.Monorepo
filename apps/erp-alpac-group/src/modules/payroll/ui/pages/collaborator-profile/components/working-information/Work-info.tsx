@@ -114,8 +114,6 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
 
   const [branchModalOpen, setBranchModalOpen] = useState(false);
   const [bankModalOpen, setBankModalOpen] = useState(false);
-  const [costCenterModalOpen, setCostCenterModalOpen] = useState(false);
-  const [selectedCostCenterId, setSelectedCostCenterId] = useState<string|null>(null);
 
   const handleEditStart = (name: string) =>
     setEditingFields((prev) => ({ ...prev, [name]: true }));
@@ -296,8 +294,6 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                     validation={{ validate: validateEmail }}
                   />
                 </div>
-
-
 
                 <EditableField
                   name="inssNumber"
