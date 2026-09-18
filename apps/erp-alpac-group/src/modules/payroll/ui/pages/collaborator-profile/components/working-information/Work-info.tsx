@@ -31,6 +31,7 @@ import { BankOptions } from "@app/core/enums/bank.enum";
 import { BranchSelectModal } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/components/branch-select-modal";
 import { BankSelectModal } from "@app/modules/payroll/ui/pages/collaborator-profile/components/working-information/components/bank-select-modal";
 import { Pencil } from "lucide-react";
+import { SelectCostCenterModal } from "@app/modules/payroll/ui/pages/collaborator-index/components/add-collaborator-modal/modals/select-cost-center-modal";
 const defaultInformationWork: WorkFormData = {
   entry_date: "",
   jobPosition: "",
@@ -114,7 +115,16 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
 
   const [branchModalOpen, setBranchModalOpen] = useState(false);
   const [bankModalOpen, setBankModalOpen] = useState(false);
+  const [costCenterModalOpen, setCostCenterModalOpen] = useState(false);
   const [selectedCostCenterId, setSelectedCostCenterId] = useState("");
+
+  // Obtener el area_id del centro de costo actualmente seleccionado
+  const currentCostCenterAreaId = useMemo(() => {
+    const currentCenter = profile?.cost_centers?.find(
+      (c) => c.cost_center_id === selectedCostCenterId || c.cost_center_name === watch("costCenter")
+    );
+    return currentCenter?.area_id ?? "";
+  }, [profile?.cost_centers, selectedCostCenterId, watch]);
 
   const costCenterOptions = useMemo(
     () =>
@@ -314,6 +324,24 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                 </div>
 
                 <EditableField
+                  type="text"
+                  name="costCenter"
+                  label="Centro de Costo"
+                  formMethods={formMethods}
+                  isEditing={Boolean(editingFields.costCenter)}
+                  onEditStart={() => {
+                    handleEditStart("costCenter");
+                    setCostCenterModalOpen(true);
+                  }}
+                  onEditEnd={handleEditEnd}
+                  onConfirmUpdate={handleFieldUpdate}
+                  allowEdit={currentRole === "Administrator"}
+                  missingMessage="Centro de costo no asignado"
+                  className={editableFieldInputClasses}
+                  validation={{ validate: (value) => !value || true }}
+                />
+
+                <EditableField
                   name="inssNumber"
                   label="Número de INSS"
                   formMethods={formMethods}
@@ -381,42 +409,18 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                     )}
                   </div>
                 </div>
-                <EditableField
-                  name="bankAccountNumber"
-                  label="Cuenta Bancaria (Nómina)"
+<EditableField
+                  name="inssNumber"
+                  label="Número de INSS"
                   formMethods={formMethods}
-                  isEditing={Boolean(editingFields.bankAccountNumber)}
+                  isEditing={Boolean(editingFields.inssNumber)}
                   onEditStart={handleEditStart}
                   onEditEnd={handleEditEnd}
                   onConfirmUpdate={handleFieldUpdate}
                   allowEdit={currentRole === "Administrator"}
-                  missingMessage="Cuenta bancaria no registrada"
+                  missingMessage="INSS no registrado"
                   className={editableFieldInputClasses}
                 />
-
-                <div
-                  className={`min-w-0 ${costCentersMissing ? "[&_span]:!text-red-600 dark:[&_span]:!text-red-400" : ""}`}
-                >
-                  <Dropdown
-                    appearance="dark"
-                    label="Centros de Costos"
-                    labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
-                    placeholder={
-                      costCentersMissing
-                        ? "Centros de costos no registrados"
-                        : "Seleccione un centro de costos"
-                    }
-                    options={costCenterOptions}
-                    value={
-                      costCentersMissing ? undefined : selectedCostCenterId
-                    }
-                    onChange={(value) =>
-                      setSelectedCostCenterId(String(value))
-                    }
-                    className={`${baseInputClasses} h-[46px]! sm:h-[46px]! px-3! cursor-default!`}
-                    valueClassName="text-white! dark:text-white!"
-                  />
-                </div>
               </div>
             </div>
 
@@ -476,6 +480,16 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
           </div>
         </section>
       </div>
+
+      <SelectCostCenterModal
+        isOpen={costCenterModalOpen}
+        areaId={currentCostCenterAreaId}
+        onClose={() => setCostCenterModalOpen(false)}
+        onSelect={(costCenterId) => {
+          handleFieldUpdate("costCenterId", costCenterId, { areaId: currentCostCenterAreaId });
+          setCostCenterModalOpen(false);
+        }}
+      />
     </div>
   );
 };

@@ -34,7 +34,7 @@ export const useUpdateWorkInformation = ({
     }
   }, [alertInfo]);
 
-  const handleFieldUpdate = async (name: string, value: string) => {
+  const handleFieldUpdate = async (name: string, value: string, extra?: { areaId?: string }) => {
 
     if (!companyId?.trim() || !moduleCode?.trim() || !targetIdentification) {
       setAlertInfo({
@@ -65,6 +65,12 @@ export const useUpdateWorkInformation = ({
         break;
       case "bankAccountNumber":
         working.bank_account_number = value.trim();
+        break;
+      case "costCenterId":
+        working.cost_center_id = value.trim();
+        if (extra?.areaId) {
+          working.area_id = extra.areaId;
+        }
         break;
       default:
         return;

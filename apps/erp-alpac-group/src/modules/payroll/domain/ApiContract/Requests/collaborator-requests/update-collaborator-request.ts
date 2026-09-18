@@ -31,7 +31,9 @@ export interface UpdateWorkingInformationRequest {
   branch_id?: string;
   bank_id?: string;
   inss_number?: string;
-  bank_account_number?: string; 
+  bank_account_number?: string;
+  cost_center_id?: string;
+  area_id?: string;
 }
 // export interface UpdateSalaryInformationRequest {
 //   salary?: number;
