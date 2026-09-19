@@ -9,8 +9,9 @@ export interface LotModalProps {
 }
 
 export type LotFormValues = {
-  code?: string;
-  width_metres?: string | number;
-  length_metres?: string | number;
-  status?: number;
+  quantity?: string | number;
+  nominal_rows?: string | number;
+  nominal_columns?: string | number;
+  width?: string | number;
+  length?: string | number;
 };
