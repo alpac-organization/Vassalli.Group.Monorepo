@@ -52,9 +52,9 @@ export function getSectionsColumns({
       render: (item) => item.section_code || "—",
     },
     {
-      key: "section_name",
-      label: "Nombre",
-      render: (item) => item.section_name || "—",
+      key: "section_status",
+      label: "Estado",
+      render: (item) => "Estado",
     },
     {
       key: "section_type",
@@ -69,6 +69,11 @@ export function getSectionsColumns({
       ),
     },
     {
+      key: "occupancy",
+      label: "Ocupación",
+      render: (item) => "Ocupación",
+    },
+    {
       key: "is_active",
       label: "Estado",
       render: (item) => <ActiveStatusBadge isActive={item.is_active} />,
@@ -77,8 +82,7 @@ export function getSectionsColumns({
       key: "action",
       label: "Acciones",
       render: (item) => {
-        const items = getSectionActionItems(item, onViewLots, onViewRacks);
-        // if (items.length === 0) return null;
+        const items = getSectionActionItems(item, onViewLots, onViewRacks);        
 
         return (
           <ContextMenu

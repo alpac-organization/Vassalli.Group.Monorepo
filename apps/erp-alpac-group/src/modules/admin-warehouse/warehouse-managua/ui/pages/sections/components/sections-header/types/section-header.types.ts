@@ -1,3 +1,3 @@
-export type SectionsHeaderProps = {
-  warehouseId: string;
+export type SectionsHeaderProps = {  
+  warehouseId: string;    
 };
