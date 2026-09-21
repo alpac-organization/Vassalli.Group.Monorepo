@@ -17,11 +17,19 @@ export class ManagementServices implements IManagementServices {
 
 	async GetRequisitionManagementReviews(payload: GetRequisitionManagementReviewsRequest): Promise<GetRequisitionManagementReviewsResponse> {
 
-		const { company_id, module_code, ...rest } = payload;
+		const { company_id, module_code, page_number, page_size, status, area_id, branch_id } = payload;
 
 		const url = `companies/${company_id}/modules/${module_code}/requisition-management-reviews`;
 
-		const response = await this.apiService.get<GetRequisitionManagementReviewsResponse>(url, { params: cleanParams(rest) });
+		const response = await this.apiService.get<GetRequisitionManagementReviewsResponse>(url, {
+			params: cleanParams({
+				page_number,
+				page_size,
+				status,
+				area_id,
+				branch_id,
+			}),
+		});
 
 		return response;
 	}

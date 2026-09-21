@@ -41,6 +41,7 @@ export type QuoteProductFormValues = {
 export type QuotationItemFieldsProps = {
 	productIndex: number;
 	itemIndex: number;
+	accordionValue: string;
 	canRemove: boolean;
 	supplierLegalName: string;
 	quantity: number;

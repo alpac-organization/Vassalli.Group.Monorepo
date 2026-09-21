@@ -11,6 +11,7 @@ import type { GetPurchaseRequestProductPayload } from "@app/modules/purchasing/d
 import type { GetPurchaseRequestDocumentRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-document-request";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
+import type { UpdatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/update-purchase-request-payload";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
 import type { PurchaseRequestDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-document-response";
 import type { PurchaseOrderDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-document-response";
@@ -50,6 +51,20 @@ export class PurchaseServices implements IPurchaseServices {
          const url = `/companies/${company_id}/modules/${module_code}/purchase-requests`;
 
          await this.apiHandler.post<void>(url, { purchase_requests });
+
+      } catch (error) {
+
+         throw error;
+      }
+   }
+
+   async UpdatePurchaseRequest(payload: UpdatePurchaseRequestPayload): Promise<void> {
+      try {
+         const { company_id, module_code, purchase_request_id, ...rest } = payload;
+
+         const url = `/companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}`;
+
+         await this.apiHandler.patch<void>(url, rest);
 
       } catch (error) {
 

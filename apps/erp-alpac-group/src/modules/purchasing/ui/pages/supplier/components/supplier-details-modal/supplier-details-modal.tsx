@@ -4,16 +4,30 @@ import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSuppli
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import {
+   BadgePercentIcon,
+   CreditCardIcon,
    HeadsetIcon,
    MailIcon,
    MapPinHouseIcon,
    PhoneIcon,
+   ShieldCheckIcon,
    UserIcon,
 } from "lucide-react";
 import { Loader } from "@app/shared/components/loaders/loader";
+import { BankAccountList } from "../bank-account-list/bank-account-list";
+import { formatCurrency } from "@app/shared/utils/currency.utils";
+import { PaymentMethodEnum } from "@app/core/enums/payment-method.enum";
 
 const sectionTitleClassName =
    "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
+
+const resolvePaymentMethodLabel = (method?: string | number | null) => {
+   if (!method) return "—";
+   const found = Object.values(PaymentMethodEnum).find(
+      (m) => m.stringValue === method || m.value === Number(method),
+   );
+   return found ? found.label : String(method);
+};
 
 export const SupplierDetailsModal = ({
    isOpen,
@@ -36,7 +50,7 @@ export const SupplierDetailsModal = ({
    const {
       data: supplierDetails,
       isPending: isSupplierDetailsPending,
-      isFetching: isSupplierDetailsFetching
+      isFetching: isSupplierDetailsFetching,
    } = GetSupplierDetails;
    const details = supplierDetails?.supplier_details;
 
@@ -46,94 +60,163 @@ export const SupplierDetailsModal = ({
       ? `Crédito (${details.credit_days ?? 0} días)`
       : "Contado";
 
-   const handleClose = () => {
-      onClose();
-   };
+   const creditCurrency = details?.credit_currency === "NIO"
+      ? "NIO"
+      : "USD";
+
+   const creditLimitFormatted = details?.credit_limit != null
+      ? formatCurrency(details.credit_limit, creditCurrency) : "Sin límite fijado";
+
+
+   const supplierName =
+      supplierDetails?.suppliers_legal_name ??
+      selectedSupplier?.suppliers_legal_name ??
+      "proveedor";
 
    return (
       <>
          {isOpen && isLoading && (
-            <Loader title="Cargando detalle de la solicitud..." />
+            <Loader title="Cargando detalle del proveedor..." />
          )}
 
          <Modal
             isOpen={isOpen}
-            onClose={handleClose}
+            onClose={onClose}
             title="Detalle del proveedor"
             variant="form"
             size="6xl"
-            description={`Información registrada de ${selectedSupplier?.supplier_legal_name ?? " proveedor"}`}
+            description={`Información registrada de ${supplierName}`}
          >
-            <div className="grid gap-8 lg:grid-cols-3">
-               <section className="flex flex-col gap-3 lg:col-span-2">
-                  <h5 className={sectionTitleClassName}>
-                     Información Legal
-                  </h5>
-                  <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                     <DetailField
-                        label="Razón social"
-                        value={supplierDetails?.supplier_legal_name}
-                     />
-                     <DetailField
-                        label="Número de identificación"
-                        value={supplierDetails?.identification_number}
-                     />
-                     <DetailField
-                        label="Tipo de identificación"
-                        value={supplierDetails?.identification_type}
-                     />
-                     <DetailField
-                        label="Tipo de constitución"
-                        value={supplierDetails?.constitution_type}
-                     />
-                  </div>
-               </section>
+            <div className="flex flex-col gap-6">
+               <div className="grid gap-6 lg:grid-cols-3">
+                  {/* Legal information */}
+                  <section className="flex flex-col gap-3 lg:col-span-2">
+                     <h5 className={sectionTitleClassName}>Información Legal</h5>
+                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <DetailField
+                           label="Razón social"
+                           value={supplierName}
+                        />
+                        <DetailField
+                           label="Nombre comercial"
+                           value={supplierDetails?.commercial_name || "—"}
+                        />
+                        <DetailField
+                           label="Número de identificación"
+                           value={supplierDetails?.identification_number}
+                        />
+                        <DetailField
+                           label="Tipo de identificación"
+                           value={supplierDetails?.identification_type}
+                        />
+                        <DetailField
+                           label="Tipo de constitución"
+                           value={supplierDetails?.constitution_type}
+                        />
+                     </div>
+                  </section>
 
-               <section className="flex flex-col gap-3">
-                  <h5 className={sectionTitleClassName}>
-                     Condiciones comerciales
-                  </h5>
-                  <div className="grid grid-cols-1 gap-4">
-                     <DetailField
-                        label="Modalidad de pago"
-                        value={supplierDetails ? paymentModality : undefined}
-                     />
-                  </div>
-               </section>
+                  {/* Financial conditions */}
+                  <section className="flex flex-col gap-3">
+                     <h5 className={sectionTitleClassName}>Condiciones Comerciales</h5>
+                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                        <DetailField
+                           label="Modalidad de pago"
+                           value={supplierDetails ? paymentModality : undefined}
+                           icon={<CreditCardIcon size={16} />}
+                        />
+                        <DetailField
+                           label="Límite de crédito"
+                           value={details?.has_credit ? creditLimitFormatted : "No aplica"}
+                        />
+                        <DetailField
+                           label="Alerta vencimiento"
+                           value={details?.has_credit ? `${details?.alert_days_before_due ?? 0} días antes` : "No aplica"}
+                        />
+                        <DetailField
+                           label="Método de pago preferido"
+                           value={resolvePaymentMethodLabel(details?.preferred_payment_method)}
+                        />
+                     </div>
+                  </section>
 
-               <section className="flex flex-col gap-3 lg:col-span-3">
-                  <h5 className={sectionTitleClassName}>
-                     Información de contacto
-                  </h5>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                     <DetailField
-                        label="Nombre de contacto"
-                        value={details?.contact_name}
-                        icon={<UserIcon size={18} />}
+                  {/* Taxes and Exclusivity */}
+                  <section className="flex flex-col gap-3 lg:col-span-3">
+                     <h5 className={sectionTitleClassName}>Régimen Fiscal y Exclusividad</h5>
+                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <DetailField
+                           label="Retención IR"
+                           value={details?.apply_ir_retention ? "Aplica retención" : "No aplica"}
+                           icon={<BadgePercentIcon size={16} />}
+                        />
+                        <DetailField
+                           label="Retención Municipal"
+                           value={details?.apply_municipal_retention ? "Aplica retención" : "No aplica"}
+                           icon={<BadgePercentIcon size={16} />}
+                        />
+                        <DetailField
+                           label="Exento de Impuestos"
+                           value={details?.is_tax_exempt ? "Sí (Exento)" : "No"}
+                        />
+                        <DetailField
+                           label="Proveedor Exclusivo"
+                           value={details?.is_exclusive ? "Sí" : "No"}
+                           icon={<ShieldCheckIcon size={16} />}
+                        />
+                        {details?.is_exclusive && details.exclusive_brands_or_parts && (
+                           <DetailField
+                              label="Marcas o partes autorizadas"
+                              value={details.exclusive_brands_or_parts}
+                              containerClass="sm:col-span-2 lg:col-span-4"
+                           />
+                        )}
+                     </div>
+                  </section>
+
+                  {/* Contact info */}
+                  <section className="flex flex-col gap-3 lg:col-span-3">
+                     <h5 className={sectionTitleClassName}>Información de Contacto</h5>
+                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        <DetailField
+                           label="Nombre de contacto"
+                           value={details?.contact_name}
+                           icon={<UserIcon size={18} />}
+                        />
+                        <DetailField
+                           label="Teléfono"
+                           value={details?.contact_phone_number}
+                           icon={<PhoneIcon size={18} />}
+                        />
+                        <DetailField
+                           label="Correo de contacto"
+                           value={details?.contact_email}
+                           icon={<MailIcon size={18} />}
+                        />
+                        <DetailField
+                           label="Correo de soporte"
+                           value={details?.email_support}
+                           icon={<HeadsetIcon size={18} />}
+                        />
+                        <DetailField
+                           label="Dirección"
+                           value={details?.address}
+                           containerClass="lg:col-span-4"
+                           icon={<MapPinHouseIcon size={18} />}
+                        />
+                     </div>
+                  </section>
+
+                  {/* Bank Accounts */}
+                  <section className="flex flex-col gap-3 lg:col-span-3">
+                     <h5 className={sectionTitleClassName}>Cuentas Bancarias Registradas</h5>
+                     <BankAccountList
+                        accounts={supplierDetails?.bank_accounts ?? []}
+                        readOnly={true}
+                        onAddAccount={() => {}}
+                        onDeleteAccount={() => {}}
                      />
-                     <DetailField
-                        label="Teléfono"
-                        value={details?.contact_phone_number}
-                        icon={<PhoneIcon size={18} />}
-                     />
-                     <DetailField
-                        label="Correo de contacto"
-                        value={details?.contact_email}
-                        icon={<MailIcon size={18} />}
-                     />
-                     <DetailField
-                        label="Correo de soporte"
-                        value={details?.email_support}
-                        icon={<HeadsetIcon size={18} />}
-                     />
-                     <DetailField
-                        label="Dirección"
-                        value={details?.address}
-                        containerClass="lg:col-span-4"
-                        icon={<MapPinHouseIcon size={18} />}
-                     />
-                  </div>
-               </section>
+                  </section>
+               </div>
             </div>
          </Modal>
       </>

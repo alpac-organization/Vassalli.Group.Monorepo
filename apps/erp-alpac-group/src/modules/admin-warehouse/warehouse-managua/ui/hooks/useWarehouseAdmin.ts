@@ -7,11 +7,11 @@ import type { GetRackDetailRequest } from "@app/modules/admin-warehouse/warehous
 
 import type { GetLotsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-detail";
-import type { CreateLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
+import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import type { GetRackResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-res";
 import type { GetRackDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-detail";
 import type { CreateRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-racks-req";
-import { WarehouseAdminServices } from "@app/modules/admin-warehouse/warehouse-managua/infrastructure/services/WarehouseAdmin";
+import { WarehouseAdminServices } from "@app/modules/admin-warehouse/warehouse-managua/infrastructure/services/WarehouseAdminService";
 import { warehouseHttpHandler } from "@app/core/adapters";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
@@ -108,13 +108,9 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
     },
   });
 
-  const CreateLots = useMutation<
-    Awaited<ReturnType<typeof warehouseLayoutServices.CreateLots>>,
-    ApiErrorResponse,
-    CreateLotsRequest
-  >({
-    mutationKey: ["createSectionLots"],
-    mutationFn: (payload) => warehouseLayoutServices.CreateLots(payload),
+  const RegisterLot = useMutation<void, ApiErrorResponse, RegisterLotRequest>({
+    mutationKey: ["registerSectionLot"],
+    mutationFn: (payload) => warehouseLayoutServices.RegisterLot(payload),
     retry: 1,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["get-section-lots-records"] });
@@ -143,7 +139,7 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
     GetRacks,
     GetRackById,
     CreateSection,
-    CreateLots,
+    RegisterLot,
     CreateRacks,
   };
 };

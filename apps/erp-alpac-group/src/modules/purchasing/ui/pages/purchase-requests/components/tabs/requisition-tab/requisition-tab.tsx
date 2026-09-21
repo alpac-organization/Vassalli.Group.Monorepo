@@ -251,6 +251,7 @@ export const RequisitionTab = ({
 					icon={<PackagePlusIcon size={20} />}
 					className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
 					onClick={() => {
+						setRequisitionDetail(null);
 						setIsRequisitionModalOpen(true);
 					}}
 				/>
@@ -358,6 +359,7 @@ export const RequisitionTab = ({
 				onRequestError={onRequestError}
 				currentBranchId={currentBranchId}
 				requestType={PurchaseRequestEnum.Requisition}
+				purchaseRequest={requisitionDetail}
 			/>
 
 			<PurchaseRequestDetailModal

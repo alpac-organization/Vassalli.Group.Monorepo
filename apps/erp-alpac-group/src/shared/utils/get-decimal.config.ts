@@ -3,7 +3,7 @@ import {
   validateDecimalNumber,
   validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
-import { parseDecimal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/tramos/lot-modal/utils/lots.utils";
+import { parseDecimal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/lots.utils";
 
 export const getDecimalFieldConfig = (
   requiredMessage: string,
