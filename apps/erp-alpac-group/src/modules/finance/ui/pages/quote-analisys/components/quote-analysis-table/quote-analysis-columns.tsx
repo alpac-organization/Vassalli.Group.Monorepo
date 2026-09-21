@@ -45,7 +45,9 @@ function AvatarWithTooltip({
 
 export function getQuoteAnalysisColumns(
 	onViewDetail?: (row: RequisitionAccountingReviewDto) => void,
-	onSendToReview?: (row: RequisitionAccountingReviewDto) => void): TableColumn<RequisitionAccountingReviewDto>[] {
+	onSendToReview?: (row: RequisitionAccountingReviewDto) => void,
+	onGeneratePdf?: (row: RequisitionAccountingReviewDto) => void,
+): TableColumn<RequisitionAccountingReviewDto>[] {
 
 	return [
 		{
@@ -109,7 +111,12 @@ export function getQuoteAnalysisColumns(
 					items.push({
 						label: "Enviar a revisión",
 						onClick: () => onSendToReview?.(row),
-					})
+					});
+				} else {
+					items.push({
+						label: "Generar PDF",
+						onClick: () => onGeneratePdf?.(row),
+					});
 				}
 
 				return (

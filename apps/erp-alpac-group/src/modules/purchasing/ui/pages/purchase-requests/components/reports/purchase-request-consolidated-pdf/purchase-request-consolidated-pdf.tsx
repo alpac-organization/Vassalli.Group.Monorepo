@@ -1,8 +1,8 @@
 import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
 import { formatDate } from "@app/shared/utils/string.utils";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
-import { purchaseRequestConsolidatedPdfStyle as styles } from "./purchase-request-consolidated-pdf.styles";
-import type { PurchaseRequestConsolidatedPdfProps } from "./types/purchase-request-consolidated-pdf.types";
+import { purchaseRequestConsolidatedPdfStyle as styles } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-consolidated-pdf/purchase-request-consolidated-pdf.styles";
+import type { PurchaseRequestConsolidatedPdfProps } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-consolidated-pdf/types/purchase-request-consolidated-pdf.types";
 
 const documentTitleByType: Record<string, string> = {
 	[PurchaseRequestEnum.Requisition.label]: "CONSOLIDADO MENSUAL DE REQUISICIONES",
@@ -22,7 +22,6 @@ export function PurchaseRequestConsolidatedPDF({
 	const documentTitle =
 		documentTitleByType[requestTypeLabel] ??
 		`CONSOLIDADO MENSUAL DE ${requestTypeLabel.toUpperCase()}`;
-
 	return (
 		<Document>
 			<Page size="LETTER" style={styles.page}>

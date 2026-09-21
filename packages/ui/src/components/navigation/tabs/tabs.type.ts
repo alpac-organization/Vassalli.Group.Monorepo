@@ -16,4 +16,5 @@ export interface TabProps<T extends string> {
    * Prevents form/input display state from resetting on tab change.
    */
   keepMounted?: boolean;
+  onTabChange?: (tabId: T) => void;
 }

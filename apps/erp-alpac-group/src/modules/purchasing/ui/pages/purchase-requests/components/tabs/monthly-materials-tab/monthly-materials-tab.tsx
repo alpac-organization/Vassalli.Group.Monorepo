@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Button, DataTable, DatePicker, Dropdown, InputText, Pagination, SectionHeader, type TableColumn } from "@alpac/design-system";
+import { Button, DataTable, DatePicker, Dropdown, InputText, Pagination, SectionHeader, type TableColumn } from "@alpac/design-system";
 import { FileTextIcon, PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
@@ -352,8 +352,6 @@ export const MonthlyMaterialTab = ({
 						/>
 					}
 				/>
-
-				<Alert type="warning" title="Nota" message="Recuerda llenar tu solicitud 2 días antes de finalizar el mes" />
 			</div>
 
 			<PurchaseRequestModal

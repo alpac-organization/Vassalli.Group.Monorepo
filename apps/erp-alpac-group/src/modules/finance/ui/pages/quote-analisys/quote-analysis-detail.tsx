@@ -45,6 +45,7 @@ import {
   purchaseRequestTypeBadgeVariants,
 } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import type { accountingReviewStatusType } from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
+import { openQuoteAnalysisPdf } from "@app/modules/finance/ui/pages/quote-analisys/templates/quote-analysis.generate";
 
 const SendToReviewButton = ({
   setIsSendReviewOpen,
@@ -60,11 +61,34 @@ const SendToReviewButton = ({
   return (
     <Button
       type="button"
-      size="giant"
+      size="small"
       label="Enviar a revisión"
       onClick={() => setIsSendReviewOpen(true)}
       disabled={isDataLoading}
-      className="rounded-md! bg-alpac-primary-500! text-white! dark:bg-alpac-primary-700!"
+      className="rounded-md! bg-alpac-primary-500! text-white! dark:bg-alpac-primary-700! px-4!"
+    />
+  );
+};
+
+const GeneratePdfButton = ({
+  status,
+  isGenerating,
+  onGenerate,
+}: {
+  status: accountingReviewStatusType;
+  isGenerating: boolean;
+  onGenerate: () => void;
+}): ReactNode => {
+  if (!Boolean(status && status !== "Pending")) return null;
+
+  return (
+    <Button
+      type="button"
+      size="small"
+      label={isGenerating ? "Generando PDF..." : "Generar PDF"}
+      onClick={onGenerate}
+      disabled={isGenerating}
+      className="rounded-md! bg-alpac-primary-500! text-white! dark:bg-alpac-primary-700! px-4!"
     />
   );
 };
@@ -84,6 +108,7 @@ export function QuoteAnalysisDetail() {
     quotation: PurchaseRequestProductQuotation;
   } | null>(null);
   const [isSendReviewOpen, setIsSendReviewOpen] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const {
     alertState,
     handleCloseAlert,
@@ -209,10 +234,28 @@ export function QuoteAnalysisDetail() {
       SendReviewToManagement,
       companyId,
       handleRequestSuccess,
+      handleRequestError,
+      getMappedError,
       moduleCode,
       reviewId,
     ],
   );
+
+  const handleGeneratePdf = useCallback(async () => {
+    if (!detailData || isGeneratingPdf) return;
+
+    try {
+      setIsGeneratingPdf(true);
+      await openQuoteAnalysisPdf(
+        detailData,
+        productsData?.data ?? [],
+      );
+    } catch {
+      handleRequestError("Error al generar el PDF del análisis comparativo.");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }, [detailData, handleRequestError, isGeneratingPdf, productsData?.data]);
 
   const productsToDisplay: PurchaseRequestProductInformation[] =
     productsData?.data ?? [];
@@ -283,7 +326,7 @@ export function QuoteAnalysisDetail() {
       </div>
 
       <div className="flex min-w-0 flex-col gap-4 rounded-xl border border-slate-200 bg-white p-3 sm:gap-6 sm:p-5 md:p-6 dark:border-slate-700/50 dark:bg-[#272b34]">
-        <div className="sticky -top-10 z-20 -mx-3 -mt-3 flex flex-col gap-3 border-b border-slate-200 bg-white px-3 pt-3 pb-4 sm:-mx-5 sm:-mt-5 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:px-5 sm:pt-5 sm:pb-6 md:-mx-6 md:-mt-6 md:px-6 md:pt-6 dark:border-slate-700/50 dark:bg-[#272b34]">
+        <div className="sticky -top-10 z-20 -mx-3 -mt-3 flex flex-col gap-3 border-b border-slate-200  bg-white px-3 pt-3 pb-4 sm:-mx-5 sm:-mt-5 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:px-5 sm:pt-5 sm:pb-6 md:-mx-6 md:-mt-6 md:px-6 md:pt-6 dark:border-slate-700/50 dark:bg-[#272b34]">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <h3 className="m-0 break-all text-base font-semibold text-slate-900 dark:text-white sm:text-lg md:text-xl">
@@ -304,13 +347,20 @@ export function QuoteAnalysisDetail() {
             </div>
           </div>
 
-          <div className="flex shrink-0 flex-wrap items-center gap-3">
+          <div className="flex w-full shrink-0 flex-wrap items-center gap-3 sm:w-auto">
             <Badges label={badge.label} color={badge.color} />
-            <SendToReviewButton
-              isDataLoading={SendReviewToManagement.isPending}
-              setIsSendReviewOpen={setIsSendReviewOpen}
-              status={status}
-            />
+            <div className="ml-auto flex flex-wrap items-center gap-3 sm:ml-0">
+              <SendToReviewButton
+                isDataLoading={SendReviewToManagement.isPending}
+                setIsSendReviewOpen={setIsSendReviewOpen}
+                status={status}
+              />
+              <GeneratePdfButton
+                status={status}
+                isGenerating={isGeneratingPdf}
+                onGenerate={handleGeneratePdf}
+              />
+            </div>
           </div>
         </div>
 
