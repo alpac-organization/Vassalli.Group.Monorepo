@@ -15,27 +15,40 @@ interface UserState {
   moduleBasePath: string;
   areaId: string;
   branchId: string;
+  costCenterId: string;
+  costCenterName: string;
+  costCenterCode: string;
 }
+
+const initialUserState: UserState = {
+  fullName: '',
+  email: '',
+  userName: '',
+  identificationNumber: '',
+  companyId: '',
+  companyName: '',
+  companyAlias: '',
+  moduleCode: '',
+  userType: '',
+  role: '',
+  moduleBasePath: '',
+  areaId: '',
+  branchId: '',
+  costCenterId: '',
+  costCenterName: '',
+  costCenterCode: '',
+};
 
 export const useUserStore = create<UserState>()(
   persist(
-    () => ({
-      fullName: '',
-      email: '',
-      userName: '',
-      identificationNumber: '',
-      companyId: '',
-      companyName: '',
-      companyAlias: '',
-      moduleCode: '',
-      userType: '',
-      role: '',
-      moduleBasePath: '',
-      areaId: '',
-      branchId: ''
-    }),
+    () => ({ ...initialUserState }),
     {
       name: 'user-data',
     },
   ),
 );
+
+export const clearUserStore = () => {
+  useUserStore.setState({ ...initialUserState });
+  void useUserStore.persist.clearStorage();
+};

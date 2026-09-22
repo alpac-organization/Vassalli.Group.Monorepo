@@ -30,8 +30,8 @@ import { toDataUrl } from "@app/shared/utils/toDataUrl";
 import { extractPurchaseRequestItemImages } from "../../utils/purchase-request-item-images.utils";
 
 const emptyFormValues = (): CreatePurchaseRequestPayload => ({
-	area_id: "",
 	branch_id: "",
+	cost_center_id: "",
 	request_type: 0,
 	priority_level: 0,
 	destination: PurchaseRequestDestinationEnum.Internal.value,
@@ -90,7 +90,7 @@ export const PurchaseRequestModal = ({
 	purchaseRequest = null,
 }: PurchaseRequestModalProps) => {
 
-	const { companyId, moduleCode, role } = useUserStore();
+	const { companyId, moduleCode, role, areaId, costCenterId } = useUserStore();
 
 	const { getMappedError } = useMappedError();
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
@@ -108,6 +108,7 @@ export const PurchaseRequestModal = ({
 		id: crypto.randomUUID(),
 		defaults: {
 			branch_id: "",
+			cost_center_id: costCenterId,
 			destination: -1,
 			observations: "",
 			request_type: -1,
@@ -194,8 +195,8 @@ export const PurchaseRequestModal = ({
 		const products = productsResponse.data ?? [];
 
 		const editDefaults: CreatePurchaseRequestPayload = {
-			area_id: details.information_from_requesting_area?.work_area_id ?? "",
 			branch_id: currentBranchId,
+			cost_center_id: costCenterId,
 			request_type: Number(requestType.value),
 			priority_level: enumValueFromText(
 				Object.values(PriorityLevelEnum),
@@ -244,6 +245,7 @@ export const PurchaseRequestModal = ({
 		productsResponse,
 		unitsOfMeasurement,
 		currentBranchId,
+		costCenterId,
 		requestType.value,
 	]);
 
@@ -283,8 +285,9 @@ export const PurchaseRequestModal = ({
 	};
 
 	const buildCreatePayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => ({
-		...(isAdministrator ? { area_id: values.area_id } : {}),
+		...(isAdministrator && areaId ? { area_id: areaId } : {}),
 		branch_id: currentBranchId,
+		cost_center_id: costCenterId,
 		request_type: Number(requestType.value),
 		...(isRequisition ? { priority_level: Number(values.priority_level) } : {}),
 		...(values.service_order_id && { service_order_id: values.service_order_id }),
@@ -466,7 +469,6 @@ export const PurchaseRequestModal = ({
 											key={entry.id}
 											index={index}
 											defaults={entry.defaults}
-											role={role as RoleEnum}
 											requestType={requestType}
 											isEditMode={isEditMode}
 											onDuplicate={handleDuplicate}

@@ -1,3 +1,5 @@
+import type { RequisitionAccountingReviewDetailsDto } from "@app/modules/finance/domain/ApiContract/responses/quote-analysis-details";
+import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 
 export type QuoteAnalysisPdfSupplier = {
 	supplierId: string;
@@ -42,3 +44,14 @@ export type QuoteAnalysisPdfViewModel = {
 	justification: string;
 	elaboratedBy: string;
 };
+
+export type QuoteAnalysisPDFProps = {
+	detail: RequisitionAccountingReviewDetailsDto;
+	products: PurchaseRequestProductInformation[];
+	companyLogoUrl?: string;
+	elaborationDate?: string;
+};
+
+export type TotalsRowKey = keyof QuoteAnalysisPdfTotals;
+
+export type QualitativeRowKey = keyof QuoteAnalysisPdfQualitative;

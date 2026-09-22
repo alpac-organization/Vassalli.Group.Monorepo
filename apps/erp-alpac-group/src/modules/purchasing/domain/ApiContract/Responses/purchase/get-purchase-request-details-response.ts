@@ -3,7 +3,7 @@ import type {
 	UserInformation,
 	WorkAreaInformation,
 } from "@app/shared/interfaces/organization-information/organization-information";
-import type { GetPurchaseRequestResponse } from "./get-purchase-request-response";
+import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 
 export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResponse {
 	observations: string | null;

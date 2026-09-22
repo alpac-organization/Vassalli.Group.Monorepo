@@ -15,3 +15,6 @@ storybook-static/
 repomix.config.json
 .vscode/
 .cursor/
+.agents/
+skills-lock.json
+

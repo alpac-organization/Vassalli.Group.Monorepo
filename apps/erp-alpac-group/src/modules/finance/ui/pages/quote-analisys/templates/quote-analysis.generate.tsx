@@ -5,6 +5,7 @@ import { PurchaseServices } from "@app/modules/purchasing/infrastructure/service
 import type { RequisitionAccountingReviewDetailsDto } from "@app/modules/finance/domain/ApiContract/responses/quote-analysis-details";
 import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import { QuoteAnalysisPDF } from "@app/modules/finance/ui/pages/quote-analisys/templates/quote-analysis";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 
 const quoteAnalysisService = new QuoteAnalysisServices(warehouseHttpHandler);
 const purchaseServices = new PurchaseServices(warehouseHttpHandler);
@@ -13,7 +14,15 @@ export async function generateQuoteAnalysisPdfBlob(
 	detail: RequisitionAccountingReviewDetailsDto,
 	products: PurchaseRequestProductInformation[],
 ): Promise<Blob> {
-	return pdf(<QuoteAnalysisPDF detail={detail} products={products} />).toBlob();
+	const companyLogoUrl = useCompanyStore.getState().urlImage;
+
+	return pdf(
+		<QuoteAnalysisPDF
+			detail={detail}
+			products={products}
+			companyLogoUrl={companyLogoUrl}
+		/>,
+	).toBlob();
 }
 
 export async function openQuoteAnalysisPdf(
@@ -36,8 +45,8 @@ export async function fetchAndOpenQuoteAnalysisPdf(params: {
 		purchase_requests_reviewed_accounting_id:
 			params.purchaseRequestsReviewedAccountingId,
 	});
-
 	const purchaseRequestId = detail.purchase_request?.purchase_request_id;
+
 	if (!purchaseRequestId) {
 		throw new Error("No se encontró la solicitud de compra asociada.");
 	}
