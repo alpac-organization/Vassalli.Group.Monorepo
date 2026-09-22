@@ -149,7 +149,7 @@ export const PurchaseRequestDetailModal = ({
 				const url = URL.createObjectURL(blob);
 				window.open(url, "_blank");
 			} catch (error) {
-				onRequestError?.("Error al generar el PDF de la solicitud de compra.");
+				onRequestError?.("Error al generar el PDF de la solicitud de compra." + error);
 			} finally {
 				setIsGeneratingPurchaseRequestPdf(false);
 			}
@@ -202,7 +202,7 @@ export const PurchaseRequestDetailModal = ({
 			module_code: moduleCode,
 			purchase_request_id: purchaseRequestId,
 			new_status: Number(purchaseRequestStatus.get(type)),
-			... (!!reason ? { reason_rejection: reason } : {})
+			... (!reason ? { reason_rejection: reason } : {})
 		};
 
 		ProcessPurchaseRequest.mutate(payload, {

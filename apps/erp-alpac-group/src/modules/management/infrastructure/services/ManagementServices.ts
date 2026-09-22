@@ -3,6 +3,7 @@ import type { IManagementServices } from "../../application/interfaces/IManageme
 import type { GetRequisitionManagementReviewsRequest } from "@app/modules/management/domain/ApiContract/requests/get-requisition-management-reviews";
 import type { GetRequisitionManagementReviewDetailRequest } from "@app/modules/management/domain/ApiContract/requests/get-requisition-management-review-detail";
 import type { ProcessPurchaseOrderPayload } from "@app/modules/management/domain/ApiContract/requests/process-purchase-order-payload";
+import type { AnnulManagementReviewRequest } from "@app/modules/management/domain/ApiContract/requests/annul-management-review";
 import type { GetRequisitionManagementReviewsResponse } from "@app/modules/management/domain/ApiContract/responses/get-requisition-management-reviews";
 import type { RequisitionManagementReviewDetailsRequest } from "@app/modules/management/domain/ApiContract/responses/get-requisition-management-review-detail";
 import { cleanParams } from "@app/shared/utils/object.utils";
@@ -50,5 +51,13 @@ export class ManagementServices implements IManagementServices {
 		const url = `companies/${company_id}/modules/${module_code}/purchase-orders/${requisition_management_review_id}/process`;
 
 		await this.apiService.post<void>(url, rest);
+	}
+
+	async annulManagementReview(payload: AnnulManagementReviewRequest): Promise<void> {
+		const { company_id, module_code, requisition_management_reviews_id, scope, reason } = payload;
+
+		const url = `companies/${company_id}/modules/${module_code}/requisition-management-reviews/${requisition_management_reviews_id}/annul`;
+
+		await this.apiService.post<void>(url, { scope, reason });
 	}
 }

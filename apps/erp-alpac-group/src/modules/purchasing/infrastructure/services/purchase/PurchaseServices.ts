@@ -18,6 +18,7 @@ import type { PurchaseOrderDocumentResponse } from "@app/modules/purchasing/doma
 import type { GetPurchaseOrdersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
 import type { GetPurchaseRequestDetailResponse, PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { GetPurchaseRequestResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
+import type { AnnulPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/annul-purchase-request-payload";
 import { cleanParams } from "@app/shared/utils/object.utils";
 
 export class PurchaseServices implements IPurchaseServices {
@@ -203,6 +204,16 @@ export class PurchaseServices implements IPurchaseServices {
          return response;
       } 
       catch(error) {
+         throw error;
+      }
+   }
+
+   async AnnulPurchaseRequest(payload: AnnulPurchaseRequestPayload): Promise<void> {
+      try {
+         const { company_id, module_code, purchase_request_id, reason } = payload;
+         const url = `companies/${company_id}/modules/${module_code}/purchase-requests/${purchase_request_id}/annul`;
+         await this.apiHandler.post<void>(url, { reason });
+      } catch (error) {
          throw error;
       }
    }

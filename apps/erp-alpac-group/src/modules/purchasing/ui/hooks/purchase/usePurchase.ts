@@ -1,6 +1,7 @@
 import { warehouseHttpHandler } from "@app/core/adapters";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { PurchaseRequestMainPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
+import type { AnnulPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/annul-purchase-request-payload";
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import type { GetPurchaseOrderDetailsPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-order-details-payload";
 import type { PurchaseOrderDocumentRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-order-request";
@@ -183,11 +184,23 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       retry: 1,
    });
 
+   const AnnulPurchaseRequest = useMutation<void, ApiErrorResponse, AnnulPurchaseRequestPayload>({
+      mutationKey: ["annul-purchase-request"],
+      mutationFn: (payload: AnnulPurchaseRequestPayload) => purchaseServices.AnnulPurchaseRequest(payload),
+      onSuccess() {
+         queryClient.invalidateQueries({ queryKey: ["get-purchase-requests"] });
+         queryClient.invalidateQueries({ queryKey: ["quotes-analysis"] });
+         queryClient.invalidateQueries({ queryKey: ["requisition-management-reviews"] });
+      },
+      retry: 1
+   });
+
    return {
       GetPurchaseRequests, GetPurchaseRequestDetails,
       CreatePurchaseRequest, UpdatePurchaseRequest, ProcessPurchaseRequest, DeletePurchaseRequest,
       SendPurchaseRequestToReview, GetPurchaseRequestProducts,
       GetPurchaseOrders, GetPurchaseOrderDetails, GetPurchaseOrderDocument,
       GetPurchaseRequestDocument,
+      AnnulPurchaseRequest,
    }
 }

@@ -45,6 +45,7 @@ function AvatarWithTooltip({
 export function getAnalyzedQuotesColumns(
 	onViewDetail?: (row: RequisitionManagementReviewDto) => void,
 	processPurchaseOrder?: (row: RequisitionManagementReviewDto) => void,
+	onAnnul?: (row: RequisitionManagementReviewDto) => void,
 ): TableColumn<RequisitionManagementReviewDto>[] {
 
 	return [
@@ -111,10 +112,16 @@ export function getAnalyzedQuotesColumns(
 					},
 				];
 
-				if (canManageApproval) items.push({
-					label: "Gestionar aprobación",
-					onClick: () => processPurchaseOrder?.(row),
-				})
+				if (canManageApproval) {
+					items.push({
+						label: "Gestionar aprobación",
+						onClick: () => processPurchaseOrder?.(row),
+					});
+					items.push({
+						label: "Anular / Retornar",
+						onClick: () => onAnnul?.(row),
+					});
+				}
 
 				return (
 					<ContextMenu
