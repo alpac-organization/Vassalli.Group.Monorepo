@@ -1,10 +1,7 @@
-import type { CreateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-section-req";
-import type { GetSectionsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-sections-req";
 import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
 import type { GetLotDetailRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-details-req";
 import type { GetRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-racks";
 import type { GetRackDetailRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-rack-detail";
-
 import type { GetLotsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-detail";
 import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
@@ -15,7 +12,6 @@ import { WarehouseAdminServices } from "@app/modules/admin-warehouse/warehouse-m
 import { warehouseHttpHandler } from "@app/core/adapters";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { GetSectionsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
 import { useQuery, useMutation } from "@tanstack/react-query";
 
 const warehouseLayoutServices = new WarehouseAdminServices(
@@ -23,7 +19,6 @@ const warehouseLayoutServices = new WarehouseAdminServices(
 );
 
 interface useWarehouseLayoutProps {
-  getSectionsPayload?: GetSectionsRequest;
   getLotsPayload?: GetLotsRequest;
   getLotDetailPayload?: GetLotDetailRequest;
   getRacksPayload?: GetRacksRequest;
@@ -38,22 +33,13 @@ const hasCompanyContext = (payload?: {
 export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
   const queryClient = useQueryClient();
   const {
-    getSectionsPayload,
     getLotsPayload,
     getLotDetailPayload,
     getRacksPayload,
     getRackDetailPayload,
   } = props || {};
 
-  const GetSections = useQuery<GetSectionsResponse, ApiErrorResponse>({
-    queryKey: ["get-warehouse-sections-records", getSectionsPayload],
-    queryFn: () => warehouseLayoutServices.GetSections(getSectionsPayload!),
-    enabled:
-      hasCompanyContext(getSectionsPayload) &&
-      Boolean(getSectionsPayload?.warehouse_id),
-    refetchOnWindowFocus: false,
-    retry: 1,
-  });
+
   const GetLots = useQuery<GetLotsResponse, ApiErrorResponse>({
     queryKey: ["get-section-lots-records", getLotsPayload],
     queryFn: () => warehouseLayoutServices.GetLots(getLotsPayload!),
@@ -93,21 +79,6 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
     retry: 1,
   });
 
-  const CreateSection = useMutation<
-    void,
-    ApiErrorResponse,
-    CreateSectionRequest
-  >({
-    mutationKey: ["createWarehouseSection"],
-    mutationFn: (payload) => warehouseLayoutServices.CreateSection(payload),
-    retry: 1,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["get-warehouse-sections-records"],
-      });
-    },
-  });
-
   const RegisterLot = useMutation<void, ApiErrorResponse, RegisterLotRequest>({
     mutationKey: ["registerSectionLot"],
     mutationFn: (payload) => warehouseLayoutServices.RegisterLot(payload),
@@ -133,12 +104,10 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
   });
 
   return {
-    GetSections,
     GetLots,
     GetLotById,
     GetRacks,
     GetRackById,
-    CreateSection,
     RegisterLot,
     CreateRacks,
   };
