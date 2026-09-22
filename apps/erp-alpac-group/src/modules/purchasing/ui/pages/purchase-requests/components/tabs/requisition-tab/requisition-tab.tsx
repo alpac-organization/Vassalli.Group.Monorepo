@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button, DataTable, Pagination, type TableColumn } from "@alpac/design-system";
 import { PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
@@ -78,6 +78,16 @@ export const RequisitionTab = ({
 	const totalRecords = GetPurchaseRequests.data?.total ?? 0;
 	const currentPage = filters.page_number ?? 1;
 
+	useEffect(() => {
+		setFilters({
+			company_id: companyId,
+			module_code: moduleCode,
+			...(isAdministrator ? {} : { branch_id: currentBranchId }),
+			request_type: Number(PurchaseRequestEnum.Requisition.value),
+			page_number: 1,
+			page_size: PAGE_SIZE,
+		});
+	}, [currentBranchId, companyId, moduleCode]);
 
 	const getBaseOptions = (row: GetPurchaseRequestResponse): RequisitionContextMenu[] =>
 		[
