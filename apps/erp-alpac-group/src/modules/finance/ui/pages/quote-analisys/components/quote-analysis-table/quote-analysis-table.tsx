@@ -13,12 +13,13 @@ export function QuoteAnalysisTable({
    onRowClick,
    onViewDetail,
    onSendToReview,
+   onAnnul,
    onGeneratePdf,
 }: QuoteAnalysisTableProps) {
 
    const columns = useMemo(
-      () => getQuoteAnalysisColumns(onViewDetail, onSendToReview, onGeneratePdf),
-      [onViewDetail, onSendToReview, onGeneratePdf]
+      () => getQuoteAnalysisColumns(onViewDetail, onSendToReview, onAnnul, onGeneratePdf),
+      [onViewDetail, onSendToReview, onAnnul , onGeneratePdf]
    );
 
    return (

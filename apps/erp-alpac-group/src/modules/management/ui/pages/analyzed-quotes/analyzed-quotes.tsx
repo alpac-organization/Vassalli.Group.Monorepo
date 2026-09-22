@@ -16,6 +16,7 @@ import type { RequisitionManagementReviewDto } from "@app/modules/management/dom
 import type { ProcessPurchaseOrderPayload } from "@app/modules/management/domain/ApiContract/requests/process-purchase-order-payload";
 import type { managementReviewStatusType } from "@app/modules/management/domain/enum/management-review-status";
 import { ProcessPurchaseOrderModal } from "./components/process-purchase-order-modal/process-purchase-order-modal";
+import { AnnulModal } from "@app/shared/components/annul-modal/annul-modal";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 
@@ -40,6 +41,7 @@ export const AnalyzedQuotes = () => {
 	const [appliedBranchId, setAppliedBranchId] = useState("");
 	const [isAnalyzedQuoteDetailModalOpen, setIsAnalyzedQuoteDetailModalOpen] = useState(false);
 	const [isProcessPurchaseOrderModalOpen, setIsProcessPurchaseOrderModalOpen] = useState(false);
+	const [isAnnulModalOpen, setIsAnnulModalOpen] = useState(false);
 	const [selectedReview, setSelectedReview] = useState<RequisitionManagementReviewDto | null>(null);
 
 	const payloadGetRequisitionManagementReviews = useMemo<GetRequisitionManagementReviewsRequest>(
@@ -54,7 +56,7 @@ export const AnalyzedQuotes = () => {
 		[companyId, moduleCode, pageNumber, appliedStatus, appliedAreaId, appliedBranchId],
 	);
 
-	const { GetRequisitionManagementReviews, ProcessPurchaseOrder } = useManagement(
+	const { GetRequisitionManagementReviews, ProcessPurchaseOrder, AnnulManagementReview } = useManagement(
 		{ payloadGetRequisitionManagementReviews }
 	);
 
@@ -118,6 +120,16 @@ export const AnalyzedQuotes = () => {
 		setIsProcessPurchaseOrderModalOpen(true);
 	};
 
+	const openAnnulModal = (row: RequisitionManagementReviewDto) => {
+		setSelectedReview(row);
+		setIsAnnulModalOpen(true);
+	};
+
+	const closeAnnulModal = () => {
+		if (AnnulManagementReview.isPending) return;
+		setIsAnnulModalOpen(false);
+	};
+
 	const handleProcessPurchaseOrder = (payload: ProcessPurchaseOrderPayload) => {
 
 		const reviewId = selectedReview?.purchase_requests_reviewed_management_id;
@@ -136,6 +148,35 @@ export const AnalyzedQuotes = () => {
 					handleRequestError(mappedError.description);
 				},
 			},
+		);
+	};
+
+	const handleAnnulConfirm = (data: { scope: number; reason: string }) => {
+		const reviewId = selectedReview?.purchase_requests_reviewed_management_id;
+		if (!reviewId || !companyId || !moduleCode) return;
+
+		AnnulManagementReview.mutate(
+			{
+				company_id: companyId,
+				module_code: moduleCode,
+				requisition_management_reviews_id: reviewId,
+				scope: data.scope,
+				reason: data.reason,
+			},
+			{
+				onSuccess: () => {
+					setIsAnnulModalOpen(false);
+					handleRequestSuccess(
+						data.scope === 1
+							? "Se retornó la cotización a compras para re-cotizar exitosamente."
+							: "Se anuló el proceso de compra definitivamente."
+					);
+				},
+				onError: (error) => {
+					const mappedError = getMappedError(error);
+					handleRequestError(mappedError.description ?? "Error al anular la revisión gerencial.");
+				},
+			}
 		);
 	};
 
@@ -185,6 +226,7 @@ export const AnalyzedQuotes = () => {
 				isFetching={isFetching}
 				onViewDetail={handleViewDetail}
 				processPurchaseOrder={openProcessPurchaseOrderConfirm}
+				onAnnul={openAnnulModal}
 			/>
 
 			<AnalyzedQuoteDetailModal
@@ -202,6 +244,16 @@ export const AnalyzedQuotes = () => {
 				isSubmitting={ProcessPurchaseOrder.isPending}
 				onClose={closeProcessPurchaseOrderModal}
 				onConfirm={handleProcessPurchaseOrder}
+			/>
+
+			<AnnulModal
+				isOpen={isAnnulModalOpen}
+				title="Anular / Retornar Revisión Gerencial"
+				description="Seleccione si desea retornar la cotización a compras para re-cotizar o anular definitivamente el trámite."
+				showScopeSelection={true}
+				isSubmitting={AnnulManagementReview.isPending}
+				onClose={closeAnnulModal}
+				onConfirm={handleAnnulConfirm}
 			/>
 
 			{AlertComponent}

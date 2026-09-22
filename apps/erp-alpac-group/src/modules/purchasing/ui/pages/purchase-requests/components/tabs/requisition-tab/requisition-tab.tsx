@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { Button, DataTable, Pagination, type TableColumn } from "@alpac/design-system";
 import { PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
@@ -10,22 +10,19 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { CompanyMatadata, type CompanyType } from "@app/core/enums/company.enum";
 import { PurchaseRequestDetailModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/purchase-request-detail-modal";
-import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
+import { AnnulModal } from "@app/shared/components/annul-modal/annul-modal";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { PurchaseRequestFilters } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-filters/purchase-request-filters";
 
 import { type RequisitionContextMenu, type RequisitionTabProps } from "./requisition-tab.types";
-import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { PurchaseRequestFilterForm } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-filters/purchase-request-filters.types";
 import { getPurchaseRequestColumnConfig } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-table-config";
 import { PurchaseRequestReportsModal } from "../../purchase-request-reports-modal/purchase-request-reports-modal";
 import { toYearMonthObject } from "@app/shared/utils/date.utils";
-
-const deleteButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
-const cancelButtonClass = "rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
 const PAGE_SIZE = 5;
+
 
 const allowedStatus: string[] = [
 	PurchaseRequestStatusEnum.Pending.textValue,
@@ -50,10 +47,11 @@ export const RequisitionTab = ({
 	const [isRequisitionModalOpen, setIsRequisitionModalOpen] = useState(false);
 	const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 	const [isRequisitionDetailModalOpen, setIsRequisitionDetailModalOpen] = useState(false);
-	const [isDeleteRequisitionModalOpen, setisDeleteRequisitionModalOpen] = useState(false);
+	const [isAnnulModalOpen, setIsAnnulModalOpen] = useState(false);
 	const [requisitionDetail, setRequisitionDetail] = useState<GetPurchaseRequestResponse | null>(null);
 
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+
 
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
 		company_id: companyId,
@@ -64,7 +62,8 @@ export const RequisitionTab = ({
 		page_size: PAGE_SIZE,
 	});
 
-	const { GetPurchaseRequests, DeletePurchaseRequest } = usePurchase({
+
+	const { GetPurchaseRequests, AnnulPurchaseRequest } = usePurchase({
 		getPurchaseRequestsPayload: {
 			...filters,
 			company_id: companyId,
@@ -79,22 +78,12 @@ export const RequisitionTab = ({
 	const totalRecords = GetPurchaseRequests.data?.total ?? 0;
 	const currentPage = filters.page_number ?? 1;
 
-	useEffect(() => {
-		setFilters({
-			company_id: companyId,
-			module_code: moduleCode,
-			...(isAdministrator ? {} : { branch_id: currentBranchId }),
-			request_type: Number(PurchaseRequestEnum.Requisition.value),
-			page_number: 1,
-			page_size: PAGE_SIZE,
-		});
-	}, [currentBranchId, companyId, moduleCode]);
 
 	const getBaseOptions = (row: GetPurchaseRequestResponse): RequisitionContextMenu[] =>
 		[
 			{ id: "edit", label: "Editar", onClick: () => onEditRequisition(row) },
 			{ id: "viewDatail", label: "Ver detalle", onClick: () => onViewDetails(row) },
-			{ id: "delete", label: "Eliminar", onClick: () => onDeleteRequisition(row) },
+			{ id: "annul", label: "Anular", onClick: () => onAnnulRequisition(row) },
 		];
 
 	const administratorOptions = (row: GetPurchaseRequestResponse): RequisitionContextMenu[] => {
@@ -104,11 +93,15 @@ export const RequisitionTab = ({
 		if (!isAllowedStatus) return [];
 
 		const canModify = row.request_status === PurchaseRequestStatusEnum.Pending.textValue;
+		const canAnnul =
+			row.request_status !== PurchaseRequestStatusEnum.Rejected.textValue &&
+			row.request_status !== PurchaseRequestStatusEnum.Canceled.textValue &&
+			row.request_status !== PurchaseRequestStatusEnum.Finished.textValue;
 
 		const options = getBaseOptions(row)
 			.filter(item =>
 				(item.id === "edit" && canModify) ||
-				(item.id === "delete" && canModify) ||
+				(item.id === "annul" && canAnnul) ||
 				(item.id === "viewDatail")
 			);
 
@@ -120,7 +113,15 @@ export const RequisitionTab = ({
 		const isAllowedStatus = allowedStatus.includes(row.request_status);
 		if (!isAllowedStatus) return [];
 
-		const options = getBaseOptions(row).filter(item => (item.id === "viewDatail"));
+		const canAnnul =
+			row.request_status !== PurchaseRequestStatusEnum.Rejected.textValue &&
+			row.request_status !== PurchaseRequestStatusEnum.Canceled.textValue &&
+			row.request_status !== PurchaseRequestStatusEnum.Finished.textValue;
+
+		const options = getBaseOptions(row).filter(item =>
+			item.id === "viewDatail" ||
+			(item.id === "annul" && canAnnul)
+		);
 
 		return options;
 	}
@@ -130,7 +131,14 @@ export const RequisitionTab = ({
 		const isAllowedStatus = allowedStatus.includes(row.request_status);
 		if (!isAllowedStatus) return [];
 
-		const options = getBaseOptions(row).filter(item => (item.id === "viewDatail"));
+		const canAnnul =
+			row.request_status === PurchaseRequestStatusEnum.Pending.textValue ||
+			row.request_status === PurchaseRequestStatusEnum.Approved.textValue;
+
+		const options = getBaseOptions(row).filter(item =>
+			item.id === "viewDatail" ||
+			(item.id === "annul" && canAnnul)
+		);
 
 		return options;
 	}
@@ -142,7 +150,7 @@ export const RequisitionTab = ({
 	]);
 
 	const contexMenuOptions: ((row: GetPurchaseRequestResponse) => RequisitionContextMenu[]) =
-		mapContextMenuOptions.get(role as RoleEnum)!;
+		mapContextMenuOptions.get(role as RoleEnum) ?? (() => []);
 
 	const handleApplyFilters = (data: PurchaseRequestFilterForm) => {
 		const { year, month } = toYearMonthObject(data.date);
@@ -191,32 +199,34 @@ export const RequisitionTab = ({
 		setIsRequisitionDetailModalOpen(true)
 	};
 
-	const onDeleteRequisition = (data: GetPurchaseRequestResponse) => {
+	const onAnnulRequisition = (data: GetPurchaseRequestResponse) => {
 		setRequisitionDetail(data);
-		setisDeleteRequisitionModalOpen(true)
+		setIsAnnulModalOpen(true);
 	};
 
-	const handleDeleteRequisition = () => {
+	const handleConfirmAnnul = (data: { scope: number; reason: string }) => {
 		const purchaseRequestId = requisitionDetail?.purchase_request_id;
 		if (!purchaseRequestId) return;
 
-		const payload: DeletePurchaseRequestPayload = {
-			company_id: companyId,
-			module_code: moduleCode,
-			purchase_request_id: purchaseRequestId,
-		};
-
-		DeletePurchaseRequest.mutate(payload, {
-			onSuccess() {
-				setisDeleteRequisitionModalOpen(false);
-				setRequisitionDetail(null);
-				onRequestSuccess("Requisición eliminada con éxito.");
+		AnnulPurchaseRequest.mutate(
+			{
+				company_id: companyId,
+				module_code: moduleCode,
+				purchase_request_id: purchaseRequestId,
+				reason: data.reason,
 			},
-			onError(error) {
-				const mappedError = getMappedError(error);
-				onRequestError(mappedError.description);
-			},
-		});
+			{
+				onSuccess() {
+					setIsAnnulModalOpen(false);
+					setRequisitionDetail(null);
+					onRequestSuccess("Solicitud de compra anulada con éxito.");
+				},
+				onError(error) {
+					const mappedError = getMappedError(error);
+					onRequestError(mappedError.description ?? "Error al anular la solicitud de compra.");
+				},
+			}
+		);
 	};
 
 	const columnConfig: TableColumn<GetPurchaseRequestResponse>[] =
@@ -291,23 +301,17 @@ export const RequisitionTab = ({
 				onClose={() => setIsReportModalOpen(false)}
 				onGenerate={onRequestError}
 			/>
-
-			<ConfirmModal
-				type="DELETE"
-				title="¿Está seguro que desea eliminar requisición?"
-				isOpen={isDeleteRequisitionModalOpen}
-				handleFinalAction={(actionType) => {
-					if (actionType === "DELETE") handleDeleteRequisition();
-				}}
+			<AnnulModal
+				isOpen={isAnnulModalOpen}
+				title="Anular Solicitud de Compra"
+				description={`¿Está seguro que desea anular la solicitud de compra ${requisitionDetail?.code ?? ""}? Esta acción es irreversible.`}
+				showScopeSelection={false}
+				isSubmitting={AnnulPurchaseRequest.isPending}
 				onClose={() => {
-					if (DeletePurchaseRequest.isPending) return;
-					setisDeleteRequisitionModalOpen(false);
+					if (AnnulPurchaseRequest.isPending) return;
+					setIsAnnulModalOpen(false);
 				}}
-				buttonActionLabel="Eliminar"
-				buttonActionClass={deleteButtonClass}
-				buttonCancelClass={cancelButtonClass}
-				isLoading={DeletePurchaseRequest.isPending}
-				disabled={DeletePurchaseRequest.isPending}
+				onConfirm={handleConfirmAnnul}
 			/>
 
 		</div>
