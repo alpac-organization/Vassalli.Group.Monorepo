@@ -59,24 +59,6 @@ export function MerchandiseDetailModal({
   const isDucaDocument = detail ? isDucaMerchandiseDocument(detail) : false;
   const showCustomsDeclaration = detail ? !isDucaDocument : false;
 
-  const merchandiseStart = useMemo(() => {
-    const registration = detail?.merchandise_registration;
-    const dateStr = registration?.merchandise_registration_date;
-    const timeStr = registration?.merchandise_registration_time;
-    if (dateStr) {
-      const date = dayjs(dateStr);
-      if (timeStr) {
-        const [hours, minutes, seconds] = timeStr.split(":").map(Number);
-        return date
-          .hour(hours ?? 0)
-          .minute(minutes ?? 0)
-          .second(seconds ?? 0);
-      }
-      return date;
-    }
-    return dayjs();
-  }, [detail]);
-
   const ducats = detail?.duca_registry?.ducats;
 
   const ducatOptions = useMemo<Option[]>(
@@ -541,8 +523,6 @@ export function MerchandiseDetailModal({
         receptionId={detail?.id ?? ""}
         companyId={company_id}
         moduleCode={module_code}
-        initialStartDate={merchandiseStart}
-        initialStartTime={merchandiseStart}
         onClose={() => setViewingDucat(null)}
       />
 

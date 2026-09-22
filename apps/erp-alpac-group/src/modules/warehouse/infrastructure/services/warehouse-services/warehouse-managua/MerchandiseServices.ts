@@ -73,7 +73,7 @@ export class MerchandiseServices implements IMerchandiseServices {
       const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}/ducats/${ducat_id}/detail`;
       const response = await this.httpHandler.post<boolean>(url, {
         ...rest,
-        merchandise_description: rest.product_description?.trim() || undefined,
+        merchandise_description: rest.merchandise_description?.trim() || undefined,
         destination_area_observation:
           rest.destination_area_observation?.trim() || undefined,
         sender: remitente.trim(),

@@ -17,10 +17,14 @@ import type {
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-ducat-detail-form/types/register-ducat-detail-form.types";
 import { CreateServiceOrderModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/create-service-order-modal/create-service-order-modal";
 import { RegisterMerchandiseModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-detail-modal/components/register-merchandise-modal/register-merchandise-modal";
-import { toApiDate } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/mapping-access-control";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import {
+  DucaTypeRecord,
+  resolveDucaTypeKey,
+  resolveDucaTypeValue,
+} from "@app/modules/warehouse/domain/enums/warehouse-managua/duca-type";
 import { baseInputClasses, fieldsGridClasses } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/variants/global-variants";
 
 const labelClassName =
@@ -31,8 +35,7 @@ export function RegisterDucatDetailForm({
   ducat_id,
   company_id,
   module_code,
-  initialStartDate,
-  initialStartTime,
+  type,
 }: RegisterDucatDetailFormProps) {
   const { getMappedError } = useMappedError();
   const {handleCloseAlert,handleRequestError, handleRequestSuccess, handleRequestWarning, AlertComponent } =
@@ -50,6 +53,17 @@ export function RegisterDucatDetailForm({
     [GetMerchandises.data],
   );
 
+  const ducaTypeOptions = useMemo<Option[]>(
+    () =>
+      Object.entries(DucaTypeRecord).map(([key, item]) => ({
+        value: key,
+        label: item.label,
+      })),
+    [],
+  );
+
+  const initialDucaTypeKey = resolveDucaTypeKey(type) || "DUCA_D";
+
   const [openCreateServiceOrderModal, setOpenCreateServiceOrderModal] = useState(false);
   const [openRegisterMerchandiseModal, setOpenRegisterMerchandiseModal] = useState(false);
   const [serviceOrder, setServiceOrder] =
@@ -64,14 +78,13 @@ export function RegisterDucatDetailForm({
     mode: "onSubmit",
     reValidateMode: "onChange",
     defaultValues: {
+      type: initialDucaTypeKey,
       merchandise_id: "",
       total_bultos: "0",
       total_weight: "0",
       product_description: "",
       remitente: "",
       destination_area_observation: "",
-      registered_start_date: initialStartDate,
-      registered_start_time: initialStartTime,
     },
   });
 
@@ -85,6 +98,7 @@ export function RegisterDucatDetailForm({
             );
             return;
           }
+          const now = dayjs();
           CreateDucatRegistryDetail.mutateAsync({
             company_id,
             module_code,
@@ -94,13 +108,12 @@ export function RegisterDucatDetailForm({
             merchandise_id: values.merchandise_id,
             total_bultos: Number(values.total_bultos),
             total_weight: Number(values.total_weight),
-            product_description: values.product_description,
+            merchandise_description: values.product_description,
             remitente: values.remitente,
             destination_area_observation: values.destination_area_observation,
-            registered_start_date: toApiDate(values.registered_start_date) || dayjs().format("YYYY-MM-DD"),
-            registered_start_time: values.registered_start_time
-              ? dayjs(values.registered_start_time as unknown as Date).second(0).format("HH:mm:ss")
-              : dayjs().format("HH:mm:ss"),
+            type: resolveDucaTypeValue(values.type),
+            registered_start_date: now.format("YYYY-MM-DD"),
+            registered_start_time: now.format("HH:mm:ss"),
           })
             .then(() => {
               handleRequestSuccess(
@@ -147,6 +160,28 @@ export function RegisterDucatDetailForm({
                     className="h-[42px]! sm:h-[46px]! w-[42px]! sm:w-[46px]! bg-slate-100! hover:bg-slate-200! dark:bg-[#20242d]! dark:hover:bg-slate-800/80! text-slate-600! dark:text-slate-400! border border-slate-200! dark:border-slate-700! rounded-lg!"
                   />
                 </div>
+              </div>
+            )}
+          />
+          <Controller
+            name="type"
+            control={control}
+            rules={{ required: "El tipo de DUCA es requerido" }}
+            render={({ field }) => (
+              <div className="min-w-0">
+                <Dropdown
+                  appearance="dark"
+                  label="Tipo de DUCA"
+                  labelClassName={labelClassName}
+                  isRequired
+                  placeholder="Seleccione el tipo de DUCA"
+                  options={ducaTypeOptions}
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.type?.message}
+                  errorVariant="text"
+                  className="min-w-0"
+                />
               </div>
             )}
           />
@@ -288,14 +323,13 @@ export function RegisterDucatDetailForm({
             ariaLabel="Restablecer formulario del detalle del DUCA"
             onClick={() => {
               reset({
+                type: initialDucaTypeKey,
                 merchandise_id: "",
                 total_bultos: "0",
                 total_weight: "0",
                 product_description: "",
                 remitente: "",
                 destination_area_observation: "",
-                registered_start_date: initialStartDate,
-                registered_start_time: initialStartTime,
               });
               handleCloseAlert();
             }}

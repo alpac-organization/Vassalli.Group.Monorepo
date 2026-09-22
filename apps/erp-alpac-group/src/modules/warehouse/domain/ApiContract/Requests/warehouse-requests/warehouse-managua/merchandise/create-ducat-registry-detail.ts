@@ -7,9 +7,10 @@ export interface CreateDucatRegistryDetailRequest {
     merchandise_id: string;
     total_bultos: number;
     total_weight: number;
-    product_description?: string;
+    merchandise_description?: string;
     remitente: string;
     destination_area_observation?: string;
+    type?: number;
     registered_start_date?: string;
     registered_start_time?: string;
 }

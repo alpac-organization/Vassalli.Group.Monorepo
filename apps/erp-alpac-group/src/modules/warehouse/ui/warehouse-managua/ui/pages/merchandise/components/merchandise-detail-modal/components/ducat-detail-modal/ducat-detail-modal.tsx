@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Badges, Button, Modal, type DatePickerValue, type TimePickerValue } from "@alpac/design-system";
+import { Badges, Button, Modal } from "@alpac/design-system";
 import { X } from "lucide-react";
 import type { MerchandiseDucatDetailDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/merchandise/get-merchandise-detail";
 import {
@@ -23,8 +23,6 @@ type DucatDetailModalProps = {
   receptionId: string;
   companyId: string;
   moduleCode: string;
-  initialStartDate: DatePickerValue | null;
-  initialStartTime: TimePickerValue | null;
   onClose: () => void;
 };
 
@@ -34,8 +32,6 @@ export function DucatDetailModal({
   receptionId,
   companyId,
   moduleCode,
-  initialStartDate,
-  initialStartTime,
   onClose,
 }: DucatDetailModalProps) {
   const [viewingTextField, setViewingTextField] =
@@ -122,8 +118,7 @@ export function DucatDetailModal({
                   company_id={companyId}
                   module_code={moduleCode}
                   ducatNumber={values.ducatNumber}
-                  initialStartDate={initialStartDate}
-                  initialStartTime={initialStartTime}
+                  type={ducat.type ?? undefined}
                 />
               ) : (
               <div className={`min-w-0 pt-1 sm:pt-2 ${fieldsGridClasses}`}>
