@@ -8,6 +8,7 @@ import type { RequisitionAccountingReviewDetailsDto } from "@app/modules/finance
 import type { GetQuoteAnalysisDetailsRequest } from "@app/modules/finance/domain/ApiContract/requests/quote-analysis-detail";
 import type { AcceptOfferPurchaseRequest } from "@app/modules/finance/domain/ApiContract/requests/accept-offer-purchase";
 import type { SendReviewToManagementRequest } from "@app/modules/finance/domain/ApiContract/requests/send-review-to-management";
+import type { AnnulQuoteAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/annul-quote-analysis";
 
 const quoteAnalysisService = new QuoteAnalysisServices(warehouseHttpHandler);
 
@@ -58,11 +59,23 @@ export const useQuoteAnalysis = (props: UseQuoteAnalysisProps) => {
 			queryClient.invalidateQueries({ queryKey: ["quotes-analysis-details"] });
 		},
 	});
+
+	const AnnulQuoteAnalysis = useMutation<void, ApiErrorResponse, AnnulQuoteAnalysisRequest>({
+		mutationFn: (payload: AnnulQuoteAnalysisRequest) => quoteAnalysisService.annulQuoteAnalysis(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["quotes-analysis"] });
+			queryClient.invalidateQueries({ queryKey: ["quotes-analysis-details"] });
+			queryClient.invalidateQueries({ queryKey: ["get-purchase-request-products"] });
+			queryClient.invalidateQueries({ queryKey: ["purchase-requests"] });
+			queryClient.invalidateQueries({ queryKey: ["get-purchase-requests"] });
+		},
+	});
 	
 	return {
 		GetQuoteAnalysis,
 		GetQuoteAnalysisDetails,
 		AcceptQuotationToPurchase,
 		SendReviewToManagement,
+		AnnulQuoteAnalysis,
 	};
 };

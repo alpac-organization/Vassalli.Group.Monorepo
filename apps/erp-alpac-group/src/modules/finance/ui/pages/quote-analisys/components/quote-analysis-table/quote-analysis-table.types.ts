@@ -10,4 +10,5 @@ export type QuoteAnalysisTableProps = {
   onRowClick?: (row: RequisitionAccountingReviewDto) => void;
   onViewDetail?: (row: RequisitionAccountingReviewDto) => void;
   onSendToReview?: (row: RequisitionAccountingReviewDto) => void;
+  onAnnul?: (row: RequisitionAccountingReviewDto) => void;
 };

@@ -1,6 +1,4 @@
 import {
-	Alert,
-	AnimatedAlertWrapper,
 	Breadcrumb,
 	SectionHeader,
 	Tabs,
@@ -23,13 +21,12 @@ export const PurchaseRequest = () => {
 	const { baseUrl } = useBaseUrl();
 	const { theme } = useTheme();
 	const { urlImage, neutralUrlImage } = useCompanyStore();
-	const { branchId } = useUserStore();
+	const { branchId, companyId } = useUserStore();
 
 	const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
 	const {
-		alertState,
-		handleCloseAlert,
+		AlertComponent,
 		handleRequestError,
 		handleRequestSuccess,
 	} = useAlertState();
@@ -40,7 +37,8 @@ export const PurchaseRequest = () => {
 			label: "Requisiciones",
 			render: () => (
 				<RequisitionTab
-					currentBranchId={branchId!}
+					key={`requisition-${companyId}-${branchId}`}
+					currentBranchId={branchId ?? ""}
 					onRequestError={handleRequestError}
 					onRequestSuccess={handleRequestSuccess}
 				/>
@@ -51,7 +49,8 @@ export const PurchaseRequest = () => {
 			label: "Solicitudes Mensuales",
 			render: () => (
 				<MonthlyMaterialTab
-					currentBranchId={branchId!}
+					key={`monthly-${companyId}-${branchId}`}
+					currentBranchId={branchId ?? ""}
 					onRequestError={handleRequestError}
 					onRequestSuccess={handleRequestSuccess}
 				/>
@@ -62,7 +61,8 @@ export const PurchaseRequest = () => {
 			label: "Solicitudes Eventuales",
 			render: () => (
 				<OccasionalMaterialTab
-					currentBranchId={branchId!}
+					key={`occasional-${companyId}-${branchId}`}
+					currentBranchId={branchId ?? ""}
 					onRequestError={handleRequestError}
 					onRequestSuccess={handleRequestSuccess}
 				/>
@@ -106,14 +106,7 @@ export const PurchaseRequest = () => {
 				<Tabs tabItems={tabs ?? []} activeTab="requisitions" animation="slide" />
 			</div>
 
-			<AnimatedAlertWrapper open={alertState?.open ?? false}>
-				<Alert
-					type={alertState?.type!}
-					title={alertState?.title}
-					message={alertState?.message!}
-					onClose={handleCloseAlert}
-				/>
-			</AnimatedAlertWrapper>
+			{AlertComponent}
 		</m.div>
 	);
 };

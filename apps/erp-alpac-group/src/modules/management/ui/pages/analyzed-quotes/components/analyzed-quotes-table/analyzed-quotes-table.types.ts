@@ -9,4 +9,5 @@ export type AnalyzedQuotesTableProps = {
   isFetching?: boolean;
   onViewDetail?: (row: RequisitionManagementReviewDto) => void;
   processPurchaseOrder?: (row: RequisitionManagementReviewDto) => void;
+  onAnnul?: (row: RequisitionManagementReviewDto) => void;
 };
