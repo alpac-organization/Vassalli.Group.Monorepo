@@ -6,6 +6,12 @@ export interface SectionDto {
   section_type: number | null;
   section_storage_type: number | null;
   is_active: boolean;
+  width: number | null;
+  length: number | null;
+  position_x: number | null;
+  position_y: number | null;
+  position_z: number | null;
+  rotation_y: number | null;
 }
 
 export type GetSectionsResponse = PaginateBaseResponse<SectionDto[]>;

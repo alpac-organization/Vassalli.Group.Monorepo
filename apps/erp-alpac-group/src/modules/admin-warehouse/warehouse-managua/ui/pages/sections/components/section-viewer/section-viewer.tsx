@@ -1,15 +1,12 @@
 import { useState } from "react";
 import { LegendItem } from "@app/shared/components/legend-item/legend-item";
-import { PIXELS_PER_METER, WarehouseViewer } from "../../../warehouses-temp/components/warehouse-viewer/warehouse-viewer";
+import { PIXELS_PER_METER, WarehouseShape } from "../../../warehouses-temp/components/warehouse-shape/warehouse-shape";
 import { SECTION_STATUS_LEGEND } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/section-status-badge";
 import { SectionShape } from "../section-shape/section-shape";
 import type { SectionViewerProps } from "./section-viewer.types";
 
 export const SectionViewer = ({
    className,
-   companyId,
-   moduleCode,
-   warehouseId,
    sections = [],
    selectedSectionId = null,
    onSelectSection,
@@ -23,27 +20,36 @@ export const SectionViewer = ({
       onSelectSection?.(sectionId);
    };
 
+   const width = 37.35;
+   const length = 61.02;
+   const margins = {
+      top: 0.6, bottom: 0.4, left: 0.6, right: 0.6
+   }
+
+   const sectionWidth = (width - (margins.left + margins.right)) / sections.length;
+   const sectionLength = (length - ((margins.top + margins.bottom)));
+
    return (
       <section
          className={`w-full rounded-lg gap-3 p-6 overflow-visible border border-slate-600 hover:border-neutral-600 bg-white dark:bg-[#272b34] ${className}`}
       >
-         <WarehouseViewer
-            width={37.35}
-            length={61.02}
+         <WarehouseShape
+            width={width}
+            length={length}
             marginTop={0.6}
-            marginBottom={0.6}
+            marginBottom={0.4}
             marginLeft={0.6}
             marginRight={0.6}
          >
-            {sections.map((details) => (
+            {sections.map((details, index) => (
                <SectionShape
                   key={details.section_id}
                   id={details.section_id}
                   code={details.section_code}
-                  x={0}
+                  x={index * sectionWidth}
                   y={0}
-                  width={10}
-                  length={10}
+                  width={sectionWidth}
+                  length={sectionLength}
                   rotation={0}
                   status={details.is_active ? "available" : "maintenance"}
                   selected={activeSelectedId === details.section_id}
@@ -51,7 +57,7 @@ export const SectionViewer = ({
                   onSelect={handleSelect}
                />
             ))}
-         </WarehouseViewer>
+         </WarehouseShape>
 
          <div className="flex gap-4 items-center mt-2">
             {SECTION_STATUS_LEGEND.map((item) => (

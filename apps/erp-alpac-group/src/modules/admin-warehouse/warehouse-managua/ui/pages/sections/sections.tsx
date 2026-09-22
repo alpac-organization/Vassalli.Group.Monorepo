@@ -28,6 +28,7 @@ export function SectionsPage() {
 	const { handleRequestError, AlertComponent } = useAlertState();
 	const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
 	const [currentPage, setCurrentPage] = useState(1);
+	const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
 	const { GetSections } = useSection({
 		getSectionsPayload: {
@@ -76,6 +77,10 @@ export function SectionsPage() {
 		[baseUrl, navigate, warehouseId],
 	);
 
+	const handleSelectRow = (section: SectionDto) => {
+		setSelectedSectionId(section.section_id);
+	}
+
 	return (
 		<m.div
 			initial={{ opacity: 0, y: 20 }}
@@ -109,15 +114,14 @@ export function SectionsPage() {
 					onPageChange={setCurrentPage}
 					onViewLots={handleViewLots}
 					onViewRacks={handleViewRacks}
+					onSelectRow={handleSelectRow}
 					isFetching={GetSections.isFetching}
 				/>
 
 				<SectionViewer
 					className="min-h-0 min-w-0 overflow-y-auto"
-					companyId={companyId}
-					moduleCode={moduleCode}
-					warehouseId={warehouseId}
 					sections={sectionsData}
+					selectedSectionId={selectedSectionId}
 				/>
 			</div>
 

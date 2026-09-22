@@ -18,7 +18,7 @@ export const SectionShape = ({
 	pixelsPerMeter = DEFAULT_PIXELS_PER_METER,
 	onSelect,
 }: SectionShapeProps) => {
-	
+
 	const pixelX = x * pixelsPerMeter;
 	const pixelY = y * pixelsPerMeter;
 	const pixelWidth = width * pixelsPerMeter;
@@ -38,7 +38,7 @@ export const SectionShape = ({
 				width={pixelWidth}
 				height={pixelLength}
 				fill={fillColor}
-				opacity={selected ? 0.9 : 0.55}
+				opacity={selected ? 1 : 0.30}
 				stroke={selected ? "#e2e8f0" : "#94a3b8"}
 				strokeWidth={selected ? 2 : 1}
 			/>

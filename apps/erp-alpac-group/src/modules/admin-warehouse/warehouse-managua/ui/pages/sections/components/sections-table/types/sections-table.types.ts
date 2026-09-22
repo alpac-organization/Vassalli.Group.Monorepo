@@ -5,10 +5,11 @@ export type SectionsTableProps = {
   currentPage: number;
   totalRecords: number;
   pageSize: number;
+  isFetching?: boolean;
+  onSelectRow: (section: SectionDto) => void;
   onPageChange: (page: number) => void;
   onViewLots: (section: SectionDto) => void;
   onViewRacks: (section: SectionDto) => void;
-  isFetching?: boolean;
 };
 
 export type SectionsColumnsOptions = {
