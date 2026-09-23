@@ -1,34 +1,33 @@
 import type {
 	BranchInformation,
+	CostCenterInformation,
 	UserInformation,
 	WorkAreaInformation,
 } from "@app/shared/interfaces/organization-information/organization-information";
+import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 
 export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResponse {
 	observations: string | null;
 	reason_rejection: string | null;
-	information_from_requesting_area: WorkAreaInformation;
+	annulment_reason: string | null;
 	creator_user_information: UserInformation;
 	reviewer_user_information: UserInformation | null;
 	branch_information: BranchInformation;
+	information_from_requesting_area: WorkAreaInformation;
+	cost_center_information: CostCenterInformation;
 }
 
-export interface PurchaseRequestProductInformationList {
-	data: PurchaseRequestProductInformation[];
-	page_number: number;
-	page_size: number;
-	total: number;
-}
+export type PurchaseRequestProductInformationList = PaginateBaseResponse<PurchaseRequestProductInformation[]>;
 
 export interface PurchaseRequestProductInformation {
 	has_quotation: boolean;
+	purchase_request_item_id: string;
 	quantity: number;
 	quantity_unit: number | null;
 	description: string | null;
 	justification: string | null;
-	purchase_request_item_id: string;
-	additional_data?: string | null;
+	additional_data: string | null;
 	product_details: PurchaseRequestProductDetails;
 	unit_measure_information: PurchaseRequestUnitMeasureInformation;
 	quotations: PurchaseRequestProductQuotation[];
@@ -47,7 +46,6 @@ export interface PurchaseRequestCategoryInformation {
 }
 
 export interface PurchaseRequestUnitMeasureInformation {
-	unit_measure_id?: string | null;
 	code: string | null;
 	name: string | null;
 	symbol: string | null;
@@ -74,7 +72,6 @@ export interface PurchaseRequestProductQuotation {
 	quote_date: string;
 	brand_product: string | null;
 	delivery_time: number | null;
-	
 	delivery_time_type: string | null;
 	warranty_period: number | null;
 	warranty_period_time_type: string | null;

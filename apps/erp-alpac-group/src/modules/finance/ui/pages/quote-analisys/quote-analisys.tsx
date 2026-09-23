@@ -202,7 +202,6 @@ export function QuoteAnalisys() {
 	);
 
 	const pendingLabel =
-		pendingReview?.purchase_request?.code?.trim() ||
 		pendingReview?.sent_by_user_information?.fullname?.trim() ||
 		"esta solicitud";
 

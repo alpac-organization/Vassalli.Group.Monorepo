@@ -46,7 +46,7 @@ export const PurchaseOrderDetailsModal = ({
 
 	const details = GetPurchaseOrderDetails.data ?? ({} as GetPurchaseOrderDetailsResponse);
 	const purchaseRequest =
-		details.purchase_request_details ?? details.purchase_request;
+		details.purchase_request;
 
 	const purchaseRequestId = purchaseRequest?.purchase_request_id;
 
@@ -214,6 +214,11 @@ export const PurchaseOrderDetailsModal = ({
 								value={purchaseRequest?.creator_user_information?.fullname ?? ""}
 								icon={<UserIcon size={18} />}
 							/>
+							<DetailField
+								label="Centro de costo"
+								value={purchaseRequest?.cost_center_information?.cost_center_name ?? ""}
+								icon={<UserIcon size={18} />}
+							/>
 
 							<DetailField
 								label="Revisor"
@@ -230,7 +235,6 @@ export const PurchaseOrderDetailsModal = ({
 							<DetailField
 								label="Área Solicitante"
 								value={
-									purchaseRequest?.work_area_information?.work_area_name ??
 									requestingArea?.work_area_name ??
 									""
 								}

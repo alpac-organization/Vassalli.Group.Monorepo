@@ -2,29 +2,19 @@ import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { purchaseRequestPdfStyle } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-pdf/styles/purchase-request-pdf.styles";
 
-import type {
-	GetPurchaseRequestDetailResponse,
-	PurchaseRequestProductInformation,
-} from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDate } from "@app/shared/utils/string.utils";
+import type { RequisitionDocumentProps } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-pdf/types/purchase-req-pdf";
 
-const FORM_CODE = "RC-SEG-06";
 const DOCUMENT_TITLE = "REQUISICION DE COMPRAS";
 
-export interface RequisitionDocumentProps {
-	data: GetPurchaseRequestDetailResponse & {
-		products: PurchaseRequestProductInformation[];
-	};
-}
 
 export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
 	const { urlImage } = useCompanyStore();
 	const { companyAlias } = useUserStore();
-
 	const styles = purchaseRequestPdfStyle;
 	const products = data.products ?? [];
-
+	
 	return (
 		<Document>
 			<Page size="LETTER" style={styles.page}>
@@ -36,9 +26,6 @@ export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
 					<View style={styles.headerCenter}>
 						<Text style={styles.companyName}>{companyAlias}</Text>
 						<Text style={styles.documentTitle}>{DOCUMENT_TITLE}</Text>
-					</View>
-					<View style={styles.headerRight}>
-						<Text style={styles.formCode}>{FORM_CODE}</Text>
 					</View>
 				</View>
 

@@ -2,40 +2,35 @@ import type { IQuoteAnalysis } from "@app/modules/finance/Application/interfaces
 import type { IHttpHandler } from "@app/core/ports";
 import type { GetQuotesAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/get-quote-analysis";
 import type { GetRequisitionAccountingReviewsResponse } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
-import { cleanParams } from "@app/shared/utils/object.utils";
 import type { RequisitionAccountingReviewDetailsDto } from "@app/modules/finance/domain/ApiContract/responses/quote-analysis-details";
 import type { GetQuoteAnalysisDetailsRequest } from "@app/modules/finance/domain/ApiContract/requests/quote-analysis-detail";
 import type { AcceptOfferPurchaseRequest } from "@app/modules/finance/domain/ApiContract/requests/accept-offer-purchase";
 import type { SendReviewToManagementRequest } from "@app/modules/finance/domain/ApiContract/requests/send-review-to-management";
 import type { AnnulQuoteAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/annul-quote-analysis";
+import { cleanParams } from "@app/shared/utils/object.utils";
+
 export class QuoteAnalysisServices implements IQuoteAnalysis {
 	private readonly httpClient: IHttpHandler;
+
 	constructor(httpClient: IHttpHandler) {
 		this.httpClient = httpClient;
 	}
 
-	public async GetQuoteAnalysis(payload: GetQuotesAnalysisRequest): Promise<GetRequisitionAccountingReviewsResponse> {
-		const { company_id, module_code, page_number, page_size, status, area_id } = payload;
+	async GetQuoteAnalysis(payload: GetQuotesAnalysisRequest): Promise<GetRequisitionAccountingReviewsResponse> {
+		const { company_id, module_code, ...rest } = payload;
 		const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews`;
-		const response = await this.httpClient.get<GetRequisitionAccountingReviewsResponse>(url, {
-			params: cleanParams({
-				page_number,
-				page_size,
-				status,
-				area_id,
-			}),
+		return this.httpClient.get<GetRequisitionAccountingReviewsResponse>(url, {
+			params: cleanParams(rest),
 		});
-		return response;
 	}
 
-	public async GetQuoteAnalysisDetails(payload: GetQuoteAnalysisDetailsRequest): Promise<RequisitionAccountingReviewDetailsDto> {
+	async GetQuoteAnalysisDetails(payload: GetQuoteAnalysisDetailsRequest): Promise<RequisitionAccountingReviewDetailsDto> {
 		const { company_id, module_code, purchase_requests_reviewed_accounting_id } = payload;
 		const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${purchase_requests_reviewed_accounting_id}`;
-		const response = await this.httpClient.get<RequisitionAccountingReviewDetailsDto>(url);
-		return response;
+		return this.httpClient.get<RequisitionAccountingReviewDetailsDto>(url);
 	}
 
-	public async accceptQuotationToPurchase(payload: AcceptOfferPurchaseRequest): Promise<void> {
+	async accceptQuotationToPurchase(payload: AcceptOfferPurchaseRequest): Promise<void> {
 		const {
 			company_id,
 			module_code,
@@ -52,8 +47,7 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
 		});
 	}
 
-	public async sendReviewToManagement(payload: SendReviewToManagementRequest): Promise<void> {
-
+	async sendReviewToManagement(payload: SendReviewToManagementRequest): Promise<void> {
 		const {
 			company_id,
 			module_code,
@@ -61,15 +55,14 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
 			comments,
 			is_approved,
 		} = payload;
-
 		const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${purchase_requests_reviewed_accounting_id}/send-management-review`;
 		await this.httpClient.post<void>(url, {
-			comments: comments?.trim() ? comments.trim() : null,
+			comments: comments?.trim() || null,
 			is_approved,
 		});
 	}
 
-	public async annulQuoteAnalysis(payload: AnnulQuoteAnalysisRequest): Promise<void> {
+	async annulQuoteAnalysis(payload: AnnulQuoteAnalysisRequest): Promise<void> {
 		const {
 			company_id,
 			module_code,
@@ -77,11 +70,7 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
 			scope,
 			reason,
 		} = payload;
-
 		const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${purchase_requests_reviewed_accounting_id}/annul`;
-		await this.httpClient.post<void>(url, {
-			scope,
-			reason,
-		});
+		await this.httpClient.post<void>(url, { scope, reason });
 	}
 }

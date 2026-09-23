@@ -52,11 +52,6 @@ export function getQuoteAnalysisColumns(
 
 	return [
 		{
-			key: "code",
-			label: "Código de Solicitud",
-			render: (row: RequisitionAccountingReviewDto) => row.purchase_request?.code?.trim() || "—",
-		},
-		{
 			key: "enviado_por",
 			label: "Enviado por",
 			render: (row: RequisitionAccountingReviewDto) => {

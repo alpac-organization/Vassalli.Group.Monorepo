@@ -44,7 +44,7 @@ export const PurchaseOrder = () => {
 		page_size: PAGE_SIZE,
 	});
 
-	const { GetAreasByCompany } = useAreas({ company_id: companyId });
+	const { GetAreasByCompany } = useAreas({ company_id: companyId, module_code: moduleCode });
 	const { GetBranchesQuery } = useCompanies({ company_id: companyId });
 	const { GetPurchaseOrders } = usePurchase({
 		getPurchaseOrdersPayload: {

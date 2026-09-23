@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, DataTable, Pagination, type TableColumn } from "@alpac/design-system";
-import { FileTextIcon, PackagePlusIcon } from "lucide-react";
+import { PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
@@ -20,21 +20,9 @@ import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domai
 import type { PurchaseRequestFilterForm } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-filters/purchase-request-filters.types";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { getPurchaseRequestColumnConfig } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-table-config";
-import { PurchaseRequestReportsModal } from "../../purchase-request-reports-modal/purchase-request-reports-modal";
 import { toYearMonthObject } from "@app/shared/utils/date.utils";
+import { deleteButtonClass, cancelButtonClass, PAGE_SIZE, allowedStatus } from "@app/modules/purchasing/ui/pages/purchase-requests/components/tabs/monthly-materials-tab/constants/purchase-req-status";
 
-const deleteButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
-const cancelButtonClass = "rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
-const PAGE_SIZE = 5;
-
-const allowedStatus: string[] = [
-	PurchaseRequestStatusEnum.Pending.textValue,
-	PurchaseRequestStatusEnum.Approved.textValue,
-	PurchaseRequestStatusEnum.Rejected.textValue,
-	PurchaseRequestStatusEnum.Canceled.textValue,
-	PurchaseRequestStatusEnum.Revision.textValue,
-	PurchaseRequestStatusEnum.Finished.textValue
-];
 
 export const MonthlyMaterialTab = ({
 	currentBranchId,
@@ -51,7 +39,6 @@ export const MonthlyMaterialTab = ({
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 	const [requestDetail, setRequestDetail] = useState<GetPurchaseRequestResponse | null>(null);
 
 	const getDefaultFilters = (): GetPurchaseRequestPayload => ({
@@ -226,19 +213,6 @@ export const MonthlyMaterialTab = ({
 						setIsModalOpen(true);
 					}}
 				/>
-
-				<Button
-					type="button"
-					size="giant"
-					label="Generar reporte"
-					icon={<FileTextIcon size={20} />}
-					className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-					disabled={false}
-					isLoading={false}
-					onClick={() => {
-						setIsReportModalOpen(true);
-					}}
-				/>
 			</div>
 
 			<PurchaseRequestFilters
@@ -284,12 +258,6 @@ export const MonthlyMaterialTab = ({
 				purchaseRequest={requestDetail}
 				onRequestSuccess={onRequestSuccess}
 				onRequestError={onRequestError}
-			/>
-
-			<PurchaseRequestReportsModal
-				isOpen={isReportModalOpen}
-				onClose={() => setIsReportModalOpen(false)}
-				onGenerate={onRequestError}
 			/>
 
 			<ConfirmModal

@@ -19,15 +19,10 @@ export const purchaseRequestConsolidatedPdfStyle = StyleSheet.create({
 		alignItems: "flex-start",
 	},
 	headerCenter: {
-		width: "48%",
+		width: "74%",
 		alignItems: "center",
 		justifyContent: "flex-start",
 		paddingTop: 6,
-	},
-	headerRight: {
-		width: "26%",
-		alignItems: "flex-end",
-		paddingTop: 4,
 	},
 	logo: {
 		width: 64,
@@ -39,11 +34,6 @@ export const purchaseRequestConsolidatedPdfStyle = StyleSheet.create({
 		fontFamily: "Helvetica-Bold",
 		textAlign: "center",
 		letterSpacing: 0.5,
-	},
-	formCode: {
-		fontSize: 11,
-		fontFamily: "Helvetica-Bold",
-		textDecoration: "underline",
 	},
 	documentTitle: {
 		fontSize: 11,
@@ -60,14 +50,14 @@ export const purchaseRequestConsolidatedPdfStyle = StyleSheet.create({
 		paddingHorizontal: 10,
 		marginBottom: 10,
 	},
-	metaLeft: {
+	infoLeft: {
 		width: "55%",
 	},
-	metaRight: {
+	infoRight: {
 		width: "45%",
 		alignItems: "flex-end",
 	},
-	metaLine: {
+	infoLine: {
 		fontSize: 10,
 		marginBottom: 4,
 	},
@@ -111,37 +101,87 @@ export const purchaseRequestConsolidatedPdfStyle = StyleSheet.create({
 	colDelivered: { width: "12%" },
 	colStock: { width: "12%" },
 	colObs: { width: "24%" },
-	signaturesSection: {
+	footerBox: {
+		borderWidth: 1,
+		borderColor: "#000",
+		marginTop: 16,
+		marginBottom: 24,
+	},
+	metaSection: {
 		flexDirection: "row",
-		marginTop: 20,
-		marginBottom: 20,
+		justifyContent: "space-between",
+		paddingVertical: 12,
+		paddingHorizontal: 10,
 	},
-	signaturesLeft: {
-		width: "55%",
-		paddingRight: 12,
+	metaLeft: {
+		width: "52%",
 	},
-	signaturesRight: {
-		width: "45%",
-		paddingLeft: 8,
+	metaRight: {
+		width: "42%",
+		paddingTop: 0,
 	},
-	signatureBlock: {
-		marginBottom: 14,
-	},
-	signatureLabel: {
+	metaLine: {
 		fontSize: 10,
-		marginBottom: 2,
 	},
-	signatureLine: {
+	authLabel: {
+		fontSize: 10,
+	},
+	authLine: {
+		marginTop: 10,
+		marginBottom: 10,
 		borderBottomWidth: 1,
 		borderBottomColor: "#000",
-		marginTop: 12,
-		width: "90%",
+		width: "100%",
+	},
+	receiptDivider: {
+		borderTopWidth: 1,
+		borderTopColor: "#000",
+	},
+	receiptBox: {
+		flexDirection: "row",
+		paddingVertical: 14,
+		paddingHorizontal: 10,
+		minHeight: 70,
+		alignItems: "center",
+	},
+	receiptLeft: {
+		width: "65%",
+		flexDirection: "row",
+		alignItems: "flex-end",
+		paddingRight: 12,
+	},
+	receiptLabel: {
+		fontSize: 10,
+		marginRight: 6,
+	},
+	receiptSignatureLine: {
+		flex: 1,
+		borderBottomWidth: 1,
+		borderBottomColor: "#000",
+		marginBottom: 1,
+	},
+	receiptRight: {
+		width: "35%",
+		paddingLeft: 6,
+	},
+	receiptDateLine: {
+		flexDirection: "row",
+		alignItems: "flex-end",
+		marginBottom: 10,
+	},
+	receiptDateValue: {
+		flex: 1,
+		borderBottomWidth: 1,
+		borderBottomColor: "#000",
+		marginLeft: 4,
+		fontSize: 10,
+		paddingBottom: 1,
+		textAlign: "center",
 	},
 	statusBar: {
 		flexDirection: "row",
 		justifyContent: "space-between",
-		paddingTop: 8,
-		marginTop: "auto",
+		paddingTop: 6,
 	},
 	statusItem: {
 		fontSize: 9,

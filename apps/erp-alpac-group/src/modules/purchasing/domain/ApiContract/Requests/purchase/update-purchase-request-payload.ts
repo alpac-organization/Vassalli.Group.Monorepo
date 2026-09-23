@@ -2,7 +2,7 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
 
 export interface UpdatePurchaseRequestPayload extends BaseRequest {
 	purchase_request_id: string;
-	observations?: string;
+	observations?: string | null;
 	priority_level?: number;
 	destination_request?: number;
 	purchase_request_items?: UpdatePurchaseRequestItem[];

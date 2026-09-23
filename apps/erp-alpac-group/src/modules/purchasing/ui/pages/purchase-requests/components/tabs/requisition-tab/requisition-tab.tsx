@@ -19,7 +19,6 @@ import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { PurchaseRequestFilterForm } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-filters/purchase-request-filters.types";
 import { getPurchaseRequestColumnConfig } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-table-config";
-import { PurchaseRequestReportsModal } from "../../purchase-request-reports-modal/purchase-request-reports-modal";
 import { toYearMonthObject } from "@app/shared/utils/date.utils";
 const PAGE_SIZE = 5;
 
@@ -306,11 +305,6 @@ export const RequisitionTab = ({
 				onRequestError={onRequestError}
 			/>
 
-			<PurchaseRequestReportsModal
-				isOpen={isReportModalOpen}
-				onClose={() => setIsReportModalOpen(false)}
-				onGenerate={onRequestError}
-			/>
 			<AnnulModal
 				isOpen={isAnnulModalOpen}
 				title="Anular Solicitud de Compra"
