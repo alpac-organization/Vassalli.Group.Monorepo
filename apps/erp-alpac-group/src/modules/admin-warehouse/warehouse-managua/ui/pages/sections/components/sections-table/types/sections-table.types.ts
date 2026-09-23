@@ -1,18 +1,26 @@
-import type { SectionResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
+import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
 
 export type SectionsTableProps = {
-  data: SectionResponse[];
+  data: SectionDto[];
   currentPage: number;
   totalRecords: number;
   pageSize: number;
-  onPageChange: (page: number) => void;
-  onViewLots: (section: SectionResponse) => void;
-  onViewRacks: (section: SectionResponse) => void;
   isFetching?: boolean;
+  height?: number | string,
+	minHeight?: number | string, 
+	maxHeight?: number | string,
+  onSelectRow: (section: SectionDto) => void;
+  onPageChange: (page: number) => void;
+  onViewLots: (section: SectionDto) => void;
+  onViewRacks: (section: SectionDto) => void;
+  onUpdateSection: (section: SectionDto) => void;
+  onDeleteSection: (section: SectionDto) => void;
 };
 
 export type SectionsColumnsOptions = {
-  onViewLots: (section: SectionResponse) => void;
-  onViewRacks: (section: SectionResponse) => void;
+  onViewLots: (section: SectionDto) => void;
+  onViewRacks: (section: SectionDto) => void;
+  onUpdateSection: (section: SectionDto) => void;
+  onDeleteSection: (section: SectionDto) => void;
   lastItemId?: string;
 };
