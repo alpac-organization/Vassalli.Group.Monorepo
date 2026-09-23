@@ -45,9 +45,16 @@ function AvatarWithTooltip({
 
 export function getQuoteAnalysisColumns(
 	onViewDetail?: (row: RequisitionAccountingReviewDto) => void,
-	onSendToReview?: (row: RequisitionAccountingReviewDto) => void): TableColumn<RequisitionAccountingReviewDto>[] {
+	onSendToReview?: (row: RequisitionAccountingReviewDto) => void,
+	onAnnul?: (row: RequisitionAccountingReviewDto) => void,
+): TableColumn<RequisitionAccountingReviewDto>[] {
 
 	return [
+		{
+			key: "code",
+			label: "Código de Solicitud",
+			render: (row: RequisitionAccountingReviewDto) => row.purchase_request?.code?.trim() || "—",
+		},
 		{
 			key: "enviado_por",
 			label: "Enviado por",
@@ -109,7 +116,11 @@ export function getQuoteAnalysisColumns(
 					items.push({
 						label: "Enviar a revisión",
 						onClick: () => onSendToReview?.(row),
-					})
+					});
+					items.push({
+						label: "Anular / Retornar",
+						onClick: () => onAnnul?.(row),
+					});
 				}
 
 				return (

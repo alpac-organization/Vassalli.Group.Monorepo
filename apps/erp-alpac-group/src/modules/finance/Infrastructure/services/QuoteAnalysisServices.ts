@@ -7,6 +7,7 @@ import type { RequisitionAccountingReviewDetailsDto } from "@app/modules/finance
 import type { GetQuoteAnalysisDetailsRequest } from "@app/modules/finance/domain/ApiContract/requests/quote-analysis-detail";
 import type { AcceptOfferPurchaseRequest } from "@app/modules/finance/domain/ApiContract/requests/accept-offer-purchase";
 import type { SendReviewToManagementRequest } from "@app/modules/finance/domain/ApiContract/requests/send-review-to-management";
+import type { AnnulQuoteAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/annul-quote-analysis";
 export class QuoteAnalysisServices implements IQuoteAnalysis {
 	private readonly httpClient: IHttpHandler;
 	constructor(httpClient: IHttpHandler) {
@@ -65,6 +66,22 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
 		await this.httpClient.post<void>(url, {
 			comments: comments?.trim() ? comments.trim() : null,
 			is_approved,
+		});
+	}
+
+	public async annulQuoteAnalysis(payload: AnnulQuoteAnalysisRequest): Promise<void> {
+		const {
+			company_id,
+			module_code,
+			purchase_requests_reviewed_accounting_id,
+			scope,
+			reason,
+		} = payload;
+
+		const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${purchase_requests_reviewed_accounting_id}/annul`;
+		await this.httpClient.post<void>(url, {
+			scope,
+			reason,
 		});
 	}
 }

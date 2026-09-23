@@ -12,11 +12,12 @@ export function AnalyzedQuotesTable({
   isFetching = false,
   onViewDetail,
   processPurchaseOrder,
+  onAnnul,
 }: AnalyzedQuotesTableProps) {
 
   const columns = useMemo(
-    () => getAnalyzedQuotesColumns(onViewDetail, processPurchaseOrder),
-    [onViewDetail, processPurchaseOrder],
+    () => getAnalyzedQuotesColumns(onViewDetail, processPurchaseOrder, onAnnul),
+    [onViewDetail, processPurchaseOrder, onAnnul],
   );
 
   return (
