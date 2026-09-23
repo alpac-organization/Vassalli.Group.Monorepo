@@ -1,22 +1,20 @@
-import type { CreateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-section-req";
+import type { RegisterSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/register-section-req";
+import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
 
 export interface SectionModalProps {
-  isOpen: boolean;
-  warehouseId: string;
-  onClose: () => void;
-  onSubmit?: (data: CreateSectionRequest) => void;
+	isOpen: boolean;
+	warehouseId: string;
+	section?: SectionDto | null;
+	onClose: () => void;
+	onSubmit?: (data: RegisterSectionRequest) => void;
 }
 
 export type FormValues = {
-  code: string;
-  name: string;
-  section_type: number;
-  storage_type: number;
-  width_metres?: number;
-  length_metres?: number;
-  overflow: {
-    allows_overflow_storage: boolean;
-    is_overflow_enabled: boolean;
-    max_overflow_polines?: number;
-  };
+	code: string;
+	section_type: number;
+	section_storage_type: number;
+	width_metres: number;
+	length_metres: number;
+	allows_storage_aisle: boolean;
+	maximum_number_of_pallets_per_level?: number | null;
 };

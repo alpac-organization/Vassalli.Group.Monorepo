@@ -1,61 +1,64 @@
 import { useEffect } from "react";
+
 import {
 	Accordion,
-	Alert,
-	AnimatedAlertWrapper,
 	Button,
 	Checkbox,
 	Dropdown,
 	InputText,
 	Modal,
 } from "@alpac/design-system";
-import { AnimatePresence, m } from "framer-motion";
-import { ChevronDown, Layers } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
-import type { SectionModalProps } from "./section-modal.types";
-import {
-	SectionStorageTypeEnum,
-	SectionStorageTypeOptions,
-} from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
-import {
-	SectionTypeEnum,
-	SectionTypeOptions,
-} from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
+
 import {
 	formatAmount,
 	validateDecimalNumber,
 	validateIntegerNumber,
 	validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
-import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
-import { useUserStore } from "@app/shared/stores/useUserStore";
-import { useAlertState } from "@app/shared/hooks/useAlertState";
-import { useMappedError } from "@app/shared/hooks/useMappedError";
+
 import {
 	inputClassName,
 	dropdownClassName,
 	labelClassName,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-modal/utils/style.sections";
-import type { FormValues } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-modal/section-modal.types";
+
 import {
 	parseDecimal,
 	overflowAccordionTransition,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-modal/utils/style.sections";
+
+import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
+import { AnimatePresence, m } from "framer-motion";
+import { ChevronDown, Layers } from "lucide-react";
+import { Controller, useForm } from "react-hook-form";
+import { SectionStorageTypeEnum, SectionStorageTypeOptions } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
+import { SectionTypeEnum, SectionTypeOptions } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
+
+import type { FormValues } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-modal/section-modal.types";
+import type { SectionModalProps } from "./section-modal.types";
 import type { RegisterSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/register-section-req";
+import type { UpdateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/update-section-req";
+import type { GetSectionDetailsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/get-section-details-req";
 
 export const SectionModal = ({
 	isOpen,
 	warehouseId,
+	section = null,
 	onClose,
 	onSubmit,
 }: SectionModalProps) => {
+	const isEdit = section != null;
+
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
 	const {
-		alertState,
 		handleCloseAlert,
 		handleRequestError,
 		handleRequestSuccess,
+		AlertComponent
 	} = useAlertState();
 
 	const {
@@ -64,28 +67,101 @@ export const SectionModal = ({
 		handleSubmit,
 		reset,
 		watch,
+		setValue,
+		clearErrors,
 		formState: { errors },
 	} = useForm<FormValues>({
 		defaultValues: {
+			code: "",
 			section_type: SectionTypeEnum.Storage.value,
-			storage_type: SectionStorageTypeEnum.Empty.value,
-			overflow: {
-				allows_overflow_storage: false,
-				is_overflow_enabled: false,
-			},
+			section_storage_type: SectionStorageTypeEnum.Empty.value,
+			allows_storage_aisle: false,
+			maximum_number_of_pallets_per_level: null,
 		},
 	});
+	
+	let getSectionDetailsPayload: GetSectionDetailsRequest | undefined;
 
-	// const { CreateSection } = useWarehouseAdmin();
+	if (isOpen && section) {
+		getSectionDetailsPayload = {
+			company_id: companyId,
+			module_code: moduleCode,
+			warehouse_id: warehouseId,
+			section_id: section.section_id,
+		};
+	}
+
+	const { RegisterSection, UpdateSection, GetSectionDetails } = useSection({
+		getSectionDetailsPayload,
+	});
 
 	const isAisle = Number(watch("section_type")) === SectionTypeEnum.Aisle.value;
+	const allowsStorageAisle = watch("allows_storage_aisle");
+
+	useEffect(() => {
+		if (!isAisle) {
+			setValue("allows_storage_aisle", false);
+			setValue("maximum_number_of_pallets_per_level", null);
+			clearErrors(["allows_storage_aisle", "maximum_number_of_pallets_per_level"]);
+		}
+	}, [isAisle, setValue, clearErrors]);
+
+	useEffect(() => {
+		if (!allowsStorageAisle) {
+			setValue("maximum_number_of_pallets_per_level", null);
+			clearErrors("maximum_number_of_pallets_per_level");
+		}
+	}, [allowsStorageAisle, setValue, clearErrors]);
+
+	useEffect(() => {
+		if (!isOpen) {
+			reset();
+			return;
+		}
+
+		if (!section) return;
+
+		reset({
+			code: section.section_code ?? "",
+			section_type: section.section_type ?? SectionTypeEnum.Storage.value,
+			section_storage_type:
+				section.section_storage_type ?? SectionStorageTypeEnum.Empty.value,
+			width_metres: undefined,
+			length_metres: undefined,
+			allows_storage_aisle: false,
+			maximum_number_of_pallets_per_level: null,
+		});
+	}, [isOpen, section, reset]);
+
+	useEffect(() => {
+		if (!isEdit || !GetSectionDetails.data?.capacity) return;
+
+		const { capacity, section_code } = GetSectionDetails.data;
+
+		console.log("Revisando respuesta:", GetSectionDetails.data);
+
+		if (section_code != null) {
+			setValue("code", section_code);
+		}
+
+
+		
+		setValue("width_metres", capacity.width);
+		setValue("length_metres", capacity.length);
+	}, [isEdit, GetSectionDetails.data, setValue]);
 
 	const handleCreateSection = (data: FormValues) => {
+
+		const sectionType = Number(data.section_type) || SectionTypeEnum.Storage.value;
+		const isAislePayload = sectionType === SectionTypeEnum.Aisle.value;
+		const allows = isAislePayload && data.allows_storage_aisle === true;
+
 		const sectionTypeOption = Object.values(SectionTypeEnum).find(
 			(option) => option.value === Number(data.section_type),
 		);
+
 		const storageTypeOption = Object.values(SectionStorageTypeEnum).find(
-			(option) => option.value === Number(data.storage_type),
+			(option) => option.value === Number(data.section_storage_type),
 		);
 
 		const payload: RegisterSectionRequest = {
@@ -102,23 +178,50 @@ export const SectionModal = ({
 				: SectionStorageTypeEnum.Empty.value,
 			width: data.width_metres ?? 0,
 			length: data.length_metres ?? 0,
+			allows_storage_aisle: isAislePayload ? allows : null,
+			maximum_number_of_pallets_per_level:
+				allows && data.maximum_number_of_pallets_per_level
+					? Number(data.maximum_number_of_pallets_per_level)
+					: null,
 		};
 
-		/* CreateSection.mutate(payload, {
+		RegisterSection.mutate(payload, {
 			onSuccess() {
 				handleRequestSuccess("Sección registrada exitosamente.");
 				reset();
 				onSubmit?.(payload);
-
-				setTimeout(() => {
-					onClose();
-				}, 2000);
+				onClose();
 			},
 			onError(error) {
 				const mappedError = getMappedError(error);
 				handleRequestError(mappedError.description);
 			},
-		}); */
+		});
+	};
+
+	const handleUpdateSection = (data: FormValues) => {
+		if (!section) return;
+
+		const payload: UpdateSectionRequest = {
+			company_id: companyId,
+			module_code: moduleCode,
+			warehouse_id: warehouseId,
+			section_id: section.section_id,
+			width: data.width_metres ?? 0,
+			length: data.length_metres ?? 0,
+		};
+
+		UpdateSection.mutate(payload, {
+			onSuccess() {
+				handleRequestSuccess("Sección actualizada exitosamente.");
+				reset();
+				onClose();
+			},
+			onError(error) {
+				const mappedError = getMappedError(error);
+				handleRequestError(mappedError.description);
+			},
+		});
 	};
 
 	const handleClose = () => {
@@ -127,43 +230,50 @@ export const SectionModal = ({
 		onClose();
 	};
 
-	useEffect(() => {
-		if (!isOpen) {
-			reset();
-		}
-	}, [isOpen, reset]);
+	const isPending =
+		RegisterSection.isPending ||
+		UpdateSection.isPending ||
+		(isEdit && GetSectionDetails.isFetching);
 
 	return (
 		<Modal
 			isOpen={isOpen}
 			onClose={handleClose}
-			title="Registro de nueva sección"
+			title={isEdit ? "Actualizar sección" : "Registro de nueva sección"}
 			variant="form"
 			size="6xl"
-			description="Complete el registro de la sección del almacén"
+			description={
+				isEdit
+					? "Actualice el ancho y largo de la sección"
+					: "Complete el registro de la sección del almacén"
+			}
 		>
 			<form
 				className="flex flex-col gap-5"
-				onSubmit={handleSubmit(handleCreateSection)}
+				onSubmit={handleSubmit(isEdit ? handleUpdateSection : handleCreateSection)}
 			>
-				<AnimatedAlertWrapper open={alertState?.open ?? false}>
-					<Alert
-						type={alertState?.type!}
-						title={alertState?.title}
-						message={alertState?.message!}
-						onClose={handleCloseAlert}
-					/>
-				</AnimatedAlertWrapper>
+				{AlertComponent}
 
 				<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 					<Controller
 						control={control}
 						name="code"
-						rules={{ required: "El código es requerido" }}
+						rules={
+							isEdit
+								? undefined
+								: {
+									required: "El código es requerido",
+									maxLength: {
+										value: 50,
+										message: "El código no puede superar los 50 caracteres.",
+									},
+								}
+						}
 						render={({ field }) => (
 							<InputText
 								label="Código"
-								isRequired
+								isRequired={!isEdit}
+								disabled={isEdit}
 								className={inputClassName}
 								labelClassName={labelClassName}
 								value={field.value ?? ""}
@@ -175,31 +285,14 @@ export const SectionModal = ({
 
 					<Controller
 						control={control}
-						name="name"
-						rules={{ required: "El nombre es requerido" }}
-						render={({ field }) => (
-							<InputText
-								label="Nombre de la sección"
-								placeholder="Ej. Sección A - Almacenamiento General"
-								isRequired
-								className={inputClassName}
-								labelClassName={labelClassName}
-								value={field.value ?? ""}
-								onChange={field.onChange}
-								error={errors.name?.message}
-							/>
-						)}
-					/>
-
-					<Controller
-						control={control}
 						name="section_type"
-						rules={{ required: "El tipo de sección es requerido" }}
+						rules={isEdit ? undefined : { required: "El tipo de sección es requerido" }}
 						render={({ field }) => (
 							<Dropdown
 								label="Tipo de sección"
 								placeholder="Seleccione..."
-								isRequired
+								isRequired={!isEdit}
+								disabled={isEdit}
 								options={SectionTypeOptions}
 								value={field.value}
 								appearance="dark"
@@ -213,20 +306,43 @@ export const SectionModal = ({
 
 					<Controller
 						control={control}
-						name="storage_type"
-						rules={{ required: "El tipo de almacenamiento es requerido" }}
+						name="section_storage_type"
+						rules={
+							isEdit
+								? undefined
+								: {
+									required: "El tipo de almacenamiento es requerido",
+									validate: (value) => {
+										if (
+											isAisle &&
+											Number(value) === SectionStorageTypeEnum.Racks.value
+										) {
+											return "Una sección de tipo pasillo no admite almacenamiento en racks.";
+										}
+										return true;
+									},
+								}
+						}
 						render={({ field }) => (
 							<Dropdown
 								label="Tipo de almacenamiento"
 								placeholder="Seleccione..."
-								isRequired
-								options={SectionStorageTypeOptions}
+								isRequired={!isEdit}
+								disabled={isEdit}
+								options={
+									isAisle
+										? SectionStorageTypeOptions.filter(
+											(option) =>
+												option.value !== SectionStorageTypeEnum.Racks.value,
+										)
+										: SectionStorageTypeOptions
+								}
 								value={field.value}
 								appearance="dark"
 								className={dropdownClassName}
 								labelClassName={labelClassName}
 								onChange={(val) => field.onChange(val)}
-								error={errors.storage_type?.message}
+								error={errors.section_storage_type?.message}
 							/>
 						)}
 					/>
@@ -281,7 +397,7 @@ export const SectionModal = ({
 				</div>
 
 				<AnimatePresence initial={false}>
-					{isAisle ? (
+					{!isEdit && isAisle ? (
 						<m.div
 							key="overflow-capacity-accordion"
 							initial={{ opacity: 0, y: 10, height: 0 }}
@@ -297,7 +413,7 @@ export const SectionModal = ({
 											className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-300"
 											aria-hidden
 										/>
-										<span>Capacidad de desborde (solo pasillos)</span>
+										<span>Almacenamiento en pasillo</span>
 									</span>
 								}
 								defaultOpen
@@ -309,27 +425,13 @@ export const SectionModal = ({
 								<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 									<Controller
 										control={control}
-										name="overflow.allows_overflow_storage"
+										name="allows_storage_aisle"
 										render={({ field }) => (
 											<Checkbox
-												label="Permite almacenamiento de desborde"
+												label="Permite almacenamiento en pasillo"
 												labelPosition="right"
 												className="text-slate-300!"
-												checked={field.value}
-												onChange={field.onChange}
-											/>
-										)}
-									/>
-
-									<Controller
-										control={control}
-										name="overflow.is_overflow_enabled"
-										render={({ field }) => (
-											<Checkbox
-												label="Desborde habilitado"
-												labelPosition="right"
-												className="text-slate-300!"
-												checked={field.value}
+												checked={field.value ?? false}
 												onChange={field.onChange}
 											/>
 										)}
@@ -340,25 +442,34 @@ export const SectionModal = ({
 										type="text"
 										inputMode="numeric"
 										placeholder="0"
+										disabled={!allowsStorageAisle}
 										className={inputClassName}
 										labelClassName={labelClassName}
-										{...register("overflow.max_overflow_polines", {
+										{...register("maximum_number_of_pallets_per_level", {
 											validate: {
+												requiredWhenAllows: (value) => {
+													if (!allowsStorageAisle) return true;
+													if (value === undefined || value === null) {
+														return "Si el pasillo permite almacenamiento, indique el máximo de polines.";
+													}
+													return true;
+												},
 												validateInteger: (value) =>
 													value === undefined ||
 													value === null ||
 													validateIntegerNumber(value),
-												validatePositive: (value) =>
-													value === undefined ||
-													value === null ||
-													validatePositiveNumber(value, true),
+												validatePositive: (value) => {
+													if (!allowsStorageAisle) return true;
+													if (value === undefined || value === null) return true;
+													return validatePositiveNumber(value);
+												},
 											},
 											setValueAs: parseDecimal,
 											onChange: (evt) => {
 												evt.target.value = formatAmount(evt.target.value, 6, 0);
 											},
 										})}
-										error={errors.overflow?.max_overflow_polines?.message}
+										error={errors?.maximum_number_of_pallets_per_level?.message}
 									/>
 								</div>
 							</Accordion>
@@ -379,9 +490,9 @@ export const SectionModal = ({
 					<Button
 						type="submit"
 						size="giant"
-						label="Guardar"
-						isLoading={false}
-						disabled={false}
+						label={isEdit ? "Actualizar" : "Guardar"}
+						isLoading={isPending}
+						disabled={isPending}
 						className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
 					/>
 				</div>

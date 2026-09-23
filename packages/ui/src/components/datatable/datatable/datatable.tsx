@@ -16,6 +16,9 @@ export function DataTable<T>({
 	onDelete,
 	deleteIcon,
 	deleteText,
+	height,
+	minHeight,
+	maxHeight
 }: DataTableProps<T>): React.ReactElement {
 	const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -31,15 +34,9 @@ export function DataTable<T>({
 
 	return (
 		<div
-			className="w-full 
-            rounded-lg 
-            overflow-visible 
-            border 
-            border-slate-600 
-            hover:border-neutral-600 
-            bg-white 
-            dark:bg-[#272b34]"
-		>
+			className="flex h-full min-h-0 w-full flex-col
+      				rounded-lg border border-slate-600
+      				hover:border-neutral-600 bg-white dark:bg-[#272b34]">
 			{title && (
 				<div className="flex flex-wrap items-center justify-between gap-3 p-6 border-b-2 border-slate-600 dark:border-neutral-600">
 					<h2
@@ -69,7 +66,12 @@ export function DataTable<T>({
 			)}
 
 			{data !== undefined && data.length ? (
-				<div className="overflow-x-auto">
+				<div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto"
+					style={{
+						...(height !== undefined ? { height } : {}),
+						...(minHeight !== undefined ? { minHeight } : {}),
+						...(maxHeight !== undefined ? { maxHeight } : {}),
+					}}>
 					<table className="w-full text-left border-collapse whitespace-nowrap">
 						<thead className="border-b-2 border-slate-600 dark:border-neutral-600">
 							<tr className="dark:bg-[#272b34]">
@@ -104,8 +106,7 @@ export function DataTable<T>({
 								return (
 									<tr
 										key={index}
-										className={`${baseRowClass} ${isSelected ? SELECTED_ROW_BORDER : ""
-											}`}
+										className={`${baseRowClass} ${isSelected ? SELECTED_ROW_BORDER : ""}`}
 										onClick={() => handleRowClick(item, index)}
 										onDoubleClick={() => handleRowDoubleClick(item, index)}
 									>

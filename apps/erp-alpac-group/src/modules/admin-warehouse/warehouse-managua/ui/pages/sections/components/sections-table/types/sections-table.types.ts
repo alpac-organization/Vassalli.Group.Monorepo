@@ -6,14 +6,21 @@ export type SectionsTableProps = {
   totalRecords: number;
   pageSize: number;
   isFetching?: boolean;
+  height?: number | string,
+	minHeight?: number | string, 
+	maxHeight?: number | string,
   onSelectRow: (section: SectionDto) => void;
   onPageChange: (page: number) => void;
   onViewLots: (section: SectionDto) => void;
   onViewRacks: (section: SectionDto) => void;
+  onUpdateSection: (section: SectionDto) => void;
+  onDeleteSection: (section: SectionDto) => void;
 };
 
 export type SectionsColumnsOptions = {
   onViewLots: (section: SectionDto) => void;
   onViewRacks: (section: SectionDto) => void;
+  onUpdateSection: (section: SectionDto) => void;
+  onDeleteSection: (section: SectionDto) => void;
   lastItemId?: string;
 };

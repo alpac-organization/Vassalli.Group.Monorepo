@@ -1,8 +1,10 @@
 import { Stage, Layer, Rect, Group } from "react-konva";
-import { type WarehouseViewerProps } from "./warehouse-shape.types";
+import { type StagePosition, type StageSize, type WarehouseViewerProps } from "./warehouse-shape.types";
 import { HorizontalMetric, METRIC_SIZE, VerticalMetric } from "../metirics/metric";
 import { useEffect, useRef, useState } from "react";
 import { Grid } from "../grid/grid";
+import type Konva from "konva";
+import { CardinalMarker } from "../cardinal-marker/cardinal-marker";
 
 const LEFT_MARGIN = 40;
 
@@ -17,6 +19,7 @@ export const WarehouseShape = ({
    marginLeft = 0,
    marginRight = 0,
 }: WarehouseViewerProps) => {
+
    const warehouseX = METRIC_SIZE;
    const warehouseY = METRIC_SIZE;
 
@@ -32,17 +35,19 @@ export const WarehouseShape = ({
    const usableLengthPx = (length - marginTop - marginBottom) * PIXELS_PER_METER;
 
    const containerRef = useRef<HTMLDivElement>(null);
+
    const [scale, setScale] = useState(1);
-   const [stageWidth, setStageWidth] = useState(0);
-   const [stageLength, setStageLength] = useState(0);
+   const [stageSize, setStageSize] = useState<StageSize>({ width: 0, length: 0 });
+   const [stagePosition, setStagePosition] = useState<StagePosition>({ x: 0, y: 0 });
+
+   const pendingAnimationFrameId = useRef<number>(0);
 
    useEffect(() => {
       const el = containerRef.current;
       if (!el) return;
 
       const update = () => {
-         setStageWidth(el.clientWidth);
-         setStageLength(el.clientHeight);
+         setStageSize({ width: el.clientWidth, length: el.clientHeight });
       };
 
       update();
@@ -52,49 +57,72 @@ export const WarehouseShape = ({
       return () => observer.disconnect();
    }, []);
 
+   const syncStageTransform = (stage: Konva.Stage) => {
+
+      if (pendingAnimationFrameId.current) return;
+
+      pendingAnimationFrameId.current = requestAnimationFrame(() => {
+         pendingAnimationFrameId.current = 0;
+         setStagePosition({ x: stage.x(), y: stage.y() });
+         setScale(stage.scaleX());
+      });
+   };
+
    return (
       <section>
-         <div className="flex justify-between items-center">
-            <h3 className="">Plano de la bodega</h3>
-            <span>Sección seleccionada: SECTION_001</span>
+         <div className="flex lg:justify-between items-center mb-4 flex-wrap">
+            <span className="font-bold">Plano de la bodega</span>
+            <span className="text-sm font-semibold">Sección seleccionada: SECTION_001</span>
          </div>
          <div
             ref={containerRef}
-            className="w-full h-[70vh] max-w-full overflow-auto rounded-sm bg-white dark:bg-[#363a45] p-0"
+            className="w-full h-[50vh] md:landscape:h-[70vh] lg:h-120 lg:max-h-148 max-w-full overflow-auto rounded-lg bg-white dark:bg-[#363a45] p-0"
          >
+
             <Stage
-               width={stageWidth}
-               height={stageLength}
+               width={stageSize.width}
+               height={stageSize.length}
                scaleX={scale}
                scaleY={scale}
                draggable
                className="bg-white dark:bg-[#363a45] p-0 rounded-sm active:cursor-grabbing"
+               onDragMove={(e) => {
+                  const stage = e.target.getStage();
+                  if (stage) syncStageTransform(stage);
+               }}
+               onDragEnd={(e) => {
+                  const stage = e.target.getStage();
+                  if (!stage) return;
+                  setStagePosition({ x: stage.x(), y: stage.y() });
+                  setScale(stage.scaleX());
+               }}
                onWheel={(e) => {
                   e.evt.preventDefault();
-                  const direction = e.evt.deltaY > 0 ? -1 : 1;
 
                   const stage = e.target.getStage();
                   const pointer = stage?.getPointerPosition();
-                  const oldScale = stage?.scaleX();
 
-                  if (pointer && stage && oldScale) {
-                     const mousePointTo = {
-                        x: (pointer.x - stage.x()) / oldScale,
-                        y: (pointer.y - stage.y()) / oldScale,
-                     };
-                     const newScale = Math.min(
-                        3,
-                        Math.max(0.4, scale + direction * 0.1),
-                     );
+                  if (!stage || !pointer) return;
 
-                     stage.scale({ x: newScale, y: newScale });
-                     stage.position({
-                        x: pointer.x - mousePointTo.x * newScale,
-                        y: pointer.y - mousePointTo.y * newScale,
-                     });
+                  const oldScale = stage.scaleX();
+                  const direction = e.evt.deltaY > 0 ? -1 : 1;
+                  const newScale = Math.min(3, Math.max(0.4, oldScale + direction * 0.1));
 
-                     setScale(newScale);
-                  }
+                  const mousePointTo = {
+                     x: (pointer.x - stage.x()) / oldScale,
+                     y: (pointer.y - stage.y()) / oldScale,
+                  };
+
+                  const nextPososition = {
+                     x: pointer.x - mousePointTo.x * newScale,
+                     y: pointer.y - mousePointTo.y * newScale,
+                  };
+
+                  stage.scale({ x: newScale, y: newScale });
+                  stage.position(nextPososition);
+
+                  setScale(newScale);
+                  setStagePosition(nextPososition);
                }}
             >
                <Layer>
@@ -133,15 +161,20 @@ export const WarehouseShape = ({
                   />
 
                   <Grid
-                     width={stageWidth / PIXELS_PER_METER}
-                     length={stageLength / PIXELS_PER_METER}
+                     x={stagePosition.x}
+                     y={stagePosition.y}
+                     width={stageSize.width}
+                     length={stageSize.length}
+                     scale={scale}
                      pixelPerMeter={PIXELS_PER_METER}
                   />
+
+                  <CardinalMarker x={0} y={0} />
 
                   <Group x={originX + usableOffsetX} y={originY + usableOffsetY}>
                      {children ?? null}
                   </Group>
-                  
+
                </Layer>
             </Stage>
          </div>

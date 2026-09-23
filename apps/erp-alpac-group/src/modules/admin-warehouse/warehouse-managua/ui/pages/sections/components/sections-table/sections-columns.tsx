@@ -1,4 +1,4 @@
-import { ContextMenu, type TableColumn } from "@alpac/design-system";
+import { ContextMenu, type ContextMenuItem, type TableColumn } from "@alpac/design-system";
 import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
 import {
 	ActiveStatusBadge,
@@ -16,35 +16,45 @@ function getSectionActionItems(
 	item: SectionDto,
 	onViewLots: SectionsColumnsOptions["onViewLots"],
 	onViewRacks: SectionsColumnsOptions["onViewRacks"],
+	onUpdateSection: SectionsColumnsOptions["onUpdateSection"],
+	onDeleteSection: SectionsColumnsOptions["onDeleteSection"],
 ) {
+
+	let options: ContextMenuItem[] = [];
+
+	const updateSectionOption: ContextMenuItem = {
+		label: "Actualizar",
+		onClick: () => onUpdateSection(item)
+	};
+
+	const deleteSectionOption: ContextMenuItem = {
+		label: "Eliminar",
+		onClick: () => onDeleteSection(item)
+	};
+
 	const storageType = resolveSectionStorageType(
 		item.section_storage_type ?? "",
 	);
 
 	if (storageType?.textValue === SectionStorageTypeEnum.Racks.textValue) {
-		return [
-			{
-				label: "Ver racks",
-				onClick: () => onViewRacks(item),
-			},
-		];
+		options.push({ label: "Ver racks", onClick: () => onViewRacks(item) });		
 	}
 
 	if (storageType?.textValue === SectionStorageTypeEnum.Lots.textValue) {
-		return [
-			{
-				label: "Ver tramos",
-				onClick: () => onViewLots(item),
-			},
-		];
+		options.push({ label: "Ver tramos", onClick: () => onViewLots(item) });		
 	}
 
-	return [];
+	options.push(updateSectionOption);
+	options.push(deleteSectionOption);
+
+	return options;
 }
 
 export function getSectionsColumns({
 	onViewLots,
 	onViewRacks,
+	onUpdateSection,
+	onDeleteSection,
 	lastItemId,
 }: SectionsColumnsOptions): TableColumn<SectionDto>[] {
 	return [
@@ -52,11 +62,6 @@ export function getSectionsColumns({
 			key: "section_code",
 			label: "Código",
 			render: (item) => item.section_code || "—",
-		},
-		{
-			key: "section_status",
-			label: "Estado",
-			render: () => "Estado",
 		},
 		{
 			key: "section_type",
@@ -84,7 +89,13 @@ export function getSectionsColumns({
 			key: "action",
 			label: "Acciones",
 			render: (item) => {
-				const items = getSectionActionItems(item, onViewLots, onViewRacks);
+				const items = getSectionActionItems(
+					item,
+					onViewLots,
+					onViewRacks,
+					onUpdateSection,
+					onDeleteSection,
+				);
 
 				return (
 					<ContextMenu

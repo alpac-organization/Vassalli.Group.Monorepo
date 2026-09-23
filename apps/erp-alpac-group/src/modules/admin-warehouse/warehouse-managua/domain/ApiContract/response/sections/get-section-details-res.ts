@@ -1,3 +1,6 @@
+import type { SectionStorageTypeValue } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
+import type { SectionTypeValue } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
+
 export interface SectionCapacityDto {
   section_capacity_id: string;
   width: number;
@@ -29,6 +32,8 @@ export interface GetSectionDetailsResponse {
   section_id: string;
   section_code: string | null;
   is_active: boolean;
+  section_type: SectionTypeValue;
+  section_storage_type: SectionStorageTypeValue;
   capacity: SectionCapacityDto;
   coordinates: SectionCoordinatesDto;
   warehouse: WarehouseSummaryDto;

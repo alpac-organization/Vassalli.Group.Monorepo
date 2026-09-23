@@ -9,3 +9,21 @@ export interface WarehouseViewerProps {
    marginRight?: number;
    children?: ReactNode;
 }
+
+export interface StagePosition {
+   x: number;
+   y: number;
+}
+
+export interface StageSize {
+   width: number;
+   length: number;
+}
+
+export interface VisibleViewport {
+   viewX: number;
+   viewY: number;
+   viewW: number;
+   viewH: number;
+   scale: number;
+}

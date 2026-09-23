@@ -9,17 +9,29 @@ export function SectionsTable({
 	currentPage,
 	totalRecords,
 	pageSize,
+	height,
+	minHeight,
+	maxHeight,
+	isFetching = false,
 	onPageChange,
 	onViewLots,
 	onViewRacks,
 	onSelectRow,
-	isFetching = false,
+	onUpdateSection,
+	onDeleteSection,
 }: SectionsTableProps) {
 	const lastItemId = data.at(-1)?.section_id;
 
 	const columns = useMemo(
-		() => getSectionsColumns({ onViewLots, onViewRacks, lastItemId }),
-		[onViewLots, onViewRacks, lastItemId],
+		() =>
+			getSectionsColumns({
+				onViewLots,
+				onViewRacks,
+				onUpdateSection,
+				onDeleteSection,
+				lastItemId,
+			}),
+		[onViewLots, onViewRacks, onUpdateSection, onDeleteSection, lastItemId],
 	);
 
 	const handleRowClick = (row: SectionDto) => {
@@ -27,23 +39,24 @@ export function SectionsTable({
 	}
 
 	return (
-		<div className="flex flex-col min-w-0 w-full overflow-x-auto">
-			<DataTable
-				title="Lista de secciones"
-				data={data}
-				columns={columns}
-				onRowClick={handleRowClick}
-				
-				pagination={
-					<Pagination
-						currentPage={currentPage}
-						pageSize={pageSize}
-						totalRecords={totalRecords}
-						onPageChange={onPageChange}
-						disabled={isFetching || totalRecords === 0}
-					/>
-				}
-			/>
-		</div>
+		<DataTable
+			title="Lista de secciones"
+			data={data}
+			columns={columns}
+			onRowClick={handleRowClick}
+			height={height}
+			minHeight={minHeight}
+			maxHeight={maxHeight}
+			pagination={
+				<Pagination
+					currentPage={currentPage}
+					pageSize={pageSize}
+					totalRecords={totalRecords}
+					onPageChange={onPageChange}
+					disabled={isFetching || totalRecords === 0}
+				/>
+			}
+		/>
+
 	);
 }

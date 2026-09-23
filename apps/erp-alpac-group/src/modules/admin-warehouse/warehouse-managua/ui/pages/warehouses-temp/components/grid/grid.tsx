@@ -1,71 +1,69 @@
-import { Line, Shape } from "react-konva";
+import { Shape } from "react-konva";
 import type { GridProps } from "./grid.types";
+import type { VisibleViewport } from "../warehouse-shape/warehouse-shape.types";
 
-export const Grid = ({ width, length, step = 1, pixelPerMeter }: GridProps) => {
-   // const verticalLines = [];
-   // const horizontalLines = [];
+function getVisibleViewport(
+	x: number,
+	y: number,
+	width: number,
+	length: number,
+	scale: number,
+): VisibleViewport {
 
-   const widthPx = width * pixelPerMeter;
-   const lengthPx = length * pixelPerMeter;
+	const safeScale = scale > 0 ? scale : 1;
 
-   /* for (let x = 0; x <= width; x += step) {
-     verticalLines.push(
-       <Line
-         key={`v-${x}`}
-         points={[x * pixelPerMeter, 0, x * pixelPerMeter, lengthPx]}
-         stroke="#0751ba"
-         strokeWidth={1}
-         opacity={0.35}
-         listening={false}
-       />,
-     );
-   }
- 
-   for (let y = 0; y <= length; y += step) {
-     horizontalLines.push(
-       <Line
-         key={`h-${y}`}
-         points={[0, y * pixelPerMeter, widthPx, y * pixelPerMeter]}
-         stroke="#0751ba"
-         strokeWidth={1}
-         opacity={0.35}
-         listening={false}
-       />,
-     );
-   } */
+	return {
+		viewX: -x / safeScale,
+		viewY: -y / safeScale,
+		viewW: width / safeScale,
+		viewH: length / safeScale,
+		scale: safeScale,
+	};
+}
 
-   /* return (
-     <>
-       {verticalLines}
-       {horizontalLines}
-     </>
-   ); */
+export const Grid = ({
+	x,
+	y,
+	width,
+	length,
+	step = 1,
+	scale,
+	pixelPerMeter }: GridProps) => {
 
-   return (
-      <Shape
-         listening={false}
-         perfectDrawEnabled={false}
-         sceneFunc={
-            (ctx, shape) => {
-               const step = 12; // px en coords del layer
-               
-               const startX = Math.floor(viewX / step) * step;
-               const startY = Math.floor(viewY / step) * step;
-               ctx.beginPath();
-               for (let x = startX; x < viewX + viewW; x += step) {
-                  ctx.moveTo(x, viewY);
-                  ctx.lineTo(x, viewY + viewH);
-               }
-               for (let y = startY; y < viewY + viewH; y += step) {
-                  ctx.moveTo(viewX, y);
-                  ctx.lineTo(viewX + viewW, y);
-               }
-               ctx.strokeStyle = "rgba(7, 81, 186, 0.35)";
-               ctx.lineWidth = 1 / scale;
-               ctx.stroke();
-            }}
-      >
+	let pixelStep = step * pixelPerMeter;
 
-      </Shape>
-   );
+	const { viewX, viewY, viewW, viewH, scale: safeScale } = getVisibleViewport(x, y, width, length, scale);
+
+	// Zoom out extremo: menos líneas
+	const MAX_LINES = 120;
+	while (viewW / pixelStep > MAX_LINES || viewH / pixelStep > MAX_LINES) {
+		pixelStep *= 2;
+	}
+
+	const pad = pixelStep * 2;
+	const startX = Math.floor((viewX - pad) / pixelStep) * pixelStep;
+	const endX = viewX + viewW + pad;
+	const startY = Math.floor((viewY - pad) / pixelStep) * pixelStep;
+	const endY = viewY + viewH + pad;
+
+	return (
+		<Shape
+			listening={false}
+			perfectDrawEnabled={false}
+			sceneFunc={(ctx) => {
+				ctx.beginPath();
+				for (let x = startX; x <= endX; x += pixelStep) {
+					ctx.moveTo(x, startY);
+					ctx.lineTo(x, endY);
+				}
+				for (let y = startY; y <= endY; y += pixelStep) {
+					ctx.moveTo(startX, y);
+					ctx.lineTo(endX, y);
+				}
+				ctx.strokeStyle = "rgba(75, 85, 99, 0.50)";
+				ctx.lineWidth = 1 / safeScale;
+				ctx.stroke();
+			}}
+		/>
+	);
 };

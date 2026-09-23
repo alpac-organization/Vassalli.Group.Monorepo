@@ -7,4 +7,6 @@ export interface RegisterSectionRequest extends BaseRequest {
   section_storage_type: number;
   width: number;
   length: number;
+  allows_storage_aisle?: boolean | null;
+  maximum_number_of_pallets_per_level?: number | null;
 }

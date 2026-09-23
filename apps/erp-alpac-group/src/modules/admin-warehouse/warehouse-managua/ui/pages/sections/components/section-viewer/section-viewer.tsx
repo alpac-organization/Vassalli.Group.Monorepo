@@ -50,7 +50,7 @@ export const SectionViewer = ({
                   y={0}
                   width={sectionWidth}
                   length={sectionLength}
-                  rotation={0}
+                  rotation={0}                  
                   status={details.is_active ? "available" : "maintenance"}
                   selected={activeSelectedId === details.section_id}
                   pixelsPerMeter={PIXELS_PER_METER}
@@ -59,7 +59,7 @@ export const SectionViewer = ({
             ))}
          </WarehouseShape>
 
-         <div className="flex gap-4 items-center mt-2">
+         <div className="flex gap-x-4 gap-y-1 items-center mt-2 flex-wrap">
             {SECTION_STATUS_LEGEND.map((item) => (
                <LegendItem key={item.text} text={item.text} color={item.color} />
             ))}
