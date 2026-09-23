@@ -1,7 +1,7 @@
 import { Arrow, Group, Text } from "react-konva";
 import { CardinalRotation, type CardinalMarkerProps } from "./cardinal-market.types";
 
-export const CardinalMarker = ({ x, y, cardinality = 'S' , size = 60 }: CardinalMarkerProps) => {
+export const CardinalMarker = ({ x, y, cardinality = 'S' , size = 50 }: CardinalMarkerProps) => {
 
    return (
       <Group x={x} y={y} rotation={CardinalRotation[cardinality]}>
