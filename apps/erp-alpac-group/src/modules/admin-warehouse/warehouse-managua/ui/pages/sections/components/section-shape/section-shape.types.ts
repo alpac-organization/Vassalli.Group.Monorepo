@@ -1,3 +1,6 @@
+import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
+import type { SectionMenuState } from "./components/section-shape-menu/section-shape-menu.types";
+
 export type SectionShapeStatus =
   | "available"
   | "occupied"
@@ -5,11 +8,8 @@ export type SectionShapeStatus =
   | "reserved";
 
 export interface SectionShapeProps {
-  /** Identificador de la sección (para key / selección). */
-  id: string;
-
-  /** Código visible en el plano (ej. SECTION_001). */
-  code?: string | null;
+  
+  section: SectionDto;
 
   /** Posición X en metros (relativa al origen de la bodega). */
   x: number;
@@ -36,5 +36,12 @@ export interface SectionShapeProps {
   /** Escala px/m. Por defecto 10, igual que WarehouseViewer. */
   pixelsPerMeter?: number;
 
-  onSelect?: (id: string) => void;
+  draggable?: boolean;
+  resizable?: boolean;
+
+  onSelect?: (section: SectionDto) => void;
+  onContextMenu?: (menu: SectionMenuState) => void;
+  onPositionChange?: (id: string, x: number, y: number) => void;
+  onResizeChange?: (id: string, width: number, length: number) => void;
+  // onResizePreview?: (id: string, width: number, length: number) => void;
 }

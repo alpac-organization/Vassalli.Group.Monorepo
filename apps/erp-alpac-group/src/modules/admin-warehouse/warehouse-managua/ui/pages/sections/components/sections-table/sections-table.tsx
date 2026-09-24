@@ -1,7 +1,7 @@
 import { DataTable, Pagination } from "@alpac/design-system";
 import { useMemo } from "react";
 import { getSectionsColumns } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-table/sections-columns";
-import type { SectionsTableProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-table/types/sections-table.types";
+import type { SectionsTableProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-table/sections-table.types";
 import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
 
 export function SectionsTable({
@@ -18,7 +18,7 @@ export function SectionsTable({
 	onViewRacks,
 	onSelectRow,
 	onUpdateSection,
-	onDeleteSection,
+	onDeleteSection,	
 }: SectionsTableProps) {
 	const lastItemId = data.at(-1)?.section_id;
 
@@ -28,10 +28,14 @@ export function SectionsTable({
 				onViewLots,
 				onViewRacks,
 				onUpdateSection,
-				onDeleteSection,
+				onDeleteSection,				
 				lastItemId,
 			}),
-		[onViewLots, onViewRacks, onUpdateSection, onDeleteSection, lastItemId],
+		[
+			onViewLots, onViewRacks,
+			onUpdateSection, onDeleteSection,			
+			lastItemId
+		],
 	);
 
 	const handleRowClick = (row: SectionDto) => {

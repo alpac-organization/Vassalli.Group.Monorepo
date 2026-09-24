@@ -5,7 +5,7 @@ import {
 	SectionStorageTypeBadge,
 	SectionTypeBadge,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-warehouses-badges";
-import type { SectionsColumnsOptions } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-table/types/sections-table.types";
+import type { SectionsColumnsOptions } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-table/sections-table.types";
 import { SectionStorageTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
 import { resolveSectionStorageType } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/section-status-badge";
 

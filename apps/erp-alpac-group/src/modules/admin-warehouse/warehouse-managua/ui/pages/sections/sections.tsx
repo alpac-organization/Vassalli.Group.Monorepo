@@ -181,7 +181,7 @@ export function SectionsPage() {
 					onViewRacks={handleViewRacks}
 					onSelectRow={handleSelectRow}
 					onUpdateSection={handleUpdateSection}
-					onDeleteSection={handleDeleteSection}
+					onDeleteSection={handleDeleteSection}					
 					isFetching={GetSections.isFetching}
 					height={"100%"}
 					minHeight={"300px"}

@@ -1,5 +1,5 @@
 import { Stage, Layer, Rect, Group } from "react-konva";
-import { type StagePosition, type StageSize, type WarehouseViewerProps } from "./warehouse-shape.types";
+import { type Position, type Size, type WarehouseViewerProps } from "./warehouse-shape.types";
 import { HorizontalMetric, METRIC_SIZE, VerticalMetric } from "../metirics/metric";
 import { useEffect, useRef, useState } from "react";
 import { Grid } from "../grid/grid";
@@ -13,6 +13,7 @@ export const PIXELS_PER_METER = 12;
 export const WarehouseShape = ({
    width,
    length,
+   draggable,
    children,
    marginTop = 0,
    marginBottom = 0,
@@ -37,8 +38,8 @@ export const WarehouseShape = ({
    const containerRef = useRef<HTMLDivElement>(null);
 
    const [scale, setScale] = useState(1);
-   const [stageSize, setStageSize] = useState<StageSize>({ width: 0, length: 0 });
-   const [stagePosition, setStagePosition] = useState<StagePosition>({ x: 0, y: 0 });
+   const [stageSize, setStageSize] = useState<Size>({ width: 0, length: 0 });
+   const [stagePosition, setStagePosition] = useState<Position>({ x: 0, y: 0 });
 
    const pendingAnimationFrameId = useRef<number>(0);
 
@@ -70,13 +71,10 @@ export const WarehouseShape = ({
 
    return (
       <section>
-         <div className="flex lg:justify-between items-center mb-4 flex-wrap">
-            <span className="font-bold">Plano de la bodega</span>
-            <span className="text-sm font-semibold">Sección seleccionada: SECTION_001</span>
-         </div>
+         
          <div
             ref={containerRef}
-            className="w-full h-[50vh] md:landscape:h-[70vh] lg:h-120 lg:max-h-148 max-w-full overflow-auto rounded-lg bg-white dark:bg-[#363a45] p-0"
+            className="w-full h-[50vh] md:landscape:h-[70vh] lg:h-120 lg:max-h-144 max-w-full overflow-auto rounded-lg bg-white dark:bg-[#363a45] p-0"
          >
 
             <Stage
@@ -84,7 +82,7 @@ export const WarehouseShape = ({
                height={stageSize.length}
                scaleX={scale}
                scaleY={scale}
-               draggable
+               draggable={draggable}
                className="bg-white dark:bg-[#363a45] p-0 rounded-sm active:cursor-grabbing"
                onDragMove={(e) => {
                   const stage = e.target.getStage();

@@ -7,15 +7,16 @@ export interface WarehouseViewerProps {
    marginBottom?: number;
    marginLeft?: number;
    marginRight?: number;
+   draggable?: boolean;
    children?: ReactNode;
 }
 
-export interface StagePosition {
+export interface Position {
    x: number;
    y: number;
 }
 
-export interface StageSize {
+export interface Size {
    width: number;
    length: number;
 }
