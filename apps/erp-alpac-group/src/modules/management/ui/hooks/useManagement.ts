@@ -7,6 +7,7 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { GetRequisitionManagementReviewDetailRequest } from "../../domain/ApiContract/requests/get-requisition-management-review-detail";
 import type { RequisitionManagementReviewDetailsRequest } from "@app/modules/management/domain/ApiContract/responses/get-requisition-management-review-detail";
 import type { ProcessPurchaseOrderPayload } from "../../domain/ApiContract/requests/process-purchase-order-payload";
+import type { AnnulManagementReviewRequest } from "@app/modules/management/domain/ApiContract/requests/annul-management-review";
 
 const managementServices = new ManagementServices(warehouseHttpHandler);
 
@@ -52,6 +53,7 @@ export const useManagement = (props?: UseManagementProps) => {
         refetchOnWindowFocus: false,
         retry: 1,
     });
+
     const ProcessPurchaseOrder = useMutation<void, ApiErrorResponse, ProcessPurchaseOrderPayload>({
         mutationKey: ["process-purchase-order"],
         mutationFn: (payload: ProcessPurchaseOrderPayload) => managementServices.ProcessPurchaseOrder(payload),
@@ -62,9 +64,23 @@ export const useManagement = (props?: UseManagementProps) => {
         retry: 1
     });
 
+    const AnnulManagementReview = useMutation<void, ApiErrorResponse, AnnulManagementReviewRequest>({
+        mutationKey: ["annul-management-review"],
+        mutationFn: (payload: AnnulManagementReviewRequest) => managementServices.annulManagementReview(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["requisition-management-reviews"] });
+            queryClient.invalidateQueries({ queryKey: ["quotes-analysis"] });
+            queryClient.invalidateQueries({ queryKey: ["purchase-requests"] });
+            queryClient.invalidateQueries({ queryKey: ["get-purchase-requests"] });
+            queryClient.invalidateQueries({ queryKey: ["get-purchase-request-products"] });
+        },
+        retry: 1,
+    });
+
     return {
         GetRequisitionManagementReviews,
         GetRequisitionManagementReviewDetails,
         ProcessPurchaseOrder,
+        AnnulManagementReview,
     };
 };

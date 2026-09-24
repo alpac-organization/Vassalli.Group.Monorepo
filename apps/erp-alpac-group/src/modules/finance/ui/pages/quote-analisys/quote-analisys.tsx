@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { m } from "framer-motion";
-import { Alert, AnimatedAlertWrapper, Breadcrumb } from "@alpac/design-system";
+import { Breadcrumb } from "@alpac/design-system";
 import { useNavigate } from "react-router-dom";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -13,6 +13,7 @@ import type { GetQuotesAnalysisRequest } from "@app/modules/finance/domain/ApiCo
 import type { RequisitionAccountingReviewDto } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
 import type { QuoteAnalysisFiltersValues } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-filters/types/quote-analysis-filters.types";
 import type { SendReviewModalConfirmPayload } from "@app/modules/finance/ui/pages/quote-analisys/components/send-review-modal/send-review-modal.types";
+import { AnnulModal } from "@app/shared/components/annul-modal/annul-modal";
 import { QuoteAnalysisFilters } from "./components/quote-analysis-filters/quote-analysis-filters";
 import { QuoteAnalysisTable } from "./components/quote-analysis-table/quote-analysis-table";
 import { SendReviewModal } from "./components/send-review-modal/send-review-modal";
@@ -30,7 +31,9 @@ export function QuoteAnalisys() {
 	const [appliedAreaId, setAppliedAreaId] = useState("");
 	const [pendingReview, setPendingReview] =
 		useState<RequisitionAccountingReviewDto | null>(null);
-	const { alertState, handleCloseAlert, handleRequestSuccess, handleRequestError } =
+	const [annulTarget, setAnnulTarget] =
+		useState<RequisitionAccountingReviewDto | null>(null);
+	const { AlertComponent, handleRequestSuccess, handleRequestError } =
 		useAlertState();
 
 	const payloadGetQuoteAnalysis = useMemo<GetQuotesAnalysisRequest>(
@@ -45,7 +48,7 @@ export function QuoteAnalisys() {
 		[companyId, moduleCode, pageNumber, appliedStatus, appliedAreaId],
 	);
 
-	const { GetQuoteAnalysis, SendReviewToManagement } = useQuoteAnalysis({
+	const { GetQuoteAnalysis, SendReviewToManagement, AnnulQuoteAnalysis } = useQuoteAnalysis({
 		payloadGetQuoteAnalysis,
 	});
 
@@ -88,10 +91,19 @@ export function QuoteAnalisys() {
 		setPendingReview(row);
 	}, []);
 
+	const handleAnnulReview = useCallback((row: RequisitionAccountingReviewDto) => {
+		setAnnulTarget(row);
+	}, []);
+
 	const handleCloseSendModal = useCallback(() => {
 		if (SendReviewToManagement.isPending) return;
 		setPendingReview(null);
 	}, [SendReviewToManagement.isPending]);
+
+	const handleCloseAnnulModal = useCallback(() => {
+		if (AnnulQuoteAnalysis.isPending) return;
+		setAnnulTarget(null);
+	}, [AnnulQuoteAnalysis.isPending]);
 
 	const handleConfirmSendToReview = useCallback(
 		(payload: SendReviewModalConfirmPayload) => {
@@ -120,11 +132,51 @@ export function QuoteAnalisys() {
 		[
 			SendReviewToManagement,
 			companyId,
+			getMappedError,
 			handleRequestSuccess,
 			handleRequestError,
 			moduleCode,
 			pendingReview,
 		],
+	);
+
+	const handleConfirmAnnul = useCallback(
+		(data: { scope: number; reason: string }) => {
+			if (!annulTarget || !companyId || !moduleCode) return;
+
+			AnnulQuoteAnalysis.mutate(
+				{
+					company_id: companyId,
+					module_code: moduleCode,
+					purchase_requests_reviewed_accounting_id: annulTarget.purchase_requests_reviewed_accounting_id,
+					scope: data.scope,
+					reason: data.reason,
+				},
+				{
+					onSuccess: () => {
+						setAnnulTarget(null);
+						handleRequestSuccess(
+							data.scope === 1
+								? "Se retornó la solicitud a compras para re-cotizar exitosamente."
+								: "Se anuló el proceso de compra definitivamente."
+						);
+					},
+					onError: (error) => {
+						const errorMessage = getMappedError(error);
+						handleRequestError(errorMessage.description ?? "Error al anular la revisión contable.");
+					},
+				}
+			);
+		},
+		[
+			AnnulQuoteAnalysis,
+			annulTarget,
+			companyId,
+			getMappedError,
+			handleRequestError,
+			handleRequestSuccess,
+			moduleCode,
+		]
 	);
 
 	const pendingLabel =
@@ -178,6 +230,7 @@ export function QuoteAnalisys() {
 				isFetching={isFetching}
 				onViewDetail={handleViewDetail}
 				onSendToReview={handleSendToReview}
+				onAnnul={handleAnnulReview}
 			/>
 
 			<SendReviewModal
@@ -188,14 +241,17 @@ export function QuoteAnalisys() {
 				onConfirm={handleConfirmSendToReview}
 			/>
 
-			<AnimatedAlertWrapper open={alertState?.open ?? false}>
-				<Alert
-					type={alertState?.type!}
-					title={alertState?.title}
-					message={alertState?.message!}
-					onClose={handleCloseAlert}
-				/>
-			</AnimatedAlertWrapper>
+			<AnnulModal
+				isOpen={Boolean(annulTarget)}
+				title="Anular / Retornar Revisión Contable"
+				description="Seleccione si desea retornar la cotización a compras para re-cotizar o anular definitivamente el trámite."
+				showScopeSelection={true}
+				isSubmitting={AnnulQuoteAnalysis.isPending}
+				onClose={handleCloseAnnulModal}
+				onConfirm={handleConfirmAnnul}
+			/>
+
+			{AlertComponent}
 		</m.div>
 	);
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 import {
 	FormProvider,
@@ -21,6 +21,7 @@ import {
 
 import { FileTextIcon, PlusIcon, SaveIcon, XIcon } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import { QuoteDetailAccordion } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/quote-detail-accordion/quote-detail-accordion";
 import { purchaseRequestTypeBadgeVariants } from "../../../purchase-requests/purchase-request.variants";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
@@ -145,10 +146,20 @@ export function CreateQuoteModal({
 		setOpenProducts(fields.map((field) => field.id));
 	}, [isOpen, fields]);
 
+	const [isConfirmDiscardOpen, setIsConfirmDiscardOpen] = useState(false);
 
 	const handleCancel = () => {
 		resetQuoteDraft();
 		onClose();
+	};
+
+	const handleAttemptClose = () => {
+		if (isSubmitting || isRegisteringQuote) return;
+		if (hasQuotedProducts) {
+			setIsConfirmDiscardOpen(true);
+		} else {
+			handleCancel();
+		}
 	};
 
 	const handleSelectProduct = (product: PurchaseRequestProductInformation, isChecked: boolean) => {
@@ -227,18 +238,15 @@ export function CreateQuoteModal({
 			)}
 			<Modal
 				isOpen={isOpen}
-				onClose={handleCancel}
+				onClose={handleAttemptClose}
 				variant="form"
-				size="8xl"
+				size="6xl"
 				title="Detalle de solicitud de compras"
 				description={
 					purchaseRequest?.code
 						? `Complete el formulario para registrar una cotización de la solicitud ${purchaseRequest.code}.`
 						: "Complete el formulario para registrar una nueva cotización."
 				}
-				panelClassName={[
-					"flex h-[54rem] w-[56rem] min-w-0 flex-col",
-				].join(" ")}
 				contentClassName="flex min-h-0 flex-1 flex-col"
 			>
 				<FormProvider {...methods}>
@@ -247,7 +255,6 @@ export function CreateQuoteModal({
 						className="flex min-h-0 flex-1 flex-col"
 						noValidate
 					>
-						<div className="scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
 							<div className="flex flex-col gap-4 pb-2">
 								{purchaseRequest?.code ? (
 									<section className="flex items-start gap-3 overflow-hidden rounded-md border border-slate-200 bg-slate-50 px-4 py-3 dark:border-neutral-600 dark:bg-[#1e2229]">
@@ -374,8 +381,6 @@ export function CreateQuoteModal({
 									)}
 								</section>
 							</div>
-						</div>
-
 						<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
 							<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
 								<Button
@@ -383,7 +388,7 @@ export function CreateQuoteModal({
 									label="Descartar"
 									size="giant"
 									disabled={isSubmitting || isRegisteringQuote}
-									onClick={handleCancel}
+									onClick={handleAttemptClose}
 									isHiddenLabelOnMobile
 									icon={<XIcon size={20} />}
 									className={quoteFormSecondaryButtonClassName}
@@ -465,6 +470,24 @@ export function CreateQuoteModal({
 					handleCloseQuoteProductModal();
 				}}
 			/>
+
+			<ConfirmModal
+				isOpen={isConfirmDiscardOpen}
+				type="CANCEL"
+				title="¿Está seguro de descartar la cotización?"
+				buttonActionLabel="Descartar"
+				buttonCancelClass="rounded-md! h-11 px-6! text-[15px]! text-white! bg-alpac-primary-500! hover:bg-alpac-primary-600! dark:bg-alpac-primary-700! dark:hover:bg-alpac-primary-800!"
+				buttonActionClass="rounded-md! h-11 px-6! text-[15px]! text-white! bg-slate-500! hover:bg-slate-600! dark:bg-slate-700! dark:hover:bg-slate-600!"
+				onClose={() => setIsConfirmDiscardOpen(false)}
+				handleFinalAction={() => {
+					setIsConfirmDiscardOpen(false);
+					handleCancel();
+				}}
+			>
+				<p className="m-0 text-center text-sm text-slate-500 dark:text-slate-400">
+					Tiene productos cotizados en curso. Si descarta ahora, se perderán todos los datos ingresados.
+				</p>
+			</ConfirmModal>
 		</>
 	);
 }

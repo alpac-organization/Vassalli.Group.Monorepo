@@ -13,6 +13,7 @@ import type { PurchaseOrderDocumentResponse } from "@app/modules/purchasing/doma
 import type { GetPurchaseOrdersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
 import type { GetPurchaseRequestDetailResponse, PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { GetPurchaseRequestResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
+import type { AnnulPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/annul-purchase-request-payload";
 
 
 export interface IPurchaseServices {
@@ -38,4 +39,6 @@ export interface IPurchaseServices {
    GetPurchaseOrderDetails(payload: GetPurchaseOrderDetailsPayload): Promise<GetPurchaseOrderDetailsResponse>;
 
    GetPurchaseOrderDocument(payload: PurchaseOrderDocumentRequest) :Promise<PurchaseOrderDocumentResponse>;
+   
+   AnnulPurchaseRequest(payload: AnnulPurchaseRequestPayload): Promise<void>;
 }

@@ -4,6 +4,7 @@ import type { GetQuoteAnalysisDetailsRequest } from "@app/modules/finance/domain
 import type { RequisitionAccountingReviewDetailsDto } from "@app/modules/finance/domain/ApiContract/responses/quote-analysis-details";
 import type { AcceptOfferPurchaseRequest } from "@app/modules/finance/domain/ApiContract/requests/accept-offer-purchase";
 import type { SendReviewToManagementRequest } from "@app/modules/finance/domain/ApiContract/requests/send-review-to-management";
+import type { AnnulQuoteAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/annul-quote-analysis";
 
 export interface IQuoteAnalysis {
   
@@ -14,4 +15,6 @@ export interface IQuoteAnalysis {
   accceptQuotationToPurchase( payload: AcceptOfferPurchaseRequest): Promise<void>;
 
   sendReviewToManagement(payload: SendReviewToManagementRequest): Promise<void>;
+
+  annulQuoteAnalysis(payload: AnnulQuoteAnalysisRequest): Promise<void>;
 }
