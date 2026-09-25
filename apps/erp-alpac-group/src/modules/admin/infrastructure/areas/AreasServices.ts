@@ -11,9 +11,9 @@ export class AreasServices implements IAreasServices {
   }
   public async getAreas(payload: GetAreasRequest): Promise<GetAreasResponse[]> {
     try {
-      const { company_id } = payload;
+      const { company_id, module_code } = payload;
       const areas = await this.apiHandler.get<GetAreasResponse[]>(
-        `/companies/${company_id}/areas`,
+        `/companies/${company_id}/modules/${module_code}/areas`,
       );
       return areas;
     } catch (error) {

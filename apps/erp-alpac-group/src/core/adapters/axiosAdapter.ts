@@ -9,6 +9,7 @@ import { useServerErrorStore } from "@app/shared/stores/useServerErrorStore";
 import {
   clearControlVacationsSelectionStorage,
   clearPayrollSelectionStorage,
+  clearSessionPersistedStores,
 } from "@app/modules/auth/utils/save-state-storage";
 import { getDeviceName } from "@app/shared/utils/device-name.utils";
 
@@ -153,6 +154,7 @@ class AxiosHttpAdapter implements IHttpHandler {
 
     clearControlVacationsSelectionStorage();
     clearPayrollSelectionStorage();
+    clearSessionPersistedStores();
 
     CookieStorageAdapter.clearAuth();
     window.location.href = "/auth";

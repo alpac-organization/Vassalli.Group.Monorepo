@@ -69,8 +69,8 @@ export const SupplierDetailsModal = ({
 
 
    const supplierName =
-      supplierDetails?.suppliers_legal_name ??
-      selectedSupplier?.suppliers_legal_name ??
+      supplierDetails?.supplier_legal_name ??
+      selectedSupplier?.supplier_legal_name ??
       "proveedor";
 
    return (
@@ -84,7 +84,7 @@ export const SupplierDetailsModal = ({
             onClose={onClose}
             title="Detalle del proveedor"
             variant="form"
-            size="6xl"
+            size="7xl"
             description={`Información registrada de ${supplierName}`}
          >
             <div className="flex flex-col gap-6">
@@ -119,7 +119,7 @@ export const SupplierDetailsModal = ({
                   {/* Financial conditions */}
                   <section className="flex flex-col gap-3">
                      <h5 className={sectionTitleClassName}>Condiciones Comerciales</h5>
-                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                     <div className="grid grid-cols-1 gap-3 overflow-y-auto sm:grid-cols-2">
                         <DetailField
                            label="Modalidad de pago"
                            value={supplierDetails ? paymentModality : undefined}
@@ -157,6 +157,7 @@ export const SupplierDetailsModal = ({
                         <DetailField
                            label="Exento de Impuestos"
                            value={details?.is_tax_exempt ? "Sí (Exento)" : "No"}
+                           icon={<BadgePercentIcon size={16} />}
                         />
                         <DetailField
                            label="Proveedor Exclusivo"
@@ -212,8 +213,8 @@ export const SupplierDetailsModal = ({
                      <BankAccountList
                         accounts={supplierDetails?.bank_accounts ?? []}
                         readOnly={true}
-                        onAddAccount={() => {}}
-                        onDeleteAccount={() => {}}
+                        onAddAccount={() => { }}
+                        onDeleteAccount={() => { }}
                      />
                   </section>
                </div>

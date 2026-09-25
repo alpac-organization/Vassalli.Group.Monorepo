@@ -20,6 +20,7 @@ import { purchaseRequestPriorityBadgeVariants, purchaseRequestStatusBadgeVariant
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { pdf } from "@react-pdf/renderer";
 import { PurchaseRequestPDF } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-pdf/purchase-request-pdf";
+import { PurchaseRequestConsolidatedPDF } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-consolidated-pdf/purchase-request-consolidated-pdf";
 import { PurchaseRequestProductsTable } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-products-table/purchase-request-products-table";
 import { approveButtonClass, cancelButtonClass, getConfirmButtonClass, getSuccessMessage, 
 	pdfButtonClass, rejectButtonClass, getActionText, 
@@ -56,7 +57,6 @@ export const PurchaseRequestDetailModal = ({
 		GetPurchaseRequestDetails,
 		GetPurchaseRequestProducts,
 		ProcessPurchaseRequest,
-		GetPurchaseRequestDocument,
 	} = usePurchase({
 		getPurchaseRequestDetailsPayload: {
 			company_id: companyId,
@@ -90,9 +90,6 @@ export const PurchaseRequestDetailModal = ({
 		role === RoleEnum.ADMINISTRATOR || role === RoleEnum.MANAGER;
 
 	const isProcessing = ProcessPurchaseRequest.isPending;
-
-	const isGeneratingDocument =
-		isGeneratingPurchaseRequestPdf || GetPurchaseRequestDocument.isPending;
 
 	const currentStatus: string =
 		purchaseRequest?.request_status ?? details?.request_status ?? "";
@@ -139,50 +136,32 @@ export const PurchaseRequestDetailModal = ({
 	const handleGeneratePurchaseRequestPdf = async () => {
 		if (!details) return;
 
-		// El consolidado mensual se genera desde MonthlyMaterialTab.
-		if (details.request_type === PurchaseRequestEnum.Monthly.textValue) {
-			try {
-				setIsGeneratingPurchaseRequestPdf(true);
-				const blob = await pdf(
-					<PurchaseRequestPDF data={{ ...details, products }} />,
-				).toBlob();
-				const url = URL.createObjectURL(blob);
-				window.open(url, "_blank");
-			} catch (error) {
-				onRequestError?.("Error al generar el PDF de la solicitud de compra." + error);
-			} finally {
-				setIsGeneratingPurchaseRequestPdf(false);
-			}
-			return;
+		const isMaterialsRequest =
+			details.request_type === PurchaseRequestEnum.Monthly.textValue ||
+			details.request_type === PurchaseRequestEnum.Eventual.textValue;
+
+		try {
+			setIsGeneratingPurchaseRequestPdf(true);
+
+			const documentData = { ...details, products };
+			const blob = await pdf(
+				isMaterialsRequest ? (
+					<PurchaseRequestConsolidatedPDF data={documentData} />
+				) : (
+					<PurchaseRequestPDF data={documentData} />
+				),
+			).toBlob();
+
+			const url = URL.createObjectURL(blob);
+			window.open(url, "_blank");
+		} catch (error) {
+			onRequestError?.(
+				"Error al generar el PDF de la solicitud de compra." + error,
+			);
+		} finally {
+			setIsGeneratingPurchaseRequestPdf(false);
 		}
-
-		const purchaseRequestId = purchaseRequest?.purchase_request_id || details?.purchase_request_id;
-		if (!purchaseRequestId) return;
-
-		const documentTypeValue =
-			details.request_type === PurchaseRequestEnum.Eventual.textValue
-				? PurchaseRequestEnum.Eventual.value
-				: PurchaseRequestEnum.Requisition.value;
-
-		GetPurchaseRequestDocument.mutate(
-			{
-				company_id: companyId,
-				module_code: moduleCode,
-				document_type: documentTypeValue,
-				purchase_request_id: purchaseRequestId,
-			},
-			{
-				onSuccess: (response) => {
-					if (response?.document_url) {
-						window.open(response.document_url, "_blank", "noopener,noreferrer");
-					}
-				},
-				onError: () => {
-					onRequestError?.("Error al generar el documento de la solicitud de compra.");
-				},
-			},
-		);
-	}
+	};
 
 	const handleProcessPurchaseRequest = (type: ConfirmActionType, reason?: string) => {
 
@@ -350,7 +329,7 @@ export const PurchaseRequestDetailModal = ({
 
 									<section className="flex flex-col gap-3">
 										<h4 className={sectionTitleClassName}>
-											Solicitante y sucursal
+											Solicitante 
 										</h4>
 										<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 											<DetailField
@@ -366,6 +345,11 @@ export const PurchaseRequestDetailModal = ({
 											<DetailField
 												label="Sucursal"
 												value={details?.branch_information?.branch_name ?? ""}
+												icon={<BuildingIcon size={18} />}
+											/>
+											<DetailField
+												label="Centro de costo"
+												value={details?.cost_center_information?.cost_center_name ?? ""}
 												icon={<BuildingIcon size={18} />}
 											/>
 										</div>
@@ -410,8 +394,8 @@ export const PurchaseRequestDetailModal = ({
 												className={pdfButtonClass}
 												icon={<FileTextIcon size={20} />}
 												isHiddenLabelOnMobile
-												disabled={!details || isGeneratingDocument}
-												isLoading={isGeneratingDocument}
+												disabled={!details || isGeneratingPurchaseRequestPdf}
+												isLoading={isGeneratingPurchaseRequestPdf}
 												onClick={handleGeneratePurchaseRequestPdf}
 											/>
 										)}
