@@ -22,4 +22,5 @@ export type DataTableProps<T> = {
   height?: number | string;
   minHeight?: number | string;
   maxHeight?: number | string;
+  enableSelectBorder?: boolean;
 };

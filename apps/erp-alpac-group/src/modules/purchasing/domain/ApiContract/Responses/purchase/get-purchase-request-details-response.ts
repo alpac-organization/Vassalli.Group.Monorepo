@@ -74,7 +74,6 @@ export interface PurchaseRequestProductQuotation {
 	quote_date: string;
 	brand_product: string | null;
 	delivery_time: number | null;
-	
 	delivery_time_type: string | null;
 	warranty_period: number | null;
 	warranty_period_time_type: string | null;
