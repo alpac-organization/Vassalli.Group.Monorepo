@@ -13,7 +13,7 @@ export interface SupplierUserInformation {
 
 export interface GetSuppliersResponse {
   supplier_id: string;
-  suppliers_legal_name?: string;
+  // suppliers_legal_name?: string;
   supplier_legal_name?: string;
   commercial_name?: string | null;
   identification_number: string;

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	Button,
 	Checkbox,
+	ContextMenu,
 	DataTable,
 	Dropdown,
 	InputText,
@@ -30,9 +31,13 @@ import {
 } from "@app/shared/utils/string.utils";
 import type { SelectSupplierModalProps } from "./select-supplier-modal.types";
 import { isValidateValue } from "@app/shared/utils/values.utils";
-import {inputClassName, labelClassName, dropdownClassName} from "@app/modules/purchasing/ui/pages/supplier/utils/style";
+import { inputClassName, labelClassName, dropdownClassName } from "@app/modules/purchasing/ui/pages/supplier/utils/style";
+import { SupplierDetailsModal } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-details-modal/supplier-details-modal";
 
 const PAGE_SIZE = 5;
+
+const contextMenuButton =
+	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 export function SelectSupplierModal({
 	isOpen,
@@ -59,13 +64,11 @@ export function SelectSupplierModal({
 	};
 
 	const [error, setError] = useState("");
-	const [tempSelected, setTempSelected] = useState<GetSuppliersResponse | null>(
-		null,
-	);
-	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<
-		GetSuppliersResponse[]
-	>([]);
+	const [tempSelected, setTempSelected] = useState<GetSuppliersResponse | null>(null);
+	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<GetSuppliersResponse[]>([]);
 	const [filters, setFilters] = useState<GetSuppliersRequest>(buildBaseFilters);
+	const [isSupplierDetailsModalOpen, setIsSupplierDetailsModalOpen] = useState(false);
+	const [selectedSupplier, setSelectedSupplier] = useState<GetSuppliersResponse | null>(null);
 
 	const { register, handleSubmit, control, reset, watch } =
 		useForm<GetSuppliersRequest>({
@@ -196,8 +199,8 @@ export function SelectSupplierModal({
 							onChange={() => {
 								setError("");
 								setTempSelected(row);
-							}}
-							aria-label={`Seleccionar ${row.suppliers_legal_name ?? row.supplier_legal_name}`}
+							}}							
+							aria-label={`Seleccionar ${row?.supplier_legal_name ?? ""}`}
 						/>
 					) : (
 						<Checkbox
@@ -205,8 +208,8 @@ export function SelectSupplierModal({
 							checked={tempSelectedMultiple.some(
 								(item) => item.supplier_id === row.supplier_id,
 							)}
-							onChange={() => handleToggleMultipleSelection(row)}
-							aria-label={`Seleccionar ${row.suppliers_legal_name ?? row.supplier_legal_name}`}
+							onChange={() => handleToggleMultipleSelection(row)}							
+							aria-label={`Seleccionar ${row?.supplier_legal_name ?? ""}`}
 						/>
 					);
 				},
@@ -214,9 +217,9 @@ export function SelectSupplierModal({
 			{
 				key: "supplier_legal_name",
 				label: "Razón Social / Nombre Comercial",
-				render: (row) => {
-					const legal = row.suppliers_legal_name ?? row.supplier_legal_name ?? "—";
-					const comm = row.commercial_name?.trim();
+				render: (row) => {					
+					const legal = row?.supplier_legal_name ?? "—";
+					const comm = row?.commercial_name?.trim();
 					return (
 						<div className="flex flex-col">
 							<span className="font-medium text-slate-900 dark:text-white">
@@ -234,6 +237,23 @@ export function SelectSupplierModal({
 			{ key: "identification_type", label: "Tipo de Identificación" },
 			{ key: "identification_number", label: "Número de Identificación" },
 			{ key: "constitution_type", label: "Tipo de Constitución" },
+			{
+				key: "actions",
+				label: "Acciones",
+				render: (row: GetSuppliersResponse) => (
+					<ContextMenu
+						items={[
+							{
+								label: "Ver detalle", onClick: () => {
+									setIsSupplierDetailsModalOpen(true);
+									setSelectedSupplier(row);
+								}
+							},
+						]}
+						triggerClassName={contextMenuButton}
+					/>
+				),
+			},
 		],
 		[selectionType, tempSelected, tempSelectedMultiple],
 	);
@@ -373,6 +393,12 @@ export function SelectSupplierModal({
 							disabled={GetSuppliers.isFetching}
 						/>
 					}
+				/>
+
+				<SupplierDetailsModal
+					isOpen={isSupplierDetailsModalOpen}
+					onClose={() => setIsSupplierDetailsModalOpen(false)}
+					selectedSupplier={selectedSupplier}
 				/>
 
 				<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
