@@ -295,7 +295,7 @@ export const AnalyzedQuoteDetailModal = ({
 			<PurchaseOrderDocumentModal
 				isOpen={isDocumentModalOpen}
 				onClose={() => setIsDocumentModalOpen(false)}
-				purchaseOrderId={details?.requisition_management_review_id ?? ""}
+				purchaseOrderId={details?.purchase_request?.purchase_request_id ?? ""}
 				details={details}
 				products={products}
 			/>
