@@ -497,6 +497,13 @@ export function QuoteAnalysisDetail() {
                 {purchase_request.observations}
               </div>
             )}
+            
+            {purchase_request.annulment_reason && (
+              <div className="mt-2 wrap-break-words rounded-md bg-slate-50 p-3 text-sm text-slate-700 dark:bg-[#272b34] dark:text-slate-300">
+                <span className="font-semibold">Motivo de retorno: </span>
+                {purchase_request.annulment_reason}
+              </div>
+            )}
           </div>
 
           <div className="flex min-w-0 flex-col gap-4 rounded-lg border border-slate-200 p-3 sm:p-5 dark:border-slate-700/50 dark:bg-[#1e2229]">

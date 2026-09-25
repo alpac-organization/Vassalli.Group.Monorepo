@@ -19,4 +19,8 @@ export type DataTableProps<T> = {
   isLoading?: boolean;
   loadingTitle?: string;
   enableRowHover?: boolean;
+  height?: number | string;
+  minHeight?: number | string;
+  maxHeight?: number | string;
+  enableSelectBorder?: boolean;
 };

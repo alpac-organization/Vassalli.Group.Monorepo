@@ -10,8 +10,10 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
 import type { PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
-import { purchaseRequestDestinationBadgeVariants, purchaseRequestPriorityBadgeVariants,
-	 purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
+import {
+	purchaseRequestDestinationBadgeVariants, purchaseRequestPriorityBadgeVariants,
+	purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants
+} from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
@@ -57,16 +59,17 @@ export const PurchaseOrderDetailsModal = ({
 		getPurchaseRequestProductsPayload:
 			isOpen && purchaseRequestId
 				? {
-						company_id: companyId,
-						module_code: moduleCode,
-						purchase_request_id: purchaseRequestId,
-					}
+					company_id: companyId,
+					module_code: moduleCode,
+					purchase_request_id: purchaseRequestId,
+				}
 				: undefined,
 	});
 
 	const productsResponse = GetPurchaseRequestProducts.data as
 		| PurchaseRequestProductInformationList
 		| undefined;
+
 	const products = productsResponse?.data ?? [];
 
 	const sentBy = details.sent_by_user_information;
@@ -280,7 +283,7 @@ export const PurchaseOrderDetailsModal = ({
 								icon={<NotebookTextIcon size={18} />}
 								containerClass={
 									purchaseRequest?.observations?.length &&
-									purchaseRequest?.observations?.length > 40
+										purchaseRequest?.observations?.length > 40
 										? "col-span-2"
 										: ""
 								}
@@ -294,11 +297,10 @@ export const PurchaseOrderDetailsModal = ({
 						<PurchaseRequestProductsTable
 							products={products}
 							onViewImages={setImagesModal}
-							renderRowExtra={(product) => (
-								<AnalyzedQuoteProductQuotations
-									quotations={product.quotations ?? []}
-								/>
-							)}
+							onGenerateDocument={() => {
+								console.log("testing on generate document...");
+								setIsDocumentModalOpen(true)
+							}}
 						/>
 					</section>
 
@@ -342,15 +344,17 @@ export const PurchaseOrderDetailsModal = ({
 				isOpen={isDocumentModalOpen}
 				onClose={() => setIsDocumentModalOpen(false)}
 				purchaseOrderId={purchaseOrder?.purchase_order_id ?? ""}
+				details={GetPurchaseOrderDetails.data}
+				products={products}
 			/>
+
 			<Modal
 				isOpen={Boolean(imagesModal)}
 				onClose={() => setImagesModal(null)}
 				title={`Imágenes · ${imagesModal?.productName ?? "producto"}`}
 				variant="default"
 				size="4xl"
-				panelClassName="!max-w-4xl w-[min(calc(100vw-1rem),56rem)]"
-			>
+				panelClassName="!max-w-4xl w-[min(calc(100vw-1rem),56rem)]">
 				{imagesModal && (
 					<ImagePreviewGallery
 						images={imagesModal.images}

@@ -1,170 +1,225 @@
 import { m } from "framer-motion";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, AnimatedAlertWrapper, Button } from "@alpac/design-system";
-import { LayoutGrid } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { SectionsHeader } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-header/sections-header";
-import { SectionsFiltersBar } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-filters/sections-filters";
 import { SectionsTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-table/sections-table";
 import { SectionModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-modal/section-modal";
-import {
-  EMPTY_SECTION_FILTERS,
-  type SectionFilters,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-filters/types/sections-filters.types";
-import { filtersToGetSectionsParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/filter-sections";
-import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { Loader } from "@app/shared/components/loaders/loader";
-import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { SectionResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-section-res";
-import type { GetSectionsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-sections-req";
+import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
+import { SectionViewer } from "./components/section-viewer/section-viewer";
+import { useSection } from "../../hooks/useSection";
+import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
+import type { DeleteSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/delete-section-req";
+import { Button } from "@alpac/design-system";
+import { LayoutGrid } from "lucide-react";
 
 const PAGE_SIZE = 10;
 
+const deleteButtonClass =
+	"rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
+const cancelButtonClass =
+	"rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
+
 export function SectionsPage() {
-  const { warehouseId = "" } = useParams<{ warehouseId: string }>();
-  const navigate = useNavigate();
-  const { baseUrl } = useBaseUrl();
-  const { companyId, moduleCode } = useUserStore();
-  const { getMappedError } = useMappedError();
-  const { alertState, handleCloseAlert, handleRequestError } = useAlertState();
-  const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState<SectionFilters>(
-    EMPTY_SECTION_FILTERS,
-  );
-  const [currentPage, setCurrentPage] = useState(1);
 
-  const getSectionsPayload = useMemo<GetSectionsRequest>(
-    () => ({
-      company_id: companyId,
-      module_code: moduleCode,
-      warehouse_id: warehouseId,
-      ...filtersToGetSectionsParams(appliedFilters),
-      page_number: currentPage,
-      page_size: PAGE_SIZE,
-    }),
-    [companyId, moduleCode, warehouseId, appliedFilters, currentPage],
-  );
+	const navigate = useNavigate();
+	const { getMappedError } = useMappedError();
 
-  const { GetSections } = useWarehouseAdmin({ getSectionsPayload });
+	const { companyId, moduleCode } = useUserStore();
+	const { warehouseId = "" } = useParams<{ warehouseId: string }>();
+	const { baseUrl } = useBaseUrl();
+	const {
+		handleRequestError,
+		handleRequestSuccess,
+		AlertComponent,
+	} = useAlertState();
+	const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [editingSection, setEditingSection] = useState<SectionDto | null>(null);
+	const [sectionToDelete, setSectionToDelete] = useState<SectionDto | null>(null);
+	const [currentPage, setCurrentPage] = useState(1);
+	const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
-  const sectionsData = GetSections.data?.data ?? [];
-  const totalRecords = GetSections.data?.total ?? 0;
+	const { GetSections, DeleteSection } = useSection({
+		getSectionsPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+			warehouse_id: warehouseId,
+			page_number: currentPage,
+			page_size: PAGE_SIZE,
+		},
+	});
 
-  useEffect(() => {
-    if (!GetSections.isError || !GetSections.error) return;
-    try {
-      const mappedError = getMappedError(GetSections.error as ApiErrorResponse);
-      handleRequestError(
-        mappedError?.description || "Error al cargar las secciones",
-      );
-    } catch {
-      handleRequestError("Error al cargar las secciones");
-    }
-  }, [
-    GetSections.isError,
-    GetSections.error,
-    getMappedError,
-    handleRequestError,
-  ]);
+	const sectionsData = GetSections.data?.data ?? [];
+	const totalRecords = GetSections.data?.total ?? 0;
 
-  const handleApplyFilters = useCallback((filters: SectionFilters) => {
-    setAppliedFilters(filters);
-    setCurrentPage(1);
-  }, []);
+	useEffect(() => {
+		if (!GetSections.isError || !GetSections.error) return;
+		try {
+			const error = GetSections.error;
+			const mappedError = getMappedError(error);
+			handleRequestError(mappedError?.description || "Error al cargar las secciones");
+		} catch {
+			handleRequestError("Error al cargar las secciones");
+		}
+	}, [
+		GetSections.isError,
+		GetSections.error,
+		getMappedError,
+		handleRequestError,
+	]);
 
-  const handleClearFilters = useCallback(() => {
-    setAppliedFilters(EMPTY_SECTION_FILTERS);
-    setCurrentPage(1);
-  }, []);
+	const handleViewLots = useCallback(
+		(section: SectionDto) => {
+			navigate(
+				`${baseUrl}/warehouse-admin/management/sections/${warehouseId}/lots/${section.section_id}`,
+			);
+		},
+		[baseUrl, navigate, warehouseId],
+	);
 
-  const handleViewLots = useCallback(
-    (section: SectionResponse) => {
-      navigate(
-        `${baseUrl}/warehouse-admin/management/sections/${warehouseId}/lots/${section.section_id}`,
-      );
-    },
-    [baseUrl, navigate, warehouseId],
-  );
+	const handleViewRacks = useCallback(
+		(section: SectionDto) => {
+			navigate(
+				`${baseUrl}/warehouse-admin/management/sections/${warehouseId}/racks/${section.section_id}`,
+			);
+		},
+		[baseUrl, navigate, warehouseId],
+	);
 
-  const handleViewRacks = useCallback(
-    (section: SectionResponse) => {
-      navigate(
-        `${baseUrl}/warehouse-admin/management/sections/${warehouseId}/racks/${section.section_id}`,
-      );
-    },
-    [baseUrl, navigate, warehouseId],
-  );
+	const handleSelectRow = (section: SectionDto) => {
+		setSelectedSectionId(section.section_id);
+	};
 
-  return (
-    <m.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5 }}
-      className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full"
-    >
-      {GetSections.isPending && <Loader title="Cargando secciones..." />}
+	const handleUpdateSection = (section: SectionDto) => {
+		setEditingSection(section);
+		setIsSectionModalOpen(true);
+	};
 
-      {alertState?.open ? (
-        <AnimatedAlertWrapper open>
-          <Alert
-            type={alertState.type}
-            title={alertState.title}
-            message={alertState.message}
-            onClose={handleCloseAlert}
-          />
-        </AnimatedAlertWrapper>
-      ) : null}
+	const handleDeleteSection = (section: SectionDto) => {
+		setSectionToDelete(section);
+		setIsDeleteModalOpen(true);
+	};
 
-      <SectionsHeader warehouseId={warehouseId} />
+	const handleConfirmDeleteSection = () => {
+		if (!sectionToDelete) return;
 
-      <div className="flex flex-col gap-4">
-        <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
-          <div className="flex flex-col justify-center">
-            <h3 className="p-0! m-0!">Acciones</h3>
-            <small className="text-gray-500 dark:text-gray-300">
-              Registre una nueva sección
-            </small>
-          </div>
-        </div>
+		const payload: DeleteSectionRequest = {
+			company_id: companyId,
+			module_code: moduleCode,
+			warehouse_id: warehouseId,
+			section_id: sectionToDelete.section_id,
+		};
 
-        <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-          <Button
-            type="button"
-            size="giant"
-            label="Registrar Nueva Sección"
-            icon={<LayoutGrid size={20} />}
-            className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-            onClick={() => setIsSectionModalOpen(true)}
-          />
-        </div>
-      </div>
+		DeleteSection.mutate(payload, {
+			onSuccess() {
+				setIsDeleteModalOpen(false);
+				setSectionToDelete(null);
+				if (selectedSectionId === sectionToDelete.section_id) {
+					setSelectedSectionId(null);
+				}
+				handleRequestSuccess("Sección eliminada exitosamente.");
+			},
+			onError(error) {
+				const mappedError = getMappedError(error);
+				handleRequestError(mappedError.description);
+			},
+		});
+	};
 
-      <SectionsFiltersBar
-        onApply={handleApplyFilters}
-        onClear={handleClearFilters}
-      />
+	const handleCloseSectionModal = () => {
+		setIsSectionModalOpen(false);
+		setEditingSection(null);
+	};
 
-      <SectionsTable
-        data={sectionsData}
-        currentPage={currentPage}
-        totalRecords={totalRecords}
-        pageSize={PAGE_SIZE}
-        onPageChange={setCurrentPage}
-        onViewLots={handleViewLots}
-        onViewRacks={handleViewRacks}
-        isFetching={GetSections.isFetching}
-      />
+	return (
+		<m.div
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			exit={{ opacity: 0, y: -20 }}
+			transition={{ duration: 0.5 }}
+			className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full">
 
-      <SectionModal
-        isOpen={isSectionModalOpen}
-        warehouseId={warehouseId}
-        onClose={() => setIsSectionModalOpen(false)}
-      />
-    </m.div>
-  );
+			{GetSections.isPending && <Loader title="Cargando secciones..." />}
+
+			{AlertComponent}
+
+			<SectionsHeader
+				warehouseId={warehouseId}
+				warehouseCode="BODEGA_005"
+				location="ALPAC Managua"
+				totalArea={37 * 61}
+				sectionQuantity={totalRecords}
+				ocuppation={0}
+				registerButton={
+					<Button
+						type="button"
+						size="giant"
+						label="Registrar Nueva Sección"
+						icon={<LayoutGrid size={20} />}
+						className="w-full! lg:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+						onClick={() => {
+							setEditingSection(null);
+							setIsSectionModalOpen(true);
+						}}
+					/>
+				} />
+
+			<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_800px] lg:h-[calc(100vh-330px)] min-h-0">
+
+				<SectionsTable
+					data={sectionsData}
+					currentPage={currentPage}
+					totalRecords={totalRecords}
+					pageSize={PAGE_SIZE}
+					onPageChange={setCurrentPage}
+					onViewLots={handleViewLots}
+					onViewRacks={handleViewRacks}
+					onSelectRow={handleSelectRow}
+					onUpdateSection={handleUpdateSection}
+					onDeleteSection={handleDeleteSection}
+					isFetching={GetSections.isFetching}
+					height={"100%"}
+					minHeight={"300px"}
+				/>
+
+				<SectionViewer
+					className="min-h-0 min-w-0 overflow-y-auto"
+					sections={sectionsData}
+					selectedSectionId={selectedSectionId}
+				/>
+
+			</div>
+
+			<SectionModal
+				isOpen={isSectionModalOpen}
+				warehouseId={warehouseId}
+				section={editingSection}
+				onClose={handleCloseSectionModal}
+			/>
+
+			<ConfirmModal
+				type="DELETE"
+				title={`¿Está seguro que desea eliminar la sección ${sectionToDelete?.section_code ?? ""}?`}
+				isOpen={isDeleteModalOpen}
+				handleFinalAction={(actionType) => {
+					if (actionType === "DELETE") handleConfirmDeleteSection();
+				}}
+				onClose={() => {
+					if (DeleteSection.isPending) return;
+					setIsDeleteModalOpen(false);
+					setSectionToDelete(null);
+				}}
+				buttonActionLabel="Eliminar"
+				buttonActionClass={deleteButtonClass}
+				buttonCancelClass={cancelButtonClass}
+				isLoading={DeleteSection.isPending}
+				disabled={DeleteSection.isPending}
+			/>
+		</m.div>
+	);
 }
