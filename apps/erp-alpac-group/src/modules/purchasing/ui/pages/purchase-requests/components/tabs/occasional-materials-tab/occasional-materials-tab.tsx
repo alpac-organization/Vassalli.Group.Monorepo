@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, DataTable, DatePicker, Dropdown, InputText, Pagination, SectionHeader, type TableColumn } from "@alpac/design-system";
+import { Button, DataTable, Pagination, type TableColumn } from "@alpac/design-system";
 import { PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
-import { PurchaseRequestStatusEnum, PurchaseRequestStatusOptions } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
+import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
@@ -11,30 +11,20 @@ import { RoleEnum } from "@app/core/enums/role.enum";
 import { CompanyMatadata, type CompanyType } from "@app/core/enums/company.enum";
 import { PurchaseRequestDetailModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/purchase-request-detail-modal";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
+import { PurchaseRequestFilters } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-filters/purchase-request-filters";
 
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
-import type { OccasionalMaterialContextMenu, OccasionalMaterialFilterForm, OccasionalMaterialTabProps } from "./occasional-materials-tab.types";
+import type { OccasionalMaterialContextMenu, OccasionalMaterialTabProps } from "./occasional-materials-tab.types";
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
+import type { PurchaseRequestFilterForm } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-filters/purchase-request-filters.types";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { getPurchaseRequestColumnConfig } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-table-config";
-import { Controller, useForm } from "react-hook-form";
 import { toYearMonthObject } from "@app/shared/utils/date.utils";
 
-const inputClassName =
-	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-const dropdownClassName =
-	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
-const labelClassName = "text-black! dark:text-white!";
 const deleteButtonClass = "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
 const cancelButtonClass = "rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
 const PAGE_SIZE = 5;
-
-const defaultFilterForm: OccasionalMaterialFilterForm = {
-	code: "",
-	status: null,
-	date: null
-};
 
 const allowedStatus: string[] = [
 	PurchaseRequestStatusEnum.Pending.textValue,
@@ -70,10 +60,6 @@ export const OccasionalMaterialTab = ({
 		page_size: PAGE_SIZE,
 	});
 
-	const { register, control, handleSubmit, reset } = useForm<OccasionalMaterialFilterForm>({
-		defaultValues: defaultFilterForm,
-	});
-
 	const { GetPurchaseRequests, DeletePurchaseRequest } = usePurchase({
 		getPurchaseRequestsPayload: {
 			...filters,
@@ -98,7 +84,6 @@ export const OccasionalMaterialTab = ({
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		});
-		reset(defaultFilterForm);
 	}, [currentBranchId, companyId, moduleCode]);
 
 	const getBaseOptions = (row: GetPurchaseRequestResponse): OccasionalMaterialContextMenu[] =>
@@ -155,8 +140,7 @@ export const OccasionalMaterialTab = ({
 	const contexMenuOptions: ((row: GetPurchaseRequestResponse) => OccasionalMaterialContextMenu[]) =
 		mapContextMenuOptions.get(role as RoleEnum)!;
 
-	const handleApplyFilters = (data: OccasionalMaterialFilterForm) => {
-
+	const handleApplyFilters = (data: PurchaseRequestFilterForm) => {
 		const { year, month } = toYearMonthObject(data.date);
 
 		setFilters((prev) => ({
@@ -166,15 +150,16 @@ export const OccasionalMaterialTab = ({
 			branch_id: isAdministrator ? undefined : currentBranchId,
 			request_type: Number(PurchaseRequestEnum.Eventual.value),
 			code: data?.code?.trim(),
-			year, month,
+			year,
+			month,
 			page_number: 1,
 			page_size: PAGE_SIZE,
-			status: data?.status || undefined
+			status: data?.status || undefined,
+			area_id: data.area_id || undefined,
 		}));
 	};
 
 	const handleClearFilters = () => {
-		reset(defaultFilterForm);
 		setFilters({
 			company_id: companyId,
 			module_code: moduleCode,
@@ -252,84 +237,15 @@ export const OccasionalMaterialTab = ({
 					}}
 				/>
 			</div>
-			
-			<div className="flex justify-between items-center pt-4 pb-4 border-t border-t-slate-600 dark:border-t-neutral-600">
-				<div className="flex flex-col justify-center">
-					<SectionHeader 
-						title="Filtros"
-						subtitle="Refina los resultados según tus preferencias"
-					/>
-				</div>
-			</div>
 
-			<form
-				onSubmit={handleSubmit(handleApplyFilters)}
-				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end mb-4!"
-			>
-				<InputText
-					label="N° Solicitud"
-					placeholder={`Ej. ${companyAcronym}-MGA-EVE-01`}
-					className={inputClassName}
-					labelClassName={labelClassName}
-					{...register("code")}
-				/>
-
-				<Controller
-					control={control}
-					name="status"
-					render={({ field }) => (
-						<Dropdown
-							label="Estado"
-							placeholder="Seleccione..."
-							appearance="dark"
-							options={PurchaseRequestStatusOptions ?? []}
-							value={field.value}
-							onChange={(value) => field.onChange(value)}
-							className={dropdownClassName}
-							labelClassName={labelClassName}
-							valueClassName={labelClassName}
-						/>
-					)}
-				/>
-
-				<Controller
-					control={control}
-					name="date"
-					render={({ field }) => (
-						<DatePicker
-							label="Mes"
-							labelAbove
-							views={["year", "month"]}
-							openTo="month"
-							format="MMMM YYYY"
-							disableFuture
-							className={inputClassName}
-							value={field.value}
-							onChange={(value) => field.onChange(value)}
-							slotProps={{
-								popper: {
-									disablePortal: false, sx: { zIndex: 2000 }
-								}
-							}}
-						/>
-					)}
-				/>
-
-				<Button
-					type="submit"
-					size="giant"
-					label="Aplicar filtros"
-					className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-				/>
-
-				<Button
-					type="button"
-					size="giant"
-					label="Limpiar filtros"
-					onClick={handleClearFilters}
-					className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
-				/>
-			</form>
+			<PurchaseRequestFilters
+				codeLabel="N° Solicitud"
+				codePlaceholder={`Ej. ${companyAcronym}-MGA-EVE-01`}
+				isAdministrator={isAdministrator}
+				currentBranchId={currentBranchId}
+				onApplyFilters={handleApplyFilters}
+				onClearFilters={handleClearFilters}
+			/>
 
 			<div className="flex flex-col">
 				<DataTable

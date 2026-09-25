@@ -23,13 +23,14 @@ export function AnalyzedQuotesFilters({
 	onApply,
 	onClear,
 }: AnalyzedQuotesFiltersProps) {
-	const { companyId } = useUserStore();
+	const { companyId, moduleCode } = useUserStore();
 	const [selectedStatus, setSelectedStatus] = useState<string>("");
 	const [selectedAreaId, setSelectedAreaId] = useState<string>("");
 	const [selectedBranchId, setSelectedBranchId] = useState<string>("");
 
 	const { GetAreasByCompany } = useAreas({
 		company_id: companyId ?? "",
+		module_code: moduleCode ?? "",
 	});
 	const { GetBranchesQuery } = useCompanies({ company_id: companyId });
 

@@ -3,7 +3,8 @@ import Cookies from "js-cookie";
 const STORAGE_KEYS = {
    ACCESS_TOKEN: 'erp_access_token',
    REFRESH_TOKEN: 'erp_refresh_token',
-   COMPANY_ALIAS: 'erp_company_alias'
+   COMPANY_ALIAS: 'company-data',
+   USER_DATA: 'user-data'
 } as const;
 
 type StorageKey = typeof STORAGE_KEYS[keyof typeof STORAGE_KEYS];
@@ -45,6 +46,13 @@ export const CookieStorageAdapter = {
    removeCompanyAlias: () => 
       Cookies.remove(STORAGE_KEYS.COMPANY_ALIAS),
    
+   
+   getUserData: () => 
+      Cookies.get(STORAGE_KEYS.USER_DATA),
+   
+   removeUserData: () => 
+      Cookies.remove(STORAGE_KEYS.USER_DATA),
+
    hasSession: () => {
       const token = Cookies.get(STORAGE_KEYS.ACCESS_TOKEN);
       const alias = Cookies.get(STORAGE_KEYS.COMPANY_ALIAS);

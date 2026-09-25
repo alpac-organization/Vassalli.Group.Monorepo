@@ -97,7 +97,7 @@ export function PurchaseRequestImageUploader({
 				</span>
 			</span>
 
-			<div className="grid min-w-0 grid-cols-3 gap-3">
+			<div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
 				{value.map((image, index) => {
 					const isRemoving = removingIndex === index;
 
@@ -116,14 +116,16 @@ export function PurchaseRequestImageUploader({
 									setSelectedImage(image);
 								}
 							}}
-							className={`relative overflow-hidden rounded-md border border-slate-200 shadow-sm transition-transform dark:border-slate-600 ${
-								isBusy ? "cursor-default" : "cursor-pointer hover:scale-105"
+							className={`relative aspect-video w-full overflow-hidden rounded-md border border-slate-200 shadow-sm transition-transform sm:aspect-auto dark:border-slate-600 ${
+								isBusy
+									? "cursor-default"
+									: "cursor-pointer hover:scale-[1.01] sm:hover:scale-105"
 							}`}
 						>
 							<img
 								src={image}
 								alt={`Imagen ${index + 1} del producto`}
-								className={`h-60 w-full object-cover ${isRemoving ? "opacity-40" : ""}`}
+								className={`h-full w-full object-cover sm:h-60 ${isRemoving ? "opacity-40" : ""}`}
 							/>
 
 							{isRemoving ? (
@@ -154,7 +156,7 @@ export function PurchaseRequestImageUploader({
 				{(remainingSlots > 0 || isUploading) && (
 					<div
 						{...getRootProps()}
-						className={`relative flex h-60 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed px-2 text-center transition-colors ${
+						className={`relative flex aspect-video w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-md border-2 border-dashed px-2 text-center transition-colors sm:aspect-auto sm:h-60 ${
 							isUploading
 								? "pointer-events-none border-alpac-primary-500 bg-alpac-primary-50 dark:bg-alpac-primary-900/10"
 								: isDragActive

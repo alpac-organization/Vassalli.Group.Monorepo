@@ -55,6 +55,7 @@ export function Tabs(props: TabProps<string>): React.ReactNode {
 		}
 
 		setActiveTab(nextTab);
+		props.onTabChange?.(nextTab);
 	};
 
 	return (

@@ -13,11 +13,12 @@ import type { GetQuotesAnalysisRequest } from "@app/modules/finance/domain/ApiCo
 import type { RequisitionAccountingReviewDto } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
 import type { QuoteAnalysisFiltersValues } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-filters/types/quote-analysis-filters.types";
 import type { SendReviewModalConfirmPayload } from "@app/modules/finance/ui/pages/quote-analisys/components/send-review-modal/send-review-modal.types";
-import { AnnulModal } from "@app/shared/components/annul-modal/annul-modal";
-import { QuoteAnalysisFilters } from "./components/quote-analysis-filters/quote-analysis-filters";
-import { QuoteAnalysisTable } from "./components/quote-analysis-table/quote-analysis-table";
-import { SendReviewModal } from "./components/send-review-modal/send-review-modal";
+import { QuoteAnalysisFilters } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-filters/quote-analysis-filters";
+import { QuoteAnalysisTable } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-table/quote-analysis-table";
+import { SendReviewModal } from "@app/modules/finance/ui/pages/quote-analisys/components/send-review-modal/send-review-modal";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { AnnulModal } from "@app/shared/components/annul-modal/annul-modal";
+import { fetchAndOpenQuoteAnalysisPdf } from "@app/modules/finance/ui/pages/quote-analisys/templates/quote-analysis.generate";
 
 const PAGE_SIZE = 10;
 
@@ -35,7 +36,7 @@ export function QuoteAnalisys() {
 		useState<RequisitionAccountingReviewDto | null>(null);
 	const { AlertComponent, handleRequestSuccess, handleRequestError } =
 		useAlertState();
-
+		const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 	const payloadGetQuoteAnalysis = useMemo<GetQuotesAnalysisRequest>(
 		() => ({
 			company_id: companyId,
@@ -77,9 +78,6 @@ export function QuoteAnalisys() {
 
 	const handleViewDetail = useCallback(
 		(row: { purchase_requests_reviewed_accounting_id: string }) => {
-
-			console.log("Purchase request id :", row.purchase_requests_reviewed_accounting_id);
-
 			navigate(
 				`${baseUrl}/finance/analisys/${row.purchase_requests_reviewed_accounting_id}`,
 			);
@@ -94,6 +92,29 @@ export function QuoteAnalisys() {
 	const handleAnnulReview = useCallback((row: RequisitionAccountingReviewDto) => {
 		setAnnulTarget(row);
 	}, []);
+
+	const handleGeneratePdf = useCallback(
+		async (row: RequisitionAccountingReviewDto) => {
+			if (!companyId || !moduleCode || isGeneratingPdf) return;
+
+			try {
+				setIsGeneratingPdf(true);
+				await fetchAndOpenQuoteAnalysisPdf({
+					companyId,
+					moduleCode,
+					purchaseRequestsReviewedAccountingId:
+						row.purchase_requests_reviewed_accounting_id,
+				});
+			} catch {
+				handleRequestError(
+					"Error al generar el PDF del análisis comparativo.",
+				);
+			} finally {
+				setIsGeneratingPdf(false);
+			}
+		},
+		[companyId, handleRequestError, isGeneratingPdf, moduleCode],
+	);
 
 	const handleCloseSendModal = useCallback(() => {
 		if (SendReviewToManagement.isPending) return;
@@ -135,6 +156,7 @@ export function QuoteAnalisys() {
 			getMappedError,
 			handleRequestSuccess,
 			handleRequestError,
+			getMappedError,
 			moduleCode,
 			pendingReview,
 		],
@@ -180,7 +202,6 @@ export function QuoteAnalisys() {
 	);
 
 	const pendingLabel =
-		pendingReview?.purchase_request?.code?.trim() ||
 		pendingReview?.sent_by_user_information?.fullname?.trim() ||
 		"esta solicitud";
 
@@ -192,7 +213,15 @@ export function QuoteAnalisys() {
 			transition={{ duration: 0.5 }}
 			className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full"
 		>
-			{isLoading && <Loader title="Cargando análisis de cotizaciones..." />}
+			{(isLoading || isGeneratingPdf) && (
+				<Loader
+					title={
+						isGeneratingPdf
+							? "Generando PDF del análisis..."
+							: "Cargando análisis de cotizaciones..."
+					}
+				/>
+			)}
 
 			<div className="flex justify-start">
 				<Breadcrumb
@@ -227,10 +256,11 @@ export function QuoteAnalisys() {
 				totalRecords={totalRecords}
 				pageSize={quoteAnalysis?.page_size ?? PAGE_SIZE}
 				onPageChange={handlePageChange}
-				isFetching={isFetching}
+				isFetching={isFetching || isGeneratingPdf}
 				onViewDetail={handleViewDetail}
 				onSendToReview={handleSendToReview}
 				onAnnul={handleAnnulReview}
+				onGeneratePdf={handleGeneratePdf}
 			/>
 
 			<SendReviewModal

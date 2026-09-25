@@ -20,9 +20,9 @@ import {
 	purchaseRequestTypeBadgeVariants,
 } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import { PurchaseRequestProductsTable } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-products-table/purchase-request-products-table";
+import { PurchaseOrderDocumentModal } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-document-modal/purchase-order-document-modal";
 import type { AnalyzedQuoteDetailModalProps } from "./analyzed-quote-detail-modal.types";
 import type { PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
-import { AnalyzedQuoteProductQuotations } from "./analyzed-quote-product-quotations";
 
 const sectionTitleClassName = "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
 
@@ -55,6 +55,7 @@ export const AnalyzedQuoteDetailModal = ({
 }: AnalyzedQuoteDetailModalProps) => {
 
 	const { companyId, moduleCode } = useUserStore();
+	const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
 	const [imagesModal, setImagesModal] = useState<{
 		productName: string;
 		images: ImagePayload[];
@@ -227,7 +228,7 @@ export const AnalyzedQuoteDetailModal = ({
 
 								<section className="flex flex-col gap-3">
 									<h4 className={sectionTitleClassName}>
-										Solicitante y sucursal
+										Solicitante , sucursal & centro de costo
 									</h4>
 									<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 										<DetailField
@@ -250,6 +251,11 @@ export const AnalyzedQuoteDetailModal = ({
 											value={purchaseRequest.information_from_requesting_area?.work_area_name ?? ""}
 											icon={<BuildingIcon size={18} />}
 										/>
+										<DetailField
+											label="Centro de costo"
+											value={purchaseRequest.cost_center_information?.cost_center_name ?? ""}
+											icon={<Avatar label={purchaseRequest.creator_user_information?.fullname ?? ""} hasLabel={false} />}
+										/>
 									</div>
 								</section>
 
@@ -262,11 +268,7 @@ export const AnalyzedQuoteDetailModal = ({
 								<PurchaseRequestProductsTable
 									products={products}
 									onViewImages={setImagesModal}
-									renderRowExtra={(product) => (
-										<AnalyzedQuoteProductQuotations
-											quotations={product.quotations ?? []}
-										/>
-									)}
+									onGenerateDocument={() => setIsDocumentModalOpen(true)}
 								/>
 
 								<section className="flex flex-col gap-3">
@@ -289,6 +291,14 @@ export const AnalyzedQuoteDetailModal = ({
 					)}
 				</div>
 			</Modal>
+
+			<PurchaseOrderDocumentModal
+				isOpen={isDocumentModalOpen}
+				onClose={() => setIsDocumentModalOpen(false)}
+				purchaseOrderId={details?.purchase_request?.purchase_request_id ?? ""}
+				details={details}
+				products={products}
+			/>
 
 			<Modal
 				isOpen={Boolean(imagesModal)}

@@ -47,14 +47,10 @@ export function getQuoteAnalysisColumns(
 	onViewDetail?: (row: RequisitionAccountingReviewDto) => void,
 	onSendToReview?: (row: RequisitionAccountingReviewDto) => void,
 	onAnnul?: (row: RequisitionAccountingReviewDto) => void,
+	onGeneratePdf?: (row: RequisitionAccountingReviewDto) => void,
 ): TableColumn<RequisitionAccountingReviewDto>[] {
 
 	return [
-		{
-			key: "code",
-			label: "Código de Solicitud",
-			render: (row: RequisitionAccountingReviewDto) => row.purchase_request?.code?.trim() || "—",
-		},
 		{
 			key: "enviado_por",
 			label: "Enviado por",
@@ -103,7 +99,7 @@ export function getQuoteAnalysisColumns(
 			label: "Acciones",
 			render: (row: RequisitionAccountingReviewDto) => {
 
-				let items: ContextMenuItem[] = [
+				const items: ContextMenuItem[] = [
 					{
 						label: "Ver detalle",
 						onClick: () => onViewDetail?.(row),
@@ -120,6 +116,11 @@ export function getQuoteAnalysisColumns(
 					items.push({
 						label: "Anular / Retornar",
 						onClick: () => onAnnul?.(row),
+					});
+				}else {
+					items.push({
+						label: "Generar PDF",
+						onClick: () => onGeneratePdf?.(row),
 					});
 				}
 

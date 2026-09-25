@@ -48,7 +48,7 @@ export class SupplierServices implements ISupplierServices {
 	}
 
 	async getBankAccounts(
-companyId: string,
+		companyId: string,
 		moduleCode: string,
 		supplierId: string,
 	): Promise<SupplierBankAccount[]> {
