@@ -69,7 +69,6 @@ export const SupplierDetailsModal = ({
 
 
    const supplierName =
-      //supplierDetails?.suppliers_legal_name ??
       supplierDetails?.supplier_legal_name ??
       selectedSupplier?.supplier_legal_name ??
       "proveedor";
@@ -214,8 +213,8 @@ export const SupplierDetailsModal = ({
                      <BankAccountList
                         accounts={supplierDetails?.bank_accounts ?? []}
                         readOnly={true}
-                        onAddAccount={() => {}}
-                        onDeleteAccount={() => {}}
+                        onAddAccount={() => { }}
+                        onDeleteAccount={() => { }}
                      />
                   </section>
                </div>

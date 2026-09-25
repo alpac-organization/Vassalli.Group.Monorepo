@@ -199,7 +199,7 @@ export function SelectSupplierModal({
 							onChange={() => {
 								setError("");
 								setTempSelected(row);
-							}}							
+							}}
 							aria-label={`Seleccionar ${row?.supplier_legal_name ?? ""}`}
 						/>
 					) : (
@@ -208,7 +208,7 @@ export function SelectSupplierModal({
 							checked={tempSelectedMultiple.some(
 								(item) => item.supplier_id === row.supplier_id,
 							)}
-							onChange={() => handleToggleMultipleSelection(row)}							
+							onChange={() => handleToggleMultipleSelection(row)}
 							aria-label={`Seleccionar ${row?.supplier_legal_name ?? ""}`}
 						/>
 					);
@@ -217,7 +217,7 @@ export function SelectSupplierModal({
 			{
 				key: "supplier_legal_name",
 				label: "Razón Social / Nombre Comercial",
-				render: (row) => {					
+				render: (row) => {
 					const legal = row?.supplier_legal_name ?? "—";
 					const comm = row?.commercial_name?.trim();
 					return (
