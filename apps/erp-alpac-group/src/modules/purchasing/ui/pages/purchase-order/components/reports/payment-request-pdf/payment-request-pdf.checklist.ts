@@ -1,72 +1,26 @@
+const checklistItem = (id: string, description: string, checked: boolean) => ({ id, description, checked });
+
 export const DEFAULT_PAYMENT_REQUEST_CHECKLIST = [
 	{
 		title: "DOCUMENTOS GENERALES",
 		items: [
-			{
-				id: "signed-request",
-				description: "Solicitud firmada por el departamento solicitante.",
-				checked: true,
-			},
-			{
-				id: "purchase-order",
-				description: "Copia ( ) u original ( ) de orden de compra.",
-				checked: true,
-			},
-			{
-				id: "invoice",
-				description: "Copia ( ) u original ( ) de factura, ND, NC o retención.",
-				checked: true,
-			},
-			{
-				id: "comparative",
-				description: "Cuadro comparativo de cotizaciones y justificación.",
-				checked: true,
-			},
-			{
-				id: "quotes",
-				description: "Cotizaciones efectuadas, cantidad (  ).",
-				checked: true,
-			},
-			{
-				id: "requisition",
-				description: "Solicitud mensual/eventual o requisición autorizada.",
-				checked: true,
-			},
-			{
-				id: "exemption",
-				description: "Carta de exoneración DGI ( ), ALMA ( ).",
-				checked: true,
-			},
-			{
-				id: "communications",
-				description: "Comunicaciones relacionadas con el pago.",
-				checked: true,
-			},
-			{
-				id: "others",
-				description: "Otros.",
-				checked: true,
-			},
+			checklistItem("signed-request", "Solicitud firmada por el departamento solicitante.", true),
+			checklistItem("purchase-order", "Copia ( ) u original ( ) de orden de compra.", true),
+			checklistItem("invoice", "Copia ( ) u original ( ) de factura, ND, NC o retención.", true),
+			checklistItem("comparative", "Cuadro comparativo de cotizaciones y justificación.", true),
+			checklistItem("quotes", "Cotizaciones efectuadas, cantidad (  ).", true),
+			checklistItem("requisition", "Solicitud mensual/eventual o requisición autorizada.", true),
+			checklistItem("exemption", "Carta de exoneración DGI ( ), ALMA ( ).", true),
+			checklistItem("communications", "Comunicaciones relacionadas con el pago.", true),
+			checklistItem("others", "Otros.", true),
 		],
 	},
 	{
 		title: "SERVICIOS",
 		items: [
-			{
-				id: "contract",
-				description: "Contrato original debidamente firmado.",
-				checked: true,
-			},
-			{
-				id: "budget",
-				description: "Presupuesto del servicio (si aplica).",
-				checked: true,
-			},
-			{
-				id: "settlement",
-				description: "Finiquito de servicio.",
-				checked: true,
-			},
+			checklistItem("contract", "Contrato original debidamente firmado.", true),
+			checklistItem("budget", "Presupuesto del servicio (si aplica).", true),
+			checklistItem("settlement", "Finiquito de servicio.", true),
 		],
 	},
 ] as const;
