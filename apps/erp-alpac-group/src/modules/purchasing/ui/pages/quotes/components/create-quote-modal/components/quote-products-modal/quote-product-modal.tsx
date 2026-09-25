@@ -134,16 +134,21 @@ const normalizePaymentMethods = (
 	if (!Array.isArray(methods)) return [];
 
 	return methods
-		.map((item) => {
+		.map((item): SupplierPaymentMethod | null => {
 			const raw = (item ?? {}) as Record<string, unknown>;
 			const payment_method_type = getMethodValue(raw);
 			if (!payment_method_type) return null;
 
-			return {
-				notes: typeof raw.notes === "string" ? raw.notes : undefined,
+			const normalized: SupplierPaymentMethod = {
 				is_active: isPaymentMethodActive(raw),
 				payment_method_type,
-			} satisfies SupplierPaymentMethod;
+			};
+
+			if (typeof raw.notes === "string") {
+				normalized.notes = raw.notes;
+			}
+
+			return normalized;
 		})
 		.filter((item): item is SupplierPaymentMethod => item != null);
 };

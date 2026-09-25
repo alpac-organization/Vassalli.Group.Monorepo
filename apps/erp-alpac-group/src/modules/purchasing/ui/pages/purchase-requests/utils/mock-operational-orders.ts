@@ -11,7 +11,7 @@ export const mockOperationalOrders: OperationalOrder[] = [
 	{ id: "op-001", code: "OP-2026-001", clientCode: "CLI-001" },
 	{ id: "op-002", code: "OP-2026-002", clientCode: "CLI-002" },
 	{ id: "op-003", code: "OP-2026-003", clientCode: "CLI-003" },
-	{ id: "op-004", code: "OP-2026-004", clientCode: "CLI-004" },
+	{ id: "op-004", code: "OP-2026-004", clientCode: "CLI-004" }, // Esta no tendrá OS asociadas
 ];
 
 export const mockServiceOrdersByOp: Record<string, GetServiceOrdersResponse[]> = {
@@ -77,5 +77,5 @@ export const mockServiceOrdersByOp: Record<string, GetServiceOrdersResponse[]> =
 			},
 		},
 	],
-	"op-004": [],
+	"op-004": [], // Sin OS asociadas
 };
