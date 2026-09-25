@@ -9,11 +9,14 @@ import {
 import { AnimatePresence, m } from "framer-motion";
 import { useForm } from "react-hook-form";
 import type { LotFormValues, LotModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/types/lot-modal.types";
-import {
-  RackStatusEnum,
-} from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
 import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
-import { getDecimalFieldConfig } from "@app/shared/utils/get-decimal.config";
+import {
+  formatAmount,
+  validateDecimalNumber,
+  validateIntegerNumber,
+  validatePositiveNumber,
+} from "@app/shared/utils/number.utils";
+import { parseDecimal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/lots.utils";
 import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -44,23 +47,21 @@ export const LotModal = ({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<LotFormValues>({
-    defaultValues: {
-      status: RackStatusEnum.Available.value,
-    },
-  });
+  } = useForm<LotFormValues>();
 
   const { RegisterLot } = useWarehouseAdmin();
 
-  const handleCreateLot = (data: LotFormValues) => {
+  const handleCreateLots = (data: LotFormValues) => {
     const payload: RegisterLotRequest = {
       company_id: companyId,
       module_code: moduleCode,
       warehouse_id: warehouseId,
       section_id: sectionId,
-      code: data.code ?? "",
-      width_metres: Number(data.width_metres ?? 0),
-      length_metres: Number(data.length_metres ?? 0)
+      quantity: Number(data.quantity ?? 0),
+      nominal_rows: Number(data.nominal_rows ?? 0),
+      nominal_columns: Number(data.nominal_columns ?? 0),
+      width: Number(data.width ?? 0),
+      length: Number(data.length ?? 0),
     };
 
     RegisterLot.mutate(payload, {
@@ -99,11 +100,11 @@ export const LotModal = ({
       title="Registro de tramos"
       variant="form"
       size="md"
-      description="Crear un tramo para la sección"
+      description="Crea uno o varios tramos para la sección"
     >
       <form
         className="flex flex-col gap-5"
-        onSubmit={handleSubmit(handleCreateLot)}
+        onSubmit={handleSubmit(handleCreateLots)}
       >
         <AnimatedAlertWrapper open={alertState?.open ?? false}>
           {alertState && (
@@ -125,52 +126,135 @@ export const LotModal = ({
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
               className="mx-1 overflow-hidden sm:mx-0"
             >
-              <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="flex flex-col gap-3 sm:gap-3">
                 <InputText
-                  label="Código"
-                  placeholder="Ej. LOT-A1"
+                  label="Cantidad de tramos"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Ej: 1"
                   isRequired
                   className={inputClassName}
                   labelClassName={labelClassName}
-                  {...register(`code`, {
-                    required: "El código es requerido",
-                    validate: {
-                      hasCode: (value) =>
-                        (value ?? "").trim() !== "" || "Ingrese un código",
+                  {...register("quantity", {
+                    required: "La cantidad de tramos es requerida",
+                    max: {
+                      value: 10,
+                      message: "Se permite un máximo de 10 tramos por petición.",
                     },
+                    validate: {
+                      validateInteger: (value) =>
+                        !value || validateIntegerNumber(value),
+                      validatePositive: (value) =>
+                        !value || validatePositiveNumber(value) === true ||
+                        "La cantidad de tramos debe ser mayor a 0.",
+                    },
+                    setValueAs: parseDecimal,
                   })}
-                  error={errors.code?.message}
+                  error={errors.quantity?.message}
                 />
 
-                <InputText
-                  label="Ancho (m)"
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  isRequired
-                  className={inputClassName}
-                  labelClassName={labelClassName}
-                  {...register(
-                    `width_metres`,
-                    getDecimalFieldConfig("El ancho es requerido"),
-                  )}
-                  error={errors.width_metres?.message}
-                />
+                <div className="border-t border-t-slate-300 dark:border-t-neutral-600" />
 
-                <InputText
-                  label="Largo (m)"
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  isRequired
-                  className={inputClassName}
-                  labelClassName={labelClassName}
-                  {...register(
-                    `length_metres`,
-                    getDecimalFieldConfig("El largo es requerido", true),
-                  )}
-                  error={errors.length_metres?.message}
-                />
+                <div className="flex flex-col gap-1 sm:gap-1">
+                  <p className="text-[13px] font-medium text-slate-400 dark:text-slate-300">
+                    Configure las dimensiones y la matriz de posiciones de cada
+                    tramo.
+                  </p>
+
+                  <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
+                    <InputText
+                      label="Ancho (m)"
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="Ej: 4.10"
+                      isRequired
+                      className={inputClassName}
+                      labelClassName={labelClassName}
+                      {...register("width", {
+                        required: "El ancho es requerido",
+                        validate: {
+                          validateDecimal: (value) =>
+                            !value || validateDecimalNumber(value),
+                          validatePositive: (value) =>
+                            !value || validatePositiveNumber(value) === true ||
+                            "El ancho (metros) debe ser mayor a 0.",
+                        },
+                        setValueAs: parseDecimal,
+                        onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
+                          evt.target.value = formatAmount(evt.target.value, 10, 2);
+                        },
+                      })}
+                      error={errors.width?.message}
+                    />
+
+                    <InputText
+                      label="Largo (m)"
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="Ej: 4.10"
+                      isRequired
+                      className={inputClassName}
+                      labelClassName={labelClassName}
+                      {...register("length", {
+                        required: "El largo es requerido",
+                        validate: {
+                          validateDecimal: (value) =>
+                            !value || validateDecimalNumber(value),
+                          validatePositive: (value) =>
+                            !value || validatePositiveNumber(value) === true ||
+                            "El largo (metros) debe ser mayor a 0.",
+                        },
+                        setValueAs: parseDecimal,
+                        onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
+                          evt.target.value = formatAmount(evt.target.value, 10, 2);
+                        },
+                      })}
+                      error={errors.length?.message}
+                    />
+
+                    <InputText
+                      label="Cantidad de Filas"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="Ej: 4"
+                      isRequired
+                      className={inputClassName}
+                      labelClassName={labelClassName}
+                      {...register("nominal_rows", {
+                        required: "Las filas son obligatorias",
+                        validate: {
+                          validateInteger: (value) =>
+                            !value || validateIntegerNumber(value),
+                          validatePositive: (value) =>
+                            !value || validatePositiveNumber(value),
+                        },
+                        setValueAs: parseDecimal,
+                      })}
+                      error={errors.nominal_rows?.message}
+                    />
+
+                    <InputText
+                      label="Cantidad de Columnas"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="Ej: 5"
+                      isRequired
+                      className={inputClassName}
+                      labelClassName={labelClassName}
+                      {...register("nominal_columns", {
+                        required: "Las columnas son obligatorias",
+                        validate: {
+                          validateInteger: (value) =>
+                            !value || validateIntegerNumber(value),
+                          validatePositive: (value) =>
+                            !value || validatePositiveNumber(value),
+                        },
+                        setValueAs: parseDecimal,
+                      })}
+                      error={errors.nominal_columns?.message}
+                    />
+                  </div>
+                </div>
               </div>
             </m.div>
           </AnimatePresence>

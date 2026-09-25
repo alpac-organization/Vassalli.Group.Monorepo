@@ -3,7 +3,9 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
 export interface RegisterLotRequest extends BaseRequest {
   warehouse_id: string;
   section_id: string;
-  code: string;
-  width_metres: number;
-  length_metres: number;
+  quantity: number;
+  nominal_rows: number;
+  nominal_columns: number;
+  width: number;
+  length: number;
 }
