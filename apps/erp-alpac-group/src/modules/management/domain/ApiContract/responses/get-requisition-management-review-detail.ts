@@ -13,6 +13,8 @@ export interface PurchaseRequestManagementDetails extends PurchaseRequestInforma
 	creator_user_information: UserInformation | null;
 	reviewer_user_information: UserInformation | null;
 	information_from_requesting_area: WorkAreaInformation | null;
+	annulment_reason: string | null;
+	annulled_by_user_information: UserInformation | null;
 }
 
 export interface RequisitionManagementReviewDetailsRequest {
