@@ -1,9 +1,12 @@
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import type { PurchaseRequestProductQuotation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import { Button } from "@alpac/design-system";
+import type { PurchaseRequestProductsTableProps } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-products-table/purchase-request-products-table.types";
 
 type AnalyzedQuoteProductQuotationsProps = {
 	quotations: PurchaseRequestProductQuotation[];
+	onGenerateDocument: PurchaseRequestProductsTableProps["onGenerateDocument"];
 };
 
 function getQuoteTotalPrice(quote: PurchaseRequestProductQuotation): number {
@@ -47,11 +50,10 @@ function QuoteField({ label, value, emphasize }: { label: string; value: string;
 				{label}
 			</span>
 			<span
-				className={`wrap-break-words text-sm ${
-					emphasize
-						? "font-semibold text-slate-800 dark:text-slate-100"
-						: "text-slate-700 dark:text-slate-200"
-				}`}
+				className={`wrap-break-words text-sm ${emphasize
+					? "font-semibold text-slate-800 dark:text-slate-100"
+					: "text-slate-700 dark:text-slate-200"
+					}`}
 			>
 				{value}
 			</span>
@@ -61,29 +63,41 @@ function QuoteField({ label, value, emphasize }: { label: string; value: string;
 
 export function AnalyzedQuoteProductQuotations({
 	quotations,
+	onGenerateDocument
 }: AnalyzedQuoteProductQuotationsProps) {
+
 	const activeQuotations = quotations.filter((quote) => quote.is_active);
+
 	const selectedQuote = activeQuotations.find((quote) => quote.is_accepted_for_purchase);
-	const selectedSupplier =
-		selectedQuote?.supplier_information?.suppliers_legal_name?.trim();
-	const selectionJustification =
-		selectedQuote?.supplier_selection_justification?.trim() || null;
+
+	const selectedSupplier = selectedQuote?.supplier_information?.suppliers_legal_name?.trim();
+
+	const selectionJustification = selectedQuote?.supplier_selection_justification?.trim() || null;
 
 	return (
 		<div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50/80 px-3 py-3 dark:border-neutral-700 dark:bg-neutral-900/40 sm:col-span-6">
-			<div className="flex flex-wrap items-center gap-2">
-				<p className="m-0 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-					Cotizaciones
-				</p>
-				{selectedSupplier ? (
-					<span className="rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
-						Seleccionada: {selectedSupplier}
-					</span>
-				) : (
-					<span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
-						Sin oferta seleccionada
-					</span>
-				)}
+			<div className="flex flex-wrap items-center justify-between gap-2">
+				<div className="flex flex-wrap items-center justify-between gap-2">
+					<p className="m-0 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+						Cotizaciones
+					</p>
+					{selectedSupplier ? (
+						<span className="rounded-md bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
+							Seleccionada: {selectedSupplier}
+						</span>
+					) : (
+						<span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:bg-amber-500/15 dark:text-amber-300">
+							Sin oferta seleccionada
+						</span>
+					)}
+				</div>
+				<Button
+					type="button"
+					size="medium"
+					label="Generar documento"
+					onClick={() => onGenerateDocument()}
+					className="w-full! rounded-md! bg-alpac-primary-500! text-[15px]! text-white! dark:bg-alpac-primary-700! sm:w-64!"
+				/>
 			</div>
 
 			{activeQuotations.length === 0 ? (
@@ -93,26 +107,27 @@ export function AnalyzedQuoteProductQuotations({
 			) : (
 				<>
 					<div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+
 						{activeQuotations.map((quote) => {
+
 							const isSelected = quote.is_accepted_for_purchase;
 
 							return (
 								<div
 									key={quote.quotation_id}
-									className={`flex min-w-0 flex-col gap-3 rounded-lg border p-3 ${
-										isSelected
-											? "border-blue-500 bg-blue-50/70 dark:border-blue-500 dark:bg-blue-500/10"
-											: "border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-800"
-									}`}
+									className={`flex min-w-0 flex-col gap-3 rounded-lg border p-3 ${isSelected
+										? "border-blue-500 bg-blue-50/70 dark:border-blue-500 dark:bg-blue-500/10"
+										: "border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-800"
+										}`}
 								>
 									<div className="flex min-w-0 items-start justify-between gap-2">
-										<p className="m-0 min-w-0 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
+										<p className="m-0 min-w-0 wrap-break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
 											{quote.supplier_information?.suppliers_legal_name?.trim() ||
 												"Proveedor"}
 										</p>
 										{isSelected ? (
 											<span className="shrink-0 rounded-md bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white dark:bg-alpac-primary-700">
-												Seleccionada
+												Seleccionado
 											</span>
 										) : null}
 									</div>
