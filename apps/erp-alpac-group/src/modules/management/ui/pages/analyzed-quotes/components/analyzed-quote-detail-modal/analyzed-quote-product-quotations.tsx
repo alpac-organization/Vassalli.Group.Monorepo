@@ -6,7 +6,7 @@ import type { PurchaseRequestProductsTableProps } from "@app/modules/purchasing/
 
 type AnalyzedQuoteProductQuotationsProps = {
 	quotations: PurchaseRequestProductQuotation[];
-	onGenerateDocument: PurchaseRequestProductsTableProps["onGenerateDocument"];
+	onGenerateDocument?: PurchaseRequestProductsTableProps["onGenerateDocument"];
 };
 
 function getQuoteTotalPrice(quote: PurchaseRequestProductQuotation): number {
@@ -91,13 +91,13 @@ export function AnalyzedQuoteProductQuotations({
 						</span>
 					)}
 				</div>
-				<Button
+				{onGenerateDocument && <Button
 					type="button"
 					size="medium"
 					label="Generar documento"
-					onClick={() => onGenerateDocument()}
+					onClick={() => onGenerateDocument?.()}
 					className="w-full! rounded-md! bg-alpac-primary-500! text-[15px]! text-white! dark:bg-alpac-primary-700! sm:w-64!"
-				/>
+				/>}
 			</div>
 
 			{activeQuotations.length === 0 ? (

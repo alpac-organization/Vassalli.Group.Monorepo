@@ -4,15 +4,15 @@ import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurcha
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import { BanIcon, BuildingIcon, CalendarCheckIcon, CalendarIcon, CheckIcon, FileTextIcon, MailIcon, NotebookTextIcon, XIcon } from "lucide-react";
+import { BanIcon, BuildingIcon, CalendarCheckIcon, CalendarIcon, CheckIcon, FileClockIcon, FileTextIcon, MailIcon, NotebookTextIcon, XIcon } from "lucide-react";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
-import { sectionTitleClassName } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/utils/styles.purchasing";
+import { historyButtonClass, sectionTitleClassName } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/utils/styles.purchasing";
 import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
 import type { PurchaseRequestDetailModalProps } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/purchase-request-detail-modal.types";
-import type { GetPurchaseRequestDetailResponse, PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import type { GetPurchaseRequestDetailResponse, PurchaseRequestAdditionalData, PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { ImagePreviewGallery, type ImagePayload } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
@@ -22,9 +22,12 @@ import { pdf } from "@react-pdf/renderer";
 import { PurchaseRequestPDF } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-pdf/purchase-request-pdf";
 import { PurchaseRequestConsolidatedPDF } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-consolidated-pdf/purchase-request-consolidated-pdf";
 import { PurchaseRequestProductsTable } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-products-table/purchase-request-products-table";
-import { approveButtonClass, cancelButtonClass, getConfirmButtonClass, getSuccessMessage, 
-	pdfButtonClass, rejectButtonClass, getActionText, 
-	getConfirmQuestion, LoadingMessage } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/utils/styles.purchasing";
+import { PurchaseRequestHistoryModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-history-modal/purchase-request-history-modal";
+import {
+	approveButtonClass, cancelButtonClass, getConfirmButtonClass, getSuccessMessage,
+	pdfButtonClass, rejectButtonClass, getActionText,
+	getConfirmQuestion, LoadingMessage
+} from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/utils/styles.purchasing";
 
 export const PurchaseRequestDetailModal = ({
 	isOpen,
@@ -48,10 +51,9 @@ export const PurchaseRequestDetailModal = ({
 	const [actionType, setActionType] = useState<string | null>(null);
 	const [message, setMessage] = useState<string>("");
 	const [isGeneratingPurchaseRequestPdf, setIsGeneratingPurchaseRequestPdf] = useState(false);
-	const [imagesModal, setImagesModal] = useState<{
-		productName: string;
-		images: ImagePayload[];
-	} | null>(null);
+	const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+	const [imagesModal, setImagesModal] = useState<{ productName: string; images: ImagePayload[] } | null>(null);
+	const [additionalData, setAdditionalData] = useState<PurchaseRequestAdditionalData[]>([]);
 
 	const {
 		GetPurchaseRequestDetails,
@@ -109,6 +111,13 @@ export const PurchaseRequestDetailModal = ({
 	useEffect(() => {
 		if (!isOpen) setImagesModal(null);
 	}, [isOpen]);
+
+	useEffect(() => {
+		const additionalDataRaw = details?.additional_data ?? "";
+		const data: PurchaseRequestAdditionalData[] = additionalDataRaw ? JSON.parse(additionalDataRaw) : [];
+		setAdditionalData(data);
+
+	}, [details?.additional_data]);
 
 	const openConfirm = (type: ConfirmActionType) => {
 
@@ -197,13 +206,18 @@ export const PurchaseRequestDetailModal = ({
 		});
 	};
 
+	const handleClose = () => {
+		setIsHistoryModalOpen(false);
+		onClose();
+	};
+
 	return (
 		<>
 			<LoadingMessage isOpen={isOpen} isLoading={isLoading} />
 
 			<Modal
 				isOpen={isOpen}
-				onClose={onClose}
+				onClose={handleClose}
 				variant="default"
 				size="7xl"
 				panelClassName={[
@@ -213,7 +227,7 @@ export const PurchaseRequestDetailModal = ({
 				].join(" ")}
 				contentClassName="flex min-h-0 flex-1 flex-col"
 			>
-				<div className="flex min-h-0 min-w-0 flex-1 flex-col">							
+				<div className="flex min-h-0 min-w-0 flex-1 flex-col">
 
 					{isLoading ? (
 						<div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
@@ -329,7 +343,7 @@ export const PurchaseRequestDetailModal = ({
 
 									<section className="flex flex-col gap-3">
 										<h4 className={sectionTitleClassName}>
-											Solicitante 
+											Solicitante
 										</h4>
 										<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 											<DetailField
@@ -387,6 +401,20 @@ export const PurchaseRequestDetailModal = ({
 							{showFooter && (
 								<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
 									<div className="flex justify-end gap-3">
+
+										{canProcessRequest && (
+											<Button
+												type="button"
+												label="Ver historial"
+												className={historyButtonClass}
+												icon={<FileClockIcon size={20} />}
+												isHiddenLabelOnMobile
+												disabled={false}
+												isLoading={false}
+												onClick={() => setIsHistoryModalOpen(true)}
+											/>
+										)}
+
 										{Boolean(details) && (
 											<Button
 												type="button"
@@ -399,6 +427,7 @@ export const PurchaseRequestDetailModal = ({
 												onClick={handleGeneratePurchaseRequestPdf}
 											/>
 										)}
+
 										{showProcessActions && (
 											<>
 												<Button
@@ -443,6 +472,12 @@ export const PurchaseRequestDetailModal = ({
 
 				</div>
 			</Modal>
+
+			<PurchaseRequestHistoryModal
+				isOpen={isHistoryModalOpen}
+				onClose={() => setIsHistoryModalOpen(false)}
+				history={additionalData}
+			/>
 
 			<Modal
 				isOpen={Boolean(imagesModal)}

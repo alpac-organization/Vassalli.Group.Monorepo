@@ -48,6 +48,26 @@ const resolveDocumentBadge = (documentType: PaymentRequestPdfProps["data"]["docu
 	return "Medio de pago · Transferencia bancaria";
 };
 
+const formatGeneratedAt = (value?: string | null) => {
+	if (!value) return "—";
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return value;
+
+	return new Intl.DateTimeFormat("es-NI", {
+		dateStyle: "long",
+		timeStyle: "short",
+	}).format(date);
+};
+
+const SignatureCard = ({ title, isLast }: { title: string; isLast?: boolean }) => (
+	<View style={[styles.signatureCard, isLast ? styles.signatureCardLast : {}]}>
+		<Text style={styles.signatureTitle}>{title}</Text>
+		<View style={styles.signatureLine}>
+			<Text style={styles.signatureHint}>Firma</Text>
+		</View>
+	</View>
+);
+
 export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
 
 	const title = resolveDocumentTitle(data.documentType);
@@ -221,44 +241,18 @@ export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
 				</View>
 
 				<View style={styles.signatures} wrap={false}>
-					<View style={styles.signatureCard}>
-						<Text style={styles.signatureTitle}>Solicitado</Text>
-						<View style={styles.signatureLine}>
-							<Text style={styles.signatureName}>
-								{data.requestedBy?.trim() || " "}
-							</Text>
-							<Text style={styles.signatureHint}>Nombre y firma</Text>
-						</View>
-					</View>
-
-					<View style={styles.signatureCard}>
-						<Text style={styles.signatureTitle}>Aprobado</Text>
-						<View style={styles.signatureLine}>
-							<Text style={styles.signatureName}>
-								{data.approvedBy?.trim() || " "}
-							</Text>
-							<Text style={styles.signatureHint}>Nombre y firma</Text>
-						</View>
-					</View>
-
-					<View style={[styles.signatureCard, styles.signatureCardLast]}>
-						<Text style={styles.signatureTitle}>Autorizado</Text>
-						<View style={styles.signatureLine}>
-							<Text style={styles.signatureName}>
-								{data.authorizedBy?.trim() || " "}
-							</Text>
-							<Text style={styles.signatureHint}>
-								{data.bankName?.trim()
-									? `Banco: ${data.bankName}`
-									: "Banco / Autorización"}
-							</Text>
-						</View>
-					</View>
+					<SignatureCard title="Solicitado" />
+					<SignatureCard title="Aprobado" />
+					<SignatureCard title="Autorizado" isLast />
 				</View>
 
-				<Text style={styles.footerNote}>
-					Documento generado para gestión de pagos · {title}
+				<Text style={styles.bankLine}>
+					Banco: {data.bankName?.trim() || "—"}
 				</Text>
+
+				<Text style={styles.footerMeta}>
+					{`Usuario: ${data.generatedBy?.trim() || "—"}, generado el ${formatGeneratedAt(data.generatedAt)}`}
+				</Text>				
 			</Page>
 		</Document>
 	);
