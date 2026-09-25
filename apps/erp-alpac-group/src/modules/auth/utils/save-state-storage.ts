@@ -1,4 +1,6 @@
 import { PAYROLL_SELECTION_STORAGE_KEY } from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
+import { clearCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { clearUserStore } from "@app/shared/stores/useUserStore";
 
 const CONTROL_VACATIONS_SELECTION_STORAGE_PREFIX = "controlVacationsSelection:";
 
@@ -14,4 +16,9 @@ export const clearPayrollSelectionStorage = () => {
   Object.keys(localStorage)
     .filter((key) => key.startsWith(PAYROLL_SELECTION_STORAGE_PREFIX))
     .forEach((key) => localStorage.removeItem(key));
+};
+
+export const clearSessionPersistedStores = () => {
+  clearUserStore();
+  clearCompanyStore();
 };

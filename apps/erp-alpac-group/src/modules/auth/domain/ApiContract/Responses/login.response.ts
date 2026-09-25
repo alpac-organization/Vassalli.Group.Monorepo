@@ -62,8 +62,17 @@ export interface LoginResponse {
     * Sucursal asociado al usuario
     */
    branch_id: string;
-}
 
+   /**
+    * Centro de costo asociado al usuario
+    */
+   cost_center_information?: CostCenterInformation;
+}
+interface CostCenterInformation {
+   cost_center_code: number;
+   cost_center_name: string;
+   cost_center_id: string;
+}
 /**
  * @interface CompanyInformation
  * @description Datos básicos de identidad corporativa para la personalización de la interfaz.

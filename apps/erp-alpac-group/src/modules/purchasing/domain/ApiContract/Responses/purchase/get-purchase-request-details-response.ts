@@ -1,34 +1,35 @@
 import type {
 	BranchInformation,
+	CostCenterInformation,
 	UserInformation,
 	WorkAreaInformation,
 } from "@app/shared/interfaces/organization-information/organization-information";
-import type { GetPurchaseRequestResponse } from "./get-purchase-request-response";
+import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
+import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
+import type { ProductQualityType } from "@app/modules/purchasing/domain/enums/product-quality";
+import type { PaymentConditionType } from "@app/core/enums/payment-method.enum";
 
 export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResponse {
 	observations: string | null;
 	reason_rejection: string | null;
-	information_from_requesting_area: WorkAreaInformation;
+	annulment_reason: string | null;
 	creator_user_information: UserInformation;
 	reviewer_user_information: UserInformation | null;
 	branch_information: BranchInformation;
+	information_from_requesting_area: WorkAreaInformation;
+	cost_center_information: CostCenterInformation;
 }
 
-export interface PurchaseRequestProductInformationList {
-	data: PurchaseRequestProductInformation[];
-	page_number: number;
-	page_size: number;
-	total: number;
-}
+export type PurchaseRequestProductInformationList = PaginateBaseResponse<PurchaseRequestProductInformation[]>;
 
 export interface PurchaseRequestProductInformation {
 	has_quotation: boolean;
+	purchase_request_item_id: string;
 	quantity: number;
 	quantity_unit: number | null;
 	description: string | null;
 	justification: string | null;
-	purchase_request_item_id: string;
-	additional_data?: string | null;
+	additional_data: string | null;
 	product_details: PurchaseRequestProductDetails;
 	unit_measure_information: PurchaseRequestUnitMeasureInformation;
 	quotations: PurchaseRequestProductQuotation[];
@@ -37,6 +38,7 @@ export interface PurchaseRequestProductInformation {
 export interface PurchaseRequestProductDetails {
 	product_id: string;
 	product_name: string | null;
+	product_code?: string | null;
 	category_information: PurchaseRequestCategoryInformation;
 }
 
@@ -47,7 +49,6 @@ export interface PurchaseRequestCategoryInformation {
 }
 
 export interface PurchaseRequestUnitMeasureInformation {
-	unit_measure_id?: string | null;
 	code: string | null;
 	name: string | null;
 	symbol: string | null;
@@ -78,6 +79,11 @@ export interface PurchaseRequestProductQuotation {
 	warranty_period: number | null;
 	warranty_period_time_type: string | null;
 	supplier_selection_justification: string | null;
+	product_quality: ProductQualityType;
+	payment_method: PaymentConditionType;
+	iventory_available?: boolean;
+	availability_time?: number | null;
+	availability_time_type?: string | number | null;
 	supplier_rejection_justification: string | null;
 	supplier_id: string;
 	supplier_information: PurchaseRequestProductQuotationSupplier;

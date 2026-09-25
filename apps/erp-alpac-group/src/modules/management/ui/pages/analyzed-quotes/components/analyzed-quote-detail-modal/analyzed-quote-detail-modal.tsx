@@ -228,7 +228,7 @@ export const AnalyzedQuoteDetailModal = ({
 
 								<section className="flex flex-col gap-3">
 									<h4 className={sectionTitleClassName}>
-										Solicitante y sucursal
+										Solicitante , sucursal & centro de costo
 									</h4>
 									<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 										<DetailField
@@ -250,6 +250,11 @@ export const AnalyzedQuoteDetailModal = ({
 											label="Área solicitante"
 											value={purchaseRequest.information_from_requesting_area?.work_area_name ?? ""}
 											icon={<BuildingIcon size={18} />}
+										/>
+										<DetailField
+											label="Centro de costo"
+											value={purchaseRequest.cost_center_information?.cost_center_name ?? ""}
+											icon={<Avatar label={purchaseRequest.creator_user_information?.fullname ?? ""} hasLabel={false} />}
 										/>
 									</div>
 								</section>

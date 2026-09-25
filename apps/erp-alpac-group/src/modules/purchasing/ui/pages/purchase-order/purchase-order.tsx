@@ -5,21 +5,23 @@ import {
 	DataTable,
 	Dropdown,
 	Pagination,
-	useTheme
+	useTheme,
 } from "@alpac/design-system";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseOrderPdf } from "@app/modules/purchasing/ui/pages/purchase-order/hooks/usePurchaseOrderPdf";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import type { GetPurchaseOrdersPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-orders-payload";
-import { getPurchaseOrderTableColumns } from "./utils/purchase-order-table-columns";
+import { getPurchaseOrderTableColumns } from "@app/modules/purchasing/ui/pages/purchase-order/utils/purchase-order-table-columns";
 import type { GetPurchaseOrdersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
-import { PurchaseOrderDetailsModal } from "./components/purchase-order-details-modal/purchase-order-details-modal";
+import { PurchaseOrderDetailsModal } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-details-modal/purchase-order-details-modal";
 
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
@@ -32,11 +34,15 @@ export const PurchaseOrder = () => {
 	const { theme } = useTheme();
 	const { urlImage, neutralUrlImage } = useCompanyStore();
 	const { companyId, moduleCode } = useUserStore();
+	const { AlertComponent, handleRequestError } = useAlertState();
+	const { isGenerating, generatePurchaseOrderPdf } = usePurchaseOrderPdf();
 
 	const [selectedAreaId, setSelectedAreaId] = useState("");
 	const [selectedBranchId, setSelectedBranchId] = useState("");
-	const [isPurchaseOrderDetailsOpen, setIsPurchaseOrderDetailsOpen] = useState(false);
-	const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState<GetPurchaseOrdersResponse | null>(null);
+	const [isPurchaseOrderDetailsOpen, setIsPurchaseOrderDetailsOpen] =
+		useState(false);
+	const [selectedPurchaseOrder, setSelectedPurchaseOrder] =
+		useState<GetPurchaseOrdersResponse | null>(null);
 	const [filters, setFilters] = useState<GetPurchaseOrdersPayload>({
 		company_id: companyId,
 		module_code: moduleCode,
@@ -44,7 +50,10 @@ export const PurchaseOrder = () => {
 		page_size: PAGE_SIZE,
 	});
 
-	const { GetAreasByCompany } = useAreas({ company_id: companyId });
+	const { GetAreasByCompany } = useAreas({
+		company_id: companyId,
+		module_code: moduleCode,
+	});
 	const { GetBranchesQuery } = useCompanies({ company_id: companyId });
 	const { GetPurchaseOrders } = usePurchase({
 		getPurchaseOrdersPayload: {
@@ -107,15 +116,42 @@ export const PurchaseOrder = () => {
 		}));
 	}, []);
 
-	const onViewDetail = (data: GetPurchaseOrdersResponse) => {
+	const onViewDetail = useCallback((data: GetPurchaseOrdersResponse) => {
 		setSelectedPurchaseOrder(data);
 		setIsPurchaseOrderDetailsOpen(true);
-	};
+	}, []);
+
+	const onGeneratePurchaseOrderPdf = useCallback(
+		async (row: GetPurchaseOrdersResponse) => {
+			try {
+				await generatePurchaseOrderPdf({
+					purchaseOrderId: row.purchase_order_id,
+					purchaseRequestId: row.purchase_request?.purchase_request_id,
+				});
+			} catch (error) {
+				const message =
+					error instanceof Error
+						? error.message
+						: "No se pudo generar la orden de compra.";
+				handleRequestError(message);
+			}
+		},
+		[generatePurchaseOrderPdf, handleRequestError],
+	);
 
 	const columnsConfig = useMemo(
-		() => getPurchaseOrderTableColumns(onViewDetail),
-		[onViewDetail]
+		() =>
+			getPurchaseOrderTableColumns({
+				onViewDetail,
+				onGeneratePurchaseOrderPdf,
+			}),
+		[onViewDetail, onGeneratePurchaseOrderPdf],
 	);
+
+	const showLoader = GetPurchaseOrders.isLoading || isGenerating;
+	const loaderTitle = isGenerating
+		? "Generando orden de compra..."
+		: "Cargando órdenes de compra...";
 
 	return (
 		<m.div
@@ -125,7 +161,7 @@ export const PurchaseOrder = () => {
 			transition={{ duration: 0.5 }}
 			className="flex flex-col gap-4"
 		>
-			{GetPurchaseOrders.isLoading && <Loader title="Cargando órdenes de compra..." />}
+			{showLoader ? <Loader title={loaderTitle} /> : null}
 
 			<div className="flex justify-start">
 				<Breadcrumb
@@ -237,6 +273,8 @@ export const PurchaseOrder = () => {
 				onClose={() => setIsPurchaseOrderDetailsOpen(false)}
 				purchaseOrder={selectedPurchaseOrder}
 			/>
+
+			{AlertComponent}
 		</m.div>
 	);
 };

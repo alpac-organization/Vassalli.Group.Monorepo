@@ -10,6 +10,7 @@ export const PaymentMethodEnum = {
 
 export type PaymentMethodEnum =
 	(typeof PaymentMethodEnum)[keyof typeof PaymentMethodEnum];
+export type PaymentMethodType = PaymentMethodEnum["stringValue"];
 
 export const PaymentMethodOptions: EnumType[] = Object.values(
 	PaymentMethodEnum,
@@ -17,3 +18,14 @@ export const PaymentMethodOptions: EnumType[] = Object.values(
 	value: item.stringValue,
 	label: item.label,
 }));
+
+
+
+export const PaymentConditionEnum = {
+	Credit: { value: 1, label: "Credito", stringValue: "Credit" },
+	Cash: { value: 2, label: "Efectivo", stringValue: "Cash" },
+} as const;
+
+export type PaymentConditionTypeEnum =
+	(typeof PaymentConditionEnum)[keyof typeof PaymentConditionEnum];
+export type PaymentConditionType = PaymentConditionTypeEnum["stringValue"];

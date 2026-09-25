@@ -8,6 +8,7 @@ export const PurchaseRequestDestinationEnum = {
    Internal: { value: 0, label: "Administrativo", textValue: "Internal" },
    Client: { value: 1, label: "Cliente Externo", textValue: "Client" },
    ServiceOrder: { value: 2, label: "Orden de Servicio", textValue: "ServiceOrder" },
+   OperationalOrder: { value: 3, label: "Orden Operativa", textValue: "OperationalOrder" },
 } as const satisfies Record<string, PurchaseRequestDestinationEnumType>;
 
 export type PurchaseRequestDestinationEnum =
