@@ -345,8 +345,20 @@ export const paymentRequestPdfStyles = StyleSheet.create({
 		color: colors.muted,
 		textAlign: "center",
 	},
+	bankLine: {
+		marginTop: 6,
+		fontSize: 8,
+		fontFamily: "Helvetica-Bold",
+		color: colors.ink,
+	},
+	footerMeta: {
+		marginTop: 8,
+		fontSize: 7,
+		color: colors.ink,
+		textAlign: "left",
+	},
 	footerNote: {
-		marginTop: 5,
+		marginTop: 3,
 		fontSize: 6,
 		color: colors.muted,
 		textAlign: "center",

@@ -32,6 +32,8 @@ type MapPaymentRequestArgs = {
 	logoUrl?: string | null;
 	companyName?: string | null;
 	bankName?: string | null;
+	generatedBy?: string | null;
+	generatedAt?: string | null;
 };
 
 const getAcceptedQuotations = (products: PurchaseRequestProductInformation[]) =>
@@ -64,6 +66,8 @@ export function mapPurchaseOrderToPaymentRequestPdf({
 	logoUrl,
 	companyName,
 	bankName,
+	generatedBy,
+	generatedAt,
 }: MapPaymentRequestArgs): PaymentRequestPdfData {
 	const purchaseRequest =
 		details.purchase_request_details ?? details.purchase_request;
@@ -166,6 +170,8 @@ export function mapPurchaseOrderToPaymentRequestPdf({
 		approvedBy: details.reviewer_user_information?.fullname ?? null,
 		authorizedBy: null,
 		bankName: bankName ?? null,
+		generatedBy: generatedBy ?? null,
+		generatedAt: generatedAt ?? null,
 		logoUrl: logoUrl ?? null,
 		companyName: companyName ?? "ALMACENADORA DEL PACIFICO, S.A.",
 	};

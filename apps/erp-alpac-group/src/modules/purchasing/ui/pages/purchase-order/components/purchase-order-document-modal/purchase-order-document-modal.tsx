@@ -3,11 +3,14 @@ import { Button, Dropdown, Modal, RadioButton } from "@alpac/design-system";
 import { pdf } from "@react-pdf/renderer";
 import type { PurchaseOrderDocumentModalProps } from "./purchase-order-document-modal.types";
 import {
+	PaymentMethodEnum as DocumentPaymentMethodEnum,
+} from "@app/modules/purchasing/domain/enums/payment-method.enum";
+import type { PaymentMethodType as DocumentPaymentMethodType } from "@app/modules/purchasing/domain/enums/payment-method.enum";
+import {
 	PaymentMethodEnum,
 	PaymentMethodOptions,
-} from "@app/modules/purchasing/domain/enums/payment-method.enum";
-import type { PaymentMethodType } from "@app/modules/purchasing/domain/enums/payment-method.enum";
-import { PaymentMethodEnum as SupplierPaymentMethodEnum } from "@app/core/enums/payment-method.enum";
+} from "@app/core/enums/payment-method.enum";
+import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { PaymentRequestPDF } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/payment-request-pdf/payment-request-pdf";
@@ -21,28 +24,22 @@ const labelClassName = "text-black! dark:text-white!";
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 
-const defaultPaymentMethodValue = PaymentMethodOptions[0]?.value ?? PaymentMethodEnum.BankTransfer.value;
+const defaultPaymentMethodValue = PaymentMethodEnum.ACH.stringValue;
 
-const resolveDocumentPaymentMethodFromSupplier = (
+const resolveSupplierPaymentMethod = (
 	preferredPaymentMethod?: string | number | null,
-): number => {
+): PaymentMethodType => {
 	if (preferredPaymentMethod == null || preferredPaymentMethod === "") {
 		return defaultPaymentMethodValue;
 	}
 
-	const normalized = String(preferredPaymentMethod).trim().toLowerCase();
-	const checkValues = [
-		String(SupplierPaymentMethodEnum.Check.stringValue).toLowerCase(),
-		String(SupplierPaymentMethodEnum.Check.value),
-		"check",
-		"cheque",
-	];
+	const found = Object.values(PaymentMethodEnum).find(
+		(item) =>
+			item.stringValue === preferredPaymentMethod ||
+			item.value === Number(preferredPaymentMethod),
+	);
 
-	if (checkValues.includes(normalized)) {
-		return PaymentMethodEnum.Check.value;
-	}
-
-	return PaymentMethodEnum.BankTransfer.value;
+	return found?.stringValue ?? defaultPaymentMethodValue;
 };
 
 export const PurchaseOrderDocumentModal = ({
@@ -52,9 +49,9 @@ export const PurchaseOrderDocumentModal = ({
 	products = [],
 }: PurchaseOrderDocumentModalProps) => {
 	const { urlImage } = useCompanyStore();
-	const { companyAlias, companyId, moduleCode } = useUserStore();
+	const { companyAlias, companyId, moduleCode, fullName } = useUserStore();
 
-	const [paymentMethod, setPaymentMethod] = useState<number>(defaultPaymentMethodValue);
+	const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>(defaultPaymentMethodValue);
 	const [selectedBankId, setSelectedBankId] = useState<number | string>("");
 	const [isGenerating, setIsGenerating] = useState(false);
 
@@ -108,9 +105,7 @@ export const PurchaseOrderDocumentModal = ({
 
 		if (GetSupplierDetails.isPending || GetSupplierDetails.isFetching) return;
 
-		setPaymentMethod(
-			resolveDocumentPaymentMethodFromSupplier(supplierPreferredPaymentMethod),
-		);
+		setPaymentMethod(resolveSupplierPaymentMethod(supplierPreferredPaymentMethod));
 	}, [
 		isOpen,
 		acceptedSupplierId,
@@ -119,11 +114,11 @@ export const PurchaseOrderDocumentModal = ({
 		GetSupplierDetails.isPending,
 	]);
 
-	const resolveDocumentType = (): PaymentMethodType => {
-		if (paymentMethod === PaymentMethodEnum.Check.value) {
-			return PaymentMethodEnum.Check.textValue;
+	const resolveDocumentType = (): DocumentPaymentMethodType => {
+		if (paymentMethod === PaymentMethodEnum.Check.stringValue) {
+			return DocumentPaymentMethodEnum.Check.textValue;
 		}
-		return PaymentMethodEnum.BankTransfer.textValue;
+		return DocumentPaymentMethodEnum.BankTransfer.textValue;
 	};
 
 	const handleGenerate = async () => {
@@ -140,6 +135,8 @@ export const PurchaseOrderDocumentModal = ({
 				logoUrl: urlImage || null,
 				companyName: companyAlias,
 				bankName: selectedBankName,
+				generatedBy: fullName,
+				generatedAt: new Date().toISOString(),
 			});
 
 			const blob = await pdf(<PaymentRequestPDF data={pdfData} />).toBlob();
@@ -158,21 +155,21 @@ export const PurchaseOrderDocumentModal = ({
 			variant="form"
 			size="lg"
 			title="Generar documento"
-			description="Seleccione el medio de pago y el banco para generar la solicitud de transferencia o cheque."
+			description="Seleccione el medio de pago y el banco para generar la solicitud de pago"
 		>
 			<div className="mt-4 flex flex-col gap-4">
 				<div className="flex flex-col gap-2">
 					<p className="m-0 text-sm font-medium text-slate-800 dark:text-white">
 						Medio de pago
 					</p>
-					<div className="flex flex-wrap gap-4">
+					<div className="flex flex-col gap-3">
 						{PaymentMethodOptions.map((option) => (
 							<RadioButton
 								key={option.value}
 								label={option.label}
 								name="payment-method"
 								checked={paymentMethod === option.value}
-								onChange={() => setPaymentMethod(option.value)}
+								onChange={() => setPaymentMethod(option.value as PaymentMethodType)}
 							/>
 						))}
 					</div>

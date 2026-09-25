@@ -220,7 +220,7 @@ type ProductAccordionRowProps = {
 	isOpen: boolean;
 	onToggle: () => void;
 	onViewImages: PurchaseRequestProductsTableProps["onViewImages"];
-	onGenerateDocument: PurchaseRequestProductsTableProps["onGenerateDocument"];
+	onGenerateDocument?: PurchaseRequestProductsTableProps["onGenerateDocument"];
 };
 
 const ProductAccordionRow = ({
