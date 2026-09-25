@@ -1,16 +1,33 @@
 import { PaymentMethodEnum } from "@app/modules/purchasing/domain/enums/payment-method.enum";
 import type { PaymentMethodType } from "@app/modules/purchasing/domain/enums/payment-method.enum";
 import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
-import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { IdentificationEnum } from "@app/core/enums/identification.enum";
 import { formatDate } from "@app/shared/utils/string.utils";
 import { DEFAULT_PAYMENT_REQUEST_CHECKLIST } from "./payment-request-pdf.checklist";
 import type { PaymentRequestPdfData } from "./payment-request-pdf.types";
 
+type PaymentRequestPurchaseSource = {
+	observations?: string | null;
+	code?: string | null;
+	request_date?: string | null;
+	priority_level?: string | null;
+	information_from_requesting_area?: { work_area_name?: string | null } | null;
+	work_area_information?: { work_area_name?: string | null } | null;
+};
+
+export type PaymentRequestDocumentDetails = {
+	purchase_order_id?: string | null;
+	sent_to_review_at?: string | null;
+	sent_by_user_information?: { fullname?: string | null } | null;
+	reviewer_user_information?: { fullname?: string | null } | null;
+	purchase_request_details?: PaymentRequestPurchaseSource | null;
+	purchase_request?: PaymentRequestPurchaseSource | null;
+};
+
 type MapPaymentRequestArgs = {
 	documentType: PaymentMethodType;
-	details: GetPurchaseOrderDetailsResponse;
+	details: PaymentRequestDocumentDetails;
 	products: PurchaseRequestProductInformation[];
 	logoUrl?: string | null;
 	companyName?: string | null;
@@ -116,7 +133,7 @@ export function mapPurchaseOrderToPaymentRequestPdf({
 
 	return {
 		documentType,
-		requestNumber: purchaseRequest?.code?.trim() || details.purchase_order_id,
+		requestNumber: purchaseRequest?.code?.trim() || details.purchase_order_id || "—",
 		assignmentNumber: null,
 		date: formatDate(
 			purchaseRequest?.request_date || details.sent_to_review_at || "",
