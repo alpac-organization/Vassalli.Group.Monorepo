@@ -3,7 +3,9 @@ import { formatDate } from "@app/shared/utils/string.utils";
 import { quoteAnalysisPdfStyles as styles } from "@app/modules/finance/ui/pages/quote-analisys/templates/styles/quote-analysis.styles";
 import {
 	buildQuoteAnalysisPdfViewModel,
+	chunkSuppliers,
 	getProviderBlockWidth,
+	SUPPLIERS_PER_PAGE_CHUNK,
 } from "@app/modules/finance/ui/pages/quote-analisys/templates/utils/quote-analysis.utils";
 import type { QuoteAnalysisPDFProps } from "@app/modules/finance/ui/pages/quote-analisys/templates/types/quote-analysis.types";
 import { QuoteAnalysisPdfHeader } from "@app/modules/finance/ui/pages/quote-analisys/templates/components/quote-analysis-pdf-header";
@@ -20,38 +22,61 @@ export function QuoteAnalysisPDF({
 }: QuoteAnalysisPDFProps) {
 	const viewModel = buildQuoteAnalysisPdfViewModel(detail, products);
 	const { suppliers, items, totals, qualitative } = viewModel;
-	const providerWidth = getProviderBlockWidth(suppliers.length);
+	const supplierChunks = chunkSuppliers(suppliers, SUPPLIERS_PER_PAGE_CHUNK);
+	const lastChunkIndex = supplierChunks.length - 1;
 	const dateLabel = formatDate(
 		elaborationDate || detail.sent_to_review_at || new Date().toISOString(),
 	);
 
 	return (
 		<Document>
-			<Page size="LETTER" orientation="landscape" style={styles.page}>
-				<QuoteAnalysisPdfHeader
-					companyLogoUrl={companyLogoUrl}
-					dateLabel={dateLabel}
-				/>
+			{supplierChunks.map((chunk, chunkIndex) => {
+				const colorIndexOffset = chunkIndex * SUPPLIERS_PER_PAGE_CHUNK;
+				const providerWidth = getProviderBlockWidth(chunk.length);
+				const isLastChunk = chunkIndex === lastChunkIndex;
 
-				<QuoteAnalysisPdfItemsTable
-					suppliers={suppliers}
-					items={items}
-					totals={totals}
-					providerWidth={providerWidth}
-				/>
+				return (
+					<Page
+						key={`supplier-chunk-${chunkIndex}`}
+						size="LETTER"
+						orientation="landscape"
+						style={styles.page}
+					>
+						<QuoteAnalysisPdfHeader
+							companyLogoUrl={companyLogoUrl}
+							dateLabel={dateLabel}
+						/>
 
-				<QuoteAnalysisPdfQualitativeTable
-					suppliers={suppliers}
-					qualitative={qualitative}
-				/>
+						<QuoteAnalysisPdfItemsTable
+							suppliers={chunk}
+							items={items}
+							totals={totals}
+							providerWidth={providerWidth}
+							colorIndexOffset={colorIndexOffset}
+						/>
 
-				<QuoteAnalysisPdfClosingBlock
-					selectedSupplierNames={viewModel.selectedSupplierNames}
-					justification={viewModel.justification}
-				/>
+						<QuoteAnalysisPdfQualitativeTable
+							suppliers={chunk}
+							qualitative={qualitative}
+							colorIndexOffset={colorIndexOffset}
+							providerLabelOffset={colorIndexOffset}
+						/>
 
-				<QuoteAnalysisPdfSignatures elaboratedBy={viewModel.elaboratedBy} />
-			</Page>
+						{isLastChunk ? (
+							<>
+								<QuoteAnalysisPdfClosingBlock
+									selectedSupplierNames={viewModel.selectedSupplierNames}
+									justification={viewModel.justification}
+								/>
+
+								<QuoteAnalysisPdfSignatures
+									elaboratedBy={viewModel.elaboratedBy}
+								/>
+							</>
+						) : null}
+					</Page>
+				);
+			})}
 		</Document>
 	);
 }

@@ -18,11 +18,15 @@ import type {
 type QuoteAnalysisPdfQualitativeTableProps = {
 	suppliers: QuoteAnalysisPdfSupplier[];
 	qualitative: QuoteAnalysisPdfQualitative;
+	colorIndexOffset?: number;
+	providerLabelOffset?: number;
 };
 
 export function QuoteAnalysisPdfQualitativeTable({
 	suppliers,
 	qualitative,
+	colorIndexOffset = 0,
+	providerLabelOffset = 0,
 }: QuoteAnalysisPdfQualitativeTableProps) {
 	const hasSuppliers = suppliers.length > 0;
 	const providerWidth = getQualitativeProviderWidth(suppliers.length);
@@ -41,12 +45,16 @@ export function QuoteAnalysisPdfQualitativeTable({
 							styles.cell,
 							{
 								width: providerWidth,
-								backgroundColor: getProviderHeaderColor(index),
+								backgroundColor: getProviderHeaderColor(
+									index + colorIndexOffset,
+								),
 							},
 							index === lastSupplierIndex ? styles.cellLast : {},
 						]}
 					>
-						<Text style={styles.qualHeader}>Proveedor {index + 1}</Text>
+						<Text style={styles.qualHeader}>
+							Proveedor {index + providerLabelOffset + 1}
+						</Text>
 					</View>
 				))}
 				{!hasSuppliers ? (
@@ -56,7 +64,7 @@ export function QuoteAnalysisPdfQualitativeTable({
 							styles.cellLast,
 							{
 								width: QUALITATIVE_PROVIDERS_WIDTH,
-								backgroundColor: getProviderHeaderColor(0),
+								backgroundColor: getProviderHeaderColor(colorIndexOffset),
 							},
 						]}
 					>

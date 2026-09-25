@@ -7,10 +7,6 @@ type GeneratePurchaseOrderPdfArgs = {
 	purchaseRequestId?: string;
 };
 
-/**
- * Encapsula la generación del PDF de OC: loading local + guard contra doble click.
- * El import pesado de @react-pdf ocurre solo al generar (ver purchase-order-pdf.generate).
- */
 export function usePurchaseOrderPdf() {
 	const { companyId, moduleCode } = useUserStore();
 	const [isGenerating, setIsGenerating] = useState(false);

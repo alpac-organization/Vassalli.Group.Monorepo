@@ -24,6 +24,7 @@ type QuoteAnalysisPdfItemsTableProps = {
 	items: QuoteAnalysisPdfItemRow[];
 	totals: QuoteAnalysisPdfTotals;
 	providerWidth: string;
+	colorIndexOffset?: number;
 };
 
 function FixedColumnPlaceholders() {
@@ -77,6 +78,7 @@ export function QuoteAnalysisPdfItemsTable({
 	items,
 	totals,
 	providerWidth,
+	colorIndexOffset = 0,
 }: QuoteAnalysisPdfItemsTableProps) {
 	const hasSuppliers = suppliers.length > 0;
 	const lastSupplierIndex = suppliers.length - 1;
@@ -117,7 +119,9 @@ export function QuoteAnalysisPdfItemsTable({
 								styles.cell,
 								{
 									width: providerWidth,
-									backgroundColor: getProviderHeaderColor(index),
+									backgroundColor: getProviderHeaderColor(
+										index + colorIndexOffset,
+									),
 								},
 								index === lastSupplierIndex ? styles.cellLast : {},
 							]}

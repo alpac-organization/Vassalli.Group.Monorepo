@@ -43,6 +43,7 @@ export const PurchaseRequestFilters = ({
 
 	const { GetAreasByCompany } = useAreas({
 		company_id: isAdministrator ? companyId : "",
+		module_code: moduleCode ?? "",
 	});
 
 	const areaOptions = (GetAreasByCompany.data ?? []).map((area) => ({

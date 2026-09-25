@@ -93,9 +93,6 @@ export function PurchaseOrderPdfDocument({
 							</View>
 						</View>
 
-						<Text style={styles.supplyLabel}>
-							{PURCHASE_ORDER_PDF_COMPANY.supplyRequestLabel}
-						</Text>
 
 						<View style={styles.table}>
 							<View style={styles.tableRow} wrap={false}>

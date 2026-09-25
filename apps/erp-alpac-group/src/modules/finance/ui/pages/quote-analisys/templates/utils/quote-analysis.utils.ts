@@ -27,6 +27,25 @@ import {
 
 const PROVIDERS_WIDTH_PCT = Number.parseFloat(PROVIDERS_TOTAL_WIDTH);
 
+export const SUPPLIERS_PER_PAGE_CHUNK = 2;
+
+export function chunkArray<T>(items: T[], size: number): T[][] {
+	const chunkSize = Math.max(size, 1);
+	const chunks: T[][] = [];
+	for (let i = 0; i < items.length; i += chunkSize) {
+		chunks.push(items.slice(i, i + chunkSize));
+	}
+	return chunks;
+}
+
+export function chunkSuppliers(
+	suppliers: QuoteAnalysisPdfSupplier[],
+	size = SUPPLIERS_PER_PAGE_CHUNK,
+): QuoteAnalysisPdfSupplier[][] {
+	const chunks = chunkArray(suppliers, size);
+	return chunks.length > 0 ? chunks : [[]];
+}
+
 export function getProviderBlockWidth(supplierCount: number): string {
 	const count = Math.max(supplierCount, 1);
 	return `${PROVIDERS_WIDTH_PCT / count}%`;

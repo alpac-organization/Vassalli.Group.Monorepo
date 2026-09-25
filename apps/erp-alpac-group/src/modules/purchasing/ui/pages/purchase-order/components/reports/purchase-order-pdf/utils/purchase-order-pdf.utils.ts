@@ -18,7 +18,6 @@ import type {
 type SupplierGroup = {
 	supplierId: string;
 	supplierNameFallback: string;
-	/** First accepted quote found — used for payment condition. */
 	representativeQuote: PurchaseRequestProductQuotation;
 	items: PurchaseOrderPdfLineItem[];
 };

@@ -34,17 +34,14 @@ export function SelectOperationalOrderModal({
 	onSelect,
 	onCheckOsSelection,
 }: SelectOperationalOrderModalProps) {
-	// Step 1: Select OP, Step 2: Select OS
 	const [step, setStep] = useState<1 | 2>(1);
 	
-	// Step 1 State
 	const [searchOpCode, setSearchOpCode] = useState("");
 	const [searchClientCode, setSearchClientCode] = useState("");
 	const [opPage, setOpPage] = useState(1);
 	const [selectedOp, setSelectedOp] = useState<OperationalOrder | null>(null);
 	const [opError, setOpError] = useState("");
 
-	// Step 2 State
 	const [searchOsCode, setSearchOsCode] = useState("");
 	const [osPage, setOsPage] = useState(1);
 	const [selectedOs, setSelectedOs] = useState<GetServiceOrdersResponse | null>(null);
@@ -66,7 +63,6 @@ export function SelectOperationalOrderModal({
 		}
 	}, [isOpen]);
 
-	// --- Step 1 Logic (OP) ---
 	const filteredOps = useMemo(() => {
 		return mockOperationalOrders.filter((op) => {
 			const matchCode = searchOpCode ? op.code.toLowerCase().includes(searchOpCode.toLowerCase()) : true;
@@ -116,7 +112,6 @@ export function SelectOperationalOrderModal({
 		{ key: "clientCode", label: "Código Cliente" },
 	];
 
-	// --- Step 2 Logic (OS) ---
 	const availableOsList = useMemo(() => {
 		if (!selectedOp) return [];
 		return mockServiceOrdersByOp[selectedOp.id] || [];
@@ -206,7 +201,6 @@ export function SelectOperationalOrderModal({
 		>
 			<div className="flex flex-col gap-4">
 				{step === 1 ? (
-					// STEP 1 UI
 					<div className="flex flex-col gap-4">
 						{opError && (
 							<p className="m-0 text-sm text-red-500 dark:text-red-400">{opError}</p>
@@ -263,7 +257,6 @@ export function SelectOperationalOrderModal({
 						</div>
 					</div>
 				) : (
-					// STEP 2 UI
 					<>
 						{osError && (
 							<p className="m-0 text-sm text-red-500 dark:text-red-400">{osError}</p>

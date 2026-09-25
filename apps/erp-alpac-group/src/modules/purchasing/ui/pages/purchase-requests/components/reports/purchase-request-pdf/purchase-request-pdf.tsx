@@ -6,7 +6,6 @@ import { formatDate } from "@app/shared/utils/string.utils";
 import type { RequisitionDocumentProps } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-pdf/types/purchase-req-pdf";
 
 const DOCUMENT_TITLE = "REQUISICION DE COMPRAS";
-/** Altura mínima libre antes del footer para no partir firmas entre páginas. */
 const FOOTER_MIN_PRESENCE = 140;
 
 export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
@@ -30,7 +29,6 @@ export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
 				</View>
 
 				<View style={styles.table}>
-					{/* Se repite en cada página para que las columnas sigan teniendo sentido */}
 					<View style={styles.tableHeaderRow} fixed wrap={false}>
 						<Text style={[styles.cell, styles.colQty, styles.headerText]}>
 							CANTIDAD

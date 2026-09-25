@@ -44,7 +44,6 @@ export const RequisitionTab = ({
 		CompanyMatadata.ALPAC.acronym;
 	const { getMappedError } = useMappedError();
 	const [isRequisitionModalOpen, setIsRequisitionModalOpen] = useState(false);
-	const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 	const [isRequisitionDetailModalOpen, setIsRequisitionDetailModalOpen] = useState(false);
 	const [isAnnulModalOpen, setIsAnnulModalOpen] = useState(false);
 	const [requisitionDetail, setRequisitionDetail] = useState<GetPurchaseRequestResponse | null>(null);

@@ -13,7 +13,7 @@ import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purcha
 import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import type { GetServiceOrdersResponse } from "@app/modules/service-order/domain/ApiContract/Responses/service-order-responses/get-service-orders.response";
 import type { PurchaseRequestFormBlockProps } from "./purchase-request-form-block.types";
-import { mockOperationalOrders, mockServiceOrdersByOp } from "../../utils/mock-operational-orders";
+import { mockOperationalOrders, } from "../../utils/mock-operational-orders";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 
 const inputClassName =
@@ -48,7 +48,7 @@ export const PurchaseRequestFormBlock = ({
 
    const { costCenterName } = useUserStore();
    const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
-   const { AlertComponent, handleRequestWarning } = useAlertState();
+   const {  handleRequestWarning } = useAlertState();
 
    const methods = useForm<CreatePurchaseRequestPayload>({
       defaultValues: defaults,
