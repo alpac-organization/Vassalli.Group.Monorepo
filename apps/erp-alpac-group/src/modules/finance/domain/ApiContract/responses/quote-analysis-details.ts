@@ -15,6 +15,8 @@ export interface PurchaseRequestDto {
   request_type: PurchaseRequestType;
   request_status: PurchaseRequestStatusType;
   priority_level: string;
+  annulment_reason: string | null;
+  annulled_by_user_information: UserInformation | null;
 }
 
 export interface PurchaseRequestDetailsDto extends PurchaseRequestDto {
