@@ -5,6 +5,7 @@ import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domai
 export type PurchaseRequestFormBlockHandle = {
 	validate: () => Promise<boolean>;
 	getValues: () => CreatePurchaseRequestPayload;
+	getServiceOrderId: () => string | undefined;
 };
 
 export type PurchaseRequestFormBlockProps = {
@@ -16,5 +17,6 @@ export type PurchaseRequestFormBlockProps = {
 	onRemove: () => void;
 	onRequestError?: (message?: string) => void;
 	onRequestSuccess?: (message: string) => void;
+	onCheckOsSelection?: (osId: string) => boolean;
 	ref?: Ref<PurchaseRequestFormBlockHandle>;
 };

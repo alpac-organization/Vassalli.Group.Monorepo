@@ -316,6 +316,16 @@ export const PurchaseRequestModal = ({
 		setEntries((prev) => prev.filter((entry) => entry.id !== id));
 	};
 
+	const handleCheckOsSelection = (osId: string, currentBlockId: string): boolean => {
+		for (const [id, block] of blockRefs.current.entries()) {
+			if (id === currentBlockId) continue;
+			if (block.getServiceOrderId?.() === osId) {
+				return true;
+			}
+		}
+		return false;
+	};
+
 	const buildCreatePayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => ({
 		...(isAdministrator && areaId ? { area_id: areaId } : {}),
 		branch_id: currentBranchId,
@@ -323,6 +333,7 @@ export const PurchaseRequestModal = ({
 		request_type: Number(requestType.value),
 		...(isRequisition ? { priority_level: Number(values.priority_level) } : {}),
 		...(values.service_order_id && { service_order_id: values.service_order_id }),
+		...(values.operational_order_id && { operational_order_id: values.operational_order_id }),
 		destination: values.destination,
 		observations: values.observations.trim(),
 		purchase_request_items: values.purchase_request_items.map((item: PurchaseRequestItem) => {
@@ -457,7 +468,12 @@ export const PurchaseRequestModal = ({
 				variant="default"
 				size="8xl"
 				description={modalDescription}
-				panelClassName="flex h-[54rem] w-[min(calc(100vw-1rem),56rem)] min-w-0 flex-col"
+				panelClassName={[
+					"flex max-h-[min(94dvh,50rem)] flex-col overflow-hidden",
+					"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
+					"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
+					"w-[min(calc(100vw-1rem),56rem)] min-w-0"
+				].join(" ")}
 				contentClassName="flex min-h-0 flex-1 flex-col"
 			>
 				<form
@@ -508,6 +524,7 @@ export const PurchaseRequestModal = ({
 											onRemove={() => handleRemove(entry.id)}
 											onRequestError={onRequestError}
 											onRequestSuccess={onRequestSuccess}
+											onCheckOsSelection={(osId) => handleCheckOsSelection(osId, entry.id)}
 											ref={(instance) => {
 												if (instance) {
 													blockRefs.current.set(entry.id, instance);
@@ -523,7 +540,7 @@ export const PurchaseRequestModal = ({
 					</div>
 
 					{!isEditMode && (
-						<div className="sticky top-0 right-0 z-10 bg-white dark:bg-[#272b34] py-4">
+						<div className="shrink-0 pt-4 pb-2">
 							<Button
 								type="button"
 								size="medium"

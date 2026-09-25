@@ -1,8 +1,8 @@
 import { useImperativeHandle, useRef, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
-import { Chips, ContextMenu, Dropdown, RadioButton, Textarea } from "@alpac/design-system";
+import { Chips, ContextMenu, Dropdown, Textarea, Checkbox } from "@alpac/design-system";
 import { PurchaseRequestDetail } from "../purchase-request-detail/purchase-request-detail";
-import { SelectServiceOrderModal } from "../select-service-order-modal/select-service-order-modal";
+import { SelectOperationalOrderModal } from "../select-operational-order-modal/select-operational-order-modal";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { PriorityLevelEnum, PriorityLevelOptions } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import {
@@ -13,6 +13,8 @@ import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purcha
 import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import type { GetServiceOrdersResponse } from "@app/modules/service-order/domain/ApiContract/Responses/service-order-responses/get-service-orders.response";
 import type { PurchaseRequestFormBlockProps } from "./purchase-request-form-block.types";
+import { mockOperationalOrders, mockServiceOrdersByOp } from "../../utils/mock-operational-orders";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 
 const inputClassName =
    "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -27,8 +29,8 @@ const filteredPriorityOptions = PriorityLevelOptions.filter(
 const originFromDestination = (
    destination: number,
 ): PurchaseRequestDestinationType =>
-   destination === PurchaseRequestDestinationEnum.ServiceOrder.value
-      ? "ServiceOrder"
+   destination === PurchaseRequestDestinationEnum.OperationalOrder.value
+      ? "OperationalOrder"
       : "Internal";
 
 export const PurchaseRequestFormBlock = ({
@@ -40,11 +42,13 @@ export const PurchaseRequestFormBlock = ({
    onRemove,
    onRequestError,
    onRequestSuccess,
+   onCheckOsSelection,
    ref,
 }: PurchaseRequestFormBlockProps) => {
 
    const { costCenterName } = useUserStore();
    const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
+   const { AlertComponent, handleRequestWarning } = useAlertState();
 
    const methods = useForm<CreatePurchaseRequestPayload>({
       defaultValues: defaults,
@@ -59,8 +63,10 @@ export const PurchaseRequestFormBlock = ({
 
    const [selectedOrigen, setSelectedOrigin] = useState<PurchaseRequestDestinationType>(originFromDestination(defaults.destination));
    const [selectedServiceOrder, setSelectedServiceOrder] = useState<GetServiceOrdersResponse | null>(null);
-   const [isSelectServiceOrderModalOpen, setIsSelectServiceOrderModalOpen] = useState(false);
-   const didConfirmServiceOrderRef = useRef(false);
+   const [selectedOpCode, setSelectedOpCode] = useState<string | null>(null);
+   const [selectedOpId, setSelectedOpId] = useState<string | null>(null);
+   const [isSelectOperationalOrderModalOpen, setIsSelectOperationalOrderModalOpen] = useState(false);
+   const didConfirmOperationalOrderRef = useRef(false);
 
    const priorityLevelId = methods.watch("priority_level");
    const observations = methods.watch("observations");
@@ -69,11 +75,12 @@ export const PurchaseRequestFormBlock = ({
    const isDisabledActions = Boolean(
       (isRequisition && !hasPrioritySelected) ||
       !observations?.trim() ||
-      (selectedOrigen === "ServiceOrder" && !selectedServiceOrder),
+      (selectedOrigen === "OperationalOrder" && !selectedServiceOrder),
    );
 
    useImperativeHandle(ref, () => ({
       validate: () => methods.trigger(),
+      getServiceOrderId: () => selectedServiceOrder?.service_order_id,
       getValues: () => {
          const values = methods.getValues();
          const dirtyItems = methods.formState.dirtyFields.purchase_request_items;
@@ -81,9 +88,8 @@ export const PurchaseRequestFormBlock = ({
          return {
             ...values,
             destination: PurchaseRequestDestinationEnum[selectedOrigen].value,
-            ...(selectedOrigen === "ServiceOrder" &&
-               selectedServiceOrder?.service_order_id
-               ? { service_order_id: selectedServiceOrder.service_order_id }
+            ...(selectedOrigen === "OperationalOrder" && selectedServiceOrder?.service_order_id
+               ? { service_order_id: selectedServiceOrder.service_order_id, operational_order_id: selectedOpId ?? undefined }
                : {}),
             purchase_request_items: values.purchase_request_items.map((item, index) => {
                const imagesDirtyField =
@@ -109,8 +115,10 @@ export const PurchaseRequestFormBlock = ({
    const handleOriginChange = (origin: PurchaseRequestDestinationType) => {
       setSelectedOrigin(origin);
       setValue("destination", PurchaseRequestDestinationEnum[origin].value);
-      if (origin !== "ServiceOrder") {
+      if (origin !== "OperationalOrder") {
          setSelectedServiceOrder(null);
+         setSelectedOpCode(null);
+         setSelectedOpId(null);
       }
    };
 
@@ -199,41 +207,48 @@ export const PurchaseRequestFormBlock = ({
                            <div className="flex min-h-12 min-w-0 w-full flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3">
 
                               <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3">
-                                 <RadioButton
-                                    id={`suppliesRadiusButton-${index}`}
-                                    value={PurchaseRequestDestinationEnum.Internal.textValue}
-                                    label={PurchaseRequestDestinationEnum.Internal.label}
-                                    labelPosition="right"
-                                    labelClassName={labelClassName}
-                                    checked={selectedOrigen === "Internal"}
-                                    onChange={() => {
-                                       handleOriginChange("Internal");
+                                 <Checkbox
+                                    name={`opCheckbox-${index}`}
+                                    label="Orden Operativa"
+                                    checked={selectedOrigen === "OperationalOrder"}
+                                    onChange={(e) => {
+                                       if (e.target.checked) {
+                                          if (mockOperationalOrders.length === 0) {
+                                             handleRequestWarning("No puede continuar con el flujo debido a que no existen OP.");
+                                             return;
+                                          }
+                                          handleOriginChange("OperationalOrder");
+                                          setIsSelectOperationalOrderModalOpen(true);
+                                       } else {
+                                          handleOriginChange("Internal");
+                                       }
                                     }}
                                  />
 
-                                 <RadioButton
-                                    id={`serviceOrderRadiusButton-${index}`}
-                                    value={PurchaseRequestDestinationEnum.ServiceOrder.textValue}
-                                    label={`Orden de Servicio${(isRequisition && selectedServiceOrder) ? ":" : ""}`}
-                                    labelPosition="right"
-                                    labelClassName={labelClassName}
-                                    checked={selectedOrigen === "ServiceOrder"}
-                                    onChange={() => {
-                                       handleOriginChange("ServiceOrder");
-                                       setIsSelectServiceOrderModalOpen(true);
-                                    }}
-                                 />
-
-                                 {isRequisition && selectedServiceOrder && (
+                                 {isRequisition && selectedOrigen === "OperationalOrder" && selectedOpCode && (
                                     <div className="flex min-w-0 w-full flex-col gap-2 sm:w-auto sm:flex-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
                                        <Chips
-                                          key={selectedServiceOrder.service_order_id}
-                                          label={selectedServiceOrder.code}
+                                          key={`op-${selectedOpId}`}
+                                          label={`OP: ${selectedOpCode}`}
                                           onClose={() => {
                                              setSelectedServiceOrder(null);
+                                             setSelectedOpCode(null);
+                                             setSelectedOpId(null);
                                              setSelectedOrigin("Internal");
                                           }}
                                        />
+                                       {selectedServiceOrder && (
+                                          <Chips
+                                             key={`os-${selectedServiceOrder.service_order_id}`}
+                                             label={`OS: ${selectedServiceOrder.code}`}
+                                             onClose={() => {
+                                                setSelectedServiceOrder(null);
+                                                setSelectedOpCode(null);
+                                                setSelectedOpId(null);
+                                                setSelectedOrigin("Internal");
+                                             }}
+                                          />
+                                       )}
                                     </div>
                                  )}
                               </div>
@@ -280,22 +295,24 @@ export const PurchaseRequestFormBlock = ({
                />
             </div>
 
-            <SelectServiceOrderModal
-               selectionType="single"
-               isOpen={isSelectServiceOrderModalOpen}
+            <SelectOperationalOrderModal
+               isOpen={isSelectOperationalOrderModalOpen}
                onClose={() => {
-                  setIsSelectServiceOrderModalOpen(false);
-                  if (!didConfirmServiceOrderRef.current) {
+                  setIsSelectOperationalOrderModalOpen(false);
+                  if (!didConfirmOperationalOrderRef.current) {
                      handleOriginChange("Internal");
                   }
-                  didConfirmServiceOrderRef.current = false;
+                  didConfirmOperationalOrderRef.current = false;
                }}
-               onSelect={(serviceOrders) => {
-                  const order = serviceOrders[0] ?? null;
-                  didConfirmServiceOrderRef.current = true;
-                  setSelectedServiceOrder(order);
-                  setSelectedOrigin("ServiceOrder");
+               onSelect={(opId, serviceOrder) => {
+                  didConfirmOperationalOrderRef.current = true;
+                  setSelectedOpId(opId);
+                  const op = mockOperationalOrders.find(o => o.id === opId);
+                  setSelectedOpCode(op?.code ?? null);
+                  setSelectedServiceOrder(serviceOrder);
+                  setSelectedOrigin("OperationalOrder");
                }}
+               onCheckOsSelection={onCheckOsSelection}
             />
          </div>
       </FormProvider>

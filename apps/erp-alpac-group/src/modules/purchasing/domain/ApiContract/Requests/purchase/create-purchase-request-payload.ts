@@ -9,6 +9,7 @@ export interface CreatePurchaseRequestPayload {
    branch_id: string;
    cost_center_id: string;
    service_order_id?: string;
+   operational_order_id?: string;
    observations: string;
    priority_level?: number;
    destination: number;
