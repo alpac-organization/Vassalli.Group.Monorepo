@@ -6,14 +6,21 @@ interface CompanyState {
   neutralUrlImage: string;
 }
 
+const initialCompanyState: CompanyState = {
+  urlImage: '',
+  neutralUrlImage: '',
+};
+
 export const useCompanyStore = create<CompanyState>()(
   persist(
-    () => ({
-      urlImage: '',
-      neutralUrlImage: '',
-    }),
+    () => ({ ...initialCompanyState }),
     {
       name: 'company-data',
     },
   ),
 );
+
+export const clearCompanyStore = () => {
+  useCompanyStore.setState({ ...initialCompanyState });
+  void useCompanyStore.persist.clearStorage();
+};

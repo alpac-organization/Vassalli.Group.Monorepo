@@ -1,5 +1,7 @@
 import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { QuotationItem } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
+import type { SupplierPaymentMethod } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
 
 export const MIN_SUPPLIERS_PER_PRODUCT = 2;
 
@@ -18,11 +20,14 @@ export type QuoteProductModalProps = {
 
 export type IvaRateOption = "10" | "15" | "other";
 
-export type QuotationItemForm = QuotationItem & {
+export type QuotationItemForm = Omit<QuotationItem, "payment_method_type"> & {
+	payment_method?: PaymentMethodType;
 	supplier_legal_name?: string;
 	has_iva?: boolean;
 	iva_rate?: IvaRateOption;
 	custom_iva_rate?: string | number;
+	supplier_payment_methods?: SupplierPaymentMethod[];
+	preferred_payment_method?: PaymentMethodType;
 };
 
 export type QuoteProductGroup = {
