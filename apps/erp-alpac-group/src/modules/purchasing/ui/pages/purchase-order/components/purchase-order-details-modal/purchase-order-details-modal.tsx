@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Avatar, Badges, Button, Modal } from "@alpac/design-system";
 import { BuildingIcon, CalendarCheckIcon, CalendarIcon, MailIcon, NotebookTextIcon, UserIcon } from "lucide-react";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import type { PurchaseOrderDetailsProps } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-details-modal/purchase-order-details-modal.types";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseOrderPdf } from "@app/modules/purchasing/ui/pages/purchase-order/hooks/usePurchaseOrderPdf";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
 import type { PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
@@ -16,7 +18,6 @@ import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/e
 import { Loader } from "@app/shared/components/loaders/loader";
 import { PurchaseOrderDocumentModal } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-document-modal/purchase-order-document-modal";
 import { AnalyzedQuoteProductQuotations } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quote-detail-modal/analyzed-quote-product-quotations";
-import { useState } from "react";
 import { ImagePreviewGallery, type ImagePayload } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
 import { PurchaseRequestProductsTable } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-products-table/purchase-request-products-table";
 
@@ -29,8 +30,10 @@ export const PurchaseOrderDetailsModal = ({
 	purchaseOrder,
 }: PurchaseOrderDetailsProps) => {
 	const { companyId, moduleCode } = useUserStore();
+	const { isGenerating, generatePurchaseOrderPdf } = usePurchaseOrderPdf();
 
 	const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
+	const [pdfError, setPdfError] = useState<string | null>(null);
 	const [imagesModal, setImagesModal] = useState<{
 		productName: string;
 		images: ImagePayload[];
@@ -80,6 +83,22 @@ export const PurchaseOrderDetailsModal = ({
 		GetPurchaseOrderDetails.isFetching ||
 		GetPurchaseRequestProducts.isPending ||
 		GetPurchaseRequestProducts.isFetching;
+
+	const handleGeneratePurchaseOrderPdf = async () => {
+		setPdfError(null);
+		try {
+			await generatePurchaseOrderPdf({
+				purchaseOrderId: purchaseOrder?.purchase_order_id ?? "",
+				purchaseRequestId: purchaseRequestId,
+			});
+		} catch (error) {
+			const message =
+				error instanceof Error
+					? error.message
+					: "No se pudo generar la orden de compra.";
+			setPdfError(message);
+		}
+	};
 
 	return (
 		<>
@@ -287,16 +306,33 @@ export const PurchaseOrderDetailsModal = ({
 						<h4 className={sectionTitleClassName}>Documento</h4>
 						<div className="flex flex-col gap-2">
 							<p className="m-0 text-sm text-slate-600 dark:text-slate-300">
-								Genere la solicitud del documento de la orden de compra
+								Genere la orden de compra en PDF, o solicite otro documento
 								seleccionando el medio de pago.
 							</p>
-							<Button
-								type="button"
-								size="giant"
-								label="Generar documento"
-								onClick={() => setIsDocumentModalOpen(true)}
-								className="w-full! rounded-md! bg-alpac-primary-500! text-[15px]! text-white! dark:bg-alpac-primary-700! sm:w-64!"
-							/>
+							{pdfError ? (
+								<p className="m-0 text-sm text-red-500 dark:text-red-400">
+									{pdfError}
+								</p>
+							) : null}
+							<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+								<Button
+									type="button"
+									size="giant"
+									label="Generar orden de compra"
+									onClick={handleGeneratePurchaseOrderPdf}
+									isLoading={isGenerating}
+									disabled={isGenerating || !purchaseOrder?.purchase_order_id}
+									className="w-full! rounded-md! bg-alpac-primary-500! text-[15px]! text-white! dark:bg-alpac-primary-700! sm:w-64!"
+								/>
+								<Button
+									type="button"
+									size="giant"
+									label="Generar documento"
+									onClick={() => setIsDocumentModalOpen(true)}
+									disabled={isGenerating}
+									className="w-full! rounded-md! border! border-slate-400! bg-transparent! text-[15px]! text-slate-700! hover:bg-slate-100! dark:border-slate-500! dark:text-slate-200! dark:hover:bg-slate-700/40! sm:w-64!"
+								/>
+							</div>
 						</div>
 					</section>
 				</div>

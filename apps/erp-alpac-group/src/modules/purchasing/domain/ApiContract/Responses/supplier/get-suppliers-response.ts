@@ -1,3 +1,4 @@
+import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
 export interface SupplierAreaInformation {
   area_id: string;
   area_code: number;
@@ -20,8 +21,14 @@ export interface GetSuppliersResponse {
   identification_type: string;
   constitution_type: string;
   user_information?: SupplierUserInformation;
+	supplier_payment_methods:SupplierPaymentMethod[];
 }
 
+export interface SupplierPaymentMethod {
+	notes?: string;
+	is_active?: boolean;
+	payment_method_type?: PaymentMethodType;
+}
 export interface GetSuppliersResponseList {
   data: GetSuppliersResponse[];
   page_number: number;

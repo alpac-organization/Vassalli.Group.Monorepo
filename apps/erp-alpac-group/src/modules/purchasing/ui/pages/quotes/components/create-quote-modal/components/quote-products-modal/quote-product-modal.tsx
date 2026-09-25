@@ -17,7 +17,7 @@ import {
 	Modal,
 	Textarea,
 } from "@alpac/design-system";
-import { PlusIcon, SaveIcon, Trash2Icon, XIcon } from "lucide-react";
+import { CircleAlert, PlusIcon, SaveIcon, Trash2Icon, XIcon } from "lucide-react";
 import {
 	quoteFormDangerButtonClassName,
 	quoteFormInputClassName,
@@ -26,7 +26,12 @@ import {
 	quoteFormSecondaryButtonClassName,
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
 import { TimeTypeEnum, TimeTypeOptions } from "@app/core/enums/time-type.enum";
-import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+import { PaymentMethodEnum } from "@app/core/enums/payment-method.enum";
+import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
+import type { GetSuppliersResponse, SupplierPaymentMethod } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+import { SupplierServices } from "@app/modules/purchasing/infrastructure/services/supplier/SupplierServices";
+import { httpHandler } from "@app/core/adapters";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 import { SelectSupplierModal } from "../select-supplier-modal/select-supplier-modal";
 import type {
 	DraftQuotationItem,
@@ -40,6 +45,127 @@ import type {
 import { MIN_SUPPLIERS_PER_PRODUCT } from "./quote-product-modal.types";
 import { formatNumberWithDecimals } from "@app/shared/utils/string.utils";
 import { validateDecimalNumber, validatePositiveNumber } from "@app/shared/utils/number.utils";
+
+const supplierServices = new SupplierServices(httpHandler);
+
+const paymentMethodEntries = Object.values(PaymentMethodEnum);
+
+const normalizePaymentMethodType = (
+	raw: unknown,
+): PaymentMethodType | undefined => {
+	if (raw == null || raw === "") return undefined;
+
+	if (typeof raw === "number") {
+		return paymentMethodEntries.find((e) => e.value === raw)?.stringValue;
+	}
+
+	if (typeof raw === "string") {
+		const byString = paymentMethodEntries.find(
+			(e) =>
+				e.stringValue === raw ||
+				e.stringValue.toLowerCase() === raw.toLowerCase(),
+		);
+		if (byString) return byString.stringValue;
+
+		const asNumber = Number(raw);
+		if (!Number.isNaN(asNumber)) {
+			return paymentMethodEntries.find((e) => e.value === asNumber)?.stringValue;
+		}
+	}
+
+	return undefined;
+};
+
+const resolvePaymentMethodLabel = (
+	method?: PaymentMethodType | number | null,
+): string => {
+	if (method == null) return "—";
+	const normalized =
+		typeof method === "number"
+			? normalizePaymentMethodType(method)
+			: normalizePaymentMethodType(method);
+	if (!normalized) return String(method);
+	const entry = paymentMethodEntries.find((e) => e.stringValue === normalized);
+	return entry?.label ?? normalized;
+};
+
+const toPaymentMethodNumericValue = (
+	method?: PaymentMethodType | number | null,
+): number | undefined => {
+	if (method == null) return undefined;
+	if (typeof method === "number") {
+		return paymentMethodEntries.some((e) => e.value === method)
+			? method
+			: undefined;
+	}
+	return paymentMethodEntries.find((e) => e.stringValue === method)?.value;
+};
+
+const toPaymentMethodStringValue = (
+	method?: number | PaymentMethodType | null,
+): PaymentMethodType | undefined => normalizePaymentMethodType(method);
+
+const getMethodValue = (
+	method?: SupplierPaymentMethod | Record<string, unknown>,
+): PaymentMethodType | undefined => {
+	if (!method) return undefined;
+	const raw = method as Record<string, unknown>;
+	return normalizePaymentMethodType(
+		raw.payment_method_type ??
+			raw.payment_method ??
+			raw.paymentmethodtype ??
+			raw.paymentMethodType ??
+			raw.PaymentMethodType,
+	);
+};
+
+const isPaymentMethodActive = (
+	method?: SupplierPaymentMethod | Record<string, unknown>,
+): boolean => {
+	if (!method) return false;
+	const raw = method as Record<string, unknown>;
+	if (raw.is_active === false || raw.isActive === false) return false;
+	return true;
+};
+
+const normalizePaymentMethods = (
+	methods?: unknown,
+): SupplierPaymentMethod[] => {
+	if (!Array.isArray(methods)) return [];
+
+	return methods
+		.map((item) => {
+			const raw = (item ?? {}) as Record<string, unknown>;
+			const payment_method_type = getMethodValue(raw);
+			if (!payment_method_type) return null;
+
+			return {
+				notes: typeof raw.notes === "string" ? raw.notes : undefined,
+				is_active: isPaymentMethodActive(raw),
+				payment_method_type,
+			} satisfies SupplierPaymentMethod;
+		})
+		.filter((item): item is SupplierPaymentMethod => item != null);
+};
+
+const getActivePaymentMethods = (methods?: SupplierPaymentMethod[]) =>
+	normalizePaymentMethods(methods).filter(
+		(m) => m.is_active !== false && m.payment_method_type != null,
+	);
+
+const buildPaymentMethodOptions = (methods: SupplierPaymentMethod[]) =>
+	getActivePaymentMethods(methods).map((m) => ({
+		value: m.payment_method_type!,
+		label: resolvePaymentMethodLabel(m.payment_method_type),
+	}));
+
+const availabilityTimeTypeOptions = Object.values(TimeTypeEnum).map((option) => ({
+	value: String(option.value),
+	label: option.label,
+}));
+
+const conditionalFieldsGridClassName =
+	"mt-4 grid grid-cols-1 gap-4 md:grid-cols-2";
 
 const PRESET_IVA_RATES = ["10", "15"] as const;
 
@@ -89,25 +215,51 @@ const inferIvaFields = (
 const emptyQuotationItem = (
 	purchaseRequestItemId: string,
 	supplier?: Pick<GetSuppliersResponse, "supplier_id" | "supplier_legal_name">,
-): QuotationItemForm => ({
-	supplier_id: supplier?.supplier_id ?? "",
-	supplier_legal_name: supplier?.supplier_legal_name ?? "",
-	purchase_request_item_id: purchaseRequestItemId,
-	has_delivery: false,
-	has_guarantee: false,
-	has_iva: false,
-	iva_rate: undefined,
-	custom_iva_rate: undefined,
-	price: 0,
-	iva: undefined,
-	price_unit: undefined,
-	brand_product: "",
-	delivery_time: undefined,
-	supplier_selection_justification: "",
-	delivery_time_type: undefined,
-	warranty_period: undefined,
-	warranty_period_time_type: undefined,
-});
+	paymentMethods?: unknown,
+	preferredPayment?: unknown,
+): QuotationItemForm => {
+	const normalizedMethods = normalizePaymentMethods(paymentMethods);
+	const preferred = normalizePaymentMethodType(preferredPayment);
+	const active = getActivePaymentMethods(normalizedMethods);
+	let autoPayment: PaymentMethodType | undefined;
+
+	if (active.length === 1) {
+		autoPayment = active[0].payment_method_type;
+	} else if (
+		preferred &&
+		active.some((m) => m.payment_method_type === preferred)
+	) {
+		autoPayment = preferred;
+	} else if (active.length === 0 && preferred) {
+		autoPayment = preferred;
+	}
+
+	return {
+		supplier_id: supplier?.supplier_id ?? "",
+		supplier_legal_name: supplier?.supplier_legal_name ?? "",
+		purchase_request_item_id: purchaseRequestItemId,
+		has_delivery: false,
+		has_guarantee: false,
+		iventory_available: true,
+		has_iva: false,
+		iva_rate: undefined,
+		custom_iva_rate: undefined,
+		price: 0,
+		iva: undefined,
+		price_unit: undefined,
+		brand_product: "",
+		payment_method: autoPayment,
+		delivery_time: undefined,
+		availability_time: undefined,
+		availability_time_type: undefined,
+		supplier_selection_justification: "",
+		delivery_time_type: undefined,
+		warranty_period: undefined,
+		warranty_period_time_type: undefined,
+		supplier_payment_methods: normalizedMethods,
+		preferred_payment_method: preferred,
+	};
+};
 
 const toNumberOrUndefined = (value: unknown) => {
 	if (value === "" || value === null || value === undefined) return undefined;
@@ -151,6 +303,18 @@ function QuotationItemFields({
 		control,
 		name: `products.${productIndex}.items.${itemIndex}.has_guarantee`,
 	});
+	const inventoryAvailable = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.iventory_available`,
+	});
+	const supplierPaymentMethods = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.supplier_payment_methods`,
+	});
+	const preferredPaymentMethod = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.preferred_payment_method`,
+	});
 	const hasIva = useWatch({
 		control,
 		name: `products.${productIndex}.items.${itemIndex}.has_iva`,
@@ -173,6 +337,21 @@ function QuotationItemFields({
 	const supplierLabel =
 		supplierLegalName || `Proveedor ${itemIndex + 1}`;
 
+	const activePaymentMethods = getActivePaymentMethods(supplierPaymentMethods);
+	const paymentMethodOptions = buildPaymentMethodOptions(supplierPaymentMethods ?? []);
+	const hasSinglePaymentMethod = activePaymentMethods.length === 1;
+	const preferredPaymentNormalized = normalizePaymentMethodType(preferredPaymentMethod);
+	const usePreferredAsPaymentMethod =
+		activePaymentMethods.length === 0 && Boolean(preferredPaymentNormalized);
+	const hasNoPaymentMethods =
+		activePaymentMethods.length === 0 && !preferredPaymentNormalized;
+	const lockedPaymentMethod =
+		hasSinglePaymentMethod
+			? activePaymentMethods[0].payment_method_type
+			: usePreferredAsPaymentMethod
+				? preferredPaymentNormalized
+				: undefined;
+
 	useEffect(() => {
 		const unit = Number(priceUnit) || 0;
 		const calculatedPrice = roundMoney(quantity * unit);
@@ -184,6 +363,13 @@ function QuotationItemFields({
 			hasIva ? roundMoney(calculatedPrice * rate) : undefined,
 		);
 	}, [customIvaRate, fieldPath, hasIva, ivaRate, priceUnit, quantity, setValue]);
+
+	useEffect(() => {
+		if (!lockedPaymentMethod) return;
+		setValue(`${fieldPath}.payment_method`, lockedPaymentMethod, {
+			shouldValidate: true,
+		});
+	}, [fieldPath, lockedPaymentMethod, setValue]);
 
 	return (
 		<AccordionItem
@@ -400,7 +586,7 @@ function QuotationItemFields({
 
 			</div>
 
-			<div className="mt-4 flex flex-wrap gap-4 border-t border-slate-200 pt-4 dark:border-neutral-600">
+			<div className="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:flex-wrap sm:gap-4 dark:border-neutral-600">
 				<Controller
 					control={control}
 					name={`${fieldPath}.has_delivery`}
@@ -438,10 +624,82 @@ function QuotationItemFields({
 						/>
 					)}
 				/>
+
+				<Controller
+					control={control}
+					name={`${fieldPath}.iventory_available`}
+					render={({ field }) => (
+						<Checkbox
+							label="¿Inventario disponible?"
+							checked={Boolean(field.value)}
+							onChange={(event) => {
+								const checked = event.target.checked;
+								field.onChange(checked);
+								if (checked) {
+									setValue(`${fieldPath}.availability_time`, undefined);
+									setValue(`${fieldPath}.availability_time_type`, undefined);
+								}
+							}}
+						/>
+					)}
+				/>
 			</div>
 
+			{inventoryAvailable === false ? (
+				<div className={conditionalFieldsGridClassName}>
+					<InputText
+						label="Tiempo de disponibilidad"
+						type="number"
+						min="0"
+						isRequired
+						placeholder="Ej. 5"
+						className={quoteFormInputClassName}
+						labelClassName={quoteFormLabelClassName}
+						{...register(`${fieldPath}.availability_time`, {
+							required: inventoryAvailable === false
+								? "El tiempo de disponibilidad es requerido."
+								: false,
+							setValueAs: toNumberOrUndefined,
+							validate: (value) =>
+								inventoryAvailable !== false ||
+								(value != null && Number(value) > 0) ||
+								"El tiempo de disponibilidad debe ser mayor a 0.",
+						})}
+						error={itemErrors?.availability_time?.message}
+					/>
+
+					<Controller
+						control={control}
+						name={`${fieldPath}.availability_time_type`}
+						rules={{
+							validate: (value) =>
+								inventoryAvailable !== false ||
+								(value != null && Number(value) > 0) ||
+								"Seleccione el tipo de tiempo.",
+						}}
+						render={({ field }) => (
+							<Dropdown
+								label="Tipo de tiempo"
+								placeholder="Seleccione"
+								appearance="dark"
+								isRequired
+								options={availabilityTimeTypeOptions}
+								value={field.value != null ? String(field.value) : ""}
+								onChange={(value) =>
+									field.onChange(value ? Number(value) : undefined)
+								}
+								labelClassName={quoteFormLabelClassName}
+								valueClassName={quoteFormLabelClassName}
+								className={quoteFormInputClassName}
+								error={itemErrors?.availability_time_type?.message}
+							/>
+						)}
+					/>
+				</div>
+			) : null}
+
 			{hasDelivery ? (
-				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+				<div className={conditionalFieldsGridClassName}>
 					<InputText
 						label="Tiempo de entrega"
 						type="number"
@@ -494,7 +752,7 @@ function QuotationItemFields({
 			) : null}
 
 			{hasGuarantee ? (
-				<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+				<div className={conditionalFieldsGridClassName}>
 					<InputText
 						label="Periodo de garantía"
 						type="number"
@@ -546,6 +804,93 @@ function QuotationItemFields({
 				</div>
 			) : null}
 
+			<div className="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 dark:border-neutral-600">
+				{preferredPaymentNormalized ? (
+					<div className="flex flex-col gap-1">
+						<span className={`text-[13px] font-medium ${quoteFormLabelClassName}`}>
+							Método de pago preferido
+						</span>
+						<span className="text-sm text-slate-600 dark:text-slate-300">
+							{resolvePaymentMethodLabel(preferredPaymentNormalized)}
+						</span>
+					</div>
+				) : null}
+
+				{hasNoPaymentMethods ? (
+					<>
+						<div
+							role="alert"
+							className="flex w-full items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2.5"
+						>
+							<CircleAlert
+								size={18}
+								className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-300"
+								aria-hidden
+							/>
+							<p className="m-0 text-[13px] text-amber-800 dark:text-amber-200">
+								El proveedor no tiene métodos de pago configurados.
+							</p>
+						</div>
+						<Controller
+							control={control}
+							name={`${fieldPath}.payment_method`}
+							rules={{
+								validate: () =>
+									"El proveedor debe tener al menos un método de pago configurado.",
+							}}
+							render={() => <input type="hidden" />}
+						/>
+						{itemErrors?.payment_method?.message ? (
+							<p className="m-0 text-[13px] text-red-500">
+								{itemErrors.payment_method.message}
+							</p>
+						) : null}
+					</>
+				) : lockedPaymentMethod ? (
+					<div className="flex flex-col gap-1">
+						<span className={`text-[13px] font-medium ${quoteFormLabelClassName}`}>
+							Método de pago
+						</span>
+						<span className="text-sm text-slate-600 dark:text-slate-300">
+							{resolvePaymentMethodLabel(lockedPaymentMethod)}
+						</span>
+						<input
+							type="hidden"
+							{...register(`${fieldPath}.payment_method`, {
+								required: "Seleccione un método de pago.",
+							})}
+						/>
+					</div>
+				) : (
+					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<Controller
+							control={control}
+							name={`${fieldPath}.payment_method`}
+							rules={{
+								required: "Seleccione un método de pago.",
+							}}
+							render={({ field }) => (
+								<Dropdown
+									label="Método de pago"
+									placeholder="Seleccione"
+									appearance="dark"
+									isRequired
+									options={paymentMethodOptions}
+									value={field.value ?? ""}
+									onChange={(value) =>
+										field.onChange(value || undefined)
+									}
+									labelClassName={quoteFormLabelClassName}
+									valueClassName={quoteFormLabelClassName}
+									className={quoteFormInputClassName}
+									error={itemErrors?.payment_method?.message}
+								/>
+							)}
+						/>
+					</div>
+				)}
+			</div>
+
 			<div className="mt-4 border-t border-slate-200 pt-4 dark:border-neutral-600">
 				<Controller
 					control={control}
@@ -588,6 +933,7 @@ function QuoteProductGroupFields({
 	categoryName,
 	quantity,
 }: QuoteProductGroupFieldsProps) {
+	const { companyId, moduleCode } = useUserStore();
 	const {
 		control,
 		register,
@@ -623,6 +969,7 @@ function QuoteProductGroupFields({
 	});
 
 	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
+	const [isFetchingDetails, setIsFetchingDetails] = useState(false);
 	const [openQuotations, setOpenQuotations] = useState<string[]>([]);
 
 	const excludeSupplierIds = fields
@@ -637,7 +984,7 @@ function QuoteProductGroupFields({
 		errors.products?.[productIndex]?.items?.root?.message ??
 		errors.products?.[productIndex]?.items?.message;
 
-	const handleSelectSuppliers = (suppliers: GetSuppliersResponse[]) => {
+	const handleSelectSuppliers = async (suppliers: GetSuppliersResponse[]) => {
 		const existingIds = new Set(
 			fields.map((field) => field.supplier_id).filter(Boolean),
 		);
@@ -648,11 +995,42 @@ function QuoteProductGroupFields({
 
 		if (suppliersToAdd.length === 0) return;
 
-		append(
-			suppliersToAdd.map((supplier) =>
-				emptyQuotationItem(purchaseRequestItemId || "", supplier),
-			),
-		);
+		setIsFetchingDetails(true);
+
+		try {
+			const detailsResults = await Promise.all(
+				suppliersToAdd.map((supplier) =>
+					supplierServices
+						.GetSupplierDetails({
+							company_id: companyId,
+							module_code: moduleCode,
+							supplier_id: supplier.supplier_id,
+						})
+						.catch(() => null),
+				),
+			);
+
+			const items = suppliersToAdd.map((supplier, idx) => {
+				const details = detailsResults[idx];
+				const paymentMethods =
+					details?.supplier_payment_methods ??
+					supplier.supplier_payment_methods ??
+					[];
+				const preferred =
+					details?.supplier_details?.preferred_payment_method;
+
+				return emptyQuotationItem(
+					purchaseRequestItemId || "",
+					supplier,
+					paymentMethods,
+					preferred,
+				);
+			});
+
+			append(items);
+		} finally {
+			setIsFetchingDetails(false);
+		}
 	};
 
 	return (
@@ -685,6 +1063,8 @@ function QuoteProductGroupFields({
 					type="button"
 					label="Agregar Proveedor"
 					size="giant"
+					disabled={isFetchingDetails}
+					isLoading={isFetchingDetails}
 					onClick={() => setIsSelectSupplierOpen(true)}
 					isHiddenLabelOnMobile
 					icon={<PlusIcon size={20} />}
@@ -801,10 +1181,14 @@ export function QuoteProductModal({
 						product.product_details?.category_information?.name?.trim() ||
 						null,
 					quantity: product.quantity,
-					items: productItems.map((item) => ({
-						...item,
-						...inferIvaFields(item.price, item.iva),
-					})),
+					items: productItems.map((item) => {
+						const { payment_method_type, ...rest } = item;
+						return {
+							...rest,
+							payment_method: toPaymentMethodStringValue(payment_method_type),
+							...inferIvaFields(item.price, item.iva),
+						};
+					}),
 				};
 			}),
 		});
@@ -824,13 +1208,30 @@ export function QuoteProductModal({
 		if (invalidProduct) return;
 
 		const items: DraftQuotationItem[] = values.products.flatMap((product) =>
-			product.items.map(({ has_iva: _hasIva, iva_rate: _ivaRate, custom_iva_rate: _customIvaRate, ...item }) => ({
-				...item,
-				supplier_selection_justification:
-					item.supplier_selection_justification?.trim() || undefined,
-				product_id: product.product_id,
-				purchase_request_item_id: product.purchase_request_item_id,
-			})),
+			product.items.map(({
+				has_iva: _hasIva,
+				iva_rate: _ivaRate,
+				custom_iva_rate: _customIvaRate,
+				supplier_payment_methods: _spm,
+				preferred_payment_method: _ppm,
+				payment_method: paymentMethodForm,
+				...item
+			}) => {
+				const isInventoryAvailable = item.iventory_available !== false;
+				const paymentMethodValue = toPaymentMethodNumericValue(paymentMethodForm);
+
+				return {
+					...item,
+					payment_method_type: paymentMethodValue,
+					iventory_available: !isInventoryAvailable ? false : true,
+					availability_time: isInventoryAvailable ? undefined : item.availability_time,
+					availability_time_type: isInventoryAvailable ? undefined : item.availability_time_type,
+					supplier_selection_justification:
+						item.supplier_selection_justification?.trim() || undefined,
+					product_id: product.product_id,
+					purchase_request_item_id: product.purchase_request_item_id,
+				};
+			}),
 		);
 
 		onConfirm?.(items);

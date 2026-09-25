@@ -354,7 +354,6 @@ export const PurchaseRequestModal = ({
 			.map((item) => {
 				const productJustification = item.justification?.trim() ?? "";
 				const productImages = item.images?.images_product_to_changed ?? [];
-				const imagesWereTouched = Boolean(item.images?.isDirty);
 
 				return {
 					id: item.purchase_request_item_id,
@@ -362,12 +361,10 @@ export const PurchaseRequestModal = ({
 					quantity: Number(item.quantity),
 					description: item.description,
 					unit_measure_id: item.unit_measure_id,
+					images_product_to_changed: productImages,
 					...(productJustification ? { justification: productJustification } : {}),
 					...(item.quantity_unit != null && Number(item.quantity_unit) > 0
 						? { quantity_unit: Number(item.quantity_unit) }
-						: {}),
-					...(imagesWereTouched
-						? { images_product_to_changed: productImages }
 						: {}),
 				};
 			});

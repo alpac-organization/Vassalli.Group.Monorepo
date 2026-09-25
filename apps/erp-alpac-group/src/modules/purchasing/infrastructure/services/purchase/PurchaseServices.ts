@@ -86,7 +86,9 @@ export class PurchaseServices implements IPurchaseServices {
    async GetPurchaseOrders(payload: GetPurchaseOrdersPayload): Promise<GetPurchaseOrdersResponseList> {
       const { company_id, module_code, ...rest } = payload;
       const url = `/companies/${company_id}/modules/${module_code}/purchase-orders`;
-      return this.apiHandler.get<GetPurchaseOrdersResponseList>(url, { params: cleanParams(rest) });
+      const response = await this.apiHandler.get<GetPurchaseOrdersResponseList>(url, { params: cleanParams(rest) }); 
+      console.log("response", response);
+      return response;
    }
 
    async GetPurchaseOrderDetails(payload: GetPurchaseOrderDetailsPayload): Promise<GetPurchaseOrderDetailsResponse> {

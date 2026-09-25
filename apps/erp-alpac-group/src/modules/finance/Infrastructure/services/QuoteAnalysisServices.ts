@@ -27,7 +27,9 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
 	async GetQuoteAnalysisDetails(payload: GetQuoteAnalysisDetailsRequest): Promise<RequisitionAccountingReviewDetailsDto> {
 		const { company_id, module_code, purchase_requests_reviewed_accounting_id } = payload;
 		const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${purchase_requests_reviewed_accounting_id}`;
-		return this.httpClient.get<RequisitionAccountingReviewDetailsDto>(url);
+		const response = await this.httpClient.get<RequisitionAccountingReviewDetailsDto>(url);
+		console.log(response);
+		return response;
 	}
 
 	async accceptQuotationToPurchase(payload: AcceptOfferPurchaseRequest): Promise<void> {

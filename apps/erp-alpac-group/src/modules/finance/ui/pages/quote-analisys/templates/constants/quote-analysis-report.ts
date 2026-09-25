@@ -33,4 +33,7 @@ export const QUALITATIVE_ROWS = [
 	{ key: "delivery", label: "* Plazo de entrega" },
 	{ key: "transport", label: "* Transporte" },
 	{ key: "warranty", label: "* Período de garantía" },
+	{ key: "quality", label: "* Calidad" },
+	{ key: "inventory", label: "* Disponibilidad de inventario" },
+	{ key: "paymentMethod", label: "* Forma de pago" },
 ] as const;

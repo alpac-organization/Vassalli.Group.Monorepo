@@ -1,3 +1,4 @@
+import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
 export interface SupplierDetailsInformation {
 	address?: string | null;
 	email_support?: string | null;
@@ -11,7 +12,7 @@ export interface SupplierDetailsInformation {
 	credit_limit?: number | null;
 	credit_currency?: string | null;
 	alert_days_before_due?: number;
-	preferred_payment_method?: string | number | null;
+	preferred_payment_method?: PaymentMethodType;
 	apply_ir_retention?: boolean;
 	apply_municipal_retention?: boolean;
 	is_tax_exempt?: boolean;

@@ -7,5 +7,6 @@ export const TimeTypeEnum = {
 } as const;
 
 export type TimeTypeEnum = (typeof TimeTypeEnum)[keyof typeof TimeTypeEnum];
+export type TimeTypeValue = TimeTypeEnum["stringValue"];
 
 export const TimeTypeOptions: EnumType[] = Object.values(TimeTypeEnum);

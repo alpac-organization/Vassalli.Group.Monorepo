@@ -6,6 +6,11 @@ import type {
 import { formatTimeTypeLabel } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-product-comparison/utils/format-type-label";
 import { getQuoteTotalPrice } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-product-comparison/quote-product-comparison.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
+import {
+	resolvePaymentConditionLabel,
+	resolveProductQualityLabel,
+	resolveInventoryAvailabilityLabel,
+} from "@app/shared/utils/quotation-label.utils";
 import type {
 	QuoteAnalysisPdfSupplier,
 	QuoteAnalysisPdfItemRow,
@@ -201,6 +206,9 @@ export function buildQuoteAnalysisPdfViewModel(
 		delivery: {},
 		transport: {},
 		warranty: {},
+		quality: {},
+		inventory: {},
+		paymentMethod: {},
 	};
 
 	for (const supplier of suppliers) {
@@ -215,6 +223,15 @@ export function buildQuoteAnalysisPdfViewModel(
 			: EMPTY_CELL;
 		qualitative.warranty[supplier.supplierId] = quote
 			? formatWarranty(quote)
+			: EMPTY_CELL;
+		qualitative.quality[supplier.supplierId] = quote
+			? resolveProductQualityLabel(quote.product_quality)
+			: EMPTY_CELL;
+		qualitative.inventory[supplier.supplierId] = quote
+			? resolveInventoryAvailabilityLabel(quote)
+			: EMPTY_CELL;
+		qualitative.paymentMethod[supplier.supplierId] = quote
+			? resolvePaymentConditionLabel(quote.payment_method)
 			: EMPTY_CELL;
 	}
 

@@ -6,6 +6,8 @@ import type {
 } from "@app/shared/interfaces/organization-information/organization-information";
 import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
+import type { ProductQualityType } from "@app/modules/purchasing/domain/enums/product-quality";
+import type { PaymentConditionType } from "@app/core/enums/payment-method.enum";
 
 export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResponse {
 	observations: string | null;
@@ -36,6 +38,7 @@ export interface PurchaseRequestProductInformation {
 export interface PurchaseRequestProductDetails {
 	product_id: string;
 	product_name: string | null;
+	product_code?: string | null;
 	category_information: PurchaseRequestCategoryInformation;
 }
 
@@ -76,6 +79,11 @@ export interface PurchaseRequestProductQuotation {
 	warranty_period: number | null;
 	warranty_period_time_type: string | null;
 	supplier_selection_justification: string | null;
+	product_quality: ProductQualityType;
+	payment_method: PaymentConditionType;
+	iventory_available?: boolean;
+	availability_time?: number | null;
+	availability_time_type?: string | number | null;
 	supplier_rejection_justification: string | null;
 	supplier_id: string;
 	supplier_information: PurchaseRequestProductQuotationSupplier;

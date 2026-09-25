@@ -464,6 +464,15 @@ export function QuoteAnalysisDetail() {
                   </span>
                 </div>
               </div>
+
+                <div className="flex min-w-0 flex-col rounded-md bg-slate-50 p-3 dark:bg-[#272b34]">
+                  <span className="text-[10px] uppercase text-slate-500 dark:text-slate-400">
+                   Centro de costo 
+                  </span>
+                  <span className="wrap-break-words text-sm font-medium text-slate-900 dark:text-slate-200">
+                    {purchase_request.cost_center_information?.cost_center_name || "—"}
+                  </span>
+                </div>
               <div className="flex min-w-0 items-center gap-3 rounded-md bg-slate-50 p-3 dark:bg-[#272b34]">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-medium text-slate-700 dark:bg-slate-700 dark:text-slate-300">
                   {purchase_request.reviewer_user_information?.fullname?.charAt(

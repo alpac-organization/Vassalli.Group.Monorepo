@@ -3,7 +3,7 @@ import { StyleSheet } from "@react-pdf/renderer";
 export const purchaseRequestConsolidatedPdfStyle = StyleSheet.create({
 	page: {
 		paddingTop: 24,
-		paddingBottom: 24,
+		paddingBottom: 36,
 		paddingHorizontal: 36,
 		fontSize: 9,
 		fontFamily: "Helvetica",
@@ -66,14 +66,21 @@ export const purchaseRequestConsolidatedPdfStyle = StyleSheet.create({
 		borderColor: "#000",
 		width: "100%",
 	},
+	tableHeaderRow: {
+		flexDirection: "row",
+		borderBottomWidth: 1,
+		borderBottomColor: "#000",
+		minHeight: 22,
+		backgroundColor: "#ffffff",
+	},
 	tableRow: {
 		flexDirection: "row",
 		borderBottomWidth: 1,
 		borderBottomColor: "#000",
 		minHeight: 22,
 	},
-	tableRowLast: {
-		borderBottomWidth: 0,
+	closingBlock: {
+		marginTop: 16,
 	},
 	cell: {
 		borderRightWidth: 1,
@@ -104,8 +111,7 @@ export const purchaseRequestConsolidatedPdfStyle = StyleSheet.create({
 	footerBox: {
 		borderWidth: 1,
 		borderColor: "#000",
-		marginTop: 16,
-		marginBottom: 24,
+		marginBottom: 12,
 	},
 	metaSection: {
 		flexDirection: "row",

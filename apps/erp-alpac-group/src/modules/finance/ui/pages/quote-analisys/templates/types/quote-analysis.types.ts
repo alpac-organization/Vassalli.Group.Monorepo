@@ -33,6 +33,9 @@ export type QuoteAnalysisPdfQualitative = {
 	delivery: Record<string, string>;
 	transport: Record<string, string>;
 	warranty: Record<string, string>;
+	quality: Record<string, string>;
+	inventory: Record<string, string>;
+	paymentMethod: Record<string, string>;
 };
 
 export type QuoteAnalysisPdfViewModel = {
