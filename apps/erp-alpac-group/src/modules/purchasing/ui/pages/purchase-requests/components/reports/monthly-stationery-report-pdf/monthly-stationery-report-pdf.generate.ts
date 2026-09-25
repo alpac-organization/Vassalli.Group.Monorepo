@@ -12,7 +12,7 @@ async function openPdfBlob(blob: Blob): Promise<void> {
 }
 
 export async function generateMonthlyStationeryReportMockPdf(
-	monthIndex = 7,
+	monthIndex = 8,
 	year = 2026,
 ): Promise<void> {
 	const logoUrl = useCompanyStore.getState().urlImage || null;

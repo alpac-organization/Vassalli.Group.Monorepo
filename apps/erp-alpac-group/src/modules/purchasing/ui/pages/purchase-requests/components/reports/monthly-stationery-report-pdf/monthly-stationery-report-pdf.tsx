@@ -20,7 +20,6 @@ const TABLE_HEADERS = [
 	{ key: "quantity", label: "Cantidad", style: styles.colQty },
 	{ key: "unitPrice", label: "PU", style: styles.colUnitPrice },
 	{ key: "totalPrice", label: "PT C$", style: styles.colTotalPrice },
-	{ key: "invoice", label: "FC#", style: styles.colInvoice },
 ] as const;
 
 export function MonthlyStationeryReportPDF({
@@ -67,7 +66,6 @@ export function MonthlyStationeryReportPDF({
 
 						return (
 							<View
-								key={`${row.description}-${row.invoiceNumber}-${index}`}
 								style={[styles.tableRow, isLast ? styles.tableRowLast : {}]}
 							>
 								<Text style={[styles.cell, styles.colMonth, styles.textCenter]}>
@@ -110,16 +108,6 @@ export function MonthlyStationeryReportPDF({
 									style={[styles.cell, styles.colTotalPrice, styles.textRight]}
 								>
 									{formatCurrency(row.totalPrice)}
-								</Text>
-								<Text
-									style={[
-										styles.cell,
-										styles.colInvoice,
-										styles.textCenter,
-										styles.cellLast,
-									]}
-								>
-									{row.invoiceNumber}
 								</Text>
 							</View>
 						);

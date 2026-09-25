@@ -4,9 +4,9 @@ import type {
 } from "../types/monthly-stationery-report-pdf.types";
 
 const baseRow = {
-	month: "AGOSTO",
+	month: "SEPTIEMBRE",
 	year: "2026",
-	key: "ago-26",
+	key: "sep-26",
 	requestType: "MENSUAL",
 	branch: "MANAGUA",
 	supplier: "SISTEMAS RCL",
@@ -20,7 +20,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 12,
 		unitPrice: 2.63,
 		totalPrice: 31.56,
-		invoiceNumber: "FC#0144395",
 	},
 	{
 		...baseRow,
@@ -29,7 +28,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 3,
 		unitPrice: 8.55,
 		totalPrice: 25.65,
-		invoiceNumber: "FC#0144394",
 	},
 	{
 		...baseRow,
@@ -38,7 +36,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 10,
 		unitPrice: 12.5,
 		totalPrice: 125.0,
-		invoiceNumber: "FC#0144395",
 	},
 	{
 		...baseRow,
@@ -47,7 +44,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 5,
 		unitPrice: 18.4,
 		totalPrice: 92.0,
-		invoiceNumber: "FC#0144394",
 	},
 	{
 		...baseRow,
@@ -56,7 +52,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 48,
 		unitPrice: 0.97,
 		totalPrice: 46.56,
-		invoiceNumber: "FC#0144395",
 	},
 	{
 		...baseRow,
@@ -65,7 +60,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 25,
 		unitPrice: 3.2,
 		totalPrice: 80.0,
-		invoiceNumber: "FC#0144395",
 	},
 	{
 		...baseRow,
@@ -74,7 +68,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 8,
 		unitPrice: 185.0,
 		totalPrice: 1480.0,
-		invoiceNumber: "FC#0144395",
 	},
 	{
 		...baseRow,
@@ -83,7 +76,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 6,
 		unitPrice: 48.26,
 		totalPrice: 289.56,
-		invoiceNumber: "FC#0144395",
 	},
 	{
 		...baseRow,
@@ -92,7 +84,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 4,
 		unitPrice: 45.0,
 		totalPrice: 180.0,
-		invoiceNumber: "FC#0144394",
 	},
 	{
 		...baseRow,
@@ -101,7 +92,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 20,
 		unitPrice: 2.63,
 		totalPrice: 52.6,
-		invoiceNumber: "FC#0144395",
 	},
 	{
 		...baseRow,
@@ -110,7 +100,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 10,
 		unitPrice: 22.5,
 		totalPrice: 225.0,
-		invoiceNumber: "FC#0144394",
 	},
 	{
 		...baseRow,
@@ -119,7 +108,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 3,
 		unitPrice: 68.2,
 		totalPrice: 204.6,
-		invoiceNumber: "FC#0144395",
 	},
 	{
 		...baseRow,
@@ -128,7 +116,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 2,
 		unitPrice: 95.0,
 		totalPrice: 190.0,
-		invoiceNumber: "FC#0144394",
 	},
 	{
 		...baseRow,
@@ -137,7 +124,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 15,
 		unitPrice: 14.8,
 		totalPrice: 222.0,
-		invoiceNumber: "FC#0144395",
 	},
 	{
 		...baseRow,
@@ -146,7 +132,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 12,
 		unitPrice: 9.75,
 		totalPrice: 117.0,
-		invoiceNumber: "FC#0144395",
 	},
 	{
 		...baseRow,
@@ -155,7 +140,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 2,
 		unitPrice: 145.0,
 		totalPrice: 290.0,
-		invoiceNumber: "FC#0144394",
 	},
 	{
 		...baseRow,
@@ -164,7 +148,6 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 1,
 		unitPrice: 210.0,
 		totalPrice: 210.0,
-		invoiceNumber: "FC#0144395",
 	},
 	{
 		...baseRow,
@@ -173,15 +156,12 @@ export const MONTHLY_STATIONERY_REPORT_MOCK_ROWS: MonthlyStationeryReportRow[] =
 		quantity: 30,
 		unitPrice: 5.5,
 		totalPrice: 165.0,
-		invoiceNumber: "FC#0144395",
 	},
 ];
 
 export const MONTHLY_STATIONERY_REPORT_MOCK_SUMMARY: MonthlyStationeryReportSummaryLine[] = [
 	{ label: "TOTAL", amount: 4807.4 },
-	{ label: "FC#0144395", amount: 3815.4 },
-	{ label: "FC#0144394", amount: 992.0 },
-	{ label: "TOTAL DIF", amount: 0.0 },
+	{ label: "TOTAL DIF", amount: 1.0 },
 ];
 
 const MONTH_NAMES_ES = [

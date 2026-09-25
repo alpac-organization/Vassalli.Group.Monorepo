@@ -10,7 +10,6 @@ export interface MonthlyStationeryReportRow {
 	quantity: number;
 	unitPrice: number;
 	totalPrice: number;
-	invoiceNumber: string;
 }
 
 export interface MonthlyStationeryReportSummaryLine {
