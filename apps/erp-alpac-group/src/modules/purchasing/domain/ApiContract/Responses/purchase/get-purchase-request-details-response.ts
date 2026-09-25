@@ -12,6 +12,9 @@ export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResp
 	creator_user_information: UserInformation;
 	reviewer_user_information: UserInformation | null;
 	branch_information: BranchInformation;
+	additional_data?: {
+		new_field: string;
+	}
 }
 
 export interface PurchaseRequestProductInformationList {
