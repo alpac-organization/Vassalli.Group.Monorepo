@@ -18,6 +18,16 @@ export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResp
 	branch_information: BranchInformation;
 	information_from_requesting_area: WorkAreaInformation;
 	cost_center_information: CostCenterInformation;
+	un_atributo_mas: string;
+	additional_data?:  string | null;
+}
+
+export interface PurchaseRequestAdditionalData {
+	new_field: string;
+	old_fields: string;
+	updated_at: string;
+	description: string;
+	user_information: UserInformation;
 }
 
 export type PurchaseRequestProductInformationList = PaginateBaseResponse<PurchaseRequestProductInformation[]>;

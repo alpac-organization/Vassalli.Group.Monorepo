@@ -9,5 +9,5 @@ export type PurchaseRequestProductsTableViewImagesPayload = {
 export type PurchaseRequestProductsTableProps = {
 	products: PurchaseRequestProductInformation[];
 	onViewImages: (payload: PurchaseRequestProductsTableViewImagesPayload) => void;
-	onGenerateDocument: () => void;
+	onGenerateDocument?: () => void;
 };

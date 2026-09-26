@@ -55,6 +55,8 @@ export type PaymentRequestPdfData = {
 	bankName?: string | null;
 	logoUrl?: string | null;
 	companyName?: string | null;
+	generatedBy?: string | null;
+	generatedAt?: string | null;
 };
 
 export type PaymentRequestPdfProps = {
