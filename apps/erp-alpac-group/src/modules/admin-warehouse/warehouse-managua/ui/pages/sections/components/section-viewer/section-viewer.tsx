@@ -41,7 +41,7 @@ export const SectionViewer = ({
    const handleContextMenu = (next: SectionMenuState) => {
       setInternalSelectedId(next.section.section_id);
       setInternalSelectedCode(next.section.section_code);
-      onSelectSection?.(next.section.section_id);
+      onSelectSection?.(next.section);
       setMenu(next);
    };
 
@@ -55,7 +55,7 @@ export const SectionViewer = ({
    const handleSelect = (section: SectionDto) => {
       setInternalSelectedId(section.section_id);
       setInternalSelectedCode(section.section_code);
-      onSelectSection?.(section.section_id);
+      onSelectSection?.(section);
       setEditMode(null);
    };
 

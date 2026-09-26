@@ -23,4 +23,8 @@ export type DataTableProps<T> = {
   minHeight?: number | string;
   maxHeight?: number | string;
   enableSelectBorder?: boolean;
+  /** Clave de la fila seleccionada (selección controlada desde fuera). */
+  selectedRowKey?: string | null;
+  /** Cómo obtener la clave de cada fila. Requerido si usas selectedRowKey. */
+  getRowKey?: (row: T) => string;
 };

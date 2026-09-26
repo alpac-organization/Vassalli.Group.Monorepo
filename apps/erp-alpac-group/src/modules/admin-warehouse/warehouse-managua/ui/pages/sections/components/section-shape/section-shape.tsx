@@ -143,6 +143,16 @@ export const SectionShape = ({
 						const node = shapeRef.current;
 						if (!node) return;
 						syncTextWithRect(node);
+
+						const scaleX = node.scaleX();
+						const scaleY = node.scaleY();
+
+						const newWidthPx = Math.max(10, node.width() * scaleX);
+						const newLengthPx = Math.max(10, node.height() * scaleY);
+						const newWidth = newWidthPx / pixelsPerMeter;
+						const newLength = newLengthPx / pixelsPerMeter;
+
+						setSizeLabel(`${newWidth.toFixed(2)} m × ${newLength.toFixed(2)} m`);
 					}}
 					onTransformEnd={() => {
 						const node = shapeRef.current;
@@ -174,8 +184,7 @@ export const SectionShape = ({
 						node.width(newWidthPx);
 						node.height(newLengthPx);
 
-						setSize({ width: newWidthPx, length: newLengthPx });
-						setSizeLabel(`${newWidth.toFixed(2)} m × ${newLength.toFixed(2)} m`);
+						setSize({ width: newWidthPx, length: newLengthPx });						
 						setTextOffset({ x: 0, y: 0 });
 
 						const text = textRef.current;

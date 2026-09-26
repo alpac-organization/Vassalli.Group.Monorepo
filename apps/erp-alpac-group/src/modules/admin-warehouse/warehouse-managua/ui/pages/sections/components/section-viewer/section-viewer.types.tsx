@@ -4,8 +4,8 @@ import type { Position, Size } from "../../../warehouses-temp/components/warehou
 export interface SectionViewerProps {
   className?: string;
   sections?: SectionDto[];
-  selectedSection?: SectionDto;  
-  onSelectSection?: (sectionId: string) => void;
+  selectedSection?: SectionDto | null;
+  onSelectSection?: (section: SectionDto) => void;
 }
 
 export type EditMode = "edit" | null;

@@ -9,6 +9,7 @@ export type SectionsTableProps = {
   height?: number | string,
   minHeight?: number | string,
   maxHeight?: number | string,
+  selectedSection?: SectionDto | null;
   onSelectRow: (section: SectionDto) => void;
   onPageChange: (page: number) => void;
   onViewLots: (section: SectionDto) => void;

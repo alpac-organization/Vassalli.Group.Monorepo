@@ -19,7 +19,9 @@ export function DataTable<T>({
 	height,
 	minHeight,
 	maxHeight,
-	enableSelectBorder = false
+	enableSelectBorder = false,
+	selectedRowKey = null,
+	getRowKey,
 }: DataTableProps<T>): React.ReactElement {
 	const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -31,6 +33,13 @@ export function DataTable<T>({
 	const handleRowDoubleClick = (item: T, index: number) => {
 		setSelectedIndex(index);
 		onRowDoubleClick?.(item);
+	};
+
+	const isRowSelected = (item: T, index: number) => {
+		if (selectedRowKey != null && getRowKey) {
+			return getRowKey(item) === selectedRowKey;
+		}
+		return selectedIndex === index;
 	};
 
 	return (
@@ -94,7 +103,7 @@ export function DataTable<T>({
 						</thead>
 						<tbody className="divide-y divide-slate-600 dark:divide-neutral-600">
 							{data.map((item, index) => {
-								const isSelected = selectedIndex === index;
+								const isSelected = isRowSelected(item, index);
 								const baseRowClass =
 									rowClassName !== undefined
 										? rowClassName
@@ -106,7 +115,7 @@ export function DataTable<T>({
 
 								return (
 									<tr
-										key={index}
+										key={getRowKey ? getRowKey(item) : index}
 										className={`${baseRowClass} ${isSelected && enableSelectBorder ? SELECTED_ROW_BORDER : ""}`}
 										onClick={() => handleRowClick(item, index)}
 										onDoubleClick={() => handleRowDoubleClick(item, index)}

@@ -13,6 +13,7 @@ export function SectionsTable({
 	minHeight,
 	maxHeight,
 	isFetching = false,
+	selectedSection,
 	onPageChange,
 	onViewLots,
 	onViewRacks,
@@ -39,6 +40,7 @@ export function SectionsTable({
 	);
 
 	const handleRowClick = (row: SectionDto) => {
+		console.log("Revisando por que no me selecciona", row);
 		onSelectRow(row);
 	}
 
@@ -47,10 +49,14 @@ export function SectionsTable({
 			title="Lista de secciones"
 			data={data}
 			columns={columns}
+			
 			onRowClick={handleRowClick}
+			selectedRowKey={selectedSection?.section_id}
+			getRowKey={(row) => row.section_id}
 			height={height}
 			minHeight={minHeight}
 			maxHeight={maxHeight}
+			enableSelectBorder
 			pagination={
 				<Pagination
 					currentPage={currentPage}

@@ -41,8 +41,8 @@ export function SectionsPage() {
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [editingSection, setEditingSection] = useState<SectionDto | null>(null);
 	const [sectionToDelete, setSectionToDelete] = useState<SectionDto | null>(null);
+	const [selectedSection, setSelectedSection] = useState<SectionDto | null>(null);
 	const [currentPage, setCurrentPage] = useState(1);
-	const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
 	const { GetSections, DeleteSection } = useSection({
 		getSectionsPayload: {
@@ -92,7 +92,8 @@ export function SectionsPage() {
 	);
 
 	const handleSelectRow = (section: SectionDto) => {
-		setSelectedSectionId(section.section_id);
+		console.log("Revisando desde sections.tsx por que no selecciona:", section);
+		setSelectedSection(section);
 	};
 
 	const handleUpdateSection = (section: SectionDto) => {
@@ -119,8 +120,8 @@ export function SectionsPage() {
 			onSuccess() {
 				setIsDeleteModalOpen(false);
 				setSectionToDelete(null);
-				if (selectedSectionId === sectionToDelete.section_id) {
-					setSelectedSectionId(null);
+				if (selectedSection?.section_id === sectionToDelete.section_id) {
+					setSelectedSection(null);
 				}
 				handleRequestSuccess("Sección eliminada exitosamente.");
 			},
@@ -176,12 +177,13 @@ export function SectionsPage() {
 					currentPage={currentPage}
 					totalRecords={totalRecords}
 					pageSize={PAGE_SIZE}
+					selectedSection={selectedSection}
 					onPageChange={setCurrentPage}
 					onViewLots={handleViewLots}
 					onViewRacks={handleViewRacks}
 					onSelectRow={handleSelectRow}
 					onUpdateSection={handleUpdateSection}
-					onDeleteSection={handleDeleteSection}					
+					onDeleteSection={handleDeleteSection}
 					isFetching={GetSections.isFetching}
 					height={"100%"}
 					minHeight={"300px"}
@@ -190,7 +192,8 @@ export function SectionsPage() {
 				<SectionViewer
 					className="min-h-0 min-w-0 overflow-y-auto"
 					sections={sectionsData}
-					selectedSectionId={selectedSectionId}
+					selectedSection={selectedSection}
+					onSelectSection={handleSelectRow}
 				/>
 
 			</div>
