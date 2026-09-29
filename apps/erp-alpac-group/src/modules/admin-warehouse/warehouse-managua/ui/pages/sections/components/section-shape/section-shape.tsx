@@ -1,11 +1,9 @@
 import { Group, Label, Rect, Tag, Text, Transformer } from "react-konva";
-import { SECTION_STATUS_COLORS } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/section-status-badge";
-import type { SectionShapeProps } from "./section-shape.types";
+import type { SectionShapeProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/section-shape.types";
 import { useEffect, useRef, useState } from "react";
 import type Konva from "konva";
-import type { Position, Size } from "../../../warehouses-temp/components/warehouse-shape/warehouse-shape.types";
-
-const DEFAULT_PIXELS_PER_METER = 10;
+import type { Coordinate, Size } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
+import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 
 export const SectionShape = ({
 	x,
@@ -14,22 +12,22 @@ export const SectionShape = ({
 	length,
 	rotation = 0,
 	fill,
-	status = "available",
+	strokeColor,
 	selected = false,
-	pixelsPerMeter = DEFAULT_PIXELS_PER_METER,
 	section,
 	draggable,
 	resizable,
 	onSelect,
 	onContextMenu,
-	onPositionChange,
+	onCoordinateChange,
 	onResizeChange,
 }: SectionShapeProps) => {
-	const pixelX = x * pixelsPerMeter;
-	const pixelY = y * pixelsPerMeter;
-	const pixelWidth = width * pixelsPerMeter;
-	const pixelLength = length * pixelsPerMeter;
-	const fillColor = fill ?? SECTION_STATUS_COLORS[status];
+
+	const pixelX = x * PIXELS_PER_METER;
+	const pixelY = y * PIXELS_PER_METER;
+	const pixelWidth = width * PIXELS_PER_METER;
+	const pixelLength = length * PIXELS_PER_METER;
+	const fillColor = fill;;
 
 	const groupRef = useRef<Konva.Group>(null);
 	const shapeRef = useRef<Konva.Rect>(null);
@@ -37,8 +35,8 @@ export const SectionShape = ({
 	const transformRef = useRef<Konva.Transformer>(null);
 
 	const [size, setSize] = useState<Size>({ width: pixelWidth, length: pixelLength });
-	const [sizeLabel, setSizeLabel] = useState<string | null>(null);
-	const [textOffset, setTextOffset] = useState<Position>({ x: 0, y: 0 });
+	const [layoutLabel, setLayoutLabel] = useState<string | null>(null);
+	const [textOffset, setTextOffset] = useState<Coordinate>({ x: 0, y: 0 });
 
 	useEffect(() => {
 		setSize({ width: pixelWidth, length: pixelLength });
@@ -92,12 +90,16 @@ export const SectionShape = ({
 				y={pixelY}
 				rotation={rotation}
 				draggable={draggable}
+				onDragMove={(e) => {
+					const metersX = e.target.x() / PIXELS_PER_METER;
+					const metersY = e.target.y() / PIXELS_PER_METER;
+					setLayoutLabel(`X: ${metersX.toFixed(2)} m  Y: ${metersY.toFixed(2)} m`);
+				}}
 				onDragEnd={(e) => {
-					onPositionChange?.(
-						section.section_id,
-						e.target.x() / pixelsPerMeter,
-						e.target.y() / pixelsPerMeter,
-					);
+					const metersX = e.target.x() / PIXELS_PER_METER;
+					const metersY = e.target.y() / PIXELS_PER_METER;
+					setLayoutLabel(null);
+					onCoordinateChange?.(section.section_id, metersX, metersY);
 				}}
 				onContextMenu={(e) => {
 					e.evt.preventDefault();
@@ -118,11 +120,11 @@ export const SectionShape = ({
 					onSelect?.(section);
 				}}
 			>
-				{resizable && sizeLabel && (
+				{resizable && layoutLabel && (
 					<Label x={textOffset.x} y={textOffset.y - 30}>
 						<Tag fill="#0f172a" cornerRadius={4} />
 						<Text
-							text={sizeLabel}
+							text={layoutLabel}
 							fontSize={11}
 							fill="#e2e8f0"
 							padding={4}
@@ -136,12 +138,13 @@ export const SectionShape = ({
 					width={pixelWidth}
 					height={pixelLength}
 					fill={fillColor}
-					opacity={selected ? 1 : 0.3}
-					stroke={selected ? "#e2e8f0" : "#94a3b8"}
+					opacity={selected ? 1 : 0.4}
+					stroke={selected ? strokeColor : "#94a3b8"}
 					strokeWidth={selected ? 2 : 1}
 					onTransform={() => {
 						const node = shapeRef.current;
-						if (!node) return;
+						const group = groupRef.current
+						if (!node || !group) return;
 						syncTextWithRect(node);
 
 						const scaleX = node.scaleX();
@@ -149,10 +152,12 @@ export const SectionShape = ({
 
 						const newWidthPx = Math.max(10, node.width() * scaleX);
 						const newLengthPx = Math.max(10, node.height() * scaleY);
-						const newWidth = newWidthPx / pixelsPerMeter;
-						const newLength = newLengthPx / pixelsPerMeter;
+						const newWidth = newWidthPx / PIXELS_PER_METER;
+						const newLength = newLengthPx / PIXELS_PER_METER;
 
-						setSizeLabel(`${newWidth.toFixed(2)} m × ${newLength.toFixed(2)} m`);
+						setLayoutLabel(
+							`${newWidth.toFixed(2)} m × ${newLength.toFixed(2)} m`
+						);
 					}}
 					onTransformEnd={() => {
 						const node = shapeRef.current;
@@ -170,8 +175,8 @@ export const SectionShape = ({
 
 						const newWidthPx = Math.max(10, node.width() * scaleX);
 						const newLengthPx = Math.max(10, node.height() * scaleY);
-						const newWidth = newWidthPx / pixelsPerMeter;
-						const newLength = newLengthPx / pixelsPerMeter;
+						const newWidth = newWidthPx / PIXELS_PER_METER;
+						const newLength = newLengthPx / PIXELS_PER_METER;
 
 						const nextGroupX = group.x() + offsetX;
 						const nextGroupY = group.y() + offsetY;
@@ -184,7 +189,7 @@ export const SectionShape = ({
 						node.width(newWidthPx);
 						node.height(newLengthPx);
 
-						setSize({ width: newWidthPx, length: newLengthPx });						
+						setSize({ width: newWidthPx, length: newLengthPx });
 						setTextOffset({ x: 0, y: 0 });
 
 						const text = textRef.current;
@@ -195,10 +200,10 @@ export const SectionShape = ({
 							text.height(newLengthPx);
 						}
 
-						onPositionChange?.(
+						onCoordinateChange?.(
 							section.section_id,
-							nextGroupX / pixelsPerMeter,
-							nextGroupY / pixelsPerMeter,
+							nextGroupX / PIXELS_PER_METER,
+							nextGroupY / PIXELS_PER_METER,
 						);
 						onResizeChange?.(section.section_id, newWidth, newLength);
 					}}

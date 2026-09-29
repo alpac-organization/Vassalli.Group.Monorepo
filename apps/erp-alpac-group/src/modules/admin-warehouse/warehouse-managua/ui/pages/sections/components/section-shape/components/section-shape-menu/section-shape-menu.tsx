@@ -1,5 +1,5 @@
 
-import type { SectionShapeMenuProps } from "./section-shape-menu.types";
+import type { SectionShapeMenuProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/components/section-shape-menu/section-shape-menu.types";
 
 export const SectionShapeMenu = ({ menu, setMenu, onEdit }: SectionShapeMenuProps) => {
 

@@ -1,0 +1,34 @@
+import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
+import type { WarehouseFilters } from "../types/warehouse.types";
+
+export function filtersToGetWarehouseParams(filters: WarehouseFilters): Pick<GetWarehouseRequest, "warehouse_code" | "warehouse_type" | "is_active"> {
+  
+  const warehouseType = filters.warehouse_type
+    ? Number(filters.warehouse_type)
+    : undefined;
+
+  return {
+    warehouse_code: filters.warehouse_code.trim() || undefined,
+    warehouse_type:
+      warehouseType != null && !Number.isNaN(warehouseType)
+        ? warehouseType
+        : undefined,
+    is_active:
+      filters.filterStatus === "Activa"
+        ? true
+        : filters.filterStatus === "Inactiva"
+          ? false
+          : undefined,
+  };
+}
+
+export function formatAreaM2(value: number | null | undefined): string {
+  if (value == null) return "—";
+  return `${value} m²`;
+}
+
+export function getOccupancyBarColor(percentage: number): string {
+  if (percentage >= 90) return "bg-red-500";
+  if (percentage >= 70) return "bg-amber-500";
+  return "bg-emerald-500";
+}

@@ -1,12 +1,13 @@
 import { Button } from "@alpac/design-system";
 import { Warehouse } from "lucide-react";
 import { useCallback, useState } from "react";
-import type { WarehouseTabProps } from "./warehouse-tab.types";
-import { WarehouseModal } from "@app/modules/warehouse/ui/view/warehouse/components/warehouse-modal/warehouse-modal";
 import { WarehouseTable } from "./components/warehouse-table/warehouse-table";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { WarehouseModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-modal/warehouse-modal";
+
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
+import type { WarehouseTabProps } from "./warehouse-tab.types";
 
 export const WarehouseTab = ({ }: WarehouseTabProps) => {
 

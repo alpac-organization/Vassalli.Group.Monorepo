@@ -10,8 +10,10 @@ import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
-import { SectionViewer } from "./components/section-viewer/section-viewer";
-import { useSection } from "../../hooks/useSection";
+import { SectionViewer } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-viewer/section-viewer";
+import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
+import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
+import { mapWarehouseDetailsToLayout, getWarehouseOccupancyPercentage } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/warehouse-details.mapper";
 import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
 import type { DeleteSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/delete-section-req";
 import { Button } from "@alpac/design-system";
@@ -54,8 +56,22 @@ export function SectionsPage() {
 		},
 	});
 
+	const { GetWarehouseDetails } = useWarehouse({
+		getWarehouseDetailsPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+			warehouse_id: warehouseId,
+		},
+	});
+
 	const sectionsData = GetSections.data?.data ?? [];
 	const totalRecords = GetSections.data?.total ?? 0;
+	const warehouseDetails = GetWarehouseDetails.data;
+	const warehouseLayout = warehouseDetails ? mapWarehouseDetailsToLayout(warehouseDetails) : undefined;
+	const warehouseTotalArea = warehouseDetails?.capacity?.total_area_m2 ?? 0;
+	const warehouseOccupancy = getWarehouseOccupancyPercentage(warehouseDetails);
+	const warehouseLocation =
+		warehouseDetails?.location?.location_name ?? "—";
 
 	useEffect(() => {
 		if (!GetSections.isError || !GetSections.error) return;
@@ -69,6 +85,22 @@ export function SectionsPage() {
 	}, [
 		GetSections.isError,
 		GetSections.error,
+		getMappedError,
+		handleRequestError,
+	]);
+
+	useEffect(() => {
+		if (!GetWarehouseDetails.isError || !GetWarehouseDetails.error) return;
+		try {
+			const error = GetWarehouseDetails.error;
+			const mappedError = getMappedError(error);
+			handleRequestError(mappedError?.description || "Error al cargar la bodega");
+		} catch {
+			handleRequestError("Error al cargar la bodega");
+		}
+	}, [
+		GetWarehouseDetails.isError,
+		GetWarehouseDetails.error,
 		getMappedError,
 		handleRequestError,
 	]);
@@ -92,7 +124,6 @@ export function SectionsPage() {
 	);
 
 	const handleSelectRow = (section: SectionDto) => {
-		console.log("Revisando desde sections.tsx por que no selecciona:", section);
 		setSelectedSection(section);
 	};
 
@@ -145,17 +176,19 @@ export function SectionsPage() {
 			transition={{ duration: 0.5 }}
 			className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full">
 
-			{GetSections.isPending && <Loader title="Cargando secciones..." />}
+			{(GetSections.isPending || GetWarehouseDetails.isPending) && (
+				<Loader title="Cargando secciones..." />
+			)}
 
 			{AlertComponent}
 
 			<SectionsHeader
 				warehouseId={warehouseId}
-				warehouseCode="BODEGA_005"
-				location="ALPAC Managua"
-				totalArea={37 * 61}
+				warehouseCode={warehouseDetails?.code ?? "—"}
+				location={warehouseLocation}
+				totalArea={warehouseTotalArea}
 				sectionQuantity={totalRecords}
-				ocuppation={0}
+				ocuppation={warehouseOccupancy}
 				registerButton={
 					<Button
 						type="button"
@@ -191,6 +224,7 @@ export function SectionsPage() {
 
 				<SectionViewer
 					className="min-h-0 min-w-0 overflow-y-auto"
+					warehouse={warehouseLayout}
 					sections={sectionsData}
 					selectedSection={selectedSection}
 					onSelectSection={handleSelectRow}

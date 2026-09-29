@@ -19,7 +19,7 @@ export function SectionsTable({
 	onViewRacks,
 	onSelectRow,
 	onUpdateSection,
-	onDeleteSection,	
+	onDeleteSection,
 }: SectionsTableProps) {
 	const lastItemId = data.at(-1)?.section_id;
 
@@ -29,12 +29,12 @@ export function SectionsTable({
 				onViewLots,
 				onViewRacks,
 				onUpdateSection,
-				onDeleteSection,				
+				onDeleteSection,
 				lastItemId,
 			}),
 		[
 			onViewLots, onViewRacks,
-			onUpdateSection, onDeleteSection,			
+			onUpdateSection, onDeleteSection,
 			lastItemId
 		],
 	);
@@ -49,7 +49,6 @@ export function SectionsTable({
 			title="Lista de secciones"
 			data={data}
 			columns={columns}
-			
 			onRowClick={handleRowClick}
 			selectedRowKey={selectedSection?.section_id}
 			getRowKey={(row) => row.section_id}
@@ -67,6 +66,5 @@ export function SectionsTable({
 				/>
 			}
 		/>
-
 	);
 }
