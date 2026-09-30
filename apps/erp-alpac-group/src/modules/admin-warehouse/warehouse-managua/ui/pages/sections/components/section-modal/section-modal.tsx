@@ -57,7 +57,7 @@ const aisleStorageOptions = SectionStorageTypeOptions.filter(
 const storageSectionOptions = SectionStorageTypeOptions.filter(
 	(option) =>
 		option.value === SectionStorageTypeEnum.Racks.value ||
-		option.value === SectionStorageTypeEnum.Lots.value,
+		option.value === SectionStorageTypeEnum.Lots.value
 );
 
 const createDefaultValues = (): FormValues => ({
@@ -65,9 +65,9 @@ const createDefaultValues = (): FormValues => ({
 	section_storage_type: Number(SectionStorageTypeEnum.Racks.value),
 	allows_storage_aisle: false,
 	maximum_number_of_pallets_per_level: null,
-	width_metres: undefined,
-	length_metres: undefined,
-	code: undefined,
+	width_metres: 0,
+	length_metres: 0,
+	code: "",
 	position_x: 0,
 	position_y: 0,
 	position_z: 0,

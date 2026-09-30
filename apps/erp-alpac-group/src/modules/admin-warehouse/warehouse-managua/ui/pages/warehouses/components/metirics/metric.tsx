@@ -1,6 +1,6 @@
 import { Arrow, Group, Label, Line, Tag, Text } from "react-konva";
-import type { HorizontalMetricProps, VerticalMetricProps } from "./metric.types";
-import { METRIC_SIZE } from "../../../../utils/warehouse-config";
+import type { HorizontalMetricProps, VerticalMetricProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/metirics/metric.types";
+import { METRIC_SIZE } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 
 export const VerticalMetric = ({ x, y, length, pixelPerMeter }: VerticalMetricProps) => {
 

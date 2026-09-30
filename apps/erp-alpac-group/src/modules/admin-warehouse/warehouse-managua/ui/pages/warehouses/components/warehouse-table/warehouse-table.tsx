@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { DataTable, Pagination } from "@alpac/design-system";
-import type { WarehouseTableProps } from "./types/warehouse-table.types";
-import { getWarehouseColumns } from "./warehouse-columns";
+import type { WarehouseTableProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-table/types/warehouse-table.types";
+import { getWarehouseColumns } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-table/warehouse-columns";
 
 export function WarehouseTable({
 	data,

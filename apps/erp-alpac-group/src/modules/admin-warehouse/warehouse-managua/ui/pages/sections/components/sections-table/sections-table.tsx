@@ -40,7 +40,6 @@ export function SectionsTable({
 	);
 
 	const handleRowClick = (row: SectionDto) => {
-		console.log("Revisando por que no me selecciona", row);
 		onSelectRow(row);
 	}
 

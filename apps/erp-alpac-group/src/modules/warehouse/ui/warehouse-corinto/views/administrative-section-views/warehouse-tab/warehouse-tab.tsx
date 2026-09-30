@@ -1,13 +1,13 @@
 import { Button } from "@alpac/design-system";
 import { Warehouse } from "lucide-react";
 import { useCallback, useState } from "react";
-import { WarehouseTable } from "./components/warehouse-table/warehouse-table";
+import { WarehouseTable } from "@app/modules/warehouse/ui/warehouse-corinto/views/administrative-section-views/warehouse-tab/components/warehouse-table/warehouse-table";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { WarehouseModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-modal/warehouse-modal";
 
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
-import type { WarehouseTabProps } from "./warehouse-tab.types";
+import type { WarehouseTabProps } from "@app/modules/warehouse/ui/warehouse-corinto/views/administrative-section-views/warehouse-tab/warehouse-tab.types";
 
 export const WarehouseTab = ({ }: WarehouseTabProps) => {
 
@@ -45,7 +45,7 @@ export const WarehouseTab = ({ }: WarehouseTabProps) => {
 
 			<WarehouseModal
 				isOpen={isWarehouseModalOpen}
-				onSubmit={(data) => { console.log(data) }}
+				onSubmit={(data) => { }}
 				onClose={() => { setIsWarehouseModalOpen(false) }}
 			/>
 		</div>

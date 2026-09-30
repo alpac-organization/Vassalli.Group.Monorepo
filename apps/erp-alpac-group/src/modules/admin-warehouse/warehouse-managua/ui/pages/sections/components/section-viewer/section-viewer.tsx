@@ -178,9 +178,7 @@ export const SectionViewer = ({
 		if (!hasLayoutChanges) {
 			resetEditState(editingId);
 			return;
-		}
-
-      console.log("revisando actualizacion de layouts: ", payload)
+		}      
 
 		UpdateSectionLayout.mutate(payload, {
 			onSuccess() {

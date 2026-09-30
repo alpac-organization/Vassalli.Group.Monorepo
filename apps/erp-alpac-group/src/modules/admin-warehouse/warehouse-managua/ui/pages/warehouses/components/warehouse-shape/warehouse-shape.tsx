@@ -1,10 +1,10 @@
 import { Stage, Layer, Rect, Group } from "react-konva";
-import { type Coordinate, type Size, type WarehouseViewerProps } from "./warehouse-shape.types";
-import { HorizontalMetric, VerticalMetric } from "../metirics/metric";
+import { type Coordinate, type Size, type WarehouseViewerProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
+import { HorizontalMetric, VerticalMetric } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/metirics/metric";
 import { useEffect, useRef, useState } from "react";
-import { Grid } from "../grid/grid";
+import { Grid } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/grid/grid";
 import type Konva from "konva";
-import { CardinalMarker } from "../cardinal-marker/cardinal-marker";
+import { CardinalMarker } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/cardinal-marker/cardinal-marker";
 import { CANVAS_PADDING_LEFT, METRIC_SIZE, PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 
 export const WarehouseShape = ({

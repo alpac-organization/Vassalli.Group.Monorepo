@@ -1,5 +1,5 @@
-import type { BaseLocation } from "../../shared/base-location";
-import type { GetWarehouseCapacitiesResponse } from "./get-warehouse-capacities-response";
+import type { BaseLocation } from "@app/modules/warehouse/domain/ApiContract/shared/base-location";
+import type { GetWarehouseCapacitiesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouse-capacities-response";
 
 export interface GetWarehouseDetailsResponse {
   warehouse_id: string;

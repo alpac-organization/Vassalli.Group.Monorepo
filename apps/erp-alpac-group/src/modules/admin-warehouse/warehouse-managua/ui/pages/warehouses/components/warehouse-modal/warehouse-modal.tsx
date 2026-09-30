@@ -1,7 +1,5 @@
 import { useEffect } from "react";
-import {
-	Alert,
-	AnimatedAlertWrapper,
+import {	
 	Button,
 	Checkbox,
 	Dropdown,
@@ -12,7 +10,7 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import type {
 	WarehouseModalProps,
 	FormValues,
-} from "./types/warehouse-modal.types";
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-modal/types/warehouse-modal.types";
 import {
 	WarehouseTypeEnum,
 	WarehouseTypeOptions,
@@ -46,11 +44,11 @@ const DEFAULT_FORM_VALUES: FormValues = {
 export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProps) {
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
-	const {
-		alertState,
+	const {		
 		handleCloseAlert,
 		handleRequestError,
 		handleRequestSuccess,
+		AlertComponent
 	} = useAlertState();
 
 	const {
@@ -133,14 +131,7 @@ export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProp
 				className="flex flex-col gap-5"
 				onSubmit={handleSubmit(handleCreateWarehouse)}
 			>
-				<AnimatedAlertWrapper open={alertState?.open ?? false}>
-					<Alert
-						type={alertState?.type!}
-						title={alertState?.title}
-						message={alertState?.message!}
-						onClose={handleCloseAlert}
-					/>
-				</AnimatedAlertWrapper>
+				{AlertComponent}
 
 				<div className="flex items-stretch flex-col gap-6">
 					<div className="grid grid-cols-1 gap-6 md:grid-cols-2">

@@ -3,17 +3,17 @@ import { useCallback, useMemo, useState } from "react";
 import { Button } from "@alpac/design-system";
 import { Warehouse } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { WarehouseHeader } from "./components/warehouse-header/warehouse-header";
-import { WarehouseFiltersBar } from "./components/warehouse-filters/warehouse-filters";
-import { WarehouseTable } from "./components/warehouse-table/warehouse-table";
-import { WarehouseModal } from "./components/warehouse-modal/warehouse-modal";
+import { WarehouseHeader } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-header/warehouse-header";
+import { WarehouseFiltersBar } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-filters/warehouse-filters";
+import { WarehouseTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-table/warehouse-table";
+import { WarehouseModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-modal/warehouse-modal";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { Loader } from "@app/shared/components/loaders/loader";
-import { filtersToGetWarehouseParams } from "./utils/warehouse-utils";
-import { EMPTY_WAREHOUSE_FILTERS, type WarehouseFilters } from "./types/warehouse.types";
-import { WarehouseDetailModal } from "./components/warehouse-detail-modal/warehouse-detail-modal";
+import { filtersToGetWarehouseParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
+import { EMPTY_WAREHOUSE_FILTERS, type WarehouseFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/types/warehouse.types";
+import { WarehouseDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-detail-modal/warehouse-detail-modal";
 
 import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses-response";
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
@@ -81,10 +81,10 @@ export function WarehousePage() {
       setIsWarehouseModalOpen(false);
    }, []);
 
-   const handleViewDetails = (warehouse: WarehouseDto) => {
+   const handleViewDetails = useCallback((warehouse: WarehouseDto) => {
       setSelectedWarehouse(warehouse);
       setIsWarehouseDetailModalOpen(true);
-   }
+   }, [])
 
    return (
       <m.div

@@ -1,6 +1,6 @@
 import type { Option } from "@alpac/design-system";
 import { WarehouseTypeOptions } from "@app/modules/warehouse/domain/enums/warehouse.enum";
-import type { WarehouseFilters } from "../../../types/warehouse.types";
+import type { WarehouseFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/types/warehouse.types";
 
 export const WAREHOUSE_TYPE_FILTER_OPTIONS: Option[] = [
 	...WarehouseTypeOptions.map((option) => ({

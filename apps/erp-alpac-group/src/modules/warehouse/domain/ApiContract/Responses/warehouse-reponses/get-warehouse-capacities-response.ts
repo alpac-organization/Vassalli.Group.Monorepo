@@ -1,4 +1,4 @@
-import type { BaseCapacities } from "../../shared/base-capacities";
+import type { BaseCapacities } from "@app/modules/warehouse/domain/ApiContract/shared/base-capacities";
 
 export interface GetWarehouseCapacitiesResponse extends BaseCapacities {
    total_area_m2: number;

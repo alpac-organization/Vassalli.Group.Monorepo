@@ -1,5 +1,5 @@
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
-import type { WarehouseFilters } from "../types/warehouse.types";
+import type { WarehouseFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/types/warehouse.types";
 
 export function filtersToGetWarehouseParams(filters: WarehouseFilters): Pick<GetWarehouseRequest, "warehouse_code" | "warehouse_type" | "is_active"> {
   
@@ -20,15 +20,4 @@ export function filtersToGetWarehouseParams(filters: WarehouseFilters): Pick<Get
           ? false
           : undefined,
   };
-}
-
-export function formatAreaM2(value: number | null | undefined): string {
-  if (value == null) return "—";
-  return `${value} m²`;
-}
-
-export function getOccupancyBarColor(percentage: number): string {
-  if (percentage >= 90) return "bg-red-500";
-  if (percentage >= 70) return "bg-amber-500";
-  return "bg-emerald-500";
 }
