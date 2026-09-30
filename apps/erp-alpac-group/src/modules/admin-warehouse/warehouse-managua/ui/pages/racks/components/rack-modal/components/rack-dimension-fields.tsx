@@ -26,6 +26,7 @@ export const RackDimensionFields = <T extends FieldValues>({
         isRequired
         type="number"
         step="0.01"
+        inputMode="decimal"
         placeholder="ej. 1.07"
         className={inputClassName}
         labelClassName={labelClassName}
@@ -46,6 +47,7 @@ export const RackDimensionFields = <T extends FieldValues>({
         isRequired
         type="number"
         step="0.01"
+        inputMode="decimal"
         placeholder="ej. 2.44"
         className={inputClassName}
         labelClassName={labelClassName}
@@ -65,6 +67,7 @@ export const RackDimensionFields = <T extends FieldValues>({
         label={heightLabel}
         type="number"
         step="0.01"
+        inputMode="decimal"
         placeholder={heightPlaceholder}
         className={inputClassName}
         labelClassName={labelClassName}

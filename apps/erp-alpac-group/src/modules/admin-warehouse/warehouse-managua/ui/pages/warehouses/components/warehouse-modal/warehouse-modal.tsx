@@ -18,11 +18,7 @@ import {
 	WarehouseTypeOptions,
 } from "@app/modules/warehouse/domain/enums/warehouse.enum";
 import type { CreateWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-warehouse-request";
-import {
-	formatAmount,
-	validateDecimalNumber,
-	validatePositiveNumber,
-} from "@app/shared/utils/number.utils";
+import { getDecimalFieldConfig } from "@app/shared/utils/get-decimal.config";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -32,11 +28,6 @@ import {
 	inputClassName,
 	labelClassName,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-filters/utils/styles";
-
-const parseDecimal = (value: unknown) => {
-	const trimmed = String(value ?? "").trim();
-	return trimmed ? parseFloat(trimmed.replace(/,/g, "")) : undefined;
-};
 
 const DEFAULT_FORM_VALUES: FormValues = {
 	code: "",
@@ -234,19 +225,7 @@ export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProp
 							isRequired
 							className={inputClassName}
 							labelClassName={labelClassName}
-							{...register("width", {
-								required: "El ancho es requerido",
-								validate: {
-									validateDecimal: (value) =>
-										!value || validateDecimalNumber(value),
-									validatePositive: (value) =>
-										!value || validatePositiveNumber(value),
-								},
-								setValueAs: parseDecimal,
-								onChange: (evt) => {
-									evt.target.value = formatAmount(evt.target.value, 10, 2);
-								},
-							})}
+							{...register("width", getDecimalFieldConfig("El ancho es requerido"))}
 							error={errors.width?.message}
 						/>
 
@@ -258,19 +237,7 @@ export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProp
 							isRequired
 							className={inputClassName}
 							labelClassName={labelClassName}
-							{...register("length", {
-								required: "El largo es requerido",
-								validate: {
-									validateDecimal: (value) =>
-										!value || validateDecimalNumber(value),
-									validatePositive: (value) =>
-										!value || validatePositiveNumber(value),
-								},
-								setValueAs: parseDecimal,
-								onChange: (evt) => {
-									evt.target.value = formatAmount(evt.target.value, 10, 2);
-								},
-							})}
+							{...register("length", getDecimalFieldConfig("El largo es requerido"))}
 							error={errors.length?.message}
 						/>
 
@@ -282,23 +249,10 @@ export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProp
 							isRequired
 							className={inputClassName}
 							labelClassName={labelClassName}
-							{...register("minimum_height", {
-								required: "La altura mínima es requerida",
-								validate: {
-									validateDecimal: (value) =>
-										value === undefined ||
-										value === null ||
-										validateDecimalNumber(value),
-									validateNonNegative: (value) =>
-										value === undefined ||
-										value === null ||
-										validatePositiveNumber(value, true),
-								},
-								setValueAs: parseDecimal,
-								onChange: (evt) => {
-									evt.target.value = formatAmount(evt.target.value, 10, 2);
-								},
-							})}
+							{...register(
+								"minimum_height",
+								getDecimalFieldConfig("La altura mínima es requerida", true),
+							)}
 							error={errors.minimum_height?.message}
 						/>
 
@@ -310,19 +264,10 @@ export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProp
 							isRequired
 							className={inputClassName}
 							labelClassName={labelClassName}
-							{...register("maximum_height", {
-								required: "La altura máxima es requerida",
-								validate: {
-									validateDecimal: (value) =>
-										!value || validateDecimalNumber(value),
-									validatePositive: (value) =>
-										!value || validatePositiveNumber(value),
-								},
-								setValueAs: parseDecimal,
-								onChange: (evt) => {
-									evt.target.value = formatAmount(evt.target.value, 10, 2);
-								},
-							})}
+							{...register(
+								"maximum_height",
+								getDecimalFieldConfig("La altura máxima es requerida"),
+							)}
 							error={errors.maximum_height?.message}
 						/>
 					</div>
@@ -354,23 +299,10 @@ export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProp
 									isRequired
 									className={inputClassName}
 									labelClassName={labelClassName}
-									{...register("margin_top", {
-										required: "El margen superior es requerido",
-										validate: {
-											validateDecimal: (value) =>
-												value === undefined ||
-												value === null ||
-												validateDecimalNumber(value),
-											validateNonNegative: (value) =>
-												value === undefined ||
-												value === null ||
-												validatePositiveNumber(value, true),
-										},
-										setValueAs: parseDecimal,
-										onChange: (evt) => {
-											evt.target.value = formatAmount(evt.target.value, 10, 2);
-										},
-									})}
+									{...register(
+										"margin_top",
+										getDecimalFieldConfig("El margen superior es requerido", true),
+									)}
 									error={errors.margin_top?.message}
 								/>
 
@@ -382,23 +314,10 @@ export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProp
 									isRequired
 									className={inputClassName}
 									labelClassName={labelClassName}
-									{...register("margin_bottom", {
-										required: "El margen inferior es requerido",
-										validate: {
-											validateDecimal: (value) =>
-												value === undefined ||
-												value === null ||
-												validateDecimalNumber(value),
-											validateNonNegative: (value) =>
-												value === undefined ||
-												value === null ||
-												validatePositiveNumber(value, true),
-										},
-										setValueAs: parseDecimal,
-										onChange: (evt) => {
-											evt.target.value = formatAmount(evt.target.value, 10, 2);
-										},
-									})}
+									{...register(
+										"margin_bottom",
+										getDecimalFieldConfig("El margen inferior es requerido", true),
+									)}
 									error={errors.margin_bottom?.message}
 								/>
 
@@ -410,23 +329,10 @@ export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProp
 									isRequired
 									className={inputClassName}
 									labelClassName={labelClassName}
-									{...register("margin_left", {
-										required: "El margen izquierdo es requerido",
-										validate: {
-											validateDecimal: (value) =>
-												value === undefined ||
-												value === null ||
-												validateDecimalNumber(value),
-											validateNonNegative: (value) =>
-												value === undefined ||
-												value === null ||
-												validatePositiveNumber(value, true),
-										},
-										setValueAs: parseDecimal,
-										onChange: (evt) => {
-											evt.target.value = formatAmount(evt.target.value, 10, 2);
-										},
-									})}
+									{...register(
+										"margin_left",
+										getDecimalFieldConfig("El margen izquierdo es requerido", true),
+									)}
 									error={errors.margin_left?.message}
 								/>
 
@@ -438,23 +344,10 @@ export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProp
 									isRequired
 									className={inputClassName}
 									labelClassName={labelClassName}
-									{...register("margin_right", {
-										required: "El margen derecho es requerido",
-										validate: {
-											validateDecimal: (value) =>
-												value === undefined ||
-												value === null ||
-												validateDecimalNumber(value),
-											validateNonNegative: (value) =>
-												value === undefined ||
-												value === null ||
-												validatePositiveNumber(value, true),
-										},
-										setValueAs: parseDecimal,
-										onChange: (evt) => {
-											evt.target.value = formatAmount(evt.target.value, 10, 2);
-										},
-									})}
+									{...register(
+										"margin_right",
+										getDecimalFieldConfig("El margen derecho es requerido", true),
+									)}
 									error={errors.margin_right?.message}
 								/>
 							</div>

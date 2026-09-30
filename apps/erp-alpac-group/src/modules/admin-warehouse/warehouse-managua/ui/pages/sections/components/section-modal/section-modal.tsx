@@ -9,10 +9,10 @@ import {
 
 import {
 	formatAmount,
-	validateDecimalNumber,
 	validateIntegerNumber,
 	validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
+import { getDecimalFieldConfig } from "@app/shared/utils/get-decimal.config";
 
 import {
 	inputClassName,
@@ -453,19 +453,10 @@ export const SectionModal = ({
 						isRequired
 						className={inputClassName}
 						labelClassName={labelClassName}
-						{...register("width_metres", {
-							required: "El ancho es requerido",
-							validate: {
-								validateDecimal: (value) =>
-									!value || validateDecimalNumber(value),
-								validatePositive: (value) =>
-									!value || validatePositiveNumber(value),
-							},
-							setValueAs: parseDecimal,
-							onChange: (evt) => {
-								evt.target.value = formatAmount(evt.target.value, 10, 2);
-							},
-						})}
+						{...register(
+							"width_metres",
+							getDecimalFieldConfig("El ancho es requerido"),
+						)}
 						error={errors.width_metres?.message}
 					/>
 
@@ -477,19 +468,10 @@ export const SectionModal = ({
 						isRequired
 						className={inputClassName}
 						labelClassName={labelClassName}
-						{...register("length_metres", {
-							required: "El largo es requerido",
-							validate: {
-								validateDecimal: (value) =>
-									!value || validateDecimalNumber(value),
-								validatePositive: (value) =>
-									!value || validatePositiveNumber(value),
-							},
-							setValueAs: parseDecimal,
-							onChange: (evt) => {
-								evt.target.value = formatAmount(evt.target.value, 10, 2);
-							},
-						})}
+						{...register(
+							"length_metres",
+							getDecimalFieldConfig("El largo es requerido"),
+						)}
 						error={errors.length_metres?.message}
 					/>
 
