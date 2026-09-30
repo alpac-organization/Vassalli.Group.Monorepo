@@ -81,7 +81,8 @@ export function WarehousePage() {
       setIsWarehouseModalOpen(false);
    }, []);
 
-   const handleViewDetails = () => {
+   const handleViewDetails = (warehouse: WarehouseDto) => {
+      setSelectedWarehouse(warehouse);
       setIsWarehouseDetailModalOpen(true);
    }
 
@@ -142,7 +143,6 @@ export function WarehousePage() {
          />
 
          <WarehouseDetailModal
-            // details={ }
             warehouse={selectedWarehouse}
             isOpen={isWarehouseDetailModalOpen}
             onClose={() => setIsWarehouseDetailModalOpen(false)}

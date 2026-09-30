@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Building2, ChevronRight, Layers } from "lucide-react";
 import { LegendItem } from "@app/shared/components/legend-item/legend-item";
-import { PIXELS_PER_METER, WarehouseShape } from "../../../warehouses-temp/components/warehouse-shape/warehouse-shape";
 import { RACK_STATUS_LEGEND } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
 import { RackShape } from "../rack-shape/rack-shape";
 import { Group, Rect } from "react-konva";
 import type { RackViewerProps } from "./rack-viewer.types";
 import type { RackDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/racks/get-racks-res";
+import { PIXELS_PER_METER } from "../../../../utils/warehouse-config";
+import { WarehouseShape } from "../../../warehouses/components/warehouse-shape/warehouse-shape";
 
 // Medidas mock de bodega como en secciones.tsx
 const WAREHOUSE_WIDTH = 37.35;
