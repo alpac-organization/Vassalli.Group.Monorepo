@@ -4,4 +4,7 @@ export type MetricCardProps = {
   trend?: string;
   icon?: React.ReactNode;
   themeClass?: string;
+  size?: "default" | "compact";
+  className?: string;
 };
+

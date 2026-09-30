@@ -8,6 +8,9 @@ export interface WarehouseViewerProps {
    marginLeft?: number;
    marginRight?: number;
    children?: ReactNode;
+   title?: ReactNode;
+   selectedLabel?: ReactNode;
+   overlay?: ReactNode;
 }
 
 export interface StagePosition {

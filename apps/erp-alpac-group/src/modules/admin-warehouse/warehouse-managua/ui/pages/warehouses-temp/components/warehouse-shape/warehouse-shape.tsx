@@ -18,6 +18,9 @@ export const WarehouseShape = ({
    marginBottom = 0,
    marginLeft = 0,
    marginRight = 0,
+   title = "Plano de la bodega",
+   selectedLabel,
+   overlay,
 }: WarehouseViewerProps) => {
 
    const warehouseX = METRIC_SIZE;
@@ -70,16 +73,21 @@ export const WarehouseShape = ({
 
    return (
       <section>
-         <div className="flex lg:justify-between items-center mb-4 flex-wrap">
-            <span className="font-bold">Plano de la bodega</span>
-            <span className="text-sm font-semibold">Sección seleccionada: SECTION_001</span>
-         </div>
+         {(title || selectedLabel) && (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+               <div>{typeof title === "string" ? <span className="font-bold">{title}</span> : title}</div>
+               {selectedLabel && (
+                  <div>{typeof selectedLabel === "string" ? <span className="text-sm font-semibold">{selectedLabel}</span> : selectedLabel}</div>
+               )}
+            </div>
+         )}
          <div
             ref={containerRef}
-            className="w-full h-[50vh] md:landscape:h-[70vh] lg:h-120 lg:max-h-148 max-w-full overflow-auto rounded-lg bg-white dark:bg-[#363a45] p-0"
+            className="relative w-full h-[50vh] md:landscape:h-[70vh] lg:h-120 lg:max-h-148 max-w-full overflow-hidden rounded-lg bg-white dark:bg-[#363a45] p-0"
          >
-
-            <Stage
+            {overlay}
+            {stageSize.width > 0 && stageSize.length > 0 && (
+               <Stage
                width={stageSize.width}
                height={stageSize.length}
                scaleX={scale}
@@ -150,15 +158,17 @@ export const WarehouseShape = ({
                      dash={[10, 5]}
                   />
 
-                  <Rect
-                     x={originX + usableOffsetX}
-                     y={originY + usableOffsetY}
-                     width={usableWidthPx}
-                     height={usableLengthPx}
-                     stroke="#d467f5"
-                     dashEnabled
-                     dash={[10, 5]}
-                  />
+                  {(marginTop > 0 || marginBottom > 0 || marginLeft > 0 || marginRight > 0) && (
+                     <Rect
+                        x={originX + usableOffsetX}
+                        y={originY + usableOffsetY}
+                        width={usableWidthPx}
+                        height={usableLengthPx}
+                        stroke="#d467f5"
+                        dashEnabled
+                        dash={[10, 5]}
+                     />
+                  )}
 
                   <Grid
                      x={stagePosition.x}
@@ -177,6 +187,7 @@ export const WarehouseShape = ({
 
                </Layer>
             </Stage>
+            )}
          </div>
       </section>
    );
