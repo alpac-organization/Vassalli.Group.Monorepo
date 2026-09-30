@@ -1,4 +1,5 @@
 import { Avatar, Modal } from "@alpac/design-system";
+import { History } from "lucide-react";
 import { UserStatusRecord, type UserStatusKey } from "@app/shared/enum/user-status";
 import type { UserInformation } from "@app/shared/interfaces/organization-information/organization-information";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
@@ -45,10 +46,33 @@ const formatHistoryDate = (value: string) => {
 	return formatDateToSpanishWords(datePart) || value;
 };
 
+const HistoryEmptyState = () => (
+	<div
+		role="status"
+		className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-8 text-center dark:border-red-400 dark:bg-red-500/20 sm:px-6 sm:py-10"
+	>
+		<div className="flex max-w-sm flex-col gap-1">
+		<div className="flex items-center gap-1 justify-center">
+
+		<span className="flex h-12 w-12 items-center justify-center rounded-full bg-alpac-primary-500/10 text-alpac-primary-600 dark:text-alpac-primary-300">
+			<History size={24} aria-hidden/>
+		</span>
+			<h3 className="m-0 text-[15px] font-semibold text-slate-900 dark:text-white">
+				Sin historial
+			</h3>
+		</div>
+			<p className="m-0 text-sm text-slate-500 dark:text-slate-300">
+				Aún no hay cambios registrados para esta solicitud.
+			</p>
+		</div>
+	</div>
+);
+
 const HistoryModal = ({
 	isOpen,
 	onClose,
-	children
+	children,
+	isEmpty	
 }: HistoryModalProps) => {
 
 	return (
@@ -56,7 +80,7 @@ const HistoryModal = ({
 		<Modal
 			isOpen={isOpen}
 			onClose={onClose}
-			title="Historial"
+			title={isEmpty ? "" : "Historial"}
 			variant="default"
 			size="5xl"
 			panelClassName={[
@@ -76,21 +100,18 @@ export const PurchaseRequestHistoryModal = ({
 	onClose,
 	history,
 }: PurchaseRequestHistoryModalProps) => {	
-
 	const entries = [...(history ?? [])].reverse();	
-
-	if (entries.length === 0) {
+	const isEmpty:boolean = entries.length === 0;
+	if (isEmpty ) {
 		return (
-			<HistoryModal isOpen={isOpen} onClose={onClose}>
-				<div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
-					No hay historial para esta solicitud.
-				</div>
+			<HistoryModal isOpen={isOpen} onClose={onClose} isEmpty={isEmpty} >
+				<HistoryEmptyState />
 			</HistoryModal>
 		)
 	}
 
 	return (
-		<HistoryModal isOpen={isOpen} onClose={onClose}>
+		<HistoryModal isOpen={isOpen} onClose={onClose} isEmpty={isEmpty} >
 
 			<div className="w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain rounded-lg border border-slate-200 dark:border-neutral-700">
 				<table className="w-full min-w-176 text-left text-sm text-slate-700 dark:text-slate-300">

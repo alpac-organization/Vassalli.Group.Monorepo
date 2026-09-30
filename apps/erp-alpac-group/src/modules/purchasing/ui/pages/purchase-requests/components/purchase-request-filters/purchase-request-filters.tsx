@@ -16,9 +16,9 @@ import type {
 } from "./purchase-request-filters.types";
 
 const inputClassName =
-	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+	"w-full! rounded-md! text-[16px]! sm:text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const dropdownClassName =
-	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
+	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[16px]! sm:text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
 
 const defaultFilterForm: PurchaseRequestFilterForm = {

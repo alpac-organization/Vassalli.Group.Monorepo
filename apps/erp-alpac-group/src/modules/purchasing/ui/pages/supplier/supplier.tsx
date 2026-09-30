@@ -115,7 +115,7 @@ export const Supplier = () => {
 			label: "Razón social / Nombre comercial",
 			render(row: GetSuppliersResponse) {
 				const legalName =
-					row.suppliers_legal_name ?? row.supplier_legal_name ?? "—";
+					row.supplier_legal_name ?? "—";
 				const commercialName = row.commercial_name?.trim();
 
 				return (

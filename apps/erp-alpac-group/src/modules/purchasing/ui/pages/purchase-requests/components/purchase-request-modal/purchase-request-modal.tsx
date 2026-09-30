@@ -468,7 +468,11 @@ export const PurchaseRequestModal = ({
 				variant="default"
 				size="8xl"
 				description={modalDescription}
-				panelClassName="flex h-[54rem] w-[min(calc(100vw-1rem),56rem)] min-w-0 flex-col"
+				panelClassName={[
+					"flex max-h-[min(94dvh,54rem)] w-[min(calc(100vw-1rem),56rem)] min-w-0 flex-col overflow-hidden",
+					"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
+					"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
+				].join(" ")}
 				contentClassName="flex min-h-0 flex-1 flex-col"
 			>
 				<form
@@ -535,7 +539,7 @@ export const PurchaseRequestModal = ({
 					</div>
 
 					{!isEditMode && (
-						<div className="sticky top-0 right-0 z-10 bg-white dark:bg-[#272b34] py-4">
+						<div className="shrink-0 bg-white py-4 dark:bg-[#272b34]">
 							<Button
 								type="button"
 								size="medium"
