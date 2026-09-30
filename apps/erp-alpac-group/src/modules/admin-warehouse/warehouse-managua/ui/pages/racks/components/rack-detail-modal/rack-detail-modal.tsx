@@ -1,160 +1,192 @@
-import { Button, Modal } from "@alpac/design-system";
-import { Boxes, Layers, MapPin, X } from "lucide-react";
-import type { RackDetailModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-detail-modal/types/rack-detail-modal.types";
-import type { Positions } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-res";
-import { sortRackPositions } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/sort-rack-positions";
-import { RackStatusBadge } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-warehouses-badges";
-
-const positionCellClassName =
-  "flex flex-col items-center justify-center gap-0.5 rounded-md border px-2 py-2 text-center text-[11px]";
-
-function getPositionVisual(position: Positions) {
-  if (position.is_blocked) {
-    return {
-      label: "Bloqueada",
-      className: "border-red-700/60 bg-[#3a1d1d] text-red-300",
-    };
-  }
-
-  if (position.is_occupied) {
-    return {
-      label: "Ocupada",
-      className: "border-amber-600/50 bg-[#3a2e14] text-amber-300",
-    };
-  }
-
-  return {
-    label: "Disponible",
-    className: "border-[#1b3b30] bg-[#132a22] text-[#4ade80]",
-  };
-}
+import { Button, Card, MetricCard, Modal } from "@alpac/design-system";
+import { Boxes, Calendar, CheckCircle2, Layers, Package, Ruler } from "lucide-react";
+import type { RackDetailModalProps } from "./types/rack-detail-modal.types";
+import {RackStatusBadge,RackUsageProfileBadge} from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-warehouses-badges";
+import { useRack } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useRack";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { Loader } from "@app/shared/components/loaders/loader";
+import { cancelButtonClass } from "../../utils/style.racks";
 
 export const RackDetailModal = ({
   isOpen,
-  rack,
+  warehouseId,
+  sectionId,
+  rackId,
+  rackSummary,
   onClose,
 }: RackDetailModalProps) => {
-  const positions = sortRackPositions(rack?.positions ?? []);
+  const { companyId, moduleCode } = useUserStore();
+
+  const { GetRackDetails } = useRack({
+    getRackDetailsPayload:
+      isOpen && rackId
+        ? {
+            company_id: companyId,
+            module_code: moduleCode,
+            warehouse_id: warehouseId,
+            section_id: sectionId,
+            rack_id: rackId,
+          }
+        : undefined,
+  });
+
+  const rack = GetRackDetails.data;
+  const positions = rack?.positions ?? [];
+  const occupiedCount = positions.filter((p) => p.current_stock != null).length;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={rack ? `Posiciones — Rack ${rack.code}` : "Posiciones del rack"}
+      title={
+        rack || rackSummary
+          ? `Rack ${(rack ?? rackSummary)?.code}`
+          : "Posiciones del rack"
+      }
       variant="default"
-      size="5xl"
-      description="Distribución y estado de cada posición del rack"
+      size="4xl"
+      description="Distribución de polines y posiciones de almacenamiento"
     >
-      {rack && (
-        <div className="flex flex-col gap-5">
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-            <div className="rounded-lg border border-[#2a2d3d] bg-[#1b1e27] p-3">
-              <div className="flex items-center gap-2 text-slate-400">
-                <Layers size={14} />
-                <span className="text-xs">Nivel / Fila</span>
-              </div>
-              <p className="mt-1 text-sm font-medium text-white">
-                {rack.level_number} / {rack.row_number}
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-[#2a2d3d] bg-[#1b1e27] p-3">
-              <div className="flex items-center gap-2 text-slate-400">
-                <Boxes size={14} />
-                <span className="text-xs">Posiciones</span>
-              </div>
-              <p className="mt-1 text-sm font-medium text-white">
-                {rack.occupied_positions} / {rack.total_positions}
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-[#2a2d3d] bg-[#1b1e27] p-3">
-              <div className="flex items-center gap-2 text-slate-400">
-                <MapPin size={14} />
-                <span className="text-xs">Estado del rack</span>
-              </div>
-              <div className="mt-1">
-                <RackStatusBadge value={rack.status ?? ""} />
-              </div>
-            </div>
+      {GetRackDetails.isLoading ? (
+        <div className="py-8">
+          <Loader title="Cargando información del rack..." />
+        </div>
+      ) : rack ? (
+        <div className="flex flex-col gap-4 mt-2">
+          {/* Bagdes */}
+          <div className="flex items-center gap-2">
+            <RackStatusBadge value={rack.status} />
+            <RackUsageProfileBadge value={rack.usage_profile} />
           </div>
 
-          <div>
-            <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm font-medium text-slate-300">
-                Distribución de posiciones
-              </p>
-              <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
-                <span className="flex items-center gap-1">
-                  <span className="inline-block h-2.5 w-2.5 rounded-md border border-emerald-500/4 bg-emerald-500/15" />
-                  Disponible
-                </span>
+          {/* Cards*/}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <MetricCard
+              size="compact"
+              title="Ubicación"
+              value={`Nivel ${rack.level_number} · Hilera ${rack.row_number}`}
+              icon={<Layers size={14} />}
+              themeClass="bg-blue-400"
+            />
 
-                <span className="flex items-center gap-1">
-                  <span className="inline-block h-2.5 w-2.5 rounded-md border border-[#2F6FB2]! bg-[#123C69]" />
-                  Ocupada
-                </span>
+            <MetricCard
+              size="compact"
+              title="Capacidad"
+              value={`${rack.max_pulleys} polines por nivel`}
+              icon={<Boxes size={14} />}
+              themeClass="bg-amber-400"
+            />
 
-                <span className="flex items-center gap-1">
-                  <span className=" inline-block h-2.5 w-2.5 rounded-md border border-[#5c2424]! bg-[#3a1d1d]!" />
-                  Bloqueada
-                </span>
-              </div>
+            <MetricCard
+              size="compact"
+              title="Dimensiones (L × A × H)"
+              value={`${rack.capacity?.length ?? 0}m × ${rack.capacity?.width ?? 0}m × ${rack.capacity?.height ?? 0}m`}
+              icon={<Ruler size={14} />}
+              themeClass="bg-purple-400"
+            />
+
+            <MetricCard
+              size="compact"
+              title="Ocupación Actual"
+              value={`${occupiedCount} de ${positions.length} ocupadas`}
+              icon={<CheckCircle2 size={14} />}
+              themeClass="bg-emerald-400"
+            />
+          </div>
+
+
+          {/* Distribución de Polines del Rack (Nivel único) */}
+          <div className="rounded-lg border border-slate-700/60 bg-slate-800/30 p-3">
+            <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-700/40 text-xs">
+              <span className="font-semibold text-slate-200">
+                Polines de almacenamiento
+              </span>
             </div>
 
-            {positions.length === 0 ? (
-              <p className="py-8 text-center text-sm text-slate-400">
-                Este rack no tiene posiciones registradas.
-              </p>
-            ) : (
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
-                {positions.map((position) => {
-                  const visual = getPositionVisual(position);
-                  const reason = position.block_reason?.trim();
+            <div
+              className="grid gap-3"
+              style={{
+                gridTemplateColumns: `repeat(${rack.max_pulleys || positions.length || 1}, minmax(0, 1fr))`,
+              }}
+            >
+              {positions.map((pos) => {
+                const isBlocked = pos.status === "Blocked" || !pos.allows_stocking;
+                const isOccupied = Boolean(pos.current_stock);
 
-                  return (
-                    <div
-                      key={position.position_id}
-                      title={
-                        reason
-                          ? reason
-                          : `${position.position_code} — ${visual.label}`
-                      }
-                      className={`${positionCellClassName} ${visual.className}`}
-                    >
-                      <span className="font-medium">
-                        {position.position_code}
-                      </span>
-                      <span className="text-[10px] opacity-80">
-                        #{position.position_number}
-                      </span>
-                      <span className="text-[10px] opacity-80">
-                        {visual.label}
-                      </span>
-                      {reason && (
-                        <span className="mt-0.5 line-clamp-2 text-[9px] opacity-70">
-                          {reason}
+                return (
+                  <Card
+                    key={pos.position_id}
+                    className={`p-3 transition-all flex flex-col justify-between gap-3 border ${
+                      isBlocked
+                        ? "border-red-700/60 bg-red-950/20"
+                        : isOccupied
+                          ? "border-amber-600/50 bg-amber-950/20"
+                          : "border-emerald-700/40 bg-emerald-950/20"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-xs text-white">
+                          Polín {pos.column}
                         </span>
-                      )}
+                        <span className="font-mono text-[11px] text-slate-400 bg-black/40 px-1.5 py-0.5 rounded border border-slate-700/50">
+                          {pos.position_code}
+                        </span>
+                      </div>
+                      <span
+                        className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
+                          isBlocked
+                            ? "border-red-600/60 text-red-300 bg-red-500/10"
+                            : isOccupied
+                              ? "border-amber-500/60 text-amber-300 bg-amber-500/10"
+                              : "border-emerald-500/60 text-emerald-300 bg-emerald-500/10"
+                        }`}
+                      >
+                        {isBlocked ? "Bloqueada" : isOccupied ? "Ocupada" : "Disponible"}
+                      </span>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+
+                    {pos.current_stock ? (
+                      <div className="flex flex-col gap-1.5 text-xs bg-black/30 p-2.5 rounded-md border border-slate-700/40">
+                        <div className="flex items-center gap-1.5 font-medium text-slate-100">
+                          <Package size={13} className="shrink-0 text-amber-400" />
+                          <span className="truncate">
+                            {pos.current_stock.product_name ?? "Producto sin nombre"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-300 text-[11px]">
+                          <span>{pos.current_stock.current_bultos} bultos</span>
+                          <span>{pos.current_stock.current_weight_kg} kg</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] text-slate-400 pt-1.5 border-t border-slate-700/50">
+                          <Calendar size={11} />
+                          <span>Estibado: {pos.current_stock.placed_at_date}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-2.5 text-center text-xs text-slate-400 italic">
+                        Disponible para estibar
+                      </div>
+                    )}
+                  </Card>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="flex min-w-0 justify-end">
+          <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6 my-1" />
+
+          <div className="flex justify-end">
             <Button
               type="button"
               size="giant"
               label="Cerrar"
-              icon={<X size={18} />}
+              className={cancelButtonClass}
               onClick={onClose}
-              className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30! sm:w-auto!"
             />
           </div>
         </div>
-      )}
+      ) : null}
     </Modal>
   );
 };

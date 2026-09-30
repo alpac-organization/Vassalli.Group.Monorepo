@@ -1,4 +1,4 @@
-import type { GetRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-racks";
+import type { GetRacksRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/racks/get-racks-req";
 import type { RackStatusValue } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
 import type { RackUsageProfileValue } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-usage-profile";
 import type { RackFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/types/racks.types";
@@ -11,7 +11,7 @@ export function filtersToGetRacksParams(
 
   return {
     level_number:
-      levelNumber != null && !Number.isNaN(levelNumber) ? levelNumber : null,
+    levelNumber != null && !Number.isNaN(levelNumber) ? levelNumber : null,
     status: (filters.status || null) as RackStatusValue | null,
     usage_profile: (filters.usage || null) as RackUsageProfileValue | null,
   };
