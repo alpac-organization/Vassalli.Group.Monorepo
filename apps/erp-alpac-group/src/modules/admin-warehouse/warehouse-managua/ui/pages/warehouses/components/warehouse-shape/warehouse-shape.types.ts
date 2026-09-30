@@ -9,6 +9,9 @@ export interface WarehouseViewerProps {
    marginRight?: number;
    draggable?: boolean;
    children?: ReactNode;
+   title?: ReactNode;
+   selectedLabel?: ReactNode;
+   overlay?: ReactNode;
 }
 
 export interface Coordinate {

@@ -8,8 +8,13 @@ import {
 	resolveSectionType,
 	resolveSectionStorageType,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/section-status-badge";
-import { resolveRackStatus } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
-import { getRackStatusLabel } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
+import { RackUsageProfileEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-usage-profile";
+import {
+	resolveRackStatus,
+	getRackStatusLabel,
+	resolveRackUsageProfile,
+	getRackUsageProfileLabel,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
 
 
 // Esta funcion Representa un badge visual para indicar el tipo de seccion
@@ -104,6 +109,44 @@ export const RackStatusBadge = ({
 			return (
 				<Badges
 					label={getRackStatusLabel(value ?? "")}
+					color="gray"
+					className="bg-slate-800! border! border-slate-700! text-slate-400!"
+				/>
+			);
+	}
+};
+
+// Esta funcion Representa un badge visual para indicar el perfil de uso del rack
+// @param value - string | number - El valor del perfil de uso del rack
+// @returns - ReactNode - Un badge visual para indicar el perfil de uso del rack
+export const RackUsageProfileBadge = ({
+	value,
+}: {
+	value: string | number | null;
+}) => {
+	const profile = resolveRackUsageProfile(value ?? "");
+
+	switch (profile?.textValue) {
+		case RackUsageProfileEnum.ActiveFlow.textValue:
+			return (
+				<Badges
+					label={RackUsageProfileEnum.ActiveFlow.label}
+					color="transparent"
+					className="bg-cyan-500/15! text-cyan-300! border! border-cyan-400/40! dark:bg-cyan-500/15! dark:text-cyan-300! dark:border-cyan-400/40!"
+				/>
+			);
+		case RackUsageProfileEnum.StaticHold.textValue:
+			return (
+				<Badges
+					label={RackUsageProfileEnum.StaticHold.label}
+					color="transparent"
+					className="bg-purple-500/15! text-purple-300! border! border-purple-400/40! dark:bg-purple-500/15! dark:text-purple-300! dark:border-purple-400/40!"
+				/>
+			);
+		default:
+			return (
+				<Badges
+					label={getRackUsageProfileLabel(value ?? "")}
 					color="gray"
 					className="bg-slate-800! border! border-slate-700! text-slate-400!"
 				/>
