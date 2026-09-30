@@ -7,15 +7,16 @@ import { WarehouseHeader } from "./components/warehouse-header/warehouse-header"
 import { WarehouseFiltersBar } from "./components/warehouse-filters/warehouse-filters";
 import { WarehouseTable } from "./components/warehouse-table/warehouse-table";
 import { WarehouseModal } from "./components/warehouse-modal/warehouse-modal";
-
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { Loader } from "@app/shared/components/loaders/loader";
-import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses";
-import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
 import { filtersToGetWarehouseParams } from "./utils/warehouse-utils";
 import { EMPTY_WAREHOUSE_FILTERS, type WarehouseFilters } from "./types/warehouse.types";
+import { WarehouseDetailModal } from "./components/warehouse-detail-modal/warehouse-detail-modal";
+
+import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses-response";
+import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
 
 const PAGE_SIZE = 10;
 
@@ -25,10 +26,11 @@ export function WarehousePage() {
    const { baseUrl } = useBaseUrl();
    const { companyId, moduleCode, moduleBasePath } = useUserStore();
    const isWarehouseAdmin = moduleBasePath.includes("warehouse-admin");
-   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
-   const [modalParentWarehouseId, setModalParentWarehouseId] = useState<string | null>(null);
    const [appliedFilters, setAppliedFilters] = useState<WarehouseFilters>(EMPTY_WAREHOUSE_FILTERS);
    const [currentPage, setCurrentPage] = useState(1);
+   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+   const [isWarehouseDetailModalOpen, setIsWarehouseDetailModalOpen] = useState(false);
+   const [selectedWarehouse, setSelectedWarehouse] = useState<WarehouseDto | null>();
 
    const getWarehousesPayload = useMemo<GetWarehouseRequest>(
       () => ({
@@ -72,16 +74,16 @@ export function WarehousePage() {
    );
 
    const handleCreateWarehouseClick = useCallback(() => {
-      setModalParentWarehouseId(null);
-
       setIsWarehouseModalOpen(true);
    }, []);
 
    const handleCloseModal = useCallback(() => {
       setIsWarehouseModalOpen(false);
-
-      setModalParentWarehouseId(null);
    }, []);
+
+   const handleViewDetails = () => {
+      setIsWarehouseDetailModalOpen(true);
+   }
 
    return (
       <m.div
@@ -130,13 +132,20 @@ export function WarehousePage() {
             pageSize={GetWarehouses.data?.page_size ?? PAGE_SIZE}
             onPageChange={setCurrentPage}
             onViewSections={handleViewSections}
+            onViewDetails={handleViewDetails}
             isFetching={GetWarehouses.isFetching}
          />
 
          <WarehouseModal
             isOpen={isWarehouseModalOpen}
             onClose={handleCloseModal}
-            parentWarehouseId={modalParentWarehouseId}
+         />
+
+         <WarehouseDetailModal
+            // details={ }
+            warehouse={selectedWarehouse}
+            isOpen={isWarehouseDetailModalOpen}
+            onClose={() => setIsWarehouseDetailModalOpen(false)}
          />
       </m.div>
    );

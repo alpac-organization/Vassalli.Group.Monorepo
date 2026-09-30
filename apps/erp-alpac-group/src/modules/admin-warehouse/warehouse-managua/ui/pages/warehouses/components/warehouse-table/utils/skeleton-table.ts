@@ -1,4 +1,4 @@
-import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses";
+import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses-response";
 
 export type WarehouseTableRow = WarehouseDto & {
   depth?: number;

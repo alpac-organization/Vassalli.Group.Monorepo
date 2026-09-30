@@ -1,4 +1,4 @@
-import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses";
+import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses-response";
 
 /**
  * Recopila IDs de bodegas ya cargadas como hijos, útil si más adelante

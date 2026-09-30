@@ -1,22 +1,24 @@
-import type { CreateWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-warehouse";
+import type { CreateWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/create-warehouse-request";
 
 export interface WarehouseModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit?: (data: CreateWarehouseRequest) => void;
-  parentWarehouseId?: string | null;
 }
 
 export type FormValues = {
-  branch_id: string;
   code: string;
-  is_owner: boolean;
-  warehouse_name: string;
   warehouse_type: number;
-  warehouse_details: {
-    width_metres?: number;
-    length_metres?: number;
-    ramps_count?: number;
-    parking_spaces_count?: number;
+  width?: number;
+  length?: number;
+  minimum_height?: number;
+  maximum_height?: number;
+  has_margins: boolean;
+  margin_top?: number;
+  margin_bottom?: number;
+  margin_left?: number;
+  margin_right?: number;
+  warehouse_location: {
+    location_name: string;
   };
 };

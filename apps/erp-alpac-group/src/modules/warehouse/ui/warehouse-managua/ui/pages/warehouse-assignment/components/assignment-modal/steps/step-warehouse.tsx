@@ -1,6 +1,6 @@
 import { Button, Dropdown, Alert } from "@alpac/design-system";
 import { useForm, Controller } from "react-hook-form";
-import type { GetWarehousesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses";
+import type { GetWarehousesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses-response";
 import type { SelectedAssignmentTarget } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/types/assignment.types";
 
 export type StepBodegaFormValues = {
