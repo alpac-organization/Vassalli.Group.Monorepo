@@ -11,13 +11,16 @@ export const parseDecimal = (value: unknown): number | undefined => {
 	return Number.isNaN(parsed) ? undefined : parsed;
 };
 
+const isValueEmpty = (value: unknown): boolean =>
+  value === undefined || value === null || value === "" || Number.isNaN(value);
+
 export const getDecimalFieldConfig = (requiredMessage: string, allowZero: boolean = false) => ({
 
 	required: requiredMessage,
 
 	validate: {
-		validateDecimal: (value: unknown) => !value || validateDecimalNumber(value as number),
-		validatePositive: (value: unknown) => !value || validatePositiveNumber(value as number, allowZero),
+		validatePositive: (value: unknown) => isValueEmpty(value) || validatePositiveNumber(value as number, allowZero),
+		validateDecimal: (value: unknown) => isValueEmpty(value) || validateDecimalNumber(value as number),
 	},
 
 	setValueAs: parseDecimal,

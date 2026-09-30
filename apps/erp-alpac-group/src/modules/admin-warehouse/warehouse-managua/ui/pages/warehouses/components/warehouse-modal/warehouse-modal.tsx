@@ -41,6 +41,34 @@ const DEFAULT_FORM_VALUES: FormValues = {
 	},
 };
 
+const maximumHeightFieldConfig = (() => {
+	const config = getDecimalFieldConfig("La altura máxima es requerida");
+	return {
+		...config,
+		validate: {
+			...config.validate,
+			greaterThanMinimum: (
+				value: unknown,
+				formValues: FormValues,
+			): true | string => {
+				if (value === undefined || value === null || value === "") {
+					return true;
+				}
+				if (
+					formValues.minimum_height === undefined ||
+					formValues.minimum_height === null
+				) {
+					return true;
+				}
+				return (
+					Number(value) > Number(formValues.minimum_height) ||
+					"La altura máxima debe ser mayor que la altura mínima"
+				);
+			},
+		},
+	};
+})();
+
 export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProps) {
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
@@ -97,7 +125,7 @@ export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProp
 
 				setTimeout(() => {
 					onClose();
-				}, 2000);
+				}, 500);
 			},
 			onError(error) {
 				const mappedError = getMappedError(error);
@@ -255,10 +283,7 @@ export function WarehouseModal({ isOpen, onClose, onSubmit }: WarehouseModalProp
 							isRequired
 							className={inputClassName}
 							labelClassName={labelClassName}
-							{...register(
-								"maximum_height",
-								getDecimalFieldConfig("La altura máxima es requerida"),
-							)}
+							{...register("maximum_height", maximumHeightFieldConfig)}
 							error={errors.maximum_height?.message}
 						/>
 					</div>
