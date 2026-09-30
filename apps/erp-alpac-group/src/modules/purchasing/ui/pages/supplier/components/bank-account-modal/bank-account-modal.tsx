@@ -77,7 +77,7 @@ export const BankAccountModal = ({
 			size="2xl"
 			description="Ingrese los datos de la cuenta bancaria del proveedor"
 		>
-			<form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col gap-4">
+			<form className="flex flex-col gap-4">
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<InputText
 						label="Nombre del banco"
@@ -203,11 +203,12 @@ export const BankAccountModal = ({
 						className="w-full sm:w-auto text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600!"
 					/>
 					<Button
-						type="submit"
+						type="button"
 						size="giant"
 						label="Guardar cuenta"
 						disabled={isLoading}
 						isLoading={isLoading}
+						onClick={handleSubmit(handleFormSubmit)}
 						className="w-full sm:w-auto text-[15px]! rounded-md! bg-alpac-primary-500 text-white!"
 					/>
 				</div>

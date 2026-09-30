@@ -1,7 +1,10 @@
-import type { RackListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-rack-res";
+import type { RackDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/racks/get-racks-res";
 
 export type RackDetailModalProps = {
   isOpen: boolean;
-  rack?: RackListItemResponse | null;
+  warehouseId: string;
+  sectionId: string;
+  rackId?: string | null;
+  rackSummary?: RackDto | null;
   onClose: () => void;
 };

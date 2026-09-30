@@ -1,8 +1,7 @@
 import {
 	Alert,
 	AnimatedAlertWrapper,
-	Button,
-	ContextMenu,
+	Button,	
 	DataTable,
 	Dropdown,
 	Pagination,
@@ -22,7 +21,6 @@ import { CreateProductModal } from "../../views/create-product-modal/create-prod
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
-const contextMenuButton = "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 const PAGE_SIZE = 5;
 
 export const Product = () => {
@@ -106,10 +104,6 @@ export const Product = () => {
 		}));
 	}, []);
 
-	const onViewDetails = (data: GetProductResponse) => {
-		console.log(data);
-	};
-
 	const columnConfig: TableColumn<GetProductResponse>[] = useMemo(
 		() => [
 			{ key: "product_name", label: "Producto" },
@@ -118,18 +112,6 @@ export const Product = () => {
 				key: "category",
 				label: "Categoría",
 				render: (row) => row.category?.name ?? "—",
-			},
-			{
-				key: "actions",
-				label: "Acciones",
-				render: (row) => (
-					<ContextMenu
-						items={[
-							{ label: "Ver detalle", onClick: () => onViewDetails(row) },
-						]}
-						triggerClassName={contextMenuButton}
-					/>
-				),
 			},
 		],
 		[],

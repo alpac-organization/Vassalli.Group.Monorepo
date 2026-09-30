@@ -286,53 +286,51 @@ export function SelectProductModal({
 					<p className="m-0 text-sm text-red-500 dark:text-red-400">{error}</p>
 				) : null}
 
-				<div className="flex justify-between items-center">
-					<div className="flex flex-col justify-center">
-						<form onSubmit={onApplyFilters} className="flex items-end gap-4">
-							<Controller
-								name="category_product_id"
-								control={control}
-								rules={{
-									required: false,
-								}}
-								render={({ field }) => {
-									return (
-										<Dropdown
-											value={field.value}
-											onChange={(value) => field.onChange(value)}
-											label="Filtrar por Categoría"
-											placeholder="Seleccione una categoría"
-											appearance="dark"
-											labelClassName="text-black! dark:text-white!"
-											valueClassName="text-black! dark:text-white!"
-											className="w-75! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-											options={productCategories ?? []}
-										/>
-									);
-								}}
+				<div className="w-full min-w-0">
+					<form
+						onSubmit={onApplyFilters}
+						className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:gap-4"
+					>
+						<Controller
+							name="category_product_id"
+							control={control}
+							rules={{
+								required: false,
+							}}
+							render={({ field }) => {
+								return (
+									<Dropdown
+										value={field.value}
+										onChange={(value) => field.onChange(value)}
+										label="Filtrar por Categoría"
+										placeholder="Seleccione una categoría"
+										appearance="dark"
+										labelClassName="text-black! dark:text-white!"
+										valueClassName="text-black! dark:text-white!"
+										className="w-full! sm:w-75! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+										options={productCategories ?? []}
+									/>
+								);
+							}}
+						/>
+
+						<div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">
+							<Button
+								type="submit"
+								size="giant"
+								disabled={false}
+								className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+								label="Aplicar filtros"
 							/>
-
-							<div className="flex flex-col">
-								<Button
-									type="submit"
-									size="giant"
-									disabled={false}
-									className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-									label="Aplicar filtros"
-								/>
-							</div>
-
-							<div className="flex flex-col">
-								<Button
-									type="button"
-									size="giant"
-									className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
-									label="Limpiar filtros"
-									onClick={onClearFilters}
-								/>
-							</div>
-						</form>
-					</div>
+							<Button
+								type="button"
+								size="giant"
+								className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+								label="Limpiar filtros"
+								onClick={onClearFilters}
+							/>
+						</div>
+					</form>
 				</div>
 
 				<DataTable
@@ -353,12 +351,12 @@ export function SelectProductModal({
 					}
 				/>
 
-				<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+				<div className="flex w-full flex-col-reverse gap-3 sm:flex-row sm:justify-end">
 					<Button
 						type="button"
 						size="giant"
 						label="Cancelar"
-						className={secondaryButtonClassName}
+						className={`${secondaryButtonClassName} w-full! sm:w-auto!`}
 						onClick={handleClose}
 					/>
 					<Button
@@ -366,7 +364,7 @@ export function SelectProductModal({
 						size="giant"
 						label="Agregar a la lista"
 						disabled={isConfirmDisabled}
-						className={primaryButtonClassName}
+						className={`${primaryButtonClassName} w-full! sm:w-auto!`}
 						onClick={handleConfirm}
 					/>
 				</div>

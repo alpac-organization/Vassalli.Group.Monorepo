@@ -18,7 +18,8 @@ export function DataTable<T>({
 	deleteText,
 	height,
 	minHeight,
-	maxHeight
+	maxHeight,
+	enableSelectBorder = false
 }: DataTableProps<T>): React.ReactElement {
 	const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
@@ -106,7 +107,7 @@ export function DataTable<T>({
 								return (
 									<tr
 										key={index}
-										className={`${baseRowClass} ${isSelected ? SELECTED_ROW_BORDER : ""}`}
+										className={`${baseRowClass} ${isSelected && enableSelectBorder ? SELECTED_ROW_BORDER : ""}`}
 										onClick={() => handleRowClick(item, index)}
 										onDoubleClick={() => handleRowDoubleClick(item, index)}
 									>

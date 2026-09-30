@@ -98,6 +98,11 @@ export const purchaseRequestDestinationBadgeVariants = {
       "bg-fuchsia-500/15 text-fuchsia-300 border border-fuchsia-400/40",
   },
 
+  [PurchaseRequestDestinationEnum.OperationalOrder.textValue]: {
+    label: PurchaseRequestDestinationEnum.OperationalOrder.label,
+    badgeColor: "bg-rose-500/15 text-rose-300 border border-rose-400/40",
+  },
+
   default: {
     label: "",
     badgeColor: "bg-slate-500/15 text-slate-300 border border-slate-400/30",

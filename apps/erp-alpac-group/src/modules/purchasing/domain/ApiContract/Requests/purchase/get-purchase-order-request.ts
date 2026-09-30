@@ -1,8 +1,6 @@
-// TODO: pendiente heredar interfaz de base request
-export interface PurchaseOrderDocumentRequest
-{
-    company_id:  string;
-    module_code: string;
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+
+export interface PurchaseOrderDocumentRequest extends BaseRequest {
     purchase_order_id: string;
-    payment_method: number;
+    payment_method?: number;
 }

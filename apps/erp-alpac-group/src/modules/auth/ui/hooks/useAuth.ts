@@ -8,6 +8,7 @@ import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import {
   clearControlVacationsSelectionStorage,
   clearPayrollSelectionStorage,
+  clearSessionPersistedStores,
 } from "@app/modules/auth/utils/save-state-storage";
 
 import type { LoginRequest } from "@app/modules/auth/domain/ApiContract/Requests/login.request";
@@ -37,12 +38,15 @@ export const useAuth = function () {
         email: response.email,
         userName: response.user_name,
         companyId: response.company_information.company_id,
-        companyName: response.company_information.company_name.toString(),
+        companyName: response.company_information.company_name,
         companyAlias: response.company_information.alias,
         identificationNumber: response.identification_number,
         userType: response.user_type,
         areaId: response.area_id,
-        branchId: response.branch_id
+        branchId: response.branch_id,
+        costCenterId: response.cost_center_information?.cost_center_id,
+        costCenterName: response.cost_center_information?.cost_center_name,
+        costCenterCode: response.cost_center_information?.cost_center_code.toString(),
       });
 
       const sessionLogo = response.company_information.image_url;
@@ -67,9 +71,9 @@ export const useAuth = function () {
     mutationFn: (payload: LogoutRequest) =>
       authService.StartProcessToCloseSession(payload),
     onSuccess: async () => {
-
       clearControlVacationsSelectionStorage();
       clearPayrollSelectionStorage();
+      clearSessionPersistedStores();
       CookieStorageAdapter.clearAuth();
       queryClient.clear();
 
@@ -78,9 +82,9 @@ export const useAuth = function () {
       });
     },
     onError: async () => {
-      
       clearControlVacationsSelectionStorage();
       clearPayrollSelectionStorage();
+      clearSessionPersistedStores();
       CookieStorageAdapter.clearAuth();
       queryClient.clear();
 

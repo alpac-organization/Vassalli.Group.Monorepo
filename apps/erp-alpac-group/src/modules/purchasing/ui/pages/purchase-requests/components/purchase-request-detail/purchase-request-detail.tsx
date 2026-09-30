@@ -1,5 +1,13 @@
-import { useMemo, useState } from "react";
-import { Button, ContextMenu, Dropdown, InputText, Textarea } from "@alpac/design-system";
+import { useEffect, useMemo, useState } from "react";
+import {
+	AccordionGroup,
+	AccordionItem,
+	Button,
+	ContextMenu,
+	Dropdown,
+	InputText,
+	Textarea,
+} from "@alpac/design-system";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
@@ -55,6 +63,7 @@ export const PurchaseRequestDetail = (
 	const { companyId, moduleCode } = useUserStore();
 	const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
 	const [isCreateProductOpen, setIsCreateProductOpen] = useState(false);
+	const [openProducts, setOpenProducts] = useState<string[]>([]);
 
 	const {
 		control,
@@ -68,6 +77,10 @@ export const PurchaseRequestDetail = (
 		control,
 		name: "purchase_request_items",
 	});
+
+	useEffect(() => {
+		setOpenProducts(fields.map((field) => field.id));
+	}, [fields]);
 
 	const { GetUnitMeasurements } = useUnitOfMeasurement({
 		payloadUnitOfMeasurement: {
@@ -195,253 +208,293 @@ export const PurchaseRequestDetail = (
 				</p>
 			) : null}
 
-			{fields.map((item, index) => {
-				const selectedUnitId = watch(
-					`purchase_request_items.${index}.unit_measure_id`,
-				);
-				const selectedUnit = unitsOfMeasurementOptions.find(
-					(option) => String(option.value) === String(selectedUnitId),
-				);
-				const isBoxOrPackage = hasUnitsPerPackage(
-					selectedUnit?.label,
-					selectedUnit?.symbol,
-				);
+			{fields.length > 0 ? (
+				<AccordionGroup
+					type="multiple"
+					value={openProducts}
+					onValueChange={(value) => {
+						const nextValue = Array.isArray(value)
+							? value
+							: value
+								? [value]
+								: [];
+						setOpenProducts(nextValue);
+					}}
+					className="gap-3"
+				>
+					{fields.map((item, index) => {
+						const selectedUnitId = watch(
+							`purchase_request_items.${index}.unit_measure_id`,
+						);
+						const selectedUnit = unitsOfMeasurementOptions.find(
+							(option) => String(option.value) === String(selectedUnitId),
+						);
+						const isBoxOrPackage = hasUnitsPerPackage(
+							selectedUnit?.label,
+							selectedUnit?.symbol,
+						);
 
-				return (
-					<div
-						key={item.id}
-						className="flex w-full flex-col gap-5 rounded-md border border-slate-200 p-4 dark:border-neutral-600 dark:bg-[#1e2229]"
-					>
-						<div className="flex min-w-0 items-center justify-between gap-3">
-							<span className="min-w-0 truncate text-[18px] font-semibold text-slate-700 dark:text-slate-200">
-								{index + 1} · {item.product_name || `#${index + 1}`}
-							</span>
-							{!lockItems && (
-								<Button
-									type="button"
-									size="small"
-									tooltip="Quitar producto"
-									icon={<Trash2Icon size={18} />}
-									onClick={() => remove(index)}
-									className="h-10 w-10! shrink-0 rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!"
-								/>
-							)}
-						</div>
-
-
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-							<div>
-								<InputText
-									label={`Producto #${index + 1}`}
-									placeholder="Producto seleccionado"
-									className={inputClassName}
-									labelClassName={labelClassName}
-									value={item.product_name ?? ""}
-									disabled
-								/>
-							</div>
-							<div>
-								<Controller
-									name={`purchase_request_items.${index}.quantity`}
-									control={control}
-									rules={{
-										required: "La cantidad es requerida",
-										validate: {
-											validateInteger: (value) => validateIntegerNumber(value),
-											validatePositive: (value) => validatePositiveNumber(value),
-										},
-									}}
-									render={({ field }) => (
+						return (
+							<AccordionItem
+								key={item.id}
+								value={item.id}
+								className="rounded-md! border-slate-300! dark:border-slate-600! dark:bg-[#272b34]!"
+								triggerClassName="h-auto! min-h-12! py-2.5! pr-3!"
+								contentClassName="flex flex-col gap-5 p-4"
+								title={
+									<div className="flex min-w-0 flex-1 items-center justify-between gap-3">
+										<div className="flex min-w-0 items-center gap-3">
+											<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
+												{index + 1}
+											</span>
+											<span className="min-w-0 truncate text-[15px] font-semibold text-slate-800 dark:text-white">
+												{item.product_name || `#${index + 1}`}
+											</span>
+										</div>
+										{!lockItems ? (
+											<span
+												className="mr-3 flex shrink-0 items-center"
+												onClick={(evt) => evt.stopPropagation()}
+												onKeyDown={(evt) => evt.stopPropagation()}
+											>
+												<Button
+													type="button"
+													size="small"
+													tooltip="Quitar producto"
+													icon={<Trash2Icon size={16} />}
+													onClick={() => remove(index)}
+													className="h-8 w-8! shrink-0 rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!"
+												/>
+											</span>
+										) : null}
+									</div>
+								}
+							>
+								<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+									<div>
 										<InputText
-											label="Cantidad"
-											type="text"
-											inputMode="numeric"
-											placeholder="0"
-											isRequired
-
+											label={`Producto #${index + 1}`}
+											placeholder="Producto seleccionado"
 											className={inputClassName}
 											labelClassName={labelClassName}
-											value={formatIntegerDisplay(field.value)}
-											onChange={(e) =>
-												field.onChange(parseIntegerInput(e.target.value))
-											}
-											error={
-												errors.purchase_request_items?.[index]?.quantity?.message
-											}
-											errorVariant="text"
+											value={item.product_name ?? ""}
+											disabled
 										/>
-									)}
-								/>
-							</div>
-
-							<div>
-								<Controller
-									name={`purchase_request_items.${index}.unit_measure_id`}
-									control={control}
-									rules={{ required: "La unidad es requerida" }}
-									render={({ field }) => (
-										<Dropdown
-											label="Unidad de Medida"
-											isRequired
-											options={unitsOfMeasurementOptions}
-											placeholder={
-												isLoadingUnits ? "Cargando unidades..." : "Seleccione..."
-											}
-											onChange={(value) => {
-												const nextUnitId = String(value ?? "");
-												field.onChange(nextUnitId);
-
-												const nextUnit = unitsOfMeasurementOptions
-													.find((option) => String(option.value) === nextUnitId);
-
-												const nextIsBoxOrPackage = hasUnitsPerPackage(
-													nextUnit?.label,
-													nextUnit?.symbol,
-												);
-
-												if (!nextIsBoxOrPackage) {
-													setValue(
-														`purchase_request_items.${index}.quantity_unit`,
-														0,
-														{ shouldValidate: false },
-													);
-													clearErrors(
-														`purchase_request_items.${index}.quantity_unit`,
-													);
-												}
+									</div>
+									<div>
+										<Controller
+											name={`purchase_request_items.${index}.quantity`}
+											control={control}
+											rules={{
+												required: "La cantidad es requerida",
+												validate: {
+													validateInteger: (value) =>
+														validateIntegerNumber(value),
+													validatePositive: (value) =>
+														validatePositiveNumber(value),
+												},
 											}}
-											error={
-												errors.purchase_request_items?.[index]?.unit_measure_id
-													?.message
-											}
-											errorVariant="text"
-											value={field.value}
-											appearance="dark"
-											labelClassName={labelClassName}
-											valueClassName={labelClassName}
-											className={dropdownClassName}
+											render={({ field }) => (
+												<InputText
+													label="Cantidad"
+													type="text"
+													inputMode="numeric"
+													placeholder="0"
+													isRequired
+													className={inputClassName}
+													labelClassName={labelClassName}
+													value={formatIntegerDisplay(field.value)}
+													onChange={(e) =>
+														field.onChange(parseIntegerInput(e.target.value))
+													}
+													error={
+														errors.purchase_request_items?.[index]?.quantity
+															?.message
+													}
+													errorVariant="text"
+												/>
+											)}
 										/>
-									)}
-								/>
-							</div>
+									</div>
 
-							<div>
+									<div>
+										<Controller
+											name={`purchase_request_items.${index}.unit_measure_id`}
+											control={control}
+											rules={{ required: "La unidad es requerida" }}
+											render={({ field }) => (
+												<Dropdown
+													label="Unidad de Medida"
+													isRequired
+													options={unitsOfMeasurementOptions}
+													placeholder={
+														isLoadingUnits
+															? "Cargando unidades..."
+															: "Seleccione..."
+													}
+													onChange={(value) => {
+														const nextUnitId = String(value ?? "");
+														field.onChange(nextUnitId);
+
+														const nextUnit = unitsOfMeasurementOptions.find(
+															(option) =>
+																String(option.value) === nextUnitId,
+														);
+
+														const nextIsBoxOrPackage = hasUnitsPerPackage(
+															nextUnit?.label,
+															nextUnit?.symbol,
+														);
+
+														if (!nextIsBoxOrPackage) {
+															setValue(
+																`purchase_request_items.${index}.quantity_unit`,
+																0,
+																{ shouldValidate: false },
+															);
+															clearErrors(
+																`purchase_request_items.${index}.quantity_unit`,
+															);
+														}
+													}}
+													error={
+														errors.purchase_request_items?.[index]
+															?.unit_measure_id?.message
+													}
+													errorVariant="text"
+													value={field.value}
+													appearance="dark"
+													labelClassName={labelClassName}
+													valueClassName={labelClassName}
+													className={dropdownClassName}
+												/>
+											)}
+										/>
+									</div>
+
+									<div>
+										<Controller
+											name={`purchase_request_items.${index}.quantity_unit`}
+											control={control}
+											rules={{
+												validate: (value, formValues) => {
+													const unitId =
+														formValues.purchase_request_items?.[index]
+															?.unit_measure_id;
+													const unit = unitsOfMeasurementOptions.find(
+														(option) =>
+															String(option.value) === String(unitId),
+													);
+													const requiresUnitsPerPackage = hasUnitsPerPackage(
+														unit?.label,
+														unit?.symbol,
+													);
+
+													if (!requiresUnitsPerPackage) return true;
+
+													if (
+														value === 0 ||
+														value === undefined ||
+														value === null
+													) {
+														return "Agregue las unidades por presentación";
+													}
+
+													const integerResult = validateIntegerNumber(value);
+													if (integerResult !== true) return integerResult;
+
+													return validatePositiveNumber(value);
+												},
+											}}
+											render={({ field }) => (
+												<InputText
+													label="Unidades por presentación"
+													type="text"
+													inputMode="numeric"
+													placeholder="0"
+													isRequired={isBoxOrPackage}
+													disabled={!isBoxOrPackage}
+													className={inputClassName}
+													labelClassName={labelClassName}
+													value={formatIntegerDisplay(field.value ?? 0)}
+													onChange={(e) =>
+														field.onChange(parseIntegerInput(e.target.value))
+													}
+													error={
+														errors.purchase_request_items?.[index]
+															?.quantity_unit?.message
+													}
+													errorVariant="text"
+												/>
+											)}
+										/>
+									</div>
+								</div>
+
+								<div className="grid grid-cols-1 gap-4">
+									<div>
+										<Controller
+											name={`purchase_request_items.${index}.description`}
+											control={control}
+											rules={{
+												required: false,
+											}}
+											render={({ field }) => (
+												<Textarea
+													label="Descripción"
+													placeholder="Ej. Resma de papel bond carta, 75 g, paquete de 500 hojas."
+													className={inputClassName}
+													labelClassName={labelClassName}
+													value={field.value ?? ""}
+													onChange={field.onChange}
+													enableCharacterCount
+												/>
+											)}
+										/>
+									</div>
+
+									<div>
+										<Controller
+											name={`purchase_request_items.${index}.justification`}
+											control={control}
+											rules={{
+												required: "La justificación de compra es requerida",
+											}}
+											render={({ field }) => (
+												<Textarea
+													label="Justificación"
+													isRequired
+													placeholder="Ej. Se requiere para reponer el inventario de papelería del área, el stock actual no cubre la demanda."
+													className={inputClassName}
+													labelClassName={labelClassName}
+													value={field.value ?? ""}
+													onChange={field.onChange}
+													enableCharacterCount
+													error={
+														errors.purchase_request_items?.[index]
+															?.justification?.message
+													}
+												/>
+											)}
+										/>
+									</div>
+								</div>
+
 								<Controller
-									name={`purchase_request_items.${index}.quantity_unit`}
+									name={`purchase_request_items.${index}.images.images_product_to_changed`}
 									control={control}
-									rules={{
-										validate: (value, formValues) => {
-											const unitId =
-												formValues.purchase_request_items?.[index]
-													?.unit_measure_id;
-											const unit = unitsOfMeasurementOptions.find(
-												(option) => String(option.value) === String(unitId),
-											);
-											const requiresUnitsPerPackage = hasUnitsPerPackage(
-												unit?.label,
-												unit?.symbol,
-											);
-
-											if (!requiresUnitsPerPackage) return true;
-
-											if (value === 0 || value === undefined || value === null) {
-												return "Agregue las unidades por presentación";
-											}
-
-											const integerResult = validateIntegerNumber(value);
-											if (integerResult !== true) return integerResult;
-
-											return validatePositiveNumber(value);
-										},
-									}}
 									render={({ field }) => (
-										<InputText
-											label="Unidades por presentación"
-											type="text"
-											inputMode="numeric"
-											placeholder="0"
-											isRequired={isBoxOrPackage}
-											disabled={!isBoxOrPackage}
-											className={inputClassName}
-											labelClassName={labelClassName}
-											value={formatIntegerDisplay(field.value ?? 0)}
-											onChange={(e) =>
-												field.onChange(parseIntegerInput(e.target.value))
-											}
-											error={
-												errors.purchase_request_items?.[index]?.quantity_unit
-													?.message
-											}
-											errorVariant="text"
+										<PurchaseRequestImageUploader
+											value={field.value ?? []}
+											onChange={(value) => field.onChange(value)}
 										/>
 									)}
 								/>
-							</div>
-						</div>
-
-						<div className="grid grid-cols-1 gap-4">
-							<div>
-								<Controller
-									name={`purchase_request_items.${index}.description`}
-									control={control}
-									rules={{
-										required: false,
-									}}
-									render={({ field }) => (
-										<Textarea
-											label="Descripción"
-											placeholder="Ej. Resma de papel bond carta, 75 g, paquete de 500 hojas."
-											className={inputClassName}
-											labelClassName={labelClassName}
-											value={field.value ?? ""}
-											onChange={field.onChange}
-											enableCharacterCount
-										/>
-									)}
-								/>
-							</div>
-
-							<div>
-								<Controller
-									name={`purchase_request_items.${index}.justification`}
-									control={control}
-									rules={{
-										required: "La justificación de compra es requerida",
-									}}
-									render={({ field }) => (
-										<Textarea
-											label="Justificación"
-											isRequired
-											placeholder="Ej. Se requiere para reponer el inventario de papelería del área, el stock actual no cubre la demanda."
-											className={inputClassName}
-											labelClassName={labelClassName}
-											value={field.value ?? ""}
-											onChange={field.onChange}
-											enableCharacterCount
-											error={
-												errors.purchase_request_items?.[index]?.justification
-													?.message
-											}
-										/>
-									)}
-								/>
-							</div>
-						</div>
-
-						<Controller
-							name={`purchase_request_items.${index}.images.images_product_to_changed`}
-							control={control}
-							render={({ field }) => (
-								<PurchaseRequestImageUploader
-									value={field.value ?? []}
-									onChange={(value) => field.onChange(value)}
-								/>
-							)}
-						/>
-					</div>
-				);
-			})}
+							</AccordionItem>
+						);
+					})}
+				</AccordionGroup>
+			) : null}
 
 			<Controller
 				name="purchase_request_items"

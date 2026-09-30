@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Modal } from "@alpac/design-system";
 import { PlusIcon } from "lucide-react";
-import type { PurchaseRequestEntry, PurchaseRequestModalProps } from "./purchase-request-modal.types";
+import type { PurchaseRequestEntry, PurchaseRequestModalProps } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal.types";
 import type {
 	CreatePurchaseRequestPayload,
 	PurchaseRequestItem,
@@ -27,11 +27,11 @@ import { PurchaseRequestFormBlock } from "../purchase-request-form-block/purchas
 import type { PurchaseRequestFormBlockHandle } from "../purchase-request-form-block/purchase-request-form-block.types";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { toDataUrl } from "@app/shared/utils/toDataUrl";
-import { extractPurchaseRequestItemImages } from "../../utils/purchase-request-item-images.utils";
+import { extractPurchaseRequestItemImages } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-item-images.utils";
 
 const emptyFormValues = (): CreatePurchaseRequestPayload => ({
-	area_id: "",
 	branch_id: "",
+	cost_center_id: "",
 	request_type: 0,
 	priority_level: 0,
 	destination: PurchaseRequestDestinationEnum.Internal.value,
@@ -63,20 +63,51 @@ const enumValueFromText = <T extends { textValue: string; value: number }>(
 ): number =>
 	options.find((option) => option.textValue === textValue)?.value ?? fallback;
 
+const normalizeUnitKey = (value: string | null | undefined): string =>
+	value?.trim().toLowerCase() ?? "";
+
+type UnitMeasureLookup = {
+	byCode: Map<string, string>;
+	bySymbol: Map<string, string>;
+};
+
+const buildUnitMeasureLookup = (
+	units: { unit_measure_id: string; code: string; symbol: string }[],
+): UnitMeasureLookup => {
+	const byCode = new Map<string, string>();
+	const bySymbol = new Map<string, string>();
+
+	for (const unit of units) {
+		const codeKey = normalizeUnitKey(unit.code);
+		const symbolKey = normalizeUnitKey(unit.symbol);
+		if (codeKey && !byCode.has(codeKey)) {
+			byCode.set(codeKey, unit.unit_measure_id);
+		}
+		if (symbolKey && !bySymbol.has(symbolKey)) {
+			bySymbol.set(symbolKey, unit.unit_measure_id);
+		}
+	}
+
+	return { byCode, bySymbol };
+};
+
 const resolveUnitMeasureId = (
 	info: PurchaseRequestUnitMeasureInformation,
-	units: { unit_measure_id: string; code: string; name: string; symbol: string }[],
+	lookup: UnitMeasureLookup,
 ): string => {
-	if (info.unit_measure_id?.trim()) return info.unit_measure_id;
+	const codeKey = normalizeUnitKey(info.code);
+	if (codeKey) {
+		const byCode = lookup.byCode.get(codeKey);
+		if (byCode) return byCode;
+	}
 
-	const match = units.find(
-		(unit) =>
-			(info.code && unit.code === info.code) ||
-			(info.symbol && unit.symbol === info.symbol) ||
-			(info.name && unit.name === info.name),
-	);
+	const symbolKey = normalizeUnitKey(info.symbol);
+	if (symbolKey) {
+		const bySymbol = lookup.bySymbol.get(symbolKey);
+		if (bySymbol) return bySymbol;
+	}
 
-	return match?.unit_measure_id ?? "";
+	return "";
 };
 
 export const PurchaseRequestModal = ({
@@ -90,7 +121,7 @@ export const PurchaseRequestModal = ({
 	purchaseRequest = null,
 }: PurchaseRequestModalProps) => {
 
-	const { companyId, moduleCode, role } = useUserStore();
+	const { companyId, moduleCode, role, areaId, costCenterId } = useUserStore();
 
 	const { getMappedError } = useMappedError();
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
@@ -108,6 +139,7 @@ export const PurchaseRequestModal = ({
 		id: crypto.randomUUID(),
 		defaults: {
 			branch_id: "",
+			cost_center_id: costCenterId,
 			destination: -1,
 			observations: "",
 			request_type: -1,
@@ -192,10 +224,11 @@ export const PurchaseRequestModal = ({
 		if (!details || !productsResponse) return;
 
 		const products = productsResponse.data ?? [];
+		const unitMeasureLookup = buildUnitMeasureLookup(unitsOfMeasurement);
 
 		const editDefaults: CreatePurchaseRequestPayload = {
-			area_id: details.information_from_requesting_area?.work_area_id ?? "",
 			branch_id: currentBranchId,
+			cost_center_id: costCenterId,
 			request_type: Number(requestType.value),
 			priority_level: enumValueFromText(
 				Object.values(PriorityLevelEnum),
@@ -222,7 +255,7 @@ export const PurchaseRequestModal = ({
 					quantity_unit: product.quantity_unit ?? 0,
 					unit_measure_id: resolveUnitMeasureId(
 						product.unit_measure_information,
-						unitsOfMeasurement,
+						unitMeasureLookup,
 					),
 					description: product.description ?? "",
 					justification: product.justification ?? "",
@@ -244,6 +277,7 @@ export const PurchaseRequestModal = ({
 		productsResponse,
 		unitsOfMeasurement,
 		currentBranchId,
+		costCenterId,
 		requestType.value,
 	]);
 
@@ -282,12 +316,24 @@ export const PurchaseRequestModal = ({
 		setEntries((prev) => prev.filter((entry) => entry.id !== id));
 	};
 
+	const handleCheckOsSelection = (osId: string, currentBlockId: string): boolean => {
+		for (const [id, block] of blockRefs.current.entries()) {
+			if (id === currentBlockId) continue;
+			if (block.getServiceOrderId?.() === osId) {
+				return true;
+			}
+		}
+		return false;
+	};
+
 	const buildCreatePayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => ({
-		...(isAdministrator ? { area_id: values.area_id } : {}),
+		...(isAdministrator && areaId ? { area_id: areaId } : {}),
 		branch_id: currentBranchId,
+		cost_center_id: costCenterId,
 		request_type: Number(requestType.value),
 		...(isRequisition ? { priority_level: Number(values.priority_level) } : {}),
 		...(values.service_order_id && { service_order_id: values.service_order_id }),
+		...(values.operational_order_id && { operational_order_id: values.operational_order_id }),
 		destination: values.destination,
 		observations: values.observations.trim(),
 		purchase_request_items: values.purchase_request_items.map((item: PurchaseRequestItem) => {
@@ -312,26 +358,27 @@ export const PurchaseRequestModal = ({
 	});
 
 	const buildUpdatePayload = (values: CreatePurchaseRequestPayload): UpdatePurchaseRequestPayload => {
-		const productImagesPayload = values.purchase_request_items.map((item) => {
-			const productJustification = item.justification?.trim() ?? "";
-			const productImages = item.images?.images_product_to_changed ?? [];
-			const imagesWereTouched = Boolean(item.images?.isDirty);
+		const productImagesPayload = values.purchase_request_items
+			.filter((item): item is PurchaseRequestItem & { purchase_request_item_id: string } =>
+				Boolean(item.purchase_request_item_id?.trim()),
+			)
+			.map((item) => {
+				const productJustification = item.justification?.trim() ?? "";
+				const productImages = item.images?.images_product_to_changed ?? [];
 
-			return {
-				id: item.purchase_request_item_id!,
-				product_id: item.product_id,
-				quantity: Number(item.quantity),
-				description: item.description,
-				unit_measure_id: item.unit_measure_id,
-				...(productJustification ? { justification: productJustification } : {}),
-				...(item.quantity_unit != null && Number(item.quantity_unit) > 0
-					? { quantity_unit: Number(item.quantity_unit) }
-					: {}),
-				...(imagesWereTouched
-					? { images_product_to_changed: productImages }
-					: {}),
-			};
-		});
+				return {
+					id: item.purchase_request_item_id,
+					product_id: item.product_id,
+					quantity: Number(item.quantity),
+					description: item.description,
+					unit_measure_id: item.unit_measure_id,
+					images_product_to_changed: productImages,
+					...(productJustification ? { justification: productJustification } : {}),
+					...(item.quantity_unit != null && Number(item.quantity_unit) > 0
+						? { quantity_unit: Number(item.quantity_unit) }
+						: {}),
+				};
+			});
 
 		return {
 			company_id: companyId,
@@ -466,13 +513,13 @@ export const PurchaseRequestModal = ({
 											key={entry.id}
 											index={index}
 											defaults={entry.defaults}
-											role={role as RoleEnum}
 											requestType={requestType}
 											isEditMode={isEditMode}
 											onDuplicate={handleDuplicate}
 											onRemove={() => handleRemove(entry.id)}
 											onRequestError={onRequestError}
 											onRequestSuccess={onRequestSuccess}
+											onCheckOsSelection={(osId) => handleCheckOsSelection(osId, entry.id)}
 											ref={(instance) => {
 												if (instance) {
 													blockRefs.current.set(entry.id, instance);

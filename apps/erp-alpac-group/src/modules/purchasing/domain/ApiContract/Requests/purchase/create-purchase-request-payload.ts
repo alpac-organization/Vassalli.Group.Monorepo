@@ -7,7 +7,9 @@ export interface PurchaseRequestMainPayload extends BaseRequest {
 export interface CreatePurchaseRequestPayload {
    area_id?: string;
    branch_id: string;
+   cost_center_id: string;
    service_order_id?: string;
+   operational_order_id?: string;
    observations: string;
    priority_level?: number;
    destination: number;

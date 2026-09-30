@@ -91,7 +91,6 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       refetchOnWindowFocus: false,
       retry: 1,
    });
-
    const GetPurchaseRequestProducts = useQuery({
       queryKey: ["get-purchase-request-products", getPurchaseRequestProductsPayload],
       queryFn: () => purchaseServices.GetPurchaseRequestProducts(getPurchaseRequestProductsPayload!),
@@ -100,7 +99,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       refetchOnWindowFocus: false,
       retry: 1,
    });
-
+   
    const CreatePurchaseRequest = useMutation<void, ApiErrorResponse, PurchaseRequestMainPayload>({
       mutationKey: ["create-purchase-request"],
       mutationFn: (payload: PurchaseRequestMainPayload) => purchaseServices.CreatePurchaseRequest(payload),

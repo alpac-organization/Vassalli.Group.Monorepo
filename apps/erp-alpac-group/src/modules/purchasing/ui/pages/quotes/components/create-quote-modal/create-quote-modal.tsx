@@ -298,6 +298,13 @@ export function CreateQuoteModal({
 
 											<div className="flex min-w-0 flex-col gap-1">
 												<DetailField
+													label="Centro de costo"
+													value={purchaseRequestDetails?.cost_center_information.cost_center_name ?? ""}
+													icon={<Avatar label={purchaseRequestDetails?.cost_center_information?.cost_center_name ?? ""} hasLabel={false} />}
+												/>
+											</div>
+											<div className="flex min-w-0 flex-col gap-1">
+												<DetailField
 													label="Solicitante"
 													value={purchaseRequestDetails?.creator_user_information?.fullname ?? ""}
 													icon={<Avatar label={purchaseRequestDetails?.creator_user_information?.fullname ?? ""} hasLabel={false} />}

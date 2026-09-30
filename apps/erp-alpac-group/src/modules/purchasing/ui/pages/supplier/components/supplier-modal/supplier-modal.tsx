@@ -739,7 +739,7 @@ export const SupplierModal = ({
          </div>
 
          <form
-            className="flex flex-col gap-6"
+            className="flex min-w-0 flex-col gap-6"
             onSubmit={handleSubmit(handleSupplier)}
          >
             {/* TAB 1: GENERAL & CONTACT */}
@@ -1248,7 +1248,7 @@ export const SupplierModal = ({
             </div>
 
             {/* TAB 3: BANK ACCOUNTS */}
-            <div className={activeTab === "bank_accounts" ? "flex flex-col gap-4" : "hidden"}>
+            <div className={activeTab === "bank_accounts" ? "flex min-w-0 flex-col gap-4" : "hidden"}>
                <BankAccountList
                   accounts={currentBankAccounts}
                   onAddAccount={isEditMode ? handleAddApiAccount : handleAddLocalAccount}

@@ -1,39 +1,55 @@
 import { DataTable, Pagination } from "@alpac/design-system";
 import { useMemo } from "react";
-import { getRacksColumns } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-table/racks-columns";
-import type { RacksTableProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-table/types/racks-table.types";
+import { getRacksColumns } from "./racks-columns";
+import type { RacksTableProps } from "./types/racks-table.types";
 
 export function RacksTable({
   data,
   currentPage,
   totalRecords,
   pageSize,
+  height,
+  minHeight,
+  maxHeight,
   onPageChange,
+  onSelectRow,
   onViewPositions,
+  onUpdateRack,
+  onDeleteRack,
   isFetching = false,
 }: RacksTableProps) {
-  const lastItemId = data.at(-1)?.rack_id;
+  const lastItem = data.at(-1);
+  const lastItemId = lastItem?.rack_id;
+
   const columns = useMemo(
-    () => getRacksColumns({ onViewPositions, lastItemId }),
-    [onViewPositions, lastItemId],
+    () =>
+      getRacksColumns({
+        onViewPositions,
+        onUpdateRack,
+        onDeleteRack,
+        lastItemId,
+      }),
+    [onViewPositions, onUpdateRack, onDeleteRack, lastItemId],
   );
 
   return (
-    <div className="flex flex-col min-w-0 w-full overflow-x-auto">
-      <DataTable
-        title="Lista de racks"
-        data={data}
-        columns={columns}
-        pagination={
-          <Pagination
-            currentPage={currentPage}
-            totalRecords={totalRecords}
-            pageSize={pageSize}
-            onPageChange={onPageChange}
-            disabled={isFetching || totalRecords === 0}
-          />
-        }
-      />
-    </div>
+    <DataTable
+      title="Lista de racks"
+      data={data}
+      columns={columns}
+      onRowClick={onSelectRow}
+      height={height}
+      minHeight={minHeight}
+      maxHeight={maxHeight}
+      pagination={
+        <Pagination
+          currentPage={currentPage}
+          totalRecords={totalRecords}
+          pageSize={pageSize}
+          onPageChange={onPageChange}
+          disabled={isFetching || totalRecords === 0}
+        />
+      }
+    />
   );
 }

@@ -5,7 +5,7 @@ import type { GetRequisitionManagementReviewsRequest } from "@app/modules/manage
 import type { GetRequisitionManagementReviewsResponse } from "@app/modules/management/domain/ApiContract/responses/get-requisition-management-reviews";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { GetRequisitionManagementReviewDetailRequest } from "../../domain/ApiContract/requests/get-requisition-management-review-detail";
-import type { RequisitionManagementReviewDetailsRequest } from "@app/modules/management/domain/ApiContract/responses/get-requisition-management-review-detail";
+import type { RequisitionManagementReviewDetailsResponse } from "@app/modules/management/domain/ApiContract/responses/get-requisition-management-review-detail";
 import type { ProcessPurchaseOrderPayload } from "../../domain/ApiContract/requests/process-purchase-order-payload";
 import type { AnnulManagementReviewRequest } from "@app/modules/management/domain/ApiContract/requests/annul-management-review";
 
@@ -45,7 +45,7 @@ export const useManagement = (props?: UseManagementProps) => {
         retry: 1,
     });
 
-    const GetRequisitionManagementReviewDetails = useQuery<RequisitionManagementReviewDetailsRequest, ApiErrorResponse>({
+    const GetRequisitionManagementReviewDetails = useQuery<RequisitionManagementReviewDetailsResponse, ApiErrorResponse>({
         queryKey: ["requisition-management-review-details", payloadGetRequisitionManagementReviewDetail],
         queryFn: () => managementServices.GetRequisitionManagementReviewDetails(payloadGetRequisitionManagementReviewDetail!),
         enabled: payloadGetRequisitionManagementReviewDetailsEnabled,

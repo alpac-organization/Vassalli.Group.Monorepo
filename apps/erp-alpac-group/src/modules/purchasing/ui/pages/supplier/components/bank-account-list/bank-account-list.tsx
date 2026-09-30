@@ -17,11 +17,9 @@ export const BankAccountList = ({
 	isLoading = false,
 	readOnly = false,
 }: BankAccountListProps) => {
+
 	const [isModalOpen, setIsModalOpen] = useState(false);
-	const [editingItem, setEditingItem] = useState<{
-		account: SupplierBankAccount | CreateSupplierBankAccountPayload;
-		index: number;
-	} | null>(null);
+	const [editingItem, setEditingItem] = useState<{ account: SupplierBankAccount | CreateSupplierBankAccountPayload; index: number; } | null>(null);
 
 	const handleOpenAdd = () => {
 		setEditingItem(null);
@@ -63,8 +61,8 @@ export const BankAccountList = ({
 	};
 
 	return (
-		<div className="flex flex-col gap-4">
-			<div className="flex items-center justify-between">
+		<div className="flex w-full min-w-0 max-w-full flex-col gap-4">
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div className="flex items-center gap-2">
 					<CreditCardIcon size={20} className="text-slate-500 dark:text-slate-300" />
 					<h4 className="m-0 text-base font-semibold text-slate-800 dark:text-white">
@@ -83,7 +81,7 @@ export const BankAccountList = ({
 						icon={<PlusIcon size={16} />}
 						onClick={handleOpenAdd}
 						disabled={isLoading}
-						className="rounded-md! bg-alpac-primary-500 text-xs! text-white! dark:bg-alpac-primary-700!"
+						className="w-full rounded-md! bg-alpac-primary-500 text-xs! text-white! dark:bg-alpac-primary-700! sm:w-auto"
 					/>
 				)}
 			</div>
@@ -101,17 +99,17 @@ export const BankAccountList = ({
 					)}
 				</div>
 			) : (
-				<div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-neutral-700">
-					<table className="w-full text-left text-sm text-slate-700 dark:text-slate-300">
+				<div className="w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain rounded-lg border border-slate-200 dark:border-neutral-700">
+					<table className="w-full min-w-176 text-left text-sm text-slate-700 dark:text-slate-300">
 						<thead className="bg-slate-100 text-xs font-semibold uppercase text-slate-600 dark:bg-neutral-800 dark:text-slate-400">
 							<tr>
-								<th className="px-4 py-3">Banco</th>
-								<th className="px-4 py-3">N° Cuenta</th>
-								<th className="px-4 py-3">Tipo</th>
-								<th className="px-4 py-3">Moneda</th>
-								<th className="px-4 py-3">Titular</th>
-								<th className="px-4 py-3 text-center">Principal</th>
-								{!readOnly && <th className="px-4 py-3 text-right">Acciones</th>}
+								<th className="whitespace-nowrap px-4 py-3">Banco</th>
+								<th className="whitespace-nowrap px-4 py-3">N° Cuenta</th>
+								<th className="whitespace-nowrap px-4 py-3">Tipo</th>
+								<th className="whitespace-nowrap px-4 py-3">Moneda</th>
+								<th className="whitespace-nowrap px-4 py-3">Titular</th>
+								<th className="whitespace-nowrap px-4 py-3 text-center">Principal</th>
+								{!readOnly && <th className="whitespace-nowrap px-4 py-3 text-right">Acciones</th>}
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-slate-200 dark:divide-neutral-700">

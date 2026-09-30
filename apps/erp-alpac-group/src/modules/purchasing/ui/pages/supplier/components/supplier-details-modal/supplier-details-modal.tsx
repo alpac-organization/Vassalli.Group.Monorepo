@@ -69,8 +69,8 @@ export const SupplierDetailsModal = ({
 
 
    const supplierName =
-      supplierDetails?.suppliers_legal_name ??
-      selectedSupplier?.suppliers_legal_name ??
+      supplierDetails?.supplier_legal_name ??
+      selectedSupplier?.supplier_legal_name ??
       "proveedor";
 
    return (
@@ -84,15 +84,16 @@ export const SupplierDetailsModal = ({
             onClose={onClose}
             title="Detalle del proveedor"
             variant="form"
-            size="6xl"
+            size="7xl"
             description={`Información registrada de ${supplierName}`}
          >
             <div className="flex flex-col gap-6">
                <div className="grid gap-6 lg:grid-cols-3">
+
                   {/* Legal information */}
-                  <section className="flex flex-col gap-3 lg:col-span-2">
+                  <section className="flex min-w-0 w-full flex-col gap-3 lg:col-span-3">
                      <h5 className={sectionTitleClassName}>Información Legal</h5>
-                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                     <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                         <DetailField
                            label="Razón social"
                            value={supplierName}
@@ -117,9 +118,9 @@ export const SupplierDetailsModal = ({
                   </section>
 
                   {/* Financial conditions */}
-                  <section className="flex flex-col gap-3">
+                  <section className="flex min-w-0 w-full flex-col gap-3 lg:col-span-3">
                      <h5 className={sectionTitleClassName}>Condiciones Comerciales</h5>
-                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                     <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                         <DetailField
                            label="Modalidad de pago"
                            value={supplierDetails ? paymentModality : undefined}
@@ -141,9 +142,9 @@ export const SupplierDetailsModal = ({
                   </section>
 
                   {/* Taxes and Exclusivity */}
-                  <section className="flex flex-col gap-3 lg:col-span-3">
+                  <section className="flex min-w-0 w-full flex-col gap-3 lg:col-span-3">
                      <h5 className={sectionTitleClassName}>Régimen Fiscal y Exclusividad</h5>
-                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                     <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                         <DetailField
                            label="Retención IR"
                            value={details?.apply_ir_retention ? "Aplica retención" : "No aplica"}
@@ -157,6 +158,7 @@ export const SupplierDetailsModal = ({
                         <DetailField
                            label="Exento de Impuestos"
                            value={details?.is_tax_exempt ? "Sí (Exento)" : "No"}
+                           icon={<BadgePercentIcon size={16} />}
                         />
                         <DetailField
                            label="Proveedor Exclusivo"
@@ -174,9 +176,9 @@ export const SupplierDetailsModal = ({
                   </section>
 
                   {/* Contact info */}
-                  <section className="flex flex-col gap-3 lg:col-span-3">
+                  <section className="flex min-w-0 w-full flex-col gap-3 lg:col-span-3">
                      <h5 className={sectionTitleClassName}>Información de Contacto</h5>
-                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                     <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                         <DetailField
                            label="Nombre de contacto"
                            value={details?.contact_name}
@@ -207,13 +209,13 @@ export const SupplierDetailsModal = ({
                   </section>
 
                   {/* Bank Accounts */}
-                  <section className="flex flex-col gap-3 lg:col-span-3">
+                  <section className="flex min-w-0 w-full flex-col gap-3 lg:col-span-3">
                      <h5 className={sectionTitleClassName}>Cuentas Bancarias Registradas</h5>
                      <BankAccountList
                         accounts={supplierDetails?.bank_accounts ?? []}
                         readOnly={true}
-                        onAddAccount={() => {}}
-                        onDeleteAccount={() => {}}
+                        onAddAccount={() => { }}
+                        onDeleteAccount={() => { }}
                      />
                   </section>
                </div>

@@ -1,20 +1,9 @@
-import { Dropdown, InputText } from "@alpac/design-system";
+import { Button, Dropdown, InputText } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
-import {
-  EMPTY_RACK_FILTERS,
-  type RackFilters,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/types/racks.types";
+import {EMPTY_RACK_FILTERS,type RackFilters,} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/types/racks.types";
 import type { RacksFiltersProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-filters/types/racks-filters.types";
-import {
-  inputClassName,
-  labelClassName,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-filters/utils/styles";
-import {
-  buildFiltersPayload,
-  STATUS_FILTER_OPTIONS,
-  USAGE_FILTER_OPTIONS,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-filters/utils/rack-filters-util";
-import { FilterActions } from "@app/shared/components/filters/filter-actions/filter-actions";
+import {inputClassName,labelClassName,} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-filters/utils/styles";
+import {buildFiltersPayload,STATUS_FILTER_OPTIONS,USAGE_FILTER_OPTIONS,} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-filters/utils/rack-filters-util";
 import { StatusFilterDropdown } from "@app/shared/components/filters/status-filter-dropdown/filter-dropdown";
 
 export function RacksFiltersBar({
@@ -33,43 +22,36 @@ export function RacksFiltersBar({
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex justify-between items-center">
-        <div className="flex flex-col justify-center gap-2">
-          <h3 className="p-0! m-0!">Filtros</h3>
-          <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
-            Filtra por nivel, estado o perfil de uso
-          </small>
-        </div>
-      </div>
-
+    <div className="flex flex-col rounded-lg border border-slate-600 bg-white p-3 hover:border-neutral-600 dark:bg-[#272b34] w-full min-w-0">
       <form
         onSubmit={handleSubmit((values) => {
           onApply(buildFiltersPayload(values));
         })}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end"
+        className="flex flex-wrap items-end gap-3 w-full min-w-0"
       >
-        <div className="flex flex-col min-w-0">
+        <div className="flex-1 min-w-[110px] sm:min-w-[140px]">
           <InputText
             label="Nivel"
             className={inputClassName}
             labelClassName={labelClassName}
             type="text"
-            placeholder="Número de nivel..."
+            placeholder="Ej: 1, 2..."
             {...register("level")}
           />
         </div>
 
-        <StatusFilterDropdown
-          control={control}
-          name="status"
-          options={STATUS_FILTER_OPTIONS}
-          inputClassName={inputClassName}
-          labelClassName={labelClassName}
-          placeholder="Todos"
-        />
+        <div className="flex-1 min-w-[150px] sm:min-w-[180px]">
+          <StatusFilterDropdown
+            control={control}
+            name="status"
+            options={STATUS_FILTER_OPTIONS}
+            inputClassName={inputClassName}
+            labelClassName={labelClassName}
+            placeholder="Todos"
+          />
+        </div>
 
-        <div className="flex flex-col min-w-0">
+        <div className="flex-1 min-w-[160px] sm:min-w-[200px]">
           <Controller
             name="usage"
             control={control}
@@ -89,8 +71,23 @@ export function RacksFiltersBar({
           />
         </div>
 
-        <FilterActions onClear={handleClear} />
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            type="submit"
+            size="giant"
+            className="text-[14px]! h-[42px]! sm:h-[46px]! px-5! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+            label="Filtrar"
+          />
+          <Button
+            type="button"
+            size="giant"
+            className="text-[14px]! h-[42px]! sm:h-[46px]! px-4! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+            label="Limpiar"
+            onClick={handleClear}
+          />
+        </div>
       </form>
     </div>
   );
 }
+

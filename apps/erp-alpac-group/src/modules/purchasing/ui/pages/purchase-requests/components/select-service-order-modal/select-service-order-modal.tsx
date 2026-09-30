@@ -28,8 +28,6 @@ const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const labelClassName = "text-black! dark:text-white!";
 
-// La funcionalidad de seleccionar orden de servicio sigue en proceso, por lo que
-// la modal se muestra bloqueada con la animación de engranajes.
 const isBlocked = true;
 
 function MaintenanceBanner() {
