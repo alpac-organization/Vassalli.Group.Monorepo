@@ -3,7 +3,8 @@ import {Alert,Button,Dropdown,InputText,Stepper} from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
 import type {RackCreateFormProps,RackCreateFormValues} from "../types/rack-modal.types";
 import {RackUsageProfileOptions} from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-usage-profile";
-import {validateDecimalNumber,validateIntegerNumber,} from "@app/shared/utils/number.utils";
+import { RackDimensionFields } from "./rack-dimension-fields";
+import { validateIntegerNumber } from "@app/shared/utils/number.utils";
 import { useRack } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useRack";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -171,7 +172,7 @@ export const RackCreateForm = ({
           if (e.key === "Enter") {
             e.preventDefault();
             if (currentStep < STEPS.length - 1) {
-              handleNextStep();
+              void handleNextStep();
             }
           }
         }}
@@ -284,63 +285,7 @@ export const RackCreateForm = ({
                 módulos de rack de la hilera.
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <InputText
-                  label="Ancho / Profundidad (m)"
-                  isRequired
-                  type="number"
-                  step="0.01"
-                  placeholder="ej. 1.07"
-                  className={inputClassName}
-                  labelClassName={labelClassName}
-                  error={errors.width?.message}
-                  {...register("width", {
-                    required: "El ancho es requerido",
-                    validate: {
-                      isDecimal: validateDecimalNumber,
-                      range: (v) =>
-                        (Number(v) >= 0.5 && Number(v) <= 5.0) ||
-                        "Debe estar entre 0.50m y 5.00m",
-                    },
-                  })}
-                />
-
-                <InputText
-                  label="Largo Longitudinal (m)"
-                  isRequired
-                  type="number"
-                  step="0.01"
-                  placeholder="ej. 2.44"
-                  className={inputClassName}
-                  labelClassName={labelClassName}
-                  error={errors.length?.message}
-                  {...register("length", {
-                    required: "El largo es requerido",
-                    validate: {
-                      isDecimal: validateDecimalNumber,
-                      range: (v) =>
-                        (Number(v) >= 1.0 && Number(v) <= 10.0) ||
-                        "Debe estar entre 1.00m y 10.00m",
-                    },
-                  })}
-                />
-
-                <InputText
-                  label="Altura del rack (m)"
-                  type="number"
-                  step="0.01"
-                  placeholder="ej. 1.52"
-                  className={inputClassName}
-                  labelClassName={labelClassName}
-                  error={errors.height?.message}
-                  {...register("height", {
-                    validate: (v) =>
-                      !v ||
-                      (Number(v) >= 0.5 && Number(v) <= 15.0) ||
-                      "Debe estar entre 0.50m y 15.00m",
-                  })}
-                />
-              </div>
+              <RackDimensionFields register={register} errors={errors} />
             </div>
           )}
 
@@ -452,7 +397,9 @@ export const RackCreateForm = ({
                 size="giant"
                 label="Siguiente"
                 className={primaryButtonClass}
-                onClick={(e) => handleNextStep(e)}
+                onClick={(e) => {
+                  void handleNextStep(e);
+                }}
               />
             ) : (
               <Button
@@ -461,7 +408,9 @@ export const RackCreateForm = ({
                 size="giant"
                 label="Registrar Racks"
                 className={primaryButtonClass}
-                onClick={handleSubmit(onFormSubmit)}
+                onClick={(e) => {
+                  void handleSubmit(onFormSubmit)(e);
+                }}
                 isLoading={isPending}
                 disabled={isPending}
               />

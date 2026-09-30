@@ -306,7 +306,9 @@ export function RacksPage() {
         title={`¿Está seguro que desea eliminar el rack ${rackToDelete?.code ?? ""}?`}
         isOpen={isDeleteModalOpen}
         handleFinalAction={(actionType) => {
-          if (actionType === "DELETE") handleConfirmDelete();
+          if (actionType === "DELETE") {
+            void handleConfirmDelete();
+          }
         }}
         onClose={() => {
           if (DeleteRack.isPending) return;

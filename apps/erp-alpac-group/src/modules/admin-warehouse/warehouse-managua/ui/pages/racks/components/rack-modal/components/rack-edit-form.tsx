@@ -3,7 +3,8 @@ import { Controller, useForm } from "react-hook-form";
 import type {RackEditFormProps,RackEditFormValues} from "../types/rack-modal.types";
 import {RackStatusEnum,RackStatusOptions} from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
 import {RackUsageProfileEnum,RackUsageProfileOptions} from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-usage-profile";
-import {validateDecimalNumber,validateIntegerNumber} from "@app/shared/utils/number.utils";
+import { RackDimensionFields } from "./rack-dimension-fields";
+import { validateIntegerNumber } from "@app/shared/utils/number.utils";
 import { useRack } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useRack";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -200,63 +201,12 @@ export const RackEditForm = ({
           <h4 className="text-sm font-semibold text-slate-200 border-b border-slate-700 pb-1 mt-2">
             Dimensiones (Metros)
           </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <InputText
-              label="Ancho / Profundidad (m)"
-              isRequired
-              type="number"
-              step="0.01"
-              placeholder="ej. 1.07"
-              className={inputClassName}
-              labelClassName={labelClassName}
-              error={errors.width?.message}
-              {...register("width", {
-                required: "El ancho es requerido",
-                validate: {
-                  isDecimal: validateDecimalNumber,
-                  range: (v) =>
-                    (Number(v) >= 0.5 && Number(v) <= 5.0) ||
-                    "Debe estar entre 0.50m y 5.00m",
-                },
-              })}
-            />
-
-            <InputText
-              label="Largo Longitudinal (m)"
-              isRequired
-              type="number"
-              step="0.01"
-              placeholder="ej. 2.44"
-              className={inputClassName}
-              labelClassName={labelClassName}
-              error={errors.length?.message}
-              {...register("length", {
-                required: "El largo es requerido",
-                validate: {
-                  isDecimal: validateDecimalNumber,
-                  range: (v) =>
-                    (Number(v) >= 1.0 && Number(v) <= 10.0) ||
-                    "Debe estar entre 1.00m y 10.00m",
-                },
-              })}
-            />
-
-            <InputText
-              label="Altura Columna (m)"
-              type="number"
-              step="0.01"
-              placeholder="ej. 4.50"
-              className={inputClassName}
-              labelClassName={labelClassName}
-              error={errors.height?.message}
-              {...register("height", {
-                validate: (v) =>
-                  !v ||
-                  (Number(v) >= 0.5 && Number(v) <= 15.0) ||
-                  "Debe estar entre 0.50m y 15.00m",
-              })}
-            />
-          </div>
+          <RackDimensionFields
+            register={register}
+            errors={errors}
+            heightLabel="Altura Columna (m)"
+            heightPlaceholder="ej. 4.50"
+          />
 
           <h4 className="text-sm font-semibold text-slate-200 border-b border-slate-700 pb-1 mt-2">
             Coordenadas en el Plano 2D/3D
