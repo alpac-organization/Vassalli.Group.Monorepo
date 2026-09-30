@@ -60,5 +60,6 @@ export const validateIntegerNumber = (value?: string | number): boolean | string
 export const validatePositiveNumber = (value?: string | number, includeZero: boolean = false): boolean | string => {
    if (value === undefined || value === null || value === '') return false;
    const number = Number(value);
+   console.log("Testing:", number);
    return includeZero ? number >= 0 || 'El valor debe ser mayor o igual a 0.' : number > 0 || 'El valor debe ser mayor a 0.';
 };

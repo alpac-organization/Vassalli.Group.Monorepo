@@ -1,22 +1,19 @@
 import { SectionStorageTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
-import {
-  SectionTypeEnum,
-  type SectionEnumType,
-} from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
+import { SectionTypeEnum, type SectionEnumType, type SectionTypeValue } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
 
-/** Colores de estado ya usados en los badges de bodega (tabla / racks). */
-export const SECTION_STATUS_COLORS = {
-  available: "#4ade80",
-  occupied: "#fbbf24",
-  maintenance: "#f87171",
-  reserved: "#2F6FB2",
-} as const;
+export const SectionTypeColor = {
+  [SectionTypeEnum.Aisle.textValue]: "#3e6dff",
+  [SectionTypeEnum.Storage.textValue]: "#03b573",
+} as const satisfies Record<SectionTypeValue, string>;
 
-export const SECTION_STATUS_LEGEND = [
-  { text: "Disponible", color: SECTION_STATUS_COLORS.available },
-  { text: "Ocupada", color: SECTION_STATUS_COLORS.occupied },
-  { text: "Mantenimiento", color: SECTION_STATUS_COLORS.maintenance },
-  { text: "Reservada", color: SECTION_STATUS_COLORS.reserved },
+export const SectionTypeBorderColor = {
+  [SectionTypeEnum.Aisle.textValue]: "#83b4ff",
+  [SectionTypeEnum.Storage.textValue]: "#04ffa2",
+} as const satisfies Record<SectionTypeValue, string>;
+
+export const SectionLegends = [
+  { text: SectionTypeEnum.Aisle.label, color: SectionTypeColor["Aisle"] },
+  { text: SectionTypeEnum.Storage.label, color: SectionTypeColor["Storage"] },
 ] as const;
 
 function resolveSectionEnum(

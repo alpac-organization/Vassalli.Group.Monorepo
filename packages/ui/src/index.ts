@@ -16,6 +16,7 @@ export * from "./components/chips"
 export * from "./components/sections"
 export * from "./components/avatar"
 export * from "./components/tooltips";
+export * from "./components/progress";
 export * from "./providers/theme-provider";
 export * from "./providers/date-picker-provider";
 export * from "./constants";

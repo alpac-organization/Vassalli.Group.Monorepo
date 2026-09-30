@@ -12,7 +12,7 @@ export const SectionTypeEnum = {
 export type SectionTypeEnum =
   (typeof SectionTypeEnum)[keyof typeof SectionTypeEnum];
 
-export const SectionTypeOptions: EnumType[] = Object.values(SectionTypeEnum);
+export const SectionTypeOptions: SectionEnumType[] = Object.values(SectionTypeEnum);
 
 export type SectionTypeValue =
   (typeof SectionTypeEnum)[keyof typeof SectionTypeEnum]["textValue"];
