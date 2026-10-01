@@ -245,6 +245,7 @@ export function SectionsPage() {
 			<SectionModal
 				isOpen={isSectionModalOpen}
 				warehouseId={warehouseId}
+				warehouse={warehouseLayout}
 				section={editingSection}
 				onClose={handleCloseSectionModal}
 			/>

@@ -16,6 +16,7 @@ import type { EditMode, SectionCoordinate, SectionSize, SectionViewerProps } fro
 import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
 import type { SectionMenuState } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/components/section-shape-menu/section-shape-menu.types";
 import type { UpdateSectionLayoutRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/update-section-layout-req";
+import { isInsideAvailableArea } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-bound";
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
@@ -177,6 +178,31 @@ export const SectionViewer = ({
 
 		if (!hasLayoutChanges) {
 			resetEditState(editingId);
+			return;
+		}
+
+		const nextX = nextCoordinate?.x ?? section.position_x ?? 0;
+		const nextY = nextCoordinate?.y ?? section.position_y ?? 0;
+		const nextWidth = nextSize?.width ?? section.width ?? 0;
+		const nextLength = nextSize?.length ?? section.length ?? 0;
+
+		if (
+			warehouse &&
+			!isInsideAvailableArea(
+				{ x: nextX, y: nextY, width: nextWidth, length: nextLength },
+				{
+					width: width - margins.left - margins.right,
+					length: length - margins.top - margins.bottom,
+					marginTop: 0,
+					marginBottom: 0,
+					marginLeft: 0,
+					marginRight: 0,
+				},
+			)
+		) {
+			handleRequestError(
+				"La sección debe quedar dentro del área disponible de la bodega.",
+			);
 			return;
 		}
 
