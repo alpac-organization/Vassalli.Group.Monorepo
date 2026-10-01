@@ -10,11 +10,15 @@ export interface SectionModalProps {
 }
 
 export type FormValues = {
-	code: string;
+	code?: string;
 	section_type: number;
 	section_storage_type: number;
-	width_metres: number;
-	length_metres: number;
+	width_metres?: number;
+	length_metres?: number;
 	allows_storage_aisle: boolean;
 	maximum_number_of_pallets_per_level?: number | null;
+	position_x: number;
+	position_y: number;
+	position_z: number;
+	rotation_y: number;
 };

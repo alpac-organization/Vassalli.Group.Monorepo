@@ -93,7 +93,7 @@ export function AssignmentModal({
       setSummaryData((prev) => ({
         ...prev,
         bodega: {
-          warehouseName: wh?.warehouse_name || "N/A",
+          warehouseName: wh?.code || "N/A",
           chiefName: chief?.label || "N/A",
         },
       }));
