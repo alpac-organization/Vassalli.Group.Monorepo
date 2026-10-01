@@ -11,11 +11,19 @@ export function LotsTable({
   onPageChange,
   onViewDetail,
   isFetching = false,
+  capacitiesByLotId = {},
+  capacitiesLoading = false,
 }: LotsTableProps) {
-  const lastItemId = data.at(-1)?.lot_id;
+  const lastItemId = data.at(-1)?.id;
   const columns = useMemo(
-    () => getTramosColumns({ onViewDetail, lastItemId }),
-    [onViewDetail, lastItemId],
+    () =>
+      getTramosColumns({
+        onViewDetail,
+        lastItemId,
+        capacitiesByLotId,
+        capacitiesLoading,
+      }),
+    [onViewDetail, lastItemId, capacitiesByLotId, capacitiesLoading],
   );
 
   return (

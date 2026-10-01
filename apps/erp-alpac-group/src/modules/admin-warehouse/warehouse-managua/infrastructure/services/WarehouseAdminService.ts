@@ -9,6 +9,8 @@ import type { GetLotsResponse } from "@app/modules/admin-warehouse/warehouse-man
 import type { GetLotDetailRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-details-req";
 import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-detail";
 import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
+import type { GetLotCapacitiesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lot-capacities-req";
+import type { LotCapacitiesResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-capacities-res";
 
 export class WarehouseAdminServices implements IWarehouseAdminService {
   private readonly apiHandler: IHttpHandler;
@@ -52,5 +54,15 @@ export class WarehouseAdminServices implements IWarehouseAdminService {
     const url = `companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections/${section_id}/lots`;
 
     await this.apiHandler.post<void>(url, rest);
+  }
+  async GetLotCapacities(
+    payload: GetLotCapacitiesRequest,
+  ): Promise<LotCapacitiesResponse> {
+    const { company_id, module_code, warehouse_id, section_id, lot_id } =
+      payload;
+
+    const url = `companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections/${section_id}/lots/${lot_id}/capacities`;
+
+    return await this.apiHandler.get<LotCapacitiesResponse>(url);
   }
 }

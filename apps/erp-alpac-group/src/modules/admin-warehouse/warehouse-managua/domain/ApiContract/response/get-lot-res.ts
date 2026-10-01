@@ -1,9 +1,10 @@
 export interface LotListItemResponse {
-  lot_id: string;
+  id: string;
   code: string | null;
-  width_metres: number;
-  length_metres: number;
   status: string | number | null;
+  allows_stacking: boolean;
+  unavailable_reason: string | null;
+  status_changed_at: string | null;
 }
 
 export interface GetLotsResponse {

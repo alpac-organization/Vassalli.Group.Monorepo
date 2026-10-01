@@ -14,6 +14,7 @@ import {
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/types/lots.types";
 import { filtersToGetLotsParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/utils/filter-lots";
 import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
+import { useLotCapacitiesMap } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useLotCapacitiesMap";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -70,6 +71,12 @@ export function TramosPage() {
   const tramosData = GetLots.data?.data ?? [];
   const totalRecords = GetLots.data?.total ?? 0;
 
+  const { capacitiesByLotId, isAnyLoading } = useLotCapacitiesMap({
+    warehouseId,
+    sectionId,
+    lots: tramosData,
+  });
+
   useEffect(() => {
     if (!GetLots.isError || !GetLots.error) return;
     const mappedError = getMappedError(GetLots.error as ApiErrorResponse);
@@ -87,7 +94,7 @@ export function TramosPage() {
   }, []);
 
   const handleViewDetail = useCallback((lot: LotListItemResponse) => {
-    setSelectedLotId(lot.lot_id);
+    setSelectedLotId(lot.id);
     setIsDetailModalOpen(true);
   }, []);
 
@@ -140,6 +147,8 @@ export function TramosPage() {
         onPageChange={setCurrentPage}
         onViewDetail={handleViewDetail}
         isFetching={GetLots.isFetching}
+        capacitiesByLotId={capacitiesByLotId}
+        capacitiesLoading={isAnyLoading}
       />
 
       <LotModal

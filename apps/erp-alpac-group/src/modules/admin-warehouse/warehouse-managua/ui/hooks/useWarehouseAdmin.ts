@@ -1,7 +1,9 @@
 import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
 import type { GetLotDetailRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-details-req";
+import type { GetLotCapacitiesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lot-capacities-req";
 import type { GetLotsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-detail";
+import type { LotCapacitiesResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-capacities-res";
 import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import { WarehouseAdminServices } from "@app/modules/admin-warehouse/warehouse-managua/infrastructure/services/WarehouseAdminService";
 import { warehouseHttpHandler } from "@app/core/adapters";
@@ -16,6 +18,7 @@ const warehouseLayoutServices = new WarehouseAdminServices(
 interface useWarehouseLayoutProps {
   getLotsPayload?: GetLotsRequest;
   getLotDetailPayload?: GetLotDetailRequest;
+  getLotCapacitiesPayload?: GetLotCapacitiesRequest;
 }
 
 const hasCompanyContext = (payload?: {
@@ -28,6 +31,7 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
   const {
     getLotsPayload,
     getLotDetailPayload,
+    getLotCapacitiesPayload,
   } = props || {};
 
   const GetLots = useQuery<GetLotsResponse, ApiErrorResponse>({
@@ -49,6 +53,21 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
     retry: 1,
   });
 
+  const GetLotCapacities = useQuery<LotCapacitiesResponse, ApiErrorResponse>({
+    queryKey: ["get-lot-capacities-record", getLotCapacitiesPayload],
+    queryFn: () =>
+      warehouseLayoutServices.GetLotCapacities(getLotCapacitiesPayload!),
+    enabled:
+      hasCompanyContext(getLotCapacitiesPayload) &&
+      Boolean(
+        getLotCapacitiesPayload?.warehouse_id &&
+          getLotCapacitiesPayload?.section_id &&
+          getLotCapacitiesPayload?.lot_id,
+      ),
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
   const RegisterLot = useMutation<void, ApiErrorResponse, RegisterLotRequest>({
     mutationKey: ["registerSectionLot"],
     mutationFn: (payload) => warehouseLayoutServices.RegisterLot(payload),
@@ -61,6 +80,7 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
   return {
     GetLots,
     GetLotById,
+    GetLotCapacities,
     RegisterLot,
   };
 };
