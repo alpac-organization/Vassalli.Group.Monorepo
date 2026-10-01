@@ -21,6 +21,7 @@ export const WarehouseShape = ({
    title = "Plano de la bodega",
    selectedLabel,
    overlay,
+   containerClassName,
 }: WarehouseViewerProps) => {
 
    const warehouseX = METRIC_SIZE;
@@ -81,10 +82,10 @@ export const WarehouseShape = ({
                )}
             </div>
          )}
-         <div
-            ref={containerRef}
-            className="relative w-full h-[50vh] md:landscape:h-[70vh] lg:h-120 lg:max-h-148 max-w-full overflow-hidden rounded-lg bg-white dark:bg-[#363a45] p-0"
-         >
+          <div
+             ref={containerRef}
+             className={containerClassName ?? "relative w-full h-[50vh] md:landscape:h-[70vh] lg:h-120 lg:max-h-148 max-w-full overflow-hidden rounded-lg bg-white dark:bg-[#363a45] p-0"}
+          >
             {overlay}
             {stageSize.width > 0 && stageSize.length > 0 && (
                <Stage

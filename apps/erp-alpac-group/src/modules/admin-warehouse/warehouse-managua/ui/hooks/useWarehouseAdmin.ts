@@ -5,6 +5,10 @@ import type { GetLotsResponse } from "@app/modules/admin-warehouse/warehouse-man
 import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-detail";
 import type { LotCapacitiesResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-capacities-res";
 import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
+import type { RegisterLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/register-lot-coordinates-req";
+import type { UpdateLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/update-lot-coordinates-req";
+import type { GetSectionDetailsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/get-section-details-req";
+import type { GetSectionDetailsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-section-details-res";
 import { WarehouseAdminServices } from "@app/modules/admin-warehouse/warehouse-managua/infrastructure/services/WarehouseAdminService";
 import { warehouseHttpHandler } from "@app/core/adapters";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,6 +23,7 @@ interface useWarehouseLayoutProps {
   getLotsPayload?: GetLotsRequest;
   getLotDetailPayload?: GetLotDetailRequest;
   getLotCapacitiesPayload?: GetLotCapacitiesRequest;
+  getSectionDetailsPayload?: GetSectionDetailsRequest;
 }
 
 const hasCompanyContext = (payload?: {
@@ -32,6 +37,7 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
     getLotsPayload,
     getLotDetailPayload,
     getLotCapacitiesPayload,
+    getSectionDetailsPayload,
   } = props || {};
 
   const GetLots = useQuery<GetLotsResponse, ApiErrorResponse>({
@@ -49,6 +55,23 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
     enabled:
       hasCompanyContext(getLotDetailPayload) &&
       Boolean(getLotDetailPayload?.section_id && getLotDetailPayload?.lot_id),
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
+  const GetSectionDetails = useQuery<
+    GetSectionDetailsResponse,
+    ApiErrorResponse
+  >({
+    queryKey: ["get-section-details-record", getSectionDetailsPayload],
+    queryFn: () =>
+      warehouseLayoutServices.GetSectionDetails(getSectionDetailsPayload!),
+    enabled:
+      hasCompanyContext(getSectionDetailsPayload) &&
+      Boolean(
+        getSectionDetailsPayload?.warehouse_id &&
+          getSectionDetailsPayload?.section_id,
+      ),
     refetchOnWindowFocus: false,
     retry: 1,
   });
@@ -77,10 +100,45 @@ export const useWarehouseAdmin = (props?: useWarehouseLayoutProps) => {
     },
   });
 
+  const RegisterLotCoordinates = useMutation<
+    void,
+    ApiErrorResponse,
+    RegisterLotCoordinatesRequest
+  >({
+    mutationKey: ["registerLotCoordinates"],
+    mutationFn: (payload) =>
+      warehouseLayoutServices.RegisterLotCoordinates(payload),
+    retry: 1,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get-lot-coordinates-record"],
+      });
+    },
+  });
+
+  const UpdateLotCoordinates = useMutation<
+    void,
+    ApiErrorResponse,
+    UpdateLotCoordinatesRequest
+  >({
+    mutationKey: ["updateLotCoordinates"],
+    mutationFn: (payload) =>
+      warehouseLayoutServices.UpdateLotCoordinates(payload),
+    retry: 1,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["get-lot-coordinates-record"],
+      });
+    },
+  });
+
   return {
     GetLots,
     GetLotById,
+    GetSectionDetails,
     GetLotCapacities,
     RegisterLot,
+    RegisterLotCoordinates,
+    UpdateLotCoordinates,
   };
 };

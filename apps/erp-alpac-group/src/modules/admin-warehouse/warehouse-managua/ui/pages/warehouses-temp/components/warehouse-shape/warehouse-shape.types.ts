@@ -11,6 +11,8 @@ export interface WarehouseViewerProps {
    title?: ReactNode;
    selectedLabel?: ReactNode;
    overlay?: ReactNode;
+   /** Permite sobrescribir las clases del contenedor del stage (altura, bordes). */
+   containerClassName?: string;
 }
 
 export interface StagePosition {

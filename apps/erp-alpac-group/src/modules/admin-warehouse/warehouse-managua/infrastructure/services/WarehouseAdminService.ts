@@ -11,6 +11,12 @@ import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-m
 import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import type { GetLotCapacitiesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lot-capacities-req";
 import type { LotCapacitiesResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-capacities-res";
+import type { GetLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lot-coordinates-req";
+import type { LotCoordinatesResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-coordinates-res";
+import type { RegisterLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/register-lot-coordinates-req";
+import type { UpdateLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/update-lot-coordinates-req";
+import type { GetSectionDetailsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/get-section-details-req";
+import type { GetSectionDetailsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-section-details-res";
 
 export class WarehouseAdminServices implements IWarehouseAdminService {
   private readonly apiHandler: IHttpHandler;
@@ -29,6 +35,15 @@ export class WarehouseAdminServices implements IWarehouseAdminService {
     const { company_id, module_code, warehouse_id, ...rest } = payload;
     const url = `companies/${company_id}/modules/${module_code}/warehouse/${warehouse_id}/sections`;
     await this.apiHandler.post<void>(url, rest);
+  }
+  async GetSectionDetails(
+    payload: GetSectionDetailsRequest,
+  ): Promise<GetSectionDetailsResponse> {
+    const { company_id, module_code, warehouse_id, section_id } = payload;
+
+    const url = `companies/${company_id}/modules/${module_code}/warehouse/${warehouse_id}/sections/${section_id}`;
+
+    return await this.apiHandler.get<GetSectionDetailsResponse>(url);
   }
   async GetLots(payload: GetLotsRequest): Promise<GetLotsResponse> {
     const { company_id, module_code, warehouse_id, section_id, ...rest } =
@@ -64,5 +79,47 @@ export class WarehouseAdminServices implements IWarehouseAdminService {
     const url = `companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections/${section_id}/lots/${lot_id}/capacities`;
 
     return await this.apiHandler.get<LotCapacitiesResponse>(url);
+  }
+  async GetLotCoordinates(
+    payload: GetLotCoordinatesRequest,
+  ): Promise<LotCoordinatesResponse> {
+    const { company_id, module_code, warehouse_id, section_id, lot_id } =
+      payload;
+
+    const url = `companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections/${section_id}/lots/${lot_id}/coordinates`;
+
+    return await this.apiHandler.get<LotCoordinatesResponse>(url);
+  }
+  async RegisterLotCoordinates(
+    payload: RegisterLotCoordinatesRequest,
+  ): Promise<void> {
+    const {
+      company_id,
+      module_code,
+      warehouse_id,
+      section_id,
+      lot_id,
+      ...rest
+    } = payload;
+
+    const url = `companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections/${section_id}/lots/${lot_id}/coordinates`;
+
+    await this.apiHandler.post<void>(url, rest);
+  }
+  async UpdateLotCoordinates(
+    payload: UpdateLotCoordinatesRequest,
+  ): Promise<void> {
+    const {
+      company_id,
+      module_code,
+      warehouse_id,
+      section_id,
+      lot_id,
+      ...rest
+    } = payload;
+
+    const url = `companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections/${section_id}/lots/${lot_id}/coordinates`;
+
+    await this.apiHandler.put<void>(url, rest);
   }
 }
