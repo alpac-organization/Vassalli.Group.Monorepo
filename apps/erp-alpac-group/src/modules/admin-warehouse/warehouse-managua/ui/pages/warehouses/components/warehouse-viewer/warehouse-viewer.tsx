@@ -9,6 +9,7 @@ import {
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/warehouse-details.mapper";
 import { getWarehouseTypeLabel } from "@app/modules/warehouse/domain/enums/warehouse.enum";
 import type { WarehouseViewerProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-viewer/warehouse-viewer.types";
+import { WarehouseLegends } from "../warehouse-table/utils/warehouse-status";
 
 export const WarehouseViewer = ({
 	className,
@@ -114,8 +115,8 @@ export const WarehouseViewer = ({
 
 			<div className="flex gap-x-4 gap-y-1 items-center justify-between mt-2 flex-wrap">
 				<div className="flex gap-x-4 gap-y-1 items-center flex-wrap">
-					{[].map(() => (
-						<LegendItem key="" text="" color="" />
+					{WarehouseLegends.map((item, index) => (
+						<LegendItem key={index} text={item.text} color={item.color} />
 					))}
 				</div>
 			</div>

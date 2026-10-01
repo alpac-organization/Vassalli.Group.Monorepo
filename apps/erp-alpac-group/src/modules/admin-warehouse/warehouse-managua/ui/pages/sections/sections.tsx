@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { SectionsHeader } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-header/sections-header";
 import { SectionsTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-table/sections-table";
 import { SectionModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-modal/section-modal";
+import { SectionDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-detail-modal/section-detail-modal";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -40,9 +41,11 @@ export function SectionsPage() {
 		AlertComponent,
 	} = useAlertState();
 	const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
+	const [isSectionDetailModalOpen, setIsSectionDetailModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [editingSection, setEditingSection] = useState<SectionDto | null>(null);
 	const [sectionToDelete, setSectionToDelete] = useState<SectionDto | null>(null);
+	const [detailSection, setDetailSection] = useState<SectionDto | null>(null);
 	const [selectedSection, setSelectedSection] = useState<SectionDto | null>(null);
 	const [currentPage, setCurrentPage] = useState(1);
 
@@ -127,6 +130,12 @@ export function SectionsPage() {
 		setSelectedSection(section);
 	};
 
+	const handleViewDetails = useCallback((section: SectionDto) => {
+		setDetailSection(section);
+		setSelectedSection(section);
+		setIsSectionDetailModalOpen(true);
+	}, []);
+
 	const handleUpdateSection = (section: SectionDto) => {
 		setEditingSection(section);
 		setIsSectionModalOpen(true);
@@ -203,7 +212,7 @@ export function SectionsPage() {
 					/>
 				} />
 
-			<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_800px] lg:h-[calc(100vh-330px)] min-h-0">
+			<div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,400px),1fr))] min-h-0">
 
 				<SectionsTable
 					data={sectionsData}
@@ -214,6 +223,7 @@ export function SectionsPage() {
 					onPageChange={setCurrentPage}
 					onViewLots={handleViewLots}
 					onViewRacks={handleViewRacks}
+					onViewDetails={handleViewDetails}
 					onSelectRow={handleSelectRow}
 					onUpdateSection={handleUpdateSection}
 					onDeleteSection={handleDeleteSection}
@@ -237,6 +247,16 @@ export function SectionsPage() {
 				warehouseId={warehouseId}
 				section={editingSection}
 				onClose={handleCloseSectionModal}
+			/>
+
+			<SectionDetailModal
+				isOpen={isSectionDetailModalOpen}
+				warehouseId={warehouseId}
+				section={detailSection}
+				onClose={() => {
+					setIsSectionDetailModalOpen(false);
+					setDetailSection(null);
+				}}
 			/>
 
 			<ConfirmModal

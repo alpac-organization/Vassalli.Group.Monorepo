@@ -178,7 +178,7 @@ export const SectionViewer = ({
 		if (!hasLayoutChanges) {
 			resetEditState(editingId);
 			return;
-		}      
+		}
 
 		UpdateSectionLayout.mutate(payload, {
 			onSuccess() {
@@ -202,9 +202,7 @@ export const SectionViewer = ({
 	useEffect(() => {
 		if (editMode == null) return;
 		const onKey = (e: KeyboardEvent) => {
-			if (e.key === "Escape") {
-				resetEditState(editingId);
-			}
+			if (e.key === "Escape") resetEditState(editingId);
 		};
 		window.addEventListener("keydown", onKey);
 		return () => window.removeEventListener("keydown", onKey);
@@ -236,7 +234,7 @@ export const SectionViewer = ({
 			<WarehouseShape
 				width={width}
 				length={length}
-				draggable={editMode == null}
+				draggable
 				marginTop={margins.top}
 				marginBottom={margins.bottom}
 				marginLeft={margins.left}
@@ -250,6 +248,8 @@ export const SectionViewer = ({
 					const fallbackCoordinate = getCoordinates(section.section_id, index);
 					const fallbackSize = getSize(section.section_id);
 
+					const isEditing = editMode === "edit" && editingId === section.section_id;
+
 					return (
 						<SectionShape
 							key={section.section_id}
@@ -262,8 +262,8 @@ export const SectionViewer = ({
 							fill={sectionColor}
 							strokeColor={sectionBorderColor}
 							selected={activeSelectedId === section.section_id}
-							draggable={editMode === "edit" && editingId === section.section_id}
-							resizable={editMode === "edit" && editingId === section.section_id}
+							draggable={isEditing}
+							resizable={isEditing}
 							onSelect={handleSelect}
 							onContextMenu={handleContextMenu}
 							onCoordinateChange={(id, x, y) =>

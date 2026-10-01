@@ -21,20 +21,13 @@ export interface SectionCoordinatesDto {
   rotation_y: number;
 }
 
-export interface WarehouseSummaryDto {
-  warehouse_id: string;
-  code: string;
-  is_active: boolean;
-  warehouse_type: number | null;
-}
-
 export interface GetSectionDetailsResponse {
   section_id: string;
   section_code: string | null;
   is_active: boolean;
+  max_pallets_per_level_aisle: number;
   section_type: SectionTypeValue;
   section_storage_type: SectionStorageTypeValue;
   capacity: SectionCapacityDto;
   coordinates: SectionCoordinatesDto;
-  warehouse: WarehouseSummaryDto;
 }

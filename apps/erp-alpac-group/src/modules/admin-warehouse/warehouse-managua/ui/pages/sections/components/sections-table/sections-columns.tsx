@@ -16,11 +16,17 @@ function getSectionActionItems(
 	item: SectionDto,
 	onViewLots: SectionsColumnsOptions["onViewLots"],
 	onViewRacks: SectionsColumnsOptions["onViewRacks"],
+	onViewDetails: SectionsColumnsOptions["onViewDetails"],
 	onUpdateSection: SectionsColumnsOptions["onUpdateSection"],
 	onDeleteSection: SectionsColumnsOptions["onDeleteSection"],
 ) {
 
 	let options: ContextMenuItem[] = [];
+
+	const viewDetailsOption: ContextMenuItem = {
+		label: "Ver detalles",
+		onClick: () => onViewDetails(item),
+	};
 
 	const updateSectionOption: ContextMenuItem = {
 		label: "Actualizar",
@@ -44,6 +50,7 @@ function getSectionActionItems(
 		options.push({ label: "Ver tramos", onClick: () => onViewLots(item) });
 	}
 
+	options.push(viewDetailsOption);
 	options.push(updateSectionOption);
 	options.push(deleteSectionOption);
 
@@ -53,6 +60,7 @@ function getSectionActionItems(
 export function getSectionsColumns({
 	onViewLots,
 	onViewRacks,
+	onViewDetails,
 	onUpdateSection,
 	onDeleteSection,
 	lastItemId,
@@ -80,7 +88,7 @@ export function getSectionsColumns({
 			label: "Disponibilidad",
 			render: (item: SectionDto) => {
 				const total = item.total_area ?? 0;
-				const available = item.available_area ?? 0;
+				const available = total -  (item.available_area ?? 0);
 				const used = item.percentage_available_area ?? 0;
 
 				return (
@@ -91,6 +99,7 @@ export function getSectionsColumns({
 						totalLabel="Capacidad"
 						completedLabel="Usado"
 						remainingLabel="Disponible"
+						unitOfMeasurement="m²"
 					/>
 				);
 			},
@@ -108,6 +117,7 @@ export function getSectionsColumns({
 					item,
 					onViewLots,
 					onViewRacks,
+					onViewDetails,
 					onUpdateSection,
 					onDeleteSection,
 				);

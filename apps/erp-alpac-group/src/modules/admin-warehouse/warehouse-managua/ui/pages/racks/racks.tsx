@@ -10,7 +10,7 @@ import { RackModal } from "./components/rack-modal/rack-modal";
 import { RackDetailModal } from "./components/rack-detail-modal/rack-detail-modal";
 import { RackViewer } from "./components/rack-viewer/rack-viewer";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
-import {EMPTY_RACK_FILTERS,type RackFilters} from "./types/racks.types";
+import { EMPTY_RACK_FILTERS, type RackFilters } from "./types/racks.types";
 import { useRack } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useRack";
 import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
@@ -72,14 +72,11 @@ export function RacksPage() {
 
   const currentWarehouse = useMemo(() => {
     return GetWarehouses.data?.data?.find(
-      (w) => w.warehouse_id === warehouseId || w.warehouse_code === warehouseId,
+      (w) => w.warehouse_id === warehouseId || w.code === warehouseId,
     );
   }, [GetWarehouses.data?.data, warehouseId]);
 
-  const warehouseName =
-    currentWarehouse?.warehouse_name ||
-    currentWarehouse?.warehouse_code ||
-    "BODEGA";
+  const warehouseName = currentWarehouse?.code || "BODEGA";
 
   const sectionCode = GetSectionDetails.data?.section_code ?? undefined;
   const sectionWidth = GetSectionDetails.data?.capacity?.width ?? 0.0;
@@ -200,7 +197,7 @@ export function RacksPage() {
       handleRequestSuccess("Rack eliminado con éxito.");
       setIsDeleteModalOpen(false);
       setRackToDelete(null);
-    } catch{
+    } catch {
       handleRequestError("Error al eliminar el rack.");
     }
   };
@@ -245,7 +242,7 @@ export function RacksPage() {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-4 min-w-0 w-full">
-        <div className="min-w-0 w-full flex flex-col h-full min-h-[100px]">
+        <div className="min-w-0 w-full flex flex-col h-full min-h-25">
           <RacksTable
             data={racksTableData}
             currentPage={currentPage}
@@ -263,7 +260,7 @@ export function RacksPage() {
         </div>
 
         <RackViewer
-          className="min-h-[700px] min-w-0 overflow-y-auto"
+          className="min-h-175 min-w-0 overflow-y-auto"
           racks={allRacksData}
           selectedRackId={selectedRackId}
           sectionCode={sectionCode}

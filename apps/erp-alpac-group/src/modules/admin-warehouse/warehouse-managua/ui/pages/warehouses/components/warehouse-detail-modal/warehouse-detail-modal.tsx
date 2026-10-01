@@ -10,6 +10,7 @@ import {
 	WarehouseIcon,
 } from "lucide-react";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
+import { Loader } from "@app/shared/components/loaders/loader";
 import { getWarehouseTypeLabel } from "@app/modules/warehouse/domain/enums/warehouse.enum";
 import { ActiveStatusBadge } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/badges/active-status-badge";
 import type { WarehouseDetailModalProps } from "./warehouse-detail-modal.types";
@@ -35,17 +36,22 @@ export function WarehouseDetailModal({
 	const { companyId, moduleCode } = useUserStore();
 
 	const { GetWarehouseDetails } = useWarehouse({
-		getWarehouseDetailsPayload: {
-			company_id: companyId,
-			module_code: moduleCode,
-			warehouse_id: warehouse?.warehouse_id!
-		}
+		getWarehouseDetailsPayload:
+			isOpen && warehouse?.warehouse_id
+				? {
+						company_id: companyId,
+						module_code: moduleCode,
+						warehouse_id: warehouse.warehouse_id,
+					}
+				: undefined,
 	});
 
 	const details: GetWarehouseDetailsResponse | undefined = GetWarehouseDetails.data;
 
 	const capacity = details?.capacity ?? null;
 	const locationName = details?.location?.location_name?.trim() || "—";
+	const showLoading =
+		isLoading || GetWarehouseDetails.isPending || GetWarehouseDetails.isFetching;
 
 	return (
 		<Modal
@@ -63,9 +69,9 @@ export function WarehouseDetailModal({
 			contentClassName="flex min-h-0 flex-1 flex-col"
 		>
 			<div className="flex min-h-0 min-w-0 flex-1 flex-col">
-				{isLoading ? (
-					<div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
-						Cargando detalle...
+				{showLoading ? (
+					<div className="py-8">
+						<Loader title="Cargando detalle de la bodega..." />
 					</div>
 				) : !details ? (
 					<div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">

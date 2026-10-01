@@ -140,7 +140,7 @@ export function WarehousePage() {
             onClear={handleClearFilters}
          />
 
-         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_800px] lg:h-[calc(100vh-330px)] min-h-0">
+         <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,400px),1fr))] min-h-0">
 
             <WarehouseTable
                data={warehouseData}
