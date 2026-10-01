@@ -8,11 +8,15 @@ export type WarehouseTableProps = {
   onPageChange: (page: number) => void;
   onViewSections: (warehouse: WarehouseDto) => void;
   onViewDetails: (warehouse: WarehouseDto) => void;
+  onUpdateWarehouse: (warehouse: WarehouseDto) => void;
+  onSelectRow: (warehouse: WarehouseDto) => void;
+  selectedWarehouse?: WarehouseDto | null;
   isFetching?: boolean;
 };
 
 export type WarehouseColumnsOptions = {
   onViewSections: (warehouse: WarehouseDto) => void;
   onViewDetails: (warehouse: WarehouseDto) => void;
+  onUpdateWarehouse: (warehouse: WarehouseDto) => void;
   lastItemId?: string;
 };
