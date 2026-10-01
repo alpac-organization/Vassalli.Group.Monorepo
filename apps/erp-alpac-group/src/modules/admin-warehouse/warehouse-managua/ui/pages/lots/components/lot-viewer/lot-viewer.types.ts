@@ -1,4 +1,5 @@
 import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
+import type { WarehouseDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/warehouses/get-warehouse-res";
 import type { LotPosition } from "../lot-shape/lot-shape.types";
 
 export interface LotViewerLot {
@@ -14,6 +15,8 @@ export interface LotViewerLot {
 
 export interface LotViewerProps {
   className?: string;
+  warehouse?: WarehouseDto;
+  warehouseName?: string;
   lots: LotViewerLot[];
   sectionWidth: number;
   sectionLength: number;
@@ -28,6 +31,7 @@ export interface LotViewerProps {
   isLoading?: boolean;
   isSaving?: boolean;
   hasPendingChanges?: boolean;
+  draggable?: boolean;
   onSelectLot?: (lot: LotListItemResponse) => void;
   onPositionChange?: (lotId: string, position: LotPosition) => void;
   onRotateLot?: (lotId: string) => void;
