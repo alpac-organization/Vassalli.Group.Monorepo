@@ -1,11 +1,11 @@
 import { useCallback, useMemo } from "react";
-import { Group } from "react-konva";
+import { Group, Rect } from "react-konva";
 import { Button } from "@alpac/design-system";
 import { Building2, ChevronRight, Layers, RotateCw, Save, Undo2 } from "lucide-react";
 import { LegendItem } from "@app/shared/components/legend-item/legend-item";
-import { PIXELS_PER_METER, WarehouseShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses-temp/components/warehouse-shape/warehouse-shape";
+import { WarehouseShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape";
+import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import { RACK_STATUS_LEGEND } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
-import { SectionShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/section-shape";
 import { LotShape } from "../lot-shape/lot-shape";
 import type { LotPosition } from "../lot-shape/lot-shape.types";
 import type { LotViewerProps } from "./lot-viewer.types";
@@ -162,18 +162,18 @@ export const LotViewer = ({
             x={sectionPositionX * PIXELS_PER_METER}
             y={sectionPositionY * PIXELS_PER_METER}
           >
-            {/* La seccion se dibuja tal cual existe en el render de Secciones */}
-            <SectionShape
-              id={`section-${sectionCode ?? "sin-codigo"}`}
-              code={sectionCode ?? undefined}
-              x={0}
-              y={0}
-              width={sectionWidth}
-              length={sectionLength}
-              rotation={0}
-              status={sectionIsActive ? "available" : "maintenance"}
-              selected={false}
-              pixelsPerMeter={PIXELS_PER_METER}
+            {/* Fondo y borde perimetral de la seccion, igual que en rack-viewer */}
+            <Rect
+              width={sectionWidth * PIXELS_PER_METER}
+              height={sectionLength * PIXELS_PER_METER}
+              fill={
+                sectionIsActive
+                  ? "rgba(56, 189, 248, 0.06)"
+                  : "rgba(245, 158, 11, 0.08)"
+              }
+              stroke={sectionIsActive ? "#38bdf8" : "#f59e0b"}
+              strokeWidth={1}
+              cornerRadius={1}
             />
 
             {/* Tramos posicionados dentro de la seccion (coordenadas relativas a ella) */}

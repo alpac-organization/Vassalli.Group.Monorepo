@@ -16,7 +16,7 @@ import {
   validateIntegerNumber,
   validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
-import { parseDecimal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/lots.utils";
+import { parseDecimal } from "@app/shared/utils/get-decimal.config";
 import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";

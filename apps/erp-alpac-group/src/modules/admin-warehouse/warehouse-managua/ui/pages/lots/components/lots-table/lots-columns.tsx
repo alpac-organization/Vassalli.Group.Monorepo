@@ -6,7 +6,7 @@ import {
   StackingBadge,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-warehouses-badges";
 import { LotCapacityCell } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/lot-capacity-cell";
-import { formatAreaM2 } from "@app/modules/warehouse/ui/view/warehouse/utils/warehouse-utils";
+import { formatAreaM2 } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/lot-area.utils";
 
 const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";

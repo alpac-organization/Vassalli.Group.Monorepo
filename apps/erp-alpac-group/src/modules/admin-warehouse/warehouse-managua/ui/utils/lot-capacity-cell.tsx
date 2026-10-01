@@ -2,7 +2,7 @@ import type { LotCapacitiesResponse } from "@app/modules/admin-warehouse/warehou
 import {
   formatAreaM2,
   getOccupancyBarColor,
-} from "@app/modules/warehouse/ui/view/warehouse/utils/warehouse-utils";
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/lot-area.utils";
 
 export function LotCapacityCell({
   capacity,
