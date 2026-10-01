@@ -9,7 +9,7 @@ import {
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/warehouse-details.mapper";
 import { getWarehouseTypeLabel } from "@app/modules/warehouse/domain/enums/warehouse.enum";
 import type { WarehouseViewerProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-viewer/warehouse-viewer.types";
-import { WarehouseLegends } from "../warehouse-table/utils/warehouse-status";
+import { WarehouseLegends } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-table/utils/warehouse-status";
 
 export const WarehouseViewer = ({
 	className,

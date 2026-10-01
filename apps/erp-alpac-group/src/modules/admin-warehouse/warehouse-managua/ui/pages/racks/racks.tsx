@@ -3,14 +3,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@alpac/design-system";
 import { Rows4 } from "lucide-react";
 import { useParams } from "react-router-dom";
-import { RacksHeader } from "./components/racks-header/racks-header";
-import { RacksFiltersBar } from "./components/racks-filters/racks-filters";
-import { RacksTable } from "./components/racks-table/racks-table";
-import { RackModal } from "./components/rack-modal/rack-modal";
-import { RackDetailModal } from "./components/rack-detail-modal/rack-detail-modal";
-import { RackViewer } from "./components/rack-viewer/rack-viewer";
+import { RacksHeader } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-header/racks-header";
+import { RacksFiltersBar } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-filters/racks-filters";
+import { RacksTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-table/racks-table";
+import { RackModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-modal/rack-modal";
+import { RackDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-detail-modal/rack-detail-modal";
+import { RackViewer } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-viewer/rack-viewer";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
-import { EMPTY_RACK_FILTERS, type RackFilters } from "./types/racks.types";
+import { EMPTY_RACK_FILTERS, type RackFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/types/racks.types";
 import { useRack } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useRack";
 import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
@@ -20,8 +20,8 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { Loader } from "@app/shared/components/loaders/loader";
 import type { RackDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/racks/get-racks-res";
 import type { DeleteRackRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/racks/delete-rack-req";
-import { filtersToGetRacksParams } from "./utils/filter-racks";
-import { deleteButtonClass, cancelButtonClass, PAGE_SIZE } from "./utils/style.racks";
+import { filtersToGetRacksParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/filter-racks";
+import { deleteButtonClass, cancelButtonClass, PAGE_SIZE } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/style.racks";
 
 export function RacksPage() {
   const { warehouseId = "", sectionId = "" } = useParams<{

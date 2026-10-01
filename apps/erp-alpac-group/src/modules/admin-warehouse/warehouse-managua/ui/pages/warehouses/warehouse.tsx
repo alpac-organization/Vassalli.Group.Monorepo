@@ -17,7 +17,7 @@ import { WarehouseDetailModal } from "@app/modules/admin-warehouse/warehouse-man
 
 import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses-response";
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
-import { WarehouseViewer } from "./components/warehouse-viewer/warehouse-viewer";
+import { WarehouseViewer } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-viewer/warehouse-viewer";
 
 const PAGE_SIZE = 10;
 

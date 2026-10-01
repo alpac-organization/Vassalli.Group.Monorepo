@@ -13,12 +13,12 @@ import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { getWarehouseTypeLabel } from "@app/modules/warehouse/domain/enums/warehouse.enum";
 import { ActiveStatusBadge } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/badges/active-status-badge";
-import type { WarehouseDetailModalProps } from "./warehouse-detail-modal.types";
+import type { WarehouseDetailModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-detail-modal/warehouse-detail-modal.types";
 import {
 	formatWarehouseBoolean,
 	formatWarehouseMetric,
 	sectionTitleClassName,
-} from "./utils/warehouse-detail-modal.utils";
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-detail-modal/utils/warehouse-detail-modal.utils";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetWarehouseDetailsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouse-details-response";

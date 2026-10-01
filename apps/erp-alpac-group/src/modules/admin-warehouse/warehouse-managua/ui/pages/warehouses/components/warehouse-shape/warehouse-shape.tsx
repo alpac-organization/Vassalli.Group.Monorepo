@@ -6,7 +6,7 @@ import { Grid } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/wa
 import type Konva from "konva";
 import { CardinalMarker } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/cardinal-marker/cardinal-marker";
 import { CANVAS_PADDING_LEFT, METRIC_SIZE, PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
-import { WarehouseAreasColorTypes } from "../warehouse-table/utils/warehouse-status";
+import { WarehouseAreasColorTypes } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-table/utils/warehouse-status";
 
 export const WarehouseShape = ({
    width,

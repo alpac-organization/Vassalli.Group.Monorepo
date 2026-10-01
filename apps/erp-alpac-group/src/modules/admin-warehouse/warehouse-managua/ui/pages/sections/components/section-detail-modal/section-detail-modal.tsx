@@ -19,11 +19,11 @@ import {
 import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetSectionDetailsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-section-details-res";
-import type { SectionDetailModalProps } from "./section-detail-modal.types";
+import type { SectionDetailModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-detail-modal/section-detail-modal.types";
 import {
 	formatSectionMetric,
 	sectionTitleClassName,
-} from "./utils/section-detail-modal.utils";
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-detail-modal/utils/section-detail-modal.utils";
 
 export function SectionDetailModal({
 	isOpen,
