@@ -17,6 +17,7 @@ export function SectionsTable({
 	onPageChange,
 	onViewLots,
 	onViewRacks,
+	onViewDetails,
 	onSelectRow,
 	onUpdateSection,
 	onDeleteSection,
@@ -28,12 +29,13 @@ export function SectionsTable({
 			getSectionsColumns({
 				onViewLots,
 				onViewRacks,
+				onViewDetails,
 				onUpdateSection,
 				onDeleteSection,
 				lastItemId,
 			}),
 		[
-			onViewLots, onViewRacks,
+			onViewLots, onViewRacks, onViewDetails,
 			onUpdateSection, onDeleteSection,
 			lastItemId
 		],

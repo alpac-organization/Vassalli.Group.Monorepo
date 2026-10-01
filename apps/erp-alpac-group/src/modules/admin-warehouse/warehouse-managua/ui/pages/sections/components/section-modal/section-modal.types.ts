@@ -1,9 +1,11 @@
 import type { RegisterSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/register-section-req";
 import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
+import type { WarehouseDetailsDto } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/warehouse-details.mapper";
 
 export interface SectionModalProps {
 	isOpen: boolean;
 	warehouseId: string;
+	warehouse?: WarehouseDetailsDto;
 	section?: SectionDto | null;
 	onClose: () => void;
 	onSubmit?: (data: RegisterSectionRequest) => void;

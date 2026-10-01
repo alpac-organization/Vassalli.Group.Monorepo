@@ -14,6 +14,7 @@ export type SectionsTableProps = {
   onPageChange: (page: number) => void;
   onViewLots: (section: SectionDto) => void;
   onViewRacks: (section: SectionDto) => void;
+  onViewDetails: (section: SectionDto) => void;
   onUpdateSection: (section: SectionDto) => void;
   onDeleteSection: (section: SectionDto) => void;  
 };
@@ -21,6 +22,7 @@ export type SectionsTableProps = {
 export type SectionsColumnsOptions = {
   onViewLots: (section: SectionDto) => void;
   onViewRacks: (section: SectionDto) => void;
+  onViewDetails: (section: SectionDto) => void;
   onUpdateSection: (section: SectionDto) => void;
   onDeleteSection: (section: SectionDto) => void;  
   lastItemId?: string;

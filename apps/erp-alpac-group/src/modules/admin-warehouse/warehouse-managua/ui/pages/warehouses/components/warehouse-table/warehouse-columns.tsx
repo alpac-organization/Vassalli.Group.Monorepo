@@ -10,6 +10,7 @@ const contextMenuButton =
 export function getWarehouseColumns({
 	onViewSections,
 	onViewDetails,
+	onUpdateWarehouse,
 	lastItemId
 }: WarehouseColumnsOptions): TableColumn<WarehouseDto>[] {
 	return [
@@ -41,6 +42,10 @@ export function getWarehouseColumns({
 						{
 							label: "Ver detalles",
 							onClick: () => onViewDetails(item),
+						},
+						{
+							label: "Actualizar",
+							onClick: () => onUpdateWarehouse(item),
 						},
 					]}
 					triggerClassName={contextMenuButton}
