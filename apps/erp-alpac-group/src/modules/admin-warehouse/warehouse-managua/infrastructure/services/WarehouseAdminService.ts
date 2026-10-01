@@ -11,6 +11,8 @@ import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-m
 import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import type { GetLotCapacitiesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lot-capacities-req";
 import type { LotCapacitiesResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-capacities-res";
+import type { GetLotLayoutRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lot-layout-req";
+import type { LotLayoutResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-layout-res";
 import type { GetLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lot-coordinates-req";
 import type { LotCoordinatesResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-coordinates-res";
 import type { RegisterLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/register-lot-coordinates-req";
@@ -80,6 +82,15 @@ export class WarehouseAdminServices implements IWarehouseAdminService {
 
     return await this.apiHandler.get<LotCapacitiesResponse>(url);
   }
+  async GetLotLayout(
+    payload: GetLotLayoutRequest,
+  ): Promise<LotLayoutResponse> {
+    const { company_id, module_code, warehouse_id, section_id } = payload;
+
+    const url = `companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections/${section_id}/lots-layout`;
+
+    return await this.apiHandler.get<LotLayoutResponse>(url);
+  }
   async GetLotCoordinates(
     payload: GetLotCoordinatesRequest,
   ): Promise<LotCoordinatesResponse> {
@@ -120,6 +131,6 @@ export class WarehouseAdminServices implements IWarehouseAdminService {
 
     const url = `companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections/${section_id}/lots/${lot_id}/coordinates`;
 
-    await this.apiHandler.put<void>(url, rest);
+    await this.apiHandler.patch<void>(url, rest);
   }
 }

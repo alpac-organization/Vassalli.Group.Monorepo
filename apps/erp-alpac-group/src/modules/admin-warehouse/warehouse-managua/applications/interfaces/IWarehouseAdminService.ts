@@ -8,6 +8,8 @@ import type { LotDetailResponse } from "@app/modules/admin-warehouse/warehouse-m
 import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import type { GetLotCapacitiesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lot-capacities-req";
 import type { LotCapacitiesResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-capacities-res";
+import type { GetLotLayoutRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lot-layout-req";
+import type { LotLayoutResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-layout-res";
 import type { GetLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lot-coordinates-req";
 import type { LotCoordinatesResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-coordinates-res";
 import type { RegisterLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/register-lot-coordinates-req";
@@ -26,6 +28,7 @@ export interface IWarehouseAdminService {
   GetLotCapacities(
     payload: GetLotCapacitiesRequest,
   ): Promise<LotCapacitiesResponse>;
+  GetLotLayout(payload: GetLotLayoutRequest): Promise<LotLayoutResponse>;
   GetLotCoordinates(
     payload: GetLotCoordinatesRequest,
   ): Promise<LotCoordinatesResponse>;

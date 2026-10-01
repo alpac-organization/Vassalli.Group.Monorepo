@@ -18,6 +18,12 @@ export interface LotViewerProps {
   sectionWidth: number;
   sectionLength: number;
   sectionCode?: string | null;
+  /** Posicion de la seccion dentro de la bodega, en metros. */
+  sectionPositionX?: number;
+  /** Posicion de la seccion dentro de la bodega, en metros. */
+  sectionPositionY?: number;
+  /** Estado de la seccion; mapea al color del render de Secciones. */
+  sectionIsActive?: boolean;
   selectedLotId?: string | null;
   isLoading?: boolean;
   isSaving?: boolean;

@@ -18,7 +18,6 @@ import {
 import { filtersToGetLotsParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/utils/filter-lots";
 import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
 import { useLotCapacitiesMap } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useLotCapacitiesMap";
-import { useLotCoordinatesMap } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useLotCoordinatesMap";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -73,7 +72,8 @@ export function TramosPage() {
     [companyId, moduleCode, sectionId, selectedLotId],
   );
 
-  const getSectionDetailsPayload = useMemo(
+  // Layout completo para el canvas 2D: forma de la seccion + todos sus tramos.
+  const getLotLayoutPayload = useMemo(
     () => ({
       company_id: companyId,
       module_code: moduleCode,
@@ -86,13 +86,13 @@ export function TramosPage() {
   const {
     GetLots,
     GetLotById,
-    GetSectionDetails,
+    GetLotLayout,
     RegisterLotCoordinates,
     UpdateLotCoordinates,
   } = useWarehouseAdmin({
     getLotsPayload,
     getLotDetailPayload,
-    getSectionDetailsPayload,
+    getLotLayoutPayload,
   });
 
   const tramosData = useMemo(() => GetLots.data?.data ?? [], [GetLots.data]);
@@ -105,16 +105,15 @@ export function TramosPage() {
       lots: tramosData,
     });
 
-  const { coordinatesByLotId, isAnyLoading: coordinatesLoading } =
-    useLotCoordinatesMap({
-      warehouseId,
-      sectionId,
-      lots: tramosData,
-    });
+  const coordinatesLoading = GetLotLayout.isFetching;
 
-  const sectionWidth = GetSectionDetails.data?.capacity?.width ?? 0;
-  const sectionLength = GetSectionDetails.data?.capacity?.length ?? 0;
-  const sectionCode = GetSectionDetails.data?.section_code ?? null;
+  // El layout trae la forma real de la seccion y todos sus tramos.
+  const sectionWidth = GetLotLayout.data?.section_width ?? 0;
+  const sectionLength = GetLotLayout.data?.section_length ?? 0;
+  const sectionCode = GetLotLayout.data?.section_code ?? null;
+  const sectionPositionX = GetLotLayout.data?.section_position_x ?? 0;
+  const sectionPositionY = GetLotLayout.data?.section_position_y ?? 0;
+  const sectionIsActive = GetLotLayout.data?.section_is_active ?? true;
 
   useEffect(() => {
     if (!GetLots.isError || !GetLots.error) return;
@@ -153,28 +152,35 @@ export function TramosPage() {
 
   const viewerLots = useMemo<LotViewerLot[]>(
     () =>
-      tramosData.map((lot) => {
-        const capacity = capacitiesByLotId[lot.id];
-        const coordinates = coordinatesByLotId[lot.id];
+      (GetLotLayout.data?.lots ?? []).map((lotItem) => {
+        // La tabla conserva su fan-out de capacidades; el layout trae las suyas.
+        const capacity = capacitiesByLotId[lotItem.lot_id];
 
-        const savedPosition: LotPosition | null = coordinates
+        const savedPosition: LotPosition | null = lotItem.has_coordinates
           ? {
-              positionX: coordinates.position_x ?? 0,
-              positionY: coordinates.position_y ?? 0,
-              positionZ: coordinates.position_z ?? 0,
-              rotationY: coordinates.rotation_y ?? 0,
+              positionX: lotItem.position_x,
+              positionY: lotItem.position_y,
+              positionZ: lotItem.position_z,
+              rotationY: lotItem.rotation_y,
             }
           : null;
 
         return {
-          lot,
-          width: capacity?.width ?? 0,
-          length: capacity?.length ?? 0,
+          lot: {
+            id: lotItem.lot_id,
+            code: lotItem.code,
+            status: lotItem.status,
+            allows_stacking: lotItem.allows_stacking,
+            unavailable_reason: null,
+            status_changed_at: null,
+          },
+          width: capacity?.width ?? lotItem.width,
+          length: capacity?.length ?? lotItem.length,
           savedPosition,
-          draftPosition: draftPositions[lot.id] ?? null,
+          draftPosition: draftPositions[lotItem.lot_id] ?? null,
         };
       }),
-    [tramosData, capacitiesByLotId, coordinatesByLotId, draftPositions],
+    [GetLotLayout.data?.lots, capacitiesByLotId, draftPositions],
   );
 
   const handlePositionChange = useCallback(
@@ -219,15 +225,15 @@ export function TramosPage() {
     const pendingEntries = Object.entries(draftPositions);
     if (pendingEntries.length === 0) return;
 
-    const isExisting = new Set(
-      viewerLots
-        .filter((entry) => entry.savedPosition !== null)
-        .map((entry) => entry.lot.id),
-    );
-
     try {
       await Promise.all(
         pendingEntries.map(([lotId, position]) => {
+          const isExistingCoord = Boolean(
+            GetLotLayout.data?.lots.find(
+              (l) => l.lot_id === lotId && l.has_coordinates,
+            ),
+          );
+
           const payload = {
             company_id: companyId,
             module_code: moduleCode,
@@ -240,7 +246,7 @@ export function TramosPage() {
             rotation_y: position.rotationY ?? 0,
           };
 
-          return isExisting.has(lotId)
+          return isExistingCoord
             ? UpdateLotCoordinates.mutateAsync(payload)
             : RegisterLotCoordinates.mutateAsync(payload);
         }),
@@ -262,7 +268,7 @@ export function TramosPage() {
     warehouseId,
     sectionId,
     draftPositions,
-    viewerLots,
+    GetLotLayout.data?.lots,
     RegisterLotCoordinates,
     UpdateLotCoordinates,
     getMappedError,
@@ -332,8 +338,11 @@ export function TramosPage() {
           sectionWidth={sectionWidth}
           sectionLength={sectionLength}
           sectionCode={sectionCode}
+          sectionPositionX={sectionPositionX}
+          sectionPositionY={sectionPositionY}
+          sectionIsActive={sectionIsActive}
           selectedLotId={selectedLotId}
-          isLoading={GetSectionDetails.isPending || coordinatesLoading}
+          isLoading={GetLotLayout.isPending || coordinatesLoading}
           isSaving={isSavingPositions}
           hasPendingChanges={Object.keys(draftPositions).length > 0}
           onSelectLot={handleSelectLotInCanvas}
