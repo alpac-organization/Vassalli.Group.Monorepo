@@ -4,6 +4,13 @@ import { purchaseRequestPdfStyle } from "@app/modules/purchasing/ui/pages/purcha
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDate } from "@app/shared/utils/string.utils";
 import type { RequisitionDocumentProps } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-pdf/types/purchase-req-pdf";
+import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
+import {
+	ALPAC_COMPANY_NAME,
+	ALPAC_CORINTO_NAME,
+} from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-pdf/constants/purchase-request-pdf.constants";
+import selloCorinto from "@app/assets/signatures/compras/sellos/corinto/sello-administracion.png";
+import selloManagua from "@app/assets/signatures/compras/sellos/managua/sello-administracion.png";
 
 const DOCUMENT_TITLE = "REQUISICION DE COMPRAS";
 const FOOTER_MIN_PRESENCE = 140;
@@ -13,6 +20,15 @@ export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
 	const { companyAlias } = useUserStore();
 	const styles = purchaseRequestPdfStyle;
 	const products = data.products ?? [];
+
+	const reviewerName = data?.reviewer_user_information?.fullname?.trim() ?? "";
+	const branchName = data?.branch_information?.branch_name?.trim() ?? "";
+	const isApproved =
+		data?.request_status === PurchaseRequestStatusEnum.Approved.textValue;
+	const isCorinto = branchName === ALPAC_CORINTO_NAME;
+	const isManagua = branchName === ALPAC_COMPANY_NAME;
+	const showSeal = isApproved && (isCorinto || isManagua);
+	const selloSrc = isCorinto ? selloCorinto : selloManagua;
 
 	return (
 		<Document>
@@ -33,8 +49,11 @@ export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
 						<Text style={[styles.cell, styles.colQty, styles.headerText]}>
 							CANTIDAD
 						</Text>
+						<Text style={[styles.cell, styles.colProduct, styles.headerText]}>
+							PRODUCTO
+						</Text>
 						<Text style={[styles.cell, styles.colDesc, styles.headerText]}>
-							DESCRIPCION DEL ARTICULO
+							DESCRIPCION
 						</Text>
 						<Text
 							style={[
@@ -48,26 +67,34 @@ export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
 						</Text>
 					</View>
 
-					{products.map((item, index) => (
-						<View
-							key={
-								item.purchase_request_item_id ??
-								`${item.description}-${index}`
-							}
-							style={styles.tableRow}
-							wrap={false}
-						>
-							<Text style={[styles.cell, styles.colQty, styles.center]}>
-								{item.quantity}
-							</Text>
-							<Text style={[styles.cell, styles.colDesc]}>
-								{item.description}
-							</Text>
-							<Text style={[styles.cell, styles.colJust, styles.cellLast]}>
-								{item.justification}
-							</Text>
-						</View>
-					))}
+					{products.map((item, index) => {
+						const productName = item.product_details?.product_name?.trim() ?? "";
+						const description = item.description?.trim() ?? "";
+
+						return (
+							<View
+								key={
+									item.purchase_request_item_id ??
+									`${productName || description || index}`
+								}
+								style={styles.tableRow}
+								wrap={false}
+							>
+								<Text style={[styles.cell, styles.colQty, styles.center]}>
+									{item.quantity}
+								</Text>
+								<Text style={[styles.cell, styles.colProduct]}>
+									{productName}
+								</Text>
+								<Text style={[styles.cell, styles.colDesc]}>
+									{description}
+								</Text>
+								<Text style={[styles.cell, styles.colJust, styles.cellLast]}>
+									{item.justification}
+								</Text>
+							</View>
+						);
+					})}
 				</View>
 
 				<View
@@ -87,17 +114,15 @@ export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
 									Solicitado: {formatDate(data?.request_date ?? "")}
 								</Text>
 								<View style={styles.authLine} />
-								<Text style={styles.metaLine}>
-									Modificado: {formatDate(data?.request_date ?? "")}
-								</Text>
-								<View style={styles.authLine} />
 							</View>
 							<View style={styles.metaRight}>
 								<Text style={styles.authLabel}>
-									Autorización:{" "}
-									{data?.reviewer_user_information?.fullname ?? ""}
+									Autorización: {reviewerName}
 								</Text>
 								<View style={styles.authLine} />
+								{showSeal ? (
+									<Image src={selloSrc} style={styles.authorizationSeal} />
+								) : null}
 							</View>
 						</View>
 
@@ -114,10 +139,6 @@ export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
 											{formatDate(data?.request_date ?? "")}
 										</Text>
 									</View>
-									<View style={styles.receiptDateLine}>
-										<Text style={styles.receiptLabel}>Hora:</Text>
-										<Text style={styles.receiptDateValue}>{"-"}</Text>
-									</View>
 								</View>
 							</View>
 						</View>
@@ -131,7 +152,7 @@ export function PurchaseRequestPDF({ data }: RequisitionDocumentProps) {
 							Autorizado: {formatDate(data?.revision_date ?? "")}
 						</Text>
 						<Text style={styles.statusItem}>
-							Revisado por: {data?.reviewer_user_information?.fullname ?? ""}
+							Revisado por: {reviewerName}
 						</Text>
 					</View>
 				</View>

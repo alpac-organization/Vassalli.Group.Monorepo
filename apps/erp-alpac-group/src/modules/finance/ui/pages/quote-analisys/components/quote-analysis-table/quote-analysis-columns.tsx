@@ -30,13 +30,6 @@ function AvatarWithTooltip({
 					<span className="break-all text-sm font-medium text-slate-900 dark:text-white">
 						{email}
 					</span>
-
-					<span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">
-						Correo
-					</span>
-					<span className="break-all text-sm font-medium text-slate-900 dark:text-white">
-						{email}
-					</span>
 				</div>
 			}
 		/>

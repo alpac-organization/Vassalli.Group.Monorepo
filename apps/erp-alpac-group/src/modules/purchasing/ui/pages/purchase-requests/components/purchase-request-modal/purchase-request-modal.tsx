@@ -8,7 +8,11 @@ import type {
 	PurchaseRequestItemAdditionalData,
 	PurchaseRequestMainPayload,
 } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
-import type { UpdatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/update-purchase-request-payload";
+import type {
+	UpdateExistingPurchaseRequestItem,
+	UpdateNewPurchaseRequestItem,
+	UpdatePurchaseRequestPayload,
+} from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/update-purchase-request-payload";
 import type {
 	GetPurchaseRequestDetailResponse,
 	PurchaseRequestProductInformationList,
@@ -108,6 +112,46 @@ const resolveUnitMeasureId = (
 	}
 
 	return "";
+};
+
+const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestItem => {
+	const productJustification = item.justification?.trim() ?? "";
+	const productImages = item.images?.images_product_to_changed ?? [];
+	const additionalData: PurchaseRequestItemAdditionalData | null = productImages.length
+		? { images_product_to_changed: productImages }
+		: null;
+
+	return {
+		product_id: item.product_id,
+		quantity: Number(item.quantity),
+		description: item.description,
+		unit_measure_id: item.unit_measure_id,
+		additional_data: additionalData ? JSON.stringify(additionalData) : null,
+		...(productJustification ? { justification: productJustification } : {}),
+		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
+			? { quantity_unit: Number(item.quantity_unit) }
+			: {}),
+	};
+};
+
+const mapExistingUpdateItem = (
+	item: PurchaseRequestItem & { purchase_request_item_id: string },
+): UpdateExistingPurchaseRequestItem => {
+	const productJustification = item.justification?.trim() ?? "";
+	const productImages = item.images?.images_product_to_changed ?? [];
+
+	return {
+		id: item.purchase_request_item_id,
+		product_id: item.product_id,
+		quantity: Number(item.quantity),
+		description: item.description,
+		unit_measure_id: item.unit_measure_id,
+		images_product_to_changed: productImages,
+		...(productJustification ? { justification: productJustification } : {}),
+		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
+			? { quantity_unit: Number(item.quantity_unit) }
+			: {}),
+	};
 };
 
 export const PurchaseRequestModal = ({
@@ -316,82 +360,40 @@ export const PurchaseRequestModal = ({
 		setEntries((prev) => prev.filter((entry) => entry.id !== id));
 	};
 
-	const handleCheckOsSelection = (osId: string, currentBlockId: string): boolean => {
-		for (const [id, block] of blockRefs.current.entries()) {
-			if (id === currentBlockId) continue;
-			if (block.getServiceOrderId?.() === osId) {
-				return true;
-			}
-		}
-		return false;
-	};
-
 	const buildCreatePayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => ({
 		...(isAdministrator && areaId ? { area_id: areaId } : {}),
 		branch_id: currentBranchId,
 		cost_center_id: costCenterId,
 		request_type: Number(requestType.value),
 		...(isRequisition ? { priority_level: Number(values.priority_level) } : {}),
-		...(values.service_order_id && { service_order_id: values.service_order_id }),
-		...(values.operational_order_id && { operational_order_id: values.operational_order_id }),
 		destination: values.destination,
 		observations: values.observations.trim(),
-		purchase_request_items: values.purchase_request_items.map((item: PurchaseRequestItem) => {
-			const productJustification = item.justification?.trim() ?? "";
-			const productImages = item.images?.images_product_to_changed ?? [];
-			const additionalData: PurchaseRequestItemAdditionalData | null = productImages.length
-				? { images_product_to_changed: productImages }
-				: null;
-
-			return {
-				product_id: item.product_id,
-				quantity: Number(item.quantity),
-				description: item.description,
-				unit_measure_id: item.unit_measure_id,
-				additional_data: additionalData ? JSON.stringify(additionalData) : null,
-				...(productJustification ? { justification: productJustification } : {}),
-				...(item.quantity_unit != null && Number(item.quantity_unit) > 0
-					? { quantity_unit: Number(item.quantity_unit) }
-					: {}),
-			};
-		}),
+		purchase_request_items: values.purchase_request_items.map((item: PurchaseRequestItem) =>
+			mapNewCreateItem(item),
+		),
 	});
 
-	const buildUpdatePayload = (values: CreatePurchaseRequestPayload): UpdatePurchaseRequestPayload => {
-		const productImagesPayload = values.purchase_request_items
-			.filter((item): item is PurchaseRequestItem & { purchase_request_item_id: string } =>
-				Boolean(item.purchase_request_item_id?.trim()),
-			)
-			.map((item) => {
-				const productJustification = item.justification?.trim() ?? "";
-				const productImages = item.images?.images_product_to_changed ?? [];
+	const buildUpdatePayload = (values: CreatePurchaseRequestPayload): UpdatePurchaseRequestPayload => ({
+		company_id: companyId,
+		module_code: moduleCode,
+		purchase_request_id: purchaseRequestId,
+		observations: values.observations.trim(),
+		destination_request: Number(values.destination),
+		...(isRequisition
+			? { priority_level: Number(values.priority_level) }
+			: { priority_level: PriorityLevelEnum.None.value }),
+		purchase_request_items: values.purchase_request_items.map((item) => {
+			const existingId = item.purchase_request_item_id?.trim();
+			if (existingId) {
+				return mapExistingUpdateItem({
+					...item,
+					purchase_request_item_id: existingId,
+				});
+			}
 
-				return {
-					id: item.purchase_request_item_id,
-					product_id: item.product_id,
-					quantity: Number(item.quantity),
-					description: item.description,
-					unit_measure_id: item.unit_measure_id,
-					images_product_to_changed: productImages,
-					...(productJustification ? { justification: productJustification } : {}),
-					...(item.quantity_unit != null && Number(item.quantity_unit) > 0
-						? { quantity_unit: Number(item.quantity_unit) }
-						: {}),
-				};
-			});
-
-		return {
-			company_id: companyId,
-			module_code: moduleCode,
-			purchase_request_id: purchaseRequestId,
-			observations: values.observations.trim(),
-			destination_request: Number(values.destination),
-			...(isRequisition
-				? { priority_level: Number(values.priority_level) }
-				: { priority_level: PriorityLevelEnum.None.value }),
-			purchase_request_items: productImagesPayload,
-		};
-	};
+			return mapNewCreateItem(item);
+		}),
+	});
 
 	const handleFormSubmit = async () => {
 		if (!currentBranchId || entries.length === 0) return;
@@ -523,7 +525,6 @@ export const PurchaseRequestModal = ({
 											onRemove={() => handleRemove(entry.id)}
 											onRequestError={onRequestError}
 											onRequestSuccess={onRequestSuccess}
-											onCheckOsSelection={(osId) => handleCheckOsSelection(osId, entry.id)}
 											ref={(instance) => {
 												if (instance) {
 													blockRefs.current.set(entry.id, instance);

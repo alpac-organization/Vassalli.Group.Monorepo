@@ -24,6 +24,8 @@ import type { PurchaseRequestDetailProps } from "./purchase-request-detail.types
 import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
 import { PurchaseRequestImageUploader } from "../purchase-request-image-uploader/purchase-request-image-uploader";
 import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
+import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
+import { RoleEnum } from "@app/core/enums/role.enum";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -57,13 +59,17 @@ const hasUnitsPerPackage = (label?: string, symbol?: string) => {
 };
 
 export const PurchaseRequestDetail = (
-	{ disableActions, lockItems = false, onRequestError, onRequestSuccess }: PurchaseRequestDetailProps
+	{ requestType, disableActions, lockItems = false, isEditMode = false, onRequestError, onRequestSuccess }: PurchaseRequestDetailProps
 ) => {
 
-	const { companyId, moduleCode } = useUserStore();
+	const { companyId, moduleCode, role } = useUserStore();
 	const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
 	const [isCreateProductOpen, setIsCreateProductOpen] = useState(false);
 	const [openProducts, setOpenProducts] = useState<string[]>([]);
+
+	const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
+	const canCreateProduct =
+		!isEditMode && isRequisition && role === RoleEnum.ADMINISTRATOR;
 
 	const {
 		control,
@@ -160,13 +166,13 @@ export const PurchaseRequestDetail = (
 						Productos solicitados
 					</span>
 					<small className="text-gray-500 dark:text-gray-300">
-						{lockItems
-							? "Edite cantidad, unidad y datos de los productos existentes"
+						{isEditMode
+							? "Puede agregar productos nuevos y editar cantidad, unidad y datos de los existentes"
 							: "Seleccione los productos y complete cantidad y unidad de medida"}
 					</small>
 				</div>
 
-				{!lockItems && (
+				{lockItems ? null : (
 					<div className="shrink-0 self-stretch sm:self-auto">
 						<ContextMenu
 							triggerClassName={contextMenuButton}
@@ -181,13 +187,17 @@ export const PurchaseRequestDetail = (
 										clearErrors();
 									}
 								},
-								{
-									label: "Crear Nuevo Producto",
-									onClick: () => {
-										setIsCreateProductOpen(true);
-										clearErrors();
-									}
-								},
+								...(canCreateProduct
+									? [
+											{
+												label: "Crear Nuevo Producto",
+												onClick: () => {
+													setIsCreateProductOpen(true);
+													clearErrors();
+												}
+											},
+										]
+									: []),
 							]}
 						/>
 					</div>
@@ -233,6 +243,11 @@ export const PurchaseRequestDetail = (
 							selectedUnit?.label,
 							selectedUnit?.symbol,
 						);
+						const isPersistedItem = Boolean(
+							item.purchase_request_item_id?.trim(),
+						);
+						const canRemoveItem = !lockItems && !isPersistedItem;
+						const requiresDescription = !isPersistedItem;
 
 						return (
 							<AccordionItem
@@ -251,7 +266,7 @@ export const PurchaseRequestDetail = (
 												{item.product_name || `#${index + 1}`}
 											</span>
 										</div>
-										{!lockItems ? (
+										{canRemoveItem ? (
 											<span
 												className="mr-3 flex shrink-0 items-center"
 												onClick={(evt) => evt.stopPropagation()}
@@ -436,18 +451,29 @@ export const PurchaseRequestDetail = (
 										<Controller
 											name={`purchase_request_items.${index}.description`}
 											control={control}
-											rules={{
-												required: false,
-											}}
+											rules={
+												requiresDescription
+													? {
+															validate: (value) =>
+																(typeof value === "string" && value.trim().length > 0) ||
+																"La descripción es requerida",
+														}
+													: undefined
+											}
 											render={({ field }) => (
 												<Textarea
 													label="Descripción"
+													isRequired={requiresDescription}
 													placeholder="Ej. Resma de papel bond carta, 75 g, paquete de 500 hojas."
 													className={inputClassName}
 													labelClassName={labelClassName}
 													value={field.value ?? ""}
 													onChange={field.onChange}
 													enableCharacterCount
+													error={
+														errors.purchase_request_items?.[index]?.description
+															?.message
+													}
 												/>
 											)}
 										/>
@@ -464,7 +490,7 @@ export const PurchaseRequestDetail = (
 												<Textarea
 													label="Justificación"
 													isRequired
-													placeholder="Ej. Se requiere para reponer el inventario de papelería del área, el stock actual no cubre la demanda."
+													placeholder="Ej. Se requiere para reponer el inventario de papelería"
 													className={inputClassName}
 													labelClassName={labelClassName}
 													value={field.value ?? ""}
@@ -523,13 +549,15 @@ export const PurchaseRequestDetail = (
 				excludeProductIds={assignedProductIds}
 			/>
 
-			<CreateProductModal
-				isOpen={isCreateProductOpen}
-				onClose={() => setIsCreateProductOpen(false)}
-				onRequestSuccess={onRequestSuccess}
-				onRequestError={onRequestError}
-				onSubmit={handleCreateProduct}
-			/>
+			{canCreateProduct ? (
+				<CreateProductModal
+					isOpen={isCreateProductOpen}
+					onClose={() => setIsCreateProductOpen(false)}
+					onRequestSuccess={onRequestSuccess}
+					onRequestError={onRequestError}
+					onSubmit={handleCreateProduct}
+				/>
+			) : null}
 		</div>
 	);
 };

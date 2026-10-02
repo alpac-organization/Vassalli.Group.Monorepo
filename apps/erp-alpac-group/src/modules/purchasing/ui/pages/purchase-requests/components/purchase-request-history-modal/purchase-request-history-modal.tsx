@@ -25,6 +25,7 @@ const HistoryUser = ({ user }: { user?: UserInformation | null }) => {
 	const pictureUrl = user?.picture_url?.trim();
 	const workArea = user?.work_area_information?.work_area_name?.trim() || "Sin área";
 	const status = formatUserStatus(user?.user_status);
+	console.log(user);
 
 	return (
 		<div className="flex min-w-0 items-start">
@@ -101,6 +102,7 @@ export const PurchaseRequestHistoryModal = ({
 	history,
 }: PurchaseRequestHistoryModalProps) => {	
 	const entries = [...(history ?? [])].reverse();	
+	console.log(JSON.parse(JSON.stringify(entries)));
 	const isEmpty:boolean = entries.length === 0;
 	if (isEmpty ) {
 		return (

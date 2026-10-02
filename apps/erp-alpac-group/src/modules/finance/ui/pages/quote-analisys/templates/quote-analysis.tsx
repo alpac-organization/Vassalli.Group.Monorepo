@@ -59,7 +59,6 @@ export function QuoteAnalysisPDF({
 							suppliers={chunk}
 							qualitative={qualitative}
 							colorIndexOffset={colorIndexOffset}
-							providerLabelOffset={colorIndexOffset}
 						/>
 
 						{isLastChunk ? (

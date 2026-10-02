@@ -33,7 +33,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                {...rest}
                id={textareaId}
                className={`
-                  w-full box-border rounded-[10px] border bg-white py-2.5 px-4 text-[14px] outline-none transition-all
+                  w-full box-border rounded-[10px] border bg-white py-2.5 px-4 text-[14px] outline-none transition-all resize-none
                   placeholder:text-slate-500 md:text-[15px]
                   focus:border-blue-600 focus:ring-2 focus:ring-green-50/50
                   disabled:cursor-not-allowed disabled:bg-slate-50
