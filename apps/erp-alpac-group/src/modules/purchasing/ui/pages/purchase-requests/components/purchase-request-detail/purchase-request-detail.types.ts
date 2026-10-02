@@ -5,6 +5,7 @@ export type PurchaseRequestDetailProps = {
    disableActions?: boolean;
    lockItems?: boolean;
    isEditMode?: boolean;
+   hasAttemptedSubmit?: boolean;
    onRequestError?: (message?: string) => void;
    onRequestSuccess?: (message: string) => void;
-}
+};

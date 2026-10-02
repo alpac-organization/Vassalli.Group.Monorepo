@@ -59,7 +59,7 @@ const hasUnitsPerPackage = (label?: string, symbol?: string) => {
 };
 
 export const PurchaseRequestDetail = (
-	{ requestType, disableActions, lockItems = false, isEditMode = false, onRequestError, onRequestSuccess }: PurchaseRequestDetailProps
+	{ requestType, disableActions, lockItems = false, isEditMode = false, hasAttemptedSubmit = false, onRequestError, onRequestSuccess }: PurchaseRequestDetailProps
 ) => {
 
 	const { companyId, moduleCode, role } = useUserStore();
@@ -76,6 +76,7 @@ export const PurchaseRequestDetail = (
 		watch,
 		setValue,
 		clearErrors,
+		trigger,
 		formState: { errors },
 	} = useFormContext<CreatePurchaseRequestPayload>();
 
@@ -128,6 +129,8 @@ export const PurchaseRequestDetail = (
 				},
 			});
 		});
+
+		clearErrors("purchase_request_items");
 	};
 
 	const handleCreateProduct = (product: CreatedProductDto) => {
@@ -148,7 +151,9 @@ export const PurchaseRequestDetail = (
 				images_product_to_changed: [],
 			},
 		});
-	}
+
+		clearErrors("purchase_request_items");
+	};
 
 	const assignedProductIds = useMemo(
 		() =>
@@ -319,9 +324,14 @@ export const PurchaseRequestDetail = (
 													className={inputClassName}
 													labelClassName={labelClassName}
 													value={formatIntegerDisplay(field.value)}
-													onChange={(e) =>
-														field.onChange(parseIntegerInput(e.target.value))
-													}
+													onChange={(e) => {
+														field.onChange(parseIntegerInput(e.target.value));
+														if (hasAttemptedSubmit) {
+															void trigger(
+																`purchase_request_items.${index}.quantity`,
+															);
+														}
+													}}
 													error={
 														errors.purchase_request_items?.[index]?.quantity
 															?.message
@@ -369,6 +379,12 @@ export const PurchaseRequestDetail = (
 															);
 															clearErrors(
 																`purchase_request_items.${index}.quantity_unit`,
+															);
+														}
+
+														if (hasAttemptedSubmit) {
+															void trigger(
+																`purchase_request_items.${index}.unit_measure_id`,
 															);
 														}
 													}}
@@ -432,9 +448,14 @@ export const PurchaseRequestDetail = (
 													className={inputClassName}
 													labelClassName={labelClassName}
 													value={formatIntegerDisplay(field.value ?? 0)}
-													onChange={(e) =>
-														field.onChange(parseIntegerInput(e.target.value))
-													}
+													onChange={(e) => {
+														field.onChange(parseIntegerInput(e.target.value));
+														if (hasAttemptedSubmit) {
+															void trigger(
+																`purchase_request_items.${index}.quantity_unit`,
+															);
+														}
+													}}
 													error={
 														errors.purchase_request_items?.[index]
 															?.quantity_unit?.message
@@ -468,7 +489,14 @@ export const PurchaseRequestDetail = (
 													className={inputClassName}
 													labelClassName={labelClassName}
 													value={field.value ?? ""}
-													onChange={field.onChange}
+													onChange={(event) => {
+														field.onChange(event);
+														if (hasAttemptedSubmit) {
+															void trigger(
+																`purchase_request_items.${index}.description`,
+															);
+														}
+													}}
 													enableCharacterCount
 													error={
 														errors.purchase_request_items?.[index]?.description
@@ -494,7 +522,14 @@ export const PurchaseRequestDetail = (
 													className={inputClassName}
 													labelClassName={labelClassName}
 													value={field.value ?? ""}
-													onChange={field.onChange}
+													onChange={(event) => {
+														field.onChange(event);
+														if (hasAttemptedSubmit) {
+															void trigger(
+																`purchase_request_items.${index}.justification`,
+															);
+														}
+													}}
 													enableCharacterCount
 													error={
 														errors.purchase_request_items?.[index]

@@ -1,4 +1,4 @@
-import { useImperativeHandle } from "react";
+import { useImperativeHandle, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { ContextMenu, Dropdown, Textarea } from "@alpac/design-system";
 import { PurchaseRequestDetail } from "../purchase-request-detail/purchase-request-detail";
@@ -33,6 +33,7 @@ export const PurchaseRequestFormBlock = ({
 
    const { costCenterName } = useUserStore();
    const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
+   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
 
    const methods = useForm<CreatePurchaseRequestPayload>({
       defaultValues: {
@@ -40,10 +41,12 @@ export const PurchaseRequestFormBlock = ({
          destination: PurchaseRequestDestinationEnum.Internal.value,
       },
       mode: "onSubmit",
+      reValidateMode: "onChange",
    });
 
    const {
       control,
+      trigger,
       formState: { errors },
    } = methods;
 
@@ -57,7 +60,10 @@ export const PurchaseRequestFormBlock = ({
    );
 
    useImperativeHandle(ref, () => ({
-      validate: () => methods.trigger(),
+      validate: async () => {
+         setHasAttemptedSubmit(true);
+         return methods.trigger();
+      },
       getValues: () => {
          const values = methods.getValues();
          const dirtyItems = methods.formState.dirtyFields.purchase_request_items;
@@ -149,6 +155,9 @@ export const PurchaseRequestFormBlock = ({
                                  value={field.value}
                                  onChange={(value) => {
                                     field.onChange(value);
+                                    if (hasAttemptedSubmit) {
+                                       void trigger("priority_level");
+                                    }
                                  }}
                                  options={filteredPriorityOptions}
                                  labelClassName={labelClassName}
@@ -178,7 +187,12 @@ export const PurchaseRequestFormBlock = ({
                         className={inputClassName}
                         labelClassName={labelClassName}
                         value={field.value}
-                        onChange={field.onChange}
+                        onChange={(event) => {
+                           field.onChange(event);
+                           if (hasAttemptedSubmit) {
+                              void trigger("observations");
+                           }
+                        }}
                         error={errors.observations?.message}
                         maxLength={500}
                         enableCharacterCount
@@ -194,6 +208,7 @@ export const PurchaseRequestFormBlock = ({
                   requestType={requestType}
                   disableActions={isDisabledActions}
                   isEditMode={isEditMode}
+                  hasAttemptedSubmit={hasAttemptedSubmit}
                   onRequestError={onRequestError}
                   onRequestSuccess={onRequestSuccess}
                />

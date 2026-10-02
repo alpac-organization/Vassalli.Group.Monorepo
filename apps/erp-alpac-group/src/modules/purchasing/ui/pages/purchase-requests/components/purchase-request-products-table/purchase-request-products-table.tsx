@@ -3,7 +3,7 @@ import { ChevronDown, ImagesIcon } from "lucide-react";
 import { useState, type KeyboardEvent } from "react";
 import { extractPurchaseRequestItemImages } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-item-images.utils";
 import { viewImagesButtonClass } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/utils/styles.purchasing";
-import type { PurchaseRequestProductsTableProps } from "./purchase-request-products-table.types";
+import type { PurchaseRequestProductsTableProps } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-products-table/purchase-request-products-table.types";
 import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { PaymentMethodEnum } from "@app/core/enums/payment-method.enum";
@@ -23,8 +23,10 @@ const COLUMN_HEADERS = [
 
 const mobileLabelClassName =
 	"text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 sm:hidden";
-const cellValueClassName = "text-sm text-slate-700 dark:text-slate-200";
-const cellValueMediumClassName = "text-sm font-medium text-slate-700 dark:text-slate-200";
+const cellValueClassName =
+	"min-w-0 wrap-break-words break-all text-sm text-slate-700 dark:text-slate-200";
+const cellValueMediumClassName =
+	"min-w-0 wrap-break-words break-all text-sm font-medium text-slate-700 dark:text-slate-200";
 
 const EmptyProductsMessage = ({ productsCount }: { productsCount: number }) => {
 	if (productsCount > 0) return null;
@@ -159,7 +161,7 @@ const ProductRowGrid = ({
 	productImages,
 	onViewImages,
 }: ProductRowGridProps) => (
-	<div className="grid min-w-0 flex-1 grid-cols-1 gap-6 sm:grid-cols-7 sm:items-center">
+	<div className="grid min-w-0 flex-1 grid-cols-1 gap-6 sm:grid-cols-7 sm:items-start sm:gap-x-3">
 		<span className={mobileLabelClassName}>Producto</span>
 		<span className={cellValueMediumClassName}>
 			{product.product_details.product_name?.trim() || "—"}
@@ -191,20 +193,22 @@ const ProductRowGrid = ({
 
 		<span className={mobileLabelClassName}>Imágenes</span>
 		{productImages.length > 0 ? (
-			<Button
-				type="button"
-				size="small"
-				label="Ver imágenes"
-				icon={<ImagesIcon size={16} />}
-				className={viewImagesButtonClass}
-				onClick={(event) => {
-					event.stopPropagation();
-					onViewImages({
-						productName,
-						images: productImages,
-					});
-				}}
-			/>
+			<div className="min-w-0">
+				<Button
+					type="button"
+					size="small"
+					label="Ver imágenes"
+					icon={<ImagesIcon size={16} />}
+					className={viewImagesButtonClass}
+					onClick={(event) => {
+						event.stopPropagation();
+						onViewImages({
+							productName,
+							images: productImages,
+						});
+					}}
+				/>
+			</div>
 		) : (
 			<span className={cellValueClassName}>—</span>
 		)}
@@ -308,59 +312,61 @@ export const PurchaseRequestProductsTable = ({
 	};
 
 	return (
-		<div className="overflow-hidden rounded-lg border border-slate-200 dark:border-neutral-700">
-			<div className="hidden border-b border-slate-200 bg-slate-100 sm:grid sm:grid-cols-7 dark:border-neutral-700 dark:bg-neutral-800">
-				{COLUMN_HEADERS.map((header) => (
-					<div
-						key={header}
-						className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
-					>
-						{header}
-					</div>
-				))}
-			</div>
+		<div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-neutral-700">
+			<div className="min-w-0 sm:min-w-[56rem]">
+				<div className="hidden border-b border-slate-200 bg-slate-100 sm:grid sm:grid-cols-7 sm:gap-x-3 dark:border-neutral-700 dark:bg-neutral-800">
+					{COLUMN_HEADERS.map((header) => (
+						<div
+							key={header}
+							className="min-w-0 px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+						>
+							{header}
+						</div>
+					))}
+				</div>
 
-			<div className="flex flex-col divide-y divide-slate-100 dark:divide-neutral-700">
-				<EmptyProductsMessage productsCount={products.length} />
-				{products.length > 0 &&
-					products.map((product, index) => {
-						const productImages = extractPurchaseRequestItemImages(
-							product.additional_data,
-						);
-						const productName =
-							product.product_details.product_name?.trim() || "producto";
-						const acceptedSupplierId = getAcceptedSupplierId(product);
-						const hasExpandableContent = Boolean(acceptedSupplierId);
-						const rowKey = `${product?.purchase_request_item_id}-${product.product_details.product_id}-${index}`;
-
-						if (!hasExpandableContent) {
-							return (
-								<div key={rowKey} className="px-3 py-3">
-									<ProductRowGrid
-										product={product}
-										productName={productName}
-										productImages={productImages}
-										onViewImages={onViewImages}
-									/>
-								</div>
+				<div className="flex flex-col divide-y divide-slate-100 dark:divide-neutral-700">
+					<EmptyProductsMessage productsCount={products.length} />
+					{products.length > 0 &&
+						products.map((product, index) => {
+							const productImages = extractPurchaseRequestItemImages(
+								product.additional_data,
 							);
-						}
+							const productName =
+								product.product_details.product_name?.trim() || "producto";
+							const acceptedSupplierId = getAcceptedSupplierId(product);
+							const hasExpandableContent = Boolean(acceptedSupplierId);
+							const rowKey = `${product?.purchase_request_item_id}-${product.product_details.product_id}-${index}`;
 
-						return (
-							<ProductAccordionRow
-								key={rowKey}
-								rowKey={rowKey}
-								product={product}
-								productName={productName}
-								productImages={productImages}
-								acceptedSupplierId={acceptedSupplierId}
-								isOpen={Boolean(openRows[rowKey])}
-								onToggle={() => toggleRow(rowKey)}
-								onViewImages={onViewImages}
-								onGenerateDocument={onGenerateDocument}
-							/>
-						);
-					})}
+							if (!hasExpandableContent) {
+								return (
+									<div key={rowKey} className="px-3 py-3">
+										<ProductRowGrid
+											product={product}
+											productName={productName}
+											productImages={productImages}
+											onViewImages={onViewImages}
+										/>
+									</div>
+								);
+							}
+
+							return (
+								<ProductAccordionRow
+									key={rowKey}
+									rowKey={rowKey}
+									product={product}
+									productName={productName}
+									productImages={productImages}
+									acceptedSupplierId={acceptedSupplierId}
+									isOpen={Boolean(openRows[rowKey])}
+									onToggle={() => toggleRow(rowKey)}
+									onViewImages={onViewImages}
+									onGenerateDocument={onGenerateDocument}
+								/>
+							);
+						})}
+				</div>
 			</div>
 		</div>
 	);
