@@ -1,4 +1,5 @@
 import type { DocumentType } from "@app/core/enums/document.enum";
+
 export type GateEntryFormValues = {
   countryOfOrigin: string;
   customBranchId: string;
@@ -7,14 +8,14 @@ export type GateEntryFormValues = {
   driverName: string;
   driverLicense: string;
   transportista: string;
-  consignee: string;
   sealNumber: string;
   sealEvidence: { file: File | null; imageBase64: string; contentType: string }[];
   transportUnitId: string;
   customsDeclarationNumber: string;
+  totalWeight: string;
   packages: string;
-  customer: string;
-  product: string;
+  product?: string;
+  observations?: string;
   containerNumber: string;
   ducas: { value: string }[];
 };
@@ -34,14 +35,14 @@ export const GATE_ENTRY_DEFAULT_VALUES: GateEntryFormValues = {
   driverName: "",
   driverLicense: "",
   transportista: "",
-  consignee: "",
   sealNumber: "",
   sealEvidence: [],
   transportUnitId: "",
   customsDeclarationNumber: "",
+  totalWeight: "",
   packages: "",
-  customer: "",
   product: "",
+  observations: "",
   containerNumber: "",
   ducas: [{ value: "" }],
 };

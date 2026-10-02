@@ -2,8 +2,8 @@ import type { EnumType } from "@app/shared/types/enum.type";
 
 
 export const TransportUnit: Record<string, EnumType> = {
-  Container: { value: 1, label: "Container" },
-  Van: { value: 2, label: "Van" },
+  Container: { value: 1, label: "Contenedor" },
+  Van: { value: 2, label: "Camión" },
 };
 
 export const TransportUnitOptions: EnumType[] = Object.values(TransportUnit);

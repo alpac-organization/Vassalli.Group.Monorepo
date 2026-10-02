@@ -32,22 +32,48 @@ export function CustomsDeclaration({
       />
 
       <InputText
-        label="Paquetes"
+        label="Peso total (kg)"
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
         isRequired
         type="number"
-        placeholder="Cantidad de paquetes"
+        step="any"
+        placeholder="Ingrese peso total"
+        {...register("totalWeight", {
+          required: "El peso total es obligatorio.",
+          setValueAs: (value: string) => value?.trim(),
+          validate: {
+            notEmpty: (value: string) =>
+              Boolean(value?.trim()) || "El peso total es obligatorio.",
+            positive: (value: string) => {
+              const parsed = Number(value);
+              if (Number.isNaN(parsed) || parsed <= 0) {
+                return "El peso total debe ser mayor a 0.";
+              }
+              return true;
+            },
+          },
+        })}
+        error={errors.totalWeight?.message}
+      />
+
+      <InputText
+        label="Paquetes / Bultos"
+        labelClassName={gateEntryLabelClassName}
+        className={gateEntryInputClassName}
+        isRequired
+        type="number"
+        placeholder="Cantidad de bultos"
         {...register("packages", {
-          required: "La cantidad de paquetes es obligatoria.",
+          required: "La cantidad de bultos es obligatoria.",
           setValueAs: (value: string) => value?.trim(),
           validate: {
             notEmpty: (value: string) =>
               Boolean(value?.trim()) || "La cantidad de bultos es obligatoria.",
-            positiveInteger: (value: string) => {
+            positive: (value: string) => {
               const parsed = Number(value);
-              if (!Number.isInteger(parsed) || parsed <= 0) {
-                return "Ingrese un número entero mayor a 0.";
+              if (Number.isNaN(parsed) || parsed <= 0) {
+                return "Ingrese una cantidad válida mayor a 0.";
               }
               return true;
             },
@@ -57,37 +83,25 @@ export function CustomsDeclaration({
       />
 
       <InputText
-        label="Cliente"
+        label="Descripción del producto"
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
-        isRequired
-        placeholder="Nombre del cliente"
-        {...register("customer", {
-          required: "El cliente es obligatorio.",
+        placeholder="Descripción del producto"
+        {...register("product", {
           setValueAs: (value: string) => value?.trim(),
-          validate: {
-            notEmpty: (value: string) =>
-              Boolean(value?.trim()) || "El cliente es obligatorio.",
-          },
         })}
-        error={errors.customer?.message}
+        error={errors.product?.message}
       />
 
       <InputText
-        label="Producto"
+        label="Observaciones"
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
-        isRequired
-        placeholder="Ingrese el producto"
-        {...register("product", {
-          required: "El producto es obligatorio.",
+        placeholder="Observaciones adicionales"
+        {...register("observations", {
           setValueAs: (value: string) => value?.trim(),
-          validate: {
-            notEmpty: (value: string) =>
-              Boolean(value?.trim()) || "El producto es obligatorio.",
-          },
         })}
-        error={errors.product?.message}
+        error={errors.observations?.message}
       />
     </div>
   );

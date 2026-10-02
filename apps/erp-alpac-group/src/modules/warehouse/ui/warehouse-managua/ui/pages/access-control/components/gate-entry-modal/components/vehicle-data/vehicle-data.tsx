@@ -15,7 +15,10 @@ import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { TransportUnitOptions } from "@app/modules/warehouse/domain/enums/warehouse-managua/transport-unit";
 import { ImageUploader } from "@app/shared/components/image-uploader/image-uploader";
 import type { ImageOutput } from "@app/shared/components/image-uploader/image-uploader.types";
-import type { CustomBranch } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/custom-branches-response";
+import {
+  extractCustomBranches,
+  type CustomBranch,
+} from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/custom-branches-response";
 export function VehicleDataStep({
   register,
   setValue,
@@ -35,14 +38,15 @@ export function VehicleDataStep({
     getCustomBranchesPayload: {
       company_id: companyId,
       module_code: moduleCode,
+      page_size: 20,
     },
   });
 
   const customBranchesOptions = useMemo(() => {
-    if (!GetCustomBranches.data) return [];
-    return GetCustomBranches.data.map((branch: CustomBranch) => ({
-      value: branch.id,
-      label: branch.name,
+    const branches = extractCustomBranches(GetCustomBranches.data);
+    return branches.map((branch: CustomBranch) => ({
+      value: branch.custom_branch_id || branch.id || "",
+      label: branch.customs_branch_name || branch.name || branch.code || "",
     }));
   }, [GetCustomBranches.data]);
 
@@ -55,6 +59,11 @@ export function VehicleDataStep({
       required: "Debe seleccionar una unidad de transporte.",
       validate: (value: string) =>
         Boolean(value?.trim()) || "Debe seleccionar una unidad de transporte.",
+    });
+    register("customBranchId", {
+      required: "La Aduana de ingreso es obligatoria.",
+      validate: (value: string) =>
+        Boolean(value?.trim()) || "La Aduana de ingreso es obligatoria.",
     });
   }, [register]);
 
@@ -70,13 +79,14 @@ export function VehicleDataStep({
   const initialSealEvidence = watch("sealEvidence");
   const [sealEvidenceImages, setSealEvidenceImages] = useState<ImageOutput[]>(() => {
     if (!initialSealEvidence || !Array.isArray(initialSealEvidence)) return [];
-    return initialSealEvidence.map((img: any) => ({
+    return initialSealEvidence.map((img) => ({
       id: typeof crypto !== "undefined" && crypto.randomUUID 
           ? crypto.randomUUID() 
           : Date.now().toString(36) + Math.random().toString(36).substring(2),
       file: img.file,
       base64: img.imageBase64,
       preview: img.file ? URL.createObjectURL(img.file) : "",
+      contentType: img.contentType || img.file?.type || "image/jpeg",
     }));
   });
 
@@ -157,8 +167,12 @@ export function VehicleDataStep({
           label="Aduana de ingreso"
           appearance="dark"
           isRequired
-          placeholder={
+          disabled={
+            GetCustomBranches.isPending ||
             customBranchesOptions.length === 0
+          }
+          placeholder={
+            GetCustomBranches.isPending
               ? "Cargando aduanas..."
               : "Seleccione una aduana"
           }
@@ -173,12 +187,6 @@ export function VehicleDataStep({
           error={errors.customBranchId?.message}
           labelClassName={gateEntryLabelClassName}
           className={`${gateEntryInputClassName} h-[42px]! sm:h-[46px]!`}
-        />
-        <input
-          type="hidden"
-          {...register("customBranchId", {
-            required: "La Aduana de ingreso es obligatoria.",
-          })}
         />
       </div>
 
@@ -237,7 +245,7 @@ export function VehicleDataStep({
       />
 
       <InputText
-        label="Nombre del donductor"
+        label="Nombre del conductor"
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
         isRequired
@@ -288,7 +296,7 @@ export function VehicleDataStep({
       />
 
       <InputText
-        label="Numero de sello"
+        label="Numero de marchamo"
         labelClassName={gateEntryLabelClassName}
         className={gateEntryInputClassName}
         isRequired
@@ -297,7 +305,7 @@ export function VehicleDataStep({
           setValueAs: (value: string) => value?.trim(),
           validate: (value: string) => {
             if (!isAlfaNumericValue(value)) {
-              return "Digite un número de sello válido.";
+              return "Digite un número de marchamo válido.";
             }
             return true;
           },

@@ -111,10 +111,11 @@ export function AnnulModal({
 				)}
 
 				<Textarea
-					label="Justificación / Motivo *"
+					label="Justificación / Motivo"
 					placeholder="Escriba detalladamente el motivo de la anulación o retorno..."
 					className={inputClassName}
 					labelClassName={labelClassName}
+					isRequired
 					value={reason}
 					onChange={(e) => setReason(e.target.value)}
 					maxLength={500}
