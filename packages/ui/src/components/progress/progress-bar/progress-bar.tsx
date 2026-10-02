@@ -24,18 +24,16 @@ export const ProgressBar = ({
 	const safeTotal = Math.max(0, toSafeNumber(total));
 	const safeCompleted = clamp(toSafeNumber(completed), 0, 100);
 	const safeRemaining = Math.max(0, toSafeNumber(remaining));
-	const unitSuffix = unitOfMeasurement?.trim()
-		? ` ${unitOfMeasurement.trim()}`
-		: "";
+	const unitSuffix = unitOfMeasurement?.trim() ? ` ${unitOfMeasurement.trim()}` : "";
 
 	return (
 		<div className="flex w-45 flex-col gap-1.5">
 			<div className="flex justify-between flex-wrap gap-1 text-xs text-slate-500 dark:text-slate-400">
 				<span>
-					{totalLabel}: {safeTotal}{unitSuffix}
+					{totalLabel}: {safeTotal.toFixed(2)}{unitSuffix}
 				</span>
 				<span>
-					{remainingLabel}: {safeRemaining}{unitSuffix}
+					{remainingLabel}: {safeRemaining.toFixed(2)}{unitSuffix}
 				</span>
 			</div>
 			<div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
@@ -45,7 +43,7 @@ export const ProgressBar = ({
 				/>
 			</div>
 			<span className="text-xs text-slate-500 dark:text-slate-400">
-				{completedLabel}: {safeCompleted}%
+				{completedLabel}: {safeCompleted.toFixed(2)}%
 			</span>
 		</div>
 	);

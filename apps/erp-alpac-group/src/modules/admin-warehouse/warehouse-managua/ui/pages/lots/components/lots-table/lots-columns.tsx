@@ -54,7 +54,7 @@ export function getTramosColumns({
         <ContextMenu
           items={[
             {
-              label: "Ver detalle",
+              label: "Ver detalles",
               onClick: () => onViewDetail(item),
             },
           ]}

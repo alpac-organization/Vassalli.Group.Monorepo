@@ -52,7 +52,7 @@ export function LotsHeader({
 								{lotQuantity ?? 0}
 							</span>
 							<span className="mt-1 text-[10px] text-slate-500 sm:text-xs">
-								Secciones
+								Tramos
 							</span>
 						</div>
 					</div>

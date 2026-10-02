@@ -1,14 +1,13 @@
 import { useEffect, useMemo } from "react";
 import {
 	Alert,
-	AnimatedAlertWrapper,
 	Button,
 	Dropdown,
 	InputText,
 	Modal,
 } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
-import type { LotFormValues, LotModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/types/lot-modal.types";
+import { AXIS_OPTIONS, type LotFormValues, type LotModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/types/lot-modal.types";
 import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import {
 	formatAmount,
@@ -32,11 +31,6 @@ import {
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/lot-placement.utils";
 import { isSectionVertical } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/rack-coordinates.utils";
 
-const AXIS_OPTIONS = [
-	{ value: "X", label: "Eje X (Horizontal)" },
-	{ value: "Y", label: "Eje Y (Vertical)" },
-];
-
 const createDefaultValues = (
 	sectionWidth: number,
 	sectionLength: number,
@@ -58,13 +52,14 @@ export const LotModal = ({
 	onClose,
 	onSubmit,
 }: LotModalProps) => {
+
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
 	const {
-		alertState,
 		handleCloseAlert,
 		handleRequestError,
 		handleRequestSuccess,
+		AlertComponent
 	} = useAlertState();
 
 	const {
@@ -112,7 +107,7 @@ export const LotModal = ({
 
 		if (sectionWidth <= 0 || sectionLength <= 0) {
 			handleRequestError(
-				"La sección no tiene dimensiones registradas. No se pueden ubicar los tramos.",
+				"La sección no tiene dimensiones registradas. No se pueden ubicar los tramos."
 			);
 			return;
 		}
@@ -151,7 +146,7 @@ export const LotModal = ({
 
 				setTimeout(() => {
 					onClose();
-				}, 2000);
+				}, 500);
 			},
 			onError(error) {
 				const mappedError = getMappedError(error);
@@ -183,16 +178,7 @@ export const LotModal = ({
 				className="flex flex-col gap-6"
 				onSubmit={handleSubmit(handleCreateLots)}
 			>
-				<AnimatedAlertWrapper open={alertState?.open ?? false}>
-					{alertState && (
-						<Alert
-							type={alertState.type}
-							title={alertState.title}
-							message={alertState.message}
-							onClose={handleCloseAlert}
-						/>
-					)}
-				</AnimatedAlertWrapper>
+				{AlertComponent}
 
 				{/* Cantidad y eje */}
 				<div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">

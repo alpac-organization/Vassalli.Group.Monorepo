@@ -17,11 +17,12 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { Loader } from "@app/shared/components/loaders/loader";
+import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
+import { mapWarehouseDetailsToLayout } from "../sections/utils/warehouse-details.mapper";
+
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { LotDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
-import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
-import { mapWarehouseDetailsToLayout } from "../sections/utils/warehouse-details.mapper";
 
 const PAGE_SIZE = 10;
 
@@ -36,7 +37,8 @@ export function TramosPage() {
 
 	const [isLotModalOpen, setIsLotModalOpen] = useState(false);
 	const [selectedLot, setSelectedLot] = useState<LotDto | null>(null);
-	const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+	const [detailLot, setDetailLot] = useState<LotDto | null>(null);
+	const [isLotDetailModalOpen, setIsLotDetailModalOpen] = useState(false);
 	const [appliedFilters, setAppliedFilters] = useState<LotFilters>(EMPTY_LOT_FILTERS);
 	const [currentPage, setCurrentPage] = useState(1);
 
@@ -51,16 +53,6 @@ export function TramosPage() {
 			page_size: PAGE_SIZE,
 		}),
 		[companyId, moduleCode, warehouseId, sectionId, appliedFilters, currentPage],
-	);
-
-	const getLotDetailPayload = useMemo(
-		() => ({
-			company_id: companyId,
-			module_code: moduleCode,
-			section_id: sectionId,
-			lot_id: selectedLot?.id ?? "",
-		}),
-		[companyId, moduleCode, sectionId, selectedLot?.id],
 	);
 
 	const getSectionDetailsPayload = useMemo(
@@ -85,9 +77,8 @@ export function TramosPage() {
 		getSectionDetailsPayload,
 	});
 
-	const { GetLots, GetLotById } = useLot({
+	const { GetLots } = useLot({
 		getLotsPayload,
-		getLotDetailPayload,
 	});
 
 	const tramosData = useMemo(() => GetLots.data?.data ?? [], [GetLots.data]);
@@ -100,13 +91,10 @@ export function TramosPage() {
 	const sectionCode = GetSectionDetails.data?.section_code ?? null;
 	const sectionWidth = GetSectionDetails.data?.capacity?.width ?? 0;
 	const sectionLength = GetSectionDetails.data?.capacity?.length ?? 0;
-	const sectionPositionX =
-		GetSectionDetails.data?.coordinates?.position_x ?? 0;
-	const sectionPositionY =
-		GetSectionDetails.data?.coordinates?.position_y ?? 0;
+	const sectionPositionX = GetSectionDetails.data?.coordinates?.position_x ?? 0;
+	const sectionPositionY = GetSectionDetails.data?.coordinates?.position_y ?? 0;
 	const sectionIsActive = GetSectionDetails.data?.is_active ?? true;
-	const sectionTotalArea =
-		GetSectionDetails.data?.capacity?.total_area_m2 ?? 0;
+	const sectionTotalArea = GetSectionDetails.data?.capacity?.total_area_m2 ?? 0;
 
 	useEffect(() => {
 		if (!GetLots.isError || !GetLots.error) return;
@@ -147,8 +135,9 @@ export function TramosPage() {
 	}, []);
 
 	const handleViewDetail = useCallback((lot: LotDto) => {
+		setDetailLot(lot);
 		setSelectedLot(lot);
-		setIsDetailModalOpen(true);
+		setIsLotDetailModalOpen(true);
 	}, []);
 
 	return (
@@ -230,11 +219,13 @@ export function TramosPage() {
 			/>
 
 			<LotDetailModal
-				isOpen={isDetailModalOpen}
-				lot={GetLotById.data ?? null}
-				isLoading={GetLotById.isPending}
+				isOpen={isLotDetailModalOpen}
+				warehouseId={warehouseId}
+				sectionId={sectionId}
+				lot={detailLot}
 				onClose={() => {
-					setIsDetailModalOpen(false);
+					setIsLotDetailModalOpen(false);
+					setDetailLot(null);
 				}}
 			/>
 		</m.div>
