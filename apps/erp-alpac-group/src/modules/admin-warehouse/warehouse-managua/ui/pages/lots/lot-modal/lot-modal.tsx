@@ -1,285 +1,402 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
-  Alert,
-  AnimatedAlertWrapper,
-  Button,
-  InputText,
-  Modal,
+	Alert,
+	AnimatedAlertWrapper,
+	Button,
+	Dropdown,
+	InputText,
+	Modal,
 } from "@alpac/design-system";
-import { AnimatePresence, m } from "framer-motion";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import type { LotFormValues, LotModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/types/lot-modal.types";
 import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
 import {
-  formatAmount,
-  validateDecimalNumber,
-  validateIntegerNumber,
-  validatePositiveNumber,
+	formatAmount,
+	validateDecimalNumber,
+	validateIntegerNumber,
+	validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
 import { parseDecimal } from "@app/shared/utils/get-decimal.config";
-import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
+import { useLot } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useLot";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import {
-  inputClassName,
-  labelClassName,
+	dropdownClassName,
+	inputClassName,
+	labelClassName,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/style.lots";
+import {
+	buildDispersedLotPlacements,
+	type DispersionAxis,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/lot-placement.utils";
+import { isSectionVertical } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/rack-coordinates.utils";
+
+const AXIS_OPTIONS = [
+	{ value: "X", label: "Eje X (Horizontal)" },
+	{ value: "Y", label: "Eje Y (Vertical)" },
+];
+
+const createDefaultValues = (
+	sectionWidth: number,
+	sectionLength: number,
+): LotFormValues => ({
+	quantity: "",
+	width: "",
+	length: "",
+	nominal_rows: "",
+	nominal_columns: "",
+	disperse_axis: isSectionVertical(sectionLength, sectionWidth) ? "Y" : "X",
+});
 
 export const LotModal = ({
-  isOpen,
-  warehouseId,
-  sectionId,
-  onClose,
-  onSubmit,
+	isOpen,
+	warehouseId,
+	sectionId,
+	sectionWidth = 0,
+	sectionLength = 0,
+	onClose,
+	onSubmit,
 }: LotModalProps) => {
-  const { companyId, moduleCode } = useUserStore();
-  const { getMappedError } = useMappedError();
-  const {
-    alertState,
-    handleCloseAlert,
-    handleRequestError,
-    handleRequestSuccess,
-  } = useAlertState();
+	const { companyId, moduleCode } = useUserStore();
+	const { getMappedError } = useMappedError();
+	const {
+		alertState,
+		handleCloseAlert,
+		handleRequestError,
+		handleRequestSuccess,
+	} = useAlertState();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<LotFormValues>();
+	const {
+		control,
+		register,
+		handleSubmit,
+		reset,
+		watch,
+		formState: { errors },
+	} = useForm<LotFormValues>({
+		defaultValues: createDefaultValues(sectionWidth, sectionLength),
+	});
 
-  const { RegisterLot } = useWarehouseAdmin();
+	const { RegisterLot } = useLot();
 
-  const handleCreateLots = (data: LotFormValues) => {
-    const payload: RegisterLotRequest = {
-      company_id: companyId,
-      module_code: moduleCode,
-      warehouse_id: warehouseId,
-      section_id: sectionId,
-      quantity: Number(data.quantity ?? 0),
-      nominal_rows: Number(data.nominal_rows ?? 0),
-      nominal_columns: Number(data.nominal_columns ?? 0),
-      width: Number(data.width ?? 0),
-      length: Number(data.length ?? 0),
-    };
+	const watchQuantity = Number(watch("quantity") || 0);
+	const watchWidth = Number(watch("width") || 0);
+	const watchLength = Number(watch("length") || 0);
+	const watchAxis = watch("disperse_axis");
 
-    RegisterLot.mutate(payload, {
-      onSuccess() {
-        handleRequestSuccess("Tramos registrados exitosamente.");
-        reset();
-        onSubmit?.(payload);
+	const placement = useMemo(
+		() =>
+			buildDispersedLotPlacements({
+				quantity: watchQuantity,
+				width: watchWidth,
+				length: watchLength,
+				sectionWidth,
+				sectionLength,
+				axis: watchAxis,
+			}),
+		[
+			watchQuantity,
+			watchWidth,
+			watchLength,
+			sectionWidth,
+			sectionLength,
+			watchAxis,
+		],
+	);
 
-        setTimeout(() => {
-          onClose();
-        }, 2000);
-      },
-      onError(error) {
-        const mappedError = getMappedError(error);
-        handleRequestError(mappedError.description);
-      },
-    });
-  };
+	const handleCreateLots = (data: LotFormValues) => {
+		const quantity = Number(data.quantity ?? 0);
+		const width = Number(data.width ?? 0);
+		const length = Number(data.length ?? 0);
 
-  const handleClose = () => {
-    handleCloseAlert();
-    reset();
-    onClose();
-  };
+		if (sectionWidth <= 0 || sectionLength <= 0) {
+			handleRequestError(
+				"La sección no tiene dimensiones registradas. No se pueden ubicar los tramos.",
+			);
+			return;
+		}
 
-  useEffect(() => {
-    if (!isOpen) {
-      reset();
-    }
-  }, [isOpen, reset]);
+		const nextPlacement = buildDispersedLotPlacements({
+			quantity,
+			width,
+			length,
+			sectionWidth,
+			sectionLength,
+			axis: data.disperse_axis,
+		});
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title="Registro de tramos"
-      variant="form"
-      size="md"
-      description="Crea uno o varios tramos para la sección"
-    >
-      <form
-        className="flex flex-col gap-5"
-        onSubmit={handleSubmit(handleCreateLots)}
-      >
-        <AnimatedAlertWrapper open={alertState?.open ?? false}>
-          {alertState && (
-            <Alert
-              type={alertState.type}
-              title={alertState.title}
-              message={alertState.message}
-              onClose={handleCloseAlert}
-            />
-          )}
-        </AnimatedAlertWrapper>
+		if (!nextPlacement.fits) {
+			handleRequestError(nextPlacement.message);
+			return;
+		}
 
-        <div className="flex flex-col gap-4 sm:gap-6">
-          <AnimatePresence initial={false}>
-            <m.div
-              initial={{ opacity: 0, y: 10, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: "auto" }}
-              exit={{ opacity: 0, y: 8, height: 0 }}
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-              className="mx-1 overflow-hidden sm:mx-0"
-            >
-              <div className="flex flex-col gap-3 sm:gap-3">
-                <InputText
-                  label="Cantidad de tramos"
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="Ej: 1"
-                  isRequired
-                  className={inputClassName}
-                  labelClassName={labelClassName}
-                  {...register("quantity", {
-                    required: "La cantidad de tramos es requerida",
-                    max: {
-                      value: 10,
-                      message: "Se permite un máximo de 10 tramos por petición.",
-                    },
-                    validate: {
-                      validateInteger: (value) =>
-                        !value || validateIntegerNumber(value),
-                      validatePositive: (value) =>
-                        !value || validatePositiveNumber(value) === true ||
-                        "La cantidad de tramos debe ser mayor a 0.",
-                    },
-                    setValueAs: parseDecimal,
-                  })}
-                  error={errors.quantity?.message}
-                />
+		const payload: RegisterLotRequest = {
+			company_id: companyId,
+			module_code: moduleCode,
+			warehouse_id: warehouseId,
+			section_id: sectionId,
+			lots: nextPlacement.lots.map((item) => ({
+				...item,
+				nominal_rows: Number(data.nominal_rows ?? 0),
+				nominal_columns: Number(data.nominal_columns ?? 0),
+			})),
+		};
 
-                <div className="border-t border-t-slate-300 dark:border-t-neutral-600" />
+		RegisterLot.mutate(payload, {
+			onSuccess() {
+				handleRequestSuccess("Tramos registrados exitosamente.");
+				reset(createDefaultValues(sectionWidth, sectionLength));
+				onSubmit?.(payload);
 
-                <div className="flex flex-col gap-1 sm:gap-1">
-                  <p className="text-[13px] font-medium text-slate-400 dark:text-slate-300">
-                    Configure las dimensiones y la matriz de posiciones de cada
-                    tramo.
-                  </p>
+				setTimeout(() => {
+					onClose();
+				}, 2000);
+			},
+			onError(error) {
+				const mappedError = getMappedError(error);
+				handleRequestError(mappedError.description);
+			},
+		});
+	};
 
-                  <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
-                    <InputText
-                      label="Ancho (m)"
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="Ej: 4.10"
-                      isRequired
-                      className={inputClassName}
-                      labelClassName={labelClassName}
-                      {...register("width", {
-                        required: "El ancho es requerido",
-                        validate: {
-                          validateDecimal: (value) =>
-                            !value || validateDecimalNumber(value),
-                          validatePositive: (value) =>
-                            !value || validatePositiveNumber(value) === true ||
-                            "El ancho (metros) debe ser mayor a 0.",
-                        },
-                        setValueAs: parseDecimal,
-                        onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
-                          evt.target.value = formatAmount(evt.target.value, 10, 2);
-                        },
-                      })}
-                      error={errors.width?.message}
-                    />
+	const handleClose = () => {
+		handleCloseAlert();
+		reset(createDefaultValues(sectionWidth, sectionLength));
+		onClose();
+	};
 
-                    <InputText
-                      label="Largo (m)"
-                      type="text"
-                      inputMode="decimal"
-                      placeholder="Ej: 4.10"
-                      isRequired
-                      className={inputClassName}
-                      labelClassName={labelClassName}
-                      {...register("length", {
-                        required: "El largo es requerido",
-                        validate: {
-                          validateDecimal: (value) =>
-                            !value || validateDecimalNumber(value),
-                          validatePositive: (value) =>
-                            !value || validatePositiveNumber(value) === true ||
-                            "El largo (metros) debe ser mayor a 0.",
-                        },
-                        setValueAs: parseDecimal,
-                        onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
-                          evt.target.value = formatAmount(evt.target.value, 10, 2);
-                        },
-                      })}
-                      error={errors.length?.message}
-                    />
+	useEffect(() => {
+		reset(createDefaultValues(sectionWidth, sectionLength));
+	}, [isOpen, sectionWidth, sectionLength, reset]);
 
-                    <InputText
-                      label="Cantidad de Filas"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="Ej: 4"
-                      isRequired
-                      className={inputClassName}
-                      labelClassName={labelClassName}
-                      {...register("nominal_rows", {
-                        required: "Las filas son obligatorias",
-                        validate: {
-                          validateInteger: (value) =>
-                            !value || validateIntegerNumber(value),
-                          validatePositive: (value) =>
-                            !value || validatePositiveNumber(value),
-                        },
-                        setValueAs: parseDecimal,
-                      })}
-                      error={errors.nominal_rows?.message}
-                    />
+	return (
+		<Modal
+			isOpen={isOpen}
+			onClose={handleClose}
+			title="Registro de tramos"
+			variant="form"
+			size="5xl"
+			description="Crea uno o varios tramos para la sección"
+		>
+			<form
+				className="flex flex-col gap-6"
+				onSubmit={handleSubmit(handleCreateLots)}
+			>
+				<AnimatedAlertWrapper open={alertState?.open ?? false}>
+					{alertState && (
+						<Alert
+							type={alertState.type}
+							title={alertState.title}
+							message={alertState.message}
+							onClose={handleCloseAlert}
+						/>
+					)}
+				</AnimatedAlertWrapper>
 
-                    <InputText
-                      label="Cantidad de Columnas"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="Ej: 5"
-                      isRequired
-                      className={inputClassName}
-                      labelClassName={labelClassName}
-                      {...register("nominal_columns", {
-                        required: "Las columnas son obligatorias",
-                        validate: {
-                          validateInteger: (value) =>
-                            !value || validateIntegerNumber(value),
-                          validatePositive: (value) =>
-                            !value || validatePositiveNumber(value),
-                        },
-                        setValueAs: parseDecimal,
-                      })}
-                      error={errors.nominal_columns?.message}
-                    />
-                  </div>
-                </div>
-              </div>
-            </m.div>
-          </AnimatePresence>
-        </div>
+				{/* Cantidad y eje */}
+				<div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+					<InputText
+						label="Cantidad de tramos"
+						type="text"
+						inputMode="numeric"
+						placeholder="Ej: 1"
+						isRequired
+						className={inputClassName}
+						labelClassName={labelClassName}
+						{...register("quantity", {
+							required: "La cantidad de tramos es requerida",
+							max: {
+								value: 10,
+								message: "Se permite un máximo de 10 tramos por petición.",
+							},
+							validate: {
+								validateInteger: (value) =>
+									!value || validateIntegerNumber(value),
+								validatePositive: (value) =>
+									!value ||
+									validatePositiveNumber(value) === true ||
+									"La cantidad de tramos debe ser mayor a 0.",
+							},
+							setValueAs: parseDecimal,
+						})}
+						error={errors.quantity?.message}
+					/>
 
-        <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6" />
+					<Controller
+						control={control}
+						name="disperse_axis"
+						rules={{ required: "Seleccione el eje de dispersión" }}
+						render={({ field }) => (
+							<Dropdown
+								label="Dispersar sobre"
+								placeholder="Seleccione el eje..."
+								isRequired
+								options={AXIS_OPTIONS}
+								value={field.value}
+								appearance="dark"
+								className={dropdownClassName}
+								labelClassName={labelClassName}
+								onChange={(val) => field.onChange(val as DispersionAxis)}
+								error={errors.disperse_axis?.message}
+							/>
+						)}
+					/>
+				</div>
 
-        <div className="flex min-w-0 flex-col-reverse gap-2.5 sm:flex-row sm:justify-end sm:gap-3">
-          <Button
-            type="button"
-            size="giant"
-            label="Cancelar"
-            onClick={handleClose}
-            className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30! sm:w-auto!"
-          />
-          <Button
-            type="submit"
-            size="giant"
-            label="Guardar"
-            isLoading={RegisterLot.isPending}
-            disabled={RegisterLot.isPending}
-            className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
-          />
-        </div>
-      </form>
-    </Modal>
-  );
+				<div className="border-t border-t-slate-300 dark:border-t-neutral-600" />
+
+				{/* Dimensiones */}
+				<div className="flex flex-col gap-4">
+					<div>
+						<p className="m-0! text-[14px] font-semibold text-slate-700 dark:text-slate-200">
+							Dimensiones de cada tramo
+						</p>
+						<p className="m-0! mt-1 text-[12px] text-slate-500 dark:text-slate-400">
+							Ancho y largo en metros usados para ubicarlos en la sección.
+						</p>
+					</div>
+
+					<div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+						<InputText
+							label="Ancho (m)"
+							type="text"
+							inputMode="decimal"
+							placeholder="Ej: 4.10"
+							isRequired
+							className={inputClassName}
+							labelClassName={labelClassName}
+							{...register("width", {
+								required: "El ancho es requerido",
+								validate: {
+									validateDecimal: (value) =>
+										!value || validateDecimalNumber(value),
+									validatePositive: (value) =>
+										!value ||
+										validatePositiveNumber(value) === true ||
+										"El ancho (metros) debe ser mayor a 0.",
+								},
+								setValueAs: parseDecimal,
+								onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
+									evt.target.value = formatAmount(evt.target.value, 10, 2);
+								},
+							})}
+							error={errors.width?.message}
+						/>
+
+						<InputText
+							label="Largo (m)"
+							type="text"
+							inputMode="decimal"
+							placeholder="Ej: 4.10"
+							isRequired
+							className={inputClassName}
+							labelClassName={labelClassName}
+							{...register("length", {
+								required: "El largo es requerido",
+								validate: {
+									validateDecimal: (value) =>
+										!value || validateDecimalNumber(value),
+									validatePositive: (value) =>
+										!value ||
+										validatePositiveNumber(value) === true ||
+										"El largo (metros) debe ser mayor a 0.",
+								},
+								setValueAs: parseDecimal,
+								onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
+									evt.target.value = formatAmount(evt.target.value, 10, 2);
+								},
+							})}
+							error={errors.length?.message}
+						/>
+					</div>
+				</div>
+
+				<div className="border-t border-t-slate-300 dark:border-t-neutral-600" />
+
+				{/* Matriz */}
+				<div className="flex flex-col gap-4">
+					<div>
+						<p className="m-0! text-[14px] font-semibold text-slate-700 dark:text-slate-200">
+							Matriz de posiciones internas
+						</p>
+						<p className="m-0! mt-1 text-[12px] text-slate-500 dark:text-slate-400">
+							Filas y columnas que componen cada tramo.
+						</p>
+					</div>
+
+					<div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+						<InputText
+							label="Cantidad de Filas"
+							type="text"
+							inputMode="numeric"
+							placeholder="Ej: 4"
+							isRequired
+							className={inputClassName}
+							labelClassName={labelClassName}
+							{...register("nominal_rows", {
+								required: "Las filas son obligatorias",
+								validate: {
+									validateInteger: (value) =>
+										!value || validateIntegerNumber(value),
+									validatePositive: (value) =>
+										!value || validatePositiveNumber(value),
+								},
+								setValueAs: parseDecimal,
+							})}
+							error={errors.nominal_rows?.message}
+						/>
+
+						<InputText
+							label="Cantidad de Columnas"
+							type="text"
+							inputMode="numeric"
+							placeholder="Ej: 5"
+							isRequired
+							className={inputClassName}
+							labelClassName={labelClassName}
+							{...register("nominal_columns", {
+								required: "Las columnas son obligatorias",
+								validate: {
+									validateInteger: (value) =>
+										!value || validateIntegerNumber(value),
+									validatePositive: (value) =>
+										!value || validatePositiveNumber(value),
+								},
+								setValueAs: parseDecimal,
+							})}
+							error={errors.nominal_columns?.message}
+						/>
+					</div>
+				</div>
+
+				<Alert
+					type={placement.fits ? "info" : "error"}
+					title={`Distribución en eje ${placement.axis}`}
+					message={`${placement.message} Sección disponible: ${sectionWidth.toFixed(2)} m (X) × ${sectionLength.toFixed(2)} m (Y).`}
+					showCloseButton={false}
+				/>
+
+				<div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6" />
+
+				<div className="flex min-w-0 flex-col-reverse gap-2.5 sm:flex-row sm:justify-end sm:gap-3">
+					<Button
+						type="button"
+						size="giant"
+						label="Cancelar"
+						onClick={handleClose}
+						className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30! sm:w-auto!"
+					/>
+					<Button
+						type="submit"
+						size="giant"
+						label="Guardar"
+						isLoading={RegisterLot.isPending}
+						disabled={RegisterLot.isPending || !placement.fits}
+						className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
+					/>
+				</div>
+			</form>
+		</Modal>
+	);
 };

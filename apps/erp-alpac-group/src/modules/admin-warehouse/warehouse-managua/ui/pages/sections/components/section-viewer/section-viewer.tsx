@@ -32,8 +32,9 @@ export const SectionViewer = ({
 	warehouse,
 	sections = [],
 	selectedSection,
-	onSelectSection,
+	onSelectSection
 }: SectionViewerProps) => {
+
 	const { warehouseId = "" } = useParams<{ warehouseId: string }>();
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
@@ -178,7 +179,7 @@ export const SectionViewer = ({
 		if (!hasLayoutChanges) {
 			resetEditState(editingId);
 			return;
-		}      
+		}
 
 		UpdateSectionLayout.mutate(payload, {
 			onSuccess() {
@@ -240,8 +241,8 @@ export const SectionViewer = ({
 				marginTop={margins.top}
 				marginBottom={margins.bottom}
 				marginLeft={margins.left}
-				marginRight={margins.right}
-			>
+				marginRight={margins.right}>
+
 				{sections.map((section, index) => {
 					const sectionColor = SectionTypeColor[section.section_type!];
 					const sectionBorderColor = SectionTypeBorderColor[section.section_type!];

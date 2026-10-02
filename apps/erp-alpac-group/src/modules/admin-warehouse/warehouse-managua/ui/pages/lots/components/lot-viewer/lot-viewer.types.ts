@@ -1,40 +1,24 @@
-import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
+import type { LotDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { WarehouseDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/warehouses/get-warehouse-res";
-import type { LotPosition } from "../lot-shape/lot-shape.types";
-
-export interface LotViewerLot {
-  lot: LotListItemResponse;
-  /** Dimensiones en metros; 0 cuando el endpoint de capacidades no respondio. */
-  width: number;
-  length: number;
-  /** Coordenadas confirmadas por el backend. */
-  savedPosition: LotPosition | null;
-  /** Coordenadas editadas localmente, pendientes de guardar. */
-  draftPosition: LotPosition | null;
-}
+import type { Coordinate, Size } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
 
 export interface LotViewerProps {
   className?: string;
   warehouse?: WarehouseDto;
-  warehouseName?: string;
-  lots: LotViewerLot[];
-  sectionWidth: number;
-  sectionLength: number;
+  lots?: LotDto[];
+  selectedLot?: LotDto | null;
+  onSelectLot?: (lot: LotDto) => void;
+  /** Dimensiones y posición de la sección dentro de la bodega. */
   sectionCode?: string | null;
-  /** Posicion de la seccion dentro de la bodega, en metros. */
+  sectionWidth?: number;
+  sectionLength?: number;
   sectionPositionX?: number;
-  /** Posicion de la seccion dentro de la bodega, en metros. */
   sectionPositionY?: number;
-  /** Estado de la seccion; mapea al color del render de Secciones. */
   sectionIsActive?: boolean;
-  selectedLotId?: string | null;
-  isLoading?: boolean;
-  isSaving?: boolean;
-  hasPendingChanges?: boolean;
-  draggable?: boolean;
-  onSelectLot?: (lot: LotListItemResponse) => void;
-  onPositionChange?: (lotId: string, position: LotPosition) => void;
-  onRotateLot?: (lotId: string) => void;
-  onSave?: () => void;
-  onDiscard?: () => void;
 }
+
+export type EditMode = "edit" | null;
+
+export type LotCoordinate = Record<string, Coordinate>;
+
+export type LotSize = Record<string, Size>;

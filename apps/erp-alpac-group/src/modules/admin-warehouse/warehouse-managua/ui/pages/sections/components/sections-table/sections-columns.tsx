@@ -91,6 +91,7 @@ export function getSectionsColumns({
 						totalLabel="Capacidad"
 						completedLabel="Usado"
 						remainingLabel="Disponible"
+						unitOfMeasurement="m²"
 					/>
 				);
 			},

@@ -1,50 +1,40 @@
-import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
-
-/** Posicion del tramo en metros, relativa al origen (0,0) de la seccion. */
-export interface LotPosition {
-  positionX: number;
-  positionY: number;
-  positionZ: number;
-  rotationY: number;
-}
+import type { LotDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
+import type { LotMenuState } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lot-shape/components/lot-shape-menu/lot-shape-menu.types";
 
 export interface LotShapeProps {
-  lot: LotListItemResponse;
-  /** Dimensiones del tramo en metros, vindas del endpoint de capacidades. */
-  width: number;
-  length: number;
-  position: LotPosition;
-  selected?: boolean;
-  pixelsPerMeter: number;
-  /** Limites de la seccion en metros, para acotar el arrastre. */
-  sectionWidth: number;
-  sectionLength: number;
-  /** El tramo ya tiene coordenadas persistidas en el backend. */
-  isPositioned: boolean;
-  onSelect?: (lot: LotListItemResponse) => void;
-  onPositionChange?: (lotId: string, position: LotPosition) => void;
-}
+  lot: LotDto;
 
-export const DEFAULT_LOT_PIXELS_PER_METER = 12;
+  /** Posición X en metros (relativa al origen de la bodega). */
+  x: number;
+
+  /** Posición Y en metros (relativa al origen de la bodega). */
+  y: number;
+
+  /** Ancho en metros. */
+  width: number;
+
+  /** Largo / profundidad en metros. */
+  length: number;
+
+  /** Rotación en grados sobre Y (plano 2D). */
+  rotation?: number;
+
+  /** Color de relleno (hex). */
+  fill?: string;
+
+  strokeColor?: string;
+
+  selected?: boolean;
+
+  draggable?: boolean;
+  resizable?: boolean;
+
+  onSelect?: (lot: LotDto) => void;
+  onContextMenu?: (menu: LotMenuState) => void;
+  onCoordinateChange?: (id: string, x: number, y: number) => void;
+  onResizeChange?: (id: string, width: number, length: number) => void;
+}
 
 /** Acota un valor entre min y max. */
 export const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
-
-/** Normaliza un angulo a 0..359. */
-export const normalizeAngle = (degrees: number) =>
-  ((degrees % 360) + 360) % 360;
-
-/**
- * Extents del rect en metros segun la rotacion en Y.
- * Sin rotacion el largo ocupa X y el ancho Y; con 90/270 se invierten,
- * igual que el criterio usado en RackShape.
- */
-export const getLotExtents = (width: number, length: number, rotationY: number) => {
-  const angle = normalizeAngle(rotationY);
-  const isRotated90 = angle === 90 || angle === 270;
-
-  return isRotated90
-    ? { extentX: width, extentY: length }
-    : { extentX: length, extentY: width };
-};

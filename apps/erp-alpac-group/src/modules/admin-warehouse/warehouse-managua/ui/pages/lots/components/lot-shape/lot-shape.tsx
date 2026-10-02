@@ -1,152 +1,251 @@
-import { useEffect, useRef } from "react";
-import { Group, Label, Rect, Tag, Text } from "react-konva";
+import { Group, Label, Rect, Tag, Text, Transformer } from "react-konva";
+import { useEffect, useRef, useState } from "react";
 import type Konva from "konva";
-import { RACK_STATUS_COLORS, resolveRackStatus } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
-import { clamp, getLotExtents, type LotShapeProps } from "./lot-shape.types";
+import type { LotShapeProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lot-shape/lot-shape.types";
+import type { Coordinate, Size } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
+import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
+import {
+  RACK_STATUS_COLORS,
+  resolveRackStatus,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
 
 export const LotShape = ({
-  lot,
+  x,
+  y,
   width,
   length,
-  position,
+  rotation = 0,
+  fill,
+  strokeColor,
   selected = false,
-  pixelsPerMeter,
-  sectionWidth,
-  sectionLength,
-  isPositioned,
+  lot,
+  draggable,
+  resizable,
   onSelect,
-  onPositionChange,
+  onContextMenu,
+  onCoordinateChange,
+  onResizeChange,
 }: LotShapeProps) => {
-  const groupRef = useRef<Konva.Group>(null);
-
-  const { extentX, extentY } = getLotExtents(
-    width,
-    length,
-    position.rotationY,
-  );
-
-  const rectWidthPx = extentX * pixelsPerMeter;
-  const rectHeightPx = extentY * pixelsPerMeter;
-
-  // Sincroniza el nodo cuando las coordenadas cambian desde arriba (refetch o reset).
-  useEffect(() => {
-    const group = groupRef.current;
-    if (!group) return;
-    group.position({
-      x: position.positionX * pixelsPerMeter,
-      y: position.positionY * pixelsPerMeter,
-    });
-  }, [position.positionX, position.positionY, pixelsPerMeter]);
-
-  const handleDragEnd = () => {
-    const group = groupRef.current;
-    if (!group) return;
-
-    const maxX = Math.max(0, sectionWidth - extentX);
-    const maxY = Math.max(0, sectionLength - extentY);
-
-    const nextXMeters = clamp(group.x() / pixelsPerMeter, 0, maxX);
-    const nextYMeters = clamp(group.y() / pixelsPerMeter, 0, maxY);
-
-    group.position({
-      x: nextXMeters * pixelsPerMeter,
-      y: nextYMeters * pixelsPerMeter,
-    });
-
-    onPositionChange?.(lot.id, {
-      positionX: Number(nextXMeters.toFixed(2)),
-      positionY: Number(nextYMeters.toFixed(2)),
-      positionZ: position.positionZ ?? 0,
-      rotationY: position.rotationY ?? 0,
-    });
-  };
+  const pixelX = x * PIXELS_PER_METER;
+  const pixelY = y * PIXELS_PER_METER;
+  const pixelWidth = width * PIXELS_PER_METER;
+  const pixelLength = length * PIXELS_PER_METER;
 
   const resolved = resolveRackStatus(lot.status);
   const statusKey = (resolved?.textValue ??
     "Available") as keyof typeof RACK_STATUS_COLORS;
-  const fillColor = RACK_STATUS_COLORS[statusKey] ?? RACK_STATUS_COLORS.Available;
+  const fillColor =
+    fill ?? RACK_STATUS_COLORS[statusKey] ?? RACK_STATUS_COLORS.Available;
+  const borderColor = strokeColor ?? "#94a3b8";
 
-  const fontSize = Math.min(
-    11,
-    Math.max(6.5, Math.min(rectWidthPx, rectHeightPx) / 2.2),
-  );
+  const groupRef = useRef<Konva.Group>(null);
+  const shapeRef = useRef<Konva.Rect>(null);
+  const textRef = useRef<Konva.Text>(null);
+  const transformRef = useRef<Konva.Transformer>(null);
+
+  const [size, setSize] = useState<Size>({
+    width: pixelWidth,
+    length: pixelLength,
+  });
+  const [layoutLabel, setLayoutLabel] = useState<string | null>(null);
+  const [textOffset, setTextOffset] = useState<Coordinate>({ x: 0, y: 0 });
+
+  useEffect(() => {
+    setSize({ width: pixelWidth, length: pixelLength });
+    setTextOffset({ x: 0, y: 0 });
+  }, [pixelWidth, pixelLength]);
+
+  useEffect(() => {
+    const transformer = transformRef.current;
+    if (!transformer) return;
+
+    if (!resizable) {
+      transformer.nodes([]);
+      transformer.getLayer()?.batchDraw();
+      return;
+    }
+
+    const node = shapeRef.current;
+    if (!node) return;
+
+    transformer.nodes([node]);
+    transformer.moveToTop();
+    node.getParent()?.moveToTop();
+    transformer.getLayer()?.batchDraw();
+  }, [resizable, selected]);
+
+  const syncTextWithRect = (node: Konva.Rect) => {
+    const nextSize = {
+      width: Math.max(10, node.width() * node.scaleX()),
+      length: Math.max(10, node.height() * node.scaleY()),
+    };
+    const nextOffset = { x: node.x(), y: node.y() };
+
+    setSize(nextSize);
+    setTextOffset(nextOffset);
+
+    const text = textRef.current;
+    if (text) {
+      text.x(nextOffset.x);
+      text.y(nextOffset.y);
+      text.width(nextSize.width);
+      text.height(nextSize.length);
+    }
+  };
 
   return (
-    <Group
-      ref={groupRef}
-      id={lot.id}
-      x={position.positionX * pixelsPerMeter}
-      y={position.positionY * pixelsPerMeter}
-      draggable
-      onClick={() => onSelect?.(lot)}
-      onTap={() => onSelect?.(lot)}
-      onDragEnd={handleDragEnd}
-    >
-      <Rect
-        width={rectWidthPx}
-        height={rectHeightPx}
-        fill={fillColor}
-        opacity={selected ? 0.9 : 0.6}
-        stroke={selected ? "#ffffff" : "#334155"}
-        strokeWidth={selected ? 2.5 : 1}
-        cornerRadius={2}
-        dash={isPositioned ? undefined : [6, 4]}
-        shadowColor={selected ? "#38bdf8" : "transparent"}
-        shadowBlur={selected ? 8 : 0}
-        shadowOpacity={0.8}
-      />
+    <>
+      <Group
+        ref={groupRef}
+        id={lot.id}
+        x={pixelX}
+        y={pixelY}
+        rotation={rotation}
+        draggable={draggable}
+        onDragMove={(e) => {
+          const metersX = e.target.x() / PIXELS_PER_METER;
+          const metersY = e.target.y() / PIXELS_PER_METER;
+          setLayoutLabel(
+            `X: ${metersX.toFixed(2)} m  Y: ${metersY.toFixed(2)} m`,
+          );
+        }}
+        onDragEnd={(e) => {
+          const metersX = e.target.x() / PIXELS_PER_METER;
+          const metersY = e.target.y() / PIXELS_PER_METER;
+          setLayoutLabel(null);
+          onCoordinateChange?.(lot.id, metersX, metersY);
+        }}
+        onContextMenu={(e) => {
+          e.evt.preventDefault();
+          onContextMenu?.({
+            x: e.evt.clientX,
+            y: e.evt.clientY,
+            lot,
+          });
+        }}
+        onClick={(e) => {
+          e.cancelBubble = true;
+          e.currentTarget.moveToTop();
+          onSelect?.(lot);
+        }}
+        onTap={(e) => {
+          e.cancelBubble = true;
+          e.currentTarget.moveToTop();
+          onSelect?.(lot);
+        }}
+      >
+        {resizable && layoutLabel && (
+          <Label x={textOffset.x} y={textOffset.y - 30}>
+            <Tag fill="#0f172a" cornerRadius={4} />
+            <Text
+              text={layoutLabel}
+              fontSize={11}
+              fill="#e2e8f0"
+              padding={4}
+              listening={false}
+            />
+          </Label>
+        )}
 
-      <Text
-        text={lot.code || "SIN CÓDIGO"}
-        width={rectWidthPx}
-        height={rectHeightPx}
-        align="center"
-        verticalAlign="middle"
-        lineHeight={1.1}
-        fill="#0f172a"
-        fontStyle="bold"
-        fontSize={fontSize}
-        listening={false}
-      />
+        <Rect
+          ref={shapeRef}
+          width={pixelWidth}
+          height={pixelLength}
+          fill={fillColor}
+          opacity={selected ? 1 : 0.4}
+          stroke={selected ? borderColor : "#94a3b8"}
+          strokeWidth={selected ? 2 : 1}
+          onTransform={() => {
+            const node = shapeRef.current;
+            if (!node) return;
+            syncTextWithRect(node);
 
-      {rectHeightPx > 26 && rectWidthPx > 40 && (
-        <Text
-          text={`${width} x ${length} m`}
-          width={rectWidthPx}
-          y={rectHeightPx / 2}
-          align="center"
-          fill="#0f172a"
-          opacity={0.75}
-          fontSize={Math.max(5.5, fontSize - 2)}
-          listening={false}
+            const scaleX = node.scaleX();
+            const scaleY = node.scaleY();
+            const newWidthPx = Math.max(10, node.width() * scaleX);
+            const newLengthPx = Math.max(10, node.height() * scaleY);
+            const newWidth = newWidthPx / PIXELS_PER_METER;
+            const newLength = newLengthPx / PIXELS_PER_METER;
+
+            setLayoutLabel(
+              `${newWidth.toFixed(2)} m × ${newLength.toFixed(2)} m`,
+            );
+          }}
+          onTransformEnd={() => {
+            const node = shapeRef.current;
+            const group = groupRef.current;
+            if (!node || !group) return;
+
+            const scaleX = node.scaleX();
+            const scaleY = node.scaleY();
+            const offsetX = node.x();
+            const offsetY = node.y();
+
+            node.scaleX(1);
+            node.scaleY(1);
+
+            const newWidthPx = Math.max(10, node.width() * scaleX);
+            const newLengthPx = Math.max(10, node.height() * scaleY);
+            const newWidth = newWidthPx / PIXELS_PER_METER;
+            const newLength = newLengthPx / PIXELS_PER_METER;
+
+            const nextGroupX = group.x() + offsetX;
+            const nextGroupY = group.y() + offsetY;
+
+            group.x(nextGroupX);
+            group.y(nextGroupY);
+
+            node.x(0);
+            node.y(0);
+            node.width(newWidthPx);
+            node.height(newLengthPx);
+
+            setSize({ width: newWidthPx, length: newLengthPx });
+            setTextOffset({ x: 0, y: 0 });
+
+            const text = textRef.current;
+            if (text) {
+              text.x(0);
+              text.y(0);
+              text.width(newWidthPx);
+              text.height(newLengthPx);
+            }
+
+            onCoordinateChange?.(
+              lot.id,
+              nextGroupX / PIXELS_PER_METER,
+              nextGroupY / PIXELS_PER_METER,
+            );
+            onResizeChange?.(lot.id, newWidth, newLength);
+          }}
+        />
+
+        {lot.code ? (
+          <Text
+            ref={textRef}
+            x={textOffset.x}
+            y={textOffset.y}
+            text={lot.code}
+            width={size.width}
+            height={size.length}
+            align="center"
+            verticalAlign="middle"
+            fill="#0f172a"
+            fontSize={Math.min(12, Math.max(8, size.width / 6))}
+            listening={false}
+          />
+        ) : null}
+      </Group>
+
+      {resizable && (
+        <Transformer
+          ref={transformRef}
+          rotateEnabled={false}
+          boundBoxFunc={(oldBox, newBox) =>
+            newBox.width < 10 || newBox.height < 10 ? oldBox : newBox
+          }
         />
       )}
-
-      {lot.allows_stacking && (
-        <Label x={2} y={2}>
-          <Tag fill="#0f172a" cornerRadius={2} opacity={0.8} />
-          <Text
-            text="E"
-            fill="#4ade80"
-            fontSize={Math.max(6, fontSize - 2)}
-            padding={2}
-            listening={false}
-          />
-        </Label>
-      )}
-
-      {selected && (
-        <Label x={rectWidthPx + 6} y={Math.max(0, (rectHeightPx + 6) / 2)}>
-          <Tag fill="#0f172a" cornerRadius={4} />
-          <Text
-            text={`X: ${position.positionX.toFixed(2)}m, Y: ${position.positionY.toFixed(2)}m`}
-            fontSize={11}
-            fill="#e2e8f0"
-            padding={4}
-            listening={false}
-          />
-        </Label>
-      )}
-    </Group>
+    </>
   );
 };
