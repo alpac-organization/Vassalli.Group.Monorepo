@@ -1,4 +1,5 @@
 import { Badges } from "@alpac/design-system";
+import { Check } from "lucide-react";
 import { RackStatusEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
 import { SectionStorageTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
 import { SectionTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
@@ -171,3 +172,11 @@ export const ActiveStatusBadge = ({ isActive }: { isActive: boolean }) =>
 			className="bg-slate-800! border! border-slate-700! text-slate-400!"
 		/>
 	);
+
+// Esta funcion representa un check visual para indicar si un tramo admite estibado (apilado)
+// @param allowsStacking - boolean - Indica si el tramo permite estibado
+// @returns - ReactNode - Un check cuando el tramo permite estibado, vacio en caso contrario
+export const StackingBadge = ({ allowsStacking }: { allowsStacking: boolean }) =>
+	allowsStacking ? (
+		<Check className="h-5 w-5 text-[#4ade80]" aria-label="Permite estibado" />
+	) : null;

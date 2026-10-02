@@ -12,11 +12,17 @@ export interface WarehouseViewerProps {
    title?: ReactNode;
    selectedLabel?: ReactNode;
    overlay?: ReactNode;
+   containerClassName?: string;
 }
 
 export interface Coordinate {
    x: number;
    y: number;
+   z?: number;
+}
+
+export interface Rotation {
+   rotationY: number;
 }
 
 export interface Size {
