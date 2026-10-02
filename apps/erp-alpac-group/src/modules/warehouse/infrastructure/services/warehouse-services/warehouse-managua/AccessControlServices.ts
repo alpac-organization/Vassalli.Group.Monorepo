@@ -30,11 +30,13 @@ export class AccessControlServices implements IAccessControl {
     );
     return response;
   }
+
   public async getAccessControlById(
     payload: GetReceptionEntranceDetailRequest,
   ): Promise<ReceptionEntranceDetail> {
-    const { company_id, module_code, reception_id } = payload;
-    const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}`;
+    const { company_id, module_code } = payload;
+    const receptionId = payload.reception_entrance_id || payload.reception_id;
+    const url = `/companies/${company_id}/modules/${module_code}/reception-entrances/${receptionId}/details`;
     return this.httpHandler.get<ReceptionEntranceDetail>(url);
   }
 
@@ -45,36 +47,40 @@ export class AccessControlServices implements IAccessControl {
     const url = `/companies/${company_id}/modules/${module_code}/reception-entrances`;
     return this.httpHandler.post<void>(url, rest);
   }
+
   public async updateAccessControl(
     payload: UpdateReceptionEntranceRequest,
   ): Promise<void> {
-    const { company_id, module_code, reception_id, ...rest } = payload;
-    const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}`;
+    const { company_id, module_code, reception_id, reception_entrance_id, ...rest } = payload;
+    const receptionEntranceId = reception_entrance_id || reception_id;
+    const url = `/companies/${company_id}/modules/${module_code}/reception-entrances/${receptionEntranceId}`;
     return this.httpHandler.patch<void>(url, cleanParams(rest));
   }
+
   public async addDucatsToReception(
     payload: AddDucatsToReceptionRequest,
   ): Promise<void> {
-    const { company_id, module_code, reception_id, ducat_numbers } = payload;
-    const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}/ducats`;
+    const { company_id, module_code, ducat_numbers } = payload;
+    const receptionId = payload.reception_entrance_id || payload.reception_id;
+    const url = `/companies/${company_id}/modules/${module_code}/receptions/${receptionId}/ducats`;
     return this.httpHandler.post<void>(url, { ducat_numbers });
   }
 
   public async generateExitAccessControl(
     payload: GenerateExitAccessControlRequest,
   ): Promise<void> {
-    const { company_id, module_code, reception_id, ...rest } = payload;
-    const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}/exit`;
+    const { company_id, module_code, ...rest } = payload;
+    const receptionId = payload.reception_entrance_id || payload.reception_id;
+    const url = `/companies/${company_id}/modules/${module_code}/receptions/${receptionId}/exit`;
     return this.httpHandler.post<void>(url, cleanParams(rest));
   }
-
 
   public async deleteAccessControlById(
     payload: GetReceptionEntranceDetailRequest,
   ): Promise<boolean> {
-    const { company_id, module_code, reception_id } = payload;
-    const url = `/companies/${company_id}/modules/${module_code}/receptions/${reception_id}`;
+    const { company_id, module_code } = payload;
+    const receptionId = payload.reception_entrance_id || payload.reception_id;
+    const url = `/companies/${company_id}/modules/${module_code}/receptions/${receptionId}`;
     return this.httpHandler.delete<boolean>(url);
   }
-
 }

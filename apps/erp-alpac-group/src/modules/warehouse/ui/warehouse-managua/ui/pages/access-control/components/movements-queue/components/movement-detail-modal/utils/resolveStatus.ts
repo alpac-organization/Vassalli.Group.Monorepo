@@ -3,22 +3,26 @@ import { DocumentEnum } from "@app/core/enums/document.enum";
 type ResolveLabelDocumentType = { label?: string };
 
 export function resolveDocumentTypeLabel(documentType: unknown): string {
-  if (documentType == null || typeof documentType !== "string") {
-    if (typeof documentType === "object" && documentType !== null) {
-      return (documentType as ResolveLabelDocumentType).label ?? "";
-    }
-    return String(documentType ?? "");
+  if (documentType == null) return "";
+  if (typeof documentType === "object" && documentType !== null && "label" in documentType) {
+    return (documentType as ResolveLabelDocumentType).label ?? "";
   }
 
-  const rawKey = documentType.trim();
-  if (rawKey === "") return "";
+  const str = String(documentType).trim();
+  if (str === "") return "";
 
-  const matchByKey = DocumentEnum[rawKey];
-  if (matchByKey) {
-    return matchByKey.label;
+  const num = Number(str);
+  if (!Number.isNaN(num)) {
+    const matchByValue = Object.values(DocumentEnum).find(
+      (item) => Number(item.value) === num,
+    );
+    if (matchByValue) return matchByValue.label;
   }
 
-  const normalizedInput = rawKey.toLowerCase();
+  const matchByKey = DocumentEnum[str];
+  if (matchByKey) return matchByKey.label;
+
+  const normalizedInput = str.toLowerCase();
   const flexibleMatch = Object.entries(DocumentEnum).find(
     ([key, item]) =>
       key.toLowerCase() === normalizedInput ||
@@ -29,5 +33,5 @@ export function resolveDocumentTypeLabel(documentType: unknown): string {
     return flexibleMatch[1].label;
   }
 
-  return rawKey;
+  return str;
 }

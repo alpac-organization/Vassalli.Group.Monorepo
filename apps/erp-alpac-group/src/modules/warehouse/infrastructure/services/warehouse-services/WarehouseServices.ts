@@ -35,9 +35,11 @@ export class WarehouseServices implements IWarehouseServices {
 	}
 
 	async GetCustomBranches(payload: GetCustomBranchesRequest): Promise<GetCustomBranchesResponse> {
-		const { company_id, module_code } = payload;
+		const { company_id, module_code, ...rest } = payload;
 		const url = `companies/${company_id}/modules/${module_code}/customs-branches`;
-		return await this.apiHandler.get<GetCustomBranchesResponse>(url);
+		return await this.apiHandler.get<GetCustomBranchesResponse>(url, {
+			params: cleanParams(rest),
+		});
 	}
 
 	async GetWarehouseDetails(payload: GetWarehouseDetailsRequest): Promise<GetWarehouseDetailsResponse> {

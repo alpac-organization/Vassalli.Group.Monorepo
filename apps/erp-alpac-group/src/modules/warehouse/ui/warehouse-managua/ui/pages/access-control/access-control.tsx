@@ -1,7 +1,7 @@
 import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
 import dayjs from "dayjs";
-import { Alert, AnimatedAlertWrapper, Modal, Button } from "@alpac/design-system";
+import { Modal, Button } from "@alpac/design-system";
 import { AccessControlHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-header/access-control-header";
 import { AccessControlStats } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-stats/access-control-stats";
 import { AccessControlActions } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-actions/access-control-actions";
@@ -18,8 +18,11 @@ import { getAccessControlMetrics } from "@app/modules/warehouse/ui/warehouse-man
 import {
   toApiDate,
   mapGateEntryToCreateRequest,
-  type EntryStartedAt,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/mapping-access-control";
+import {
+  isDucaDocumentType,
+  parseAdditionalData,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/mapMovementDetail";
 import { useAccessControl } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAccessControl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-access-control";
@@ -29,7 +32,7 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { DocumentType } from "@app/core/enums/document.enum";
+import { DocumentEnum, type DocumentType } from "@app/core/enums/document.enum";
 import type { Path } from "react-hook-form";
 
 const PAGE_SIZE = 10;
@@ -53,9 +56,6 @@ const UPDATABLE_FIELDS = new Set<Path<MovementDetailFormValues>>([
   "country_of_origin",
   "custom_branch",
   "customs_decaration_number",
-  "packages",
-  "customer",
-  "product",
   "container_number",
   "transport_unit",
 ]);
@@ -64,18 +64,14 @@ export function AccessControlPage() {
   const { companyId, moduleCode } = useUserStore();
   const { getMappedError } = useMappedError();
   const {
-    alertState,
-    handleCloseAlert,
     handleRequestError,
     handleRequestSuccess,
+    AlertComponent,
   } = useAlertState();
   const [pageNumber, setPageNumber] = useState(1);
   const [appliedFilters, setAppliedFilters] =
     useState<AccessControlFilters>(EMPTY_FILTERS);
   const [isGateEntryOpen, setIsGateEntryOpen] = useState(false);
-  const [entryStartedAt, setEntryStartedAt] = useState<EntryStartedAt | null>(
-    null,
-  );
   const [selectedReceptionId, setSelectedReceptionId] = useState<string | null>(
     null,
   );
@@ -83,23 +79,49 @@ export function AccessControlPage() {
   const [deleteReception, setDeleteReception] = useState<ReceptionEntranceListItem | null>(null);
 
   const payloadAccessControl = useMemo<GetAccessControlRequest>(() => {
+    const hasDateFilter = Boolean(
+      appliedFilters.start_date || appliedFilters.end_date,
+    );
+
+    let docTypeNumber: number | undefined = undefined;
+    if (appliedFilters.document_type) {
+      const parsedNum = Number(appliedFilters.document_type);
+      if (!Number.isNaN(parsedNum)) {
+        docTypeNumber = parsedNum;
+      } else if (
+        String(appliedFilters.document_type).toUpperCase().includes("DUCA")
+      ) {
+        docTypeNumber = Number(DocumentEnum.DUCA.value);
+      } else if (
+        String(appliedFilters.document_type).toUpperCase().includes("CUSTOM")
+      ) {
+        docTypeNumber = Number(DocumentEnum.CustomsDeclaration.value);
+      }
+    }
+
+    const docNumber = (
+      appliedFilters.document_number ||
+      appliedFilters.ducat_number ||
+      ""
+    ).trim();
+
     return {
       company_id: companyId,
       module_code: moduleCode,
-      driver_name: (appliedFilters.driver_name ?? "").trim(),
-      plate_number: (appliedFilters.plate_number ?? "").trim(),
-      document_type: (appliedFilters.document_type ?? "").trim(),
-      ducat_number: (appliedFilters.ducat_number ?? "").trim(),
-      document_number: (appliedFilters.document_number ?? "").trim(),
-      start_date: toApiDate(appliedFilters.start_date),
-      end_date: toApiDate(appliedFilters.end_date),
+      only_day: !hasDateFilter,
+      plate_number: (appliedFilters.plate_number ?? "").trim() || undefined,
+      document_type: docTypeNumber,
+      document_number: docNumber || undefined,
       page_number: pageNumber,
       page_size: PAGE_SIZE,
     };
   }, [companyId, moduleCode, appliedFilters, pageNumber]);
 
-
-  const detailReceptionId = selectedReceptionId ?? exitReception?.id ?? null;
+  const detailReceptionId =
+    selectedReceptionId ??
+    exitReception?.reception_entrance_id ??
+    exitReception?.id ??
+    null;
 
   const detailPayload = useMemo(
     () =>
@@ -108,6 +130,7 @@ export function AccessControlPage() {
             company_id: companyId,
             module_code: moduleCode,
             reception_id: detailReceptionId,
+            reception_entrance_id: detailReceptionId,
           }
         : null,
     [companyId, moduleCode, detailReceptionId],
@@ -118,7 +141,6 @@ export function AccessControlPage() {
     GetAccessControlDetail,
     CreateAccessControl,
     UpdateAccessControl,
-    AddDucatsToReception,
     GenerateExitAccessControl,
     DeleteAccessControl,
   } = useAccessControl({
@@ -133,8 +155,14 @@ export function AccessControlPage() {
     isFetching: isDetailFetching,
   } = GetAccessControlDetail;
 
-  const movements = accessControl?.data ?? [];
-  const totalRecords = accessControl?.total_count ?? 0;
+  const movements = useMemo(() => {
+    return (accessControl?.data ?? []).map((item) => ({
+      ...item,
+      id: item.id || item.reception_entrance_id,
+    }));
+  }, [accessControl?.data]);
+
+  const totalRecords = accessControl?.total ?? accessControl?.total_count ?? 0;
 
   const metrics = useMemo(
     () => getAccessControlMetrics(accessControl?.stats, totalRecords),
@@ -164,7 +192,7 @@ export function AccessControlPage() {
   }, []);
 
   const handleDetailClick = useCallback((item: ReceptionEntranceListItem) => {
-    setSelectedReceptionId(item.id);
+    setSelectedReceptionId(item.reception_entrance_id || item.id || null);
   }, []);
 
   const handleExitClick = useCallback((item: ReceptionEntranceListItem) => {
@@ -178,16 +206,28 @@ export function AccessControlPage() {
   const handleGenerateExit = useCallback(
     async (data: GenerateExitFormValues) => {
       if (!exitReception) return;
+      const receptionId =
+        exitReception.reception_entrance_id || exitReception.id;
+      if (!receptionId) return;
 
       try {
         await GenerateExitAccessControl.mutateAsync({
           company_id: companyId,
           module_code: moduleCode,
-          reception_id: exitReception.id,
+          reception_id: receptionId,
+          reception_entrance_id: receptionId,
           exit_vehicle: data.exit_vehicle,
           exit_container: data.exit_container,
           exit_date: data.specifyDateTime ? toApiDate(data.exitDate) : undefined,
-          exit_time: data.specifyDateTime ? dayjs(data.exitTime as any).second(0).format("HH:mm:ss") : undefined,
+          exit_time:
+            data.specifyDateTime && data.exitTime
+              ? (dayjs.isDayjs(data.exitTime)
+                  ? data.exitTime
+                  : dayjs(String(data.exitTime))
+                )
+                  .second(0)
+                  .format("HH:mm:ss")
+              : undefined,
         });
         handleRequestSuccess("Salida registrada exitosamente");
       } catch (error) {
@@ -220,11 +260,16 @@ export function AccessControlPage() {
 
   const handleConfirmDelete = useCallback(async () => {
     if (!deleteReception) return;
+    const receptionId =
+      deleteReception.reception_entrance_id || deleteReception.id;
+    if (!receptionId) return;
+
     try {
       await DeleteAccessControl.mutateAsync({
         company_id: companyId,
         module_code: moduleCode,
-        reception_id: deleteReception.id,
+        reception_id: receptionId,
+        reception_entrance_id: receptionId,
       });
       handleRequestSuccess("Registro eliminado exitosamente");
       if (movements.length === 1 && pageNumber > 1) {
@@ -253,12 +298,32 @@ export function AccessControlPage() {
   const handleEvidenceUpdate = useCallback(
     async (toAdd: string[], toDelete: string[]) => {
       if (!selectedReceptionId) return;
+
+      const parsedAdditional = parseAdditionalData(detail?.additional_data);
+      const evidenceList = parsedAdditional?.evidence_urls ?? [];
+      const uuidRegex =
+        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+      const evidenceIdsToDelete: string[] = toDelete
+        .map((urlOrId) => {
+          if (uuidRegex.test(urlOrId)) {
+            return urlOrId;
+          }
+          const found = evidenceList.find(
+            (e) => (e.image_url ?? e.document_url) === urlOrId,
+          );
+          return found?.image_id ?? found?.document_id ?? null;
+        })
+        .filter((id): id is string => Boolean(id));
+
       const payload: UpdateReceptionEntranceRequest = {
         company_id: companyId,
         module_code: moduleCode,
         reception_id: selectedReceptionId,
-        evidence_to_add: toAdd.length > 0 ? toAdd : undefined,
-        evidence_to_delete: toDelete.length > 0 ? toDelete : undefined,
+        reception_entrance_id: selectedReceptionId,
+        evidence_base64: toAdd.length > 0 ? toAdd : undefined,
+        evidence_ids_to_delete:
+          evidenceIdsToDelete.length > 0 ? evidenceIdsToDelete : undefined,
       };
 
       try {
@@ -275,6 +340,7 @@ export function AccessControlPage() {
     },
     [
       selectedReceptionId,
+      detail?.additional_data,
       UpdateAccessControl,
       companyId,
       moduleCode,
@@ -282,7 +348,7 @@ export function AccessControlPage() {
       handleRequestError,
       getMappedError,
       GetAccessControlDetail,
-    ]
+    ],
   );
 
   const handleFieldUpdate = useCallback(
@@ -298,50 +364,118 @@ export function AccessControlPage() {
         company_id: companyId,
         module_code: moduleCode,
         reception_id: selectedReceptionId,
+        reception_entrance_id: selectedReceptionId,
       };
+
+      const isDuca = detail ? isDucaDocumentType(detail) : false;
+      const parsedAdd = parseAdditionalData(detail?.additional_data);
+
+      const existingDucats: string[] = (
+        (parsedAdd?.document_numbers ?? [])
+          .filter(
+            (d) =>
+              Number(d.document_type) === Number(DocumentEnum.DUCA.value) ||
+              d.document_type === 1 ||
+              String(d.document_type) === "1" ||
+              String(d.document_type).toUpperCase().includes("DUCA") ||
+              d.document_type === 3 ||
+              String(d.document_type) === "3",
+          )
+          .map((d) => d.document_numbers)
+      ).filter(Boolean);
+
+      const existingCustomsDecNumber =
+        parsedAdd?.document_numbers?.find(
+          (d) =>
+            Number(d.document_type) ===
+              Number(DocumentEnum.CustomsDeclaration.value) ||
+            d.document_type === 2 ||
+            String(d.document_type) === "2" ||
+            String(d.document_type).toUpperCase().includes("CUSTOM") ||
+            d.document_type === 4 ||
+            String(d.document_type) === "4",
+        )?.document_numbers ??
+        "";
+
       switch (name) {
-        case "packages":
-          payload.packages = value.trim() ? Number(value) : undefined;
-          break;
         case "plate_number":
-          payload.vehicle_plate_number = value.trim();
+          payload.reception_transport_information = {
+            vehicle_plate_number: value.trim(),
+          };
           break;
         case "trailer_chassis":
-          payload.vehicle_chassis_number = value.trim();
+          payload.reception_transport_information = {
+            vehicle_chassis_number: value.trim(),
+          };
           break;
         case "driver_name":
-          payload.driver_name = value.trim();
+          payload.reception_transport_information = {
+            driver_name: value.trim(),
+          };
           break;
         case "driver_license":
-          payload.driver_license = value.trim();
+          payload.reception_transport_information = {
+            driver_license: value.trim(),
+          };
           break;
         case "transportista":
-          payload.transportista = value.trim();
-          break;
-        case "seal_number":
-          payload.seal_number = value.trim();
-          break;
-        case "country_of_origin":
-          payload.country_of_origin = value.trim();
-          break;
-        case "custom_branch":
-          payload.custom_branch_id = value.trim();
-          break;
-        case "customs_decaration_number":
-          payload.customs_declaration_number = value.trim();
-          break;
-        case "customer":
-          payload.customer = value.trim();
-          break;
-        case "product":
-          payload.product = value.trim();
-          break;
-        case "container_number":
-          payload.container_number = value.trim();
+          payload.reception_transport_information = {
+            transportista: value.trim(),
+          };
           break;
         case "transport_unit":
-          payload.transport_unit = value.trim() ? Number(value) : undefined;
+          payload.reception_transport_information = {
+            transport_unit: value.trim() ? Number(value) : undefined,
+          };
           break;
+
+        case "seal_number":
+          payload.general_information = {
+            seal_number: value.trim(),
+            document_type: isDuca
+              ? Number(DocumentEnum.DUCA.value)
+              : Number(DocumentEnum.CustomsDeclaration.value),
+            ducat_numbers: isDuca ? existingDucats : undefined,
+            customs_declaration_number: !isDuca ? existingCustomsDecNumber : undefined,
+          };
+          break;
+        case "country_of_origin":
+          payload.general_information = {
+            country_origin: value.trim(),
+            document_type: isDuca
+              ? Number(DocumentEnum.DUCA.value)
+              : Number(DocumentEnum.CustomsDeclaration.value),
+            ducat_numbers: isDuca ? existingDucats : undefined,
+            customs_declaration_number: !isDuca ? existingCustomsDecNumber : undefined,
+          };
+          break;
+        case "container_number":
+          payload.general_information = {
+            container_number: value.trim(),
+            document_type: isDuca
+              ? Number(DocumentEnum.DUCA.value)
+              : Number(DocumentEnum.CustomsDeclaration.value),
+            ducat_numbers: isDuca ? existingDucats : undefined,
+            customs_declaration_number: !isDuca ? existingCustomsDecNumber : undefined,
+          };
+          break;
+        case "custom_branch":
+          payload.general_information = {
+            custom_branch_id: value.trim(),
+            document_type: isDuca
+              ? Number(DocumentEnum.DUCA.value)
+              : Number(DocumentEnum.CustomsDeclaration.value),
+            ducat_numbers: isDuca ? existingDucats : undefined,
+            customs_declaration_number: !isDuca ? existingCustomsDecNumber : undefined,
+          };
+          break;
+        case "customs_decaration_number":
+          payload.general_information = {
+            customs_declaration_number: value.trim(),
+            document_type: Number(DocumentEnum.CustomsDeclaration.value),
+          };
+          break;
+
         default:
           return;
       }
@@ -349,6 +483,7 @@ export function AccessControlPage() {
       try {
         await UpdateAccessControl.mutateAsync(payload);
         handleRequestSuccess("Campo actualizado exitosamente");
+        GetAccessControlDetail.refetch();
         setSelectedReceptionId(null);
       } catch (error) {
         const mappedError = getMappedError(error as ApiErrorResponse);
@@ -360,9 +495,14 @@ export function AccessControlPage() {
     },
     [
       selectedReceptionId,
+      detail,
       UpdateAccessControl,
+      GetAccessControlDetail,
+      companyId,
+      moduleCode,
       handleRequestError,
       handleRequestSuccess,
+      getMappedError,
     ],
   );
 
@@ -373,14 +513,42 @@ export function AccessControlPage() {
         throw new Error("Missing context");
       }
 
+      const parsed = parseAdditionalData(detail?.additional_data);
+      const ducaDocs = (parsed?.document_numbers ?? []).filter(
+        (d) =>
+          Number(d.document_type) === Number(DocumentEnum.DUCA.value) ||
+          d.document_type === 1 ||
+          String(d.document_type) === "1" ||
+          String(d.document_type).toUpperCase().includes("DUCA") ||
+          d.document_type === 3 ||
+          String(d.document_type) === "3",
+      );
+
+      let allDucatNumbers: string[] = [];
+      if (ducaDocs.length > 0) {
+        allDucatNumbers = ducaDocs.map((d) =>
+          d.document_id === ducatId ? ducatNumber.trim() : d.document_numbers,
+        );
+      }
+
+      if (allDucatNumbers.length === 0) {
+        allDucatNumbers = [ducatNumber.trim()];
+      }
+
       try {
         await UpdateAccessControl.mutateAsync({
           company_id: companyId,
           module_code: moduleCode,
           reception_id: selectedReceptionId,
-          ducats: [{ id: ducatId, ducat_number: ducatNumber.trim() }],
+          reception_entrance_id: selectedReceptionId,
+          general_information: {
+            document_type: Number(DocumentEnum.DUCA.value),
+            ducat_numbers: allDucatNumbers,
+          },
         });
+
         handleRequestSuccess("DUCA actualizada exitosamente");
+        GetAccessControlDetail.refetch();
         setSelectedReceptionId(null);
       } catch (error) {
         const mappedError = getMappedError(error as ApiErrorResponse);
@@ -392,9 +560,14 @@ export function AccessControlPage() {
     },
     [
       selectedReceptionId,
+      detail,
       UpdateAccessControl,
+      GetAccessControlDetail,
+      companyId,
+      moduleCode,
       handleRequestError,
       handleRequestSuccess,
+      getMappedError,
     ],
   );
 
@@ -405,14 +578,34 @@ export function AccessControlPage() {
         throw new Error("Missing context");
       }
 
+      const parsed = parseAdditionalData(detail?.additional_data);
+      const ducaDocs = (parsed?.document_numbers ?? []).filter(
+        (d) =>
+          Number(d.document_type) === Number(DocumentEnum.DUCA.value) ||
+          d.document_type === 1 ||
+          String(d.document_type) === "1" ||
+          String(d.document_type).toUpperCase().includes("DUCA") ||
+          d.document_type === 3 ||
+          String(d.document_type) === "3",
+      );
+
+      const existingDucatNumbers = ducaDocs.map((d) => d.document_numbers);
+      const cleanNewDucats = ducatNumbers.map((d) => d.trim()).filter(Boolean);
+      const allDucatNumbers = [...existingDucatNumbers, ...cleanNewDucats];
+
       try {
-        await AddDucatsToReception.mutateAsync({
+        await UpdateAccessControl.mutateAsync({
           company_id: companyId,
           module_code: moduleCode,
           reception_id: selectedReceptionId,
-          ducat_numbers: ducatNumbers,
+          reception_entrance_id: selectedReceptionId,
+          general_information: {
+            document_type: Number(DocumentEnum.DUCA.value),
+            ducat_numbers: allDucatNumbers,
+          },
         });
         handleRequestSuccess("DUCA agregada exitosamente");
+        GetAccessControlDetail.refetch();
       } catch (error) {
         const mappedError = getMappedError(error as ApiErrorResponse);
         handleRequestError(
@@ -423,24 +616,23 @@ export function AccessControlPage() {
     },
     [
       selectedReceptionId,
-      AddDucatsToReception,
+      detail,
+      companyId,
+      moduleCode,
+      UpdateAccessControl,
+      GetAccessControlDetail,
       handleRequestError,
       handleRequestSuccess,
+      getMappedError,
     ],
   );
 
   const handleOpenGateEntry = useCallback(() => {
-    const now = dayjs();
-    setEntryStartedAt({
-      start_date: now.format("YYYY-MM-DD"),
-      start_time: now.format("HH:mm:ss"),
-    });
     setIsGateEntryOpen(true);
   }, []);
 
   const handleCloseGateEntry = useCallback(() => {
     setIsGateEntryOpen(false);
-    setEntryStartedAt(null);
   }, []);
 
   const handleGateEntrySubmit = useCallback(
@@ -450,25 +642,16 @@ export function AccessControlPage() {
         return;
       }
 
-      if (!entryStartedAt) {
-        handleRequestError(
-          "No se capturó la hora de inicio. Vuelva a abrir el registro.",
-        );
-        return;
-      }
-
       const createPayload = mapGateEntryToCreateRequest(
         data,
         documentType,
         companyId,
         moduleCode,
-        entryStartedAt,
       );
 
       CreateAccessControl.mutate(createPayload, {
         onSuccess: () => {
           setIsGateEntryOpen(false);
-          setEntryStartedAt(null);
           setPageNumber(1);
           handleRequestSuccess("Entrada registrada exitosamente");
         },
@@ -481,10 +664,12 @@ export function AccessControlPage() {
       });
     },
     [
-      entryStartedAt,
+      companyId,
+      moduleCode,
       CreateAccessControl,
       handleRequestError,
       handleRequestSuccess,
+      getMappedError,
     ],
   );
 
@@ -530,24 +715,37 @@ export function AccessControlPage() {
       >
         <div className="flex flex-col gap-4 min-w-0 p-4">
           <p className="text-slate-600 dark:text-slate-300 text-center">
-            ¿Está seguro que desea eliminar el registro de la unidad con placa{" "}
-            <span className="font-bold">{deleteReception?.plate_number}</span> y conductor{" "}
-            <span className="font-bold">{deleteReception?.driver_name}</span>?
+            ¿Está seguro que desea eliminar el registro{" "}
+            <span className="font-bold">
+              {deleteReception?.reception_code
+                ? `con código ${deleteReception.reception_code}`
+                : deleteReception?.plate_number
+                ? `con placa ${deleteReception.plate_number}`
+                : deleteReception?.container_number
+                ? `con contenedor ${deleteReception.container_number}`
+                : ""}
+            </span>
+            {deleteReception?.driver_name ? (
+              <>
+                {" "}y conductor{" "}
+                <span className="font-bold">{deleteReception.driver_name}</span>
+              </>
+            ) : null}
+            ?
           </p>
           <div className="flex justify-end gap-3 mt-4">
             <Button
               type="button"
               label="Cancelar"
               onClick={handleCloseDelete}
-              disabled={DeleteAccessControl.isPending}
-              className="bg-transparent! border! border-slate-300! text-slate-700! hover:bg-slate-50! dark:border-slate-600! dark:text-slate-300! dark:hover:bg-slate-800!"
+              className="text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-800"
             />
             <Button
               type="button"
-              label={DeleteAccessControl.isPending ? "Eliminando..." : "Eliminar"}
+              label="Eliminar"
               onClick={handleConfirmDelete}
-              disabled={DeleteAccessControl.isPending}
-              className="bg-red-600! hover:bg-red-700! text-white!"
+              isLoading={DeleteAccessControl.isPending}
+              className="bg-red-600 hover:bg-red-700 text-white"
             />
           </div>
         </div>
@@ -556,15 +754,29 @@ export function AccessControlPage() {
       <Modal
         isOpen={Boolean(exitReception)}
         onClose={handleCloseExit}
-        variant="warning"
-        size="md"
-        panelClassName="overflow-visible"
+        variant="info"
+        size="lg"
+        title="Generar salida de movimiento"
       >
-        <div className="flex flex-col gap-4 min-w-0">
+        <div className="flex flex-col gap-4 min-w-0 p-4">
           <p className="text-slate-600 dark:text-slate-300 text-center">
-            ¿Desea registrar la salida de la unidad con placa{" "}
-            <span className="font-bold">{exitReception?.plate_number}</span> y conductor{" "}
-            <span className="font-bold">{exitReception?.driver_name}</span>?
+            ¿Está seguro que desea dar salida al registro{" "}
+            <span className="font-bold">
+              {exitReception?.reception_code
+                ? `con código ${exitReception.reception_code}`
+                : exitReception?.plate_number
+                ? `con placa ${exitReception.plate_number}`
+                : exitReception?.container_number
+                ? `con contenedor ${exitReception.container_number}`
+                : ""}
+            </span>
+            {exitReception?.driver_name ? (
+              <>
+                {" "}y conductor{" "}
+                <span className="font-bold">{exitReception.driver_name}</span>
+              </>
+            ) : null}
+            ?
           </p>
           <GenerateExitModal
             onClose={handleCloseExit}
@@ -572,14 +784,16 @@ export function AccessControlPage() {
             isSubmitting={GenerateExitAccessControl.isPending}
             entryDate={
               exitReception && detail?.id === exitReception.id
-                ? (detail?.execution_log?.start_date ??
-                  exitReception.arrival_date)
+                ? (detail?.created_at
+                    ? detail.created_at.slice(0, 10)
+                    : exitReception.arrival_date)
                 : exitReception?.arrival_date
             }
             entryTime={
               exitReception && detail?.id === exitReception.id
-                ? (detail?.execution_log?.start_time ??
-                  exitReception.arrival_time)
+                ? (detail?.created_at
+                    ? detail.created_at.slice(11, 19)
+                    : exitReception.arrival_time)
                 : exitReception?.arrival_time
             }
           />
@@ -605,14 +819,7 @@ export function AccessControlPage() {
         isSubmitting={CreateAccessControl.isPending}
       />
 
-      <AnimatedAlertWrapper open={alertState?.open ?? false}>
-        <Alert
-          type={alertState?.type!}
-          title={alertState?.title}
-          message={alertState?.message!}
-          onClose={handleCloseAlert}
-        />
-      </AnimatedAlertWrapper>
+      {AlertComponent}
     </m.div>
   );
 }

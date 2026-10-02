@@ -1,53 +1,49 @@
-import type { DocumentType } from "@app/core/enums/document.enum";
-import type { RecordEntranceStatusKey } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
-
-export interface ReceptionEntranceDucat {
-  id: string;
-  ducat_number: string;
+export interface CustomBranchesInformation {
+  code: string;
+  customs_branch_name: string;
+  custom_branch_id?: string;
+  custom_branch_code?: string;
 }
 
-export interface CustomsDeclarationDetail {
-  customs_decaration_number: string;
-  packages: number | null;
-  customer: string | null;
-  product: string | null;
-  container_number: string | null;
+export interface ReceptionTransportEntranceDto {
+  driver_name: string;
+  driver_license: string;
+  transportista: string;
+  vehicle_plate_number: string;
+  vehicle_chassis_number: string;
+  transport_unit: string | number;
 }
 
-export interface ExecutionLogDetail {
-  start_date: string;
-  start_time: string;
-  end_date: string | null;
-  end_time: string | null;
-  processed_by_user_name: string;
-  duration_total_seconds: number | null;
-  duration_formatted: string | null;
+export interface AdditionalDataEvidenceUrl {
+  image_id?: string;
+  document_id?: string;
+  image_url?: string;
+  document_url?: string;
+}
+
+export interface AdditionalDataDocumentNumber {
+  document_id: string;
+  document_numbers: string;
+  document_type: number | string;
+}
+
+export interface AdditionalReceptionEntranceData {
+  evidence_urls?: AdditionalDataEvidenceUrl[];
+  document_numbers?: AdditionalDataDocumentNumber[];
 }
 
 export interface ReceptionEntranceDetail {
-  id: string;
-  status: RecordEntranceStatusKey;
-  is_consolidated: boolean;
-  country_of_origin: string;
-  custom_branch: string;
-  plate_number: string;
-  trailer_chassis: string;
-  container_number: string;
-  driver_license: string;
-  transportista: string;
-  transport_unit: string;
-  driver_name: string;
+  reception_entrance_id: string;
+  reception_code?: string | null;
   seal_number: string;
-  evidence_urls: string[];
-  document_type: DocumentType;
-  vehicle_exit_date: string | null;
-  vehicle_exit_time: string | null;
-  container_exit_date: string | null;
-  container_exit_time: string | null;
-  updated_by_user_name: string | null;
-  updated_date: string | null;
-  updated_time: string | null;
-  ducats: ReceptionEntranceDucat[] | null;
-  customs_declaration: CustomsDeclarationDetail | null;
-  execution_log: ExecutionLogDetail | null;
+  container_number: string;
+  country_of_origin: string;
+  created_at: string;
+  additional_data: string | AdditionalReceptionEntranceData | null;
+  custom_branches_information: CustomBranchesInformation;
+  reception_transport_entrance_information: ReceptionTransportEntranceDto;
+
+  // Propiedades opcionales
+  id?: string;
+  is_consolidated?: boolean;
 }

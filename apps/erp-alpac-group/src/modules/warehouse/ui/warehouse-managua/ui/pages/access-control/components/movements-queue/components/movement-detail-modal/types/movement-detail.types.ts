@@ -2,37 +2,21 @@ import type { ReceptionEntranceDetail } from "@app/modules/warehouse/domain/ApiC
 import type { Path } from "react-hook-form";
 
 export type MovementDetailFormValues = {
-  status: string;
-  is_consolidated: string;
   document_type: string;
+  country_of_origin: string;
   start_date: string;
   start_time: string;
-  end_date: string;
-  end_time: string;
-  duration_formatted: string;
-  processed_by_user_name: string;
+  customs_decaration_number: string;
   plate_number: string;
-  driver_name: string;
-  driver_license: string;
   trailer_chassis: string;
   container_number: string;
+  driver_name: string;
+  driver_license: string;
   transportista: string;
   transport_unit: string;
   seal_number: string;
-  evidence_urls: string[];
-  country_of_origin: string;
   custom_branch: string;
-  customs_decaration_number: string;
-  packages: string;
-  customer: string;
-  product: string;
-  vehicle_exit_date: string | null;
-  vehicle_exit_time: string | null;
-  container_exit_date: string | null;
-  container_exit_time: string | null;
-  updated_by_user_name: string;
-  updated_date: string;
-  updated_time: string;
+  evidence_urls: string[];
 };
 
 export type MovementDetailModalProps = {
@@ -49,36 +33,21 @@ export type MovementDetailModalProps = {
   onDucatAdd?: (ducatNumbers: string[]) => Promise<void>;
   onEvidenceUpdate?: (toAdd: string[], toDelete: string[]) => Promise<void>;
 };
+
 export const MOVEMENT_DETAIL_DEFAULT_VALUES: MovementDetailFormValues = {
-  status: "",
-  is_consolidated: "",
   document_type: "",
+  country_of_origin: "",
   start_date: "",
   start_time: "",
-  end_date: "",
-  end_time: "",
-  duration_formatted: "",
-  processed_by_user_name: "",
+  customs_decaration_number: "",
   plate_number: "",
-  driver_name: "",
-  driver_license: "",
   trailer_chassis: "",
   container_number: "",
+  driver_name: "",
+  driver_license: "",
   transportista: "",
   transport_unit: "",
   seal_number: "",
-  country_of_origin: "",
   custom_branch: "",
-  customs_decaration_number: "",
-  packages: "",
-  customer: "",
-  product: "",
   evidence_urls: [],
-  vehicle_exit_date: "",
-  vehicle_exit_time: "",
-  container_exit_date: "",
-  container_exit_time: "",
-  updated_by_user_name: "",
-  updated_date: "",
-  updated_time: "",
 };

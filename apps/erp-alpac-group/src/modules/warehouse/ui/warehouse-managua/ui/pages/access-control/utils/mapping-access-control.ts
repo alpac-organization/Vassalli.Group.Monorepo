@@ -1,64 +1,65 @@
 import type {
   CreateAccessControlRequest,
-  DeclarationAduanaPayload,
-  DucaPayload,
+  GeneralInformationRequest,
+  TransportInformationRequest,
+  CustomsDeclarationInformationRequest,
 } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/create-access-control";
 import type { GateEntryFormValues } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/types/gate-entry-modal.types";
 import { DocumentEnum, type DocumentType } from "@app/core/enums/document.enum";
 import dayjs from "dayjs";
 import type { DatePickerValue } from "@alpac/design-system";
 
-export type EntryStartedAt = {
-  start_date: string;
-  start_time: string;
-};
-
 export function mapGateEntryToCreateRequest(
   data: GateEntryFormValues,
   documentType: DocumentType,
   companyId: string,
   moduleCode: string,
-  entryStartedAt: EntryStartedAt,
 ): CreateAccessControlRequest {
-  const base = {
-    company_id: companyId,
-    module_code: moduleCode,
-    document_type: Number(documentType.value),
-    transport_unit: Number(data.transportUnitId),
-    country_of_origin: data.countryOfOrigin.trim(),
-    custom_branch_id: data.customBranchId.trim(),
-    vehicle_plate_number: data.plateNumber.trim().toUpperCase(),
-    vehicle_chassis_number: data.trailerChassis.trim(),
-    container_number: data.containerNumber.trim(),
-    driver_license: data.driverLicense.trim(),
-    transportista: data.transportista.trim(),
-    driver_name: data.driverName.trim(),
-    seal_number: data.sealNumber.trim(),
-    evidence_base64: (data.sealEvidence ?? []).map((img) => img.imageBase64),
-    start_date: entryStartedAt.start_date,
-    start_time: entryStartedAt.start_time,
-  };
-
   const isCustomsDeclaration =
     Number(documentType.value) ===
     Number(DocumentEnum.CustomsDeclaration.value);
 
-  if (isCustomsDeclaration) {
-    const payload: DeclarationAduanaPayload = {
-      ...base,
-      customs_declaration_number: data.customsDeclarationNumber.trim(),
-      packages: Number(data.packages),
-      customer: data.customer.trim(),
-      product: data.product.trim(),
-    };
-    return payload;
-  }
-
-  const payload: DucaPayload = {
-    ...base,
-    ducat_numbers: data.ducas.map((duca) => duca.value.trim()).filter(Boolean),
+  const general_information: GeneralInformationRequest = {
+    custom_branch_id: data.customBranchId.trim(),
+    seal_number: data.sealNumber.trim(),
+    country_origin: data.countryOfOrigin.trim(),
+    container_number: data.containerNumber.trim(),
+    document_type: Number(documentType.value),
+    ducat_numbers: isCustomsDeclaration
+      ? []
+      : data.ducas.map((duca) => duca.value.trim()).filter(Boolean),
+    customs_declaration_number: isCustomsDeclaration
+      ? data.customsDeclarationNumber.trim()
+      : null,
   };
-  return payload;
+
+  const transport_information: TransportInformationRequest = {
+    driver_name: data.driverName.trim(),
+    driver_license: data.driverLicense.trim(),
+    transportista: data.transportista.trim(),
+    vehicle_plate_number: data.plateNumber.trim().toUpperCase(),
+    vehicle_chassis_number: data.trailerChassis.trim(),
+    transport_unit: Number(data.transportUnitId),
+  };
+
+  const customs_declaration_information: CustomsDeclarationInformationRequest | null =
+    isCustomsDeclaration
+      ? {
+          total_weight: Number(data.totalWeight || 0),
+          package_number: Number(data.packages || 0),
+          product_description: data.product?.trim() || null,
+          observations: data.observations?.trim() || null,
+        }
+      : null;
+
+  return {
+    company_id: companyId,
+    module_code: moduleCode,
+    general_information,
+    transport_information,
+    customs_declaration_information,
+    evidence_base64: (data.sealEvidence ?? []).map((img) => img.imageBase64),
+  };
 }
 
 export const toApiDate = (date: DatePickerValue | null): string => {
