@@ -6,4 +6,5 @@ export type ProgressBarProps = {
   totalLabel?: string;
   completedLabel?: string;
   remainingLabel?: string;
+  unitOfMeasurement?: string;
 };

@@ -39,6 +39,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { Loader } from "@app/shared/components/loaders/loader";
+import { isInsideAvailableArea } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-bound";
 
 import type {
 	FormValues,
@@ -77,6 +78,7 @@ const createDefaultValues = (): FormValues => ({
 export const SectionModal = ({
 	isOpen,
 	warehouseId,
+	warehouse,
 	section = null,
 	onClose,
 	onSubmit,
@@ -265,17 +267,42 @@ export const SectionModal = ({
 			return;
 		}
 
+		const positionX = data.position_x ?? 0;
+		const positionY = data.position_y ?? 0;
+		const sectionWidth = data.width_metres ?? 0;
+		const sectionLength = data.length_metres ?? 0;
+
+		if (
+			warehouse &&
+			!isInsideAvailableArea(
+				{ x: positionX, y: positionY, width: sectionWidth, length: sectionLength },
+				{
+					width: warehouse.width - warehouse.margin_left - warehouse.margin_right,
+					length: warehouse.length - warehouse.margin_top - warehouse.margin_bottom,
+					marginTop: 0,
+					marginBottom: 0,
+					marginLeft: 0,
+					marginRight: 0,
+				},
+			)
+		) {
+			handleRequestError(
+				"La sección debe quedar dentro del área disponible de la bodega.",
+			);
+			return;
+		}
+
 		const payload: RegisterSectionRequest = {
 			company_id: companyId,
 			module_code: moduleCode,
 			warehouse_id: warehouseId,
 			section_type: sectionType,
 			section_storage_type: storageType,
-			width: data.width_metres ?? 0,
-			length: data.length_metres ?? 0,
+			width: sectionWidth,
+			length: sectionLength,
 			maximum_number_of_pallets_per_level: allows ? maxPallets : null,
-			position_x: 0,
-			position_y: 0,
+			position_x: positionX,
+			position_y: positionY,
 			position_z: 0,
 			rotation_y: 0,
 		};

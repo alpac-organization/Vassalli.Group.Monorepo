@@ -17,6 +17,7 @@ import { WarehouseDetailModal } from "@app/modules/admin-warehouse/warehouse-man
 
 import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses-response";
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
+import { WarehouseViewer } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-viewer/warehouse-viewer";
 
 const PAGE_SIZE = 10;
 
@@ -31,6 +32,7 @@ export function WarehousePage() {
    const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
    const [isWarehouseDetailModalOpen, setIsWarehouseDetailModalOpen] = useState(false);
    const [selectedWarehouse, setSelectedWarehouse] = useState<WarehouseDto | null>();
+   const [editingWarehouse, setEditingWarehouse] = useState<WarehouseDto | null>(null);
 
    const getWarehousesPayload = useMemo<GetWarehouseRequest>(
       () => ({
@@ -74,17 +76,29 @@ export function WarehousePage() {
    );
 
    const handleCreateWarehouseClick = useCallback(() => {
+      setEditingWarehouse(null);
       setIsWarehouseModalOpen(true);
    }, []);
 
    const handleCloseModal = useCallback(() => {
       setIsWarehouseModalOpen(false);
+      setEditingWarehouse(null);
    }, []);
 
    const handleViewDetails = useCallback((warehouse: WarehouseDto) => {
       setSelectedWarehouse(warehouse);
       setIsWarehouseDetailModalOpen(true);
-   }, [])
+   }, []);
+
+   const handleUpdateWarehouse = useCallback((warehouse: WarehouseDto) => {
+      setSelectedWarehouse(warehouse);
+      setEditingWarehouse(warehouse);
+      setIsWarehouseModalOpen(true);
+   }, []);
+
+   const handleSelectRow = useCallback((warehouse: WarehouseDto) => {
+      setSelectedWarehouse(warehouse);
+   }, []);
 
    return (
       <m.div
@@ -126,19 +140,30 @@ export function WarehousePage() {
             onClear={handleClearFilters}
          />
 
-         <WarehouseTable
-            data={warehouseData}
-            currentPage={GetWarehouses.data?.page_number ?? currentPage}
-            totalRecords={totalRecords}
-            pageSize={GetWarehouses.data?.page_size ?? PAGE_SIZE}
-            onPageChange={setCurrentPage}
-            onViewSections={handleViewSections}
-            onViewDetails={handleViewDetails}
-            isFetching={GetWarehouses.isFetching}
-         />
+         <div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,400px),1fr))] min-h-0">
+
+            <WarehouseTable
+               data={warehouseData}
+               currentPage={GetWarehouses.data?.page_number ?? currentPage}
+               totalRecords={totalRecords}
+               pageSize={GetWarehouses.data?.page_size ?? PAGE_SIZE}
+               onPageChange={setCurrentPage}
+               onViewSections={handleViewSections}
+               onViewDetails={handleViewDetails}
+               onUpdateWarehouse={handleUpdateWarehouse}
+               onSelectRow={handleSelectRow}
+               selectedWarehouse={selectedWarehouse}
+               isFetching={GetWarehouses.isFetching}
+            />
+
+            <WarehouseViewer warehouse={selectedWarehouse} />
+
+         </div>
+
 
          <WarehouseModal
             isOpen={isWarehouseModalOpen}
+            warehouse={editingWarehouse}
             onClose={handleCloseModal}
          />
 

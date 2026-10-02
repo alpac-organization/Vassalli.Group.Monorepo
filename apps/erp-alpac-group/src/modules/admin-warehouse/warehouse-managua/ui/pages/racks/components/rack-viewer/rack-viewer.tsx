@@ -126,6 +126,7 @@ export const RackViewer = ({
 
           </nav>
         }
+        draggable
         width={WAREHOUSE_WIDTH}
         length={WAREHOUSE_LENGTH}
         marginTop={WAREHOUSE_MARGINS.top}

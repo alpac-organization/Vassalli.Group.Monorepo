@@ -6,6 +6,7 @@ import { Grid } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/wa
 import type Konva from "konva";
 import { CardinalMarker } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/cardinal-marker/cardinal-marker";
 import { CANVAS_PADDING_LEFT, METRIC_SIZE, PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
+import { WarehouseAreasColorTypes } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-table/utils/warehouse-status";
 
 export const WarehouseShape = ({
    width,
@@ -16,7 +17,7 @@ export const WarehouseShape = ({
    marginBottom = 0,
    marginLeft = 0,
    marginRight = 0,
-   title = "Plano de la bodega",
+   title,
    selectedLabel,
    overlay,
    containerClassName,
@@ -74,7 +75,9 @@ export const WarehouseShape = ({
       <section>
          {(title || selectedLabel) && (
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-               <div>{typeof title === "string" ? <span className="font-bold">{title}</span> : title}</div>
+               {title && (
+                  <div>{typeof title === "string" ? <span className="font-bold">{title}</span> : title}</div>
+               )}
                {selectedLabel && (
                   <div>{typeof selectedLabel === "string" ? <span className="text-sm font-semibold">{selectedLabel}</span> : selectedLabel}</div>
                )}
@@ -87,107 +90,107 @@ export const WarehouseShape = ({
             {overlay}
             {stageSize.width > 0 && stageSize.length > 0 && (
                <Stage
-               width={stageSize.width}
-               height={stageSize.length}
-               scaleX={scale}
-               scaleY={scale}
-               draggable={draggable}
-               className="bg-white dark:bg-[#363a45] p-0 rounded-sm active:cursor-grabbing"
-               onDragMove={(e) => {
-                  const stage = e.target.getStage();
-                  if (stage) syncStageTransform(stage);
-               }}
-               onDragEnd={(e) => {
-                  const stage = e.target.getStage();
-                  if (!stage) return;
-                  setStageCoordinates({ x: stage.x(), y: stage.y() });
-                  setScale(stage.scaleX());
-               }}
-               onWheel={(e) => {
-                  e.evt.preventDefault();
+                  width={stageSize.width}
+                  height={stageSize.length}
+                  scaleX={scale}
+                  scaleY={scale}
+                  draggable={draggable}
+                  className="bg-white dark:bg-[#363a45] p-0 rounded-sm active:cursor-grabbing"
+                  onDragMove={(e) => {
+                     const stage = e.target.getStage();
+                     if (stage) syncStageTransform(stage);
+                  }}
+                  onDragEnd={(e) => {
+                     const stage = e.target.getStage();
+                     if (!stage) return;
+                     setStageCoordinates({ x: stage.x(), y: stage.y() });
+                     setScale(stage.scaleX());
+                  }}
+                  onWheel={(e) => {
+                     e.evt.preventDefault();
 
-                  const stage = e.target.getStage();
-                  const pointer = stage?.getPointerPosition();
+                     const stage = e.target.getStage();
+                     const pointer = stage?.getPointerPosition();
 
-                  if (!stage || !pointer) return;
+                     if (!stage || !pointer) return;
 
-                  const oldScale = stage.scaleX();
-                  const direction = e.evt.deltaY > 0 ? -1 : 1;
-                  const newScale = Math.min(3, Math.max(0.4, oldScale + direction * 0.1));
+                     const oldScale = stage.scaleX();
+                     const direction = e.evt.deltaY > 0 ? -1 : 1;
+                     const newScale = Math.min(3, Math.max(0.4, oldScale + direction * 0.1));
 
-                  const mousePointTo = {
-                     x: (pointer.x - stage.x()) / oldScale,
-                     y: (pointer.y - stage.y()) / oldScale,
-                  };
+                     const mousePointTo = {
+                        x: (pointer.x - stage.x()) / oldScale,
+                        y: (pointer.y - stage.y()) / oldScale,
+                     };
 
-                  const nextPososition = {
-                     x: pointer.x - mousePointTo.x * newScale,
-                     y: pointer.y - mousePointTo.y * newScale,
-                  };
+                     const nextPososition = {
+                        x: pointer.x - mousePointTo.x * newScale,
+                        y: pointer.y - mousePointTo.y * newScale,
+                     };
 
-                  stage.scale({ x: newScale, y: newScale });
-                  stage.position(nextPososition);
+                     stage.scale({ x: newScale, y: newScale });
+                     stage.position(nextPososition);
 
-                  setScale(newScale);
-                  setStageCoordinates(nextPososition);
-               }}
-            >
-               <Layer>
-                  <HorizontalMetric
-                     x={originX}
-                     y={0}
-                     width={pixelWidth}
-                     pixelPerMeter={PIXELS_PER_METER}
-                  />
+                     setScale(newScale);
+                     setStageCoordinates(nextPososition);
+                  }}
+               >
+                  <Layer>
+                     <HorizontalMetric
+                        x={originX}
+                        y={0}
+                        width={pixelWidth}
+                        pixelPerMeter={PIXELS_PER_METER}
+                     />
 
-                  <VerticalMetric
-                     x={CANVAS_PADDING_LEFT}
-                     y={originY}
-                     length={pixelLength}
-                     pixelPerMeter={PIXELS_PER_METER}
-                  />
+                     <VerticalMetric
+                        x={CANVAS_PADDING_LEFT}
+                        y={originY}
+                        length={pixelLength}
+                        pixelPerMeter={PIXELS_PER_METER}
+                     />
 
-                  <Rect
-                     x={originX}
-                     y={originY}
-                     width={pixelWidth}
-                     height={pixelLength}
-                     stroke="#38bdf8"
-                     dashEnabled
-                     dash={[10, 5]}
-                  />
-
-                  {(marginTop > 0 || marginBottom > 0 || marginLeft > 0 || marginRight > 0) && (
                      <Rect
-                        x={originX + usableOffsetX}
-                        y={originY + usableOffsetY}
-                        width={usableWidthPx}
-                        height={usableLengthPx}
-                        stroke="#d467f5"
+                        x={originX}
+                        y={originY}
+                        width={pixelWidth}
+                        height={pixelLength}
+                        stroke={WarehouseAreasColorTypes["External"].color}
                         dashEnabled
                         dash={[10, 5]}
                      />
-                  )}
 
-                  <Grid
-                     x={stageCoordinates.x}
-                     y={stageCoordinates.y}
-                     width={stageSize.width}
-                     length={stageSize.length}
-                     scale={scale}
-                     pixelPerMeter={PIXELS_PER_METER}
-                  />
+                     {(marginTop > 0 || marginBottom > 0 || marginLeft > 0 || marginRight > 0) && (
+                        <Rect
+                           x={originX + usableOffsetX}
+                           y={originY + usableOffsetY}
+                           width={usableWidthPx}
+                           height={usableLengthPx}
+                           stroke={WarehouseAreasColorTypes["Internal"].color}
+                           dashEnabled
+                           dash={[10, 5]}
+                        />
+                     )}
 
-                  <CardinalMarker x={0} y={0} />
+                     <Grid
+                        x={stageCoordinates.x}
+                        y={stageCoordinates.y}
+                        width={stageSize.width}
+                        length={stageSize.length}
+                        scale={scale}
+                        pixelPerMeter={PIXELS_PER_METER}
+                     />
 
-                  <Group
-                     x={originX + usableOffsetX}
-                     y={originY + usableOffsetY}>
-                     {children ?? null}
-                  </Group>
+                     <CardinalMarker x={0} y={0} />
 
-               </Layer>
-            </Stage>
+                     <Group
+                        x={originX + usableOffsetX}
+                        y={originY + usableOffsetY}>
+                        {children ?? null}
+                     </Group>
+
+                  </Layer>
+               </Stage>
             )}
          </div>
       </section>
