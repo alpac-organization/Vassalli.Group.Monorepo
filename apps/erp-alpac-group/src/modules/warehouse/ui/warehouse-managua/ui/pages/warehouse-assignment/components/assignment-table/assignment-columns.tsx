@@ -2,7 +2,6 @@ import { Badges, ContextMenu, type TableColumn } from "@alpac/design-system";
 import type { PendingAssignmentDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-pending-assignments";
 import type { SelectedAssignmentTarget } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/types/assignment.types";
 import { resolveDocumentTypeLabel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/resolveStatus";
-import { getDocumentTypeBadgeClass } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/merchandise/components/merchandise-table/utils/merchandise-columns.utils";
 import { formatDateToSpanishWords, formatTime } from "@app/shared/utils/string.utils";
 
 type AssignmentColumnsOptions = {
@@ -72,7 +71,7 @@ export function getAssignmentColumns({
           <Badges
             label={label}
             color="transparent"
-            className={`w-fit! min-w-[7.5rem]! px-3! justify-center! ${getDocumentTypeBadgeClass(normalizedType)}`}
+            className={`w-fit! min-w-[7.5rem]! px-3! justify-center! ${(normalizedType)}`}
           />
         );
       },
