@@ -7,6 +7,7 @@ import { LegendItem } from "@app/shared/components/legend-item/legend-item";
 import { LotShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lot-shape/lot-shape";
 import { LotShapeMenu } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lot-shape/components/lot-shape-menu/lot-shape-menu";
 import { WarehouseShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape";
+import { createMockGaleron } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-shape/galeron-shape.types";
 import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import { RACK_STATUS_LEGEND } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
 import { useLot } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useLot";
@@ -278,6 +279,9 @@ export const LotViewer = ({
       <WarehouseShape
         width={width}
         length={length}
+        galerons={
+          width > 0 && length > 0 ? [createMockGaleron(width, length)] : []
+        }
         draggable={editMode == null}
         marginTop={margins.top}
         marginBottom={margins.bottom}

@@ -1,7 +1,7 @@
 import { m } from "framer-motion";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "@alpac/design-system";
-import { Warehouse } from "lucide-react";
+import { PlusCircle, Warehouse } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { WarehouseHeader } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-header/warehouse-header";
 import { WarehouseFiltersBar } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-filters/warehouse-filters";
@@ -12,12 +12,14 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { filtersToGetWarehouseParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
-import { EMPTY_WAREHOUSE_FILTERS, type WarehouseFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/types/warehouse.types";
 import { WarehouseDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-detail-modal/warehouse-detail-modal";
+import { WarehouseViewer } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-viewer/warehouse-viewer";
+import { GaleronModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-modal/galeron-modal";
 
 import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses-response";
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
-import { WarehouseViewer } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-viewer/warehouse-viewer";
+import type { WarehouseViewerHandle } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-viewer/warehouse-viewer.types";
+import { EMPTY_WAREHOUSE_FILTERS, type WarehouseFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-filters/types/warehouse-filters.types";
 
 const PAGE_SIZE = 10;
 
@@ -27,12 +29,16 @@ export function WarehousePage() {
    const { baseUrl } = useBaseUrl();
    const { companyId, moduleCode, moduleBasePath } = useUserStore();
    const isWarehouseAdmin = moduleBasePath.includes("warehouse-admin");
+
    const [appliedFilters, setAppliedFilters] = useState<WarehouseFilters>(EMPTY_WAREHOUSE_FILTERS);
    const [currentPage, setCurrentPage] = useState(1);
    const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
    const [isWarehouseDetailModalOpen, setIsWarehouseDetailModalOpen] = useState(false);
    const [selectedWarehouse, setSelectedWarehouse] = useState<WarehouseDto | null>();
    const [editingWarehouse, setEditingWarehouse] = useState<WarehouseDto | null>(null);
+   const [isGaleronModalOpen, setIsGaleronModalOpen] = useState(false);
+
+   const warehouseViewerRef = useRef<WarehouseViewerHandle>(null);
 
    const getWarehousesPayload = useMemo<GetWarehouseRequest>(
       () => ({
@@ -54,13 +60,14 @@ export function WarehousePage() {
 
    const handleApplyFilters = useCallback((filters: WarehouseFilters) => {
       setAppliedFilters(filters);
-
       setCurrentPage(1);
+      setSelectedWarehouse(null);
    }, []);
 
    const handleClearFilters = useCallback(() => {
       setAppliedFilters(EMPTY_WAREHOUSE_FILTERS);
       setCurrentPage(1);
+      setSelectedWarehouse(null);
    }, []);
 
    const handleViewSections = useCallback(
@@ -124,14 +131,25 @@ export function WarehousePage() {
             </div>
 
             <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-               <Button
-                  type="button"
-                  size="giant"
-                  label="Registrar Nueva Bodega"
-                  icon={<Warehouse size={20} />}
-                  className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                  onClick={handleCreateWarehouseClick}
-               />
+               <div className="flex flex-wrap gap-3">
+                  <Button
+                     type="button"
+                     size="giant"
+                     label="Registrar Nueva Bodega"
+                     icon={<Warehouse size={20} />}
+                     className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                     onClick={handleCreateWarehouseClick}
+                  />
+                  <Button
+                     type="button"
+                     size="giant"
+                     label="Agregar galerón"
+                     icon={<PlusCircle size={20} />}
+                     className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                     disabled={!selectedWarehouse}
+                     onClick={() => setIsGaleronModalOpen(true)}
+                  />
+               </div>
             </div>
          </div>
 
@@ -156,7 +174,7 @@ export function WarehousePage() {
                isFetching={GetWarehouses.isFetching}
             />
 
-            <WarehouseViewer warehouse={selectedWarehouse} />
+            <WarehouseViewer ref={warehouseViewerRef} warehouse={selectedWarehouse} />
 
          </div>
 
@@ -165,6 +183,14 @@ export function WarehousePage() {
             isOpen={isWarehouseModalOpen}
             warehouse={editingWarehouse}
             onClose={handleCloseModal}
+         />
+
+         <GaleronModal
+            isOpen={isGaleronModalOpen}
+            onClose={() => setIsGaleronModalOpen(false)}
+            onSubmit={(width, length) => {
+               warehouseViewerRef.current?.addGaleron(width, length);
+            }}
          />
 
          <WarehouseDetailModal

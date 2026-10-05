@@ -4,6 +4,7 @@ import { SaveIcon } from "lucide-react";
 import { Button } from "@alpac/design-system";
 import { LegendItem } from "@app/shared/components/legend-item/legend-item";
 import { SectionShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/section-shape";
+import { createMockGaleron } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-shape/galeron-shape.types";
 import { SectionShapeMenu } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/components/section-shape-menu/section-shape-menu";
 import { SectionLegends, SectionTypeBorderColor, SectionTypeColor } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/section-status-badge";
 import { WarehouseShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape";
@@ -57,8 +58,10 @@ export const SectionViewer = ({
 	const activeSelectedId = selectedSection?.section_id ?? internalSelectedId;
 	const activeSelectedCode = selectedSection?.section_code ?? internalSelectedCode;
 	const resolvedWarehouseId = warehouse?.warehouse_id ?? warehouseId;
-	const width = warehouse?.width ?? 0;
-	const length = warehouse?.length ?? 0;
+
+	const warehouseWidth = warehouse?.width ?? 0;
+	const warehouseLength = warehouse?.length ?? 0;
+
 	const margins = {
 		top: warehouse?.margin_top ?? 0,
 		bottom: warehouse?.margin_bottom ?? 0,
@@ -66,8 +69,8 @@ export const SectionViewer = ({
 		right: warehouse?.margin_right ?? 0,
 	};
 
-	const sectionWidth = (width - (margins.left + margins.right)) / Math.max(sections.length, 1);
-	const sectionLength = length - (margins.top + margins.bottom);
+	const sectionWidth = (warehouseWidth - (margins.left + margins.right)) / Math.max(sections.length, 1);
+	const sectionLength = warehouseLength - (margins.top + margins.bottom);
 
 	const getCoordinates = (id: string, index: number) =>
 		coordinates[id] ?? { x: index * sectionWidth, y: 0 };
@@ -138,6 +141,7 @@ export const SectionViewer = ({
 	};
 
 	const handleUpdateSectionLayout = () => {
+
 		if (!editingId || !companyId || !moduleCode || !resolvedWarehouseId) return;
 
 		const section = sections.find((item) => item.section_id === editingId);
@@ -184,16 +188,17 @@ export const SectionViewer = ({
 
 		const nextX = nextCoordinate?.x ?? section.position_x ?? 0;
 		const nextY = nextCoordinate?.y ?? section.position_y ?? 0;
+
 		const nextWidth = nextSize?.width ?? section.width ?? 0;
-		const nextLength = nextSize?.length ?? section.length ?? 0;
+		const nextLength = nextSize?.length ?? section.length ?? 0;		
 
 		if (
 			warehouse &&
 			!isInsideAvailableArea(
 				{ x: nextX, y: nextY, width: nextWidth, length: nextLength },
 				{
-					width: width - margins.left - margins.right,
-					length: length - margins.top - margins.bottom,
+					width: warehouseWidth,
+					length: warehouseLength,
 					marginTop: 0,
 					marginBottom: 0,
 					marginLeft: 0,
@@ -201,9 +206,7 @@ export const SectionViewer = ({
 				},
 			)
 		) {
-			handleRequestError(
-				"La sección debe quedar dentro del área disponible de la bodega.",
-			);
+			handleRequestError("La sección debe quedar dentro del área disponible de la bodega.");
 			return;
 		}
 
@@ -259,9 +262,14 @@ export const SectionViewer = ({
 			</div>
 
 			<WarehouseShape
-				width={width}
-				length={length}
+				width={warehouseWidth}
+				length={warehouseLength}
 				draggable
+				galerons={
+					warehouseWidth > 0 && warehouseLength > 0
+						? [createMockGaleron(warehouseWidth, warehouseLength)]
+						: []
+				}
 				marginTop={margins.top}
 				marginBottom={margins.bottom}
 				marginLeft={margins.left}

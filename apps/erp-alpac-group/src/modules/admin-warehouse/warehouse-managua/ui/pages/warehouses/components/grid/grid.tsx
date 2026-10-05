@@ -1,6 +1,6 @@
 import { Shape } from "react-konva";
-import type { GridProps } from "./grid.types";
-import type { VisibleViewport } from "../warehouse-shape/warehouse-shape.types";
+import type { GridProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/grid/grid.types";
+import type { VisibleViewport } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
 
 function getVisibleViewport(
 	x: number,

@@ -117,10 +117,12 @@ export const LotShape = ({
         }}
         onContextMenu={(e) => {
           e.evt.preventDefault();
+          e.cancelBubble = true;
           onContextMenu?.({
             x: e.evt.clientX,
             y: e.evt.clientY,
             lot,
+            node: e.currentTarget,
           });
         }}
         onClick={(e) => {

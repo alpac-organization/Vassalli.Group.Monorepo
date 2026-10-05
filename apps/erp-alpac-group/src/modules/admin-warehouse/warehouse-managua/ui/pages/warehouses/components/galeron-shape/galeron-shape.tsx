@@ -1,38 +1,39 @@
-import { Group, Label, Rect, Tag, Text, Transformer } from "react-konva";
-import type { SectionShapeProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/section-shape.types";
 import { useEffect, useRef, useState } from "react";
+import { Group, Label, Rect, Tag, Text, Transformer } from "react-konva";
 import type Konva from "konva";
 import type { Coordinate, Size } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
 import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
+import type { GaleronShapeProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-shape/galeron-shape.types";
 
-export const SectionShape = ({
+export const GALERON_FILL = "#0a86bf";
+
+export const GaleronShape = ({
+	galeron,
 	x,
 	y,
 	width,
 	length,
 	rotation = 0,
-	fill,
-	strokeColor,
+	fill = GALERON_FILL,
+	strokeColor = "#94a3b8",
 	selected = false,
-	section,
-	draggable,
-	resizable,
+	draggable = false,
+	resizable = false,
 	onSelect,
-	onContextMenu,
 	onCoordinateChange,
 	onResizeChange,
-}: SectionShapeProps) => {
+	onContextMenu,
+	children,
+}: GaleronShapeProps) => {
+	const groupRef = useRef<Konva.Group>(null);
+	const shapeRef = useRef<Konva.Rect>(null);
+	const textRef = useRef<Konva.Text>(null);
+	const transformRef = useRef<Konva.Transformer>(null);
 
 	const pixelX = x * PIXELS_PER_METER;
 	const pixelY = y * PIXELS_PER_METER;
 	const pixelWidth = width * PIXELS_PER_METER;
 	const pixelLength = length * PIXELS_PER_METER;
-	const fillColor = fill;;
-
-	const groupRef = useRef<Konva.Group>(null);
-	const shapeRef = useRef<Konva.Rect>(null);
-	const textRef = useRef<Konva.Text>(null);
-	const transformRef = useRef<Konva.Transformer>(null);
 
 	const [size, setSize] = useState<Size>({ width: pixelWidth, length: pixelLength });
 	const [layoutLabel, setLayoutLabel] = useState<string | null>(null);
@@ -60,7 +61,7 @@ export const SectionShape = ({
 		transformer.moveToTop();
 		node.getParent()?.moveToTop();
 		transformer.getLayer()?.batchDraw();
-	}, [resizable, selected]);
+	}, [resizable, selected, galeron.id]);
 
 	const syncTextWithRect = (node: Konva.Rect) => {
 		const nextSize = {
@@ -84,12 +85,15 @@ export const SectionShape = ({
 	return (
 		<>
 			<Group
+				id={galeron.id}
 				ref={groupRef}
-				id={section.section_id}
 				x={pixelX}
 				y={pixelY}
 				rotation={rotation}
 				draggable={draggable}
+				onMouseDown={(event) => {
+					event.cancelBubble = true;
+				}}
 				onDragMove={(e) => {
 					const metersX = e.target.x() / PIXELS_PER_METER;
 					const metersY = e.target.y() / PIXELS_PER_METER;
@@ -99,27 +103,25 @@ export const SectionShape = ({
 					const metersX = e.target.x() / PIXELS_PER_METER;
 					const metersY = e.target.y() / PIXELS_PER_METER;
 					setLayoutLabel(null);
-					onCoordinateChange?.(section.section_id, metersX, metersY);
+					onCoordinateChange?.(galeron.id, metersX, metersY);
 				}}
-				onContextMenu={(e) => {
-					e.evt.preventDefault();
-					e.cancelBubble = true;
+				onClick={(event) => {
+					event.cancelBubble = true;
+					onSelect?.(galeron);
+				}}
+				onTap={(event) => {
+					event.cancelBubble = true;
+					onSelect?.(galeron);
+				}}
+				onContextMenu={(event) => {
+					event.evt.preventDefault();
+					event.cancelBubble = true;
 					onContextMenu?.({
-						x: e.evt.clientX,
-						y: e.evt.clientY,
-						section: section,
-						node: e.currentTarget,
+						x: event.evt.clientX,
+						y: event.evt.clientY,
+						galeronData: galeron,
+						galeronNode: event.currentTarget
 					});
-				}}
-				onClick={(e) => {
-					e.cancelBubble = true;
-					e.currentTarget.moveToTop();
-					onSelect?.(section);
-				}}
-				onTap={(e) => {
-					e.cancelBubble = true;
-					e.currentTarget.moveToTop();
-					onSelect?.(section);
 				}}
 			>
 				{resizable && layoutLabel && (
@@ -139,26 +141,22 @@ export const SectionShape = ({
 					ref={shapeRef}
 					width={pixelWidth}
 					height={pixelLength}
-					fill={fillColor}
-					opacity={selected ? 1 : 0.4}
-					stroke={selected ? strokeColor : "#94a3b8"}
+					fill={fill}
+					opacity={selected ? 0.85 : 0.55}
+					stroke={selected ? "#0369a1" : strokeColor}
 					strokeWidth={selected ? 2 : 1}
 					onTransform={() => {
 						const node = shapeRef.current;
-						const group = groupRef.current
-						if (!node || !group) return;
+						if (!node) return;
 						syncTextWithRect(node);
 
 						const scaleX = node.scaleX();
 						const scaleY = node.scaleY();
-
 						const newWidthPx = Math.max(10, node.width() * scaleX);
 						const newLengthPx = Math.max(10, node.height() * scaleY);
-						const newWidth = newWidthPx / PIXELS_PER_METER;
-						const newLength = newLengthPx / PIXELS_PER_METER;
 
 						setLayoutLabel(
-							`${newWidth.toFixed(2)} m × ${newLength.toFixed(2)} m`
+							`${(newWidthPx / PIXELS_PER_METER).toFixed(2)} m × ${(newLengthPx / PIXELS_PER_METER).toFixed(2)} m`,
 						);
 					}}
 					onTransformEnd={() => {
@@ -168,24 +166,21 @@ export const SectionShape = ({
 
 						const scaleX = node.scaleX();
 						const scaleY = node.scaleY();
-
 						const offsetX = node.x();
 						const offsetY = node.y();
 
 						node.scaleX(1);
 						node.scaleY(1);
 
-						const newWidthPx = Math.max(10, node.width() * scaleX);
-						const newLengthPx = Math.max(10, node.height() * scaleY);
+						const newWidthPx = Math.max(PIXELS_PER_METER, node.width() * scaleX);
+						const newLengthPx = Math.max(PIXELS_PER_METER, node.height() * scaleY);
 						const newWidth = newWidthPx / PIXELS_PER_METER;
 						const newLength = newLengthPx / PIXELS_PER_METER;
-
 						const nextGroupX = group.x() + offsetX;
 						const nextGroupY = group.y() + offsetY;
 
 						group.x(nextGroupX);
 						group.y(nextGroupY);
-
 						node.x(0);
 						node.y(0);
 						node.width(newWidthPx);
@@ -193,6 +188,7 @@ export const SectionShape = ({
 
 						setSize({ width: newWidthPx, length: newLengthPx });
 						setTextOffset({ x: 0, y: 0 });
+						setLayoutLabel(null);
 
 						const text = textRef.current;
 						if (text) {
@@ -203,39 +199,38 @@ export const SectionShape = ({
 						}
 
 						onCoordinateChange?.(
-							section.section_id,
+							galeron.id,
 							nextGroupX / PIXELS_PER_METER,
 							nextGroupY / PIXELS_PER_METER,
 						);
-						onResizeChange?.(section.section_id, newWidth, newLength);
+						onResizeChange?.(galeron.id, newWidth, newLength);
 					}}
 				/>
 
-				{section.section_code ? (
-					<Text
-						ref={textRef}
-						x={textOffset.x}
-						y={textOffset.y}
-						text={section.section_code}
-						width={size.width}
-						height={size.length}
-						align="center"
-						verticalAlign="middle"
-						fill="#0f172a"
-						fontSize={Math.min(12, Math.max(8, size.width / 6))}
-						listening={false}
-					/>
-				) : null}
-
+				<Text
+					ref={textRef}
+					x={textOffset.x}
+					y={textOffset.y}
+					text={galeron.name}
+					width={size.width}
+					height={size.length}
+					align="center"
+					verticalAlign="middle"
+					fill="#f8fafc"
+					fontSize={Math.min(14, Math.max(10, size.width / 8))}
+					listening={false}
+				/>
+				{children ?? null}
 			</Group>
-
 
 			{resizable && (
 				<Transformer
 					ref={transformRef}
-					rotateEnabled={false}					
+					rotateEnabled={false}
 					boundBoxFunc={(oldBox, newBox) =>
-						newBox.width < 10 || newBox.height < 10 ? oldBox : newBox
+						newBox.width < PIXELS_PER_METER || newBox.height < PIXELS_PER_METER
+							? oldBox
+							: newBox
 					}
 				/>
 			)}

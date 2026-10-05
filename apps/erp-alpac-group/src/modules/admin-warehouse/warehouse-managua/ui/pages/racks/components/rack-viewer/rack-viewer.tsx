@@ -8,6 +8,7 @@ import type { RackViewerProps } from "@app/modules/admin-warehouse/warehouse-man
 import type { RackDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/racks/get-racks-res";
 import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import { WarehouseShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape";
+import { createMockGaleron } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-shape/galeron-shape.types";
 
 // Medidas mock de bodega como en secciones.tsx
 const WAREHOUSE_WIDTH = 37.35;
@@ -129,6 +130,7 @@ export const RackViewer = ({
         draggable
         width={WAREHOUSE_WIDTH}
         length={WAREHOUSE_LENGTH}
+        galerons={[createMockGaleron(WAREHOUSE_WIDTH, WAREHOUSE_LENGTH)]}
         marginTop={WAREHOUSE_MARGINS.top}
         marginBottom={WAREHOUSE_MARGINS.bottom}
         marginLeft={WAREHOUSE_MARGINS.left}

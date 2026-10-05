@@ -18,6 +18,12 @@ export type ContextMenuProps = {
   disabled?: boolean;
 };
 
+export type ContextMenuButtonProps = {
+  label: string;
+  disabled?: boolean;
+  onClick?: () => void;
+}
+
 export type MenuPosition = {
   top: number;
   left: number;

@@ -1,34 +1,55 @@
-
+import { ContextMenuButton } from "@alpac/design-system";
 import type { SectionShapeMenuProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/components/section-shape-menu/section-shape-menu.types";
+import {
+	bringToFront,
+	sendToBack,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
 
 export const SectionShapeMenu = ({ menu, setMenu, onEdit }: SectionShapeMenuProps) => {
+	return (
+		<>
+			{menu && (
+				<div
+					className="fixed z-50 m-0! min-w-15 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:bg-[#272b34] dark:border-slate-600 dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]"
+					style={{ left: menu.x, top: menu.y }}
+					onMouseDown={(event) => event.stopPropagation()}
+					onClick={(event) => event.stopPropagation()}
+				>
+					<ContextMenuButton
+						label="Editar"
+						onClick={() => {
+							onEdit(menu.section);
+							setMenu(null);
+						}}
+					/>
 
-   const MenuButton = ({ label, onClick }: { label: string, onClick: () => void }) => {
+					<li
+						role="separator"
+						className="m-0 p-0 h-0 border-t border-slate-200 dark:border-slate-600"
+					/>
 
-      return (
-         <button
-            type="button"
-            className="w-fit px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-200 dark:hover:bg-slate-700/60"
-            onClick={onClick}>
-            {label}
-         </button>
-      )
-   }
+					<ContextMenuButton
+						label="Enviar hacia atrás"
+						onClick={() => {
+							sendToBack(menu.node);
+							setMenu(null);
+						}}
+					/>
 
-   return (
-      <>
-         {menu && (<div
-            className="fixed z-50 m-0! min-w-15 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:bg-[#272b34] dark:border-slate-600 dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]"
-            style={{ left: menu.x, top: menu.y }}
-         >
-            <MenuButton
-               label="Editar"
-               onClick={() => {
-                  onEdit(menu.section);
-                  setMenu(null);
-               }}
-            />
-         </div>)}
-      </>
-   );
-}
+					<li
+						role="separator"
+						className="m-0 p-0 h-0 border-t border-slate-200 dark:border-slate-600"
+					/>
+
+					<ContextMenuButton
+						label="Traer al frente"
+						onClick={() => {
+							bringToFront(menu.node);
+							setMenu(null);
+						}}
+					/>
+				</div>
+			)}
+		</>
+	);
+};

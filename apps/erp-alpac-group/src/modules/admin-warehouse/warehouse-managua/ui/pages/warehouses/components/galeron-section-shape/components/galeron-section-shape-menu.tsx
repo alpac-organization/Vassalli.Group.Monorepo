@@ -1,11 +1,15 @@
 import { ContextMenuButton } from "@alpac/design-system";
-import type { LotShapeMenuProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lot-shape/components/lot-shape-menu/lot-shape-menu.types";
+import type { GaleronSectionShapeMenuProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-section-shape/components/galeron-section-shape-menu.types";
 import {
 	bringToFront,
 	sendToBack,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
 
-export const LotShapeMenu = ({ menu, setMenu, onEdit }: LotShapeMenuProps) => {
+export const GaleronSectionShapeMenu = ({
+	menu,
+	setMenu,
+	onEdit,
+}: GaleronSectionShapeMenuProps) => {
 	return (
 		<>
 			{menu && (
@@ -18,7 +22,7 @@ export const LotShapeMenu = ({ menu, setMenu, onEdit }: LotShapeMenuProps) => {
 					<ContextMenuButton
 						label="Editar"
 						onClick={() => {
-							onEdit(menu.lot);
+							onEdit(menu.section);
 							setMenu(null);
 						}}
 					/>

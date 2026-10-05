@@ -2,8 +2,7 @@ import { Dropdown, InputText } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
 import { FilterActions } from "@app/shared/components/filters/filter-actions/filter-actions";
 import { StatusFilterDropdown } from "@app/shared/components/filters/status-filter-dropdown/filter-dropdown";
-import { EMPTY_WAREHOUSE_FILTERS, type WarehouseFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/types/warehouse.types";
-import type { WarehouseFiltersProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-filters/types/warehouse-filters.types";
+import { EMPTY_WAREHOUSE_FILTERS, type WarehouseFilters, type WarehouseFiltersProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-filters/types/warehouse-filters.types";
 import { buildFiltersPayload, STATUS_FILTER_OPTIONS, WAREHOUSE_TYPE_FILTER_OPTIONS } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-filters/utils/warehouse-filters.utils";
 import {
   inputClassName,

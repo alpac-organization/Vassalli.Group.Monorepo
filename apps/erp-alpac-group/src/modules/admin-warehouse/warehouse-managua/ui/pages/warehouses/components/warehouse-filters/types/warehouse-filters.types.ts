@@ -1,4 +1,14 @@
-import type { WarehouseFilters } from "@app/modules/warehouse/ui/view/warehouse/types/warehouse.types";
+export type WarehouseFilters = {
+  warehouse_code: string;
+  warehouse_type: string;
+  filterStatus: string;
+};
+
+export const EMPTY_WAREHOUSE_FILTERS: WarehouseFilters = {
+  warehouse_code: "",
+  warehouse_type: "",
+  filterStatus: "",
+};
 
 export type WarehouseFiltersProps = {
   onApply: (filters: WarehouseFilters) => void;

@@ -1,18 +1,22 @@
 import { Group, Label, Rect, Tag, Text, Transformer } from "react-konva";
-import type { SectionShapeProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/section-shape.types";
 import { useEffect, useRef, useState } from "react";
 import type Konva from "konva";
 import type { Coordinate, Size } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
 import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
+import type { GaleronSectionShapeProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-section-shape/galeron-section-shape.types";
+import {
+	GALERON_SECTION_FILL,
+	GALERON_SECTION_STROKE,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-section-shape/galeron-section-shape.types";
 
-export const SectionShape = ({
+export const GaleronSectionShape = ({
 	x,
 	y,
 	width,
 	length,
 	rotation = 0,
-	fill,
-	strokeColor,
+	fill = GALERON_SECTION_FILL,
+	strokeColor = GALERON_SECTION_STROKE,
 	selected = false,
 	section,
 	draggable,
@@ -21,13 +25,12 @@ export const SectionShape = ({
 	onContextMenu,
 	onCoordinateChange,
 	onResizeChange,
-}: SectionShapeProps) => {
+}: GaleronSectionShapeProps) => {
 
 	const pixelX = x * PIXELS_PER_METER;
 	const pixelY = y * PIXELS_PER_METER;
 	const pixelWidth = width * PIXELS_PER_METER;
 	const pixelLength = length * PIXELS_PER_METER;
-	const fillColor = fill;;
 
 	const groupRef = useRef<Konva.Group>(null);
 	const shapeRef = useRef<Konva.Rect>(null);
@@ -85,7 +88,7 @@ export const SectionShape = ({
 		<>
 			<Group
 				ref={groupRef}
-				id={section.section_id}
+				id={section.id}
 				x={pixelX}
 				y={pixelY}
 				rotation={rotation}
@@ -99,7 +102,7 @@ export const SectionShape = ({
 					const metersX = e.target.x() / PIXELS_PER_METER;
 					const metersY = e.target.y() / PIXELS_PER_METER;
 					setLayoutLabel(null);
-					onCoordinateChange?.(section.section_id, metersX, metersY);
+					onCoordinateChange?.(section.id, metersX, metersY);
 				}}
 				onContextMenu={(e) => {
 					e.evt.preventDefault();
@@ -107,7 +110,7 @@ export const SectionShape = ({
 					onContextMenu?.({
 						x: e.evt.clientX,
 						y: e.evt.clientY,
-						section: section,
+						section,
 						node: e.currentTarget,
 					});
 				}}
@@ -139,26 +142,22 @@ export const SectionShape = ({
 					ref={shapeRef}
 					width={pixelWidth}
 					height={pixelLength}
-					fill={fillColor}
-					opacity={selected ? 1 : 0.4}
+					fill={fill}
+					opacity={selected ? 1 : 0.7}
 					stroke={selected ? strokeColor : "#94a3b8"}
 					strokeWidth={selected ? 2 : 1}
 					onTransform={() => {
 						const node = shapeRef.current;
-						const group = groupRef.current
-						if (!node || !group) return;
+						if (!node) return;
 						syncTextWithRect(node);
 
 						const scaleX = node.scaleX();
 						const scaleY = node.scaleY();
-
 						const newWidthPx = Math.max(10, node.width() * scaleX);
 						const newLengthPx = Math.max(10, node.height() * scaleY);
-						const newWidth = newWidthPx / PIXELS_PER_METER;
-						const newLength = newLengthPx / PIXELS_PER_METER;
 
 						setLayoutLabel(
-							`${newWidth.toFixed(2)} m × ${newLength.toFixed(2)} m`
+							`${(newWidthPx / PIXELS_PER_METER).toFixed(2)} m × ${(newLengthPx / PIXELS_PER_METER).toFixed(2)} m`,
 						);
 					}}
 					onTransformEnd={() => {
@@ -168,7 +167,6 @@ export const SectionShape = ({
 
 						const scaleX = node.scaleX();
 						const scaleY = node.scaleY();
-
 						const offsetX = node.x();
 						const offsetY = node.y();
 
@@ -179,13 +177,11 @@ export const SectionShape = ({
 						const newLengthPx = Math.max(10, node.height() * scaleY);
 						const newWidth = newWidthPx / PIXELS_PER_METER;
 						const newLength = newLengthPx / PIXELS_PER_METER;
-
 						const nextGroupX = group.x() + offsetX;
 						const nextGroupY = group.y() + offsetY;
 
 						group.x(nextGroupX);
 						group.y(nextGroupY);
-
 						node.x(0);
 						node.y(0);
 						node.width(newWidthPx);
@@ -203,37 +199,33 @@ export const SectionShape = ({
 						}
 
 						onCoordinateChange?.(
-							section.section_id,
+							section.id,
 							nextGroupX / PIXELS_PER_METER,
 							nextGroupY / PIXELS_PER_METER,
 						);
-						onResizeChange?.(section.section_id, newWidth, newLength);
+						onResizeChange?.(section.id, newWidth, newLength);
 					}}
 				/>
 
-				{section.section_code ? (
-					<Text
-						ref={textRef}
-						x={textOffset.x}
-						y={textOffset.y}
-						text={section.section_code}
-						width={size.width}
-						height={size.length}
-						align="center"
-						verticalAlign="middle"
-						fill="#0f172a"
-						fontSize={Math.min(12, Math.max(8, size.width / 6))}
-						listening={false}
-					/>
-				) : null}
-
+				<Text
+					ref={textRef}
+					x={textOffset.x}
+					y={textOffset.y}
+					text={section.code}
+					width={size.width}
+					height={size.length}
+					align="center"
+					verticalAlign="middle"
+					fill="#0f172a"
+					fontSize={Math.min(12, Math.max(8, size.width / 6))}
+					listening={false}
+				/>
 			</Group>
-
 
 			{resizable && (
 				<Transformer
 					ref={transformRef}
-					rotateEnabled={false}					
+					rotateEnabled={false}
 					boundBoxFunc={(oldBox, newBox) =>
 						newBox.width < 10 || newBox.height < 10 ? oldBox : newBox
 					}
