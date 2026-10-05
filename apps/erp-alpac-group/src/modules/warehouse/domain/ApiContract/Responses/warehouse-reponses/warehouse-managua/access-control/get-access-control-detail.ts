@@ -42,8 +42,4 @@ export interface ReceptionEntranceDetail {
   additional_data: string | AdditionalReceptionEntranceData | null;
   custom_branches_information: CustomBranchesInformation;
   reception_transport_entrance_information: ReceptionTransportEntranceDto;
-
-  // Propiedades opcionales
-  id?: string;
-  is_consolidated?: boolean;
 }

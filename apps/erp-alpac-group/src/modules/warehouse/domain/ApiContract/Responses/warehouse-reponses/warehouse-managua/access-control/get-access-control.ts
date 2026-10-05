@@ -8,14 +8,11 @@ export interface ReceptionEntranceListItem {
   seal_number?: string;
   container_number?: string;
   country_of_origin?: string;
-  plate_number?: string;
+  vehicle_plate_number?: string;
   driver_name?: string;
   document_type?: DocumentType | number | string;
-  arrival_date?: string;
-  arrival_time?: string;
-  status?: RecordEntranceStatusKey | string;
-  vehicle_exited?: boolean;
-  container_exited?: boolean;
+  vehicle_exit_time?: string | null;
+  container_exit_time?: string | null;
 }
 
 export interface ReceptionEntranceStatsResponse {
@@ -35,15 +32,8 @@ export interface GetReceptionEntrancesResponse {
   stats?: ReceptionEntranceStatsResponse;
 }
 
-export const RecordEntranceStatusEnum: Record<string, EnumType> = {
-  Queue: { value: 1, label: "En cola" },
-  Unloading: { value: 2, label: "En descarga" },
-  Completed: { value: 3, label: "Completado" },
-  Abandoned: { value: 4, label: "Abandonado" },
-};
 export const RecordEntranceVehicleStatusEnum: Record<string, EnumType> = {
   OnSite: { value: 1, label: "En sitio" },
   Exited: { value: 2, label: "Despachado" },
 };
 
-export type RecordEntranceStatusKey = keyof typeof RecordEntranceStatusEnum;

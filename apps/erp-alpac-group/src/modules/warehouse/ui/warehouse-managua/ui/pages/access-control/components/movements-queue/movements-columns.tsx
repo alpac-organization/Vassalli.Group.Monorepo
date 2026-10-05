@@ -23,6 +23,16 @@ export function getMovementsColumns({
       render: (item) => item.reception_code || "—",
     },
     {
+      key: "document_type",
+      label: "Tipo de documento",
+      render: (item) => item.document_type?.toString() || "—",
+    },
+    {
+      key: "vehicle_plate_number",
+      label: "Placa del vehículo",
+      render: (item) => item.vehicle_plate_number || "—",
+    },
+    {
       key: "container_number",
       label: "Número de contenedor",
       render: (item) => item.container_number || "—",
