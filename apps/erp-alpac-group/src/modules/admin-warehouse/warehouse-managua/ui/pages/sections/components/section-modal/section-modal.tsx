@@ -270,9 +270,7 @@ export const SectionModal = ({
 		const positionX = data.position_x ?? 0;
 		const positionY = data.position_y ?? 0;
 		const sectionWidth = data.width_metres ?? 0;
-		const sectionLength = data.length_metres ?? 0;
-
-		console.log("Testing: ", warehouse);
+		const sectionLength = data.length_metres ?? 0;		
 
 		if (
 			warehouse &&

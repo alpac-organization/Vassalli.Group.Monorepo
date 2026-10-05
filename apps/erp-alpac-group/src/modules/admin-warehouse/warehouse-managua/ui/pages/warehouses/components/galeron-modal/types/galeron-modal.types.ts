@@ -5,6 +5,6 @@ export interface GaleronModalProps {
 }
 
 export type GaleronFormValues = {
-	width?: string | number;
-	length?: string | number;
+	width?: number;
+	length?:  number;
 };

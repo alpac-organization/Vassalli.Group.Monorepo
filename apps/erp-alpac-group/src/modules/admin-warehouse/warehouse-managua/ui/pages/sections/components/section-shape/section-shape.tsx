@@ -233,7 +233,7 @@ export const SectionShape = ({
 			{resizable && (
 				<Transformer
 					ref={transformRef}
-					rotateEnabled={false}					
+					rotateEnabled={false}
 					boundBoxFunc={(oldBox, newBox) =>
 						newBox.width < 10 || newBox.height < 10 ? oldBox : newBox
 					}

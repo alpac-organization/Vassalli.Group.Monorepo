@@ -17,8 +17,8 @@ import type {
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-modal/types/galeron-modal.types";
 
 const createDefaultValues = (): GaleronFormValues => ({
-	width: "",
-	length: "",
+	width: 0,
+	length: 0,
 });
 
 export const GaleronModal = ({ isOpen, onClose, onSubmit }: GaleronModalProps) => {

@@ -581,12 +581,10 @@ export const WarehouseViewer = forwardRef<WarehouseViewerHandle, WarehouseViewer
 		);
 
 		const handleBringToFront = useCallback((galeronNode: Konva.Node) => {
-			// setSelectedGaleronId(galero.id);
 			bringToFront(galeronNode);
 		}, [])
 
 		const handleSendToBack = useCallback((galeronNode: Konva.Node) => {
-			// setSelectedGaleronId(galeron.id);
 			sendToBack(galeronNode);
 		}, [])
 
