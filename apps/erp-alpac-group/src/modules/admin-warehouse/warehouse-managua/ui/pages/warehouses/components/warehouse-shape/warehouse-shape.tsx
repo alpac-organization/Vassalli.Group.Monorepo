@@ -7,11 +7,13 @@ import type Konva from "konva";
 import { CardinalMarker } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/cardinal-marker/cardinal-marker";
 import { CANVAS_PADDING_LEFT, METRIC_SIZE, PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import { WarehouseAreasColorTypes } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-table/utils/warehouse-status";
+import { GaleronShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-shape/galeron-shape";
 
 export const WarehouseShape = ({
    width,
    length,
    draggable,
+   galerons = [],
    children,
    marginTop = 0,
    marginBottom = 0,
@@ -21,6 +23,12 @@ export const WarehouseShape = ({
    selectedLabel,
    overlay,
    containerClassName,
+   editingGalerongId,
+   selectedGaleronId,
+   onGaleronContextMenu,
+   onSelectGaleron,
+   onGaleronCoordinateChange,
+   onGaleronResizeChange,
 }: WarehouseViewerProps) => {
 
    const warehouseX = METRIC_SIZE;
@@ -83,10 +91,10 @@ export const WarehouseShape = ({
                )}
             </div>
          )}
-          <div
-             ref={containerRef}
-             className={containerClassName ?? "relative w-full h-[50vh] md:landscape:h-[70vh] lg:h-120 lg:max-h-148 max-w-full overflow-hidden rounded-lg bg-white dark:bg-[#363a45] p-0"}
-          >
+         <div
+            ref={containerRef}
+            className={containerClassName ?? "relative w-full h-[50vh] md:landscape:h-[70vh] lg:h-120 lg:max-h-148 max-w-full overflow-hidden rounded-lg bg-white dark:bg-[#363a45] p-0"}
+         >
             {overlay}
             {stageSize.width > 0 && stageSize.length > 0 && (
                <Stage
@@ -184,8 +192,31 @@ export const WarehouseShape = ({
                      <CardinalMarker x={0} y={0} />
 
                      <Group
-                        x={originX + usableOffsetX}
-                        y={originY + usableOffsetY}>
+                        x={originX}
+                        y={originY}>
+                        {galerons.map((galeron) => {
+
+                           const isSelected = selectedGaleronId === galeron.id;
+                           const isEditing = editingGalerongId === galeron.id;
+
+                           return (
+                              <GaleronShape
+                                 key={galeron.id}
+                                 galeron={galeron}
+                                 x={galeron.x}
+                                 y={galeron.y}
+                                 width={galeron.width}
+                                 length={galeron.length}
+                                 selected={isSelected || isEditing}
+                                 draggable={isEditing && Boolean(onGaleronCoordinateChange)}
+                                 resizable={isEditing && Boolean(onGaleronResizeChange)}
+                                 onSelect={onSelectGaleron}
+                                 onContextMenu={onGaleronContextMenu}
+                                 onCoordinateChange={onGaleronCoordinateChange}
+                                 onResizeChange={onGaleronResizeChange}
+                              />
+                           );
+                        })}
                         {children ?? null}
                      </Group>
 

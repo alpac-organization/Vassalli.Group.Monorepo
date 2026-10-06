@@ -1,7 +1,11 @@
 import { Group, Rect, Text, Transformer } from "react-konva";
-import type { SectionShapeProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/section-shape.types";
 import { useEffect, useRef } from "react";
 import type Konva from "konva";
+import type { GaleronSectionShapeProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-section-shape/galeron-section-shape.types";
+import {
+	GALERON_SECTION_FILL,
+	GALERON_SECTION_STROKE,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-section-shape/galeron-section-shape.types";
 import {
 	bindShapeTransformer,
 	commitMeasuredRect,
@@ -17,14 +21,14 @@ import {
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
 import { ShapeLayoutLabel } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/shape-layout-label/shape-layout-label";
 
-export const SectionShape = ({
+export const GaleronSectionShape = ({
 	x,
 	y,
 	width,
 	length,
 	rotation = 0,
-	fill,
-	strokeColor,
+	fill = GALERON_SECTION_FILL,
+	strokeColor = GALERON_SECTION_STROKE,
 	selected = false,
 	section,
 	draggable,
@@ -33,13 +37,12 @@ export const SectionShape = ({
 	onContextMenu,
 	onCoordinateChange,
 	onResizeChange,
-}: SectionShapeProps) => {
+}: GaleronSectionShapeProps) => {
 
 	const pixelX = metersToPixels(x);
 	const pixelY = metersToPixels(y);
 	const pixelWidth = metersToPixels(width);
 	const pixelLength = metersToPixels(length);
-	const fillColor = fill;;
 
 	const groupRef = useRef<Konva.Group>(null);
 	const shapeRef = useRef<Konva.Rect>(null);
@@ -56,13 +59,13 @@ export const SectionShape = ({
 		<>
 			<Group
 				ref={groupRef}
-				id={section.section_id}
+				id={section.id}
 				x={pixelX}
 				y={pixelY}
 				rotation={rotation}
 				draggable={draggable}
 				onDragMove={(e) => setLayoutLabel(dragPositionLabel(e.target).label)}
-				onDragEnd={(e) => commitShapeDragEnd(e.target, section.section_id, setLayoutLabel, onCoordinateChange)}
+				onDragEnd={(e) => commitShapeDragEnd(e.target, section.id, setLayoutLabel, onCoordinateChange)}
 				onContextMenu={(e) => onContextMenu?.(shapeMenuFromEvent(e, section))}
 				onClick={(e) => selectRaisedShape(e, section, onSelect)}
 				onTap={(e) => selectRaisedShape(e, section, onSelect)}
@@ -75,8 +78,8 @@ export const SectionShape = ({
 					ref={shapeRef}
 					width={pixelWidth}
 					height={pixelLength}
-					fill={fillColor}
-					opacity={selected ? 1 : 0.4}
+					fill={fill}
+					opacity={selected ? 1 : 0.7}
 					stroke={selected ? strokeColor : "#94a3b8"}
 					strokeWidth={selected ? 2 : 1}
 					onTransform={() => commitMeasuredRect(shapeRef.current, textRef.current, setSize, setTextOffset, setLayoutLabel)}
@@ -84,7 +87,7 @@ export const SectionShape = ({
 						shapeRef.current,
 						groupRef.current,
 						textRef.current,
-						section.section_id,
+						section.id,
 						setSize,
 						setTextOffset,
 						onCoordinateChange,
@@ -92,17 +95,13 @@ export const SectionShape = ({
 					)}
 				/>
 
-				{section.section_code ? (
-					<Text
-						ref={textRef}
-						text={section.section_code}
-						fill="#0f172a"
-						{...shapeCaptionProps(textOffset, size)}
-					/>
-				) : null}
-
+				<Text
+					ref={textRef}
+					text={section.code}
+					fill="#0f172a"
+					{...shapeCaptionProps(textOffset, size)}
+				/>
 			</Group>
-
 
 			{resizable && (
 				<Transformer

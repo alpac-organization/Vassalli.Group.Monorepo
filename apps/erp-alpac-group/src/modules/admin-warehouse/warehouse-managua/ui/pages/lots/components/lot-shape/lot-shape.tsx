@@ -1,13 +1,25 @@
-import { Group, Label, Rect, Tag, Text, Transformer } from "react-konva";
-import { useEffect, useRef, useState } from "react";
+import { Group, Rect, Text, Transformer } from "react-konva";
+import { useEffect, useRef } from "react";
 import type Konva from "konva";
 import type { LotShapeProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lot-shape/lot-shape.types";
-import type { Coordinate, Size } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
-import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import {
   RACK_STATUS_COLORS,
   resolveRackStatus,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
+import {
+  bindShapeTransformer,
+  commitMeasuredRect,
+  commitShapeDragEnd,
+  commitShapeResize,
+  dragPositionLabel,
+  metersToPixels,
+  minimumTransformerBox,
+  selectRaisedShape,
+  shapeCaptionProps,
+  shapeMenuFromEvent,
+  useShapeLayout,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
+import { ShapeLayoutLabel } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/shape-layout-label/shape-layout-label";
 
 export const LotShape = ({
   x,
@@ -26,10 +38,10 @@ export const LotShape = ({
   onCoordinateChange,
   onResizeChange,
 }: LotShapeProps) => {
-  const pixelX = x * PIXELS_PER_METER;
-  const pixelY = y * PIXELS_PER_METER;
-  const pixelWidth = width * PIXELS_PER_METER;
-  const pixelLength = length * PIXELS_PER_METER;
+  const pixelX = metersToPixels(x);
+  const pixelY = metersToPixels(y);
+  const pixelWidth = metersToPixels(width);
+  const pixelLength = metersToPixels(length);
 
   const resolved = resolveRackStatus(lot.status);
   const statusKey = (resolved?.textValue ??
@@ -43,55 +55,11 @@ export const LotShape = ({
   const textRef = useRef<Konva.Text>(null);
   const transformRef = useRef<Konva.Transformer>(null);
 
-  const [size, setSize] = useState<Size>({
-    width: pixelWidth,
-    length: pixelLength,
-  });
-  const [layoutLabel, setLayoutLabel] = useState<string | null>(null);
-  const [textOffset, setTextOffset] = useState<Coordinate>({ x: 0, y: 0 });
+  const { size, setSize, layoutLabel, setLayoutLabel, textOffset, setTextOffset } = useShapeLayout(pixelWidth, pixelLength);
 
   useEffect(() => {
-    setSize({ width: pixelWidth, length: pixelLength });
-    setTextOffset({ x: 0, y: 0 });
-  }, [pixelWidth, pixelLength]);
-
-  useEffect(() => {
-    const transformer = transformRef.current;
-    if (!transformer) return;
-
-    if (!resizable) {
-      transformer.nodes([]);
-      transformer.getLayer()?.batchDraw();
-      return;
-    }
-
-    const node = shapeRef.current;
-    if (!node) return;
-
-    transformer.nodes([node]);
-    transformer.moveToTop();
-    node.getParent()?.moveToTop();
-    transformer.getLayer()?.batchDraw();
+    bindShapeTransformer(transformRef.current, shapeRef.current, Boolean(resizable));
   }, [resizable, selected]);
-
-  const syncTextWithRect = (node: Konva.Rect) => {
-    const nextSize = {
-      width: Math.max(10, node.width() * node.scaleX()),
-      length: Math.max(10, node.height() * node.scaleY()),
-    };
-    const nextOffset = { x: node.x(), y: node.y() };
-
-    setSize(nextSize);
-    setTextOffset(nextOffset);
-
-    const text = textRef.current;
-    if (text) {
-      text.x(nextOffset.x);
-      text.y(nextOffset.y);
-      text.width(nextSize.width);
-      text.height(nextSize.length);
-    }
-  };
 
   return (
     <>
@@ -102,49 +70,14 @@ export const LotShape = ({
         y={pixelY}
         rotation={rotation}
         draggable={draggable}
-        onDragMove={(e) => {
-          const metersX = e.target.x() / PIXELS_PER_METER;
-          const metersY = e.target.y() / PIXELS_PER_METER;
-          setLayoutLabel(
-            `X: ${metersX.toFixed(2)} m  Y: ${metersY.toFixed(2)} m`,
-          );
-        }}
-        onDragEnd={(e) => {
-          const metersX = e.target.x() / PIXELS_PER_METER;
-          const metersY = e.target.y() / PIXELS_PER_METER;
-          setLayoutLabel(null);
-          onCoordinateChange?.(lot.id, metersX, metersY);
-        }}
-        onContextMenu={(e) => {
-          e.evt.preventDefault();
-          onContextMenu?.({
-            x: e.evt.clientX,
-            y: e.evt.clientY,
-            lot,
-          });
-        }}
-        onClick={(e) => {
-          e.cancelBubble = true;
-          e.currentTarget.moveToTop();
-          onSelect?.(lot);
-        }}
-        onTap={(e) => {
-          e.cancelBubble = true;
-          e.currentTarget.moveToTop();
-          onSelect?.(lot);
-        }}
+        onDragMove={(e) => setLayoutLabel(dragPositionLabel(e.target).label)}
+        onDragEnd={(e) => commitShapeDragEnd(e.target, lot.id, setLayoutLabel, onCoordinateChange)}
+        onContextMenu={(e) => onContextMenu?.(shapeMenuFromEvent(e, lot))}
+        onClick={(e) => selectRaisedShape(e, lot, onSelect)}
+        onTap={(e) => selectRaisedShape(e, lot, onSelect)}
       >
         {resizable && layoutLabel && (
-          <Label x={textOffset.x} y={textOffset.y - 30}>
-            <Tag fill="#0f172a" cornerRadius={4} />
-            <Text
-              text={layoutLabel}
-              fontSize={11}
-              fill="#e2e8f0"
-              padding={4}
-              listening={false}
-            />
-          </Label>
+          <ShapeLayoutLabel x={textOffset.x} y={textOffset.y} text={layoutLabel} />
         )}
 
         <Rect
@@ -155,84 +88,25 @@ export const LotShape = ({
           opacity={selected ? 1 : 0.4}
           stroke={selected ? borderColor : "#94a3b8"}
           strokeWidth={selected ? 2 : 1}
-          onTransform={() => {
-            const node = shapeRef.current;
-            if (!node) return;
-            syncTextWithRect(node);
-
-            const scaleX = node.scaleX();
-            const scaleY = node.scaleY();
-            const newWidthPx = Math.max(10, node.width() * scaleX);
-            const newLengthPx = Math.max(10, node.height() * scaleY);
-            const newWidth = newWidthPx / PIXELS_PER_METER;
-            const newLength = newLengthPx / PIXELS_PER_METER;
-
-            setLayoutLabel(
-              `${newWidth.toFixed(2)} m × ${newLength.toFixed(2)} m`,
-            );
-          }}
-          onTransformEnd={() => {
-            const node = shapeRef.current;
-            const group = groupRef.current;
-            if (!node || !group) return;
-
-            const scaleX = node.scaleX();
-            const scaleY = node.scaleY();
-            const offsetX = node.x();
-            const offsetY = node.y();
-
-            node.scaleX(1);
-            node.scaleY(1);
-
-            const newWidthPx = Math.max(10, node.width() * scaleX);
-            const newLengthPx = Math.max(10, node.height() * scaleY);
-            const newWidth = newWidthPx / PIXELS_PER_METER;
-            const newLength = newLengthPx / PIXELS_PER_METER;
-
-            const nextGroupX = group.x() + offsetX;
-            const nextGroupY = group.y() + offsetY;
-
-            group.x(nextGroupX);
-            group.y(nextGroupY);
-
-            node.x(0);
-            node.y(0);
-            node.width(newWidthPx);
-            node.height(newLengthPx);
-
-            setSize({ width: newWidthPx, length: newLengthPx });
-            setTextOffset({ x: 0, y: 0 });
-
-            const text = textRef.current;
-            if (text) {
-              text.x(0);
-              text.y(0);
-              text.width(newWidthPx);
-              text.height(newLengthPx);
-            }
-
-            onCoordinateChange?.(
-              lot.id,
-              nextGroupX / PIXELS_PER_METER,
-              nextGroupY / PIXELS_PER_METER,
-            );
-            onResizeChange?.(lot.id, newWidth, newLength);
-          }}
+          onTransform={() => commitMeasuredRect(shapeRef.current, textRef.current, setSize, setTextOffset, setLayoutLabel)}
+          onTransformEnd={() => commitShapeResize(
+            shapeRef.current,
+            groupRef.current,
+            textRef.current,
+            lot.id,
+            setSize,
+            setTextOffset,
+            onCoordinateChange,
+            onResizeChange,
+          )}
         />
 
         {lot.code ? (
           <Text
             ref={textRef}
-            x={textOffset.x}
-            y={textOffset.y}
             text={lot.code}
-            width={size.width}
-            height={size.length}
-            align="center"
-            verticalAlign="middle"
             fill="#0f172a"
-            fontSize={Math.min(12, Math.max(8, size.width / 6))}
-            listening={false}
+            {...shapeCaptionProps(textOffset, size)}
           />
         ) : null}
       </Group>
@@ -241,9 +115,7 @@ export const LotShape = ({
         <Transformer
           ref={transformRef}
           rotateEnabled={false}
-          boundBoxFunc={(oldBox, newBox) =>
-            newBox.width < 10 || newBox.height < 10 ? oldBox : newBox
-          }
+          boundBoxFunc={minimumTransformerBox(10)}
         />
       )}
     </>

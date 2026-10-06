@@ -18,7 +18,7 @@ import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
-import { mapWarehouseDetailsToLayout } from "../sections/utils/warehouse-details.mapper";
+import { mapWarehouseDetailsToLayout } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/warehouse-details.mapper";
 
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { LotDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";

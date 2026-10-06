@@ -11,6 +11,7 @@ import type { RegisterLotCoordinatesRequest } from "@app/modules/admin-warehouse
 import type { UpdateLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/update-lot-coordinates-req";
 
 export interface ILotService {
+  
   GetLots(payload: GetLotsRequest): Promise<GetLotsResponse>;
 
   RegisterLot(payload: RegisterLotRequest): Promise<void>;

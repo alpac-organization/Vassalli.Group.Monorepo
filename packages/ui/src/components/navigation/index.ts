@@ -9,4 +9,5 @@ export * from "./pagination/pagination.type";
 export * from "./tabs/tabs";
 export * from "./tabs/tabs.type";
 export * from "./context-menu/context-menu";
+export * from "./context-menu/context-menu-button";
 export * from "./context-menu/context-menu.type";

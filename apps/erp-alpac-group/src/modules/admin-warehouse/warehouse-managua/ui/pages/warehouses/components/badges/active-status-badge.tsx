@@ -1,4 +1,5 @@
 import { Badges } from "@alpac/design-system";
+
 export function ActiveStatusBadge({ isActive }: { isActive: boolean }) {
   return isActive ? (
     <Badges

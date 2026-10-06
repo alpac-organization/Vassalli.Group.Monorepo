@@ -270,15 +270,15 @@ export const SectionModal = ({
 		const positionX = data.position_x ?? 0;
 		const positionY = data.position_y ?? 0;
 		const sectionWidth = data.width_metres ?? 0;
-		const sectionLength = data.length_metres ?? 0;
+		const sectionLength = data.length_metres ?? 0;		
 
 		if (
 			warehouse &&
 			!isInsideAvailableArea(
 				{ x: positionX, y: positionY, width: sectionWidth, length: sectionLength },
 				{
-					width: warehouse.width - warehouse.margin_left - warehouse.margin_right,
-					length: warehouse.length - warehouse.margin_top - warehouse.margin_bottom,
+					width: warehouse.width, 
+					length: warehouse.length,
 					marginTop: 0,
 					marginBottom: 0,
 					marginLeft: 0,
@@ -286,9 +286,7 @@ export const SectionModal = ({
 				},
 			)
 		) {
-			handleRequestError(
-				"La sección debe quedar dentro del área disponible de la bodega.",
-			);
+			handleRequestError("La sección debe quedar dentro del área disponible de la bodega.");
 			return;
 		}
 
@@ -375,191 +373,191 @@ export const SectionModal = ({
 						: "Complete el registro de la sección del almacén"
 				}
 			>
-			<form
-				className="flex flex-col gap-5"
-				onSubmit={handleSubmit(
-					isEdit ? handleUpdateSection : handleCreateSection,
-				)}
-			>
-				{AlertComponent}
+				<form
+					className="flex flex-col gap-5"
+					onSubmit={handleSubmit(
+						isEdit ? handleUpdateSection : handleCreateSection,
+					)}
+				>
+					{AlertComponent}
 
-				<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-					{isEdit ? (
-						<InputText
-							label="Código"
-							disabled
-							className={inputClassName}
-							labelClassName={labelClassName}
-							value={watch("code") ?? ""}
+					<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+						{isEdit ? (
+							<InputText
+								label="Código"
+								disabled
+								className={inputClassName}
+								labelClassName={labelClassName}
+								value={watch("code") ?? ""}
+							/>
+						) : null}
+
+						<Controller
+							control={control}
+							name="section_type"
+							rules={
+								isEdit
+									? undefined
+									: { required: "El tipo de sección es requerido" }
+							}
+							render={({ field }) => (
+								<Dropdown
+									label="Tipo de sección"
+									placeholder="Seleccione..."
+									isRequired={!isEdit}
+									disabled={isEdit}
+									options={SectionTypeOptions}
+									value={field.value}
+									appearance="dark"
+									className={dropdownClassName}
+									labelClassName={labelClassName}
+									onChange={(val) => field.onChange(Number(val))}
+									error={errors.section_type?.message}
+								/>
+							)}
 						/>
-					) : null}
 
-					<Controller
-						control={control}
-						name="section_type"
-						rules={
-							isEdit
-								? undefined
-								: { required: "El tipo de sección es requerido" }
-						}
-						render={({ field }) => (
-							<Dropdown
-								label="Tipo de sección"
-								placeholder="Seleccione..."
-								isRequired={!isEdit}
-								disabled={isEdit}
-								options={SectionTypeOptions}
-								value={field.value}
-								appearance="dark"
-								className={dropdownClassName}
-								labelClassName={labelClassName}
-								onChange={(val) => field.onChange(Number(val))}
-								error={errors.section_type?.message}
-							/>
-						)}
-					/>
+						<Controller
+							control={control}
+							name="section_storage_type"
+							rules={
+								isEdit
+									? undefined
+									: {
+										required: "El tipo de almacenamiento es requerido",
+										validate: (value) => {
+											const storageType = Number(value);
+											const isRacksOrLots =
+												storageType ===
+												SectionStorageTypeEnum.Racks.value ||
+												storageType === SectionStorageTypeEnum.Lots.value;
 
-					<Controller
-						control={control}
-						name="section_storage_type"
-						rules={
-							isEdit
-								? undefined
-								: {
-									required: "El tipo de almacenamiento es requerido",
-									validate: (value) => {
-										const storageType = Number(value);
-										const isRacksOrLots =
-											storageType ===
-											SectionStorageTypeEnum.Racks.value ||
-											storageType === SectionStorageTypeEnum.Lots.value;
+											if (isAisle && isRacksOrLots) {
+												return "Una sección de tipo pasillo no admite almacenamiento en racks o tramos.";
+											}
 
-										if (isAisle && isRacksOrLots) {
-											return "Una sección de tipo pasillo no admite almacenamiento en racks o tramos.";
-										}
+											if (
+												isAisle &&
+												storageType !==
+												SectionStorageTypeEnum.Pallets.value &&
+												storageType !== SectionStorageTypeEnum.None.value
+											) {
+												return "Un pasillo solo admite almacenamiento en polines o ninguno.";
+											}
 
-										if (
-											isAisle &&
-											storageType !==
-											SectionStorageTypeEnum.Pallets.value &&
-											storageType !== SectionStorageTypeEnum.None.value
-										) {
-											return "Un pasillo solo admite almacenamiento en polines o ninguno.";
-										}
+											if (!isAisle && !isRacksOrLots) {
+												return "Una sección de tipo almacenamiento solo admite racks o tramos.";
+											}
 
-										if (!isAisle && !isRacksOrLots) {
-											return "Una sección de tipo almacenamiento solo admite racks o tramos.";
-										}
+											return true;
+										},
+									}
+							}
+							render={({ field }) => (
+								<Dropdown
+									label="Tipo de almacenamiento"
+									placeholder="Seleccione..."
+									isRequired={!isEdit}
+									disabled={isEdit}
+									options={isAisle ? aisleStorageOptions : storageSectionOptions}
+									value={field.value}
+									appearance="dark"
+									className={dropdownClassName}
+									labelClassName={labelClassName}
+									onChange={(val) => field.onChange(Number(val))}
+									error={errors.section_storage_type?.message}
+								/>
+							)}
+						/>
 
-										return true;
-									},
-								}
-						}
-						render={({ field }) => (
-							<Dropdown
-								label="Tipo de almacenamiento"
-								placeholder="Seleccione..."
-								isRequired={!isEdit}
-								disabled={isEdit}
-								options={isAisle ? aisleStorageOptions : storageSectionOptions}
-								value={field.value}
-								appearance="dark"
-								className={dropdownClassName}
-								labelClassName={labelClassName}
-								onChange={(val) => field.onChange(Number(val))}
-								error={errors.section_storage_type?.message}
-							/>
-						)}
-					/>
-
-					<InputText
-						label="Ancho (m)"
-						type="text"
-						inputMode="decimal"
-						placeholder="0.00"
-						isRequired
-						className={inputClassName}
-						labelClassName={labelClassName}
-						{...register(
-							"width_metres",
-							getDecimalFieldConfig("El ancho es requerido"),
-						)}
-						error={errors.width_metres?.message}
-					/>
-
-					<InputText
-						label="Largo (m)"
-						type="text"
-						inputMode="decimal"
-						placeholder="0.00"
-						isRequired
-						className={inputClassName}
-						labelClassName={labelClassName}
-						{...register(
-							"length_metres",
-							getDecimalFieldConfig("El largo es requerido"),
-						)}
-						error={errors.length_metres?.message}
-					/>
-
-					{!isEdit && isAisle && isPallets ? (
 						<InputText
-							label="Máximo de polines"
+							label="Ancho (m)"
 							type="text"
-							inputMode="numeric"
-							placeholder="0"
+							inputMode="decimal"
+							placeholder="0.00"
 							isRequired
 							className={inputClassName}
 							labelClassName={labelClassName}
-							{...register("maximum_number_of_pallets_per_level", {
-								validate: {
-									requiredWhenAllows: (value) => {
-										if (!allowsStorageAisle) return true;
-										if (value === undefined || value === null) {
-											return "Si el pasillo permite almacenamiento, indique el máximo de polines.";
-										}
-										return true;
-									},
-									validateInteger: (value) =>
-										value === undefined ||
-										value === null ||
-										validateIntegerNumber(value),
-									validatePositive: (value) => {
-										if (!allowsStorageAisle) return true;
-										if (value === undefined || value === null) return true;
-										return validatePositiveNumber(value);
-									},
-								},
-								setValueAs: parseDecimal,
-								onChange: (evt) => {
-									evt.target.value = formatAmount(evt.target.value, 6, 0);
-								},
-							})}
-							error={errors?.maximum_number_of_pallets_per_level?.message}
+							{...register(
+								"width_metres",
+								getDecimalFieldConfig("El ancho es requerido"),
+							)}
+							error={errors.width_metres?.message}
 						/>
-					) : null}
-				</div>
 
-				<div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6" />
+						<InputText
+							label="Largo (m)"
+							type="text"
+							inputMode="decimal"
+							placeholder="0.00"
+							isRequired
+							className={inputClassName}
+							labelClassName={labelClassName}
+							{...register(
+								"length_metres",
+								getDecimalFieldConfig("El largo es requerido"),
+							)}
+							error={errors.length_metres?.message}
+						/>
 
-				<div className="flex min-w-0 flex-col-reverse gap-2.5 sm:flex-row sm:justify-end sm:gap-3">
-					<Button
-						type="button"
-						size="giant"
-						label="Cancelar"
-						onClick={handleClose}
-						className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30! sm:w-auto!"
-					/>
-					<Button
-						type="submit"
-						size="giant"
-						label={isEdit ? "Actualizar" : "Guardar"}
-						isLoading={isPending}
-						disabled={isPending}
-						className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
-					/>
-				</div>
-			</form>
+						{!isEdit && isAisle && isPallets ? (
+							<InputText
+								label="Máximo de polines"
+								type="text"
+								inputMode="numeric"
+								placeholder="0"
+								isRequired
+								className={inputClassName}
+								labelClassName={labelClassName}
+								{...register("maximum_number_of_pallets_per_level", {
+									validate: {
+										requiredWhenAllows: (value) => {
+											if (!allowsStorageAisle) return true;
+											if (value === undefined || value === null) {
+												return "Si el pasillo permite almacenamiento, indique el máximo de polines.";
+											}
+											return true;
+										},
+										validateInteger: (value) =>
+											value === undefined ||
+											value === null ||
+											validateIntegerNumber(value),
+										validatePositive: (value) => {
+											if (!allowsStorageAisle) return true;
+											if (value === undefined || value === null) return true;
+											return validatePositiveNumber(value);
+										},
+									},
+									setValueAs: parseDecimal,
+									onChange: (evt) => {
+										evt.target.value = formatAmount(evt.target.value, 6, 0);
+									},
+								})}
+								error={errors?.maximum_number_of_pallets_per_level?.message}
+							/>
+						) : null}
+					</div>
+
+					<div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6" />
+
+					<div className="flex min-w-0 flex-col-reverse gap-2.5 sm:flex-row sm:justify-end sm:gap-3">
+						<Button
+							type="button"
+							size="giant"
+							label="Cancelar"
+							onClick={handleClose}
+							className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30! sm:w-auto!"
+						/>
+						<Button
+							type="submit"
+							size="giant"
+							label={isEdit ? "Actualizar" : "Guardar"}
+							isLoading={isPending}
+							disabled={isPending}
+							className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
+						/>
+					</div>
+				</form>
 			</Modal>
 		</>
 	);

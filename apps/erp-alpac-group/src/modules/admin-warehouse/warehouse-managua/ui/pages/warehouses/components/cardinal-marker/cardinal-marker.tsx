@@ -1,5 +1,5 @@
 import { Arrow, Group, Text } from "react-konva";
-import { CardinalRotation, type CardinalMarkerProps } from "./cardinal-market.types";
+import { CardinalRotation, type CardinalMarkerProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/cardinal-marker/cardinal-market.types";
 
 export const CardinalMarker = ({ x, y, cardinality = 'S' , size = 50 }: CardinalMarkerProps) => {
 

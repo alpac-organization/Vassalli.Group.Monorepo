@@ -41,6 +41,7 @@ export function RacksTable({
       height={height}
       minHeight={minHeight}
       maxHeight={maxHeight}
+      enableSelectBorder
       pagination={
         <Pagination
           currentPage={currentPage}
