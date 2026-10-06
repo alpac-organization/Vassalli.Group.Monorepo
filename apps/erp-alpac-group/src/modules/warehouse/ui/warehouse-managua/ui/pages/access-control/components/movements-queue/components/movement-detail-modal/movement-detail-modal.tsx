@@ -18,7 +18,6 @@ import {
   type MovementDetailModalProps,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/types/movement-detail.types";
 import { EvidenceManager } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/evidence-manager/evidence-manager";
-import { ConsolidatedVariations } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/variants/global-variants";
 import { Loader } from "@app/shared/components/loaders/loader";
 import {
   isValueMissing,
@@ -49,6 +48,11 @@ const transportUnitOptions = Object.values(TransportUnit).map((unit) => ({
   value: unit.value,
   label: unit.label,
 }));
+
+const documentTypeOptions = [
+  { value: "DUCA", label: "DUCA" },
+  { value: "CustomsDeclaration", label: "Declaración Aduanera" },
+];
 
 export function MovementDetailModal({
   isOpen,
@@ -115,7 +119,7 @@ export function MovementDetailModal({
     );
 
     return ducaDocs.map((d) => ({
-      value: d.document_id,
+      value: d.document_id || d.operational_order_id || d.document_numbers,
       label: d.document_numbers,
     }));
   }, [detail?.additional_data]);
@@ -124,7 +128,23 @@ export function MovementDetailModal({
   const selectedDucatLabel =
     ducatOptions.find((option) => String(option.value) === selectedDucatId)
       ?.label ?? "";
-  const showCustomsDeclaration = detail ? !isDucaDocumentType(detail) : false;
+  const currentDocType = formMethods.watch("document_type");
+  const showCustomsDeclaration = useMemo(() => {
+    if (currentDocType) {
+      const lower = String(currentDocType).toLowerCase();
+      if (
+        lower.includes("aduan") ||
+        lower === "customsdeclaration" ||
+        lower === "4"
+      ) {
+        return true;
+      }
+      if (lower.includes("duca") || lower === "3") {
+        return false;
+      }
+    }
+    return detail ? !isDucaDocumentType(detail) : false;
+  }, [currentDocType, detail]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -220,15 +240,11 @@ export function MovementDetailModal({
               name="document_type"
               label="Tipo de documento"
               formMethods={formMethods}
-              options={Object.values(DocumentEnum).map((item) => ({
-                value: item.value,
-                label: item.label,
-              }))}
-              isEditing={false}
+              options={documentTypeOptions}
+              isEditing={Boolean(editingFields.document_type)}
               onEditStart={handleEditStart}
               onEditEnd={handleEditEnd}
               onConfirmUpdate={onFieldUpdate}
-              allowEdit={false}
               missingMessage="Tipo de documento no registrado"
               className={editableFieldInputClasses}
             />
@@ -593,22 +609,14 @@ export function MovementDetailModal({
                 <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
                   <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:justify-end">
                     <Badges
-                      label={
-                        detail.is_consolidated
-                          ? ConsolidatedVariations.consolidated.label
-                          : ConsolidatedVariations.Unbound.label
-                      }
-                      color="transparent"
-                      className={
-                        detail.is_consolidated
-                          ? ConsolidatedVariations.consolidated.color
-                          : ConsolidatedVariations.Unbound.color
-                      }
+                      label={`Código: ${detail.reception_code || "Código no registrado"}`}
+                      color="gray"
+                      className="bg-slate-800! border! border-slate-700! text-slate-400!"
                     />
                   </div>
 
                   <Tabs
-                    key={detail.reception_entrance_id || detail.id}
+                    key={detail.reception_entrance_id}
                     activeTab="resumen"
                     tabItems={tabItems}
                   />

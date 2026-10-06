@@ -74,13 +74,4 @@ export class AccessControlServices implements IAccessControl {
     const url = `/companies/${company_id}/modules/${module_code}/receptions/${receptionId}/exit`;
     return this.httpHandler.post<void>(url, cleanParams(rest));
   }
-
-  public async deleteAccessControlById(
-    payload: GetReceptionEntranceDetailRequest,
-  ): Promise<boolean> {
-    const { company_id, module_code } = payload;
-    const receptionId = payload.reception_entrance_id || payload.reception_id;
-    const url = `/companies/${company_id}/modules/${module_code}/receptions/${receptionId}`;
-    return this.httpHandler.delete<boolean>(url);
-  }
 }

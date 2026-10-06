@@ -106,10 +106,14 @@ export function EditableField<TFieldValues extends FieldValues>({
 
   const selectedOption = options?.find(
     (o) =>
-      String(o.value) === String(currentValue) ||
+      String(o.value).toLowerCase() === String(currentValue).toLowerCase() ||
       (typeof currentValue === "string" &&
         currentValue.trim() !== "" &&
-        o.label.trim().toLowerCase() === currentValue.trim().toLowerCase()),
+        (o.label.trim().toLowerCase() === currentValue.trim().toLowerCase() ||
+          (String(o.value) === "CustomsDeclaration" &&
+            currentValue.toLowerCase().includes("aduan")) ||
+          (String(o.value) === "DUCA" &&
+            currentValue.toLowerCase().includes("duca")))),
   );
   const displayValue = showMissingStyle
     ? missingMessage

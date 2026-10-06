@@ -29,7 +29,10 @@ export function parseAdditionalData(
 
 export function isDucaDocumentType(detail: ReceptionEntranceDetail): boolean {
   const parsed = parseAdditionalData(detail.additional_data);
-  const docType = parsed?.document_numbers?.[0]?.document_type;
+  const docType =
+    detail.document_type ??
+    parsed?.document_numbers?.[0]?.document_type;
+
   if (docType == null) return false;
 
   const num = Number(docType);
@@ -55,7 +58,7 @@ export function mapDetailToFormValues(
 
   // Documento principal
   const firstDoc = parsed?.document_numbers?.[0];
-  const docTypeRaw = firstDoc?.document_type;
+  const docTypeRaw = detail.document_type ?? firstDoc?.document_type;
 
   // Declaración aduanera
   const customsDoc = parsed?.document_numbers?.find((d) => {

@@ -83,7 +83,7 @@ export function VehicleDataStep({
       id: typeof crypto !== "undefined" && crypto.randomUUID 
           ? crypto.randomUUID() 
           : Date.now().toString(36) + Math.random().toString(36).substring(2),
-      file: img.file,
+      file: img.file ?? new File([""], "image.jpg", { type: img.contentType || "image/jpeg" }),
       base64: img.imageBase64,
       preview: img.file ? URL.createObjectURL(img.file) : "",
       contentType: img.contentType || img.file?.type || "image/jpeg",
