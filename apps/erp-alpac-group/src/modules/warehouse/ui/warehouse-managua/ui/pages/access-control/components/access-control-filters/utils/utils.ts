@@ -7,6 +7,7 @@ export const isMobileViewport = () =>
   window.matchMedia("(max-width: 639px)").matches;
 
 export const DOCUMENT_TYPE_OPTIONS: Option[] = [
+  { value: "", label: "Todos" },
   { value: "DUCA", label: DocumentEnum.DUCA.label },
   {
     value: "CustomsDeclaration",
@@ -18,12 +19,9 @@ export function buildFiltersPayload(
   values: AccessControlFilters,
 ): AccessControlFilters {
   return {
-    ducat_number: (values.ducat_number ?? "").trim(),
     document_number: (values.document_number ?? "").trim(),
     document_type: (values.document_type ?? "").trim(),
-    plate_number: (values.plate_number ?? "").trim(),
-    driver_name: (values.driver_name ?? "").trim(),
-    start_date: values.start_date,
-    end_date: values.end_date,
+    vehicle_plate_number: (values.vehicle_plate_number ?? "").trim(),
+    container_number: (values.container_number ?? "").trim(),
   };
 }

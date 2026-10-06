@@ -22,7 +22,8 @@ export interface AdditionalDataEvidenceUrl {
 }
 
 export interface AdditionalDataDocumentNumber {
-  document_id: string;
+  document_id?: string;
+  operational_order_id?: string;
   document_numbers: string;
   document_type: number | string;
 }
@@ -38,6 +39,7 @@ export interface ReceptionEntranceDetail {
   seal_number: string;
   container_number: string;
   country_of_origin: string;
+  document_type?: string | number | null;
   created_at: string;
   additional_data: string | AdditionalReceptionEntranceData | null;
   custom_branches_information: CustomBranchesInformation;

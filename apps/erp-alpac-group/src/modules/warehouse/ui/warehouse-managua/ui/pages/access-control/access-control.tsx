@@ -1,7 +1,7 @@
 import { m } from "framer-motion";
 import { useCallback, useMemo, useState } from "react";
 import dayjs from "dayjs";
-import { Modal, Button } from "@alpac/design-system";
+import { Modal } from "@alpac/design-system";
 import { AccessControlHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-header/access-control-header";
 import { AccessControlStats } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-stats/access-control-stats";
 import { AccessControlActions } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-actions/access-control-actions";
@@ -20,13 +20,15 @@ import {
   mapGateEntryToCreateRequest,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/utils/mapping-access-control";
 import {
-  isDucaDocumentType,
   parseAdditionalData,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/mapMovementDetail";
 import { useAccessControl } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAccessControl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/get-access-control";
-import type { UpdateReceptionEntranceRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/update-access-control";
+import type {
+  DucatNumberUpdateItem,
+  UpdateReceptionEntranceRequest,
+} from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/update-access-control";
 import type { ReceptionEntranceListItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -37,16 +39,14 @@ import type { Path } from "react-hook-form";
 
 const PAGE_SIZE = 10;
 const EMPTY_FILTERS: AccessControlFilters = {
-  ducat_number: "",
   document_number: "",
   document_type: "",
-  plate_number: "",
-  driver_name: "",
-  start_date: null,
-  end_date: null,
+  vehicle_plate_number: "",
+  container_number: "",
 };
 
 const UPDATABLE_FIELDS = new Set<Path<MovementDetailFormValues>>([
+  "document_type",
   "plate_number",
   "trailer_chassis",
   "driver_name",
@@ -76,12 +76,11 @@ export function AccessControlPage() {
     null,
   );
   const [exitReception, setExitReception] = useState<ReceptionEntranceListItem | null>(null);
-  const [deleteReception, setDeleteReception] = useState<ReceptionEntranceListItem | null>(null);
 
   const payloadAccessControl = useMemo<GetAccessControlRequest>(() => {
-    const hasDateFilter = Boolean(
-      appliedFilters.start_date || appliedFilters.end_date,
-    );
+    const plateNumber = (appliedFilters.vehicle_plate_number ?? "").trim();
+    const containerNumber = (appliedFilters.container_number ?? "").trim();
+    const docNumber = (appliedFilters.document_number ?? "").trim();
 
     let docTypeNumber: number | undefined = undefined;
     if (appliedFilters.document_type) {
@@ -99,17 +98,20 @@ export function AccessControlPage() {
       }
     }
 
-    const docNumber = (
-      appliedFilters.document_number ||
-      appliedFilters.ducat_number ||
-      ""
-    ).trim();
+    const hasFilter = Boolean(
+      plateNumber ||
+      containerNumber ||
+      docNumber ||
+      docTypeNumber !== undefined,
+    );
 
     return {
       company_id: companyId,
       module_code: moduleCode,
-      only_day: !hasDateFilter,
-      plate_number: (appliedFilters.plate_number ?? "").trim() || undefined,
+      only_day: !hasFilter,
+      plate_number: plateNumber || undefined,
+      container_number: containerNumber || undefined,
+      contaniner_number: containerNumber || undefined,
       document_type: docTypeNumber,
       document_number: docNumber || undefined,
       page_number: pageNumber,
@@ -142,7 +144,6 @@ export function AccessControlPage() {
     CreateAccessControl,
     UpdateAccessControl,
     GenerateExitAccessControl,
-    DeleteAccessControl,
   } = useAccessControl({
     payloadAccessControl,
     detailPayload,
@@ -171,13 +172,10 @@ export function AccessControlPage() {
 
   const handleApplyFilters = useCallback((filters: AccessControlFilters) => {
     setAppliedFilters({
-      ducat_number: (filters.ducat_number ?? "").trim(),
       document_number: (filters.document_number ?? "").trim(),
       document_type: (filters.document_type ?? "").trim(),
-      plate_number: (filters.plate_number ?? "").trim(),
-      driver_name: (filters.driver_name ?? "").trim(),
-      start_date: filters.start_date,
-      end_date: filters.end_date,
+      vehicle_plate_number: (filters.vehicle_plate_number ?? "").trim(),
+      container_number: (filters.container_number ?? "").trim(),
     });
     setPageNumber(1);
   }, []);
@@ -250,50 +248,6 @@ export function AccessControlPage() {
     ],
   );
 
-  const handleDeleteClick = useCallback((item: ReceptionEntranceListItem) => {
-    setDeleteReception(item);
-  }, []);
-
-  const handleCloseDelete = useCallback(() => {
-    setDeleteReception(null);
-  }, []);
-
-  const handleConfirmDelete = useCallback(async () => {
-    if (!deleteReception) return;
-    const receptionId =
-      deleteReception.reception_entrance_id || deleteReception.id;
-    if (!receptionId) return;
-
-    try {
-      await DeleteAccessControl.mutateAsync({
-        company_id: companyId,
-        module_code: moduleCode,
-        reception_id: receptionId,
-        reception_entrance_id: receptionId,
-      });
-      handleRequestSuccess("Registro eliminado exitosamente");
-      if (movements.length === 1 && pageNumber > 1) {
-        setPageNumber((p) => p - 1);
-      }
-    } catch (error) {
-      const mappedError = getMappedError(error as ApiErrorResponse);
-      handleRequestError(
-        mappedError?.description || "Error al eliminar el registro",
-      );
-    } finally {
-      setDeleteReception(null);
-    }
-  }, [
-    deleteReception,
-    DeleteAccessControl,
-    companyId,
-    moduleCode,
-    handleRequestSuccess,
-    handleRequestError,
-    getMappedError,
-    movements.length,
-    pageNumber,
-  ]);
 
   const handleEvidenceUpdate = useCallback(
     async (toAdd: string[], toDelete: string[]) => {
@@ -367,36 +321,6 @@ export function AccessControlPage() {
         reception_entrance_id: selectedReceptionId,
       };
 
-      const isDuca = detail ? isDucaDocumentType(detail) : false;
-      const parsedAdd = parseAdditionalData(detail?.additional_data);
-
-      const existingDucats: string[] = (
-        (parsedAdd?.document_numbers ?? [])
-          .filter(
-            (d) =>
-              Number(d.document_type) === Number(DocumentEnum.DUCA.value) ||
-              d.document_type === 1 ||
-              String(d.document_type) === "1" ||
-              String(d.document_type).toUpperCase().includes("DUCA") ||
-              d.document_type === 3 ||
-              String(d.document_type) === "3",
-          )
-          .map((d) => d.document_numbers)
-      ).filter(Boolean);
-
-      const existingCustomsDecNumber =
-        parsedAdd?.document_numbers?.find(
-          (d) =>
-            Number(d.document_type) ===
-              Number(DocumentEnum.CustomsDeclaration.value) ||
-            d.document_type === 2 ||
-            String(d.document_type) === "2" ||
-            String(d.document_type).toUpperCase().includes("CUSTOM") ||
-            d.document_type === 4 ||
-            String(d.document_type) === "4",
-        )?.document_numbers ??
-        "";
-
       switch (name) {
         case "plate_number":
           payload.reception_transport_information = {
@@ -425,54 +349,48 @@ export function AccessControlPage() {
           break;
         case "transport_unit":
           payload.reception_transport_information = {
-            transport_unit: value.trim() ? Number(value) : undefined,
+            transport_unit: value.trim()
+              ? (!isNaN(Number(value)) ? Number(value) : value.trim())
+              : undefined,
           };
           break;
 
         case "seal_number":
           payload.general_information = {
             seal_number: value.trim(),
-            document_type: isDuca
-              ? Number(DocumentEnum.DUCA.value)
-              : Number(DocumentEnum.CustomsDeclaration.value),
-            ducat_numbers: isDuca ? existingDucats : undefined,
-            customs_declaration_number: !isDuca ? existingCustomsDecNumber : undefined,
           };
           break;
         case "country_of_origin":
           payload.general_information = {
             country_origin: value.trim(),
-            document_type: isDuca
-              ? Number(DocumentEnum.DUCA.value)
-              : Number(DocumentEnum.CustomsDeclaration.value),
-            ducat_numbers: isDuca ? existingDucats : undefined,
-            customs_declaration_number: !isDuca ? existingCustomsDecNumber : undefined,
           };
           break;
         case "container_number":
           payload.general_information = {
             container_number: value.trim(),
-            document_type: isDuca
-              ? Number(DocumentEnum.DUCA.value)
-              : Number(DocumentEnum.CustomsDeclaration.value),
-            ducat_numbers: isDuca ? existingDucats : undefined,
-            customs_declaration_number: !isDuca ? existingCustomsDecNumber : undefined,
           };
           break;
         case "custom_branch":
           payload.general_information = {
             custom_branch_id: value.trim(),
-            document_type: isDuca
-              ? Number(DocumentEnum.DUCA.value)
-              : Number(DocumentEnum.CustomsDeclaration.value),
-            ducat_numbers: isDuca ? existingDucats : undefined,
-            customs_declaration_number: !isDuca ? existingCustomsDecNumber : undefined,
           };
           break;
+        case "document_type": {
+          const isDucaVal =
+            value === "DUCA" ||
+            value === "3" ||
+            Number(value) === 3 ||
+            value.toUpperCase().includes("DUCA");
+
+          payload.general_information = {
+            document_type: isDucaVal ? "DUCA" : "CustomsDeclaration",
+          };
+          break;
+        }
         case "customs_decaration_number":
           payload.general_information = {
             customs_declaration_number: value.trim(),
-            document_type: Number(DocumentEnum.CustomsDeclaration.value),
+            document_type: "CustomsDeclaration",
           };
           break;
 
@@ -484,7 +402,7 @@ export function AccessControlPage() {
         await UpdateAccessControl.mutateAsync(payload);
         handleRequestSuccess("Campo actualizado exitosamente");
         GetAccessControlDetail.refetch();
-        setSelectedReceptionId(null);
+        GetAccessControl.refetch();
       } catch (error) {
         const mappedError = getMappedError(error as ApiErrorResponse);
         handleRequestError(
@@ -495,9 +413,9 @@ export function AccessControlPage() {
     },
     [
       selectedReceptionId,
-      detail,
       UpdateAccessControl,
       GetAccessControlDetail,
+      GetAccessControl,
       companyId,
       moduleCode,
       handleRequestError,
@@ -524,15 +442,23 @@ export function AccessControlPage() {
           String(d.document_type) === "3",
       );
 
-      let allDucatNumbers: string[] = [];
-      if (ducaDocs.length > 0) {
-        allDucatNumbers = ducaDocs.map((d) =>
-          d.document_id === ducatId ? ducatNumber.trim() : d.document_numbers,
-        );
-      }
+      const ducatNumbersPayload: DucatNumberUpdateItem[] = ducaDocs.map((d) => {
+        const orderId = d.operational_order_id || d.document_id || ducatId;
+        const isTarget =
+          d.document_id === ducatId ||
+          d.operational_order_id === ducatId ||
+          orderId === ducatId;
+        return {
+          operational_order_id: orderId,
+          document_number: isTarget ? ducatNumber.trim() : d.document_numbers,
+        };
+      });
 
-      if (allDucatNumbers.length === 0) {
-        allDucatNumbers = [ducatNumber.trim()];
+      if (ducatNumbersPayload.length === 0) {
+        ducatNumbersPayload.push({
+          operational_order_id: ducatId,
+          document_number: ducatNumber.trim(),
+        });
       }
 
       try {
@@ -542,14 +468,14 @@ export function AccessControlPage() {
           reception_id: selectedReceptionId,
           reception_entrance_id: selectedReceptionId,
           general_information: {
-            document_type: Number(DocumentEnum.DUCA.value),
-            ducat_numbers: allDucatNumbers,
+            document_type: "DUCA",
+            ducat_numbers: ducatNumbersPayload,
           },
         });
 
         handleRequestSuccess("DUCA actualizada exitosamente");
         GetAccessControlDetail.refetch();
-        setSelectedReceptionId(null);
+        GetAccessControl.refetch();
       } catch (error) {
         const mappedError = getMappedError(error as ApiErrorResponse);
         handleRequestError(
@@ -563,6 +489,7 @@ export function AccessControlPage() {
       detail,
       UpdateAccessControl,
       GetAccessControlDetail,
+      GetAccessControl,
       companyId,
       moduleCode,
       handleRequestError,
@@ -589,9 +516,28 @@ export function AccessControlPage() {
           String(d.document_type) === "3",
       );
 
-      const existingDucatNumbers = ducaDocs.map((d) => d.document_numbers);
       const cleanNewDucats = ducatNumbers.map((d) => d.trim()).filter(Boolean);
-      const allDucatNumbers = [...existingDucatNumbers, ...cleanNewDucats];
+      if (cleanNewDucats.length === 0) return;
+
+      const ducatNumbersPayload: DucatNumberUpdateItem[] = ducaDocs.map((d) => ({
+        operational_order_id: d.operational_order_id || d.document_id || "",
+        document_number: d.document_numbers,
+      }));
+
+      const emptyDoc = ducatNumbersPayload.find((d) => !d.document_number.trim());
+      if (emptyDoc) {
+        emptyDoc.document_number = cleanNewDucats[0];
+      } else if (ducaDocs.length === 0) {
+        ducatNumbersPayload.push({
+          operational_order_id: selectedReceptionId,
+          document_number: cleanNewDucats[0],
+        });
+      } else {
+        ducatNumbersPayload.push({
+          operational_order_id: crypto.randomUUID(),
+          document_number: cleanNewDucats[0],
+        });
+      }
 
       try {
         await UpdateAccessControl.mutateAsync({
@@ -600,12 +546,13 @@ export function AccessControlPage() {
           reception_id: selectedReceptionId,
           reception_entrance_id: selectedReceptionId,
           general_information: {
-            document_type: Number(DocumentEnum.DUCA.value),
-            ducat_numbers: allDucatNumbers,
+            document_type: "DUCA",
+            ducat_numbers: ducatNumbersPayload,
           },
         });
         handleRequestSuccess("DUCA agregada exitosamente");
         GetAccessControlDetail.refetch();
+        GetAccessControl.refetch();
       } catch (error) {
         const mappedError = getMappedError(error as ApiErrorResponse);
         handleRequestError(
@@ -621,6 +568,7 @@ export function AccessControlPage() {
       moduleCode,
       UpdateAccessControl,
       GetAccessControlDetail,
+      GetAccessControl,
       handleRequestError,
       handleRequestSuccess,
       getMappedError,
@@ -692,6 +640,7 @@ export function AccessControlPage() {
       <AccessControlFiltersBar
         onApply={handleApplyFilters}
         onClear={handleClearFilters}
+        defaultValues={appliedFilters}
       />
 
       <MovementsQueue
@@ -703,53 +652,7 @@ export function AccessControlPage() {
         isFetching={isFetching}
         onDetailClick={handleDetailClick}
         onExitClick={handleExitClick}
-        onDeleteClick={handleDeleteClick}
       />
-
-      <Modal
-        isOpen={Boolean(deleteReception)}
-        onClose={handleCloseDelete}
-        variant="warning"
-        size="md"
-        title="Confirmar eliminación"
-      >
-        <div className="flex flex-col gap-4 min-w-0 p-4">
-          <p className="text-slate-600 dark:text-slate-300 text-center">
-            ¿Está seguro que desea eliminar el registro{" "}
-            <span className="font-bold">
-              {deleteReception?.reception_code
-                ? `con código ${deleteReception.reception_code}`
-                : deleteReception?.plate_number
-                ? `con placa ${deleteReception.plate_number}`
-                : deleteReception?.container_number
-                ? `con contenedor ${deleteReception.container_number}`
-                : ""}
-            </span>
-            {deleteReception?.driver_name ? (
-              <>
-                {" "}y conductor{" "}
-                <span className="font-bold">{deleteReception.driver_name}</span>
-              </>
-            ) : null}
-            ?
-          </p>
-          <div className="flex justify-end gap-3 mt-4">
-            <Button
-              type="button"
-              label="Cancelar"
-              onClick={handleCloseDelete}
-              className="text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-neutral-800"
-            />
-            <Button
-              type="button"
-              label="Eliminar"
-              onClick={handleConfirmDelete}
-              isLoading={DeleteAccessControl.isPending}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            />
-          </div>
-        </div>
-      </Modal>
 
       <Modal
         isOpen={Boolean(exitReception)}
@@ -764,8 +667,8 @@ export function AccessControlPage() {
             <span className="font-bold">
               {exitReception?.reception_code
                 ? `con código ${exitReception.reception_code}`
-                : exitReception?.plate_number
-                ? `con placa ${exitReception.plate_number}`
+                : exitReception?.vehicle_plate_number
+                ? `con placa ${exitReception.vehicle_plate_number}`
                 : exitReception?.container_number
                 ? `con contenedor ${exitReception.container_number}`
                 : ""}
@@ -783,18 +686,14 @@ export function AccessControlPage() {
             onSubmit={handleGenerateExit}
             isSubmitting={GenerateExitAccessControl.isPending}
             entryDate={
-              exitReception && detail?.id === exitReception.id
-                ? (detail?.created_at
-                    ? detail.created_at.slice(0, 10)
-                    : exitReception.arrival_date)
-                : exitReception?.arrival_date
+              detail?.created_at
+                ? detail.created_at.slice(0, 10)
+                : undefined
             }
             entryTime={
-              exitReception && detail?.id === exitReception.id
-                ? (detail?.created_at
-                    ? detail.created_at.slice(11, 19)
-                    : exitReception.arrival_time)
-                : exitReception?.arrival_time
+              detail?.created_at
+                ? detail.created_at.slice(11, 19)
+                : undefined
             }
           />
         </div>
