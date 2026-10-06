@@ -108,7 +108,7 @@ export const SectionShape = ({
 					onContextMenu?.({
 						x: e.evt.clientX,
 						y: e.evt.clientY,
-						section: section,
+						data: section,
 						node: e.currentTarget,
 					});
 				}}

@@ -1,12 +1,13 @@
 import { ContextMenuButton } from "@alpac/design-system";
-import type { SectionShapeMenuProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/components/section-shape-menu/section-shape-menu.types";
 import {
    bringToFront,
    sendToBack,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
 import { StackingOrderMenu } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/stacking-order-menu/stacking-order-menu";
+import type { ShapeContextMenuProps } from "./shape-context-menu.types";
 
-export const SectionShapeMenu = ({ menu, setMenu, onEdit }: SectionShapeMenuProps) => {
+
+export function ShapeContextMenu<Data>({ menu, setMenu, onEdit }: ShapeContextMenuProps<Data>) {
    return (
       <>
          {menu && (
@@ -19,7 +20,7 @@ export const SectionShapeMenu = ({ menu, setMenu, onEdit }: SectionShapeMenuProp
                <ContextMenuButton
                   label="Editar"
                   onClick={() => {
-                     onEdit(menu.section);
+                     onEdit(menu.data);
                      setMenu(null);
                   }}
                />

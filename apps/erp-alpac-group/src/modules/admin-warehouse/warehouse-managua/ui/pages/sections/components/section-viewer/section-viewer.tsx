@@ -5,7 +5,7 @@ import { Button } from "@alpac/design-system";
 import { LegendItem } from "@app/shared/components/legend-item/legend-item";
 import { SectionShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/section-shape";
 import { createMockGaleron } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-shape/galeron-shape.types";
-import { SectionShapeMenu } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/components/section-shape-menu/section-shape-menu";
+import { ShapeContextMenu } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/shape-context-menu/shape-context-menu";
 import { SectionLegends, SectionTypeBorderColor, SectionTypeColor } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/section-status-badge";
 import { WarehouseShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape";
 import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
@@ -15,7 +15,7 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 
 import type { EditMode, SectionCoordinate, SectionSize, SectionViewerProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-viewer/section-viewer.types";
 import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
-import type { SectionMenuState } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-shape/components/section-shape-menu/section-shape-menu.types";
+import type { MenuState } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/shape-context-menu/shape-context-menu.types";
 import type { UpdateSectionLayoutRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/update-section-layout-req";
 import { isInsideAvailableArea } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-bound";
 
@@ -51,7 +51,7 @@ export const SectionViewer = ({
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [coordinates, setCoordinates] = useState<SectionCoordinate>({});
 	const [sizes, setSizes] = useState<SectionSize>({});
-	const [menu, setMenu] = useState<SectionMenuState | null>(null);
+	const [menu, setMenu] = useState<MenuState<SectionDto> | null>(null);
 	const [internalSelectedId, setInternalSelectedId] = useState<string | null>(null);
 	const [internalSelectedCode, setInternalSelectedCode] = useState<string | null>(null);
 
@@ -101,15 +101,15 @@ export const SectionViewer = ({
 		);
 	};
 
-	const handleContextMenu = (next: SectionMenuState) => {
-		if (hasPendingLayoutEdit && editingId !== next.section.section_id) {
+	const handleContextMenu = (next: MenuState<SectionDto>) => {
+		if (hasPendingLayoutEdit && editingId !== next.data.section_id) {
 			notifyPendingLayoutEdit();
 			return;
 		}
 
-		setInternalSelectedId(next.section.section_id);
-		setInternalSelectedCode(next.section.section_code);
-		onSelectSection?.(next.section);
+		setInternalSelectedId(next.data.section_id);
+		setInternalSelectedCode(next.data.section_code);
+		onSelectSection?.(next.data);
 		setMenu(next);
 	};
 
@@ -315,7 +315,7 @@ export const SectionViewer = ({
 				})}
 			</WarehouseShape>
 
-			<SectionShapeMenu
+			<ShapeContextMenu
 				menu={menu}
 				setMenu={setMenu}
 				onEdit={handleEdit}

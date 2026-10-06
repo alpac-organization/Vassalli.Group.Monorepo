@@ -1,14 +1,13 @@
 import type { LotDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
-import type { WarehouseDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/warehouses/get-warehouse-res";
 import type { Coordinate, Size } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
+import type { WarehouseDetailsDto } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/warehouse-details.mapper";
 
 export interface LotViewerProps {
   className?: string;
-  warehouse?: WarehouseDto;
+  warehouse?: WarehouseDetailsDto;
   lots?: LotDto[];
   selectedLot?: LotDto | null;
   onSelectLot?: (lot: LotDto) => void;
-  /** Dimensiones y posición de la sección dentro de la bodega. */
   sectionCode?: string | null;
   sectionWidth?: number;
   sectionLength?: number;

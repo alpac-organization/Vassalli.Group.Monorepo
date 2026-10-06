@@ -111,7 +111,7 @@ export const GaleronSectionShape = ({
 					onContextMenu?.({
 						x: e.evt.clientX,
 						y: e.evt.clientY,
-						section,
+						data: section,
 						node: e.currentTarget,
 					});
 				}}

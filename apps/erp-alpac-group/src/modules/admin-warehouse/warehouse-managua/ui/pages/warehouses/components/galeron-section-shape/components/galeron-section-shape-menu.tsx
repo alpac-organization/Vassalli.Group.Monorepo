@@ -4,13 +4,9 @@ import {
 	bringToFront,
 	sendToBack,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
-import { StackingOderMenu } from "../../stacking-order-menu/stacking-order-menu";
+import { StackingOrderMenu } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/stacking-order-menu/stacking-order-menu";
 
-export const GaleronSectionShapeMenu = ({
-	menu,
-	setMenu,
-	onEdit,
-}: GaleronSectionShapeMenuProps) => {
+export const GaleronSectionShapeMenu = ({ menu, setMenu, onEdit }: GaleronSectionShapeMenuProps) => {
 	return (
 		<>
 			{menu && (
@@ -33,7 +29,7 @@ export const GaleronSectionShapeMenu = ({
 						className="m-0 p-0 h-0 border-t border-slate-200 dark:border-slate-600"
 					/>
 
-					<StackingOderMenu
+					<StackingOrderMenu
 						onBringToFront={() => {
 							bringToFront(menu.node);
 							setMenu(null);

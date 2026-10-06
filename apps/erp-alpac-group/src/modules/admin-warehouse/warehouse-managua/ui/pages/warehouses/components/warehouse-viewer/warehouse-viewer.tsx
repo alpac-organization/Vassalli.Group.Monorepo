@@ -31,8 +31,8 @@ import {
 	GALERON_SECTION_FILL,
 	type GaleronSectionDto,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-section-shape/galeron-section-shape.types";
-import { GaleronSectionShapeMenu } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-section-shape/components/galeron-section-shape-menu";
-import type { GaleronSectionMenuState } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-section-shape/components/galeron-section-shape-menu.types";
+import { ShapeContextMenu } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/shape-context-menu/shape-context-menu";
+import type { MenuState } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/shape-context-menu/shape-context-menu.types";
 import { isInsideAvailableArea } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/layout-bound";
 import type Konva from "konva";
 import { bringToFront, sendToBack } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
@@ -108,7 +108,7 @@ export const WarehouseViewer = forwardRef<WarehouseViewerHandle, WarehouseViewer
 		const [selectedGaleronId, setSelectedGaleronId] = useState<string | null>(null);
 		const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 		const [galeronMenu, setGaleronMenu] = useState<GaleronMenuState | null>(null);
-		const [sectionMenu, setSectionMenu] = useState<GaleronSectionMenuState | null>(null);
+		const [sectionMenu, setSectionMenu] = useState<MenuState<GaleronSectionDto> | null>(null);
 		const [editMode, setEditMode] = useState<EditMode>(null);
 		const [editTarget, setEditTarget] = useState<EditTarget>(null);
 		const [editingId, setEditingId] = useState<string | null>(null);
@@ -270,13 +270,13 @@ export const WarehouseViewer = forwardRef<WarehouseViewerHandle, WarehouseViewer
 		);
 
 		const handleSectionContextMenu = useCallback(
-			(menu: GaleronSectionMenuState) => {
-				if (hasPendingLayoutEdit && !(editTarget === "section" && editingId === menu.section.id)) {
+			(menu: MenuState<GaleronSectionDto>) => {
+				if (hasPendingLayoutEdit && !(editTarget === "section" && editingId === menu.data.id)) {
 					return;
 				}
 
-				setSelectedSectionId(menu.section.id);
-				setSelectedGaleronId(menu.section.galeron_id);
+				setSelectedSectionId(menu.data.id);
+				setSelectedGaleronId(menu.data.galeron_id);
 				setGaleronMenu(null);
 				setSectionMenu(menu);
 			},
@@ -766,7 +766,7 @@ export const WarehouseViewer = forwardRef<WarehouseViewerHandle, WarehouseViewer
 					sendToBack={handleSendToBack}
 				/>
 
-				<GaleronSectionShapeMenu
+				<ShapeContextMenu
 					menu={sectionMenu}
 					setMenu={setSectionMenu}
 					onEdit={handleEditSection}

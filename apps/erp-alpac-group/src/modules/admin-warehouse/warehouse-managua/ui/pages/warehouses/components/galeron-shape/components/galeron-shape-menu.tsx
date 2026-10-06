@@ -1,6 +1,6 @@
 import { ContextMenuButton } from "@alpac/design-system";
 import type { GaleronShapeMenuProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-shape/components/galeron-shape-menu.types";
-import { StackingOderMenu } from "../../stacking-order-menu/stacking-order-menu";
+import { StackingOrderMenu } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/stacking-order-menu/stacking-order-menu";
 
 export const GaleronShapeMenu = ({
    menu,
@@ -45,7 +45,7 @@ export const GaleronShapeMenu = ({
                   className="m-0 p-0 h-0 border-t border-slate-200 dark:border-slate-600"
                />
 
-               <StackingOderMenu
+               <StackingOrderMenu
                   onBringToFront={() => {
                      bringToFront(menu.galeronNode);
                      setMenu(null);

@@ -122,7 +122,7 @@ export const LotShape = ({
           onContextMenu?.({
             x: e.evt.clientX,
             y: e.evt.clientY,
-            lot,
+            data: lot,
             node: e.currentTarget,
           });
         }}

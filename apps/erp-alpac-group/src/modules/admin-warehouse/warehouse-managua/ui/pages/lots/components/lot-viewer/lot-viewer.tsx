@@ -5,7 +5,7 @@ import { SaveIcon } from "lucide-react";
 import { Button } from "@alpac/design-system";
 import { LegendItem } from "@app/shared/components/legend-item/legend-item";
 import { LotShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lot-shape/lot-shape";
-import { LotShapeMenu } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lot-shape/components/lot-shape-menu/lot-shape-menu";
+import { ShapeContextMenu } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/shape-context-menu/shape-context-menu";
 import { WarehouseShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape";
 import { createMockGaleron } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-shape/galeron-shape.types";
 import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
@@ -22,7 +22,7 @@ import type {
   LotViewerProps,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lot-viewer/lot-viewer.types";
 import type { LotDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
-import type { LotMenuState } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lot-shape/components/lot-shape-menu/lot-shape-menu.types";
+import type { MenuState } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/shape-context-menu/shape-context-menu.types";
 import type { UpdateLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/update-lot-coordinates-req";
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
@@ -65,7 +65,7 @@ export const LotViewer = ({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [coordinates, setCoordinates] = useState<LotCoordinate>({});
   const [sizes, setSizes] = useState<LotSize>({});
-  const [menu, setMenu] = useState<LotMenuState | null>(null);
+  const [menu, setMenu] = useState<MenuState<LotDto> | null>(null);
   const [internalSelectedId, setInternalSelectedId] = useState<string | null>(
     null,
   );
@@ -128,15 +128,15 @@ export const LotViewer = ({
     );
   };
 
-  const handleContextMenu = (next: LotMenuState) => {
-    if (hasPendingLayoutEdit && editingId !== next.lot.id) {
+  const handleContextMenu = (next: MenuState<LotDto>) => {
+    if (hasPendingLayoutEdit && editingId !== next.data.id) {
       notifyPendingLayoutEdit();
       return;
     }
 
-    setInternalSelectedId(next.lot.id);
-    setInternalSelectedCode(next.lot.code);
-    onSelectLot?.(next.lot);
+    setInternalSelectedId(next.data.id);
+    setInternalSelectedCode(next.data.code);
+    onSelectLot?.(next.data);
     setMenu(next);
   };
 
@@ -345,7 +345,7 @@ export const LotViewer = ({
         )}
       </WarehouseShape>
 
-      <LotShapeMenu menu={menu} setMenu={setMenu} onEdit={handleEdit} />
+      <ShapeContextMenu menu={menu} setMenu={setMenu} onEdit={handleEdit} />
 
       <div className="flex gap-x-4 gap-y-1 items-center justify-between mt-2 flex-wrap">
         <div className="flex gap-x-4 gap-y-1 items-center flex-wrap">

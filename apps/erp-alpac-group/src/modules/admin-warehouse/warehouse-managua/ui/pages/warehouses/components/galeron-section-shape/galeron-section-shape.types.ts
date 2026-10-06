@@ -1,5 +1,5 @@
 import type { Shape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
-import type { GaleronSectionMenuState } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-section-shape/components/galeron-section-shape-menu.types";
+import type { MenuState } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/shape-context-menu/shape-context-menu.types";
 
 const MOCK_GALERON_ID = "mock-galeron";
 const MOCK_GALERON_LENGTH = 12.12;
@@ -59,5 +59,5 @@ export const GALERON_SECTION_STROKE = "#f7ae4f";
 
 export interface GaleronSectionShapeProps extends Shape<GaleronSectionDto> {
 	section: GaleronSectionDto;
-	onContextMenu?: (menu: GaleronSectionMenuState) => void;
+	onContextMenu?: (menu: MenuState<GaleronSectionDto>) => void;
 }

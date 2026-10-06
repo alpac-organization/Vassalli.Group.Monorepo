@@ -1,7 +1,7 @@
 import { ContextMenuButton } from "@alpac/design-system";
 import type { StackingOrderMenuProps } from "./stacking-order-menu.types";
 
-export const StackingOderMenu = ({ onBringToFront, onSendToBack }: StackingOrderMenuProps) => {
+export const StackingOrderMenu = ({ onBringToFront, onSendToBack }: StackingOrderMenuProps) => {
    return (
       <>
          <ContextMenuButton
