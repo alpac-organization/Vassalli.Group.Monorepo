@@ -21,6 +21,7 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import type { RackDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/racks/get-racks-res";
 import type { DeleteRackRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/racks/delete-rack-req";
 import { filtersToGetRacksParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/filter-racks";
+import { mapWarehouseDetailsToLayout } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/warehouse-details.mapper";
 import { deleteButtonClass, cancelButtonClass, PAGE_SIZE } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/style.racks";
 
 export function RacksPage() {
@@ -63,20 +64,19 @@ export function RacksPage() {
     getSectionDetailsPayload,
   });
 
-  const { GetWarehouses } = useWarehouse({
-    getWarehousesPayload: {
+  const { GetWarehouseDetails } = useWarehouse({
+    getWarehouseDetailsPayload: {
       company_id: companyId,
       module_code: moduleCode,
+      warehouse_id: warehouseId,
     },
   });
 
-  const currentWarehouse = useMemo(() => {
-    return GetWarehouses.data?.data?.find(
-      (w) => w.warehouse_id === warehouseId || w.code === warehouseId,
-    );
-  }, [GetWarehouses.data?.data, warehouseId]);
-
-  const warehouseName = currentWarehouse?.code || "BODEGA";
+  const warehouseDetails = GetWarehouseDetails.data;
+  const warehouseLayout = warehouseDetails
+    ? mapWarehouseDetailsToLayout(warehouseDetails)
+    : undefined;
+  const warehouseName = warehouseDetails?.code || "BODEGA";
 
   const sectionCode = GetSectionDetails.data?.section_code ?? undefined;
   const sectionWidth = GetSectionDetails.data?.capacity?.width ?? 0.0;
@@ -144,6 +144,21 @@ export function RacksPage() {
       handleRequestError("Error al cargar los racks");
     }
   }, [GetRacks.error, GetAllRacks.error, getMappedError, handleRequestError]);
+
+  useEffect(() => {
+    if (!GetWarehouseDetails.isError || !GetWarehouseDetails.error) return;
+    try {
+      const mappedError = getMappedError(GetWarehouseDetails.error);
+      handleRequestError(mappedError?.description || "Error al cargar la bodega");
+    } catch {
+      handleRequestError("Error al cargar la bodega");
+    }
+  }, [
+    GetWarehouseDetails.isError,
+    GetWarehouseDetails.error,
+    getMappedError,
+    handleRequestError,
+  ]);
 
   const handleApplyFilters = useCallback((filters: RackFilters) => {
     setAppliedFilters(filters);
@@ -261,6 +276,7 @@ export function RacksPage() {
 
         <RackViewer
           className="min-h-175 min-w-0 overflow-y-auto"
+          warehouse={warehouseLayout}
           racks={allRacksData}
           selectedRackId={selectedRackId}
           sectionCode={sectionCode}

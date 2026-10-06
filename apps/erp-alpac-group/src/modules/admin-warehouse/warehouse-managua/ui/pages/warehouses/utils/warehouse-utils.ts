@@ -1,7 +1,97 @@
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
 import type { WarehouseFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-filters/types/warehouse-filters.types";
-import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
+import { MIN_SCALED_MEASURE_PX, PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import type Konva from "konva";
+
+export const metersToPixels = (meters: number) => meters * PIXELS_PER_METER;
+
+export const pixelsToMeters = (pixels: number) => pixels / PIXELS_PER_METER;
+
+export const formatPositionLabel = (xMeters: number, yMeters: number) =>
+	`X: ${xMeters.toFixed(2)} m  Y: ${yMeters.toFixed(2)} m`;
+
+export const formatSizeLabel = (widthPx: number, lengthPx: number) =>
+	`${pixelsToMeters(widthPx).toFixed(2)} m × ${pixelsToMeters(lengthPx).toFixed(2)} m`;
+
+export const readNodePositionInMeters = (node: Konva.Node) => ({
+	x: pixelsToMeters(node.x()),
+	y: pixelsToMeters(node.y()),
+});
+
+export type ScaledRectMeasure = {
+	width: number;
+	length: number;
+	x: number;
+	y: number;
+};
+
+export const measureScaledRect = (node: Konva.Rect): ScaledRectMeasure => ({
+	width: Math.max(MIN_SCALED_MEASURE_PX, node.width() * node.scaleX()),
+	length: Math.max(MIN_SCALED_MEASURE_PX, node.height() * node.scaleY()),
+	x: node.x(),
+	y: node.y(),
+});
+
+export const syncShapeLabel = (label: Konva.Text | null, measure: ScaledRectMeasure) => {
+	if (!label) return;
+
+	label.x(measure.x);
+	label.y(measure.y);
+	label.width(measure.width);
+	label.height(measure.length);
+};
+
+export const bindShapeTransformer = (
+	transformer: Konva.Transformer | null,
+	shape: Konva.Rect | null,
+	resizable: boolean,
+) => {
+	if (!transformer) return;
+
+	if (!resizable || !shape) {
+		transformer.nodes([]);
+		transformer.getLayer()?.batchDraw();
+		return;
+	}
+
+	transformer.nodes([shape]);
+	transformer.moveToTop();
+	shape.getParent()?.moveToTop();
+	transformer.getLayer()?.batchDraw();
+};
+
+export const keepMinimumTransformerBox = <Box extends { width: number; height: number }>(
+	oldBox: Box,
+	newBox: Box,
+	minSize: number,
+) => (newBox.width < minSize || newBox.height < minSize ? oldBox : newBox);
+
+type ShapeContextEvent = {
+	evt: { preventDefault: () => void; clientX: number; clientY: number };
+	cancelBubble: boolean;
+	currentTarget: Konva.Node;
+};
+
+export const readShapeContextPoint = (event: ShapeContextEvent) => {
+	event.evt.preventDefault();
+	event.cancelBubble = true;
+
+	return {
+		x: event.evt.clientX,
+		y: event.evt.clientY,
+		node: event.currentTarget,
+	};
+};
+
+type ShapeSelectEvent = {
+	cancelBubble: boolean;
+	currentTarget: Konva.Node;
+};
+
+export const raiseShape = (event: ShapeSelectEvent) => {
+	event.cancelBubble = true;
+	event.currentTarget.moveToTop();
+};
 
 export type ShapeTransformEndResult = {
 	xInMeters: number;
