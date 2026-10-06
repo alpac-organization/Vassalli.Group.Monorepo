@@ -3,11 +3,16 @@ import { AccessControlPage } from "@app/modules/warehouse/ui/warehouse-managua/u
 import { WarehouseAssignmentPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/warehouse-assignment";
 import { SectionsPage } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/sections";
 import Bodega from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/Bodega";
+import { OngoingOperationsPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/ongoing-operations";
 
 export const WarehouseManaguaRouter: RouteObject[] = [
   {
     path: "access-control",
     element: <AccessControlPage />,
+  },
+  {
+    path: "ongoing-operations",
+    element: <OngoingOperationsPage />,
   },
   {
     path: "warehouse-assignment",

@@ -15,10 +15,10 @@ export const getManaguaWarehouseRoutes = () => {
     icon: TruckIcon,
   };
 
-  const DucaPanel: SidebarLink = {
-    id: "merchandise-registration",
-    label: "Ingreso Mercancía",
-    path: "mercaderia",
+  const ongoingOperationsSection: SidebarLink = {
+    id: "Ongoing-operations",
+    label: "Operaciones en curso",
+    path: "ongoing-operations",
     icon: ArchiveRestoreIcon,
   };
   const warehouseAssignmentSection: SidebarLink = {
@@ -43,7 +43,7 @@ export const getManaguaWarehouseRoutes = () => {
 
   return {
     warehouseManaguaSection,
-    DucaPanel,
+    ongoingOperationsSection,
     warehouseAssignmentSection,
     warehouseListSection,
     BodegaSection,
