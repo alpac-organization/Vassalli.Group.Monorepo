@@ -4,6 +4,7 @@ import {
 	bringToFront,
 	sendToBack,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
+import { StackingOderMenu } from "../../stacking-order-menu/stacking-order-menu";
 
 export const GaleronSectionShapeMenu = ({
 	menu,
@@ -32,23 +33,13 @@ export const GaleronSectionShapeMenu = ({
 						className="m-0 p-0 h-0 border-t border-slate-200 dark:border-slate-600"
 					/>
 
-					<ContextMenuButton
-						label="Enviar hacia atrás"
-						onClick={() => {
-							sendToBack(menu.node);
+					<StackingOderMenu
+						onBringToFront={() => {
+							bringToFront(menu.node);
 							setMenu(null);
 						}}
-					/>
-
-					<li
-						role="separator"
-						className="m-0 p-0 h-0 border-t border-slate-200 dark:border-slate-600"
-					/>
-
-					<ContextMenuButton
-						label="Traer al frente"
-						onClick={() => {
-							bringToFront(menu.node);
+						onSendToBack={() => {
+							sendToBack(menu.node);
 							setMenu(null);
 						}}
 					/>

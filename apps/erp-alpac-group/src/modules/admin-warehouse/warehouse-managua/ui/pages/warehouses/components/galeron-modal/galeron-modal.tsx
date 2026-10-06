@@ -1,12 +1,7 @@
 import { useEffect } from "react";
 import { Button, InputText, Modal } from "@alpac/design-system";
 import { useForm } from "react-hook-form";
-import {
-	formatAmount,
-	validateDecimalNumber,
-	validatePositiveNumber,
-} from "@app/shared/utils/number.utils";
-import { parseDecimal } from "@app/shared/utils/get-decimal.config";
+import { getDecimalFieldConfig } from "@app/shared/utils/get-decimal.config";
 import {
 	inputClassName,
 	labelClassName,
@@ -65,24 +60,14 @@ export const GaleronModal = ({ isOpen, onClose, onSubmit }: GaleronModalProps) =
 						label="Ancho (m)"
 						type="text"
 						inputMode="decimal"
-						placeholder="Ej: 4.10"
+						placeholder="0.00"
 						isRequired
 						className={inputClassName}
 						labelClassName={labelClassName}
-						{...register("width", {
-							required: "El ancho es requerido",
-							validate: {
-								validateDecimal: (value) => !value || validateDecimalNumber(value),
-								validatePositive: (value) =>
-									!value ||
-									validatePositiveNumber(value) === true ||
-									"El ancho (metros) debe ser mayor a 0.",
-							},
-							setValueAs: parseDecimal,
-							onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
-								evt.target.value = formatAmount(evt.target.value, 10, 2);
-							},
-						})}
+						{...register(
+							"width",
+							getDecimalFieldConfig("El ancho es requerido"),
+						)}
 						error={errors.width?.message}
 					/>
 
@@ -90,24 +75,14 @@ export const GaleronModal = ({ isOpen, onClose, onSubmit }: GaleronModalProps) =
 						label="Largo (m)"
 						type="text"
 						inputMode="decimal"
-						placeholder="Ej: 4.10"
+						placeholder="0.00"
 						isRequired
 						className={inputClassName}
 						labelClassName={labelClassName}
-						{...register("length", {
-							required: "El largo es requerido",
-							validate: {
-								validateDecimal: (value) => !value || validateDecimalNumber(value),
-								validatePositive: (value) =>
-									!value ||
-									validatePositiveNumber(value) === true ||
-									"El largo (metros) debe ser mayor a 0.",
-							},
-							setValueAs: parseDecimal,
-							onChange: (evt: React.ChangeEvent<HTMLInputElement>) => {
-								evt.target.value = formatAmount(evt.target.value, 10, 2);
-							},
-						})}
+						{...register(
+							"length",
+							getDecimalFieldConfig("El largo es requerido"),
+						)}
 						error={errors.length?.message}
 					/>
 				</div>

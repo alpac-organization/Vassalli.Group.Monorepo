@@ -8,6 +8,7 @@ import {
 	GALERON_SECTION_FILL,
 	GALERON_SECTION_STROKE,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-section-shape/galeron-section-shape.types";
+import { applyShapeTransformEnd } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
 
 export const GaleronSectionShape = ({
 	x,
@@ -165,45 +166,17 @@ export const GaleronSectionShape = ({
 						const group = groupRef.current;
 						if (!node || !group) return;
 
-						const scaleX = node.scaleX();
-						const scaleY = node.scaleY();
-						const offsetX = node.x();
-						const offsetY = node.y();
+						const next = applyShapeTransformEnd({
+							shapeRect: node,
+							shapeGroup: group,
+							labelText: textRef.current,
+							pixelPerMeter: PIXELS_PER_METER
+						});
 
-						node.scaleX(1);
-						node.scaleY(1);
-
-						const newWidthPx = Math.max(10, node.width() * scaleX);
-						const newLengthPx = Math.max(10, node.height() * scaleY);
-						const newWidth = newWidthPx / PIXELS_PER_METER;
-						const newLength = newLengthPx / PIXELS_PER_METER;
-						const nextGroupX = group.x() + offsetX;
-						const nextGroupY = group.y() + offsetY;
-
-						group.x(nextGroupX);
-						group.y(nextGroupY);
-						node.x(0);
-						node.y(0);
-						node.width(newWidthPx);
-						node.height(newLengthPx);
-
-						setSize({ width: newWidthPx, length: newLengthPx });
+						setSize({ width: next.widthInPixels, length: next.lengthInPixels });
 						setTextOffset({ x: 0, y: 0 });
-
-						const text = textRef.current;
-						if (text) {
-							text.x(0);
-							text.y(0);
-							text.width(newWidthPx);
-							text.height(newLengthPx);
-						}
-
-						onCoordinateChange?.(
-							section.id,
-							nextGroupX / PIXELS_PER_METER,
-							nextGroupY / PIXELS_PER_METER,
-						);
-						onResizeChange?.(section.id, newWidth, newLength);
+						onCoordinateChange?.(section.id, next.xInMeters, next.yInMeters);
+						onResizeChange?.(section.id, next.widthInMeters, next.lengthInMeters);
 					}}
 				/>
 

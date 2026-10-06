@@ -1,16 +1,85 @@
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
 import type { WarehouseFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-filters/types/warehouse-filters.types";
+import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import type Konva from "konva";
+
+export type ShapeTransformEndResult = {
+	xInMeters: number;
+	yInMeters: number;
+	widthInMeters: number;
+	lengthInMeters: number;
+	widthInPixels: number;
+	lengthInPixels: number;
+};
+
+type ApplyShapeTransformEndParams = {
+	shapeRect: Konva.Rect;
+	shapeGroup: Konva.Group;
+	labelText?: Konva.Text | null;
+	pixelPerMeter: number;
+};
+
+export const applyShapeTransformEnd = ({
+	shapeRect,
+	shapeGroup,
+	labelText,
+	pixelPerMeter,
+}: ApplyShapeTransformEndParams): ShapeTransformEndResult => {
+	
+	const horizontalScale = shapeRect.scaleX();
+	const verticalScale = shapeRect.scaleY();
+	const rectOffsetX = shapeRect.x();
+	const rectOffsetY = shapeRect.y();
+
+	shapeRect.scaleX(1);
+	shapeRect.scaleY(1);
+
+	const widthInPixels = Math.max(
+		pixelPerMeter,
+		shapeRect.width() * horizontalScale,
+	);
+
+	const lengthInPixels = Math.max(
+		pixelPerMeter,
+		shapeRect.height() * verticalScale,
+	);
+
+	const groupPositionX = shapeGroup.x() + rectOffsetX;
+	const groupPositionY = shapeGroup.y() + rectOffsetY;
+
+	shapeGroup.x(groupPositionX);
+	shapeGroup.y(groupPositionY);
+	shapeRect.x(0);
+	shapeRect.y(0);
+	shapeRect.width(widthInPixels);
+	shapeRect.height(lengthInPixels);
+
+	if (labelText) {
+		labelText.x(0);
+		labelText.y(0);
+		labelText.width(widthInPixels);
+		labelText.height(lengthInPixels);
+	}
+
+	return {
+		xInMeters: groupPositionX / pixelPerMeter,
+		yInMeters: groupPositionY / pixelPerMeter,
+		widthInMeters: widthInPixels / PIXELS_PER_METER,
+		lengthInMeters: lengthInPixels / PIXELS_PER_METER,
+		widthInPixels,
+		lengthInPixels,
+	};
+};
 
 const STATUS_TO_ACTIVE: Record<string, boolean> = {
 	Activa: true,
 	Inactiva: false,
 };
 
-function toOptionalNumber(value: string): number | undefined {
-	if (!value) return undefined;
-	const parsed = Number(value);
-	return Number.isNaN(parsed) ? undefined : parsed;
+function toOptionalNumber(rawValue: string): number | undefined {
+	if (!rawValue) return undefined;
+	const parsedNumber = Number(rawValue);
+	return Number.isNaN(parsedNumber) ? undefined : parsedNumber;
 }
 
 export function filtersToGetWarehouseParams(
@@ -24,25 +93,24 @@ export function filtersToGetWarehouseParams(
 	};
 }
 
-export const bringToFront = (node: Konva.Node) => {
-	if (!node?.getParent()) return;
+export const bringToFront = (shapeNode: Konva.Node) => {
+	if (!shapeNode?.getParent()) return;
 
-	node.moveToTop();
-	node.getLayer()?.batchDraw();
+	shapeNode.moveToTop();
+	shapeNode.getLayer()?.batchDraw();
 };
 
-export const sendToBack = (node: Konva.Node) => {
-	const parent = node?.getParent();
-	if (!parent) return;
+export const sendToBack = (shapeNode: Konva.Node) => {
+	const parentNode = shapeNode?.getParent();
+	if (!parentNode) return;
 
-	node.moveToBottom();
+	shapeNode.moveToBottom();
 
-	// Fondos Rect del mismo padre (ej. área de sección en lots) deben quedar atrás
-	const backdrops = parent
+	const backgroundRects = parentNode
 		.getChildren()
-		.filter((child) => child.getClassName() === "Rect");
+		.filter((childNode) => childNode.getClassName() === "Rect");
 
-	backdrops.forEach((child) => child.moveToBottom());
+	backgroundRects.forEach((backgroundRect) => backgroundRect.moveToBottom());
 
-	node.getLayer()?.batchDraw();
+	shapeNode.getLayer()?.batchDraw();
 };

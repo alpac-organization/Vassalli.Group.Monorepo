@@ -4,6 +4,7 @@ import type Konva from "konva";
 import type { Coordinate, Size } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
 import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import type { GaleronShapeProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-shape/galeron-shape.types";
+import { applyShapeTransformEnd } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
 
 export const GALERON_FILL = "#0a86bf";
 
@@ -164,46 +165,18 @@ export const GaleronShape = ({
 						const group = groupRef.current;
 						if (!node || !group) return;
 
-						const scaleX = node.scaleX();
-						const scaleY = node.scaleY();
-						const offsetX = node.x();
-						const offsetY = node.y();
+						const next = applyShapeTransformEnd({
+							shapeRect: node,
+							shapeGroup: group,
+							labelText: textRef.current,
+							pixelPerMeter: PIXELS_PER_METER
+						});
 
-						node.scaleX(1);
-						node.scaleY(1);
-
-						const newWidthPx = Math.max(PIXELS_PER_METER, node.width() * scaleX);
-						const newLengthPx = Math.max(PIXELS_PER_METER, node.height() * scaleY);
-						const newWidth = newWidthPx / PIXELS_PER_METER;
-						const newLength = newLengthPx / PIXELS_PER_METER;
-						const nextGroupX = group.x() + offsetX;
-						const nextGroupY = group.y() + offsetY;
-
-						group.x(nextGroupX);
-						group.y(nextGroupY);
-						node.x(0);
-						node.y(0);
-						node.width(newWidthPx);
-						node.height(newLengthPx);
-
-						setSize({ width: newWidthPx, length: newLengthPx });
+						setSize({ width: next.widthInPixels, length: next.lengthInPixels });
 						setTextOffset({ x: 0, y: 0 });
 						setLayoutLabel(null);
-
-						const text = textRef.current;
-						if (text) {
-							text.x(0);
-							text.y(0);
-							text.width(newWidthPx);
-							text.height(newLengthPx);
-						}
-
-						onCoordinateChange?.(
-							galeron.id,
-							nextGroupX / PIXELS_PER_METER,
-							nextGroupY / PIXELS_PER_METER,
-						);
-						onResizeChange?.(galeron.id, newWidth, newLength);
+						onCoordinateChange?.(galeron.id, next.xInMeters, next.yInMeters);
+						onResizeChange?.(galeron.id, next.widthInMeters, next.lengthInMeters);
 					}}
 				/>
 

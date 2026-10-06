@@ -27,6 +27,7 @@ import { GaleronShapeMenu } from "@app/modules/admin-warehouse/warehouse-managua
 import type { GaleronMenuState } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-shape/components/galeron-shape-menu.types";
 import { GaleronSectionShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-section-shape/galeron-section-shape";
 import {
+	createMockGaleronSections,
 	GALERON_SECTION_FILL,
 	type GaleronSectionDto,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-section-shape/galeron-section-shape.types";
@@ -160,6 +161,11 @@ export const WarehouseViewer = forwardRef<WarehouseViewerHandle, WarehouseViewer
 				? [createMockGaleron(width, length), ...galerons]
 				: galerons;
 
+		const layoutSections =
+			width > 0 && length > 0
+				? [...createMockGaleronSections(width, length), ...sections]
+				: sections;
+
 		const displayGalerons = useMemo(
 			() =>
 				layoutGalerons.map((galeron) => {
@@ -181,7 +187,7 @@ export const WarehouseViewer = forwardRef<WarehouseViewerHandle, WarehouseViewer
 
 		const displaySections = useMemo(
 			() =>
-				sections.map((section) => {
+				layoutSections.map((section) => {
 					if (editTarget !== "section" || section.id !== editingId) return section;
 
 					const coordinate = coordinates[editingId];
@@ -195,7 +201,7 @@ export const WarehouseViewer = forwardRef<WarehouseViewerHandle, WarehouseViewer
 						length: size?.length ?? section.length,
 					};
 				}),
-			[coordinates, editTarget, editingId, sections, sizes],
+			[coordinates, editTarget, editingId, layoutSections, sizes],
 		);
 
 		const addGaleron = useCallback(
@@ -346,7 +352,7 @@ export const WarehouseViewer = forwardRef<WarehouseViewerHandle, WarehouseViewer
 				const section: GaleronSectionDto = {
 					id: crypto.randomUUID(),
 					galeron_id: galeron.id,
-					code: `SG-${(sections.filter((item) => item.galeron_id === galeron.id).length + 1)
+					code: `SG-${(layoutSections.filter((item) => item.galeron_id === galeron.id).length + 1)
 						.toString()
 						.padStart(2, "0")}`,
 					x: galeron.x + SECTION_INSET_METRES,
@@ -369,7 +375,7 @@ export const WarehouseViewer = forwardRef<WarehouseViewerHandle, WarehouseViewer
 				setSelectedGaleronId(galeron.id);
 				setSelectedSectionId(section.id);
 			},
-			[handleRequestError, hasPendingLayoutEdit, sections, warehouseId],
+			[handleRequestError, hasPendingLayoutEdit, layoutSections, warehouseId],
 		);
 
 		const handleSaveGaleronLayout = useCallback(() => {
@@ -440,7 +446,7 @@ export const WarehouseViewer = forwardRef<WarehouseViewerHandle, WarehouseViewer
 		const handleSaveGaleronSectionLayout = useCallback(() => {
 			if (!editingId || !editBaseline || !warehouseId || editTarget !== "section") return;
 
-			const section = sections.find((item) => item.id === editingId);
+			const section = layoutSections.find((item) => item.id === editingId);
 			if (!section) return;
 
 			const parentGaleron =
@@ -499,6 +505,9 @@ export const WarehouseViewer = forwardRef<WarehouseViewerHandle, WarehouseViewer
 
 			setSectionsByWarehouse((current) => {
 				const warehouseSections = current[warehouseId] ?? [];
+				if (!warehouseSections.some((item) => item.id === editingId)) {
+					return current;
+				}
 
 				return {
 					...current,
@@ -526,9 +535,9 @@ export const WarehouseViewer = forwardRef<WarehouseViewerHandle, WarehouseViewer
 			editingId,
 			galerons,
 			handleRequestError,
+			layoutSections,
 			onSaveGaleronSectionLayout,
 			resetEditState,
-			sections,
 			sizes,
 			warehouseId,
 		]);
