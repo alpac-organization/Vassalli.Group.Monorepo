@@ -1,4 +1,3 @@
-import { RecordEntranceVehicleStatusEnum } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 
 const FALLBACK_STATUS_BADGE_CLASS =
   "bg-slate-100 text-slate-900 dark:bg-slate-600/60 dark:text-slate-200 p-1.5";
