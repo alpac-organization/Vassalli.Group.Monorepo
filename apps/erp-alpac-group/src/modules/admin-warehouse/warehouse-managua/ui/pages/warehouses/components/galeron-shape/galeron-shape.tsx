@@ -1,20 +1,19 @@
-import { useEffect, useRef, useState } from "react";
-import { Group, Rect, Text, Transformer } from "react-konva";
+import { useEffect, useRef } from "react";
 import type Konva from "konva";
-import type { Coordinate, Size } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
+import { Group, Rect, Text, Transformer } from "react-konva";
 import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import type { GaleronShapeProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-shape/galeron-shape.types";
 import {
-	applyShapeTransformEnd,
 	bindShapeTransformer,
-	formatPositionLabel,
-	formatSizeLabel,
-	keepMinimumTransformerBox,
-	measureScaledRect,
+	commitMeasuredRect,
+	commitShapeDragEnd,
+	commitShapeResize,
+	dragPositionLabel,
 	metersToPixels,
-	readNodePositionInMeters,
+	minimumTransformerBox,
 	readShapeContextPoint,
-	syncShapeLabel,
+	shapeCaptionProps,
+	useShapeLayout,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
 import { ShapeLayoutLabel } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/shape-layout-label/shape-layout-label";
 
@@ -48,26 +47,11 @@ export const GaleronShape = ({
 	const pixelWidth = metersToPixels(width);
 	const pixelLength = metersToPixels(length);
 
-	const [size, setSize] = useState<Size>({ width: pixelWidth, length: pixelLength });
-	const [layoutLabel, setLayoutLabel] = useState<string | null>(null);
-	const [textOffset, setTextOffset] = useState<Coordinate>({ x: 0, y: 0 });
-
-	useEffect(() => {
-		setSize({ width: pixelWidth, length: pixelLength });
-		setTextOffset({ x: 0, y: 0 });
-	}, [pixelWidth, pixelLength]);
+	const { size, setSize, layoutLabel, setLayoutLabel, textOffset, setTextOffset } = useShapeLayout(pixelWidth, pixelLength);
 
 	useEffect(() => {
 		bindShapeTransformer(transformRef.current, shapeRef.current, resizable);
 	}, [resizable, selected, galeron.id]);
-
-	const syncTextWithRect = (node: Konva.Rect) => {
-		const measure = measureScaledRect(node);
-		setSize({ width: measure.width, length: measure.length });
-		setTextOffset({ x: measure.x, y: measure.y });
-		syncShapeLabel(textRef.current, measure);
-		return measure;
-	};
 
 	return (
 		<>
@@ -81,15 +65,8 @@ export const GaleronShape = ({
 				onMouseDown={(event) => {
 					event.cancelBubble = true;
 				}}
-				onDragMove={(e) => {
-					const position = readNodePositionInMeters(e.target);
-					setLayoutLabel(formatPositionLabel(position.x, position.y));
-				}}
-				onDragEnd={(e) => {
-					const position = readNodePositionInMeters(e.target);
-					setLayoutLabel(null);
-					onCoordinateChange?.(galeron.id, position.x, position.y);
-				}}
+				onDragMove={(e) => setLayoutLabel(dragPositionLabel(e.target).label)}
+				onDragEnd={(e) => commitShapeDragEnd(e.target, galeron.id, setLayoutLabel, onCoordinateChange)}
 				onClick={(event) => {
 					event.cancelBubble = true;
 					onSelect?.(galeron);
@@ -120,44 +97,25 @@ export const GaleronShape = ({
 					opacity={selected ? 0.85 : 0.55}
 					stroke={selected ? "#0369a1" : strokeColor}
 					strokeWidth={selected ? 2 : 1}
-					onTransform={() => {
-						const node = shapeRef.current;
-						if (!node) return;
-						const measure = syncTextWithRect(node);
-						setLayoutLabel(formatSizeLabel(measure.width, measure.length));
-					}}
-					onTransformEnd={() => {
-						const node = shapeRef.current;
-						const group = groupRef.current;
-						if (!node || !group) return;
-
-						const next = applyShapeTransformEnd({
-							shapeRect: node,
-							shapeGroup: group,
-							labelText: textRef.current,
-							pixelPerMeter: PIXELS_PER_METER
-						});
-
-						setSize({ width: next.widthInPixels, length: next.lengthInPixels });
-						setTextOffset({ x: 0, y: 0 });
-						setLayoutLabel(null);
-						onCoordinateChange?.(galeron.id, next.xInMeters, next.yInMeters);
-						onResizeChange?.(galeron.id, next.widthInMeters, next.lengthInMeters);
-					}}
+					onTransform={() => commitMeasuredRect(shapeRef.current, textRef.current, setSize, setTextOffset, setLayoutLabel)}
+					onTransformEnd={() => commitShapeResize(
+						shapeRef.current,
+						groupRef.current,
+						textRef.current,
+						galeron.id,
+						setSize,
+						setTextOffset,
+						onCoordinateChange,
+						onResizeChange,
+						() => setLayoutLabel(null),
+					)}
 				/>
 
 				<Text
 					ref={textRef}
-					x={textOffset.x}
-					y={textOffset.y}
 					text={galeron.name}
-					width={size.width}
-					height={size.length}
-					align="center"
-					verticalAlign="middle"
 					fill="#f8fafc"
-					fontSize={Math.min(14, Math.max(10, size.width / 8))}
-					listening={false}
+					{...shapeCaptionProps(textOffset, size, Math.min(14, Math.max(10, size.width / 8)))}
 				/>
 				{children ?? null}
 			</Group>
@@ -166,9 +124,7 @@ export const GaleronShape = ({
 				<Transformer
 					ref={transformRef}
 					rotateEnabled={false}
-					boundBoxFunc={(oldBox, newBox) =>
-						keepMinimumTransformerBox(oldBox, newBox, PIXELS_PER_METER)
-					}
+					boundBoxFunc={minimumTransformerBox(PIXELS_PER_METER)}
 				/>
 			)}
 		</>

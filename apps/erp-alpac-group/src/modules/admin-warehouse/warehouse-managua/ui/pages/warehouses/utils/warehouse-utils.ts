@@ -1,5 +1,7 @@
+import { useEffect, useState } from "react";
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
 import type { WarehouseFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-filters/types/warehouse-filters.types";
+import type { Coordinate, Size } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
 import { MIN_SCALED_MEASURE_PX, PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import type Konva from "konva";
 
@@ -92,6 +94,143 @@ export const raiseShape = (event: ShapeSelectEvent) => {
 	event.cancelBubble = true;
 	event.currentTarget.moveToTop();
 };
+
+export const useShapeLayout = (pixelWidth: number, pixelLength: number) => {
+	const [size, setSize] = useState<Size>({ width: pixelWidth, length: pixelLength });
+	const [layoutLabel, setLayoutLabel] = useState<string | null>(null);
+	const [textOffset, setTextOffset] = useState<Coordinate>({ x: 0, y: 0 });
+
+	useEffect(() => {
+		setSize({ width: pixelWidth, length: pixelLength });
+		setTextOffset({ x: 0, y: 0 });
+	}, [pixelWidth, pixelLength]);
+
+	return { size, setSize, layoutLabel, setLayoutLabel, textOffset, setTextOffset };
+};
+
+export const dragPositionLabel = (node: Konva.Node) => {
+	const position = readNodePositionInMeters(node);
+	return {
+		label: formatPositionLabel(position.x, position.y),
+		x: position.x,
+		y: position.y,
+	};
+};
+
+export const shapeMenuFromEvent = <Data,>(event: ShapeContextEvent, data: Data) => {
+	const point = readShapeContextPoint(event);
+	return { x: point.x, y: point.y, data, node: point.node };
+};
+
+export const selectRaisedShape = <Data,>(
+	event: ShapeSelectEvent,
+	data: Data,
+	onSelect?: (data: Data) => void,
+) => {
+	raiseShape(event);
+	onSelect?.(data);
+};
+
+export const applyMeasuredRect = (node: Konva.Rect, label: Konva.Text | null) => {
+	const measure = measureScaledRect(node);
+	syncShapeLabel(label, measure);
+
+	return {
+		size: { width: measure.width, length: measure.length },
+		offset: { x: measure.x, y: measure.y },
+		label: formatSizeLabel(measure.width, measure.length),
+	};
+};
+
+export const commitMeasuredRect = (
+	node: Konva.Rect | null,
+	label: Konva.Text | null,
+	setSize: (size: Size) => void,
+	setTextOffset: (offset: Coordinate) => void,
+	setLayoutLabel: (label: string) => void,
+) => {
+	if (!node) return;
+
+	const next = applyMeasuredRect(node, label);
+	setSize(next.size);
+	setTextOffset(next.offset);
+	setLayoutLabel(next.label);
+};
+
+export const commitShapeDragEnd = (
+	node: Konva.Node,
+	id: string,
+	setLayoutLabel: (label: string | null) => void,
+	onCoordinateChange?: (id: string, x: number, y: number) => void,
+) => {
+	const position = dragPositionLabel(node);
+	setLayoutLabel(null);
+	onCoordinateChange?.(id, position.x, position.y);
+};
+
+export const completeShapeResize = (
+	shapeRect: Konva.Rect | null,
+	shapeGroup: Konva.Group | null,
+	labelText: Konva.Text | null,
+) => {
+	if (!shapeRect || !shapeGroup) return null;
+
+	const next = applyShapeTransformEnd({
+		shapeRect,
+		shapeGroup,
+		labelText,
+		pixelPerMeter: PIXELS_PER_METER,
+	});
+
+	return {
+		size: { width: next.widthInPixels, length: next.lengthInPixels },
+		offset: { x: 0, y: 0 },
+		xInMeters: next.xInMeters,
+		yInMeters: next.yInMeters,
+		widthInMeters: next.widthInMeters,
+		lengthInMeters: next.lengthInMeters,
+	};
+};
+
+export const commitShapeResize = (
+	shapeRect: Konva.Rect | null,
+	shapeGroup: Konva.Group | null,
+	labelText: Konva.Text | null,
+	id: string,
+	setSize: (size: Size) => void,
+	setTextOffset: (offset: Coordinate) => void,
+	onCoordinateChange?: (id: string, x: number, y: number) => void,
+	onResizeChange?: (id: string, width: number, length: number) => void,
+	clearLabel?: () => void,
+) => {
+	const next = completeShapeResize(shapeRect, shapeGroup, labelText);
+	if (!next) return;
+
+	setSize(next.size);
+	setTextOffset(next.offset);
+	clearLabel?.();
+	onCoordinateChange?.(id, next.xInMeters, next.yInMeters);
+	onResizeChange?.(id, next.widthInMeters, next.lengthInMeters);
+};
+
+export const shapeCaptionProps = (
+	offset: Coordinate,
+	size: Size,
+	fontSize = Math.min(12, Math.max(8, size.width / 6)),
+) => ({
+	x: offset.x,
+	y: offset.y,
+	width: size.width,
+	height: size.length,
+	align: "center" as const,
+	verticalAlign: "middle" as const,
+	fontSize,
+	listening: false as const,
+});
+
+export const minimumTransformerBox = (minSize: number) =>
+	<Box extends { width: number; height: number }>(oldBox: Box, newBox: Box) =>
+		keepMinimumTransformerBox(oldBox, newBox, minSize);
 
 export type ShapeTransformEndResult = {
 	xInMeters: number;
