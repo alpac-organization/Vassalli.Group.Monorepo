@@ -29,6 +29,7 @@ import {
 	buildDispersedLotPlacements,
 	type DispersionAxis,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/lot-placement.utils";
+import { buildPositions } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/build-lot-positions.utils";
 import { isSectionVertical } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/rack-coordinates.utils";
 
 const createDefaultValues = (
@@ -78,6 +79,8 @@ export const LotModal = ({
 	const watchQuantity = Number(watch("quantity") || 0);
 	const watchWidth = Number(watch("width") || 0);
 	const watchLength = Number(watch("length") || 0);
+	const watchRows = Number(watch("nominal_rows") || 0);
+	const watchColumns = Number(watch("nominal_columns") || 0);
 	const watchAxis = watch("disperse_axis");
 
 	const placement = useMemo(
@@ -100,19 +103,32 @@ export const LotModal = ({
 		],
 	);
 
+	const positionsPreview = useMemo(
+		() =>
+			buildPositions({
+				rows: watchRows,
+				columns: watchColumns,
+				lotWidth: watchWidth,
+				lotLength: watchLength,
+			}),
+		[watchRows, watchColumns, watchWidth, watchLength],
+	);
+
 	const handleCreateLots = (data: LotFormValues) => {
 		const quantity = Number(data.quantity ?? 0);
 		const width = Number(data.width ?? 0);
 		const length = Number(data.length ?? 0);
+		const nominalRows = Number(data.nominal_rows ?? 0);
+		const nominalColumns = Number(data.nominal_columns ?? 0);
 
 		if (sectionWidth <= 0 || sectionLength <= 0) {
 			handleRequestError(
-				"La sección no tiene dimensiones registradas. No se pueden ubicar los tramos."
+				"La sección no tiene dimensiones registradas. No se pueden ubicar los tramos.",
 			);
 			return;
 		}
 
-		const nextPlacement = buildDispersedLotPlacements({
+		const lotPlacement = buildDispersedLotPlacements({
 			quantity,
 			width,
 			length,
@@ -121,8 +137,19 @@ export const LotModal = ({
 			axis: data.disperse_axis,
 		});
 
-		if (!nextPlacement.fits) {
-			handleRequestError(nextPlacement.message);
+		const lotPositions = buildPositions({
+			rows: nominalRows,
+			columns: nominalColumns,
+			lotWidth: width,
+			lotLength: length,
+		});
+
+		const validationError = [lotPlacement, lotPositions].find(
+			(result) => !result.fits,
+		)?.message;
+
+		if (validationError) {
+			handleRequestError(validationError);
 			return;
 		}
 
@@ -131,26 +158,25 @@ export const LotModal = ({
 			module_code: moduleCode,
 			warehouse_id: warehouseId,
 			section_id: sectionId,
-			lots: nextPlacement.lots.map((item) => ({
-				...item,
-				nominal_rows: Number(data.nominal_rows ?? 0),
-				nominal_columns: Number(data.nominal_columns ?? 0),
+			lots: lotPlacement.lots.map((lot) => ({
+				...lot,
+				nominal_rows: nominalRows,
+				nominal_columns: nominalColumns,
+				positions: lotPositions.positions,
 			})),
 		};
+
+		console.log("Revision de posiciones: ", payload);
 
 		RegisterLot.mutate(payload, {
 			onSuccess() {
 				handleRequestSuccess("Tramos registrados exitosamente.");
 				reset(createDefaultValues(sectionWidth, sectionLength));
 				onSubmit?.(payload);
-
-				setTimeout(() => {
-					onClose();
-				}, 500);
+				setTimeout(onClose, 500);
 			},
 			onError(error) {
-				const mappedError = getMappedError(error);
-				handleRequestError(mappedError.description);
+				handleRequestError(getMappedError(error).description);
 			},
 		});
 	};
@@ -363,6 +389,13 @@ export const LotModal = ({
 					showCloseButton={false}
 				/>
 
+				<Alert
+					type={positionsPreview.fits ? "info" : "error"}
+					title="Posiciones (polines)"
+					message={positionsPreview.message}
+					showCloseButton={false}
+				/>
+
 				<div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6" />
 
 				<div className="flex min-w-0 flex-col-reverse gap-2.5 sm:flex-row sm:justify-end sm:gap-3">
@@ -378,7 +411,11 @@ export const LotModal = ({
 						size="giant"
 						label="Guardar"
 						isLoading={RegisterLot.isPending}
-						disabled={RegisterLot.isPending || !placement.fits}
+						disabled={
+							RegisterLot.isPending ||
+							!placement.fits ||
+							!positionsPreview.fits
+						}
 						className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
 					/>
 				</div>

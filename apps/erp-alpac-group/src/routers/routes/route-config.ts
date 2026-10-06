@@ -46,6 +46,7 @@ const {
   warehouseAssignmentSection,
   warehouseListSection,
   BodegaSection,
+  ticketSection
 } = getManaguaWarehouseRoutes();
 
 const { manageSection } = getWarehouseAdminRoutes();
@@ -110,7 +111,8 @@ export const routeConfig = {
       warehouseListSection,
       BodegaSection,
       warehouseReportSection,
-    ],
+      ticketSection
+    ]
   },
   [ModuleEnum.WAREHOUSE_ADMIN]: {
     [RoleEnum.OPERATOR]: [manageSection],

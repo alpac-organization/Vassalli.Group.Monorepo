@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { GetWarehouseRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/get-warehouses-request";
 import type { WarehouseFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-filters/types/warehouse-filters.types";
 import type { Coordinate, Size } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape.types";
-import { MIN_SCALED_MEASURE_PX, PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
+import { MIN_SCALED_MEASURE_PX, PIXELS_PER_METER, POLIN_DEEP_METER, POLIN_WIDTH_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import type Konva from "konva";
 
 export const metersToPixels = (meters: number) => meters * PIXELS_PER_METER;
@@ -254,7 +254,7 @@ export const applyShapeTransformEnd = ({
 	labelText,
 	pixelPerMeter,
 }: ApplyShapeTransformEndParams): ShapeTransformEndResult => {
-	
+
 	const horizontalScale = shapeRect.scaleX();
 	const verticalScale = shapeRect.scaleY();
 	const rectOffsetX = shapeRect.x();
@@ -343,3 +343,48 @@ export const sendToBack = (shapeNode: Konva.Node) => {
 
 	shapeNode.getLayer()?.batchDraw();
 };
+
+
+type PolinPositionProps = {
+	shapeWidth: number;
+	shapeLength: number;
+	nominalRows: number;
+	nominalColumns: number;
+}
+
+type Position = {
+	row: number;
+	column: number;
+	level: number;
+	position_x: number;
+	position_y: number;
+	position_z: number;
+	rotation_y: number;
+};
+
+export const buildPositions = (
+	{ shapeWidth, shapeLength, nominalRows, nominalColumns }: PolinPositionProps
+): Position[] => {
+
+	let positions: Position[] = [];
+
+	if (!nominalRows || !nominalRows) return [];
+
+	const cellWidth = POLIN_WIDTH_METER ?? (shapeWidth / nominalColumns);
+	const cellLength = POLIN_DEEP_METER ?? (shapeLength / nominalRows);
+
+	for (let row = 0; row < nominalRows; row++) {
+		for (let column = 0; column < nominalColumns; column++) {
+
+			positions.push({
+				row, column, level: 0,
+				position_x: (column) * cellWidth,
+				position_y: (row) * cellLength,
+				position_z: 0,
+				rotation_y: 0,
+			});
+		}
+	}
+
+	return positions;
+}

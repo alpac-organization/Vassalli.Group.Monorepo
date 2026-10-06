@@ -4,7 +4,6 @@ import { ContainerCopyright } from "@app/shared/layouts/container-copyright/cont
 import { Navigate, type RouteObject } from "react-router-dom";
 import { AuthGuard, PublicGuard } from "./guardians";
 import { DashboardRouter } from "./routes/dashboard/dashboard-router";
-import { TicketViewer } from "@app/modules/warehouse/ui/views/ticket-viewer/ticket-viewer";
 
 export const MainRouter: RouteObject[] = [
 	{
@@ -32,17 +31,7 @@ export const MainRouter: RouteObject[] = [
 			{
 				path: "dashboard",
 				children: DashboardRouter,
-			},
-			{
-				path: "ticket",
-				element: <ContainerCopyright />,
-				children: [
-					{
-						path: ":warehouseId/:ticketId",
-						element: <TicketViewer />,
-					},
-				],
-			},
+			},			
 			{
 				path: "setting",
 				element: <ContainerCopyright />,

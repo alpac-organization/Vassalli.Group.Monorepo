@@ -1,4 +1,3 @@
 export type TicketParams = {
-   warehouseId?: string;
-   ticketId?: string;
+   moduleCode?: string;   
 };
