@@ -10,6 +10,7 @@ export const RackStatusEnum = {
     textValue: "UnderMaintenance",
   },
   Blocked: { value: 4, label: "Bloqueado", textValue: "Blocked" },
+  Reserved: { value: 5, label: "Reservado", textValue: "Reserved" },
 } as const satisfies Record<string, RackEnumType>;
 
 export type RackStatusEnum =
