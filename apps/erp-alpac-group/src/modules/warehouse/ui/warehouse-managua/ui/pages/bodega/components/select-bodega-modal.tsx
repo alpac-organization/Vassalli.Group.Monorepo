@@ -1,45 +1,57 @@
-import { useEffect, useMemo, useState } from "react";
-import { Modal, Button, Dropdown, useTheme } from "@alpac/design-system";
-import { AVAILABLE_BODEGAS } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/data/bodega-2-fiscal.layout";
+import { useMemo, useState } from "react";
+import { Modal, Button, Dropdown } from "@alpac/design-system";
+import type { WarehouseDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses-response";
+
 interface SelectBodegaModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (bodega: { id: string; name: string }) => void;
   allowDismiss: boolean;
   initialBodegaId?: string | null;
+  warehouses?: WarehouseDto[];
+  isLoadingWarehouses?: boolean;
 }
+
 export function SelectBodegaModal({
   isOpen,
   onClose,
   onSelect,
   allowDismiss,
   initialBodegaId = null,
+  warehouses = [],
+  isLoadingWarehouses = false,
 }: SelectBodegaModalProps) {
-  const { theme } = useTheme();
   const [tempBodegaId, setTempBodegaId] = useState<string | null>(
     initialBodegaId,
   );
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [prevInitialId, setPrevInitialId] = useState(initialBodegaId);
 
-  const bodegaOptions = useMemo(
-    () =>
-      AVAILABLE_BODEGAS.map((bodega) => ({
-        label: bodega.name,
-        value: bodega.id,
-      })),
-    [],
-  );
-
-  useEffect(() => {
+  if (isOpen !== prevIsOpen || initialBodegaId !== prevInitialId) {
+    setPrevIsOpen(isOpen);
+    setPrevInitialId(initialBodegaId);
     if (isOpen) {
       setTempBodegaId(initialBodegaId);
     }
-  }, [isOpen, initialBodegaId]);
+  }
+
+  const bodegaOptions = useMemo(
+    () =>
+      warehouses.map((bodega) => ({
+        label: bodega.code || "Bodega",
+        value: bodega.warehouse_id,
+      })),
+    [warehouses],
+  );
 
   const handleConfirm = () => {
     if (!tempBodegaId) return;
-    const bodega = AVAILABLE_BODEGAS.find((b) => b.id === tempBodegaId);
+    const bodega = warehouses.find((b) => b.warehouse_id === tempBodegaId);
     if (!bodega) return;
-    onSelect(bodega);
+    onSelect({
+      id: bodega.warehouse_id,
+      name: bodega.code || "Bodega",
+    });
   };
 
   return (
@@ -59,34 +71,32 @@ export function SelectBodegaModal({
       <div className="mt-4 flex flex-col gap-4">
         <Dropdown
           label="Bodega"
-          placeholder="Seleccione una bodega"
           options={bodegaOptions}
           value={tempBodegaId || undefined}
-          appearance={theme === "dark" ? "dark" : "default"}
-          labelClassName="text-white!"
-          isRequired
-          onChange={(value) => setTempBodegaId(String(value))}
+          onChange={(val) => setTempBodegaId(val)}
+          placeholder={isLoadingWarehouses ? "Cargando bodegas..." : "Selecciona una bodega"}
+          disabled={isLoadingWarehouses || bodegaOptions.length === 0}
         />
-      </div>
 
-      <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:items-stretch">
-        <Button
-          type="button"
-          size="giant"
-          label="Consultar"
-          onClick={handleConfirm}
-          disabled={!tempBodegaId}
-          className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! sm:flex-1 sm:min-w-0 enabled:opacity-100! disabled:pointer-events-none disabled:opacity-50 disabled:saturate-75"
-        />
-        {allowDismiss && (
+        <div className="flex justify-end gap-2 pt-2">
+          {allowDismiss && (
+            <Button
+              type="button"
+              size="medium"
+              label="Cancelar"
+              onClick={onClose}
+              className="rounded-md border border-slate-300 dark:border-slate-600 bg-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+            />
+          )}
           <Button
             type="button"
-            size="giant"
-            label="Cancelar"
-            onClick={onClose}
-            className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:flex-1 sm:min-w-0"
+            size="medium"
+            label="Confirmar Selección"
+            disabled={!tempBodegaId}
+            onClick={handleConfirm}
+            className="rounded-md bg-alpac-primary-500 text-white"
           />
-        )}
+        </div>
       </div>
     </Modal>
   );

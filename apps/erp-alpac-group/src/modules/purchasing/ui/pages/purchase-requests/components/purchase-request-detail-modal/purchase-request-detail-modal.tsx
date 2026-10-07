@@ -324,7 +324,7 @@ export const PurchaseRequestDetailModal = ({
 											<DetailField
 												label="Observaciones"
 												value={`${details?.observations}`}
-												containerClass={(details?.observations?.length && details?.observations?.length > 80) ? "col-span-3" : ""}
+												containerClass="min-w-0 pr-12"
 												icon={<NotebookTextIcon size={18} />}
 											/>
 
@@ -333,7 +333,7 @@ export const PurchaseRequestDetailModal = ({
 												<DetailField
 													label="Motivo de rechazo"
 													value={`${details?.reason_rejection}`}
-													containerClass={(details?.reason_rejection?.length && details?.reason_rejection?.length > 80) ? "col-span-3" : ""}
+													containerClass="col-span-full min-w-0"
 													icon={<BanIcon size={18} />}
 												/>
 											) : null}
@@ -400,13 +400,13 @@ export const PurchaseRequestDetailModal = ({
 
 							{showFooter && (
 								<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
-									<div className="flex justify-end gap-3">
+									<div className="grid w-full grid-cols-4 gap-2 sm:flex sm:flex-wrap sm:justify-end sm:gap-3">
 
 										{canProcessRequest && (
 											<Button
 												type="button"
 												label="Ver historial"
-												className={historyButtonClass}
+												className={`${historyButtonClass} w-full min-w-0 sm:w-auto`}
 												icon={<FileClockIcon size={20} />}
 												isHiddenLabelOnMobile
 												disabled={false}
@@ -419,7 +419,7 @@ export const PurchaseRequestDetailModal = ({
 											<Button
 												type="button"
 												label="Descargar PDF"
-												className={pdfButtonClass}
+												className={`${pdfButtonClass} w-full min-w-0 sm:w-auto`}
 												icon={<FileTextIcon size={20} />}
 												isHiddenLabelOnMobile
 												disabled={!details || isGeneratingPurchaseRequestPdf}
@@ -433,7 +433,7 @@ export const PurchaseRequestDetailModal = ({
 												<Button
 													type="button"
 													label="Cancelar"
-													className={cancelButtonClass}
+													className={`${cancelButtonClass} w-full min-w-0 sm:w-auto`}
 													icon={<BanIcon size={20} />}
 													isHiddenLabelOnMobile
 													disabled={areActionButtonsDisabled}
@@ -443,7 +443,7 @@ export const PurchaseRequestDetailModal = ({
 												<Button
 													type="button"
 													label="Rechazar"
-													className={rejectButtonClass}
+													className={`${rejectButtonClass} w-full min-w-0 sm:w-auto`}
 													icon={<XIcon size={20} />}
 													isHiddenLabelOnMobile
 													disabled={areActionButtonsDisabled}
@@ -453,7 +453,7 @@ export const PurchaseRequestDetailModal = ({
 												<Button
 													type="button"
 													label="Aprobar"
-													className={approveButtonClass}
+													className={`${approveButtonClass} w-full min-w-0 sm:w-auto`}
 													icon={<CheckIcon size={20} />}
 													isHiddenLabelOnMobile
 													disabled={areActionButtonsDisabled}

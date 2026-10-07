@@ -16,8 +16,10 @@ export const RackShape = ({
     : isVertical;
 
   // Dimensiones base del rack
-  const rackWidthPx = (rack.width ?? 1.07) * pixelsPerMeter;
-  const rackLengthPx = (rack.length ?? 2.44) * pixelsPerMeter;
+  const rawWidth = Number(rack.width);
+  const rawLength = Number(rack.length);
+  const rackWidthPx = (rawWidth > 0 ? rawWidth : 1.07) * pixelsPerMeter;
+  const rackLengthPx = (rawLength > 0 ? rawLength : 2.44) * pixelsPerMeter;
 
   // Rotado 90° (vertical): ancho en X = Width, alto en Y = Length
   // Rotado 0° (horizontal): ancho en X = Length, alto en Y = Width
