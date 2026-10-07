@@ -25,11 +25,36 @@ import { PackagePlusIcon } from "lucide-react";
 import { constitutionTypeBadgeVariants, idenitificationTypeBadgeVariants } from "./supplier.variants";
 import { isValidateValue } from "@app/shared/utils/values.utils";
 import { SupplierDetailsModal } from "./components/supplier-details-modal/supplier-details-modal";
-import {inputClassName, labelClassName, dropdownClassName} from "@app/modules/purchasing/ui/pages/supplier/utils/style";
-
+import { inputClassName, labelClassName, dropdownClassName } from "@app/modules/purchasing/ui/pages/supplier/utils/style";
+import {
+	SupplierExclusiveStatusOptions,
+	type SupplierExclusiveStatus,
+} from "@app/core/enums/supplier-exclusive-status.enum";
 
 const contextMenuButton = "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 const PAGE_SIZE = 5;
+
+const exclusiveStatusBadgeVariants: Record<
+	string,
+	{ label: string; badgeColor: string }
+> = {
+	None: {
+		label: "Ninguno",
+		badgeColor: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
+	},
+	PendingReview: {
+		label: "Pendiente",
+		badgeColor: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
+	},
+	Approved: {
+		label: "Aprobado",
+		badgeColor: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
+	},
+	Rejected: {
+		label: "Rechazado",
+		badgeColor: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200",
+	},
+};
 
 export const Supplier = () => {
 	const { companyId, moduleCode } = useUserStore();
@@ -54,11 +79,13 @@ export const Supplier = () => {
 	} = useAlertState();
 
 	const defaultFilters: Pick<
-		GetSuppliersRequest, "identification_number" | "constitution_type" | "commercial_name"
+		GetSuppliersRequest,
+		"identification_number" | "constitution_type" | "commercial_name" | "exclusive_status"
 	> = {
 		identification_number: "",
 		constitution_type: undefined,
 		commercial_name: "",
+		exclusive_status: undefined,
 	};
 
 	const {
@@ -164,6 +191,16 @@ export const Supplier = () => {
 		},
 		{ key: "identification_number", label: "Número de identificación" },
 		{
+			key: "exclusive_status",
+			label: "Exclusividad",
+			render(row: GetSuppliersResponse) {
+				const status = row.exclusive_status ?? "None";
+				const propValue =
+					exclusiveStatusBadgeVariants[status] ?? exclusiveStatusBadgeVariants.None;
+				return <Badges label={propValue.label} color={propValue.badgeColor} />;
+			},
+		},
+		{
 			key: "actions",
 			label: "Acciones",
 			render: (row: GetSuppliersResponse) => (
@@ -186,6 +223,10 @@ export const Supplier = () => {
 			data.constitution_type === null ||
 			Number(data.constitution_type) === -1
 		) ? undefined : Number(data.constitution_type);
+		const exclusiveStatus =
+			data.exclusive_status && String(data.exclusive_status).trim()
+				? (String(data.exclusive_status) as SupplierExclusiveStatus)
+				: undefined;
 
 		setFilters((prev) => ({
 			...prev,
@@ -193,6 +234,7 @@ export const Supplier = () => {
 			identification_number: identification,
 			commercial_name: commercialName,
 			constitution_type: constitutionType,
+			exclusive_status: exclusiveStatus,
 		}));
 	};
 
@@ -227,7 +269,7 @@ export const Supplier = () => {
 
 			<form
 				onSubmit={handleSubmit(handleFilterSuppliers)}
-				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end"
+				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
 			>
 				<Controller
 					name="constitution_type"
@@ -246,6 +288,30 @@ export const Supplier = () => {
 								field.onChange(
 									parsed === -1 || Number.isNaN(parsed) ? undefined : parsed,
 								);
+							}}
+							className={dropdownClassName}
+							labelClassName={labelClassName}
+							valueClassName={labelClassName}
+						/>
+					)}
+				/>
+
+				<Controller
+					name="exclusive_status"
+					control={control}
+					render={({ field }) => (
+						<Dropdown
+							label="Estado de exclusividad"
+							placeholder="Seleccione..."
+							appearance="dark"
+							options={SupplierExclusiveStatusOptions}
+							value={field.value ?? null}
+							onChange={(value) => {
+								const next =
+									value === null || value === undefined || value === ""
+										? undefined
+										: (String(value) as SupplierExclusiveStatus);
+								field.onChange(next);
 							}}
 							className={dropdownClassName}
 							labelClassName={labelClassName}
@@ -335,6 +401,8 @@ export const Supplier = () => {
 					setSelectedSupplier(null);
 				}}
 				selectedSupplier={selectedSupplier}
+				onRequestSuccess={handleRequestSuccess}
+				onRequestError={handleRequestError}
 			/>
 
 			<AnimatedAlertWrapper open={alertState?.open ?? false}>

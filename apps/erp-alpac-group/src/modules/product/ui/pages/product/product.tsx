@@ -1,7 +1,8 @@
 import {
 	Alert,
 	AnimatedAlertWrapper,
-	Button,	
+	Button,
+	ContextMenu,
 	DataTable,
 	Dropdown,
 	Pagination,
@@ -17,10 +18,13 @@ import type { GetProductResponse } from "@app/modules/product/domain/ApiContract
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
 import { CreateProductModal } from "../../views/create-product-modal/create-product-modal";
+import { ProductDetailsModal } from "../../views/product-details-modal/product-details-modal";
 
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
+const contextMenuButton =
+	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 const PAGE_SIZE = 5;
 
 export const Product = () => {
@@ -34,6 +38,9 @@ export const Product = () => {
 
 	const [isCreateProductModalOpen, setIsCreateProductModalOpen] =
 		useState(false);
+	const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
+	const [selectedProduct, setSelectedProduct] =
+		useState<GetProductResponse | null>(null);
 	const [categoryId, setCategoryId] = useState("");
 	const [filters, setFilters] = useState<GetProductRequest>({
 		company_id: companyId,
@@ -74,8 +81,6 @@ export const Product = () => {
 	}, [GetProductCategories.data]);
 
 	const handleApplyFilters = () => {
-
-
 		setFilters({
 			company_id: companyId,
 			module_code: moduleCode,
@@ -104,14 +109,41 @@ export const Product = () => {
 		}));
 	}, []);
 
+	const onViewDetails = (row: GetProductResponse) => {
+		setSelectedProduct(row);
+		setIsProductDetailsOpen(true);
+	};
+
 	const columnConfig: TableColumn<GetProductResponse>[] = useMemo(
 		() => [
+			{
+				key: "code",
+				label: "Código",
+				render: (row) => row.code || "—",
+			},
 			{ key: "product_name", label: "Producto" },
 			{ key: "description", label: "Descripción" },
 			{
 				key: "category",
 				label: "Categoría",
 				render: (row) => row.category?.name ?? "—",
+			},
+			{
+				key: "suppliers_count",
+				label: "Proveedores",
+				render: (row) => String(row.suppliers_count ?? 0),
+			},
+			{
+				key: "actions",
+				label: "Acciones",
+				render: (row) => (
+					<ContextMenu
+						triggerClassName={contextMenuButton}
+						items={[
+							{ label: "Ver detalle", onClick: () => onViewDetails(row) },
+						]}
+					/>
+				),
 			},
 		],
 		[],
@@ -144,7 +176,7 @@ export const Product = () => {
 			<form
 				onSubmit={(evt) => {
 					evt.preventDefault();
-					handleApplyFilters()
+					handleApplyFilters();
 				}}
 				className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
 			>
@@ -200,6 +232,17 @@ export const Product = () => {
 			<CreateProductModal
 				isOpen={isCreateProductModalOpen}
 				onClose={() => setIsCreateProductModalOpen(false)}
+				onRequestSuccess={handleRequestSuccess}
+				onRequestError={handleRequestError}
+			/>
+
+			<ProductDetailsModal
+				isOpen={isProductDetailsOpen}
+				onClose={() => {
+					setIsProductDetailsOpen(false);
+					setSelectedProduct(null);
+				}}
+				selectedProduct={selectedProduct}
 				onRequestSuccess={handleRequestSuccess}
 				onRequestError={handleRequestError}
 			/>

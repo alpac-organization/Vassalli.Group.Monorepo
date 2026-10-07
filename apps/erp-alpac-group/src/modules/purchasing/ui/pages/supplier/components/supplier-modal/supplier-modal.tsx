@@ -37,6 +37,28 @@ import type {
    SupplierBankAccount
 } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-bank-account";
 import {inputClassName, labelClassName, dropdownClassName} from "@app/modules/purchasing/ui/pages/supplier/utils/style";
+import {
+	SupplierExclusiveStatusEnum,
+	type SupplierExclusiveStatusOnCreate,
+} from "@app/core/enums/supplier-exclusive-status.enum";
+import { CatalogLinkEditor } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor";
+import {
+	mapCatalogLinkItemsToTierPayload,
+	type CatalogLinkItemForm,
+} from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
+import { SelectProductModal } from "@app/modules/product/ui/views/select-product-modal/select-product-modal";
+import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
+
+const exclusiveStatusOnCreateOptions = [
+	{
+		value: SupplierExclusiveStatusEnum.None.stringValue,
+		label: SupplierExclusiveStatusEnum.None.label,
+	},
+	{
+		value: SupplierExclusiveStatusEnum.PendingReview.stringValue,
+		label: SupplierExclusiveStatusEnum.PendingReview.label,
+	},
+];
 
 const currencyOptions = [
    { value: "USD", label: "Dólares ($)" },
@@ -104,6 +126,7 @@ const emptyFormValues: Partial<CreateSupplierRequest> = {
       credit_days: 0,
       has_credit: false,
       is_exclusive: false,
+      exclusive_status: SupplierExclusiveStatusEnum.None.stringValue,
       exclusive_brands_or_parts: "",
       credit_limit: null,
       credit_currency: "USD",
@@ -119,9 +142,10 @@ const emptyFormValues: Partial<CreateSupplierRequest> = {
       address: "",
    },
    bank_accounts: [],
+   products: [],
 };
 
-type TabType = "general" | "commercial" | "bank_accounts";
+type TabType = "general" | "commercial" | "bank_accounts" | "products";
 
 export const SupplierModal = ({
    isOpen,
@@ -135,6 +159,8 @@ export const SupplierModal = ({
    const isEditMode = Boolean(selectedSupplier?.supplier_id);
    const [activeTab, setActiveTab] = useState<TabType>("general");
    const [localBankAccounts, setLocalBankAccounts] = useState<CreateSupplierBankAccountPayload[]>([]);
+   const [productLinks, setProductLinks] = useState<CatalogLinkItemForm[]>([]);
+   const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
 
    const {
       CreateSupplier,
@@ -153,6 +179,28 @@ export const SupplierModal = ({
             }
             : undefined,
    });
+
+   const assignedProductIds = useMemo(
+      () => productLinks.map((link) => link.entity_id).filter(Boolean),
+      [productLinks],
+   );
+
+   const handleSelectProducts = (products: GetProductResponse[]) => {
+      setProductLinks((prev) => {
+         const existingIds = new Set(prev.map((item) => item.entity_id));
+         const nextItems = products
+            .filter((product) => !existingIds.has(product.product_id))
+            .map((product) => ({
+               entity_id: product.product_id,
+               entity_label: product.code
+                  ? `${product.code} · ${product.product_name}`
+                  : product.product_name,
+               unit_price: "",
+               tier_prices: [],
+            }));
+         return [...prev, ...nextItems];
+      });
+   };
 
    const { data: supplierDetails, isPending: isSupplierDetailsPending } = GetSupplierDetails;
    const { getMappedError } = useMappedError();
@@ -187,6 +235,7 @@ export const SupplierModal = ({
             credit_days: details?.credit_days ?? 0,
             has_credit: Boolean(details?.has_credit),
             is_exclusive: Boolean(details?.is_exclusive),
+            exclusive_status: details?.exclusive_status,
             exclusive_brands_or_parts: details?.exclusive_brands_or_parts ?? undefined,
             credit_limit: details?.credit_limit ?? null,
             credit_currency: details?.credit_currency ?? "USD",
@@ -307,6 +356,8 @@ export const SupplierModal = ({
       reset(emptyFormValues);
       resetFieldTracker();
       setLocalBankAccounts([]);
+      setProductLinks([]);
+      setIsSelectProductOpen(false);
       setActiveTab("general");
       onClose();
    };
@@ -475,6 +526,11 @@ export const SupplierModal = ({
 
       const hasCreditVal = Boolean(supplier_details?.has_credit);
       const isExclusiveVal = Boolean(supplier_details?.is_exclusive);
+      const exclusiveStatus: SupplierExclusiveStatusOnCreate =
+         supplier_details?.exclusive_status ===
+         SupplierExclusiveStatusEnum.PendingReview.stringValue
+            ? SupplierExclusiveStatusEnum.PendingReview.stringValue
+            : SupplierExclusiveStatusEnum.None.stringValue;
 
       const payload: CreateSupplierRequest = {
          ...rest,
@@ -493,6 +549,7 @@ export const SupplierModal = ({
                ? Number(supplier_details?.alert_days_before_due) || 0
                : 0,
             is_exclusive: isExclusiveVal,
+            exclusive_status: exclusiveStatus,
             exclusive_brands_or_parts: isExclusiveVal
                ? supplier_details?.exclusive_brands_or_parts?.trim() || null
                : null,
@@ -502,6 +559,16 @@ export const SupplierModal = ({
             is_tax_exempt: Boolean(supplier_details?.is_tax_exempt),
          },
          bank_accounts: localBankAccounts.length > 0 ? localBankAccounts : undefined,
+         products:
+            productLinks.length > 0
+               ? productLinks
+                    .filter((link) => link.entity_id && link.unit_price.trim())
+                    .map((link) => ({
+                       product_id: link.entity_id,
+                       unit_price: Number(link.unit_price),
+                       tier_prices: mapCatalogLinkItemsToTierPayload(link.tier_prices),
+                    }))
+               : undefined,
       };
 
       if (hasConstitutionData(constitution_type)) {
@@ -536,6 +603,17 @@ export const SupplierModal = ({
    };
 
    const handleCreateSupplier = (data: CreateSupplierRequest) => {
+      const invalidLink = productLinks.find(
+         (link) => !link.entity_id || !link.unit_price.trim(),
+      );
+      if (invalidLink) {
+         onRequestError?.(
+            "Cada producto vinculado debe tener selección y precio unitario.",
+         );
+         setActiveTab("products");
+         return;
+      }
+
       const payload = buildCreatePayload(data);
 
       CreateSupplier.mutate(payload, {
@@ -596,6 +674,8 @@ export const SupplierModal = ({
          reset(emptyFormValues);
          resetFieldTracker();
          setLocalBankAccounts([]);
+         setProductLinks([]);
+         setIsSelectProductOpen(false);
          setActiveTab("general");
          return;
       }
@@ -604,6 +684,8 @@ export const SupplierModal = ({
          reset(emptyFormValues);
          resetFieldTracker();
          setLocalBankAccounts([]);
+         setProductLinks([]);
+         setIsSelectProductOpen(false);
          setActiveTab("general");
          return;
       }
@@ -636,6 +718,9 @@ export const SupplierModal = ({
             credit_days: details?.credit_days ?? 0,
             has_credit: Boolean(details?.has_credit),
             is_exclusive: Boolean(details?.is_exclusive),
+            exclusive_status:
+               details?.exclusive_status ??
+               SupplierExclusiveStatusEnum.None.stringValue,
             exclusive_brands_or_parts: details?.exclusive_brands_or_parts ?? "",
             credit_limit: details?.credit_limit ?? null,
             credit_currency: details?.credit_currency ?? "USD",
@@ -676,6 +761,7 @@ export const SupplierModal = ({
    );
 
    return (
+      <>
       <Modal
          isOpen={isOpen}
          onClose={handleClose}
@@ -1186,12 +1272,26 @@ export const SupplierModal = ({
                                        field.onChange(checked);
                                        if (!checked) {
                                           setValue("supplier_details.exclusive_brands_or_parts", null);
+                                          setValue(
+                                             "supplier_details.exclusive_status",
+                                             SupplierExclusiveStatusEnum.None.stringValue,
+                                          );
                                           trackMultipleDetailFields({
                                              is_exclusive: false,
                                              exclusive_brands_or_parts: null,
+                                             exclusive_status:
+                                                SupplierExclusiveStatusEnum.None.stringValue,
                                           });
                                        } else {
-                                          trackDetailField("is_exclusive", true);
+                                          setValue(
+                                             "supplier_details.exclusive_status",
+                                             SupplierExclusiveStatusEnum.PendingReview.stringValue,
+                                          );
+                                          trackMultipleDetailFields({
+                                             is_exclusive: true,
+                                             exclusive_status:
+                                                SupplierExclusiveStatusEnum.PendingReview.stringValue,
+                                          });
                                        }
                                     }}
                            />
@@ -1199,24 +1299,76 @@ export const SupplierModal = ({
                      />
 
                      {isExclusive && (
-                        <Textarea
-                           label="Marcas o partes autorizadas en exclusiva"
-                           placeholder="Ej. Distribuidor autorizado Caterpillar, Donaldson y Timken"
-                           className={inputClassName}
-                           labelClassName={labelClassName}
-                           {...register("supplier_details.exclusive_brands_or_parts", {
-                              onChange: (evt) =>
-                                 trackDetailField("exclusive_brands_or_parts", evt.target.value),
-                           })}
-                           maxLength={500}
-                           style={{
-                              resize: "none",
-                              height: "80px",
-                           }}
-                        />
+                        <>
+                           <Controller
+                              control={control}
+                              name="supplier_details.exclusive_status"
+                              render={({ field }) => (
+                                 <Dropdown
+                                    label="Estado de exclusividad"
+                                    placeholder="Seleccione..."
+                                    appearance="dark"
+                                    options={exclusiveStatusOnCreateOptions}
+                                    value={field.value ?? SupplierExclusiveStatusEnum.None.stringValue}
+                                    onChange={(val) => {
+                                       const status = String(
+                                          val ?? SupplierExclusiveStatusEnum.None.stringValue,
+                                       ) as SupplierExclusiveStatusOnCreate;
+                                       field.onChange(status);
+                                       trackDetailField("exclusive_status", status);
+                                    }}
+                                    className={dropdownClassName}
+                                    labelClassName={labelClassName}
+                                 />
+                              )}
+                           />
+
+                           <Textarea
+                              label="Marcas o partes autorizadas en exclusiva"
+                              placeholder="Ej. Distribuidor autorizado Caterpillar, Donaldson y Timken"
+                              className={inputClassName}
+                              labelClassName={labelClassName}
+                              {...register("supplier_details.exclusive_brands_or_parts", {
+                                 onChange: (evt) =>
+                                    trackDetailField("exclusive_brands_or_parts", evt.target.value),
+                              })}
+                              maxLength={500}
+                              style={{
+                                 resize: "none",
+                                 height: "80px",
+                              }}
+                           />
+                        </>
                      )}
                   </div>
                </div>
+                           </div>
+                        ),
+                     },
+                     {
+                        id: "products",
+                        label: `Productos (${productLinks.length})`,
+                        render: () => (
+                           <div className="flex min-w-0 flex-col gap-4">
+                              {isEditMode ? (
+                                 <p className="m-0 text-sm text-slate-500 dark:text-slate-300">
+                                    Los productos vinculados se gestionan desde el detalle del
+                                    proveedor o del producto (precios e historial).
+                                 </p>
+                              ) : (
+                                 <CatalogLinkEditor
+                                    title="Productos vinculados"
+                                    emptyLabel="No ha vinculado productos. Use Agregar producto para seleccionarlos de la lista."
+                                    addButtonLabel="Agregar producto"
+                                    entityLabel="Producto"
+                                    entityPlaceholder="Producto"
+                                    options={[]}
+                                    items={productLinks}
+                                    onChange={setProductLinks}
+                                    lockEntity
+                                    onAddClick={() => setIsSelectProductOpen(true)}
+                                 />
+                              )}
                            </div>
                         ),
                      },
@@ -1269,6 +1421,16 @@ export const SupplierModal = ({
             </div>
          </form>
       </Modal>
+
+      <SelectProductModal
+         isOpen={isSelectProductOpen}
+         onClose={() => setIsSelectProductOpen(false)}
+         onSelect={handleSelectProducts}
+         selectionType="multiple"
+         excludeProductIds={assignedProductIds}
+         description="Elija uno o más productos registrados para vincularlos al proveedor."
+      />
+      </>
    );
 };
 

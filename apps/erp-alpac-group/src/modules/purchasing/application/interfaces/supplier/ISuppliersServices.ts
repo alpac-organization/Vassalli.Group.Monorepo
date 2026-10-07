@@ -1,6 +1,7 @@
 import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/create-supplier-request";
 import type { GetSupplierDetailsRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-supplier-details-request";
 import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
+import type { UpdateSupplierExclusiveStatusRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-supplier-exclusive-status.request";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
 import type { GetSupplierDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-supplier-details-response";
@@ -14,17 +15,43 @@ import type {
 export interface ISupplierServices {
 	getSuppliers(payload: GetSuppliersRequest): Promise<GetSuppliersResponseList>;
 
-	GetSupplierDetails(payload: GetSupplierDetailsRequest): Promise<GetSupplierDetailsResponse>;
+	GetSupplierDetails(
+		payload: GetSupplierDetailsRequest,
+	): Promise<GetSupplierDetailsResponse>;
 
 	CreateSupplier(payload: CreateSupplierRequest): Promise<CreateSupplierResponse>;
 
 	UpdateSupplier(payload: UpdateSupplierRequest): Promise<void>;
 
-	getBankAccounts(companyId: string, moduleCode: string, supplierId: string): Promise<SupplierBankAccount[]>;
+	UpdateSupplierExclusiveStatus(
+		payload: UpdateSupplierExclusiveStatusRequest,
+	): Promise<void>;
 
-	createBankAccount(companyId: string,moduleCode: string,supplierId: string,payload: CreateSupplierBankAccountPayload,): Promise<SupplierBankAccount>;
+	getBankAccounts(
+		companyId: string,
+		moduleCode: string,
+		supplierId: string,
+	): Promise<SupplierBankAccount[]>;
 
-	updateBankAccount(companyId: string,moduleCode: string,supplierId: string,bankAccountId: string,payload: UpdateSupplierBankAccountPayload,): Promise<void>;
+	createBankAccount(
+		companyId: string,
+		moduleCode: string,
+		supplierId: string,
+		payload: CreateSupplierBankAccountPayload,
+	): Promise<SupplierBankAccount>;
 
-	deleteBankAccount(companyId: string,moduleCode: string,supplierId: string,bankAccountId: string,): Promise<void>;
+	updateBankAccount(
+		companyId: string,
+		moduleCode: string,
+		supplierId: string,
+		bankAccountId: string,
+		payload: UpdateSupplierBankAccountPayload,
+	): Promise<void>;
+
+	deleteBankAccount(
+		companyId: string,
+		moduleCode: string,
+		supplierId: string,
+		bankAccountId: string,
+	): Promise<void>;
 }

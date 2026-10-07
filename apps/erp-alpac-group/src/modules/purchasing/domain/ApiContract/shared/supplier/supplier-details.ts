@@ -1,4 +1,6 @@
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
+import type { SupplierExclusiveStatus } from "@app/core/enums/supplier-exclusive-status.enum";
+
 export interface SupplierDetailsInformation {
 	address?: string | null;
 	email_support?: string | null;
@@ -8,6 +10,7 @@ export interface SupplierDetailsInformation {
 	credit_days: number;
 	has_credit: boolean;
 	is_exclusive?: boolean;
+	exclusive_status?: SupplierExclusiveStatus;
 	exclusive_brands_or_parts?: string | null;
 	credit_limit?: number | null;
 	credit_currency?: string | null;
