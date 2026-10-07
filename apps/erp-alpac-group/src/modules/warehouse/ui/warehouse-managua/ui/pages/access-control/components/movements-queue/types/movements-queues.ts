@@ -9,5 +9,4 @@ export type MovementsQueueProps = {
   isFetching?: boolean;
   onDetailClick?: (item: ReceptionEntranceListItem) => void;
   onExitClick?: (item: ReceptionEntranceListItem) => void;
-  onDeleteClick?: (item: ReceptionEntranceListItem) => void;
 };

@@ -1,4 +1,5 @@
 import { Badges } from "@alpac/design-system";
+import { Check } from "lucide-react";
 import { RackStatusEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-status";
 import { SectionStorageTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
 import { SectionTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-type";
@@ -8,8 +9,13 @@ import {
 	resolveSectionType,
 	resolveSectionStorageType,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/section-status-badge";
-import { resolveRackStatus } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
-import { getRackStatusLabel } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
+import { RackUsageProfileEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-usage-profile";
+import {
+	resolveRackStatus,
+	getRackStatusLabel,
+	resolveRackUsageProfile,
+	getRackUsageProfileLabel,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
 
 
 // Esta funcion Representa un badge visual para indicar el tipo de seccion
@@ -111,6 +117,44 @@ export const RackStatusBadge = ({
 	}
 };
 
+// Esta funcion Representa un badge visual para indicar el perfil de uso del rack
+// @param value - string | number - El valor del perfil de uso del rack
+// @returns - ReactNode - Un badge visual para indicar el perfil de uso del rack
+export const RackUsageProfileBadge = ({
+	value,
+}: {
+	value: string | number | null;
+}) => {
+	const profile = resolveRackUsageProfile(value ?? "");
+
+	switch (profile?.textValue) {
+		case RackUsageProfileEnum.ActiveFlow.textValue:
+			return (
+				<Badges
+					label={RackUsageProfileEnum.ActiveFlow.label}
+					color="transparent"
+					className="bg-cyan-500/15! text-cyan-300! border! border-cyan-400/40! dark:bg-cyan-500/15! dark:text-cyan-300! dark:border-cyan-400/40!"
+				/>
+			);
+		case RackUsageProfileEnum.StaticHold.textValue:
+			return (
+				<Badges
+					label={RackUsageProfileEnum.StaticHold.label}
+					color="transparent"
+					className="bg-purple-500/15! text-purple-300! border! border-purple-400/40! dark:bg-purple-500/15! dark:text-purple-300! dark:border-purple-400/40!"
+				/>
+			);
+		default:
+			return (
+				<Badges
+					label={getRackUsageProfileLabel(value ?? "")}
+					color="gray"
+					className="bg-slate-800! border! border-slate-700! text-slate-400!"
+				/>
+			);
+	}
+};
+
 // Esta funco Representa un badge visual para indicar si el estado es activo o inactivo
 // @param isActive - boolean - Indica si el estado es activo o inactivo
 // @returns - ReactNode - Un badge visual para indicar si el estado es activo o inactivo
@@ -128,3 +172,11 @@ export const ActiveStatusBadge = ({ isActive }: { isActive: boolean }) =>
 			className="bg-slate-800! border! border-slate-700! text-slate-400!"
 		/>
 	);
+
+// Esta funcion representa un check visual para indicar si un tramo admite estibado (apilado)
+// @param allowsStacking - boolean - Indica si el tramo permite estibado
+// @returns - ReactNode - Un check cuando el tramo permite estibado, vacio en caso contrario
+export const StackingBadge = ({ allowsStacking }: { allowsStacking: boolean }) =>
+	allowsStacking ? (
+		<Check className="h-5 w-5 text-[#4ade80]" aria-label="Permite estibado" />
+	) : null;

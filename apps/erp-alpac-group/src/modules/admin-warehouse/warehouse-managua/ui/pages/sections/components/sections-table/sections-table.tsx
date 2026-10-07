@@ -1,7 +1,7 @@
 import { DataTable, Pagination } from "@alpac/design-system";
 import { useMemo } from "react";
 import { getSectionsColumns } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-table/sections-columns";
-import type { SectionsTableProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-table/types/sections-table.types";
+import type { SectionsTableProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-table/sections-table.types";
 import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
 
 export function SectionsTable({
@@ -13,9 +13,11 @@ export function SectionsTable({
 	minHeight,
 	maxHeight,
 	isFetching = false,
+	selectedSection,
 	onPageChange,
 	onViewLots,
 	onViewRacks,
+	onViewDetails,
 	onSelectRow,
 	onUpdateSection,
 	onDeleteSection,
@@ -27,11 +29,16 @@ export function SectionsTable({
 			getSectionsColumns({
 				onViewLots,
 				onViewRacks,
+				onViewDetails,
 				onUpdateSection,
 				onDeleteSection,
 				lastItemId,
 			}),
-		[onViewLots, onViewRacks, onUpdateSection, onDeleteSection, lastItemId],
+		[
+			onViewLots, onViewRacks, onViewDetails,
+			onUpdateSection, onDeleteSection,
+			lastItemId
+		],
 	);
 
 	const handleRowClick = (row: SectionDto) => {
@@ -44,9 +51,12 @@ export function SectionsTable({
 			data={data}
 			columns={columns}
 			onRowClick={handleRowClick}
+			selectedRowKey={selectedSection?.section_id}
+			getRowKey={(row) => row.section_id}
 			height={height}
 			minHeight={minHeight}
 			maxHeight={maxHeight}
+			enableSelectBorder
 			pagination={
 				<Pagination
 					currentPage={currentPage}
@@ -57,6 +67,5 @@ export function SectionsTable({
 				/>
 			}
 		/>
-
 	);
 }

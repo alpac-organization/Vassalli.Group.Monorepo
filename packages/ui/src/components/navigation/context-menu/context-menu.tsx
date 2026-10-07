@@ -4,6 +4,7 @@ import { EllipsisVerticalIcon } from "lucide-react";
 import type { ContextMenuProps, MenuPosition } from "./context-menu.type";
 import { Button } from "../../buttons";
 import { createPortal } from "react-dom";
+import { ContextMenuButton } from "./context-menu-button";
 
 const loadFeatures = () =>
 	import("framer-motion").then((res) => res.domAnimation);
@@ -179,8 +180,9 @@ export const ContextMenu = ({
 								top: position.top,
 								left: position.left,
 							}}
+
 							className={[
-								"m-0! z-50 min-w-40 overflow-hidden rounded-lg border border-slate-200",
+								"m-0! z-50 min-w-15 overflow-hidden rounded-lg border border-slate-200",
 								"bg-white shadow-[0_4px_20px_rgba(0,0,0,0.08)]",
 								"dark:bg-[#272b34] dark:border-slate-600 dark:shadow-[0_4px_20px_rgba(0,0,0,0.35)]",
 								position.openUp ? "origin-bottom-right" : "origin-top-right",
@@ -210,21 +212,14 @@ export const ContextMenu = ({
 												: undefined
 										}
 									>
-										<button
-											type="button"
-											role="menuitem"
+										<ContextMenuButton
+											label={item.label}
 											disabled={item.disabled}
 											onClick={() => {
 												item.onClick();
 												setOpen(false);
 											}}
-											className="w-full px-3 py-2 text-left text-sm text-slate-700 transition-colors
-                                 hover:bg-slate-100 whitespace-nowrap
-                                 disabled:cursor-not-allowed disabled:opacity-50
-                                 dark:text-slate-200 dark:hover:bg-slate-700/60"
-										>
-											{item.label}
-										</button>
+										/>
 									</li>
 								);
 							})}

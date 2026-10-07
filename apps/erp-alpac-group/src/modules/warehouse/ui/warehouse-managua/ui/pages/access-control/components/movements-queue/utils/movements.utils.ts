@@ -1,6 +1,3 @@
-import {
-  RecordEntranceStatusEnum,
-} from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 
 const FALLBACK_STATUS_BADGE_CLASS =
   "bg-slate-100 text-slate-900 dark:bg-slate-600/60 dark:text-slate-200 p-1.5";
@@ -35,41 +32,11 @@ function normalizeStatusKey(status: string | null | undefined): string {
   if (!status) return "";
   return String(status).replace(/[_\s-]/g, "").toLowerCase();
 }
-
-function resolveEnumLabel(
-  status: string,
-  enumMap: Record<string, { label: string }>,
-): string | undefined {
-  const normalized = normalizeStatusKey(status);
-  return Object.entries(enumMap).find(
-    ([key]) => normalizeStatusKey(key) === normalized,
-  )?.[1]?.label;
-}
-
 export function getStatusBadgeClass(status: string): string {
   return (
     ENTRY_MOVEMENT_STATUS_CLASS[normalizeStatusKey(status)] ??
     FALLBACK_STATUS_BADGE_CLASS
   );
-}
-
-export function getStatusBadgeLabel(status: string): string {
-  const normalized = normalizeStatusKey(status);
-  const fromEnum = resolveEnumLabel(status, RecordEntranceStatusEnum);
-  if (fromEnum) return fromEnum;
-
-  const legacyLabels: Record<string, string> = {
-    completed: "Completado",
-    completado: "Completado",
-    abandoned: "Abandonado",
-    abandonado: "Abandonado",
-    queue: "En cola",
-    pending: "Pendiente",
-    pendiente: "Pendiente",
-    unloading: "En descarga",
-  };
-
-  return legacyLabels[normalized] ?? status;
 }
 
 export function getVehicleStatusBadgeClass(status: string): string {

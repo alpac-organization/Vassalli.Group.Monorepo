@@ -51,6 +51,8 @@ export function EditableField<TFieldValues extends FieldValues>({
     setOriginalValue(formatValueForSubmit(currentValue));
     if (isMissing) {
       setValue(name, "" as never, { shouldDirty: false });
+    } else if (options && selectedOption) {
+      setValue(name, selectedOption.value as never, { shouldDirty: false });
     }
     onEditStart(String(name));
   };
@@ -102,7 +104,17 @@ export function EditableField<TFieldValues extends FieldValues>({
     ? missingDataInInputClassName
     : "text-slate-800 dark:text-white!";
 
-  const selectedOption = options?.find((o) => String(o.value) === String(currentValue));
+  const selectedOption = options?.find(
+    (o) =>
+      String(o.value).toLowerCase() === String(currentValue).toLowerCase() ||
+      (typeof currentValue === "string" &&
+        currentValue.trim() !== "" &&
+        (o.label.trim().toLowerCase() === currentValue.trim().toLowerCase() ||
+          (String(o.value) === "CustomsDeclaration" &&
+            currentValue.toLowerCase().includes("aduan")) ||
+          (String(o.value) === "DUCA" &&
+            currentValue.toLowerCase().includes("duca")))),
+  );
   const displayValue = showMissingStyle
     ? missingMessage
     : selectedOption ? selectedOption.label : formatValueForSubmit(currentValue);

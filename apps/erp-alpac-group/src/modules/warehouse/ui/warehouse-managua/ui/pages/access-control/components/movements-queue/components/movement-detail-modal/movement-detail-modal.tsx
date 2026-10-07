@@ -18,7 +18,6 @@ import {
   type MovementDetailModalProps,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/types/movement-detail.types";
 import { EvidenceManager } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/components/evidence-manager/evidence-manager";
-import { ConsolidatedVariations } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/variants/global-variants";
 import { Loader } from "@app/shared/components/loaders/loader";
 import {
   isValueMissing,
@@ -34,15 +33,26 @@ import {
 import {
   isDucaDocumentType,
   mapDetailToFormValues,
+  parseAdditionalData,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/mapMovementDetail";
 import { TransportUnit } from "@app/modules/warehouse/domain/enums/warehouse-managua/transport-unit";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
+import {
+  extractCustomBranches,
+  type CustomBranch,
+} from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/custom-branches-response";
+import { DocumentEnum } from "@app/core/enums/document.enum";
 
 const transportUnitOptions = Object.values(TransportUnit).map((unit) => ({
   value: unit.value,
   label: unit.label,
 }));
+
+const documentTypeOptions = [
+  { value: "DUCA", label: "DUCA" },
+  { value: "CustomsDeclaration", label: "Declaración Aduanera" },
+];
 
 export function MovementDetailModal({
   isOpen,
@@ -72,17 +82,17 @@ export function MovementDetailModal({
     getCustomBranchesPayload: {
       company_id: companyId,
       module_code: moduleCode,
+      page_size: 20,
     },
   });
 
   const customBranchesOptions = useMemo(() => {
-    if (!GetCustomBranches.data) return [];
-    return GetCustomBranches.data.map((branch: any) => ({
-      value: branch.id,
-      label: branch.name,
+    const branches = extractCustomBranches(GetCustomBranches.data);
+    return branches.map((branch: CustomBranch) => ({
+      value: branch.custom_branch_id || branch.id || "",
+      label: branch.customs_branch_name || branch.name || branch.code || "",
     }));
   }, [GetCustomBranches.data]);
-
   const formValues = useMemo(
     () =>
       detail ? mapDetailToFormValues(detail) : MOVEMENT_DETAIL_DEFAULT_VALUES,
@@ -96,20 +106,45 @@ export function MovementDetailModal({
     resetOptions: { keepDirty: true },
   });
 
-  const ducatOptions = useMemo<Option[]>(
-    () =>
-      (detail?.ducats ?? []).map((ducat) => ({
-        value: ducat.id,
-        label: ducat.ducat_number,
-      })),
-    [detail?.ducats],
-  );
+  const ducatOptions = useMemo<Option[]>(() => {
+    const parsed = parseAdditionalData(detail?.additional_data);
+    const ducaDocs = (parsed?.document_numbers ?? []).filter(
+      (d) =>
+        Number(d.document_type) === Number(DocumentEnum.DUCA.value) ||
+        d.document_type === 1 ||
+        String(d.document_type) === "1" ||
+        d.document_type === 3 ||
+        String(d.document_type) === "3" ||
+        String(d.document_type).toUpperCase().includes("DUCA"),
+    );
+
+    return ducaDocs.map((d) => ({
+      value: d.document_id || d.operational_order_id || d.document_numbers,
+      label: d.document_numbers,
+    }));
+  }, [detail?.additional_data]);
 
   const ducatsMissing = ducatOptions.length === 0;
   const selectedDucatLabel =
     ducatOptions.find((option) => String(option.value) === selectedDucatId)
       ?.label ?? "";
-  const showCustomsDeclaration = detail ? !isDucaDocumentType(detail) : false;
+  const currentDocType = formMethods.watch("document_type");
+  const showCustomsDeclaration = useMemo(() => {
+    if (currentDocType) {
+      const lower = String(currentDocType).toLowerCase();
+      if (
+        lower.includes("aduan") ||
+        lower === "customsdeclaration" ||
+        lower === "4"
+      ) {
+        return true;
+      }
+      if (lower.includes("duca") || lower === "3") {
+        return false;
+      }
+    }
+    return detail ? !isDucaDocumentType(detail) : false;
+  }, [currentDocType, detail]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -126,8 +161,17 @@ export function MovementDetailModal({
   }, [isOpen]);
 
   useEffect(() => {
-    if (!selectedDucatId && ducatOptions[0]?.value != null) {
-      setSelectedDucatId(String(ducatOptions[0].value));
+    if (ducatOptions.length > 0) {
+      const exists = ducatOptions.some(
+        (option) => String(option.value) === selectedDucatId,
+      );
+      if (!exists) {
+        setSelectedDucatId(String(ducatOptions[0].value));
+        setDucatDraft(ducatOptions[0].label);
+      }
+    } else {
+      setSelectedDucatId("");
+      setDucatDraft("");
     }
   }, [ducatOptions, selectedDucatId]);
 
@@ -196,11 +240,11 @@ export function MovementDetailModal({
               name="document_type"
               label="Tipo de documento"
               formMethods={formMethods}
-              isEditing={false}
+              options={documentTypeOptions}
+              isEditing={Boolean(editingFields.document_type)}
               onEditStart={handleEditStart}
               onEditEnd={handleEditEnd}
               onConfirmUpdate={onFieldUpdate}
-              allowEdit={false}
               missingMessage="Tipo de documento no registrado"
               className={editableFieldInputClasses}
             />
@@ -400,45 +444,6 @@ export function MovementDetailModal({
               missingMessage="Hora inicial no registrada"
               className={editableFieldInputClasses}
             />
-            <EditableField
-              name="end_time"
-              label="Hora final registro"
-              formMethods={formMethods}
-              isEditing={false}
-              onEditStart={handleEditStart}
-              onEditEnd={handleEditEnd}
-              onConfirmUpdate={onFieldUpdate}
-              allowEdit={false}
-              allowEmptySubmit
-              missingMessage="Hora final no registrada"
-              className={editableFieldInputClasses}
-            />
-            <EditableField
-              name="duration_formatted"
-              label="Duración"
-              formMethods={formMethods}
-              isEditing={false}
-              onEditStart={handleEditStart}
-              onEditEnd={handleEditEnd}
-              onConfirmUpdate={onFieldUpdate}
-              allowEdit={false}
-              allowEmptySubmit
-              missingMessage="Duración no registrada"
-              className={editableFieldInputClasses}
-            />
-            <EditableField
-              name="processed_by_user_name"
-              label="Procesado por"
-              formMethods={formMethods}
-              isEditing={false}
-              onEditStart={handleEditStart}
-              onEditEnd={handleEditEnd}
-              onConfirmUpdate={onFieldUpdate}
-              allowEdit={false}
-              allowEmptySubmit
-              missingMessage="Responsable no registrado"
-              className={editableFieldInputClasses}
-            />
           </div>
 
           {showCustomsDeclaration ? (
@@ -455,42 +460,6 @@ export function MovementDetailModal({
                   onConfirmUpdate={onFieldUpdate}
                   allowEmptySubmit
                   missingMessage="Declaración no registrada"
-                  className={editableFieldInputClasses}
-                />
-                <EditableField
-                  name="packages"
-                  label="Paquetes"
-                  formMethods={formMethods}
-                  isEditing={Boolean(editingFields.packages)}
-                  onEditStart={handleEditStart}
-                  onEditEnd={handleEditEnd}
-                  onConfirmUpdate={onFieldUpdate}
-                  allowEmptySubmit
-                  missingMessage="Bultos no registrados"
-                  className={editableFieldInputClasses}
-                />
-                <EditableField
-                  name="customer"
-                  label="Cliente"
-                  formMethods={formMethods}
-                  isEditing={Boolean(editingFields.customer)}
-                  onEditStart={handleEditStart}
-                  onEditEnd={handleEditEnd}
-                  onConfirmUpdate={onFieldUpdate}
-                  allowEmptySubmit
-                  missingMessage="Cliente no registrado"
-                  className={editableFieldInputClasses}
-                />
-                <EditableField
-                  name="product"
-                  label="Producto"
-                  formMethods={formMethods}
-                  isEditing={Boolean(editingFields.product)}
-                  onEditStart={handleEditStart}
-                  onEditEnd={handleEditEnd}
-                  onConfirmUpdate={onFieldUpdate}
-                  allowEmptySubmit
-                  missingMessage="Producto no registrado"
                   className={editableFieldInputClasses}
                 />
               </div>
@@ -585,7 +554,7 @@ export function MovementDetailModal({
           />
           <EditableField
             name="seal_number"
-            label="Número de sello"
+            label="Número de marchamo"
             formMethods={formMethods}
             isEditing={Boolean(editingFields.seal_number)}
             onEditStart={handleEditStart}
@@ -615,106 +584,7 @@ export function MovementDetailModal({
         </div>
         
       ),
-    },
-    {
-      id: "salida",
-      label: "Actualización y salida",
-      render: () => (
-        <div className={`min-w-0 pt-1 sm:pt-2 ${fieldsGridClasses}`}>
-          <EditableField
-            name="updated_by_user_name"
-            label="Actualizado por"
-            formMethods={formMethods}
-            isEditing={false}
-            onEditStart={handleEditStart}
-            onEditEnd={handleEditEnd}
-            onConfirmUpdate={onFieldUpdate}
-            allowEdit={false}
-            allowEmptySubmit
-            missingMessage="No registrado"
-            className={editableFieldInputClasses}
-          />
-          <EditableField
-            name="updated_date"
-            label="Fecha de actualización"
-            formMethods={formMethods}
-            isEditing={false}
-            onEditStart={handleEditStart}
-            onEditEnd={handleEditEnd}
-            onConfirmUpdate={onFieldUpdate}
-            allowEdit={false}
-            allowEmptySubmit
-            missingMessage="No registrado"
-            className={editableFieldInputClasses}
-          />
-          <EditableField
-            name="updated_time"
-            label="Hora de actualización"
-            formMethods={formMethods}
-            isEditing={false}
-            onEditStart={handleEditStart}
-            onEditEnd={handleEditEnd}
-            onConfirmUpdate={onFieldUpdate}
-            allowEdit={false}
-            allowEmptySubmit
-            missingMessage="No registrado"
-            className={editableFieldInputClasses}
-          />
-          <EditableField
-            name="vehicle_exit_date"
-            label="Fecha de salida vehículo"
-            formMethods={formMethods}
-            isEditing={false}
-            onEditStart={handleEditStart}
-            onEditEnd={handleEditEnd}
-            onConfirmUpdate={onFieldUpdate}
-            allowEdit={false}
-            allowEmptySubmit
-            missingMessage="No registrado"
-            className={editableFieldInputClasses}
-          />
-          <EditableField
-            name="vehicle_exit_time"
-            label="Hora de salida vehículo"
-            formMethods={formMethods}
-            isEditing={false}
-            onEditStart={handleEditStart}
-            onEditEnd={handleEditEnd}
-            onConfirmUpdate={onFieldUpdate}
-            allowEdit={false}
-            allowEmptySubmit
-            missingMessage="No registrado"
-            className={editableFieldInputClasses}
-          />
-          <EditableField
-            name="container_exit_date"
-            label="Fecha de salida contenedor"
-            formMethods={formMethods}
-            isEditing={false}
-            onEditStart={handleEditStart}
-            onEditEnd={handleEditEnd}
-            onConfirmUpdate={onFieldUpdate}
-            allowEdit={false}
-            allowEmptySubmit
-            missingMessage="No registrado"
-            className={editableFieldInputClasses}
-          />
-          <EditableField
-            name="container_exit_time"
-            label="Hora de salida contenedor"
-            formMethods={formMethods}
-            isEditing={false}
-            onEditStart={handleEditStart}
-            onEditEnd={handleEditEnd}
-            onConfirmUpdate={onFieldUpdate}
-            allowEdit={false}
-            allowEmptySubmit
-            missingMessage="No registrado"
-            className={editableFieldInputClasses}
-          />
-        </div>
-      ),
-    },
+    }
   ];
 
   return (
@@ -739,22 +609,14 @@ export function MovementDetailModal({
                 <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
                   <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:justify-end">
                     <Badges
-                      label={
-                        detail.is_consolidated
-                          ? ConsolidatedVariations.consolidated.label
-                          : ConsolidatedVariations.Unbound.label
-                      }
-                      color="transparent"
-                      className={
-                        detail.is_consolidated
-                          ? ConsolidatedVariations.consolidated.color
-                          : ConsolidatedVariations.Unbound.color
-                      }
+                      label={`Código: ${detail.reception_code || "Código no registrado"}`}
+                      color="gray"
+                      className="bg-slate-800! border! border-slate-700! text-slate-400!"
                     />
                   </div>
 
                   <Tabs
-                    key={detail.id}
+                    key={detail.reception_entrance_id}
                     activeTab="resumen"
                     tabItems={tabItems}
                   />

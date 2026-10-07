@@ -6,158 +6,228 @@ import { useParams } from "react-router-dom";
 import { LotsHeader } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-header/lots-header";
 import { LotsFiltersBar } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-filters/lots-filters";
 import { LotsTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lots-table/lots-table";
+import { LotViewer } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/components/lot-viewer/lot-viewer";
 import { LotModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/lot-modal";
 import { LotDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-detail-modal/lot-detail-modal";
-import {
-  EMPTY_LOT_FILTERS,
-  type LotFilters,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/types/lots.types";
+import { EMPTY_LOT_FILTERS, type LotFilters } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/types/lots.types";
 import { filtersToGetLotsParams } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/utils/filter-lots";
-import { useWarehouseAdmin } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useWarehouseAdmin";
+import { useLot } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useLot";
+import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { Loader } from "@app/shared/components/loaders/loader";
+import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
+import { mapWarehouseDetailsToLayout } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/warehouse-details.mapper";
+
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { LotListItemResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
+import type { LotDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import type { GetLotsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/get-lots-req";
 
 const PAGE_SIZE = 10;
 
 export function TramosPage() {
-  const { warehouseId = "", sectionId = "" } = useParams<{
-    warehouseId: string;
-    sectionId: string;
-  }>();
-  const { companyId, moduleCode } = useUserStore();
-  const { getMappedError } = useMappedError();
-  const { AlertComponent, handleRequestError } = useAlertState();
-  const [isLotModalOpen, setIsLotModalOpen] = useState(false);
-  const [selectedLotId, setSelectedLotId] = useState<string | null>(null);
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [appliedFilters, setAppliedFilters] =
-    useState<LotFilters>(EMPTY_LOT_FILTERS);
-  const [currentPage, setCurrentPage] = useState(1);
+	const { warehouseId = "", sectionId = "" } = useParams<{
+		warehouseId: string;
+		sectionId: string;
+	}>();
+	const { companyId, moduleCode } = useUserStore();
+	const { getMappedError } = useMappedError();
+	const { AlertComponent, handleRequestError } = useAlertState();
 
-  const getLotsPayload = useMemo<GetLotsRequest>(
-    () => ({
-      company_id: companyId,
-      module_code: moduleCode,
-      warehouse_id: warehouseId,
-      section_id: sectionId,
-      ...filtersToGetLotsParams(appliedFilters),
-      page_number: currentPage,
-      page_size: PAGE_SIZE,
-    }),
-    [companyId, moduleCode, warehouseId, sectionId, appliedFilters, currentPage],
-  );
+	const [isLotModalOpen, setIsLotModalOpen] = useState(false);
+	const [selectedLot, setSelectedLot] = useState<LotDto | null>(null);
+	const [detailLot, setDetailLot] = useState<LotDto | null>(null);
+	const [isLotDetailModalOpen, setIsLotDetailModalOpen] = useState(false);
+	const [appliedFilters, setAppliedFilters] = useState<LotFilters>(EMPTY_LOT_FILTERS);
+	const [currentPage, setCurrentPage] = useState(1);
 
-  const getLotDetailPayload = useMemo(
-    () => ({
-      company_id: companyId,
-      module_code: moduleCode,
-      section_id: sectionId,
-      lot_id: selectedLotId ?? "",
-    }),
-    [companyId, moduleCode, sectionId, selectedLotId],
-  );
+	const getLotsPayload = useMemo<GetLotsRequest>(
+		() => ({
+			company_id: companyId,
+			module_code: moduleCode,
+			warehouse_id: warehouseId,
+			section_id: sectionId,
+			...filtersToGetLotsParams(appliedFilters),
+			page_number: currentPage,
+			page_size: PAGE_SIZE,
+		}),
+		[companyId, moduleCode, warehouseId, sectionId, appliedFilters, currentPage],
+	);
 
-  const { GetLots, GetLotById } = useWarehouseAdmin({
-    getLotsPayload,
-    getLotDetailPayload,
-  });
+	const getSectionDetailsPayload = useMemo(
+		() => ({
+			company_id: companyId,
+			module_code: moduleCode,
+			warehouse_id: warehouseId,
+			section_id: sectionId,
+		}),
+		[companyId, moduleCode, warehouseId, sectionId],
+	);
 
-  const tramosData = GetLots.data?.data ?? [];
-  const totalRecords = GetLots.data?.total ?? 0;
+	const { GetWarehouseDetails } = useWarehouse({
+		getWarehouseDetailsPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+			warehouse_id: warehouseId,
+		},
+	});
 
-  useEffect(() => {
-    if (!GetLots.isError || !GetLots.error) return;
-    const mappedError = getMappedError(GetLots.error as ApiErrorResponse);
-    handleRequestError(mappedError.description);
-  }, [GetLots.isError, GetLots.error, getMappedError, handleRequestError]);
+	const { GetSectionDetails } = useSection({
+		getSectionDetailsPayload,
+	});
 
-  const handleApplyFilters = useCallback((filters: LotFilters) => {
-    setAppliedFilters(filters);
-    setCurrentPage(1);
-  }, []);
+	const { GetLots } = useLot({
+		getLotsPayload,
+	});
 
-  const handleClearFilters = useCallback(() => {
-    setAppliedFilters(EMPTY_LOT_FILTERS);
-    setCurrentPage(1);
-  }, []);
+	const tramosData = useMemo(() => GetLots.data?.data ?? [], [GetLots.data]);
+	const totalRecords = GetLots.data?.total ?? 0;
+	const warehouseDetails = GetWarehouseDetails.data;
+	const warehouseLayout = warehouseDetails
+		? mapWarehouseDetailsToLayout(warehouseDetails)
+		: undefined;
 
-  const handleViewDetail = useCallback((lot: LotListItemResponse) => {
-    setSelectedLotId(lot.lot_id);
-    setIsDetailModalOpen(true);
-  }, []);
+	const sectionCode = GetSectionDetails.data?.section_code ?? null;
+	const sectionWidth = GetSectionDetails.data?.capacity?.width ?? 0;
+	const sectionLength = GetSectionDetails.data?.capacity?.length ?? 0;
+	const sectionPositionX = GetSectionDetails.data?.coordinates?.position_x ?? 0;
+	const sectionPositionY = GetSectionDetails.data?.coordinates?.position_y ?? 0;
+	const sectionIsActive = GetSectionDetails.data?.is_active ?? true;
+	const sectionTotalArea = GetSectionDetails.data?.capacity?.total_area_m2 ?? 0;
 
-  return (
-    <m.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5 }}
-      className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full"
-    >
-      {GetLots.isPending && <Loader title="Cargando tramos..." />}
+	useEffect(() => {
+		if (!GetLots.isError || !GetLots.error) return;
+		const mappedError = getMappedError(GetLots.error as ApiErrorResponse);
+		handleRequestError(mappedError.description);
+	}, [GetLots.isError, GetLots.error, getMappedError, handleRequestError]);
 
-      {AlertComponent}
+	useEffect(() => {
+		if (!GetWarehouseDetails.isError || !GetWarehouseDetails.error) return;
+		const mappedError = getMappedError(
+			GetWarehouseDetails.error as ApiErrorResponse,
+		);
+		handleRequestError(mappedError.description);
+	}, [
+		GetWarehouseDetails.isError,
+		GetWarehouseDetails.error,
+		getMappedError,
+		handleRequestError,
+	]);
 
-      <LotsHeader warehouseId={warehouseId} sectionId={sectionId} />
+	const handleApplyFilters = useCallback((filters: LotFilters) => {
+		setAppliedFilters(filters);
+		setCurrentPage(1);
+	}, []);
 
-      <div className="flex flex-col gap-4">
-        <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
-          <div className="flex flex-col justify-center">
-            <h3 className="p-0! m-0!">Acciones</h3>
-            <small className="text-gray-500 dark:text-gray-300">
-              Registre nuevos tramos
-            </small>
-          </div>
-        </div>
+	const handleClearFilters = useCallback(() => {
+		setAppliedFilters(EMPTY_LOT_FILTERS);
+		setCurrentPage(1);
+	}, []);
 
-        <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-          <Button
-            type="button"
-            size="giant"
-            label="Registrar Nuevos Tramos"
-            icon={<Rows3 size={20} />}
-            className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-            onClick={() => setIsLotModalOpen(true)}
-          />
-        </div>
-      </div>
+	const handlePageChange = useCallback((page: number) => {
+		setCurrentPage(page);
+		setSelectedLot(null);
+	}, []);
 
-      <LotsFiltersBar
-        onApply={handleApplyFilters}
-        onClear={handleClearFilters}
-      />
+	const handleSelectRow = useCallback((lot: LotDto) => {
+		setSelectedLot(lot);
+	}, []);
 
-      <LotsTable
-        data={tramosData}
-        currentPage={currentPage}
-        totalRecords={totalRecords}
-        pageSize={PAGE_SIZE}
-        onPageChange={setCurrentPage}
-        onViewDetail={handleViewDetail}
-        isFetching={GetLots.isFetching}
-      />
+	const handleViewDetail = useCallback((lot: LotDto) => {
+		setDetailLot(lot);
+		setSelectedLot(lot);
+		setIsLotDetailModalOpen(true);
+	}, []);
 
-      <LotModal
-        isOpen={isLotModalOpen}
-        warehouseId={warehouseId}
-        sectionId={sectionId}
-        onClose={() => setIsLotModalOpen(false)}
-      />
+	return (
+		<m.div
+			initial={{ opacity: 0, y: 20 }}
+			animate={{ opacity: 1, y: 0 }}
+			exit={{ opacity: 0, y: -20 }}
+			transition={{ duration: 0.5 }}
+			className="flex flex-col gap-4 min-w-0 w-full"
+		>
+			{(GetLots.isPending ||
+				GetWarehouseDetails.isPending ||
+				GetSectionDetails.isPending) && (
+					<Loader title="Cargando tramos..." />
+				)}
 
-      <LotDetailModal
-        isOpen={isDetailModalOpen}
-        lot={GetLotById.data ?? null}
-        isLoading={GetLotById.isPending}
-        onClose={() => {
-          setIsDetailModalOpen(false);
-          setSelectedLotId(null);
-        }}
-      />
-    </m.div>
-  );
+			{AlertComponent}
+
+			<LotsHeader
+				warehouseId={warehouseId}
+				sectionId={sectionId}
+				lotQuantity={totalRecords}
+				sectionCode={sectionCode ?? ""}
+				totalArea={sectionTotalArea}
+				registerButton={
+					<Button
+						type="button"
+						size="giant"
+						label="Registrar Nuevos Tramos"
+						icon={<Rows3 size={20} />}
+						className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+						onClick={() => setIsLotModalOpen(true)}
+					/>
+				}
+			/>
+
+			<LotsFiltersBar
+				onApply={handleApplyFilters}
+				onClear={handleClearFilters}
+			/>
+
+			<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_800px] lg:h-[calc(100vh-330px)] min-h-0">
+				<LotsTable
+					data={tramosData}
+					currentPage={currentPage}
+					totalRecords={totalRecords}
+					pageSize={PAGE_SIZE}
+					selectedLot={selectedLot}
+					onPageChange={handlePageChange}
+					onViewDetail={handleViewDetail}
+					onSelectRow={handleSelectRow}
+					isFetching={GetLots.isFetching}
+					height={"100%"}
+					minHeight={"300px"}
+				/>
+
+				<LotViewer
+					className="min-h-0 min-w-0 overflow-y-auto"
+					warehouse={warehouseLayout}
+					lots={tramosData}
+					selectedLot={selectedLot}
+					onSelectLot={handleSelectRow}
+					sectionCode={sectionCode}
+					sectionWidth={sectionWidth}
+					sectionLength={sectionLength}
+					sectionPositionX={sectionPositionX}
+					sectionPositionY={sectionPositionY}
+					sectionIsActive={sectionIsActive}
+				/>
+			</div>
+
+			<LotModal
+				isOpen={isLotModalOpen}
+				warehouseId={warehouseId}
+				sectionId={sectionId}
+				sectionWidth={sectionWidth}
+				sectionLength={sectionLength}
+				onClose={() => setIsLotModalOpen(false)}
+			/>
+
+			<LotDetailModal
+				isOpen={isLotDetailModalOpen}
+				warehouseId={warehouseId}
+				sectionId={sectionId}
+				lot={detailLot}
+				onClose={() => {
+					setIsLotDetailModalOpen(false);
+					setDetailLot(null);
+				}}
+			/>
+		</m.div>
+	);
 }

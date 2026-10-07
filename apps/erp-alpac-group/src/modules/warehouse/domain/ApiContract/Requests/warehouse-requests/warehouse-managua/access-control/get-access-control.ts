@@ -1,13 +1,12 @@
-export interface GetAccessControlRequest {
-  company_id: string;
-  module_code: string;
-  driver_name: string;
-  plate_number: string;
-  document_type: string;
-  ducat_number: string;
-  document_number: string;
-  start_date: string;
-  end_date: string;
-  page_number: number;
-  page_size: number;
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+
+export interface GetAccessControlRequest extends BaseRequest {
+  only_day?: boolean;
+  plate_number?: string;
+  document_number?: string;
+  container_number?: string;
+  contaniner_number?: string;
+  document_type?: number;
+  page_number?: number;
+  page_size?: number;
 }

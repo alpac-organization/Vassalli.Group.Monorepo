@@ -1,17 +1,21 @@
 import { useCallback, useMemo } from "react";
-import { Breadcrumb, useTheme } from "@alpac/design-system";
-import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { Breadcrumb } from "@alpac/design-system";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useNavigate } from "react-router-dom";
-import type { RacksHeaderProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/racks-header/types/racks-header";
+import type { RacksHeaderProps } from "./types/racks-header";
 
-export function RacksHeader({ warehouseId, sectionId }: RacksHeaderProps) {
+export function RacksHeader({
+  warehouseId,
+  sectionId,
+  sectionCode,
+  location,
+  rackQuantity = 0,
+  totalPositions = 0,
+  ocuppation = 0,
+  registerButton,
+}: RacksHeaderProps) {
   const navigate = useNavigate();
   const { baseUrl } = useBaseUrl();
-  const { theme } = useTheme();
-  const { urlImage, neutralUrlImage } = useCompanyStore();
-
-  const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
   const goTo = useCallback(
     (url: string) => {
@@ -46,28 +50,52 @@ export function RacksHeader({ warehouseId, sectionId }: RacksHeaderProps) {
   );
 
   return (
-    <div className="flex flex-col gap-3 sm:gap-4 min-w-0">
-      <div className="flex justify-start min-w-0 overflow-x-auto">
-        <Breadcrumb items={breadcrumbItems} />
-      </div>
-
-      <div className="flex flex-row justify-between items-start sm:items-center gap-3 min-w-0">
-        <div className="flex flex-col justify-center gap-1 sm:gap-2 min-w-0 flex-1">
-          <h3 className="p-0! m-0! text-lg sm:text-xl md:text-2xl">
-            Racks de la sección
-          </h3>
-          <small className="text-gray-500 dark:text-gray-300">
-            Consulte y registre racks de la sección seleccionada
-          </small>
+    <>
+      <Breadcrumb items={breadcrumbItems} />
+      <div className="flex flex-col gap-4 rounded-lg border border-slate-600 bg-white px-4 py-4 hover:border-neutral-600 dark:bg-[#272b34] sm:gap-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h2 className="m-0 text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">
+            {sectionCode ? `Sección: ${sectionCode}` : "Racks de Sección"}
+          </h2>
+          <p className="m-0 text-sm text-slate-500 dark:text-slate-400">
+            {location ?? "ALPAC Managua"}
+          </p>
         </div>
-        {activeLogo && (
-          <img
-            className="h-10 sm:h-16 md:h-20 w-auto max-w-[35%] sm:max-w-none object-contain shrink-0 self-start sm:self-center"
-            src={activeLogo}
-            alt="vasalli group"
-          />
-        )}
+
+        <div className="flex w-full flex-col gap-4 lg:w-auto lg:flex-row lg:items-center lg:gap-10">
+          <div className="grid w-full grid-cols-3 gap-3 sm:gap-8 lg:w-auto lg:flex lg:items-center lg:gap-14">
+            <div className="flex flex-col items-center text-center">
+              <span className="text-base font-semibold text-slate-900 dark:text-white sm:text-xl">
+                {rackQuantity}
+              </span>
+              <span className="mt-1 text-[10px] text-slate-500 sm:text-xs">
+                Racks
+              </span>
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <span className="text-base font-semibold text-slate-900 dark:text-white sm:text-xl">
+                {totalPositions}
+              </span>
+              <span className="mt-1 text-[10px] text-slate-500 sm:text-xs">
+                Posiciones
+              </span>
+            </div>
+            <div className="flex flex-col items-center text-center">
+              <span className="text-base font-semibold text-slate-900 dark:text-white sm:text-xl">
+                {ocuppation}%
+              </span>
+              <span className="mt-1 text-[10px] text-slate-500 sm:text-xs">
+                Ocupación
+              </span>
+            </div>
+          </div>
+
+          {registerButton ? (
+            <div className="w-full shrink-0 lg:w-auto">{registerButton}</div>
+          ) : null}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
+

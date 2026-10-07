@@ -8,7 +8,7 @@ import {
   Trash2Icon,
   XIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFieldArray, useForm, type SubmitHandler } from "react-hook-form";
 import { Ducat } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/ducat/ducat";
 import { VehicleDataStep } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/gate-entry-modal/components/vehicle-data/vehicle-data";
@@ -52,8 +52,6 @@ export function GateEntryModal({
   const [documentType, setDocumentType] = useState<DocumentType>(
     DocumentEnum.DUCA,
   );
-  const currentStepRef = useRef(currentStep);
-  currentStepRef.current = currentStep;
   const {
     register,
     handleSubmit,
@@ -87,14 +85,21 @@ export function GateEntryModal({
     [isDucaDocument],
   );
 
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (!isOpen) {
-      reset(GATE_ENTRY_DEFAULT_VALUES);
       setCurrentStep(0);
       setStepDirection(1);
       setIsDeleteAllDucasConfirmOpen(false);
       setDucasError(null);
       setDocumentType(DocumentEnum.DUCA);
+    }
+  }
+
+  useEffect(() => {
+    if (!isOpen) {
+      reset(GATE_ENTRY_DEFAULT_VALUES);
     }
   }, [isOpen, reset]);
 
@@ -116,19 +121,22 @@ export function GateEntryModal({
     if (type.value === DocumentEnum.DUCA.value) {
       unregister([
         "customsDeclarationNumber",
+        "totalWeight",
         "packages",
-        "customer",
         "product",
+        "observations",
       ]);
       setValue("customsDeclarationNumber", "");
+      setValue("totalWeight", "");
       setValue("packages", "");
-      setValue("customer", "");
       setValue("product", "");
+      setValue("observations", "");
       clearErrors([
         "customsDeclarationNumber",
+        "totalWeight",
         "packages",
-        "customer",
         "product",
+        "observations",
       ]);
       if (fields.length === 0) {
         replace([{ value: "" }]);
@@ -169,7 +177,7 @@ export function GateEntryModal({
   };
 
   const handleFormSubmit: SubmitHandler<GateEntryFormValues> = (data) => {
-    if (currentStepRef.current !== 1) return;
+    if (currentStep !== 1) return;
 
     if (isDucaDocument) {
       const ducas = Array.isArray(data.ducas) ? data.ducas : [];
@@ -200,7 +208,7 @@ export function GateEntryModal({
   };
 
   const handleFinalSave = () => {
-    if (currentStepRef.current !== 1) return;
+    if (currentStep !== 1) return;
     void handleSubmit(handleFormSubmit)();
   };
 
@@ -235,7 +243,7 @@ export function GateEntryModal({
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            if (currentStepRef.current !== 1) return;
+            if (currentStep !== 1) return;
             void handleSubmit(handleFormSubmit)(event);
           }}
           className="flex flex-col flex-1 min-h-0 h-full overflow-hidden"

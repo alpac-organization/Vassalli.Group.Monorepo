@@ -1,6 +1,6 @@
 import { Button, Dropdown, Alert } from "@alpac/design-system";
 import { useForm, Controller } from "react-hook-form";
-import type { GetWarehousesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses";
+import type { GetWarehousesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-warehouses-response";
 import type { SelectedAssignmentTarget } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/types/assignment.types";
 
 export type StepBodegaFormValues = {
@@ -39,20 +39,10 @@ export function StepBodega({
   });
 
   const warehouseOptions =
-    warehousesData?.data?.map((w) => {
-      const occupied = w.capacity?.occupied_area_m2 || 0;
-      const total = w.capacity?.total_area_m2 || 1; 
-      let percentage = w.capacity?.occupancy_percentage;
-      if (!percentage || percentage === 0) {
-        percentage = w.capacity?.total_area_m2 ? (occupied / total) * 100 : 0;
-      }
-      
-      const name = w.warehouse_name ?? "Sin nombre";
-      return {
-        value: w.warehouse_id,
-        label: `${name} (${Math.round(percentage)}%)`,
-      };
-    }) ?? [];
+    warehousesData?.data?.map((w) => ({
+      value: w.warehouse_id,
+      label: `${w.code} · ${w.warehouse_type ?? "Sin tipo"}`,
+    })) ?? [];
 
   return (
     <form

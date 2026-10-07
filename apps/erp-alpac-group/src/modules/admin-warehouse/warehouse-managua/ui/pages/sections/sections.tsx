@@ -4,14 +4,17 @@ import { useNavigate, useParams } from "react-router-dom";
 import { SectionsHeader } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-header/sections-header";
 import { SectionsTable } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/sections-table/sections-table";
 import { SectionModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-modal/section-modal";
+import { SectionDetailModal } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-detail-modal/section-detail-modal";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
-import { SectionViewer } from "./components/section-viewer/section-viewer";
-import { useSection } from "../../hooks/useSection";
+import { SectionViewer } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/components/section-viewer/section-viewer";
+import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
+import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
+import { mapWarehouseDetailsToLayout, getWarehouseOccupancyPercentage } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/utils/warehouse-details.mapper";
 import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
 import type { DeleteSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/delete-section-req";
 import { Button } from "@alpac/design-system";
@@ -38,11 +41,13 @@ export function SectionsPage() {
 		AlertComponent,
 	} = useAlertState();
 	const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
+	const [isSectionDetailModalOpen, setIsSectionDetailModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 	const [editingSection, setEditingSection] = useState<SectionDto | null>(null);
 	const [sectionToDelete, setSectionToDelete] = useState<SectionDto | null>(null);
+	const [detailSection, setDetailSection] = useState<SectionDto | null>(null);
+	const [selectedSection, setSelectedSection] = useState<SectionDto | null>(null);
 	const [currentPage, setCurrentPage] = useState(1);
-	const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
 	const { GetSections, DeleteSection } = useSection({
 		getSectionsPayload: {
@@ -54,8 +59,22 @@ export function SectionsPage() {
 		},
 	});
 
+	const { GetWarehouseDetails } = useWarehouse({
+		getWarehouseDetailsPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+			warehouse_id: warehouseId,
+		},
+	});
+
 	const sectionsData = GetSections.data?.data ?? [];
 	const totalRecords = GetSections.data?.total ?? 0;
+	const warehouseDetails = GetWarehouseDetails.data;
+	const warehouseLayout = warehouseDetails ? mapWarehouseDetailsToLayout(warehouseDetails) : undefined;
+	const warehouseTotalArea = warehouseDetails?.capacity?.total_area_m2 ?? 0;
+	const warehouseOccupancy = getWarehouseOccupancyPercentage(warehouseDetails);
+	const warehouseLocation =
+		warehouseDetails?.location?.location_name ?? "—";
 
 	useEffect(() => {
 		if (!GetSections.isError || !GetSections.error) return;
@@ -69,6 +88,22 @@ export function SectionsPage() {
 	}, [
 		GetSections.isError,
 		GetSections.error,
+		getMappedError,
+		handleRequestError,
+	]);
+
+	useEffect(() => {
+		if (!GetWarehouseDetails.isError || !GetWarehouseDetails.error) return;
+		try {
+			const error = GetWarehouseDetails.error;
+			const mappedError = getMappedError(error);
+			handleRequestError(mappedError?.description || "Error al cargar la bodega");
+		} catch {
+			handleRequestError("Error al cargar la bodega");
+		}
+	}, [
+		GetWarehouseDetails.isError,
+		GetWarehouseDetails.error,
 		getMappedError,
 		handleRequestError,
 	]);
@@ -92,8 +127,14 @@ export function SectionsPage() {
 	);
 
 	const handleSelectRow = (section: SectionDto) => {
-		setSelectedSectionId(section.section_id);
+		setSelectedSection(section);
 	};
+
+	const handleViewDetails = useCallback((section: SectionDto) => {
+		setDetailSection(section);
+		setSelectedSection(section);
+		setIsSectionDetailModalOpen(true);
+	}, []);
 
 	const handleUpdateSection = (section: SectionDto) => {
 		setEditingSection(section);
@@ -119,8 +160,8 @@ export function SectionsPage() {
 			onSuccess() {
 				setIsDeleteModalOpen(false);
 				setSectionToDelete(null);
-				if (selectedSectionId === sectionToDelete.section_id) {
-					setSelectedSectionId(null);
+				if (selectedSection?.section_id === sectionToDelete.section_id) {
+					setSelectedSection(null);
 				}
 				handleRequestSuccess("Sección eliminada exitosamente.");
 			},
@@ -144,17 +185,19 @@ export function SectionsPage() {
 			transition={{ duration: 0.5 }}
 			className="flex flex-col gap-4 sm:gap-6 min-w-0 w-full">
 
-			{GetSections.isPending && <Loader title="Cargando secciones..." />}
+			{(GetSections.isPending || GetWarehouseDetails.isPending) && (
+				<Loader title="Cargando secciones..." />
+			)}
 
 			{AlertComponent}
 
 			<SectionsHeader
 				warehouseId={warehouseId}
-				warehouseCode="BODEGA_005"
-				location="ALPAC Managua"
-				totalArea={37 * 61}
+				warehouseCode={warehouseDetails?.code ?? "—"}
+				location={warehouseLocation}
+				totalArea={warehouseTotalArea}
 				sectionQuantity={totalRecords}
-				ocuppation={0}
+				ocuppation={warehouseOccupancy}
 				registerButton={
 					<Button
 						type="button"
@@ -169,16 +212,18 @@ export function SectionsPage() {
 					/>
 				} />
 
-			<div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_800px] lg:h-[calc(100vh-330px)] min-h-0">
+			<div className="grid gap-4 grid-cols-[repeat(auto-fit,minmax(min(100%,400px),1fr))] min-h-0">
 
 				<SectionsTable
 					data={sectionsData}
 					currentPage={currentPage}
 					totalRecords={totalRecords}
 					pageSize={PAGE_SIZE}
+					selectedSection={selectedSection}
 					onPageChange={setCurrentPage}
 					onViewLots={handleViewLots}
 					onViewRacks={handleViewRacks}
+					onViewDetails={handleViewDetails}
 					onSelectRow={handleSelectRow}
 					onUpdateSection={handleUpdateSection}
 					onDeleteSection={handleDeleteSection}
@@ -189,8 +234,10 @@ export function SectionsPage() {
 
 				<SectionViewer
 					className="min-h-0 min-w-0 overflow-y-auto"
+					warehouse={warehouseLayout}
 					sections={sectionsData}
-					selectedSectionId={selectedSectionId}
+					selectedSection={selectedSection}
+					onSelectSection={handleSelectRow}
 				/>
 
 			</div>
@@ -198,8 +245,19 @@ export function SectionsPage() {
 			<SectionModal
 				isOpen={isSectionModalOpen}
 				warehouseId={warehouseId}
+				warehouse={warehouseLayout}
 				section={editingSection}
 				onClose={handleCloseSectionModal}
+			/>
+
+			<SectionDetailModal
+				isOpen={isSectionDetailModalOpen}
+				warehouseId={warehouseId}
+				section={detailSection}
+				onClose={() => {
+					setIsSectionDetailModalOpen(false);
+					setDetailSection(null);
+				}}
 			/>
 
 			<ConfirmModal
