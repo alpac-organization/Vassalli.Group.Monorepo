@@ -8,76 +8,58 @@ import type { UpdateOperationalOrderInformationRequest } from "@app/modules/ware
 import type { GetOperationalOrdersResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/operational-orders/get-operational-orders-response";
 import type { GetOperationalOrderDetailResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/operational-orders/get-operational-order-detail-response";
 
-export const operationalOrdersServices = new OperationalOrdersServices(
-  warehouseHttpHandler,
-);
+export const operationalOrdersServices = new OperationalOrdersServices(warehouseHttpHandler);
 
 export type UseOperationalOrdersProps = {
-  payloadOperationalOrders?: GetOperationalOrdersRequest;
-  detailPayload?: GetOperationalOrderDetailRequest | null;
+	payloadOperationalOrders?: GetOperationalOrdersRequest;
+	detailPayload?: GetOperationalOrderDetailRequest | null;
 };
 
 export const useOperationalOrders = (props?: UseOperationalOrdersProps) => {
-  const { payloadOperationalOrders, detailPayload } = props ?? {};
-  const queryClient = useQueryClient();
 
-  const GetOperationalOrders = useQuery<
-    GetOperationalOrdersResponse,
-    ApiErrorResponse
-  >({
-    queryKey: ["operational-orders", payloadOperationalOrders],
-    queryFn: () =>
-      operationalOrdersServices.getOperationalOrders(
-        payloadOperationalOrders as GetOperationalOrdersRequest,
-      ),
-    enabled: Boolean(
-      payloadOperationalOrders?.company_id &&
-        payloadOperationalOrders?.module_code,
-    ),
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    retry: 1,
-  });
-                            
-  const orderId =detailPayload?.operational_order_id ;
+	const { payloadOperationalOrders, detailPayload } = props ?? {};
+	const queryClient = useQueryClient();
 
-  const GetOperationalOrderDetail = useQuery<
-    GetOperationalOrderDetailResponse | null,
-    ApiErrorResponse
-  >({
-    queryKey: ["operational-order-detail", detailPayload],
-    queryFn: () =>
-      operationalOrdersServices.getOperationalOrderById(
-        detailPayload as GetOperationalOrderDetailRequest,
-      ),
-    enabled: Boolean(
-      detailPayload?.company_id &&
-        detailPayload?.module_code &&
-        orderId,
-    ),
-    staleTime: 1000 * 60 * 2,
-    refetchOnWindowFocus: false,
-    retry: 1,
-  });
+	const GetOperationalOrders = useQuery<GetOperationalOrdersResponse, ApiErrorResponse>({
+		queryKey: ["operational-orders", payloadOperationalOrders],
+		queryFn: () => operationalOrdersServices.getOperationalOrders(payloadOperationalOrders as GetOperationalOrdersRequest),
+		enabled: Boolean(
+			payloadOperationalOrders?.company_id &&
+			payloadOperationalOrders?.module_code,
+		),
+		staleTime: 1000 * 60 * 5,
+		refetchOnWindowFocus: false,
+		refetchOnMount: false,
+		retry: 1
+	});
 
-  const UpdateOperationalOrderInformation = useMutation<
-    void,
-    ApiErrorResponse,
-    UpdateOperationalOrderInformationRequest
-  >({
-    mutationFn: (payload) =>
-      operationalOrdersServices.updateOperationalOrderInformation(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["operational-orders"] });
-      queryClient.invalidateQueries({ queryKey: ["operational-order-detail"] });
-    },
-  });
+	const orderId = detailPayload?.operational_order_id;
 
-  return {
-    GetOperationalOrders,
-    GetOperationalOrderDetail,
-    UpdateOperationalOrderInformation,
-    operationalOrdersServices,
-  };
+	const GetOperationalOrderDetail = useQuery<GetOperationalOrderDetailResponse | null, ApiErrorResponse>({
+		queryKey: ["operational-order-detail", detailPayload],
+		queryFn: () => operationalOrdersServices.getOperationalOrderById(detailPayload as GetOperationalOrderDetailRequest),
+		enabled: Boolean(
+			detailPayload?.company_id &&
+			detailPayload?.module_code &&
+			orderId,
+		),
+		staleTime: 1000 * 60 * 2,
+		refetchOnWindowFocus: false,
+		retry: 1
+	});
+
+	const UpdateOperationalOrderInformation = useMutation<void, ApiErrorResponse, UpdateOperationalOrderInformationRequest>({
+		mutationFn: (payload) => operationalOrdersServices.updateOperationalOrderInformation(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["operational-orders"] });
+			queryClient.invalidateQueries({ queryKey: ["operational-order-detail"] });
+		}
+	});
+
+	return {
+		GetOperationalOrders,
+		GetOperationalOrderDetail,
+		UpdateOperationalOrderInformation,
+		operationalOrdersServices,
+	};
 };

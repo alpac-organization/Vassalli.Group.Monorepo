@@ -137,7 +137,7 @@ export function UpdateReceptionInformationModal({
       variant="form"
       size="5xl"
       title={poCode ? `Registrar Información — ${poCode}` : "Registrar Información de Recepción"}
-      description="Asigna el cliente, bultos y peso a la orden operacional, y opcionalmente la mercadería contenida."
+      description="Asigna el cliente, bultos y peso a la orden operacional, y opcionalmente la mercadería contenida TESTING."
     >
       <form
         className="flex flex-col gap-6"

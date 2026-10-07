@@ -12,7 +12,7 @@ export function getOperationsColumns({ onViewDetail, onUpdateInfo }: GetOperatio
 	return [
 		{
 			key: "po_code",
-			label: "Código PO",
+			label: "Código OP",
 			render: (row) => (
 				<span className="font-semibold text-slate-800 dark:text-slate-100">
 					{row.po_code}
@@ -25,12 +25,14 @@ export function getOperationsColumns({ onViewDetail, onUpdateInfo }: GetOperatio
 			render: (row) => row.document_number || "—",
 		},
 		{
-			key: "document_number",
+			key: "document_type",
 			label: "Tipo Documento",
 			render: (row) => {
-
 				const documentType = row?.document_type;
-				return TransportDocuments[documentType as TransportDocumentType].label ?? "—";
+				if (!documentType) return "—";
+				return (
+					TransportDocuments[documentType as TransportDocumentType]?.label ?? "—"
+				);
 			},
 		},
 		{

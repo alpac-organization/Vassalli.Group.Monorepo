@@ -35,7 +35,7 @@ export function OperationsHeader() {
             Operaciones en Curso
           </h3>
           <small className="text-gray-500 dark:text-gray-300">
-            Seguimiento de órdenes operacionales (PO), asignación de clientes y registro de recepción.
+            Seguimiento de órdenes operacionales (OP), asignación de clientes y registro de recepción.
           </small>
         </div>
 

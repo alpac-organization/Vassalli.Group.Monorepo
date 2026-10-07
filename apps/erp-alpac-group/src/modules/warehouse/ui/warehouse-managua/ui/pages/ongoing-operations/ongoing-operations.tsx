@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useOperationalOrders } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useOperationalOrders";
@@ -13,6 +13,7 @@ import type {
 	SelectedOperationTarget,
 } from "./types/ongoing-operations.types";
 import type { OperationalOrderListItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/operational-orders/get-operational-orders-response";
+import { OperationalOrderStatusEnum } from "@app/modules/warehouse/domain/enums/warehouse-managua/operational-order-status.enum";
 
 const PAGE_SIZE = 10;
 const EMPTY_FILTERS: OngoingOperationsFilters = {
@@ -33,21 +34,15 @@ export function OngoingOperationsPage() {
 	const [updateTarget, setUpdateTarget] =
 		useState<SelectedOperationTarget | null>(null);
 
-	const payloadOperationalOrders = useMemo(
-		() => ({
+	const { GetOperationalOrders } = useOperationalOrders({
+		payloadOperationalOrders: {
 			company_id: companyId,
 			module_code: moduleCode,
-			page_number: pageNumber,
 			page_size: PAGE_SIZE,
-			code: appliedFilters.code || undefined,
-			customer_cif: appliedFilters.customer_cif || undefined,
-			status: appliedFilters.status || undefined,
-		}),
-		[companyId, moduleCode, pageNumber, appliedFilters],
-	);
-
-	const { GetOperationalOrders } = useOperationalOrders({
-		payloadOperationalOrders,
+			code: appliedFilters.code ?? "",
+			customer_cif: appliedFilters.customer_cif ?? "",
+			status: OperationalOrderStatusEnum["PendingDocument"].value,
+		}
 	});
 
 	const { data: ordersData, isLoading, isFetching, refetch } =
@@ -71,26 +66,8 @@ export function OngoingOperationsPage() {
 		setUpdateTarget({
 			operation_order_id: order.operation_order_id,
 			po_code: order.po_code,
-			// customer_id: order.customer_information?.customer_id ?? null,
-			// customer_name: order.customer_information?.customer_name ?? null,
-			// customer_cif: order.customer_information?.cif ?? null,
 		});
 	}, []);
-
-	const handleOpenUpdateFromDetail = useCallback(
-		(orderId: string) => {
-			const order = ordersData?.data.find((o) => o.operation_order_id === orderId);
-			setDetailOrderId(null);
-			setUpdateTarget({
-				operation_order_id: orderId,
-				po_code: order?.po_code || "",
-				// customer_id: order?.customer_information?.customer_id ?? null,
-				// customer_name: order?.customer_information?.customer_name ?? null,
-				// customer_cif: order?.customer_information?.cif ?? null,
-			});
-		},
-		[ordersData?.data],
-	);
 
 	return (
 		<m.div
@@ -125,7 +102,6 @@ export function OngoingOperationsPage() {
 				isOpen={Boolean(detailOrderId)}
 				onClose={() => setDetailOrderId(null)}
 				orderId={detailOrderId}
-				onOpenUpdateInfo={handleOpenUpdateFromDetail}
 			/>
 
 			{/* Modal de Registro / Actualización de Información de Recepción */}

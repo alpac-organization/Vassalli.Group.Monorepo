@@ -49,9 +49,9 @@ const transportUnitOptions = Object.values(TransportUnit).map((unit) => ({
   label: unit.label,
 }));
 
-const documentTypeOptions = [
-  { value: "DUCA", label: "DUCA" },
-  { value: "CustomsDeclaration", label: "Declaración Aduanera" },
+const documentTypeOptions: Option[] = [
+  { value: "DUCA", label: "DUCA", disabled: false },
+  { value: "CustomsDeclaration", label: "Declaración Aduanera", disabled: true },
 ];
 
 export function MovementDetailModal({
@@ -107,7 +107,9 @@ export function MovementDetailModal({
   });
 
   const ducatOptions = useMemo<Option[]>(() => {
+
     const parsed = parseAdditionalData(detail?.additional_data);
+
     const ducaDocs = (parsed?.document_numbers ?? []).filter(
       (d) =>
         Number(d.document_type) === Number(DocumentEnum.DUCA.value) ||
@@ -117,18 +119,20 @@ export function MovementDetailModal({
         String(d.document_type) === "3" ||
         String(d.document_type).toUpperCase().includes("DUCA"),
     );
-
+    
     return ducaDocs.map((d) => ({
       value: d.document_id || d.operational_order_id || d.document_numbers,
       label: d.document_numbers,
-    }));
-  }, [detail?.additional_data]);
+    } as Option));
+
+  }, [detail?.additional_data]);  
 
   const ducatsMissing = ducatOptions.length === 0;
-  const selectedDucatLabel =
-    ducatOptions.find((option) => String(option.value) === selectedDucatId)
-      ?.label ?? "";
+
+  const selectedDucatLabel = ducatOptions.find((option) => String(option.value) === selectedDucatId)?.label ?? "";
+
   const currentDocType = formMethods.watch("document_type");
+
   const showCustomsDeclaration = useMemo(() => {
     if (currentDocType) {
       const lower = String(currentDocType).toLowerCase();
@@ -275,7 +279,7 @@ export function MovementDetailModal({
                         setDucatDraft(option?.label ?? "");
                       }}
                       onEditOption={(option) => startDucatEdit(option)}
-                      className={`${baseInputClasses} h-[42px]! sm:h-[46px]! px-3!`}
+                      className={`${baseInputClasses} h-10.5! sm:h-11.5! px-3!`}
                       valueClassName={
                         ducatsMissing
                           ? missingDataInInputClassName
@@ -284,13 +288,13 @@ export function MovementDetailModal({
                     />
                   </div>
                   {!isAddingDucat && (
-                    <div className="flex shrink-0 mt-[24px] sm:mt-[26px]">
+                    <div className="flex shrink-0 mt-6 sm:mt-6.5">
                       <Button
                         type="button"
                         ariaLabel="Agregar DUCA"
                         onClick={startDucatAdd}
                         icon={<Plus size={16} />}
-                        className="h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-slate-200! dark:border-slate-700/50! bg-white! dark:bg-[#1e2229]! text-slate-500! dark:text-slate-400! hover:text-blue-600! dark:hover:text-white! hover:border-cyan-300! dark:hover:border-blue-600! hover:bg-cyan-50! dark:hover:bg-cyan-500/10! transition-all duration-200"
+                        className="h-10.5! w-10.5! sm:h-11.5! sm:w-11.5! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-slate-200! dark:border-slate-700/50! bg-white! dark:bg-[#1e2229]! text-slate-500! dark:text-slate-400! hover:text-blue-600! dark:hover:text-white! hover:border-cyan-300! dark:hover:border-blue-600! hover:bg-cyan-50! dark:hover:bg-cyan-500/10! transition-all duration-200"
                       />
                     </div>
                   )}
@@ -312,14 +316,14 @@ export function MovementDetailModal({
                       placeholder="Ingrese Nº Duca"
                     />
                   </div>
-                  <div className="flex shrink-0 gap-1.5 sm:gap-2 mt-[24px] sm:mt-[26px]">
+                  <div className="flex shrink-0 gap-1.5 sm:gap-2 mt-6 sm:mt-6.5">
                     <Button
                       type="button"
                       ariaLabel="Cancelar agregar DUCA"
                       disabled={isSavingNewDucat}
                       onClick={cancelDucatAdd}
                       icon={<MessageCircleX size={16} />}
-                      className="h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-red-200! dark:border-red-500/30! bg-red-50! dark:bg-red-500/10! text-red-600! dark:text-red-400! hover:bg-red-100! dark:hover:bg-red-500/20! hover:border-red-300! transition-all duration-200 disabled:opacity-40!"
+                      className="h-10.5! w-10.5! sm:h-11.5! sm:w-11.5! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-red-200! dark:border-red-500/30! bg-red-50! dark:bg-red-500/10! text-red-600! dark:text-red-400! hover:bg-red-100! dark:hover:bg-red-500/20! hover:border-red-300! transition-all duration-200 disabled:opacity-40!"
                     />
                     <Button
                       type="button"
@@ -333,7 +337,7 @@ export function MovementDetailModal({
                           <Check size={16} />
                         )
                       }
-                      className="h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-emerald-200! dark:border-emerald-500/30! bg-emerald-50! dark:bg-emerald-500/10! text-emerald-600! dark:text-emerald-400! hover:bg-emerald-100! disabled:opacity-40! transition-all duration-200"
+                      className="h-10.5! w-10.5! sm:h-11.5! sm:w-11.5! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-emerald-200! dark:border-emerald-500/30! bg-emerald-50! dark:bg-emerald-500/10! text-emerald-600! dark:text-emerald-400! hover:bg-emerald-100! disabled:opacity-40! transition-all duration-200"
                     />
                   </div>
                 </div>
@@ -357,14 +361,13 @@ export function MovementDetailModal({
                             : selectedDucatLabel
                       }
                       onChange={(event) => setDucatDraft(event.target.value)}
-                      className={`${baseInputClasses} ${
-                        !isEditingDucat && isValueMissing(selectedDucatLabel)
-                          ? missingDataInInputClassName
-                          : "text-slate-800 dark:text-white!"
-                      }`}
+                      className={`${baseInputClasses} ${!isEditingDucat && isValueMissing(selectedDucatLabel)
+                        ? missingDataInInputClassName
+                        : "text-slate-800 dark:text-white!"
+                        }`}
                     />
                   </div>
-                  <div className="flex shrink-0 gap-1.5 sm:gap-2 mt-[24px] sm:mt-[26px]">
+                  <div className="flex shrink-0 gap-1.5 sm:gap-2 mt-6 sm:mt-6.5">
                     {!isEditingDucat ? (
                       <Button
                         type="button"
@@ -376,7 +379,7 @@ export function MovementDetailModal({
                           if (option) startDucatEdit(option);
                         }}
                         icon={<Pencil size={16} />}
-                        className="h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-slate-200! dark:border-slate-700/50! bg-white! dark:bg-[#1e2229]! text-slate-500! dark:text-slate-400! hover:text-blue-600! dark:hover:text-white! hover:border-cyan-300! dark:hover:border-blue-600! hover:bg-cyan-50! dark:hover:bg-cyan-500/10! transition-all duration-200"
+                        className="h-10.5! w-10.5! sm:h-11.5! sm:w-11.5! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-slate-200! dark:border-slate-700/50! bg-white! dark:bg-[#1e2229]! text-slate-500! dark:text-slate-400! hover:text-blue-600! dark:hover:text-white! hover:border-cyan-300! dark:hover:border-blue-600! hover:bg-cyan-50! dark:hover:bg-cyan-500/10! transition-all duration-200"
                       />
                     ) : (
                       <>
@@ -386,7 +389,7 @@ export function MovementDetailModal({
                           disabled={isSavingDucat}
                           onClick={cancelDucatEdit}
                           icon={<MessageCircleX size={16} />}
-                          className="h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-red-200! dark:border-red-500/30! bg-red-50! dark:bg-red-500/10! text-red-600! dark:text-red-400! hover:bg-red-100! dark:hover:bg-red-500/20! hover:border-red-300! transition-all duration-200 disabled:opacity-40!"
+                          className="h-10.5! w-10.5! sm:h-11.5! sm:w-11.5! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-red-200! dark:border-red-500/30! bg-red-50! dark:bg-red-500/10! text-red-600! dark:text-red-400! hover:bg-red-100! dark:hover:bg-red-500/20! hover:border-red-300! transition-all duration-200 disabled:opacity-40!"
                         />
                         <Button
                           type="button"
@@ -400,7 +403,7 @@ export function MovementDetailModal({
                               <Check size={16} />
                             )
                           }
-                          className="h-[42px]! w-[42px]! sm:h-[46px]! sm:w-[46px]! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-emerald-200! dark:border-emerald-500/30! bg-emerald-50! dark:bg-emerald-500/10! text-emerald-600! dark:text-emerald-400! hover:bg-emerald-100! disabled:opacity-40! transition-all duration-200"
+                          className="h-10.5! w-10.5! sm:h-11.5! sm:w-11.5! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-emerald-200! dark:border-emerald-500/30! bg-emerald-50! dark:bg-emerald-500/10! text-emerald-600! dark:text-emerald-400! hover:bg-emerald-100! disabled:opacity-40! transition-all duration-200"
                         />
                       </>
                     )}
@@ -582,78 +585,78 @@ export function MovementDetailModal({
             onPreviewImage={setPreviewImage}
           />
         </div>
-        
+
       ),
     }
   ];
 
   return (
     <>
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Detalle del movimiento"
-      variant="info"
-      size="5xl"
-      panelClassName="max-md:max-h-[min(92dvh,56rem)]! md:max-h-none! flex! flex-col! max-md:overflow-hidden! md:overflow-visible! p-4! sm:p-6!"
-    >
-      {isLoading || !detail ? (
-        <div className="min-h-40 flex items-center justify-center py-8">
-          <Loader title="Cargando detalle..." />
-        </div>
-      ) : (
-        <div className="flex flex-col flex-1 min-h-0 gap-4 max-md:overflow-hidden md:overflow-visible">
-          <div className={`flex-1 min-h-0 ${mobileOnlyScrollClasses}`}>
-            <div className="w-full max-w-full">
-              <section className="w-full dark:bg-[#272b34] bg-white border border-slate-200 dark:border-neutral-700 shadow-sm rounded-xl">
-                <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
-                  <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:justify-end">
-                    <Badges
-                      label={`Código: ${detail.reception_code || "Código no registrado"}`}
-                      color="gray"
-                      className="bg-slate-800! border! border-slate-700! text-slate-400!"
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Detalle del movimiento"
+        variant="info"
+        size="5xl"
+        panelClassName="max-md:max-h-[min(92dvh,56rem)]! md:max-h-none! flex! flex-col! max-md:overflow-hidden! md:overflow-visible! p-4! sm:p-6!"
+      >
+        {isLoading || !detail ? (
+          <div className="min-h-40 flex items-center justify-center py-8">
+            <Loader title="Cargando detalle..." />
+          </div>
+        ) : (
+          <div className="flex flex-col flex-1 min-h-0 gap-4 max-md:overflow-hidden md:overflow-visible">
+            <div className={`flex-1 min-h-0 ${mobileOnlyScrollClasses}`}>
+              <div className="w-full max-w-full">
+                <section className="w-full dark:bg-[#272b34] bg-white border border-slate-200 dark:border-neutral-700 shadow-sm rounded-xl">
+                  <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
+                    <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:justify-end">
+                      <Badges
+                        label={`Código: ${detail.reception_code || "Código no registrado"}`}
+                        color="gray"
+                        className="bg-slate-800! border! border-slate-700! text-slate-400!"
+                      />
+                    </div>
+
+                    <Tabs
+                      key={detail.reception_entrance_id}
+                      activeTab="resumen"
+                      tabItems={tabItems}
                     />
                   </div>
+                </section>
+              </div>
+            </div>
 
-                  <Tabs
-                    key={detail.reception_entrance_id}
-                    activeTab="resumen"
-                    tabItems={tabItems}
-                  />
-                </div>
-              </section>
+            <div className="shrink-0 flex justify-end pt-3 border-t border-slate-200 dark:border-neutral-600">
+              <Button
+                type="button"
+                size="medium"
+                label="Cerrar"
+                icon={<X size={16} />}
+                ariaLabel="Cerrar detalle"
+                onClick={onClose}
+                className="w-full sm:w-auto text-[13px]! text-white! bg-slate-500! dark:bg-slate-700! hover:bg-slate-600! dark:hover:bg-slate-600!"
+              />
             </div>
           </div>
+        )}
+      </Modal>
 
-          <div className="shrink-0 flex justify-end pt-3 border-t border-slate-200 dark:border-neutral-600">
-            <Button
-              type="button"
-              size="medium"
-              label="Cerrar"
-              icon={<X size={16} />}
-              ariaLabel="Cerrar detalle"
-              onClick={onClose}
-              className="w-full sm:w-auto text-[13px]! text-white! bg-slate-500! dark:bg-slate-700! hover:bg-slate-600! dark:hover:bg-slate-600!"
-            />
-          </div>
+      <Modal
+        isOpen={!!previewImage}
+        onClose={() => setPreviewImage(null)}
+        title="Vista previa de evidencia"
+        size="md"
+      >
+        <div className="flex justify-center items-center p-2 sm:p-4 bg-slate-900 rounded-md">
+          <img
+            src={previewImage || ""}
+            alt="Vista previa de la evidencia"
+            className="max-w-full max-h-[80vh] object-contain rounded-md"
+          />
         </div>
-      )}
-    </Modal>
-    
-    <Modal
-      isOpen={!!previewImage}
-      onClose={() => setPreviewImage(null)}
-      title="Vista previa de evidencia"
-      size="md"
-    >
-      <div className="flex justify-center items-center p-2 sm:p-4 bg-slate-900 rounded-md">
-        <img
-          src={previewImage || ""}
-          alt="Vista previa de la evidencia"
-          className="max-w-full max-h-[80vh] object-contain rounded-md"
-        />
-      </div>
-    </Modal>
+      </Modal>
     </>
   );
 }

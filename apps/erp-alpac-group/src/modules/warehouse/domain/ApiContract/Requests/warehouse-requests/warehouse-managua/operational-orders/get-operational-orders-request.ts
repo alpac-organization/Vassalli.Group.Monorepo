@@ -6,7 +6,7 @@ export interface GetOperationalOrdersRequest extends BaseRequest {
   code?: string;
   customer_cif?: string;
   document_type?: DocumentType | number | string;
-  status?: OperationalOrderStatusType;
+  status?: OperationalOrderStatusType | number | string;
   page_number?: number;
   page_size?: number;
 }

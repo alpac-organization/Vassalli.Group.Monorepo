@@ -120,6 +120,7 @@ export function VehicleDataStep({
 
             <RadioButton
               label="Declaración Aduanera"
+              disabled
               value={DocumentEnum.CustomsDeclaration.value}
               checked={selectedDocumentType === DocumentEnum.CustomsDeclaration}
               onChange={() => {
