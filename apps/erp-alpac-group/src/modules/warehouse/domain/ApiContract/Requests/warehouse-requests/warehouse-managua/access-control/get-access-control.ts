@@ -5,6 +5,7 @@ export interface GetAccessControlRequest extends BaseRequest {
   plate_number?: string;
   document_number?: string;
   container_number?: string;
+  contaniner_number?: string;
   document_type?: number;
   page_number?: number;
   page_size?: number;
