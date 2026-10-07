@@ -76,7 +76,9 @@ export function RacksPage() {
   const warehouseLayout = warehouseDetails
     ? mapWarehouseDetailsToLayout(warehouseDetails)
     : undefined;
-  const warehouseName = warehouseDetails?.code || "BODEGA";
+  const warehouseName =
+    GetWarehouseDetails.data?.code ??
+    "BODEGA";
 
   const sectionCode = GetSectionDetails.data?.section_code ?? undefined;
   const sectionWidth = GetSectionDetails.data?.capacity?.width ?? 0.0;
