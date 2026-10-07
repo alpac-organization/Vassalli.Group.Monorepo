@@ -5,10 +5,20 @@ export type OperationalOrderEnumType = EnumType & {
 };
 
 export const OperationalOrderStatusEnum = {
-  PendingDocument: {
+    Completed: {
     value: 1,
+    label: "Completado",
+    textValue: "Completed",
+  },
+  PendingDocument: {
+    value: 2,
     label: "Documento Pendiente",
     textValue: "PendingDocument",
+  },
+  Assignment: {
+    value: 3,
+    label: "Asignación",
+    textValue: "Assignment",
   },
 } as const satisfies Record<string, OperationalOrderEnumType>;
 

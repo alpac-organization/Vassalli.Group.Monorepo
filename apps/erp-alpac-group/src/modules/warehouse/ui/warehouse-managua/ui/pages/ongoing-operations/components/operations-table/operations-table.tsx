@@ -23,6 +23,7 @@ export function OperationsTable({
   onViewDetail,
   onUpdateInfo,
 }: OperationsTableProps) {
+  
   const columns = useMemo(
     () =>
       getOperationsColumns({
