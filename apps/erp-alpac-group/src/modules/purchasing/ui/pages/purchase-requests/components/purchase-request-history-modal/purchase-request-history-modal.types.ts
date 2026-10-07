@@ -9,4 +9,5 @@ export interface PurchaseRequestHistoryModalProps {
 
 export type HistoryModalProps = Omit<PurchaseRequestHistoryModalProps, "history">  & {
 	children?: ReactNode;
+	isEmpty: boolean;
 }

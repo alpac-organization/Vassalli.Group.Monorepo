@@ -1,4 +1,4 @@
-import type { DetailFieldProps } from "./detail-field.types";
+import type { DetailFieldProps } from "@app/shared/components/detail-field/detail-field.types";
 
 export const DetailField = ({
    label,
@@ -6,11 +6,11 @@ export const DetailField = ({
    containerClass,
    icon
 }: DetailFieldProps) => (
-   <div className={`flex flex-col gap-1 ${containerClass}`}>
+   <div className={`flex w-full max-w-full min-w-0 flex-col gap-1 ${containerClass ?? ""}`}>
       <span className="text-[12px]! font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
          {label}
       </span>
-      <div className="flex items-center">
+      <div className="flex w-full min-w-0 max-w-full items-start overflow-hidden">
 
          {
             !!icon &&
@@ -19,7 +19,7 @@ export const DetailField = ({
                </span>
             }
          {typeof value === "string" || value == null ? (
-            <span className="text-[15px] font-semibold text-slate-800 dark:text-slate-100">
+            <span className="min-w-0 flex-1 overflow-hidden break-all whitespace-normal text-[15px] font-semibold text-slate-800 dark:text-slate-100">
                {(typeof value === "string" ? value?.trim() : "") || "—"}
             </span>
          ) : (

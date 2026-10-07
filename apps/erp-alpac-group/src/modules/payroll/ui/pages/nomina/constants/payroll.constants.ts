@@ -7,7 +7,6 @@ export const VIGILANCIA_EMPRESARIAL_SA_COMPANY_NAME =
 export const ALPAC_COMPANY_NAME = "Almacenadora del Pacífico, S.A";
 export const ALPAC_CORINTO_NAME = "Almacenadora del Pacífico Corinto";
 
-/** Sucursales con firmas distintas a las de la empresa (login). */
 export const BRANCH_SIGNATURE_KEYS: Record<string, string> = {
   [ALPAC_CORINTO_NAME]: ALPAC_CORINTO_NAME,
 };

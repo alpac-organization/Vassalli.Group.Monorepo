@@ -143,10 +143,6 @@ export function PurchaseRequestConsolidatedPDF({
 									Solicitado: {formatDate(data.request_date ?? "")}
 								</Text>
 								<View style={styles.authLine} />
-								<Text style={styles.metaLine}>
-									Modificado: {formatDate(data.request_date ?? "")}
-								</Text>
-								<View style={styles.authLine} />
 							</View>
 							<View style={styles.metaRight}>
 								<Text style={styles.authLabel}>
@@ -169,10 +165,6 @@ export function PurchaseRequestConsolidatedPDF({
 										<Text style={styles.receiptDateValue}>
 											{formatDate(data.request_date ?? "")}
 										</Text>
-									</View>
-									<View style={styles.receiptDateLine}>
-										<Text style={styles.receiptLabel}>Hora:</Text>
-										<Text style={styles.receiptDateValue}>{"-"}</Text>
 									</View>
 								</View>
 							</View>
