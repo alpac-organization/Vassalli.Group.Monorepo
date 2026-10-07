@@ -1,50 +1,49 @@
-import type { GetPendingAssignmentsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-pending-assignments";
-import type { CreateWarehouseAssignmentRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/create-warehouse-assignment";
-import type { CreateUnloadingCrewRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/create-unloading-crew";
-import type { CreateUnloadingMachineryRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/create-unloading-machinery";
-import type { CompleteAssignmentRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/complete-assignment";
-import type { GetAssignmentDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-detail";
-import type { GetAssignmentsHistoryRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignments-history";
-import type { GetPendingAssignmentsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-pending-assignments";
-import type { WarehouseAssignmentDetailResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-detail";
-import type { GetMachineryCatalogsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-machinery-catalogs";
+import type { CreateAssignmentRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/create-assignment";
+import type { GetAssignmentsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignments";
+import type { GetAssignmentDetailsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-details";
+import type { UpdateAssignmentRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/update-assignment";
+import type { DeleteAssignmentRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/delete-assignment";
+import type { AssignCollaboratorsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/assign-collaborators";
+import type { AssignMachineryRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/assign-machinery";
+import type { DeleteAssignmentCollaboratorRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/delete-assignment-collaborator";
+import type { DeleteAssignmentMachineryRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/delete-assignment-machinery";
+import type { GetAssignmentCollaboratorsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-collaborators";
+import type { GetAssignmentMachineryRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-machinery";
+
+import type { GetAssignmentsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignments";
+import type { GetAssignmentDetailsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-details";
+import type { GetAssignmentCollaboratorsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-collaborators";
+import type { GetAssignmentMachineryResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-machinery";
 
 export interface IWarehouseAssignmentServices {
-  /** PASO 1 — GET /warehouse-assignments/pending */
-  getPendingAssignments(
-    payload: GetPendingAssignmentsRequest,
-  ): Promise<GetPendingAssignmentsResponse>;
 
-  /** PASO 3 — POST /receptions/{reception_id}/warehouse-assignment */
-  createWarehouseAssignment(
-    payload: CreateWarehouseAssignmentRequest,
-  ): Promise<boolean>;
+  getAssignments(payload: GetAssignmentsRequest): Promise<GetAssignmentsResponse>;
 
-  /** PASO 4 — POST /receptions/{reception_id}/unloading-crew */
-  createUnloadingCrew(payload: CreateUnloadingCrewRequest): Promise<boolean>;
+  getAssignmentDetails(payload: GetAssignmentDetailsRequest): Promise<GetAssignmentDetailsResponse>;
 
-  /** PASO 5 — POST /receptions/{reception_id}/unloading-machinery */
-  createUnloadingMachinery(
-    payload: CreateUnloadingMachineryRequest,
-  ): Promise<boolean>;
+  createAssignment(payload: CreateAssignmentRequest): Promise<void>;
 
-  /** PASO 6 — POST /receptions/{reception_id}/complete-assignment */
-  completeAssignment(payload: CompleteAssignmentRequest): Promise<boolean>;
+  updateAssignment(payload: UpdateAssignmentRequest): Promise<void>;
 
-  /** PASO 7 — GET /warehouse-assignments/{reception_id} */
-  getAssignmentDetail(
-    payload: GetAssignmentDetailRequest,
-  ): Promise<WarehouseAssignmentDetailResponse>;
+  deleteAssignment(payload: DeleteAssignmentRequest): Promise<void>;
 
-  /** PASO 8 — GET /warehouse-assignments */
-  getAssignmentsHistory(
-    payload: GetAssignmentsHistoryRequest,
-  ): Promise<GetPendingAssignmentsResponse>;
+  assignCollaborators(payload: AssignCollaboratorsRequest): Promise<void>;
 
-  /** PASO 2B — GET /machinery-catalogs */
-  getMachineryCatalogs(payload: {
-    company_id: string;
-    module_code: string;
-  }): Promise<GetMachineryCatalogsResponse>;
+  assignMachinery(payload: AssignMachineryRequest): Promise<void>;
+
+  deleteAssignmentCollaborator(
+    payload: DeleteAssignmentCollaboratorRequest,
+  ): Promise<void>;
+
+  deleteAssignmentMachinery(
+    payload: DeleteAssignmentMachineryRequest,
+  ): Promise<void>;
+
+  getAssignmentCollaborators(
+    payload: GetAssignmentCollaboratorsRequest,
+  ): Promise<GetAssignmentCollaboratorsResponse>;
+
+  getAssignmentMachinery(
+    payload: GetAssignmentMachineryRequest,
+  ): Promise<GetAssignmentMachineryResponse>;
 }
-
