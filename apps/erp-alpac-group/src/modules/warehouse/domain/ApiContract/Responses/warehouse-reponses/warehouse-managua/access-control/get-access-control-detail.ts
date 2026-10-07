@@ -39,7 +39,7 @@ export interface ReceptionEntranceDetail {
   seal_number: string;
   container_number: string;
   country_of_origin: string;
-  document_type?: string | number | null;
+  document_type?: DocumentType | number | string | null;
   created_at: string;
   additional_data: string | AdditionalReceptionEntranceData | null;
   custom_branches_information: CustomBranchesInformation;

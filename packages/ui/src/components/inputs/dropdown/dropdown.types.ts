@@ -3,6 +3,7 @@ import type { Dispatch, ReactNode, RefObject, SetStateAction } from "react";
 export interface Option {
   label: string;
   value: string | number;
+  disabled?: boolean;
 }
 
 export type MenuPositionDropdown = {
