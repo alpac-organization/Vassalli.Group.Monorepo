@@ -12,16 +12,14 @@ import Sidebarlayout from "@app/shared/layouts/dashboard-layout/components/Sideb
 import useSessionStorageSidebar from "@app/shared/layouts/dashboard-layout/hooks/useSessionStorageSidebar";
 
 import type { SidebarLink } from "./components/Sidebar/types/sidebar.types";
-import { isRouteAuthorized } from "./utils/route-authorization.utils";
+import { isRouteAuthorized, getAuthorizedPaths } from "./utils/route-authorization.utils";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import { routeConfig } from "@app/routers/routes/route-config";
 
 const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
 export const DashboardLayout = () => {
    const [showModal, setShowModal] = useState(false);
    const [isLogout, setLogout] = useState(false);
-   const { moduleCode, role } = useUserStore();
    const { isOpenSidebar, setIsOpenSidebar } = useSessionStorageSidebar();
    const { startProcessToCloseSession } = useAuth();
    const location = useLocation();
@@ -30,11 +28,7 @@ export const DashboardLayout = () => {
    const { companyAlias } = useUserStore();
    const { neutralUrlImage } = useCompanyStore();
 
-   const authorizedModules = routeConfig[moduleCode as keyof typeof routeConfig] ?? [];
-
-   const authorizedPaths: SidebarLink[] =
-      (authorizedModules[role as keyof typeof authorizedModules] ?? []) as SidebarLink[];
-
+   const authorizedPaths: SidebarLink[] = getAuthorizedPaths();
    const isAuthorizedPath = isRouteAuthorized(location.pathname, authorizedPaths);
 
    const handleLogout = async function () {

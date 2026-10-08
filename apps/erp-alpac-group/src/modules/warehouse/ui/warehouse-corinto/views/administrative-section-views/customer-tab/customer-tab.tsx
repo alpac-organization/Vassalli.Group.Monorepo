@@ -1,11 +1,11 @@
 import { Button } from "@alpac/design-system";
 import { UserRoundPlusIcon } from "lucide-react";
 import { useCallback, useState } from "react";
-import type { CustomerTabProps } from "./customer-tab.types";
-import { CustomerModal } from "./components/customer-modal/customer-modal";
+import type { CustomerTabProps } from "@app/modules/warehouse/ui/warehouse-corinto/views/administrative-section-views/customer-tab/customer-tab.types";
+import { CustomerModal } from "@app/modules/warehouse/ui/warehouse-corinto/views/administrative-section-views/customer-tab/components/customer-modal/customer-modal";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { useCustomer } from "@app/modules/warehouse/ui/hooks/useCustomer";
-import { CustomerTable } from "./components/customer-table/customer-table";
+import { useCustomer } from "@app/modules/customer/ui/hooks/useCustomer";
+import { CustomerTable } from "@app/modules/warehouse/ui/warehouse-corinto/views/administrative-section-views/customer-tab/components/customer-table/customer-table";
 
 export const CustomerTab = ({ }: CustomerTabProps) => {
 

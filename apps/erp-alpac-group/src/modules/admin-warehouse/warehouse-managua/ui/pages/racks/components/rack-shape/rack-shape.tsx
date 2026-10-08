@@ -1,10 +1,12 @@
 import { Group, Label, Rect, Tag, Text } from "react-konva";
 import { RACK_STATUS_COLORS, resolveRackStatus } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
+import { PositionShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/position-shape/position-shape";
 import type { RackShapeProps } from "./rack-shape.types";
 import { DEFAULT_PIXELS_PER_METER } from "../../utils/style.racks";
 
 export const RackShape = ({
   rack,
+  positions = [],
   selected = false,
   pixelsPerMeter = DEFAULT_PIXELS_PER_METER,
   isVertical = true,
@@ -66,6 +68,14 @@ export const RackShape = ({
         shadowBlur={selected ? 8 : 0}
         shadowOpacity={0.8}
       />
+      <PositionShape
+        positions={positions}
+        containerWidthM={isRotated90 ? (rawWidth > 0 ? rawWidth : 1.07) : (rawLength > 0 ? rawLength : 2.44)}
+        containerLengthM={isRotated90 ? (rawLength > 0 ? rawLength : 2.44) : (rawWidth > 0 ? rawWidth : 1.07)}
+        pixelsPerMeter={pixelsPerMeter}
+        layout="rack"
+        levels={null}
+      />
       <Text
         text={labelText}
         width={rectWidth}
@@ -77,7 +87,7 @@ export const RackShape = ({
         fontStyle="bold"
         fontSize={Math.min(8.5, Math.max(6.5, Math.min(rectWidth, rectHeight) / 1.7))}
         listening={false}
-      />    
+      />
       {selected && (
         <Label x={rectWidth + 6} y={Math.max(0, (rectHeight + 6) / 2)}>
           <Tag fill="#0f172a" cornerRadius={4} />

@@ -1,25 +1,15 @@
 import { useState } from "react";
-import { Button, Dropdown, InputText, type Option } from "@alpac/design-system";
-import { OperationalOrderStatusOptions } from "@app/modules/warehouse/domain/enums/warehouse-managua/operational-order-status.enum";
+import { Button, InputText } from "@alpac/design-system";
 import {
-	dropdownClassName,
 	inputClassName,
 	labelClassName,
-} from "../../utils/styles";
-import type { OngoingOperationsFilters } from "../../types/ongoing-operations.types";
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/utils/styles";
+import type { OngoingOperationsFilters } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/types/ongoing-operations.types";
 
 interface OperationsFiltersProps {
 	onApply: (filters: OngoingOperationsFilters) => void;
 	onClear: () => void;
 }
-
-const statusOptions: Option[] = [
-	{ value: "", label: "Todos los estados" },
-	...OperationalOrderStatusOptions.map((opt) => ({
-		value: String(opt.value || opt.label),
-		label: opt.label,
-	})),
-];
 
 export function OperationsFilters({ onApply, onClear }: OperationsFiltersProps) {
 	const [code, setCode] = useState("");
@@ -61,19 +51,6 @@ export function OperationsFilters({ onApply, onClear }: OperationsFiltersProps) 
 						value={code}
 						onChange={(e) => setCode(e.target.value)}
 						className={inputClassName}
-					/>
-				</div>				
-
-				<div className="flex flex-col min-w-0">
-					<Dropdown
-						appearance="dark"
-						label="Estado"
-						labelClassName={labelClassName}
-						placeholder="Seleccionar estado"
-						options={statusOptions}
-						value={status || undefined}
-						onChange={(val) => setStatus(String(val || ""))}
-						className={dropdownClassName}
 					/>
 				</div>
 

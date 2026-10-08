@@ -9,9 +9,4 @@ export interface OngoingOperationsFilters {
 export interface SelectedOperationTarget {
   operation_order_id: string;
   po_code: string;
-  customer_id?: string | null;
-  customer_name?: string | null;
-  customer_cif?: string | null;
-  package_amount?: number | null;
-  merchandise_weight?: number | null;
 }

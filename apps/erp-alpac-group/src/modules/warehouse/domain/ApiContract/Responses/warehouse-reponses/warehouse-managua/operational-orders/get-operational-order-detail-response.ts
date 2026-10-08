@@ -5,47 +5,48 @@ import type {
 	CustomBranchesInformation,
 	ReceptionEntranceDetail,
 	ReceptionTransportEntranceDto,
-} from "../access-control/get-access-control-detail";
+} from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control-detail";
 import type {
 	CostCenterInformation,
 	CustomerInformation,
-} from "./get-operational-orders-response";
+} from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/operational-orders/get-operational-orders-response";
 
 export type { CustomerInformation, CostCenterInformation };
 
 export interface ReceptionEntranceInformation extends ReceptionEntranceDetail {
 	reception_code?: string | null;
-	reception_entrance_id: string;
-	vehicle_plate_number?: string;
+	reception_entrance_id?: string | null;
+	vehicle_plate_number?: string | null;
 	vehicle_exit_time?: string | null;
 	container_exit_time?: string | null;
-	seal_number: string;
-	container_number: string;
-	country_of_origin: string;
+	seal_number?: string | null;
+	container_number?: string | null;
+	country_of_origin?: string | null;
 	document_type?: string | number | null;
-	created_at: string;
-	additional_data: AdditionalReceptionEntranceData | string | null;
-	custom_branches_information: CustomBranchesInformation;
-	reception_transport_entrance_information: ReceptionTransportEntranceDto;
+	created_at?: string | null;
+	additional_data?: AdditionalReceptionEntranceData | string | null;
+	custom_branches_information?: CustomBranchesInformation | null;
+	reception_transport_entrance_information?: ReceptionTransportEntranceDto | null;
 }
 
 export interface GetOperationalOrderDetailResponse {
-	operation_order_id: string;
-	po_code: string | null;
-	status: OperationalOrderStatusType;
-	is_alerted: boolean;
-	description: string | null;
-	policy_number: string | null;
-	document_number: string | null;
-	document_type: DocumentType | number | string | null;
-	weight: number | null;
-	packages_count: number | null;
-	shipping_company: string | null;
-	consignee: string | null;
-	sender: string | null;
-	customer_information: CustomerInformation | null;
-	cost_center_information: CostCenterInformation | null;
-	reception_entrance_information: ReceptionEntranceInformation | null;
+	operation_order_id?: string | null;
+	po_code?: string | null;
+	status?: OperationalOrderStatusType | null;
+	is_alerted?: boolean | null;
+	is_consolidated: boolean | null;
+	description?: string | null;
+	policy_number?: string | null;
+	document_number?: string | null;
+	document_type?: DocumentType | number | string | null;
+	weight?: number | null;
+	packages_count?: number | null;
+	shipping_company?: string | null;
+	consignee?: string | null;
+	sender?: string | null;
+	customer_information?: CustomerInformation | null;
+	cost_center_information?: CostCenterInformation | null;
+	reception_entrance_information?: ReceptionEntranceInformation | null;
 }
 
 /**

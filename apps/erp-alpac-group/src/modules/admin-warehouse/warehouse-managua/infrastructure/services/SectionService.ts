@@ -4,11 +4,13 @@ import type { DeleteSectionRequest } from "@app/modules/admin-warehouse/warehous
 import type { GetSectionDetailsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/get-section-details-req";
 import type { GetSectionsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/get-sections-req";
 import type { RegisterSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/register-section-req";
-import type { RegisterSectionCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/register-section-coordinates-req";
+import type { GetPositionsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/get-positions-req";
+import type { RegisterCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/register-coordinates-req";
 import type { UpdateSectionLayoutRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/update-section-layout-req";
 import type { UpdateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/update-section-req";
 import type { GetSectionDetailsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-section-details-res";
 import type { GetSectionsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
+import type { GetPositionsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-positions-res";
 import { cleanParams } from "@app/shared/utils/object.utils";
 
 export class SectionService implements ISectionService {
@@ -25,7 +27,7 @@ export class SectionService implements ISectionService {
 		await this.apiHandler.post<void>(url, rest);
 	}
 
-	async RegisterSectionCoordinates(payload: RegisterSectionCoordinatesRequest): Promise<void> {
+	async RegisterCoordinates(payload: RegisterCoordinatesRequest): Promise<void> {
 		const { company_id, module_code, warehouse_id, section_id, ...rest } = payload;
 		const url = `/companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections/${section_id}/coordinates`;
 		await this.apiHandler.post<void>(url, rest);
@@ -41,6 +43,12 @@ export class SectionService implements ISectionService {
 		const { company_id, module_code, warehouse_id, section_id } = payload;
 		const url = `/companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections/${section_id}/details`;
 		return await this.apiHandler.get<GetSectionDetailsResponse>(url);
+	}
+
+	async GetPositions(payload: GetPositionsRequest): Promise<GetPositionsResponse> {
+		const { company_id, module_code, warehouse_id, section_id, ...rest } = payload;
+		const url = `/companies/${company_id}/modules/${module_code}/warehouses/${warehouse_id}/sections/${section_id}/positions`;
+		return await this.apiHandler.get<GetPositionsResponse>(url, { params: cleanParams(rest) });
 	}
 
 	async UpdateSection(payload: UpdateSectionRequest): Promise<void> {

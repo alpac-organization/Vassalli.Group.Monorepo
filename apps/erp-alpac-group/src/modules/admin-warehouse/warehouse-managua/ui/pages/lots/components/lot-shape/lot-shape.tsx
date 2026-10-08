@@ -20,6 +20,7 @@ import {
   useShapeLayout,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/utils/warehouse-utils";
 import { ShapeLayoutLabel } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/shape-layout-label/shape-layout-label";
+import { PositionShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/position-shape/position-shape";
 
 export const LotShape = ({
   x,
@@ -31,6 +32,7 @@ export const LotShape = ({
   strokeColor,
   selected = false,
   lot,
+  positions = [],
   draggable,
   resizable,
   onSelect,
@@ -99,6 +101,14 @@ export const LotShape = ({
             onCoordinateChange,
             onResizeChange,
           )}
+        />
+
+        <PositionShape
+          positions={positions}
+          containerWidthM={width}
+          containerLengthM={length}
+          layout="lot"
+          levels={[1]}
         />
 
         {lot.code ? (

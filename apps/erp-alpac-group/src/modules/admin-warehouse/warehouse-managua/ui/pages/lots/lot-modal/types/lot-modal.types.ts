@@ -24,5 +24,6 @@ export type LotFormValues = {
   nominal_columns?: string | number;
   width?: string | number;
   length?: string | number;
+  allows_stacking: boolean;
   disperse_axis: DispersionAxis;
 };

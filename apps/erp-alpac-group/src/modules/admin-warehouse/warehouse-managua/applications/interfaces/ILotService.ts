@@ -9,12 +9,15 @@ import type { GetLotCoordinatesRequest } from "@app/modules/admin-warehouse/ware
 import type { LotCoordinatesResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-coordinates-res";
 import type { RegisterLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/register-lot-coordinates-req";
 import type { UpdateLotCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/update-lot-coordinates-req";
+import type { UpdateLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/update-lot-req";
 
 export interface ILotService {
   
   GetLots(payload: GetLotsRequest): Promise<GetLotsResponse>;
 
   RegisterLot(payload: RegisterLotRequest): Promise<void>;
+
+  UpdateLot(payload: UpdateLotRequest): Promise<void>;
 
   GetLotCapacities(payload: GetLotCapacitiesRequest): Promise<LotCapacitiesResponse>;
 

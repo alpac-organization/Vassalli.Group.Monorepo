@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Building2, ChevronRight, Layers } from "lucide-react";
 import { LegendItem } from "@app/shared/components/legend-item/legend-item";
 import { RACK_STATUS_LEGEND } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
@@ -9,6 +10,8 @@ import type { RackDto } from "@app/modules/admin-warehouse/warehouse-managua/dom
 import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import { WarehouseShape } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/warehouse-shape/warehouse-shape";
 import { createMockGaleron } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/galeron-shape/galeron-shape.types";
+import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 export const RackViewer = ({
 	className = "",
@@ -23,6 +26,35 @@ export const RackViewer = ({
 	sectionPositionY = 0,
 	onSelectRack,
 }: RackViewerProps) => {
+	const { warehouseId = "", sectionId = "" } = useParams<{
+		warehouseId: string;
+		sectionId: string;
+	}>();
+	const { companyId, moduleCode } = useUserStore();
+	const resolvedWarehouseId = warehouse?.warehouse_id ?? warehouseId;
+
+	const { GetPositionsQuery } = useSection({
+		getPositionsPayload:
+			companyId && moduleCode && resolvedWarehouseId && sectionId
+				? {
+						company_id: companyId,
+						module_code: moduleCode,
+						warehouse_id: resolvedWarehouseId,
+						section_id: sectionId,
+					}
+				: undefined,
+	});
+
+	const positionsByRackId = useMemo(() => {
+		const map = new Map<
+			string,
+			NonNullable<typeof GetPositionsQuery.data>["blocks"][number]["positions"]
+		>();
+		for (const block of GetPositionsQuery.data?.blocks ?? []) {
+			map.set(block.id, block.positions);
+		}
+		return map;
+	}, [GetPositionsQuery.data]);
 
 	const [internalSelectedId, setInternalSelectedId] = useState<string | null>(null);
 	const activeSelectedId = selectedRackId ?? internalSelectedId;
@@ -154,6 +186,7 @@ export const RackViewer = ({
 							<RackShape
 								key={currentId}
 								rack={rack}
+								positions={positionsByRackId.get(currentId) ?? []}
 								selected={activeSelectedId === currentId}
 								pixelsPerMeter={PIXELS_PER_METER}
 								canvasWidth={sectionWidth}

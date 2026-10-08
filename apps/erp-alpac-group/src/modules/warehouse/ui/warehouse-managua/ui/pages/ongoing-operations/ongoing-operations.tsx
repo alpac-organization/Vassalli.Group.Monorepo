@@ -3,15 +3,15 @@ import { useCallback, useState } from "react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useOperationalOrders } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useOperationalOrders";
-import { OperationsHeader } from "./components/operations-header/operations-header";
-import { OperationsFilters } from "./components/operations-filters/operations-filters";
-import { OperationsTable } from "./components/operations-table/operations-table";
-import { OperationalOrderDetailModal } from "./components/operational-order-detail-modal/operational-order-detail-modal";
-import { UpdateReceptionInformationModal } from "./components/update-reception-info-modal/update-reception-info-modal";
+import { OperationsHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/operations-header/operations-header";
+import { OperationsFilters } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/operations-filters/operations-filters";
+import { OperationsTable } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/operations-table/operations-table";
+import { OperationalOrderDetailModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/operational-order-detail-modal/operational-order-detail-modal";
+import { UpdateReceptionInformationModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/update-reception-info-modal/update-reception-info-modal";
 import type {
 	OngoingOperationsFilters,
 	SelectedOperationTarget,
-} from "./types/ongoing-operations.types";
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/types/ongoing-operations.types";
 import type { OperationalOrderListItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/operational-orders/get-operational-orders-response";
 import { OperationalOrderStatusEnum } from "@app/modules/warehouse/domain/enums/warehouse-managua/operational-order-status.enum";
 
@@ -110,11 +110,6 @@ export function OngoingOperationsPage() {
 				onClose={() => setUpdateTarget(null)}
 				orderId={updateTarget?.operation_order_id ?? null}
 				poCode={updateTarget?.po_code}
-				initialData={{
-					customerId: updateTarget?.customer_id,
-					packageAmount: updateTarget?.package_amount,
-					merchandiseWeight: updateTarget?.merchandise_weight,
-				}}
 				onSuccess={() => {
 					refetch();
 				}}
