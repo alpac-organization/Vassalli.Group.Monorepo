@@ -98,9 +98,10 @@ export const purchaseRequestPdfStyle = StyleSheet.create({
 	center: {
 		textAlign: "center",
 	},
-	colQty: { width: "15%" },
-	colDesc: { width: "42.5%" },
-	colJust: { width: "42.5%" },
+	colQty: { width: "12%" },
+	colProduct: { width: "28%" },
+	colDesc: { width: "30%" },
+	colJust: { width: "30%" },
 	footerBox: {
 		borderWidth: 1,
 		borderColor: "#000",
@@ -118,6 +119,15 @@ export const purchaseRequestPdfStyle = StyleSheet.create({
 	metaRight: {
 		width: "42%",
 		paddingTop: 0,
+		position: "relative",
+	},
+	authorizationSeal: {
+		position: "absolute",
+		width: 80,
+		height: 80,
+		objectFit: "contain",
+		right: 8,
+		top: 18,
 	},
 	metaLine: {
 		fontSize: 10,

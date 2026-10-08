@@ -6,7 +6,10 @@ export type LocationCode = string;
 
 export type TramoProps = "floor" | "rack";
 
-export type CameraProps = "isometric" | "reset";
+export type CameraProps = "isometric" | "top" | "front" | "side" | "default" | "reset";
+
+export type ViewerLayer = "warehouse" | "sections" | "racks" | "tramos" | "cargo";
+export type LayerFilterMode = "all" | "warehouse" | "sections" | "racks" | "tramos";
 
 export interface Vec3 {
   x: number;

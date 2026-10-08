@@ -9,13 +9,13 @@ import { CustomerTable } from "./components/customer-table/customer-table";
 
 export const CustomerTab = ({ }: CustomerTabProps) => {
 
-	const { companyId } = useUserStore();
+	const { companyId, moduleCode } = useUserStore();
 
 	const { GetCustomer } = useCustomer();
 
 	const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
 
-	const { data } = GetCustomer({ company_id: companyId });
+	const { data } = GetCustomer({ company_id: companyId, module_code: moduleCode });
 
 	const handleCreateCustomer = useCallback(() => {
 		setIsCustomerModalOpen(true);

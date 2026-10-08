@@ -5,7 +5,9 @@ import {
    Dropdown,
    InputText,
    Modal,
+   Tabs,
    Textarea,
+   type TabItem,
 } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
 import { IdentificationEnum, IdentificationOptions } from "@app/core/enums/identification.enum";
@@ -28,7 +30,7 @@ import type { SupplierDetailsInformation } from "@app/modules/purchasing/domain/
 import { useFieldTracker } from "@app/shared/hooks/useFieldTracker";
 import { isValidateValue } from "@app/shared/utils/values.utils";
 import { Loader } from "@app/shared/components/loaders/loader";
-import { PaymentMethodOptions } from "@app/core/enums/payment-method.enum";
+import { PaymentMethodOptions, type PaymentMethodType } from "@app/core/enums/payment-method.enum";
 import { BankAccountList } from "../bank-account-list/bank-account-list";
 import type {
    CreateSupplierBankAccountPayload,
@@ -174,7 +176,7 @@ export const SupplierModal = ({
          company_id: companyId,
          module_code: moduleCode,
          supplier_id: selectedSupplier.supplier_id,
-         suppliers_legal_name: supplierDetails.suppliers_legal_name ?? supplierDetails.supplier_legal_name,
+         suppliers_legal_name: supplierDetails.supplier_legal_name ?? "-",
          commercial_name: supplierDetails.commercial_name ?? undefined,
          supplier_details: {
             address: details?.address ?? undefined,
@@ -625,7 +627,7 @@ export const SupplierModal = ({
 
       reset({
          suppliers_legal_name:
-            supplierDetails.suppliers_legal_name ?? supplierDetails.supplier_legal_name ?? "",
+            supplierDetails.supplier_legal_name ?? "-",
          commercial_name: supplierDetails.commercial_name ?? "",
          constitution_type: constitutionTypeValue,
          identification_type: identificationTypeValue,
@@ -690,60 +692,21 @@ export const SupplierModal = ({
             <Loader title="Cargando detalle del proveedor..." />
          )}
 
-         {/* Navigation tabs */}
-         <div className="flex border-b border-slate-200 dark:border-neutral-700 mb-6 gap-2">
-            <button
-               type="button"
-               onClick={() => setActiveTab("general")}
-               className={`pb-3 px-4 text-sm font-medium transition-colors border-b-2 cursor-pointer flex items-center gap-2 ${
-                  activeTab === "general"
-                     ? "border-alpac-primary-500 text-alpac-primary-500 font-semibold"
-                     : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
-               }`}
-            >
-               <span>Datos Generales</span>
-               {hasGeneralErrors && (
-                  <span className="w-2 h-2 rounded-full bg-red-500" />
-               )}
-            </button>
-
-            <button
-               type="button"
-               onClick={() => setActiveTab("commercial")}
-               className={`pb-3 px-4 text-sm font-medium transition-colors border-b-2 cursor-pointer flex items-center gap-2 ${
-                  activeTab === "commercial"
-                     ? "border-alpac-primary-500 text-alpac-primary-500 font-semibold"
-                     : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
-               }`}
-            >
-               <span>Condiciones y Régimen Fiscal</span>
-               {hasCommercialErrors && (
-                  <span className="w-2 h-2 rounded-full bg-red-500" />
-               )}
-            </button>
-
-            <button
-               type="button"
-               onClick={() => setActiveTab("bank_accounts")}
-               className={`pb-3 px-4 text-sm font-medium transition-colors border-b-2 cursor-pointer flex items-center gap-2 ${
-                  activeTab === "bank_accounts"
-                     ? "border-alpac-primary-500 text-alpac-primary-500 font-semibold"
-                     : "border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
-               }`}
-            >
-               <span>Cuentas Bancarias</span>
-               <span className="text-xs px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-neutral-700 text-slate-700 dark:text-slate-300">
-                  {currentBankAccounts.length}
-               </span>
-            </button>
-         </div>
-
          <form
             className="flex min-w-0 flex-col gap-6"
             onSubmit={handleSubmit(handleSupplier)}
          >
-            {/* TAB 1: GENERAL & CONTACT */}
-            <div className={activeTab === "general" ? "flex flex-col gap-6" : "hidden"}>
+            <Tabs
+               key={isOpen ? "open" : "closed"}
+               tabItems={
+                  [
+                     {
+                        id: "general",
+                        label: hasGeneralErrors
+                           ? "Datos Generales (!)"
+                           : "Datos Generales",
+                        render: () => (
+                           <div className="flex flex-col gap-6">
                <div>
                   <h4 className="text-sm font-semibold text-slate-800 dark:text-white mb-4">
                      Identificación Legal y Comercial
@@ -1000,10 +963,16 @@ export const SupplierModal = ({
                      </div>
                   </div>
                </div>
-            </div>
-
-            {/* TAB 2: COMMERCIAL & TAX CONDITIONS */}
-            <div className={activeTab === "commercial" ? "flex flex-col gap-6" : "hidden"}>
+                           </div>
+                        ),
+                     },
+                     {
+                        id: "commercial",
+                        label: hasCommercialErrors
+                           ? "Condiciones y Régimen Fiscal (!)"
+                           : "Condiciones y Régimen Fiscal",
+                        render: () => (
+                           <div className="flex flex-col gap-6">
                {/* Financial and credit conditions */}
                <div>
                   <h4 className="text-sm font-semibold text-slate-800 dark:text-white mb-4">
@@ -1023,7 +992,10 @@ export const SupplierModal = ({
                                  value={field.value}
                                  onChange={(val) => {
                                     field.onChange(val);
-                                    trackDetailField("preferred_payment_method", val as string);
+                                    trackDetailField(
+                                       "preferred_payment_method",
+                                       val as PaymentMethodType,
+                                    );
                                  }}
                                  appearance="dark"
                                  className={dropdownClassName}
@@ -1245,10 +1217,14 @@ export const SupplierModal = ({
                      )}
                   </div>
                </div>
-            </div>
-
-            {/* TAB 3: BANK ACCOUNTS */}
-            <div className={activeTab === "bank_accounts" ? "flex min-w-0 flex-col gap-4" : "hidden"}>
+                           </div>
+                        ),
+                     },
+                     {
+                        id: "bank_accounts",
+                        label: `Cuentas Bancarias (${currentBankAccounts.length})`,
+                        render: () => (
+                           <div className="flex min-w-0 flex-col gap-4">
                <BankAccountList
                   accounts={currentBankAccounts}
                   onAddAccount={isEditMode ? handleAddApiAccount : handleAddLocalAccount}
@@ -1261,7 +1237,15 @@ export const SupplierModal = ({
                      DeleteBankAccount.isPending
                   }
                />
-            </div>
+                           </div>
+                        ),
+                     },
+                  ] as TabItem<string>[]
+               }
+               activeTab={activeTab}
+               animation="slide"
+               onTabChange={(id) => setActiveTab(id as TabType)}
+            />
 
             {/* Modal action buttons */}
             <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6 pt-4" />
@@ -1287,3 +1271,4 @@ export const SupplierModal = ({
       </Modal>
    );
 };
+

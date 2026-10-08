@@ -1,4 +1,4 @@
-import { forwardRef, useId, useState } from "react";
+import { forwardRef, useId } from "react";
 
 import type { TextareaProps } from "./textarea.types";
 
@@ -10,7 +10,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 
       const generatedId = useId();
       const textareaId = idProp ?? generatedId;
-      const [count, setCount] = useState<number>(0);
+      const valueLength = String(rest.value ?? "").length;
 
       return (
          <div className="flex w-full max-w-full flex-col gap-1.5 box-border">
@@ -33,7 +33,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                {...rest}
                id={textareaId}
                className={`
-                  w-full box-border rounded-[10px] border bg-white py-2.5 px-4 text-[14px] outline-none transition-all
+                  w-full box-border rounded-[10px] border bg-white py-2.5 px-4 text-[14px] outline-none transition-all resize-none
                   placeholder:text-slate-500 md:text-[15px]
                   focus:border-blue-600 focus:ring-2 focus:ring-green-50/50
                   disabled:cursor-not-allowed disabled:bg-slate-50
@@ -41,16 +41,12 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                   ${error ? "border-red-400 ring-red-50" : "border-slate-200 hover:border-blue-300 dark:border-slate-600 dark:hover:border-neutral-600"}
                   ${className ?? ""}               
                `}
-               onChange={(event) => {
-                  setCount(event.target.value.length);
-                  rest.onChange?.(event);
-               }}
                maxLength={maxLength}
             />
             <div className="flex flex-row gap-4 items-center">
                {enableCharacterCount ? (
                   <span className="ml-1 mt-0.5 text-xs font-medium text-white dark:text-gray-400">
-                     Carácteres restantes {maxLength - count} / {maxLength} {error ? ":" : ""}
+                     Carácteres restantes {maxLength - valueLength} / {maxLength} {error ? ":" : ""}
                   </span>
                ) : null}
                {error ? (

@@ -2,14 +2,13 @@ import { useLayoutEffect, useMemo } from "react";
 import { useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
-import type { WarehouseLayout } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/bodega/types/warehouse-3d.types";
+import type { BuildingDimensions3D } from "../../hooks/use-warehouse-3d-data";
 import forkliftUrl from "@app/assets/warehouse/forklift.glb?url";
 
 interface AisleForkliftsProps {
-  layout: WarehouseLayout;
+  building: BuildingDimensions3D;
 }
 
-/** Same footprint as the first aisle placement (meters). */
 const FORKLIFT_LENGTH = 2.85;
 const FORKLIFT_WIDTH = 1.25;
 const FORKLIFT_HEIGHT = 2.15;
@@ -19,29 +18,6 @@ type ForkliftPose = {
   z: number;
   yaw: number;
 };
-
-/** Same aisle coordinates as the original InstancedMesh placement. */
-function buildForkliftPoses(layout: WarehouseLayout): ForkliftPose[] {
-  const { wallClearance, aisleWidth, depth, sideTramoWidth, centerBlockWidth } =
-    layout.building;
-
-  const aisle1X = wallClearance + sideTramoWidth + aisleWidth / 2;
-  const aisle2X =
-    wallClearance +
-    sideTramoWidth +
-    aisleWidth +
-    centerBlockWidth +
-    aisleWidth / 2;
-
-  const usableDepth = depth - wallClearance * 2;
-  const zSouth = wallClearance + usableDepth * 0.28;
-  const zNorth = wallClearance + usableDepth * 0.68;
-
-  return [
-    { x: aisle1X, z: zSouth, yaw: 0 },
-    { x: aisle2X, z: zNorth, yaw: Math.PI },
-  ];
-}
 
 function deepCloneScene(source: THREE.Object3D): THREE.Object3D {
   const root = source.clone(true);
@@ -80,7 +56,7 @@ function applyRealisticForkliftMaterials(root: THREE.Object3D) {
       mat.toneMapped = true;
 
       if (name.includes("002") || lum < 0.08) {
-        // Tires — slate (readable on dark floor, matches rack posts)
+        // Ruedas — color pizarra
         mat.color.set("#64748b");
         mat.emissive.set("#334155");
         mat.emissiveIntensity = 0.18;
@@ -90,21 +66,14 @@ function applyRealisticForkliftMaterials(root: THREE.Object3D) {
         name.includes("014") ||
         (mat.color.r > 0.45 && mat.color.g > 0.25 && mat.color.b < 0.2)
       ) {
-        // Body — safety yellow
+        // Carrocería — amarillo de seguridad
         mat.color.set("#f5c518");
         mat.emissive.set("#a16207");
         mat.emissiveIntensity = 0.28;
         mat.roughness = 0.42;
         mat.metalness = 0.22;
-      } else if (name.includes("003") || lum < 0.2) {
-        // Mast / cage / dark trim — same slate as rack posts
-        mat.color.set("#94a3b8");
-        mat.emissive.set("#475569");
-        mat.emissiveIntensity = 0.14;
-        mat.roughness = 0.45;
-        mat.metalness = 0.5;
       } else {
-        // Steel mast / forks — slate like rack uprights (#94a3b8)
+        // Mástil y horquillas de acero — color a juego con los postes de los racks
         mat.color.set("#94a3b8");
         mat.emissive.set("#475569");
         mat.emissiveIntensity = 0.14;
@@ -117,10 +86,6 @@ function applyRealisticForkliftMaterials(root: THREE.Object3D) {
   });
 }
 
-/**
- * Returns a Group whose local origin is on the floor at the model center.
- * Outer placement must set the Group position — never overwrite inner offsets.
- */
 function buildPreparedForklift(scene: THREE.Object3D): THREE.Group {
   const model = deepCloneScene(scene);
   applyRealisticForkliftMaterials(model);
@@ -133,7 +98,7 @@ function buildPreparedForklift(scene: THREE.Object3D): THREE.Group {
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
 
-  // Center on XZ and put wheels on y = 0 (local)
+  // Centrar en XZ y apoyar ruedas en Y=0
   model.position.x -= center.x;
   model.position.z -= center.z;
   model.position.y -= box.min.y;
@@ -145,7 +110,6 @@ function buildPreparedForklift(scene: THREE.Object3D): THREE.Group {
   );
   wrapper.scale.setScalar(s);
 
-  // Re-ground after scale (scale is on wrapper, so adjust model.y)
   wrapper.updateWorldMatrix(true, true);
   const box2 = new THREE.Box3().setFromObject(wrapper);
   model.position.y -= box2.min.y / s;
@@ -153,15 +117,22 @@ function buildPreparedForklift(scene: THREE.Object3D): THREE.Group {
   return wrapper;
 }
 
-export function AisleForklifts({ layout }: AisleForkliftsProps) {
+export function AisleForklifts({ building }: AisleForkliftsProps) {
   const { scene } = useGLTF(forkliftUrl);
   const invalidate = useThree((s) => s.invalidate);
-  const poses = useMemo(() => buildForkliftPoses(layout), [layout]);
+
+  const poses: ForkliftPose[] = useMemo(() => {
+    const aisleX = building.width / 2;
+    return [
+      { x: aisleX - 0.4, z: building.depth * 0.35, yaw: 0 },
+      { x: aisleX + 0.4, z: building.depth * 0.65, yaw: Math.PI },
+    ];
+  }, [building]);
 
   const template = useMemo(() => buildPreparedForklift(scene), [scene]);
 
   const instances = useMemo(
-    () => poses.map((pose) => template.clone(true)),
+    () => poses.map(() => template.clone(true)),
     [template, poses],
   );
 

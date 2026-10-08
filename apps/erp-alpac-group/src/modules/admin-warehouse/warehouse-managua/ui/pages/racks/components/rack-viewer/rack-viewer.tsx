@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Building2, ChevronRight, Layers } from "lucide-react";
 import { LegendItem } from "@app/shared/components/legend-item/legend-item";
 import { RACK_STATUS_LEGEND } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
@@ -28,29 +28,29 @@ export const RackViewer = ({
 	const activeSelectedId = selectedRackId ?? internalSelectedId;
 	const [activeLevelFilter, setActiveLevelFilter] = useState<number | null>(null);
 
+	// Keep the selected level only while it is available in the current rack data.
 	const availableLevels = useMemo(() => {
 		const set = new Set(racks.map((r) => r.level_number).filter(Boolean));
 		return Array.from(set).sort((a, b) => a - b);
 	}, [racks]);
 
-	useEffect(() => {
-		if (activeLevelFilter !== null && !availableLevels.includes(activeLevelFilter)) {
-			setActiveLevelFilter(null);
-		}
-	}, [availableLevels, activeLevelFilter]);
+	const effectiveLevelFilter =
+		activeLevelFilter !== null && availableLevels.includes(activeLevelFilter)
+			? activeLevelFilter
+			: null;
 
 	const displayedRacks = useMemo(() => {
-		if (activeLevelFilter == null) return racks;
-		return racks.filter((r) => r.level_number === activeLevelFilter);
-	}, [racks, activeLevelFilter]);
+		if (effectiveLevelFilter === null) {
+			return racks;
+		}
+		return racks.filter((r) => r.level_number === effectiveLevelFilter);
+	}, [racks, effectiveLevelFilter]);
 
 	const handleSelect = (rack: RackDto) => {
 		const id = rack.rack_id || null;
 		setInternalSelectedId(id);
 		onSelectRack?.(rack);
 	};
-
-
 
 	const warehouseWidth = warehouse?.width ?? 0;
 	const warehouseLength = warehouse?.length ?? 0;
@@ -77,7 +77,7 @@ export const RackViewer = ({
 						<button
 							type="button"
 							onClick={() => setActiveLevelFilter(null)}
-							className={`px-2.5 py-0.5 rounded text-xs font-medium transition-colors ${activeLevelFilter === null
+							className={`px-2.5 py-0.5 rounded text-xs font-medium transition-colors ${effectiveLevelFilter === null
 									? "bg-alpac-primary-500! text-white!"
 									: "bg-slate-700 text-slate-300 hover:bg-slate-600"
 								}`}
@@ -89,7 +89,7 @@ export const RackViewer = ({
 								key={lvl}
 								type="button"
 								onClick={() => setActiveLevelFilter(lvl)}
-								className={`px-2.5 py-0.5 rounded text-xs font-medium transition-colors ${activeLevelFilter === lvl
+								className={`px-2.5 py-0.5 rounded text-xs font-medium transition-colors ${effectiveLevelFilter === lvl
 										? "bg-alpac-primary-500! text-white!"
 										: "bg-slate-700 text-slate-300 hover:bg-slate-600"
 									}`}
@@ -122,7 +122,6 @@ export const RackViewer = ({
 
 					</nav>
 				}
-				draggable
 				width={warehouseWidth}
 				length={warehouseLength}
 				galerons={
@@ -135,9 +134,9 @@ export const RackViewer = ({
 				marginLeft={margins.left}
 				marginRight={margins.right}
 			>
-				{/* Única sección visualizada dentro de la bodega: la sección activa seleccionada */}
+				{/* Render only the active section because this view belongs to one section. */}
 				<Group x={secX} y={secY}>
-					{/* Fondo y borde perimetral de la sección */}
+					{/* Section boundary provides context for the rack positions. */}
 					<Rect
 						width={secWidthPx}
 						height={secLengthPx}
@@ -147,7 +146,7 @@ export const RackViewer = ({
 						cornerRadius={1}
 					/>
 
-					{/* Racks dentro de la sección activa */}
+					{/* Racks are filtered by level before being rendered. */}
 					{displayedRacks.map((rack) => {
 						const currentId = rack.rack_id;
 						const isVertical = (sectionLength || 0) >= (sectionWidth || 0);

@@ -42,7 +42,7 @@ const {
 
 const {
   warehouseManaguaSection,
-  DucaPanel,
+  ongoingOperationsSection,
   warehouseAssignmentSection,
   warehouseListSection,
   BodegaSection,
@@ -105,6 +105,38 @@ export const routeConfig = {
   },
   [ModuleEnum.WAREHOUSE_MANAGUA]: {
     [RoleEnum.OPERATOR]: [
+      warehouseManaguaSection,
+      ongoingOperationsSection,
+      warehouseAssignmentSection,
+      warehouseListSection,
+      BodegaSection,
+      warehouseReportSection,
+    ],
+    [RoleEnum.ADMINISTRATOR]: [
+      warehouseManaguaSection,
+      ongoingOperationsSection,
+      warehouseAssignmentSection,
+      warehouseListSection,
+      BodegaSection,
+      warehouseReportSection,
+    ],
+    [RoleEnum.MANAGER]: [
+      warehouseManaguaSection,
+      ongoingOperationsSection,
+      warehouseAssignmentSection,
+      warehouseListSection,
+      BodegaSection,
+      warehouseReportSection,
+    ],
+    [RoleEnum.SUPERVISOR]: [
+      warehouseManaguaSection,
+      ongoingOperationsSection,
+      warehouseAssignmentSection,
+      warehouseListSection,
+      BodegaSection,
+      warehouseReportSection,
+    ],
+    [RoleEnum.ADMINISTRATOR]: [
       warehouseManaguaSection,
       DucaPanel,
       warehouseAssignmentSection,

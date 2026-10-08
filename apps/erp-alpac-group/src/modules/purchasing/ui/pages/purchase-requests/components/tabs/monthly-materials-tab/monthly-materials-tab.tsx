@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, DataTable, Pagination, type TableColumn } from "@alpac/design-system";
-import { FileTextIcon, PackagePlusIcon } from "lucide-react";
+import { PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
@@ -12,7 +12,6 @@ import { CompanyMatadata, type CompanyType } from "@app/core/enums/company.enum"
 import { PurchaseRequestDetailModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/purchase-request-detail-modal";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import { PurchaseRequestFilters } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-filters/purchase-request-filters";
-import { generateMonthlyStationeryReportMockPdf } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/monthly-stationery-report-pdf/monthly-stationery-report-pdf.generate";
 
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
@@ -40,7 +39,6 @@ export const MonthlyMaterialTab = ({
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-	const [isGeneratingStationeryReport, setIsGeneratingStationeryReport] = useState(false);
 	const [requestDetail, setRequestDetail] = useState<GetPurchaseRequestResponse | null>(null);
 
 	const getDefaultFilters = (): GetPurchaseRequestPayload => ({
@@ -194,17 +192,6 @@ export const MonthlyMaterialTab = ({
 		});
 	};
 
-	const handleGenerateStationeryReport = async () => {
-		setIsGeneratingStationeryReport(true);
-		try {
-			await generateMonthlyStationeryReportMockPdf();
-		} catch {
-			onRequestError("Error al generar el reporte de papelería y útiles.");
-		} finally {
-			setIsGeneratingStationeryReport(false);
-		}
-	};
-
 	const columnConfig: TableColumn<GetPurchaseRequestResponse>[] =
 		getPurchaseRequestColumnConfig(contexMenuOptions, PurchaseRequestEnum.Monthly);
 
@@ -225,17 +212,6 @@ export const MonthlyMaterialTab = ({
 						setRequestDetail(null);
 						setIsModalOpen(true);
 					}}
-				/>
-
-				<Button
-					type="button"
-					size="giant"
-					label="Generar reporte papelería"
-					icon={<FileTextIcon size={20} />}
-					className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-					disabled={isGeneratingStationeryReport}
-					isLoading={isGeneratingStationeryReport}
-					onClick={handleGenerateStationeryReport}
 				/>
 			</div>
 

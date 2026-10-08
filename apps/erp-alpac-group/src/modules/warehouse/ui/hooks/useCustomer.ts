@@ -1,4 +1,4 @@
-import { httpHandler } from "@app/core/adapters";
+import { warehouseHttpHandler } from "@app/core/adapters";
 import { CustomerServices } from "@app/modules/warehouse/infrastructure/services/customer-services/CustomerServices";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { GetCustomerRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/get-customer.request";
@@ -7,9 +7,10 @@ import type { GetCustomerTypeRequest } from "@app/modules/warehouse/domain/ApiCo
 import type { CreateCustomerRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/create-customer.request";
 import type { CreateCustomerTypeRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/customer-requests/create-customer-type.request";
 
-const customerService = new CustomerServices(httpHandler);
+const customerService = new CustomerServices(warehouseHttpHandler);
 
 export const useCustomer = () => {
+
 	const queryClient = useQueryClient();
 
 	const CreateCustomer = useMutation({
@@ -27,7 +28,6 @@ export const useCustomer = () => {
 	});
 
 	const GetCustomer = (payload: GetCustomerRequest, options?: { enabled?: boolean }) => {
-
 		return useQuery({
 			queryKey: ["get-customer-records", payload.company_id],
 			queryFn: () => customerService.GetCustomerRecords(payload),
