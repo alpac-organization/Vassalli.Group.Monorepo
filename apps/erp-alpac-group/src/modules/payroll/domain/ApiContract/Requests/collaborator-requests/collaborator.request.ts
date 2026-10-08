@@ -17,7 +17,7 @@ export interface CollaboratorRequest extends BaseRequest {
    * Id de la sucursal
    * @required
    */
-  branch_id: number;
+  branch_id: number | string;
 
   /**
    * Id del area

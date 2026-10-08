@@ -4,26 +4,28 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
 
 export interface AssignedMachineryPayload {
   concept?: string;
-  machineryId: string;
+  machinery_id: string;
 }
 
 export interface AssignedCollaboratorPayload {
-  collaboratorId: string;
+  collaborator_id: string;
   role: number | AssignmentCollaboratorRole;
 }
 
 export interface CreateAssignmentBody {
-  warehouseId?: string;
+  warehouse_id?: string;
   observations?: string;
   merchandise?: string;
-  merchandiseDescription?: string;
-  destinationType?: DestinationType | number;
-  hasAssignedMachinery?: boolean;
-  hasAssignedCollaborators?: boolean;
-  assignedMachineries?: AssignedMachineryPayload[];
-  assignedCollaborators?: AssignedCollaboratorPayload[];
+  merchandise_description?: string;
+  destination_type?: DestinationType | number;
+  has_assigned_machinery?: boolean;
+  has_assigned_collaborators?: boolean;
+  assigned_machineries?: AssignedMachineryPayload[];
+  assigned_collaborators?: AssignedCollaboratorPayload[];
 }
 
-export interface CreateAssignmentRequest extends CreateAssignmentBody , BaseRequest {
+export interface CreateAssignmentRequest
+  extends CreateAssignmentBody,
+    BaseRequest {
   operational_order_id: string;
 }
