@@ -12,108 +12,108 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { GenerateExitAccessControlRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/access-control/generate-exit";
 
 type UseAccessControlProps = {
-  payloadAccessControl: GetAccessControlRequest;
-  detailPayload?: GetReceptionEntranceDetailRequest | null;
+	payloadAccessControl: GetAccessControlRequest;
+	detailPayload?: GetReceptionEntranceDetailRequest | null;
 };
 
 const warehouseManaguaServices = new AccessControlServices(
-  warehouseHttpHandler,
+	warehouseHttpHandler,
 );
 
 export const useAccessControl = (props: UseAccessControlProps) => {
-  const queryClient = useQueryClient();
-  const { payloadAccessControl, detailPayload } = props;
+	const queryClient = useQueryClient();
+	const { payloadAccessControl, detailPayload } = props;
 
-  const GetAccessControl = useQuery<
-    GetReceptionEntrancesResponse,
-    ApiErrorResponse
-  >({
-    queryKey: ["access-control", payloadAccessControl],
-    queryFn: () =>
-      warehouseManaguaServices.getAccessControl(payloadAccessControl),
-    enabled: Boolean(
-      payloadAccessControl.company_id && payloadAccessControl.module_code,
-    ),
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    retry: 1,
-  });
+	const GetAccessControl = useQuery<
+		GetReceptionEntrancesResponse,
+		ApiErrorResponse
+	>({
+		queryKey: ["access-control", payloadAccessControl],
+		queryFn: () =>
+			warehouseManaguaServices.getAccessControl(payloadAccessControl),
+		enabled: Boolean(
+			payloadAccessControl.company_id && payloadAccessControl.module_code,
+		),
+		staleTime: 1000 * 60 * 5,
+		refetchOnWindowFocus: false,
+		refetchOnMount: false,
+		retry: 1,
+	});
 
-  const GetAccessControlDetail = useQuery<
-    ReceptionEntranceDetail,
-    ApiErrorResponse
-  >({
-    queryKey: ["access-control-detail", detailPayload],
-    queryFn: () =>
-      warehouseManaguaServices.getAccessControlById(detailPayload!),
-    enabled: Boolean(
-      detailPayload?.company_id &&
-      detailPayload?.module_code &&
-      detailPayload?.reception_id,
-    ),
-    staleTime: 1000 * 60 * 2,
-    refetchOnWindowFocus: false,
-    retry: 1,
-  });
+	const GetAccessControlDetail = useQuery<
+		ReceptionEntranceDetail,
+		ApiErrorResponse
+	>({
+		queryKey: ["access-control-detail", detailPayload],
+		queryFn: () =>
+			warehouseManaguaServices.getAccessControlById(detailPayload!),
+		enabled: Boolean(
+			detailPayload?.company_id &&
+			detailPayload?.module_code &&
+			detailPayload?.reception_id,
+		),
+		staleTime: 1000 * 60 * 2,
+		refetchOnWindowFocus: false,
+		retry: 1,
+	});
 
-  const CreateAccessControl = useMutation<
-    void | null,
-    ApiErrorResponse,
-    CreateAccessControlRequest
-  >({
-    mutationFn: (payload) =>
-      warehouseManaguaServices.createAccessControl(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["access-control"] });
-    },
-  });
+	const CreateAccessControl = useMutation<
+		void | null,
+		ApiErrorResponse,
+		CreateAccessControlRequest
+	>({
+		mutationFn: (payload) =>
+			warehouseManaguaServices.createAccessControl(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["access-control"] });
+		},
+	});
 
-  const UpdateAccessControl = useMutation<
-    void | null,
-    ApiErrorResponse,
-    UpdateReceptionEntranceRequest
-  >({
-    mutationFn: (payload) =>
-      warehouseManaguaServices.updateAccessControl(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["access-control"] });
-      queryClient.invalidateQueries({ queryKey: ["access-control-detail"] });
-    },
-  });
+	const UpdateAccessControl = useMutation<
+		void | null,
+		ApiErrorResponse,
+		UpdateReceptionEntranceRequest
+	>({
+		mutationFn: (payload) =>
+			warehouseManaguaServices.updateAccessControl(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["access-control"] });
+			queryClient.invalidateQueries({ queryKey: ["access-control-detail"] });
+		},
+	});
 
-  const AddDucatsToReception = useMutation<
-    void | null,
-    ApiErrorResponse,
-    AddDucatsToReceptionRequest
-  >({
-    mutationFn: (payload) =>
-      warehouseManaguaServices.addDucatsToReception(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["access-control"] });
-      queryClient.invalidateQueries({ queryKey: ["access-control-detail"] });
-    },
-  });
+	const AddDucatsToReception = useMutation<
+		void | null,
+		ApiErrorResponse,
+		AddDucatsToReceptionRequest
+	>({
+		mutationFn: (payload) =>
+			warehouseManaguaServices.addDucatsToReception(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["access-control"] });
+			queryClient.invalidateQueries({ queryKey: ["access-control-detail"] });
+		},
+	});
 
-  const GenerateExitAccessControl = useMutation<
-    void | null,
-    ApiErrorResponse,
-    GenerateExitAccessControlRequest
-  >({
-    mutationFn: (payload) =>
-      warehouseManaguaServices.generateExitAccessControl(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["access-control"] });
-      queryClient.invalidateQueries({ queryKey: ["access-control-detail"] });
-    },
-  });
+	const GenerateExitAccessControl = useMutation<
+		void | null,
+		ApiErrorResponse,
+		GenerateExitAccessControlRequest
+	>({
+		mutationFn: (payload) =>
+			warehouseManaguaServices.generateExitAccessControl(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["access-control"] });
+			queryClient.invalidateQueries({ queryKey: ["access-control-detail"] });
+		},
+	});
 
-  return {
-    GetAccessControl,
-    GetAccessControlDetail,
-    CreateAccessControl,
-    UpdateAccessControl,
-    AddDucatsToReception,
-    GenerateExitAccessControl,
-  };
+	return {
+		GetAccessControl,
+		GetAccessControlDetail,
+		CreateAccessControl,
+		UpdateAccessControl,
+		AddDucatsToReception,
+		GenerateExitAccessControl,
+	};
 };

@@ -8,6 +8,8 @@ import {
   useRef,
   useEffect,
   useCallback,
+  type ReactNode,
+  type KeyboardEvent,
 } from "react";
 
 import { createPortal } from "react-dom";
@@ -56,55 +58,135 @@ function getDropdownAppearance(
   };
 }
 
+const OPTION_DISABLED_CLASS =
+  "cursor-not-allowed text-slate-400 dark:text-slate-300 opacity-80";
+
+function getNextEnabledIndex(
+  options: Option[],
+  currentIndex: number,
+  direction: 1 | -1,
+): number {
+  const length = options.length;
+  if (length === 0) return -1;
+
+  let nextIndex = currentIndex;
+  for (let step = 0; step < length; step++) {
+    nextIndex += direction;
+    if (nextIndex < 0 || nextIndex >= length) return currentIndex;
+    if (!options[nextIndex]?.disabled) return nextIndex;
+  }
+
+  return currentIndex;
+}
+
+function moveActiveIndex(
+  setActiveIndex: HandleDropdownKeyDownProps["setActiveIndex"],
+  options: Option[],
+  direction: 1 | -1,
+  fromIndex?: number,
+) {
+  setActiveIndex((prev) =>
+    getNextEnabledIndex(options, fromIndex ?? prev, direction),
+  );
+}
+
 const keyHandlers = {
-  "Enter": (evt: React.KeyboardEvent<HTMLDivElement>, props: HandleDropdownKeyDownProps) => {
+  Enter: (evt: KeyboardEvent<HTMLDivElement>, props: HandleDropdownKeyDownProps) => {
     evt.preventDefault();
-
     const { isOpen, activeIndex, filteredOptions, handleSelect, setIsOpen } = props;
+    const option = isOpen ? filteredOptions[activeIndex] : undefined;
 
-    if (isOpen && activeIndex >= 0 && filteredOptions[activeIndex]) {
-      handleSelect(filteredOptions[activeIndex].value);
+    if (option) {
+      handleSelect(option.value);
       return;
     }
 
     setIsOpen(!isOpen);
   },
-  "ArrowDown": (evt: React.KeyboardEvent<HTMLDivElement>, props: HandleDropdownKeyDownProps) => {
+  ArrowDown: (evt: KeyboardEvent<HTMLDivElement>, props: HandleDropdownKeyDownProps) => {
     evt.preventDefault();
     const { isOpen, filteredOptions, setIsOpen, setActiveIndex } = props;
     if (!isOpen) setIsOpen(true);
-    else setActiveIndex((prev: number) => prev < filteredOptions.length - 1 ? prev + 1 : prev);
+    moveActiveIndex(setActiveIndex, filteredOptions, 1, isOpen ? undefined : -1);
   },
-  "ArrowUp": (evt: React.KeyboardEvent<HTMLDivElement>, props: HandleDropdownKeyDownProps) => {
+  ArrowUp: (evt: KeyboardEvent<HTMLDivElement>, props: HandleDropdownKeyDownProps) => {
     evt.preventDefault();
-    const { setActiveIndex } = props;
-    setActiveIndex((prev) => (prev > 0 ? prev - 1 : prev));
+    moveActiveIndex(props.setActiveIndex, props.filteredOptions, -1);
   },
-  "Tab": (evt: React.KeyboardEvent<HTMLDivElement>, props: HandleDropdownKeyDownProps) => {
+  Tab: (evt: KeyboardEvent<HTMLDivElement>, props: HandleDropdownKeyDownProps) => {
     evt.preventDefault();
-    const { setIsOpen } = props;
-    setIsOpen(false);
+    props.setIsOpen(false);
   },
-  "Escape": (evt: React.KeyboardEvent<HTMLDivElement>, props: HandleDropdownKeyDownProps) => {
+  Escape: (evt: KeyboardEvent<HTMLDivElement>, props: HandleDropdownKeyDownProps) => {
     evt.preventDefault();
     evt.stopPropagation();
-    const { setIsOpen } = props;
-    setIsOpen(false);
-  }
+    props.setIsOpen(false);
+  },
+};
+
+type DropdownOptionItemProps = {
+  option: Option;
+  isSelected: boolean;
+  isActive: boolean;
+  isDarkSurface: boolean;
+  itemBase: string;
+  itemSelected: string;
+  checkIconClass: string;
+  onSelect: (optionValue: string | number) => void;
+  renderOptionAction: (option: Option) => ReactNode;
+};
+
+function getActiveOptionClass(isDarkSurface: boolean) {
+  return isDarkSurface ? "bg-slate-700/80 text-white" : "bg-slate-100 text-slate-900";
 }
 
-function getOptionItemClassName(
-  isSelected: boolean,
-  isActive: boolean,
-  isDarkSurface: boolean,
-  itemSelected: string,
-  itemBase: string,
-) {
-  if (isSelected) return itemSelected;
-  if (isActive) {
-    return isDarkSurface ? "bg-slate-700/80 text-white" : "bg-slate-100 text-slate-900";
-  }
-  return itemBase;
+function DropdownOptionItem({
+  option,
+  isSelected,
+  isActive,
+  isDarkSurface,
+  itemBase,
+  itemSelected,
+  checkIconClass,
+  onSelect,
+  renderOptionAction,
+}: DropdownOptionItemProps) {
+  const isDisabled = Boolean(option.disabled);
+
+  let itemClass = itemBase;
+  if (isDisabled) itemClass = OPTION_DISABLED_CLASS;
+  else if (isSelected) itemClass = itemSelected;
+  else if (isActive) itemClass = getActiveOptionClass(isDarkSurface);
+
+  return (
+    <li
+      aria-disabled={isDisabled}
+      onClick={() => onSelect(option.value)}
+      className={`px-4 py-2.5 text-[14px] flex items-center gap-2 justify-between transition-colors ${
+        isDisabled ? "" : "cursor-pointer"
+      } ${itemClass}`}
+    >
+      <span className="truncate">{option.label}</span>
+      <div className="flex shrink-0 items-center ml-auto! gap-1.5">
+        {!isDisabled && renderOptionAction(option)}
+      </div>
+      {isSelected && (
+        <svg
+          className={`w-4 h-4 ${checkIconClass}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth="2.5"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m4.5 12.75 6 6 9-13.5"
+          />
+        </svg>
+      )}
+    </li>
+  );
 }
 
 function DropdownMenu({
@@ -152,38 +234,20 @@ function DropdownMenu({
             style={{ maxHeight: menuPosition.maxHeight }}
           >
             {filteredOptions.length > 0 ? (
-              filteredOptions.map((option, index) => {
-                const isSelected = value === option.value;
-
-                return (
-                  <li
-                    key={option.value ?? index}
-                    onClick={() => onSelect(option.value)}
-                    className={`px-4 py-2.5 cursor-pointer text-[14px] flex items-center gap-2 justify-between transition-colors
-                        ${getOptionItemClassName(isSelected, index === activeIndex, isDarkSurface, itemSelected, itemBase)}`}
-                  >
-                    <span className="truncate">{option.label}</span>
-                    <div className="flex shrink-0 items-center ml-auto! gap-1.5">
-                      {renderOptionAction(option)}
-                    </div>
-                    {isSelected && (
-                      <svg
-                        className={`w-4 h-4 ${checkIconClass}`}
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="m4.5 12.75 6 6 9-13.5"
-                        />
-                      </svg>
-                    )}
-                  </li>
-                );
-              })
+              filteredOptions.map((option, index) => (
+                <DropdownOptionItem
+                  key={option.value ?? index}
+                  option={option}
+                  isSelected={value === option.value}
+                  isActive={index === activeIndex}
+                  isDarkSurface={isDarkSurface}
+                  itemBase={itemBase}
+                  itemSelected={itemSelected}
+                  checkIconClass={checkIconClass}
+                  onSelect={onSelect}
+                  renderOptionAction={renderOptionAction}
+                />
+              ))
             ) : (
               <li className="px-4 py-3 text-[14px] text-slate-500">
                 Resultados no encontrados.
@@ -302,6 +366,8 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     }, [activeIndex, isOpen]);
 
     const handleSelect = (optionValue: string | number) => {
+      const option = options.find((item) => item.value === optionValue);
+      if (option?.disabled) return;
       if (onChange) onChange(optionValue);
       setIsOpen(false);
     };

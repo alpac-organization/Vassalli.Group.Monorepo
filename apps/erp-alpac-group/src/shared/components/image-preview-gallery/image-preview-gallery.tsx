@@ -78,7 +78,7 @@ export const ImagePreviewGallery = ({
                       setSelectedImage(src);
                     }
                   }}
-                  className="group relative flex h-36 w-32 shrink-0 cursor-pointer items-center justify-center overflow-hidden bg-slate-200 transition-transform hover:z-10 hover:scale-[1.03] focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 dark:bg-slate-800 [clip-path:polygon(50%_0%,_100%_25%,_100%_75%,_50%_100%,_0%_75%,_0%_25%)]"
+                  className="group relative flex h-36 w-32 shrink-0 cursor-pointer items-center justify-center overflow-hidden bg-slate-200 transition-transform hover:z-10 hover:scale-[1.03] focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 dark:bg-slate-800 [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)]"
                 >
                   <img
                     src={src}
