@@ -34,14 +34,14 @@ export interface AdditionalReceptionEntranceData {
 }
 
 export interface ReceptionEntranceDetail {
-  reception_entrance_id: string;
+  reception_entrance_id?: string | null;
   reception_code?: string | null;
-  seal_number: string;
-  container_number: string;
-  country_of_origin: string;
+  seal_number?: string | null;
+  container_number?: string | null;
+  country_of_origin?: string | null;
   document_type?: DocumentType | number | string | null;
-  created_at: string;
-  additional_data: string | AdditionalReceptionEntranceData | null;
-  custom_branches_information: CustomBranchesInformation;
-  reception_transport_entrance_information: ReceptionTransportEntranceDto;
+  created_at?: string | null;
+  additional_data?: AdditionalReceptionEntranceData | string| null;
+  custom_branches_information?: CustomBranchesInformation | null;
+  reception_transport_entrance_information?: ReceptionTransportEntranceDto | null;
 }

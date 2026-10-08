@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Button, Dropdown, InputText, Modal } from "@alpac/design-system";
-import { useCustomer } from "@app/modules/warehouse/ui/hooks/useCustomer";
+import { useCustomer } from "@app/modules/customer/ui/hooks/useCustomer";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import type { GetCustomerTypesResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/customer-responses/get-customer-types.response";
+import type { GetCustomerTypesResponse } from "@app/modules/customer/domain/ApiContract/Responses/customer-responses/get-customer-types.response";
 
-import type { CustomerModalProps } from "./customer-modal.types";
+import type { CustomerModalProps } from "@app/modules/warehouse/ui/warehouse-corinto/views/administrative-section-views/customer-tab/components/customer-modal/customer-modal.types";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
