@@ -1,3 +1,4 @@
+import { routeConfig } from "@app/routers/routes/route-config";
 import type { SidebarLink } from "../components/Sidebar/types/sidebar.types";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 
@@ -25,7 +26,7 @@ export const matchesAuthorizedRoute = (pathname: string, link: SidebarLink): boo
 
    const current = normalizePath(getDashboardRelativePath(pathname));
 
-   const authorized = normalizePath(moduleBasePath ? `${moduleBasePath}/${link.path}` : link.path);   
+   const authorized = normalizePath(moduleBasePath ? `${moduleBasePath}/${link.path}` : link.path);
 
    if (!current || !authorized) return false;
 
@@ -36,5 +37,17 @@ export const matchesAuthorizedRoute = (pathname: string, link: SidebarLink): boo
 
 export const isRouteAuthorized = (pathname: string, authorizedItems: SidebarLink[]): boolean => {
    return authorizedItems.some((item) => matchesAuthorizedRoute(pathname, item));
+}
+
+export const getAuthorizedPaths = () => {
+
+   const { moduleCode, role } = useUserStore();
+
+   const authorizedModules = routeConfig[moduleCode as keyof typeof routeConfig] ?? [];
+
+   const authorizedPaths: SidebarLink[] =
+      (authorizedModules[role as keyof typeof authorizedModules] ?? []) as SidebarLink[];
+
+   return authorizedPaths;
 }
 

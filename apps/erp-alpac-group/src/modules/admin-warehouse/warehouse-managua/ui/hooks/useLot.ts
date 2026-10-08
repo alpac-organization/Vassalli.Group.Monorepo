@@ -91,6 +91,7 @@ export const useLot = (props?: useWarehouseLayoutProps) => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-lots-records"] });
 			queryClient.invalidateQueries({ queryKey: ["get-lot-layout-record"] });
+			queryClient.invalidateQueries({ queryKey: ["get-section-positions-record"] });
 		},
 		retry: 1,
 	});
@@ -101,6 +102,7 @@ export const useLot = (props?: useWarehouseLayoutProps) => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-lot-layout-record"] });
 			queryClient.invalidateQueries({ queryKey: ["get-lots-records"] });
+			queryClient.invalidateQueries({ queryKey: ["get-section-positions-record"] });
 		},
 		retry: 1,
 	});
@@ -111,6 +113,7 @@ export const useLot = (props?: useWarehouseLayoutProps) => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-lot-layout-record"] });
 			queryClient.invalidateQueries({ queryKey: ["get-lots-records"] });
+			queryClient.invalidateQueries({ queryKey: ["get-section-positions-record"] });
 		},
 		retry: 1,
 	});

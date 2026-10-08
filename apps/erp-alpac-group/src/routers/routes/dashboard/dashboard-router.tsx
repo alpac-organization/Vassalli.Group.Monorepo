@@ -12,60 +12,65 @@ import { AdminRouter } from "@app/routers/routes/admin/admin-router";
 import { PurchasingRouter } from "@app/routers/routes/purchasing/purchasing-router";
 import { FinanceRouter } from "../finance/finance-router";
 import { ManagementRouter } from "../management/management-router";
+import { TicketViewer } from "@app/modules/warehouse/ui/views/ticket-viewer/ticket-viewer";
 
 export const DashboardRouter: RouteObject[] = [
-  {
-    element: <ContainerCopyright />,
-    children: [
-      {
-        index: true,
-        element: <HomePage />,
-      },
-    ],
-  },
-  {
-    element: <DashboardLayout />,
-    children: [
-      {
-        path: "payroll",
-        children: PayrollRouter,
-      },
-      {
-        path: "work-management",
-        children: WorkManagementRouter,
-      },
-      {
-        path: "applications",
-        children: ApplicationRouter,
-      },
-      {
-        path: "warehouse-corinto",
-        children: WarehouseCorintoRouter,
-      },
-      {
-        path: "warehouse-mga",
-        children: WarehouseManaguaRouter,
-      },
-      {
-        path: "warehouse-admin",
-        children: WarehouseAdminRouter,
-      },
-      {
-        path: "administration",
-        children: AdminRouter,
-      },
-      {
-        path: "purchasing",
-        children: PurchasingRouter,
-      },
-      {
-        path: "finance",
-        children: FinanceRouter,
-      },
-      {
-        path: "management",
-        children: ManagementRouter,
-      },
-    ],
-  },
+	{
+		element: <ContainerCopyright />,
+		children: [
+			{
+				index: true,
+				element: <HomePage />,
+			},
+		],
+	},
+	{
+		path: ":moduleCode/ticket",
+		element: <TicketViewer />,
+	},
+	{
+		element: <DashboardLayout />,
+		children: [
+			{
+				path: "payroll",
+				children: PayrollRouter,
+			},
+			{
+				path: "work-management",
+				children: WorkManagementRouter,
+			},
+			{
+				path: "applications",
+				children: ApplicationRouter,
+			},
+			{
+				path: "warehouse-corinto",
+				children: WarehouseCorintoRouter,
+			},
+			{
+				path: "warehouse-mga",
+				children: WarehouseManaguaRouter,
+			},
+			{
+				path: "warehouse-admin",
+				children: WarehouseAdminRouter,
+			},
+			{
+				path: "administration",
+				children: AdminRouter,
+			},
+			{
+				path: "purchasing",
+				children: PurchasingRouter,
+			},
+			{
+				path: "finance",
+				children: FinanceRouter,
+			},
+			{
+				path: "management",
+				children: ManagementRouter,
+			},
+		],
+	},
 ];

@@ -6,6 +6,24 @@ export interface RegisterLotRequest extends BaseRequest {
 	lots: LotItem[];
 }
 
+export interface LotPositionCoordinate {
+	position_x: number;
+	position_y: number;
+	position_z: number;
+	rotation_y: number;
+}
+
+export interface LotPositionItem {
+	row: number;
+	column: number;
+	level: number;
+	allows_stocking: boolean;
+	position_code: string;
+	status: string;
+	observations?: string | null;
+	coordinate: LotPositionCoordinate;
+}
+
 export interface LotItem {
 	nominal_rows: number;
 	nominal_columns: number;
@@ -15,4 +33,6 @@ export interface LotItem {
 	position_y: number;
 	position_z: number;
 	rotation_y: number;
+	/** Solo uso local/preview; el backend genera las posiciones y sus coords van en POST aparte. */
+	positions?: LotPositionItem[];
 }

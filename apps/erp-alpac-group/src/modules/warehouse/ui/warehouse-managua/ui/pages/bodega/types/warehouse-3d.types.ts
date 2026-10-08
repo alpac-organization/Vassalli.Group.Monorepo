@@ -77,7 +77,7 @@ export const CM = 0.01;
 
 /** Default / rack-floor polín footprint (meters). */
 export const POLIN_WIDTH = 1.0;
-export const POLIN_DEPTH = 1.8;
+export const POLIN_DEPTH = 1.2;
 
 /** Lateral floor grid: 7 cols × 4 rows = 28. */
 export const FLOOR_POLIN_COLS = 7 as const;

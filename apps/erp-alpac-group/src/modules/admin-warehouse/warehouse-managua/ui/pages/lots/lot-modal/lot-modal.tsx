@@ -1,7 +1,8 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
 	Alert,
 	Button,
+	Checkbox,
 	Dropdown,
 	InputText,
 	Modal,
@@ -9,6 +10,7 @@ import {
 import { Controller, useForm } from "react-hook-form";
 import { AXIS_OPTIONS, type LotFormValues, type LotModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/types/lot-modal.types";
 import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
+import type { RegisterLotsPositionsCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/register-coordinates-req";
 import {
 	formatAmount,
 	validateDecimalNumber,
@@ -17,6 +19,8 @@ import {
 } from "@app/shared/utils/number.utils";
 import { parseDecimal } from "@app/shared/utils/get-decimal.config";
 import { useLot } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useLot";
+import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
+import { CoordinateTargetTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/coordinate-target-type";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -29,6 +33,7 @@ import {
 	buildDispersedLotPlacements,
 	type DispersionAxis,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/lot-placement.utils";
+import { buildPositions } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/utils/build-lot-positions.utils";
 import { isSectionVertical } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/rack-coordinates.utils";
 
 const createDefaultValues = (
@@ -40,6 +45,7 @@ const createDefaultValues = (
 	length: "",
 	nominal_rows: "",
 	nominal_columns: "",
+	allows_stacking: false,
 	disperse_axis: isSectionVertical(sectionLength, sectionWidth) ? "Y" : "X",
 });
 
@@ -74,10 +80,14 @@ export const LotModal = ({
 	});
 
 	const { RegisterLot } = useLot();
+	const { RegisterCoordinates, GetPositions } = useSection();
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const watchQuantity = Number(watch("quantity") || 0);
 	const watchWidth = Number(watch("width") || 0);
 	const watchLength = Number(watch("length") || 0);
+	const watchRows = Number(watch("nominal_rows") || 0);
+	const watchColumns = Number(watch("nominal_columns") || 0);
 	const watchAxis = watch("disperse_axis");
 
 	const placement = useMemo(
@@ -100,19 +110,32 @@ export const LotModal = ({
 		],
 	);
 
-	const handleCreateLots = (data: LotFormValues) => {
+	const positionsPreview = useMemo(
+		() =>
+			buildPositions({
+				rows: watchRows,
+				columns: watchColumns,
+				lotWidth: watchWidth,
+				lotLength: watchLength,
+			}),
+		[watchRows, watchColumns, watchWidth, watchLength],
+	);
+
+	const handleCreateLots = async (data: LotFormValues) => {
 		const quantity = Number(data.quantity ?? 0);
 		const width = Number(data.width ?? 0);
 		const length = Number(data.length ?? 0);
+		const nominalRows = Number(data.nominal_rows ?? 0);
+		const nominalColumns = Number(data.nominal_columns ?? 0);
 
 		if (sectionWidth <= 0 || sectionLength <= 0) {
 			handleRequestError(
-				"La sección no tiene dimensiones registradas. No se pueden ubicar los tramos."
+				"La sección no tiene dimensiones registradas. No se pueden ubicar los tramos.",
 			);
 			return;
 		}
 
-		const nextPlacement = buildDispersedLotPlacements({
+		const lotPlacement = buildDispersedLotPlacements({
 			quantity,
 			width,
 			length,
@@ -121,8 +144,19 @@ export const LotModal = ({
 			axis: data.disperse_axis,
 		});
 
-		if (!nextPlacement.fits) {
-			handleRequestError(nextPlacement.message);
+		const lotPositions = buildPositions({
+			rows: nominalRows,
+			columns: nominalColumns,
+			lotWidth: width,
+			lotLength: length,
+		});
+
+		const validationError = [lotPlacement, lotPositions].find(
+			(result) => !result.fits,
+		)?.message;
+
+		if (validationError) {
+			handleRequestError(validationError);
 			return;
 		}
 
@@ -131,28 +165,102 @@ export const LotModal = ({
 			module_code: moduleCode,
 			warehouse_id: warehouseId,
 			section_id: sectionId,
-			lots: nextPlacement.lots.map((item) => ({
-				...item,
-				nominal_rows: Number(data.nominal_rows ?? 0),
-				nominal_columns: Number(data.nominal_columns ?? 0),
+			lots: lotPlacement.lots.map((lot) => ({
+				nominal_rows: nominalRows,
+				nominal_columns: nominalColumns,
+				width: lot.width,
+				length: lot.length,
+				allows_stacking: Boolean(data.allows_stacking),
+				position_x: lot.position_x,
+				position_y: lot.position_y,
+				position_z: lot.position_z,
+				rotation_y: lot.rotation_y,
 			})),
 		};
 
-		RegisterLot.mutate(payload, {
-			onSuccess() {
-				handleRequestSuccess("Tramos registrados exitosamente.");
-				reset(createDefaultValues(sectionWidth, sectionLength));
-				onSubmit?.(payload);
+		setIsSubmitting(true);
 
-				setTimeout(() => {
-					onClose();
-				}, 500);
-			},
-			onError(error) {
-				const mappedError = getMappedError(error);
-				handleRequestError(mappedError.description);
-			},
-		});
+		try {
+			const positionsBefore = await GetPositions({
+				company_id: companyId,
+				module_code: moduleCode,
+				warehouse_id: warehouseId,
+				section_id: sectionId,
+			});
+			const existingLotIds = new Set(
+				positionsBefore.blocks.map((block) => block.id),
+			);
+
+			await RegisterLot.mutateAsync(payload);
+
+			const positionsAfter = await GetPositions({
+				company_id: companyId,
+				module_code: moduleCode,
+				warehouse_id: warehouseId,
+				section_id: sectionId,
+			});
+			const newLots = positionsAfter.blocks.filter(
+				(block) => !existingLotIds.has(block.id),
+			);
+
+			if (newLots.length === 0) {
+				handleRequestError(
+					"Los tramos se crearon, pero no se encontraron posiciones para registrar coordenadas.",
+				);
+				return;
+			}
+
+			const COORDINATES_REQUEST_DELAY_MS = 300;
+
+			for (let i = 0; i < newLots.length; i++) {
+				const lot = newLots[i];
+				const coordinatesPayload: RegisterLotsPositionsCoordinatesRequest = {
+					company_id: companyId,
+					module_code: moduleCode,
+					warehouse_id: warehouseId,
+					section_id: sectionId,
+					target_type: CoordinateTargetTypeEnum.LotsPositions.value,
+					lot_id: lot.id,
+					lots_positions_information: lot.positions.map((position, index) => {
+						const coordinate =
+							lotPositions.positions[index]?.coordinate ?? {
+								position_x: 0,
+								position_y: 0,
+								position_z: 0,
+								rotation_y: 0,
+							};
+
+						return {
+							lot_position_id: position.id,
+							position_x: coordinate.position_x,
+							position_y: coordinate.position_y,
+							position_z: coordinate.position_z,
+							rotation_y: coordinate.rotation_y,
+						};
+					}),
+					rack_positions_information: [],
+				};
+
+				await RegisterCoordinates.mutateAsync(coordinatesPayload);
+
+				if (i < newLots.length - 1) {
+					await new Promise((resolve) =>
+						setTimeout(resolve, COORDINATES_REQUEST_DELAY_MS),
+					);
+				}
+			}
+
+			handleRequestSuccess(
+				"Tramos y coordenadas de posiciones registrados exitosamente.",
+			);
+			reset(createDefaultValues(sectionWidth, sectionLength));
+			onSubmit?.(payload);
+			setTimeout(onClose, 500);
+		} catch (error) {
+			handleRequestError(getMappedError(error as never).description);
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
 	const handleClose = () => {
@@ -226,6 +334,22 @@ export const LotModal = ({
 								onChange={(val) => field.onChange(val as DispersionAxis)}
 								error={errors.disperse_axis?.message}
 							/>
+						)}
+					/>
+
+					<Controller
+						control={control}
+						name="allows_stacking"
+						render={({ field }) => (
+							<div className="flex items-end pb-1">
+								<Checkbox
+									label="Permite estibado"
+									labelPosition="right"
+									className="text-slate-300!"
+									checked={Boolean(field.value)}
+									onChange={(e) => field.onChange(e.target.checked)}
+								/>
+							</div>
 						)}
 					/>
 				</div>
@@ -363,6 +487,13 @@ export const LotModal = ({
 					showCloseButton={false}
 				/>
 
+				<Alert
+					type={positionsPreview.fits ? "info" : "error"}
+					title="Posiciones (polines)"
+					message={positionsPreview.message}
+					showCloseButton={false}
+				/>
+
 				<div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6" />
 
 				<div className="flex min-w-0 flex-col-reverse gap-2.5 sm:flex-row sm:justify-end sm:gap-3">
@@ -377,8 +508,12 @@ export const LotModal = ({
 						type="submit"
 						size="giant"
 						label="Guardar"
-						isLoading={RegisterLot.isPending}
-						disabled={RegisterLot.isPending || !placement.fits}
+						isLoading={isSubmitting}
+						disabled={
+							isSubmitting ||
+							!placement.fits ||
+							!positionsPreview.fits
+						}
 						className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
 					/>
 				</div>
