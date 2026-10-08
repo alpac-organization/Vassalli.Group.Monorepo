@@ -88,7 +88,9 @@ export const PurchaseOrderDocumentModal = ({
 	const hasSelectedBank = Boolean(selectedBankName);
 
 	const supplierPreferredPaymentMethod =
-		GetSupplierDetails.data?.supplier_details?.preferred_payment_method;
+		GetSupplierDetails.data?.supplier_payment_methods?.find(
+			(method) => method.is_active !== false && method.payment_method_type,
+		)?.payment_method_type;
 
 	useEffect(() => {
 		if (!isOpen) return;

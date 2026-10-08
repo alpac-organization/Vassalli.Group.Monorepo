@@ -189,6 +189,13 @@ function DropdownOptionItem({
   );
 }
 
+function isOptionSelected(value: unknown, optionValue: string | number, multiple?: boolean) {
+  if (multiple) {
+    return Array.isArray(value) && value.includes(optionValue);
+  }
+  return value === optionValue;
+}
+
 function DropdownMenu({
   isOpen,
   menuPosition,
@@ -196,6 +203,7 @@ function DropdownMenu({
   listRef,
   filteredOptions,
   value,
+  multiple = false,
   activeIndex,
   isDarkSurface,
   menuSurface,
@@ -238,7 +246,7 @@ function DropdownMenu({
                 <DropdownOptionItem
                   key={option.value ?? index}
                   option={option}
-                  isSelected={value === option.value}
+                  isSelected={isOptionSelected(value, option.value, multiple)}
                   isActive={index === activeIndex}
                   isDarkSurface={isDarkSurface}
                   itemBase={itemBase}
@@ -264,7 +272,7 @@ function DropdownMenu({
 export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
   ({
     label, options, placeholder,
-    error, errorVariant = "text", onChange, value, className,
+    error, errorVariant = "text", onChange, value, multiple = false, className,
     labelClassName, isRequired, disabled = false, optional = false, valueClassName,
     appearance = "default", renderOptionAction, onEditOption }, ref) => {
 
@@ -278,7 +286,23 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     const inputRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLUListElement>(null);
 
-    const selectedOption = options.find((opt) => opt.value === value);
+    const selectedValues = multiple
+      ? (Array.isArray(value) ? value : [])
+      : [];
+    const selectedOptions = multiple
+      ? options.filter((opt) => selectedValues.includes(opt.value))
+      : [];
+    const selectedOption = multiple
+      ? undefined
+      : options.find((opt) => opt.value === value);
+
+    const displayLabel = multiple
+      ? selectedOptions.length === 0
+        ? undefined
+        : selectedOptions.length <= 2
+          ? selectedOptions.map((opt) => opt.label).join(", ")
+          : `${selectedOptions.length} seleccionados`
+      : selectedOption?.label;
 
     const updateMenuPosition = useCallback(() => {
 
@@ -368,7 +392,17 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     const handleSelect = (optionValue: string | number) => {
       const option = options.find((item) => item.value === optionValue);
       if (option?.disabled) return;
-      if (onChange) onChange(optionValue);
+
+      if (multiple) {
+        const current = Array.isArray(value) ? [...value] : [];
+        const next = current.includes(optionValue)
+          ? current.filter((item) => item !== optionValue)
+          : [...current, optionValue];
+        onChange?.(next);
+        return;
+      }
+
+      onChange?.(optionValue);
       setIsOpen(false);
     };
 
@@ -499,14 +533,14 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
                   }}
                   className={`bg-transparent outline-none w-full min-w-0 truncate ${valueColorClass} ${inputPlaceholderClass}`}
                   placeholder={
-                    selectedOption
-                      ? String(selectedOption.label)
+                    displayLabel
+                      ? String(displayLabel)
                       : placeholder || "Buscar..."
                   }
                 />
               ) : (
-                <span className={`truncate min-w-0 ${!selectedOption ? placeholderClass : valueColorClass}`}>
-                  {selectedOption ? selectedOption.label : placeholder}
+                <span className={`truncate min-w-0 ${!displayLabel ? placeholderClass : valueColorClass}`}>
+                  {displayLabel ?? placeholder}
                 </span>
               )}
 
@@ -544,6 +578,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           listRef={listRef}
           filteredOptions={filteredOptions}
           value={value}
+          multiple={multiple}
           activeIndex={activeIndex}
           isDarkSurface={isDarkSurface}
           menuSurface={menuSurface}

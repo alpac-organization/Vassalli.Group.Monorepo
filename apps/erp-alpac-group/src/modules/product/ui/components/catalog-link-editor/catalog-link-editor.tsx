@@ -286,14 +286,16 @@ export const CatalogLinkEditor = ({
 									</div>
 								}
 							>
-								<div className="flex flex-col gap-3 md:flex-row md:items-end">
-									<div className="flex-1">
+								<div className="flex flex-col gap-3 md:flex-row md:items-start">
+									<div className="min-w-0 flex-1">
 										{lockEntity ? (
-											<div className="flex flex-col gap-1">
-												<span className={`text-sm ${labelClassName}`}>
+											<div className="flex flex-col gap-1.5">
+												<span
+													className={`ml-0.5 text-[14px] font-medium ${labelClassName}`}
+												>
 													{entityLabel}
 												</span>
-												<span className="rounded-md border border-slate-300 dark:border-neutral-600 px-3 py-2 text-[15px] text-slate-900 dark:text-white">
+												<span className="flex h-11 sm:h-12 w-full min-w-0 items-center truncate rounded-[10px] border border-slate-300 bg-[#272b34] px-3 sm:px-4 text-[14px] sm:text-[15px] text-slate-900 dark:border-slate-600 dark:text-white">
 													{displayLabel}
 												</span>
 											</div>
@@ -324,7 +326,7 @@ export const CatalogLinkEditor = ({
 											/>
 										)}
 									</div>
-									<div className="md:w-48">
+									<div className="md:w-48 shrink-0">
 										<InputText
 											label="Precio unitario"
 											type="number"

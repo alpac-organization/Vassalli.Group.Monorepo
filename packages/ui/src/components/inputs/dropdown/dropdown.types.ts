@@ -33,6 +33,7 @@ export type DropdownMenuProps = {
   listRef: RefObject<HTMLUListElement | null>;
   filteredOptions: Option[];
   value?: unknown;
+  multiple?: boolean;
   activeIndex: number;
   isDarkSurface: boolean;
   menuSurface: string;
@@ -56,6 +57,7 @@ export interface DropdownProps {
   name?: string;
   onChange?: (value: any) => void;
   value?: any;
+  multiple?: boolean;
   className?: string;
   labelClassName?: string;
   isRequired?: boolean;

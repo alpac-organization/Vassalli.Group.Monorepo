@@ -38,6 +38,7 @@ import type {
 } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-bank-account";
 import {inputClassName, labelClassName, dropdownClassName} from "@app/modules/purchasing/ui/pages/supplier/utils/style";
 import {
+	isSupplierExclusive,
 	SupplierExclusiveStatusEnum,
 	type SupplierExclusiveStatusOnCreate,
 } from "@app/core/enums/supplier-exclusive-status.enum";
@@ -116,22 +117,31 @@ const hasConstitutionData = (constitutionType?: number | string) => {
    return val === ConstitutionEnum.Natural.value || val === ConstitutionEnum.Legal.value;
 };
 
+const mapSupplierPaymentMethods = (
+   methods?: { payment_method_type?: PaymentMethodType; is_active?: boolean }[],
+): PaymentMethodType[] => {
+   if (!methods?.length) return ["ACH"];
+   const active = methods
+      .filter((method) => method.is_active !== false && method.payment_method_type)
+      .map((method) => method.payment_method_type as PaymentMethodType);
+   return active.length > 0 ? active : ["ACH"];
+};
+
 const emptyFormValues: Partial<CreateSupplierRequest> = {
    suppliers_legal_name: "",
    commercial_name: "",
    constitution_type: 0,
    identification_type: undefined,
    identification_number: "",
+   payment_methods: ["ACH"],
    supplier_details: {
       credit_days: 0,
       has_credit: false,
-      is_exclusive: false,
       exclusive_status: SupplierExclusiveStatusEnum.None.stringValue,
       exclusive_brands_or_parts: "",
       credit_limit: null,
       credit_currency: "USD",
       alert_days_before_due: 5,
-      preferred_payment_method: "ACH",
       apply_ir_retention: false,
       apply_municipal_retention: false,
       is_tax_exempt: false,
@@ -226,6 +236,9 @@ export const SupplierModal = ({
          supplier_id: selectedSupplier.supplier_id,
          suppliers_legal_name: supplierDetails.supplier_legal_name ?? "-",
          commercial_name: supplierDetails.commercial_name ?? undefined,
+         payment_methods: mapSupplierPaymentMethods(
+            supplierDetails.supplier_payment_methods,
+         ),
          supplier_details: {
             address: details?.address ?? undefined,
             email_support: details?.email_support ?? undefined,
@@ -234,13 +247,14 @@ export const SupplierModal = ({
             contact_phone_number: details?.contact_phone_number ?? undefined,
             credit_days: details?.credit_days ?? 0,
             has_credit: Boolean(details?.has_credit),
-            is_exclusive: Boolean(details?.is_exclusive),
-            exclusive_status: details?.exclusive_status,
+            exclusive_status:
+               details?.exclusive_status ??
+               supplierDetails.exclusive_status ??
+               SupplierExclusiveStatusEnum.None.stringValue,
             exclusive_brands_or_parts: details?.exclusive_brands_or_parts ?? undefined,
             credit_limit: details?.credit_limit ?? null,
             credit_currency: details?.credit_currency ?? "USD",
             alert_days_before_due: details?.alert_days_before_due ?? 5,
-            preferred_payment_method: details?.preferred_payment_method ?? "ACH",
             apply_ir_retention: Boolean(details?.apply_ir_retention),
             apply_municipal_retention: Boolean(details?.apply_municipal_retention),
             is_tax_exempt: Boolean(details?.is_tax_exempt),
@@ -274,7 +288,8 @@ export const SupplierModal = ({
    const constitutionType = watch("constitution_type");
    const identificationType = watch("identification_type");
    const hasCredit = watch("supplier_details.has_credit");
-   const isExclusive = watch("supplier_details.is_exclusive");
+   const exclusiveStatusWatch = watch("supplier_details.exclusive_status");
+   const isExclusive = isSupplierExclusive(exclusiveStatusWatch);
 
    const isLegalPerson = Number(constitutionType) === ConstitutionEnum.Legal.value;
    const isNaturalPerson = Number(constitutionType) === ConstitutionEnum.Natural.value;
@@ -525,18 +540,21 @@ export const SupplierModal = ({
       } = data;
 
       const hasCreditVal = Boolean(supplier_details?.has_credit);
-      const isExclusiveVal = Boolean(supplier_details?.is_exclusive);
       const exclusiveStatus: SupplierExclusiveStatusOnCreate =
          supplier_details?.exclusive_status ===
          SupplierExclusiveStatusEnum.PendingReview.stringValue
             ? SupplierExclusiveStatusEnum.PendingReview.stringValue
             : SupplierExclusiveStatusEnum.None.stringValue;
+      const isExclusiveVal = isSupplierExclusive(exclusiveStatus);
+
+      const paymentMethods = (data.payment_methods ?? []).filter(Boolean);
 
       const payload: CreateSupplierRequest = {
          ...rest,
          company_id: companyId,
          module_code: moduleCode,
          commercial_name: data.commercial_name?.trim() || null,
+         payment_methods: paymentMethods,
          supplier_details: {
             ...supplier_details,
             has_credit: hasCreditVal,
@@ -548,12 +566,10 @@ export const SupplierModal = ({
             alert_days_before_due: hasCreditVal
                ? Number(supplier_details?.alert_days_before_due) || 0
                : 0,
-            is_exclusive: isExclusiveVal,
             exclusive_status: exclusiveStatus,
             exclusive_brands_or_parts: isExclusiveVal
                ? supplier_details?.exclusive_brands_or_parts?.trim() || null
                : null,
-            preferred_payment_method: supplier_details?.preferred_payment_method || "ACH",
             apply_ir_retention: Boolean(supplier_details?.apply_ir_retention),
             apply_municipal_retention: Boolean(supplier_details?.apply_municipal_retention),
             is_tax_exempt: Boolean(supplier_details?.is_tax_exempt),
@@ -594,10 +610,6 @@ export const SupplierModal = ({
       ) {
          delete payload.supplier_details;
       }
-
-      delete payload.constitution_type;
-      delete payload.identification_type;
-      delete payload.identification_number;
 
       return payload;
    };
@@ -714,18 +726,20 @@ export const SupplierModal = ({
          constitution_type: constitutionTypeValue,
          identification_type: identificationTypeValue,
          identification_number: identificationNumber,
+         payment_methods: mapSupplierPaymentMethods(
+            supplierDetails.supplier_payment_methods,
+         ),
          supplier_details: {
             credit_days: details?.credit_days ?? 0,
             has_credit: Boolean(details?.has_credit),
-            is_exclusive: Boolean(details?.is_exclusive),
             exclusive_status:
                details?.exclusive_status ??
+               supplierDetails.exclusive_status ??
                SupplierExclusiveStatusEnum.None.stringValue,
             exclusive_brands_or_parts: details?.exclusive_brands_or_parts ?? "",
             credit_limit: details?.credit_limit ?? null,
             credit_currency: details?.credit_currency ?? "USD",
             alert_days_before_due: details?.alert_days_before_due ?? 5,
-            preferred_payment_method: details?.preferred_payment_method ?? "ACH",
             apply_ir_retention: Boolean(details?.apply_ir_retention),
             apply_municipal_retention: Boolean(details?.apply_municipal_retention),
             is_tax_exempt: Boolean(details?.is_tax_exempt),
@@ -756,6 +770,7 @@ export const SupplierModal = ({
    );
 
    const hasCommercialErrors = Boolean(
+      errors.payment_methods ||
       errors.supplier_details?.credit_days ||
       errors.supplier_details?.credit_limit,
    );
@@ -837,11 +852,9 @@ export const SupplierModal = ({
                               label="Tipo de constitución"
                               placeholder="Seleccione..."
                               isRequired
-                              disabled={isEditMode}
                               options={ConstitutionOptions}
                               value={field.value}
                               onChange={(value) => {
-                                 if (isEditMode) return;
                                  const nextType = Number(value);
                                  const nextIdentificationType =
                                     getIdentificationTypeByConstitution(nextType);
@@ -882,11 +895,10 @@ export const SupplierModal = ({
                               label="Tipo de identificación"
                               placeholder="Seleccione..."
                               isRequired
-                              disabled={isEditMode || !hasConstitutionData(constitutionType)}
+                              disabled={!hasConstitutionData(constitutionType)}
                               options={filteredIdentificationTypes}
                               value={field.value}
                               onChange={(value) => {
-                                 if (isEditMode) return;
                                  const nextType = Number(value);
                                  field.onChange(nextType);
                                  setValue("identification_number", "");
@@ -915,7 +927,7 @@ export const SupplierModal = ({
                            isRequired
                            className={inputClassName}
                            labelClassName={labelClassName}
-                           disabled={isEditMode || !hasConstitutionData(constitutionType) || !hasIdentificationType}
+                           disabled={!hasConstitutionData(constitutionType) || !hasIdentificationType}
                            {...register("identification_number", {
                               setValueAs: (value: string) =>
                                  value ? value.toString().replace(/-/g, "").toUpperCase() : "",
@@ -1069,24 +1081,30 @@ export const SupplierModal = ({
                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <Controller
                            control={control}
-                           name="supplier_details.preferred_payment_method"
+                           name="payment_methods"
+                           rules={{
+                              validate: (value) =>
+                                 (Array.isArray(value) && value.length > 0) ||
+                                 "Seleccione al menos un método de pago",
+                           }}
                            render={({ field }) => (
                               <Dropdown
-                                 label="Método de pago preferido"
+                                 multiple
+                                 label="Métodos de pago"
                                  placeholder="Seleccione..."
+                                 isRequired
                                  options={PaymentMethodOptions}
-                                 value={field.value}
-                                 onChange={(val) => {
-                                    field.onChange(val);
-                                    trackDetailField(
-                                       "preferred_payment_method",
-                                       val as PaymentMethodType,
-                                    );
+                                 value={field.value ?? []}
+                                 onChange={(vals) => {
+                                    const next = (Array.isArray(vals) ? vals : []) as PaymentMethodType[];
+                                    field.onChange(next);
+                                    trackField("payment_methods", next);
                                  }}
                                  appearance="dark"
                                  className={dropdownClassName}
                                  labelClassName={labelClassName}
                                  valueClassName="text-black! dark:text-white!"
+                                 error={errors.payment_methods?.message}
                               />
                            )}
                         />
@@ -1260,42 +1278,34 @@ export const SupplierModal = ({
                      Distribución y Exclusividad
                   </h4>
                   <div className="flex flex-col gap-4">
-                     <Controller
-                        control={control}
-                        name="supplier_details.is_exclusive"
-                        render={({ field }) => (
-                           <Checkbox
-                              label="Es distribuidor o proveedor exclusivo"
-                              checked={Boolean(field.value)}
-                                    onChange={(e) => {
-                                       const checked = e.target.checked;
-                                       field.onChange(checked);
-                                       if (!checked) {
-                                          setValue("supplier_details.exclusive_brands_or_parts", null);
-                                          setValue(
-                                             "supplier_details.exclusive_status",
-                                             SupplierExclusiveStatusEnum.None.stringValue,
-                                          );
-                                          trackMultipleDetailFields({
-                                             is_exclusive: false,
-                                             exclusive_brands_or_parts: null,
-                                             exclusive_status:
-                                                SupplierExclusiveStatusEnum.None.stringValue,
-                                          });
-                                       } else {
-                                          setValue(
-                                             "supplier_details.exclusive_status",
-                                             SupplierExclusiveStatusEnum.PendingReview.stringValue,
-                                          );
-                                          trackMultipleDetailFields({
-                                             is_exclusive: true,
-                                             exclusive_status:
-                                                SupplierExclusiveStatusEnum.PendingReview.stringValue,
-                                          });
-                                       }
-                                    }}
-                           />
-                        )}
+                     <Checkbox
+                        label="Es distribuidor o proveedor exclusivo"
+                        checked={isExclusive}
+                        onChange={(e) => {
+                           const checked = e.target.checked;
+                           if (!checked) {
+                              setValue(
+                                 "supplier_details.exclusive_status",
+                                 SupplierExclusiveStatusEnum.None.stringValue,
+                              );
+                              setValue("supplier_details.exclusive_brands_or_parts", null);
+                              trackMultipleDetailFields({
+                                 exclusive_status:
+                                    SupplierExclusiveStatusEnum.None.stringValue,
+                                 exclusive_brands_or_parts: null,
+                              });
+                              return;
+                           }
+
+                           setValue(
+                              "supplier_details.exclusive_status",
+                              SupplierExclusiveStatusEnum.PendingReview.stringValue,
+                           );
+                           trackMultipleDetailFields({
+                              exclusive_status:
+                                 SupplierExclusiveStatusEnum.PendingReview.stringValue,
+                           });
+                        }}
                      />
 
                      {isExclusive && (
@@ -1357,8 +1367,8 @@ export const SupplierModal = ({
                                  </p>
                               ) : (
                                  <CatalogLinkEditor
-                                    title="Productos vinculados"
-                                    emptyLabel="No ha vinculado productos. Use Agregar producto para seleccionarlos de la lista."
+                                    title="Productos vinculados (opcional)"
+                                    emptyLabel="No ha vinculado productos. Puede hacerlo ahora o más adelante. Use Agregar producto para seleccionarlos de la lista."
                                     addButtonLabel="Agregar producto"
                                     entityLabel="Producto"
                                     entityPlaceholder="Producto"

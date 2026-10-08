@@ -47,10 +47,12 @@ export class ProductServices implements IProductServices {
 	async GetProductDetails(
 		payload: GetProductDetailsRequest,
 	): Promise<GetProductDetailsResponse> {
-		const { company_id, module_code, product_id } = payload;
+		const { company_id, module_code, product_id, ...queryParams } = payload;
 		const url = `companies/${company_id}/modules/${module_code}/products/${product_id}`;
 
-		return this.apiHandler.get<GetProductDetailsResponse>(url);
+		return this.apiHandler.get<GetProductDetailsResponse>(url, {
+			params: cleanParams(queryParams),
+		});
 	}
 
 	async CreateProduct(
@@ -82,10 +84,13 @@ export class ProductServices implements IProductServices {
 	async GetProductSupplierPriceHistory(
 		payload: GetProductSupplierPriceHistoryRequest,
 	): Promise<GetProductSupplierPriceHistoryResponse> {
-		const { company_id, module_code, product_id, supplier_id } = payload;
+		const { company_id, module_code, product_id, supplier_id, ...queryParams } =
+			payload;
 		const url = `companies/${company_id}/modules/${module_code}/products/${product_id}/suppliers/${supplier_id}/price-history`;
 
-		return this.apiHandler.get<GetProductSupplierPriceHistoryResponse>(url);
+		return this.apiHandler.get<GetProductSupplierPriceHistoryResponse>(url, {
+			params: cleanParams(queryParams),
+		});
 	}
 
 	async DeleteProductSupplierLink(

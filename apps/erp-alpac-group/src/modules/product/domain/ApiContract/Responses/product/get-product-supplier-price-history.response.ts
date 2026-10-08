@@ -1,4 +1,5 @@
 import type { SupplierPriceHistoryType } from "@app/core/enums/supplier-price-history-type.enum";
+import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 
 export interface ProductSupplierPriceHistoryItem {
 	price_type: SupplierPriceHistoryType;
@@ -9,5 +10,9 @@ export interface ProductSupplierPriceHistoryItem {
 	is_current: boolean;
 }
 
+export type ProductSupplierPriceHistoryPage = PaginateBaseResponse<
+	ProductSupplierPriceHistoryItem[]
+>;
+
 export type GetProductSupplierPriceHistoryResponse =
-	ProductSupplierPriceHistoryItem[];
+	ProductSupplierPriceHistoryPage;

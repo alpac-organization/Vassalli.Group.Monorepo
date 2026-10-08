@@ -51,9 +51,11 @@ export class SupplierServices implements ISupplierServices {
 	}
 
 	async GetSupplierDetails(payload: GetSupplierDetailsRequest): Promise<GetSupplierDetailsResponse> {
-		const { company_id, module_code, supplier_id } = payload;
+		const { company_id, module_code, supplier_id, ...rest } = payload;
 		const url = `/companies/${company_id}/modules/${module_code}/suppliers/${supplier_id}/details`;
-		return this.httpHandler.get<GetSupplierDetailsResponse>(url);
+		return this.httpHandler.get<GetSupplierDetailsResponse>(url, {
+			params: cleanParams(rest),
+		});
 	}
 
 	async getBankAccounts(
