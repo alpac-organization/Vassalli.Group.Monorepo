@@ -23,12 +23,12 @@ export const getManaguaWarehouseRoutes = () => {
 		icon: WrenchIcon,
 	};
 
-	const warehouseAssignmentSection: SidebarLink = {
-		id: "warehouse-assignment",
-		label: "Asignación",
-		path: "warehouse-assignment",
-		icon: ClipboardListIcon,
-	};
+  const warehouseAssignmentSection: SidebarLink = {
+    id: "assignment",
+    label: "Asignación",
+    path: "assignment",
+    icon: ClipboardListIcon,
+  };
 
 	const warehouseListSection: SidebarLink = {
 		id: "warehouse-list",

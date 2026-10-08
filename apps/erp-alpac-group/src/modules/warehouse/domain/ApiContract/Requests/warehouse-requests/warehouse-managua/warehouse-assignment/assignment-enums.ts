@@ -30,10 +30,56 @@ export const AssignmentOperationalStatusLabels: Record<
   AssignmentOperationalStatus,
   string
 > = {
-  [AssignmentOperationalStatus.None]: "Sin Estado",
+  [AssignmentOperationalStatus.None]: "Ninguno",
   [AssignmentOperationalStatus.Pending]: "Pendiente",
   [AssignmentOperationalStatus.InProgress]: "En Proceso",
   [AssignmentOperationalStatus.OnHold]: "En Espera",
   [AssignmentOperationalStatus.Downloaded]: "Descargado",
 };
+
+export const MachineryType = {
+  None: 0,
+  Forklift: 1,
+} as const;
+
+export type MachineryType =
+  (typeof MachineryType)[keyof typeof MachineryType];
+
+export const MachineryTypeLabels: Record<MachineryType, string> = {
+  [MachineryType.None]: "Maquinaria",
+  [MachineryType.Forklift]: "Montacargas",
+};
+
+export const AssignmentCollaboratorRole = {
+  WarehouseAssistant: "WarehouseAssistant",
+  ForkliftOperator: "ForkliftOperator",
+} as const;
+
+export type AssignmentCollaboratorRole =
+  (typeof AssignmentCollaboratorRole)[keyof typeof AssignmentCollaboratorRole];
+
+export const AssignmentCollaboratorRoleLabels: Record<
+  AssignmentCollaboratorRole,
+  string
+> = {
+  [AssignmentCollaboratorRole.WarehouseAssistant]: "Auxiliar de Bodega",
+  [AssignmentCollaboratorRole.ForkliftOperator]: "Operador de Montacargas",
+};
+
+export const AssignmentCollaboratorRoleOptions = [
+  {
+    value: AssignmentCollaboratorRole.WarehouseAssistant,
+    label:
+      AssignmentCollaboratorRoleLabels[
+        AssignmentCollaboratorRole.WarehouseAssistant
+      ],
+  },
+  {
+    value: AssignmentCollaboratorRole.ForkliftOperator,
+    label:
+      AssignmentCollaboratorRoleLabels[
+        AssignmentCollaboratorRole.ForkliftOperator
+      ],
+  },
+];
 

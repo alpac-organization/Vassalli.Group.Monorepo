@@ -14,11 +14,6 @@ export class OperationalOrdersServices implements IOperationalOrdersServices {
     this.httpHandler = httpHandler;
   }
 
-  /**
-   * Lista órdenes operacionales (PO) registradas con paginación y filtros opcionales.
-   * Utiliza `cleanParams` para evitar enviar cadenas vacías (?code= o ?customer_cif=)
-   * que provocarían 400 Validation_Error en el backend.
-   */
   public async getOperationalOrders(
     payload: GetOperationalOrdersRequest,
   ): Promise<GetOperationalOrdersResponse> {
@@ -29,10 +24,6 @@ export class OperationalOrdersServices implements IOperationalOrdersServices {
     });
   }
 
-  /**
-   * Obtiene el detalle completo de una orden operacional.
-   * Si la orden no existe, el backend devuelve 200 OK con body `null`.
-   */
   public async getOperationalOrderById(
     payload: GetOperationalOrderDetailRequest,
   ): Promise<GetOperationalOrderDetailResponse | null> {
@@ -42,10 +33,6 @@ export class OperationalOrdersServices implements IOperationalOrdersServices {
     return this.httpHandler.get<GetOperationalOrderDetailResponse | null>(url);
   }
 
-  /**
-   * Registra y actualiza la información de recepción de una orden operacional.
-   * Asigna cliente, peso, cantidad de bultos y asignación de mercadería opcional.
-   */
   public async updateOperationalOrderInformation(
     payload: UpdateOperationalOrderInformationRequest,
   ): Promise<void> {
@@ -53,11 +40,9 @@ export class OperationalOrdersServices implements IOperationalOrdersServices {
       company_id,
       module_code,
       operational_order_id,
-      operationalOrderId,
       ...body
     } = payload;
-    const orderId = operational_order_id || operationalOrderId;
-    const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${orderId}/information`;
+    const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${operational_order_id}/information`;
     return this.httpHandler.patch<void>(url, body);
   }
 }

@@ -1,5 +1,6 @@
 import type { IHttpHandler } from "@app/core/ports";
-import type { IWarehouseAssignmentServices } from "@app/modules/warehouse/application/interfaces/warehouse-interfaces/warehouse-managua/warehouse-assignment/IWarehouseAssignmentServices";
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+import type { IWarehouseAssignmentServices } from "@app/modules/warehouse/application/interfaces/warehouse-interfaces/warehouse-managua/warehouse-assignment/IAssignmentServices";
 
 import type { CreateAssignmentRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/create-assignment";
 import type { GetAssignmentsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignments";
@@ -13,11 +14,15 @@ import type { DeleteAssignmentCollaboratorRequest } from "@app/modules/warehouse
 import type { DeleteAssignmentMachineryRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/delete-assignment-machinery";
 import type { GetAssignmentCollaboratorsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-collaborators";
 import type { GetAssignmentMachineryRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-machinery";
+import type { AssignPositionsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/assign-positions";
+import type { SendToUnloadingRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/send-to-unloading";
 
 import type { GetAssignmentsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignments";
 import type { GetAssignmentDetailsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-details";
 import type { GetAssignmentCollaboratorsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-collaborators";
 import type { GetAssignmentMachineryResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-machinery";
+import type { AssignPositionsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/assign-positions";
+import type { GetMachineryCatalogResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-machinery-catalog";
 import { cleanParams } from "@app/shared/utils/object.utils";
 
 export class WarehouseAssignmentServices
@@ -29,8 +34,6 @@ export class WarehouseAssignmentServices
     this.httpHandler = httpHandler;
   }
 
-  // ─── CRUD Asignaciones Operativas ─────────────────────────────────────────
-
   public async getAssignments(
     payload: GetAssignmentsRequest,
   ): Promise<GetAssignmentsResponse> {
@@ -40,9 +43,13 @@ export class WarehouseAssignmentServices
       operational_order_id,
       ...queryParams
     } = payload;
-    const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${operational_order_id}/assignments`;
+    const url = `/companies/${company_id}/modules/${module_code}/assignments`;
+    const params = cleanParams({
+      ...queryParams,
+      operational_order_id,
+    });
     return this.httpHandler.get<GetAssignmentsResponse>(url, {
-      params: cleanParams(queryParams),
+      params,
     });
   }
 
@@ -69,7 +76,26 @@ export class WarehouseAssignmentServices
       ...body
     } = payload;
     const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${operational_order_id}/assignments`;
-    return this.httpHandler.post<void>(url, body);
+
+    const requestBody = {
+      warehouse_id: body.warehouse_id,
+      observations: body.observations,
+      merchandise: body.merchandise,
+      merchandise_description: body.merchandise_description,
+      destination_type: body.destination_type,
+      has_assigned_machinery: body.has_assigned_machinery ?? false,
+      has_assigned_collaborators: body.has_assigned_collaborators ?? false,
+      assigned_machineries: (body.assigned_machineries ?? []).map((m) => ({
+        concept: m.concept,
+        machinery_id: m.machinery_id,
+      })),
+      assigned_collaborators: (body.assigned_collaborators ?? []).map((c) => ({
+        collaborator_id: c.collaborator_id,
+        role: c.role,
+      })),
+    };
+
+    return this.httpHandler.post<void>(url, cleanParams(requestBody));
   }
 
   public async updateAssignment(
@@ -83,7 +109,16 @@ export class WarehouseAssignmentServices
       ...body
     } = payload;
     const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${operational_order_id}/assignments/${assignment_id}`;
-    return this.httpHandler.patch<void>(url, body);
+
+    const requestBody = {
+      observations: body.observations,
+      merchandise: body.merchandise,
+      merchandise_description: body.merchandise_description,
+      warehouse_id: body.warehouse_id,
+      destination_type: body.destination_type,
+    };
+
+    return this.httpHandler.patch<void>(url, cleanParams(requestBody));
   }
 
   public async deleteAssignment(
@@ -98,8 +133,6 @@ export class WarehouseAssignmentServices
     const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${operational_order_id}/assignments/${assignment_id}`;
     return this.httpHandler.delete<void>(url);
   }
-
-  // ─── Sub-recursos: Colaboradores y Maquinaria ───────────────────────────────
 
   public async assignCollaborators(
     payload: AssignCollaboratorsRequest,
@@ -187,5 +220,38 @@ export class WarehouseAssignmentServices
     return this.httpHandler.get<GetAssignmentMachineryResponse>(url, {
       params: cleanParams(queryParams),
     });
+  }
+
+  public async assignPositions(
+    payload: AssignPositionsRequest,
+  ): Promise<AssignPositionsResponse> {
+    const {
+      company_id,
+      module_code,
+      operational_order_id,
+      assignment_id,
+      ...body
+    } = payload;
+    const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${operational_order_id}/assignments/${assignment_id}/assignment-positions`;
+    return this.httpHandler.post<AssignPositionsResponse>(url, body);
+  }
+
+  public async getMachineryCatalog(
+    payload: BaseRequest & { page_number?: number; page_size?: number },
+  ): Promise<GetMachineryCatalogResponse> {
+    const { company_id, module_code, page_number = 1, page_size = 20 } = payload;
+    const url = `/companies/${company_id}/modules/${module_code}/machinery`;
+    return this.httpHandler.get<GetMachineryCatalogResponse>(url, {
+      params: { page_number, page_size },
+    });
+  }
+
+  public async sendToUnloading(
+    payload: SendToUnloadingRequest,
+  ): Promise<void> {
+    const { company_id, module_code, operational_order_id, assignment_id } =
+      payload;
+    const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${operational_order_id}/assignments/${assignment_id}/send-to-unloading`;
+    return this.httpHandler.post<void>(url, {});
   }
 }
