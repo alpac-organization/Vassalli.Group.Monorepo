@@ -2,7 +2,7 @@ import { Badges, ContextMenu, type ContextMenuItem, type TableColumn } from "@al
 import type { OperationalOrderListItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/operational-orders/get-operational-orders-response";
 import { getOperationalOrderStatusLabel } from "@app/modules/warehouse/domain/enums/warehouse-managua/operational-order-status.enum";
 import { TransportDocuments, type TransportDocumentType } from "@app/core/enums/document.enum";
-import type { GetOperationsColumnsProps } from "./operation-columns.types";
+import type { GetOperationsColumnsProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/operations-table/operation-columns.types";
 
 const contextMenuButton =
 	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
@@ -45,25 +45,7 @@ export function getOperationsColumns({ onViewDetail, onUpdateInfo }: GetOperatio
 					className="bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/40 dark:text-amber-200 dark:border-amber-800 px-2.5! py-0.5! text-xs font-semibold"
 				/>
 			),
-		},
-		{
-			key: "is_alerted",
-			label: "Alerta",
-			render: (row) =>
-				row.is_alerted ? (
-					<Badges
-						label="Alerta"
-						color="transparent"
-						className="bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/40 dark:text-red-200 dark:border-red-800 px-2! py-0.5! text-xs"
-					/>
-				) : (
-					<Badges
-						label="Normal"
-						color="transparent"
-						className="bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-200 dark:border-emerald-800 px-2! py-0.5! text-xs"
-					/>
-				),
-		},
+		},		
 		{
 			key: "actions",
 			label: "Acciones",

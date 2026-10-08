@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { DataTable, Pagination } from "@alpac/design-system";
 import type { OperationalOrderListItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/operational-orders/get-operational-orders-response";
-import { getOperationsColumns } from "./operations-columns";
+import { getOperationsColumns } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/operations-table/operations-columns";
 
 interface OperationsTableProps {
   data: OperationalOrderListItem[];
