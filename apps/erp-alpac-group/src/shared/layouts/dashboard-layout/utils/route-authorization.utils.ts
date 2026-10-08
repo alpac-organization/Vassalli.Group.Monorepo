@@ -39,15 +39,8 @@ export const isRouteAuthorized = (pathname: string, authorizedItems: SidebarLink
    return authorizedItems.some((item) => matchesAuthorizedRoute(pathname, item));
 }
 
-export const getAuthorizedPaths = () => {
-
-   const { moduleCode, role } = useUserStore();
-
+export const getAuthorizedPaths = (moduleCode: string, role: string) => {   
    const authorizedModules = routeConfig[moduleCode as keyof typeof routeConfig] ?? [];
-
-   const authorizedPaths: SidebarLink[] =
-      (authorizedModules[role as keyof typeof authorizedModules] ?? []) as SidebarLink[];
-
-   return authorizedPaths;
-}
+   return (authorizedModules[role as keyof typeof authorizedModules] ?? []) as SidebarLink[];
+};
 

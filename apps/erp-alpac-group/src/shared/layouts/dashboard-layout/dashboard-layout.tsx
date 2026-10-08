@@ -25,10 +25,10 @@ export const DashboardLayout = () => {
    const location = useLocation();
    const navigate = useNavigate();
    const mainContentRef = useRef<HTMLElement | null>(null);
-   const { companyAlias } = useUserStore();
+   const { companyAlias, moduleCode, role } = useUserStore();
    const { neutralUrlImage } = useCompanyStore();
 
-   const authorizedPaths: SidebarLink[] = getAuthorizedPaths();
+   const authorizedPaths: SidebarLink[] = getAuthorizedPaths(moduleCode, role);
    const isAuthorizedPath = isRouteAuthorized(location.pathname, authorizedPaths);
 
    const handleLogout = async function () {

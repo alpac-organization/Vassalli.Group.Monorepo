@@ -1,30 +1,36 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Breadcrumb, Modal } from "@alpac/design-system";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Breadcrumb } from "@alpac/design-system";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
-import {
-   getAuthorizedPaths,
-   isRouteAuthorized,
-} from "@app/shared/layouts/dashboard-layout/utils/route-authorization.utils";
 import type { TicketParams } from "./ticket-viewer.types";
 
-// http://localhost:5173/alpac/dashboard/warehouse-mga/ticket?code=39823983
-
+// Handheld / QR → http://localhost:5173/alpac/dashboard/warehouse-mga/ticket?code=39823983
+// Esta ruta vive fuera de DashboardLayout a propósito: solo requiere sesión (AuthGuard),
+// no contexto de módulo elegido en el Home.
 
 export const TicketViewer = () => {
-   const { moduleCode = "" } = useParams<TicketParams>();
+
+   const { moduleCode: modulePath } = useParams<TicketParams>();
    const [searchParams] = useSearchParams();
-   const location = useLocation();
    const navigate = useNavigate();
    const { baseUrl } = useBaseUrl();
    const { companyAlias, companyName } = useUserStore();
-   const [showModal, setShowModal] = useState(false);
+
+   const [hasHydrated, setHasHydrated] = useState(() =>
+      useUserStore.persist.hasHydrated(),
+   );
+
+   useEffect(() => {
+      const unsub = useUserStore.persist.onFinishHydration(() => {
+         setHasHydrated(true);
+      });
+      setHasHydrated(useUserStore.persist.hasHydrated());
+      return unsub;
+   }, []);
 
    const code = searchParams.get("code") ?? "—";
-   const authorizedPaths = getAuthorizedPaths();
-   const isAuthorizedPath = isRouteAuthorized(location.pathname, authorizedPaths);
    const documentName = "Ticket de almacén";
 
    const scannedAt = new Date();
@@ -38,28 +44,9 @@ export const TicketViewer = () => {
       hour12: true,
    });
 
-   useEffect(() => {
-      if (!isAuthorizedPath) {
-         setShowModal(true);
-      }
-   }, [isAuthorizedPath]);
-
-   if (!isAuthorizedPath) {
-      return (
-         <Modal
-            isOpen={showModal}
-            variant="warning"
-            title="Acceso denegado"
-            description="No tienes permiso para acceder a esta ruta"
-            onClose={() => {
-               setShowModal(false);
-               navigate(companyAlias ? `/${companyAlias}/dashboard` : "/dashboard");
-            }}
-         />
-      );
+   if (!hasHydrated) {
+      return null;
    }
-
-   const warehouseModulePath = moduleCode || "warehouse-mga";
 
    return (
       <section className="flex min-h-[80vh] w-full flex-col items-center gap-4 p-4 md:p-8">
@@ -73,12 +60,12 @@ export const TicketViewer = () => {
                   },
                   {
                      label: "Almacén",
-                     url: `${baseUrl}/${warehouseModulePath}/access-control`,
+                     url: `${baseUrl}/${modulePath}/access-control`,
                      onClick: (url) => navigate(url),
                   },
                   {
                      label: "Ticket",
-                     url: `${baseUrl}/${warehouseModulePath}/ticket`,
+                     url: `${baseUrl}/${modulePath}/ticket`,
                   },
                ]}
             />
@@ -108,7 +95,7 @@ export const TicketViewer = () => {
 
                <DetailField
                   label="Módulo"
-                  value={moduleCode || "—"}
+                  value={modulePath}
                />
 
                <div className="grid grid-cols-2 gap-4">
@@ -124,7 +111,7 @@ export const TicketViewer = () => {
 
                <DetailField
                   label="Warehouse"
-                  value={moduleCode || "—"}
+                  value={modulePath}
                />
 
                <DetailField
