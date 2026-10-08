@@ -51,14 +51,19 @@ export function ConsolidatedInformationSection({
 						containerClass="sm:col-span-2 lg:col-span-2"
 						value={
 							<div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-								{documentNumbers.map((doc, idx) => (
-									<Badges
-										key={doc.document_id || idx}
-										label={formatDocumentBadgeLabel(doc)}
-										color="transparent"
-										className="bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/40 dark:text-blue-200 dark:border-blue-800 px-3! py-1! font-medium"
-									/>
-								))}
+								{documentNumbers.map((doc, idx) => {
+									const label = formatDocumentBadgeLabel(doc);
+									if (!doc || !label) return null;
+
+									return (
+										<Badges
+											key={doc.document_id || idx}
+											label={label}
+											color="transparent"
+											className="bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/40 dark:text-blue-200 dark:border-blue-800 px-3! py-1! font-medium"
+										/>
+									);
+								})}
 							</div>
 						}
 					/>

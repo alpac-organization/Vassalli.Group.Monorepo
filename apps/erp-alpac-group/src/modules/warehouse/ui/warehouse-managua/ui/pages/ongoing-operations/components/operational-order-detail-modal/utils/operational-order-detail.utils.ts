@@ -32,11 +32,14 @@ export function formatOptionalNumber(
 	return `${Number(value).toLocaleString()} ${suffix}`;
 }
 
-export function formatDocumentBadgeLabel(doc: AdditionalDataDocumentNumber): string {
-	const typeLabel = resolveDocumentTypeLabel(doc.document_type);
-	return typeLabel
-		? `${doc.document_numbers} · ${typeLabel}`
-		: doc.document_numbers;
+export function formatDocumentBadgeLabel(
+	doc?: AdditionalDataDocumentNumber | null,
+): string {
+	const documentNumber = doc?.document_numbers?.trim() ?? "";
+	const typeLabel = resolveDocumentTypeLabel(doc?.document_type);
+
+	if (documentNumber && typeLabel) return `${documentNumber} · ${typeLabel}`;
+	return documentNumber || typeLabel;
 }
 
 export function getConsolidatedBadge(isConsolidated: boolean) {
@@ -54,7 +57,7 @@ export function mapEvidenceImages(
 	parsed: AdditionalReceptionEntranceData | null,
 ): ImagePayload[] {
 	return (parsed?.evidence_urls ?? [])
-		.map((evidence) => evidence.image_url ?? evidence.document_url ?? "")
+		.map((evidence) => evidence?.image_url ?? evidence?.document_url ?? "")
 		.filter(Boolean)
 		.map((url) => ({ image_base64: url }));
 }

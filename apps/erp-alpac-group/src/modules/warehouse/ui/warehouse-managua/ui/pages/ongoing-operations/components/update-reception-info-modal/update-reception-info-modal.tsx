@@ -28,12 +28,15 @@ import type { UpdateOperationalOrderInformationRequest } from "@app/modules/ware
 function buildCustomerLabel(
   name?: string | null,
   identification?: string | null,
-  fallbackId?: string | null,
 ): string {
-  if (name && identification) return `${name} (${identification})`;
-  if (name) return name;
-  if (identification) return identification;
-  return fallbackId || "";
+  const customerName = name?.trim() || "";
+  const customerIdentification = identification?.trim() || "";
+
+  if (customerName && customerIdentification) {
+    return `${customerName} (${customerIdentification})`;
+  }
+
+  return customerName || customerIdentification;
 }
 
 export function UpdateReceptionInformationModal({
@@ -87,7 +90,7 @@ export function UpdateReceptionInformationModal({
       shipping_company: "",
       consignee: "",
       sender: "",
-      is_alert: false,
+      is_alerted: false,
       merchandises: [],
     },
   });
@@ -114,7 +117,7 @@ export function UpdateReceptionInformationModal({
         shipping_company: "",
         consignee: "",
         sender: "",
-        is_alert: false,
+        is_alerted: false,
         merchandises: [],
       });
       setSelectedCustomerLabel("");
@@ -132,7 +135,7 @@ export function UpdateReceptionInformationModal({
       shipping_company: detail.shipping_company || "",
       consignee: detail.consignee || "",
       sender: detail.sender || "",
-      is_alert: Boolean(detail.is_alerted),
+      is_alerted: Boolean(detail.is_alerted),
       merchandises: [],
     });
 
@@ -141,8 +144,7 @@ export function UpdateReceptionInformationModal({
       existingCustomer
         ? buildCustomerLabel(
           customer?.legal_name,
-          customer?.identification_number || customer?.cif,
-          customer?.customer_id,
+          customer?.identification_number,
         )
         : "",
     );
@@ -159,8 +161,7 @@ export function UpdateReceptionInformationModal({
     setSelectedCustomerLabel(
       buildCustomerLabel(
         customer.legal_name,
-        customer.identification_number || customer.cif,
-        customer.customer_id,
+        customer.identification_number,
       ),
     );
   };
@@ -241,13 +242,11 @@ export function UpdateReceptionInformationModal({
         shipping_company: values.shipping_company.trim() || null,
         consignee: values.consignee.trim() || null,
         sender: values.sender.trim() || null,
-        is_alert: Boolean(values.is_alert),
+        is_alerted: Boolean(values.is_alerted),
         merchandises: merchandises.length > 0 ? merchandises : null,
-      }
+      }      
 
-      console.log("Revisando payload de actualizacion orden operacional: ", payload);
-
-      // await UpdateOperationalOrderInformation.mutateAsync(payload);
+      await UpdateOperationalOrderInformation.mutateAsync(payload);
 
       handleRequestSuccess("Información de recepción registrada correctamente.");
 
@@ -289,8 +288,7 @@ export function UpdateReceptionInformationModal({
           </div>
         ) : (
           <form
-            className="flex flex-col gap-6"
-            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col gap-6"            
           >
             {AlertComponent}
 
@@ -436,7 +434,7 @@ export function UpdateReceptionInformationModal({
 
                 <Controller
                   control={control}
-                  name="is_alert"
+                  name="is_alerted"
                   render={({ field }) => (
                     <div className="flex self-center">
                       <Checkbox
@@ -496,15 +494,14 @@ export function UpdateReceptionInformationModal({
                     className="gap-3"
                   >
                     {fields.map((item, index) => (
-                      <AccordionItem
-                        key={item.id}
-                        value={item.id}
-                        className="rounded-md! border-slate-300! dark:border-slate-600! dark:bg-[#272b34]!"
-                        triggerClassName="h-auto! min-h-12! py-2.5! pr-3!"
-                        contentClassName="flex flex-col gap-4 p-4"
-                        title={
-                          <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-                            <div className="flex min-w-0 items-center gap-3">
+                      <div key={item.id} className="relative">
+                        <AccordionItem
+                          value={item.id}
+                          className="rounded-md! border-slate-300! dark:border-slate-600! dark:bg-[#272b34]!"
+                          triggerClassName="h-auto! min-h-12! py-2.5! pr-3!"
+                          contentClassName="flex flex-col gap-4 p-4"
+                          title={
+                            <div className="flex min-w-0 items-center gap-3 pr-12">
                               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
                                 {index + 1}
                               </span>
@@ -513,59 +510,54 @@ export function UpdateReceptionInformationModal({
                                   `Mercancía #${index + 1}`}
                               </span>
                             </div>
-                            <span
-                              className="mr-3 flex shrink-0 items-center"
-                              onClick={(evt) => evt.stopPropagation()}
-                              onKeyDown={(evt) => evt.stopPropagation()}
-                            >
-                              <Button
-                                type="button"
-                                size="small"
-                                tooltip="Quitar mercancía"
-                                icon={<Trash2Icon size={16} />}
-                                onClick={() => remove(index)}
-                                className="h-8 w-8! shrink-0 rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!"
-                              />
-                            </span>
+                          }
+                        >
+                          <div className="grid grid-cols-1 gap-4">
+                            <Controller
+                              name={`merchandises.${index}.merchandise`}
+                              control={control}
+                              render={({ field }) => (
+                                <InputText
+                                  label="Mercancía"
+                                  labelClassName={labelClassName}
+                                  placeholder="Nombre de la mercancía"
+                                  value={field.value || ""}
+                                  onChange={(e) =>
+                                    field.onChange(e.target.value)
+                                  }
+                                  className={inputClassName}
+                                />
+                              )}
+                            />
+                            <Controller
+                              name={`merchandises.${index}.merchandise_description`}
+                              control={control}
+                              render={({ field }) => (
+                                <Textarea
+                                  label="Descripción"
+                                  labelClassName={labelClassName}
+                                  placeholder="Descripción de la mercancía..."
+                                  rows={3}
+                                  value={field.value || ""}
+                                  onChange={(e) =>
+                                    field.onChange(e.target.value)
+                                  }
+                                  className={inputClassName}
+                                />
+                              )}
+                            />
                           </div>
-                        }
-                      >
-                        <div className="grid grid-cols-1 gap-4">
-                          <Controller
-                            name={`merchandises.${index}.merchandise`}
-                            control={control}
-                            render={({ field }) => (
-                              <InputText
-                                label="Mercancía"
-                                labelClassName={labelClassName}
-                                placeholder="Nombre de la mercancía"
-                                value={field.value || ""}
-                                onChange={(e) =>
-                                  field.onChange(e.target.value)
-                                }
-                                className={inputClassName}
-                              />
-                            )}
-                          />
-                          <Controller
-                            name={`merchandises.${index}.merchandise_description`}
-                            control={control}
-                            render={({ field }) => (
-                              <Textarea
-                                label="Descripción"
-                                labelClassName={labelClassName}
-                                placeholder="Descripción de la mercancía..."
-                                rows={3}
-                                value={field.value || ""}
-                                onChange={(e) =>
-                                  field.onChange(e.target.value)
-                                }
-                                className={inputClassName}
-                              />
-                            )}
-                          />
-                        </div>
-                      </AccordionItem>
+                        </AccordionItem>
+                        <Button
+                          type="button"
+                          size="small"
+                          tooltip="Quitar mercancía"
+                          ariaLabel="Quitar mercancía"
+                          icon={<Trash2Icon size={16} />}
+                          onClick={() => remove(index)}
+                          className="absolute! top-2.5 right-10 z-10 h-8 w-8! shrink-0 rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!"
+                        />
+                      </div>
                     ))}
                   </AccordionGroup>
                 )}
@@ -584,9 +576,10 @@ export function UpdateReceptionInformationModal({
                 className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30! sm:w-auto!"
               />
               <Button
-                type="submit"
+                type="button"
                 size="giant"
                 label="Guardar"
+                onClick={handleSubmit(onSubmit)}
                 isLoading={UpdateOperationalOrderInformation.isPending}
                 disabled={isBusy}
                 className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"

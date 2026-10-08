@@ -5,7 +5,7 @@ export interface UpdateReceptionInfoFormValues {
 	shipping_company: string;
 	consignee: string;
 	sender: string;
-	is_alert: boolean;
+	is_alerted: boolean;
 	merchandises: Array<{
 		merchandise: string;
 		merchandise_description: string;
