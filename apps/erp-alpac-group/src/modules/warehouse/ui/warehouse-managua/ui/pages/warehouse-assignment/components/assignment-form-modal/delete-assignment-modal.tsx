@@ -58,7 +58,7 @@ export function DeleteAssignmentModal({
       onClose={onClose}
       handleFinalAction={(actionType) => {
         if (actionType === "DELETE") {
-          handleDelete();
+          void handleDelete();
         }
       }}
     >
