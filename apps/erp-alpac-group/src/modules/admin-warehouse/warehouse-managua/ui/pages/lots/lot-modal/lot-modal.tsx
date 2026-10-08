@@ -1,7 +1,8 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
 	Alert,
 	Button,
+	Checkbox,
 	Dropdown,
 	InputText,
 	Modal,
@@ -9,6 +10,7 @@ import {
 import { Controller, useForm } from "react-hook-form";
 import { AXIS_OPTIONS, type LotFormValues, type LotModalProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/lots/lot-modal/types/lot-modal.types";
 import type { RegisterLotRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
+import type { RegisterLotsPositionsCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/register-coordinates-req";
 import {
 	formatAmount,
 	validateDecimalNumber,
@@ -17,6 +19,8 @@ import {
 } from "@app/shared/utils/number.utils";
 import { parseDecimal } from "@app/shared/utils/get-decimal.config";
 import { useLot } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useLot";
+import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
+import { CoordinateTargetTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/coordinate-target-type";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -41,6 +45,7 @@ const createDefaultValues = (
 	length: "",
 	nominal_rows: "",
 	nominal_columns: "",
+	allows_stacking: false,
 	disperse_axis: isSectionVertical(sectionLength, sectionWidth) ? "Y" : "X",
 });
 
@@ -75,6 +80,8 @@ export const LotModal = ({
 	});
 
 	const { RegisterLot } = useLot();
+	const { RegisterCoordinates, GetPositions } = useSection();
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const watchQuantity = Number(watch("quantity") || 0);
 	const watchWidth = Number(watch("width") || 0);
@@ -114,7 +121,7 @@ export const LotModal = ({
 		[watchRows, watchColumns, watchWidth, watchLength],
 	);
 
-	const handleCreateLots = (data: LotFormValues) => {
+	const handleCreateLots = async (data: LotFormValues) => {
 		const quantity = Number(data.quantity ?? 0);
 		const width = Number(data.width ?? 0);
 		const length = Number(data.length ?? 0);
@@ -159,26 +166,101 @@ export const LotModal = ({
 			warehouse_id: warehouseId,
 			section_id: sectionId,
 			lots: lotPlacement.lots.map((lot) => ({
-				...lot,
 				nominal_rows: nominalRows,
 				nominal_columns: nominalColumns,
-				positions: lotPositions.positions,
+				width: lot.width,
+				length: lot.length,
+				allows_stacking: Boolean(data.allows_stacking),
+				position_x: lot.position_x,
+				position_y: lot.position_y,
+				position_z: lot.position_z,
+				rotation_y: lot.rotation_y,
 			})),
 		};
 
-		console.log("Revision de posiciones: ", payload);
+		setIsSubmitting(true);
 
-		RegisterLot.mutate(payload, {
-			onSuccess() {
-				handleRequestSuccess("Tramos registrados exitosamente.");
-				reset(createDefaultValues(sectionWidth, sectionLength));
-				onSubmit?.(payload);
-				setTimeout(onClose, 500);
-			},
-			onError(error) {
-				handleRequestError(getMappedError(error).description);
-			},
-		});
+		try {
+			const positionsBefore = await GetPositions({
+				company_id: companyId,
+				module_code: moduleCode,
+				warehouse_id: warehouseId,
+				section_id: sectionId,
+			});
+			const existingLotIds = new Set(
+				positionsBefore.blocks.map((block) => block.id),
+			);
+
+			await RegisterLot.mutateAsync(payload);
+
+			const positionsAfter = await GetPositions({
+				company_id: companyId,
+				module_code: moduleCode,
+				warehouse_id: warehouseId,
+				section_id: sectionId,
+			});
+			const newLots = positionsAfter.blocks.filter(
+				(block) => !existingLotIds.has(block.id),
+			);
+
+			if (newLots.length === 0) {
+				handleRequestError(
+					"Los tramos se crearon, pero no se encontraron posiciones para registrar coordenadas.",
+				);
+				return;
+			}
+
+			const COORDINATES_REQUEST_DELAY_MS = 300;
+
+			for (let i = 0; i < newLots.length; i++) {
+				const lot = newLots[i];
+				const coordinatesPayload: RegisterLotsPositionsCoordinatesRequest = {
+					company_id: companyId,
+					module_code: moduleCode,
+					warehouse_id: warehouseId,
+					section_id: sectionId,
+					target_type: CoordinateTargetTypeEnum.LotsPositions.value,
+					lot_id: lot.id,
+					lots_positions_information: lot.positions.map((position, index) => {
+						const coordinate =
+							lotPositions.positions[index]?.coordinate ?? {
+								position_x: 0,
+								position_y: 0,
+								position_z: 0,
+								rotation_y: 0,
+							};
+
+						return {
+							lot_position_id: position.id,
+							position_x: coordinate.position_x,
+							position_y: coordinate.position_y,
+							position_z: coordinate.position_z,
+							rotation_y: coordinate.rotation_y,
+						};
+					}),
+					rack_positions_information: [],
+				};
+
+				await RegisterCoordinates.mutateAsync(coordinatesPayload);
+
+				if (i < newLots.length - 1) {
+					await new Promise((resolve) =>
+						setTimeout(resolve, COORDINATES_REQUEST_DELAY_MS),
+					);
+				}
+			}
+
+			handleRequestSuccess(
+				"Tramos y coordenadas de posiciones registrados exitosamente.",
+			);
+			reset(createDefaultValues(sectionWidth, sectionLength));
+			onSubmit?.(payload);
+			setTimeout(onClose, 500);
+		} catch (error) {
+			handleRequestError(getMappedError(error as never).description);
+		} finally {
+			setIsSubmitting(false);
+		}
 	};
 
 	const handleClose = () => {
@@ -252,6 +334,22 @@ export const LotModal = ({
 								onChange={(val) => field.onChange(val as DispersionAxis)}
 								error={errors.disperse_axis?.message}
 							/>
+						)}
+					/>
+
+					<Controller
+						control={control}
+						name="allows_stacking"
+						render={({ field }) => (
+							<div className="flex items-end pb-1">
+								<Checkbox
+									label="Permite estibado"
+									labelPosition="right"
+									className="text-slate-300!"
+									checked={Boolean(field.value)}
+									onChange={(e) => field.onChange(e.target.checked)}
+								/>
+							</div>
 						)}
 					/>
 				</div>
@@ -410,9 +508,9 @@ export const LotModal = ({
 						type="submit"
 						size="giant"
 						label="Guardar"
-						isLoading={RegisterLot.isPending}
+						isLoading={isSubmitting}
 						disabled={
-							RegisterLot.isPending ||
+							isSubmitting ||
 							!placement.fits ||
 							!positionsPreview.fits
 						}

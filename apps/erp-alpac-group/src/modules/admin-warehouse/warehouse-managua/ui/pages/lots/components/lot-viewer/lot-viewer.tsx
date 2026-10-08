@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Group, Rect } from "react-konva";
 import { SaveIcon } from "lucide-react";
@@ -11,6 +11,7 @@ import { createMockGaleron } from "@app/modules/admin-warehouse/warehouse-managu
 import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import { RACK_STATUS_LEGEND } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
 import { useLot } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useLot";
+import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -76,6 +77,29 @@ export const LotViewer = ({
   const activeSelectedId = selectedLot?.id ?? internalSelectedId;
   const activeSelectedCode = selectedLot?.code ?? internalSelectedCode;
   const resolvedWarehouseId = warehouse?.warehouse_id ?? warehouseId;
+
+  const { GetPositionsQuery } = useSection({
+    getPositionsPayload:
+      companyId && moduleCode && resolvedWarehouseId && sectionId
+        ? {
+            company_id: companyId,
+            module_code: moduleCode,
+            warehouse_id: resolvedWarehouseId,
+            section_id: sectionId,
+          }
+        : undefined,
+  });
+
+  const positionsByLotId = useMemo(() => {
+    const map = new Map<
+      string,
+      NonNullable<typeof GetPositionsQuery.data>["blocks"][number]["positions"]
+    >();
+    for (const block of GetPositionsQuery.data?.blocks ?? []) {
+      map.set(block.id, block.positions);
+    }
+    return map;
+  }, [GetPositionsQuery.data]);
 
   const width = warehouse?.width ?? 0;
   const length = warehouse?.length ?? 0;
@@ -316,6 +340,7 @@ export const LotViewer = ({
                 <LotShape
                   key={lot.id}
                   lot={lot}
+                  positions={positionsByLotId.get(lot.id) ?? []}
                   x={coordinate?.x ?? lot.position_x ?? fallbackCoordinate.x}
                   y={coordinate?.y ?? lot.position_y ?? fallbackCoordinate.y}
                   width={size?.width ?? lot.width ?? fallbackSize.width}

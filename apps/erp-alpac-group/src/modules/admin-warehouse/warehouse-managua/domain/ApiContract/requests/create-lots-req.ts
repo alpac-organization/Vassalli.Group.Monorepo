@@ -33,5 +33,6 @@ export interface LotItem {
 	position_y: number;
 	position_z: number;
 	rotation_y: number;
-	positions: LotPositionItem[];
+	/** Solo uso local/preview; el backend genera las posiciones y sus coords van en POST aparte. */
+	positions?: LotPositionItem[];
 }

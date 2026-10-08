@@ -1,11 +1,11 @@
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 import {
-	ArchiveRestoreIcon,
 	Building2,
 	ClipboardListIcon,
 	TicketIcon,
 	TruckIcon,
 	WarehouseIcon,
+	WrenchIcon,
 } from "lucide-react";
 
 export const getManaguaWarehouseRoutes = () => {
@@ -23,14 +23,12 @@ export const getManaguaWarehouseRoutes = () => {
 		icon: WrenchIcon,
 	};
 
-
 	const warehouseAssignmentSection: SidebarLink = {
 		id: "warehouse-assignment",
 		label: "Asignación",
 		path: "warehouse-assignment",
 		icon: ClipboardListIcon,
 	};
-
 
 	const warehouseListSection: SidebarLink = {
 		id: "warehouse-list",

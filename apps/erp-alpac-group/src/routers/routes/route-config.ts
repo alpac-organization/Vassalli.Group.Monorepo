@@ -119,6 +119,7 @@ export const routeConfig = {
       warehouseListSection,
       BodegaSection,
       warehouseReportSection,
+      ticketSection
     ],
     [RoleEnum.MANAGER]: [
       warehouseManaguaSection,
@@ -136,15 +137,6 @@ export const routeConfig = {
       BodegaSection,
       warehouseReportSection,
     ],
-    [RoleEnum.ADMINISTRATOR]: [
-      warehouseManaguaSection,
-      DucaPanel,
-      warehouseAssignmentSection,
-      warehouseListSection,
-      BodegaSection,
-      warehouseReportSection,
-      ticketSection
-    ]
   },
   [ModuleEnum.WAREHOUSE_ADMIN]: {
     [RoleEnum.OPERATOR]: [manageSection],

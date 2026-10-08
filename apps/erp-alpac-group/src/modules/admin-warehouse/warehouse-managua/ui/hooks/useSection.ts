@@ -6,18 +6,21 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { DeleteSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/delete-section-req";
 import type { GetSectionDetailsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/get-section-details-req";
 import type { GetSectionsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/get-sections-req";
-import type { RegisterSectionCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/register-section-coordinates-req";
+import type { GetPositionsRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/get-positions-req";
+import type { RegisterCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/register-coordinates-req";
 import type { RegisterSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/register-section-req";
 import type { UpdateSectionLayoutRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/update-section-layout-req";
 import type { UpdateSectionRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/update-section-req";
 import type { GetSectionDetailsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-section-details-res";
 import type { GetSectionsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
+import type { GetPositionsResponse } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-positions-res";
 
 const sectionService = new SectionService(warehouseHttpHandler);
 
 interface UseSectionProps {
    getSectionsPayload?: GetSectionsRequest;
    getSectionDetailsPayload?: GetSectionDetailsRequest;
+   getPositionsPayload?: GetPositionsRequest;
 }
 
 const hasCompanyContext = (payload?: { company_id?: string; module_code?: string; }) => Boolean(payload?.company_id?.trim() && payload?.module_code?.trim());
@@ -25,7 +28,7 @@ const hasCompanyContext = (payload?: { company_id?: string; module_code?: string
 export const useSection = (props?: UseSectionProps) => {
 
    const queryClient = useQueryClient();
-   const { getSectionsPayload, getSectionDetailsPayload } = props || {};
+   const { getSectionsPayload, getSectionDetailsPayload, getPositionsPayload } = props || {};
 
    const GetSections = useQuery<GetSectionsResponse, ApiErrorResponse>({
       queryKey: ["get-warehouse-sections-records", getSectionsPayload],
@@ -57,14 +60,30 @@ export const useSection = (props?: UseSectionProps) => {
       retry: 1,
    });
 
-   const RegisterSectionCoordinates = useMutation<void, ApiErrorResponse, RegisterSectionCoordinatesRequest>({
-      mutationKey: ["register-section-coordinates-record"],
-      mutationFn: (payload) => sectionService.RegisterSectionCoordinates(payload),
+   const RegisterCoordinates = useMutation<void, ApiErrorResponse, RegisterCoordinatesRequest>({
+      mutationKey: ["register-positions-coordinates-record"],
+      mutationFn: (payload) => sectionService.RegisterCoordinates(payload),
       onSuccess: () => {
          queryClient.invalidateQueries({ queryKey: ["get-section-details-record"] });
+         queryClient.invalidateQueries({ queryKey: ["get-section-positions-record"] });
       },
       retry: 1,
    });
+
+   const GetPositionsQuery = useQuery<GetPositionsResponse, ApiErrorResponse>({
+      queryKey: ["get-section-positions-record", getPositionsPayload],
+      queryFn: () => sectionService.GetPositions(getPositionsPayload!),
+      enabled: hasCompanyContext(getPositionsPayload) &&
+         Boolean(
+            getPositionsPayload?.warehouse_id &&
+            getPositionsPayload?.section_id,
+         ),
+      refetchOnWindowFocus: false,
+      retry: 1,
+   });
+
+   const GetPositions = (payload: GetPositionsRequest): Promise<GetPositionsResponse> =>
+      sectionService.GetPositions(payload);
 
    const UpdateSection = useMutation<void, ApiErrorResponse, UpdateSectionRequest>({
       mutationKey: ["update-section-record"],
@@ -98,9 +117,11 @@ export const useSection = (props?: UseSectionProps) => {
 
    return {
       RegisterSection,
-      RegisterSectionCoordinates,
+      RegisterCoordinates,
       GetSections,
       GetSectionDetails,
+      GetPositionsQuery,
+      GetPositions,
       UpdateSection,
       UpdateSectionLayout,
       DeleteSection,

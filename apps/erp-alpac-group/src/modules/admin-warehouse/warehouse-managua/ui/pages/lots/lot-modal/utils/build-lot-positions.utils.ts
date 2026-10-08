@@ -1,8 +1,5 @@
 import type { LotPositionItem } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
-
-/** Footprint estándar de polín en metros (ancho × largo). */
-export const STANDARD_POLIN_WIDTH = 1.0;
-export const STANDARD_POLIN_DEPTH = 1.8;
+import { POLIN_DEEP_METER, POLIN_WIDTH_METER } from "../../../../utils/warehouse-config";
 
 export type BuildLotPositionsInput = {
 	rows: number;
@@ -117,8 +114,8 @@ export const buildPositions = (
 		columns,
 		lotWidth,
 		lotLength,
-		polinWidth = STANDARD_POLIN_WIDTH,
-		polinDepth = STANDARD_POLIN_DEPTH,
+		polinWidth = POLIN_WIDTH_METER,
+		polinDepth = POLIN_DEEP_METER,
 		level = 0,
 	} = input;
 
