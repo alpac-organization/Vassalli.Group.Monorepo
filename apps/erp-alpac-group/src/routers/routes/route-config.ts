@@ -5,10 +5,10 @@ import { getAdminRoutes } from "@app/routers/routes/admin/admin-routes";
 import { getWorkManagementRoutes } from "@app/routers/routes/work-management/work-managment-routes";
 import { getCorintoWarehouseRoutes } from "@app/routers/routes/warehouse/corinto/corinto-routes";
 import { getManaguaWarehouseRoutes } from "@app/routers/routes/warehouse/managua/managua-routes";
-import { getPurchasingRoutes } from "./purchasing/purchasing-routes";
-import { getFinanceRoutes } from "./finance/finance-routes";
-import { getWarehouseAdminRoutes } from "./warehouse-admin/warehouse-admin-routes";
-import { getManagementRoutes } from "./management/management-routes";
+import { getPurchasingRoutes } from "@app/routers/routes/purchasing/purchasing-routes";
+import { getFinanceRoutes } from "@app/routers/routes/finance/finance-routes";
+import { getWarehouseAdminRoutes } from "@app/routers/routes/warehouse-admin/warehouse-admin-routes";
+import { getManagementRoutes } from "@app/routers/routes/management/management-routes";
 
 const {
   collboratorSection,
@@ -130,14 +130,6 @@ export const routeConfig = {
     [RoleEnum.SUPERVISOR]: [
       warehouseManaguaSection,
       ongoingOperationsSection,
-      warehouseAssignmentSection,
-      warehouseListSection,
-      BodegaSection,
-      warehouseReportSection,
-    ],
-    [RoleEnum.ADMINISTRATOR]: [
-      warehouseManaguaSection,
-      DucaPanel,
       warehouseAssignmentSection,
       warehouseListSection,
       BodegaSection,

@@ -10,11 +10,11 @@ export const DetailField = ({
       <span className="text-[12px]! font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
          {label}
       </span>
-      <div className="flex w-full min-w-0 max-w-full items-start overflow-hidden">
+      <div className="flex w-full min-w-0  max-w-full items-center overflow-hidden">
 
          {
             !!icon &&
-               <span className="mr-2 flex h-9 w-9 shrink-0 items-center justify-center ring-1 ring-slate-200 dark:ring-neutral-600 rounded-full">
+               <span className="my-1 mx-1 mr-3! m flex h-9 w-9 shrink-0 items-center justify-center ring-1 ring-slate-200 dark:ring-neutral-600 rounded-full">
                   {icon}
                </span>
             }
