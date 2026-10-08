@@ -70,6 +70,7 @@ export const ProductPriceHistoryModal = ({
 	productId,
 	supplierId,
 	supplierLabel,
+	currency = "USD",
 }: ProductPriceHistoryModalProps) => {
 	const { companyId, moduleCode } = useUserStore();
 	const [draftFilters, setDraftFilters] = useState<HistoryFilters>(emptyFilters);
@@ -117,7 +118,7 @@ export const ProductPriceHistoryModal = ({
 			{
 				key: "price",
 				label: "Precio",
-				render: (row) => formatCurrency(row.price, "USD"),
+				render: (row) => formatCurrency(row.price, currency),
 			},
 			{
 				key: "min_quantity",
@@ -151,7 +152,7 @@ export const ProductPriceHistoryModal = ({
 				),
 			},
 		],
-		[],
+		[currency],
 	);
 
 	const handleApplyFilters = () => {

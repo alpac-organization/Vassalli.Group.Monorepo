@@ -47,6 +47,7 @@ import {
   SupplierExclusiveStatusOptions,
   type SupplierExclusiveStatus,
 } from "@app/core/enums/supplier-exclusive-status.enum";
+import { resolveSupplierTypeLabel } from "@app/core/enums/supplier-type.enum";
 
 const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
@@ -193,6 +194,13 @@ export const Supplier = () => {
             )}
           </div>
         );
+      },
+    },
+    {
+      key: "supplier_type",
+      label: "Tipo",
+      render(row: GetSuppliersResponse) {
+        return resolveSupplierTypeLabel(row.supplier_type);
       },
     },
     {

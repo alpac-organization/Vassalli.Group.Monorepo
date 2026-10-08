@@ -1,11 +1,13 @@
 import type { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
 import type { ProductLinkedSupplier } from "@app/modules/product/domain/ApiContract/shared/product-supplier";
-import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 
-export type ProductSuppliersPage = PaginateBaseResponse<
-	ProductLinkedSupplier[]
->;
+export type ProductSuppliersPage = {
+	items: ProductLinkedSupplier[];
+	page_number: number;
+	page_size: number;
+	total_count: number;
+};
 
 export interface GetProductDetailsResponse {
 	product_id: string;

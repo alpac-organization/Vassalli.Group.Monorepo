@@ -266,7 +266,7 @@ export const ProductPriceEditModal = ({
 									transition={stepContentTransition}
 								>
 									<InputText
-										label="Nuevo precio unitario"
+										label={`Nuevo precio unitario (${supplier?.currency ?? "USD"})`}
 										type="number"
 										placeholder="0.00"
 										className={inputClassName}

@@ -42,9 +42,17 @@ import {
 	SupplierExclusiveStatusEnum,
 	type SupplierExclusiveStatusOnCreate,
 } from "@app/core/enums/supplier-exclusive-status.enum";
+import {
+	resolveSupplierType,
+	SupplierTypeEnum,
+	SupplierTypeOptions,
+	type SupplierType,
+} from "@app/core/enums/supplier-type.enum";
 import { CatalogLinkEditor } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor";
 import {
 	mapCatalogLinkItemsToTierPayload,
+	mapTierPricesToCatalogForm,
+	resolveLinkCurrency,
 	type CatalogLinkItemForm,
 } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 import { SelectProductModal } from "@app/modules/product/ui/views/select-product-modal/select-product-modal";
@@ -133,6 +141,7 @@ const emptyFormValues: Partial<CreateSupplierRequest> = {
    constitution_type: 0,
    identification_type: undefined,
    identification_number: "",
+   supplier_type: SupplierTypeEnum.Ordinary.stringValue,
    payment_methods: ["ACH"],
    supplier_details: {
       credit_days: 0,
@@ -170,7 +179,13 @@ export const SupplierModal = ({
    const [activeTab, setActiveTab] = useState<TabType>("general");
    const [localBankAccounts, setLocalBankAccounts] = useState<CreateSupplierBankAccountPayload[]>([]);
    const [productLinks, setProductLinks] = useState<CatalogLinkItemForm[]>([]);
+   const [productLinksDirty, setProductLinksDirty] = useState(false);
    const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
+
+   const handleProductLinksChange = (items: CatalogLinkItemForm[]) => {
+      setProductLinks(items);
+      if (isEditMode) setProductLinksDirty(true);
+   };
 
    const {
       CreateSupplier,
@@ -186,6 +201,8 @@ export const SupplierModal = ({
                company_id: companyId,
                module_code: moduleCode,
                supplier_id: selectedSupplier.supplier_id,
+               page_number: 1,
+               page_size: 100,
             }
             : undefined,
    });
@@ -206,11 +223,23 @@ export const SupplierModal = ({
                   ? `${product.code} · ${product.product_name}`
                   : product.product_name,
                unit_price: "",
+               currency: "USD" as const,
                tier_prices: [],
             }));
          return [...prev, ...nextItems];
       });
+      if (isEditMode) setProductLinksDirty(true);
    };
+
+   const mapProductLinksToPayload = (links: CatalogLinkItemForm[]) =>
+      links
+         .filter((link) => link.entity_id && link.unit_price.trim())
+         .map((link) => ({
+            product_id: link.entity_id,
+            unit_price: Number(link.unit_price),
+            currency: link.currency,
+            tier_prices: mapCatalogLinkItemsToTierPayload(link.tier_prices),
+         }));
 
    const { data: supplierDetails, isPending: isSupplierDetailsPending } = GetSupplierDetails;
    const { getMappedError } = useMappedError();
@@ -236,6 +265,9 @@ export const SupplierModal = ({
          supplier_id: selectedSupplier.supplier_id,
          suppliers_legal_name: supplierDetails.supplier_legal_name ?? "-",
          commercial_name: supplierDetails.commercial_name ?? undefined,
+         supplier_type:
+            resolveSupplierType(supplierDetails.supplier_type) ??
+            SupplierTypeEnum.Ordinary.stringValue,
          payment_methods: mapSupplierPaymentMethods(
             supplierDetails.supplier_payment_methods,
          ),
@@ -554,6 +586,9 @@ export const SupplierModal = ({
          company_id: companyId,
          module_code: moduleCode,
          commercial_name: data.commercial_name?.trim() || null,
+         supplier_type:
+            resolveSupplierType(data.supplier_type) ??
+            SupplierTypeEnum.Ordinary.stringValue,
          payment_methods: paymentMethods,
          supplier_details: {
             ...supplier_details,
@@ -577,13 +612,7 @@ export const SupplierModal = ({
          bank_accounts: localBankAccounts.length > 0 ? localBankAccounts : undefined,
          products:
             productLinks.length > 0
-               ? productLinks
-                    .filter((link) => link.entity_id && link.unit_price.trim())
-                    .map((link) => ({
-                       product_id: link.entity_id,
-                       unit_price: Number(link.unit_price),
-                       tier_prices: mapCatalogLinkItemsToTierPayload(link.tier_prices),
-                    }))
+               ? mapProductLinksToPayload(productLinks)
                : undefined,
       };
 
@@ -609,6 +638,10 @@ export const SupplierModal = ({
          Object.keys(payload.supplier_details).length === 0
       ) {
          delete payload.supplier_details;
+      }
+
+      if (productLinksDirty) {
+         payload.products = mapProductLinksToPayload(productLinks);
       }
 
       return payload;
@@ -649,6 +682,19 @@ export const SupplierModal = ({
    const handleUpdateSupplier = () => {
       if (!selectedSupplier?.supplier_id) return;
 
+      if (productLinksDirty) {
+         const invalidLink = productLinks.find(
+            (link) => !link.entity_id || !link.unit_price.trim(),
+         );
+         if (invalidLink) {
+            onRequestError?.(
+               "Cada producto vinculado debe tener selección y precio unitario.",
+            );
+            setActiveTab("products");
+            return;
+         }
+      }
+
       const payload = buildUpdatePayload();
 
       const hasChanges = Object.keys(payload).some(
@@ -687,6 +733,7 @@ export const SupplierModal = ({
          resetFieldTracker();
          setLocalBankAccounts([]);
          setProductLinks([]);
+         setProductLinksDirty(false);
          setIsSelectProductOpen(false);
          setActiveTab("general");
          return;
@@ -697,6 +744,7 @@ export const SupplierModal = ({
          resetFieldTracker();
          setLocalBankAccounts([]);
          setProductLinks([]);
+         setProductLinksDirty(false);
          setIsSelectProductOpen(false);
          setActiveTab("general");
          return;
@@ -718,6 +766,17 @@ export const SupplierModal = ({
          : "";
 
       const details = supplierDetails.supplier_details;
+      const linkedProducts = (supplierDetails.products?.items ?? []).map(
+         (product) => ({
+            entity_id: product.product_id,
+            entity_label: product.code
+               ? `${product.code} · ${product.product_name}`
+               : product.product_name,
+            unit_price: String(product.unit_price ?? ""),
+            currency: resolveLinkCurrency(product.currency),
+            tier_prices: mapTierPricesToCatalogForm(product.tier_prices),
+         }),
+      );
 
       reset({
          suppliers_legal_name:
@@ -726,6 +785,9 @@ export const SupplierModal = ({
          constitution_type: constitutionTypeValue,
          identification_type: identificationTypeValue,
          identification_number: identificationNumber,
+         supplier_type:
+            resolveSupplierType(supplierDetails.supplier_type) ??
+            SupplierTypeEnum.Ordinary.stringValue,
          payment_methods: mapSupplierPaymentMethods(
             supplierDetails.supplier_payment_methods,
          ),
@@ -750,6 +812,8 @@ export const SupplierModal = ({
             address: details?.address ?? "",
          },
       });
+      setProductLinks(linkedProducts);
+      setProductLinksDirty(false);
       resetFieldTracker();
    }, [isOpen, selectedSupplier, supplierDetails, reset, resetFieldTracker]);
 
@@ -761,6 +825,7 @@ export const SupplierModal = ({
 
    const hasGeneralErrors = Boolean(
       errors.suppliers_legal_name ||
+      errors.supplier_type ||
       errors.constitution_type ||
       errors.identification_type ||
       errors.identification_number ||
@@ -838,6 +903,34 @@ export const SupplierModal = ({
                               trackField("commercial_name", evt.target.value || null);
                            },
                         })}
+                     />
+
+                     <Controller
+                        control={control}
+                        name="supplier_type"
+                        rules={{
+                           required: "El tipo de proveedor es requerido",
+                        }}
+                        render={({ field }) => (
+                           <Dropdown
+                              label="Tipo de proveedor"
+                              placeholder="Seleccione..."
+                              isRequired
+                              options={SupplierTypeOptions}
+                              value={field.value ?? null}
+                              onChange={(value) => {
+                                 const nextType = (String(value ?? "") ||
+                                    SupplierTypeEnum.Ordinary.stringValue) as SupplierType;
+                                 field.onChange(nextType);
+                                 trackField("supplier_type", nextType);
+                              }}
+                              appearance="dark"
+                              className={dropdownClassName}
+                              labelClassName={labelClassName}
+                              valueClassName="text-black! dark:text-white!"
+                              error={errors.supplier_type?.message}
+                           />
+                        )}
                      />
 
                      <Controller
@@ -1360,25 +1453,19 @@ export const SupplierModal = ({
                         label: `Productos (${productLinks.length})`,
                         render: () => (
                            <div className="flex min-w-0 flex-col gap-4">
-                              {isEditMode ? (
-                                 <p className="m-0 text-sm text-slate-500 dark:text-slate-300">
-                                    Los productos vinculados se gestionan desde el detalle del
-                                    proveedor o del producto (precios e historial).
-                                 </p>
-                              ) : (
-                                 <CatalogLinkEditor
-                                    title="Productos vinculados (opcional)"
-                                    emptyLabel="No ha vinculado productos. Puede hacerlo ahora o más adelante. Use Agregar producto para seleccionarlos de la lista."
-                                    addButtonLabel="Agregar producto"
-                                    entityLabel="Producto"
-                                    entityPlaceholder="Producto"
-                                    options={[]}
-                                    items={productLinks}
-                                    onChange={setProductLinks}
-                                    lockEntity
-                                    onAddClick={() => setIsSelectProductOpen(true)}
-                                 />
-                              )}
+                              <CatalogLinkEditor
+                                 title="Productos vinculados (opcional)"
+                                 emptyLabel="No ha vinculado productos. Puede hacerlo ahora o más adelante. Use Agregar producto para seleccionarlos de la lista."
+                                 addButtonLabel="Agregar producto"
+                                 entityLabel="Producto"
+                                 entityPlaceholder="Producto"
+                                 options={[]}
+                                 items={productLinks}
+                                 onChange={handleProductLinksChange}
+                                 lockEntity
+                                 onAddClick={() => setIsSelectProductOpen(true)}
+                                 disabled={isSubmitting}
+                              />
                            </div>
                         ),
                      },

@@ -1,4 +1,3 @@
-import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
 import type { SupplierExclusiveStatus } from "@app/core/enums/supplier-exclusive-status.enum";
 
 export interface SupplierDetailsInformation {
@@ -10,11 +9,11 @@ export interface SupplierDetailsInformation {
   credit_days: number;
   has_credit: boolean;
   exclusive_status?: SupplierExclusiveStatus;
+  exclusive_status_comment?: string | null;
   exclusive_brands_or_parts?: string | null;
   credit_limit?: number | null;
   credit_currency?: string | null;
   alert_days_before_due?: number;
-  preferred_payment_method?: PaymentMethodType;
   apply_ir_retention?: boolean;
   apply_municipal_retention?: boolean;
   is_tax_exempt?: boolean;

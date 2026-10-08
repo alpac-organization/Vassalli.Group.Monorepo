@@ -124,8 +124,8 @@ export const ProductSuppliersModal = ({
 	const { data: productDetails, isPending, isFetching } = GetProductDetails;
 
 	const suppliersPage = productDetails?.suppliers;
-	const suppliers = suppliersPage?.data ?? [];
-	const totalRecords = suppliersPage?.total ?? 0;
+	const suppliers = suppliersPage?.items ?? [];
+	const totalRecords = suppliersPage?.total_count ?? 0;
 
 	const productName =
 		productDetails?.product_name ??
@@ -165,7 +165,8 @@ export const ProductSuppliersModal = ({
 			{
 				key: "unit_price",
 				label: "Precio unitario",
-				render: (row) => formatCurrency(row.unit_price, "USD"),
+				render: (row) =>
+					formatCurrency(row.unit_price, row.currency ?? "USD"),
 			},
 			{
 				key: "last_price_update",
@@ -412,6 +413,7 @@ export const ProductSuppliersModal = ({
 					selectedSupplier?.supplier_id ||
 					"—"
 				}
+				currency={selectedSupplier?.currency ?? "USD"}
 			/>
 
 			<ConfirmModal

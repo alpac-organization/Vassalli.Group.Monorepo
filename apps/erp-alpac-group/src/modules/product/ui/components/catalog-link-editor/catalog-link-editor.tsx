@@ -11,6 +11,10 @@ import { PlusIcon, Trash2Icon } from "lucide-react";
 import dayjs from "dayjs";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import {
+	CurrencyCodeOptions,
+	type CurrencyCode,
+} from "@app/core/enums/currency.enum";
+import {
 	emptyCatalogLinkItem,
 	emptyCatalogLinkTier,
 	type CatalogLinkEditorProps,
@@ -260,7 +264,7 @@ export const CatalogLinkEditor = ({
 												</span>
 												<small className="text-slate-500 dark:text-slate-400">
 													{item.unit_price
-														? `Precio: ${item.unit_price}`
+														? `Precio: ${item.unit_price} ${item.currency}`
 														: "Sin precio unitario"}
 													{item.tier_prices.length > 0
 														? ` · ${item.tier_prices.length} tier(s)`
@@ -341,6 +345,25 @@ export const CatalogLinkEditor = ({
 													unit_price: event.target.value,
 												})
 											}
+										/>
+									</div>
+									<div className="md:w-40 shrink-0">
+										<Dropdown
+											label="Moneda"
+											placeholder="Moneda"
+											appearance="dark"
+											isRequired
+											options={CurrencyCodeOptions}
+											value={item.currency}
+											disabled={disabled}
+											onChange={(value) =>
+												updateItem(index, {
+													currency: (String(value ?? "USD") ||
+														"USD") as CurrencyCode,
+												})
+											}
+											className={dropdownClassName}
+											labelClassName={labelClassName}
 										/>
 									</div>
 								</div>

@@ -1,3 +1,4 @@
+import type { CurrencyCode } from "@app/core/enums/currency.enum";
 import type {
 	ProductSupplierTierPrice,
 	ProductSupplierTierPricePayload,
@@ -6,6 +7,7 @@ import type {
 export interface CreateSupplierProductPayload {
 	product_id: string;
 	unit_price: number;
+	currency: CurrencyCode;
 	tier_prices?: ProductSupplierTierPricePayload[];
 }
 
@@ -15,6 +17,7 @@ export interface SupplierLinkedProduct {
 	product_name: string;
 	unit_measure_id: string;
 	unit_price: number;
+	currency: CurrencyCode;
 	last_price_update?: string;
 	tier_prices: ProductSupplierTierPrice[];
 }

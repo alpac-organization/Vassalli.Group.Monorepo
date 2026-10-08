@@ -37,11 +37,12 @@ export const Product = () => {
     handleRequestSuccess,
   } = useAlertState();
 
-  const [isCreateProductModalOpen, setIsCreateProductModalOpen] =
-    useState(false);
+  const [isProductFormOpen, setIsProductFormOpen] = useState(false);
   const [isProductDetailsOpen, setIsProductDetailsOpen] = useState(false);
   const [isProductSuppliersOpen, setIsProductSuppliersOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] =
+    useState<GetProductResponse | null>(null);
+  const [productToEdit, setProductToEdit] =
     useState<GetProductResponse | null>(null);
   const [categoryId, setCategoryId] = useState("");
   const [filters, setFilters] = useState<GetProductRequest>({
@@ -124,6 +125,21 @@ export const Product = () => {
     setIsProductSuppliersOpen(true);
   };
 
+  const onEditProduct = (row: GetProductResponse) => {
+    setProductToEdit(row);
+    setIsProductFormOpen(true);
+  };
+
+  const onOpenCreateProduct = () => {
+    setProductToEdit(null);
+    setIsProductFormOpen(true);
+  };
+
+  const onCloseProductForm = () => {
+    setIsProductFormOpen(false);
+    setProductToEdit(null);
+  };
+
   const columnConfig: TableColumn<GetProductResponse>[] = useMemo(
     () => [
       {
@@ -151,6 +167,7 @@ export const Product = () => {
             triggerClassName={contextMenuButton}
             items={[
               { label: "Ver detalle", onClick: () => onViewDetails(row) },
+              { label: "Editar", onClick: () => onEditProduct(row) },
               {
                 label: "Ver proveedores",
                 onClick: () => onViewSuppliers(row),
@@ -174,7 +191,7 @@ export const Product = () => {
           label="Registrar Producto"
           icon={<BlocksIcon size={20} />}
           className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-          onClick={() => setIsCreateProductModalOpen(true)}
+          onClick={onOpenCreateProduct}
         />
       </div>
 
@@ -244,8 +261,9 @@ export const Product = () => {
       </div>
 
       <CreateProductModal
-        isOpen={isCreateProductModalOpen}
-        onClose={() => setIsCreateProductModalOpen(false)}
+        isOpen={isProductFormOpen}
+        onClose={onCloseProductForm}
+        selectedProduct={productToEdit}
         onRequestSuccess={handleRequestSuccess}
         onRequestError={handleRequestError}
       />

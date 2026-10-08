@@ -1,5 +1,6 @@
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
 import type { SupplierExclusiveStatus } from "@app/core/enums/supplier-exclusive-status.enum";
+import type { SupplierType } from "@app/core/enums/supplier-type.enum";
 
 export interface SupplierAreaInformation {
 	area_id: string;
@@ -21,6 +22,7 @@ export interface GetSuppliersResponse {
 	identification_number: string;
 	identification_type: string;
 	constitution_type: string;
+	supplier_type?: SupplierType | number | string;
 	exclusive_status?: SupplierExclusiveStatus;
 	user_information?: SupplierUserInformation;
 	supplier_payment_methods: SupplierPaymentMethod[];

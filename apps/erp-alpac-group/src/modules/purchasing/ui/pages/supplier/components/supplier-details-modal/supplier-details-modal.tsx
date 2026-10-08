@@ -21,6 +21,7 @@ import {
   isSupplierExclusive,
   SupplierExclusiveStatusEnum,
 } from "@app/core/enums/supplier-exclusive-status.enum";
+import { resolveSupplierTypeLabel } from "@app/core/enums/supplier-type.enum";
 
 const sectionTitleClassName =
   "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
@@ -100,6 +101,7 @@ export const SupplierDetailsModal = ({
     selectedSupplier?.exclusive_status;
   const isExclusive = isSupplierExclusive(exclusiveStatus);
   const exclusiveBrandsOrParts = details?.exclusive_brands_or_parts?.trim();
+  const exclusiveStatusComment = details?.exclusive_status_comment?.trim();
 
   return (
     <>
@@ -124,6 +126,13 @@ export const SupplierDetailsModal = ({
                 <DetailField
                   label="Nombre comercial"
                   value={supplierDetails?.commercial_name || "—"}
+                />
+                <DetailField
+                  label="Tipo de proveedor"
+                  value={resolveSupplierTypeLabel(
+                    supplierDetails?.supplier_type ??
+                      selectedSupplier?.supplier_type,
+                  )}
                 />
                 <DetailField
                   label="Número de identificación"
@@ -209,6 +218,13 @@ export const SupplierDetailsModal = ({
                   value={resolveExclusiveStatusLabel(exclusiveStatus)}
                   icon={<ShieldCheckIcon size={16} />}
                 />
+                {exclusiveStatusComment ? (
+                  <DetailField
+                    label="Comentario de exclusividad"
+                    value={exclusiveStatusComment}
+                    containerClass="min-w-0 sm:col-span-2 xl:col-span-3"
+                  />
+                ) : null}
                 {exclusiveBrandsOrParts ? (
                   <DetailField
                     label="Marcas o partes autorizadas"

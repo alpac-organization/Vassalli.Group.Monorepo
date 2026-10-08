@@ -4,5 +4,5 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
 export interface UpdateSupplierExclusiveStatusRequest extends BaseRequest {
 	supplier_id: string;
 	exclusive_status: SupplierExclusiveStatusReview;
-	comments?: string;
+	comments: string;
 }

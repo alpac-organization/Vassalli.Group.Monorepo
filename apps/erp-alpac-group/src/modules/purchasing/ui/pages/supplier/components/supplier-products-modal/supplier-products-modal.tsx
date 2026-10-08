@@ -76,8 +76,8 @@ export const SupplierProductsModal = ({
   const { data: supplierDetails, isPending, isFetching } = GetSupplierDetails;
 
   const productsPage = supplierDetails?.products;
-  const products = productsPage?.data ?? [];
-  const totalRecords = productsPage?.total ?? 0;
+  const products = productsPage?.items ?? [];
+  const totalRecords = productsPage?.total_count ?? 0;
 
   const unitOptions = useMemo(() => {
     const units = GetUnitMeasurements.data;
@@ -104,7 +104,8 @@ export const SupplierProductsModal = ({
       {
         key: "unit_price",
         label: "Precio unitario",
-        render: (row) => formatCurrency(row.unit_price),
+        render: (row) =>
+          formatCurrency(row.unit_price, row.currency ?? "USD"),
       },
       {
         key: "last_price_update",

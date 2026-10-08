@@ -13,6 +13,7 @@ import type {
 	CreateProductModalProps,
 } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
 import type { CreateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/create-product.request";
+import type { UpdateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/update-product.request";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -26,10 +27,13 @@ import {
 import { CatalogLinkEditor } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor";
 import {
 	mapCatalogLinkItemsToTierPayload,
+	mapTierPricesToCatalogForm,
+	resolveLinkCurrency,
 	type CatalogLinkItemForm,
 } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 import { SelectSupplierModal } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/select-supplier-modal/select-supplier-modal";
 import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+import { Loader } from "@app/shared/components/loaders/loader";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -55,18 +59,31 @@ const emptyFormValues = (
 	suppliers: [],
 });
 
+const mapSupplierLinksToPayload = (links: CatalogLinkItemForm[]) =>
+	links
+		.filter((link) => link.entity_id && link.unit_price.trim())
+		.map((link) => ({
+			supplier_id: link.entity_id,
+			unit_price: Number(link.unit_price),
+			currency: link.currency,
+			tier_prices: mapCatalogLinkItemsToTierPayload(link.tier_prices),
+		}));
+
 export const CreateProductModal = ({
 	isOpen,
 	onClose,
+	selectedProduct = null,
 	onSubmit,
 	onRequestSuccess,
 	onRequestError,
 }: CreateProductModalProps) => {
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
+	const isEditMode = Boolean(selectedProduct?.product_id);
 
 	const [selectedProductCategory, setSelectedProductCategory] = useState("");
 	const [supplierLinks, setSupplierLinks] = useState<CatalogLinkItemForm[]>([]);
+	const [supplierLinksDirty, setSupplierLinksDirty] = useState(false);
 	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
 
 	const {
@@ -80,11 +97,26 @@ export const CreateProductModal = ({
 		mode: "onSubmit",
 	});
 
-	const { GetProductCategories, CreateProduct } = useProduct({
+	const {
+		GetProductCategories,
+		CreateProduct,
+		UpdateProduct,
+		GetProductDetails,
+	} = useProduct({
 		getProductCategoryPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
 		},
+		getProductDetailsPayload:
+			isOpen && selectedProduct?.product_id
+				? {
+						company_id: companyId,
+						module_code: moduleCode,
+						product_id: selectedProduct.product_id,
+						page_number: 1,
+						page_size: 100,
+					}
+				: undefined,
 	});
 
 	const { GetUnitMeasurements } = useUnitOfMeasurement({
@@ -94,6 +126,11 @@ export const CreateProductModal = ({
 		},
 		enabled: isOpen,
 	});
+
+	const productDetails = GetProductDetails.data;
+	const isLoadingDetails =
+		isEditMode &&
+		(GetProductDetails.isPending || GetProductDetails.isFetching);
 
 	const productCategories = useMemo(() => {
 		if (!GetProductCategories.data || !Array.isArray(GetProductCategories.data)) {
@@ -121,22 +158,68 @@ export const CreateProductModal = ({
 		[supplierLinks],
 	);
 
-	const isSaving = CreateProduct.isPending;
+	const isSaving = CreateProduct.isPending || UpdateProduct.isPending;
+
+	const handleSupplierLinksChange = (items: CatalogLinkItemForm[]) => {
+		setSupplierLinks(items);
+		if (isEditMode) setSupplierLinksDirty(true);
+	};
 
 	useEffect(() => {
 		if (!isOpen) {
+			reset(emptyFormValues(companyId, moduleCode));
+			setSupplierLinks([]);
+			setSupplierLinksDirty(false);
+			setSelectedProductCategory("");
 			setIsSelectSupplierOpen(false);
 			return;
 		}
-		reset(emptyFormValues(companyId, moduleCode));
-		setSupplierLinks([]);
-		setSelectedProductCategory("");
+
+		if (!isEditMode) {
+			reset(emptyFormValues(companyId, moduleCode));
+			setSupplierLinks([]);
+			setSupplierLinksDirty(false);
+			setSelectedProductCategory("");
+			setIsSelectSupplierOpen(false);
+			return;
+		}
+
+		if (!productDetails) return;
+
+		reset({
+			company_id: companyId,
+			module_code: moduleCode,
+			product_name: productDetails.product_name ?? "",
+			description: productDetails.description ?? "",
+			category_id: productDetails.category_id ?? "",
+			unit_measure_id: productDetails.unit_measure_id ?? "",
+			product_usage_type:
+				(productDetails.product_usage_type as ProductUsageType) || "Insumo",
+			is_tax_exempt: Boolean(productDetails.is_tax_exempt),
+			suppliers: [],
+		});
+
+		setSelectedProductCategory(productDetails.category?.name ?? "");
+		setSupplierLinks(
+			(productDetails.suppliers?.items ?? []).map((supplier) => ({
+				entity_id: supplier.supplier_id,
+				entity_label:
+					supplier.commercial_name?.trim() ||
+					supplier.supplier_legal_name ||
+					supplier.supplier_id,
+				unit_price: String(supplier.unit_price ?? ""),
+				currency: resolveLinkCurrency(supplier.currency),
+				tier_prices: mapTierPricesToCatalogForm(supplier.tier_prices),
+			})),
+		);
+		setSupplierLinksDirty(false);
 		setIsSelectSupplierOpen(false);
-	}, [isOpen, companyId, moduleCode, reset]);
+	}, [isOpen, isEditMode, productDetails, companyId, moduleCode, reset]);
 
 	const handleClose = () => {
 		reset(emptyFormValues(companyId, moduleCode));
 		setSupplierLinks([]);
+		setSupplierLinksDirty(false);
 		setSelectedProductCategory("");
 		setIsSelectSupplierOpen(false);
 		onClose();
@@ -144,7 +227,9 @@ export const CreateProductModal = ({
 
 	const handleSelectSuppliers = (suppliers: GetSuppliersResponse[]) => {
 		setSupplierLinks((prev) => {
-			const existingIds = new Set(prev.map((link) => link.entity_id).filter(Boolean));
+			const existingIds = new Set(
+				prev.map((link) => link.entity_id).filter(Boolean),
+			);
 			const nextItems = suppliers
 				.filter((supplier) => !existingIds.has(supplier.supplier_id))
 				.map((supplier) => ({
@@ -154,24 +239,30 @@ export const CreateProductModal = ({
 						supplier.supplier_legal_name ||
 						supplier.supplier_id,
 					unit_price: "",
+					currency: "USD" as const,
 					tier_prices: [],
 				}));
 			return [...prev, ...nextItems];
 		});
+		if (isEditMode) setSupplierLinksDirty(true);
 		setIsSelectSupplierOpen(false);
 	};
 
-	const handleCreateProduct = (values: CreateProductRequest) => {
+	const validateSupplierLinks = () => {
 		const invalidLink = supplierLinks.find(
 			(link) => !link.entity_id || !link.unit_price.trim(),
 		);
-
 		if (invalidLink) {
 			onRequestError?.(
 				"Cada proveedor vinculado debe tener selección y precio unitario.",
 			);
-			return;
+			return false;
 		}
+		return true;
+	};
+
+	const handleCreateProduct = (values: CreateProductRequest) => {
+		if (!validateSupplierLinks()) return;
 
 		const payload: CreateProductRequest = {
 			...values,
@@ -182,11 +273,7 @@ export const CreateProductModal = ({
 			is_tax_exempt: Boolean(values.is_tax_exempt),
 			suppliers:
 				supplierLinks.length > 0
-					? supplierLinks.map((link) => ({
-							supplier_id: link.entity_id,
-							unit_price: Number(link.unit_price),
-							tier_prices: mapCatalogLinkItemsToTierPayload(link.tier_prices),
-						}))
+					? mapSupplierLinksToPayload(supplierLinks)
 					: undefined,
 		};
 
@@ -211,18 +298,68 @@ export const CreateProductModal = ({
 		});
 	};
 
+	const handleUpdateProduct = (values: CreateProductRequest) => {
+		if (!selectedProduct?.product_id) return;
+		if (supplierLinksDirty && !validateSupplierLinks()) return;
+
+		const payload: UpdateProductRequest = {
+			company_id: companyId,
+			module_code: moduleCode,
+			product_id: selectedProduct.product_id,
+			product_name: values.product_name?.trim(),
+			description: values.description?.trim() || undefined,
+			category_id: values.category_id,
+			unit_measure_id: values.unit_measure_id || null,
+			product_usage_type: values.product_usage_type,
+			is_tax_exempt: Boolean(values.is_tax_exempt),
+		};
+
+		if (supplierLinksDirty) {
+			payload.suppliers = mapSupplierLinksToPayload(supplierLinks);
+		}
+
+		UpdateProduct.mutate(payload, {
+			onSuccess() {
+				onRequestSuccess?.("Producto actualizado correctamente.");
+				handleClose();
+			},
+			onError(error) {
+				const mappedError = getMappedError(error as ApiErrorResponse);
+				onRequestError?.(
+					mappedError.description || "No se pudo actualizar el producto.",
+				);
+			},
+		});
+	};
+
+	const handleProduct = (values: CreateProductRequest) => {
+		if (isEditMode) {
+			handleUpdateProduct(values);
+			return;
+		}
+		handleCreateProduct(values);
+	};
+
 	return (
 		<>
+			{isOpen && isLoadingDetails && (
+				<Loader title="Cargando detalle del producto..." />
+			)}
+
 			<Modal
 				isOpen={isOpen}
 				onClose={handleClose}
-				title="Registro de producto"
+				title={isEditMode ? "Actualizar producto" : "Registro de producto"}
 				variant="form"
 				size="7xl"
-				description="Complete el formulario para registrar un nuevo producto."
+				description={
+					isEditMode
+						? "Modifique la información del producto y sus proveedores vinculados."
+						: "Complete el formulario para registrar un nuevo producto."
+				}
 			>
 				<form
-					onSubmit={handleSubmit(handleCreateProduct)}
+					onSubmit={handleSubmit(handleProduct)}
 					className="flex flex-col gap-6"
 					noValidate
 				>
@@ -234,6 +371,7 @@ export const CreateProductModal = ({
 							error={errors.product_name?.message}
 							className={inputClassName}
 							labelClassName={labelClassName}
+							disabled={isSaving || isLoadingDetails}
 							{...register("product_name", {
 								required: "El nombre del producto es obligatorio.",
 								validate: (value) =>
@@ -263,6 +401,7 @@ export const CreateProductModal = ({
 									appearance="dark"
 									isRequired
 									value={field.value}
+									disabled={isSaving || isLoadingDetails}
 									onChange={(value) => {
 										field.onChange(value);
 										const [category] = productCategories.filter(
@@ -286,13 +425,15 @@ export const CreateProductModal = ({
 								<Dropdown
 									label="Unidad de medida"
 									placeholder={
-										GetUnitMeasurements.isPending || GetUnitMeasurements.isFetching
+										GetUnitMeasurements.isPending ||
+										GetUnitMeasurements.isFetching
 											? "Cargando unidades..."
 											: "Seleccione una unidad"
 									}
 									appearance="dark"
 									isRequired
 									value={field.value}
+									disabled={isSaving || isLoadingDetails}
 									onChange={(value) => field.onChange(String(value ?? ""))}
 									options={unitMeasureOptions}
 									error={fieldState.error?.message}
@@ -313,6 +454,7 @@ export const CreateProductModal = ({
 									appearance="dark"
 									isRequired
 									value={field.value}
+									disabled={isSaving || isLoadingDetails}
 									onChange={(value) =>
 										field.onChange(String(value ?? "") as ProductUsageType)
 									}
@@ -332,6 +474,7 @@ export const CreateProductModal = ({
 							<Checkbox
 								label="Producto exento de impuestos"
 								checked={Boolean(field.value)}
+								disabled={isSaving || isLoadingDetails}
 								onChange={(event) => field.onChange(event.target.checked)}
 							/>
 						)}
@@ -343,6 +486,7 @@ export const CreateProductModal = ({
 						rows={4}
 						className={`${inputClassName} resize-none`}
 						labelClassName={labelClassName}
+						disabled={isSaving || isLoadingDetails}
 						{...register("description")}
 						maxLength={500}
 						enableCharacterCount
@@ -356,10 +500,10 @@ export const CreateProductModal = ({
 						entityPlaceholder="Proveedor"
 						options={[]}
 						items={supplierLinks}
-						onChange={setSupplierLinks}
+						onChange={handleSupplierLinksChange}
 						lockEntity
 						onAddClick={() => setIsSelectSupplierOpen(true)}
-						disabled={isSaving}
+						disabled={isSaving || isLoadingDetails}
 					/>
 
 					<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -374,9 +518,9 @@ export const CreateProductModal = ({
 						<Button
 							type="submit"
 							size="giant"
-							label="Guardar producto"
+							label={isEditMode ? "Actualizar producto" : "Guardar producto"}
 							isLoading={isSaving}
-							disabled={isSaving}
+							disabled={isSaving || isLoadingDetails}
 							className={primaryButtonClassName}
 						/>
 					</div>

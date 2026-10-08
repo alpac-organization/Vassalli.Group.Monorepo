@@ -8,6 +8,8 @@ import type { SupplierExclusiveStatusReview } from "@app/core/enums/supplier-exc
 import { inputClassName, labelClassName } from "@app/modules/purchasing/ui/pages/supplier/utils/style";
 import type { SupplierExclusiveStatusModalProps } from "./supplier-exclusive-status-modal.types";
 
+const COMMENTS_MAX_LENGTH = 500;
+
 export const SupplierExclusiveStatusModal = ({
   isOpen,
   onClose,
@@ -25,6 +27,10 @@ export const SupplierExclusiveStatusModal = ({
     selectedSupplier?.commercial_name ??
     "proveedor";
 
+  const trimmedComments = comments.trim();
+  const hasValidComments =
+    trimmedComments.length > 0 && trimmedComments.length <= COMMENTS_MAX_LENGTH;
+
   useEffect(() => {
     if (!isOpen) {
       setComments("");
@@ -37,7 +43,7 @@ export const SupplierExclusiveStatusModal = ({
   };
 
   const handleExclusiveStatus = (status: SupplierExclusiveStatusReview) => {
-    if (!selectedSupplier?.supplier_id) return;
+    if (!selectedSupplier?.supplier_id || !hasValidComments) return;
 
     UpdateSupplierExclusiveStatus.mutate(
       {
@@ -45,7 +51,7 @@ export const SupplierExclusiveStatusModal = ({
         module_code: moduleCode,
         supplier_id: selectedSupplier.supplier_id,
         exclusive_status: status,
-        comments: comments.trim() || undefined,
+        comments: trimmedComments,
       },
       {
         onSuccess: () => {
@@ -69,6 +75,7 @@ export const SupplierExclusiveStatusModal = ({
   };
 
   const isPending = UpdateSupplierExclusiveStatus.isPending;
+  const actionsDisabled = isPending || !hasValidComments;
 
   return (
     <Modal
@@ -87,13 +94,14 @@ export const SupplierExclusiveStatusModal = ({
 
         <Textarea
           label="Comentario de revisión"
-          placeholder="Comentario de revisión (opcional)"
+          placeholder="Comentario obligatorio (máx. 500 caracteres)"
           className={inputClassName}
           labelClassName={labelClassName}
           rows={3}
           value={comments}
           disabled={isPending}
-          maxLength={500}
+          maxLength={COMMENTS_MAX_LENGTH}
+          isRequired
           onChange={(event) => setComments(event.target.value)}
         />
 
@@ -102,7 +110,7 @@ export const SupplierExclusiveStatusModal = ({
             type="button"
             size="medium"
             label="Rechazar"
-            disabled={isPending}
+            disabled={actionsDisabled}
             className="w-full! sm:w-auto! text-[14px]! rounded-md! text-white! bg-red-600! dark:bg-red-900/90!"
             onClick={() => handleExclusiveStatus("Rejected")}
           />
@@ -111,7 +119,7 @@ export const SupplierExclusiveStatusModal = ({
             size="medium"
             label="Aprobar"
             isLoading={isPending}
-            disabled={isPending}
+            disabled={actionsDisabled}
             className="w-full! sm:w-auto! text-[14px]! rounded-md! text-white! bg-emerald-600! dark:bg-emerald-700/90!"
             onClick={() => handleExclusiveStatus("Approved")}
           />
