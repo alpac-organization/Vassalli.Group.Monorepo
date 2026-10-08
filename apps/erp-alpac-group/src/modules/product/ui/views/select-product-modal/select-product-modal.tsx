@@ -41,6 +41,8 @@ export function SelectProductModal({
 	onClose,
 	onSelect,
 	selectionType = "single",
+	excludeProductIds = [],
+	description,
 }: SelectProductModalProps) {
 
 	const { companyId, moduleCode } = useUserStore();
@@ -56,6 +58,11 @@ export function SelectProductModal({
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	} as GetProductRequest);
+
+	const excludedIds = useMemo(
+		() => new Set(excludeProductIds.filter(Boolean)),
+		[excludeProductIds],
+	);
 
 	const { GetProductCategories, GetProducts } = useProduct({
 		getProductPayload: filters,
@@ -86,9 +93,11 @@ export function SelectProductModal({
 			| undefined,
 		);
 
-		return products;
+		if (excludedIds.size === 0) return products;
 
-	}, [GetProducts.data]);
+		return products.filter((product) => !excludedIds.has(product.product_id));
+
+	}, [GetProducts.data, excludedIds]);
 
 	const totalRecords = useMemo(() => {
 		return GetProducts.data?.total ?? 0
@@ -274,9 +283,10 @@ export function SelectProductModal({
 			size="5xl"
 			title="Seleccionar producto"
 			description={
-				selectionType === "multiple"
+				description ??
+				(selectionType === "multiple"
 					? "Elija uno o más productos registrados para agregarlos a la cotización."
-					: "Elija un producto registrado para agregarlo a la cotización."
+					: "Elija un producto registrado para agregarlo a la cotización.")
 			}
 		>
 			{isLoadingProducts && <Loader title="Cargando productos..." />}

@@ -44,6 +44,7 @@ export function SelectSupplierModal({
 	onClose,
 	onSelect,
 	selectionType = "single",
+	excludeSupplierIds = [],
 }: SelectSupplierModalProps) {
 	const { companyId, moduleCode } = useUserStore();
 
@@ -70,18 +71,25 @@ export function SelectSupplierModal({
 	const [isSupplierDetailsModalOpen, setIsSupplierDetailsModalOpen] = useState(false);
 	const [selectedSupplier, setSelectedSupplier] = useState<GetSuppliersResponse | null>(null);
 
+	const excludedIds = useMemo(
+		() => new Set(excludeSupplierIds.filter(Boolean)),
+		[excludeSupplierIds],
+	);
+
 	const { register, handleSubmit, control, reset, watch } =
 		useForm<GetSuppliersRequest>({
 			defaultValues: { ...defaultFilters },
 		});
 
 	const { GetSuppliers } = useSupplier({
-		suppliersFilters: {
-			...filters,
-			company_id: companyId,
-			module_code: moduleCode,
-			page_size: PAGE_SIZE,
-		},
+		suppliersFilters: isOpen
+			? {
+					...filters,
+					company_id: companyId,
+					module_code: moduleCode,
+					page_size: PAGE_SIZE,
+				}
+			: undefined,
 	});
 
 	const constitutionType = watch("constitution_type");
@@ -89,8 +97,10 @@ export function SelectSupplierModal({
 	const isNaturalPerson = constitutionType === ConstitutionEnum.Natural.value;
 
 	const registeredSuppliers = useMemo(() => {
-		return GetSuppliers.data?.data ?? [];
-	}, [GetSuppliers.data?.data]);
+		const suppliers = GetSuppliers.data?.data ?? [];
+		if (excludedIds.size === 0) return suppliers;
+		return suppliers.filter((supplier) => !excludedIds.has(supplier.supplier_id));
+	}, [GetSuppliers.data?.data, excludedIds]);
 
 	const totalRecords = GetSuppliers.data?.total_records ?? GetSuppliers.data?.total ?? 0;
 	const currentPage = filters.page_number ?? 1;

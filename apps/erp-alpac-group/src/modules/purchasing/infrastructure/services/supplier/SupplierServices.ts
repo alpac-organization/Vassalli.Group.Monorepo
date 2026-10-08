@@ -3,6 +3,7 @@ import type { ISupplierServices } from "@app/modules/purchasing/application/inte
 import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/create-supplier-request";
 import type { GetSupplierDetailsRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-supplier-details-request";
 import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
+import type { UpdateSupplierExclusiveStatusRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-supplier-exclusive-status.request";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
 import type { GetSupplierDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-supplier-details-response";
@@ -41,10 +42,20 @@ export class SupplierServices implements ISupplierServices {
 		await this.httpHandler.patch<void>(url, rest);
 	}
 
+	async UpdateSupplierExclusiveStatus(
+		payload: UpdateSupplierExclusiveStatusRequest,
+	): Promise<void> {
+		const { company_id, module_code, supplier_id, ...rest } = payload;
+		const url = `/companies/${company_id}/modules/${module_code}/suppliers/${supplier_id}/exclusive-status`;
+		await this.httpHandler.patch<void>(url, rest);
+	}
+
 	async GetSupplierDetails(payload: GetSupplierDetailsRequest): Promise<GetSupplierDetailsResponse> {
-		const { company_id, module_code, supplier_id } = payload;
+		const { company_id, module_code, supplier_id, ...rest } = payload;
 		const url = `/companies/${company_id}/modules/${module_code}/suppliers/${supplier_id}/details`;
-		return this.httpHandler.get<GetSupplierDetailsResponse>(url);
+		return this.httpHandler.get<GetSupplierDetailsResponse>(url, {
+			params: cleanParams(rest),
+		});
 	}
 
 	async getBankAccounts(

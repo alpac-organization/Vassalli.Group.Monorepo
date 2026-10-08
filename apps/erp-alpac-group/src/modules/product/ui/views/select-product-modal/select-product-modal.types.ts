@@ -6,6 +6,7 @@ export type SelectProductModalProps = {
 	isOpen: boolean;
 	selectionType?: "single" | "multiple";
 	excludeProductIds?: string[];
+	description?: string;
 	onClose: () => void;
 	onSelect: (products: SelectableCatalogProduct[]) => void;
 };

@@ -45,6 +45,15 @@ const resolvePaymentMethodLabel = (method?: string | number | null) => {
 	return found ? found.label : String(method);
 };
 
+const resolvePaymentMethodsLabel = (
+	methods?: { payment_method_type?: string; is_active?: boolean }[],
+) => {
+	const labels = (methods ?? [])
+		.filter((method) => method.is_active !== false && method.payment_method_type)
+		.map((method) => resolvePaymentMethodLabel(method.payment_method_type));
+	return labels.length > 0 ? labels.join(", ") : "—";
+};
+
 const SupplierDetailField = ({ label, value }: { label: string; value?: string | null }) => (
 	<div className="flex min-w-0 flex-col gap-0.5">
 		<span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
@@ -127,8 +136,8 @@ const SelectedSupplierDetails = ({ supplierId }: { supplierId: string }) => {
 				<SupplierDetailField label="Correo de soporte" value={details.email_support} />
 				<SupplierDetailField label="Modalidad de pago" value={paymentModality} />
 				<SupplierDetailField
-					label="Método de pago"
-					value={resolvePaymentMethodLabel(details.preferred_payment_method)}
+					label="Métodos de pago"
+					value={resolvePaymentMethodsLabel(supplierDetails.supplier_payment_methods)}
 				/>
 				{details.has_credit ? (
 					<SupplierDetailField label="Límite de crédito" value={creditLimit} />

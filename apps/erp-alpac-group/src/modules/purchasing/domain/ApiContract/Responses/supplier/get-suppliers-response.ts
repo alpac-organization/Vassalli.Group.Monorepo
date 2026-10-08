@@ -1,26 +1,31 @@
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
+import type { SupplierExclusiveStatus } from "@app/core/enums/supplier-exclusive-status.enum";
+import type { SupplierType } from "@app/core/enums/supplier-type.enum";
+
 export interface SupplierAreaInformation {
-  area_id: string;
-  area_code: number;
-  work_area_name: string;
+	area_id: string;
+	area_code: number;
+	work_area_name: string;
 }
 
 export interface SupplierUserInformation {
-  user_id: string;
-  user_fullname: string;
-  email: string;
-  area_information: SupplierAreaInformation;
+	user_id: string;
+	user_fullname: string;
+	email: string;
+	area_information: SupplierAreaInformation;
 }
 
 export interface GetSuppliersResponse {
-  supplier_id: string;  
-  supplier_legal_name?: string;
-  commercial_name?: string | null;
-  identification_number: string;
-  identification_type: string;
-  constitution_type: string;
-  user_information?: SupplierUserInformation;
-	supplier_payment_methods:SupplierPaymentMethod[];
+	supplier_id: string;
+	supplier_legal_name?: string;
+	commercial_name?: string | null;
+	identification_number: string;
+	identification_type: string;
+	constitution_type: string;
+	supplier_type?: SupplierType | number | string;
+	exclusive_status?: SupplierExclusiveStatus;
+	user_information?: SupplierUserInformation;
+	supplier_payment_methods: SupplierPaymentMethod[];
 }
 
 export interface SupplierPaymentMethod {

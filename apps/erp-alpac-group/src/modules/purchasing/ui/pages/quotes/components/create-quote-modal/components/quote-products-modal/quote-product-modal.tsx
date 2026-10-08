@@ -1021,8 +1021,9 @@ function QuoteProductGroupFields({
 					details?.supplier_payment_methods ??
 					supplier.supplier_payment_methods ??
 					[];
-				const preferred =
-					details?.supplier_details?.preferred_payment_method;
+				const preferred = paymentMethods.find(
+					(method) => method.is_active !== false && method.payment_method_type,
+				)?.payment_method_type;
 
 				return emptyQuotationItem(
 					purchaseRequestItemId || "",

@@ -3,6 +3,7 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/create-supplier-request";
 import type { GetSupplierDetailsRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-supplier-details-request";
 import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
+import type { UpdateSupplierExclusiveStatusRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-supplier-exclusive-status.request";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
 import type {
@@ -95,6 +96,21 @@ export const useSupplier = (props?: useSuppliersProps) => {
 		},
 	});
 
+	const UpdateSupplierExclusiveStatus = useMutation<
+		void,
+		ApiErrorResponse,
+		UpdateSupplierExclusiveStatusRequest
+	>({
+		mutationKey: ["update-supplier-exclusive-status"],
+		mutationFn: (payload) =>
+			suppliersServices.UpdateSupplierExclusiveStatus(payload),
+		onSuccess() {
+			queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+		},
+		retry: 1,
+	});
+
 	const CreateBankAccount = useMutation<SupplierBankAccount, ApiErrorResponse, CreateBankAccountMutationArgs>({
 		mutationKey: ["create-supplier-bank-account"],
 		mutationFn: ({ companyId, moduleCode, supplierId, payload }) =>
@@ -130,6 +146,7 @@ export const useSupplier = (props?: useSuppliersProps) => {
 		GetSupplierDetails,
 		CreateSupplier,
 		UpdateSupplier,
+		UpdateSupplierExclusiveStatus,
 		CreateBankAccount,
 		UpdateBankAccount,
 		DeleteBankAccount,
