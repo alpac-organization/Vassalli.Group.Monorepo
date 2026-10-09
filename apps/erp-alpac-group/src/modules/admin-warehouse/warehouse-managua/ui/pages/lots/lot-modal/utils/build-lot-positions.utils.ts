@@ -1,13 +1,10 @@
 import type { LotPositionItem } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/create-lots-req";
-import { POLIN_DEEP_METER, POLIN_WIDTH_METER } from "../../../../utils/warehouse-config";
 
 export type BuildLotPositionsInput = {
 	rows: number;
 	columns: number;
 	lotWidth: number;
 	lotLength: number;
-	polinWidth?: number;
-	polinDepth?: number;
 	level?: number;
 };
 
@@ -17,6 +14,10 @@ export type BuildLotPositionsResult = {
 	requiredWidth: number;
 	requiredLength: number;
 	total: number;
+	/** Ancho de cada posición (área del tramo / columnas). */
+	positionWidth: number;
+	/** Largo de cada posición (área del tramo / filas). */
+	positionLength: number;
 	positions: LotPositionItem[];
 };
 
@@ -30,8 +31,8 @@ const createPosition = (
 	row: number,
 	column: number,
 	level: number,
-	polinWidth: number,
-	polinDepth: number,
+	positionWidth: number,
+	positionLength: number,
 ): LotPositionItem => ({
 	row,
 	column,
@@ -40,8 +41,8 @@ const createPosition = (
 	position_code: `P-${row}-${column}`,
 	status: "available",
 	coordinate: {
-		position_x: cellCenter(column, polinWidth),
-		position_y: cellCenter(row, polinDepth),
+		position_x: cellCenter(column, positionWidth),
+		position_y: cellCenter(row, positionLength),
 		position_z: 0,
 		rotation_y: 0,
 	},
@@ -51,60 +52,18 @@ const buildGrid = (
 	rows: number,
 	columns: number,
 	level: number,
-	polinWidth: number,
-	polinDepth: number,
+	positionWidth: number,
+	positionLength: number,
 ): LotPositionItem[] =>
 	Array.from({ length: rows * columns }, (_, index) => {
 		const row = Math.floor(index / columns);
 		const column = index % columns;
-		return createPosition(row, column, level, polinWidth, polinDepth);
+		return createPosition(row, column, level, positionWidth, positionLength);
 	});
 
-type PositionsMessageInput = {
-	fits: boolean;
-	hasValidInput: boolean;
-	rows: number;
-	columns: number;
-	polinWidth: number;
-	polinDepth: number;
-	requiredWidth: number;
-	requiredLength: number;
-	lotWidth: number;
-	lotLength: number;
-	total: number;
-};
-
-const buildMessage = ({
-	fits,
-	hasValidInput,
-	rows,
-	columns,
-	polinWidth,
-	polinDepth,
-	requiredWidth,
-	requiredLength,
-	lotWidth,
-	lotLength,
-	total,
-}: PositionsMessageInput): string => {
-	if (!hasValidInput) {
-		return "Indique filas, columnas y dimensiones del tramo para proyectar las posiciones.";
-	}
-
-	const polinLabel = `${polinWidth.toFixed(2)}×${polinDepth.toFixed(2)} m`;
-	const requiredLabel = `${requiredWidth.toFixed(2)}×${requiredLength.toFixed(2)} m`;
-	const lotLabel = `${lotWidth.toFixed(2)}×${lotLength.toFixed(2)} m`;
-
-	if (fits) {
-		return `${total} posiciones (${rows}×${columns}) con polín ${polinLabel}. Requerido: ${requiredLabel} de ${lotLabel}.`;
-	}
-
-	return `La matriz ${rows}×${columns} requiere ${requiredLabel} y excede el tramo (${lotLabel}) con polín ${polinLabel}.`;
-};
-
 /**
- * Genera la grilla de posiciones (polines) de un tramo: filas × columnas.
- * Coordenadas relativas al origen del tramo, centradas en cada celda del polín.
+ * Genera la grilla de posiciones de un tramo: filas × columnas.
+ * El width/length de cada posición reparte el área del tramo (no usa footprint de polín).
  */
 export const buildPositions = (
 	input: BuildLotPositionsInput,
@@ -114,44 +73,37 @@ export const buildPositions = (
 		columns,
 		lotWidth,
 		lotLength,
-		polinWidth = POLIN_WIDTH_METER,
-		polinDepth = POLIN_DEEP_METER,
 		level = 0,
 	} = input;
 
-	const requiredWidth = columns * polinWidth;
-	const requiredLength = rows * polinDepth;
 	const hasValidInput =
 		isPositiveInteger(rows) &&
 		isPositiveInteger(columns) &&
 		lotWidth > 0 &&
 		lotLength > 0;
-	const fits =
-		hasValidInput &&
-		requiredWidth <= lotWidth + 0.001 &&
-		requiredLength <= lotLength + 0.001;
+
+	const positionWidth = hasValidInput ? lotWidth / columns : 0;
+	const positionLength = hasValidInput ? lotLength / rows : 0;
+	const fits = hasValidInput;
 	const positions = fits
-		? buildGrid(rows, columns, level, polinWidth, polinDepth)
+		? buildGrid(rows, columns, level, positionWidth, positionLength)
 		: [];
+
+	const lotLabel = `${lotWidth.toFixed(2)}×${lotLength.toFixed(2)} m`;
+	const cellLabel = `${positionWidth.toFixed(2)}×${positionLength.toFixed(2)} m`;
+
+	const message = !hasValidInput
+		? "Indique filas, columnas y dimensiones del tramo para proyectar las posiciones."
+		: `${positions.length} posiciones (${rows}×${columns}). Cada una: ${cellLabel} sobre el tramo ${lotLabel}.`;
 
 	return {
 		fits,
-		message: buildMessage({
-			fits,
-			hasValidInput,
-			rows,
-			columns,
-			polinWidth,
-			polinDepth,
-			requiredWidth,
-			requiredLength,
-			lotWidth,
-			lotLength,
-			total: positions.length,
-		}),
-		requiredWidth,
-		requiredLength,
+		message,
+		requiredWidth: lotWidth,
+		requiredLength: lotLength,
 		total: positions.length,
+		positionWidth,
+		positionLength,
 		positions,
 	};
 };
