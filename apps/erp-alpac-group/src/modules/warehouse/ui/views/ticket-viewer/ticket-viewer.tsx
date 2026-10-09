@@ -75,8 +75,6 @@ export const TicketViewer = () => {
 
   const { data: merchandiseLocation, isLoading, isError, error, refetch } = GetAssignmentDetailsByCode;
 
-  console.log(JSON.stringify(merchandiseLocation, null, 3))
-
    useEffect(() => {
       if (hasHydrated && companyId && moduleCode && code) {
          refetch();
