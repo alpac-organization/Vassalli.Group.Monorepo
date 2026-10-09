@@ -55,7 +55,7 @@ export const OccasionalMaterialTab = ({
 		company_id: companyId,
 		module_code: moduleCode,
 		...(isAdministrator ? {} : { branch_id: currentBranchId }),
-		request_type: Number(PurchaseRequestEnum.Eventual.value),
+		request_type: PurchaseRequestEnum.Eventual.textValue,
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	});
@@ -66,7 +66,7 @@ export const OccasionalMaterialTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			branch_id: isAdministrator ? undefined : currentBranchId,
-			request_type: Number(PurchaseRequestEnum.Eventual.value),
+			request_type: PurchaseRequestEnum.Eventual.textValue,
 			page_size: PAGE_SIZE,
 		},
 	});
@@ -80,7 +80,7 @@ export const OccasionalMaterialTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			...(isAdministrator ? {} : { branch_id: currentBranchId }),
-			request_type: Number(PurchaseRequestEnum.Eventual.value),
+			request_type: PurchaseRequestEnum.Eventual.textValue,
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		});
@@ -148,7 +148,7 @@ export const OccasionalMaterialTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			branch_id: isAdministrator ? undefined : currentBranchId,
-			request_type: Number(PurchaseRequestEnum.Eventual.value),
+			request_type: PurchaseRequestEnum.Eventual.textValue,
 			code: data?.code?.trim(),
 			year,
 			month,
@@ -164,7 +164,7 @@ export const OccasionalMaterialTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			...(isAdministrator ? {} : { branch_id: currentBranchId }),
-			request_type: Number(PurchaseRequestEnum.Eventual.value),
+			request_type: PurchaseRequestEnum.Eventual.textValue,
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		});

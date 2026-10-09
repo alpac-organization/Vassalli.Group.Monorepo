@@ -26,16 +26,28 @@ import {
 	quoteFormSecondaryButtonClassName,
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
 import { TimeTypeEnum, TimeTypeOptions } from "@app/core/enums/time-type.enum";
+import type { TimeTypeValue } from "@app/core/enums/time-type.enum";
 import { PaymentMethodEnum } from "@app/core/enums/payment-method.enum";
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
-import type { GetSuppliersResponse, SupplierPaymentMethod } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+import {
+	ProductQualityEnum,
+	ProductQualityOptions,
+} from "@app/modules/purchasing/domain/enums/product-quality";
+import type { ProductQualityType } from "@app/modules/purchasing/domain/enums/product-quality";
+import type {
+	GetSuppliersResponse,
+	SupplierPaymentMethod,
+} from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
 import { SupplierServices } from "@app/modules/purchasing/infrastructure/services/supplier/SupplierServices";
 import { httpHandler } from "@app/core/adapters";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { SelectSupplierModal } from "../select-supplier-modal/select-supplier-modal";
+import { ImageUploader } from "@app/shared/components/image-uploader/image-uploader";
+import type { ImageOutput } from "@app/shared/components/image-uploader/image-uploader.types";
+import { QuotationPdfUploader } from "../quotation-pdf-uploader/quotation-pdf-uploader";
+import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type {
 	DraftQuotationItem,
-	IvaRateOption,
 	QuotationItemFieldsProps,
 	QuotationItemForm,
 	QuoteProductFormValues,
@@ -43,12 +55,21 @@ import type {
 	QuoteProductModalProps,
 } from "./quote-product-modal.types";
 import { MIN_SUPPLIERS_PER_PRODUCT } from "./quote-product-modal.types";
-import { formatNumberWithDecimals } from "@app/shared/utils/string.utils";
-import { validateDecimalNumber, validatePositiveNumber } from "@app/shared/utils/number.utils";
 
 const supplierServices = new SupplierServices(httpHandler);
 
 const paymentMethodEntries = Object.values(PaymentMethodEnum);
+
+const productQualityOptions = ProductQualityOptions.map((option) => ({
+	value: option.textValue,
+	label: option.label,
+}));
+
+const deliveryTimeOptions = TimeTypeOptions.filter(
+	(option) => option.value !== TimeTypeEnum.Years.stringValue,
+);
+
+const timeTypeOptions = TimeTypeOptions;
 
 const normalizePaymentMethodType = (
 	raw: unknown,
@@ -80,30 +101,11 @@ const resolvePaymentMethodLabel = (
 	method?: PaymentMethodType | number | null,
 ): string => {
 	if (method == null) return "—";
-	const normalized =
-		typeof method === "number"
-			? normalizePaymentMethodType(method)
-			: normalizePaymentMethodType(method);
+	const normalized = normalizePaymentMethodType(method);
 	if (!normalized) return String(method);
 	const entry = paymentMethodEntries.find((e) => e.stringValue === normalized);
 	return entry?.label ?? normalized;
 };
-
-const toPaymentMethodNumericValue = (
-	method?: PaymentMethodType | number | null,
-): number | undefined => {
-	if (method == null) return undefined;
-	if (typeof method === "number") {
-		return paymentMethodEntries.some((e) => e.value === method)
-			? method
-			: undefined;
-	}
-	return paymentMethodEntries.find((e) => e.stringValue === method)?.value;
-};
-
-const toPaymentMethodStringValue = (
-	method?: number | PaymentMethodType | null,
-): PaymentMethodType | undefined => normalizePaymentMethodType(method);
 
 const getMethodValue = (
 	method?: SupplierPaymentMethod | Record<string, unknown>,
@@ -164,58 +166,38 @@ const buildPaymentMethodOptions = (methods: SupplierPaymentMethod[]) =>
 		label: resolvePaymentMethodLabel(m.payment_method_type),
 	}));
 
-const availabilityTimeTypeOptions = Object.values(TimeTypeEnum).map((option) => ({
-	value: String(option.value),
-	label: option.label,
-}));
-
-const conditionalFieldsGridClassName =
-	"mt-4 grid grid-cols-1 gap-4 md:grid-cols-2";
-
-const PRESET_IVA_RATES = ["10", "15"] as const;
-
-const IVA_RATE_OPTIONS = [
-	{ value: "10", label: "10%" },
-	{ value: "15", label: "15%" },
-	{ value: "other", label: "Otro" },
-];
-
-const roundMoney = (value: number) => Math.round(value * 100) / 100;
-
-const resolveIvaRate = (
-	rate?: IvaRateOption,
-	customRate?: string | number,
-) => {
-	if (rate === "other") return (Number(customRate) || 0) / 100;
-	if (!rate) return 0;
-	return Number(rate) / 100;
+const normalizeTimeTypeValue = (raw: unknown): TimeTypeValue | undefined => {
+	if (raw == null || raw === "") return undefined;
+	if (typeof raw === "string") {
+		const match = Object.values(TimeTypeEnum).find(
+			(option) =>
+				option.stringValue === raw ||
+				option.stringValue.toLowerCase() === raw.toLowerCase() ||
+				option.stringValue.toLowerCase().startsWith(raw.toLowerCase()),
+		);
+		return match?.stringValue;
+	}
+	if (typeof raw === "number") {
+		return Object.values(TimeTypeEnum).find((option) => option.value === raw)
+			?.stringValue;
+	}
+	return undefined;
 };
 
-const inferIvaFields = (
-	price?: number,
-	iva?: number,
-): Pick<QuotationItemForm, "has_iva" | "iva_rate" | "custom_iva_rate"> => {
-	if (iva == null || iva <= 0 || !price || price <= 0) {
-		return { has_iva: false, iva_rate: undefined, custom_iva_rate: undefined };
-	}
-
-	const percent = roundMoney((iva / price) * 100);
-	const percentKey = String(percent);
-
-	if (PRESET_IVA_RATES.includes(percentKey as (typeof PRESET_IVA_RATES)[number])) {
-		return {
-			has_iva: true,
-			iva_rate: percentKey as IvaRateOption,
-			custom_iva_rate: undefined,
-		};
-	}
-
-	return {
-		has_iva: true,
-		iva_rate: "other",
-		custom_iva_rate: percent,
-	};
+const toNumberOrUndefined = (value: unknown) => {
+	if (value === "" || value === null || value === undefined) return undefined;
+	const parsed = Number(value);
+	return Number.isNaN(parsed) ? undefined : parsed;
 };
+
+const toDataUrlImages = (images?: ImageOutput[]): string[] =>
+	(images ?? [])
+		.map((image) => {
+			if (image.base64.startsWith("data:")) return image.base64;
+			const contentType = image.contentType || "image/jpeg";
+			return `data:${contentType};base64,${image.base64}`;
+		})
+		.slice(0, 2);
 
 const emptyQuotationItem = (
 	purchaseRequestItemId: string,
@@ -235,8 +217,6 @@ const emptyQuotationItem = (
 		active.some((m) => m.payment_method_type === preferred)
 	) {
 		autoPayment = preferred;
-	} else if (active.length === 0 && preferred) {
-		autoPayment = preferred;
 	}
 
 	return {
@@ -245,14 +225,9 @@ const emptyQuotationItem = (
 		purchase_request_item_id: purchaseRequestItemId,
 		has_delivery: false,
 		has_guarantee: false,
-		iventory_available: true,
-		has_iva: false,
-		iva_rate: undefined,
-		custom_iva_rate: undefined,
-		price: 0,
-		iva: undefined,
-		price_unit: undefined,
+		inventory_available: true,
 		brand_product: "",
+		product_quality: ProductQualityEnum.Good.textValue,
 		payment_method: autoPayment,
 		delivery_time: undefined,
 		availability_time: undefined,
@@ -263,26 +238,77 @@ const emptyQuotationItem = (
 		warranty_period_time_type: undefined,
 		supplier_payment_methods: normalizedMethods,
 		preferred_payment_method: preferred,
+		attachments_form: {
+			pdf_base64: null,
+			pdf_file_name: null,
+			images: [],
+		},
 	};
 };
 
-const toNumberOrUndefined = (value: unknown) => {
-	if (value === "" || value === null || value === undefined) return undefined;
-	const parsed = Number(value);
-	return Number.isNaN(parsed) ? undefined : parsed;
+const mapDraftItemToForm = (item: DraftQuotationItem): QuotationItemForm => {
+	const { payment_method_type, attachments, ...rest } = item;
+	return {
+		...rest,
+		inventory_available: item.inventory_available !== false,
+		product_quality: item.product_quality ?? ProductQualityEnum.Good.textValue,
+		payment_method: normalizePaymentMethodType(payment_method_type),
+		availability_time_type: normalizeTimeTypeValue(item.availability_time_type),
+		delivery_time_type: normalizeTimeTypeValue(item.delivery_time_type),
+		warranty_period_time_type: normalizeTimeTypeValue(
+			item.warranty_period_time_type,
+		),
+		attachments_form: {
+			pdf_base64: attachments?.pdf_base64 ?? null,
+			pdf_file_name: attachments?.pdf_file_name ?? null,
+			images: [],
+		},
+	};
 };
 
-const deliveryTime = TimeTypeOptions.filter(option => option.value !== TimeTypeEnum.Years.value);
+const buildInitialQuotationItems = (
+	product: PurchaseRequestProductInformation,
+	existingItems: DraftQuotationItem[],
+): QuotationItemForm[] => {
+	const productId = product.product_details?.product_id ?? "";
+	const purchaseRequestItemId = product.purchase_request_item_id ?? "";
 
-const deliveryTimeOptions = deliveryTime.map((option) => ({
-	value: String(option.value),
-	label: option.label,
-}));
+	const draftItems = existingItems.filter(
+		(item) =>
+			item.product_id === productId ||
+			(purchaseRequestItemId &&
+				item.purchase_request_item_id === purchaseRequestItemId),
+	);
 
-const timeTypeOptions = TimeTypeOptions.map((option) => ({
-	value: String(option.value),
-	label: option.label,
-}));
+	if (draftItems.length > 0) {
+		return draftItems.map(mapDraftItemToForm);
+	}
+
+	const linkedSuppliers = product.product_details?.supplier_products ?? [];
+	const seenSupplierIds = new Set<string>();
+
+	return linkedSuppliers.flatMap((supplierProduct) => {
+		const supplierId = supplierProduct.supplier_id?.trim();
+		if (!supplierId || seenSupplierIds.has(supplierId)) return [];
+
+		seenSupplierIds.add(supplierId);
+
+		const legalName =
+			supplierProduct.suppliers_legal_name?.trim() ||
+			supplierProduct.commercial_name?.trim() ||
+			"";
+
+		return [
+			emptyQuotationItem(purchaseRequestItemId, {
+				supplier_id: supplierId,
+				supplier_legal_name: legalName,
+			}),
+		];
+	});
+};
+
+const conditionalFieldsGridClassName =
+	"mt-4 grid grid-cols-1 gap-4 md:grid-cols-2";
 
 function QuotationItemFields({
 	productIndex,
@@ -290,7 +316,6 @@ function QuotationItemFields({
 	accordionValue,
 	canRemove,
 	supplierLegalName,
-	quantity,
 	onRemove,
 }: QuotationItemFieldsProps) {
 	const {
@@ -310,7 +335,7 @@ function QuotationItemFields({
 	});
 	const inventoryAvailable = useWatch({
 		control,
-		name: `products.${productIndex}.items.${itemIndex}.iventory_available`,
+		name: `products.${productIndex}.items.${itemIndex}.inventory_available`,
 	});
 	const supplierPaymentMethods = useWatch({
 		control,
@@ -320,54 +345,26 @@ function QuotationItemFields({
 		control,
 		name: `products.${productIndex}.items.${itemIndex}.preferred_payment_method`,
 	});
-	const hasIva = useWatch({
+	const attachmentsForm = useWatch({
 		control,
-		name: `products.${productIndex}.items.${itemIndex}.has_iva`,
-	});
-	const ivaRate = useWatch({
-		control,
-		name: `products.${productIndex}.items.${itemIndex}.iva_rate`,
-	});
-	const customIvaRate = useWatch({
-		control,
-		name: `products.${productIndex}.items.${itemIndex}.custom_iva_rate`,
-	});
-	const priceUnit = useWatch({
-		control,
-		name: `products.${productIndex}.items.${itemIndex}.price_unit`,
+		name: `products.${productIndex}.items.${itemIndex}.attachments_form`,
 	});
 
 	const itemErrors = errors.products?.[productIndex]?.items?.[itemIndex];
 	const fieldPath = `products.${productIndex}.items.${itemIndex}` as const;
-	const supplierLabel =
-		supplierLegalName || `Proveedor ${itemIndex + 1}`;
+	const supplierLabel = supplierLegalName || `Proveedor ${itemIndex + 1}`;
 
 	const activePaymentMethods = getActivePaymentMethods(supplierPaymentMethods);
-	const paymentMethodOptions = buildPaymentMethodOptions(supplierPaymentMethods ?? []);
+	const paymentMethodOptions = buildPaymentMethodOptions(
+		supplierPaymentMethods ?? [],
+	);
 	const hasSinglePaymentMethod = activePaymentMethods.length === 1;
-	const preferredPaymentNormalized = normalizePaymentMethodType(preferredPaymentMethod);
-	const usePreferredAsPaymentMethod =
-		activePaymentMethods.length === 0 && Boolean(preferredPaymentNormalized);
-	const hasNoPaymentMethods =
-		activePaymentMethods.length === 0 && !preferredPaymentNormalized;
-	const lockedPaymentMethod =
-		hasSinglePaymentMethod
-			? activePaymentMethods[0].payment_method_type
-			: usePreferredAsPaymentMethod
-				? preferredPaymentNormalized
-				: undefined;
-
-	useEffect(() => {
-		const unit = Number(priceUnit) || 0;
-		const calculatedPrice = roundMoney(quantity * unit);
-		const rate = hasIva ? resolveIvaRate(ivaRate, customIvaRate) : 0;
-
-		setValue(`${fieldPath}.price`, calculatedPrice, { shouldValidate: true });
-		setValue(
-			`${fieldPath}.iva`,
-			hasIva ? roundMoney(calculatedPrice * rate) : undefined,
-		);
-	}, [customIvaRate, fieldPath, hasIva, ivaRate, priceUnit, quantity, setValue]);
+	const preferredPaymentNormalized =
+		normalizePaymentMethodType(preferredPaymentMethod);
+	const hasNoPaymentMethods = activePaymentMethods.length === 0;
+	const lockedPaymentMethod = hasSinglePaymentMethod
+		? activePaymentMethods[0].payment_method_type
+		: undefined;
 
 	useEffect(() => {
 		if (!lockedPaymentMethod) return;
@@ -439,157 +436,36 @@ function QuotationItemFields({
 					{...register(`${fieldPath}.brand_product`)}
 				/>
 
-				<InputText
-					label="Precio unitario"
-					type="number"
-					min="0"
-					step="0.01"
-					isRequired
-					placeholder="0.00"
-					className={quoteFormInputClassName}
-					labelClassName={quoteFormLabelClassName}
-					{...register(`${fieldPath}.price_unit`, {
-						required: "El precio unitario es requerido.",
-						setValueAs: toNumberOrUndefined,
-						validate: (value) =>
-							(value != null && Number(value) > 0) ||
-							"El precio unitario debe ser mayor a 0.",
-					})}
-					error={itemErrors?.price_unit?.message}
+				<Controller
+					control={control}
+					name={`${fieldPath}.product_quality`}
+					rules={{
+						required: "La calidad del producto es requerida.",
+					}}
+					render={({ field }) => (
+						<Dropdown
+							label="Calidad del producto"
+							placeholder="Seleccione"
+							appearance="dark"
+							isRequired
+							options={productQualityOptions}
+							value={field.value ?? ""}
+							onChange={(value) =>
+								field.onChange((value || undefined) as ProductQualityType | undefined)
+							}
+							labelClassName={quoteFormLabelClassName}
+							valueClassName={quoteFormLabelClassName}
+							className={quoteFormInputClassName}
+							error={itemErrors?.product_quality?.message}
+						/>
+					)}
 				/>
-
-				<InputText
-					label="Precio"
-					type="number"
-					min="0"
-					step="0.01"
-					disabled
-					placeholder="0.00"
-					className={quoteFormInputClassName}
-					labelClassName={quoteFormLabelClassName}
-					{...register(`${fieldPath}.price`, {
-						setValueAs: (value) => Number(value) || 0,
-						validate: (value) =>
-							Number(value) > 0 || "El precio debe ser mayor a 0.",
-					})}
-					error={itemErrors?.price?.message}
-				/>
-
-				<div className="flex flex-col gap-2 mt-1">
-					<Controller
-						control={control}
-						name={`${fieldPath}.has_iva`}
-						render={({ field }) => (
-							<Checkbox
-								label="Incluye IVA"
-								checked={Boolean(field.value)}
-								onChange={(event) => {
-									const checked = event.target.checked;
-									field.onChange(checked);
-
-									if (!checked) {
-										setValue(`${fieldPath}.iva_rate`, undefined);
-										setValue(`${fieldPath}.custom_iva_rate`, undefined);
-										setValue(`${fieldPath}.iva`, undefined);
-										return;
-									}
-
-									if (!ivaRate) {
-										setValue(`${fieldPath}.iva_rate`, "15");
-									}
-								}}
-							/>
-						)}
-					/>
-
-					<InputText
-						type="number"
-						min="0"
-						step="0.01"
-						disabled
-						placeholder="0.00"
-						className={quoteFormInputClassName}
-						labelClassName={quoteFormLabelClassName}
-						{...register(`${fieldPath}.iva`, {
-							setValueAs: toNumberOrUndefined,
-						})}
-					/>
-				</div>
-
-				{hasIva ? (
-					<Controller
-						control={control}
-						name={`${fieldPath}.iva_rate`}
-						rules={{
-							validate: (value) =>
-								!hasIva || Boolean(value) || "Seleccione la tasa de IVA.",
-						}}
-						render={({ field }) => (
-							<Dropdown
-								label="Tasa de IVA"
-								placeholder="Seleccione"
-								appearance="dark"
-								isRequired
-								options={IVA_RATE_OPTIONS}
-								value={field.value ?? ""}
-								onChange={(value) => {
-									const nextRate = (value || undefined) as IvaRateOption | undefined;
-									field.onChange(nextRate);
-
-									if (nextRate !== "other") {
-										setValue(`${fieldPath}.custom_iva_rate`, undefined);
-									}
-								}}
-								labelClassName={quoteFormLabelClassName}
-								valueClassName={quoteFormLabelClassName}
-								className={quoteFormInputClassName}
-								error={itemErrors?.iva_rate?.message}
-							/>
-						)}
-					/>
-				) : null}
-
-				{hasIva && ivaRate === "other" ? (
-					<InputText
-						label="Otro %"
-						type="text"
-						inputMode="decimal"
-						isRequired
-						placeholder="Ej. 12"
-						className={quoteFormInputClassName}
-						labelClassName={quoteFormLabelClassName}
-						{...register(`${fieldPath}.custom_iva_rate`, {
-							required: hasIva && ivaRate === "other"
-								? "El porcentaje de IVA es requerido."
-								: false,
-							validate: (value) => {
-								if (!hasIva || ivaRate !== "other") return true;
-
-								const decimalValidation = validateDecimalNumber(value);
-								if (decimalValidation !== true) return decimalValidation;
-
-								const positiveValidation = validatePositiveNumber(value);
-								if (positiveValidation !== true) return positiveValidation;
-
-								const percent = Number(value);
-								return (
-									(percent >= 1 && percent <= 30) ||
-									"El porcentaje debe estar entre 1 y 30."
-								);
-							},
-							onChange: (event) => {
-								event.target.value = formatNumberWithDecimals(
-									event.target.value,
-									true,
-									30
-								);
-							},
-						})}
-						error={itemErrors?.custom_iva_rate?.message}
-					/>
-				) : null}
-
 			</div>
+
+			<p className="mt-3 m-0 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] text-slate-600 dark:border-neutral-600 dark:bg-[#1e2229] dark:text-slate-300">
+				El precio unitario, IVA y totales los calcula el sistema según el
+				catálogo del proveedor (precio base o preferencial por cantidad).
+			</p>
 
 			<div className="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:flex-wrap sm:gap-4 dark:border-neutral-600">
 				<Controller
@@ -632,7 +508,7 @@ function QuotationItemFields({
 
 				<Controller
 					control={control}
-					name={`${fieldPath}.iventory_available`}
+					name={`${fieldPath}.inventory_available`}
 					render={({ field }) => (
 						<Checkbox
 							label="¿Inventario disponible?"
@@ -661,9 +537,10 @@ function QuotationItemFields({
 						className={quoteFormInputClassName}
 						labelClassName={quoteFormLabelClassName}
 						{...register(`${fieldPath}.availability_time`, {
-							required: inventoryAvailable === false
-								? "El tiempo de disponibilidad es requerido."
-								: false,
+							required:
+								inventoryAvailable === false
+									? "El tiempo de disponibilidad es requerido."
+									: false,
 							setValueAs: toNumberOrUndefined,
 							validate: (value) =>
 								inventoryAvailable !== false ||
@@ -679,7 +556,7 @@ function QuotationItemFields({
 						rules={{
 							validate: (value) =>
 								inventoryAvailable !== false ||
-								(value != null && Number(value) > 0) ||
+								Boolean(value) ||
 								"Seleccione el tipo de tiempo.",
 						}}
 						render={({ field }) => (
@@ -688,10 +565,12 @@ function QuotationItemFields({
 								placeholder="Seleccione"
 								appearance="dark"
 								isRequired
-								options={availabilityTimeTypeOptions}
-								value={field.value != null ? String(field.value) : ""}
+								options={timeTypeOptions}
+								value={field.value ?? ""}
 								onChange={(value) =>
-									field.onChange(value ? Number(value) : undefined)
+									field.onChange(
+										(value || undefined) as TimeTypeValue | undefined,
+									)
 								}
 								labelClassName={quoteFormLabelClassName}
 								valueClassName={quoteFormLabelClassName}
@@ -732,7 +611,7 @@ function QuotationItemFields({
 						rules={{
 							validate: (value) =>
 								!hasDelivery ||
-								(value != null && Number(value) > 0) ||
+								Boolean(value) ||
 								"Seleccione el tipo de tiempo.",
 						}}
 						render={({ field }) => (
@@ -742,9 +621,11 @@ function QuotationItemFields({
 								appearance="dark"
 								isRequired
 								options={deliveryTimeOptions}
-								value={field.value != null ? String(field.value) : ""}
+								value={field.value ?? ""}
 								onChange={(value) =>
-									field.onChange(value ? Number(value) : undefined)
+									field.onChange(
+										(value || undefined) as TimeTypeValue | undefined,
+									)
 								}
 								labelClassName={quoteFormLabelClassName}
 								valueClassName={quoteFormLabelClassName}
@@ -785,7 +666,7 @@ function QuotationItemFields({
 						rules={{
 							validate: (value) =>
 								!hasGuarantee ||
-								(value != null && Number(value) > 0) ||
+								Boolean(value) ||
 								"Seleccione el tipo de tiempo.",
 						}}
 						render={({ field }) => (
@@ -795,9 +676,11 @@ function QuotationItemFields({
 								appearance="dark"
 								isRequired
 								options={timeTypeOptions}
-								value={field.value != null ? String(field.value) : ""}
+								value={field.value ?? ""}
 								onChange={(value) =>
-									field.onChange(value ? Number(value) : undefined)
+									field.onChange(
+										(value || undefined) as TimeTypeValue | undefined,
+									)
 								}
 								labelClassName={quoteFormLabelClassName}
 								valueClassName={quoteFormLabelClassName}
@@ -812,7 +695,9 @@ function QuotationItemFields({
 			<div className="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 dark:border-neutral-600">
 				{preferredPaymentNormalized ? (
 					<div className="flex flex-col gap-1">
-						<span className={`text-[13px] font-medium ${quoteFormLabelClassName}`}>
+						<span
+							className={`text-[13px] font-medium ${quoteFormLabelClassName}`}
+						>
 							Método de pago preferido
 						</span>
 						<span className="text-sm text-slate-600 dark:text-slate-300">
@@ -833,7 +718,8 @@ function QuotationItemFields({
 								aria-hidden
 							/>
 							<p className="m-0 text-[13px] text-amber-800 dark:text-amber-200">
-								El proveedor no tiene métodos de pago configurados.
+								El proveedor no tiene métodos de pago configurados. Configure al
+								menos uno en el catálogo de proveedores.
 							</p>
 						</div>
 						<Controller
@@ -853,17 +739,19 @@ function QuotationItemFields({
 					</>
 				) : lockedPaymentMethod ? (
 					<div className="flex flex-col gap-1">
-						<span className={`text-[13px] font-medium ${quoteFormLabelClassName}`}>
+						<span
+							className={`text-[13px] font-medium ${quoteFormLabelClassName}`}
+						>
 							Método de pago
 						</span>
 						<span className="text-sm text-slate-600 dark:text-slate-300">
 							{resolvePaymentMethodLabel(lockedPaymentMethod)}
+							{" "}
+							(asignado automáticamente)
 						</span>
 						<input
 							type="hidden"
-							{...register(`${fieldPath}.payment_method`, {
-								required: "Seleccione un método de pago.",
-							})}
+							{...register(`${fieldPath}.payment_method`)}
 						/>
 					</div>
 				) : (
@@ -882,9 +770,7 @@ function QuotationItemFields({
 									isRequired
 									options={paymentMethodOptions}
 									value={field.value ?? ""}
-									onChange={(value) =>
-										field.onChange(value || undefined)
-									}
+									onChange={(value) => field.onChange(value || undefined)}
 									labelClassName={quoteFormLabelClassName}
 									valueClassName={quoteFormLabelClassName}
 									className={quoteFormInputClassName}
@@ -894,6 +780,39 @@ function QuotationItemFields({
 						/>
 					</div>
 				)}
+			</div>
+
+			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 dark:border-neutral-600 md:grid-cols-2">
+				<Controller
+					control={control}
+					name={`${fieldPath}.attachments_form.images`}
+					render={({ field }) => (
+						<ImageUploader
+							label="Imágenes de la cotización"
+							description="Máximo 2 imágenes (5 MB c/u)."
+							maxFiles={2}
+							maxSizeMB={5}
+							value={field.value ?? []}
+							onChange={(images) => field.onChange(images)}
+						/>
+					)}
+				/>
+
+				<Controller
+					control={control}
+					name={`${fieldPath}.attachments_form`}
+					render={({ field }) => (
+						<QuotationPdfUploader
+							fileName={attachmentsForm?.pdf_file_name}
+							onChange={(next) =>
+								field.onChange({
+									...(field.value ?? {}),
+									...next,
+								})
+							}
+						/>
+					)}
+				/>
 			</div>
 
 			<div className="mt-4 border-t border-slate-200 pt-4 dark:border-neutral-600">
@@ -936,7 +855,6 @@ function QuoteProductGroupFields({
 	productIndex,
 	productName,
 	categoryName,
-	quantity,
 }: QuoteProductGroupFieldsProps) {
 	const { companyId, moduleCode } = useUserStore();
 	const {
@@ -956,7 +874,7 @@ function QuoteProductGroupFields({
 		rules: {
 			validate: (items) => {
 				if (!items || items.length < MIN_SUPPLIERS_PER_PRODUCT) {
-					return `Cada producto debe tener al menos ${MIN_SUPPLIERS_PER_PRODUCT} proveedores. Use "Agregar Proveedor" para seleccionarlos.`;
+					return `Cada producto debe tener al menos ${MIN_SUPPLIERS_PER_PRODUCT} proveedores. Complete los vinculados o use "Agregar Proveedor" para incluir adicionales.`;
 				}
 
 				const supplierIds = items
@@ -1022,7 +940,8 @@ function QuoteProductGroupFields({
 					supplier.supplier_payment_methods ??
 					[];
 				const preferred = paymentMethods.find(
-					(method) => method.is_active !== false && method.payment_method_type,
+					(method) =>
+						method.is_active !== false && method.payment_method_type,
 				)?.payment_method_type;
 
 				return emptyQuotationItem(
@@ -1079,7 +998,8 @@ function QuoteProductGroupFields({
 			</div>
 
 			<p className="m-0 text-[13px] text-slate-500 dark:text-slate-400">
-				Busque y seleccione proveedores con el botón. Mínimo{" "}
+				Los proveedores vinculados al producto se precargan automáticamente.
+				Use &quot;Agregar Proveedor&quot; solo para incluir adicionales. Mínimo{" "}
 				{MIN_SUPPLIERS_PER_PRODUCT} por producto.
 			</p>
 
@@ -1089,8 +1009,8 @@ function QuoteProductGroupFields({
 
 			{fields.length === 0 ? (
 				<p className="m-0 rounded-md border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500 dark:border-neutral-600 dark:text-slate-400">
-					Aún no hay proveedores. Use &quot;Agregar Proveedor&quot; para
-					buscarlos y seleccionarlos.
+					Este producto no tiene proveedores vinculados. Use &quot;Agregar
+					Proveedor&quot; para buscarlos y seleccionarlos.
 				</p>
 			) : (
 				<AccordionGroup
@@ -1114,7 +1034,6 @@ function QuoteProductGroupFields({
 							accordionValue={field.id}
 							canRemove
 							supplierLegalName={field.supplier_legal_name || ""}
-							quantity={quantity}
 							onRemove={() => remove(itemIndex)}
 						/>
 					))}
@@ -1139,7 +1058,7 @@ export function QuoteProductModal({
 	onClose,
 	onConfirm,
 }: QuoteProductModalProps) {
-
+	const { companyId, moduleCode } = useUserStore();
 	const productsCount = products.length;
 
 	const methods = useForm<QuoteProductFormValues>({
@@ -1151,6 +1070,8 @@ export function QuoteProductModal({
 		control,
 		handleSubmit,
 		reset,
+		setValue,
+		getValues,
 		formState: { isSubmitting },
 	} = methods;
 
@@ -1159,46 +1080,143 @@ export function QuoteProductModal({
 		name: "products",
 	});
 
+	const [isEnrichingPaymentMethods, setIsEnrichingPaymentMethods] =
+		useState(false);
+
 	useEffect(() => {
 		if (!isOpen) {
 			reset({ products: [] });
+			setIsEnrichingPaymentMethods(false);
 			return;
 		}
 
-		reset({
-			products: products.map((product) => {
-				const productId = product.product_details?.product_id ?? "";
-				const purchaseRequestItemId = product?.purchase_request_item_id ?? "";
+		const nextProducts = products.map((product) => {
+			const productId = product.product_details?.product_id ?? "";
+			const purchaseRequestItemId = product.purchase_request_item_id ?? "";
 
-				const productItems = existingItems.filter(
-					(item) =>
-						item.product_id === productId ||
-						(purchaseRequestItemId &&
-							item.purchase_request_item_id === purchaseRequestItemId),
+			return {
+				product_id: productId,
+				purchase_request_item_id: purchaseRequestItemId,
+				product_name:
+					product.product_details?.product_name?.trim() ||
+					"Producto sin nombre",
+				category_name:
+					product.product_details?.category_information?.name?.trim() || null,
+				quantity: product.quantity,
+				items: buildInitialQuotationItems(product, existingItems),
+			};
+		});
+
+		reset({ products: nextProducts });
+
+		const suppliersToEnrich = nextProducts.flatMap((product, productIndex) => {
+			const hadSessionDraft = existingItems.some(
+				(item) =>
+					item.product_id === product.product_id ||
+					(product.purchase_request_item_id &&
+						item.purchase_request_item_id === product.purchase_request_item_id),
+			);
+
+			// Solo enriquecer seeds del catálogo; no pisar borradores de sesión.
+			if (hadSessionDraft) return [];
+
+			return product.items.flatMap((item, itemIndex) => {
+				const supplierId = item.supplier_id?.trim();
+				const hasPaymentMethods =
+					(item.supplier_payment_methods?.length ?? 0) > 0;
+
+				if (!supplierId || hasPaymentMethods) return [];
+
+				return [{ productIndex, itemIndex, supplierId }];
+			});
+		});
+
+		if (suppliersToEnrich.length === 0) return;
+
+		let cancelled = false;
+		setIsEnrichingPaymentMethods(true);
+
+		void (async () => {
+			try {
+				const detailsResults = await Promise.all(
+					suppliersToEnrich.map(({ supplierId }) =>
+						supplierServices
+							.GetSupplierDetails({
+								company_id: companyId,
+								module_code: moduleCode,
+								supplier_id: supplierId,
+							})
+							.catch(() => null),
+					),
 				);
 
-				return {
-					product_id: productId,
-					purchase_request_item_id: purchaseRequestItemId,
-					product_name:
-						product.product_details?.product_name?.trim() ||
-						"Producto sin nombre",
-					category_name:
-						product.product_details?.category_information?.name?.trim() ||
-						null,
-					quantity: product.quantity,
-					items: productItems.map((item) => {
-						const { payment_method_type, ...rest } = item;
-						return {
-							...rest,
-							payment_method: toPaymentMethodStringValue(payment_method_type),
-							...inferIvaFields(item.price, item.iva),
-						};
-					}),
-				};
-			}),
-		});
-	}, [isOpen, products, existingItems, reset]);
+				if (cancelled) return;
+
+				suppliersToEnrich.forEach((target, idx) => {
+					const details = detailsResults[idx];
+					if (!details) return;
+
+					const currentItem = getValues(
+						`products.${target.productIndex}.items.${target.itemIndex}`,
+					);
+					if (!currentItem || currentItem.supplier_id !== target.supplierId) {
+						return;
+					}
+
+					const paymentMethods = details.supplier_payment_methods ?? [];
+					const preferred = paymentMethods.find(
+						(method) =>
+							method.is_active !== false && method.payment_method_type,
+					)?.payment_method_type;
+
+					const enriched = emptyQuotationItem(
+						currentItem.purchase_request_item_id,
+						{
+							supplier_id: currentItem.supplier_id,
+							supplier_legal_name: currentItem.supplier_legal_name ?? "",
+						},
+						paymentMethods,
+						preferred,
+					);
+
+					setValue(
+						`products.${target.productIndex}.items.${target.itemIndex}.supplier_payment_methods`,
+						enriched.supplier_payment_methods,
+						{ shouldDirty: false },
+					);
+					setValue(
+						`products.${target.productIndex}.items.${target.itemIndex}.preferred_payment_method`,
+						enriched.preferred_payment_method,
+						{ shouldDirty: false },
+					);
+					if (enriched.payment_method) {
+						setValue(
+							`products.${target.productIndex}.items.${target.itemIndex}.payment_method`,
+							enriched.payment_method,
+							{ shouldDirty: false },
+						);
+					}
+				});
+			} finally {
+				if (!cancelled) {
+					setIsEnrichingPaymentMethods(false);
+				}
+			}
+		})();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [
+		isOpen,
+		products,
+		existingItems,
+		reset,
+		setValue,
+		getValues,
+		companyId,
+		moduleCode,
+	]);
 
 	const handleClose = () => {
 		reset({ products: [] });
@@ -1206,7 +1224,6 @@ export function QuoteProductModal({
 	};
 
 	const onSubmit = (values: QuoteProductFormValues) => {
-
 		const invalidProduct = values.products.find(
 			(product) => product.items.length < MIN_SUPPLIERS_PER_PRODUCT,
 		);
@@ -1214,34 +1231,70 @@ export function QuoteProductModal({
 		if (invalidProduct) return;
 
 		const items: DraftQuotationItem[] = values.products.flatMap((product) =>
-			product.items.map(({
-				has_iva: _hasIva,
-				iva_rate: _ivaRate,
-				custom_iva_rate: _customIvaRate,
-				supplier_payment_methods: _spm,
-				preferred_payment_method: _ppm,
-				payment_method: paymentMethodForm,
-				...item
-			}) => {
-				const isInventoryAvailable = item.iventory_available !== false;
-				const paymentMethodValue = toPaymentMethodNumericValue(paymentMethodForm);
+			product.items.map(
+				({
+					supplier_payment_methods: _spm,
+					preferred_payment_method: _ppm,
+					payment_method: paymentMethodForm,
+					attachments_form: attachmentsForm,
+					supplier_legal_name,
+					...item
+				}) => {
+					const isInventoryAvailable = item.inventory_available !== false;
+					const images = toDataUrlImages(attachmentsForm?.images);
+					const pdfBase64 = attachmentsForm?.pdf_base64?.trim() || null;
+					const pdfFileName = attachmentsForm?.pdf_file_name?.trim() || null;
+					const hasAttachments = Boolean(pdfBase64) || images.length > 0;
 
-				return {
-					...item,
-					payment_method_type: paymentMethodValue,
-					iventory_available: !isInventoryAvailable ? false : true,
-					availability_time: isInventoryAvailable ? undefined : item.availability_time,
-					availability_time_type: isInventoryAvailable ? undefined : item.availability_time_type,
-					supplier_selection_justification:
-						item.supplier_selection_justification?.trim() || undefined,
-					product_id: product.product_id,
-					purchase_request_item_id: product.purchase_request_item_id,
-				};
-			}),
+					const paymentMethod =
+						normalizePaymentMethodType(paymentMethodForm) ?? null;
+
+					return {
+						supplier_id: item.supplier_id,
+						purchase_request_item_id: product.purchase_request_item_id,
+						has_delivery: Boolean(item.has_delivery),
+						has_guarantee: Boolean(item.has_guarantee),
+						inventory_available: isInventoryAvailable,
+						supplier_selection_justification:
+							item.supplier_selection_justification?.trim() || "",
+						brand_product: item.brand_product?.trim() || null,
+						product_quality: item.product_quality,
+						...(paymentMethod ? { payment_method_type: paymentMethod } : {}),
+						availability_time: isInventoryAvailable
+							? null
+							: (item.availability_time ?? null),
+						availability_time_type: isInventoryAvailable
+							? null
+							: (normalizeTimeTypeValue(item.availability_time_type) ?? null),
+						delivery_time: item.has_delivery
+							? (item.delivery_time ?? null)
+							: null,
+						delivery_time_type: item.has_delivery
+							? (normalizeTimeTypeValue(item.delivery_time_type) ?? null)
+							: null,
+						warranty_period: item.has_guarantee
+							? (item.warranty_period ?? null)
+							: null,
+						warranty_period_time_type: item.has_guarantee
+							? (normalizeTimeTypeValue(item.warranty_period_time_type) ?? null)
+							: null,
+						...(hasAttachments
+							? {
+									attachments: {
+										pdf_base64: pdfBase64,
+										pdf_file_name: pdfFileName,
+										images_base64: images.length > 0 ? images : null,
+									},
+								}
+							: {}),
+						product_id: product.product_id,
+						supplier_legal_name,
+					};
+				},
+			),
 		);
 
 		onConfirm?.(items);
-
 		handleClose();
 	};
 
@@ -1254,7 +1307,7 @@ export function QuoteProductModal({
 			title="Cotizar productos"
 			description={
 				productsCount > 0
-					? `Complete la cotización para ${productsCount} producto${productsCount === 1 ? "" : "s"}. Use "Agregar Proveedor" para buscar y seleccionar al menos ${MIN_SUPPLIERS_PER_PRODUCT} proveedores por producto.`
+					? `Complete la cotización para ${productsCount} producto${productsCount === 1 ? "" : "s"}. Los proveedores vinculados se precargan; use "Agregar Proveedor" para incluir adicionales (mínimo ${MIN_SUPPLIERS_PER_PRODUCT} por producto).`
 					: "Complete la información de cotización de los productos seleccionados."
 			}
 			panelClassName={[
@@ -1309,8 +1362,12 @@ export function QuoteProductModal({
 								type="submit"
 								label="Confirmar cotización"
 								size="giant"
-								disabled={productsCount === 0 || isSubmitting}
-								isLoading={isSubmitting}
+								disabled={
+									productsCount === 0 ||
+									isSubmitting ||
+									isEnrichingPaymentMethods
+								}
+								isLoading={isSubmitting || isEnrichingPaymentMethods}
 								isHiddenLabelOnMobile
 								icon={<SaveIcon size={20} />}
 								className={quoteFormPrimaryButtonClassName}

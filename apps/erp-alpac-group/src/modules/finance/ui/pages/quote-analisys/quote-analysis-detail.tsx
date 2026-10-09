@@ -14,7 +14,6 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useQuoteAnalysis } from "@app/modules/finance/ui/hooks/quotes-analysis/useQuoteAnalysis";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { getStatusBadge } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-table/utils/quote-analysis.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { QuoteProductComparison } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-product-comparison/quote-product-comparison";
@@ -139,25 +138,23 @@ export function QuoteAnalysisDetail() {
     isError: isErrorDetail,
   } = GetQuoteAnalysisDetails;
 
-  const payloadGetPurchaseRequestProducts = useMemo(
-    () =>
-      detailData?.purchase_request?.purchase_request_id
-        ? {
-            company_id: companyId,
-            module_code: moduleCode,
-            purchase_request_id:
-              detailData.purchase_request.purchase_request_id,
-          }
-        : undefined,
-    [companyId, moduleCode, detailData?.purchase_request?.purchase_request_id],
+  const productsToDisplay: PurchaseRequestProductInformation[] = useMemo(
+    () => detailData?.purchase_request?.purchase_request_items ?? [],
+    [detailData?.purchase_request?.purchase_request_items],
   );
 
-  const { GetPurchaseRequestProducts } = usePurchase({
-    getPurchaseRequestProductsPayload: payloadGetPurchaseRequestProducts,
-  });
-
-  const { data: productsData, isLoading: isLoadingProducts } =
-    GetPurchaseRequestProducts;
+  const acceptedQuotesByItem = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const item of productsToDisplay) {
+      const accepted = item.quotations?.find(
+        (quote) => quote.is_accepted_for_purchase,
+      );
+      if (accepted) {
+        map[item.purchase_request_item_id] = accepted.quotation_id;
+      }
+    }
+    return map;
+  }, [productsToDisplay]);
 
   const handleRequestAccept = useCallback(
     (itemId: string, quotation: PurchaseRequestProductQuotation) => {
@@ -182,7 +179,6 @@ export function QuoteAnalysisDetail() {
           quotation_id: pendingAccept.quotation.quotation_id,
           purchase_request_item_id: pendingAccept.itemId,
           supplier_selection_justification: justification.trim(),
-          supplier_rejection_justification: null,
         },
         {
           onSuccess: () => {
@@ -246,28 +242,24 @@ export function QuoteAnalysisDetail() {
 
     try {
       setIsGeneratingPdf(true);
-      await openQuoteAnalysisPdf(
-        detailData,
-        productsData?.data ?? [],
-      );
+      await openQuoteAnalysisPdf(detailData, productsToDisplay);
     } catch {
       handleRequestError("Error al generar el PDF del análisis comparativo.");
     } finally {
       setIsGeneratingPdf(false);
     }
-  }, [detailData, handleRequestError, isGeneratingPdf, productsData?.data]);
-
-  const productsToDisplay: PurchaseRequestProductInformation[] =
-    productsData?.data ?? [];
+  }, [
+    detailData,
+    handleRequestError,
+    isGeneratingPdf,
+    productsToDisplay,
+  ]);
 
   const pendingSupplierName =
     pendingAccept?.quotation.supplier_information?.suppliers_legal_name?.trim() ||
     "este proveedor";
 
-  if (
-    isLoadingDetail ||
-    (payloadGetPurchaseRequestProducts && isLoadingProducts)
-  ) {
+  if (isLoadingDetail) {
     return <Loader title="Cargando detalle del análisis..." />;
   }
 
@@ -655,8 +647,15 @@ export function QuoteAnalysisDetail() {
                       <QuoteProductComparison
                         itemId={productKey}
                         quotations={quotations}
+                        recommendations={product.recommendations}
+                        supplierProducts={
+                          product.product_details?.supplier_products
+                        }
                         accountingReviewStatus={status}
-                        selectedQuotationId={selectedQuotes[productKey]}
+                        selectedQuotationId={
+                          selectedQuotes[productKey] ??
+                          acceptedQuotesByItem[productKey]
+                        }
                         onRequestAccept={handleRequestAccept}
                         isAccepting={AcceptQuotationToPurchase.isPending}
                       />

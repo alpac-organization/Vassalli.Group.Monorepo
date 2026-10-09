@@ -3,12 +3,18 @@ import { Avatar, Badges, Modal } from "@alpac/design-system";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { Loader } from "@app/shared/components/loaders/loader";
-import { BanIcon, BuildingIcon, CalendarCheckIcon, CalendarIcon, MailIcon, NotebookTextIcon } from "lucide-react";
+import {
+	BanIcon,
+	BuildingIcon,
+	CalendarCheckIcon,
+	CalendarIcon,
+	MailIcon,
+	NotebookTextIcon,
+} from "lucide-react";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { useManagement } from "@app/modules/management/ui/hooks/useManagement";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import {
 	ImagePreviewGallery,
@@ -21,15 +27,21 @@ import {
 } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import { PurchaseRequestProductsTable } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-products-table/purchase-request-products-table";
 import type { AnalyzedQuoteDetailModalProps } from "./analyzed-quote-detail-modal.types";
-import type { PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 
-const sectionTitleClassName = "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
+const sectionTitleClassName =
+	"m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
 
-const LoadingMessage = ({ isOpen, isLoading }: { isOpen: boolean, isLoading: boolean }) => {
+const LoadingMessage = ({
+	isOpen,
+	isLoading,
+}: {
+	isOpen: boolean;
+	isLoading: boolean;
+}) => {
 	if (!isOpen) return null;
 	if (!isLoading) return null;
 	return <Loader title="Cargando detalle de la solicitud..." />;
-}
+};
 
 const EmptyPurchaseRequestMessage = ({
 	isLoading,
@@ -45,60 +57,53 @@ const EmptyPurchaseRequestMessage = ({
 			No se encontró información de la solicitud.
 		</div>
 	);
-}
+};
 
 export const AnalyzedQuoteDetailModal = ({
 	isOpen,
 	onClose,
 	review,
 }: AnalyzedQuoteDetailModalProps) => {
-
-	const { companyId, moduleCode } = useUserStore();	
+	const { companyId, moduleCode } = useUserStore();
 	const [imagesModal, setImagesModal] = useState<{
 		productName: string;
 		images: ImagePayload[];
 	} | null>(null);
 
 	const payloadGetRequisitionManagementReviewDetail = useMemo(() => {
-
-		if (!isOpen || !review?.purchase_requests_reviewed_management_id) return undefined;
+		if (!isOpen || !review?.purchase_requests_reviewed_management_id) {
+			return undefined;
+		}
 
 		return {
 			company_id: companyId,
 			module_code: moduleCode,
-			requisition_management_review_id: review.purchase_requests_reviewed_management_id,
+			requisition_management_review_id:
+				review.purchase_requests_reviewed_management_id,
 		};
-	}, [isOpen, review?.purchase_requests_reviewed_management_id, companyId, moduleCode]);
+	}, [
+		isOpen,
+		review?.purchase_requests_reviewed_management_id,
+		companyId,
+		moduleCode,
+	]);
 
 	const { GetRequisitionManagementReviewDetails } = useManagement({
-		payloadGetRequisitionManagementReviewDetail
-	})
-
-	const details = GetRequisitionManagementReviewDetails.data;
-
-	const purchaseRequest = details?.purchase_request_details;
-
-	const { GetPurchaseRequestProducts } = usePurchase({
-		getPurchaseRequestProductsPayload: purchaseRequest?.purchase_request_id
-			? {
-				company_id: companyId,
-				module_code: moduleCode,
-				purchase_request_id: purchaseRequest.purchase_request_id,
-			}
-			: undefined,
+		payloadGetRequisitionManagementReviewDetail,
 	});
 
-	const productsResponse = GetPurchaseRequestProducts.data as
-		| PurchaseRequestProductInformationList
-		| undefined;
+	const details = GetRequisitionManagementReviewDetails.data;
+	const purchaseRequest = details?.purchase_request_details;
+	const products = purchaseRequest?.purchase_request_items ?? [];
 
 	const isLoading =
 		GetRequisitionManagementReviewDetails.isPending ||
-		GetRequisitionManagementReviewDetails.isFetching ||
-		GetPurchaseRequestProducts.isPending ||
-		GetPurchaseRequestProducts.isFetching;
+		GetRequisitionManagementReviewDetails.isFetching;
 
-	const products = productsResponse?.data ?? [];
+	const reviewer =
+		details?.reviewer_user_information ??
+		purchaseRequest?.reviewer_user_information ??
+		null;
 
 	return (
 		<>
@@ -122,24 +127,20 @@ export const AnalyzedQuoteDetailModal = ({
 						purchaseRequest={purchaseRequest}
 					/>
 
-					{!isLoading && purchaseRequest && (
+					{!isLoading && purchaseRequest ? (
 						<div className="scrollbar-dashboard min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain">
 							<div className="flex flex-col gap-5 pb-2">
 								<section className="flex flex-col gap-3">
+									<h4 className={sectionTitleClassName}>Información general</h4>
 
-									<h4 className={sectionTitleClassName}>
-										Información general
-									</h4>
-
-									<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
+									<div className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2 lg:grid-cols-3">
 										<DetailField
 											label="Estado"
 											value={
 												<Badges
 													label={
 														PurchaseRequestStatusEnum[
-															purchaseRequest.request_status as (keyof typeof PurchaseRequestStatusEnum)
+															purchaseRequest.request_status as keyof typeof PurchaseRequestStatusEnum
 														]?.label ?? purchaseRequest.request_status
 													}
 													color={
@@ -158,7 +159,7 @@ export const AnalyzedQuoteDetailModal = ({
 												<Badges
 													label={
 														PurchaseRequestEnum[
-															purchaseRequest.request_type as (keyof typeof PurchaseRequestEnum)
+															purchaseRequest.request_type as keyof typeof PurchaseRequestEnum
 														]?.label ?? purchaseRequest.request_type
 													}
 													color={
@@ -177,7 +178,7 @@ export const AnalyzedQuoteDetailModal = ({
 												<Badges
 													label={
 														PriorityLevelEnum[
-															purchaseRequest.priority_level as (keyof typeof PriorityLevelEnum)
+															purchaseRequest.priority_level as keyof typeof PriorityLevelEnum
 														]?.label ?? purchaseRequest.priority_level
 													}
 													color={
@@ -189,26 +190,34 @@ export const AnalyzedQuoteDetailModal = ({
 												/>
 											}
 										/>
-
 									</div>
 
-									<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+									<div className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2 lg:grid-cols-3">
 										<DetailField
 											label="Fecha de Registro"
-											value={formatDateToSpanishWords(purchaseRequest.request_date ?? "")}
+											value={formatDateToSpanishWords(
+												purchaseRequest.request_date ?? "",
+											)}
 											icon={<CalendarIcon size={18} />}
 										/>
 
 										<DetailField
 											label="Fecha de revisión"
-											value={formatDateToSpanishWords(purchaseRequest.revision_date ?? "")}
+											value={formatDateToSpanishWords(
+												purchaseRequest.revision_date ?? "",
+											)}
 											icon={<CalendarCheckIcon size={18} />}
 										/>
 
 										<DetailField
 											label="Observaciones"
 											value={`${purchaseRequest.observations ?? ""}`}
-											containerClass={(purchaseRequest.observations?.length && purchaseRequest.observations.length > 80) ? "col-span-3" : ""}
+											containerClass={
+												purchaseRequest.observations?.length &&
+												purchaseRequest.observations.length > 80
+													? "col-span-3"
+													: ""
+											}
 											icon={<NotebookTextIcon size={18} />}
 										/>
 
@@ -216,78 +225,114 @@ export const AnalyzedQuoteDetailModal = ({
 											<DetailField
 												label="Motivo de rechazo"
 												value={`${purchaseRequest.reason_rejection}`}
-												containerClass={(purchaseRequest.reason_rejection.length > 80) ? "col-span-3" : ""}
+												containerClass={
+													purchaseRequest.reason_rejection.length > 80
+														? "col-span-3"
+														: ""
+												}
 												icon={<BanIcon size={18} />}
 											/>
 										) : null}
 									</div>
-
 								</section>
 
 								<section className="flex flex-col gap-3">
 									<h4 className={sectionTitleClassName}>
 										Solicitante , sucursal & centro de costo
 									</h4>
-									<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+									<div className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2 lg:grid-cols-3">
 										<DetailField
 											label="Solicitante"
-											value={purchaseRequest.creator_user_information?.fullname ?? ""}
-											icon={<Avatar label={purchaseRequest.creator_user_information?.fullname ?? ""} hasLabel={false} />}
+											value={
+												purchaseRequest.creator_user_information?.fullname ?? ""
+											}
+											icon={
+												<Avatar
+													label={
+														purchaseRequest.creator_user_information?.fullname ??
+														""
+													}
+													hasLabel={false}
+												/>
+											}
 										/>
 										<DetailField
 											label="Email"
-											value={purchaseRequest.creator_user_information?.email ?? ""}
+											value={
+												purchaseRequest.creator_user_information?.email ?? ""
+											}
 											icon={<MailIcon size={18} />}
 										/>
 										<DetailField
 											label="Sucursal"
-											value={purchaseRequest.branch_information?.branch_name ?? ""}
+											value={
+												purchaseRequest.branch_information?.branch_name ?? ""
+											}
 											icon={<BuildingIcon size={18} />}
 										/>
 										<DetailField
 											label="Área solicitante"
-											value={purchaseRequest.information_from_requesting_area?.work_area_name ?? ""}
+											value={
+												purchaseRequest.information_from_requesting_area
+													?.work_area_name ?? ""
+											}
 											icon={<BuildingIcon size={18} />}
 										/>
 										<DetailField
 											label="Centro de costo"
-											value={purchaseRequest.cost_center_information?.cost_center_name ?? ""}
-											icon={<Avatar label={purchaseRequest.creator_user_information?.fullname ?? ""} hasLabel={false} />}
+											value={
+												purchaseRequest.cost_center_information
+													?.cost_center_name ?? ""
+											}
+											icon={
+												<Avatar
+													label={
+														purchaseRequest.creator_user_information?.fullname ??
+														""
+													}
+													hasLabel={false}
+												/>
+											}
 										/>
 									</div>
 								</section>
 
 								<section className="flex flex-col gap-3">
 									<h4 className={sectionTitleClassName}>
-										Productos
+										Productos (cotización seleccionada)
 									</h4>
 								</section>
 
 								<PurchaseRequestProductsTable
 									products={products}
-									onViewImages={setImagesModal}									
+									onViewImages={setImagesModal}
 								/>
 
 								<section className="flex flex-col gap-3">
-									<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2">
+									<div className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2">
 										<DetailField
 											label="Revisado por"
-											value={purchaseRequest.reviewer_user_information?.fullname}
-											icon={<Avatar label={purchaseRequest.reviewer_user_information?.fullname ?? ""} hasLabel={false} />}
+											value={reviewer?.fullname}
+											icon={
+												<Avatar
+													label={reviewer?.fullname ?? ""}
+													hasLabel={false}
+												/>
+											}
 										/>
 
 										<DetailField
 											label="Email del revisor"
-											value={purchaseRequest.reviewer_user_information?.email}
+											value={reviewer?.email}
 											icon={<MailIcon size={18} />}
 										/>
 									</div>
 								</section>
 							</div>
 						</div>
-					)}
+					) : null}
 				</div>
-			</Modal>			
+			</Modal>
 
 			<Modal
 				isOpen={Boolean(imagesModal)}
@@ -297,13 +342,13 @@ export const AnalyzedQuoteDetailModal = ({
 				size="4xl"
 				panelClassName="!max-w-4xl w-[min(calc(100vw-1rem),56rem)]"
 			>
-				{imagesModal && (
+				{imagesModal ? (
 					<ImagePreviewGallery
 						images={imagesModal.images}
 						title=""
 						imageAlt={`Imagen de ${imagesModal.productName}`}
 					/>
-				)}
+				) : null}
 			</Modal>
 		</>
 	);

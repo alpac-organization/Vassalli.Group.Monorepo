@@ -48,9 +48,10 @@ export const AnalyzedQuotes = () => {
 		() => ({
 			company_id: companyId,
 			module_code: moduleCode,
-			page_number: appliedAreaId ? 1 : pageNumber,
-			page_size: appliedAreaId ? PAGE_SIZE : 10 ,
+			page_number: pageNumber,
+			page_size: PAGE_SIZE,
 			...(appliedStatus && { status: appliedStatus }),
+			...(appliedAreaId && { area_id: appliedAreaId }),
 			...(appliedBranchId && { branch_id: appliedBranchId }),
 		}),
 		[companyId, moduleCode, pageNumber, appliedStatus, appliedAreaId, appliedBranchId],
@@ -66,26 +67,8 @@ export const AnalyzedQuotes = () => {
 		isFetching,
 	} = GetRequisitionManagementReviews;
 
-	const filteredQuotes = useMemo(() => {
-		const data = managementReviews?.data ?? [];
-		if (!appliedAreaId) return data;
-
-		return data.filter(
-			(row) =>
-				row.sent_by_user_information?.work_area_information?.work_area_id ===
-				appliedAreaId,
-		);
-	}, [managementReviews?.data, appliedAreaId]);
-
-	const quotes = useMemo(() => {
-		if (!appliedAreaId) return filteredQuotes;
-		const start = (pageNumber - 1) * PAGE_SIZE;
-		return filteredQuotes.slice(start, start + PAGE_SIZE);
-	}, [filteredQuotes, appliedAreaId, pageNumber]);
-
-	const totalRecords = appliedAreaId
-		? filteredQuotes.length
-		: (managementReviews?.total ?? 0);
+	const quotes = managementReviews?.data ?? [];
+	const totalRecords = managementReviews?.total ?? 0;
 
 	const handleApplyFilters = useCallback((filters: AnalyzedQuotesFiltersValues) => {
 		setAppliedStatus(filters.status);
@@ -219,7 +202,7 @@ export const AnalyzedQuotes = () => {
 
 			<AnalyzedQuotesTable
 				data={quotes}
-				currentPage={appliedAreaId ? pageNumber : (managementReviews?.page_number ?? pageNumber)}
+				currentPage={managementReviews?.page_number ?? pageNumber}
 				totalRecords={totalRecords}
 				pageSize={PAGE_SIZE}
 				onPageChange={handlePageChange}

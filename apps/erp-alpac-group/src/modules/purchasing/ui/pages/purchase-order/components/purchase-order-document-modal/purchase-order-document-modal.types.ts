@@ -1,10 +1,8 @@
-import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
-import type { PaymentRequestDocumentDetails } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/payment-request-pdf/map-payment-request-from-purchase-order";
+import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
 
 export interface PurchaseOrderDocumentModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	purchaseOrderId: string;
-	details?: PaymentRequestDocumentDetails | null;
-	products?: PurchaseRequestProductInformation[];
+	details?: GetPurchaseOrderDetailsResponse | null;
 }

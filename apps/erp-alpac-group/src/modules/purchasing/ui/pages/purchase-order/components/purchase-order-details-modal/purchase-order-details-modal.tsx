@@ -1,26 +1,35 @@
 import { useState } from "react";
-import { Avatar, Badges, Button, Modal } from "@alpac/design-system";
-import { BuildingIcon, CalendarCheckIcon, CalendarIcon, MailIcon, NotebookTextIcon, UserIcon } from "lucide-react";
+import { Avatar, Badges, Modal } from "@alpac/design-system";
+import {
+	BuildingIcon,
+	CalendarCheckIcon,
+	CalendarIcon,
+	MailIcon,
+	NotebookTextIcon,
+	UserIcon,
+} from "lucide-react";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import type { PurchaseOrderDetailsProps } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-details-modal/purchase-order-details-modal.types";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
-import { usePurchaseOrderPdf } from "@app/modules/purchasing/ui/pages/purchase-order/hooks/usePurchaseOrderPdf";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
-import type { PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import {
-	purchaseRequestDestinationBadgeVariants, purchaseRequestPriorityBadgeVariants,
-	purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants
+	purchaseRequestDestinationBadgeVariants,
+	purchaseRequestPriorityBadgeVariants,
+	purchaseRequestStatusBadgeVariants,
+	purchaseRequestTypeBadgeVariants,
 } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { PurchaseOrderDocumentModal } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-document-modal/purchase-order-document-modal";
-import { AnalyzedQuoteProductQuotations } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quote-detail-modal/analyzed-quote-product-quotations";
-import { ImagePreviewGallery, type ImagePayload } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
+import {
+	ImagePreviewGallery,
+	type ImagePayload,
+} from "@app/shared/components/image-preview-gallery/image-preview-gallery";
 import { PurchaseRequestProductsTable } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-products-table/purchase-request-products-table";
 
 const sectionTitleClassName =
@@ -32,10 +41,8 @@ export const PurchaseOrderDetailsModal = ({
 	purchaseOrder,
 }: PurchaseOrderDetailsProps) => {
 	const { companyId, moduleCode } = useUserStore();
-	const { isGenerating, generatePurchaseOrderPdf } = usePurchaseOrderPdf();
 
 	const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
-	const [pdfError, setPdfError] = useState<string | null>(null);
 	const [imagesModal, setImagesModal] = useState<{
 		productName: string;
 		images: ImagePayload[];
@@ -51,26 +58,9 @@ export const PurchaseOrderDetailsModal = ({
 
 	const details = GetPurchaseOrderDetails.data ?? ({} as GetPurchaseOrderDetailsResponse);
 	const purchaseRequest =
-		details.purchase_request;
+		details.purchase_request_details ?? details.purchase_request;
 
-	const purchaseRequestId = purchaseRequest?.purchase_request_id;
-
-	const { GetPurchaseRequestProducts } = usePurchase({
-		getPurchaseRequestProductsPayload:
-			isOpen && purchaseRequestId
-				? {
-					company_id: companyId,
-					module_code: moduleCode,
-					purchase_request_id: purchaseRequestId,
-				}
-				: undefined,
-	});
-
-	const productsResponse = GetPurchaseRequestProducts.data as
-		| PurchaseRequestProductInformationList
-		| undefined;
-
-	const products = productsResponse?.data ?? [];
+	const products = purchaseRequest?.purchase_request_items ?? [];
 
 	const sentBy = details.sent_by_user_information;
 	const requestingArea = purchaseRequest?.information_from_requesting_area;
@@ -83,25 +73,7 @@ export const PurchaseOrderDetailsModal = ({
 
 	const isLoading =
 		GetPurchaseOrderDetails.isPending ||
-		GetPurchaseOrderDetails.isFetching ||
-		GetPurchaseRequestProducts.isPending ||
-		GetPurchaseRequestProducts.isFetching;
-
-	const handleGeneratePurchaseOrderPdf = async () => {
-		setPdfError(null);
-		try {
-			await generatePurchaseOrderPdf({
-				purchaseOrderId: purchaseOrder?.purchase_order_id ?? "",
-				purchaseRequestId: purchaseRequestId,
-			});
-		} catch (error) {
-			const message =
-				error instanceof Error
-					? error.message
-					: "No se pudo generar la orden de compra.";
-			setPdfError(message);
-		}
-	};
+		GetPurchaseOrderDetails.isFetching;
 
 	return (
 		<>
@@ -310,7 +282,6 @@ export const PurchaseOrderDetailsModal = ({
 				onClose={() => setIsDocumentModalOpen(false)}
 				purchaseOrderId={purchaseOrder?.purchase_order_id ?? ""}
 				details={GetPurchaseOrderDetails.data}
-				products={products}
 			/>
 
 			<Modal

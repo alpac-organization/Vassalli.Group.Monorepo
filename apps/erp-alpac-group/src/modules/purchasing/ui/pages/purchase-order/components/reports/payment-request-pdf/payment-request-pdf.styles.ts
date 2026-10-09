@@ -316,6 +316,8 @@ export const paymentRequestPdfStyles = StyleSheet.create({
 		paddingHorizontal: 6,
 		minHeight: 52,
 		backgroundColor: colors.white,
+		position: "relative",
+		overflow: "hidden",
 	},
 	signatureCardLast: {
 		marginRight: 0,
@@ -332,6 +334,15 @@ export const paymentRequestPdfStyles = StyleSheet.create({
 		borderTopWidth: 1,
 		borderTopColor: colors.line,
 		paddingTop: 2,
+	},
+	authorizationSeal: {
+		position: "absolute",
+		width: 56,
+		height: 56,
+		objectFit: "contain",
+		right: 4,
+		top: 14,
+		opacity: 0.9,
 	},
 	signatureName: {
 		fontSize: 7,

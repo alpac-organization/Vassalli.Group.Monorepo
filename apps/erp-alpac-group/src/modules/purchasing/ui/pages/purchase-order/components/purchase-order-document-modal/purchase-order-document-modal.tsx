@@ -11,14 +11,18 @@ import {
 	PaymentMethodOptions,
 } from "@app/core/enums/payment-method.enum";
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
+import { RoleEnum } from "@app/core/enums/role.enum";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { PaymentRequestPDF } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/payment-request-pdf/payment-request-pdf";
-import { mapPurchaseOrderToPaymentRequestPdf } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/payment-request-pdf/map-payment-request-from-purchase-order";
+import { mapTransferRequestReportToPdf } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/payment-request-pdf/map-transfer-request-report-to-pdf";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
 import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
-import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
+import { warehouseHttpHandler } from "@app/core/adapters/axiosAdapter";
+import { PurchaseServices } from "@app/modules/purchasing/infrastructure/services/purchase/PurchaseServices";
+
+const purchaseServices = new PurchaseServices(warehouseHttpHandler);
 
 const labelClassName = "text-black! dark:text-white!";
 const dropdownClassName =
@@ -26,52 +30,28 @@ const dropdownClassName =
 
 const defaultPaymentMethodValue = PaymentMethodEnum.ACH.stringValue;
 
-const resolveSupplierPaymentMethod = (
-	preferredPaymentMethod?: string | number | null,
-): PaymentMethodType => {
-	if (preferredPaymentMethod == null || preferredPaymentMethod === "") {
-		return defaultPaymentMethodValue;
-	}
-
-	const found = Object.values(PaymentMethodEnum).find(
-		(item) =>
-			item.stringValue === preferredPaymentMethod ||
-			item.value === Number(preferredPaymentMethod),
-	);
-
-	return found?.stringValue ?? defaultPaymentMethodValue;
-};
+const CAN_SELECT_BANK_ROLES: readonly string[] = [
+	RoleEnum.ADMINISTRATOR,
+	RoleEnum.SUPERVISOR,
+];
 
 export const PurchaseOrderDocumentModal = ({
 	isOpen,
 	onClose,
+	purchaseOrderId,
 	details,
-	products = [],
 }: PurchaseOrderDocumentModalProps) => {
 	const { urlImage } = useCompanyStore();
-	const { companyAlias, companyId, moduleCode, fullName } = useUserStore();
+	const { companyAlias, companyId, moduleCode, fullName, role, companyName } =
+		useUserStore();
 
-	const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>(defaultPaymentMethodValue);
+	const canSelectBank = CAN_SELECT_BANK_ROLES.includes(role);
+
+	const [paymentMethod, setPaymentMethod] =
+		useState<PaymentMethodType>(defaultPaymentMethodValue);
 	const [selectedBankId, setSelectedBankId] = useState<number | string>("");
 	const [isGenerating, setIsGenerating] = useState(false);
-
-	const acceptedSupplierId = useMemo(() => {
-		const acceptedQuote = products
-			.flatMap((product) => product.quotations ?? [])
-			.find((quote) => quote.is_accepted_for_purchase);
-		return acceptedQuote?.supplier_id?.trim() || null;
-	}, [products]);
-
-	const { GetSupplierDetails } = useSupplier({
-		supplierDetailFilters:
-			isOpen && acceptedSupplierId
-				? {
-						company_id: companyId,
-						module_code: moduleCode,
-						supplier_id: acceptedSupplierId,
-					}
-				: undefined,
-	});
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
 	const { GetCatalogListQuery } = useCatalog({
 		company_id: companyId,
@@ -84,37 +64,21 @@ export const PurchaseOrderDocumentModal = ({
 	);
 
 	const selectedBankName =
-		bankOptions.find((option) => option.value === selectedBankId)?.label ?? null;
+		bankOptions.find((option) => option.value === selectedBankId)?.label ??
+		null;
 	const hasSelectedBank = Boolean(selectedBankName);
 
-	const supplierPreferredPaymentMethod =
-		GetSupplierDetails.data?.supplier_payment_methods?.find(
-			(method) => method.is_active !== false && method.payment_method_type,
-		)?.payment_method_type;
+	const branchNameForSeal =
+		details?.purchase_request_details?.branch_information?.branch_name ??
+		details?.purchase_request?.branch_information?.branch_name ??
+		companyName;
 
 	useEffect(() => {
 		if (!isOpen) return;
 		setSelectedBankId("");
+		setPaymentMethod(defaultPaymentMethodValue);
+		setErrorMessage(null);
 	}, [isOpen]);
-
-	useEffect(() => {
-		if (!isOpen) return;
-
-		if (!acceptedSupplierId) {
-			setPaymentMethod(defaultPaymentMethodValue);
-			return;
-		}
-
-		if (GetSupplierDetails.isPending || GetSupplierDetails.isFetching) return;
-
-		setPaymentMethod(resolveSupplierPaymentMethod(supplierPreferredPaymentMethod));
-	}, [
-		isOpen,
-		acceptedSupplierId,
-		supplierPreferredPaymentMethod,
-		GetSupplierDetails.isFetching,
-		GetSupplierDetails.isPending,
-	]);
 
 	const resolveDocumentType = (): DocumentPaymentMethodType => {
 		if (paymentMethod === PaymentMethodEnum.Check.stringValue) {
@@ -124,19 +88,30 @@ export const PurchaseOrderDocumentModal = ({
 	};
 
 	const handleGenerate = async () => {
-		if (!details || !hasSelectedBank) return;
+		if (!purchaseOrderId.trim()) return;
+		if (canSelectBank && !hasSelectedBank) {
+			setErrorMessage("Seleccione un banco para continuar.");
+			return;
+		}
 
 		try {
 			setIsGenerating(true);
+			setErrorMessage(null);
+
+			const report = await purchaseServices.GetTransferRequestReport({
+				company_id: companyId,
+				module_code: moduleCode,
+				purchase_order_id: purchaseOrderId,
+			});
 
 			const documentType = resolveDocumentType();
-			const pdfData = mapPurchaseOrderToPaymentRequestPdf({
+			const pdfData = mapTransferRequestReportToPdf({
+				report,
 				documentType,
-				details,
-				products,
 				logoUrl: urlImage || null,
-				companyName: companyAlias,
-				bankName: selectedBankName,
+				companyNameFallback: companyAlias || companyName,
+				bankName: canSelectBank ? selectedBankName : null,
+				branchName: branchNameForSeal,
 				generatedBy: fullName,
 				generatedAt: new Date().toISOString(),
 			});
@@ -145,10 +120,21 @@ export const PurchaseOrderDocumentModal = ({
 			const url = URL.createObjectURL(blob);
 			window.open(url, "_blank", "noopener,noreferrer");
 			onClose();
+		} catch (error) {
+			const message =
+				error instanceof Error
+					? error.message
+					: "No se pudo generar la solicitud de pago.";
+			setErrorMessage(message);
 		} finally {
 			setIsGenerating(false);
 		}
 	};
+
+	const canGenerate =
+		Boolean(purchaseOrderId.trim()) &&
+		(!canSelectBank || hasSelectedBank) &&
+		!isGenerating;
 
 	return (
 		<Modal
@@ -157,7 +143,11 @@ export const PurchaseOrderDocumentModal = ({
 			variant="form"
 			size="lg"
 			title="Generar documento"
-			description="Seleccione el medio de pago y el banco para generar la solicitud de pago"
+			description={
+				canSelectBank
+					? "Seleccione el medio de pago y el banco para generar la solicitud de pago"
+					: "Seleccione el medio de pago para generar la solicitud de pago"
+			}
 		>
 			<div className="mt-4 flex flex-col gap-4">
 				<div className="flex flex-col gap-2">
@@ -171,29 +161,47 @@ export const PurchaseOrderDocumentModal = ({
 								label={option.label}
 								name="payment-method"
 								checked={paymentMethod === option.value}
-								onChange={() => setPaymentMethod(option.value as PaymentMethodType)}
+								onChange={() =>
+									setPaymentMethod(option.value as PaymentMethodType)
+								}
 							/>
 						))}
 					</div>
 				</div>
 
-				<Dropdown
-					label="Banco"
-					isRequired
-					placeholder={
-						GetCatalogListQuery.isPending
-							? "Cargando bancos..."
-							: "Seleccione un banco"
-					}
-					appearance="dark"
-					options={bankOptions}
-					value={selectedBankId}
-					onChange={(value) => setSelectedBankId(value)}
-					className={dropdownClassName}
-					labelClassName={labelClassName}
-					valueClassName={labelClassName}
-					disabled={GetCatalogListQuery.isPending || bankOptions.length === 0}
-				/>
+				{canSelectBank ? (
+					<Dropdown
+						label="Banco"
+						isRequired
+						placeholder={
+							GetCatalogListQuery.isPending
+								? "Cargando bancos..."
+								: "Seleccione un banco"
+						}
+						appearance="dark"
+						options={bankOptions}
+						value={selectedBankId}
+						onChange={(value) => {
+							setSelectedBankId(value);
+							if (errorMessage) setErrorMessage(null);
+						}}
+						className={dropdownClassName}
+						labelClassName={labelClassName}
+						valueClassName={labelClassName}
+						disabled={
+							GetCatalogListQuery.isPending || bankOptions.length === 0
+						}
+					/>
+				) : (
+					<p className="m-0 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[13px] text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+						La selección de banco está restringida a Supervisor y
+						Administrador.
+					</p>
+				)}
+
+				{errorMessage ? (
+					<p className="m-0 text-[13px] text-red-500">{errorMessage}</p>
+				) : null}
 
 				<div className="flex w-full flex-col gap-3 sm:flex-row sm:justify-end">
 					<Button
@@ -210,7 +218,7 @@ export const PurchaseOrderDocumentModal = ({
 						label="Generar documento"
 						onClick={handleGenerate}
 						isLoading={isGenerating}
-						disabled={!details || !hasSelectedBank}
+						disabled={!canGenerate}
 						className="w-full! rounded-md! bg-alpac-primary-500! text-[15px]! text-white! dark:bg-alpac-primary-700! sm:w-auto!"
 					/>
 				</div>

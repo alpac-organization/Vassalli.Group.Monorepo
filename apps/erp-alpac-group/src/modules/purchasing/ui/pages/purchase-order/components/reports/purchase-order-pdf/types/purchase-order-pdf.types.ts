@@ -1,5 +1,4 @@
-import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
-import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import type { PurchaseOrderTemplateDto } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-report-response";
 
 export interface PurchaseOrderPdfLineItem {
 	quantityLabel: string;
@@ -8,9 +7,6 @@ export interface PurchaseOrderPdfLineItem {
 	description: string;
 	unitPriceLabel: string;
 	lineTotalLabel: string;
-	rawSubtotal: number;
-	rawIva: number;
-	rawTotal: number;
 }
 
 export interface PurchaseOrderPdfTotals {
@@ -22,7 +18,8 @@ export interface PurchaseOrderPdfTotals {
 }
 
 export interface PurchaseOrderPdfViewModel {
-	companyLogoUrl?: string;
+	companyLogoUrl?: string | null;
+	companyName: string;
 	supplierName: string;
 	purchaseOrderCode: string;
 	orderDateLabel: string;
@@ -33,26 +30,25 @@ export interface PurchaseOrderPdfViewModel {
 	requisitionCode: string;
 	elaboratedBy: string;
 	authorizedBy: string;
+	sealSrc?: string | null;
 	items: PurchaseOrderPdfLineItem[];
 	totals: PurchaseOrderPdfTotals;
 }
 
 export interface PurchaseOrderPdfDocumentProps {
-	viewModels: PurchaseOrderPdfViewModel[];
+	viewModel: PurchaseOrderPdfViewModel;
 }
 
 export interface FetchPurchaseOrderPdfParams {
 	companyId: string;
 	moduleCode: string;
 	purchaseOrderId: string;
-	purchaseRequestId?: string;
+	/** Nombre de sucursal para resolver sello (opcional). */
+	branchName?: string | null;
 }
 
-export type BuildPurchaseOrderPdfInput = {
-	detail: GetPurchaseOrderDetailsResponse;
-	products: PurchaseRequestProductInformation[];
-	companyLogoUrl?: string;
-	companyId: string;
-	moduleCode: string;
-	supplierServices: import("@app/modules/purchasing/infrastructure/services/supplier/SupplierServices").SupplierServices;
+export type MapPurchaseOrderReportToPdfInput = {
+	report: PurchaseOrderTemplateDto;
+	companyLogoUrl?: string | null;
+	branchName?: string | null;
 };

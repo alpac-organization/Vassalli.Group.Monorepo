@@ -1,25 +1,31 @@
 import { pdf } from "@react-pdf/renderer";
 import { warehouseHttpHandler } from "@app/core/adapters/axiosAdapter";
 import { QuoteAnalysisServices } from "@app/modules/finance/Infrastructure/services/QuoteAnalysisServices";
-import { PurchaseServices } from "@app/modules/purchasing/infrastructure/services/purchase/PurchaseServices";
 import type { RequisitionAccountingReviewDetailsDto } from "@app/modules/finance/domain/ApiContract/responses/quote-analysis-details";
 import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import { QuoteAnalysisPDF } from "@app/modules/finance/ui/pages/quote-analisys/templates/quote-analysis";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 
 const quoteAnalysisService = new QuoteAnalysisServices(warehouseHttpHandler);
-const purchaseServices = new PurchaseServices(warehouseHttpHandler);
+
+const resolveReviewProducts = (
+	detail: RequisitionAccountingReviewDetailsDto,
+	fallback: PurchaseRequestProductInformation[] = [],
+): PurchaseRequestProductInformation[] =>
+	detail.purchase_request?.purchase_request_items?.length
+		? detail.purchase_request.purchase_request_items
+		: fallback;
 
 export async function generateQuoteAnalysisPdfBlob(
 	detail: RequisitionAccountingReviewDetailsDto,
-	products: PurchaseRequestProductInformation[],
+	products: PurchaseRequestProductInformation[] = [],
 ): Promise<Blob> {
 	const companyLogoUrl = useCompanyStore.getState().urlImage;
 
 	return pdf(
 		<QuoteAnalysisPDF
 			detail={detail}
-			products={products}
+			products={resolveReviewProducts(detail, products)}
 			companyLogoUrl={companyLogoUrl}
 		/>,
 	).toBlob();
@@ -27,7 +33,7 @@ export async function generateQuoteAnalysisPdfBlob(
 
 export async function openQuoteAnalysisPdf(
 	detail: RequisitionAccountingReviewDetailsDto,
-	products: PurchaseRequestProductInformation[],
+	products: PurchaseRequestProductInformation[] = [],
 ): Promise<void> {
 	const blob = await generateQuoteAnalysisPdfBlob(detail, products);
 	const url = URL.createObjectURL(blob);
@@ -45,17 +51,10 @@ export async function fetchAndOpenQuoteAnalysisPdf(params: {
 		purchase_requests_reviewed_accounting_id:
 			params.purchaseRequestsReviewedAccountingId,
 	});
-	const purchaseRequestId = detail.purchase_request?.purchase_request_id;
 
-	if (!purchaseRequestId) {
+	if (!detail.purchase_request?.purchase_request_id) {
 		throw new Error("No se encontró la solicitud de compra asociada.");
 	}
 
-	const productsResponse = await purchaseServices.GetPurchaseRequestProducts({
-		company_id: params.companyId,
-		module_code: params.moduleCode,
-		purchase_request_id: purchaseRequestId,
-	});
-
-	await openQuoteAnalysisPdf(detail, productsResponse.data ?? []);
+	await openQuoteAnalysisPdf(detail);
 }

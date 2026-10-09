@@ -346,11 +346,9 @@ export const PurchaseRequestDetail = (
 										<Controller
 											name={`purchase_request_items.${index}.unit_measure_id`}
 											control={control}
-											rules={{ required: "La unidad es requerida" }}
 											render={({ field }) => (
 												<Dropdown
 													label="Unidad de Medida"
-													isRequired
 													options={unitsOfMeasurementOptions}
 													placeholder={
 														isLoadingUnits

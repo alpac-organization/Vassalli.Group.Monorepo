@@ -36,9 +36,9 @@ import { extractPurchaseRequestItemImages } from "@app/modules/purchasing/ui/pag
 const emptyFormValues = (): CreatePurchaseRequestPayload => ({
 	branch_id: "",
 	cost_center_id: "",
-	request_type: 0,
-	priority_level: 0,
-	destination: PurchaseRequestDestinationEnum.Internal.value,
+	request_type: PurchaseRequestEnum.Requisition.textValue,
+	priority_level: PriorityLevelEnum.None.textValue,
+	destination: PurchaseRequestDestinationEnum.Internal.textValue,
 	observations: "",
 	purchase_request_items: [],
 });
@@ -59,13 +59,6 @@ const createEntry = (defaults: CreatePurchaseRequestPayload = emptyFormValues())
 		})),
 	},
 });
-
-const enumValueFromText = <T extends { textValue: string; value: number }>(
-	options: T[],
-	textValue: string | undefined | null,
-	fallback = 0,
-): number =>
-	options.find((option) => option.textValue === textValue)?.value ?? fallback;
 
 const normalizeUnitKey = (value: string | null | undefined): string =>
 	value?.trim().toLowerCase() ?? "";
@@ -122,15 +115,27 @@ const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestIt
 		: null;
 
 	return {
-		product_id: item.product_id,
+		product_id: item.product_id ?? "",
 		quantity: Number(item.quantity),
-		description: item.description,
-		unit_measure_id: item.unit_measure_id,
+		description: item.description ?? "",
+		unit_measure_id: item.unit_measure_id ?? "",
 		additional_data: additionalData ? JSON.stringify(additionalData) : null,
 		...(productJustification ? { justification: productJustification } : {}),
 		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
 			? { quantity_unit: Number(item.quantity_unit) }
 			: {}),
+	};
+};
+
+const mapCreateItem = (item: PurchaseRequestItem): PurchaseRequestItem => {
+	const mapped = mapNewCreateItem(item);
+	const unitMeasureId = item.unit_measure_id?.trim() || null;
+
+	return {
+		...mapped,
+		unit_measure_id: unitMeasureId,
+		additional_supplier_ids: item.additional_supplier_ids,
+		new_product: item.new_product ?? null,
 	};
 };
 
@@ -142,10 +147,10 @@ const mapExistingUpdateItem = (
 
 	return {
 		id: item.purchase_request_item_id,
-		product_id: item.product_id,
+		product_id: item.product_id ?? undefined,
 		quantity: Number(item.quantity),
-		description: item.description,
-		unit_measure_id: item.unit_measure_id,
+		description: item.description ?? undefined,
+		unit_measure_id: item.unit_measure_id ?? undefined,
 		images_product_to_changed: productImages,
 		...(productJustification ? { justification: productJustification } : {}),
 		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
@@ -184,10 +189,10 @@ export const PurchaseRequestModal = ({
 		defaults: {
 			branch_id: "",
 			cost_center_id: costCenterId,
-			destination: -1,
+			destination: PurchaseRequestDestinationEnum.Internal.textValue,
 			observations: "",
-			request_type: -1,
-			priority_level: -1,
+			request_type: requestType.textValue,
+			priority_level: PriorityLevelEnum.None.textValue,
 			purchase_request_items: [],
 		},
 	};
@@ -273,15 +278,12 @@ export const PurchaseRequestModal = ({
 		const editDefaults: CreatePurchaseRequestPayload = {
 			branch_id: currentBranchId,
 			cost_center_id: costCenterId,
-			request_type: Number(requestType.value),
-			priority_level: enumValueFromText(
-				Object.values(PriorityLevelEnum),
-				details.priority_level,
-			),
-			destination: enumValueFromText(
-				Object.values(PurchaseRequestDestinationEnum),
-				details.destination,
-			),
+			request_type: requestType.textValue,
+			priority_level:
+				details.priority_level ?? PriorityLevelEnum.None.textValue,
+			destination:
+				details.destination ??
+				PurchaseRequestDestinationEnum.Internal.textValue,
 			observations: details.observations?.trim() ?? "",
 			purchase_request_items: products.map((product) => {
 				const storedImages = extractPurchaseRequestItemImages(
@@ -322,7 +324,7 @@ export const PurchaseRequestModal = ({
 		unitsOfMeasurement,
 		currentBranchId,
 		costCenterId,
-		requestType.value,
+		requestType.textValue,
 	]);
 
 	const handleClose = () => {
@@ -364,12 +366,13 @@ export const PurchaseRequestModal = ({
 		...(isAdministrator && areaId ? { area_id: areaId } : {}),
 		branch_id: currentBranchId,
 		cost_center_id: costCenterId,
-		request_type: Number(requestType.value),
-		...(isRequisition ? { priority_level: Number(values.priority_level) } : {}),
-		destination: values.destination,
+		request_type: requestType.textValue,
+		...(isRequisition ? { priority_level: values.priority_level } : {}),
+		destination:
+			values.destination ?? PurchaseRequestDestinationEnum.Internal.textValue,
 		observations: values.observations.trim(),
-		purchase_request_items: values.purchase_request_items.map((item: PurchaseRequestItem) =>
-			mapNewCreateItem(item),
+		purchase_request_items: values.purchase_request_items.map((item) =>
+			mapCreateItem(item),
 		),
 	});
 
@@ -378,10 +381,11 @@ export const PurchaseRequestModal = ({
 		module_code: moduleCode,
 		purchase_request_id: purchaseRequestId,
 		observations: values.observations.trim(),
-		destination_request: Number(values.destination),
+		destination_request:
+			values.destination ?? PurchaseRequestDestinationEnum.Internal.textValue,
 		...(isRequisition
-			? { priority_level: Number(values.priority_level) }
-			: { priority_level: PriorityLevelEnum.None.value }),
+			? { priority_level: values.priority_level }
+			: { priority_level: PriorityLevelEnum.None.textValue }),
 		purchase_request_items: values.purchase_request_items.map((item) => {
 			const existingId = item.purchase_request_item_id?.trim();
 			if (existingId) {

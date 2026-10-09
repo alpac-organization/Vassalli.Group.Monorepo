@@ -15,17 +15,41 @@ export function ProcessPurchaseOrderModal({
 	onClose,
 	onConfirm,
 }: ProcessPurchaseOrderModalProps) {
-
 	const { companyId, moduleCode } = useUserStore();
 
 	const [comments, setComments] = useState("");
 	const [isApproved, setIsApproved] = useState(true);
+	const [commentsError, setCommentsError] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (!isOpen) return;
 		setComments("");
 		setIsApproved(true);
+		setCommentsError(null);
 	}, [isOpen]);
+
+	const handleConfirm = () => {
+		const trimmed = comments.trim();
+		if (!trimmed) {
+			setCommentsError("El comentario es obligatorio al aprobar o rechazar.");
+			return;
+		}
+
+		if (!requisitionManagementReview?.purchase_requests_reviewed_management_id) {
+			return;
+		}
+
+		onConfirm({
+			company_id: companyId,
+			module_code: moduleCode,
+			comments: trimmed,
+			requisition_management_review_id:
+				requisitionManagementReview.purchase_requests_reviewed_management_id,
+			new_status: isApproved
+				? ManagementReviewStatus.Approved.textValue
+				: ManagementReviewStatus.Rejected.textValue,
+		});
+	};
 
 	return (
 		<Modal
@@ -33,8 +57,8 @@ export function ProcessPurchaseOrderModal({
 			onClose={onClose}
 			variant="form"
 			size="lg"
-			title="¿Aprobar está cotización?"
-			description={`Apruebe o Rechaze la cotizació. El comentario es opcional.`}
+			title="Procesar cotización"
+			description="Apruebe o rechace la cotización seleccionada. El comentario es obligatorio."
 		>
 			<div className="mt-4 flex flex-col gap-4">
 				<div className="flex flex-col gap-2">
@@ -61,13 +85,18 @@ export function ProcessPurchaseOrderModal({
 
 				<Textarea
 					label="Comentarios"
-					placeholder="Escriba un comentario (opcional)..."
+					isRequired
+					placeholder="Escriba el comentario de la decisión..."
 					className={textareaClassName}
 					labelClassName={textareaLabelClassName}
 					value={comments}
-					onChange={(e) => setComments(e.target.value)}
-					maxLength={500}
+					onChange={(e) => {
+						setComments(e.target.value);
+						if (commentsError) setCommentsError(null);
+					}}
+					maxLength={1000}
 					enableCharacterCount
+					error={commentsError ?? undefined}
 					style={{
 						resize: "none",
 						minHeight: "100px",
@@ -87,18 +116,8 @@ export function ProcessPurchaseOrderModal({
 						type="button"
 						size="giant"
 						label="Procesar"
-						onClick={() =>
-							onConfirm({
-								company_id: companyId,
-								module_code: moduleCode,
-								comments: comments?.trim() || undefined,
-								requisition_management_review_id:
-									requisitionManagementReview.purchase_requests_reviewed_management_id,
-								new_status: isApproved
-									? ManagementReviewStatus.Approved.value
-									: ManagementReviewStatus.Rejected.value,
-							})
-						}
+						onClick={handleConfirm}
+						disabled={isSubmitting}
 						isLoading={isSubmitting}
 						className="w-full! rounded-md! bg-alpac-primary-500! text-[15px]! text-white! dark:bg-alpac-primary-700! sm:w-auto!"
 					/>

@@ -173,24 +173,27 @@ export const PurchaseRequestDetailModal = ({
 	};
 
 	const handleProcessPurchaseRequest = (type: ConfirmActionType, reason?: string) => {
-
-		const purchaseRequestStatus = new Map();
-
-		purchaseRequestStatus.set("CANCEL", PurchaseRequestStatusEnum.Canceled.value);
-		purchaseRequestStatus.set("APPROVE", PurchaseRequestStatusEnum.Approved.value);
-		purchaseRequestStatus.set("REJECT", PurchaseRequestStatusEnum.Rejected.value);
+		const purchaseRequestStatus = new Map<
+			ConfirmActionType,
+			ProcessPurchaseRequestPayload["new_status"]
+		>([
+			["CANCEL", PurchaseRequestStatusEnum.Canceled.textValue],
+			["APPROVE", PurchaseRequestStatusEnum.Approved.textValue],
+			["REJECT", PurchaseRequestStatusEnum.Rejected.textValue],
+		]);
 
 		const purchaseRequestId =
 			purchaseRequest?.purchase_request_id || details?.purchase_request_id;
+		const newStatus = purchaseRequestStatus.get(type);
 
-		if (!purchaseRequestId) return;
+		if (!purchaseRequestId || !newStatus) return;
 
 		const payload: ProcessPurchaseRequestPayload = {
 			company_id: companyId,
 			module_code: moduleCode,
 			purchase_request_id: purchaseRequestId,
-			new_status: Number(purchaseRequestStatus.get(type)),
-			... (reason ? { reason_rejection: reason } : {})
+			new_status: newStatus,
+			...(reason ? { reason_rejection: reason } : {}),
 		};
 
 		ProcessPurchaseRequest.mutate(payload, {

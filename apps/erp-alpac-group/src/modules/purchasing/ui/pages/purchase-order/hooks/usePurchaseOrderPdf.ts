@@ -4,16 +4,17 @@ import { fetchAndOpenPurchaseOrderPdf } from "@app/modules/purchasing/ui/pages/p
 
 type GeneratePurchaseOrderPdfArgs = {
 	purchaseOrderId: string;
-	purchaseRequestId?: string;
+	/** Nombre de sucursal/compañía para el sello (opcional). */
+	branchName?: string | null;
 };
 
 export function usePurchaseOrderPdf() {
-	const { companyId, moduleCode } = useUserStore();
+	const { companyId, moduleCode, companyName } = useUserStore();
 	const [isGenerating, setIsGenerating] = useState(false);
 	const isGeneratingRef = useRef(false);
 
 	const generatePurchaseOrderPdf = useCallback(
-		async ({ purchaseOrderId, purchaseRequestId }: GeneratePurchaseOrderPdfArgs) => {
+		async ({ purchaseOrderId, branchName }: GeneratePurchaseOrderPdfArgs) => {
 			if (isGeneratingRef.current) return;
 			if (!purchaseOrderId.trim()) {
 				throw new Error("No se encontró la orden de compra.");
@@ -27,14 +28,14 @@ export function usePurchaseOrderPdf() {
 					companyId,
 					moduleCode,
 					purchaseOrderId,
-					purchaseRequestId,
+					branchName: branchName ?? companyName,
 				});
 			} finally {
 				isGeneratingRef.current = false;
 				setIsGenerating(false);
 			}
 		},
-		[companyId, moduleCode],
+		[companyId, moduleCode, companyName],
 	);
 
 	return { isGenerating, generatePurchaseOrderPdf };

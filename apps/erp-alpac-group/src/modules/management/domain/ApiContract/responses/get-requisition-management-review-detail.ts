@@ -3,6 +3,8 @@ import type { GetPurchaseRequestDetailResponse } from "@app/modules/purchasing/d
 import type { RequisitionManagementReviewDto } from "@app/modules/management/domain/ApiContract/responses/get-requisition-management-reviews";
 
 export interface RequisitionManagementReviewDetailsResponse extends RequisitionManagementReviewDto {
-	reviewer_user_information: UserInformation;
+	/** Null/vacío mientras status = Pending. */
+	reviewer_user_information: UserInformation | null;
+	/** Fuente principal para la pantalla de detalle. */
 	purchase_request_details: GetPurchaseRequestDetailResponse;
 }

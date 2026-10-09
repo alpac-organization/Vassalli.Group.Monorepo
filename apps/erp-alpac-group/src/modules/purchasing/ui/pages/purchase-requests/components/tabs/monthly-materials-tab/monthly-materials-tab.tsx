@@ -45,7 +45,7 @@ export const MonthlyMaterialTab = ({
 		company_id: companyId,
 		module_code: moduleCode,
 		...(isAdministrator ? {} : { branch_id: currentBranchId }),
-		request_type: Number(PurchaseRequestEnum.Monthly.value),
+		request_type: PurchaseRequestEnum.Monthly.textValue,
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	});
@@ -58,7 +58,7 @@ export const MonthlyMaterialTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			branch_id: isAdministrator ? undefined : currentBranchId,
-			request_type: Number(PurchaseRequestEnum.Monthly.value),
+			request_type: PurchaseRequestEnum.Monthly.textValue,
 			page_size: PAGE_SIZE,
 		},
 	});
@@ -132,7 +132,7 @@ export const MonthlyMaterialTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			...(isAdministrator ? {} : { branch_id: currentBranchId }),
-			request_type: Number(PurchaseRequestEnum.Monthly.value),
+			request_type: PurchaseRequestEnum.Monthly.textValue,
 			code: data.code?.trim() || undefined,
 			status: data.status || undefined,
 			area_id: data.area_id || undefined,

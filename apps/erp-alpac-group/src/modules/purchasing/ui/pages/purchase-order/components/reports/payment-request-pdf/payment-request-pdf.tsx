@@ -2,7 +2,10 @@ import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
 import { PaymentMethodEnum } from "@app/modules/purchasing/domain/enums/payment-method.enum";
 import { DEFAULT_PAYMENT_REQUEST_CHECKLIST } from "./payment-request-pdf.checklist";
 import { paymentRequestPdfStyles as styles } from "./payment-request-pdf.styles";
-import type { PaymentRequestChecklistSection, PaymentRequestPdfProps } from "./payment-request-pdf.types";
+import type {
+	PaymentRequestChecklistSection,
+	PaymentRequestPdfProps,
+} from "./payment-request-pdf.types";
 
 const formatMoney = (value: number, currency = "NIO") => {
 	const prefix = currency === "USD" ? "US$" : "C$";
@@ -34,14 +37,18 @@ const Field = ({
 	</View>
 );
 
-const resolveDocumentTitle = (documentType: PaymentRequestPdfProps["data"]["documentType"]) => {
+const resolveDocumentTitle = (
+	documentType: PaymentRequestPdfProps["data"]["documentType"],
+) => {
 	if (documentType === PaymentMethodEnum.Check.textValue) {
 		return "SOLICITUD DE CHEQUE";
 	}
 	return "SOLICITUD DE TRANSFERENCIA";
 };
 
-const resolveDocumentBadge = (documentType: PaymentRequestPdfProps["data"]["documentType"]) => {
+const resolveDocumentBadge = (
+	documentType: PaymentRequestPdfProps["data"]["documentType"],
+) => {
 	if (documentType === PaymentMethodEnum.Check.textValue) {
 		return "Medio de pago · Cheque";
 	}
@@ -59,21 +66,32 @@ const formatGeneratedAt = (value?: string | null) => {
 	}).format(date);
 };
 
-const SignatureCard = ({ title, isLast }: { title: string; isLast?: boolean }) => (
+const SignatureCard = ({
+	title,
+	name,
+	sealSrc,
+	isLast,
+}: {
+	title: string;
+	name?: string | null;
+	sealSrc?: string | null;
+	isLast?: boolean;
+}) => (
 	<View style={[styles.signatureCard, isLast ? styles.signatureCardLast : {}]}>
 		<Text style={styles.signatureTitle}>{title}</Text>
+		{sealSrc ? <Image src={sealSrc} style={styles.authorizationSeal} /> : null}
 		<View style={styles.signatureLine}>
-			<Text style={styles.signatureHint}>Firma</Text>
+			<Text style={styles.signatureHint}>{name?.trim() || "Firma"}</Text>
 		</View>
 	</View>
 );
 
 export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
-
 	const title = resolveDocumentTitle(data.documentType);
 	const badge = resolveDocumentBadge(data.documentType);
 	const currency = data.amounts.currency ?? "NIO";
-	const companyName = data.companyName?.trim() || "ALMACENADORA DEL PACIFICO, S.A.";
+	const companyName =
+		data.companyName?.trim() || "ALMACENADORA DEL PACIFICO, S.A.";
 
 	const checklist: PaymentRequestChecklistSection[] =
 		data.checklist ??
@@ -98,7 +116,9 @@ export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
 			<Page size="LETTER" style={styles.page}>
 				<View style={styles.header}>
 					<View style={styles.headerLeft}>
-						{data.logoUrl ? <Image src={data.logoUrl} style={styles.logo} /> : null}
+						{data.logoUrl ? (
+							<Image src={data.logoUrl} style={styles.logo} />
+						) : null}
 					</View>
 
 					<View style={styles.headerCenter}>
@@ -118,7 +138,9 @@ export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
 				<View style={styles.mainGrid}>
 					<View style={styles.infoCard}>
 						<View style={styles.cardHeader}>
-							<Text style={styles.cardHeaderText}>Información de la solicitud</Text>
+							<Text style={styles.cardHeaderText}>
+								Información de la solicitud
+							</Text>
 						</View>
 						<View style={styles.cardBody}>
 							<Field label="Fecha" value={data.date} />
@@ -162,7 +184,10 @@ export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
 									<Field label="No. Referencia" value={data.referenceNumber} />
 								</View>
 								<View style={styles.metaItem}>
-									<Field label="No. Declaración" value={data.declarationNumber} />
+									<Field
+										label="No. Declaración"
+										value={data.declarationNumber}
+									/>
 								</View>
 							</View>
 
@@ -210,7 +235,9 @@ export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
 				<View style={styles.section}>
 					<View style={styles.tableHeader}>
 						<Text style={[styles.th, styles.colCheck]}>Check</Text>
-						<Text style={[styles.th, styles.colDesc]}>Descripción del documento</Text>
+						<Text style={[styles.th, styles.colDesc]}>
+							Descripción del documento
+						</Text>
 						<Text style={[styles.th, styles.colComments]}>Comentarios</Text>
 					</View>
 
@@ -230,7 +257,9 @@ export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
 									<View style={[styles.td, styles.colCheck, styles.tdCenter]}>
 										<Checkbox checked={item.checked} />
 									</View>
-									<Text style={[styles.td, styles.colDesc]}>{item.description}</Text>
+									<Text style={[styles.td, styles.colDesc]}>
+										{item.description}
+									</Text>
 									<Text style={[styles.td, styles.colComments]}>
 										{item.accountingComments?.trim() || ""}
 									</Text>
@@ -241,9 +270,13 @@ export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
 				</View>
 
 				<View style={styles.signatures} wrap={false}>
-					<SignatureCard title="Solicitado" />
-					<SignatureCard title="Aprobado" />
-					<SignatureCard title="Autorizado" isLast />
+					<SignatureCard
+						title="Solicitado"
+						name={data.requestedBy}
+						sealSrc={data.sealSrc}
+					/>
+					<SignatureCard title="Aprobado" name={data.approvedBy} />
+					<SignatureCard title="Autorizado" name={data.authorizedBy} isLast />
 				</View>
 
 				<Text style={styles.bankLine}>
@@ -252,7 +285,7 @@ export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
 
 				<Text style={styles.footerMeta}>
 					{`Usuario: ${data.generatedBy?.trim() || "—"}, generado el ${formatGeneratedAt(data.generatedAt)}`}
-				</Text>				
+				</Text>
 			</Page>
 		</Document>
 	);
