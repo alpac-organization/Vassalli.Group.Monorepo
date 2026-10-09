@@ -25,12 +25,15 @@ import type { GetAssignmentCollaboratorsResponse } from "@app/modules/warehouse/
 import type { GetAssignmentMachineryResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-machinery";
 import type { AssignPositionsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/assign-positions";
 import type { GetMachineryCatalogResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-machinery-catalog";
+import type { AssignmentDetailsByCodeRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-details-by-code";
+import type { AssignmentDetailsByCode } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-details-by-code";
 
 const warehouseAssignmentServices = new WarehouseAssignmentServices(
   warehouseHttpHandler,
 );
 
 type UseWarehouseAssignmentProps = {
+  payloadAssignmentDetailsByCode ?: AssignmentDetailsByCodeRequest | null,
   payloadAssignments?: GetAssignmentsRequest | null;
   payloadAssignmentDetails?: GetAssignmentDetailsRequest | null;
   payloadCollaborators?: GetAssignmentCollaboratorsRequest | null;
@@ -41,14 +44,31 @@ type UseWarehouseAssignmentProps = {
 };
 
 export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
+  
   const {
     payloadAssignments,
     payloadAssignmentDetails,
     payloadCollaborators,
     payloadMachinery,
     payloadMachineryCatalog,
+    payloadAssignmentDetailsByCode
   } = props ?? {};
+    
   const queryClient = useQueryClient();
+
+  const GetAssignmentDetailsByCode = useQuery<AssignmentDetailsByCode, ApiErrorResponse>({
+    queryKey: ["assignments_details_by_code", payloadAssignmentDetailsByCode],
+    queryFn: () => warehouseAssignmentServices.getAssignmentDetailsByCode(payloadAssignmentDetailsByCode as AssignmentDetailsByCodeRequest),
+    enabled: Boolean(
+      payloadAssignments?.company_id &&
+      payloadAssignments?.module_code &&
+      payloadAssignments?.operational_order_id,
+    ),
+    staleTime: 1000 * 60 * 2,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
 
   const GetAssignments = useQuery<GetAssignmentsResponse, ApiErrorResponse>({
     queryKey: ["assignments", payloadAssignments],
@@ -318,5 +338,6 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     DeleteAssignmentMachinery,
     AssignPositions,
     SendToUnloading,
+    GetAssignmentDetailsByCode
   };
 };
