@@ -18,8 +18,13 @@ import type { GetAssignmentCollaboratorsResponse } from "@app/modules/warehouse/
 import type { GetAssignmentMachineryResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-machinery";
 import type { AssignPositionsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/assign-positions";
 import type { GetMachineryCatalogResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-machinery-catalog";
+import type { AssignmentDetailsByCode } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-details-by-code";
+import type { AssignmentDetailsByCodeRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-details-by-code";
 
 export interface IWarehouseAssignmentServices {
+
+  getAssignmentDetailsByCode(payload: AssignmentDetailsByCodeRequest): Promise<AssignmentDetailsByCode>;
+
   getAssignments(
     payload: GetAssignmentsRequest,
   ): Promise<GetAssignmentsResponse>;

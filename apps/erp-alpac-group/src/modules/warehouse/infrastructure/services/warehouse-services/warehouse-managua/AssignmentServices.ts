@@ -1,3 +1,4 @@
+import { cleanParams } from "@app/shared/utils/object.utils";
 import type { IHttpHandler } from "@app/core/ports";
 import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
 import type { IWarehouseAssignmentServices } from "@app/modules/warehouse/application/interfaces/warehouse-interfaces/warehouse-managua/warehouse-assignment/IAssignmentServices";
@@ -23,7 +24,8 @@ import type { GetAssignmentCollaboratorsResponse } from "@app/modules/warehouse/
 import type { GetAssignmentMachineryResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-machinery";
 import type { AssignPositionsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/assign-positions";
 import type { GetMachineryCatalogResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-machinery-catalog";
-import { cleanParams } from "@app/shared/utils/object.utils";
+import type { AssignmentDetailsByCodeRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-details-by-code";
+import type { AssignmentDetailsByCode } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-details-by-code";
 
 export class WarehouseAssignmentServices
   implements IWarehouseAssignmentServices
@@ -32,6 +34,19 @@ export class WarehouseAssignmentServices
 
   constructor(httpHandler: IHttpHandler) {
     this.httpHandler = httpHandler;
+  }
+  
+  public async getAssignmentDetailsByCode(payload: AssignmentDetailsByCodeRequest): Promise<AssignmentDetailsByCode>{
+    try {
+      const { assignment_code, company_id, module_code } = payload;
+
+      console.log(JSON.stringify(payload, null, 3))
+
+      return this.httpHandler.get<AssignmentDetailsByCode>(`/companies/${company_id}/modules/${module_code}/assignments/code?assignment_code=${assignment_code}`);
+    }
+    catch(error){
+      throw error;
+    }
   }
 
   public async getAssignments(
