@@ -249,7 +249,6 @@ export function SelectProductModal({
 				},
 			},
 			{ key: "product_name", label: "Producto" },
-			{ key: "description", label: "Descripción" },
 			{
 				key: "category",
 				label: "Categoría",

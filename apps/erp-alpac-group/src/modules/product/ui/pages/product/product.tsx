@@ -147,16 +147,15 @@ export const Product = () => {
         label: "Código",
         render: (row) => row.code || "—",
       },
-      { key: "product_name", label: "Producto" },
-      { key: "description", label: "Descripción" },
+      { key: "product_name", label: "Nombre Producto" },
       {
         key: "category",
-        label: "Categoría",
+        label: "Categoría producto",
         render: (row) => row.category?.name ?? "—",
       },
       {
         key: "suppliers_count",
-        label: "Proveedores",
+        label: "Cant. Proveedores",
         render: (row) => String(row.suppliers_count ?? 0),
       },
       {

@@ -7,10 +7,12 @@ import type {
 } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
 
 export type SupplierProductsPage = {
-  items: SupplierLinkedProduct[];
+  data?: SupplierLinkedProduct[];
+  items?: SupplierLinkedProduct[];
   page_number: number;
   page_size: number;
-  total_count: number;
+  total?: number;
+  total_count?: number;
 };
 
 export interface GetSupplierDetailsResponse extends GetSuppliersResponse {

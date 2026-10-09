@@ -1,4 +1,5 @@
-import { Modal } from "@alpac/design-system";
+import { useMemo } from "react";
+import { Dropdown, Modal } from "@alpac/design-system";
 import type { SupplierDetailsModalProps } from "./supplier-details-modal.types";
 import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -16,34 +17,24 @@ import {
 import { Loader } from "@app/shared/components/loaders/loader";
 import { BankAccountList } from "@app/modules/purchasing/ui/pages/supplier/components/bank-account-list/bank-account-list";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
-import { PaymentMethodEnum } from "@app/core/enums/payment-method.enum";
+import { PaymentMethodOptions } from "@app/core/enums/payment-method.enum";
 import {
   isSupplierExclusive,
   SupplierExclusiveStatusEnum,
 } from "@app/core/enums/supplier-exclusive-status.enum";
 import { resolveSupplierTypeLabel } from "@app/core/enums/supplier-type.enum";
+import {
+  dropdownClassName,
+  labelClassName,
+} from "@app/modules/purchasing/ui/pages/supplier/utils/style";
 
 const sectionTitleClassName =
   "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
 
-const resolvePaymentMethodLabel = (method?: string | number | null) => {
-  if (!method) return "—";
-  const found = Object.values(PaymentMethodEnum).find(
-    (m) => m.stringValue === method || m.value === Number(method),
-  );
-  return found ? found.label : String(method);
-};
-
-const resolvePaymentMethodsLabel = (
-  methods?: { payment_method_type?: string; is_active?: boolean }[],
-) => {
-  const labels = (methods ?? [])
-    .filter(
-      (method) => method.is_active !== false && method.payment_method_type,
-    )
-    .map((method) => resolvePaymentMethodLabel(method.payment_method_type));
-  return labels.length > 0 ? labels.join(", ") : "—";
-};
+const readOnlyPaymentMethodOptions = PaymentMethodOptions.map((option) => ({
+  ...option,
+  disabled: true,
+}));
 
 const resolveExclusiveStatusLabel = (status?: string | null) => {
   const found = Object.values(SupplierExclusiveStatusEnum).find(
@@ -101,7 +92,16 @@ export const SupplierDetailsModal = ({
     selectedSupplier?.exclusive_status;
   const isExclusive = isSupplierExclusive(exclusiveStatus);
   const exclusiveBrandsOrParts = details?.exclusive_brands_or_parts?.trim();
-  const exclusiveStatusComment = details?.exclusive_status_comment?.trim();
+  const exclusiveStatusComment = details?.exclusive_status_comments?.trim();
+
+  const selectedPaymentMethods = useMemo(() => {
+    return (supplierDetails?.supplier_payment_methods ?? [])
+      .filter(
+        (method) =>
+          method.is_active !== false && Boolean(method.payment_method_type),
+      )
+      .map((method) => String(method.payment_method_type));
+  }, [supplierDetails?.supplier_payment_methods]);
 
   return (
     <>
@@ -171,11 +171,17 @@ export const SupplierDetailsModal = ({
                       : "No aplica"
                   }
                 />
-                <DetailField
+                <Dropdown
                   label="Métodos de pago"
-                  value={resolvePaymentMethodsLabel(
-                    supplierDetails?.supplier_payment_methods,
-                  )}
+                  appearance="dark"
+                  placeholder="Sin métodos de pago"
+                  options={readOnlyPaymentMethodOptions}
+                  value={selectedPaymentMethods}
+                  multiple
+                  onChange={() => {}}
+                  className={dropdownClassName}
+                  labelClassName={labelClassName}
+                  valueClassName={labelClassName}
                 />
               </div>
             </section>

@@ -14,6 +14,7 @@ import type {
 	UpdateSupplierBankAccountPayload,
 } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-bank-account";
 import { cleanParams } from "@app/shared/utils/object.utils";
+import { normalizePagedList } from "@app/shared/utils/paged-response.utils";
 
 export class SupplierServices implements ISupplierServices {
 	private readonly httpHandler: IHttpHandler;
@@ -53,9 +54,16 @@ export class SupplierServices implements ISupplierServices {
 	async GetSupplierDetails(payload: GetSupplierDetailsRequest): Promise<GetSupplierDetailsResponse> {
 		const { company_id, module_code, supplier_id, ...rest } = payload;
 		const url = `/companies/${company_id}/modules/${module_code}/suppliers/${supplier_id}/details`;
-		return this.httpHandler.get<GetSupplierDetailsResponse>(url, {
+		const response = await this.httpHandler.get<GetSupplierDetailsResponse>(url, {
 			params: cleanParams(rest),
 		});
+
+		if (!response.products) return response;
+
+		return {
+			...response,
+			products: normalizePagedList(response.products),
+		};
 	}
 
 	async getBankAccounts(

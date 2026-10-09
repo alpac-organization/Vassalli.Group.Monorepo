@@ -16,7 +16,8 @@ export interface ProductSupplierTierPrice extends ProductSupplierTierPricePayloa
 export interface CreateProductSupplierPayload {
 	supplier_id: string;
 	unit_price: number;
-	currency: CurrencyCode;
+	currency?: CurrencyCode | null;
+	unit_measure_id?: string | null;
 	tier_prices?: ProductSupplierTierPricePayload[];
 }
 
@@ -27,6 +28,8 @@ export interface ProductLinkedSupplier {
 	commercial_name?: string | null;
 	identification_number?: string | null;
 	exclusive_status?: SupplierExclusiveStatus | null;
+	supplier_type?: string;
+	unit_measure_id?: string | null;
 	unit_price: number;
 	currency: CurrencyCode;
 	last_price_update?: string;
