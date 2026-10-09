@@ -13,6 +13,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
+import { readPagedRows } from "@app/shared/utils/paged-response.utils";
 import type { SupplierLinkedProduct } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-product";
 import {
   dropdownClassName,
@@ -75,9 +76,9 @@ export const SupplierProductsModal = ({
 
   const { data: supplierDetails, isPending, isFetching } = GetSupplierDetails;
 
-  const productsPage = supplierDetails?.products;
-  const products = productsPage?.items ?? [];
-  const totalRecords = productsPage?.total_count ?? 0;
+  const { rows: products, total: totalRecords } = readPagedRows(
+    supplierDetails?.products,
+  );
 
   const unitOptions = useMemo(() => {
     const units = GetUnitMeasurements.data;
@@ -101,6 +102,11 @@ export const SupplierProductsModal = ({
         render: (row) => row.code || "—",
       },
       { key: "product_name", label: "Producto" },
+      {
+        key: "currency",
+        label: "Moneda",
+        render: (row) => row.currency ?? "—",
+      },
       {
         key: "unit_price",
         label: "Precio unitario",

@@ -28,10 +28,46 @@ const dropdownClassName = `${inputClassName} focus:border-blue-600! focus:ring-2
 const labelClassName = "text-black! dark:text-white!";
 const secondaryButtonClassName =
 	"text-[14px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!";
-const removeItemButtonClassName =
-	"h-8! w-8! shrink-0 rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!";
+const removeControlClassName =
+	"mr-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-red-500 text-white transition-colors hover:bg-red-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 dark:bg-red-900 dark:hover:bg-red-800";
 const primaryButtonClassName =
 	"text-[14px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
+
+const AccordionRemoveControl = ({
+	label,
+	disabled = false,
+	onRemove,
+}: {
+	label: string;
+	disabled?: boolean;
+	onRemove: () => void;
+}) => (
+	<span
+		role="button"
+		tabIndex={disabled ? -1 : 0}
+		aria-label={label}
+		title={label}
+		aria-disabled={disabled}
+		className={`${removeControlClassName} ${
+			disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+		}`}
+		onClick={(event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			if (!disabled) onRemove();
+		}}
+		onKeyDown={(event) => {
+			event.stopPropagation();
+			if (disabled) return;
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				onRemove();
+			}
+		}}
+	>
+		<Trash2Icon size={16} aria-hidden />
+	</span>
+);
 
 const datePickerSlotProps = {
 	popper: {
@@ -78,9 +114,11 @@ export const CatalogLinkEditor = ({
 	entityLabel,
 	entityPlaceholder,
 	options,
+	unitMeasureOptions = [],
 	items,
 	onChange,
 	isLoadingOptions = false,
+	isLoadingUnitMeasures = false,
 	disabled = false,
 	lockEntity = false,
 	onAddClick,
@@ -272,21 +310,11 @@ export const CatalogLinkEditor = ({
 												</small>
 											</div>
 										</div>
-										<span
-											className="mr-3 flex shrink-0 items-center"
-											onClick={(event) => event.stopPropagation()}
-											onKeyDown={(event) => event.stopPropagation()}
-										>
-											<Button
-												type="button"
-												size="small"
-												tooltip="Quitar"
-												icon={<Trash2Icon size={16} />}
-												disabled={disabled}
-												className={removeItemButtonClassName}
-												onClick={() => removeItem(index)}
-											/>
-										</span>
+										<AccordionRemoveControl
+											label="Quitar"
+											disabled={disabled}
+											onRemove={() => removeItem(index)}
+										/>
 									</div>
 								}
 							>
@@ -360,6 +388,33 @@ export const CatalogLinkEditor = ({
 												updateItem(index, {
 													currency: (String(value ?? "USD") ||
 														"USD") as CurrencyCode,
+												})
+											}
+											className={dropdownClassName}
+											labelClassName={labelClassName}
+										/>
+									</div>
+									<div className="md:w-52 shrink-0">
+										<Dropdown
+											label="Unidad de medida"
+											placeholder={
+												isLoadingUnitMeasures
+													? "Cargando..."
+													: "Seleccione..."
+											}
+											appearance="dark"
+											optional
+											options={unitMeasureOptions}
+											value={item.unit_measure_id || null}
+											disabled={disabled || isLoadingUnitMeasures}
+											onChange={(value) =>
+												updateItem(index, {
+													unit_measure_id:
+														value === null ||
+														value === undefined ||
+														value === ""
+															? ""
+															: String(value),
 												})
 											}
 											className={dropdownClassName}
@@ -440,27 +495,13 @@ export const CatalogLinkEditor = ({
 																		<span className="truncate text-sm font-medium text-slate-900 dark:text-white">
 																			{formatTierTitle(tier, tierIndex)}
 																		</span>
-																		<span
-																			className="mr-3 flex shrink-0 items-center"
-																			onClick={(event) =>
-																				event.stopPropagation()
+																		<AccordionRemoveControl
+																			label="Quitar precio preferencial"
+																			disabled={disabled}
+																			onRemove={() =>
+																				removeTier(index, tierIndex)
 																			}
-																			onKeyDown={(event) =>
-																				event.stopPropagation()
-																			}
-																		>
-																			<Button
-																				type="button"
-																				size="small"
-																				tooltip="Quitar precio preferencial"
-																				icon={<Trash2Icon size={16} />}
-																				disabled={disabled}
-																				className={removeItemButtonClassName}
-																				onClick={() =>
-																					removeTier(index, tierIndex)
-																				}
-																			/>
-																		</span>
+																		/>
 																	</div>
 																}
 															>

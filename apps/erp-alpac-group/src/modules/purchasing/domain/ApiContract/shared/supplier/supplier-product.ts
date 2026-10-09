@@ -7,7 +7,8 @@ import type {
 export interface CreateSupplierProductPayload {
 	product_id: string;
 	unit_price: number;
-	currency: CurrencyCode;
+	currency?: CurrencyCode | null;
+	unit_measure_id?: string | null;
 	tier_prices?: ProductSupplierTierPricePayload[];
 }
 
@@ -17,7 +18,7 @@ export interface SupplierLinkedProduct {
 	product_name: string;
 	unit_measure_id: string;
 	unit_price: number;
-	currency: CurrencyCode;
+	currency?: CurrencyCode;
 	last_price_update?: string;
 	tier_prices: ProductSupplierTierPrice[];
 }

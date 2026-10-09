@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
 import {
-	Badges,
 	Button,
 	ContextMenu,
 	DataTable,
@@ -14,6 +13,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
+import { readPagedRows } from "@app/shared/utils/paged-response.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
@@ -22,6 +22,7 @@ import {
 	SupplierExclusiveStatusOptions,
 	type SupplierExclusiveStatus,
 } from "@app/core/enums/supplier-exclusive-status.enum";
+import { resolveSupplierTypeLabel } from "@app/core/enums/supplier-type.enum";
 import { ProductPriceEditModal } from "@app/modules/product/ui/views/product-price-edit-modal/product-price-edit-modal";
 import { ProductPriceHistoryModal } from "@app/modules/product/ui/views/product-price-history-modal/product-price-history-modal";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
@@ -39,31 +40,6 @@ const deleteButtonClass =
 	"rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
 const cancelButtonClass =
 	"rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
-
-const exclusiveStatusBadgeVariants: Record<
-	string,
-	{ label: string; badgeColor: string }
-> = {
-	None: {
-		label: "Ninguno",
-		badgeColor:
-			"bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
-	},
-	PendingReview: {
-		label: "Pendiente",
-		badgeColor:
-			"bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
-	},
-	Approved: {
-		label: "Aprobado",
-		badgeColor:
-			"bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
-	},
-	Rejected: {
-		label: "Rechazado",
-		badgeColor: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200",
-	},
-};
 
 type SupplierFilters = {
 	identification_number: string;
@@ -123,9 +99,9 @@ export const ProductSuppliersModal = ({
 
 	const { data: productDetails, isPending, isFetching } = GetProductDetails;
 
-	const suppliersPage = productDetails?.suppliers;
-	const suppliers = suppliersPage?.items ?? [];
-	const totalRecords = suppliersPage?.total_count ?? 0;
+	const { rows: suppliers, total: totalRecords } = readPagedRows(
+		productDetails?.suppliers,
+	);
 
 	const productName =
 		productDetails?.product_name ??
@@ -137,30 +113,35 @@ export const ProductSuppliersModal = ({
 	const supplierColumns: TableColumn<ProductLinkedSupplier>[] = useMemo(
 		() => [
 			{
-				key: "identification_number",
-				label: "Número de identificación",
-				render: (row) => row.identification_number?.trim() || "—",
-			},
-			{
-				key: "commercial_name",
-				label: "Nombre comercial",
-				render: (row) =>
-					row.commercial_name?.trim() ||
-					row.supplier_legal_name ||
-					row.supplier_id,
-			},
-			{
-				key: "exclusive_status",
-				label: "Exclusividad",
+				key: "supplier_legal_name",
+				label: "Razón social / Nombre comercial",
 				render: (row) => {
-					const status = row.exclusive_status ?? "None";
-					const propValue =
-						exclusiveStatusBadgeVariants[status] ??
-						exclusiveStatusBadgeVariants.None;
+					const legalName = row.supplier_legal_name?.trim() || "—";
+					const commercialName = row.commercial_name?.trim();
+
 					return (
-						<Badges label={propValue.label} color={propValue.badgeColor} />
+						<div className="flex flex-col">
+							<span className="font-medium text-slate-900 dark:text-white">
+								{legalName}
+							</span>
+							{commercialName && (
+								<span className="text-xs text-slate-500 dark:text-slate-400">
+									{commercialName}
+								</span>
+							)}
+						</div>
 					);
 				},
+			},
+			{
+				key: "supplier_type",
+				label: "Tipo",
+				render: (row) => resolveSupplierTypeLabel(row.supplier_type),
+			},
+			{
+				key: "currency",
+				label: "Moneda",
+				render: (row) => row.currency ?? "—",
 			},
 			{
 				key: "unit_price",

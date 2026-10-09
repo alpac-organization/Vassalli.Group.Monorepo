@@ -11,6 +11,11 @@ export const SupplierTypeEnum = {
 		label: "Ordinario",
 		stringValue: "Ordinary",
 	},
+	Exclusive: {
+		value: 3,
+		label: "Exclusivo",
+		stringValue: "Exclusive",
+	},
 } as const;
 
 export type SupplierTypeEnum =

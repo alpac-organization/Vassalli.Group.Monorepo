@@ -238,7 +238,7 @@ export const Supplier = () => {
     { key: "identification_number", label: "Número de identificación" },
     {
       key: "exclusive_status",
-      label: "Exclusividad",
+      label: "Estado de exclusividad",
       render(row: GetSuppliersResponse) {
         const status = row.exclusive_status ?? "None";
         const propValue =

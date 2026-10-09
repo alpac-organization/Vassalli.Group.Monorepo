@@ -17,6 +17,7 @@ export type CatalogLinkItemForm = {
 	entity_label: string;
 	unit_price: string;
 	currency: CurrencyCode;
+	unit_measure_id: string;
 	tier_prices: CatalogLinkTierForm[];
 };
 
@@ -32,9 +33,11 @@ export type CatalogLinkEditorProps = {
 	entityLabel: string;
 	entityPlaceholder: string;
 	options: CatalogLinkOption[];
+	unitMeasureOptions?: CatalogLinkOption[];
 	items: CatalogLinkItemForm[];
 	onChange: (items: CatalogLinkItemForm[]) => void;
 	isLoadingOptions?: boolean;
+	isLoadingUnitMeasures?: boolean;
 	disabled?: boolean;
 	lockEntity?: boolean;
 	onAddClick?: () => void;
@@ -53,8 +56,17 @@ export const emptyCatalogLinkItem = (): CatalogLinkItemForm => ({
 	entity_label: "",
 	unit_price: "",
 	currency: "USD",
+	unit_measure_id: "",
 	tier_prices: [],
 });
+
+/** Empty string / whitespace → null so the API inherits the product UoM. */
+export const resolveLinkUnitMeasureId = (
+	raw?: string | null,
+): string | null => {
+	const trimmed = raw?.trim();
+	return trimmed ? trimmed : null;
+};
 
 export const mapCatalogLinkItemsToTierPayload = (
 	tiers: CatalogLinkTierForm[],
@@ -88,3 +100,7 @@ export const mapTierPricesToCatalogForm = (
 export const resolveLinkCurrency = (
 	raw?: string | null,
 ): CurrencyCode => (raw === "NIO" ? "NIO" : "USD");
+
+export const resolveLinkCurrencyPayload = (
+	raw?: string | null,
+): CurrencyCode => resolveLinkCurrency(raw);

@@ -29,8 +29,11 @@ import {
 	mapCatalogLinkItemsToTierPayload,
 	mapTierPricesToCatalogForm,
 	resolveLinkCurrency,
+	resolveLinkCurrencyPayload,
+	resolveLinkUnitMeasureId,
 	type CatalogLinkItemForm,
 } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
+import { readPagedRows } from "@app/shared/utils/paged-response.utils";
 import { SelectSupplierModal } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/select-supplier-modal/select-supplier-modal";
 import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
 import { Loader } from "@app/shared/components/loaders/loader";
@@ -65,7 +68,8 @@ const mapSupplierLinksToPayload = (links: CatalogLinkItemForm[]) =>
 		.map((link) => ({
 			supplier_id: link.entity_id,
 			unit_price: Number(link.unit_price),
-			currency: link.currency,
+			currency: resolveLinkCurrencyPayload(link.currency),
+			unit_measure_id: resolveLinkUnitMeasureId(link.unit_measure_id),
 			tier_prices: mapCatalogLinkItemsToTierPayload(link.tier_prices),
 		}));
 
@@ -91,6 +95,7 @@ export const CreateProductModal = ({
 		register,
 		handleSubmit,
 		reset,
+		getValues,
 		formState: { errors },
 	} = useForm<CreateProductRequest>({
 		defaultValues: emptyFormValues(companyId, moduleCode),
@@ -201,7 +206,7 @@ export const CreateProductModal = ({
 
 		setSelectedProductCategory(productDetails.category?.name ?? "");
 		setSupplierLinks(
-			(productDetails.suppliers?.items ?? []).map((supplier) => ({
+			readPagedRows(productDetails.suppliers).rows.map((supplier) => ({
 				entity_id: supplier.supplier_id,
 				entity_label:
 					supplier.commercial_name?.trim() ||
@@ -209,6 +214,8 @@ export const CreateProductModal = ({
 					supplier.supplier_id,
 				unit_price: String(supplier.unit_price ?? ""),
 				currency: resolveLinkCurrency(supplier.currency),
+				unit_measure_id:
+					supplier.unit_measure_id ?? productDetails.unit_measure_id ?? "",
 				tier_prices: mapTierPricesToCatalogForm(supplier.tier_prices),
 			})),
 		);
@@ -226,6 +233,7 @@ export const CreateProductModal = ({
 	};
 
 	const handleSelectSuppliers = (suppliers: GetSuppliersResponse[]) => {
+		const defaultUnitMeasureId = getValues("unit_measure_id")?.trim() ?? "";
 		setSupplierLinks((prev) => {
 			const existingIds = new Set(
 				prev.map((link) => link.entity_id).filter(Boolean),
@@ -240,6 +248,7 @@ export const CreateProductModal = ({
 						supplier.supplier_id,
 					unit_price: "",
 					currency: "USD" as const,
+					unit_measure_id: defaultUnitMeasureId,
 					tier_prices: [],
 				}));
 			return [...prev, ...nextItems];
@@ -499,6 +508,10 @@ export const CreateProductModal = ({
 						entityLabel="Proveedor"
 						entityPlaceholder="Proveedor"
 						options={[]}
+						unitMeasureOptions={unitMeasureOptions}
+						isLoadingUnitMeasures={
+							GetUnitMeasurements.isPending || GetUnitMeasurements.isFetching
+						}
 						items={supplierLinks}
 						onChange={handleSupplierLinksChange}
 						lockEntity
