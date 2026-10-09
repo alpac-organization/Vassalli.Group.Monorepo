@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { warehouseHttpHandler } from "@app/core/adapters/axiosAdapter";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import { WarehouseAssignmentServices } from "@app/modules/warehouse/infrastructure/services/warehouse-services/warehouse-managua/WarehouseAssignmentServices";
+import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+import { WarehouseAssignmentServices } from "@app/modules/warehouse/infrastructure/services/warehouse-services/warehouse-managua/AssignmentServices";
 
 import type { CreateAssignmentRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/create-assignment";
 import type { GetAssignmentsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignments";
@@ -15,11 +16,15 @@ import type { DeleteAssignmentCollaboratorRequest } from "@app/modules/warehouse
 import type { DeleteAssignmentMachineryRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/delete-assignment-machinery";
 import type { GetAssignmentCollaboratorsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-collaborators";
 import type { GetAssignmentMachineryRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-machinery";
+import type { AssignPositionsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/assign-positions";
+import type { SendToUnloadingRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/send-to-unloading";
 
 import type { GetAssignmentsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignments";
 import type { GetAssignmentDetailsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-details";
 import type { GetAssignmentCollaboratorsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-collaborators";
 import type { GetAssignmentMachineryResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-machinery";
+import type { AssignPositionsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/assign-positions";
+import type { GetMachineryCatalogResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-machinery-catalog";
 
 const warehouseAssignmentServices = new WarehouseAssignmentServices(
   warehouseHttpHandler,
@@ -30,6 +35,9 @@ type UseWarehouseAssignmentProps = {
   payloadAssignmentDetails?: GetAssignmentDetailsRequest | null;
   payloadCollaborators?: GetAssignmentCollaboratorsRequest | null;
   payloadMachinery?: GetAssignmentMachineryRequest | null;
+  payloadMachineryCatalog?:
+    | (BaseRequest & { page_size?: number; page_number?: number })
+    | null;
 };
 
 export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
@@ -38,12 +46,10 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     payloadAssignmentDetails,
     payloadCollaborators,
     payloadMachinery,
+    payloadMachineryCatalog,
   } = props ?? {};
   const queryClient = useQueryClient();
 
-  // ─── QUERIES ──────────────────────────────────────────────────────────────
-
-  /** GET listado de asignaciones operativas */
   const GetAssignments = useQuery<GetAssignmentsResponse, ApiErrorResponse>({
     queryKey: ["assignments", payloadAssignments],
     queryFn: () =>
@@ -60,7 +66,6 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     retry: 1,
   });
 
-  /** GET detalle de asignación operativa */
   const GetAssignmentDetails = useQuery<
     GetAssignmentDetailsResponse,
     ApiErrorResponse
@@ -81,7 +86,6 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     retry: 1,
   });
 
-  /** GET colaboradores asignados */
   const GetAssignmentCollaborators = useQuery<
     GetAssignmentCollaboratorsResponse,
     ApiErrorResponse
@@ -102,7 +106,6 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     retry: 1,
   });
 
-  /** GET maquinaria asignada */
   const GetAssignmentMachinery = useQuery<
     GetAssignmentMachineryResponse,
     ApiErrorResponse
@@ -123,9 +126,24 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     retry: 1,
   });
 
-  // ─── MUTATIONS ────────────────────────────────────────────────────────────
+  const GetMachineryCatalog = useQuery<
+    GetMachineryCatalogResponse,
+    ApiErrorResponse
+  >({
+    queryKey: ["machinery-catalog", payloadMachineryCatalog],
+    queryFn: () =>
+      warehouseAssignmentServices.getMachineryCatalog(
+        payloadMachineryCatalog as BaseRequest,
+      ),
+    enabled: Boolean(
+      payloadMachineryCatalog?.company_id &&
+        payloadMachineryCatalog?.module_code,
+    ),
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
 
-  /** POST crear asignación operativa */
   const CreateAssignment = useMutation<
     void,
     ApiErrorResponse,
@@ -140,7 +158,6 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     },
   });
 
-  /** PATCH actualizar asignación operativa */
   const UpdateAssignment = useMutation<
     void,
     ApiErrorResponse,
@@ -158,7 +175,6 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     },
   });
 
-  /** DELETE eliminar asignación operativa */
   const DeleteAssignment = useMutation<
     void,
     ApiErrorResponse,
@@ -173,7 +189,6 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     },
   });
 
-  /** POST asignar colaboradores */
   const AssignCollaborators = useMutation<
     void,
     ApiErrorResponse,
@@ -188,10 +203,12 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
       queryClient.invalidateQueries({
         queryKey: ["assignments"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["assignment-details"],
+      });
     },
   });
 
-  /** POST asignar maquinaria */
   const AssignMachinery = useMutation<
     void,
     ApiErrorResponse,
@@ -206,10 +223,12 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
       queryClient.invalidateQueries({
         queryKey: ["assignments"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["assignment-details"],
+      });
     },
   });
 
-  /** DELETE desasignar colaborador */
   const DeleteAssignmentCollaborator = useMutation<
     void,
     ApiErrorResponse,
@@ -224,10 +243,12 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
       queryClient.invalidateQueries({
         queryKey: ["assignments"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["assignment-details"],
+      });
     },
   });
 
-  /** DELETE desasignar maquinaria */
   const DeleteAssignmentMachinery = useMutation<
     void,
     ApiErrorResponse,
@@ -242,16 +263,52 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
       queryClient.invalidateQueries({
         queryKey: ["assignments"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["assignment-details"],
+      });
+    },
+  });
+
+  const AssignPositions = useMutation<
+    AssignPositionsResponse,
+    ApiErrorResponse,
+    AssignPositionsRequest
+  >({
+    mutationFn: (payload) =>
+      warehouseAssignmentServices.assignPositions(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["assignments"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["assignment-details"],
+      });
+    },
+  });
+
+  const SendToUnloading = useMutation<
+    void,
+    ApiErrorResponse,
+    SendToUnloadingRequest
+  >({
+    mutationFn: (payload) =>
+      warehouseAssignmentServices.sendToUnloading(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["assignments"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["assignment-details"],
+      });
     },
   });
 
   return {
-    // Queries
     GetAssignments,
     GetAssignmentDetails,
     GetAssignmentCollaborators,
     GetAssignmentMachinery,
-    // Mutations
+    GetMachineryCatalog,
     CreateAssignment,
     UpdateAssignment,
     DeleteAssignment,
@@ -259,5 +316,7 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     AssignMachinery,
     DeleteAssignmentCollaborator,
     DeleteAssignmentMachinery,
+    AssignPositions,
+    SendToUnloading,
   };
 };

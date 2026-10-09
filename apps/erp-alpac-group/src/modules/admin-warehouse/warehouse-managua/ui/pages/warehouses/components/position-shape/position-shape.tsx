@@ -1,9 +1,5 @@
 import { Group, Rect } from "react-konva";
-import {
-	POLIN_DEEP_METER,
-	POLIN_WIDTH_METER,
-	PIXELS_PER_METER,
-} from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
+import { PIXELS_PER_METER } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
 import { buildPositionCellLayouts } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/position-shape/position-shape.utils";
 import type { PositionShapeProps } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/position-shape/position-shape.types";
 
@@ -30,8 +26,6 @@ export const PositionShape = ({
 	pixelsPerMeter = PIXELS_PER_METER,
 	layout = "lot",
 	levels = [1],
-	cellWidthM = POLIN_WIDTH_METER,
-	cellDepthM = POLIN_DEEP_METER,
 }: PositionShapeProps) => {
 	if (
 		positions.length === 0 ||
@@ -46,8 +40,6 @@ export const PositionShape = ({
 		layout,
 		containerWidthMeters: containerWidthM,
 		containerLengthMeters: containerLengthM,
-		standardCellWidthMeters: cellWidthM,
-		standardCellDepthMeters: cellDepthM,
 		levelsToShow: levels,
 	});
 

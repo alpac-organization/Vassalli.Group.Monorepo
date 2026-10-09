@@ -111,6 +111,7 @@ export const LotShape = ({
           levels={[1]}
         />
 
+
         {lot.code ? (
           <Text
             ref={textRef}
