@@ -8,8 +8,9 @@ export type TramoProps = "floor" | "rack";
 
 export type CameraProps = "isometric" | "top" | "front" | "side" | "default" | "reset";
 
-export type ViewerLayer = "warehouse" | "sections" | "racks" | "tramos" | "cargo";
-export type LayerFilterMode = "all" | "warehouse" | "sections" | "racks" | "tramos";
+export type ViewerLayer = "warehouse" | "sections" | "racks" | "tramos" | "positions" | "cargo";
+export type LayerFilterMode = "all" | "warehouse" | "sections" | "racks" | "tramos" | "positions";
+export type NavigationMode = "orbit" | "pan";
 
 export interface Vec3 {
   x: number;
@@ -145,3 +146,29 @@ export const BOX_HEIGHT = SMALL_BOX_HEIGHT;
 export const FLOOR_PLATE_HEIGHT = 0.12;
 export const RACK_FRAME_HEIGHT = 6;
 export const SHELF_THICKNESS = 0.1;
+
+export interface ProcessedPosition3D {
+  positionId: string;
+  positionCode: string;
+  blockId: string; // rackId o tramoId
+  blockCode: string;
+  sectionId: string;
+  sectionCode: string;
+  structureType: "rack" | "tramo";
+  level: number;
+  status: string;
+  isAvailable: boolean;
+  isOccupied: boolean;
+  // Coordenadas relativas al centro de la estructura (metros)
+  localX: number;
+  localY: number;
+  localZ: number;
+  // Coordenadas globales en el mundo Three.js (metros)
+  worldX: number;
+  worldY: number;
+  worldZ: number;
+  width: number;
+  depth: number;
+  height: number;
+}
+

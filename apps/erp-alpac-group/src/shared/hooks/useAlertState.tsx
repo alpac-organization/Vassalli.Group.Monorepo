@@ -8,6 +8,31 @@ interface AlertConfig {
    message: string;
 }
 
+function getAlertMessage(value: unknown, fallback: string): string {
+   if (typeof value === "string" && value.trim()) return value;
+   if (!value || typeof value !== "object") return fallback;
+
+   const response = value as {
+      error?: {
+         description?: unknown;
+         typeError?: unknown;
+      };
+      message?: unknown;
+   };
+
+   if (typeof response.error?.description === "string" && response.error.description.trim()) {
+      return response.error.description;
+   }
+   if (typeof response.error?.typeError === "string" && response.error.typeError.trim()) {
+      return response.error.typeError;
+   }
+   if (typeof response.message === "string" && response.message.trim()) {
+      return response.message;
+   }
+
+   return fallback;
+}
+
 export const useAlertState = () => {
 
    const [alertState, setAlertState] = useState<AlertConfig | undefined>(undefined);
@@ -27,12 +52,12 @@ export const useAlertState = () => {
       });
    }, []);
 
-   const handleRequestError = useCallback((message?: string, title?: string) => {
+   const handleRequestError = useCallback((message?: unknown, title?: string) => {
       setAlertState({
          open: true,
          type: "error",
          title: title ?? "Error",
-         message: message ?? "Error al procesar la petición",
+         message: getAlertMessage(message, "Error al procesar la petición"),
       });
    }, []);
 

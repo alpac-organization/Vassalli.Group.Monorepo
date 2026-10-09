@@ -1,5 +1,7 @@
 import { useState } from "react";
+import * as THREE from "three";
 import type { ProcessedTramo3D } from "../../hooks/use-warehouse-3d-data";
+import type { ProcessedPosition3D } from "../../types/warehouse-3d.types";
 import { TRAMO_STRIP_COLOR } from "../../types/warehouse-3d.types";
 import { FloorBlueprintBadge } from "./floor-blueprint-badge";
 import {
@@ -10,40 +12,145 @@ import { useBodegaViewerStore } from "../../stores/use-bodega-viewer-store";
 
 interface TramoFloorsProps {
   tramos: ProcessedTramo3D[];
-  onSelectTramo?: (tramo: ProcessedTramo3D) => void;
 }
 
 const RAIL_T = 0.08;
 const RAIL_H = 0.04;
 
-function TramoItem({
-  tramo,
+function TramoPositionSlot({
+  pos,
   isSelected,
   onSelect,
 }: {
-  tramo: ProcessedTramo3D;
+  pos: ProcessedPosition3D;
   isSelected: boolean;
-  onSelect: (tramo: ProcessedTramo3D) => void;
+  onSelect: (p: ProcessedPosition3D) => void;
 }) {
   const [hovered, setHovered] = useState(false);
+  const isPreselectionMode = useBodegaViewerStore((s) => s.isPreselectionMode);
+  const preselectedPositions = useBodegaViewerStore((s) => s.preselectedPositions);
+  const togglePreselectPosition = useBodegaViewerStore((s) => s.togglePreselectPosition);
+  const isPreselected = preselectedPositions.some(
+    (p) => p.positionId === pos.positionId,
+  );
+
+  const resolved = resolveRackStatus(pos.status);
+  const statusKey = (resolved?.textValue ??
+    (pos.status ? String(pos.status) : "Available")) as keyof typeof RACK_STATUS_COLORS;
+  const statusColor = RACK_STATUS_COLORS[statusKey] ?? "#4ade80";
+
+  const isAvailable = statusKey === "Available" && !pos.isOccupied;
+
+  const pw = Math.max(pos.width, 0.8);
+  const pd = Math.max(pos.depth, 0.8);
+
+  const cellColor = isPreselected
+    ? "#10b981"
+    : isSelected
+      ? "#00f0ff"
+      : hovered && isAvailable
+        ? "#38bdf8"
+        : statusColor;
+
+  return (
+    <group position={[pos.localX, pos.localY, pos.localZ]}>
+      {/* 1. Celda en suelo (outline y sutil plano de fondo) */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.06, 0]}>
+        <planeGeometry args={[pw * 0.94, pd * 0.94]} />
+        <meshBasicMaterial
+          color={cellColor}
+          transparent
+          opacity={isPreselected ? 0.45 : isSelected ? 0.35 : hovered && isAvailable ? 0.22 : 0.08}
+        />
+      </mesh>
+
+      {/* Borde perimetral de la celda */}
+      <lineSegments position={[0, -0.05, 0]}>
+        <edgesGeometry
+          args={[new THREE.BoxGeometry(pw * 0.96, isPreselected ? 0.05 : 0.02, pd * 0.96)]}
+        />
+        <lineBasicMaterial
+          color={cellColor}
+          transparent
+          opacity={isPreselected ? 1 : isSelected ? 1 : hovered && isAvailable ? 0.85 : 0.35}
+        />
+      </lineSegments>
+
+      {/* Resalte volumétrico si está preseleccionado */}
+      {isPreselected && (
+        <lineSegments position={[0, 0.12, 0]}>
+          <edgesGeometry
+            args={[new THREE.BoxGeometry(pw * 0.98, 0.26, pd * 0.98)]}
+          />
+          <lineBasicMaterial color="#10b981" transparent opacity={0.85} />
+        </lineSegments>
+      )}
+
+      {/* Hitbox interactivo para clic y hover en esta posición */}
+      <mesh
+        position={[0, 0.25, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (isPreselectionMode) {
+            if (!isAvailable) return;
+            togglePreselectPosition(pos);
+          } else {
+            onSelect(pos);
+          }
+        }}
+        onPointerOver={(e) => {
+          e.stopPropagation();
+          setHovered(true);
+          document.body.style.cursor = "pointer";
+        }}
+        onPointerOut={() => {
+          setHovered(false);
+          document.body.style.cursor = "auto";
+        }}
+      >
+        <boxGeometry args={[pw, 0.6, pd]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+      </mesh>
+    </group>
+  );
+}
+
+function TramoItem({
+  tramo,
+}: {
+  tramo: ProcessedTramo3D;
+}) {
+  const selectedPosition = useBodegaViewerStore((s) => s.selectedPosition);
+  const selectPosition = useBodegaViewerStore((s) => s.selectPosition);
+  const showPositions = useBodegaViewerStore((s) => s.showPositions);
+  const isPreselectionMode = useBodegaViewerStore((s) => s.isPreselectionMode);
+  const preselectedPositions = useBodegaViewerStore((s) => s.preselectedPositions);
+
+  const hasPreselectedInTramo = Boolean(
+    tramo.positions?.some((pos) =>
+      preselectedPositions.some((p) => p.positionId === pos.positionId),
+    ),
+  );
+
+  const isGoingToSelectPositions =
+    isPreselectionMode || showPositions || hasPreselectedInTramo;
+
   const resolved = resolveRackStatus(tramo.status);
   const statusKey = (resolved?.textValue ??
     "Available") as keyof typeof RACK_STATUS_COLORS;
   const statusColor = RACK_STATUS_COLORS[statusKey] ?? "#4ade80";
-  const isOccupied = statusKey === "Occupied";
 
   // Dimensiones del tramo
   const w = tramo.width;
   const l = tramo.length;
 
-  const railColor = isSelected
-    ? "#38bdf8"
-    : hovered
-      ? "#fde047"
-      : TRAMO_STRIP_COLOR;
+  const railColor = TRAMO_STRIP_COLOR;
 
   const badgeW = Math.min(Math.max(w * 0.75, 1.4), 2.2);
   const badgeH = badgeW * 0.28;
+
+  const hasIndividualPositions =
+    tramo.positions && tramo.positions.length > 0;
 
   return (
     <group
@@ -54,10 +161,10 @@ function TramoItem({
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.015, 0]}>
         <planeGeometry args={[w, l]} />
         <meshStandardMaterial
-          color={isSelected ? "#0369a1" : hovered ? "#1e293b" : "#0f172a"}
+          color="#0f172a"
           roughness={0.8}
           transparent
-          opacity={isSelected ? 0.7 : hovered ? 0.5 : 0.25}
+          opacity={0.25}
         />
       </mesh>
 
@@ -122,75 +229,32 @@ function TramoItem({
         position={[0, 0.025, 0]}
         size={[badgeW, badgeH]}
         accentColor={statusColor}
-        textColor={isSelected ? "#38bdf8" : "#cbd5e1"}
+        textColor="#cbd5e1"
         subTextColor="#64748b"
         opacity={0.65}
       />
 
-      {/* 4. Mercancía / Carga en el tramo si está ocupado */}
-      {isOccupied && (
-        <group position={[0, 0, 0]}>
-          {/* Pallet base */}
-          <mesh position={[0, 0.08, 0]} castShadow>
-            <boxGeometry
-              args={[
-                Math.min(w * 0.7, 1.2),
-                0.15,
-                Math.min(l * 0.7, 1.0),
-              ]}
+      {/* 4. Posiciones individuales con coordenadas exactas */}
+      {hasIndividualPositions && isGoingToSelectPositions ? (
+        <group>
+          {tramo.positions.map((pos) => (
+            <TramoPositionSlot
+              key={`tramo-pos-${pos.positionId}`}
+              pos={pos}
+              isSelected={selectedPosition?.positionId === pos.positionId}
+              onSelect={(p) => {
+                selectPosition(p);
+              }}
             />
-            <meshStandardMaterial color="#c4a574" roughness={0.7} />
-          </mesh>
-          {/* Bulto / Carga */}
-          <mesh position={[0, 0.42, 0]} castShadow>
-            <boxGeometry
-              args={[
-                Math.min(w * 0.65, 1.15),
-                0.55,
-                Math.min(l * 0.65, 0.95),
-              ]}
-            />
-            <meshStandardMaterial color="#0284c7" roughness={0.4} />
-          </mesh>
-          {/* Segundo nivel si admite apilado / estibado */}
-          {tramo.allowsStacking && (
-            <mesh position={[0, 0.85, 0]} castShadow>
-              <boxGeometry
-                args={[
-                  Math.min(w * 0.6, 1.1),
-                  0.45,
-                  Math.min(l * 0.6, 0.9),
-                ]}
-              />
-              <meshStandardMaterial color="#0369a1" roughness={0.4} />
-            </mesh>
-          )}
+          ))}
         </group>
-      )}
+      ) : null}
 
-      {/* 5. Hitbox para interacción y selección */}
-      <mesh
-        position={[0, 0.25, 0]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(tramo);
-        }}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          setHovered(true);
-        }}
-        onPointerOut={() => setHovered(false)}
-      >
-        <boxGeometry args={[w, 0.5, l]} />
-        <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-      </mesh>
     </group>
   );
 }
 
-export function TramoFloors({ tramos, onSelectTramo }: TramoFloorsProps) {
-  const focusedTramo = useBodegaViewerStore((s) => s.focusedTramo);
-
+export function TramoFloors({ tramos }: TramoFloorsProps) {
   if (tramos.length === 0) return null;
 
   return (
@@ -199,11 +263,8 @@ export function TramoFloors({ tramos, onSelectTramo }: TramoFloorsProps) {
         <TramoItem
           key={`tramo-3d-${tramo.tramoId}`}
           tramo={tramo}
-          isSelected={focusedTramo?.tramoId === tramo.tramoId}
-          onSelect={(t) => onSelectTramo?.(t)}
         />
       ))}
     </group>
   );
 }
-

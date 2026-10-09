@@ -16,8 +16,18 @@ export interface SectionPositionsPayload {
   racks?: RackPositionPayload[];
 }
 
+export interface PalletPositioningPayload {
+  type: number;
+  count_pallets: number;
+  width?: number;
+  length?: number;
+  bulks_per_pallet?: number | null;
+}
+
 export interface AssignPositionsBody {
-  sections: SectionPositionsPayload[];
+  sections?: SectionPositionsPayload[];
+  merchandise_type?: number;
+  pallets?: PalletPositioningPayload[];
 }
 
 export interface AssignPositionsRequest

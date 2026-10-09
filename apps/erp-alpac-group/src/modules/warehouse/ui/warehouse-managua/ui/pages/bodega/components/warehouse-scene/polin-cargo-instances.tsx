@@ -1,18 +1,28 @@
 import { useLayoutEffect, useMemo, useRef } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
-import type { ProcessedRack3D } from "../../hooks/use-warehouse-3d-data";
+import type {
+  ProcessedRack3D,
+  ProcessedTramo3D,
+} from "../../hooks/use-warehouse-3d-data";
 import {
   useCardboardBoxAsset,
   usePolinAsset,
 } from "../../hooks/use-warehouse-gltf-assets";
-import { buildDynamicRacksPolinCargo } from "../../utils/polin-cargo-layout";
+import { buildDynamicWarehouseCargo } from "../../utils/polin-cargo-layout";
+import { useBodegaViewerStore } from "../../stores/use-bodega-viewer-store";
+import { resolveRackStatus } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
+import type { ProcessedPosition3D } from "../../types/warehouse-3d.types";
 
 interface PolinCargoInstancesProps {
   racks: ProcessedRack3D[];
+  tramos?: ProcessedTramo3D[];
 }
 
-export function PolinCargoInstances({ racks = [] }: PolinCargoInstancesProps) {
+export function PolinCargoInstances({
+  racks = [],
+  tramos = [],
+}: PolinCargoInstancesProps) {
   const polinAsset = usePolinAsset();
   const boxAsset = useCardboardBoxAsset();
   const polinesRef = useRef<THREE.InstancedMesh>(null);
@@ -25,8 +35,8 @@ export function PolinCargoInstances({ racks = [] }: PolinCargoInstancesProps) {
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   const { polines, boxes, statusMarkers } = useMemo(
-    () => buildDynamicRacksPolinCargo(racks),
-    [racks],
+    () => buildDynamicWarehouseCargo(racks, tramos),
+    [racks, tramos],
   );
 
   const maintenanceMarkers = useMemo(
@@ -41,14 +51,13 @@ export function PolinCargoInstances({ racks = [] }: PolinCargoInstancesProps) {
     () => statusMarkers.filter((m) => m.status === "Reserved"),
     [statusMarkers],
   );
-
   const markerGeometry = useMemo(() => new THREE.BoxGeometry(1, 1, 1), []);
 
   const maintenanceMatRef = useRef<THREE.MeshStandardMaterial>(null);
   const blockedMatRef = useRef<THREE.MeshStandardMaterial>(null);
   const reservedMatRef = useRef<THREE.MeshStandardMaterial>(null);
 
-  // Animación continua de pulsación para estados de advertencia y reserva
+  // Animación continua de pulsación para estados de advertencia
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     if (maintenanceMatRef.current) {
@@ -58,8 +67,7 @@ export function PolinCargoInstances({ racks = [] }: PolinCargoInstancesProps) {
       blockedMatRef.current.emissiveIntensity = 0.25 + 0.35 * Math.sin(t * 2.8);
     }
     if (reservedMatRef.current) {
-      reservedMatRef.current.opacity = 0.45 + 0.2 * Math.sin(t * 2.0);
-      reservedMatRef.current.emissiveIntensity = 0.25 + 0.3 * Math.sin(t * 2.0);
+      reservedMatRef.current.emissiveIntensity = 0.25 + 0.3 * Math.sin(t * 2);
     }
   });
 
@@ -142,6 +150,56 @@ export function PolinCargoInstances({ racks = [] }: PolinCargoInstancesProps) {
     blockedMarkers.length > 0 ||
     reservedMarkers.length > 0;
 
+  const selectPosition = useBodegaViewerStore((s) => s.selectPosition);
+  const setHoveredPosition = useBodegaViewerStore((s) => s.setHoveredPosition);
+  const isPreselectionMode = useBodegaViewerStore((s) => s.isPreselectionMode);
+  const togglePreselectPosition = useBodegaViewerStore(
+    (s) => s.togglePreselectPosition,
+  );
+
+  const handleInstanceClick = (
+    e: ThreeEvent<MouseEvent>,
+    list: { position?: ProcessedPosition3D }[],
+  ) => {
+    e.stopPropagation();
+    if (e.instanceId === undefined) return;
+    const target = list[e.instanceId];
+    if (!target?.position) return;
+
+    if (isPreselectionMode) {
+      const resolved = resolveRackStatus(target.position.status);
+      const statusKey =
+        resolved?.textValue ??
+        (target.position.isOccupied ? "Occupied" : "Available");
+      const isAvailable =
+        statusKey === "Available" && !target.position.isOccupied;
+      if (!isAvailable) {
+        return;
+      }
+      togglePreselectPosition(target.position);
+    } else {
+      selectPosition(target.position);
+    }
+  };
+
+  const handleInstancePointerOver = (
+    e: ThreeEvent<PointerEvent>,
+    list: { position?: ProcessedPosition3D }[],
+  ) => {
+    e.stopPropagation();
+    if (e.instanceId === undefined) return;
+    const target = list[e.instanceId];
+    if (!target?.position) return;
+
+    setHoveredPosition(target.position);
+    document.body.style.cursor = "pointer";
+  };
+
+  const handleInstancePointerOut = () => {
+    setHoveredPosition(null);
+    document.body.style.cursor = "auto";
+  };
+
   if (!hasAnyItem) return null;
 
   return (
@@ -155,7 +213,9 @@ export function PolinCargoInstances({ racks = [] }: PolinCargoInstancesProps) {
           castShadow
           receiveShadow
           frustumCulled={false}
-          raycast={() => {}}
+          onClick={(e) => handleInstanceClick(e, polines)}
+          onPointerOver={(e) => handleInstancePointerOver(e, polines)}
+          onPointerOut={handleInstancePointerOut}
         />
       )}
 
@@ -168,7 +228,9 @@ export function PolinCargoInstances({ racks = [] }: PolinCargoInstancesProps) {
           castShadow
           receiveShadow
           frustumCulled={false}
-          raycast={() => {}}
+          onClick={(e) => handleInstanceClick(e, boxes)}
+          onPointerOver={(e) => handleInstancePointerOver(e, boxes)}
+          onPointerOut={handleInstancePointerOut}
         />
       )}
 
@@ -181,7 +243,9 @@ export function PolinCargoInstances({ racks = [] }: PolinCargoInstancesProps) {
           castShadow
           receiveShadow
           frustumCulled={false}
-          raycast={() => {}}
+          onClick={(e) => handleInstanceClick(e, maintenanceMarkers)}
+          onPointerOver={(e) => handleInstancePointerOver(e, maintenanceMarkers)}
+          onPointerOut={handleInstancePointerOut}
         >
           <meshStandardMaterial
             ref={maintenanceMatRef}
@@ -203,7 +267,9 @@ export function PolinCargoInstances({ racks = [] }: PolinCargoInstancesProps) {
           castShadow
           receiveShadow
           frustumCulled={false}
-          raycast={() => {}}
+          onClick={(e) => handleInstanceClick(e, blockedMarkers)}
+          onPointerOver={(e) => handleInstancePointerOver(e, blockedMarkers)}
+          onPointerOut={handleInstancePointerOut}
         >
           <meshStandardMaterial
             ref={blockedMatRef}
@@ -216,7 +282,7 @@ export function PolinCargoInstances({ racks = [] }: PolinCargoInstancesProps) {
         </instancedMesh>
       )}
 
-      {/* Marcadores de Reservado con silueta holográfica morada */}
+      {/* Indicador elevado de una posición reservada para descargue */}
       {reservedMarkers.length > 0 && (
         <instancedMesh
           key={`reserved-${reservedMarkers.length}`}
@@ -225,13 +291,15 @@ export function PolinCargoInstances({ racks = [] }: PolinCargoInstancesProps) {
           castShadow
           receiveShadow
           frustumCulled={false}
-          raycast={() => {}}
+          onClick={(e) => handleInstanceClick(e, reservedMarkers)}
+          onPointerOver={(e) => handleInstancePointerOver(e, reservedMarkers)}
+          onPointerOut={handleInstancePointerOut}
         >
           <meshStandardMaterial
             ref={reservedMatRef}
             color="#c084fc"
             transparent
-            opacity={0.55}
+            opacity={0.85}
             roughness={0.25}
             metalness={0.1}
             emissive="#9333ea"
@@ -239,6 +307,7 @@ export function PolinCargoInstances({ racks = [] }: PolinCargoInstancesProps) {
           />
         </instancedMesh>
       )}
+
     </group>
   );
 }

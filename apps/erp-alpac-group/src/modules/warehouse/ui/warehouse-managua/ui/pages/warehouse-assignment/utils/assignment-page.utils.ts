@@ -98,6 +98,28 @@ export function canSendAssignmentToUnloading(
   return !isAssignmentPendingOrBeyond(status);
 }
 
+export function canStartTask(
+  status?: AssignmentOperationalStatus | number | string | null,
+): boolean {
+  if (status == null) return false;
+  return (
+    status === AssignmentOperationalStatus.Pending ||
+    status === 1 ||
+    status === "Pending"
+  );
+}
+
+export function canAssignPositions(
+  status?: AssignmentOperationalStatus | number | string | null,
+): boolean {
+  if (status == null) return false;
+  return (
+    status === AssignmentOperationalStatus.InProgress ||
+    status === 2 ||
+    status === "InProgress"
+  );
+}
+
 const DESTINATION_LABELS: Record<string | number, string> = {
   Warehouse: DestinationTypeLabels[DestinationType.Warehouse],
   [DestinationType.Warehouse]: DestinationTypeLabels[DestinationType.Warehouse],

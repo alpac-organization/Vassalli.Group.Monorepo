@@ -71,6 +71,7 @@ export function SelectBodegaModal({
       <div className="mt-4 flex flex-col gap-4">
         <Dropdown
           label="Bodega"
+          appearance="dark"
           options={bodegaOptions}
           value={tempBodegaId || undefined}
           onChange={(val) => setTempBodegaId(val)}
@@ -85,7 +86,7 @@ export function SelectBodegaModal({
               size="medium"
               label="Cancelar"
               onClick={onClose}
-              className="rounded-md border border-slate-300 dark:border-slate-600 bg-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="w-full! min-h-[48px]! shrink-0 text-[15px]! leading-snug! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:flex-1 sm:min-w-0"
             />
           )}
           <Button
