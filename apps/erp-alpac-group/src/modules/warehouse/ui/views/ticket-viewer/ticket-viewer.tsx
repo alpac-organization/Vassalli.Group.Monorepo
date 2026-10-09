@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { data, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { Breadcrumb, Badges, Card, StatsCard, DataTable } from "@alpac/design-system";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Breadcrumb, Card, DataTable } from "@alpac/design-system";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -74,8 +74,6 @@ export const TicketViewer = () => {
    });
 
   const { data: merchandiseLocation, isLoading, isError, error, refetch } = GetAssignmentDetailsByCode;
-
-  console.log(JSON.stringify(merchandiseLocation, null, 3))
 
    useEffect(() => {
       if (hasHydrated && companyId && moduleCode && code) {
