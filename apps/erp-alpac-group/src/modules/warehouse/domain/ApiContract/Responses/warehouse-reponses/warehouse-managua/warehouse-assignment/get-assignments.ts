@@ -15,6 +15,9 @@ export interface AssignmentOperationalDto {
   has_machinery_assigned: boolean;
   has_collaborators_assigned: boolean;
   created_at: string;
+  warehouse_id?: string;
+  warehouse_code?: string;
+  warehouse_name?: string;
 }
 
 export interface GetAssignmentsResponse

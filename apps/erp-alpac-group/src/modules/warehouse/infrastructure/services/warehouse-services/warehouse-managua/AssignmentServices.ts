@@ -17,6 +17,9 @@ import type { GetAssignmentCollaboratorsRequest } from "@app/modules/warehouse/d
 import type { GetAssignmentMachineryRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-machinery";
 import type { AssignPositionsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/assign-positions";
 import type { SendToUnloadingRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/send-to-unloading";
+import type { StartTaskRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/start-task";
+import type { FinishTaskRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/finish-task";
+import type { GetPositionDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-position-detail";
 
 import type { GetAssignmentsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignments";
 import type { GetAssignmentDetailsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-details";
@@ -24,6 +27,7 @@ import type { GetAssignmentCollaboratorsResponse } from "@app/modules/warehouse/
 import type { GetAssignmentMachineryResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-machinery";
 import type { AssignPositionsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/assign-positions";
 import type { GetMachineryCatalogResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-machinery-catalog";
+import type { PositionDetailResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-position-detail";
 import type { AssignmentDetailsByCodeRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-details-by-code";
 import type { AssignmentDetailsByCode } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-details-by-code";
 
@@ -247,8 +251,11 @@ export class WarehouseAssignmentServices
       assignment_id,
       ...body
     } = payload;
-    const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${operational_order_id}/assignments/${assignment_id}/assignment-positions`;
-    return this.httpHandler.post<AssignPositionsResponse>(url, body);
+    const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${operational_order_id}/assignments/${assignment_id}/assignment-resources`;
+    return this.httpHandler.patch<AssignPositionsResponse>(
+      url,
+      cleanParams(body),
+    );
   }
 
   public async getMachineryCatalog(
@@ -268,5 +275,31 @@ export class WarehouseAssignmentServices
       payload;
     const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${operational_order_id}/assignments/${assignment_id}/send-to-unloading`;
     return this.httpHandler.post<void>(url, {});
+  }
+
+  public async startTask(
+    payload: StartTaskRequest,
+  ): Promise<void> {
+    const { company_id, module_code, operational_order_id, assignment_id } =
+      payload;
+    const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${operational_order_id}/assignments/${assignment_id}/start-task`;
+    return this.httpHandler.post<void>(url, {});
+  }
+
+  public async finishTask(
+    payload: FinishTaskRequest,
+  ): Promise<void> {
+    const { company_id, module_code, operational_order_id, assignment_id } =
+      payload;
+    const url = `/companies/${company_id}/modules/${module_code}/operational-orders/${operational_order_id}/assignments/${assignment_id}/finish-task`;
+    return this.httpHandler.post<void>(url, {});
+  }
+
+  public async getPositionDetail(
+    payload: GetPositionDetailRequest,
+  ): Promise<PositionDetailResponse> {
+    const { company_id, module_code, position_id } = payload;
+    const url = `/companies/${company_id}/modules/${module_code}/positions/${position_id}/position-detail`;
+    return this.httpHandler.get<PositionDetailResponse>(url);
   }
 }

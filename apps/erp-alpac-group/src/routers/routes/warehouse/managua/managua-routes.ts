@@ -1,7 +1,7 @@
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 import {
-	Building2,
 	ClipboardListIcon,
+	PackageCheck,
 	TicketIcon,
 	TruckIcon,
 	WarehouseIcon,
@@ -30,12 +30,12 @@ export const getManaguaWarehouseRoutes = () => {
     icon: ClipboardListIcon,
   };
 
-	const warehouseListSection: SidebarLink = {
-		id: "warehouse-list",
-		label: "Lista de bodegas",
-		path: "warehouse",
-		icon: Building2,
-	};
+  const warehouseDescargueSection: SidebarLink = {
+    id: "descargue",
+    label: "Descargue",
+    path: "descargue",
+    icon: PackageCheck,
+  };
 
 	const BodegaSection: SidebarLink = {
 		id: "warehouse-3d",
@@ -55,7 +55,7 @@ export const getManaguaWarehouseRoutes = () => {
 		warehouseManaguaSection,
 		ongoingOperationsSection,
 		warehouseAssignmentSection,
-		warehouseListSection,
+		warehouseDescargueSection,
 		BodegaSection,
 		ticketSection
 	};
