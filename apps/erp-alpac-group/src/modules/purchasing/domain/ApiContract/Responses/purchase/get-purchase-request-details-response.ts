@@ -48,8 +48,8 @@ export interface PurchaseRequestProductInformation {
 	description: string | null;
 	justification: string | null;
 	additional_data: string | null;
-	product_details: PurchaseRequestProductDetails;
-	unit_measure_information: PurchaseRequestUnitMeasureInformation;
+	product_details: PurchaseRequestProductDetails | null;
+	unit_measure_information: PurchaseRequestUnitMeasureInformation | null;
 	quotations: PurchaseRequestProductQuotation[];
 	recommendations?: PurchaseRequestItemRecommendations | null;
 }
@@ -80,7 +80,7 @@ export interface PurchaseRequestProductDetails {
 	/** @deprecated Prefer `code`. */
 	product_code?: string | null;
 	is_tax_exempt?: boolean;
-	category_information: PurchaseRequestCategoryInformation;
+	category_information: PurchaseRequestCategoryInformation | null;
 	supplier_products?: PurchaseRequestSupplierProduct[];
 }
 

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Avatar, Badges, Button, Modal } from "@alpac/design-system";
+import { Avatar, Badges, Button, Dropdown, Modal } from "@alpac/design-system";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { BanIcon, BuildingIcon, CalendarCheckIcon, CalendarIcon, CheckIcon, FileClockIcon, FileTextIcon, MailIcon, NotebookTextIcon, XIcon } from "lucide-react";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
@@ -28,6 +29,13 @@ import {
 	pdfButtonClass, rejectButtonClass, getActionText,
 	getConfirmQuestion, LoadingMessage
 } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/utils/styles.purchasing";
+import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
+import { CatalogEnum } from "@app/core/enums/catalog.enum";
+import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
+
+const rejectDropdownClassName =
+	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
+const rejectLabelClassName = "text-black! dark:text-white!";
 
 export const PurchaseRequestDetailModal = ({
 	isOpen,
@@ -39,6 +47,7 @@ export const PurchaseRequestDetailModal = ({
 
 	const { companyId, moduleCode, role } = useUserStore();
 	const { getMappedError } = useMappedError();
+	const { handleRequestWarning, AlertComponent } = useAlertState();
 
 	const [confirmModal, setConfirmModal] = useState<{
 		isOpen: boolean;
@@ -54,6 +63,22 @@ export const PurchaseRequestDetailModal = ({
 	const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 	const [imagesModal, setImagesModal] = useState<{ productName: string; images: ImagePayload[] } | null>(null);
 	const [additionalData, setAdditionalData] = useState<PurchaseRequestAdditionalData[]>([]);
+	const [rejectionReasonId, setRejectionReasonId] = useState<number | null>(null);
+
+	const isRejectConfirmOpen =
+		confirmModal.isOpen && confirmModal.type === "REJECT";
+
+	const { GetCatalogListQuery: rejectionReasonsQuery } = useCatalog(
+		{
+			company_id: companyId,
+			catalog_type_id: CatalogEnum.PURCHASE_REJECTION_REASONS,
+		},
+		{ enabled: isRejectConfirmOpen },
+	);
+
+	const rejectionReasonOptions = mapCatalogToOptions(
+		rejectionReasonsQuery.data ?? [],
+	);
 
 	const {
 		GetPurchaseRequestDetails,
@@ -120,16 +145,15 @@ export const PurchaseRequestDetailModal = ({
 	}, [details?.additional_data]);
 
 	const openConfirm = (type: ConfirmActionType) => {
-
 		const action = getActionText(type);
-
 		setActionType(action);
-
+		setRejectionReasonId(null);
 		setConfirmModal({ isOpen: true, type });
 	};
 
 	const closeConfirm = () => {
 		if (isProcessing) return;
+		setRejectionReasonId(null);
 		setConfirmModal({ isOpen: false, type: "CANCEL" });
 	};
 
@@ -188,16 +212,32 @@ export const PurchaseRequestDetailModal = ({
 
 		if (!purchaseRequestId || !newStatus) return;
 
+		if (type === "REJECT" && rejectionReasonId == null) {
+			handleRequestWarning(
+				"Debe seleccionar un motivo de rechazo.",
+				"Campo requerido",
+			);
+			return;
+		}
+
+		const optionalComment = reason?.trim() || null;
+
 		const payload: ProcessPurchaseRequestPayload = {
 			company_id: companyId,
 			module_code: moduleCode,
 			purchase_request_id: purchaseRequestId,
 			new_status: newStatus,
-			...(reason ? { reason_rejection: reason } : {}),
+			...(type === "REJECT"
+				? {
+						reason_rejection_id: rejectionReasonId,
+						...(optionalComment ? { reason_rejection: optionalComment } : {}),
+					}
+				: {}),
 		};
 
 		ProcessPurchaseRequest.mutate(payload, {
 			onSuccess() {
+				setRejectionReasonId(null);
 				setConfirmModal({ isOpen: false, type: "CANCEL" });
 				onRequestSuccess?.(getSuccessMessage(type));
 				onClose();
@@ -508,12 +548,40 @@ export const PurchaseRequestDetailModal = ({
 				onClose={closeConfirm}
 				type={confirmModal.type}
 				isLoading={isProcessing}
-				disabled={isProcessing}
+				disabled={isProcessing || (isRejectConfirmOpen && rejectionReasonsQuery.isFetching)}
 				handleFinalAction={handleProcessPurchaseRequest}
 				hasObservation={confirmModal.type === "REJECT"}
-				isObservationRequired
-				observationLabel="Razón / Motivo"
-			/>
+				isObservationRequired={false}
+				observationLabel="Comentario (opcional)"
+			>
+				{isRejectConfirmOpen ? (
+					<Dropdown
+						label="Motivo de rechazo"
+						placeholder={
+							rejectionReasonsQuery.isFetching
+								? "Cargando motivos..."
+								: "Seleccione un motivo"
+						}
+						appearance="dark"
+						isRequired
+						options={rejectionReasonOptions}
+						value={rejectionReasonId ?? ""}
+						onChange={(value) => {
+							if (value === "" || value == null) {
+								setRejectionReasonId(null);
+								return;
+							}
+							setRejectionReasonId(Number(value));
+						}}
+						className={rejectDropdownClassName}
+						labelClassName={rejectLabelClassName}
+						valueClassName={rejectLabelClassName}
+						disabled={rejectionReasonsQuery.isFetching}
+					/>
+				) : null}
+			</ConfirmModal>
+
+			{AlertComponent}
 		</>
 	);
 };

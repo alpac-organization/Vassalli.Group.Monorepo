@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button, DataTable, Pagination, type TableColumn } from "@alpac/design-system";
-import { PackagePlusIcon } from "lucide-react";
+import { DownloadIcon, PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { CompanyMatadata, type CompanyType } from "@app/core/enums/company.enum";
 import { PurchaseRequestDetailModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-detail-modal/purchase-request-detail-modal";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import { PurchaseRequestFilters } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-filters/purchase-request-filters";
+import { generateMonthlyPurchaseReportPdf } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/monthly-purchase-report-pdf/monthly-purchase-report-pdf.generate";
 
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
@@ -31,6 +33,7 @@ export const MonthlyMaterialTab = ({
 }: MonthlyMaterialTabProps) => {
 
 	const { companyId, moduleCode, role, companyAlias } = useUserStore();
+	const { urlImage } = useCompanyStore();
 	const companyAcronym =
 		CompanyMatadata[companyAlias.toUpperCase() as CompanyType]?.acronym ??
 		CompanyMatadata.ALPAC.acronym;
@@ -39,6 +42,7 @@ export const MonthlyMaterialTab = ({
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 	const [requestDetail, setRequestDetail] = useState<GetPurchaseRequestResponse | null>(null);
 
 	const getDefaultFilters = (): GetPurchaseRequestPayload => ({
@@ -52,7 +56,7 @@ export const MonthlyMaterialTab = ({
 
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>(getDefaultFilters);
 
-	const { GetPurchaseRequests, DeletePurchaseRequest } = usePurchase({
+	const { GetPurchaseRequests, DeletePurchaseRequest, GetMonthlyPurchaseReport } = usePurchase({
 		getPurchaseRequestsPayload: {
 			...filters,
 			company_id: companyId,
@@ -60,6 +64,12 @@ export const MonthlyMaterialTab = ({
 			branch_id: isAdministrator ? undefined : currentBranchId,
 			request_type: PurchaseRequestEnum.Monthly.textValue,
 			page_size: PAGE_SIZE,
+		},
+		getMonthlyPurchaseReportPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+			year: filters.year,
+			month: filters.month,
 		},
 	});
 
@@ -134,13 +144,40 @@ export const MonthlyMaterialTab = ({
 			...(isAdministrator ? {} : { branch_id: currentBranchId }),
 			request_type: PurchaseRequestEnum.Monthly.textValue,
 			code: data.code?.trim() || undefined,
-			status: data.status || undefined,
+			status: data.status ?? undefined,
 			area_id: data.area_id || undefined,
+			ownership: data.ownership ?? undefined,
 			year,
 			month,
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		});
+	};
+
+	const monthlyReportItems = GetMonthlyPurchaseReport.data ?? [];
+	const canDownloadReport =
+		monthlyReportItems.length > 0 &&
+		!GetMonthlyPurchaseReport.isFetching &&
+		!isGeneratingReport;
+
+	const handleDownloadReport = async () => {
+		if (!canDownloadReport) return;
+
+		try {
+			setIsGeneratingReport(true);
+			const blob = await generateMonthlyPurchaseReportPdf({
+				items: monthlyReportItems,
+				logoUrl: urlImage,
+				year: filters.year,
+				month: filters.month,
+			});
+			const url = URL.createObjectURL(blob);
+			window.open(url, "_blank", "noopener,noreferrer");
+		} catch {
+			onRequestError("Error al generar el reporte mensual de productos.");
+		} finally {
+			setIsGeneratingReport(false);
+		}
 	};
 
 	const handleClearFilters = () => {
@@ -212,6 +249,16 @@ export const MonthlyMaterialTab = ({
 						setRequestDetail(null);
 						setIsModalOpen(true);
 					}}
+				/>
+				<Button
+					type="button"
+					size="giant"
+					label="Descargar Reporte"
+					icon={<DownloadIcon size={20} />}
+					disabled={!canDownloadReport}
+					isLoading={isGeneratingReport || GetMonthlyPurchaseReport.isFetching}
+					className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-slate-600! dark:bg-slate-700!"
+					onClick={handleDownloadReport}
 				/>
 			</div>
 

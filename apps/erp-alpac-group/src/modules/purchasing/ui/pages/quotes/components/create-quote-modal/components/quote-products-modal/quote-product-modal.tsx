@@ -25,7 +25,11 @@ import {
 	quoteFormPrimaryButtonClassName,
 	quoteFormSecondaryButtonClassName,
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
-import { TimeTypeEnum, TimeTypeOptions } from "@app/core/enums/time-type.enum";
+import {
+	normalizeTimeTypeToApiValue,
+	TimeTypeEnum,
+	TimeTypeOptions,
+} from "@app/core/enums/time-type.enum";
 import type { TimeTypeValue } from "@app/core/enums/time-type.enum";
 import { PaymentMethodEnum } from "@app/core/enums/payment-method.enum";
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
@@ -66,7 +70,7 @@ const productQualityOptions = ProductQualityOptions.map((option) => ({
 }));
 
 const deliveryTimeOptions = TimeTypeOptions.filter(
-	(option) => option.value !== TimeTypeEnum.Years.stringValue,
+	(option) => option.value !== TimeTypeEnum.Year.stringValue,
 );
 
 const timeTypeOptions = TimeTypeOptions;
@@ -166,23 +170,8 @@ const buildPaymentMethodOptions = (methods: SupplierPaymentMethod[]) =>
 		label: resolvePaymentMethodLabel(m.payment_method_type),
 	}));
 
-const normalizeTimeTypeValue = (raw: unknown): TimeTypeValue | undefined => {
-	if (raw == null || raw === "") return undefined;
-	if (typeof raw === "string") {
-		const match = Object.values(TimeTypeEnum).find(
-			(option) =>
-				option.stringValue === raw ||
-				option.stringValue.toLowerCase() === raw.toLowerCase() ||
-				option.stringValue.toLowerCase().startsWith(raw.toLowerCase()),
-		);
-		return match?.stringValue;
-	}
-	if (typeof raw === "number") {
-		return Object.values(TimeTypeEnum).find((option) => option.value === raw)
-			?.stringValue;
-	}
-	return undefined;
-};
+const normalizeTimeTypeValue = (raw: unknown): TimeTypeValue | undefined =>
+	normalizeTimeTypeToApiValue(raw);
 
 const toNumberOrUndefined = (value: unknown) => {
 	if (value === "" || value === null || value === undefined) return undefined;
@@ -322,6 +311,7 @@ function QuotationItemFields({
 		control,
 		register,
 		setValue,
+		clearErrors,
 		formState: { errors },
 	} = useFormContext<QuoteProductFormValues>();
 
@@ -345,6 +335,10 @@ function QuotationItemFields({
 		control,
 		name: `products.${productIndex}.items.${itemIndex}.preferred_payment_method`,
 	});
+	const currentPaymentMethod = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.payment_method`,
+	});
 	const attachmentsForm = useWatch({
 		control,
 		name: `products.${productIndex}.items.${itemIndex}.attachments_form`,
@@ -365,13 +359,45 @@ function QuotationItemFields({
 	const lockedPaymentMethod = hasSinglePaymentMethod
 		? activePaymentMethods[0].payment_method_type
 		: undefined;
+	const preferredInActiveMethods =
+		preferredPaymentNormalized &&
+		activePaymentMethods.some(
+			(method) => method.payment_method_type === preferredPaymentNormalized,
+		)
+			? preferredPaymentNormalized
+			: undefined;
 
 	useEffect(() => {
 		if (!lockedPaymentMethod) return;
 		setValue(`${fieldPath}.payment_method`, lockedPaymentMethod, {
 			shouldValidate: true,
 		});
-	}, [fieldPath, lockedPaymentMethod, setValue]);
+		clearErrors(`${fieldPath}.payment_method`);
+	}, [clearErrors, fieldPath, lockedPaymentMethod, setValue]);
+
+	useEffect(() => {
+		if (hasNoPaymentMethods) return;
+		clearErrors(`${fieldPath}.payment_method`);
+	}, [clearErrors, fieldPath, hasNoPaymentMethods]);
+
+	useEffect(() => {
+		if (lockedPaymentMethod || !preferredInActiveMethods) return;
+		if (currentPaymentMethod) {
+			clearErrors(`${fieldPath}.payment_method`);
+			return;
+		}
+		setValue(`${fieldPath}.payment_method`, preferredInActiveMethods, {
+			shouldValidate: true,
+		});
+		clearErrors(`${fieldPath}.payment_method`);
+	}, [
+		clearErrors,
+		currentPaymentMethod,
+		fieldPath,
+		lockedPaymentMethod,
+		preferredInActiveMethods,
+		setValue,
+	]);
 
 	return (
 		<AccordionItem
@@ -707,62 +733,66 @@ function QuotationItemFields({
 				) : null}
 
 				{hasNoPaymentMethods ? (
-					<>
-						<div
-							role="alert"
-							className="flex w-full items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2.5"
-						>
-							<CircleAlert
-								size={18}
-								className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-300"
-								aria-hidden
-							/>
-							<p className="m-0 text-[13px] text-amber-800 dark:text-amber-200">
-								El proveedor no tiene métodos de pago configurados. Configure al
-								menos uno en el catálogo de proveedores.
-							</p>
-						</div>
-						<Controller
-							control={control}
-							name={`${fieldPath}.payment_method`}
-							rules={{
-								validate: () =>
-									"El proveedor debe tener al menos un método de pago configurado.",
-							}}
-							render={() => <input type="hidden" />}
+					<div
+						role="alert"
+						className="flex w-full items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2.5"
+					>
+						<CircleAlert
+							size={18}
+							className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-300"
+							aria-hidden
 						/>
-						{itemErrors?.payment_method?.message ? (
-							<p className="m-0 text-[13px] text-red-500">
-								{itemErrors.payment_method.message}
-							</p>
-						) : null}
-					</>
-				) : lockedPaymentMethod ? (
-					<div className="flex flex-col gap-1">
-						<span
-							className={`text-[13px] font-medium ${quoteFormLabelClassName}`}
-						>
-							Método de pago
-						</span>
-						<span className="text-sm text-slate-600 dark:text-slate-300">
-							{resolvePaymentMethodLabel(lockedPaymentMethod)}
-							{" "}
-							(asignado automáticamente)
-						</span>
-						<input
-							type="hidden"
-							{...register(`${fieldPath}.payment_method`)}
-						/>
+						<p className="m-0 text-[13px] text-amber-800 dark:text-amber-200">
+							El proveedor no tiene métodos de pago configurados. Configure al
+							menos uno en el catálogo de proveedores.
+						</p>
 					</div>
-				) : (
-					<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<Controller
-							control={control}
-							name={`${fieldPath}.payment_method`}
-							rules={{
-								required: "Seleccione un método de pago.",
-							}}
-							render={({ field }) => (
+				) : null}
+
+				<Controller
+					control={control}
+					name={`${fieldPath}.payment_method`}
+					rules={{
+						validate: (value) => {
+							if (hasNoPaymentMethods) {
+								return "El proveedor debe tener al menos un método de pago configurado.";
+							}
+							return Boolean(normalizePaymentMethodType(value)) ||
+								"Seleccione un método de pago.";
+						},
+					}}
+					render={({ field }) =>
+						lockedPaymentMethod ? (
+							<div className="flex flex-col gap-1">
+								<span
+									className={`text-[13px] font-medium ${quoteFormLabelClassName}`}
+								>
+									Método de pago
+								</span>
+								<span className="text-sm text-slate-600 dark:text-slate-300">
+									{resolvePaymentMethodLabel(lockedPaymentMethod)}{" "}
+									(asignado automáticamente)
+								</span>
+								<input
+									type="hidden"
+									name={field.name}
+									ref={field.ref}
+									value={field.value ?? lockedPaymentMethod}
+									onBlur={field.onBlur}
+									onChange={field.onChange}
+								/>
+							</div>
+						) : hasNoPaymentMethods ? (
+							<input
+								type="hidden"
+								name={field.name}
+								ref={field.ref}
+								value={field.value ?? ""}
+								onBlur={field.onBlur}
+								onChange={field.onChange}
+							/>
+						) : (
+							<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 								<Dropdown
 									label="Método de pago"
 									placeholder="Seleccione"
@@ -770,16 +800,26 @@ function QuotationItemFields({
 									isRequired
 									options={paymentMethodOptions}
 									value={field.value ?? ""}
-									onChange={(value) => field.onChange(value || undefined)}
+									onChange={(value) => {
+										field.onChange(value || undefined);
+										if (value) {
+											clearErrors(`${fieldPath}.payment_method`);
+										}
+									}}
 									labelClassName={quoteFormLabelClassName}
 									valueClassName={quoteFormLabelClassName}
 									className={quoteFormInputClassName}
 									error={itemErrors?.payment_method?.message}
 								/>
-							)}
-						/>
-					</div>
-				)}
+							</div>
+						)
+					}
+				/>
+				{hasNoPaymentMethods && itemErrors?.payment_method?.message ? (
+					<p className="m-0 text-[13px] text-red-500">
+						{itemErrors.payment_method.message}
+					</p>
+				) : null}
 			</div>
 
 			<div className="mt-4 grid grid-cols-1 gap-4 border-t border-slate-200 pt-4 dark:border-neutral-600 md:grid-cols-2">
@@ -1072,6 +1112,8 @@ export function QuoteProductModal({
 		reset,
 		setValue,
 		getValues,
+		clearErrors,
+		trigger,
 		formState: { isSubmitting },
 	} = methods;
 
@@ -1193,9 +1235,15 @@ export function QuoteProductModal({
 						setValue(
 							`products.${target.productIndex}.items.${target.itemIndex}.payment_method`,
 							enriched.payment_method,
-							{ shouldDirty: false },
+							{ shouldDirty: false, shouldValidate: true },
 						);
+					} else {
+						// Si no hay método de pago por defecto (ej. el proveedor no tiene métodos), forzamos validación
+						trigger(`products.${target.productIndex}.items.${target.itemIndex}.payment_method`);
 					}
+					clearErrors(
+						`products.${target.productIndex}.items.${target.itemIndex}.payment_method`,
+					);
 				});
 			} finally {
 				if (!cancelled) {
@@ -1214,6 +1262,8 @@ export function QuoteProductModal({
 		reset,
 		setValue,
 		getValues,
+		clearErrors,
+		trigger,
 		companyId,
 		moduleCode,
 	]);
@@ -1223,12 +1273,16 @@ export function QuoteProductModal({
 		onClose();
 	};
 
-	const onSubmit = (values: QuoteProductFormValues) => {
+	const onSubmit = async (values: QuoteProductFormValues) => {
 		const invalidProduct = values.products.find(
 			(product) => product.items.length < MIN_SUPPLIERS_PER_PRODUCT,
 		);
 
 		if (invalidProduct) return;
+
+		// Trigger full validation to ensure all fields are checked before submission
+		const isValid = await trigger();
+		if (!isValid) return;
 
 		const items: DraftQuotationItem[] = values.products.flatMap((product) =>
 			product.items.map(

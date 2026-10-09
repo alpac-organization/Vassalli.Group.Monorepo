@@ -31,6 +31,7 @@ import {
 	type ImagePayload,
 } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
 import { PurchaseRequestProductsTable } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-products-table/purchase-request-products-table";
+import { stripPurchaseOrderTaxMetadata } from "@app/modules/purchasing/ui/pages/purchase-order/utils/strip-purchase-order-tax-metadata";
 
 const sectionTitleClassName =
 	"m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
@@ -117,7 +118,7 @@ export const PurchaseOrderDetailsModal = ({
 							/>
 							<DetailField
 								label="Comentarios"
-								value={details.comments ?? ""}
+								value={stripPurchaseOrderTaxMetadata(details.comments)}
 								icon={<NotebookTextIcon size={18} />}
 							/>
 						</div>

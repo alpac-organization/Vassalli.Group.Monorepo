@@ -9,5 +9,8 @@ export type ProcessPurchaseRequestStatus = Extract<
 export interface ProcessPurchaseRequestPayload extends BaseRequest {
 	purchase_request_id: string;
 	new_status: ProcessPurchaseRequestStatus;
+	/** SubCatalog.Id del motivo de rechazo (CatalogType.PurchaseRejectionReasons). */
+	reason_rejection_id?: number | null;
+	/** Comentario libre opcional al rechazar. */
 	reason_rejection?: string | null;
 }

@@ -12,6 +12,8 @@ export const CatalogEnum = {
   EXCHANGE_RATES: 6,
   /** Catálogo de departamentos (CatalogType.Departaments en backend). */
   DEPARTMENTS: 7,
+  /** Motivos de rechazo de solicitudes/OC (CatalogType.PurchaseRejectionReasons). */
+  PURCHASE_REJECTION_REASONS: 8,
 } as const;
 
 export type CatalogEnum = (typeof CatalogEnum)[keyof typeof CatalogEnum];

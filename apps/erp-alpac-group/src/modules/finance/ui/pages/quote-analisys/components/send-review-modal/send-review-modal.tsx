@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Modal, RadioButton, Textarea } from "@alpac/design-system";
+import { Button, Modal, Textarea } from "@alpac/design-system";
 import type { SendReviewModalProps } from "./send-review-modal.types";
 
 const textareaClassName =
@@ -13,14 +13,11 @@ export function SendReviewModal({
 	onClose,
 	onConfirm,
 }: SendReviewModalProps) {
-	
 	const [comments, setComments] = useState("");
-	const [isApproved, setIsApproved] = useState(true);
 
 	useEffect(() => {
 		if (!isOpen) return;
 		setComments("");
-		setIsApproved(true);
 	}, [isOpen]);
 
 	return (
@@ -33,28 +30,6 @@ export function SendReviewModal({
 			description={`Envíe la solicitud de ${pendingLabel} a revisión gerencial. El comentario es opcional.`}
 		>
 			<div className="mt-4 flex flex-col gap-4">
-				<div className="flex flex-col gap-2">
-					<p className="m-0 text-sm font-medium text-slate-800 dark:text-white">
-						Decisión
-					</p>
-					<div className="flex flex-wrap gap-4">
-						<RadioButton
-							label="Aprobar"
-							name="review-decision"
-							value="approved"
-							checked={isApproved}
-							onChange={() => setIsApproved(true)}
-						/>
-						<RadioButton
-							label="Rechazar"
-							name="review-decision"
-							value="rejected"
-							checked={!isApproved}
-							onChange={() => setIsApproved(false)}
-						/>
-					</div>
-				</div>
-
 				<Textarea
 					label="Comentarios"
 					placeholder="Escriba un comentario (opcional)..."
@@ -86,7 +61,7 @@ export function SendReviewModal({
 						onClick={() =>
 							onConfirm({
 								comments: comments.trim() || null,
-								isApproved,
+								isApproved: true,
 							})
 						}
 						isLoading={isSubmitting}

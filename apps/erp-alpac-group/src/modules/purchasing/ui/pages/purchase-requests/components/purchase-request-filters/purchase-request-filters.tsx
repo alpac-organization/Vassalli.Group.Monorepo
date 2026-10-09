@@ -8,6 +8,8 @@ import {
 	SectionHeader,
 } from "@alpac/design-system";
 import { PurchaseRequestStatusOptions } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
+import type { PurchaseRequestStatusType } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
+import { OwnershipFilterOptions } from "@app/modules/purchasing/domain/enums/ownership-filter.enum";
 import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type {
@@ -21,11 +23,22 @@ const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[16px]! sm:text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
 
+const statusOptions = PurchaseRequestStatusOptions.map((option) => ({
+	label: option.label,
+	value: option.textValue,
+}));
+
+const ownershipOptions = OwnershipFilterOptions.map((option) => ({
+	label: option.label,
+	value: option.value,
+}));
+
 const defaultFilterForm: PurchaseRequestFilterForm = {
 	code: "",
 	status: null,
 	date: null,
 	area_id: null,
+	ownership: null,
 };
 
 export const PurchaseRequestFilters = ({
@@ -91,9 +104,15 @@ export const PurchaseRequestFilters = ({
 							label="Estado"
 							placeholder="Seleccione..."
 							appearance="dark"
-							options={PurchaseRequestStatusOptions ?? []}
-							value={field.value}
-							onChange={(value) => field.onChange(value)}
+							options={statusOptions}
+							value={field.value ?? ""}
+							onChange={(value) =>
+								field.onChange(
+									value === "" || value == null
+										? null
+										: (value as PurchaseRequestStatusType),
+								)
+							}
 							className={dropdownClassName}
 							labelClassName={labelClassName}
 							valueClassName={labelClassName}
@@ -144,6 +163,26 @@ export const PurchaseRequestFilters = ({
 						)}
 					/>
 				) : null}
+
+				<Controller
+					control={control}
+					name="ownership"
+					render={({ field }) => (
+						<Dropdown
+							label="Propiedad"
+							placeholder="Seleccione..."
+							appearance="dark"
+							options={ownershipOptions}
+							value={field.value}
+							onChange={(value) =>
+								field.onChange(value === "" || value == null ? null : Number(value))
+							}
+							className={dropdownClassName}
+							labelClassName={labelClassName}
+							valueClassName={labelClassName}
+						/>
+					)}
+				/>
 
 				<Button
 					type="submit"

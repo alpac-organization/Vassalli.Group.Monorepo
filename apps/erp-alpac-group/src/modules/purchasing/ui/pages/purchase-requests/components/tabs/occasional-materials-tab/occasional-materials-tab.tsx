@@ -154,8 +154,9 @@ export const OccasionalMaterialTab = ({
 			month,
 			page_number: 1,
 			page_size: PAGE_SIZE,
-			status: data?.status || undefined,
+			status: data.status ?? undefined,
 			area_id: data.area_id || undefined,
+			ownership: data.ownership ?? undefined,
 		}));
 	};
 
