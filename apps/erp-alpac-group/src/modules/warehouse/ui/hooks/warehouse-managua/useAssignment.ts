@@ -44,7 +44,7 @@ type UseWarehouseAssignmentProps = {
 };
 
 export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
-  
+
   const {
     payloadAssignments,
     payloadAssignmentDetails,
@@ -60,9 +60,9 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     queryKey: ["assignments_details_by_code", payloadAssignmentDetailsByCode],
     queryFn: () => warehouseAssignmentServices.getAssignmentDetailsByCode(payloadAssignmentDetailsByCode as AssignmentDetailsByCodeRequest),
     enabled: Boolean(
-      payloadAssignments?.company_id &&
-      payloadAssignments?.module_code &&
-      payloadAssignments?.operational_order_id,
+      payloadAssignmentDetailsByCode?.company_id &&
+      payloadAssignmentDetailsByCode?.module_code &&
+      payloadAssignmentDetailsByCode?.assignment_code,
     ),
     staleTime: 1000 * 60 * 2,
     refetchOnWindowFocus: false,

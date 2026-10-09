@@ -39,6 +39,9 @@ export class WarehouseAssignmentServices
   public async getAssignmentDetailsByCode(payload: AssignmentDetailsByCodeRequest): Promise<AssignmentDetailsByCode>{
     try {
       const { assignment_code, company_id, module_code } = payload;
+
+      console.log(JSON.stringify(payload, null, 3))
+
       return this.httpHandler.get<AssignmentDetailsByCode>(`/companies/${company_id}/modules/${module_code}/assignments/code?assignment_code=${assignment_code}`);
     }
     catch(error){

@@ -5,6 +5,8 @@ import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import type { TicketParams } from "./ticket-viewer.types";
+import { useWarehouseAssignment } from "../../hooks/warehouse-managua/useAssignment";
+import { Loader } from "@app/shared/components/loaders/loader";
 
 // Handheld / QR → http://localhost:5173/alpac/dashboard/warehouse-mga/ticket?code=39823983
 // Esta ruta vive fuera de DashboardLayout a propósito: solo requiere sesión (AuthGuard),
@@ -14,9 +16,10 @@ export const TicketViewer = () => {
 
    const { moduleCode: modulePath } = useParams<TicketParams>();
    const [searchParams] = useSearchParams();
+   
    const navigate = useNavigate();
    const { baseUrl } = useBaseUrl();
-   const { companyAlias, companyName } = useUserStore();
+   const { companyAlias, companyName, companyId} = useUserStore();
 
    const [hasHydrated, setHasHydrated] = useState(() =>
       useUserStore.persist.hasHydrated(),
@@ -31,7 +34,24 @@ export const TicketViewer = () => {
    }, []);
 
    const code = searchParams.get("code") ?? "—";
+
+   console.log(code)
+   console.log(modulePath)
+
    const documentName = "Ticket de almacén";
+
+
+   const { GetAssignmentDetailsByCode } = useWarehouseAssignment({
+      payloadAssignmentDetailsByCode : {
+         assignment_code : code,
+         company_id      : companyId,
+         module_code     : modulePath ?? ""
+      }
+   });
+   
+   const { data, isPending, isLoading } = GetAssignmentDetailsByCode;
+
+   console.log(JSON.stringify(data, null, 3))
 
    const scannedAt = new Date();
    const dateLabel = scannedAt
@@ -70,6 +90,12 @@ export const TicketViewer = () => {
                ]}
             />
          </div>
+
+         {
+            (isPending || isLoading) && (
+               <Loader title="Cargando información" />
+            )
+         }
 
          <article
             className="relative w-full max-w-100 overflow-visible rounded-[15px] border border-slate-200 dark:border-slate-600 dark:bg-[#242529]">
