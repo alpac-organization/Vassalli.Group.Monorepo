@@ -5,18 +5,19 @@ import type {
 import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 
 export interface AssignmentOperationalDto {
-  assignmentId: string;
-  operationalOrderId: string;
-  isAlerted: boolean;
-  destinationType: DestinationType;
-  status: AssignmentOperationalStatus;
+  assignment_id: string;
+  operational_order_id: string;
+  is_alerted: boolean;
+  destination_type: DestinationType | number;
+  status: AssignmentOperationalStatus | number;
   merchandise?: string;
-  merchandiseDescription?: string;
-  hasMachineryAssigned: boolean;
-  hasCollaboratorsAssigned: boolean;
-  createdAt: string;
+  merchandise_description?: string;
+  has_machinery_assigned: boolean;
+  has_collaborators_assigned: boolean;
+  created_at: string;
 }
 
-export interface GetAssignmentsResponse extends PaginateBaseResponse<AssignmentOperationalDto[]> {
+export interface GetAssignmentsResponse
+  extends PaginateBaseResponse<AssignmentOperationalDto[]> {
   data: AssignmentOperationalDto[];
 }

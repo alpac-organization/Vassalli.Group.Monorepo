@@ -6,6 +6,7 @@ export interface MachineryInformationDto {
   machinery_type: MachineryType;
   machinery_code: string;
   machinery_brand: string;
+  machinery_model?: string;
 }
 
 export interface AssignmentMachineryDto {
