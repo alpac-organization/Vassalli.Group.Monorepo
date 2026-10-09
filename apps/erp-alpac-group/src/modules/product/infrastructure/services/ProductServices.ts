@@ -1,5 +1,6 @@
 import type { IHttpHandler } from "@app/core/ports";
 import { cleanParams } from "@app/shared/utils/object.utils";
+import { normalizePagedList } from "@app/shared/utils/paged-response.utils";
 import type { IProductServices } from "@app/modules/product/application/interfaces/IProductServices";
 import type { CreateProductCategoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product-category/create-product-category.request";
 import type { GetProductCategoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product-category/get-product-category.request";
@@ -50,9 +51,16 @@ export class ProductServices implements IProductServices {
 		const { company_id, module_code, product_id, ...queryParams } = payload;
 		const url = `companies/${company_id}/modules/${module_code}/products/${product_id}`;
 
-		return this.apiHandler.get<GetProductDetailsResponse>(url, {
+		const response = await this.apiHandler.get<GetProductDetailsResponse>(url, {
 			params: cleanParams(queryParams),
 		});
+
+		if (!response.suppliers) return response;
+
+		return {
+			...response,
+			suppliers: normalizePagedList(response.suppliers),
+		};
 	}
 
 	async CreateProduct(

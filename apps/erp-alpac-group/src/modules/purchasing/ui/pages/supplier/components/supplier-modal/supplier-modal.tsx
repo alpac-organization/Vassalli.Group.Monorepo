@@ -38,7 +38,6 @@ import type {
 } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-bank-account";
 import {inputClassName, labelClassName, dropdownClassName} from "@app/modules/purchasing/ui/pages/supplier/utils/style";
 import {
-	isSupplierExclusive,
 	SupplierExclusiveStatusEnum,
 	type SupplierExclusiveStatusOnCreate,
 } from "@app/core/enums/supplier-exclusive-status.enum";
@@ -53,10 +52,15 @@ import {
 	mapCatalogLinkItemsToTierPayload,
 	mapTierPricesToCatalogForm,
 	resolveLinkCurrency,
+	resolveLinkCurrencyPayload,
+	resolveLinkUnitMeasureId,
 	type CatalogLinkItemForm,
 } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 import { SelectProductModal } from "@app/modules/product/ui/views/select-product-modal/select-product-modal";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
+import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
+import { readPagedRows } from "@app/shared/utils/paged-response.utils";
+import type { CurrencyCode } from "@app/core/enums/currency.enum";
 
 const exclusiveStatusOnCreateOptions = [
 	{
@@ -148,6 +152,8 @@ const emptyFormValues: Partial<CreateSupplierRequest> = {
       has_credit: false,
       exclusive_status: SupplierExclusiveStatusEnum.None.stringValue,
       exclusive_brands_or_parts: "",
+      supplier_type: SupplierTypeEnum.Ordinary.stringValue,
+      currency: "NIO",
       credit_limit: null,
       credit_currency: "USD",
       alert_days_before_due: 5,
@@ -207,6 +213,23 @@ export const SupplierModal = ({
             : undefined,
    });
 
+   const { GetUnitMeasurements } = useUnitOfMeasurement({
+      payloadUnitOfMeasurement: {
+         companie_id: companyId,
+         module_code: moduleCode,
+      },
+      enabled: isOpen,
+   });
+
+   const unitMeasureOptions = useMemo(() => {
+      const data = GetUnitMeasurements.data;
+      if (!data || !Array.isArray(data)) return [];
+      return data.map((item) => ({
+         value: item.unit_measure_id,
+         label: `${item.name}${item.symbol ? ` (${item.symbol})` : ""}`,
+      }));
+   }, [GetUnitMeasurements.data]);
+
    const assignedProductIds = useMemo(
       () => productLinks.map((link) => link.entity_id).filter(Boolean),
       [productLinks],
@@ -224,6 +247,7 @@ export const SupplierModal = ({
                   : product.product_name,
                unit_price: "",
                currency: "USD" as const,
+               unit_measure_id: product.unit_measure_id ?? "",
                tier_prices: [],
             }));
          return [...prev, ...nextItems];
@@ -237,7 +261,8 @@ export const SupplierModal = ({
          .map((link) => ({
             product_id: link.entity_id,
             unit_price: Number(link.unit_price),
-            currency: link.currency,
+            currency: resolveLinkCurrencyPayload(link.currency),
+            unit_measure_id: resolveLinkUnitMeasureId(link.unit_measure_id),
             tier_prices: mapCatalogLinkItemsToTierPayload(link.tier_prices),
          }));
 
@@ -321,7 +346,9 @@ export const SupplierModal = ({
    const identificationType = watch("identification_type");
    const hasCredit = watch("supplier_details.has_credit");
    const exclusiveStatusWatch = watch("supplier_details.exclusive_status");
-   const isExclusive = isSupplierExclusive(exclusiveStatusWatch);
+   const isExclusiveForm =
+      Boolean(exclusiveStatusWatch) &&
+      exclusiveStatusWatch !== SupplierExclusiveStatusEnum.None.stringValue;
 
    const isLegalPerson = Number(constitutionType) === ConstitutionEnum.Legal.value;
    const isNaturalPerson = Number(constitutionType) === ConstitutionEnum.Natural.value;
@@ -577,18 +604,26 @@ export const SupplierModal = ({
          SupplierExclusiveStatusEnum.PendingReview.stringValue
             ? SupplierExclusiveStatusEnum.PendingReview.stringValue
             : SupplierExclusiveStatusEnum.None.stringValue;
-      const isExclusiveVal = isSupplierExclusive(exclusiveStatus);
+      const hasExclusiveStatus =
+         exclusiveStatus !== SupplierExclusiveStatusEnum.None.stringValue;
 
       const paymentMethods = (data.payment_methods ?? []).filter(Boolean);
+      const resolvedSupplierType =
+         resolveSupplierType(data.supplier_type) ??
+         SupplierTypeEnum.Ordinary.stringValue;
+      const supplierDefaultCurrency: CurrencyCode =
+         resolveLinkCurrency(
+            supplier_details?.currency ??
+               (hasCreditVal ? supplier_details?.credit_currency : null) ??
+               "NIO",
+         );
 
       const payload: CreateSupplierRequest = {
          ...rest,
          company_id: companyId,
          module_code: moduleCode,
          commercial_name: data.commercial_name?.trim() || null,
-         supplier_type:
-            resolveSupplierType(data.supplier_type) ??
-            SupplierTypeEnum.Ordinary.stringValue,
+         supplier_type: resolvedSupplierType,
          payment_methods: paymentMethods,
          supplier_details: {
             ...supplier_details,
@@ -602,9 +637,11 @@ export const SupplierModal = ({
                ? Number(supplier_details?.alert_days_before_due) || 0
                : 0,
             exclusive_status: exclusiveStatus,
-            exclusive_brands_or_parts: isExclusiveVal
+            exclusive_brands_or_parts: hasExclusiveStatus
                ? supplier_details?.exclusive_brands_or_parts?.trim() || null
                : null,
+            supplier_type: resolvedSupplierType,
+            currency: supplierDefaultCurrency,
             apply_ir_retention: Boolean(supplier_details?.apply_ir_retention),
             apply_municipal_retention: Boolean(supplier_details?.apply_municipal_retention),
             is_tax_exempt: Boolean(supplier_details?.is_tax_exempt),
@@ -632,6 +669,16 @@ export const SupplierModal = ({
          supplier_id: selectedSupplier!.supplier_id,
          ...updateData,
       };
+
+      if (payload.supplier_type) {
+         const resolvedType =
+            resolveSupplierType(payload.supplier_type) ?? payload.supplier_type;
+         payload.supplier_type = resolvedType;
+         payload.supplier_details = {
+            ...(payload.supplier_details ?? {}),
+            supplier_type: resolvedType,
+         };
+      }
 
       if (
          payload.supplier_details &&
@@ -766,7 +813,7 @@ export const SupplierModal = ({
          : "";
 
       const details = supplierDetails.supplier_details;
-      const linkedProducts = (supplierDetails.products?.items ?? []).map(
+      const linkedProducts = readPagedRows(supplierDetails.products).rows.map(
          (product) => ({
             entity_id: product.product_id,
             entity_label: product.code
@@ -774,6 +821,7 @@ export const SupplierModal = ({
                : product.product_name,
             unit_price: String(product.unit_price ?? ""),
             currency: resolveLinkCurrency(product.currency),
+            unit_measure_id: product.unit_measure_id ?? "",
             tier_prices: mapTierPricesToCatalogForm(product.tier_prices),
          }),
       );
@@ -923,6 +971,7 @@ export const SupplierModal = ({
                                     SupplierTypeEnum.Ordinary.stringValue) as SupplierType;
                                  field.onChange(nextType);
                                  trackField("supplier_type", nextType);
+                                 trackDetailField("supplier_type", nextType);
                               }}
                               appearance="dark"
                               className={dropdownClassName}
@@ -1365,86 +1414,107 @@ export const SupplierModal = ({
                   </div>
                </div>
 
-               {/* Exclusivity */}
-               <div className="border-t border-slate-200 dark:border-neutral-700 pt-4">
-                  <h4 className="text-sm font-semibold text-slate-800 dark:text-white mb-4">
-                     Distribución y Exclusividad
-                  </h4>
-                  <div className="flex flex-col gap-4">
-                     <Checkbox
-                        label="Es distribuidor o proveedor exclusivo"
-                        checked={isExclusive}
-                        onChange={(e) => {
-                           const checked = e.target.checked;
-                           if (!checked) {
+               {!isEditMode && (
+                  <div className="border-t border-slate-200 dark:border-neutral-700 pt-4">
+                     <h4 className="text-sm font-semibold text-slate-800 dark:text-white mb-4">
+                        Distribución y Exclusividad
+                     </h4>
+                     <div className="flex flex-col gap-4">
+                        <Checkbox
+                           label="Es distribuidor o proveedor exclusivo"
+                           checked={isExclusiveForm}
+                           onChange={(e) => {
+                              const checked = e.target.checked;
+                              if (!checked) {
+                                 setValue(
+                                    "supplier_details.exclusive_status",
+                                    SupplierExclusiveStatusEnum.None.stringValue,
+                                 );
+                                 setValue(
+                                    "supplier_details.exclusive_brands_or_parts",
+                                    null,
+                                 );
+                                 trackMultipleDetailFields({
+                                    exclusive_status:
+                                       SupplierExclusiveStatusEnum.None.stringValue,
+                                    exclusive_brands_or_parts: null,
+                                 });
+                                 return;
+                              }
+
                               setValue(
                                  "supplier_details.exclusive_status",
-                                 SupplierExclusiveStatusEnum.None.stringValue,
+                                 SupplierExclusiveStatusEnum.PendingReview
+                                    .stringValue,
                               );
-                              setValue("supplier_details.exclusive_brands_or_parts", null);
                               trackMultipleDetailFields({
                                  exclusive_status:
-                                    SupplierExclusiveStatusEnum.None.stringValue,
-                                 exclusive_brands_or_parts: null,
+                                    SupplierExclusiveStatusEnum.PendingReview
+                                       .stringValue,
                               });
-                              return;
-                           }
+                           }}
+                        />
 
-                           setValue(
-                              "supplier_details.exclusive_status",
-                              SupplierExclusiveStatusEnum.PendingReview.stringValue,
-                           );
-                           trackMultipleDetailFields({
-                              exclusive_status:
-                                 SupplierExclusiveStatusEnum.PendingReview.stringValue,
-                           });
-                        }}
-                     />
+                        {isExclusiveForm && (
+                           <>
+                              <Controller
+                                 control={control}
+                                 name="supplier_details.exclusive_status"
+                                 render={({ field }) => (
+                                    <Dropdown
+                                       label="Estado de exclusividad"
+                                       placeholder="Seleccione..."
+                                       appearance="dark"
+                                       options={exclusiveStatusOnCreateOptions}
+                                       value={
+                                          field.value ??
+                                          SupplierExclusiveStatusEnum.None
+                                             .stringValue
+                                       }
+                                       onChange={(val) => {
+                                          const status = String(
+                                             val ??
+                                                SupplierExclusiveStatusEnum.None
+                                                   .stringValue,
+                                          ) as SupplierExclusiveStatusOnCreate;
+                                          field.onChange(status);
+                                          trackDetailField(
+                                             "exclusive_status",
+                                             status,
+                                          );
+                                       }}
+                                       className={dropdownClassName}
+                                       labelClassName={labelClassName}
+                                    />
+                                 )}
+                              />
 
-                     {isExclusive && (
-                        <>
-                           <Controller
-                              control={control}
-                              name="supplier_details.exclusive_status"
-                              render={({ field }) => (
-                                 <Dropdown
-                                    label="Estado de exclusividad"
-                                    placeholder="Seleccione..."
-                                    appearance="dark"
-                                    options={exclusiveStatusOnCreateOptions}
-                                    value={field.value ?? SupplierExclusiveStatusEnum.None.stringValue}
-                                    onChange={(val) => {
-                                       const status = String(
-                                          val ?? SupplierExclusiveStatusEnum.None.stringValue,
-                                       ) as SupplierExclusiveStatusOnCreate;
-                                       field.onChange(status);
-                                       trackDetailField("exclusive_status", status);
-                                    }}
-                                    className={dropdownClassName}
-                                    labelClassName={labelClassName}
-                                 />
-                              )}
-                           />
-
-                           <Textarea
-                              label="Marcas o partes autorizadas en exclusiva"
-                              placeholder="Ej. Distribuidor autorizado Caterpillar, Donaldson y Timken"
-                              className={inputClassName}
-                              labelClassName={labelClassName}
-                              {...register("supplier_details.exclusive_brands_or_parts", {
-                                 onChange: (evt) =>
-                                    trackDetailField("exclusive_brands_or_parts", evt.target.value),
-                              })}
-                              maxLength={500}
-                              style={{
-                                 resize: "none",
-                                 height: "80px",
-                              }}
-                           />
-                        </>
-                     )}
+                              <Textarea
+                                 label="Marcas o partes autorizadas en exclusiva"
+                                 placeholder="Ej. Distribuidor autorizado Caterpillar, Donaldson y Timken"
+                                 className={inputClassName}
+                                 labelClassName={labelClassName}
+                                 {...register(
+                                    "supplier_details.exclusive_brands_or_parts",
+                                    {
+                                       onChange: (evt) =>
+                                          trackDetailField(
+                                             "exclusive_brands_or_parts",
+                                             evt.target.value,
+                                          ),
+                                    },
+                                 )}
+                                 maxLength={500}
+                                 style={{
+                                    resize: "none",
+                                    height: "80px",
+                                 }}
+                              />
+                           </>
+                        )}
+                     </div>
                   </div>
-               </div>
+               )}
                            </div>
                         ),
                      },
@@ -1460,6 +1530,11 @@ export const SupplierModal = ({
                                  entityLabel="Producto"
                                  entityPlaceholder="Producto"
                                  options={[]}
+                                 unitMeasureOptions={unitMeasureOptions}
+                                 isLoadingUnitMeasures={
+                                    GetUnitMeasurements.isPending ||
+                                    GetUnitMeasurements.isFetching
+                                 }
                                  items={productLinks}
                                  onChange={handleProductLinksChange}
                                  lockEntity

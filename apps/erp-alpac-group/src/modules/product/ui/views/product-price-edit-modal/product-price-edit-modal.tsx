@@ -4,6 +4,7 @@ import {
 	AccordionItem,
 	Button,
 	DatePicker,
+	Dropdown,
 	InputText,
 	Modal,
 	Stepper,
@@ -16,14 +17,20 @@ import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import {
+	CurrencyCodeOptions,
+	type CurrencyCode,
+} from "@app/core/enums/currency.enum";
+import {
 	emptyCatalogLinkTier,
 	mapCatalogLinkItemsToTierPayload,
+	resolveLinkCurrency,
 	type CatalogLinkTierForm,
 } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 import type { ProductPriceEditModalProps } from "@app/modules/product/ui/views/product-price-edit-modal/product-price-edit-modal.types";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+const dropdownClassName = `${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
 const labelClassName = "text-black! dark:text-white!";
 const primaryButtonClassName =
 	"w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
@@ -96,6 +103,7 @@ export const ProductPriceEditModal = ({
 	const { UpdateProductSupplierPrice } = useProduct();
 
 	const [unitPrice, setUnitPrice] = useState("");
+	const [currency, setCurrency] = useState<CurrencyCode>("USD");
 	const [tiers, setTiers] = useState<CatalogLinkTierForm[]>([]);
 	const [includePreferential, setIncludePreferential] = useState(false);
 	const [currentStep, setCurrentStep] = useState(0);
@@ -114,6 +122,7 @@ export const ProductPriceEditModal = ({
 		}));
 
 		setUnitPrice(String(supplier.unit_price ?? ""));
+		setCurrency(resolveLinkCurrency(supplier.currency));
 		setTiers(mappedTiers);
 		setIncludePreferential(existingTiers.length > 0);
 		setOpenPreferentialId(mappedTiers[0]?.id ?? "");
@@ -158,18 +167,20 @@ export const ProductPriceEditModal = ({
 		const preferentialPrices = withPreferential
 			? mapCatalogLinkItemsToTierPayload(tiers)
 			: undefined;
+		const hasTierPrices =
+			Boolean(preferentialPrices) && preferentialPrices!.length > 0;
+		const initialCurrency = resolveLinkCurrency(supplier.currency);
+		const currencyChanged = currency !== initialCurrency;
+		const unitPriceChanged =
+			hasValidUnitPrice &&
+			parsedUnitPrice !== Number(supplier.unit_price);
+		const sendPrice =
+			hasValidUnitPrice && (unitPriceChanged || !currencyChanged);
+		const sendCurrency = currencyChanged || sendPrice || hasTierPrices;
 
-		if (!withPreferential) {
-			if (!hasValidUnitPrice) {
-				onRequestError?.("Debe indicar un nuevo precio unitario.");
-				return;
-			}
-		} else if (
-			!hasValidUnitPrice &&
-			(!preferentialPrices || preferentialPrices.length === 0)
-		) {
+		if (!sendPrice && !sendCurrency && !hasTierPrices) {
 			onRequestError?.(
-				"Debe indicar un nuevo precio unitario o al menos un precio preferencial válido.",
+				"Debe indicar un nuevo precio unitario, cambiar la moneda o agregar precios preferenciales.",
 			);
 			return;
 		}
@@ -180,13 +191,9 @@ export const ProductPriceEditModal = ({
 				module_code: moduleCode,
 				product_id: productId,
 				supplier_id: supplier.supplier_id,
-				new_unit_price: hasValidUnitPrice ? parsedUnitPrice : undefined,
-				tier_prices:
-					withPreferential &&
-					preferentialPrices &&
-					preferentialPrices.length > 0
-						? preferentialPrices
-						: undefined,
+				new_unit_price: sendPrice ? parsedUnitPrice : undefined,
+				currency: sendCurrency ? currency : undefined,
+				tier_prices: hasTierPrices ? preferentialPrices : undefined,
 			},
 			{
 				onSuccess: () => {
@@ -265,15 +272,35 @@ export const ProductPriceEditModal = ({
 									exit={{ opacity: 0, x: 12 }}
 									transition={stepContentTransition}
 								>
-									<InputText
-										label={`Nuevo precio unitario (${supplier?.currency ?? "USD"})`}
-										type="number"
-										placeholder="0.00"
-										className={inputClassName}
-										labelClassName={labelClassName}
-										value={unitPrice}
-										onChange={(event) => setUnitPrice(event.target.value)}
-									/>
+									<div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+										<InputText
+											label="Nuevo precio unitario"
+											type="number"
+											placeholder="0.00"
+											className={inputClassName}
+											labelClassName={labelClassName}
+											value={unitPrice}
+											onChange={(event) => setUnitPrice(event.target.value)}
+										/>
+										<div className="sm:w-44">
+											<Dropdown
+												label="Moneda"
+												placeholder="Moneda"
+												appearance="dark"
+												isRequired
+												options={CurrencyCodeOptions}
+												value={currency}
+												disabled={isSaving}
+												onChange={(value) =>
+													setCurrency(
+														resolveLinkCurrency(String(value ?? "USD")),
+													)
+												}
+												className={dropdownClassName}
+												labelClassName={labelClassName}
+											/>
+										</div>
+									</div>
 
 									<div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
 										<Button

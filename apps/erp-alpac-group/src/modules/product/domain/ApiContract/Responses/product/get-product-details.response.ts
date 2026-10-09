@@ -3,10 +3,12 @@ import type { GetProductCategoryResponse } from "@app/modules/product/domain/Api
 import type { ProductLinkedSupplier } from "@app/modules/product/domain/ApiContract/shared/product-supplier";
 
 export type ProductSuppliersPage = {
-	items: ProductLinkedSupplier[];
+	data?: ProductLinkedSupplier[];
+	items?: ProductLinkedSupplier[];
 	page_number: number;
 	page_size: number;
-	total_count: number;
+	total?: number;
+	total_count?: number;
 };
 
 export interface GetProductDetailsResponse {
@@ -17,6 +19,7 @@ export interface GetProductDetailsResponse {
 	category_id: string;
 	category?: GetProductCategoryResponse;
 	unit_measure_id: string;
+	unit_measure_name?: string;
 	product_usage_type?: ProductUsageType;
 	is_tax_exempt?: boolean;
 	suppliers?: ProductSuppliersPage;
