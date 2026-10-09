@@ -2,17 +2,33 @@ import {useMemo, useState } from "react";
 import {Alert,Button,Dropdown,InputText,Stepper} from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
 import type {RackCreateFormProps,RackCreateFormValues} from "../types/rack-modal.types";
-import {RackUsageProfileOptions} from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-usage-profile";
+import {
+  RackUsageProfileEnum,
+  RackUsageProfileOptions,
+} from "@app/modules/admin-warehouse/warehouse-managua/enum/rack-usage-profile";
 import { RackDimensionFields } from "./rack-dimension-fields";
 import { validateIntegerNumber } from "@app/shared/utils/number.utils";
 import { useRack } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useRack";
+import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import {cancelButtonClass,dropdownClassName,inputClassName,labelClassName,primaryButtonClass} from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/style.racks";
 import { parseDecimal } from "../utils/rack.utils";
 import { isSectionVertical } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/utils/rack-coordinates.utils";
+import { buildRackPositions } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/racks/components/rack-modal/utils/build-rack-positions.utils";
+import { parseRackPositionCode } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/warehouses/components/position-shape/position-shape.utils";
+import { CoordinateTargetTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/coordinate-target-type";
+import {
+  RACK_HEIGHT_METER,
+  RACK_LENGTH_METER,
+  RACK_POSITIONS_PER_RACK,
+  RACK_WIDTH_METER,
+} from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/warehouse-config";
+import type { RegisterRackPositionsCoordinatesRequest } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/requests/sections/register-coordinates-req";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+
+const COORDINATES_REQUEST_DELAY_MS = 300;
 
 const STEPS = ["Datos Generales", "Dimensiones", "Ubicación 2D"];
 
@@ -32,6 +48,7 @@ export const RackCreateForm = ({
     useAlertState();
 
   const { RegisterRacksBulk } = useRack();
+  const { RegisterCoordinates, GetPositions } = useSection();
 
   const isVertical = isSectionVertical(sectionLength, sectionWidth);
   const aisleMax = isVertical ? sectionLength : sectionWidth;
@@ -46,17 +63,17 @@ export const RackCreateForm = ({
     formState: { errors },
   } = useForm<RackCreateFormValues>({
     defaultValues: {
-      quantity: "",
-      row_number: "",
-      level_number: "",
-      max_pulleys: "",
-      width: "",
-      length: "",
-      height: "",
-      usage_profile: "",
-      initial_position_x: "",
-      initial_position_y: "",
-      spacing_x: "",
+      quantity: 1,
+      row_number: 1,
+      level_number: 1,
+      max_pulleys: RACK_POSITIONS_PER_RACK,
+      width: RACK_WIDTH_METER,
+      length: RACK_LENGTH_METER,
+      height: RACK_HEIGHT_METER,
+      usage_profile: RackUsageProfileEnum.ActiveFlow.value,
+      initial_position_x: 0,
+      initial_position_y: 0,
+      spacing_x: RACK_LENGTH_METER,
     },
   });
 
@@ -118,10 +135,37 @@ export const RackCreateForm = ({
   const onFormSubmit = async (data: RackCreateFormValues) => {
     if (currentStep !== STEPS.length - 1) return;
 
+    const width = Number(data.width);
+    const length = Number(data.length);
+    const maxPulleys = Number(data.max_pulleys);
+    const height = parseDecimal(data.height) ?? 0;
+
+    const rackPositions = buildRackPositions({
+      width,
+      length,
+      maxPulleys,
+      height,
+    });
+
+    if (!rackPositions.fits) {
+      handleRequestError(rackPositions.message);
+      return;
+    }
+
     try {
       const spacingValue = data.spacing_x ? Number(data.spacing_x) : Number(data.length || 2.44);
       const initX = data.initial_position_x !== "" && data.initial_position_x !== undefined ? Number(data.initial_position_x) : 0;
       const initY = data.initial_position_y !== "" && data.initial_position_y !== undefined ? Number(data.initial_position_y) : 0;
+
+      const positionsBefore = await GetPositions({
+        company_id: companyId,
+        module_code: moduleCode,
+        warehouse_id: warehouseId,
+        section_id: sectionId,
+      });
+      const existingRackIds = new Set(
+        positionsBefore.blocks.map((block) => block.id),
+      );
 
       await RegisterRacksBulk.mutateAsync({
         company_id: companyId,
@@ -131,10 +175,10 @@ export const RackCreateForm = ({
         quantity: Number(data.quantity),
         row_number: Number(data.row_number),
         level_number: Number(data.level_number),
-        max_pulleys: Number(data.max_pulleys),
-        width: Number(data.width),
-        length: Number(data.length),
-        height: parseDecimal(data.height),
+        max_pulleys: maxPulleys,
+        width,
+        length,
+        height,
         usage_profile: Number(data.usage_profile),
         initial_position_x: initX,
         initial_position_y: initY,
@@ -142,7 +186,83 @@ export const RackCreateForm = ({
         rotation_y: isVertical ? 90 : 0,
       });
 
-      handleRequestSuccess("Racks registrados exitosamente.");
+      const positionsAfter = await GetPositions({
+        company_id: companyId,
+        module_code: moduleCode,
+        warehouse_id: warehouseId,
+        section_id: sectionId,
+      });
+      const newRacks = positionsAfter.blocks.filter(
+        (block) => !existingRackIds.has(block.id),
+      );
+
+      if (newRacks.length === 0) {
+        handleRequestError(
+          "Los racks se crearon, pero no se encontraron posiciones para registrar coordenadas.",
+        );
+        return;
+      }
+
+      for (let i = 0; i < newRacks.length; i++) {
+        const rack = newRacks[i];
+        const sortedPositions = [...rack.positions].sort((a, b) => {
+          const columnA = parseRackPositionCode(a.code)?.column ?? 0;
+          const columnB = parseRackPositionCode(b.code)?.column ?? 0;
+          return columnA - columnB;
+        });
+
+        const positionsWithoutCoordinates = sortedPositions.filter(
+          (position) => position.coordinates == null,
+        );
+
+        if (positionsWithoutCoordinates.length === 0) {
+          continue;
+        }
+
+        const coordinatesPayload: RegisterRackPositionsCoordinatesRequest = {
+          company_id: companyId,
+          module_code: moduleCode,
+          warehouse_id: warehouseId,
+          section_id: sectionId,
+          target_type: CoordinateTargetTypeEnum.RackPositions.value,
+          rack_id: rack.id,
+          rack_positions_information: positionsWithoutCoordinates.map(
+            (position, index) => {
+              const slotIndex =
+                (parseRackPositionCode(position.code)?.column ?? index + 1) - 1;
+              const coordinate =
+                rackPositions.positions[slotIndex] ??
+                rackPositions.positions[index] ?? {
+                  position_x: 0,
+                  position_y: 0,
+                  position_z: 0,
+                  rotation_y: 0,
+                };
+
+              return {
+                rack_position_id: position.id,
+                position_x: coordinate.position_x,
+                position_y: coordinate.position_y,
+                position_z: coordinate.position_z,
+                rotation_y: coordinate.rotation_y,
+              };
+            },
+          ),
+          lots_positions_information: [],
+        };
+
+        await RegisterCoordinates.mutateAsync(coordinatesPayload);
+
+        if (i < newRacks.length - 1) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, COORDINATES_REQUEST_DELAY_MS),
+          );
+        }
+      }
+
+      handleRequestSuccess(
+        "Racks y coordenadas de posiciones registrados exitosamente.",
+      );
       onSubmitSuccess?.();
       setTimeout(() => {
         onClose();
@@ -155,7 +275,8 @@ export const RackCreateForm = ({
     }
   };
 
-  const isPending = RegisterRacksBulk.isPending;
+  const isPending =
+    RegisterRacksBulk.isPending || RegisterCoordinates.isPending;
 
   return (
     <>

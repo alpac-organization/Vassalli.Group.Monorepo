@@ -13,6 +13,4 @@ export type PositionShapeProps = {
 	layout?: PositionLayout;
 	/** Niveles a mostrar. Default: solo piso (1). `null` = todos. */
 	levels?: number[] | null;
-	cellWidthM?: number;
-	cellDepthM?: number;
 };

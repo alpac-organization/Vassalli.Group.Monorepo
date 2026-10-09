@@ -65,6 +65,7 @@ export const RackDimensionFields = <T extends FieldValues>({
 
       <InputText
         label={heightLabel}
+        isRequired
         type="number"
         step="0.01"
         inputMode="decimal"
@@ -73,10 +74,13 @@ export const RackDimensionFields = <T extends FieldValues>({
         labelClassName={labelClassName}
         error={errors.height?.message as string | undefined}
         {...register("height" as Path<T>, {
-          validate: (v: unknown) =>
-            !v ||
-            (Number(v) >= 0.5 && Number(v) <= 15.0) ||
-            "Debe estar entre 0.50m y 15.00m",
+          required: "La altura es requerida",
+          validate: {
+            isDecimal: validateDecimalNumber,
+            range: (v: unknown) =>
+              (Number(v) >= 0.5 && Number(v) <= 15.0) ||
+              "Debe estar entre 0.50m y 15.00m",
+          },
         })}
       />
     </div>

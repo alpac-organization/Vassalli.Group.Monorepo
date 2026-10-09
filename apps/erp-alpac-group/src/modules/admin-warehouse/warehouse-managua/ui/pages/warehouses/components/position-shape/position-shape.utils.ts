@@ -46,18 +46,15 @@ export type BuildPositionCellLayoutsInput = {
 	containerWidthMeters: number;
 	/** Largo del tramo/rack contenedor (metros). */
 	containerLengthMeters: number;
-	/** Ancho estándar del polín/celda (metros). */
-	standardCellWidthMeters: number;
-	/** Profundidad estándar del polín/celda (metros). */
-	standardCellDepthMeters: number;
 	/** Niveles a incluir. Default: solo piso (1). `null` = todos. */
 	levelsToShow?: number[] | null;
 };
 
 /**
- * Calcula dónde dibujar cada posición dentro del shape:
- * - con coordinates → usa X/Y como centro de la celda
- * - sin coordinates → proyecta grilla desde el código (FrowCcol / NlevelPcol)
+ * Calcula dónde dibujar cada posición repartiendo el área del contenedor:
+ * - lot → ancho/columnas × largo/filas
+ * - rack → ancho completo × largo/posiciones (apiladas a lo largo)
+ * Con coordinates → X/Y como centro de esa celda.
  */
 export const buildPositionCellLayouts = (
 	input: BuildPositionCellLayoutsInput,
@@ -67,8 +64,6 @@ export const buildPositionCellLayouts = (
 		layout,
 		containerWidthMeters,
 		containerLengthMeters,
-		standardCellWidthMeters,
-		standardCellDepthMeters,
 		levelsToShow = [1],
 	} = input;
 
@@ -79,31 +74,45 @@ export const buildPositionCellLayouts = (
 					levelsToShow.includes(Number(position.level)),
 				);
 
+	const lotGridFromCodes = positionsForSelectedLevels
+		.map((position) => parseLotPositionCode(position.code))
+		.filter((grid): grid is { row: number; column: number } => grid != null);
+
+	const totalLotColumns = Math.max(
+		1,
+		...lotGridFromCodes.map((grid) => grid.column),
+		lotGridFromCodes.length > 0 ? 0 : positionsForSelectedLevels.length || 1,
+	);
+	const totalLotRows = Math.max(
+		1,
+		...lotGridFromCodes.map((grid) => grid.row),
+		lotGridFromCodes.length > 0 ? 0 : 1,
+	);
+
 	const rackColumnNumbers = positionsForSelectedLevels
-		.map(
-			(position) => parseRackPositionCode(position.code)?.column ?? 0,
-		)
+		.map((position) => parseRackPositionCode(position.code)?.column ?? 0)
 		.filter((columnNumber) => columnNumber > 0);
 
-	const totalRackColumns =
+	const totalRackSlots =
 		rackColumnNumbers.length > 0
 			? Math.max(...rackColumnNumbers)
 			: positionsForSelectedLevels.length || 1;
 
-	const estimatedColumnsPerRow = Math.max(
-		1,
-		Math.round(containerWidthMeters / standardCellWidthMeters),
-	);
+	const lotCellWidthMeters = containerWidthMeters / totalLotColumns;
+	const lotCellDepthMeters = containerLengthMeters / totalLotRows;
+	const rackCellWidthMeters = containerWidthMeters;
+	const rackCellDepthMeters = containerLengthMeters / totalRackSlots;
 
 	return positionsForSelectedLevels.map((position, positionIndex) => {
 		const hasRegisteredCoordinates = position.coordinates != null;
-		let cellWidthMeters = standardCellWidthMeters;
-		let cellDepthMeters = standardCellDepthMeters;
+		let cellWidthMeters =
+			layout === "lot" ? lotCellWidthMeters : rackCellWidthMeters;
+		let cellDepthMeters =
+			layout === "lot" ? lotCellDepthMeters : rackCellDepthMeters;
 		let offsetXMeters = 0;
 		let offsetYMeters = 0;
 
 		if (hasRegisteredCoordinates && position.coordinates) {
-			// Las coordenadas guardadas representan el centro de la celda.
 			offsetXMeters =
 				position.coordinates.position_x - cellWidthMeters / 2;
 			offsetYMeters =
@@ -112,21 +121,19 @@ export const buildPositionCellLayouts = (
 			const lotGridFromCode = parseLotPositionCode(position.code);
 			const rowNumber =
 				lotGridFromCode?.row ??
-				Math.floor(positionIndex / estimatedColumnsPerRow) + 1;
+				Math.floor(positionIndex / totalLotColumns) + 1;
 			const columnNumber =
 				lotGridFromCode?.column ??
-				(positionIndex % estimatedColumnsPerRow) + 1;
+				(positionIndex % totalLotColumns) + 1;
 
-			offsetXMeters = (columnNumber - 1) * standardCellWidthMeters;
-			offsetYMeters = (rowNumber - 1) * standardCellDepthMeters;
+			offsetXMeters = (columnNumber - 1) * cellWidthMeters;
+			offsetYMeters = (rowNumber - 1) * cellDepthMeters;
 		} else {
 			const rackSlotFromCode = parseRackPositionCode(position.code);
-			const columnNumber = rackSlotFromCode?.column ?? positionIndex + 1;
+			const slotNumber = rackSlotFromCode?.column ?? positionIndex + 1;
 
-			cellWidthMeters = containerWidthMeters / totalRackColumns;
-			cellDepthMeters = containerLengthMeters;
-			offsetXMeters = (columnNumber - 1) * cellWidthMeters;
-			offsetYMeters = 0;
+			offsetXMeters = 0;
+			offsetYMeters = (slotNumber - 1) * cellDepthMeters;
 		}
 
 		const maxOffsetXMeters = Math.max(

@@ -161,10 +161,11 @@ export const RackViewer = ({
 						? [createMockGaleron(warehouseWidth, warehouseLength)]
 						: []
 				}
+				draggable
 				marginTop={margins.top}
 				marginBottom={margins.bottom}
 				marginLeft={margins.left}
-				marginRight={margins.right}
+				marginRight={margins.right}				
 			>
 				{/* Render only the active section because this view belongs to one section. */}
 				<Group x={secX} y={secY}>
