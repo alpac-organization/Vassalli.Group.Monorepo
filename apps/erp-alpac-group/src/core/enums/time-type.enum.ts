@@ -1,9 +1,5 @@
 import type { EnumType } from "@app/shared/types/enum.type";
 
-/**
- * Matches backend `TimeType` (JsonStringEnumConverter): Day | Month | Year.
- * Labels stay plural Spanish for UI; payload values must be singular.
- */
 export const TimeTypeEnum = {
 	Day: { value: 1, label: "Días", stringValue: "Day" },
 	Month: { value: 2, label: "Meses", stringValue: "Month" },
