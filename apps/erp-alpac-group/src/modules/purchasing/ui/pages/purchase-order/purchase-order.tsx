@@ -26,7 +26,7 @@ import { PurchaseOrderDetailsModal } from "@app/modules/purchasing/ui/pages/purc
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export const PurchaseOrder = () => {
 	const navigate = useNavigate();

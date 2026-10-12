@@ -1,10 +1,12 @@
 import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type {
 	QuotationAttachmentsInput,
+	QuotationCurrencyValue,
 	QuotationItem,
 } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
 import type { SupplierPaymentMethod } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
+import type { CurrencyCode } from "@app/core/enums/currency.enum";
 import type { ImageOutput } from "@app/shared/components/image-uploader/image-uploader.types";
 
 export const MIN_SUPPLIERS_PER_PRODUCT = 2;
@@ -12,6 +14,7 @@ export const MIN_SUPPLIERS_PER_PRODUCT = 2;
 export type DraftQuotationItem = QuotationItem & {
 	product_id: string;
 	supplier_legal_name?: string;
+	needs_supplier_product_link?: boolean;
 };
 
 export type QuoteProductModalProps = {
@@ -31,13 +34,15 @@ export type QuotationAttachmentForm = {
 
 export type QuotationItemForm = Omit<
 	QuotationItem,
-	"payment_method_type" | "attachments"
+	"payment_method_type" | "attachments" | "currency"
 > & {
 	payment_method?: PaymentMethodType;
 	supplier_legal_name?: string;
 	supplier_payment_methods?: SupplierPaymentMethod[];
 	preferred_payment_method?: PaymentMethodType;
 	attachments_form?: QuotationAttachmentForm;
+	currency_code?: CurrencyCode | null;
+	needs_supplier_product_link?: boolean;
 };
 
 export type QuoteProductGroup = {
@@ -69,4 +74,4 @@ export type QuoteProductGroupFieldsProps = {
 	quantity: number;
 };
 
-export type { QuotationAttachmentsInput };
+export type { QuotationAttachmentsInput, QuotationCurrencyValue };

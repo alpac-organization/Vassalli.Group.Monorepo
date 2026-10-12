@@ -7,5 +7,7 @@ export interface UpdateProductSupplierPriceRequest extends BaseRequest {
 	supplier_id: string;
 	new_unit_price?: number;
 	currency?: CurrencyCode;
-	tier_prices?: ProductSupplierTierPricePayload[];
+	unit_measure_id?: string | null;
+	/** omit/null = don't touch; [] = delete preferential; [item] = upsert (max 1) */
+	tier_prices?: ProductSupplierTierPricePayload[] | null;
 }

@@ -33,6 +33,9 @@ import {
 import type { TimeTypeValue } from "@app/core/enums/time-type.enum";
 import { PaymentMethodEnum } from "@app/core/enums/payment-method.enum";
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
+import { CurrencyEnum, type CurrencyCode } from "@app/core/enums/currency.enum";
+import type { QuotationCurrencyValue } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
+import type { LinkedSupplierQuotePrice } from "../link-supplier-product-modal/link-supplier-product-modal.types";
 import {
 	ProductQualityEnum,
 	ProductQualityOptions,
@@ -46,6 +49,7 @@ import { SupplierServices } from "@app/modules/purchasing/infrastructure/service
 import { httpHandler } from "@app/core/adapters";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { SelectSupplierModal } from "../select-supplier-modal/select-supplier-modal";
+import { LinkSupplierProductModal } from "../link-supplier-product-modal/link-supplier-product-modal";
 import { ImageUploader } from "@app/shared/components/image-uploader/image-uploader";
 import type { ImageOutput } from "@app/shared/components/image-uploader/image-uploader.types";
 import { QuotationPdfUploader } from "../quotation-pdf-uploader/quotation-pdf-uploader";
@@ -59,6 +63,9 @@ import type {
 	QuoteProductModalProps,
 } from "./quote-product-modal.types";
 import { MIN_SUPPLIERS_PER_PRODUCT } from "./quote-product-modal.types";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 
 const supplierServices = new SupplierServices(httpHandler);
 
@@ -188,11 +195,35 @@ const toDataUrlImages = (images?: ImageOutput[]): string[] =>
 		})
 		.slice(0, 2);
 
+const mapCurrencyCodeToApiValue = (
+	code?: CurrencyCode | null,
+): QuotationCurrencyValue | null => {
+	if (code === "NIO") return CurrencyEnum.NIO.value;
+	if (code === "USD") return CurrencyEnum.USD.value;
+	return null;
+};
+
+const mapApiCurrencyToCode = (
+	value?: number | null,
+): CurrencyCode | null => {
+	if (value === CurrencyEnum.NIO.value) return "NIO";
+	if (value === CurrencyEnum.USD.value) return "USD";
+	return null;
+};
+
+type EmptyQuotationItemOptions = {
+	price_unit?: number | null;
+	preferential_price?: number | null;
+	currency_code?: CurrencyCode | null;
+	needs_supplier_product_link?: boolean;
+};
+
 const emptyQuotationItem = (
 	purchaseRequestItemId: string,
 	supplier?: Pick<GetSuppliersResponse, "supplier_id" | "supplier_legal_name">,
 	paymentMethods?: unknown,
 	preferredPayment?: unknown,
+	priceOptions?: EmptyQuotationItemOptions,
 ): QuotationItemForm => {
 	const normalizedMethods = normalizePaymentMethods(paymentMethods);
 	const preferred = normalizePaymentMethodType(preferredPayment);
@@ -227,6 +258,12 @@ const emptyQuotationItem = (
 		warranty_period_time_type: undefined,
 		supplier_payment_methods: normalizedMethods,
 		preferred_payment_method: preferred,
+		price_unit: priceOptions?.price_unit ?? null,
+		preferential_price: priceOptions?.preferential_price ?? null,
+		currency_code: priceOptions?.currency_code ?? null,
+		needs_supplier_product_link: Boolean(
+			priceOptions?.needs_supplier_product_link,
+		),
 		attachments_form: {
 			pdf_base64: null,
 			pdf_file_name: null,
@@ -236,7 +273,13 @@ const emptyQuotationItem = (
 };
 
 const mapDraftItemToForm = (item: DraftQuotationItem): QuotationItemForm => {
-	const { payment_method_type, attachments, ...rest } = item;
+	const {
+		payment_method_type,
+		attachments,
+		currency,
+		needs_supplier_product_link,
+		...rest
+	} = item;
 	return {
 		...rest,
 		inventory_available: item.inventory_available !== false,
@@ -247,6 +290,8 @@ const mapDraftItemToForm = (item: DraftQuotationItem): QuotationItemForm => {
 		warranty_period_time_type: normalizeTimeTypeValue(
 			item.warranty_period_time_type,
 		),
+		currency_code: mapApiCurrencyToCode(currency),
+		needs_supplier_product_link: Boolean(needs_supplier_product_link),
 		attachments_form: {
 			pdf_base64: attachments?.pdf_base64 ?? null,
 			pdf_file_name: attachments?.pdf_file_name ?? null,
@@ -487,11 +532,6 @@ function QuotationItemFields({
 					)}
 				/>
 			</div>
-
-			<p className="mt-3 m-0 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] text-slate-600 dark:border-neutral-600 dark:bg-[#1e2229] dark:text-slate-300">
-				El precio unitario, IVA y totales los calcula el sistema según el
-				catálogo del proveedor (precio base o preferencial por cantidad).
-			</p>
 
 			<div className="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:flex-wrap sm:gap-4 dark:border-neutral-600">
 				<Controller
@@ -897,6 +937,8 @@ function QuoteProductGroupFields({
 	categoryName,
 }: QuoteProductGroupFieldsProps) {
 	const { companyId, moduleCode } = useUserStore();
+	const { getMappedError } = useMappedError();
+	const { handleRequestError, AlertComponent } = useAlertState();
 	const {
 		control,
 		register,
@@ -906,6 +948,10 @@ function QuoteProductGroupFields({
 	const purchaseRequestItemId = useWatch({
 		control,
 		name: `products.${productIndex}.purchase_request_item_id`,
+	});
+	const productId = useWatch({
+		control,
+		name: `products.${productIndex}.product_id`,
 	});
 
 	const { fields, append, remove } = useFieldArray({
@@ -932,12 +978,22 @@ function QuoteProductGroupFields({
 	});
 
 	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
-	const [isFetchingDetails, setIsFetchingDetails] = useState(false);
+	const [isLinkSupplierOpen, setIsLinkSupplierOpen] = useState(false);
+	const [pendingLinkSuppliers, setPendingLinkSuppliers] = useState<
+		GetSuppliersResponse[]
+	>([]);
+	const [isAppendingLinkedSuppliers, setIsAppendingLinkedSuppliers] =
+		useState(false);
 	const [openQuotations, setOpenQuotations] = useState<string[]>([]);
 
-	const excludeSupplierIds = fields
-		.map((field) => field.supplier_id)
-		.filter(Boolean);
+	const excludeSupplierIds = [
+		...fields.map((field) => field.supplier_id).filter(Boolean),
+		...pendingLinkSuppliers.map((supplier) => supplier.supplier_id),
+	];
+
+	const productLabel = categoryName
+		? `${productName} · ${categoryName}`
+		: productName;
 
 	useEffect(() => {
 		setOpenQuotations(fields.map((field) => field.id));
@@ -947,22 +1003,44 @@ function QuoteProductGroupFields({
 		errors.products?.[productIndex]?.items?.root?.message ??
 		errors.products?.[productIndex]?.items?.message;
 
-	const handleSelectSuppliers = async (suppliers: GetSuppliersResponse[]) => {
-		const existingIds = new Set(
-			fields.map((field) => field.supplier_id).filter(Boolean),
-		);
+	const handleSelectSuppliers = (suppliers: GetSuppliersResponse[]) => {
+		const existingIds = new Set([
+			...fields.map((field) => field.supplier_id).filter(Boolean),
+			...pendingLinkSuppliers.map((supplier) => supplier.supplier_id),
+		]);
 
 		const suppliersToAdd = suppliers.filter(
 			(supplier) => !existingIds.has(supplier.supplier_id),
 		);
 
-		if (suppliersToAdd.length === 0) return;
+		if (suppliersToAdd.length === 0) {
+			setIsSelectSupplierOpen(false);
+			return;
+		}
 
-		setIsFetchingDetails(true);
+		if (!productId?.trim()) {
+			handleRequestError(
+				"No se encontró el producto para vincular el proveedor.",
+			);
+			setIsSelectSupplierOpen(false);
+			return;
+		}
+
+		setPendingLinkSuppliers((prev) => [...prev, ...suppliersToAdd]);
+		setIsSelectSupplierOpen(false);
+		setIsLinkSupplierOpen(true);
+	};
+
+	const appendLinkedSuppliers = async (
+		linked: LinkedSupplierQuotePrice[],
+	) => {
+		if (linked.length === 0) return;
+
+		setIsAppendingLinkedSuppliers(true);
 
 		try {
 			const detailsResults = await Promise.all(
-				suppliersToAdd.map((supplier) =>
+				linked.map(({ supplier }) =>
 					supplierServices
 						.GetSupplierDetails({
 							company_id: companyId,
@@ -973,11 +1051,11 @@ function QuoteProductGroupFields({
 				),
 			);
 
-			const items = suppliersToAdd.map((supplier, idx) => {
+			const items = linked.map((entry, idx) => {
 				const details = detailsResults[idx];
 				const paymentMethods =
 					details?.supplier_payment_methods ??
-					supplier.supplier_payment_methods ??
+					entry.supplier.supplier_payment_methods ??
 					[];
 				const preferred = paymentMethods.find(
 					(method) =>
@@ -986,17 +1064,32 @@ function QuoteProductGroupFields({
 
 				return emptyQuotationItem(
 					purchaseRequestItemId || "",
-					supplier,
+					entry.supplier,
 					paymentMethods,
 					preferred,
+					{
+						price_unit: entry.price_unit,
+						preferential_price: entry.preferential_price,
+						currency_code: entry.currency,
+						needs_supplier_product_link: true,
+					},
 				);
 			});
 
 			append(items);
+			setPendingLinkSuppliers([]);
+		} catch (error) {
+			const mappedError = getMappedError(error as ApiErrorResponse);
+			handleRequestError(
+				mappedError.description ||
+					"No se pudo cargar el proveedor en la cotización.",
+			);
 		} finally {
-			setIsFetchingDetails(false);
+			setIsAppendingLinkedSuppliers(false);
 		}
 	};
+
+	const isBusy = isAppendingLinkedSuppliers;
 
 	return (
 		<li className="flex flex-col gap-4 border-b border-slate-200 py-10 last:border-b-0 dark:border-neutral-600">
@@ -1028,8 +1121,8 @@ function QuoteProductGroupFields({
 					type="button"
 					label="Agregar Proveedor"
 					size="giant"
-					disabled={isFetchingDetails}
-					isLoading={isFetchingDetails}
+					disabled={isBusy}
+					isLoading={isBusy}
 					onClick={() => setIsSelectSupplierOpen(true)}
 					isHiddenLabelOnMobile
 					icon={<PlusIcon size={20} />}
@@ -1039,7 +1132,8 @@ function QuoteProductGroupFields({
 
 			<p className="m-0 text-[13px] text-slate-500 dark:text-slate-400">
 				Los proveedores vinculados al producto se precargan automáticamente.
-				Use &quot;Agregar Proveedor&quot; solo para incluir adicionales. Mínimo{" "}
+				Use &quot;Agregar Proveedor&quot; para incluir adicionales (registre
+				precio; el vínculo se crea al guardar la cotización). Mínimo{" "}
 				{MIN_SUPPLIERS_PER_PRODUCT} por producto.
 			</p>
 
@@ -1050,7 +1144,7 @@ function QuoteProductGroupFields({
 			{fields.length === 0 ? (
 				<p className="m-0 rounded-md border border-dashed border-slate-300 px-4 py-6 text-center text-sm text-slate-500 dark:border-neutral-600 dark:text-slate-400">
 					Este producto no tiene proveedores vinculados. Use &quot;Agregar
-					Proveedor&quot; para buscarlos y seleccionarlos.
+					Proveedor&quot; para buscarlos, registrar precio y seleccionarlos.
 				</p>
 			) : (
 				<AccordionGroup
@@ -1087,6 +1181,28 @@ function QuoteProductGroupFields({
 				excludeSupplierIds={excludeSupplierIds}
 				onSelect={handleSelectSuppliers}
 			/>
+
+			<LinkSupplierProductModal
+				isOpen={isLinkSupplierOpen}
+				productId={productId ?? ""}
+				productLabel={productLabel}
+				suppliers={pendingLinkSuppliers}
+				onClose={() => {
+					setIsLinkSupplierOpen(false);
+					setPendingLinkSuppliers([]);
+				}}
+				onPendingSuppliersChange={setPendingLinkSuppliers}
+				onRequestAddMore={() => {
+					setIsSelectSupplierOpen(true);
+				}}
+				onLinked={(linked) => {
+					setIsLinkSupplierOpen(false);
+					void appendLinkedSuppliers(linked);
+				}}
+				onRequestError={handleRequestError}
+			/>
+
+			{AlertComponent}
 		</li>
 	);
 }
@@ -1284,6 +1400,15 @@ export function QuoteProductModal({
 		const isValid = await trigger();
 		if (!isValid) return;
 
+		const missingPrice = values.products.some((product) =>
+			product.items.some(
+				(item) =>
+					item.needs_supplier_product_link &&
+					!(typeof item.price_unit === "number" && item.price_unit > 0),
+			),
+		);
+		if (missingPrice) return;
+
 		const items: DraftQuotationItem[] = values.products.flatMap((product) =>
 			product.items.map(
 				({
@@ -1292,6 +1417,8 @@ export function QuoteProductModal({
 					payment_method: paymentMethodForm,
 					attachments_form: attachmentsForm,
 					supplier_legal_name,
+					currency_code,
+					needs_supplier_product_link,
 					...item
 				}) => {
 					const isInventoryAvailable = item.inventory_available !== false;
@@ -1302,6 +1429,10 @@ export function QuoteProductModal({
 
 					const paymentMethod =
 						normalizePaymentMethodType(paymentMethodForm) ?? null;
+					const currencyValue = mapCurrencyCodeToApiValue(currency_code);
+					const shouldSendPrice =
+						Boolean(needs_supplier_product_link) ||
+						(typeof item.price_unit === "number" && item.price_unit > 0);
 
 					return {
 						supplier_id: item.supplier_id,
@@ -1341,8 +1472,17 @@ export function QuoteProductModal({
 									},
 								}
 							: {}),
+						...(shouldSendPrice
+							? {
+									price_unit: item.price_unit ?? null,
+									preferential_price: item.preferential_price ?? null,
+									currency: currencyValue,
+									create_supplier_product_if_missing: true,
+								}
+							: {}),
 						product_id: product.product_id,
 						supplier_legal_name,
+						needs_supplier_product_link: Boolean(needs_supplier_product_link),
 					};
 				},
 			),

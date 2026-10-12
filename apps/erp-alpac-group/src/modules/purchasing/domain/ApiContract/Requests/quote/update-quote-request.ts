@@ -1,7 +1,10 @@
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
 import type { TimeTypeValue } from "@app/core/enums/time-type.enum";
 import type { ProductQualityType } from "@app/modules/purchasing/domain/enums/product-quality";
-import type { QuotationAttachmentsInput } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
+import type {
+	QuotationAttachmentsInput,
+	QuotationCurrencyValue,
+} from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
 import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
 
 export interface UpdateQuoteRequest extends BaseRequest {
@@ -21,4 +24,8 @@ export interface UpdateQuoteRequest extends BaseRequest {
 	availability_time_type?: TimeTypeValue | null;
 	supplier_selection_justification?: string | null;
 	attachments?: QuotationAttachmentsInput | null;
+	price_unit?: number | null;
+	preferential_price?: number | null;
+	currency?: QuotationCurrencyValue | null;
+	create_supplier_product_if_missing?: boolean;
 }

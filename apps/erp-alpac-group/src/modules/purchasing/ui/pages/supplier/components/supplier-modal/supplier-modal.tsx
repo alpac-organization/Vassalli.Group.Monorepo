@@ -54,6 +54,7 @@ import {
 	resolveLinkCurrency,
 	resolveLinkCurrencyPayload,
 	resolveLinkUnitMeasureId,
+	validateCatalogLinkPreferentialDates,
 	type CatalogLinkItemForm,
 } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 import { SelectProductModal } from "@app/modules/product/ui/views/select-product-modal/select-product-modal";
@@ -160,6 +161,7 @@ const emptyFormValues: Partial<CreateSupplierRequest> = {
       apply_ir_retention: false,
       apply_municipal_retention: false,
       is_tax_exempt: false,
+      preferred_payment_method: "ACH",
       contact_name: "",
       contact_phone_number: "",
       contact_email: "",
@@ -263,7 +265,10 @@ export const SupplierModal = ({
             unit_price: Number(link.unit_price),
             currency: resolveLinkCurrencyPayload(link.currency),
             unit_measure_id: resolveLinkUnitMeasureId(link.unit_measure_id),
-            tier_prices: mapCatalogLinkItemsToTierPayload(link.tier_prices),
+            tier_prices: mapCatalogLinkItemsToTierPayload(
+               link.tier_prices,
+               link.currency,
+            ),
          }));
 
    const { data: supplierDetails, isPending: isSupplierDetailsPending } = GetSupplierDetails;
@@ -315,6 +320,8 @@ export const SupplierModal = ({
             apply_ir_retention: Boolean(details?.apply_ir_retention),
             apply_municipal_retention: Boolean(details?.apply_municipal_retention),
             is_tax_exempt: Boolean(details?.is_tax_exempt),
+            preferred_payment_method:
+               details?.preferred_payment_method ?? null,
          },
          ...(hasConstitutionData(constitutionType)
             ? {
@@ -336,6 +343,7 @@ export const SupplierModal = ({
       reset,
       watch,
       setValue,
+      getValues,
       clearErrors,
       formState: { errors },
    } = useForm<CreateSupplierRequest>({
@@ -346,6 +354,15 @@ export const SupplierModal = ({
    const identificationType = watch("identification_type");
    const hasCredit = watch("supplier_details.has_credit");
    const exclusiveStatusWatch = watch("supplier_details.exclusive_status");
+   const paymentMethodsWatch = watch("payment_methods") ?? [];
+
+   const preferredPaymentMethodOptions = useMemo(
+      () =>
+         PaymentMethodOptions.filter((option) =>
+            paymentMethodsWatch.includes(String(option.value) as PaymentMethodType),
+         ),
+      [paymentMethodsWatch],
+   );
    const isExclusiveForm =
       Boolean(exclusiveStatusWatch) &&
       exclusiveStatusWatch !== SupplierExclusiveStatusEnum.None.stringValue;
@@ -645,6 +662,11 @@ export const SupplierModal = ({
             apply_ir_retention: Boolean(supplier_details?.apply_ir_retention),
             apply_municipal_retention: Boolean(supplier_details?.apply_municipal_retention),
             is_tax_exempt: Boolean(supplier_details?.is_tax_exempt),
+            preferred_payment_method:
+               supplier_details?.preferred_payment_method &&
+               paymentMethods.includes(supplier_details.preferred_payment_method)
+                  ? supplier_details.preferred_payment_method
+                  : null,
          },
          bank_accounts: localBankAccounts.length > 0 ? localBankAccounts : undefined,
          products:
@@ -680,6 +702,22 @@ export const SupplierModal = ({
          };
       }
 
+      const effectivePaymentMethods =
+         payload.payment_methods ??
+         (getValues("payment_methods") as PaymentMethodType[] | undefined) ??
+         [];
+      if (
+         payload.supplier_details?.preferred_payment_method &&
+         !effectivePaymentMethods.includes(
+            payload.supplier_details.preferred_payment_method,
+         )
+      ) {
+         payload.supplier_details = {
+            ...payload.supplier_details,
+            preferred_payment_method: null,
+         };
+      }
+
       if (
          payload.supplier_details &&
          Object.keys(payload.supplier_details).length === 0
@@ -702,6 +740,14 @@ export const SupplierModal = ({
          onRequestError?.(
             "Cada producto vinculado debe tener selección y precio unitario.",
          );
+         setActiveTab("products");
+         return;
+      }
+
+      const preferentialError =
+         validateCatalogLinkPreferentialDates(productLinks);
+      if (preferentialError) {
+         onRequestError?.(preferentialError);
          setActiveTab("products");
          return;
       }
@@ -737,6 +783,14 @@ export const SupplierModal = ({
             onRequestError?.(
                "Cada producto vinculado debe tener selección y precio unitario.",
             );
+            setActiveTab("products");
+            return;
+         }
+
+         const preferentialError =
+            validateCatalogLinkPreferentialDates(productLinks);
+         if (preferentialError) {
+            onRequestError?.(preferentialError);
             setActiveTab("products");
             return;
          }
@@ -822,7 +876,10 @@ export const SupplierModal = ({
             unit_price: String(product.unit_price ?? ""),
             currency: resolveLinkCurrency(product.currency),
             unit_measure_id: product.unit_measure_id ?? "",
-            tier_prices: mapTierPricesToCatalogForm(product.tier_prices),
+            tier_prices: mapTierPricesToCatalogForm(
+               product.tier_prices,
+               product.currency,
+            ),
          }),
       );
 
@@ -853,6 +910,7 @@ export const SupplierModal = ({
             apply_ir_retention: Boolean(details?.apply_ir_retention),
             apply_municipal_retention: Boolean(details?.apply_municipal_retention),
             is_tax_exempt: Boolean(details?.is_tax_exempt),
+            preferred_payment_method: details?.preferred_payment_method ?? null,
             contact_name: details?.contact_name ?? "",
             contact_phone_number: details?.contact_phone_number ? formatPhone(details.contact_phone_number) : "",
             contact_email: details?.contact_email ?? "",
@@ -884,6 +942,7 @@ export const SupplierModal = ({
 
    const hasCommercialErrors = Boolean(
       errors.payment_methods ||
+      errors.supplier_details?.preferred_payment_method ||
       errors.supplier_details?.credit_days ||
       errors.supplier_details?.credit_limit,
    );
@@ -1241,12 +1300,80 @@ export const SupplierModal = ({
                                     const next = (Array.isArray(vals) ? vals : []) as PaymentMethodType[];
                                     field.onChange(next);
                                     trackField("payment_methods", next);
+
+                                    const currentPreferred = getValues(
+                                       "supplier_details.preferred_payment_method",
+                                    );
+                                    if (
+                                       currentPreferred &&
+                                       !next.includes(currentPreferred)
+                                    ) {
+                                       setValue(
+                                          "supplier_details.preferred_payment_method",
+                                          null,
+                                       );
+                                       trackDetailField(
+                                          "preferred_payment_method",
+                                          null,
+                                       );
+                                    }
                                  }}
                                  appearance="dark"
                                  className={dropdownClassName}
                                  labelClassName={labelClassName}
                                  valueClassName="text-black! dark:text-white!"
                                  error={errors.payment_methods?.message}
+                              />
+                           )}
+                        />
+
+                        <Controller
+                           control={control}
+                           name="supplier_details.preferred_payment_method"
+                           rules={{
+                              validate: (value) => {
+                                 if (!value) return true;
+                                 return (
+                                    paymentMethodsWatch.includes(value) ||
+                                    "El método preferido debe estar en los métodos de pago seleccionados"
+                                 );
+                              },
+                           }}
+                           render={({ field }) => (
+                              <Dropdown
+                                 label="Método de pago preferido"
+                                 placeholder={
+                                    preferredPaymentMethodOptions.length === 0
+                                       ? "Seleccione métodos primero"
+                                       : "Seleccione..."
+                                 }
+                                 appearance="dark"
+                                 optional
+                                 options={preferredPaymentMethodOptions}
+                                 value={field.value ?? null}
+                                 disabled={
+                                    preferredPaymentMethodOptions.length === 0
+                                 }
+                                 onChange={(value) => {
+                                    const next =
+                                       value === null ||
+                                       value === undefined ||
+                                       value === ""
+                                          ? null
+                                          : (String(value) as PaymentMethodType);
+                                    field.onChange(next);
+                                    trackDetailField(
+                                       "preferred_payment_method",
+                                       next,
+                                    );
+                                 }}
+                                 className={dropdownClassName}
+                                 labelClassName={labelClassName}
+                                 valueClassName="text-black! dark:text-white!"
+                                 error={
+                                    errors.supplier_details
+                                       ?.preferred_payment_method?.message
+                                 }
                               />
                            )}
                         />

@@ -189,10 +189,11 @@ export const CatalogLinkEditor = ({
 	};
 
 	const addTier = (index: number) => {
-		const nextTier = emptyCatalogLinkTier();
+		if (items[index].tier_prices.length >= 1) return;
+		const nextTier = emptyCatalogLinkTier(items[index].currency);
 		const itemKey = itemAccordionValue(items[index], index);
 		updateItem(index, {
-			tier_prices: [...items[index].tier_prices, nextTier],
+			tier_prices: [nextTier],
 		});
 		setOpenTierByItem((prev) => ({
 			...prev,
@@ -203,11 +204,10 @@ export const CatalogLinkEditor = ({
 	const updateTier = (
 		itemIndex: number,
 		tierIndex: number,
-		field: keyof CatalogLinkTierForm,
-		value: string,
+		patch: Partial<CatalogLinkTierForm>,
 	) => {
 		const nextTiers = items[itemIndex].tier_prices.map((tier, currentIndex) =>
-			currentIndex === tierIndex ? { ...tier, [field]: value } : tier,
+			currentIndex === tierIndex ? { ...tier, ...patch } : tier,
 		);
 		updateItem(itemIndex, { tier_prices: nextTiers });
 	};
@@ -240,8 +240,8 @@ export const CatalogLinkEditor = ({
 						{title}
 					</h4>
 					<small className="text-slate-500 dark:text-slate-300">
-						Asigne precio unitario y, si aplica, precios preferenciales por
-						volumen.
+						Asigne precio unitario y, si aplica, un precio preferencial por
+						volumen (máximo 1).
 					</small>
 				</div>
 				<Button
@@ -305,7 +305,7 @@ export const CatalogLinkEditor = ({
 														? `Precio: ${item.unit_price} ${item.currency}`
 														: "Sin precio unitario"}
 													{item.tier_prices.length > 0
-														? ` · ${item.tier_prices.length} tier(s)`
+														? " · Con preferencial"
 														: ""}
 												</small>
 											</div>
@@ -426,21 +426,23 @@ export const CatalogLinkEditor = ({
 								<div className="flex flex-col gap-3">
 									<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 										<span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
-											Precios preferenciales
+											Precio preferencial
 										</span>
-										<Button
-											type="button"
-											size="small"
-											label="Agregar Precio Preferencial"
-											disabled={disabled}
-											className={`${secondaryButtonClassName} w-full! sm:w-auto!`}
-											onClick={() => addTier(index)}
-										/>
+										{item.tier_prices.length === 0 && (
+											<Button
+												type="button"
+												size="small"
+												label="Agregar precio preferencial"
+												disabled={disabled}
+												className={`${secondaryButtonClassName} w-full! sm:w-auto!`}
+												onClick={() => addTier(index)}
+											/>
+										)}
 									</div>
 
 									{item.tier_prices.length === 0 ? (
 										<small className="text-slate-500 dark:text-slate-400">
-											Sin precio preferencial · Opcional
+											Sin precio preferencial · Opcional (máximo 1)
 										</small>
 									) : (
 										<LazyMotion features={loadMotionFeatures} strict>
@@ -461,7 +463,7 @@ export const CatalogLinkEditor = ({
 												className="gap-2"
 											>
 												<AnimatePresence initial={false}>
-													{item.tier_prices.map((tier, tierIndex) => (
+													{item.tier_prices.slice(0, 1).map((tier, tierIndex) => (
 														<m.div
 															key={tier.id}
 															initial={{
@@ -505,7 +507,7 @@ export const CatalogLinkEditor = ({
 																	</div>
 																}
 															>
-																<div className="grid grid-cols-1 items-end gap-3 md:grid-cols-4">
+																<div className="grid grid-cols-1 items-end gap-3 md:grid-cols-2 lg:grid-cols-3">
 																	<InputText
 																		label="Cant. mínima"
 																		type="number"
@@ -515,12 +517,9 @@ export const CatalogLinkEditor = ({
 																		labelClassName={labelClassName}
 																		value={tier.min_quantity}
 																		onChange={(event) =>
-																			updateTier(
-																				index,
-																				tierIndex,
-																				"min_quantity",
-																				event.target.value,
-																			)
+																			updateTier(index, tierIndex, {
+																				min_quantity: event.target.value,
+																			})
 																		}
 																	/>
 																	<InputText
@@ -532,13 +531,28 @@ export const CatalogLinkEditor = ({
 																		labelClassName={labelClassName}
 																		value={tier.preferential_price}
 																		onChange={(event) =>
-																			updateTier(
-																				index,
-																				tierIndex,
-																				"preferential_price",
-																				event.target.value,
-																			)
+																			updateTier(index, tierIndex, {
+																				preferential_price:
+																					event.target.value,
+																			})
 																		}
+																	/>
+																	<Dropdown
+																		label="Moneda"
+																		placeholder="Moneda"
+																		appearance="dark"
+																		isRequired
+																		options={CurrencyCodeOptions}
+																		value={tier.currency}
+																		disabled={disabled}
+																		onChange={(value) =>
+																			updateTier(index, tierIndex, {
+																				currency: (String(value ?? "USD") ||
+																					"USD") as CurrencyCode,
+																			})
+																		}
+																		className={dropdownClassName}
+																		labelClassName={labelClassName}
 																	/>
 																	<div className="min-w-0 w-full">
 																		<DatePicker
@@ -550,12 +564,9 @@ export const CatalogLinkEditor = ({
 																			labelClassName={labelClassName}
 																			value={toDayjsValue(tier.valid_from)}
 																			onChange={(value) =>
-																				updateTier(
-																					index,
-																					tierIndex,
-																					"valid_from",
-																					toDateString(value),
-																				)
+																				updateTier(index, tierIndex, {
+																					valid_from: toDateString(value),
+																				})
 																			}
 																			slotProps={datePickerSlotProps}
 																		/>
@@ -570,12 +581,9 @@ export const CatalogLinkEditor = ({
 																			labelClassName={labelClassName}
 																			value={toDayjsValue(tier.valid_to)}
 																			onChange={(value) =>
-																				updateTier(
-																					index,
-																					tierIndex,
-																					"valid_to",
-																					toDateString(value),
-																				)
+																				updateTier(index, tierIndex, {
+																					valid_to: toDateString(value),
+																				})
 																			}
 																			slotProps={datePickerSlotProps}
 																		/>

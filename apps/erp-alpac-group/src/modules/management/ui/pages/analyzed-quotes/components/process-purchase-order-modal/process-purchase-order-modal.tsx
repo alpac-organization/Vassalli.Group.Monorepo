@@ -48,6 +48,7 @@ export function ProcessPurchaseOrderModal({
 			new_status: isApproved
 				? ManagementReviewStatus.Approved.textValue
 				: ManagementReviewStatus.Rejected.textValue,
+			...(isApproved ? { generate_payment_request: true } : {}),
 		});
 	};
 

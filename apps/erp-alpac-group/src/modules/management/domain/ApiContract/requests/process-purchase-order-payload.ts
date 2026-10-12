@@ -10,4 +10,5 @@ export interface ProcessPurchaseOrderPayload extends BaseRequest {
 	requisition_management_review_id: string;
 	new_status: ProcessPurchaseOrderStatus;
 	comments: string;
+	generate_payment_request?: boolean;
 }

@@ -163,14 +163,14 @@ export function CreateQuoteModal({
 	};
 
 	const handleSelectProduct = (product: PurchaseRequestProductInformation, isChecked: boolean) => {
-		const productId = product.product_details.product_id;
+		const productId = product.product_details?.product_id;
 
 		setSelectedProducts((prevArray) => {
 			if (!isChecked) {
-				return prevArray.filter((item) => item.product_details.product_id !== productId);
+				return prevArray.filter((item) => item.product_details?.product_id !== productId);
 			}
 
-			if (prevArray.some((item) => item.product_details.product_id === productId)) {
+			if (prevArray.some((item) => item.product_details?.product_id === productId)) {
 				return prevArray;
 			}
 
@@ -205,8 +205,12 @@ export function CreateQuoteModal({
 			company_id: companyId,
 			module_code: moduleCode,
 			quotation_items: quotationItems.map(
-				({ product_id: _productId, supplier_legal_name: _supplierName, ...item }) =>
-					item,
+				({
+					product_id: _productId,
+					supplier_legal_name: _supplierName,
+					needs_supplier_product_link: _needsLink,
+					...item
+				}) => item,
 			),
 		};
 
@@ -218,8 +222,19 @@ export function CreateQuoteModal({
 			},
 			onError(error) {
 				const mappedError = getMappedError(error);
+				const typeError = mappedError.typeError;
+				const quoteErrorMessages: Record<string, string> = {
+					"ERP:PRICE_UNIT_REQUIRED":
+						"Debe indicar el precio unitario para el proveedor no vinculado al producto.",
+					"ERP:SUPPLIER_PRODUCT_NOT_FOUND":
+						"No existe vínculo proveedor–producto. Envíe precio unitario o cree el vínculo en catálogo.",
+					"ERP:UNIT_MEASURE_REQUIRED":
+						"Debe indicar la unidad de medida del producto o del vínculo.",
+				};
 				onRequestError?.(
-					mappedError.description || "Error al registrar la cotización.",
+					quoteErrorMessages[typeError] ||
+						mappedError.description ||
+						"Error al registrar la cotización.",
 				);
 			},
 		});
@@ -378,7 +393,7 @@ export function CreateQuoteModal({
 													requestedProduct={field}
 													assignedSuppliersCount={assignedSuppliersCount}
 													isSelected={selectedProducts.some(
-														(item) => item.product_details.product_id === field.product_details?.product_id,
+														(item) => item.product_details?.product_id === field.product_details?.product_id,
 													)}
 													onSelectedChange={handleSelectProduct}
 												/>
@@ -422,15 +437,14 @@ export function CreateQuoteModal({
 				products={selectedProducts}
 				existingItems={quotationItems}
 				onConfirm={(items) => {
-					const selectedProductIds = selectedProducts
-						.map((product) => product.product_details?.product_id)
-						.filter(Boolean);
+					const resolveProductId = (item: DraftQuotationItem): string | null => {
+						const existingId = item.product_id?.trim();
+						if (existingId) return existingId;
 
-					const itemsWithProductId = items.map((item) => {
-						if (item.product_id) return item;
-
-						if (selectedProductIds.length === 1) {
-							return { ...item, product_id: selectedProductIds[0] };
+						if (selectedProducts.length === 1) {
+							const onlyId =
+								selectedProducts[0]?.product_details?.product_id?.trim();
+							return onlyId || null;
 						}
 
 						const selectedProduct = selectedProducts.find(
@@ -440,16 +454,20 @@ export function CreateQuoteModal({
 									item.purchase_request_item_id,
 						);
 
-						return selectedProduct?.product_details?.product_id
-							? {
-									...item,
-									product_id: selectedProduct.product_details.product_id,
-								}
-							: item;
-					});
+						return (
+							selectedProduct?.product_details?.product_id?.trim() || null
+						);
+					};
+
+					const itemsWithProductId: DraftQuotationItem[] = [];
+					for (const item of items) {
+						const productId = resolveProductId(item);
+						if (!productId) continue;
+						itemsWithProductId.push({ ...item, product_id: productId });
+					}
 
 					const quotedProductIds = new Set(
-						itemsWithProductId.map((item) => item.product_id).filter(Boolean),
+						itemsWithProductId.map((item) => item.product_id),
 					);
 					const quotedItemIds = new Set(
 						itemsWithProductId

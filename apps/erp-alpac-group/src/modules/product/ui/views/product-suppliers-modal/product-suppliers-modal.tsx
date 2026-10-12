@@ -375,7 +375,27 @@ export const ProductSuppliersModal = ({
 					setSelectedSupplier(null);
 				}}
 				productId={productId}
-				supplier={selectedSupplier}
+				supplierId={selectedSupplier?.supplier_id ?? ""}
+				counterpartLabel={
+					selectedSupplier
+						? `Proveedor: ${
+								selectedSupplier.commercial_name?.trim() ||
+								selectedSupplier.supplier_legal_name ||
+								selectedSupplier.supplier_id
+							}`
+						: undefined
+				}
+				initial={
+					selectedSupplier
+						? {
+								unit_price: selectedSupplier.unit_price,
+								currency: selectedSupplier.currency,
+								unit_measure_id: selectedSupplier.unit_measure_id,
+								tier_prices: selectedSupplier.tier_prices,
+							}
+						: null
+				}
+				updateVia="product"
 				onRequestSuccess={onRequestSuccess}
 				onRequestError={onRequestError}
 			/>
