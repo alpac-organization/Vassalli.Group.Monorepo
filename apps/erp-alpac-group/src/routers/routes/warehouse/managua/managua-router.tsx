@@ -4,6 +4,7 @@ import { AccessControlPage } from "@app/modules/warehouse/ui/warehouse-managua/u
 import { SectionsPage } from "@app/modules/admin-warehouse/warehouse-managua/ui/pages/sections/sections";
 import { OngoingOperationsPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/ongoing-operations";
 import { AssignmentPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/assignment";
+import { DescarguePage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/descargue/descargue";
 
 export const WarehouseManaguaRouter: RouteObject[] = [
   {
@@ -17,6 +18,10 @@ export const WarehouseManaguaRouter: RouteObject[] = [
   {
     path: "assignment",
     element: <AssignmentPage />,
+  },
+  {
+    path: "descargue",
+    element: <DescarguePage />,
   },
   {
     path: "gate-entry",

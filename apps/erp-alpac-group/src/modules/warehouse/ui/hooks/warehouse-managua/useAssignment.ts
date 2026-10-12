@@ -18,6 +18,9 @@ import type { GetAssignmentCollaboratorsRequest } from "@app/modules/warehouse/d
 import type { GetAssignmentMachineryRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-machinery";
 import type { AssignPositionsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/assign-positions";
 import type { SendToUnloadingRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/send-to-unloading";
+import type { StartTaskRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/start-task";
+import type { FinishTaskRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/finish-task";
+import type { GetPositionDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-position-detail";
 
 import type { GetAssignmentsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignments";
 import type { GetAssignmentDetailsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-details";
@@ -25,6 +28,7 @@ import type { GetAssignmentCollaboratorsResponse } from "@app/modules/warehouse/
 import type { GetAssignmentMachineryResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-machinery";
 import type { AssignPositionsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/assign-positions";
 import type { GetMachineryCatalogResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-machinery-catalog";
+import type { PositionDetailResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-position-detail";
 import type { AssignmentDetailsByCodeRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/get-assignment-details-by-code";
 import type { AssignmentDetailsByCode } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-details-by-code";
 
@@ -41,6 +45,7 @@ type UseWarehouseAssignmentProps = {
   payloadMachineryCatalog?:
     | (BaseRequest & { page_size?: number; page_number?: number })
     | null;
+  payloadPositionDetail?: GetPositionDetailRequest | null;
 };
 
 export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
@@ -51,7 +56,8 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     payloadCollaborators,
     payloadMachinery,
     payloadMachineryCatalog,
-    payloadAssignmentDetailsByCode
+    payloadAssignmentDetailsByCode,
+    payloadPositionDetail,
   } = props ?? {};
     
   const queryClient = useQueryClient();
@@ -78,8 +84,7 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
       ),
     enabled: Boolean(
       payloadAssignments?.company_id &&
-        payloadAssignments?.module_code &&
-        payloadAssignments?.operational_order_id,
+        payloadAssignments?.module_code,
     ),
     staleTime: 1000 * 60 * 2,
     refetchOnWindowFocus: false,
@@ -162,6 +167,25 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     retry: 1,
+  });
+
+  const GetPositionDetail = useQuery<
+    PositionDetailResponse,
+    ApiErrorResponse
+  >({
+    queryKey: ["position-detail", payloadPositionDetail],
+    queryFn: () =>
+      warehouseAssignmentServices.getPositionDetail(
+        payloadPositionDetail as GetPositionDetailRequest,
+      ),
+    enabled: Boolean(
+      payloadPositionDetail?.company_id &&
+        payloadPositionDetail?.module_code &&
+        payloadPositionDetail?.position_id,
+    ),
+    staleTime: 1000 * 60 * 2,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 
   const CreateAssignment = useMutation<
@@ -323,6 +347,40 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     },
   });
 
+  const StartTask = useMutation<
+    void,
+    ApiErrorResponse,
+    StartTaskRequest
+  >({
+    mutationFn: (payload) =>
+      warehouseAssignmentServices.startTask(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["assignments"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["assignment-details"],
+      });
+    },
+  });
+
+  const FinishTask = useMutation<
+    void,
+    ApiErrorResponse,
+    FinishTaskRequest
+  >({
+    mutationFn: (payload) =>
+      warehouseAssignmentServices.finishTask(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["assignments"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["assignment-details"],
+      });
+    },
+  });
+
   return {
     GetAssignments,
     GetAssignmentDetails,
@@ -338,6 +396,9 @@ export const useWarehouseAssignment = (props?: UseWarehouseAssignmentProps) => {
     DeleteAssignmentMachinery,
     AssignPositions,
     SendToUnloading,
+    StartTask,
+    FinishTask,
+    GetPositionDetail,
     GetAssignmentDetailsByCode
   };
 };

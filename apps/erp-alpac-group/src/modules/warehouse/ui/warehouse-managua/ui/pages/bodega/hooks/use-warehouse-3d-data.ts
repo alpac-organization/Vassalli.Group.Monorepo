@@ -1,18 +1,15 @@
 import { useMemo } from "react";
-import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { warehouseHttpHandler } from "@app/core/adapters";
 import { RackService } from "@app/modules/admin-warehouse/warehouse-managua/infrastructure/services/RackService";
 import { LotService } from "@app/modules/admin-warehouse/warehouse-managua/infrastructure/services/LotService";
+import { SectionService } from "@app/modules/admin-warehouse/warehouse-managua/infrastructure/services/SectionService";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
 import { useSection } from "@app/modules/admin-warehouse/warehouse-managua/ui/hooks/useSection";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { useBodegaViewerStore } from "../stores/use-bodega-viewer-store";
 import type { SectionDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-sections-res";
 import type { RackDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/racks/get-racks-res";
-import type {
-  RackPositionDetailDto,
-  GetRackDetailsResponse,
-} from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/racks/get-rack-details-res";
+import type { PositionItemDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/sections/get-positions-res";
 import type { LotDto } from "@app/modules/admin-warehouse/warehouse-managua/domain/ApiContract/response/get-lot-res";
 import {
   getEffectiveRackStatus,
@@ -20,9 +17,12 @@ import {
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
 import { SectionStorageTypeEnum } from "@app/modules/admin-warehouse/warehouse-managua/enum/section-storage-type";
 import { resolveSectionStorageType } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/section-status-badge";
+import type { ProcessedPosition3D } from "../types/warehouse-3d.types";
+import { POLIN_WIDTH, POLIN_DEPTH } from "../types/warehouse-3d.types";
 
 const rackService = new RackService(warehouseHttpHandler);
 const lotService = new LotService(warehouseHttpHandler);
+const sectionService = new SectionService(warehouseHttpHandler);
 
 function isRackStorageType(value: string | number | null | undefined): boolean {
   if (value == null || value === "") return false;
@@ -56,6 +56,22 @@ function isLotStorageType(value: string | number | null | undefined): boolean {
   );
 }
 
+function parseLotPositionCode(
+  positionCode: string,
+): { row: number; column: number } | null {
+  const match = positionCode?.match(/-F(\d+)C(\d+)$/i);
+  if (!match) return null;
+  return { row: Number(match[1]), column: Number(match[2]) };
+}
+
+function parseRackPositionCode(
+  positionCode: string,
+): { level: number; column: number } | null {
+  const match = positionCode?.match(/-N(\d+)P(\d+)$/i);
+  if (!match) return null;
+  return { level: Number(match[1]), column: Number(match[2]) };
+}
+
 export interface ProcessedSection3D {
   sectionId: string;
   code: string;
@@ -78,7 +94,7 @@ export interface ProcessedRackLevel3D {
   totalPositions: number;
   availablePositions?: number;
   maxPulleys?: number;
-  positions?: RackPositionDetailDto[];
+  positions: ProcessedPosition3D[];
   raw: RackDto;
 }
 
@@ -107,6 +123,7 @@ export interface ProcessedRack3D {
   aisleSide?: number;
   // Niveles
   levels: ProcessedRackLevel3D[];
+  positions: ProcessedPosition3D[];
   occupiedPositions: number;
   totalPositions: number;
   availablePositions: number;
@@ -130,6 +147,7 @@ export interface ProcessedTramo3D {
   rotationY: number;
   isRotated90: boolean;
   area: number;
+  positions: ProcessedPosition3D[];
   raw: LotDto;
 }
 
@@ -148,6 +166,217 @@ const SECTION_COLORS = [
   "#0891B2", // Cian
   "#EA580C", // Naranja
 ];
+
+function buildPosition3DForRack(params: {
+  pos: PositionItemDto;
+  posIndex: number;
+  levelNumber: number;
+  levelRackId: string;
+  levelCode: string;
+  shelfY: number;
+  totalPositions: number;
+  rackInfo: {
+    rackId: string;
+    code: string;
+    sectionId: string;
+    sectionCode: string;
+    renderWidth: number;
+    renderDepth: number;
+    renderHeight: number;
+    tierHeight: number;
+    cx: number;
+    cy: number;
+    cz: number;
+    rotationY: number;
+    isRotated90: boolean;
+  };
+}): ProcessedPosition3D {
+  const {
+    pos,
+    posIndex,
+    levelNumber,
+    levelRackId,
+    levelCode,
+    shelfY,
+    totalPositions,
+    rackInfo,
+  } = params;
+
+  const resolved = resolveRackStatus(pos.status);
+  const statusKey = resolved?.textValue ?? (
+    pos.status === null || pos.status === undefined || pos.status === ""
+      ? "Available"
+      : String(pos.status)
+  );
+  const isAvailable = statusKey === "Available";
+  const isOccupied = !isAvailable;
+
+  // Identificar la columna / slot en el rack (P1 = col 1, P2 = col 2)
+  const parsed = parseRackPositionCode(pos.code);
+  const col = parsed?.column ?? posIndex + 1;
+  const palletsPerLevel = Math.max(totalPositions || 2, 2);
+
+  // La longitud del rack corre a lo largo de su eje físico largo:
+  // Si isRotated90 = true (vertical en 2D), la longitud corre por el eje Z (renderDepth)
+  // Si isRotated90 = false (horizontal en 2D), la longitud corre por el eje X (renderWidth)
+  const bayLength = rackInfo.isRotated90
+    ? rackInfo.renderDepth
+    : rackInfo.renderWidth;
+  const bayWidth = rackInfo.isRotated90
+    ? rackInfo.renderWidth
+    : rackInfo.renderDepth;
+
+  const step = bayLength / palletsPerLevel;
+  // Offset a lo largo de la viga del rack respecto al centro
+  const offset = -bayLength / 2 + (col - 0.5) * step;
+
+  // Dimensiones del espacio útil de cada posición en el rack
+  const slotLength = step * 0.90; // ~1.10m para un rack estándar de 2.44m con 2 posiciones
+  const slotWidth = bayWidth * 0.88; // ~0.94m para un ancho de 1.07m
+
+  let localX = 0;
+  let localZ = 0;
+  const localY = shelfY + 0.08;
+  const posHeight = 0.18;
+
+  let posWidth = 0;
+  let posDepth = 0;
+
+  if (rackInfo.isRotated90) {
+    // Rack vertical (en eje Z): las dos posiciones van ordenadas en Z (P1 arriba/negativo, P2 abajo/positivo)
+    localX = 0;
+    localZ = offset;
+    posWidth = slotWidth;
+    posDepth = slotLength;
+  } else {
+    // Rack horizontal (en eje X): las dos posiciones van ordenadas en X
+    localX = offset;
+    localZ = 0;
+    posWidth = slotLength;
+    posDepth = slotWidth;
+  }
+
+  // Coordenadas mundiales directas (cx y cz ya son el centro del rack en el mundo 3D)
+  const worldX = rackInfo.cx + localX;
+  const worldY = rackInfo.cy + localY;
+  const worldZ = rackInfo.cz + localZ;
+
+  return {
+    positionId: pos.id,
+    positionCode: pos.code || `${levelCode}-P${posIndex + 1}`,
+    blockId: levelRackId || rackInfo.rackId,
+    blockCode: levelCode || rackInfo.code,
+    sectionId: rackInfo.sectionId,
+    sectionCode: rackInfo.sectionCode,
+    structureType: "rack",
+    level: levelNumber,
+    status: statusKey,
+    isAvailable,
+    isOccupied,
+    localX,
+    localY,
+    localZ,
+    worldX,
+    worldY,
+    worldZ,
+    width: posWidth,
+    depth: posDepth,
+    height: posHeight,
+  };
+}
+
+function buildPosition3DForTramo(params: {
+  pos: PositionItemDto;
+  posIndex: number;
+  totalPositions: number;
+  tramoInfo: {
+    tramoId: string;
+    code: string;
+    sectionId: string;
+    sectionCode: string;
+    width: number;
+    length: number;
+    cx: number;
+    cy: number;
+    cz: number;
+    rotationY: number;
+  };
+}): ProcessedPosition3D {
+  const { pos, posIndex, tramoInfo } = params;
+
+  const resolved = resolveRackStatus(pos.status);
+  const statusKey = resolved?.textValue ?? (
+    pos.status === null || pos.status === undefined || pos.status === ""
+      ? "Available"
+      : String(pos.status)
+  );
+  const isAvailable = statusKey === "Available";
+  const isOccupied = !isAvailable;
+
+  const posWidth = POLIN_WIDTH;
+  const posDepth = POLIN_DEPTH;
+  const posHeight = 0.18;
+
+  let localX = 0;
+  let localZ = 0;
+  let localY = 0.08;
+
+  if (pos.coordinates) {
+    localX = pos.coordinates.position_x - tramoInfo.width / 2;
+    localZ = pos.coordinates.position_y - tramoInfo.length / 2;
+    if (pos.coordinates.position_z != null) {
+      localY = pos.coordinates.position_z + 0.08;
+    }
+  } else {
+    const parsed = parseLotPositionCode(pos.code);
+    const estimatedCols = Math.max(
+      1,
+      Math.round(tramoInfo.width / POLIN_WIDTH),
+    );
+    const row = parsed?.row ?? Math.floor(posIndex / estimatedCols) + 1;
+    const col = parsed?.column ?? (posIndex % estimatedCols) + 1;
+
+    const offsetX = (col - 1) * POLIN_WIDTH + POLIN_WIDTH / 2;
+    const offsetZ = (row - 1) * POLIN_DEPTH + POLIN_DEPTH / 2;
+
+    localX =
+      Math.min(offsetX, tramoInfo.width - POLIN_WIDTH / 2) - tramoInfo.width / 2;
+    localZ =
+      Math.min(offsetZ, tramoInfo.length - POLIN_DEPTH / 2) - tramoInfo.length / 2;
+  }
+
+  const cosR = Math.cos(tramoInfo.rotationY);
+  const sinR = Math.sin(tramoInfo.rotationY);
+  const rotX = localX * cosR + localZ * sinR;
+  const rotZ = -localX * sinR + localZ * cosR;
+
+  const worldX = tramoInfo.cx + rotX;
+  const worldY = tramoInfo.cy + localY;
+  const worldZ = tramoInfo.cz + rotZ;
+
+  return {
+    positionId: pos.id,
+    positionCode: pos.code || `${tramoInfo.code}-P${posIndex + 1}`,
+    blockId: tramoInfo.tramoId,
+    blockCode: tramoInfo.code,
+    sectionId: tramoInfo.sectionId,
+    sectionCode: tramoInfo.sectionCode,
+    structureType: "tramo",
+    level: Number(pos.level) || 1,
+    status: statusKey,
+    isAvailable,
+    isOccupied,
+    localX,
+    localY,
+    localZ,
+    worldX,
+    worldY,
+    worldZ,
+    width: posWidth,
+    depth: posDepth,
+    height: posHeight,
+  };
+}
 
 export function useWarehouse3DData(warehouseId: string | null) {
   const { companyId, moduleCode } = useUserStore();
@@ -187,10 +416,7 @@ export function useWarehouse3DData(warehouseId: string | null) {
   // 3. Consultar los racks ÚNICAMENTE en secciones de almacenamiento de Racks
   const rackQueries = useQueries({
     queries: sectionsList.map((section) => {
-      const isRackSection =
-        section.section_storage_type == null
-          ? true
-          : isRackStorageType(section.section_storage_type);
+      const isRackSection = isRackStorageType(section.section_storage_type);
 
       return {
         queryKey: [
@@ -225,10 +451,7 @@ export function useWarehouse3DData(warehouseId: string | null) {
   // 4. Consultar los tramos (Lots) ÚNICAMENTE en secciones de almacenamiento de Tramos/Lots
   const lotQueries = useQueries({
     queries: sectionsList.map((section) => {
-      const isLotSection =
-        section.section_storage_type == null
-          ? true
-          : isLotStorageType(section.section_storage_type);
+      const isLotSection = isLotStorageType(section.section_storage_type);
 
       return {
         queryKey: [
@@ -260,51 +483,56 @@ export function useWarehouse3DData(warehouseId: string | null) {
     }),
   });
 
-  // 4b. Consultar detalles de racks ÚNICAMENTE bajo demanda (cuando un rack es enfocado/seleccionado)
-  const queryClient = useQueryClient();
-  const focusedRack = useBodegaViewerStore((s) => s.focusedRack);
-  const focusedSectionId = focusedRack?.sectionId;
-  const focusedLevels = focusedRack?.levels;
+  // 4b. Consultar posiciones únicamente en secciones de almacenamiento.
+  const positionsQueries = useQueries({
+    queries: sectionsList.map((section) => {
+      const isStorageSection =
+        isRackStorageType(section.section_storage_type) ||
+        isLotStorageType(section.section_storage_type);
 
-  const focusedRackQueries = useQueries({
-    queries: (focusedLevels ?? []).map((lvl) => ({
-      queryKey: [
-        "rack-level-details",
-        companyId,
-        moduleCode,
-        warehouseId,
-        focusedSectionId,
-        lvl.rackId,
-      ],
-      queryFn: () =>
-        rackService.GetRackDetails({
-          company_id: companyId!,
-          module_code: moduleCode!,
-          warehouse_id: warehouseId!,
-          section_id: focusedSectionId!,
-          rack_id: lvl.rackId,
-        }),
-      enabled: Boolean(
-        companyId &&
-          moduleCode &&
-          warehouseId &&
-          focusedSectionId &&
-          lvl.rackId,
-      ),
-      refetchOnWindowFocus: false,
-      staleTime: 60_000,
-    })),
+      return {
+        queryKey: [
+          "warehouse-3d-positions",
+          companyId,
+          moduleCode,
+          warehouseId,
+          section.section_id,
+        ],
+        queryFn: () =>
+          sectionService.GetPositions({
+            company_id: companyId!,
+            module_code: moduleCode!,
+            warehouse_id: warehouseId!,
+            section_id: section.section_id,
+          }),
+        enabled: Boolean(
+          companyId &&
+            moduleCode &&
+            warehouseId &&
+            section.section_id &&
+            isStorageSection,
+        ),
+        refetchOnWindowFocus: false,
+        staleTime: 60_000,
+      };
+    }),
   });
 
-  const rackDetailsMap = useMemo(() => {
-    const map = new Map<string, GetRackDetailsResponse>();
-    focusedRackQueries.forEach((q) => {
-      if (q.data?.rack_id) {
-        map.set(q.data.rack_id, q.data);
-      }
+  const positionsByBlockId = useMemo(() => {
+    const map = new Map<string, PositionItemDto[]>();
+    positionsQueries.forEach((q) => {
+      const blocks = q.data?.blocks ?? [];
+      blocks.forEach((block) => {
+        if (block.id) {
+          map.set(block.id, block.positions ?? []);
+        }
+        if (block.code) {
+          map.set(block.code, block.positions ?? []);
+        }
+      });
     });
     return map;
-  }, [focusedRackQueries]);
+  }, [positionsQueries]);
 
   // 5. Procesar dimensiones del edificio (Warehouse building)
   const building: BuildingDimensions3D = useMemo(() => {
@@ -442,34 +670,36 @@ export function useWarehouse3DData(warehouseId: string | null) {
         let totalPositions = 0;
 
         const levels: ProcessedRackLevel3D[] = bayRacks.map((tierRack, tierIdx) => {
-          const cachedDetail = queryClient.getQueryData<GetRackDetailsResponse>([
-            "rack-level-details",
-            companyId,
-            moduleCode,
-            warehouseId,
-            sec.section_id,
-            tierRack.rack_id,
-          ]);
-          const detail = rackDetailsMap.get(tierRack.rack_id) ?? cachedDetail;
-          const detailPositions = detail?.positions
-            ? [...detail.positions].sort((a, b) => (a.column ?? 0) - (b.column ?? 0))
-            : [];
+          let levelPositionsRaw =
+            positionsByBlockId.get(tierRack.rack_id) ??
+            positionsByBlockId.get(tierRack.code);
 
-          const occFromDetail = detailPositions.filter(
-            (p) =>
-              resolveRackStatus(p.status)?.textValue === "Occupied" ||
-              Boolean(p.current_stock?.product_name),
-          ).length;
+          if (!levelPositionsRaw || levelPositionsRaw.length === 0) {
+            const basePositions =
+              positionsByBlockId.get(baseRack.rack_id) ??
+              positionsByBlockId.get(baseRack.code);
+            if (basePositions) {
+              levelPositionsRaw = basePositions.filter(
+                (p) => Number(p.level) === tierIdx + 1,
+              );
+            }
+          }
 
-          const occ =
-            detailPositions.length > 0
-              ? occFromDetail
-              : Number(tierRack.occupied_positions) || 0;
+          const hasPositions = Boolean(
+            levelPositionsRaw && levelPositionsRaw.length > 0,
+          );
 
-          const tot =
-            detailPositions.length > 0
-              ? detailPositions.length
-              : Number(tierRack.total_positions) || Number(tierRack.max_pulleys) || 2;
+          const occ = hasPositions
+            ? levelPositionsRaw!.filter(
+                (p) => resolveRackStatus(p.status)?.textValue === "Occupied",
+              ).length
+            : Number(tierRack.occupied_positions) || 0;
+
+          const tot = hasPositions
+            ? levelPositionsRaw!.length
+            : Number(tierRack.total_positions) ||
+              Number(tierRack.max_pulleys) ||
+              2;
 
           const maxP = Number(tierRack.max_pulleys) || tot;
           const avail =
@@ -481,9 +711,38 @@ export function useWarehouse3DData(warehouseId: string | null) {
           totalPositions += tot;
 
           const effective = getEffectiveRackStatus(
-            detail?.status || tierRack.status,
+            tierRack.status,
             occ,
-            detailPositions,
+            levelPositionsRaw,
+          );
+
+          const levelPositions3D: ProcessedPosition3D[] = (
+            levelPositionsRaw ?? []
+          ).map((pos, pIdx) =>
+            buildPosition3DForRack({
+              pos,
+              posIndex: pIdx,
+              levelNumber: tierIdx + 1,
+              levelRackId: tierRack.rack_id,
+              levelCode: tierRack.code || `${baseRack.code}-N${tierIdx + 1}`,
+              shelfY: tierHeight * (tierIdx + 1),
+              totalPositions: tot,
+              rackInfo: {
+                rackId: baseRack.rack_id,
+                code: baseRack.code || "RACK",
+                sectionId: sec.section_id,
+                sectionCode: secCode,
+                renderWidth,
+                renderDepth,
+                renderHeight,
+                tierHeight,
+                cx,
+                cy,
+                cz,
+                rotationY: radY,
+                isRotated90,
+              },
+            }),
           );
 
           return {
@@ -496,17 +755,18 @@ export function useWarehouse3DData(warehouseId: string | null) {
             totalPositions: tot,
             availablePositions: avail,
             maxPulleys: maxP,
-            positions: detailPositions,
+            positions: levelPositions3D,
             raw: tierRack,
           };
         });
 
         const totalAvailable = Math.max(totalPositions - totalOccupied, 0);
+        const allRackPositions = levels.flatMap((l) => l.positions ?? []);
 
         const bayEffective = getEffectiveRackStatus(
           baseRack.status,
           totalOccupied,
-          levels.flatMap((l) => l.positions ?? []),
+          allRackPositions,
         );
 
         const codeNumMatch = secCode.match(/\d+/);
@@ -538,6 +798,7 @@ export function useWarehouse3DData(warehouseId: string | null) {
           isRotated90,
           aisleSide,
           levels,
+          positions: allRackPositions,
           occupiedPositions: totalOccupied,
           totalPositions,
           availablePositions: totalAvailable,
@@ -550,11 +811,7 @@ export function useWarehouse3DData(warehouseId: string | null) {
   }, [
     sectionsList,
     rackQueries,
-    rackDetailsMap,
-    queryClient,
-    companyId,
-    moduleCode,
-    warehouseId,
+    positionsByBlockId,
   ]);
 
   // 8. Procesar Tramos (Lots) en el suelo
@@ -586,6 +843,32 @@ export function useWarehouse3DData(warehouseId: string | null) {
         const cz = secZ + localZ + renderDepth / 2;
         const cy = 0.025;
 
+        const lotPositionsRaw =
+          positionsByBlockId.get(lot.id) ??
+          positionsByBlockId.get(lot.code) ??
+          [];
+
+        const tramoPositions3D: ProcessedPosition3D[] = lotPositionsRaw.map(
+          (pos, pIdx) =>
+            buildPosition3DForTramo({
+              pos,
+              posIndex: pIdx,
+              totalPositions: lotPositionsRaw.length,
+              tramoInfo: {
+                tramoId: lot.id,
+                code: lot.code || "TRAMO",
+                sectionId: sec.section_id,
+                sectionCode: secCode,
+                width: renderWidth,
+                length: renderDepth,
+                cx,
+                cy,
+                cz,
+                rotationY: radY,
+              },
+            }),
+        );
+
         tramos.push({
           tramoId: lot.id,
           sectionId: sec.section_id,
@@ -602,13 +885,14 @@ export function useWarehouse3DData(warehouseId: string | null) {
           rotationY: radY,
           isRotated90,
           area: Number(lot.area) || renderWidth * renderDepth,
+          positions: tramoPositions3D,
           raw: lot,
         });
       });
     });
 
     return tramos;
-  }, [sectionsList, lotQueries]);
+  }, [sectionsList, lotQueries, positionsByBlockId]);
 
   return {
     building,

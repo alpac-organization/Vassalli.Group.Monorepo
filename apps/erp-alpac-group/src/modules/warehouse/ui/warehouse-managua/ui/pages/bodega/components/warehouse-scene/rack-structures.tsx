@@ -2,17 +2,16 @@ import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import type { ProcessedRack3D, ProcessedSection3D } from "../../hooks/use-warehouse-3d-data";
+import type { ProcessedRack3D } from "../../hooks/use-warehouse-3d-data";
 import { useBodegaViewerStore } from "../../stores/use-bodega-viewer-store";
-import { getDynamicRackFlyTo } from "../../utils/camera-fly";
 import {
   RACK_STATUS_COLORS,
   getEffectiveRackStatus,
+  resolveRackStatus,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
 
 interface RackStructuresProps {
   racks: ProcessedRack3D[];
-  sections?: ProcessedSection3D[];
 }
 
 const POST_W = 0.08;
@@ -102,11 +101,15 @@ function AnimatedLevelBoundingBox({
     </group>
   );
 }
-export function RackStructures({ racks = [], sections = [] }: RackStructuresProps) {
-  const focusedRack = useBodegaViewerStore((s) => s.focusedRack);
-  const selectedLevel = useBodegaViewerStore((s) => s.selectedLevel);
-  const focusRack = useBodegaViewerStore((s) => s.focusRack);
-  const selectLevel = useBodegaViewerStore((s) => s.selectLevel);
+export function RackStructures({ racks = [] }: RackStructuresProps) {
+  const selectedPosition = useBodegaViewerStore((s) => s.selectedPosition);
+  const hoveredPosition = useBodegaViewerStore((s) => s.hoveredPosition);
+  const selectPosition = useBodegaViewerStore((s) => s.selectPosition);
+  const setHoveredPosition = useBodegaViewerStore((s) => s.setHoveredPosition);
+  const showPositions = useBodegaViewerStore((s) => s.showPositions);
+  const isPreselectionMode = useBodegaViewerStore((s) => s.isPreselectionMode);
+  const preselectedPositions = useBodegaViewerStore((s) => s.preselectedPositions);
+  const togglePreselectPosition = useBodegaViewerStore((s) => s.togglePreselectPosition);
 
   const [hoveredLevel, setHoveredLevel] = useState<{
     rackId: string;
@@ -431,12 +434,6 @@ export function RackStructures({ racks = [], sections = [] }: RackStructuresProp
     }
   }, [beamParts, dummy]);
 
-  const handleLevelClick = (rack: ProcessedRack3D, level: number) => {
-    const flyTo = getDynamicRackFlyTo(rack, level, sections);
-    focusRack(rack, flyTo, level);
-    selectLevel(level);
-  };
-
   return (
     <group>
       {/* 1. Bastidores verticales de acero azul industrial (#1d4ed8) con celosía y esperas */}
@@ -475,9 +472,6 @@ export function RackStructures({ racks = [], sections = [] }: RackStructuresProp
 
       {/* 3. Hitboxes independientes por cada nivel (Nivel 1, Nivel 2, etc.) */}
       {levelPlates.map((plate, idx) => {
-        const isRackSelected = focusedRack?.rackId === plate.rack.rackId;
-        const isLevelSelected =
-          isRackSelected && (selectedLevel === null || selectedLevel === plate.level);
         const isHovered =
           hoveredLevel?.rackId === plate.rack.rackId &&
           hoveredLevel?.level === plate.level;
@@ -503,10 +497,7 @@ export function RackStructures({ racks = [], sections = [] }: RackStructuresProp
           >
             {/* Hitbox transparente para interactuar con este nivel específico */}
             <mesh
-              onClick={(e) => {
-                e.stopPropagation();
-                handleLevelClick(plate.rack, plate.level);
-              }}
+              raycast={() => null}
               onPointerOver={(e) => {
                 e.stopPropagation();
                 setHoveredLevel({
@@ -524,8 +515,110 @@ export function RackStructures({ racks = [], sections = [] }: RackStructuresProp
               <meshBasicMaterial transparent opacity={0} depthWrite={false} />
             </mesh>
 
+            {/* Celdas / slots individuales de este nivel cuando showPositions está activo, en modo preselección, o el rack está seleccionado */}
+            {(showPositions ||
+              isPreselectionMode ||
+              lvlData?.positions?.some((pos) =>
+                preselectedPositions.some((p) => p.positionId === pos.positionId),
+              )) &&
+              lvlData?.positions &&
+              lvlData.positions.length > 0 && (
+                <group>
+                  {lvlData.positions.map((pos) => {
+                    const isPosSelected = selectedPosition?.positionId === pos.positionId;
+                    const isPosHovered = hoveredPosition?.positionId === pos.positionId;
+                    const isPreselected = preselectedPositions.some(
+                      (p) => p.positionId === pos.positionId,
+                    );
+                    const posResolved = resolveRackStatus(pos.status);
+                    const posKey = (posResolved?.textValue ??
+                      (pos.status ? String(pos.status) : "Available")) as keyof typeof RACK_STATUS_COLORS;
+                    const isPosAvailable = posKey === "Available" && !pos.isOccupied;
+                    const posColor = RACK_STATUS_COLORS[posKey] ?? "#38bdf8";
+
+                    const relX = pos.worldX - plate.x;
+                    const relY = pos.worldY - plate.y;
+                    const relZ = pos.worldZ - plate.z;
+
+                    const cellColor = isPreselected
+                      ? "#10b981"
+                      : isPosSelected
+                        ? "#00f0ff"
+                        : isPosHovered && isPosAvailable
+                          ? "#38bdf8"
+                          : posColor;
+
+                    return (
+                      <group key={`rack-cell-${pos.positionId}`} position={[relX, relY, relZ]}>
+                        <lineSegments>
+                          <edgesGeometry
+                            args={[
+                              new THREE.BoxGeometry(
+                                pos.width * 0.94,
+                                isPreselected ? 0.08 : 0.03,
+                                pos.depth * 0.94,
+                              ),
+                            ]}
+                          />
+                          <lineBasicMaterial
+                            color={cellColor}
+                            transparent
+                            opacity={
+                              isPreselected
+                                ? 1
+                                : isPosSelected
+                                  ? 1
+                                  : isPosHovered && isPosAvailable
+                                    ? 0.9
+                                    : 0.4
+                            }
+                          />
+                        </lineSegments>
+
+                        {/* Relleno holográfico sutil si está preseleccionado */}
+                        {isPreselected && (
+                          <mesh position={[0, 0.04, 0]}>
+                            <boxGeometry args={[pos.width * 0.92, 0.08, pos.depth * 0.92]} />
+                            <meshBasicMaterial
+                              color="#10b981"
+                              transparent
+                              opacity={0.35}
+                              depthWrite={false}
+                            />
+                          </mesh>
+                        )}
+
+                        <mesh
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (isPreselectionMode) {
+                              if (!isPosAvailable) return;
+                              togglePreselectPosition(pos);
+                            } else {
+                              selectPosition(pos);
+                            }
+                          }}
+                          onPointerOver={(e) => {
+                            e.stopPropagation();
+                            setHoveredPosition(pos);
+                            document.body.style.cursor = "pointer";
+                          }}
+                          onPointerOut={() => {
+                            setHoveredPosition(null);
+                            document.body.style.cursor = "auto";
+                          }}
+                        >
+                          <boxGeometry args={[pos.width, 0.6, pos.depth]} />
+                          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+                        </mesh>
+                      </group>
+                    );
+                  })}
+                </group>
+              )}
+
             {/* Bounding box de resalte para el nivel enfocado/hover con animación y color según estado */}
-            {(isLevelSelected || isHovered) && (
+            {isHovered && (
               <AnimatedLevelBoundingBox
                 w={plate.w}
                 h={plate.h}
@@ -535,15 +628,15 @@ export function RackStructures({ racks = [], sections = [] }: RackStructuresProp
               />
             )}
 
-            {/* Tooltip / Badge 3D flotante con código y estado */}
-            {(isLevelSelected || isHovered) && (
+            {/* Tooltip / Badge 3D flotante con código y estado (compacto) */}
+            {isHovered && (
               <Html
                 center
-                distanceFactor={14}
-                position={[0, plate.h * 0.52 + 0.18, 0]}
+                distanceFactor={9}
+                position={[0, plate.h * 0.52 + 0.12, 0]}
                 style={{ pointerEvents: "none" }}
               >
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-950/95 text-white border border-slate-700/80 shadow-2xl backdrop-blur-md pointer-events-none select-none text-[11px] font-semibold whitespace-nowrap transform -translate-y-1/2">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-950/95 text-white border border-slate-700/80 shadow-2xl backdrop-blur-md pointer-events-none select-none text-[10px] font-semibold whitespace-nowrap transform -translate-y-1/2">
                   {isWarning ? (
                     <span className="relative flex h-2 w-2">
                       <span

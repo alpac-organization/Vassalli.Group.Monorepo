@@ -3,15 +3,26 @@ import { persist } from "zustand/middleware";
 import type {
   CameraProps,
   LayerFilterMode,
+  ProcessedPosition3D,
   Vec3,
   ViewerLayer,
 } from "../types/warehouse-3d.types";
 import type { ProcessedRack3D, ProcessedTramo3D } from "../hooks/use-warehouse-3d-data";
+import { resolveRackStatus } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
 
 export type CameraFlyTo = {
   position: Vec3;
   target: Vec3;
   minDistance?: number;
+};
+
+export type ActiveDescargueAssignment = {
+  assignmentId: string;
+  operationalOrderId: string;
+  merchandise?: string;
+  merchandiseDescription?: string;
+  warehouseId?: string;
+  status?: number | string;
 };
 
 interface BodegaViewerState {
@@ -31,8 +42,21 @@ interface BodegaViewerState {
   showSections: boolean;
   showRacks: boolean;
   showTramos: boolean;
+  showPositions: boolean;
   showCargo: boolean;
   layerFilterMode: LayerFilterMode | null;
+
+  // Modo de navegación / vista (Mano para solo moverse vs Orbitar 3D)
+  navigationMode: "orbit" | "pan";
+  setNavigationMode: (mode: "orbit" | "pan") => void;
+  togglePanMode: () => void;
+
+  // Preselección de posiciones (marcar múltiples posiciones antes de asignar)
+  isPreselectionMode: boolean;
+  preselectedPositions: ProcessedPosition3D[];
+  togglePreselectPosition: (position: ProcessedPosition3D) => void;
+  clearPreselectedPositions: () => void;
+  togglePreselectionMode: () => void;
 
   // Pantalla completa / Expandir
   isFullscreen: boolean;
@@ -40,11 +64,23 @@ interface BodegaViewerState {
   // Acciones de Zoom
   zoomAction: "in" | "out" | null;
 
+  // Selección de posición específica (celda / polín) en 3D
+  selectedPosition: ProcessedPosition3D | null;
+  hoveredPosition: ProcessedPosition3D | null;
+
+  // Asignación de Descargue activa
+  activeDescargueAssignment: ActiveDescargueAssignment | null;
+  setActiveDescargueAssignment: (assignment: ActiveDescargueAssignment | null) => void;
+  clearActiveDescargueAssignment: () => void;
+
   setBodega: (id: string, name: string) => void;
   clearBodega: () => void;
   focusRack: (rack: ProcessedRack3D, flyTo: CameraFlyTo, level?: number | null) => void;
   focusTramo: (tramo: ProcessedTramo3D) => void;
   selectLevel: (level: number | null) => void;
+  selectPosition: (position: ProcessedPosition3D | null) => void;
+  setHoveredPosition: (position: ProcessedPosition3D | null) => void;
+  clearPositionSelection: () => void;
   clearRackSelection: () => void;
   clearTramoSelection: () => void;
   exitTramoFocus: (overviewFlyTo?: CameraFlyTo) => void;
@@ -80,16 +116,79 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
       cameraPreset: null,
       cameraFlyTo: null,
 
-      // Capas activadas por defecto
-      showWarehouse: true,
-      showSections: true,
+      // Capas activadas por defecto (Paredes, Secciones y Cuadrícula ocultas por defecto)
+      showWarehouse: false,
+      showSections: false,
       showRacks: true,
       showTramos: true,
+      showPositions: false,
       showCargo: true,
-      layerFilterMode: "all",
+      layerFilterMode: null,
+
+      navigationMode: "orbit",
+      isPreselectionMode: false,
+      preselectedPositions: [],
 
       isFullscreen: false,
       zoomAction: null,
+
+      selectedPosition: null,
+      hoveredPosition: null,
+
+      setNavigationMode: (mode) => set({ navigationMode: mode }),
+      togglePanMode: () =>
+        set((s) => ({
+          navigationMode: s.navigationMode === "pan" ? "orbit" : "pan",
+        })),
+
+      togglePreselectPosition: (position) =>
+        set((state) => {
+          const resolved = resolveRackStatus(position.status);
+          const statusKey =
+            resolved?.textValue ??
+            (position.isOccupied ? "Occupied" : "Available");
+          const isAvailable =
+            statusKey === "Available" && !position.isOccupied;
+
+          const exists = state.preselectedPositions.some(
+            (p) => p.positionId === position.positionId,
+          );
+
+          // Si no está preseleccionada y ya cuenta con un estado (no disponible), bloquear selección
+          if (!exists && !isAvailable) {
+            return state;
+          }
+
+          const updated = exists
+            ? state.preselectedPositions.filter(
+                (p) => p.positionId !== position.positionId,
+              )
+            : [...state.preselectedPositions, position];
+          return { preselectedPositions: updated };
+        }),
+
+      clearPreselectedPositions: () => set({ preselectedPositions: [] }),
+      togglePreselectionMode: () =>
+        set((s) => {
+          const nextMode = !s.isPreselectionMode;
+          return {
+            isPreselectionMode: nextMode,
+            showPositions: nextMode,
+          };
+        }),
+
+      activeDescargueAssignment: null,
+      setActiveDescargueAssignment: (assignment) =>
+        set({
+          activeDescargueAssignment: assignment,
+          isPreselectionMode: Boolean(assignment),
+          showPositions: Boolean(assignment),
+        }),
+      clearActiveDescargueAssignment: () =>
+        set({
+          activeDescargueAssignment: null,
+          preselectedPositions: [],
+        }),
 
       setBodega: (id, name) =>
         set({
@@ -99,10 +198,19 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
           focusedRack: null,
           focusedTramo: null,
           selectedLevel: null,
+          selectedPosition: null,
+          hoveredPosition: null,
           focusedTramoId: null,
           sectionFilterId: null,
           cameraPreset: "default",
           cameraFlyTo: null,
+          showWarehouse: false,
+          showSections: false,
+          showRacks: true,
+          showTramos: true,
+          showPositions: false,
+          showCargo: true,
+          layerFilterMode: null,
         }),
 
       clearBodega: () =>
@@ -113,6 +221,8 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
           focusedRack: null,
           focusedTramo: null,
           selectedLevel: null,
+          selectedPosition: null,
+          hoveredPosition: null,
           focusedTramoId: null,
           sectionFilterId: null,
           cameraPreset: null,
@@ -125,6 +235,8 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
           focusedRack: rack,
           focusedTramo: null,
           selectedLevel: level ?? null,
+          selectedPosition: null,
+          hoveredPosition: null,
           focusedTramoId: rack.rackId,
           cameraFlyTo: flyTo,
         }),
@@ -135,6 +247,8 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
           focusedRack: null,
           selectedRackId: null,
           selectedLevel: null,
+          selectedPosition: null,
+          hoveredPosition: null,
           focusedTramoId: tramo.tramoId,
         }),
 
@@ -143,18 +257,38 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
           selectedLevel: level,
         }),
 
+      selectPosition: (position) =>
+        set({
+          selectedPosition: position,
+        }),
+
+      setHoveredPosition: (position) =>
+        set({
+          hoveredPosition: position,
+        }),
+
+      clearPositionSelection: () =>
+        set({
+          selectedPosition: null,
+          hoveredPosition: null,
+        }),
+
       clearRackSelection: () =>
         set({
           selectedRackId: null,
           focusedRack: null,
           focusedTramo: null,
           selectedLevel: null,
+          selectedPosition: null,
+          hoveredPosition: null,
           focusedTramoId: null,
         }),
 
       clearTramoSelection: () =>
         set({
           focusedTramo: null,
+          selectedPosition: null,
+          hoveredPosition: null,
           focusedTramoId: null,
         }),
 
@@ -164,6 +298,8 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
           focusedRack: null,
           focusedTramo: null,
           selectedLevel: null,
+          selectedPosition: null,
+          hoveredPosition: null,
           focusedTramoId: null,
           cameraFlyTo: overviewFlyTo ?? null,
         }),
@@ -194,18 +330,27 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
             layer === "racks" ? !state.showRacks : state.showRacks;
           const nextTramos =
             layer === "tramos" ? !state.showTramos : state.showTramos;
+          const nextPositions =
+            layer === "positions" ? !state.showPositions : state.showPositions;
           const nextCargo =
             layer === "cargo" ? !state.showCargo : state.showCargo;
 
           const isAll =
-            nextWarehouse && nextSections && nextRacks && nextTramos && nextCargo;
+            nextWarehouse &&
+            nextSections &&
+            nextRacks &&
+            nextTramos &&
+            nextPositions &&
+            nextCargo;
 
           return {
             showWarehouse: nextWarehouse,
             showSections: nextSections,
             showRacks: nextRacks,
             showTramos: nextTramos,
+            showPositions: nextPositions,
             showCargo: nextCargo,
+            isPreselectionMode: nextPositions ? state.isPreselectionMode : false,
             layerFilterMode: isAll ? "all" : null,
           };
         }),
@@ -219,6 +364,7 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
               showSections: true,
               showRacks: true,
               showTramos: true,
+              showPositions: false,
               showCargo: true,
             };
           }
@@ -229,6 +375,7 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
               showSections: false,
               showRacks: false,
               showTramos: false,
+              showPositions: false,
               showCargo: false,
             };
           }
@@ -239,6 +386,7 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
               showSections: true,
               showRacks: false,
               showTramos: false,
+              showPositions: false,
               showCargo: false,
             };
           }
@@ -249,7 +397,8 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
               showSections: false,
               showRacks: true,
               showTramos: false,
-              showCargo: false,
+              showPositions: false,
+              showCargo: true,
             };
           }
           if (mode === "tramos") {
@@ -259,7 +408,19 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
               showSections: false,
               showRacks: false,
               showTramos: true,
+              showPositions: false,
               showCargo: true,
+            };
+          }
+          if (mode === "positions") {
+            return {
+              layerFilterMode: "positions",
+              showWarehouse: true,
+              showSections: true,
+              showRacks: true,
+              showTramos: true,
+              showPositions: true,
+              showCargo: false,
             };
           }
           return {};
@@ -267,12 +428,13 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
 
       resetLayers: () =>
         set({
-          showWarehouse: true,
-          showSections: true,
+          showWarehouse: false,
+          showSections: false,
           showRacks: true,
           showTramos: true,
+          showPositions: false,
           showCargo: true,
-          layerFilterMode: "all",
+          layerFilterMode: null,
         }),
 
       setIsFullscreen: (full) => set({ isFullscreen: full }),

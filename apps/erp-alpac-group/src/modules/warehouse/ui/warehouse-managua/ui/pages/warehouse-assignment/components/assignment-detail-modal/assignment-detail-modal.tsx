@@ -17,7 +17,15 @@ import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useWarehouseAssignment } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAssignment";
+import { useOperationalOrders } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useOperationalOrders";
 import type { AssignmentOperationalDetailsDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-details";
+import { parseOperationalOrderAdditionalData } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/operational-orders/get-operational-order-detail-response";
+import { GeneralInformationSection } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/operational-order-detail-modal/components/general-information-section";
+import { CustomerInformationSection } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/operational-order-detail-modal/components/customer-information-section";
+import { ReceptionInformationSection } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/operational-order-detail-modal/components/reception-information-section";
+import { TransportInformationSection } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/operational-order-detail-modal/components/transport-information-section";
+import { EvidenceInformationSection } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/operational-order-detail-modal/components/evidence-information-section";
+import { mapEvidenceImages } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/components/operational-order-detail-modal/utils/operational-order-detail.utils";
 import {
   canSendAssignmentToUnloading,
   getAssignmentStatusBadgeProps,
@@ -34,6 +42,9 @@ interface AssignmentDetailModalProps {
   onManageMachinery?: () => void;
   onSendToUnloading?: (assignment: AssignmentOperationalDetailsDto) => void;
   isSendingToUnloading?: boolean;
+  primaryActionLabel?: string;
+  onPrimaryAction?: (assignment: AssignmentOperationalDetailsDto) => void;
+  isPrimaryActionLoading?: boolean;
 }
 
 function resolveWarehouseTypeLabel(type?: number | string | null): string {
@@ -55,6 +66,9 @@ export function AssignmentDetailModal({
   onManageMachinery,
   onSendToUnloading,
   isSendingToUnloading,
+  primaryActionLabel,
+  onPrimaryAction,
+  isPrimaryActionLoading = false,
 }: AssignmentDetailModalProps) {
   const { companyId, moduleCode } = useUserStore();
 
@@ -71,8 +85,32 @@ export function AssignmentDetailModal({
   const { GetAssignmentDetails } = useWarehouseAssignment({
     payloadAssignmentDetails,
   });
+  const { GetOperationalOrderDetail } = useOperationalOrders({
+    detailPayload:
+      isOpen && operationalOrderId && companyId && moduleCode
+        ? {
+            company_id: companyId,
+            module_code: moduleCode,
+            operational_order_id: operationalOrderId,
+          }
+        : null,
+  });
 
   const { data: detail, isLoading } = GetAssignmentDetails;
+  const { data: orderDetail, isLoading: isOrderLoading } =
+    GetOperationalOrderDetail;
+  const parsedAdditionalData = useMemo(
+    () =>
+      parseOperationalOrderAdditionalData(
+        orderDetail?.reception_entrance_information?.additional_data,
+      ),
+    [orderDetail?.reception_entrance_information?.additional_data],
+  );
+  const documentNumbers = parsedAdditionalData?.document_numbers ?? [];
+  const evidenceImages = useMemo(
+    () => mapEvidenceImages(parsedAdditionalData),
+    [parsedAdditionalData],
+  );
 
   const statusBadge = getAssignmentStatusBadgeProps(detail?.status);
   const isAlerted = Boolean(detail?.is_alerted);
@@ -89,9 +127,9 @@ export function AssignmentDetailModal({
       isOpen={isOpen && Boolean(assignmentId)}
       onClose={onClose}
       variant="default"
-      size="4xl"
-      title="Detalle de Asignación Operativa"
-      description="Consulta los detalles de la mercancía, destino, recursos asignados y observaciones."
+      size="7xl"
+      title="Detalle de Asignación y Orden Operativa"
+      description="Consulta la información completa de la asignación, la mercancía y la orden de compra asociada."
       panelClassName={[
         "flex max-h-[min(94dvh,50rem)] flex-col overflow-hidden",
         "!mx-2 !my-2 sm:!mx-4 sm:!my-6",
@@ -100,7 +138,7 @@ export function AssignmentDetailModal({
       contentClassName="flex min-h-0 flex-1 flex-col"
     >
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        {isLoading ? (
+        {isLoading || isOrderLoading ? (
           <div className="px-3 py-16 text-center">
             <Loader title="Cargando detalle de la asignación..." />
           </div>
@@ -275,6 +313,32 @@ export function AssignmentDetailModal({
                     </div>
                   </section>
                 )}
+
+                {orderDetail ? (
+                  <>
+                    <GeneralInformationSection detail={orderDetail} />
+                    <CustomerInformationSection
+                      customer={orderDetail.customer_information}
+                    />
+                    {orderDetail.reception_entrance_information ? (
+                      <ReceptionInformationSection
+                        receptionInfo={orderDetail.reception_entrance_information}
+                        isConsolidated={orderDetail.is_consolidated}
+                        documentNumbers={documentNumbers}
+                      />
+                    ) : null}
+                    {orderDetail.reception_entrance_information
+                      ?.reception_transport_entrance_information ? (
+                      <TransportInformationSection
+                        transportInfo={
+                          orderDetail.reception_entrance_information
+                            .reception_transport_entrance_information
+                        }
+                      />
+                    ) : null}
+                    <EvidenceInformationSection images={evidenceImages} />
+                  </>
+                ) : null}
               </div>
             </div>
 
@@ -290,7 +354,21 @@ export function AssignmentDetailModal({
                   onClick={onClose}
                   className="w-full sm:w-auto text-[14px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! hover:bg-slate-600! dark:hover:bg-slate-600!"
                 />
-                {canSendAssignmentToUnloading(detail.status) &&
+                {onPrimaryAction ? (
+                  <Button
+                    type="button"
+                    label={
+                      isPrimaryActionLoading
+                        ? "Iniciando..."
+                        : primaryActionLabel || "Continuar"
+                    }
+                    size="giant"
+                    icon={<Send size={18} />}
+                    onClick={() => onPrimaryAction(detail)}
+                    disabled={isPrimaryActionLoading}
+                    className="w-full sm:w-auto text-[14px]! rounded-md! text-white! bg-alpac-primary-500! hover:bg-alpac-primary-600 dark:bg-alpac-primary-700! justify-center!"
+                  />
+                ) : canSendAssignmentToUnloading(detail.status) &&
                   onSendToUnloading && (
                     <Button
                       type="button"

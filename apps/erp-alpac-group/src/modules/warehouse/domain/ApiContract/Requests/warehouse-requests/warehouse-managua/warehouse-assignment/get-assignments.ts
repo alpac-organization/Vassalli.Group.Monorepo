@@ -9,5 +9,5 @@ export interface GetAssignmentsQueryParams {
 }
 
 export interface GetAssignmentsRequest extends GetAssignmentsQueryParams, BaseRequest {
-  operational_order_id: string;
+  operational_order_id?: string;
 }

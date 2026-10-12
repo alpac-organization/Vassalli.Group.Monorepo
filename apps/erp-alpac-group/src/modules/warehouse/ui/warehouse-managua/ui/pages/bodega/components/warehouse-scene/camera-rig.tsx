@@ -144,6 +144,32 @@ export function CameraRig({ building }: CameraRigProps) {
     }
   });
 
+  const navigationMode = useBodegaViewerStore((s) => s.navigationMode);
+  const isPanMode = navigationMode === "pan";
+
+  // Sincronizar dinámicamente controles táctiles y de ratón al cambiar el modo de navegación
+  useEffect(() => {
+    if (!controlsRef.current) return;
+    const ctrl = controlsRef.current as unknown as {
+      touches?: { ONE: number; TWO: number };
+      mouseButtons?: { LEFT: number; MIDDLE: number; RIGHT: number };
+      panSpeed?: number;
+      update?: () => void;
+    };
+    if (ctrl.touches) {
+      ctrl.touches.ONE = isPanMode ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE;
+      ctrl.touches.TWO = THREE.TOUCH.DOLLY_PAN;
+    }
+    if (ctrl.mouseButtons) {
+      ctrl.mouseButtons.LEFT = isPanMode ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE;
+      ctrl.mouseButtons.RIGHT = isPanMode ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN;
+    }
+    if (ctrl.panSpeed !== undefined) {
+      ctrl.panSpeed = isPanMode ? 1.6 : 0.85;
+    }
+    invalidate();
+  }, [isPanMode, invalidate]);
+
   return (
     <OrbitControls
       ref={controlsRef as never}
@@ -151,9 +177,18 @@ export function CameraRig({ building }: CameraRigProps) {
       enableDamping={true}
       dampingFactor={0.08}
       rotateSpeed={0.85}
-      panSpeed={0.85}
+      panSpeed={isPanMode ? 1.6 : 0.85}
       zoomSpeed={1.4}
       screenSpacePanning={true}
+      mouseButtons={{
+        LEFT: isPanMode ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE,
+        MIDDLE: THREE.MOUSE.DOLLY,
+        RIGHT: isPanMode ? THREE.MOUSE.ROTATE : THREE.MOUSE.PAN,
+      }}
+      touches={{
+        ONE: isPanMode ? THREE.TOUCH.PAN : THREE.TOUCH.ROTATE,
+        TWO: THREE.TOUCH.DOLLY_PAN,
+      }}
       maxPolarAngle={Math.PI / 2 - 0.02}
       minDistance={0.5}
       maxDistance={Math.max(b.width, b.depth) * 3}

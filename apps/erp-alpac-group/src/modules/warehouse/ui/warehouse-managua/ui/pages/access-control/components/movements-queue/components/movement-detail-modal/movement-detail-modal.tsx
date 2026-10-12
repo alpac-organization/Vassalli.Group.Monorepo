@@ -649,13 +649,15 @@ export function MovementDetailModal({
         title="Vista previa de evidencia"
         size="md"
       >
-        <div className="flex justify-center items-center p-2 sm:p-4 bg-slate-900 rounded-md">
-          <img
-            src={previewImage || ""}
-            alt="Vista previa de la evidencia"
-            className="max-w-full max-h-[80vh] object-contain rounded-md"
-          />
-        </div>
+        {previewImage ? (
+          <div className="flex justify-center items-center p-2 sm:p-4 bg-slate-900 rounded-md">
+            <img
+              src={previewImage}
+              alt="Vista previa de la evidencia"
+              className="max-w-full max-h-[80vh] object-contain rounded-md"
+            />
+          </div>
+        ) : null}
       </Modal>
     </>
   );
