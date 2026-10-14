@@ -198,7 +198,7 @@ export function FinishDescargueModal({
               Confirmación de Finalización
             </span>
             <p className="m-0 leading-relaxed text-emerald-700 dark:text-emerald-300">
-              Al finalizar esta tarea, la asignación pasará a estado <b>Descargada (Downloaded)</b> y todas las posiciones reservadas en la bodega quedarán registradas formalmente como <b>Ocupadas (Occupied)</b>.
+              Al finalizar esta tarea, la asignación pasará a estado <b>Descargada</b> y todas las posiciones reservadas en la bodega quedarán registradas formalmente como <b>Ocupadas</b>.
             </p>
           </div>
         </div>
