@@ -3,5 +3,7 @@ import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiCon
 export interface SupplierProductsModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	selectedSupplier?: GetSuppliersResponse | null;
+	selectedSupplier: GetSuppliersResponse | null;
+	onRequestSuccess?: (message: string) => void;
+	onRequestError?: (message?: string) => void;
 }

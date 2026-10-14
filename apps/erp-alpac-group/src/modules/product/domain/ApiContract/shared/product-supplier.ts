@@ -4,6 +4,7 @@ import type { SupplierExclusiveStatus } from "@app/core/enums/supplier-exclusive
 export interface ProductSupplierTierPricePayload {
 	min_quantity: number;
 	preferential_price: number;
+	currency?: CurrencyCode | null;
 	valid_from: string;
 	valid_to?: string | null;
 	unit_measure_id?: string | null;
@@ -18,7 +19,7 @@ export interface CreateProductSupplierPayload {
 	unit_price: number;
 	currency?: CurrencyCode | null;
 	unit_measure_id?: string | null;
-	tier_prices?: ProductSupplierTierPricePayload[];
+	tier_prices?: ProductSupplierTierPricePayload[] | null;
 }
 
 export interface ProductLinkedSupplier {

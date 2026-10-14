@@ -7,5 +7,6 @@ export interface UpdateProductSupplierPriceRequest extends BaseRequest {
 	supplier_id: string;
 	new_unit_price?: number;
 	currency?: CurrencyCode;
-	tier_prices?: ProductSupplierTierPricePayload[];
+	unit_measure_id?: string | null;
+	tier_prices?: ProductSupplierTierPricePayload[] | null;
 }

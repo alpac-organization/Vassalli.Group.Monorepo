@@ -10,9 +10,11 @@ import type { GetPurchaseRequestDetailPayload } from "@app/modules/purchasing/do
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { GetPurchaseRequestProductPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-product-payload";
 import type { GetPurchaseRequestDocumentRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-document-request";
+import type { GetMonthlyPurchaseReportPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-monthly-purchase-report-payload";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
 import type { UpdatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/update-purchase-request-payload";
+import type { GetMonthlyPurchaseReportResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-monthly-purchase-report-response";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
 import type { PurchaseOrderDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-document-response";
 import type { GetPurchaseOrdersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
@@ -27,6 +29,7 @@ type usePurchasePayloads = {
    getPurchaseRequestDetailsPayload?: GetPurchaseRequestDetailPayload,
    sendPurchaseRequestToReviewPayload?: SendPurchaseRequestToReviewPayload,
    getPurchaseRequestProductsPayload?: GetPurchaseRequestProductPayload,
+   getMonthlyPurchaseReportPayload?: GetMonthlyPurchaseReportPayload,
    getPurchaseOrdersPayload?: GetPurchaseOrdersPayload,
    getPurchaseOrderDetailsPayload?: GetPurchaseOrderDetailsPayload,
 }
@@ -37,6 +40,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       getPurchaseRequestsPayload,
       getPurchaseRequestDetailsPayload,
       getPurchaseRequestProductsPayload,
+      getMonthlyPurchaseReportPayload,
       getPurchaseOrdersPayload,
       getPurchaseOrderDetailsPayload,
    } = props || {};
@@ -74,6 +78,11 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       getPurchaseOrderDetailsPayload?.purchase_order_id?.trim()
    );
 
+   const monthlyPurchaseReportEnabled = Boolean(
+      getMonthlyPurchaseReportPayload?.company_id?.trim() &&
+      getMonthlyPurchaseReportPayload?.module_code?.trim()
+   );
+
    const GetPurchaseRequests = useQuery({
       queryKey: ["get-purchase-requests", getPurchaseRequestsPayload],
       queryFn: () => purchaseServices.GetPurchaseRequests(getPurchaseRequestsPayload!),
@@ -96,6 +105,15 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       queryFn: () => purchaseServices.GetPurchaseRequestProducts(getPurchaseRequestProductsPayload!),
       enabled: purchaseRequestProductEnabled,
       staleTime: 0,
+      refetchOnWindowFocus: false,
+      retry: 1,
+   });
+
+   const GetMonthlyPurchaseReport = useQuery<GetMonthlyPurchaseReportResponse, ApiErrorResponse>({
+      queryKey: ["get-monthly-purchase-report", getMonthlyPurchaseReportPayload],
+      queryFn: () => purchaseServices.GetMonthlyPurchaseReport(getMonthlyPurchaseReportPayload!),
+      enabled: monthlyPurchaseReportEnabled,
+      staleTime: 1000 * 60 * 1,
       refetchOnWindowFocus: false,
       retry: 1,
    });
@@ -198,6 +216,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       GetPurchaseRequests, GetPurchaseRequestDetails,
       CreatePurchaseRequest, UpdatePurchaseRequest, ProcessPurchaseRequest, DeletePurchaseRequest,
       SendPurchaseRequestToReview, GetPurchaseRequestProducts,
+      GetMonthlyPurchaseReport,
       GetPurchaseOrders, GetPurchaseOrderDetails, GetPurchaseOrderDocument,
       GetPurchaseRequestDocument,
       AnnulPurchaseRequest,

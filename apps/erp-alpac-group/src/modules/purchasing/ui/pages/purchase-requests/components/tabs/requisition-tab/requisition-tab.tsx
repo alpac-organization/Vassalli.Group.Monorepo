@@ -55,7 +55,7 @@ export const RequisitionTab = ({
 		company_id: companyId,
 		module_code: moduleCode,
 		...(isAdministrator ? {} : { branch_id: currentBranchId }),
-		request_type: Number(PurchaseRequestEnum.Requisition.value),
+		request_type: PurchaseRequestEnum.Requisition.textValue,
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	});
@@ -67,7 +67,7 @@ export const RequisitionTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			branch_id: isAdministrator ? undefined : currentBranchId,
-			request_type: Number(PurchaseRequestEnum.Requisition.value),
+			request_type: PurchaseRequestEnum.Requisition.textValue,
 			page_size: PAGE_SIZE,
 		},
 	});
@@ -81,7 +81,7 @@ export const RequisitionTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			...(isAdministrator ? {} : { branch_id: currentBranchId }),
-			request_type: Number(PurchaseRequestEnum.Requisition.value),
+			request_type: PurchaseRequestEnum.Requisition.textValue,
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		});
@@ -168,14 +168,15 @@ export const RequisitionTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			branch_id: isAdministrator ? undefined : currentBranchId,
-			request_type: Number(PurchaseRequestEnum.Requisition.value),
+			request_type: PurchaseRequestEnum.Requisition.textValue,
 			code: data?.code?.trim(),
 			year,
 			month,
 			page_number: 1,
 			page_size: PAGE_SIZE,
-			status: data.status || undefined,
+			status: data.status ?? undefined,
 			area_id: data.area_id || undefined,
+			ownership: data.ownership ?? undefined,
 		}));
 	};
 
@@ -184,7 +185,7 @@ export const RequisitionTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			...(isAdministrator ? {} : { branch_id: currentBranchId }),
-			request_type: Number(PurchaseRequestEnum.Requisition.value),
+			request_type: PurchaseRequestEnum.Requisition.textValue,
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		});

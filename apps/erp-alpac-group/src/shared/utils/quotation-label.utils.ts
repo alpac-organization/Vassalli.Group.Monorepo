@@ -1,4 +1,7 @@
-import { PaymentConditionEnum } from "@app/core/enums/payment-method.enum";
+import {
+	PaymentConditionEnum,
+	PaymentMethodEnum,
+} from "@app/core/enums/payment-method.enum";
 import { ProductQualityEnum } from "@app/modules/purchasing/domain/enums/product-quality";
 import { formatTimeTypeLabel } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-product-comparison/utils/format-type-label";
 import type { PurchaseRequestProductQuotation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
@@ -15,6 +18,18 @@ export function resolvePaymentConditionLabel(
 			entry.stringValue.toLowerCase() === paymentMethod.trim().toLowerCase(),
 	);
 	return match?.label ?? EMPTY;
+}
+
+/** ACH → "Transferencia ACH", LocalTransfer → "...", etc. */
+export function resolvePaymentMethodLabel(
+	paymentMethod?: string | null,
+): string {
+	if (!paymentMethod?.trim()) return EMPTY;
+	const match = Object.values(PaymentMethodEnum).find(
+		(entry) =>
+			entry.stringValue.toLowerCase() === paymentMethod.trim().toLowerCase(),
+	);
+	return match?.label ?? paymentMethod;
 }
 
 /** Excellent → "Excelente", Good → "Buena", etc. */
@@ -37,11 +52,16 @@ export function resolveProductQualityLabel(
 export function resolveInventoryAvailabilityLabel(
 	quote: Pick<
 		PurchaseRequestProductQuotation,
-		"iventory_available" | "availability_time" | "availability_time_type"
+		| "inventory_available"
+		| "iventory_available"
+		| "availability_time"
+		| "availability_time_type"
 	>,
 ): string {
-	if (quote.iventory_available == null) return EMPTY;
-	if (quote.iventory_available) return "Sí";
+	const inventoryAvailable =
+		quote.inventory_available ?? quote.iventory_available;
+	if (inventoryAvailable == null) return EMPTY;
+	if (inventoryAvailable) return "Sí";
 
 	const time = quote.availability_time;
 	if (time == null) return "No";

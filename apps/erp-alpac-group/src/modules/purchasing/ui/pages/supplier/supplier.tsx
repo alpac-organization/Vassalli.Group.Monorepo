@@ -488,6 +488,8 @@ export const Supplier = () => {
           setSelectedSupplier(null);
         }}
         selectedSupplier={selectedSupplier}
+        onRequestSuccess={handleRequestSuccess}
+        onRequestError={handleRequestError}
       />
 
       <AnimatedAlertWrapper open={alertState?.open ?? false}>

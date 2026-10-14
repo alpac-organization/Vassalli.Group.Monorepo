@@ -1007,7 +1007,7 @@ export function PayrollPage() {
 
       const [reportResponse, payrollResponse] = await Promise.all([
         payrollServices.generateReportsPayroll({
-          companie_id: companyId,
+          company_id: companyId,
           module_code: moduleCode,
           payroll_type: selectedPayrollType ?? "None",
           payroll_id: payrollId,
@@ -1112,7 +1112,7 @@ export function PayrollPage() {
       const [reportResponse, payrollResponse, allPermissions] =
         await Promise.all([
           payrollServices.generateReportsPayroll({
-            companie_id: companyId,
+            company_id: companyId,
             module_code: moduleCode,
             payroll_type: selectedPayrollType ?? "None",
             payroll_id: payrollId,
@@ -1209,7 +1209,7 @@ export function PayrollPage() {
       const [reportResponse, payrollResponse, allPermissions] =
         await Promise.all([
           payrollServices.generateReportsPayroll({
-            companie_id: companyId,
+            company_id: companyId,
             module_code: moduleCode,
             payroll_type: selectedPayrollType ?? "None",
             payroll_id: payrollId,
@@ -1413,7 +1413,7 @@ export function PayrollPage() {
 
     const [reportResponse, payrollResponse] = await Promise.all([
       payrollServices.generateReportsPayroll({
-        companie_id: companyId,
+        company_id: companyId,
         module_code: moduleCode,
         payroll_type: selectedPayrollType ?? "None",
         payroll_id: payrollId,
@@ -1688,7 +1688,7 @@ export function PayrollPage() {
 
       const [reportResponse, payrollResponse] = await Promise.all([
         payrollServices.generateReportsPayroll({
-          companie_id: companyId,
+          company_id: companyId,
           module_code: moduleCode,
           payroll_type: selectedPayrollType ?? "None",
           payroll_id: payrollId,
@@ -1982,7 +1982,7 @@ export function PayrollPage() {
       const allItems = response.payroll_details?.items ?? [];
 
       const inssResponse = await payrollServices.generateReportsPayroll({
-        companie_id: companyId,
+        company_id: companyId,
         report_type: "InssFortnightly",
         payroll_id: detailsData?.payroll_id ?? "",
         payroll_type: selectedPayrollType,
@@ -2199,7 +2199,7 @@ export function PayrollPage() {
       const allItems = response.payroll_details?.items ?? [];
 
       const inssResponse = await payrollServices.generateReportsPayroll({
-        companie_id: companyId,
+        company_id: companyId,
         report_type: "InssFortnightly",
         payroll_id: detailsData?.payroll_id ?? "",
         payroll_type: selectedPayrollType,
@@ -2256,7 +2256,7 @@ export function PayrollPage() {
         : "InssMonthly";
 
       const payload = {
-        companie_id: companyId,
+        company_id: companyId,
         report_type: reportType,
         payroll_id: detailsData?.payroll_id ?? "",
         payroll_type: selectedPayrollType,
@@ -2370,7 +2370,7 @@ export function PayrollPage() {
     const detailsData = payrollDetailsQuery.data;
 
     const payload = {
-      companie_id: companyId,
+      company_id: companyId,
       report_type: "IrAndSalaryEarned" as const,
       payroll_id: detailsData?.payroll_id ?? "",
       payroll_type: selectedPayrollType,
@@ -2470,7 +2470,7 @@ export function PayrollPage() {
     const detailsData = payrollDetailsQuery.data;
 
     const payload = {
-      companie_id: companyId,
+      company_id: companyId,
       report_type: "Depreciations" as const,
       payroll_id: detailsData?.payroll_id ?? "",
       payroll_type: selectedPayrollType,
@@ -2696,10 +2696,12 @@ export function PayrollPage() {
 
     const [inssResponse, irResponse, payrollResponse] = await Promise.all([
       payrollServices.generateReportsPayroll({
+        company_id: companyId,
         ...reportPayload,
         report_type: "InssMonthly",
       }),
       payrollServices.generateReportsPayroll({
+        company_id: companyId,
         ...reportPayload,
         report_type: "IrAndSalaryEarned",
       }),
@@ -2769,7 +2771,7 @@ export function PayrollPage() {
     const payrollServices = new PayrollServices(httpHandler);
 
     const payload = {
-      companie_id: companyId,
+      company_id: companyId,
       report_type: "Subsidies" as const,
       payroll_id: payrollDetailsQuery.data?.payroll_id ?? "",
       payroll_type: selectedPayrollType,

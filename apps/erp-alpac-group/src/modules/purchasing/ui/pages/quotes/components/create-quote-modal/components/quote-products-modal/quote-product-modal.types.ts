@@ -1,13 +1,20 @@
 import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
-import type { QuotationItem } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
+import type {
+	QuotationAttachmentsInput,
+	QuotationCurrencyValue,
+	QuotationItem,
+} from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
 import type { SupplierPaymentMethod } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
+import type { CurrencyCode } from "@app/core/enums/currency.enum";
+import type { ImageOutput } from "@app/shared/components/image-uploader/image-uploader.types";
 
 export const MIN_SUPPLIERS_PER_PRODUCT = 2;
 
 export type DraftQuotationItem = QuotationItem & {
 	product_id: string;
 	supplier_legal_name?: string;
+	needs_supplier_product_link?: boolean;
 };
 
 export type QuoteProductModalProps = {
@@ -18,16 +25,24 @@ export type QuoteProductModalProps = {
 	onConfirm?: (items: DraftQuotationItem[]) => void;
 };
 
-export type IvaRateOption = "10" | "15" | "other";
+export type QuotationAttachmentForm = {
+	pdf_file?: File | null;
+	pdf_base64?: string | null;
+	pdf_file_name?: string | null;
+	images?: ImageOutput[];
+};
 
-export type QuotationItemForm = Omit<QuotationItem, "payment_method_type"> & {
+export type QuotationItemForm = Omit<
+	QuotationItem,
+	"payment_method_type" | "attachments" | "currency"
+> & {
 	payment_method?: PaymentMethodType;
 	supplier_legal_name?: string;
-	has_iva?: boolean;
-	iva_rate?: IvaRateOption;
-	custom_iva_rate?: string | number;
 	supplier_payment_methods?: SupplierPaymentMethod[];
 	preferred_payment_method?: PaymentMethodType;
+	attachments_form?: QuotationAttachmentForm;
+	currency_code?: CurrencyCode | null;
+	needs_supplier_product_link?: boolean;
 };
 
 export type QuoteProductGroup = {
@@ -49,7 +64,6 @@ export type QuotationItemFieldsProps = {
 	accordionValue: string;
 	canRemove: boolean;
 	supplierLegalName: string;
-	quantity: number;
 	onRemove: () => void;
 };
 
@@ -59,3 +73,5 @@ export type QuoteProductGroupFieldsProps = {
 	categoryName?: string | null;
 	quantity: number;
 };
+
+export type { QuotationAttachmentsInput, QuotationCurrencyValue };

@@ -17,7 +17,10 @@ const labelClassName = "text-black! dark:text-white!";
 
 const filteredPriorityOptions = PriorityLevelOptions.filter(
    (priority) => PriorityLevelEnum.None.textValue !== priority.textValue,
-);
+).map((priority) => ({
+   value: priority.textValue,
+   label: priority.label,
+}));
 
 export const PurchaseRequestFormBlock = ({
    index,
@@ -38,7 +41,7 @@ export const PurchaseRequestFormBlock = ({
    const methods = useForm<CreatePurchaseRequestPayload>({
       defaultValues: {
          ...defaults,
-         destination: PurchaseRequestDestinationEnum.Internal.value,
+         destination: PurchaseRequestDestinationEnum.Internal.textValue,
       },
       mode: "onSubmit",
       reValidateMode: "onChange",
@@ -52,7 +55,10 @@ export const PurchaseRequestFormBlock = ({
 
    const priorityLevelId = methods.watch("priority_level");
    const observations = methods.watch("observations");
-   const hasPrioritySelected = Number(priorityLevelId) > 0;
+   const hasPrioritySelected = Boolean(
+      priorityLevelId &&
+         priorityLevelId !== PriorityLevelEnum.None.textValue,
+   );
 
    const isDisabledActions = Boolean(
       (isRequisition && !hasPrioritySelected) ||
@@ -70,7 +76,7 @@ export const PurchaseRequestFormBlock = ({
 
          return {
             ...values,
-            destination: PurchaseRequestDestinationEnum.Internal.value,
+            destination: PurchaseRequestDestinationEnum.Internal.textValue,
             purchase_request_items: values.purchase_request_items.map((item, index) => {
                const imagesDirtyField =
                   dirtyItems?.[index]?.images?.images_product_to_changed;
@@ -95,7 +101,7 @@ export const PurchaseRequestFormBlock = ({
    const handleDuplicate = () => {
       onDuplicate({
          ...methods.getValues(),
-         destination: PurchaseRequestDestinationEnum.Internal.value,
+         destination: PurchaseRequestDestinationEnum.Internal.textValue,
       });
    };
 
@@ -144,7 +150,9 @@ export const PurchaseRequestFormBlock = ({
                            rules={{
                               required: true,
                               validate: (value) =>
-                                 Number(value) > 0 || "El nivel de prioridad es requerida",
+                                 (Boolean(value) &&
+                                    value !== PriorityLevelEnum.None.textValue) ||
+                                 "El nivel de prioridad es requerida",
                            }}
                            render={({ field }) => (
                               <Dropdown

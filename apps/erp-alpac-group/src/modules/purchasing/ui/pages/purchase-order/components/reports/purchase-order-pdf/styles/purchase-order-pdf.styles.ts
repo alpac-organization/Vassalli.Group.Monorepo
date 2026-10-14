@@ -222,6 +222,7 @@ export const purchaseOrderPdfStyles = StyleSheet.create({
 	signatureBlock: {
 		width: "40%",
 		alignItems: "center",
+		position: "relative",
 	},
 	signatureLine: {
 		borderBottomWidth: 1,
@@ -232,5 +233,13 @@ export const purchaseOrderPdfStyles = StyleSheet.create({
 	signatureLabel: {
 		fontSize: 9,
 		textAlign: "center",
+	},
+	authorizationSeal: {
+		position: "absolute",
+		width: 72,
+		height: 72,
+		objectFit: "contain",
+		top: -28,
+		right: 8,
 	},
 });
