@@ -13,10 +13,6 @@ function formatQuantity(value: number): string {
   }).format(value ?? 0);
 }
 
-/**
- * Mapea el JSON de GET /reports/purchase-order/{id} al view model del PDF.
- * Una OC = un proveedor; montos vienen de payment_info / items del backend.
- */
 export function mapPurchaseOrderReportToPdfViewModel({
   report,
   companyLogoUrl,

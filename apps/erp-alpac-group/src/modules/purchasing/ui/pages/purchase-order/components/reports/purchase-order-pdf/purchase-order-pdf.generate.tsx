@@ -11,9 +11,6 @@ async function openPdfBlob(blob: Blob): Promise<void> {
 	window.open(url, "_blank", "noopener,noreferrer");
 }
 
-/**
- * Obtiene el JSON de GET /reports/purchase-order/{id} y abre el PDF en el browser.
- */
 export async function fetchAndOpenPurchaseOrderPdf(
 	params: FetchPurchaseOrderPdfParams,
 ): Promise<void> {

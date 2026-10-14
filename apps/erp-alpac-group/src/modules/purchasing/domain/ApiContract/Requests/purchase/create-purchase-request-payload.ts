@@ -53,6 +53,5 @@ export interface PurchaseRequestItem {
 	additional_data?: string | null;
 	images?: PurchaseRequestItemAdditionalData;
 	new_product?: NewPurchaseRequestProduct | null;
-	/** @deprecated Prefer `images` / `additional_data` serialization at the UI layer. */
 	product_name?: string | null;
 }

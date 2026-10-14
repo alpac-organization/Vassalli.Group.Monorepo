@@ -15,7 +15,6 @@ export interface ProductPriceEditModalProps {
 	supplierId: string;
 	counterpartLabel?: string;
 	initial: PriceEditLinkInitial | null;
-	/** Which PATCH route to use. Default: product → suppliers/.../prices */
 	updateVia?: "product" | "supplier";
 	onRequestSuccess?: (message: string) => void;
 	onRequestError?: (message?: string) => void;

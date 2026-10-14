@@ -4,7 +4,6 @@ import { fetchAndOpenPurchaseOrderPdf } from "@app/modules/purchasing/ui/pages/p
 
 type GeneratePurchaseOrderPdfArgs = {
 	purchaseOrderId: string;
-	/** Nombre de sucursal/compañía para el sello (opcional). */
 	branchName?: string | null;
 };
 

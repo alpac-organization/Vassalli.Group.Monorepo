@@ -1,6 +1,5 @@
 import type { UserInformation } from "@app/shared/interfaces/organization-information/organization-information";
 
-/** PaymentMethod en reportes de OC / solicitud de pago. */
 export type PurchaseOrderReportPaymentMethod =
 	| "BankTransfer"
 	| "Check"
@@ -62,7 +61,6 @@ export interface PurchaseOrderReportPaymentInfo {
 	net_to_pay: number;
 }
 
-/** Company payload from report template (core / branch.company). */
 export interface PurchaseOrderReportCompanyInformation {
 	company_id?: string;
 	alias?: string | null;

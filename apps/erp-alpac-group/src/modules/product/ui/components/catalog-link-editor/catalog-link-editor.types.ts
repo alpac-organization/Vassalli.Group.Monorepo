@@ -64,7 +64,6 @@ export const emptyCatalogLinkItem = (): CatalogLinkItemForm => ({
 	tier_prices: [],
 });
 
-/** Empty string / whitespace → null so the API inherits the product UoM. */
 export const resolveLinkUnitMeasureId = (
 	raw?: string | null,
 ): string | null => {
@@ -92,7 +91,7 @@ export const validatePreferentialDates = (
 
 	const today = todayUtcDateOnly();
 	if (from < today) {
-		return "La fecha de inicio no puede ser un día pasado (UTC).";
+		return "La fecha de inicio no puede ser un día pasado ";
 	}
 
 	const to = validTo?.trim();
@@ -103,7 +102,6 @@ export const validatePreferentialDates = (
 	return null;
 };
 
-/** Validates preferential dates on catalog link forms (create/update product|supplier). */
 export const validateCatalogLinkPreferentialDates = (
 	links: CatalogLinkItemForm[],
 ): string | null => {
@@ -155,12 +153,6 @@ export const mapCatalogLinkItemsToTierPayload = (
 			unit_measure_id: null,
 		}));
 
-/**
- * PATCH semantics:
- * - preferentialTouched = false → omit (undefined)
- * - preferentialTouched = true + empty → []
- * - preferentialTouched = true + 1 item → [item]
- */
 export const resolveTierPricesForPatch = (
 	preferentialTouched: boolean,
 	tiers: CatalogLinkTierForm[],

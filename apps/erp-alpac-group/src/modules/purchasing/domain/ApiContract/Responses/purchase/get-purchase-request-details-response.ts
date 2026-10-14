@@ -77,7 +77,6 @@ export interface PurchaseRequestProductDetails {
 	product_id: string;
 	product_name: string | null;
 	code?: string | null;
-	/** @deprecated Prefer `code`. */
 	product_code?: string | null;
 	is_tax_exempt?: boolean;
 	category_information: PurchaseRequestCategoryInformation | null;
@@ -85,7 +84,6 @@ export interface PurchaseRequestProductDetails {
 }
 
 export interface PurchaseRequestCategoryInformation {
-	/** Backend DTO typo — keep as-is for serialization. */
 	catagory_id: string;
 	name: string | null;
 	code: string | null;
@@ -111,7 +109,6 @@ export interface PurchaseRequestProductQuotation {
 	has_delivery: boolean;
 	has_guarantee: boolean;
 	inventory_available?: boolean;
-	/** @deprecated Prefer `inventory_available`. */
 	iventory_available?: boolean;
 	is_accepted_for_purchase: boolean;
 	is_best_option?: boolean;
@@ -129,7 +126,6 @@ export interface PurchaseRequestProductQuotation {
 	supplier_rejection_justification: string | null;
 	product_quality: ProductQualityType;
 	payment_method_type?: PaymentMethodType;
-	/** @deprecated Prefer `payment_method_type`. */
 	payment_method?: PaymentMethodType | string;
 	availability_time?: number | null;
 	availability_time_type?: string | number | null;

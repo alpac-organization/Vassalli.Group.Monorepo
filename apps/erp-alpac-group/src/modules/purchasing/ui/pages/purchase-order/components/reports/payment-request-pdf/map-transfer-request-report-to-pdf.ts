@@ -16,10 +16,6 @@ type MapTransferRequestReportArgs = {
 	generatedAt?: string | null;
 };
 
-/**
- * Mapea GET /reports/transfer-request/{id} al modelo del PDF de solicitud de pago.
- * Confía en payment_info / tax del backend (IR/IMI / neto).
- */
 export function mapTransferRequestReportToPdf({
 	report,
 	documentType,

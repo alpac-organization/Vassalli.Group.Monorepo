@@ -6,12 +6,10 @@ export interface UpdatePurchaseRequestPayload extends BaseRequest {
 	purchase_request_id: string;
 	observations?: string | null;
 	priority_level?: PriorityLevelType;
-	/** Note: register uses `destination`; PATCH uses `destination_request`. */
 	destination_request?: PurchaseRequestDestinationType;
 	purchase_request_items?: UpdatePurchaseRequestItemPayload[];
 }
 
-/** Existing item in PATCH — identified by id. */
 export interface UpdateExistingPurchaseRequestItem {
 	id: string;
 	quantity?: number;
@@ -23,7 +21,6 @@ export interface UpdateExistingPurchaseRequestItem {
 	images_product_to_changed?: string[];
 }
 
-/** New item in PATCH — id null/absent; requires product_id, unit_measure_id, quantity. */
 export interface UpdateNewPurchaseRequestItem {
 	id?: null;
 	product_id: string;

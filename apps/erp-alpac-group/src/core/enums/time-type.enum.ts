@@ -16,7 +16,6 @@ export const TimeTypeOptions: EnumType[] = Object.values(TimeTypeEnum).map(
 	}),
 );
 
-/** Legacy plural / alternate strings → canonical API value. */
 const TIME_TYPE_ALIASES: Record<string, TimeTypeValue> = {
 	day: "Day",
 	days: "Day",

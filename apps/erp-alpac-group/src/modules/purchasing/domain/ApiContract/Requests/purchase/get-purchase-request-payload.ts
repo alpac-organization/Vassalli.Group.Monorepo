@@ -15,7 +15,6 @@ export interface GetPurchaseRequestPayload extends BaseRequest {
 	priority_level?: PriorityLevelType;
 	destination?: PurchaseRequestDestinationType;
 	status?: PurchaseRequestStatusType;
-	/** 0 = All | 1 = Mine | 2 = Others. Ignored for Operator. */
 	ownership?: OwnershipFilterValue;
 	page_number?: number;
 	page_size?: number;

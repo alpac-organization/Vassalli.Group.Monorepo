@@ -5,10 +5,6 @@ import {
 import selloCorinto from "@app/assets/signatures/compras/sellos/corinto/sello-administracion.png";
 import selloManagua from "@app/assets/signatures/compras/sellos/managua/sello-administracion.png";
 
-/**
- * Resuelve el sello de administración según sucursal/compañía (mismo criterio que requisición).
- * Corinto → sello Corinto; Managua / ALPAC principal → sello Managua; resto → null.
- */
 export function resolveComprasSealSrc(
 	branchOrCompanyName?: string | null,
 ): string | null {
