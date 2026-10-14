@@ -2,6 +2,7 @@ import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiCo
 import type { GetSupplierDetailsRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-supplier-details-request";
 import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
 import type { UpdateSupplierExclusiveStatusRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-supplier-exclusive-status.request";
+import type { UpdateSupplierProductPriceRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-supplier-product-price.request";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
 import type { GetSupplierDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-supplier-details-response";
@@ -25,6 +26,10 @@ export interface ISupplierServices {
 
 	UpdateSupplierExclusiveStatus(
 		payload: UpdateSupplierExclusiveStatusRequest,
+	): Promise<void>;
+
+	UpdateSupplierProductPrice(
+		payload: UpdateSupplierProductPriceRequest,
 	): Promise<void>;
 
 	getBankAccounts(

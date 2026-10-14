@@ -14,6 +14,7 @@ import type {
 	PurchaseOrderPdfTotals,
 	PurchaseOrderPdfViewModel,
 } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/purchase-order-pdf/types/purchase-order-pdf.types";
+import { stripPurchaseOrderTaxMetadata } from "@app/modules/purchasing/ui/pages/purchase-order/utils/strip-purchase-order-tax-metadata";
 
 type SupplierGroup = {
 	supplierId: string;
@@ -218,7 +219,7 @@ export async function buildPurchaseOrderPdfViewModels({
 					detail.work_area_information?.work_area_name?.trim() ||
 					EMPTY_CELL,
 				notes:
-					detail.comments?.trim() ||
+					stripPurchaseOrderTaxMetadata(detail.comments) ||
 					purchaseRequest?.observations?.trim() ||
 					"",
 				requisitionCode: purchaseOrderCode,

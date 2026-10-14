@@ -44,7 +44,7 @@ export function OccasionalMaterialsQuoteTab({
 		company_id: companyId,
 		module_code: moduleCode,
 		...(isAdministrator ? {} : { branch_id: currentBranchId }),
-		status: PurchaseRequestStatusEnum.Approved.value,
+		status: PurchaseRequestStatusEnum.Approved.textValue,
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	});
@@ -56,7 +56,7 @@ export function OccasionalMaterialsQuoteTab({
 			...filters,
 			company_id: companyId,
 			module_code: moduleCode,
-			request_type: PurchaseRequestEnum.Eventual.value,
+			request_type: PurchaseRequestEnum.Eventual.textValue,
 			branch_id: isAdministrator ? undefined : currentBranchId,
 			page_size: PAGE_SIZE,
 		}
@@ -81,7 +81,7 @@ export function OccasionalMaterialsQuoteTab({
 			branch_id: isAdministrator ? undefined : currentBranchId,
 			code: data.code,
 			month, year,
-			status: data.status ?? PurchaseRequestStatusEnum.Approved.value,
+			status: data.status ?? PurchaseRequestStatusEnum.Approved.textValue,
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		}));

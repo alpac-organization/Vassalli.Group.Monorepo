@@ -4,10 +4,13 @@ import type {
 	PurchaseRequestProductQuotation,
 } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import { formatTimeTypeLabel } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-product-comparison/utils/format-type-label";
-import { getQuoteTotalPrice } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-product-comparison/quote-product-comparison.utils";
+import {
+	getQuoteSubtotal,
+	getQuoteTotalPrice,
+} from "@app/modules/finance/ui/pages/quote-analisys/components/quote-product-comparison/quote-product-comparison.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import {
-	resolvePaymentConditionLabel,
+	resolvePaymentMethodLabel,
 	resolveProductQualityLabel,
 	resolveInventoryAvailabilityLabel,
 } from "@app/shared/utils/quotation-label.utils";
@@ -108,7 +111,7 @@ function formatWarranty(quote: PurchaseRequestProductQuotation): string {
 }
 
 function buildItemCell(quote: PurchaseRequestProductQuotation): QuoteAnalysisPdfItemCell {
-	const rawPrice = quote.price ?? 0;
+	const rawPrice = getQuoteSubtotal(quote);
 	const rawIva = quote.iva ?? 0;
 	const rawTotal = getQuoteTotalPrice(quote);
 
@@ -250,7 +253,12 @@ export function buildQuoteAnalysisPdfViewModel(
 			? resolveInventoryAvailabilityLabel(quote)
 			: EMPTY_CELL;
 		qualitative.paymentMethod[supplier.supplierId] = quote
-			? resolvePaymentConditionLabel(quote.payment_method)
+			? resolvePaymentMethodLabel(
+					quote.payment_method_type ??
+						(typeof quote.payment_method === "string"
+							? quote.payment_method
+							: null),
+				)
 			: EMPTY_CELL;
 	}
 

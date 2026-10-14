@@ -157,6 +157,23 @@ const SelectedSupplierDetails = ({ supplierId }: { supplierId: string }) => {
 const getAcceptedSupplierId = (product: PurchaseRequestProductInformation) =>
 	product.quotations?.find((quote) => quote.is_accepted_for_purchase)?.supplier_id;
 
+const resolveNullableLabel = (value?: string | null) => value?.trim() || "—";
+
+const resolveUnitMeasureLabel = (
+	unit?: PurchaseRequestProductInformation["unit_measure_information"] | null,
+) => {
+	if (!unit) return "—";
+	return unit.name?.trim() || unit.symbol?.trim() || "—";
+};
+
+const resolveCategoryLabel = (
+	productDetails?: PurchaseRequestProductInformation["product_details"] | null,
+) => {
+	const category = productDetails?.category_information;
+	if (!category) return "—";
+	return category.name?.trim() || "—";
+};
+
 type ProductRowGridProps = {
 	product: PurchaseRequestProductInformation;
 	productName: string;
@@ -173,11 +190,13 @@ const ProductRowGrid = ({
 	<div className="grid min-w-0 flex-1 grid-cols-1 gap-6 sm:grid-cols-7 sm:items-start sm:gap-x-3">
 		<span className={mobileLabelClassName}>Producto</span>
 		<span className={cellValueMediumClassName}>
-			{product.product_details.product_name?.trim() || "—"}
+			{resolveNullableLabel(product.product_details?.product_name)}
 		</span>
 
 		<span className={mobileLabelClassName}>Descripción</span>
-		<span className={cellValueClassName}>{product.description?.trim() || "—"}</span>
+		<span className={cellValueClassName}>
+			{resolveNullableLabel(product.description)}
+		</span>
 
 		<span className={mobileLabelClassName}>Cantidad</span>
 		<span className={cellValueClassName}>
@@ -187,18 +206,18 @@ const ProductRowGrid = ({
 
 		<span className={mobileLabelClassName}>Unidad</span>
 		<span className={cellValueClassName}>
-			{product.unit_measure_information.name?.trim() ||
-				product.unit_measure_information.symbol?.trim() ||
-				"—"}
+			{resolveUnitMeasureLabel(product.unit_measure_information)}
 		</span>
 
 		<span className={mobileLabelClassName}>Categoría</span>
 		<span className={cellValueClassName}>
-			{product.product_details.category_information.name?.trim() || "—"}
+			{resolveCategoryLabel(product.product_details)}
 		</span>
 
 		<span className={mobileLabelClassName}>Justificación</span>
-		<span className={cellValueClassName}>{product.justification?.trim() || "—"}</span>
+		<span className={cellValueClassName}>
+			{resolveNullableLabel(product.justification)}
+		</span>
 
 		<span className={mobileLabelClassName}>Imágenes</span>
 		{productImages.length > 0 ? (

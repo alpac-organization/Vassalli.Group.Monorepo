@@ -9,7 +9,7 @@ export interface CreateSupplierProductPayload {
 	unit_price: number;
 	currency?: CurrencyCode | null;
 	unit_measure_id?: string | null;
-	tier_prices?: ProductSupplierTierPricePayload[];
+	tier_prices?: ProductSupplierTierPricePayload[] | null;
 }
 
 export interface SupplierLinkedProduct {

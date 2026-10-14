@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import {
   Button,
+  ContextMenu,
   DataTable,
   Dropdown,
   InputText,
@@ -22,8 +23,13 @@ import {
 } from "@app/modules/purchasing/ui/pages/supplier/utils/style";
 import type { SupplierProductsModalProps } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-products-modal/supplier-products-modal.types";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
+import { ProductPriceEditModal } from "@app/modules/product/ui/views/product-price-edit-modal/product-price-edit-modal";
+import { ProductPriceHistoryModal } from "@app/modules/product/ui/views/product-price-history-modal/product-price-history-modal";
 
 const PAGE_SIZE = 10;
+
+const contextMenuButton =
+  "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 type ProductFilters = {
   code: string;
@@ -41,12 +47,18 @@ export const SupplierProductsModal = ({
   isOpen,
   onClose,
   selectedSupplier,
+  onRequestSuccess,
+  onRequestError,
 }: SupplierProductsModalProps) => {
   const { companyId, moduleCode } = useUserStore();
   const [draftFilters, setDraftFilters] =
     useState<ProductFilters>(emptyFilters);
   const [appliedFilters, setAppliedFilters] =
     useState<ProductFilters>(emptyFilters);
+  const [selectedProduct, setSelectedProduct] =
+    useState<SupplierLinkedProduct | null>(null);
+  const [isPriceEditOpen, setIsPriceEditOpen] = useState(false);
+  const [isPriceHistoryOpen, setIsPriceHistoryOpen] = useState(false);
 
   const codeFilter = appliedFilters.code.trim() || undefined;
   const unitMeasureFilter = appliedFilters.unit_measure_id || undefined;
@@ -89,10 +101,30 @@ export const SupplierProductsModal = ({
     }));
   }, [GetUnitMeasurements.data]);
 
+  const unitLabelById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const option of unitOptions) {
+      map.set(option.value, option.label);
+    }
+    return map;
+  }, [unitOptions]);
+
   const supplierName =
     supplierDetails?.supplier_legal_name ??
     selectedSupplier?.supplier_legal_name ??
     "proveedor";
+
+  const supplierId = selectedSupplier?.supplier_id ?? "";
+
+  const onEditPrices = (row: SupplierLinkedProduct) => {
+    setSelectedProduct(row);
+    setIsPriceEditOpen(true);
+  };
+
+  const onViewHistory = (row: SupplierLinkedProduct) => {
+    setSelectedProduct(row);
+    setIsPriceHistoryOpen(true);
+  };
 
   const productColumns: TableColumn<SupplierLinkedProduct>[] = useMemo(
     () => [
@@ -102,6 +134,14 @@ export const SupplierProductsModal = ({
         render: (row) => row.code || "—",
       },
       { key: "product_name", label: "Producto" },
+      {
+        key: "unit_measure_id",
+        label: "UoM vínculo",
+        render: (row) =>
+          unitLabelById.get(row.unit_measure_id) ??
+          row.unit_measure_id ??
+          "—",
+      },
       {
         key: "currency",
         label: "Moneda",
@@ -123,11 +163,31 @@ export const SupplierProductsModal = ({
       },
       {
         key: "tier_prices",
-        label: "Precio preferencial",
-        render: (row) => String(row.tier_prices?.length ?? 0),
+        label: "Preferencial",
+        render: (row) =>
+          (row.tier_prices?.length ?? 0) > 0 ? "Sí" : "No",
+      },
+      {
+        key: "actions",
+        label: "Acciones",
+        render: (row) => (
+          <ContextMenu
+            triggerClassName={contextMenuButton}
+            items={[
+              {
+                label: "Editar precios",
+                onClick: () => onEditPrices(row),
+              },
+              {
+                label: "Ver historial",
+                onClick: () => onViewHistory(row),
+              },
+            ]}
+          />
+        ),
       },
     ],
-    [],
+    [unitLabelById],
   );
 
   const handleApplyFilters = () => {
@@ -153,6 +213,9 @@ export const SupplierProductsModal = ({
   const handleClose = () => {
     setDraftFilters(emptyFilters);
     setAppliedFilters(emptyFilters);
+    setSelectedProduct(null);
+    setIsPriceEditOpen(false);
+    setIsPriceHistoryOpen(false);
     onClose();
   };
 
@@ -245,6 +308,60 @@ export const SupplierProductsModal = ({
           />
         </div>
       </Modal>
+
+      <ProductPriceEditModal
+        isOpen={isPriceEditOpen}
+        onClose={() => {
+          setIsPriceEditOpen(false);
+          setSelectedProduct(null);
+        }}
+        productId={selectedProduct?.product_id ?? ""}
+        supplierId={supplierId}
+        counterpartLabel={
+          selectedProduct
+            ? `Producto: ${
+                selectedProduct.code
+                  ? `${selectedProduct.code} · ${selectedProduct.product_name}`
+                  : selectedProduct.product_name
+              }`
+            : undefined
+        }
+        initial={
+          selectedProduct
+            ? {
+                unit_price: selectedProduct.unit_price,
+                currency: selectedProduct.currency,
+                unit_measure_id: selectedProduct.unit_measure_id,
+                tier_prices: selectedProduct.tier_prices,
+              }
+            : null
+        }
+        updateVia="supplier"
+        onRequestSuccess={(message) => {
+          setIsPriceEditOpen(false);
+          setSelectedProduct(null);
+          onRequestSuccess?.(message);
+        }}
+        onRequestError={onRequestError}
+      />
+
+      <ProductPriceHistoryModal
+        isOpen={isPriceHistoryOpen}
+        onClose={() => {
+          setIsPriceHistoryOpen(false);
+          setSelectedProduct(null);
+        }}
+        productId={selectedProduct?.product_id ?? ""}
+        supplierId={supplierId}
+        supplierLabel={
+          selectedProduct
+            ? selectedProduct.code
+              ? `${selectedProduct.code} · ${selectedProduct.product_name}`
+              : selectedProduct.product_name
+            : "—"
+        }
+        currency={selectedProduct?.currency ?? "USD"}
+      />
     </>
   );
 };

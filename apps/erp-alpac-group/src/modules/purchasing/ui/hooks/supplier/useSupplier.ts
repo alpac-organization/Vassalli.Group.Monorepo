@@ -4,6 +4,7 @@ import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiCo
 import type { GetSupplierDetailsRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-supplier-details-request";
 import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
 import type { UpdateSupplierExclusiveStatusRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-supplier-exclusive-status.request";
+import type { UpdateSupplierProductPriceRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-supplier-product-price.request";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
 import type {
@@ -111,6 +112,26 @@ export const useSupplier = (props?: useSuppliersProps) => {
 		retry: 1,
 	});
 
+	const UpdateSupplierProductPrice = useMutation<
+		void,
+		ApiErrorResponse,
+		UpdateSupplierProductPriceRequest
+	>({
+		mutationKey: ["update-supplier-product-price"],
+		mutationFn: (payload) =>
+			suppliersServices.UpdateSupplierProductPrice(payload),
+		onSuccess() {
+			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+			queryClient.invalidateQueries({ queryKey: ["get-product-details"] });
+			queryClient.invalidateQueries({
+				queryKey: ["get-product-supplier-price-history"],
+			});
+			queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+			queryClient.invalidateQueries({ queryKey: ["get-products"] });
+		},
+		retry: 1,
+	});
+
 	const CreateBankAccount = useMutation<SupplierBankAccount, ApiErrorResponse, CreateBankAccountMutationArgs>({
 		mutationKey: ["create-supplier-bank-account"],
 		mutationFn: ({ companyId, moduleCode, supplierId, payload }) =>
@@ -147,6 +168,7 @@ export const useSupplier = (props?: useSuppliersProps) => {
 		CreateSupplier,
 		UpdateSupplier,
 		UpdateSupplierExclusiveStatus,
+		UpdateSupplierProductPrice,
 		CreateBankAccount,
 		UpdateBankAccount,
 		DeleteBankAccount,

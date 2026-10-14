@@ -1,4 +1,5 @@
 import type { CurrencyCode } from "@app/core/enums/currency.enum";
+import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
 import type { SupplierExclusiveStatus } from "@app/core/enums/supplier-exclusive-status.enum";
 import type { SupplierType } from "@app/core/enums/supplier-type.enum";
 
@@ -21,4 +22,5 @@ export interface SupplierDetailsInformation {
   apply_ir_retention?: boolean;
   apply_municipal_retention?: boolean;
   is_tax_exempt?: boolean;
+  preferred_payment_method?: PaymentMethodType | null;
 }

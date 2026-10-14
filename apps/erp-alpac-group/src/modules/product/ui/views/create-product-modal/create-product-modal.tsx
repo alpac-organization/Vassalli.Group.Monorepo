@@ -31,6 +31,7 @@ import {
 	resolveLinkCurrency,
 	resolveLinkCurrencyPayload,
 	resolveLinkUnitMeasureId,
+	validateCatalogLinkPreferentialDates,
 	type CatalogLinkItemForm,
 } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 import { readPagedRows } from "@app/shared/utils/paged-response.utils";
@@ -70,7 +71,10 @@ const mapSupplierLinksToPayload = (links: CatalogLinkItemForm[]) =>
 			unit_price: Number(link.unit_price),
 			currency: resolveLinkCurrencyPayload(link.currency),
 			unit_measure_id: resolveLinkUnitMeasureId(link.unit_measure_id),
-			tier_prices: mapCatalogLinkItemsToTierPayload(link.tier_prices),
+			tier_prices: mapCatalogLinkItemsToTierPayload(
+				link.tier_prices,
+				link.currency,
+			),
 		}));
 
 export const CreateProductModal = ({
@@ -216,7 +220,10 @@ export const CreateProductModal = ({
 				currency: resolveLinkCurrency(supplier.currency),
 				unit_measure_id:
 					supplier.unit_measure_id ?? productDetails.unit_measure_id ?? "",
-				tier_prices: mapTierPricesToCatalogForm(supplier.tier_prices),
+				tier_prices: mapTierPricesToCatalogForm(
+					supplier.tier_prices,
+					supplier.currency,
+				),
 			})),
 		);
 		setSupplierLinksDirty(false);
@@ -265,6 +272,12 @@ export const CreateProductModal = ({
 			onRequestError?.(
 				"Cada proveedor vinculado debe tener selección y precio unitario.",
 			);
+			return false;
+		}
+		const preferentialError =
+			validateCatalogLinkPreferentialDates(supplierLinks);
+		if (preferentialError) {
+			onRequestError?.(preferentialError);
 			return false;
 		}
 		return true;

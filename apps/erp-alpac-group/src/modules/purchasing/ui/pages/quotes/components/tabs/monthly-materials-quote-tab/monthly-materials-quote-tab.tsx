@@ -42,7 +42,7 @@ export function MonthlyMaterialsQuoteTab({
 		company_id: companyId,
 		module_code: moduleCode,
 		...(isAdministrator ? {} : { branch_id: currentBranchId }),
-		status: PurchaseRequestStatusEnum.Approved.value,
+		status: PurchaseRequestStatusEnum.Approved.textValue,
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	});
@@ -54,7 +54,7 @@ export function MonthlyMaterialsQuoteTab({
 			...filters,
 			company_id: companyId,
 			module_code: moduleCode,
-			request_type: PurchaseRequestEnum.Monthly.value,
+			request_type: PurchaseRequestEnum.Monthly.textValue,
 			branch_id: isAdministrator ? undefined : currentBranchId,
 			page_size: PAGE_SIZE,
 		},
@@ -79,7 +79,7 @@ export function MonthlyMaterialsQuoteTab({
 			branch_id: isAdministrator ? undefined : currentBranchId,
 			code: data.code,
 			month, year,
-			status: data.status ?? PurchaseRequestStatusEnum.Approved.value,
+			status: data.status ?? PurchaseRequestStatusEnum.Approved.textValue,
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		}));
