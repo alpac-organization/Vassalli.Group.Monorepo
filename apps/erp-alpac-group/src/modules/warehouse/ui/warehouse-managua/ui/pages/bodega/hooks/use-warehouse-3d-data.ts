@@ -19,6 +19,7 @@ import { SectionStorageTypeEnum } from "@app/modules/admin-warehouse/warehouse-m
 import { resolveSectionStorageType } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/section-status-badge";
 import type { ProcessedPosition3D } from "../types/warehouse-3d.types";
 import { POLIN_WIDTH, POLIN_DEPTH } from "../types/warehouse-3d.types";
+import { useBodegaViewerStore } from "../stores/use-bodega-viewer-store";
 
 const rackService = new RackService(warehouseHttpHandler);
 const lotService = new LotService(warehouseHttpHandler);
@@ -380,6 +381,22 @@ function buildPosition3DForTramo(params: {
 
 export function useWarehouse3DData(warehouseId: string | null) {
   const { companyId, moduleCode } = useUserStore();
+  const showPositions = useBodegaViewerStore((state) => state.showPositions);
+  const showCargo = useBodegaViewerStore((state) => state.showCargo);
+  const isPreselectionMode = useBodegaViewerStore(
+    (state) => state.isPreselectionMode,
+  );
+  const activeDescargueAssignment = useBodegaViewerStore(
+    (state) => state.activeDescargueAssignment,
+  );
+  const sectionFilterId = useBodegaViewerStore(
+    (state) => state.sectionFilterId,
+  );
+  const shouldLoadPositions =
+    showPositions ||
+    showCargo ||
+    isPreselectionMode ||
+    Boolean(activeDescargueAssignment);
 
   // 1. Obtener detalles del almacén seleccionado
   const { GetWarehouseDetails } = useWarehouse({
@@ -483,12 +500,16 @@ export function useWarehouse3DData(warehouseId: string | null) {
     }),
   });
 
-  // 4b. Consultar posiciones únicamente en secciones de almacenamiento.
+  // 4b. Las posiciones son el recurso más pesado del visor. Se cargan solo
+  // cuando se solicitan explícitamente o cuando el flujo de descargue está activo.
+  // Si hay un filtro de sección, se evita consultar las demás secciones.
   const positionsQueries = useQueries({
     queries: sectionsList.map((section) => {
       const isStorageSection =
         isRackStorageType(section.section_storage_type) ||
         isLotStorageType(section.section_storage_type);
+      const isVisibleSection =
+        !sectionFilterId || section.section_id === sectionFilterId;
 
       return {
         queryKey: [
@@ -510,10 +531,13 @@ export function useWarehouse3DData(warehouseId: string | null) {
             moduleCode &&
             warehouseId &&
             section.section_id &&
-            isStorageSection,
+            isStorageSection &&
+            shouldLoadPositions &&
+            isVisibleSection,
         ),
         refetchOnWindowFocus: false,
         staleTime: 60_000,
+        gcTime: 5 * 60_000,
       };
     }),
   });

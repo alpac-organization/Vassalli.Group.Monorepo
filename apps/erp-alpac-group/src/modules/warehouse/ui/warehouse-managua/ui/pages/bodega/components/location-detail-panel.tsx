@@ -13,7 +13,7 @@ import {
   Barcode,
   Calendar,
   User,
-  Building2,
+  PackagePlus,
 } from "lucide-react";
 import { useBodegaViewerStore } from "../stores/use-bodega-viewer-store";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -207,7 +207,7 @@ function PositionDetailPanel({
         {/* Coordenadas 3D */}
         <div className="grid grid-cols-3 gap-1.5 text-[10px] text-slate-300 bg-slate-900/80 p-2 rounded-lg border border-slate-800/80 mt-1">
           <div>
-            <span className="text-slate-500 block text-[9px] uppercase">X (Mundo)</span>
+            <span className="text-slate-500 block text-[9px] uppercase">X</span>
             <span className="font-mono font-bold text-slate-200">{position.worldX.toFixed(2)}m</span>
           </div>
           <div>
@@ -215,7 +215,7 @@ function PositionDetailPanel({
             <span className="font-mono font-bold text-slate-200">{position.worldY.toFixed(2)}m</span>
           </div>
           <div>
-            <span className="text-slate-500 block text-[9px] uppercase">Z (Mundo)</span>
+            <span className="text-slate-500 block text-[9px] uppercase">Z</span>
             <span className="font-mono font-bold text-slate-200">{position.worldZ.toFixed(2)}m</span>
           </div>
         </div>
@@ -439,23 +439,6 @@ function PositionDetailPanel({
                               <span className="text-slate-500 text-[10px] block">Correo</span>
                               <span className="font-semibold text-slate-200 truncate block">{cust.email ?? "N/D"}</span>
                             </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {(() => {
-                      const cc = opOrder.costCenterInformation ?? opOrder.cost_center_information;
-                      if (!cc) return null;
-                      return (
-                        <div className="p-3 rounded-xl bg-slate-900/70 border border-slate-800/80">
-                          <div className="flex items-center gap-1.5 mb-2 text-sky-400 font-bold text-xs">
-                            <Building2 size={14} />
-                            <span>Centro de Costos</span>
-                          </div>
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="font-mono text-cyan-400 font-bold">{cc.code ?? "N/D"}</span>
-                            <span className="text-slate-200 font-semibold">{cc.name ?? "N/D"}</span>
                           </div>
                         </div>
                       );
