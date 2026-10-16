@@ -70,8 +70,8 @@ export const purchaseRequestPriorityBadgeVariants = {
 		badgeColor: "bg-pink-500/15 text-pink-300 border border-pink-400/40",
 	},
 
-	[PriorityLevelEnum.High.textValue]: {
-		label: PriorityLevelEnum.High.label,
+	[PriorityLevelEnum.Unforeseen.textValue]: {
+		label: PriorityLevelEnum.Unforeseen.label,
 		badgeColor: "bg-orange-500/15 text-orange-300 border border-orange-400/40",
 	},
 
@@ -80,8 +80,8 @@ export const purchaseRequestPriorityBadgeVariants = {
 		badgeColor: "bg-blue-500/15 text-blue-300 border border-blue-400/40",
 	},
 
-	[PriorityLevelEnum.Low.textValue]: {
-		label: PriorityLevelEnum.Low.label,
+	[PriorityLevelEnum.PrintedStationery.textValue]: {
+		label: PriorityLevelEnum.PrintedStationery.label,
 		badgeColor: "bg-lime-500/15 text-lime-300 border border-lime-400/40",
 	},
 

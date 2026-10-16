@@ -6,10 +6,10 @@ type PriorityLevelEnumType = EnumType & {
 
 export const PriorityLevelEnum = {
 	None: { value: 0, label: "Ninguna", textValue: "None" },
-	Low: { value: 1, label: "Baja", textValue: "Low" },
-	Normal: { value: 2, label: "Normal", textValue: "Normal" },
-	High: { value: 3, label: "Alta", textValue: "High" },
-	Critical: { value: 4, label: "Crítica", textValue: "Critical" },
+	Critical: { value: 1, label: "Crítica", textValue: "Critical" },
+	Unforeseen: { value: 2, label: "Imprevisto", textValue: "Unforeseen" },
+	Normal: { value: 3, label: "Normal", textValue: "Normal" },
+	PrintedStationery: { value: 4, label: "Papelería impresa", textValue: "PrintedStationery" },
 } as const satisfies Record<string, PriorityLevelEnumType>;
 
 export type PriorityLevelEnum =
