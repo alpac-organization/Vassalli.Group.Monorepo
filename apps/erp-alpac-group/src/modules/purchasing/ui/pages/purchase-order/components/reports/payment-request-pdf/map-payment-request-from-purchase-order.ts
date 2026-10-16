@@ -137,7 +137,7 @@ export function mapPurchaseOrderToPaymentRequestPdf({
 
   const isCritical =
     purchaseRequest?.priority_level === PriorityLevelEnum.Critical.textValue ||
-    purchaseRequest?.priority_level === PriorityLevelEnum.High.textValue;
+    purchaseRequest?.priority_level === PriorityLevelEnum.Unforeseen.textValue;
 
   return {
     documentType,
