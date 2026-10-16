@@ -80,11 +80,6 @@ export const purchaseRequestPriorityBadgeVariants = {
 		badgeColor: "bg-blue-500/15 text-blue-300 border border-blue-400/40",
 	},
 
-	[PriorityLevelEnum.PrintedStationery.textValue]: {
-		label: PriorityLevelEnum.PrintedStationery.label,
-		badgeColor: "bg-lime-500/15 text-lime-300 border border-lime-400/40",
-	},
-
 	[PriorityLevelEnum.None.textValue]: {
 		label: PriorityLevelEnum.None.label,
 		badgeColor: "bg-slate-500/15 text-slate-300 border border-slate-400/30",

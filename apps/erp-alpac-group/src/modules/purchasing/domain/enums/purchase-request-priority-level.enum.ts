@@ -9,7 +9,6 @@ export const PriorityLevelEnum = {
 	Critical: { value: 1, label: "Crítica", textValue: "Critical" },
 	Unforeseen: { value: 2, label: "Imprevisto", textValue: "Unforeseen" },
 	Normal: { value: 3, label: "Normal", textValue: "Normal" },
-	PrintedStationery: { value: 4, label: "Papelería impresa", textValue: "PrintedStationery" },
 } as const satisfies Record<string, PriorityLevelEnumType>;
 
 export type PriorityLevelEnum =
