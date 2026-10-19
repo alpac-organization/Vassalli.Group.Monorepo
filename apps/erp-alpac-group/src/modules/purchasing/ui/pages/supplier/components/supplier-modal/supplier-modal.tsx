@@ -10,11 +10,13 @@ import {
    type TabItem,
 } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
-import { IdentificationEnum, IdentificationOptions } from "@app/core/enums/identification.enum";
+import { IdentificationEnum } from "@app/core/enums/identification.enum";
 import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/create-supplier-request";
 import type { CreatedSupplierDto, SupplierModalProps } from "./supplier-modal.types";
-import { ConstitutionEnum, ConstitutionOptions } from "@app/core/enums/constitution.enum";
+import { ConstitutionEnum } from "@app/core/enums/constitution.enum";
+import { httpHandler } from "@app/core/adapters";
 import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
+import { SupplierServices } from "@app/modules/purchasing/infrastructure/services/supplier/SupplierServices";
 import {
    formatIdentificationNumber,
    formatPhone,
@@ -25,8 +27,10 @@ import {
 } from "@app/shared/utils/string.utils";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
-import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
-import type { SupplierDetailsInformation } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-details";
+import type {
+   UpdateSupplierDetailsPayload,
+   UpdateSupplierRequest,
+} from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import { useFieldTracker } from "@app/shared/hooks/useFieldTracker";
 import { isValidateValue } from "@app/shared/utils/values.utils";
 import { Loader } from "@app/shared/components/loaders/loader";
@@ -62,6 +66,7 @@ import type { GetProductResponse } from "@app/modules/product/domain/ApiContract
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { readPagedRows } from "@app/shared/utils/paged-response.utils";
 import type { CurrencyCode } from "@app/core/enums/currency.enum";
+import type { SupplierLinkedProduct } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-product";
 
 const exclusiveStatusOnCreateOptions = [
 	{
@@ -79,56 +84,109 @@ const currencyOptions = [
    { value: "NIO", label: "Córdobas (C$)" },
 ];
 
-const constitutionEnumMap = new Map<string, number>([
-   [ConstitutionEnum.Legal.stringValue, ConstitutionEnum.Legal.value],
-   [ConstitutionEnum.Natural.stringValue, ConstitutionEnum.Natural.value],
-]);
+const constitutionStringOptions = Object.values(ConstitutionEnum)
+   .map((item) => ({ value: item.stringValue, label: item.label }))
+   .sort((a, b) => a.label.localeCompare(b.label));
 
-const identificationEnumMap = new Map<string, number>([
-   [IdentificationEnum.RUC.stringValue, IdentificationEnum.RUC.value],
-   [IdentificationEnum.NATIONAL_ID.stringValue, IdentificationEnum.NATIONAL_ID.value],
-   [IdentificationEnum.PASSPORT.stringValue, IdentificationEnum.PASSPORT.value],
-   [IdentificationEnum.RESIDENCE_ID.stringValue, IdentificationEnum.RESIDENCE_ID.value],
-]);
+const identificationStringOptions = Object.values(IdentificationEnum)
+   .map((item) => ({ value: item.stringValue, label: item.label }))
+   .sort((a, b) => a.label.localeCompare(b.label));
 
-const resolveConstitutionType = (value?: string | number | null): number => {
-   if (typeof value === "number") return value;
-   if (!value) return 0;
-   return constitutionEnumMap.get(value) ?? 0;
+const constitutionByNumericValue = new Map<number, string>(
+   Object.values(ConstitutionEnum).map((item) => [item.value, item.stringValue]),
+);
+
+const identificationByNumericValue = new Map<number, string>(
+   Object.values(IdentificationEnum).map((item) => [
+      item.value,
+      item.stringValue,
+   ]),
+);
+
+const identificationNumericByString = new Map<string, number>(
+   Object.values(IdentificationEnum).map((item) => [
+      item.stringValue,
+      item.value,
+   ]),
+);
+
+const suppliersCatalogService = new SupplierServices(httpHandler);
+
+const resolveConstitutionType = (
+   value?: string | number | null,
+): string => {
+   if (value == null || value === "") return "";
+   if (typeof value === "number") {
+      return constitutionByNumericValue.get(value) ?? "";
+   }
+   const asString = String(value);
+   if (
+      asString === ConstitutionEnum.Legal.stringValue ||
+      asString === ConstitutionEnum.Natural.stringValue
+   ) {
+      return asString;
+   }
+   const asNumber = Number(asString);
+   if (!Number.isNaN(asNumber)) {
+      return constitutionByNumericValue.get(asNumber) ?? "";
+   }
+   return "";
 };
 
-const getIdentificationTypeByConstitution = (constitutionType?: number): number => {
-   if (constitutionType === ConstitutionEnum.Legal.value) return IdentificationEnum.RUC.value;
-   if (constitutionType === ConstitutionEnum.Natural.value) return IdentificationEnum.NATIONAL_ID.value;
-   return 0;
+const getIdentificationTypeByConstitution = (
+   constitutionType?: string,
+): string => {
+   if (constitutionType === ConstitutionEnum.Legal.stringValue) {
+      return IdentificationEnum.RUC.stringValue;
+   }
+   if (constitutionType === ConstitutionEnum.Natural.stringValue) {
+      return IdentificationEnum.NATIONAL_ID.stringValue;
+   }
+   return "";
 };
 
 const resolveIdentificationType = (
    identificationType?: string | number | null,
    constitutionType?: string | number | null,
-): number => {
-   if (typeof identificationType === "number") return identificationType;
-   const constStr = typeof constitutionType === "string" ? constitutionType : "";
+): string => {
+   const resolvedConstitution = resolveConstitutionType(constitutionType);
+
+   if (typeof identificationType === "number") {
+      return (
+         identificationByNumericValue.get(identificationType) ??
+         getIdentificationTypeByConstitution(resolvedConstitution)
+      );
+   }
 
    if (
-      ConstitutionEnum.Legal.stringValue === constStr &&
-      IdentificationEnum.NATIONAL_ID.stringValue === identificationType
+      resolvedConstitution === ConstitutionEnum.Legal.stringValue &&
+      identificationType === IdentificationEnum.NATIONAL_ID.stringValue
    ) {
-      return IdentificationEnum.RUC.value;
+      return IdentificationEnum.RUC.stringValue;
    }
 
    if (identificationType) {
-      const mapped = identificationEnumMap.get(identificationType);
-      if (isValidateValue(mapped)) return mapped!;
+      const asString = String(identificationType);
+      if (identificationNumericByString.has(asString)) return asString;
+      const asNumber = Number(asString);
+      if (!Number.isNaN(asNumber)) {
+         const mapped = identificationByNumericValue.get(asNumber);
+         if (mapped) return mapped;
+      }
    }
 
-   return getIdentificationTypeByConstitution(resolveConstitutionType(constitutionType));
+   return getIdentificationTypeByConstitution(resolvedConstitution);
 };
 
-const hasConstitutionData = (constitutionType?: number | string) => {
-   const val = Number(constitutionType);
-   return val === ConstitutionEnum.Natural.value || val === ConstitutionEnum.Legal.value;
-};
+const hasConstitutionData = (constitutionType?: string | null) =>
+   constitutionType === ConstitutionEnum.Natural.stringValue ||
+   constitutionType === ConstitutionEnum.Legal.stringValue;
+
+const toIdentificationNumericValue = (
+   identificationType?: string | null,
+): number =>
+   identificationNumericByString.get(String(identificationType ?? "")) ??
+   IdentificationEnum.NATIONAL_ID.value;
 
 const mapSupplierPaymentMethods = (
    methods?: { payment_method_type?: PaymentMethodType; is_active?: boolean }[],
@@ -143,7 +201,7 @@ const mapSupplierPaymentMethods = (
 const emptyFormValues: Partial<CreateSupplierRequest> = {
    suppliers_legal_name: "",
    commercial_name: "",
-   constitution_type: 0,
+   constitution_type: "",
    identification_type: undefined,
    identification_number: "",
    supplier_type: SupplierTypeEnum.Ordinary.stringValue,
@@ -188,6 +246,7 @@ export const SupplierModal = ({
    const [localBankAccounts, setLocalBankAccounts] = useState<CreateSupplierBankAccountPayload[]>([]);
    const [productLinks, setProductLinks] = useState<CatalogLinkItemForm[]>([]);
    const [productLinksDirty, setProductLinksDirty] = useState(false);
+   const [catalogFullyLoaded, setCatalogFullyLoaded] = useState(true);
    const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
 
    const handleProductLinksChange = (items: CatalogLinkItemForm[]) => {
@@ -268,6 +327,7 @@ export const SupplierModal = ({
             tier_prices: mapCatalogLinkItemsToTierPayload(
                link.tier_prices,
                link.currency,
+               link.unit_measure_id,
             ),
          }));
 
@@ -309,10 +369,6 @@ export const SupplierModal = ({
             contact_phone_number: details?.contact_phone_number ?? undefined,
             credit_days: details?.credit_days ?? 0,
             has_credit: Boolean(details?.has_credit),
-            exclusive_status:
-               details?.exclusive_status ??
-               supplierDetails.exclusive_status ??
-               SupplierExclusiveStatusEnum.None.stringValue,
             exclusive_brands_or_parts: details?.exclusive_brands_or_parts ?? undefined,
             credit_limit: details?.credit_limit ?? null,
             credit_currency: details?.credit_currency ?? "USD",
@@ -367,22 +423,24 @@ export const SupplierModal = ({
       Boolean(exclusiveStatusWatch) &&
       exclusiveStatusWatch !== SupplierExclusiveStatusEnum.None.stringValue;
 
-   const isLegalPerson = Number(constitutionType) === ConstitutionEnum.Legal.value;
-   const isNaturalPerson = Number(constitutionType) === ConstitutionEnum.Natural.value;
+   const isLegalPerson =
+      constitutionType === ConstitutionEnum.Legal.stringValue;
+   const isNaturalPerson =
+      constitutionType === ConstitutionEnum.Natural.stringValue;
    const hasIdentificationType = isValidateValue(identificationType);
 
    const filteredIdentificationTypes = useMemo(() => {
       if (isLegalPerson) {
-         return IdentificationOptions.filter(
-            (item) => item.value === IdentificationEnum.RUC.value,
+         return identificationStringOptions.filter(
+            (item) => item.value === IdentificationEnum.RUC.stringValue,
          );
       }
       if (isNaturalPerson) {
-         return IdentificationOptions.filter(
-            (item) => item.value !== IdentificationEnum.RUC.value,
+         return identificationStringOptions.filter(
+            (item) => item.value !== IdentificationEnum.RUC.stringValue,
          );
       }
-      return IdentificationOptions;
+      return identificationStringOptions;
    }, [isLegalPerson, isNaturalPerson]);
 
    const trackField = <K extends keyof UpdateSupplierRequest>(
@@ -393,14 +451,16 @@ export const SupplierModal = ({
       updateFiledTracker(field, value);
    };
 
-   const trackDetailField = <K extends keyof SupplierDetailsInformation>(
+   const trackDetailField = <K extends keyof UpdateSupplierDetailsPayload>(
       field: K,
-      value: SupplierDetailsInformation[K],
+      value: UpdateSupplierDetailsPayload[K],
    ) => {
       if (!isEditMode) return;
 
       const initialValue = trackerInitial.supplier_details?.[field];
-      const current = { ...(updateData.supplier_details ?? {}) };
+      const current: UpdateSupplierDetailsPayload = {
+         ...(updateData.supplier_details ?? {}),
+      };
 
       if (initialValue === value) {
          delete current[field];
@@ -417,14 +477,16 @@ export const SupplierModal = ({
    };
 
    const trackMultipleDetailFields = (
-      changes: Partial<SupplierDetailsInformation>,
+      changes: UpdateSupplierDetailsPayload,
    ) => {
       if (!isEditMode) return;
 
       const initial = trackerInitial.supplier_details ?? {};
-      const current = { ...(updateData.supplier_details ?? {}) };
+      const current: UpdateSupplierDetailsPayload = {
+         ...(updateData.supplier_details ?? {}),
+      };
 
-      (Object.keys(changes) as (keyof SupplierDetailsInformation)[]).forEach(
+      (Object.keys(changes) as (keyof UpdateSupplierDetailsPayload)[]).forEach(
          (key) => {
             const val = changes[key];
             if (initial[key] === val) {
@@ -448,6 +510,8 @@ export const SupplierModal = ({
       resetFieldTracker();
       setLocalBankAccounts([]);
       setProductLinks([]);
+      setProductLinksDirty(false);
+      setCatalogFullyLoaded(true);
       setIsSelectProductOpen(false);
       setActiveTab("general");
       onClose();
@@ -666,7 +730,7 @@ export const SupplierModal = ({
                supplier_details?.preferred_payment_method &&
                paymentMethods.includes(supplier_details.preferred_payment_method)
                   ? supplier_details.preferred_payment_method
-                  : null,
+                  : (paymentMethods[0] ?? null),
          },
          bank_accounts: localBankAccounts.length > 0 ? localBankAccounts : undefined,
          products:
@@ -684,7 +748,10 @@ export const SupplierModal = ({
       return payload;
    };
 
-   const buildUpdatePayload = (): UpdateSupplierRequest => {
+   const buildUpdatePayload = (): {
+      payload: UpdateSupplierRequest;
+      skippedEmptyProducts: boolean;
+   } => {
       const payload: UpdateSupplierRequest = {
          company_id: companyId,
          module_code: moduleCode,
@@ -702,20 +769,40 @@ export const SupplierModal = ({
          };
       }
 
-      const effectivePaymentMethods =
-         payload.payment_methods ??
-         (getValues("payment_methods") as PaymentMethodType[] | undefined) ??
-         [];
-      if (
-         payload.supplier_details?.preferred_payment_method &&
-         !effectivePaymentMethods.includes(
-            payload.supplier_details.preferred_payment_method,
-         )
-      ) {
-         payload.supplier_details = {
-            ...payload.supplier_details,
-            preferred_payment_method: null,
-         };
+      if (payload.supplier_details) {
+         const details = { ...payload.supplier_details } as Record<
+            string,
+            unknown
+         >;
+         delete details.exclusive_status;
+         delete details.exclusive_status_comments;
+         payload.supplier_details = details as UpdateSupplierRequest["supplier_details"];
+      }
+
+      if (payload.payment_methods) {
+         const methods = payload.payment_methods.filter(Boolean);
+         payload.payment_methods = methods;
+         const currentPreferred =
+            payload.supplier_details?.preferred_payment_method ??
+            (getValues(
+               "supplier_details.preferred_payment_method",
+            ) as PaymentMethodType | null);
+         const resolvedPreferred =
+            currentPreferred && methods.includes(currentPreferred)
+               ? currentPreferred
+               : (methods[0] ?? undefined);
+
+         if (resolvedPreferred) {
+            payload.supplier_details = {
+               ...(payload.supplier_details ?? {}),
+               preferred_payment_method: resolvedPreferred,
+            };
+         } else if (payload.supplier_details) {
+            const { preferred_payment_method: _removed, ...restDetails } =
+               payload.supplier_details;
+            payload.supplier_details =
+               Object.keys(restDetails).length > 0 ? restDetails : undefined;
+         }
       }
 
       if (
@@ -725,11 +812,17 @@ export const SupplierModal = ({
          delete payload.supplier_details;
       }
 
+      let skippedEmptyProducts = false;
       if (productLinksDirty) {
-         payload.products = mapProductLinksToPayload(productLinks);
+         const mappedProducts = mapProductLinksToPayload(productLinks);
+         if (mappedProducts.length > 0) {
+            payload.products = mappedProducts;
+         } else {
+            skippedEmptyProducts = true;
+         }
       }
 
-      return payload;
+      return { payload, skippedEmptyProducts };
    };
 
    const handleCreateSupplier = (data: CreateSupplierRequest) => {
@@ -776,6 +869,14 @@ export const SupplierModal = ({
       if (!selectedSupplier?.supplier_id) return;
 
       if (productLinksDirty) {
+         if (!catalogFullyLoaded) {
+            onRequestError?.(
+               "Espere a que termine de cargar el catálogo de productos antes de guardar.",
+            );
+            setActiveTab("products");
+            return;
+         }
+
          const invalidLink = productLinks.find(
             (link) => !link.entity_id || !link.unit_price.trim(),
          );
@@ -796,13 +897,20 @@ export const SupplierModal = ({
          }
       }
 
-      const payload = buildUpdatePayload();
+      const { payload, skippedEmptyProducts } = buildUpdatePayload();
 
       const hasChanges = Object.keys(payload).some(
          (key) => !["company_id", "module_code", "supplier_id"].includes(key),
       );
 
       if (!hasChanges) {
+         if (skippedEmptyProducts) {
+            onRequestError?.(
+               "El catálogo de productos no se puede vaciar desde esta pantalla. Conserve al menos un producto o no toque el catálogo.",
+            );
+            setActiveTab("products");
+            return;
+         }
          onRequestSuccess?.("No se detectaron cambios para actualizar.");
          handleClose();
          return;
@@ -810,7 +918,13 @@ export const SupplierModal = ({
 
       UpdateSupplier.mutate(payload, {
          onSuccess() {
-            onRequestSuccess?.("Proveedor actualizado exitosamente.");
+            if (skippedEmptyProducts) {
+               onRequestSuccess?.(
+                  "Proveedor actualizado. El catálogo de productos no se modificó porque no se puede vaciar por este endpoint.",
+               );
+            } else {
+               onRequestSuccess?.("Proveedor actualizado exitosamente.");
+            }
             handleClose();
          },
          onError(error) {
@@ -835,6 +949,7 @@ export const SupplierModal = ({
          setLocalBankAccounts([]);
          setProductLinks([]);
          setProductLinksDirty(false);
+         setCatalogFullyLoaded(true);
          setIsSelectProductOpen(false);
          setActiveTab("general");
          return;
@@ -846,6 +961,7 @@ export const SupplierModal = ({
          setLocalBankAccounts([]);
          setProductLinks([]);
          setProductLinksDirty(false);
+         setCatalogFullyLoaded(true);
          setIsSelectProductOpen(false);
          setActiveTab("general");
          return;
@@ -853,22 +969,12 @@ export const SupplierModal = ({
 
       if (!supplierDetails) return;
 
-      const constitutionTypeValue = resolveConstitutionType(supplierDetails.constitution_type);
-      const hasConstitution = hasConstitutionData(constitutionTypeValue);
-      const identificationTypeValue = resolveIdentificationType(
-         supplierDetails.identification_type,
-         supplierDetails.constitution_type,
-      );
+      let cancelled = false;
 
-      const identificationNumber = hasConstitution
-         ? String(supplierDetails.identification_number ?? "")
-            .replace(/-/g, "")
-            .toUpperCase()
-         : "";
-
-      const details = supplierDetails.supplier_details;
-      const linkedProducts = readPagedRows(supplierDetails.products).rows.map(
-         (product) => ({
+      const mapLinkedProducts = (
+         rows: SupplierLinkedProduct[],
+      ): CatalogLinkItemForm[] =>
+         rows.map((product) => ({
             entity_id: product.product_id,
             entity_label: product.code
                ? `${product.code} · ${product.product_name}`
@@ -880,48 +986,120 @@ export const SupplierModal = ({
                product.tier_prices,
                product.currency,
             ),
-         }),
-      );
+         }));
 
-      reset({
-         suppliers_legal_name:
-            supplierDetails.supplier_legal_name ?? "-",
-         commercial_name: supplierDetails.commercial_name ?? "",
-         constitution_type: constitutionTypeValue,
-         identification_type: identificationTypeValue,
-         identification_number: identificationNumber,
-         supplier_type:
-            resolveSupplierType(supplierDetails.supplier_type) ??
-            SupplierTypeEnum.Ordinary.stringValue,
-         payment_methods: mapSupplierPaymentMethods(
-            supplierDetails.supplier_payment_methods,
-         ),
-         supplier_details: {
-            credit_days: details?.credit_days ?? 0,
-            has_credit: Boolean(details?.has_credit),
-            exclusive_status:
-               details?.exclusive_status ??
-               supplierDetails.exclusive_status ??
-               SupplierExclusiveStatusEnum.None.stringValue,
-            exclusive_brands_or_parts: details?.exclusive_brands_or_parts ?? "",
-            credit_limit: details?.credit_limit ?? null,
-            credit_currency: details?.credit_currency ?? "USD",
-            alert_days_before_due: details?.alert_days_before_due ?? 5,
-            apply_ir_retention: Boolean(details?.apply_ir_retention),
-            apply_municipal_retention: Boolean(details?.apply_municipal_retention),
-            is_tax_exempt: Boolean(details?.is_tax_exempt),
-            preferred_payment_method: details?.preferred_payment_method ?? null,
-            contact_name: details?.contact_name ?? "",
-            contact_phone_number: details?.contact_phone_number ? formatPhone(details.contact_phone_number) : "",
-            contact_email: details?.contact_email ?? "",
-            email_support: details?.email_support ?? "",
-            address: details?.address ?? "",
-         },
-      });
-      setProductLinks(linkedProducts);
-      setProductLinksDirty(false);
-      resetFieldTracker();
-   }, [isOpen, selectedSupplier, supplierDetails, reset, resetFieldTracker]);
+      const hydrate = async () => {
+         const constitutionTypeValue = resolveConstitutionType(
+            supplierDetails.constitution_type,
+         );
+         const hasConstitution = hasConstitutionData(constitutionTypeValue);
+         const identificationTypeValue = resolveIdentificationType(
+            supplierDetails.identification_type,
+            supplierDetails.constitution_type,
+         );
+
+         const identificationNumber = hasConstitution
+            ? String(supplierDetails.identification_number ?? "")
+                 .replace(/-/g, "")
+                 .toUpperCase()
+            : "";
+
+         const details = supplierDetails.supplier_details;
+         const firstPage = readPagedRows(supplierDetails.products);
+         let productRows = firstPage.rows;
+         const total = firstPage.total;
+         const pageSize = supplierDetails.products?.page_size ?? 100;
+
+         setCatalogFullyLoaded(productRows.length >= total);
+
+         if (productRows.length < total && selectedSupplier.supplier_id) {
+            const totalPages = Math.ceil(total / pageSize);
+            const remainingPages = await Promise.all(
+               Array.from({ length: Math.max(totalPages - 1, 0) }, (_, index) =>
+                  suppliersCatalogService.GetSupplierDetails({
+                     company_id: companyId,
+                     module_code: moduleCode,
+                     supplier_id: selectedSupplier.supplier_id,
+                     page_number: index + 2,
+                     page_size: pageSize,
+                  }),
+               ),
+            );
+
+            if (cancelled) return;
+
+            const seen = new Set(productRows.map((row) => row.product_id));
+            for (const page of remainingPages) {
+               for (const row of readPagedRows(page.products).rows) {
+                  if (seen.has(row.product_id)) continue;
+                  seen.add(row.product_id);
+                  productRows = [...productRows, row];
+               }
+            }
+         }
+
+         if (cancelled) return;
+
+         reset({
+            suppliers_legal_name: supplierDetails.supplier_legal_name ?? "-",
+            commercial_name: supplierDetails.commercial_name ?? "",
+            constitution_type: constitutionTypeValue,
+            identification_type: identificationTypeValue,
+            identification_number: identificationNumber,
+            supplier_type:
+               resolveSupplierType(supplierDetails.supplier_type) ??
+               SupplierTypeEnum.Ordinary.stringValue,
+            payment_methods: mapSupplierPaymentMethods(
+               supplierDetails.supplier_payment_methods,
+            ),
+            supplier_details: {
+               credit_days: details?.credit_days ?? 0,
+               has_credit: Boolean(details?.has_credit),
+               exclusive_status:
+                  details?.exclusive_status ??
+                  supplierDetails.exclusive_status ??
+                  SupplierExclusiveStatusEnum.None.stringValue,
+               exclusive_brands_or_parts:
+                  details?.exclusive_brands_or_parts ?? "",
+               credit_limit: details?.credit_limit ?? null,
+               credit_currency: details?.credit_currency ?? "USD",
+               alert_days_before_due: details?.alert_days_before_due ?? 5,
+               apply_ir_retention: Boolean(details?.apply_ir_retention),
+               apply_municipal_retention: Boolean(
+                  details?.apply_municipal_retention,
+               ),
+               is_tax_exempt: Boolean(details?.is_tax_exempt),
+               preferred_payment_method:
+                  details?.preferred_payment_method ?? null,
+               contact_name: details?.contact_name ?? "",
+               contact_phone_number: details?.contact_phone_number
+                  ? formatPhone(details.contact_phone_number)
+                  : "",
+               contact_email: details?.contact_email ?? "",
+               email_support: details?.email_support ?? "",
+               address: details?.address ?? "",
+            },
+         });
+         setProductLinks(mapLinkedProducts(productRows));
+         setProductLinksDirty(false);
+         setCatalogFullyLoaded(true);
+         resetFieldTracker();
+      };
+
+      void hydrate();
+
+      return () => {
+         cancelled = true;
+      };
+   }, [
+      isOpen,
+      selectedSupplier,
+      supplierDetails,
+      companyId,
+      moduleCode,
+      reset,
+      resetFieldTracker,
+   ]);
 
    const currentBankAccounts = isEditMode
       ? supplierDetails?.bank_accounts ?? []
@@ -1045,23 +1223,25 @@ export const SupplierModal = ({
                         control={control}
                         name="constitution_type"
                         rules={{
-                           required: true,
-                           validate: (val) => val !== 0 || "Tipo de constitución es requerido",
+                           required: "Tipo de constitución es requerido",
+                           validate: (val) =>
+                              hasConstitutionData(val) ||
+                              "Tipo de constitución es requerido",
                         }}
                         render={({ field }) => (
                            <Dropdown
                               label="Tipo de constitución"
                               placeholder="Seleccione..."
                               isRequired
-                              options={ConstitutionOptions}
-                              value={field.value}
+                              options={constitutionStringOptions}
+                              value={field.value || null}
                               onChange={(value) => {
-                                 const nextType = Number(value);
+                                 const nextType = String(value ?? "");
                                  const nextIdentificationType =
                                     getIdentificationTypeByConstitution(nextType);
 
                                  field.onChange(nextType);
-                                 setValue("identification_type", nextIdentificationType);
+                                 setValue("identification_type", nextIdentificationType || undefined);
                                  setValue("identification_number", "");
                                  clearErrors(["identification_number", "identification_type"]);
                                  if (hasConstitutionData(nextType)) {
@@ -1098,9 +1278,9 @@ export const SupplierModal = ({
                               isRequired
                               disabled={!hasConstitutionData(constitutionType)}
                               options={filteredIdentificationTypes}
-                              value={field.value}
+                              value={field.value ?? null}
                               onChange={(value) => {
-                                 const nextType = Number(value);
+                                 const nextType = String(value ?? "");
                                  field.onChange(nextType);
                                  setValue("identification_number", "");
                                  clearErrors("identification_number");
@@ -1121,7 +1301,8 @@ export const SupplierModal = ({
                            placeholder={
                               isLegalPerson
                                  ? "Ej. J0310000045678"
-                                 : identificationType === IdentificationEnum.PASSPORT.value
+                                 : identificationType ===
+                                     IdentificationEnum.PASSPORT.stringValue
                                     ? "Ej. A1234567"
                                     : "Ej. 001-150885-0012X"
                            }
@@ -1141,7 +1322,7 @@ export const SupplierModal = ({
                                     if (isNaturalPerson) {
                                        return validateIdentificationNumber(
                                           value,
-                                          Number(identificationType) || IdentificationEnum.NATIONAL_ID.value,
+                                          toIdentificationNumericValue(identificationType),
                                        );
                                     }
                                     if (isLegalPerson) {
@@ -1159,7 +1340,8 @@ export const SupplierModal = ({
                                     evt.target.value = formatRuc(evt.target.value);
                                  } else if (
                                     isNaturalPerson &&
-                                    identificationType === IdentificationEnum.NATIONAL_ID.value
+                                    identificationType ===
+                                       IdentificationEnum.NATIONAL_ID.stringValue
                                  ) {
                                     evt.target.value = formatIdentificationNumber(evt.target.value);
                                  }
@@ -1561,11 +1743,6 @@ export const SupplierModal = ({
                                     "supplier_details.exclusive_brands_or_parts",
                                     null,
                                  );
-                                 trackMultipleDetailFields({
-                                    exclusive_status:
-                                       SupplierExclusiveStatusEnum.None.stringValue,
-                                    exclusive_brands_or_parts: null,
-                                 });
                                  return;
                               }
 
@@ -1574,11 +1751,6 @@ export const SupplierModal = ({
                                  SupplierExclusiveStatusEnum.PendingReview
                                     .stringValue,
                               );
-                              trackMultipleDetailFields({
-                                 exclusive_status:
-                                    SupplierExclusiveStatusEnum.PendingReview
-                                       .stringValue,
-                              });
                            }}
                         />
 
@@ -1605,10 +1777,6 @@ export const SupplierModal = ({
                                                    .stringValue,
                                           ) as SupplierExclusiveStatusOnCreate;
                                           field.onChange(status);
-                                          trackDetailField(
-                                             "exclusive_status",
-                                             status,
-                                          );
                                        }}
                                        className={dropdownClassName}
                                        labelClassName={labelClassName}
@@ -1623,13 +1791,6 @@ export const SupplierModal = ({
                                  labelClassName={labelClassName}
                                  {...register(
                                     "supplier_details.exclusive_brands_or_parts",
-                                    {
-                                       onChange: (evt) =>
-                                          trackDetailField(
-                                             "exclusive_brands_or_parts",
-                                             evt.target.value,
-                                          ),
-                                    },
                                  )}
                                  maxLength={500}
                                  style={{

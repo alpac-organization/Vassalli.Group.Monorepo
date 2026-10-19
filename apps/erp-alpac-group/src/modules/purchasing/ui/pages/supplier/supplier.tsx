@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   AnimatedAlertWrapper,
@@ -13,10 +13,7 @@ import {
 } from "@alpac/design-system";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { SupplierModal } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal";
-import {
-  ConstitutionEnum,
-  ConstitutionOptions,
-} from "@app/core/enums/constitution.enum";
+import { ConstitutionEnum } from "@app/core/enums/constitution.enum";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
@@ -52,6 +49,10 @@ import { resolveSupplierTypeLabel } from "@app/core/enums/supplier-type.enum";
 const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 const PAGE_SIZE = 5;
+
+const constitutionFilterOptions = Object.values(ConstitutionEnum)
+  .map((item) => ({ value: item.stringValue, label: item.label }))
+  .sort((a, b) => a.label.localeCompare(b.label));
 
 const exclusiveStatusBadgeVariants: Record<
   string,
@@ -135,12 +136,13 @@ export const Supplier = () => {
   });
 
   const suppliers = GetSuppliers.data?.data ?? [];
-  const totalRecords =
-    GetSuppliers.data?.total_records ?? GetSuppliers.data?.total ?? 0;
+  const totalRecords = GetSuppliers.data?.total ?? 0;
   const currentPage = filters.page_number ?? 1;
   const constitutionType = watch("constitution_type");
-  const isLegalPerson = constitutionType === ConstitutionEnum.Legal.value;
-  const isNaturalPerson = constitutionType === ConstitutionEnum.Natural.value;
+  const isLegalPerson =
+    constitutionType === ConstitutionEnum.Legal.stringValue;
+  const isNaturalPerson =
+    constitutionType === ConstitutionEnum.Natural.stringValue;
 
   const handleClearFilters = () => {
     reset(defaultFilters);
@@ -174,119 +176,120 @@ export const Supplier = () => {
     setIsSupplierProductsModalOpen(true);
   };
 
-  const columnConfig: TableColumn<GetSuppliersResponse>[] = [
-    {
-      key: "supplier_legal_name",
-      label: "Razón social / Nombre comercial",
-      render(row: GetSuppliersResponse) {
-        const legalName = row.supplier_legal_name ?? "—";
-        const commercialName = row.commercial_name?.trim();
+  const columnConfig: TableColumn<GetSuppliersResponse>[] = useMemo(
+    () => [
+      {
+        key: "supplier_legal_name",
+        label: "Razón social / Nombre comercial",
+        render(row: GetSuppliersResponse) {
+          const legalName = row.supplier_legal_name ?? "—";
+          const commercialName = row.commercial_name?.trim();
 
-        return (
-          <div className="flex flex-col">
-            <span className="font-medium text-slate-900 dark:text-white">
-              {legalName}
-            </span>
-            {commercialName && (
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                {commercialName}
+          return (
+            <div className="flex flex-col">
+              <span className="font-medium text-slate-900 dark:text-white">
+                {legalName}
               </span>
-            )}
-          </div>
-        );
+              {commercialName && (
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {commercialName}
+                </span>
+              )}
+            </div>
+          );
+        },
       },
-    },
-    {
-      key: "supplier_type",
-      label: "Tipo",
-      render(row: GetSuppliersResponse) {
-        return resolveSupplierTypeLabel(row.supplier_type);
+      {
+        key: "supplier_type",
+        label: "Tipo",
+        render(row: GetSuppliersResponse) {
+          return resolveSupplierTypeLabel(row.supplier_type);
+        },
       },
-    },
-    {
-      key: "constitution_type",
-      label: "Tipo de constitución",
-      render(row: GetSuppliersResponse) {
-        if (!isValidateValue(row.constitution_type)) {
-          return "—";
-        }
+      {
+        key: "constitution_type",
+        label: "Tipo de constitución",
+        render(row: GetSuppliersResponse) {
+          if (!isValidateValue(row.constitution_type)) {
+            return "—";
+          }
 
-        const propValue =
-          constitutionTypeBadgeVariants[
-            row.constitution_type as keyof typeof constitutionTypeBadgeVariants
-          ] ?? constitutionTypeBadgeVariants.default;
+          const propValue =
+            constitutionTypeBadgeVariants[
+              row.constitution_type as keyof typeof constitutionTypeBadgeVariants
+            ] ?? constitutionTypeBadgeVariants.default;
 
-        return <Badges label={propValue.label} color={propValue.badgeColor} />;
+          return <Badges label={propValue.label} color={propValue.badgeColor} />;
+        },
       },
-    },
-    {
-      key: "identification_type",
-      label: "Tipo de identificación",
-      render(row: GetSuppliersResponse) {
-        if (!isValidateValue(row.identification_type)) {
-          return "—";
-        }
+      {
+        key: "identification_type",
+        label: "Tipo de identificación",
+        render(row: GetSuppliersResponse) {
+          if (!isValidateValue(row.identification_type)) {
+            return "—";
+          }
 
-        const propValue =
-          idenitificationTypeBadgeVariants[
-            row.identification_type as keyof typeof idenitificationTypeBadgeVariants
-          ] ?? idenitificationTypeBadgeVariants.default;
+          const propValue =
+            idenitificationTypeBadgeVariants[
+              row.identification_type as keyof typeof idenitificationTypeBadgeVariants
+            ] ?? idenitificationTypeBadgeVariants.default;
 
-        return <Badges label={propValue.label} color={propValue.badgeColor} />;
+          return <Badges label={propValue.label} color={propValue.badgeColor} />;
+        },
       },
-    },
-    { key: "identification_number", label: "Número de identificación" },
-    {
-      key: "exclusive_status",
-      label: "Estado de exclusividad",
-      render(row: GetSuppliersResponse) {
-        const status = row.exclusive_status ?? "None";
-        const propValue =
-          exclusiveStatusBadgeVariants[status] ??
-          exclusiveStatusBadgeVariants.None;
-        return <Badges label={propValue.label} color={propValue.badgeColor} />;
+      { key: "identification_number", label: "Número de identificación" },
+      {
+        key: "exclusive_status",
+        label: "Estado de exclusividad",
+        render(row: GetSuppliersResponse) {
+          const status = row.exclusive_status ?? "None";
+          const propValue =
+            exclusiveStatusBadgeVariants[status] ??
+            exclusiveStatusBadgeVariants.None;
+          return <Badges label={propValue.label} color={propValue.badgeColor} />;
+        },
       },
-    },
-    {
-      key: "actions",
-      label: "Acciones",
-      render: (row: GetSuppliersResponse) => {
-        const canManageExclusivity =
-          isAdministrator &&
-          row.exclusive_status ===
-            SupplierExclusiveStatusEnum.PendingReview.stringValue;
+      {
+        key: "actions",
+        label: "Acciones",
+        render: (row: GetSuppliersResponse) => {
+          const canManageExclusivity =
+            isAdministrator &&
+            row.exclusive_status ===
+              SupplierExclusiveStatusEnum.PendingReview.stringValue;
 
-        return (
-          <ContextMenu
-            triggerClassName={contextMenuButton}
-            items={[
-              { label: "Editar", onClick: () => onEditSupplier(row) },
-              { label: "Ver detalle", onClick: () => onViewDetails(row) },
-              { label: "Ver productos", onClick: () => onViewProducts(row) },
-              ...(canManageExclusivity
-                ? [
-                    {
-                      label: "Gestionar exclusividad",
-                      onClick: () => onManageExclusivity(row),
-                    },
-                  ]
-                : []),
-            ]}
-          />
-        );
+          return (
+            <ContextMenu
+              triggerClassName={contextMenuButton}
+              items={[
+                { label: "Editar", onClick: () => onEditSupplier(row) },
+                { label: "Ver detalle", onClick: () => onViewDetails(row) },
+                { label: "Ver productos", onClick: () => onViewProducts(row) },
+                ...(canManageExclusivity
+                  ? [
+                      {
+                        label: "Gestionar exclusividad",
+                        onClick: () => onManageExclusivity(row),
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+          );
+        },
       },
-    },
-  ];
+    ],
+    [isAdministrator],
+  );
 
   const handleFilterSuppliers = (data: GetSuppliersRequest) => {
     const identification = data?.identification_number?.trim() || undefined;
     const commercialName = data?.commercial_name?.trim() || undefined;
-    const constitutionType =
-      data.constitution_type === undefined ||
-      data.constitution_type === null ||
-      Number(data.constitution_type) === -1
-        ? undefined
-        : Number(data.constitution_type);
+    const nextConstitution =
+      data.constitution_type && String(data.constitution_type).trim()
+        ? String(data.constitution_type)
+        : undefined;
     const exclusiveStatus =
       data.exclusive_status && String(data.exclusive_status).trim()
         ? (String(data.exclusive_status) as SupplierExclusiveStatus)
@@ -297,7 +300,7 @@ export const Supplier = () => {
       page_number: 1,
       identification_number: identification,
       commercial_name: commercialName,
-      constitution_type: constitutionType,
+      constitution_type: nextConstitution,
       exclusive_status: exclusiveStatus,
     }));
   };
@@ -341,16 +344,14 @@ export const Supplier = () => {
               label="Tipo de constitución"
               placeholder="Seleccione..."
               appearance="dark"
-              options={ConstitutionOptions ?? []}
+              options={constitutionFilterOptions}
               value={field.value ?? null}
               onChange={(value) => {
-                const parsed =
+                const next =
                   value === null || value === undefined || value === ""
                     ? undefined
-                    : Number(value);
-                field.onChange(
-                  parsed === -1 || Number.isNaN(parsed) ? undefined : parsed,
-                );
+                    : String(value);
+                field.onChange(next);
               }}
               className={dropdownClassName}
               labelClassName={labelClassName}
@@ -425,7 +426,7 @@ export const Supplier = () => {
         />
       </form>
 
-      <div className="flex flex-col">
+      <div className="flex min-w-0 flex-col overflow-x-auto">
         <DataTable
           title="Lista de proveedores"
           data={suppliers}

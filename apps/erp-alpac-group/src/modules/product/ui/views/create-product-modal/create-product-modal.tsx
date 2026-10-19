@@ -74,6 +74,7 @@ const mapSupplierLinksToPayload = (links: CatalogLinkItemForm[]) =>
 			tier_prices: mapCatalogLinkItemsToTierPayload(
 				link.tier_prices,
 				link.currency,
+				link.unit_measure_id,
 			),
 		}));
 

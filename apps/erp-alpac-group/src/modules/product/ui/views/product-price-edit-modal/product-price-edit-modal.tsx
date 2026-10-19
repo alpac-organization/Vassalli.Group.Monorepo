@@ -187,6 +187,7 @@ export const ProductPriceEditModal = ({
 			preferentialTouched,
 			tiers,
 			currency,
+			unitMeasureId,
 		);
 
 		if (preferentialTouched && tiers.length > 0) {

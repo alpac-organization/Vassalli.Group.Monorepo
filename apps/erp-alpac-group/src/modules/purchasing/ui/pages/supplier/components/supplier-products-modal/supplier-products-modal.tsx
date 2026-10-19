@@ -233,7 +233,7 @@ export const SupplierProductsModal = ({
         size="5xl"
         description={`Catálogo vinculado a ${supplierName}`}
       >
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <form
             className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end"
             onSubmit={(event) => {
@@ -292,20 +292,22 @@ export const SupplierProductsModal = ({
             />
           </form>
 
-          <DataTable
-            title="Productos vinculados"
-            data={products}
-            columns={productColumns}
-            pagination={
-              <Pagination
-                currentPage={appliedFilters.page_number}
-                pageSize={PAGE_SIZE}
-                totalRecords={totalRecords}
-                onPageChange={handlePageChange}
-                disabled={isFetching}
-              />
-            }
-          />
+          <div className="min-w-0 overflow-x-auto">
+            <DataTable
+              title="Productos vinculados"
+              data={products}
+              columns={productColumns}
+              pagination={
+                <Pagination
+                  currentPage={appliedFilters.page_number}
+                  pageSize={PAGE_SIZE}
+                  totalRecords={totalRecords}
+                  onPageChange={handlePageChange}
+                  disabled={isFetching}
+                />
+              }
+            />
+          </div>
         </div>
       </Modal>
 

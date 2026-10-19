@@ -93,8 +93,8 @@ export function SelectSupplierModal({
 	});
 
 	const constitutionType = watch("constitution_type");
-	const isLegalPerson = constitutionType === ConstitutionEnum.Legal.value;
-	const isNaturalPerson = constitutionType === ConstitutionEnum.Natural.value;
+	const isLegalPerson = constitutionType === ConstitutionEnum.Legal.value.toString();
+	const isNaturalPerson = constitutionType === ConstitutionEnum.Natural.value.toString();
 
 	const registeredSuppliers = useMemo(() => {
 		const suppliers = GetSuppliers.data?.data ?? [];
@@ -102,7 +102,7 @@ export function SelectSupplierModal({
 		return suppliers.filter((supplier) => !excludedIds.has(supplier.supplier_id));
 	}, [GetSuppliers.data?.data, excludedIds]);
 
-	const totalRecords = GetSuppliers.data?.total_records ?? GetSuppliers.data?.total ?? 0;
+	const totalRecords = GetSuppliers.data?.total ?? 0;
 	const currentPage = filters.page_number ?? 1;
 
 	useEffect(() => {
@@ -145,7 +145,7 @@ export function SelectSupplierModal({
 			page_number: 1,
 			identification_number: identification,
 			commercial_name: commercialName,
-			constitution_type: constitutionType,
+			constitution_type: constitutionType?.toString(),
 		}));
 	};
 
