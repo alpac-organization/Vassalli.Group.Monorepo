@@ -100,6 +100,9 @@ export const AddCollaboratorModal = (
     formState: { errors },
   } = useForm<AddCollaboratorRequest>({
     mode: "onChange",
+    defaultValues: {
+      is_time_clock_exempt: false,
+    },
   });
 
   const identificationType = watch("identification_type");
@@ -138,6 +141,7 @@ export const AddCollaboratorModal = (
         ...restData,
         company_id: companyId,
         module_code: moduleCode,
+        is_time_clock_exempt: restData.is_time_clock_exempt === true,
         ...(travel_expenses && travel_expenses.length > 0
           ? { travel_expenses }
           : {}),
@@ -631,11 +635,11 @@ export const AddCollaboratorModal = (
               />
 
               <Controller
-                name="working_information.work_position_id"
+                name="working_information.job_position_id"
                 control={control}
                 rules={{
                   required: "Debe seleccionar una posición",
-                  validate: (val) => val !== 0 || "Selección inválida",
+                  validate: (val) => !!val || "Selección inválida",
                 }}
                 render={({ field }) => (
                   <Dropdown
@@ -647,8 +651,8 @@ export const AddCollaboratorModal = (
                       field.onChange(value);
                     }}
                     error={
-                      errors.working_information?.work_position_id &&
-                      errors.working_information?.work_position_id?.message
+                      errors.working_information?.job_position_id &&
+                      errors.working_information?.job_position_id?.message
                     }
                     value={field.value}
                     appearance="dark"
@@ -792,13 +796,30 @@ export const AddCollaboratorModal = (
                 )}
               />
 
-              <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:flex-nowrap sm:items-center sm:gap-5">
                 <Controller
                   name="does_work_saturday"
                   control={control}
                   render={({ field }) => (
                     <Checkbox
                       label="¿Jornada en sábado?"
+                      value="testing"
+                      labelClassName="dark:text-white!"
+                      checked={Boolean(field.value)}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      ref={field.ref}
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="is_time_clock_exempt"
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      label="¿Exento de marcación?"
                       value="testing"
                       labelClassName="dark:text-white!"
                       checked={Boolean(field.value)}
