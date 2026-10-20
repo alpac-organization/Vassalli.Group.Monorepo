@@ -106,7 +106,7 @@ export function AssignmentPage() {
         onAlertError={handleRequestError}
       />
 
-      {/* Modal opcional para ver el detalle de la OP */}
+      {/* Modal opcional para ver el detalle de la PO */}
       <OperationalOrderDetailModal
         isOpen={Boolean(detailOrderId)}
         onClose={() => setDetailOrderId(null)}

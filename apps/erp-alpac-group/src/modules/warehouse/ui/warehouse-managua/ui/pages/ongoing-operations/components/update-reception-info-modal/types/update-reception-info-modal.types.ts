@@ -3,9 +3,10 @@ export interface UpdateReceptionInfoFormValues {
 	package_amount: number;
 	merchandise_weight: number;
 	shipping_company: string;
-	consignee: string;
+	// consignee: string;
 	sender: string;
 	is_alerted: boolean;
+	is_consolidated: boolean;
 	merchandises: Array<{
 		merchandise: string;
 		merchandise_description: string;

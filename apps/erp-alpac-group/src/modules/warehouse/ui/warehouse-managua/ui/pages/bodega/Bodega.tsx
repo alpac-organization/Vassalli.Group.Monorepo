@@ -302,7 +302,7 @@ export default function Bodega() {
                   Descargue: {activeDescargueAssignment.merchandise || "Mercancía"}
                 </span>
                 <span className="hidden md:inline text-xs font-normal text-slate-400">
-                  (OP: {activeDescargueAssignment.operationalOrderId.slice(0, 8)}...)
+                  (PO: {activeDescargueAssignment.operationalOrderId.slice(0, 8)}...)
                 </span>
               </span>
             ) : (
@@ -422,7 +422,7 @@ export default function Bodega() {
                 {activeDescargueAssignment.merchandise || "Mercancía"}
               </span>
               <span className="hidden sm:inline text-slate-400 font-normal">
-                {" "}· OP: {activeDescargueAssignment.operationalOrderId.slice(0, 8)}...
+                {" "}· PO: {activeDescargueAssignment.operationalOrderId.slice(0, 8)}...
               </span>
             </span>
             <button

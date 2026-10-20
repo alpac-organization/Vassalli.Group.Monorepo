@@ -12,8 +12,9 @@ export interface UpdateOperationalOrderInformationRequest extends BaseRequest {
 	package_amount?: number | null;
 	merchandise_weight?: number | null;
 	shipping_company?: string | null;
-	consignee?: string | null;
+	// consignee?: string | null;
 	sender?: string | null;
 	is_alerted?: boolean | null;
+	is_consolidated?: boolean | null;
 	merchandises?: MerchandiseInformation[] | null;
 }

@@ -31,7 +31,7 @@ export function AssignmentFilters({ onApply, onClear }: AssignmentFiltersProps) 
         <div className="flex flex-col justify-center gap-2">
           <h3 className="p-0! m-0!">Filtros</h3>
           <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
-            Filtra por código OP
+            Filtra por código PO
           </small>
         </div>
       </div>
@@ -39,7 +39,7 @@ export function AssignmentFilters({ onApply, onClear }: AssignmentFiltersProps) 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
         <div className="flex flex-col min-w-0">
           <InputText
-            label="Código OP"
+            label="Código PO"
             labelClassName={labelClassName}
             placeholder="Ej. PO-04"
             value={code}

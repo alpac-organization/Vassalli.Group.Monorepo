@@ -25,7 +25,7 @@ export function getAssignmentOrdersColumns({
   return [
     {
       key: "po_code",
-      label: "Código OP",
+      label: "Código PO",
       render: (row) => (
         <span className="font-semibold text-slate-800 dark:text-slate-100">
           {row.po_code}

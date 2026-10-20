@@ -2,7 +2,7 @@ import { forwardRef, useId } from "react";
 import type { RadioButtonProps } from "./radio-button.types";
 
 export const RadioButton = forwardRef<HTMLInputElement, RadioButtonProps>(
-   ({ className, label, labelPosition = "right", labelClassName, id: idProp, ...props }, ref) => {
+   ({ className, label, description, labelPosition = "right", labelClassName, id: idProp, ...props }, ref) => {
 
       const generatedId = useId();
       const inputId = idProp ?? generatedId;
@@ -28,7 +28,7 @@ export const RadioButton = forwardRef<HTMLInputElement, RadioButtonProps>(
 
             {/* Círculo visual — usa group-has-[:checked] para leer el input desde cualquier nivel */}
             <div className={`
-               w-[18px] h-[18px] shrink-0 rounded-full border transition-all duration-150
+               w-4.5 h-4.5 shrink-0 rounded-full border transition-all duration-150
                border-slate-300 dark:border-slate-500
                bg-white dark:bg-transparent
                flex items-center justify-center
@@ -38,7 +38,7 @@ export const RadioButton = forwardRef<HTMLInputElement, RadioButtonProps>(
             `}>
                {/* Dot interior — oculto hasta que el radio esté checked */}
                <div className={`
-                  w-[8px] h-[8px] rounded-full transition-all duration-150
+                  w-2 h-2 rounded-full transition-all duration-150
                   bg-blue-500 dark:bg-blue-400
                   scale-0 group-has-checked:scale-100
                `} />

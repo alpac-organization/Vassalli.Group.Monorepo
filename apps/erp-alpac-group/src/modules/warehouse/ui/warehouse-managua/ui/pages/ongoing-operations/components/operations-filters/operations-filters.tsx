@@ -45,9 +45,9 @@ export function OperationsFilters({ onApply, onClear }: OperationsFiltersProps) 
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end">
 				<div className="flex flex-col min-w-0">
 					<InputText
-						label="Código OP"
+						label="Código PO"
 						labelClassName={labelClassName}
-						placeholder="Ej. ALP-MGA-OP-15"
+						placeholder="Ej. ALP-MGA-PO-15"
 						value={code}
 						onChange={(e) => setCode(e.target.value)}
 						className={inputClassName}
