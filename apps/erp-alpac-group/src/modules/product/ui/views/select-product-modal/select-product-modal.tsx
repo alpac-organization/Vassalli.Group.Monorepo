@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type FormEvent } from "react";
 import {
 	Button,
 	Checkbox,
@@ -17,7 +17,6 @@ import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
-import { Controller, useForm } from "react-hook-form";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
 import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product.request";
 
@@ -49,6 +48,7 @@ export function SelectProductModal({
 
 	const [error, setError] = useState("");
 	const [pageNumber, setPageNumber] = useState(1);
+	const [categoryId, setCategoryId] = useState("");
 	const [tempSelected, setTempSelected] = useState<SelectableCatalogProduct | null>(null);
 	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<SelectableCatalogProduct[]>([]);
 	const [filters, setFilters] = useState<GetProductRequest>({
@@ -58,6 +58,43 @@ export function SelectProductModal({
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	} as GetProductRequest);
+	const [listSession, setListSession] = useState({
+		isOpen,
+		companyId,
+		moduleCode,
+	});
+
+	if (
+		listSession.isOpen !== isOpen ||
+		listSession.companyId !== companyId ||
+		listSession.moduleCode !== moduleCode
+	) {
+		const shouldResetQuery =
+			isOpen &&
+			(!listSession.isOpen ||
+				listSession.companyId !== companyId ||
+				listSession.moduleCode !== moduleCode);
+
+		setListSession({ isOpen, companyId, moduleCode });
+
+		if (!isOpen) {
+			setError("");
+			setPageNumber(1);
+			setTempSelected(null);
+			setTempSelectedMultiple([]);
+		}
+
+		if (shouldResetQuery) {
+			setCategoryId("");
+			setFilters({
+				company_id: companyId,
+				module_code: moduleCode,
+				category_product_id: "",
+				page_number: 1,
+				page_size: PAGE_SIZE,
+			});
+		}
+	}
 
 	const excludedIds = useMemo(
 		() => new Set(excludeProductIds.filter(Boolean)),
@@ -103,48 +140,17 @@ export function SelectProductModal({
 		return GetProducts.data?.total ?? 0
 	}, [GetProducts.data]);
 
-	const { control, handleSubmit, reset } = useForm<GetProductRequest>({
-		defaultValues: {
-			company_id: companyId,
-			module_code: moduleCode,
-			category_product_id: "",
-			page_number: 1,
-			page_size: PAGE_SIZE,
-		}
-	});
-
-	useEffect(() => {
-		if (!isOpen) {
-			setError("");
-			setPageNumber(1);
-			setTempSelected(null);
-			setTempSelectedMultiple([]);
-			return;
-		}
-
-		const initial: GetProductRequest = {
-			company_id: companyId,
-			module_code: moduleCode,
-			category_product_id: "",
-			page_number: 1,
-			page_size: PAGE_SIZE,
-		};
-
-		reset(initial);
-		setFilters(initial);
-
-	}, [isOpen, companyId, moduleCode, reset]);
-
-	const onApplyFilters = handleSubmit((values) => {
+	const onApplyFilters = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
 		setPageNumber(1);
 		setFilters({
 			company_id: companyId,
 			module_code: moduleCode,
-			category_product_id: values.category_product_id || "",
+			category_product_id: categoryId || "",
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		});
-	});
+	};
 
 	const handlePageChange = useCallback((page: number) => {
 		setPageNumber(page);
@@ -201,15 +207,7 @@ export function SelectProductModal({
 	};
 
 	const onClearFilters = () => {
-
-		reset({
-			company_id: companyId,
-			module_code: moduleCode,
-			category_product_id: "",
-			page_number: 1,
-			page_size: PAGE_SIZE,
-		});
-
+		setCategoryId("");
 		setPageNumber(1);
 		setFilters({
 			company_id: companyId,
@@ -300,27 +298,16 @@ export function SelectProductModal({
 						onSubmit={onApplyFilters}
 						className="flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:gap-4"
 					>
-						<Controller
-							name="category_product_id"
-							control={control}
-							rules={{
-								required: false,
-							}}
-							render={({ field }) => {
-								return (
-									<Dropdown
-										value={field.value}
-										onChange={(value) => field.onChange(value)}
-										label="Filtrar por Categoría"
-										placeholder="Seleccione una categoría"
-										appearance="dark"
-										labelClassName="text-black! dark:text-white!"
-										valueClassName="text-black! dark:text-white!"
-										className="w-full! sm:w-75! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
-										options={productCategories ?? []}
-									/>
-								);
-							}}
+						<Dropdown
+							value={categoryId}
+							onChange={(value) => setCategoryId(String(value ?? ""))}
+							label="Filtrar por Categoría"
+							placeholder="Seleccione una categoría"
+							appearance="dark"
+							labelClassName="text-black! dark:text-white!"
+							valueClassName="text-black! dark:text-white!"
+							className="w-full! sm:w-75! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!"
+							options={productCategories ?? []}
 						/>
 
 						<div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-4">

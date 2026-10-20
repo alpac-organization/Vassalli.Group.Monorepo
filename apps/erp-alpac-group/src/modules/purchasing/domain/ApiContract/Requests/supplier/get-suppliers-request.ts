@@ -4,7 +4,7 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
 export interface GetSuppliersRequest extends BaseRequest {
 	commercial_name?: string;
 	identification_number?: string;
-	constitution_type?: number | string;
+	constitution_type?: string;
 	exclusive_status?: SupplierExclusiveStatus;
 	page_number?: number;
 	page_size?: number;

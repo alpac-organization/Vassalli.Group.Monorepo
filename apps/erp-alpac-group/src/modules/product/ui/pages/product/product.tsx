@@ -289,9 +289,9 @@ export const Product = () => {
 
       <AnimatedAlertWrapper open={alertState?.open ?? false}>
         <Alert
-          type={alertState?.type!}
+          type={alertState?.type ?? "error"}
           title={alertState?.title}
-          message={alertState?.message!}
+          message={alertState?.message ?? ""}
           onClose={handleCloseAlert}
         />
       </AnimatedAlertWrapper>

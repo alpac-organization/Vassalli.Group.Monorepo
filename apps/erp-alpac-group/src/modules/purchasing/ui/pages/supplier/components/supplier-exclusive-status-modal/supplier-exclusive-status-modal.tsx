@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button, Modal, Textarea } from "@alpac/design-system";
 import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -20,7 +20,13 @@ export const SupplierExclusiveStatusModal = ({
   const { companyId, moduleCode } = useUserStore();
   const { getMappedError } = useMappedError();
   const [comments, setComments] = useState("");
+  const [trackedOpen, setTrackedOpen] = useState(isOpen);
   const { UpdateSupplierExclusiveStatus } = useSupplier();
+
+  if (trackedOpen !== isOpen) {
+    setTrackedOpen(isOpen);
+    if (!isOpen) setComments("");
+  }
 
   const supplierName =
     selectedSupplier?.supplier_legal_name ??
@@ -30,12 +36,6 @@ export const SupplierExclusiveStatusModal = ({
   const trimmedComments = comments.trim();
   const hasValidComments =
     trimmedComments.length > 0 && trimmedComments.length <= COMMENTS_MAX_LENGTH;
-
-  useEffect(() => {
-    if (!isOpen) {
-      setComments("");
-    }
-  }, [isOpen]);
 
   const handleClose = () => {
     setComments("");
