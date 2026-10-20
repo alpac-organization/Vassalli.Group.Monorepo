@@ -1,93 +1,72 @@
-import { useCallback, useState } from "react";
-import {
-  Alert,
-  AnimatedAlertWrapper,
-  Badges,
-  Button,
-  ContextMenu,
-  DataTable,
-  Dropdown,
-  InputText,
-  Pagination,
-  type TableColumn,
-} from "@alpac/design-system";
-import { useUserStore } from "@app/shared/stores/useUserStore";
-import { SupplierModal } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal";
-import {
-  ConstitutionEnum,
-  ConstitutionOptions,
-} from "@app/core/enums/constitution.enum";
-import { RoleEnum } from "@app/core/enums/role.enum";
-import { useAlertState } from "@app/shared/hooks/useAlertState";
-import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
-import type { GetSuppliersRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/get-suppliers-request";
-import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
-import { Loader } from "@app/shared/components/loaders/loader";
-import { Controller, useForm } from "react-hook-form";
-import {
-  formatIdentificationNumber,
-  formatRuc,
-} from "@app/shared/utils/string.utils";
+import { lazy, Suspense, useCallback, useMemo, useState } from "react";
+import { Alert, AnimatedAlertWrapper, Button } from "@alpac/design-system";
 import { PackagePlusIcon } from "lucide-react";
-import {
-  constitutionTypeBadgeVariants,
-  idenitificationTypeBadgeVariants,
-} from "@app/modules/purchasing/ui/pages/supplier/supplier.variants";
-import { isValidateValue } from "@app/shared/utils/values.utils";
-import { SupplierDetailsModal } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-details-modal/supplier-details-modal";
-import { SupplierExclusiveStatusModal } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-exclusive-status-modal/supplier-exclusive-status-modal";
-import { SupplierProductsModal } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-products-modal/supplier-products-modal";
-import {
-  inputClassName,
-  labelClassName,
-  dropdownClassName,
-} from "@app/modules/purchasing/ui/pages/supplier/utils/style";
-import {
-  SupplierExclusiveStatusEnum,
-  SupplierExclusiveStatusOptions,
-  type SupplierExclusiveStatus,
-} from "@app/core/enums/supplier-exclusive-status.enum";
-import { resolveSupplierTypeLabel } from "@app/core/enums/supplier-type.enum";
+import { RoleEnum } from "@app/core/enums/role.enum";
+import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+import { useSuppliersList } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
+import { SupplierFilters } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-filters/supplier-filters";
+import { SupplierTable } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-table/supplier-table";
+import { useDeferredUnmount } from "@app/modules/purchasing/ui/pages/supplier/hooks/use-deferred-unmount";
+import type {
+  SupplierFilterValues,
+  SupplierListFilters,
+} from "@app/modules/purchasing/ui/pages/supplier/supplier.types";
+import { Loader } from "@app/shared/components/loaders/loader";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
-const contextMenuButton =
-  "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 const PAGE_SIZE = 5;
 
-const exclusiveStatusBadgeVariants: Record<
-  string,
-  { label: string; badgeColor: string }
-> = {
-  None: {
-    label: "Ninguno",
-    badgeColor:
-      "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200",
-  },
-  PendingReview: {
-    label: "Pendiente",
-    badgeColor:
-      "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
-  },
-  Approved: {
-    label: "Aprobado",
-    badgeColor:
-      "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200",
-  },
-  Rejected: {
-    label: "Rechazado",
-    badgeColor: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200",
-  },
+const EMPTY_SUPPLIERS: GetSuppliersResponse[] = [];
+
+const addSupplierIcon = <PackagePlusIcon size={20} />;
+
+const initialFilters: SupplierListFilters = { page_number: 1 };
+
+const SupplierModal = lazy(() =>
+  import("./components/supplier-modal/supplier-modal").then((module) => ({
+    default: module.SupplierModal,
+  })),
+);
+
+const SupplierDetailsModal = lazy(() =>
+  import("./components/supplier-details-modal/supplier-details-modal").then(
+    (module) => ({
+      default: module.SupplierDetailsModal,
+    }),
+  ),
+);
+
+const SupplierExclusiveStatusModal = lazy(() =>
+  import(
+    "./components/supplier-exclusive-status-modal/supplier-exclusive-status-modal"
+  ).then((module) => ({
+    default: module.SupplierExclusiveStatusModal,
+  })),
+);
+
+const SupplierProductsModal = lazy(() =>
+  import("./components/supplier-products-modal/supplier-products-modal").then(
+    (module) => ({
+      default: module.SupplierProductsModal,
+    }),
+  ),
+);
+
+let supplierModalPreloaded = false;
+
+const preloadSupplierModal = () => {
+  if (supplierModalPreloaded) return;
+  supplierModalPreloaded = true;
+  void import("./components/supplier-modal/supplier-modal");
 };
 
 export const Supplier = () => {
-  const { companyId, moduleCode, role } = useUserStore();
-  const isAdministrator = role === RoleEnum.ADMINISTRATOR;
-
-  const buildBaseFilters = (): GetSuppliersRequest => ({
-    company_id: companyId,
-    module_code: moduleCode,
-    page_number: 1,
-    page_size: PAGE_SIZE,
-  });
+  const companyId = useUserStore((state) => state.companyId);
+  const moduleCode = useUserStore((state) => state.moduleCode);
+  const isAdministrator = useUserStore(
+    (state) => state.role === RoleEnum.ADMINISTRATOR,
+  );
 
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isSupplierDetailModalOpen, setIsSupplierDetailModalOpen] =
@@ -98,7 +77,7 @@ export const Supplier = () => {
     useState(false);
   const [selectedSupplier, setSelectedSupplier] =
     useState<GetSuppliersResponse | null>(null);
-  const [filters, setFilters] = useState<GetSuppliersRequest>(buildBaseFilters);
+  const [filters, setFilters] = useState<SupplierListFilters>(initialFilters);
 
   const {
     alertState,
@@ -107,400 +86,196 @@ export const Supplier = () => {
     handleRequestSuccess,
   } = useAlertState();
 
-  const defaultFilters: Pick<
-    GetSuppliersRequest,
-    | "identification_number"
-    | "constitution_type"
-    | "commercial_name"
-    | "exclusive_status"
-  > = {
-    identification_number: "",
-    constitution_type: undefined,
-    commercial_name: "",
-    exclusive_status: undefined,
-  };
-
-  const { register, handleSubmit, control, reset, watch } =
-    useForm<GetSuppliersRequest>({
-      defaultValues: { ...defaultFilters },
-    });
-
-  const { GetSuppliers } = useSupplier({
-    suppliersFilters: {
+  const suppliersQueryFilters = useMemo(
+    () => ({
       ...filters,
       company_id: companyId,
       module_code: moduleCode,
       page_size: PAGE_SIZE,
-    },
-  });
+    }),
+    [companyId, filters, moduleCode],
+  );
 
-  const suppliers = GetSuppliers.data?.data ?? [];
-  const totalRecords =
-    GetSuppliers.data?.total_records ?? GetSuppliers.data?.total ?? 0;
-  const currentPage = filters.page_number ?? 1;
-  const constitutionType = watch("constitution_type");
-  const isLegalPerson = constitutionType === ConstitutionEnum.Legal.value;
-  const isNaturalPerson = constitutionType === ConstitutionEnum.Natural.value;
+  const suppliersQuery = useSuppliersList(suppliersQueryFilters);
+  const suppliers = suppliersQuery.data?.data ?? EMPTY_SUPPLIERS;
+  const totalRecords = suppliersQuery.data?.total ?? 0;
+  const currentPage = filters.page_number;
 
-  const handleClearFilters = () => {
-    reset(defaultFilters);
-    setFilters(buildBaseFilters());
-  };
+  const shouldRenderSupplierModal = useDeferredUnmount(isSupplierModalOpen);
+  const shouldRenderSupplierDetailModal = useDeferredUnmount(
+    isSupplierDetailModalOpen,
+  );
+  const shouldRenderExclusiveStatusModal = useDeferredUnmount(
+    isExclusiveStatusModalOpen,
+  );
+  const shouldRenderSupplierProductsModal = useDeferredUnmount(
+    isSupplierProductsModalOpen,
+  );
+
+  const handleApplyFilters = useCallback((next: SupplierFilterValues) => {
+    setFilters({
+      page_number: 1,
+      ...next,
+    });
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
+    setFilters(initialFilters);
+  }, []);
 
   const handlePageChange = useCallback((page: number) => {
-    setFilters((prev) => ({
-      ...prev,
+    setFilters((current) => ({
+      ...current,
       page_number: page,
     }));
   }, []);
 
-  const onEditSupplier = (data: GetSuppliersResponse) => {
-    setSelectedSupplier(data);
+  const openCreateSupplier = useCallback(() => {
+    setSelectedSupplier(null);
     setIsSupplierModalOpen(true);
-  };
+  }, []);
 
-  const onViewDetails = (data: GetSuppliersResponse) => {
-    setSelectedSupplier(data);
+  const onEditSupplier = useCallback((row: GetSuppliersResponse) => {
+    setSelectedSupplier(row);
+    setIsSupplierModalOpen(true);
+  }, []);
+
+  const onViewDetails = useCallback((row: GetSuppliersResponse) => {
+    setSelectedSupplier(row);
     setIsSupplierDetailModalOpen(true);
-  };
+  }, []);
 
-  const onManageExclusivity = (data: GetSuppliersResponse) => {
-    setSelectedSupplier(data);
+  const onManageExclusivity = useCallback((row: GetSuppliersResponse) => {
+    setSelectedSupplier(row);
     setIsExclusiveStatusModalOpen(true);
-  };
+  }, []);
 
-  const onViewProducts = (data: GetSuppliersResponse) => {
-    setSelectedSupplier(data);
+  const onViewProducts = useCallback((row: GetSuppliersResponse) => {
+    setSelectedSupplier(row);
     setIsSupplierProductsModalOpen(true);
-  };
+  }, []);
 
-  const columnConfig: TableColumn<GetSuppliersResponse>[] = [
-    {
-      key: "supplier_legal_name",
-      label: "Razón social / Nombre comercial",
-      render(row: GetSuppliersResponse) {
-        const legalName = row.supplier_legal_name ?? "—";
-        const commercialName = row.commercial_name?.trim();
+  const closeSupplierModal = useCallback(() => {
+    setIsSupplierModalOpen(false);
+    setSelectedSupplier(null);
+  }, []);
 
-        return (
-          <div className="flex flex-col">
-            <span className="font-medium text-slate-900 dark:text-white">
-              {legalName}
-            </span>
-            {commercialName && (
-              <span className="text-xs text-slate-500 dark:text-slate-400">
-                {commercialName}
-              </span>
-            )}
-          </div>
-        );
-      },
+  const closeSupplierDetailModal = useCallback(() => {
+    setIsSupplierDetailModalOpen(false);
+    setSelectedSupplier(null);
+  }, []);
+
+  const closeExclusiveStatusModal = useCallback(() => {
+    setIsExclusiveStatusModalOpen(false);
+    setSelectedSupplier(null);
+  }, []);
+
+  const closeSupplierProductsModal = useCallback(() => {
+    setIsSupplierProductsModalOpen(false);
+    setSelectedSupplier(null);
+  }, []);
+
+  const handleExclusiveStatusSuccess = useCallback(
+    (message: string) => {
+      setIsExclusiveStatusModalOpen(false);
+      setSelectedSupplier(null);
+      handleRequestSuccess(message);
     },
-    {
-      key: "supplier_type",
-      label: "Tipo",
-      render(row: GetSuppliersResponse) {
-        return resolveSupplierTypeLabel(row.supplier_type);
-      },
-    },
-    {
-      key: "constitution_type",
-      label: "Tipo de constitución",
-      render(row: GetSuppliersResponse) {
-        if (!isValidateValue(row.constitution_type)) {
-          return "—";
-        }
-
-        const propValue =
-          constitutionTypeBadgeVariants[
-            row.constitution_type as keyof typeof constitutionTypeBadgeVariants
-          ] ?? constitutionTypeBadgeVariants.default;
-
-        return <Badges label={propValue.label} color={propValue.badgeColor} />;
-      },
-    },
-    {
-      key: "identification_type",
-      label: "Tipo de identificación",
-      render(row: GetSuppliersResponse) {
-        if (!isValidateValue(row.identification_type)) {
-          return "—";
-        }
-
-        const propValue =
-          idenitificationTypeBadgeVariants[
-            row.identification_type as keyof typeof idenitificationTypeBadgeVariants
-          ] ?? idenitificationTypeBadgeVariants.default;
-
-        return <Badges label={propValue.label} color={propValue.badgeColor} />;
-      },
-    },
-    { key: "identification_number", label: "Número de identificación" },
-    {
-      key: "exclusive_status",
-      label: "Estado de exclusividad",
-      render(row: GetSuppliersResponse) {
-        const status = row.exclusive_status ?? "None";
-        const propValue =
-          exclusiveStatusBadgeVariants[status] ??
-          exclusiveStatusBadgeVariants.None;
-        return <Badges label={propValue.label} color={propValue.badgeColor} />;
-      },
-    },
-    {
-      key: "actions",
-      label: "Acciones",
-      render: (row: GetSuppliersResponse) => {
-        const canManageExclusivity =
-          isAdministrator &&
-          row.exclusive_status ===
-            SupplierExclusiveStatusEnum.PendingReview.stringValue;
-
-        return (
-          <ContextMenu
-            triggerClassName={contextMenuButton}
-            items={[
-              { label: "Editar", onClick: () => onEditSupplier(row) },
-              { label: "Ver detalle", onClick: () => onViewDetails(row) },
-              { label: "Ver productos", onClick: () => onViewProducts(row) },
-              ...(canManageExclusivity
-                ? [
-                    {
-                      label: "Gestionar exclusividad",
-                      onClick: () => onManageExclusivity(row),
-                    },
-                  ]
-                : []),
-            ]}
-          />
-        );
-      },
-    },
-  ];
-
-  const handleFilterSuppliers = (data: GetSuppliersRequest) => {
-    const identification = data?.identification_number?.trim() || undefined;
-    const commercialName = data?.commercial_name?.trim() || undefined;
-    const constitutionType =
-      data.constitution_type === undefined ||
-      data.constitution_type === null ||
-      Number(data.constitution_type) === -1
-        ? undefined
-        : Number(data.constitution_type);
-    const exclusiveStatus =
-      data.exclusive_status && String(data.exclusive_status).trim()
-        ? (String(data.exclusive_status) as SupplierExclusiveStatus)
-        : undefined;
-
-    setFilters((prev) => ({
-      ...prev,
-      page_number: 1,
-      identification_number: identification,
-      commercial_name: commercialName,
-      constitution_type: constitutionType,
-      exclusive_status: exclusiveStatus,
-    }));
-  };
+    [handleRequestSuccess],
+  );
 
   return (
     <div className="flex flex-col gap-4">
-      {GetSuppliers.isPending && <Loader title="Cargando proveedores..." />}
+      {suppliersQuery.isPending ? (
+        <Loader title="Cargando proveedores..." />
+      ) : null}
 
       <div className="w-full flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start">
-        <Button
-          type="button"
-          size="giant"
-          label="Agregar Proveedor"
-          icon={<PackagePlusIcon size={20} />}
-          className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-          onClick={() => {
-            setSelectedSupplier(null);
-            setIsSupplierModalOpen(true);
-          }}
-        />
-      </div>
-
-      <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
-        <div className="flex flex-col justify-center">
-          <h3 className="p-0! m-0!">Filtros</h3>
-          <small className="text-gray-500 dark:text-gray-300">
-            Filtre la lista de proveedores
-          </small>
+        <div
+          className="w-full md:w-auto"
+          onMouseEnter={preloadSupplierModal}
+          onFocusCapture={preloadSupplierModal}
+        >
+          <Button
+            type="button"
+            size="giant"
+            label="Agregar Proveedor"
+            icon={addSupplierIcon}
+            className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+            onClick={openCreateSupplier}
+          />
         </div>
       </div>
 
-      <form
-        onSubmit={handleSubmit(handleFilterSuppliers)}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
-      >
-        <Controller
-          name="constitution_type"
-          control={control}
-          render={({ field }) => (
-            <Dropdown
-              label="Tipo de constitución"
-              placeholder="Seleccione..."
-              appearance="dark"
-              options={ConstitutionOptions ?? []}
-              value={field.value ?? null}
-              onChange={(value) => {
-                const parsed =
-                  value === null || value === undefined || value === ""
-                    ? undefined
-                    : Number(value);
-                field.onChange(
-                  parsed === -1 || Number.isNaN(parsed) ? undefined : parsed,
-                );
-              }}
-              className={dropdownClassName}
-              labelClassName={labelClassName}
-              valueClassName={labelClassName}
-            />
-          )}
-        />
-
-        <Controller
-          name="exclusive_status"
-          control={control}
-          render={({ field }) => (
-            <Dropdown
-              label="Estado de exclusividad"
-              placeholder="Seleccione..."
-              appearance="dark"
-              options={SupplierExclusiveStatusOptions}
-              value={field.value ?? null}
-              onChange={(value) => {
-                const next =
-                  value === null || value === undefined || value === ""
-                    ? undefined
-                    : (String(value) as SupplierExclusiveStatus);
-                field.onChange(next);
-              }}
-              className={dropdownClassName}
-              labelClassName={labelClassName}
-              valueClassName={labelClassName}
-            />
-          )}
-        />
-
-        <InputText
-          label="Nombre comercial"
-          placeholder="Ej. DIMAC"
-          className={inputClassName}
-          labelClassName={labelClassName}
-          {...register("commercial_name")}
-        />
-
-        <InputText
-          label="Identificación"
-          placeholder="Ej. J0310000000001"
-          className={inputClassName}
-          labelClassName={labelClassName}
-          {...register("identification_number", {
-            setValueAs: (value: string) =>
-              value ? value.toString().replace(/-/g, "").toUpperCase() : "",
-            onChange: (evt) => {
-              if (isLegalPerson) {
-                evt.target.value = formatRuc(evt.target.value);
-              } else if (isNaturalPerson) {
-                evt.target.value = formatIdentificationNumber(evt.target.value);
-              }
-            },
-          })}
-        />
-
-        <Button
-          type="submit"
-          size="giant"
-          label="Aplicar filtros"
-          className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-        />
-
-        <Button
-          type="button"
-          size="giant"
-          label="Limpiar filtros"
-          onClick={handleClearFilters}
-          className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
-        />
-      </form>
-
-      <div className="flex flex-col">
-        <DataTable
-          title="Lista de proveedores"
-          data={suppliers}
-          columns={columnConfig}
-          pagination={
-            <Pagination
-              currentPage={currentPage}
-              pageSize={PAGE_SIZE}
-              totalRecords={totalRecords}
-              onPageChange={handlePageChange}
-              disabled={GetSuppliers.isFetching}
-            />
-          }
-        />
-      </div>
-
-      <SupplierModal
-        isOpen={isSupplierModalOpen}
-        onClose={() => {
-          setIsSupplierModalOpen(false);
-          setSelectedSupplier(null);
-        }}
-        onSubmit={() => {
-          setIsSupplierModalOpen(false);
-          setSelectedSupplier(null);
-        }}
-        onRequestSuccess={handleRequestSuccess}
-        onRequestError={handleRequestError}
-        selectedSupplier={selectedSupplier}
+      <SupplierFilters
+        onApply={handleApplyFilters}
+        onClear={handleClearFilters}
       />
 
-      <SupplierDetailsModal
-        isOpen={isSupplierDetailModalOpen}
-        onClose={() => {
-          setIsSupplierDetailModalOpen(false);
-          setSelectedSupplier(null);
-        }}
-        selectedSupplier={selectedSupplier}
+      <SupplierTable
+        suppliers={suppliers}
+        totalRecords={totalRecords}
+        currentPage={currentPage}
+        pageSize={PAGE_SIZE}
+        isFetching={suppliersQuery.isFetching}
+        isAdministrator={isAdministrator}
+        onPageChange={handlePageChange}
+        onEdit={onEditSupplier}
+        onViewDetails={onViewDetails}
+        onViewProducts={onViewProducts}
+        onManageExclusivity={onManageExclusivity}
       />
 
-      <SupplierExclusiveStatusModal
-        isOpen={isExclusiveStatusModalOpen}
-        onClose={() => {
-          setIsExclusiveStatusModalOpen(false);
-          setSelectedSupplier(null);
-        }}
-        selectedSupplier={selectedSupplier}
-        onRequestSuccess={(message) => {
-          setIsExclusiveStatusModalOpen(false);
-          setSelectedSupplier(null);
-          handleRequestSuccess(message);
-        }}
-        onRequestError={handleRequestError}
-      />
+      <Suspense fallback={<Loader title="Cargando..." />}>
+        {shouldRenderSupplierModal ? (
+          <SupplierModal
+            isOpen={isSupplierModalOpen}
+            onClose={closeSupplierModal}
+            onSubmit={closeSupplierModal}
+            onRequestSuccess={handleRequestSuccess}
+            onRequestError={handleRequestError}
+            selectedSupplier={selectedSupplier}
+          />
+        ) : null}
 
-      <SupplierProductsModal
-        isOpen={isSupplierProductsModalOpen}
-        onClose={() => {
-          setIsSupplierProductsModalOpen(false);
-          setSelectedSupplier(null);
-        }}
-        selectedSupplier={selectedSupplier}
-        onRequestSuccess={handleRequestSuccess}
-        onRequestError={handleRequestError}
-      />
+        {shouldRenderSupplierDetailModal ? (
+          <SupplierDetailsModal
+            isOpen={isSupplierDetailModalOpen}
+            onClose={closeSupplierDetailModal}
+            selectedSupplier={selectedSupplier}
+          />
+        ) : null}
+
+        {shouldRenderExclusiveStatusModal ? (
+          <SupplierExclusiveStatusModal
+            isOpen={isExclusiveStatusModalOpen}
+            onClose={closeExclusiveStatusModal}
+            selectedSupplier={selectedSupplier}
+            onRequestSuccess={handleExclusiveStatusSuccess}
+            onRequestError={handleRequestError}
+          />
+        ) : null}
+
+        {shouldRenderSupplierProductsModal ? (
+          <SupplierProductsModal
+            isOpen={isSupplierProductsModalOpen}
+            onClose={closeSupplierProductsModal}
+            selectedSupplier={selectedSupplier}
+            onRequestSuccess={handleRequestSuccess}
+            onRequestError={handleRequestError}
+          />
+        ) : null}
+      </Suspense>
 
       <AnimatedAlertWrapper open={alertState?.open ?? false}>
-        {alertState && (
+        {alertState ? (
           <Alert
             type={alertState.type}
             title={alertState.title}
             message={alertState.message}
             onClose={handleCloseAlert}
           />
-        )}
+        ) : null}
       </AnimatedAlertWrapper>
     </div>
   );

@@ -70,9 +70,12 @@ export class SupplierServices implements ISupplierServices {
 
 		if (!response.products) return response;
 
+		const products = normalizePagedList(response.products);
+		if (!products) return response;
+
 		return {
 			...response,
-			products: normalizePagedList(response.products),
+			products,
 		};
 	}
 

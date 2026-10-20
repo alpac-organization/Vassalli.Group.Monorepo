@@ -33,13 +33,10 @@ export interface SupplierPaymentMethod {
 	is_active?: boolean;
 	payment_method_type?: PaymentMethodType;
 }
+
 export interface GetSuppliersResponseList {
-  data: GetSuppliersResponse[];
-  page_number: number;
-  page_size: number;
-  total?: number;
-  total_records?: number;
-  total_pages?: number;
-  has_previous_page?: boolean;
-  has_next_page?: boolean;
+	data: GetSuppliersResponse[];
+	page_number: number;
+	page_size: number;
+	total: number;
 }
