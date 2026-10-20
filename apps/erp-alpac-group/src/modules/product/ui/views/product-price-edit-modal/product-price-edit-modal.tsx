@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
 	AccordionGroup,
 	AccordionItem,
@@ -14,6 +14,8 @@ import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { Trash2Icon } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
+import { useSupplier } from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
+import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import {
@@ -22,8 +24,10 @@ import {
 } from "@app/core/enums/currency.enum";
 import {
 	emptyCatalogLinkTier,
-	mapCatalogLinkItemsToTierPayload,
 	resolveLinkCurrency,
+	resolveLinkUnitMeasureId,
+	resolveTierPricesForPatch,
+	validatePreferentialDates,
 	type CatalogLinkTierForm,
 } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 import type { ProductPriceEditModalProps } from "@app/modules/product/ui/views/product-price-edit-modal/product-price-edit-modal.types";
@@ -47,7 +51,7 @@ const datePickerSlotProps = {
 };
 
 const UNIT_STEP_LABEL = "Precio unitario";
-const PREFERENTIAL_STEP_LABEL = "Precios preferenciales";
+const PREFERENTIAL_STEP_LABEL = "Precio preferencial";
 
 const preferencialEnterTransition = {
 	height: { duration: 0.28, ease: "easeInOut" as const },
@@ -80,61 +84,81 @@ const toDateString = (value: unknown) => {
 	return parsed.isValid() ? parsed.format("YYYY-MM-DD") : "";
 };
 
-const formatPreferentialTitle = (
-	item: CatalogLinkTierForm,
-	index: number,
-) => {
+const formatPreferentialTitle = (item: CatalogLinkTierForm) => {
 	if (item.min_quantity.trim() && item.preferential_price.trim()) {
-		return `Desde ${item.min_quantity} · ${item.preferential_price}`;
+		return `Desde ${item.min_quantity} · ${item.preferential_price} ${item.currency}`;
 	}
-	return `Precio preferencial #${index + 1}`;
+	return "Precio preferencial";
 };
 
 export const ProductPriceEditModal = ({
 	isOpen,
 	onClose,
 	productId,
-	supplier,
+	supplierId,
+	counterpartLabel,
+	initial,
+	updateVia = "product",
 	onRequestSuccess,
 	onRequestError,
 }: ProductPriceEditModalProps) => {
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
 	const { UpdateProductSupplierPrice } = useProduct();
+	const { UpdateSupplierProductPrice } = useSupplier();
+	const { GetUnitMeasurements } = useUnitOfMeasurement({
+		payloadUnitOfMeasurement: {
+			companie_id: companyId,
+			module_code: moduleCode,
+		},
+		enabled: isOpen,
+	});
 
 	const [unitPrice, setUnitPrice] = useState("");
 	const [currency, setCurrency] = useState<CurrencyCode>("USD");
+	const [unitMeasureId, setUnitMeasureId] = useState("");
 	const [tiers, setTiers] = useState<CatalogLinkTierForm[]>([]);
+	const [hadInitialPreferential, setHadInitialPreferential] = useState(false);
 	const [includePreferential, setIncludePreferential] = useState(false);
 	const [currentStep, setCurrentStep] = useState(0);
 	const [openPreferentialId, setOpenPreferentialId] = useState<string>("");
 
-	useEffect(() => {
-		if (!isOpen || !supplier) return;
+	const unitMeasureOptions = useMemo(() => {
+		const units = GetUnitMeasurements.data;
+		if (!units || !Array.isArray(units)) return [];
+		return units.map((item) => ({
+			value: item.unit_measure_id,
+			label: item.symbol ? `${item.name} (${item.symbol})` : item.name,
+		}));
+	}, [GetUnitMeasurements.data]);
 
-		const existingTiers = supplier.tier_prices ?? [];
+	useEffect(() => {
+		if (!isOpen || !initial) return;
+
+		const existingTiers = (initial.tier_prices ?? []).slice(0, 1);
+		const linkCurrency = resolveLinkCurrency(initial.currency);
 		const mappedTiers = existingTiers.map((tier) => ({
 			id: tier.tier_price_id || crypto.randomUUID(),
 			min_quantity: String(tier.min_quantity ?? ""),
 			preferential_price: String(tier.preferential_price ?? ""),
+			currency: resolveLinkCurrency(tier.currency ?? linkCurrency),
 			valid_from: tier.valid_from?.slice(0, 10) ?? "",
 			valid_to: tier.valid_to?.slice(0, 10) ?? "",
 		}));
 
-		setUnitPrice(String(supplier.unit_price ?? ""));
-		setCurrency(resolveLinkCurrency(supplier.currency));
+		setUnitPrice(String(initial.unit_price ?? ""));
+		setCurrency(linkCurrency);
+		setUnitMeasureId(initial.unit_measure_id?.trim() ?? "");
 		setTiers(mappedTiers);
+		setHadInitialPreferential(existingTiers.length > 0);
 		setIncludePreferential(existingTiers.length > 0);
 		setOpenPreferentialId(mappedTiers[0]?.id ?? "");
 		setCurrentStep(0);
-	}, [isOpen, supplier]);
+	}, [isOpen, initial]);
 
-	const isSaving = UpdateProductSupplierPrice.isPending;
-	const supplierLabel =
-		supplier?.commercial_name?.trim() ||
-		supplier?.supplier_legal_name ||
-		supplier?.supplier_id ||
-		"—";
+	const isSaving =
+		UpdateProductSupplierPrice.isPending ||
+		UpdateSupplierProductPrice.isPending;
 
 	const steps = includePreferential
 		? [UNIT_STEP_LABEL, PREFERENTIAL_STEP_LABEL]
@@ -144,15 +168,9 @@ export const ProductPriceEditModal = ({
 	const hasValidUnitPrice =
 		parsedUnitPrice != null && !Number.isNaN(parsedUnitPrice);
 
-	const updateTier = (
-		tierId: string,
-		field: keyof CatalogLinkTierForm,
-		value: string,
-	) => {
+	const updateTier = (tierId: string, patch: Partial<CatalogLinkTierForm>) => {
 		setTiers((prev) =>
-			prev.map((tier) =>
-				tier.id === tierId ? { ...tier, [field]: value } : tier,
-			),
+			prev.map((tier) => (tier.id === tierId ? { ...tier, ...patch } : tier)),
 		);
 	};
 
@@ -161,57 +179,90 @@ export const ProductPriceEditModal = ({
 		onClose();
 	};
 
-	const handleSave = (withPreferential: boolean) => {
-		if (!supplier) return;
+	const handleSave = (withPreferentialStep: boolean) => {
+		if (!initial || !productId || !supplierId) return;
 
-		const preferentialPrices = withPreferential
-			? mapCatalogLinkItemsToTierPayload(tiers)
-			: undefined;
-		const hasTierPrices =
-			Boolean(preferentialPrices) && preferentialPrices!.length > 0;
-		const initialCurrency = resolveLinkCurrency(supplier.currency);
+		const preferentialTouched = withPreferentialStep;
+		const tierPayload = resolveTierPricesForPatch(
+			preferentialTouched,
+			tiers,
+			currency,
+		);
+
+		if (preferentialTouched && tiers.length > 0) {
+			const tier = tiers[0];
+			const dateError = validatePreferentialDates(
+				tier.valid_from,
+				tier.valid_to,
+			);
+			if (dateError) {
+				onRequestError?.(dateError);
+				return;
+			}
+			if (
+				!tier.min_quantity.trim() ||
+				!tier.preferential_price.trim() ||
+				!tier.valid_from.trim()
+			) {
+				onRequestError?.(
+					"Complete cantidad mínima, precio y fecha de inicio del preferencial, o quítelo.",
+				);
+				return;
+			}
+		}
+
+		const initialCurrency = resolveLinkCurrency(initial.currency);
+		const initialUnitMeasure = initial.unit_measure_id?.trim() ?? "";
 		const currencyChanged = currency !== initialCurrency;
 		const unitPriceChanged =
-			hasValidUnitPrice &&
-			parsedUnitPrice !== Number(supplier.unit_price);
-		const sendPrice =
-			hasValidUnitPrice && (unitPriceChanged || !currencyChanged);
-		const sendCurrency = currencyChanged || sendPrice || hasTierPrices;
+			hasValidUnitPrice && parsedUnitPrice !== Number(initial.unit_price);
+		const unitMeasureChanged = unitMeasureId.trim() !== initialUnitMeasure;
+		const sendPrice = unitPriceChanged;
+		const sendCurrency = currencyChanged || unitPriceChanged;
+		const sendUnitMeasure = unitMeasureChanged;
+		const hasTierChange = preferentialTouched;
 
-		if (!sendPrice && !sendCurrency && !hasTierPrices) {
+		if (!sendPrice && !sendCurrency && !sendUnitMeasure && !hasTierChange) {
 			onRequestError?.(
-				"Debe indicar un nuevo precio unitario, cambiar la moneda o agregar precios preferenciales.",
+				"Debe indicar un nuevo precio unitario, cambiar la moneda, la UoM del vínculo o el precio preferencial.",
 			);
 			return;
 		}
 
-		UpdateProductSupplierPrice.mutate(
-			{
-				company_id: companyId,
-				module_code: moduleCode,
-				product_id: productId,
-				supplier_id: supplier.supplier_id,
-				new_unit_price: sendPrice ? parsedUnitPrice : undefined,
-				currency: sendCurrency ? currency : undefined,
-				tier_prices: hasTierPrices ? preferentialPrices : undefined,
-			},
-			{
-				onSuccess: () => {
-					onRequestSuccess?.("Precios actualizados correctamente.");
-					onClose();
-				},
-				onError: (error) => {
-					const mapped = getMappedError(error as ApiErrorResponse);
-					onRequestError?.(
-						mapped.description || "No se pudieron actualizar los precios.",
-					);
-				},
-			},
-		);
+		const body = {
+			company_id: companyId,
+			module_code: moduleCode,
+			product_id: productId,
+			supplier_id: supplierId,
+			new_unit_price: sendPrice ? parsedUnitPrice : undefined,
+			currency: sendCurrency ? currency : undefined,
+			unit_measure_id: sendUnitMeasure
+				? resolveLinkUnitMeasureId(unitMeasureId)
+				: undefined,
+			tier_prices: tierPayload,
+		};
+
+		const onSuccess = () => {
+			onRequestSuccess?.("Precios actualizados correctamente.");
+			onClose();
+		};
+		const onError = (error: unknown) => {
+			const mapped = getMappedError(error as ApiErrorResponse);
+			onRequestError?.(
+				mapped.description || "No se pudieron actualizar los precios.",
+			);
+		};
+
+		if (updateVia === "supplier") {
+			UpdateSupplierProductPrice.mutate(body, { onSuccess, onError });
+			return;
+		}
+
+		UpdateProductSupplierPrice.mutate(body, { onSuccess, onError });
 	};
 
 	const handleEnablePreferential = () => {
-		const nextItem = emptyCatalogLinkTier();
+		const nextItem = emptyCatalogLinkTier(currency);
 		setIncludePreferential(true);
 		if (tiers.length > 0) {
 			setOpenPreferentialId(tiers[0].id);
@@ -222,19 +273,12 @@ export const ProductPriceEditModal = ({
 		setCurrentStep(1);
 	};
 
-	const handleAddPreferential = () => {
-		const nextItem = emptyCatalogLinkTier();
-		setTiers((prev) => [...prev, nextItem]);
-		setOpenPreferentialId(nextItem.id);
+	const handleRemovePreferential = () => {
+		setTiers([]);
+		setOpenPreferentialId("");
 	};
 
-	const handleRemovePreferential = (tierId: string) => {
-		const next = tiers.filter((item) => item.id !== tierId);
-		setTiers(next);
-		if (openPreferentialId === tierId) {
-			setOpenPreferentialId(next[0]?.id ?? "");
-		}
-	};
+	const descriptionLabel = counterpartLabel?.trim() || "—";
 
 	return (
 		<Modal
@@ -243,7 +287,7 @@ export const ProductPriceEditModal = ({
 			title="Editar precios"
 			variant="form"
 			size="2xl"
-			description={`Proveedor: ${supplierLabel}`}
+			description={descriptionLabel}
 		>
 			<LazyMotion features={loadMotionFeatures} strict>
 				<div className="flex flex-col gap-4 sm:gap-6">
@@ -272,7 +316,7 @@ export const ProductPriceEditModal = ({
 									exit={{ opacity: 0, x: 12 }}
 									transition={stepContentTransition}
 								>
-									<div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+									<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:items-end">
 										<InputText
 											label="Nuevo precio unitario"
 											type="number"
@@ -282,24 +326,51 @@ export const ProductPriceEditModal = ({
 											value={unitPrice}
 											onChange={(event) => setUnitPrice(event.target.value)}
 										/>
-										<div className="sm:w-44">
-											<Dropdown
-												label="Moneda"
-												placeholder="Moneda"
-												appearance="dark"
-												isRequired
-												options={CurrencyCodeOptions}
-												value={currency}
-												disabled={isSaving}
-												onChange={(value) =>
-													setCurrency(
-														resolveLinkCurrency(String(value ?? "USD")),
-													)
-												}
-												className={dropdownClassName}
-												labelClassName={labelClassName}
-											/>
-										</div>
+										<Dropdown
+											label="Moneda"
+											placeholder="Moneda"
+											appearance="dark"
+											isRequired
+											options={CurrencyCodeOptions}
+											value={currency}
+											disabled={isSaving}
+											onChange={(value) =>
+												setCurrency(
+													resolveLinkCurrency(String(value ?? "USD")),
+												)
+											}
+											className={dropdownClassName}
+											labelClassName={labelClassName}
+										/>
+										<Dropdown
+											label="UoM del vínculo"
+											placeholder={
+												GetUnitMeasurements.isPending ||
+												GetUnitMeasurements.isFetching
+													? "Cargando..."
+													: "Heredar del producto"
+											}
+											appearance="dark"
+											optional
+											options={unitMeasureOptions}
+											value={unitMeasureId || null}
+											disabled={
+												isSaving ||
+												GetUnitMeasurements.isPending ||
+												GetUnitMeasurements.isFetching
+											}
+											onChange={(value) =>
+												setUnitMeasureId(
+													value === null ||
+														value === undefined ||
+														value === ""
+														? ""
+														: String(value),
+												)
+											}
+											className={dropdownClassName}
+											labelClassName={labelClassName}
+										/>
 									</div>
 
 									<div className="flex flex-col-reverse gap-3 sm:flex-row sm:flex-wrap sm:justify-end">
@@ -316,7 +387,7 @@ export const ProductPriceEditModal = ({
 											<Button
 												type="button"
 												size="giant"
-												label="Agregar precios preferenciales"
+												label="Agregar precio preferencial"
 												disabled={isSaving}
 												className={secondaryButtonClassName}
 												onClick={handleEnablePreferential}
@@ -353,21 +424,28 @@ export const ProductPriceEditModal = ({
 								>
 									<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 										<span className="text-sm font-semibold text-slate-800 dark:text-white">
-											Precios preferenciales
+											Precio preferencial (máximo 1)
 										</span>
-										<Button
-											type="button"
-											size="small"
-											label="Agregar precio preferencial"
-											className={secondaryButtonClassName}
-											onClick={handleAddPreferential}
-										/>
+										{tiers.length === 0 && (
+											<Button
+												type="button"
+												size="small"
+												label="Agregar precio preferencial"
+												className={secondaryButtonClassName}
+												onClick={() => {
+													const nextItem = emptyCatalogLinkTier(currency);
+													setTiers([nextItem]);
+													setOpenPreferentialId(nextItem.id);
+												}}
+											/>
+										)}
 									</div>
 
 									{tiers.length === 0 ? (
 										<small className="text-slate-500 dark:text-slate-400">
-											Sin precios preferenciales. Agregue al menos uno o
-											vuelva al paso anterior.
+											{hadInitialPreferential
+												? "El preferencial se eliminará al guardar (tier_prices: [])."
+												: "Sin precio preferencial. Agregue uno o vuelva al paso anterior."}
 										</small>
 									) : (
 										<AccordionGroup
@@ -382,7 +460,7 @@ export const ProductPriceEditModal = ({
 											className="flex flex-col gap-3"
 										>
 											<AnimatePresence initial={false}>
-												{tiers.map((tier, index) => (
+												{tiers.slice(0, 1).map((tier) => (
 													<m.div
 														key={tier.id}
 														layout
@@ -414,7 +492,7 @@ export const ProductPriceEditModal = ({
 															title={
 																<div className="flex min-w-0 flex-1 items-center justify-between gap-3">
 																	<span className="truncate text-sm font-medium text-slate-900 dark:text-white">
-																		{formatPreferentialTitle(tier, index)}
+																		{formatPreferentialTitle(tier)}
 																	</span>
 																	<span
 																		className="mr-3 flex shrink-0 items-center"
@@ -431,9 +509,7 @@ export const ProductPriceEditModal = ({
 																			tooltip="Quitar precio preferencial"
 																			icon={<Trash2Icon size={16} />}
 																			className={removeItemButtonClassName}
-																			onClick={() =>
-																				handleRemovePreferential(tier.id)
-																			}
+																			onClick={handleRemovePreferential}
 																		/>
 																	</span>
 																</div>
@@ -447,11 +523,9 @@ export const ProductPriceEditModal = ({
 																	labelClassName={labelClassName}
 																	value={tier.min_quantity}
 																	onChange={(event) =>
-																		updateTier(
-																			tier.id,
-																			"min_quantity",
-																			event.target.value,
-																		)
+																		updateTier(tier.id, {
+																			min_quantity: event.target.value,
+																		})
 																	}
 																/>
 																<InputText
@@ -461,12 +535,29 @@ export const ProductPriceEditModal = ({
 																	labelClassName={labelClassName}
 																	value={tier.preferential_price}
 																	onChange={(event) =>
-																		updateTier(
-																			tier.id,
-																			"preferential_price",
-																			event.target.value,
-																		)
+																		updateTier(tier.id, {
+																			preferential_price:
+																				event.target.value,
+																		})
 																	}
+																/>
+																<Dropdown
+																	label="Moneda"
+																	placeholder="Moneda"
+																	appearance="dark"
+																	isRequired
+																	options={CurrencyCodeOptions}
+																	value={tier.currency}
+																	disabled={isSaving}
+																	onChange={(value) =>
+																		updateTier(tier.id, {
+																			currency: resolveLinkCurrency(
+																				String(value ?? "USD"),
+																			),
+																		})
+																	}
+																	className={dropdownClassName}
+																	labelClassName={labelClassName}
 																/>
 																<div className="min-w-0 w-full">
 																	<DatePicker
@@ -477,11 +568,9 @@ export const ProductPriceEditModal = ({
 																		labelClassName={labelClassName}
 																		value={toDayjsValue(tier.valid_from)}
 																		onChange={(value) =>
-																			updateTier(
-																				tier.id,
-																				"valid_from",
-																				toDateString(value),
-																			)
+																			updateTier(tier.id, {
+																				valid_from: toDateString(value),
+																			})
 																		}
 																		slotProps={datePickerSlotProps}
 																	/>
@@ -495,11 +584,9 @@ export const ProductPriceEditModal = ({
 																		labelClassName={labelClassName}
 																		value={toDayjsValue(tier.valid_to)}
 																		onChange={(value) =>
-																			updateTier(
-																				tier.id,
-																				"valid_to",
-																				toDateString(value),
-																			)
+																			updateTier(tier.id, {
+																				valid_to: toDateString(value),
+																			})
 																		}
 																		slotProps={datePickerSlotProps}
 																	/>

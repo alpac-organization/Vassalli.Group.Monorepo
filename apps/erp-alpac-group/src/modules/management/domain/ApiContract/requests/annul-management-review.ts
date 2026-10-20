@@ -1,7 +1,9 @@
 import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
 
-export interface AnnulManagementReviewRequest  extends BaseRequest {
+export type AnnulmentScope = 1 | 2 | "QuotationOnly" | "FullProcess";
+
+export interface AnnulManagementReviewRequest extends BaseRequest {
 	requisition_management_reviews_id: string;
-	scope: number;
+	scope: AnnulmentScope;
 	reason: string;
 }

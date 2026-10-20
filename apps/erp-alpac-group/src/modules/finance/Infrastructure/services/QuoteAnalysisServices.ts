@@ -27,9 +27,7 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
 	async GetQuoteAnalysisDetails(payload: GetQuoteAnalysisDetailsRequest): Promise<RequisitionAccountingReviewDetailsDto> {
 		const { company_id, module_code, purchase_requests_reviewed_accounting_id } = payload;
 		const url = `/companies/${company_id}/modules/${module_code}/requisition-accounting-reviews/${purchase_requests_reviewed_accounting_id}`;
-		const response = await this.httpClient.get<RequisitionAccountingReviewDetailsDto>(url);
-		console.log(response);
-		return response;
+		return this.httpClient.get<RequisitionAccountingReviewDetailsDto>(url);
 	}
 
 	async accceptQuotationToPurchase(payload: AcceptOfferPurchaseRequest): Promise<void> {
@@ -39,13 +37,11 @@ export class QuoteAnalysisServices implements IQuoteAnalysis {
 			quotation_id,
 			purchase_request_item_id,
 			supplier_selection_justification,
-			supplier_rejection_justification,
 		} = payload;
 		const url = `/companies/${company_id}/modules/${module_code}/quotations/${quotation_id}/accept-for-purchase`;
 		await this.httpClient.patch<void>(url, {
 			purchase_request_item_id,
 			supplier_selection_justification,
-			supplier_rejection_justification,
 		});
 	}
 

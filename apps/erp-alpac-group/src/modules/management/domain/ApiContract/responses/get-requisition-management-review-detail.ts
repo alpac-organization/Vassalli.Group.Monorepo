@@ -3,6 +3,6 @@ import type { GetPurchaseRequestDetailResponse } from "@app/modules/purchasing/d
 import type { RequisitionManagementReviewDto } from "@app/modules/management/domain/ApiContract/responses/get-requisition-management-reviews";
 
 export interface RequisitionManagementReviewDetailsResponse extends RequisitionManagementReviewDto {
-	reviewer_user_information: UserInformation;
+	reviewer_user_information: UserInformation | null;
 	purchase_request_details: GetPurchaseRequestDetailResponse;
 }

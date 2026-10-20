@@ -43,7 +43,7 @@ export function RequisitionQuoteTab({
 	const getDefaultFilters = (): GetPurchaseRequestPayload => ({
 		company_id: companyId,
 		module_code: moduleCode,
-		status: PurchaseRequestStatusEnum.Approved.value,
+		status: PurchaseRequestStatusEnum.Approved.textValue,
 		...(isAdministrator ? {} : { branch_id: currentBranchId }),
 		page_number: 1,
 		page_size: PAGE_SIZE,
@@ -56,7 +56,7 @@ export function RequisitionQuoteTab({
 			...filters,
 			company_id: companyId,
 			module_code: moduleCode,
-			request_type: PurchaseRequestEnum.Requisition.value,
+			request_type: PurchaseRequestEnum.Requisition.textValue,
 			branch_id: isAdministrator ? undefined : currentBranchId,
 			page_size: PAGE_SIZE,
 		}
@@ -81,7 +81,7 @@ export function RequisitionQuoteTab({
 			branch_id: isAdministrator ? undefined : currentBranchId,
 			code: data.code,
 			month, year,
-			status: data.status ?? PurchaseRequestStatusEnum.Approved.value,
+			status: data.status ?? PurchaseRequestStatusEnum.Approved.textValue,
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		}));

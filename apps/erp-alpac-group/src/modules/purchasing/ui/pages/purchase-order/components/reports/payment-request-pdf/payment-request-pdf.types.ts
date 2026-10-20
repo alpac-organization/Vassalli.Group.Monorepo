@@ -30,7 +30,6 @@ export type PaymentRequestPdfData = {
 	concept: string;
 	clientAccount: string;
 	ruc?: string | null;
-	/** Label dinámico según tipo de proveedor: "RUC" o "RUC / Cédula" */
 	rucLabel?: string;
 	customs?: string | null;
 	administrativeFineNumber?: string | null;
@@ -55,6 +54,7 @@ export type PaymentRequestPdfData = {
 	bankName?: string | null;
 	logoUrl?: string | null;
 	companyName?: string | null;
+	sealSrc?: string | null;
 	generatedBy?: string | null;
 	generatedAt?: string | null;
 };

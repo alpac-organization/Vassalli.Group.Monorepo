@@ -103,6 +103,15 @@ export const SupplierDetailsModal = ({
       .map((method) => String(method.payment_method_type));
   }, [supplierDetails?.supplier_payment_methods]);
 
+  const preferredPaymentMethodLabel = useMemo(() => {
+    const preferred = details?.preferred_payment_method;
+    if (!preferred) return "—";
+    return (
+      PaymentMethodOptions.find((option) => option.value === preferred)
+        ?.label ?? preferred
+    );
+  }, [details?.preferred_payment_method]);
+
   return (
     <>
       {isOpen && isLoading && (
@@ -182,6 +191,11 @@ export const SupplierDetailsModal = ({
                   className={dropdownClassName}
                   labelClassName={labelClassName}
                   valueClassName={labelClassName}
+                />
+                <DetailField
+                  label="Método de pago preferido"
+                  value={preferredPaymentMethodLabel}
+                  icon={<CreditCardIcon size={16} />}
                 />
               </div>
             </section>

@@ -55,7 +55,7 @@ export const OccasionalMaterialTab = ({
 		company_id: companyId,
 		module_code: moduleCode,
 		...(isAdministrator ? {} : { branch_id: currentBranchId }),
-		request_type: Number(PurchaseRequestEnum.Eventual.value),
+		request_type: PurchaseRequestEnum.Eventual.textValue,
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	});
@@ -66,7 +66,7 @@ export const OccasionalMaterialTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			branch_id: isAdministrator ? undefined : currentBranchId,
-			request_type: Number(PurchaseRequestEnum.Eventual.value),
+			request_type: PurchaseRequestEnum.Eventual.textValue,
 			page_size: PAGE_SIZE,
 		},
 	});
@@ -80,7 +80,7 @@ export const OccasionalMaterialTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			...(isAdministrator ? {} : { branch_id: currentBranchId }),
-			request_type: Number(PurchaseRequestEnum.Eventual.value),
+			request_type: PurchaseRequestEnum.Eventual.textValue,
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		});
@@ -148,14 +148,15 @@ export const OccasionalMaterialTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			branch_id: isAdministrator ? undefined : currentBranchId,
-			request_type: Number(PurchaseRequestEnum.Eventual.value),
+			request_type: PurchaseRequestEnum.Eventual.textValue,
 			code: data?.code?.trim(),
 			year,
 			month,
 			page_number: 1,
 			page_size: PAGE_SIZE,
-			status: data?.status || undefined,
+			status: data.status ?? undefined,
 			area_id: data.area_id || undefined,
+			ownership: data.ownership ?? undefined,
 		}));
 	};
 
@@ -164,7 +165,7 @@ export const OccasionalMaterialTab = ({
 			company_id: companyId,
 			module_code: moduleCode,
 			...(isAdministrator ? {} : { branch_id: currentBranchId }),
-			request_type: Number(PurchaseRequestEnum.Eventual.value),
+			request_type: PurchaseRequestEnum.Eventual.textValue,
 			page_number: 1,
 			page_size: PAGE_SIZE,
 		});

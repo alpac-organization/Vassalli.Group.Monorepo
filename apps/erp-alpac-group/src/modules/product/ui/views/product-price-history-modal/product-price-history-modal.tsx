@@ -118,7 +118,13 @@ export const ProductPriceHistoryModal = ({
 			{
 				key: "price",
 				label: "Precio",
-				render: (row) => formatCurrency(row.price, currency),
+				render: (row) =>
+					formatCurrency(row.price, row.currency ?? currency),
+			},
+			{
+				key: "currency",
+				label: "Moneda",
+				render: (row) => row.currency ?? currency ?? "—",
 			},
 			{
 				key: "min_quantity",

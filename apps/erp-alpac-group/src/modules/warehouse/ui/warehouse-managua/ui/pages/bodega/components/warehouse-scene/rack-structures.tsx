@@ -1,7 +1,7 @@
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Html } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import type { ProcessedRack3D } from "../../hooks/use-warehouse-3d-data";
 import { useBodegaViewerStore } from "../../stores/use-bodega-viewer-store";
 import {
@@ -9,6 +9,7 @@ import {
   getEffectiveRackStatus,
   resolveRackStatus,
 } from "@app/modules/admin-warehouse/warehouse-managua/ui/utils/rack-status-badge";
+import type { ProcessedPosition3D } from "../../types/warehouse-3d.types";
 
 interface RackStructuresProps {
   racks: ProcessedRack3D[];
@@ -101,20 +102,165 @@ function AnimatedLevelBoundingBox({
     </group>
   );
 }
-export function RackStructures({ racks = [] }: RackStructuresProps) {
+
+const RACK_POS_BOX_GEOMETRY = new THREE.BoxGeometry(1, 1, 1);
+const RACK_POS_VISUAL_MATERIAL = new THREE.MeshBasicMaterial({
+  vertexColors: true,
+  transparent: true,
+  opacity: 0.45,
+  depthWrite: false,
+});
+const RACK_POS_HITBOX_MATERIAL = new THREE.MeshBasicMaterial({
+  transparent: true,
+  opacity: 0,
+  depthWrite: false,
+});
+
+const RackPositionsSlot = memo(function RackPositionsSlot({
+  positions,
+  isInteractive,
+}: {
+  positions: ProcessedPosition3D[];
+  isInteractive: boolean;
+}) {
+  const visualRef = useRef<THREE.InstancedMesh>(null);
+  const hitboxRef = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const invalidate = useThree((state) => state.invalidate);
   const selectedPosition = useBodegaViewerStore((s) => s.selectedPosition);
-  const hoveredPosition = useBodegaViewerStore((s) => s.hoveredPosition);
-  const selectPosition = useBodegaViewerStore((s) => s.selectPosition);
-  const setHoveredPosition = useBodegaViewerStore((s) => s.setHoveredPosition);
-  const showPositions = useBodegaViewerStore((s) => s.showPositions);
   const isPreselectionMode = useBodegaViewerStore((s) => s.isPreselectionMode);
   const preselectedPositions = useBodegaViewerStore((s) => s.preselectedPositions);
   const togglePreselectPosition = useBodegaViewerStore((s) => s.togglePreselectPosition);
+  const selectPosition = useBodegaViewerStore((s) => s.selectPosition);
+  const setHoveredPosition = useBodegaViewerStore((s) => s.setHoveredPosition);
+
+  useLayoutEffect(() => {
+    const mesh = visualRef.current;
+    if (!mesh) return;
+
+    positions.forEach((pos, index) => {
+      const isPreselected = preselectedPositions.some(
+        (selected) => selected.positionId === pos.positionId,
+      );
+      const isSelected = selectedPosition?.positionId === pos.positionId;
+      const resolved = resolveRackStatus(pos.status);
+      const statusKey = (resolved?.textValue ??
+        (pos.status ? String(pos.status) : "Available")) as keyof typeof RACK_STATUS_COLORS;
+      const color = isPreselected
+        ? "#10b981"
+        : isSelected
+          ? "#00f0ff"
+          : RACK_STATUS_COLORS[statusKey] ?? "#38bdf8";
+
+      const width = Math.max(pos.width, 0.8);
+      const depth = Math.max(pos.depth, 0.8);
+
+      dummy.position.set(pos.worldX, pos.worldY, pos.worldZ);
+      dummy.scale.set(width * 0.94, isPreselected ? 0.08 : 0.03, depth * 0.94);
+      dummy.updateMatrix();
+
+      mesh.setMatrixAt(index, dummy.matrix);
+      mesh.setColorAt(index, new THREE.Color(color));
+
+      if (hitboxRef.current) {
+        dummy.position.set(pos.worldX, pos.worldY + 0.25, pos.worldZ);
+        dummy.scale.set(width * 0.94, 0.6, depth * 0.94);
+        dummy.updateMatrix();
+        hitboxRef.current.setMatrixAt(index, dummy.matrix);
+      }
+    });
+
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    mesh.computeBoundingSphere();
+
+    if (hitboxRef.current) {
+      hitboxRef.current.instanceMatrix.needsUpdate = true;
+      hitboxRef.current.computeBoundingSphere();
+    }
+
+    invalidate();
+  }, [dummy, invalidate, positions, preselectedPositions, selectedPosition]);
+
+  const handleClick = (event: ThreeEvent<MouseEvent>) => {
+    event.stopPropagation();
+    if (event.instanceId === undefined) return;
+    const pos = positions[event.instanceId];
+    if (!pos) return;
+    const resolved = resolveRackStatus(pos.status);
+    const statusKey = resolved?.textValue ?? (pos.isOccupied ? "Occupied" : "Available");
+    const isAvailable = statusKey === "Available" && !pos.isOccupied;
+    if (isPreselectionMode) {
+      if (isAvailable) togglePreselectPosition(pos);
+    } else {
+      selectPosition(pos);
+    }
+  };
+
+  const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
+    if (event.instanceId === undefined) return;
+    event.stopPropagation();
+    setHoveredPosition(positions[event.instanceId] ?? null);
+    document.body.style.cursor = "pointer";
+  };
+
+  const handlePointerOut = () => {
+    setHoveredPosition(null);
+    document.body.style.cursor = "auto";
+  };
+
+  return (
+    <>
+      <instancedMesh
+        ref={visualRef}
+        args={[RACK_POS_BOX_GEOMETRY, RACK_POS_VISUAL_MATERIAL, positions.length]}
+      />
+      {isInteractive && (
+        <instancedMesh
+          ref={hitboxRef}
+          args={[RACK_POS_BOX_GEOMETRY, RACK_POS_HITBOX_MATERIAL, positions.length]}
+          onClick={handleClick}
+          onPointerOver={handlePointerOver}
+          onPointerOut={handlePointerOut}
+        />
+      )}
+    </>
+  );
+});
+
+export function RackStructures({ racks = [] }: RackStructuresProps) {
+  const showPositions = useBodegaViewerStore((s) => s.showPositions);
+  const isPreselectionMode = useBodegaViewerStore((s) => s.isPreselectionMode);
+  const preselectedPositions = useBodegaViewerStore((s) => s.preselectedPositions);
 
   const [hoveredLevel, setHoveredLevel] = useState<{
     rackId: string;
     level: number;
   } | null>(null);
+
+  // Recopilar todas las posiciones de racks para renderizarlas con un único InstancedMesh
+  const allRackPositions = useMemo(() => {
+    const list: ProcessedPosition3D[] = [];
+    (racks ?? []).forEach((rack) => {
+      rack.levels?.forEach((lvl) => {
+        if (lvl.positions && lvl.positions.length > 0) {
+          list.push(...lvl.positions);
+        }
+      });
+    });
+    return list;
+  }, [racks]);
+
+  const hasPreselectedInRacks = useMemo(
+    () =>
+      allRackPositions.some((pos) =>
+        preselectedPositions.some((p) => p.positionId === pos.positionId),
+      ),
+    [allRackPositions, preselectedPositions],
+  );
+
+  const shouldRenderRackPositions =
+    showPositions || isPreselectionMode || hasPreselectedInRacks;
 
   // Generar geometría del rack: bastidores azules con celosía diagonal, largueros naranjas y esperas superiores
   const { uprightParts, beamParts, levelPlates } = useMemo(() => {
@@ -515,108 +661,6 @@ export function RackStructures({ racks = [] }: RackStructuresProps) {
               <meshBasicMaterial transparent opacity={0} depthWrite={false} />
             </mesh>
 
-            {/* Celdas / slots individuales de este nivel cuando showPositions está activo, en modo preselección, o el rack está seleccionado */}
-            {(showPositions ||
-              isPreselectionMode ||
-              lvlData?.positions?.some((pos) =>
-                preselectedPositions.some((p) => p.positionId === pos.positionId),
-              )) &&
-              lvlData?.positions &&
-              lvlData.positions.length > 0 && (
-                <group>
-                  {lvlData.positions.map((pos) => {
-                    const isPosSelected = selectedPosition?.positionId === pos.positionId;
-                    const isPosHovered = hoveredPosition?.positionId === pos.positionId;
-                    const isPreselected = preselectedPositions.some(
-                      (p) => p.positionId === pos.positionId,
-                    );
-                    const posResolved = resolveRackStatus(pos.status);
-                    const posKey = (posResolved?.textValue ??
-                      (pos.status ? String(pos.status) : "Available")) as keyof typeof RACK_STATUS_COLORS;
-                    const isPosAvailable = posKey === "Available" && !pos.isOccupied;
-                    const posColor = RACK_STATUS_COLORS[posKey] ?? "#38bdf8";
-
-                    const relX = pos.worldX - plate.x;
-                    const relY = pos.worldY - plate.y;
-                    const relZ = pos.worldZ - plate.z;
-
-                    const cellColor = isPreselected
-                      ? "#10b981"
-                      : isPosSelected
-                        ? "#00f0ff"
-                        : isPosHovered && isPosAvailable
-                          ? "#38bdf8"
-                          : posColor;
-
-                    return (
-                      <group key={`rack-cell-${pos.positionId}`} position={[relX, relY, relZ]}>
-                        <lineSegments>
-                          <edgesGeometry
-                            args={[
-                              new THREE.BoxGeometry(
-                                pos.width * 0.94,
-                                isPreselected ? 0.08 : 0.03,
-                                pos.depth * 0.94,
-                              ),
-                            ]}
-                          />
-                          <lineBasicMaterial
-                            color={cellColor}
-                            transparent
-                            opacity={
-                              isPreselected
-                                ? 1
-                                : isPosSelected
-                                  ? 1
-                                  : isPosHovered && isPosAvailable
-                                    ? 0.9
-                                    : 0.4
-                            }
-                          />
-                        </lineSegments>
-
-                        {/* Relleno holográfico sutil si está preseleccionado */}
-                        {isPreselected && (
-                          <mesh position={[0, 0.04, 0]}>
-                            <boxGeometry args={[pos.width * 0.92, 0.08, pos.depth * 0.92]} />
-                            <meshBasicMaterial
-                              color="#10b981"
-                              transparent
-                              opacity={0.35}
-                              depthWrite={false}
-                            />
-                          </mesh>
-                        )}
-
-                        <mesh
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (isPreselectionMode) {
-                              if (!isPosAvailable) return;
-                              togglePreselectPosition(pos);
-                            } else {
-                              selectPosition(pos);
-                            }
-                          }}
-                          onPointerOver={(e) => {
-                            e.stopPropagation();
-                            setHoveredPosition(pos);
-                            document.body.style.cursor = "pointer";
-                          }}
-                          onPointerOut={() => {
-                            setHoveredPosition(null);
-                            document.body.style.cursor = "auto";
-                          }}
-                        >
-                          <boxGeometry args={[pos.width, 0.6, pos.depth]} />
-                          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-                        </mesh>
-                      </group>
-                    );
-                  })}
-                </group>
-              )}
-
             {/* Bounding box de resalte para el nivel enfocado/hover con animación y color según estado */}
             {isHovered && (
               <AnimatedLevelBoundingBox
@@ -665,6 +709,14 @@ export function RackStructures({ racks = [] }: RackStructuresProps) {
           </group>
         );
       })}
+
+      {/* 4. Todas las posiciones de racks en la bodega renderizadas en 1 solo InstancedMesh */}
+      {shouldRenderRackPositions && allRackPositions.length > 0 && (
+        <RackPositionsSlot
+          positions={allRackPositions}
+          isInteractive={showPositions || isPreselectionMode}
+        />
+      )}
     </group>
   );
 }
