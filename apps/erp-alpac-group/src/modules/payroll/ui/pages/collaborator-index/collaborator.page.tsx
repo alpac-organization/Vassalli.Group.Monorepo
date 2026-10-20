@@ -48,6 +48,7 @@ import { useAlertState } from "@app/shared/hooks/useAlertState";
 import type { CollaboratorModalType } from "./types/collaborator-modal.types";
 import { DeactivateCollaboratorModal } from "./components/deactivate-collaborator-modal/deactivate-collaborator-modal";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
+import { useJobPositions } from "@app/modules/admin/ui/hooks/job-positions/useJobPositions";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -91,10 +92,9 @@ export const CollaboratorPage = function () {
     formState: { errors, isValid, isDirty },
   } = useForm<CollaboratorRequest>({ mode: "onChange" });
 
-  const { GetCatalogListQuery: jobPositionQuery } = useCatalog({
-    company_id: companyId,
-    catalog_type_id: CatalogEnum.JOB_POSITIONS,
-  });
+  const { GetJobPositionsByCompany } = useJobPositions(
+    { company_id: companyId, module_code: moduleCode }
+  );
 
   const { GetCatalogListQuery: banksQuery } = useCatalog({
     company_id: companyId,
@@ -115,7 +115,7 @@ export const CollaboratorPage = function () {
 
   const { baseUrl } = useBaseUrl();
 
-  const { data: jobPositions = [] } = jobPositionQuery;
+  const { data: jobPositions = [] } = GetJobPositionsByCompany;
   const { data: branches = [] } = branchesQuery;
   const { data: banks = [] } = banksQuery;
 
@@ -134,7 +134,7 @@ export const CollaboratorPage = function () {
   } = GetCollaboratorsQuery;
 
   const { GetAreasByCompany: GetAreasQuery } = useAreas({
-    company_id: companyId ?? "",
+    company_id: companyId ?? "", module_code: moduleCode
   });
 
   const areasOptions = useMemo(
@@ -145,8 +145,14 @@ export const CollaboratorPage = function () {
       })),
     [GetAreasQuery.data],
   );
-  const optionsJobPositions = mapCatalogToOptions(jobPositions);
+  
   const optionsBanks = mapCatalogToOptions(banks);
+
+  const optionsJobPositions = jobPositions.map((p) => ({
+    value: p.job_position_id,
+    label: p.job_position_name,
+  }));;
+
   const optionsBranches = branches.map((b) => ({
     value: b.branch_id,
     label: b.branch_name,
