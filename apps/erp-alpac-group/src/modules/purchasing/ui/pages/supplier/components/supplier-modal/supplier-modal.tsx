@@ -6,10 +6,7 @@ import { SupplierCommercialTab } from "@app/modules/purchasing/ui/pages/supplier
 import { SupplierGeneralTab } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-general-tab";
 import type { SupplierModalProps } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal.types";
 import { useDeferredUnmount } from "@app/modules/purchasing/ui/pages/supplier/hooks/use-deferred-unmount";
-import {
-  useSupplierModalSession,
-  type SupplierModalTab,
-} from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/use-supplier-modal-session";
+import { useSupplierModalSession } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/use-supplier-modal-session";
 
 const SupplierProductsTab = lazy(() =>
   import("./supplier-products-tab").then((module) => ({
@@ -33,7 +30,45 @@ export const SupplierModal = ({
   onRequestSuccess,
   selectedSupplier,
 }: SupplierModalProps) => {
-  const session = useSupplierModalSession({
+  const {
+    companyId,
+    moduleCode,
+    supplierId,
+    isEditMode,
+    activeTab,
+    handleTabChange,
+    isSubmitting,
+    isSupplierDetailsPending,
+    hasGeneralErrors,
+    hasCommercialErrors,
+    control,
+    register,
+    handleSubmit,
+    setValue,
+    getValues,
+    clearErrors,
+    errors,
+    trackField,
+    trackDetailField,
+    trackMultipleDetailFields,
+    handleSupplier,
+    handleClose,
+    productLinks,
+    handleProductLinksChange,
+    currentBankAccounts,
+    setLocalBankAccounts,
+    CreateBankAccount,
+    UpdateBankAccount,
+    DeleteBankAccount,
+    getMappedError,
+    isSelectProductOpen,
+    openProductPicker,
+    closeProductPicker,
+    handleSelectProducts,
+    assignedProductIds,
+    onRequestSuccess: notifySuccess,
+    onRequestError: notifyError,
+  } = useSupplierModalSession({
     isOpen,
     onClose,
     onSubmit,
@@ -41,51 +76,49 @@ export const SupplierModal = ({
     onRequestSuccess,
     selectedSupplier,
   });
-  const shouldRenderProductPicker = useDeferredUnmount(
-    session.isSelectProductOpen,
-  );
+  const shouldRenderProductPicker = useDeferredUnmount(isSelectProductOpen);
+  const productCount = productLinks.length;
+  const bankAccountCount = currentBankAccounts.length;
 
   const tabItems = useMemo<TabItem<string>[]>(
     () => [
       {
         id: "general",
-        label: session.hasGeneralErrors
-          ? "Datos Generales (!)"
-          : "Datos Generales",
+        label: hasGeneralErrors ? "Datos Generales (!)" : "Datos Generales",
         render: () => (
           <SupplierGeneralTab
-            control={session.control}
-            register={session.register}
-            setValue={session.setValue}
-            clearErrors={session.clearErrors}
-            errors={session.errors}
-            trackField={session.trackField}
-            trackDetailField={session.trackDetailField}
+            control={control}
+            register={register}
+            setValue={setValue}
+            clearErrors={clearErrors}
+            errors={errors}
+            trackField={trackField}
+            trackDetailField={trackDetailField}
           />
         ),
       },
       {
         id: "commercial",
-        label: session.hasCommercialErrors
+        label: hasCommercialErrors
           ? "Condiciones y Régimen Fiscal (!)"
           : "Condiciones y Régimen Fiscal",
         render: () => (
           <SupplierCommercialTab
-            control={session.control}
-            register={session.register}
-            setValue={session.setValue}
-            getValues={session.getValues}
-            errors={session.errors}
-            isEditMode={session.isEditMode}
-            trackField={session.trackField}
-            trackDetailField={session.trackDetailField}
-            trackMultipleDetailFields={session.trackMultipleDetailFields}
+            control={control}
+            register={register}
+            setValue={setValue}
+            getValues={getValues}
+            errors={errors}
+            isEditMode={isEditMode}
+            trackField={trackField}
+            trackDetailField={trackDetailField}
+            trackMultipleDetailFields={trackMultipleDetailFields}
           />
         ),
       },
       {
         id: "products",
-        label: `Productos (${session.productLinks.length})`,
+        label: `Productos (${productCount})`,
         render: () => (
           <Suspense
             fallback={
@@ -95,72 +128,98 @@ export const SupplierModal = ({
             }
           >
             <SupplierProductsTab
-              companyId={session.companyId}
-              moduleCode={session.moduleCode}
-              items={session.productLinks}
-              onChange={session.handleProductLinksChange}
-              onAddClick={() => session.setIsSelectProductOpen(true)}
-              disabled={session.isSubmitting}
+              companyId={companyId}
+              moduleCode={moduleCode}
+              items={productLinks}
+              onChange={handleProductLinksChange}
+              onAddClick={openProductPicker}
+              disabled={isSubmitting}
             />
           </Suspense>
         ),
       },
       {
         id: "bank_accounts",
-        label: `Cuentas Bancarias (${session.currentBankAccounts.length})`,
+        label: `Cuentas Bancarias (${bankAccountCount})`,
         render: () => (
           <SupplierBankAccountsTab
-            isEditMode={session.isEditMode}
-            accounts={session.currentBankAccounts}
-            companyId={session.companyId}
-            moduleCode={session.moduleCode}
-            supplierId={session.supplierId}
-            setLocalBankAccounts={session.setLocalBankAccounts}
-            createBankAccount={session.CreateBankAccount}
-            updateBankAccount={session.UpdateBankAccount}
-            deleteBankAccount={session.DeleteBankAccount}
-            onRequestSuccess={session.onRequestSuccess}
-            onRequestError={session.onRequestError}
-            getMappedError={session.getMappedError}
+            isEditMode={isEditMode}
+            accounts={currentBankAccounts}
+            companyId={companyId}
+            moduleCode={moduleCode}
+            supplierId={supplierId}
+            setLocalBankAccounts={setLocalBankAccounts}
+            createBankAccount={CreateBankAccount}
+            updateBankAccount={UpdateBankAccount}
+            deleteBankAccount={DeleteBankAccount}
+            onRequestSuccess={notifySuccess}
+            onRequestError={notifyError}
+            getMappedError={getMappedError}
           />
         ),
       },
     ],
-    [session],
+    [
+      hasGeneralErrors,
+      hasCommercialErrors,
+      productCount,
+      bankAccountCount,
+      isEditMode,
+      isSubmitting,
+      control,
+      register,
+      setValue,
+      getValues,
+      clearErrors,
+      errors,
+      trackField,
+      trackDetailField,
+      trackMultipleDetailFields,
+      companyId,
+      moduleCode,
+      productLinks,
+      handleProductLinksChange,
+      openProductPicker,
+      supplierId,
+      currentBankAccounts,
+      setLocalBankAccounts,
+      CreateBankAccount,
+      UpdateBankAccount,
+      DeleteBankAccount,
+      notifySuccess,
+      notifyError,
+      getMappedError,
+    ],
   );
 
   return (
     <>
       <Modal
         isOpen={isOpen}
-        onClose={session.handleClose}
-        title={
-          session.isEditMode
-            ? "Actualizar proveedor"
-            : "Registro de nuevo proveedor"
-        }
+        onClose={handleClose}
+        title={isEditMode ? "Actualizar proveedor" : "Registro de nuevo proveedor"}
         variant="form"
         size="5xl"
         description={
-          session.isEditMode
+          isEditMode
             ? "Modifique la información general, financiera y cuentas bancarias del proveedor"
             : "Complete los datos del proveedor y configure sus cuentas bancarias"
         }
       >
-        {session.isEditMode && session.isSupplierDetailsPending ? (
+        {isEditMode && isSupplierDetailsPending ? (
           <Loader title="Cargando detalle del proveedor..." />
         ) : null}
 
         <form
           className="flex min-w-0 flex-col gap-6"
-          onSubmit={session.handleSubmit(session.handleSupplier)}
+          onSubmit={handleSubmit(handleSupplier)}
         >
           <Tabs
             key={isOpen ? "open" : "closed"}
             tabItems={tabItems}
-            activeTab={session.activeTab}
+            activeTab={activeTab}
             animation="slide"
-            onTabChange={(id) => session.setActiveTab(id as SupplierModalTab)}
+            onTabChange={handleTabChange}
           />
 
           <div className="border-t border-t-slate-300 dark:border-t-neutral-600 -mx-6 pt-4" />
@@ -170,7 +229,7 @@ export const SupplierModal = ({
               type="button"
               size="giant"
               label="Cancelar"
-              onClick={session.handleClose}
+              onClick={handleClose}
               className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-white! dark:bg-transparent! text-slate-700! dark:text-slate-300! border! border-slate-300! dark:border-slate-600! hover:bg-slate-50! dark:hover:bg-slate-700/30! sm:w-auto!"
             />
             <Button
@@ -178,8 +237,8 @@ export const SupplierModal = ({
               size="giant"
               label="Guardar"
               className="w-full min-w-0 shrink-0 text-[15px]! rounded-md! bg-alpac-primary-500 text-white! sm:w-auto!"
-              disabled={session.isSubmitting}
-              isLoading={session.isSubmitting}
+              disabled={isSubmitting}
+              isLoading={isSubmitting}
             />
           </div>
         </form>
@@ -188,11 +247,11 @@ export const SupplierModal = ({
       {shouldRenderProductPicker ? (
         <Suspense fallback={null}>
           <SelectProductModal
-            isOpen={session.isSelectProductOpen}
-            onClose={() => session.setIsSelectProductOpen(false)}
-            onSelect={session.handleSelectProducts}
+            isOpen={isSelectProductOpen}
+            onClose={closeProductPicker}
+            onSelect={handleSelectProducts}
             selectionType="multiple"
-            excludeProductIds={session.assignedProductIds}
+            excludeProductIds={assignedProductIds}
             description="Elija uno o más productos registrados para vincularlos al proveedor."
           />
         </Suspense>
