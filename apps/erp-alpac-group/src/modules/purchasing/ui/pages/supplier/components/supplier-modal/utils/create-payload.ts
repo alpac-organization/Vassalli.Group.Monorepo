@@ -1,3 +1,4 @@
+
 import type { CurrencyCode } from "@app/core/enums/currency.enum";
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
 import {
@@ -11,7 +12,7 @@ import {
 import type { CreateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/create-supplier-request";
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import type { CreateSupplierBankAccountPayload } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-bank-account";
-import { hasConstitutionData } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal.mappers";
+import { hasConstitutionData } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/mappers/supplier-modal.mapper";
 import {
   mapCatalogLinkItemsToTierPayload,
   resolveLinkCurrency,
@@ -20,6 +21,8 @@ import {
   type CatalogLinkItemForm,
 } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 
+// Esta función toma un array de enlaces de productos del formulario y los transforma en el formato esperado para el payload,
+// se filtran los elements válidos y mapea las properties necesarias aqui.
 export const mapProductLinksToPayload = (links: CatalogLinkItemForm[]) =>
   links
     .filter((link) => link.entity_id && link.unit_price.trim())
@@ -43,6 +46,7 @@ type BuildCreatePayloadArgs = {
   productLinks: CatalogLinkItemForm[];
 };
 
+// aqui construye el payload necesario para crear un proveedor, mapeando y ajustando los datos del formulario en el contract  por la API.
 export const buildCreatePayload = ({
   data,
   companyId,
@@ -144,6 +148,7 @@ type BuildUpdatePayloadArgs = {
   formPreferredPaymentMethod: PaymentMethodType | null;
 };
 
+// aqui construye el payload necesario para actualizar un proveedor, de acuerdo al contract de la API.
 export const buildUpdatePayload = ({
   companyId,
   moduleCode,

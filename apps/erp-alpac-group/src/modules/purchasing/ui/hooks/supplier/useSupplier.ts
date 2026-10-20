@@ -8,10 +8,9 @@ import type { UpdateSupplierProductPriceRequest } from "@app/modules/purchasing/
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
 import type {
-	CreateSupplierBankAccountPayload,
 	SupplierBankAccount,
-	UpdateSupplierBankAccountPayload,
 } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-bank-account";
+import type { CreateBankAccountMutationArgs, DeleteBankAccountMutationArgs, UpdateBankAccountMutationArgs, useSuppliersProps } from "@app/modules/purchasing/ui/hooks/supplier/types/useSupplier.types";
 import { SupplierServices } from "@app/modules/purchasing/infrastructure/services/supplier/SupplierServices";
 import {
 	useMutation,
@@ -42,32 +41,6 @@ export const useSuppliersList = (filters: GetSuppliersRequest) =>
 		retry: 1,
 	});
 
-type useSuppliersProps = {
-	suppliersFilters?: GetSuppliersRequest;
-	supplierDetailFilters?: GetSupplierDetailsRequest;
-};
-
-export type CreateBankAccountMutationArgs = {
-	companyId: string;
-	moduleCode: string;
-	supplierId: string;
-	payload: CreateSupplierBankAccountPayload;
-};
-
-export type UpdateBankAccountMutationArgs = {
-	companyId: string;
-	moduleCode: string;
-	supplierId: string;
-	bankAccountId: string;
-	payload: UpdateSupplierBankAccountPayload;
-};
-
-export type DeleteBankAccountMutationArgs = {
-	companyId: string;
-	moduleCode: string;
-	supplierId: string;
-	bankAccountId: string;
-};
 
 const isSupplierDetailsEnabled = (filters?: GetSupplierDetailsRequest) =>
 	Boolean(
@@ -90,6 +63,8 @@ const createSupplierMutationOptions = (queryClient: QueryClient) => ({
 		suppliersServices.CreateSupplier(payload),
 	onSuccess() {
 		queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+		queryClient.invalidateQueries({ queryKey: ["get-products"] });
+		queryClient.invalidateQueries({ queryKey: ["get-product-details"] });
 	},
 	retry: 1,
 });
@@ -101,6 +76,8 @@ const updateSupplierMutationOptions = (queryClient: QueryClient) => ({
 	onSuccess() {
 		queryClient.invalidateQueries({ queryKey: ["suppliers"] });
 		queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+		queryClient.invalidateQueries({ queryKey: ["get-products"] });
+		queryClient.invalidateQueries({ queryKey: ["get-product-details"] });
 	},
 });
 

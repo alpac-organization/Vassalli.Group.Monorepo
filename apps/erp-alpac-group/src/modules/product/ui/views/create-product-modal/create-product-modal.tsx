@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
 	Button,
 	Checkbox,
@@ -18,6 +18,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
+import type { GetProductDetailsResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product-details.response";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import {
@@ -63,6 +64,68 @@ const emptyFormValues = (
 	suppliers: [],
 });
 
+type CreateProductDraftSource = {
+	isOpen: boolean;
+	isEditMode: boolean;
+	productDetails?: GetProductDetailsResponse;
+	companyId: string;
+	moduleCode: string;
+};
+
+type CreateProductDraft = {
+	formValues: CreateProductRequest;
+	supplierLinks: CatalogLinkItemForm[];
+	categoryName: string;
+};
+
+const resolveCreateProductDraft = (
+	source: CreateProductDraftSource,
+): CreateProductDraft | null => {
+	if (!source.isOpen || !source.isEditMode) {
+		return {
+			formValues: emptyFormValues(source.companyId, source.moduleCode),
+			supplierLinks: [],
+			categoryName: "",
+		};
+	}
+
+	const productDetails = source.productDetails;
+	if (!productDetails) return null;
+
+	return {
+		formValues: {
+			company_id: source.companyId,
+			module_code: source.moduleCode,
+			product_name: productDetails.product_name ?? "",
+			description: productDetails.description ?? "",
+			category_id: productDetails.category_id ?? "",
+			unit_measure_id: productDetails.unit_measure_id ?? "",
+			product_usage_type:
+				(productDetails.product_usage_type as ProductUsageType) || "Insumo",
+			is_tax_exempt: Boolean(productDetails.is_tax_exempt),
+			suppliers: [],
+		},
+		categoryName: productDetails.category?.name ?? "",
+		supplierLinks: readPagedRows(productDetails.suppliers).rows.map(
+			(supplier) => ({
+				entity_id: supplier.supplier_id,
+				entity_label:
+					supplier.commercial_name?.trim() ||
+					supplier.supplier_legal_name ||
+					supplier.supplier_id,
+				unit_price: String(supplier.unit_price ?? ""),
+				currency: resolveLinkCurrency(supplier.currency),
+				unit_measure_id:
+					supplier.unit_measure_id ?? productDetails.unit_measure_id ?? "",
+				tier_prices: mapTierPricesToCatalogForm(
+					supplier.tier_prices,
+					supplier.currency,
+				),
+			}),
+		),
+	};
+};
+
 const mapSupplierLinksToPayload = (links: CatalogLinkItemForm[]) =>
 	links
 		.filter((link) => link.entity_id && link.unit_price.trim())
@@ -89,23 +152,6 @@ export const CreateProductModal = ({
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
 	const isEditMode = Boolean(selectedProduct?.product_id);
-
-	const [selectedProductCategory, setSelectedProductCategory] = useState("");
-	const [supplierLinks, setSupplierLinks] = useState<CatalogLinkItemForm[]>([]);
-	const [supplierLinksDirty, setSupplierLinksDirty] = useState(false);
-	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
-
-	const {
-		control,
-		register,
-		handleSubmit,
-		reset,
-		getValues,
-		formState: { errors },
-	} = useForm<CreateProductRequest>({
-		defaultValues: emptyFormValues(companyId, moduleCode),
-		mode: "onSubmit",
-	});
 
 	const {
 		GetProductCategories,
@@ -138,6 +184,60 @@ export const CreateProductModal = ({
 	});
 
 	const productDetails = GetProductDetails.data;
+	const draftSource: CreateProductDraftSource = {
+		isOpen,
+		isEditMode,
+		productDetails,
+		companyId,
+		moduleCode,
+	};
+	const mountedDraft = resolveCreateProductDraft(draftSource);
+
+	const [selectedProductCategory, setSelectedProductCategory] = useState(
+		mountedDraft?.categoryName ?? "",
+	);
+	const [supplierLinks, setSupplierLinks] = useState<CatalogLinkItemForm[]>(
+		mountedDraft?.supplierLinks ?? [],
+	);
+	const [supplierLinksDirty, setSupplierLinksDirty] = useState(false);
+	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
+	const [appliedFormValues, setAppliedFormValues] = useState<CreateProductRequest>(
+		() => mountedDraft?.formValues ?? emptyFormValues(companyId, moduleCode),
+	);
+	const [syncedDraftSource, setSyncedDraftSource] =
+		useState<CreateProductDraftSource>(draftSource);
+
+	if (
+		syncedDraftSource.isOpen !== draftSource.isOpen ||
+		syncedDraftSource.isEditMode !== draftSource.isEditMode ||
+		syncedDraftSource.productDetails !== draftSource.productDetails ||
+		syncedDraftSource.companyId !== draftSource.companyId ||
+		syncedDraftSource.moduleCode !== draftSource.moduleCode
+	) {
+		setSyncedDraftSource(draftSource);
+		const nextDraft = resolveCreateProductDraft(draftSource);
+		if (nextDraft) {
+			setAppliedFormValues(nextDraft.formValues);
+			setSupplierLinks(nextDraft.supplierLinks);
+			setSupplierLinksDirty(false);
+			setSelectedProductCategory(nextDraft.categoryName);
+			setIsSelectSupplierOpen(false);
+		}
+	}
+
+	const {
+		control,
+		register,
+		handleSubmit,
+		reset,
+		getValues,
+		formState: { errors },
+	} = useForm<CreateProductRequest>({
+		defaultValues: emptyFormValues(companyId, moduleCode),
+		values: appliedFormValues,
+		mode: "onSubmit",
+	});
+
 	const isLoadingDetails =
 		isEditMode &&
 		(GetProductDetails.isPending || GetProductDetails.isFetching);
@@ -174,62 +274,6 @@ export const CreateProductModal = ({
 		setSupplierLinks(items);
 		if (isEditMode) setSupplierLinksDirty(true);
 	};
-
-	useEffect(() => {
-		if (!isOpen) {
-			reset(emptyFormValues(companyId, moduleCode));
-			setSupplierLinks([]);
-			setSupplierLinksDirty(false);
-			setSelectedProductCategory("");
-			setIsSelectSupplierOpen(false);
-			return;
-		}
-
-		if (!isEditMode) {
-			reset(emptyFormValues(companyId, moduleCode));
-			setSupplierLinks([]);
-			setSupplierLinksDirty(false);
-			setSelectedProductCategory("");
-			setIsSelectSupplierOpen(false);
-			return;
-		}
-
-		if (!productDetails) return;
-
-		reset({
-			company_id: companyId,
-			module_code: moduleCode,
-			product_name: productDetails.product_name ?? "",
-			description: productDetails.description ?? "",
-			category_id: productDetails.category_id ?? "",
-			unit_measure_id: productDetails.unit_measure_id ?? "",
-			product_usage_type:
-				(productDetails.product_usage_type as ProductUsageType) || "Insumo",
-			is_tax_exempt: Boolean(productDetails.is_tax_exempt),
-			suppliers: [],
-		});
-
-		setSelectedProductCategory(productDetails.category?.name ?? "");
-		setSupplierLinks(
-			readPagedRows(productDetails.suppliers).rows.map((supplier) => ({
-				entity_id: supplier.supplier_id,
-				entity_label:
-					supplier.commercial_name?.trim() ||
-					supplier.supplier_legal_name ||
-					supplier.supplier_id,
-				unit_price: String(supplier.unit_price ?? ""),
-				currency: resolveLinkCurrency(supplier.currency),
-				unit_measure_id:
-					supplier.unit_measure_id ?? productDetails.unit_measure_id ?? "",
-				tier_prices: mapTierPricesToCatalogForm(
-					supplier.tier_prices,
-					supplier.currency,
-				),
-			})),
-		);
-		setSupplierLinksDirty(false);
-		setIsSelectSupplierOpen(false);
-	}, [isOpen, isEditMode, productDetails, companyId, moduleCode, reset]);
 
 	const handleClose = () => {
 		reset(emptyFormValues(companyId, moduleCode));

@@ -19,11 +19,11 @@ import {
   mapSupplierPaymentMethods,
   resolveConstitutionType,
   resolveIdentificationType,
-} from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal.mappers";
+} from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/mappers/supplier-modal.mapper";
 import {
   buildCreatePayload,
   buildUpdatePayload,
-} from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal.payloads";
+} from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/utils/create-payload";
 import type {
   CreatedSupplierDto,
   SupplierModalProps,

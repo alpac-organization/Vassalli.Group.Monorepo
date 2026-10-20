@@ -27,7 +27,7 @@ import {
   hasConstitutionData,
   identificationStringOptions,
   toIdentificationNumericValue,
-} from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal.mappers";
+} from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/mappers/supplier-modal.mapper";
 import {
   dropdownClassName,
   inputClassName,

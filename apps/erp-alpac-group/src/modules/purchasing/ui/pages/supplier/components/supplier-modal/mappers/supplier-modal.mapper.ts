@@ -1,3 +1,4 @@
+
 import { ConstitutionEnum } from "@app/core/enums/constitution.enum";
 import { IdentificationEnum } from "@app/core/enums/identification.enum";
 import { type PaymentMethodType } from "@app/core/enums/payment-method.enum";

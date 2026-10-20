@@ -6,12 +6,7 @@ import type {
   SupplierBankAccount,
 } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-bank-account";
 import { BankAccountList } from "@app/modules/purchasing/ui/pages/supplier/components/bank-account-list/bank-account-list";
-import type {
-  CreateBankAccountMutationArgs,
-  DeleteBankAccountMutationArgs,
-  UpdateBankAccountMutationArgs,
-} from "@app/modules/purchasing/ui/hooks/supplier/useSupplier";
-
+import type { CreateBankAccountMutationArgs, DeleteBankAccountMutationArgs, UpdateBankAccountMutationArgs } from "@app/modules/purchasing/ui/hooks/supplier/types/useSupplier.types";
 type SupplierBankAccountsTabProps = {
   isEditMode: boolean;
   accounts: (SupplierBankAccount | CreateSupplierBankAccountPayload)[];

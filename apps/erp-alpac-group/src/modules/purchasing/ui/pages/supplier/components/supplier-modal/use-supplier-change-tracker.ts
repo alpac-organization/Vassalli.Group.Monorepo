@@ -4,6 +4,10 @@ import type {
   UpdateSupplierRequest,
 } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 
+/* este Hook  permite trackear los cambios realizados en los campos del formulario de proveedor,
+ * almacenando sólo los campos que han sido modificados respecto al estado inicial (diff).
+ * Ideal para optimizar el envío de updates solo con campos cambiados en modo edición, en lugar de escuchar al evento de los inputs.
+ */
 export function useSupplierChangeTracker(
   trackerInitial: UpdateSupplierRequest,
   isEditMode: boolean,
@@ -77,6 +81,8 @@ export function useSupplierChangeTracker(
     [updateField],
   );
 
+  // aqui tiene como funcion  recibir un objeto con múltiples cambios para los campos de 'supplier_details'
+  // y actualiza el estado de los cambios trackeados, omitiendo los que no han cambiado respecto al valor inicial de esto.
   const trackMultipleDetailFields = useCallback(
     (changes: UpdateSupplierDetailsPayload) => {
       if (!isEditModeRef.current) return;

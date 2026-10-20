@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
 	AccordionGroup,
 	AccordionItem,
@@ -9,7 +9,6 @@ import {
 	Modal,
 	Stepper,
 } from "@alpac/design-system";
-import dayjs from "dayjs";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { Trash2Icon } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -22,6 +21,7 @@ import {
 	CurrencyCodeOptions,
 	type CurrencyCode,
 } from "@app/core/enums/currency.enum";
+import { loadMotionFeatures, toDayjsValue, toDateString, formatPreferentialTitle } from "@app/modules/product/ui/views/product-price-edit-modal/utils/product-price.utils";
 import {
 	emptyCatalogLinkTier,
 	resolveLinkCurrency,
@@ -30,66 +30,53 @@ import {
 	validatePreferentialDates,
 	type CatalogLinkTierForm,
 } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
-import type { ProductPriceEditModalProps } from "@app/modules/product/ui/views/product-price-edit-modal/product-price-edit-modal.types";
+import type {
+	PriceEditLinkInitial,
+	ProductPriceEditModalProps,
+} from "@app/modules/product/ui/views/product-price-edit-modal/product-price-edit-modal.types";
+import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
+import { inputClassName, dropdownClassName, labelClassName, primaryButtonClassName, secondaryButtonClassName, removeItemButtonClassName
+	, deleteButtonClass, cancelButtonClass, stepperRevealTransition, stepContentTransition, 
+	UNIT_STEP_LABEL, PREFERENTIAL_STEP_LABEL, preferencialEnterTransition, datePickerSlotProps } from "@app/modules/product/ui/views/product-price-edit-modal/constants/product-price.constants";
 
-const inputClassName =
-	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-const dropdownClassName = `${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
-const labelClassName = "text-black! dark:text-white!";
-const primaryButtonClassName =
-	"w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
-const secondaryButtonClassName =
-	"w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!";
-const removeItemButtonClassName =
-	"h-8! w-8! shrink-0 rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!";
+const priceHydrationKey = (
+	isOpen: boolean,
+	initial: PriceEditLinkInitial | null,
+) => {
+	if (!isOpen || !initial) return "idle";
 
-const datePickerSlotProps = {
-	popper: {
-		disablePortal: false,
-		sx: { zIndex: 2000 },
-	},
+	return JSON.stringify({
+		unit_price: initial.unit_price,
+		currency: initial.currency ?? null,
+		unit_measure_id: initial.unit_measure_id ?? null,
+		tier_prices: initial.tier_prices ?? null,
+	});
 };
 
-const UNIT_STEP_LABEL = "Precio unitario";
-const PREFERENTIAL_STEP_LABEL = "Precio preferencial";
+const mapPriceDraft = (initial: PriceEditLinkInitial) => {
+	const existingTiers = (initial.tier_prices ?? []).slice(0, 1);
+	const linkCurrency = resolveLinkCurrency(initial.currency);
+	const mappedTiers = existingTiers.map((tier) => ({
+		id: tier.tier_price_id,
+		min_quantity: String(tier.min_quantity ?? ""),
+		preferential_price: String(tier.preferential_price ?? ""),
+		currency: resolveLinkCurrency(tier.currency ?? linkCurrency),
+		valid_from: tier.valid_from?.slice(0, 10) ?? "",
+		valid_to: tier.valid_to?.slice(0, 10) ?? "",
+	}));
 
-const preferencialEnterTransition = {
-	height: { duration: 0.28, ease: "easeInOut" as const },
-	opacity: { duration: 0.32, ease: "easeOut" as const, delay: 0.04 },
-	y: { duration: 0.28, ease: "easeOut" as const, delay: 0.04 },
+	return {
+		unitPrice: String(initial.unit_price ?? ""),
+		currency: linkCurrency,
+		unitMeasureId: initial.unit_measure_id?.trim() ?? "",
+		tiers: mappedTiers,
+		hadInitialPreferential: existingTiers.length > 0,
+		includePreferential: existingTiers.length > 0,
+		openPreferentialId: mappedTiers[0]?.id ?? "",
+		currentStep: 0,
+	};
 };
 
-const stepContentTransition = {
-	opacity: { duration: 0.28, ease: "easeOut" as const },
-	x: { duration: 0.3, ease: "easeOut" as const },
-};
-
-const stepperRevealTransition = {
-	opacity: { duration: 0.32, ease: "easeOut" as const },
-	height: { duration: 0.35, ease: "easeInOut" as const },
-};
-
-const loadMotionFeatures = () =>
-	import("framer-motion").then((res) => res.domAnimation);
-
-const toDayjsValue = (value: string) => {
-	if (!value.trim()) return null;
-	const parsed = dayjs(value);
-	return parsed.isValid() ? parsed : null;
-};
-
-const toDateString = (value: unknown) => {
-	if (!value) return "";
-	const parsed = dayjs.isDayjs(value) ? value : dayjs(value as string | Date);
-	return parsed.isValid() ? parsed.format("YYYY-MM-DD") : "";
-};
-
-const formatPreferentialTitle = (item: CatalogLinkTierForm) => {
-	if (item.min_quantity.trim() && item.preferential_price.trim()) {
-		return `Desde ${item.min_quantity} · ${item.preferential_price} ${item.currency}`;
-	}
-	return "Precio preferencial";
-};
 
 export const ProductPriceEditModal = ({
 	isOpen,
@@ -114,14 +101,47 @@ export const ProductPriceEditModal = ({
 		enabled: isOpen,
 	});
 
-	const [unitPrice, setUnitPrice] = useState("");
-	const [currency, setCurrency] = useState<CurrencyCode>("USD");
-	const [unitMeasureId, setUnitMeasureId] = useState("");
-	const [tiers, setTiers] = useState<CatalogLinkTierForm[]>([]);
-	const [hadInitialPreferential, setHadInitialPreferential] = useState(false);
-	const [includePreferential, setIncludePreferential] = useState(false);
-	const [currentStep, setCurrentStep] = useState(0);
-	const [openPreferentialId, setOpenPreferentialId] = useState<string>("");
+	const hydrationKey = priceHydrationKey(isOpen, initial);
+	const mountedDraft = isOpen && initial ? mapPriceDraft(initial) : null;
+
+	const [unitPrice, setUnitPrice] = useState(mountedDraft?.unitPrice ?? "");
+	const [currency, setCurrency] = useState<CurrencyCode>(
+		mountedDraft?.currency ?? "USD",
+	);
+	const [unitMeasureId, setUnitMeasureId] = useState(
+		mountedDraft?.unitMeasureId ?? "",
+	);
+	const [tiers, setTiers] = useState<CatalogLinkTierForm[]>(
+		mountedDraft?.tiers ?? [],
+	);
+	const [hadInitialPreferential, setHadInitialPreferential] = useState(
+		mountedDraft?.hadInitialPreferential ?? false,
+	);
+	const [includePreferential, setIncludePreferential] = useState(
+		mountedDraft?.includePreferential ?? false,
+	);
+	const [currentStep, setCurrentStep] = useState(mountedDraft?.currentStep ?? 0);
+	const [openPreferentialId, setOpenPreferentialId] = useState(
+		mountedDraft?.openPreferentialId ?? "",
+	);
+	const [appliedHydrationKey, setAppliedHydrationKey] = useState(hydrationKey);
+	const [isRemovePreferentialConfirmOpen, setIsRemovePreferentialConfirmOpen] =
+		useState(false);
+
+	if (appliedHydrationKey !== hydrationKey) {
+		setAppliedHydrationKey(hydrationKey);
+		if (isOpen && initial) {
+			const draft = mapPriceDraft(initial);
+			setUnitPrice(draft.unitPrice);
+			setCurrency(draft.currency);
+			setUnitMeasureId(draft.unitMeasureId);
+			setTiers(draft.tiers);
+			setHadInitialPreferential(draft.hadInitialPreferential);
+			setIncludePreferential(draft.includePreferential);
+			setOpenPreferentialId(draft.openPreferentialId);
+			setCurrentStep(draft.currentStep);
+		}
+	}
 
 	const unitMeasureOptions = useMemo(() => {
 		const units = GetUnitMeasurements.data;
@@ -131,30 +151,6 @@ export const ProductPriceEditModal = ({
 			label: item.symbol ? `${item.name} (${item.symbol})` : item.name,
 		}));
 	}, [GetUnitMeasurements.data]);
-
-	useEffect(() => {
-		if (!isOpen || !initial) return;
-
-		const existingTiers = (initial.tier_prices ?? []).slice(0, 1);
-		const linkCurrency = resolveLinkCurrency(initial.currency);
-		const mappedTiers = existingTiers.map((tier) => ({
-			id: tier.tier_price_id || crypto.randomUUID(),
-			min_quantity: String(tier.min_quantity ?? ""),
-			preferential_price: String(tier.preferential_price ?? ""),
-			currency: resolveLinkCurrency(tier.currency ?? linkCurrency),
-			valid_from: tier.valid_from?.slice(0, 10) ?? "",
-			valid_to: tier.valid_to?.slice(0, 10) ?? "",
-		}));
-
-		setUnitPrice(String(initial.unit_price ?? ""));
-		setCurrency(linkCurrency);
-		setUnitMeasureId(initial.unit_measure_id?.trim() ?? "");
-		setTiers(mappedTiers);
-		setHadInitialPreferential(existingTiers.length > 0);
-		setIncludePreferential(existingTiers.length > 0);
-		setOpenPreferentialId(mappedTiers[0]?.id ?? "");
-		setCurrentStep(0);
-	}, [isOpen, initial]);
 
 	const isSaving =
 		UpdateProductSupplierPrice.isPending ||
@@ -176,6 +172,7 @@ export const ProductPriceEditModal = ({
 
 	const handleClose = () => {
 		if (isSaving) return;
+		setIsRemovePreferentialConfirmOpen(false);
 		onClose();
 	};
 
@@ -274,14 +271,24 @@ export const ProductPriceEditModal = ({
 		setCurrentStep(1);
 	};
 
-	const handleRemovePreferential = () => {
+	const handleRequestRemovePreferential = () => {
+		setIsRemovePreferentialConfirmOpen(true);
+	};
+
+	const handleCloseRemovePreferentialConfirm = () => {
+		setIsRemovePreferentialConfirmOpen(false);
+	};
+
+	const handleConfirmRemovePreferential = () => {
 		setTiers([]);
 		setOpenPreferentialId("");
+		setIsRemovePreferentialConfirmOpen(false);
 	};
 
 	const descriptionLabel = counterpartLabel?.trim() || "—";
 
 	return (
+		<>
 		<Modal
 			isOpen={isOpen}
 			onClose={handleClose}
@@ -445,7 +452,7 @@ export const ProductPriceEditModal = ({
 									{tiers.length === 0 ? (
 										<small className="text-slate-500 dark:text-slate-400">
 											{hadInitialPreferential
-												? "El preferencial se eliminará al guardar (tier_prices: [])."
+												? "El precio preferencial se eliminará al guardar."
 												: "Sin precio preferencial. Agregue uno o vuelva al paso anterior."}
 										</small>
 									) : (
@@ -510,7 +517,7 @@ export const ProductPriceEditModal = ({
 																			tooltip="Quitar precio preferencial"
 																			icon={<Trash2Icon size={16} />}
 																			className={removeItemButtonClassName}
-																			onClick={handleRemovePreferential}
+																			onClick={handleRequestRemovePreferential}
 																		/>
 																	</span>
 																</div>
@@ -634,5 +641,20 @@ export const ProductPriceEditModal = ({
 				</div>
 			</LazyMotion>
 		</Modal>
+
+		<ConfirmModal
+			type="DELETE"
+			variant="warning"
+			title="¿Quitar el precio preferencial?"
+			isOpen={isRemovePreferentialConfirmOpen}
+			handleFinalAction={(actionType) => {
+				if (actionType === "DELETE") handleConfirmRemovePreferential();
+			}}
+			onClose={handleCloseRemovePreferentialConfirm}
+			buttonActionLabel="Quitar"
+			buttonActionClass={deleteButtonClass}
+			buttonCancelClass={cancelButtonClass}
+		/>
+		</>
 	);
 };

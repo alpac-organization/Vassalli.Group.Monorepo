@@ -15,7 +15,7 @@ import {
   mapSupplierPaymentMethods,
   resolveConstitutionType,
   resolveIdentificationType,
-} from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal.mappers";
+} from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/mappers/supplier-modal.mapper";
 import type { SupplierModalProps } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-modal/supplier-modal.types";
 import {
   mapTierPricesToCatalogForm,
