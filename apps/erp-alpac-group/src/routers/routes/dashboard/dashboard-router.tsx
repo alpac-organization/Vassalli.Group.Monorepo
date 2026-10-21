@@ -71,6 +71,10 @@ export const DashboardRouter: RouteObject[] = [
 				path: "management",
 				children: ManagementRouter,
 			},
+			{
+				path: "inventory",
+				children: []
+			}
 		],
 	},
 ];

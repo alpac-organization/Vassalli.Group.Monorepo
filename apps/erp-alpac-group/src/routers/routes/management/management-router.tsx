@@ -7,3 +7,4 @@ export const ManagementRouter: RouteObject[] = [
       element: <AnalyzedQuotes />,
    },
 ];
+   
