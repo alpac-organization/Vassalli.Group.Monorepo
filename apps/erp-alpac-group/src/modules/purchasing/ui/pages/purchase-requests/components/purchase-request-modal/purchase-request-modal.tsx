@@ -32,6 +32,7 @@ import type { PurchaseRequestFormBlockHandle } from "../purchase-request-form-bl
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { toDataUrl } from "@app/shared/utils/toDataUrl";
 import { extractPurchaseRequestItemImages } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-item-images.utils";
+import { mapCreatePurchaseRequest } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/map-create-purchase-request";
 
 const emptyFormValues = (): CreatePurchaseRequestPayload => ({
 	branch_id: "",
@@ -107,7 +108,7 @@ const resolveUnitMeasureId = (
 	return "";
 };
 
-const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestItem => {
+const mapNewUpdateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestItem => {
 	const productJustification = item.justification?.trim() ?? "";
 	const productImages = item.images?.images_product_to_changed ?? [];
 	const additionalData: PurchaseRequestItemAdditionalData | null = productImages.length
@@ -115,7 +116,7 @@ const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestIt
 		: null;
 
 	return {
-		product_id: item.product_id ?? "",
+		product_id: item.product_id?.trim() || "",
 		quantity: Number(item.quantity),
 		description: item.description ?? "",
 		unit_measure_id: item.unit_measure_id ?? "",
@@ -124,18 +125,6 @@ const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestIt
 		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
 			? { quantity_unit: Number(item.quantity_unit) }
 			: {}),
-	};
-};
-
-const mapCreateItem = (item: PurchaseRequestItem): PurchaseRequestItem => {
-	const mapped = mapNewCreateItem(item);
-	const unitMeasureId = item.unit_measure_id?.trim() || null;
-
-	return {
-		...mapped,
-		unit_measure_id: unitMeasureId,
-		additional_supplier_ids: item.additional_supplier_ids,
-		new_product: item.new_product ?? null,
 	};
 };
 
@@ -174,6 +163,7 @@ export const PurchaseRequestModal = ({
 
 	const { getMappedError } = useMappedError();
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+	const isSupervisor = role === RoleEnum.SUPERVISOR;
 	const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
 	const isEditMode = Boolean(purchaseRequest?.purchase_request_id);
 	const purchaseRequestId = purchaseRequest?.purchase_request_id ?? "";
@@ -203,6 +193,7 @@ export const PurchaseRequestModal = ({
 		GetPurchaseRequestDetails,
 		GetPurchaseRequestProducts,
 	} = usePurchase({
+		preferDetailPurchaseRequestItems: true,
 		getPurchaseRequestDetailsPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
@@ -231,6 +222,7 @@ export const PurchaseRequestModal = ({
 		| GetPurchaseRequestDetailResponse
 		| undefined;
 
+	const hasEmbeddedItems = Array.isArray(details?.purchase_request_items);
 	const productsResponse = GetPurchaseRequestProducts.data as
 		| PurchaseRequestProductInformationList
 		| undefined;
@@ -270,9 +262,12 @@ export const PurchaseRequestModal = ({
 
 	useEffect(() => {
 		if (!isOpen || !isEditMode || isLoadingEditData || editDefaultsReady) return;
-		if (!details || !productsResponse) return;
+		if (!details) return;
+		if (!hasEmbeddedItems && !productsResponse) return;
 
-		const products = productsResponse.data ?? [];
+		const products = hasEmbeddedItems
+			? (details.purchase_request_items ?? [])
+			: (productsResponse?.data ?? []);
 		const unitMeasureLookup = buildUnitMeasureLookup(unitsOfMeasurement);
 
 		const editDefaults: CreatePurchaseRequestPayload = {
@@ -320,6 +315,7 @@ export const PurchaseRequestModal = ({
 		isLoadingEditData,
 		editDefaultsReady,
 		details,
+		hasEmbeddedItems,
 		productsResponse,
 		unitsOfMeasurement,
 		currentBranchId,
@@ -362,25 +358,11 @@ export const PurchaseRequestModal = ({
 		setEntries((prev) => prev.filter((entry) => entry.id !== id));
 	};
 
-	const buildCreatePayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => ({
-		...(isAdministrator && areaId ? { area_id: areaId } : {}),
-		branch_id: currentBranchId,
-		cost_center_id: costCenterId,
-		request_type: requestType.textValue,
-		...(isRequisition ? { priority_level: values.priority_level } : {}),
-		destination:
-			values.destination ?? PurchaseRequestDestinationEnum.Internal.textValue,
-		observations: values.observations.trim(),
-		purchase_request_items: values.purchase_request_items.map((item) =>
-			mapCreateItem(item),
-		),
-	});
-
 	const buildUpdatePayload = (values: CreatePurchaseRequestPayload): UpdatePurchaseRequestPayload => ({
 		company_id: companyId,
 		module_code: moduleCode,
 		purchase_request_id: purchaseRequestId,
-		observations: values.observations.trim(),
+		observations: values.observations?.trim() || null,
 		destination_request:
 			values.destination ?? PurchaseRequestDestinationEnum.Internal.textValue,
 		...(isRequisition
@@ -395,12 +377,16 @@ export const PurchaseRequestModal = ({
 				});
 			}
 
-			return mapNewCreateItem(item);
+			return mapNewUpdateItem(item);
 		}),
 	});
 
 	const handleFormSubmit = async () => {
 		if (!currentBranchId || entries.length === 0) return;
+		if (!isEditMode && isSupervisor) {
+			onRequestError?.("El supervisor no puede crear solicitudes de compra.");
+			return;
+		}
 
 		const valuesList: CreatePurchaseRequestPayload[] = [];
 
@@ -424,7 +410,15 @@ export const PurchaseRequestModal = ({
 				const mainPayload: PurchaseRequestMainPayload = {
 					company_id: companyId,
 					module_code: moduleCode,
-					purchase_requests: valuesList.map((values) => buildCreatePayload(values)),
+					purchase_requests: valuesList.map((values) =>
+						mapCreatePurchaseRequest(values, {
+							branchId: currentBranchId,
+							costCenterId,
+							requestType: requestType.textValue,
+							isAdministrator,
+							areaId,
+						}),
+					),
 				};
 
 				await CreatePurchaseRequest.mutateAsync(mainPayload);

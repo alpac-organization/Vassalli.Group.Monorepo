@@ -21,11 +21,12 @@ import {
 } from "@app/shared/utils/number.utils";
 import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import type { PurchaseRequestDetailProps } from "./purchase-request-detail.types";
-import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
+import type { DraftProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
 import { PurchaseRequestImageUploader } from "../purchase-request-image-uploader/purchase-request-image-uploader";
 import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { RoleEnum } from "@app/core/enums/role.enum";
+import { hasProductOrNewProduct } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/map-create-purchase-request";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -133,20 +134,16 @@ export const PurchaseRequestDetail = (
 		clearErrors("purchase_request_items");
 	};
 
-	const handleCreateProduct = (product: CreatedProductDto) => {
-
-		const existingIds = new Set(fields.map((item) => item.product_id));
-
-		if (existingIds.has(product?.data?.product_id)) return;
-
+	const handleDraftProduct = (product: DraftProductDto) => {
 		append({
-			product_id: product?.data?.product_id,
-			product_name: product?.product_name,
-			description: "",
+			product_id: null,
+			product_name: product.product_name,
+			unit_measure_id: product.new_product.unit_measure_id,
+			description: product.new_product.description ?? "",
 			quantity: 0,
 			quantity_unit: 0,
-			unit_measure_id: "",
 			justification: "",
+			new_product: product.new_product,
 			images: {
 				images_product_to_changed: [],
 			},
@@ -269,6 +266,11 @@ export const PurchaseRequestDetail = (
 											</span>
 											<span className="min-w-0 truncate text-[15px] font-semibold text-slate-800 dark:text-white">
 												{item.product_name || `#${index + 1}`}
+												{item.new_product ? (
+													<span className="ml-2 text-xs font-medium text-alpac-primary-500 dark:text-alpac-primary-400">
+														(nuevo)
+													</span>
+												) : null}
 											</span>
 										</div>
 										{canRemoveItem ? (
@@ -559,9 +561,16 @@ export const PurchaseRequestDetail = (
 				name="purchase_request_items"
 				control={control}
 				rules={{
-					validate: (value) =>
-						(value?.length ?? 0) > 0 ||
-						"Debe agregar al menos un producto a la requisición",
+					validate: (value) => {
+						if ((value?.length ?? 0) === 0) {
+							return "Debe agregar al menos un producto a la requisición";
+						}
+						const invalid = value.some((item) => !hasProductOrNewProduct(item));
+						if (invalid) {
+							return "Cada ítem debe tener un producto existente o un producto nuevo";
+						}
+						return true;
+					},
 				}}
 				render={({ field }) => (
 					<input
@@ -586,9 +595,9 @@ export const PurchaseRequestDetail = (
 				<CreateProductModal
 					isOpen={isCreateProductOpen}
 					onClose={() => setIsCreateProductOpen(false)}
-					onRequestSuccess={onRequestSuccess}
+					mode="draft"
 					onRequestError={onRequestError}
-					onSubmit={handleCreateProduct}
+					onDraftSubmit={handleDraftProduct}
 				/>
 			) : null}
 		</div>

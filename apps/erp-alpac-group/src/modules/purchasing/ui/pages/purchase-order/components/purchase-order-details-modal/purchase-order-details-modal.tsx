@@ -14,16 +14,15 @@ import type { PurchaseOrderDetailsProps } from "@app/modules/purchasing/ui/pages
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
-import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import {
 	purchaseRequestDestinationBadgeVariants,
 	purchaseRequestPriorityBadgeVariants,
-	purchaseRequestStatusBadgeVariants,
 	purchaseRequestTypeBadgeVariants,
 } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
+import { resolvePurchaseRequestStatusBadge } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/resolve-purchase-request-status-badge";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { PurchaseOrderDocumentModal } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-document-modal/purchase-order-document-modal";
 import {
@@ -130,21 +129,14 @@ export const PurchaseOrderDetailsModal = ({
 						<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 							<DetailField
 								label="Estado"
-								value={
-									<Badges
-										label={
-											PurchaseRequestStatusEnum[
-												purchaseRequestStatus as keyof typeof PurchaseRequestStatusEnum
-											]?.label ?? purchaseRequestStatus
-										}
-										color={
-											purchaseRequestStatusBadgeVariants[
-												purchaseRequestStatus as keyof typeof purchaseRequestStatusBadgeVariants
-											]?.badgeColor ??
-											purchaseRequestStatusBadgeVariants.default.badgeColor
-										}
-									/>
-								}
+								value={(() => {
+									const badge = resolvePurchaseRequestStatusBadge(
+										purchaseRequestStatus,
+									);
+									return (
+										<Badges label={badge.label} color={badge.badgeColor} />
+									);
+								})()}
 							/>
 
 							<DetailField

@@ -62,7 +62,7 @@ export const PurchaseRequestFormBlock = ({
 
    const isDisabledActions = Boolean(
       (isRequisition && !hasPrioritySelected) ||
-      !observations?.trim(),
+      !(observations?.trim() ?? ""),
    );
 
    useImperativeHandle(ref, () => ({
@@ -185,7 +185,8 @@ export const PurchaseRequestFormBlock = ({
                   rules={{
                      required: "Las observaciones son requerida",
                      validate: (value) =>
-                        value.trim().length > 0 || "Las observaciones son requerida",
+                        (value?.trim().length ?? 0) > 0 ||
+                        "Las observaciones son requerida",
                   }}
                   render={({ field }) => (
                      <Textarea
@@ -194,7 +195,7 @@ export const PurchaseRequestFormBlock = ({
                         isRequired
                         className={inputClassName}
                         labelClassName={labelClassName}
-                        value={field.value}
+                        value={field.value ?? ""}
                         onChange={(event) => {
                            field.onChange(event);
                            if (hasAttemptedSubmit) {

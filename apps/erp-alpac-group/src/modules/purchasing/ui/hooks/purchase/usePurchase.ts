@@ -29,6 +29,7 @@ type usePurchasePayloads = {
    getPurchaseRequestDetailsPayload?: GetPurchaseRequestDetailPayload,
    sendPurchaseRequestToReviewPayload?: SendPurchaseRequestToReviewPayload,
    getPurchaseRequestProductsPayload?: GetPurchaseRequestProductPayload,
+   preferDetailPurchaseRequestItems?: boolean,
    getMonthlyPurchaseReportPayload?: GetMonthlyPurchaseReportPayload,
    getPurchaseOrdersPayload?: GetPurchaseOrdersPayload,
    getPurchaseOrderDetailsPayload?: GetPurchaseOrderDetailsPayload,
@@ -40,6 +41,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       getPurchaseRequestsPayload,
       getPurchaseRequestDetailsPayload,
       getPurchaseRequestProductsPayload,
+      preferDetailPurchaseRequestItems = false,
       getMonthlyPurchaseReportPayload,
       getPurchaseOrdersPayload,
       getPurchaseOrderDetailsPayload,
@@ -59,7 +61,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       getPurchaseRequestDetailsPayload?.purchase_request_id
    );
 
-   const purchaseRequestProductEnabled = Boolean(
+   const purchaseRequestProductBaseEnabled = Boolean(
       getPurchaseRequestProductsPayload?.company_id?.trim() &&
       getPurchaseRequestProductsPayload?.module_code?.trim() &&
       getPurchaseRequestProductsPayload?.purchase_request_id
@@ -100,6 +102,16 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       refetchOnWindowFocus: false,
       retry: 1,
    });
+
+   const detailHasPurchaseRequestItems = Array.isArray(
+      GetPurchaseRequestDetails.data?.purchase_request_items,
+   );
+
+   const purchaseRequestProductEnabled =
+      purchaseRequestProductBaseEnabled &&
+      (!preferDetailPurchaseRequestItems ||
+         (GetPurchaseRequestDetails.isSuccess && !detailHasPurchaseRequestItems));
+
    const GetPurchaseRequestProducts = useQuery({
       queryKey: ["get-purchase-request-products", getPurchaseRequestProductsPayload],
       queryFn: () => purchaseServices.GetPurchaseRequestProducts(getPurchaseRequestProductsPayload!),
@@ -115,6 +127,16 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       enabled: monthlyPurchaseReportEnabled,
       staleTime: 1000 * 60 * 1,
       refetchOnWindowFocus: false,
+      retry: 1,
+   });
+
+   const FetchMonthlyPurchaseReport = useMutation<
+      GetMonthlyPurchaseReportResponse,
+      ApiErrorResponse,
+      GetMonthlyPurchaseReportPayload
+   >({
+      mutationKey: ["fetch-monthly-purchase-report"],
+      mutationFn: (payload) => purchaseServices.GetMonthlyPurchaseReport(payload),
       retry: 1,
    });
    
@@ -217,6 +239,7 @@ export const usePurchase = (props?: usePurchasePayloads) => {
       CreatePurchaseRequest, UpdatePurchaseRequest, ProcessPurchaseRequest, DeletePurchaseRequest,
       SendPurchaseRequestToReview, GetPurchaseRequestProducts,
       GetMonthlyPurchaseReport,
+      FetchMonthlyPurchaseReport,
       GetPurchaseOrders, GetPurchaseOrderDetails, GetPurchaseOrderDocument,
       GetPurchaseRequestDocument,
       AnnulPurchaseRequest,

@@ -8,14 +8,13 @@ import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/
 import {
   purchaseRequestDestinationBadgeVariants,
   purchaseRequestPriorityBadgeVariants,
-  purchaseRequestStatusBadgeVariants,
 } from "../purchase-request.variants";
-import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { isValidateValue } from "@app/shared/utils/values.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
+import { resolvePurchaseRequestStatusBadge } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/resolve-purchase-request-status-badge";
 
 const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
@@ -32,22 +31,8 @@ export function getPurchaseRequestColumnConfig(
       key: "request_status",
       label: "Estado",
       render: (row: GetPurchaseRequestResponse) => {
-        const statusLabel =
-          Object.values(PurchaseRequestStatusEnum).find(
-            (status) => status.textValue === row?.request_status,
-          )?.label ?? row?.request_status;
-
-        return (
-          <Badges
-            label={statusLabel}
-            color={
-              purchaseRequestStatusBadgeVariants[
-                row?.request_status as keyof typeof purchaseRequestStatusBadgeVariants
-              ]?.badgeColor ??
-              purchaseRequestStatusBadgeVariants.default.badgeColor
-            }
-          />
-        );
+        const badge = resolvePurchaseRequestStatusBadge(row?.request_status);
+        return <Badges label={badge.label} color={badge.badgeColor} />;
       },
     },
     {

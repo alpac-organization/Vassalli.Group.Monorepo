@@ -11,17 +11,20 @@ import type { ProductQualityType } from "@app/modules/purchasing/domain/enums/pr
 
 export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResponse {
 	observations: string | null;
+	reason_rejection_id: number | string | null;
 	reason_rejection: string | null;
-	additional_data?: string | null;
-	is_management_approved?: boolean;
-	is_accounting_approved?: boolean;
-	is_purchase_order_generated?: boolean;
+	reason_rejection_description: string | null;
+	rejection_comments: string | null;
+	additional_data: string | null;
+	is_management_approved: boolean;
+	is_accounting_approved: boolean;
+	is_purchase_order_generated: boolean;
 	creator_user_information: UserInformation;
 	reviewer_user_information: UserInformation | null;
 	branch_information: BranchInformation;
 	information_from_requesting_area: WorkAreaInformation;
 	cost_center_information: CostCenterInformation;
-	purchase_request_items?: PurchaseRequestProductInformation[];
+	purchase_request_items: PurchaseRequestProductInformation[];
 }
 
 export interface PurchaseRequestAdditionalData {

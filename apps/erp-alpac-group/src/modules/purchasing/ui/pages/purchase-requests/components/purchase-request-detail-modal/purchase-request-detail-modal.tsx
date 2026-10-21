@@ -17,8 +17,9 @@ import type { GetPurchaseRequestDetailResponse, PurchaseRequestAdditionalData, P
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { ImagePreviewGallery, type ImagePayload } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
-import { purchaseRequestPriorityBadgeVariants, purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
+import { purchaseRequestPriorityBadgeVariants, purchaseRequestTypeBadgeVariants } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
+import { resolvePurchaseRequestStatusBadge } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/resolve-purchase-request-status-badge";
 import { pdf } from "@react-pdf/renderer";
 import { PurchaseRequestPDF } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-pdf/purchase-request-pdf";
 import { PurchaseRequestConsolidatedPDF } from "@app/modules/purchasing/ui/pages/purchase-requests/components/reports/purchase-request-consolidated-pdf/purchase-request-consolidated-pdf";
@@ -80,20 +81,24 @@ export const PurchaseRequestDetailModal = ({
 		rejectionReasonsQuery.data ?? [],
 	);
 
+	const purchaseRequestId = purchaseRequest?.purchase_request_id ?? "";
+	const detailsQueryEnabled = isOpen && Boolean(purchaseRequestId);
+
 	const {
 		GetPurchaseRequestDetails,
 		GetPurchaseRequestProducts,
 		ProcessPurchaseRequest,
 	} = usePurchase({
+		preferDetailPurchaseRequestItems: true,
 		getPurchaseRequestDetailsPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
-			purchase_request_id: purchaseRequest?.purchase_request_id ?? "",
+			purchase_request_id: detailsQueryEnabled ? purchaseRequestId : "",
 		},
 		getPurchaseRequestProductsPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
-			purchase_request_id: purchaseRequest?.purchase_request_id ?? "",
+			purchase_request_id: detailsQueryEnabled ? purchaseRequestId : "",
 		},
 	});
 
@@ -101,6 +106,7 @@ export const PurchaseRequestDetailModal = ({
 		| GetPurchaseRequestDetailResponse
 		| undefined;
 
+	const hasEmbeddedItems = Array.isArray(details?.purchase_request_items);
 	const productsResponse = GetPurchaseRequestProducts.data as
 		| PurchaseRequestProductInformationList
 		| undefined;
@@ -111,7 +117,9 @@ export const PurchaseRequestDetailModal = ({
 		GetPurchaseRequestProducts.isPending ||
 		GetPurchaseRequestProducts.isFetching;
 
-	const products = productsResponse?.data ?? [];
+	const products = hasEmbeddedItems
+		? (details?.purchase_request_items ?? [])
+		: (productsResponse?.data ?? []);
 
 	const canProcessRequest =
 		role === RoleEnum.ADMINISTRATOR || role === RoleEnum.MANAGER;
@@ -294,21 +302,17 @@ export const PurchaseRequestDetailModal = ({
 
 											<DetailField
 												label="Estado"
-												value={
-													<Badges
-														label={
-															PurchaseRequestStatusEnum[
-																details?.request_status as (keyof typeof PurchaseRequestStatusEnum)
-															]?.label ?? details?.request_status
-														}
-														color={
-															purchaseRequestStatusBadgeVariants[
-																details?.request_status as keyof typeof purchaseRequestStatusBadgeVariants
-															]?.badgeColor ??
-															purchaseRequestStatusBadgeVariants.default.badgeColor
-														}
-													/>
-												}
+												value={(() => {
+													const badge = resolvePurchaseRequestStatusBadge(
+														details?.request_status,
+													);
+													return (
+														<Badges
+															label={badge.label}
+															color={badge.badgeColor}
+														/>
+													);
+												})()}
 											/>
 
 											<DetailField
@@ -375,11 +379,50 @@ export const PurchaseRequestDetailModal = ({
 											{details.reason_rejection ? (
 												<DetailField
 													label="Motivo de rechazo"
-													value={`${details?.reason_rejection}`}
-													containerClass="col-span-full min-w-0"
+													value={`${details.reason_rejection}`}
+													containerClass="min-w-0"
 													icon={<BanIcon size={18} />}
 												/>
 											) : null}
+
+											{details.reason_rejection_description ? (
+												<DetailField
+													label="Descripción del rechazo"
+													value={details.reason_rejection_description}
+													containerClass="min-w-0"
+													icon={<BanIcon size={18} />}
+												/>
+											) : null}
+
+											{details.rejection_comments ? (
+												<DetailField
+													label="Comentarios de rechazo"
+													value={details.rejection_comments}
+													containerClass="col-span-full min-w-0"
+													icon={<NotebookTextIcon size={18} />}
+												/>
+											) : null}
+										</div>
+
+										<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+											<DetailField
+												label="Aprobado por gerencia"
+												value={
+													details.is_management_approved ? "Sí" : "No"
+												}
+											/>
+											<DetailField
+												label="Aprobado por contabilidad"
+												value={
+													details.is_accounting_approved ? "Sí" : "No"
+												}
+											/>
+											<DetailField
+												label="Orden de compra generada"
+												value={
+													details.is_purchase_order_generated ? "Sí" : "No"
+												}
+											/>
 										</div>
 
 									</section>

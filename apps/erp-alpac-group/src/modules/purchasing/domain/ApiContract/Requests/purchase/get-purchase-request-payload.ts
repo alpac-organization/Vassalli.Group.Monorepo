@@ -11,6 +11,7 @@ export interface GetPurchaseRequestPayload extends BaseRequest {
 	month?: number;
 	branch_id?: string;
 	area_id?: string;
+	cost_center_id?: string;
 	request_type?: PurchaseRequestType;
 	priority_level?: PriorityLevelType;
 	destination?: PurchaseRequestDestinationType;

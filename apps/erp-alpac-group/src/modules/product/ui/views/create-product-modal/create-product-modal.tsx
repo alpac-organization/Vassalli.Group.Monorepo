@@ -11,7 +11,9 @@ import { Controller, useForm } from "react-hook-form";
 import type {
 	CreatedProductDto,
 	CreateProductModalProps,
+	DraftProductDto,
 } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
+import type { NewPurchaseRequestProduct } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import type { CreateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/create-product.request";
 import type { UpdateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/update-product.request";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -141,17 +143,30 @@ const mapSupplierLinksToPayload = (links: CatalogLinkItemForm[]) =>
 			),
 		}));
 
+const mapSupplierLinksToNewProduct = (
+	links: CatalogLinkItemForm[],
+): NewPurchaseRequestProduct["suppliers"] =>
+	links
+		.filter((link) => link.entity_id && link.unit_price.trim())
+		.map((link) => ({
+			supplier_id: link.entity_id,
+			unit_price: Number(link.unit_price),
+		}));
+
 export const CreateProductModal = ({
 	isOpen,
 	onClose,
 	selectedProduct = null,
+	mode = "persist",
 	onSubmit,
+	onDraftSubmit,
 	onRequestSuccess,
 	onRequestError,
 }: CreateProductModalProps) => {
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
-	const isEditMode = Boolean(selectedProduct?.product_id);
+	const isDraftMode = mode === "draft";
+	const isEditMode = Boolean(selectedProduct?.product_id) && !isDraftMode;
 
 	const {
 		GetProductCategories,
@@ -328,6 +343,33 @@ export const CreateProductModal = ({
 		return true;
 	};
 
+	const handleDraftProduct = (values: CreateProductRequest) => {
+		if (!validateSupplierLinks()) return;
+		if (!values.category_id?.trim() || !values.unit_measure_id?.trim()) {
+			onRequestError?.("Categoría y unidad de medida son requeridas.");
+			return;
+		}
+
+		const newProduct: NewPurchaseRequestProduct = {
+			product_name: values.product_name?.trim() ?? "",
+			description: values.description?.trim() || null,
+			category_id: values.category_id,
+			unit_measure_id: values.unit_measure_id,
+			product_usage_type: values.product_usage_type,
+			is_tax_exempt: Boolean(values.is_tax_exempt),
+			suppliers: mapSupplierLinksToNewProduct(supplierLinks),
+		};
+
+		const draft: DraftProductDto = {
+			new_product: newProduct,
+			product_name: newProduct.product_name,
+			category_name: selectedProductCategory ?? "",
+		};
+
+		onDraftSubmit?.(draft);
+		handleClose();
+	};
+
 	const handleCreateProduct = (values: CreateProductRequest) => {
 		if (!validateSupplierLinks()) return;
 
@@ -400,6 +442,10 @@ export const CreateProductModal = ({
 	};
 
 	const handleProduct = (values: CreateProductRequest) => {
+		if (isDraftMode) {
+			handleDraftProduct(values);
+			return;
+		}
 		if (isEditMode) {
 			handleUpdateProduct(values);
 			return;
@@ -416,7 +462,13 @@ export const CreateProductModal = ({
 			<Modal
 				isOpen={isOpen}
 				onClose={handleClose}
-				title={isEditMode ? "Actualizar producto" : "Registro de producto"}
+				title={
+					isEditMode
+						? "Actualizar producto"
+						: isDraftMode
+							? "Nuevo producto para la requisición"
+							: "Registro de producto"
+				}
 				variant="form"
 				size="7xl"
 				description={
@@ -589,7 +641,13 @@ export const CreateProductModal = ({
 						<Button
 							type="submit"
 							size="giant"
-							label={isEditMode ? "Actualizar producto" : "Guardar producto"}
+							label={
+								isEditMode
+									? "Actualizar producto"
+									: isDraftMode
+										? "Agregar a la requisición"
+										: "Guardar producto"
+							}
 							isLoading={isSaving}
 							disabled={isSaving || isLoadingDetails}
 							className={primaryButtonClassName}

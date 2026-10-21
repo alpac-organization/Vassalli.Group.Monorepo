@@ -20,7 +20,7 @@ import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/A
 import type { PurchaseRequestFilterForm } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-filters/purchase-request-filters.types";
 import { getPurchaseRequestColumnConfig } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-table-config";
 import { toYearMonthObject } from "@app/shared/utils/date.utils";
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 
 const allowedStatus: string[] = [
@@ -49,6 +49,7 @@ export const RequisitionTab = ({
 	const [requisitionDetail, setRequisitionDetail] = useState<GetPurchaseRequestResponse | null>(null);
 
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+	const canCreate = role !== RoleEnum.SUPERVISOR;
 
 
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
@@ -247,19 +248,21 @@ export const RequisitionTab = ({
 				<Loader title="Cargando requisiciones..." />
 			)}
 
-			<div className="mb-4 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end">
-				<Button
-					type="button"
-					size="giant"
-					label="Crear Requisición"
-					icon={<PackagePlusIcon size={20} />}
-					className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-					onClick={() => {
-						setRequisitionDetail(null);
-						setIsRequisitionModalOpen(true);
-					}}
-				/>
-			</div>
+			{canCreate ? (
+				<div className="mb-4 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end">
+					<Button
+						type="button"
+						size="giant"
+						label="Crear Requisición"
+						icon={<PackagePlusIcon size={20} />}
+						className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+						onClick={() => {
+							setRequisitionDetail(null);
+							setIsRequisitionModalOpen(true);
+						}}
+					/>
+				</div>
+			) : null}
 
 			<PurchaseRequestFilters
 				codeLabel="N° Requisición"

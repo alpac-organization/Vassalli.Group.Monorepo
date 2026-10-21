@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, DataTable, Pagination, type TableColumn } from "@alpac/design-system";
+import {
+	Button,
+	DataTable,
+	DatePicker,
+	Modal,
+	Pagination,
+	type DatePickerValue,
+	type TableColumn,
+} from "@alpac/design-system";
 import { DownloadIcon, PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
@@ -20,11 +28,15 @@ import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/
 import type { MonthlyMaterialContextMenu, MonthlyMaterialTabProps } from "./monthly-materials-tab.types";
 import type { DeletePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/delete-purchase-request-payload";
 import type { PurchaseRequestFilterForm } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-filters/purchase-request-filters.types";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { getPurchaseRequestColumnConfig } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-table-config";
 import { toYearMonthObject } from "@app/shared/utils/date.utils";
 import { deleteButtonClass, cancelButtonClass, PAGE_SIZE, allowedStatus } from "@app/modules/purchasing/ui/pages/purchase-requests/components/tabs/monthly-materials-tab/constants/purchase-req-status";
 
+const reportDatePickerClassName =
+	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+const reportLabelClassName = "text-black! dark:text-white!";
 
 export const MonthlyMaterialTab = ({
 	currentBranchId,
@@ -39,9 +51,12 @@ export const MonthlyMaterialTab = ({
 		CompanyMatadata.ALPAC.acronym;
 	const { getMappedError } = useMappedError();
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+	const canCreate = role !== RoleEnum.SUPERVISOR;
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+	const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+	const [reportPeriod, setReportPeriod] = useState<DatePickerValue>(null);
 	const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 	const [requestDetail, setRequestDetail] = useState<GetPurchaseRequestResponse | null>(null);
 
@@ -56,7 +71,7 @@ export const MonthlyMaterialTab = ({
 
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>(getDefaultFilters);
 
-	const { GetPurchaseRequests, DeletePurchaseRequest, GetMonthlyPurchaseReport } = usePurchase({
+	const { GetPurchaseRequests, DeletePurchaseRequest, FetchMonthlyPurchaseReport } = usePurchase({
 		getPurchaseRequestsPayload: {
 			...filters,
 			company_id: companyId,
@@ -64,12 +79,6 @@ export const MonthlyMaterialTab = ({
 			branch_id: isAdministrator ? undefined : currentBranchId,
 			request_type: PurchaseRequestEnum.Monthly.textValue,
 			page_size: PAGE_SIZE,
-		},
-		getMonthlyPurchaseReportPayload: {
-			company_id: companyId,
-			module_code: moduleCode,
-			year: filters.year,
-			month: filters.month,
 		},
 	});
 
@@ -154,27 +163,52 @@ export const MonthlyMaterialTab = ({
 		});
 	};
 
-	const monthlyReportItems = GetMonthlyPurchaseReport.data ?? [];
-	const canDownloadReport =
-		monthlyReportItems.length > 0 &&
-		!GetMonthlyPurchaseReport.isFetching &&
-		!isGeneratingReport;
+	const isDownloadingReport =
+		isGeneratingReport || FetchMonthlyPurchaseReport.isPending;
 
-	const handleDownloadReport = async () => {
-		if (!canDownloadReport) return;
+	const closeReportModal = () => {
+		if (isDownloadingReport) return;
+		setIsReportModalOpen(false);
+		setReportPeriod(null);
+	};
+
+	const handleConfirmDownloadReport = async () => {
+		if (isDownloadingReport) return;
+
+		const { year, month } = toYearMonthObject(reportPeriod);
 
 		try {
 			setIsGeneratingReport(true);
+
+			const items = await FetchMonthlyPurchaseReport.mutateAsync({
+				company_id: companyId,
+				module_code: moduleCode,
+				...(year != null && month != null ? { year, month } : {}),
+			});
+
+			if (items.length === 0) {
+				onRequestError(
+					"No hay datos para el reporte del periodo seleccionado.",
+				);
+				return;
+			}
+
 			const blob = await generateMonthlyPurchaseReportPdf({
-				items: monthlyReportItems,
+				items,
 				logoUrl: urlImage,
-				year: filters.year,
-				month: filters.month,
+				year,
+				month,
 			});
 			const url = URL.createObjectURL(blob);
 			window.open(url, "_blank", "noopener,noreferrer");
-		} catch {
-			onRequestError("Error al generar el reporte mensual de productos.");
+			setIsReportModalOpen(false);
+			setReportPeriod(null);
+		} catch (error) {
+			const mappedError = getMappedError(error as ApiErrorResponse);
+			onRequestError(
+				mappedError.description ||
+					"Error al generar el reporte mensual de productos.",
+			);
 		} finally {
 			setIsGeneratingReport(false);
 		}
@@ -239,26 +273,30 @@ export const MonthlyMaterialTab = ({
 			)}
 
 			<div className="mb-4 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end">
-				<Button
-					type="button"
-					size="giant"
-					label="Crear Solicitud Mensual"
-					icon={<PackagePlusIcon size={20} />}
-					className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-					onClick={() => {
-						setRequestDetail(null);
-						setIsModalOpen(true);
-					}}
-				/>
+				{canCreate ? (
+					<Button
+						type="button"
+						size="giant"
+						label="Crear Solicitud Mensual"
+						icon={<PackagePlusIcon size={20} />}
+						className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+						onClick={() => {
+							setRequestDetail(null);
+							setIsModalOpen(true);
+						}}
+					/>
+				) : null}
 				<Button
 					type="button"
 					size="giant"
 					label="Descargar Reporte"
 					icon={<DownloadIcon size={20} />}
-					disabled={!canDownloadReport}
-					isLoading={isGeneratingReport || GetMonthlyPurchaseReport.isFetching}
+					disabled={isDownloadingReport}
 					className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-slate-600! dark:bg-slate-700!"
-					onClick={handleDownloadReport}
+					onClick={() => {
+						setReportPeriod(null);
+						setIsReportModalOpen(true);
+					}}
 				/>
 			</div>
 
@@ -319,6 +357,58 @@ export const MonthlyMaterialTab = ({
 				buttonActionClass={deleteButtonClass}
 				buttonCancelClass={cancelButtonClass}
 			/>
+
+			<Modal
+				isOpen={isReportModalOpen}
+				onClose={closeReportModal}
+				title="Descargar reporte mensual"
+				description="Elija el mes y año del reporte. Si no selecciona periodo, se usará el mes actual "
+				variant="default"
+				size="md"
+			>
+				<div className="flex flex-col gap-4">
+					<DatePicker
+						label="Mes y año"
+						labelAbove
+						views={["year", "month"]}
+						openTo="month"
+						format="MMMM YYYY"
+						disableFuture
+						className={reportDatePickerClassName}
+						labelClassName={reportLabelClassName}
+						value={reportPeriod}
+						onChange={(value) => setReportPeriod(value)}
+						slotProps={{
+							popper: {
+								disablePortal: false,
+								sx: { zIndex: 2000 },
+							},
+						}}
+					/>
+
+
+					<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+						<Button
+							type="button"
+							size="giant"
+							label="Cancelar"
+							disabled={isDownloadingReport}
+							onClick={closeReportModal}
+							className="text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+						/>
+						<Button
+							type="button"
+							size="giant"
+							label="Generar Reporte Mensual"
+							icon={<DownloadIcon size={18} />}
+							disabled={isDownloadingReport}
+							isLoading={isDownloadingReport}
+							onClick={handleConfirmDownloadReport}
+							className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+						/>
+					</div>
+				</div>
+			</Modal>
 		</div>
 	);
 };

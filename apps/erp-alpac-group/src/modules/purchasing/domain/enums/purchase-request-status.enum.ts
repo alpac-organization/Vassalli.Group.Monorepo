@@ -10,7 +10,7 @@ export const PurchaseRequestStatusEnum = {
   Rejected: { value: 3, label: "Rechazada", textValue: "Rejected" },
   Canceled: { value: 4, label: "Cancelada", textValue: "Canceled" },
   Revision: { value: 5, label: "En Revisión", textValue: "Revision" },
-  Finished: { value: 6, label: " Finalizada", textValue: "Finished" }
+  Finished: { value: 6, label: "Finalizada", textValue: "Finished" }
 } as const satisfies Record<string, PurchaseRequestStatusEnumType>;
 
 export type PurchaseRequestStatusEnum =
