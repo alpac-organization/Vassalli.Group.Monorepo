@@ -9,7 +9,7 @@ export interface QuotationAttachmentsInput {
 	images_base64?: string[] | null;
 }
 
-export type QuotationCurrencyValue = 1 | 2;
+export type QuotationCurrencyValue = "NIO" | "USD";
 
 export interface QuotationItem {
 	supplier_id: string;
@@ -28,10 +28,11 @@ export interface QuotationItem {
 	warranty_period?: number | null;
 	warranty_period_time_type?: TimeTypeValue | null;
 	attachments?: QuotationAttachmentsInput | null;
-	price_unit?: number | null;
-	preferential_price?: number | null;
 	currency?: QuotationCurrencyValue | null;
+	/** Present only when this item creates the supplier-product link. */
 	create_supplier_product_if_missing?: boolean;
+	unit_price?: number | null;
+	unit_measure_id?: string | null;
 }
 
 export interface RegisterQuoteRequest extends BaseRequest {

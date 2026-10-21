@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
 	Controller,
 	FormProvider,
@@ -33,8 +33,14 @@ import {
 import type { TimeTypeValue } from "@app/core/enums/time-type.enum";
 import { PaymentMethodEnum } from "@app/core/enums/payment-method.enum";
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
-import { CurrencyEnum, type CurrencyCode } from "@app/core/enums/currency.enum";
-import type { QuotationCurrencyValue } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
+import type { CurrencyCode } from "@app/core/enums/currency.enum";
+import type { PurchaseRequestSupplierProduct } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import { formatCurrency } from "@app/shared/utils/currency.utils";
+import {
+	hasUsableNewSupplierLink,
+	resolveSupplierLinkPrice,
+	toQuotationCurrency,
+} from "@app/modules/purchasing/ui/pages/quotes/utils/resolve-supplier-link-price";
 import type { LinkedSupplierQuotePrice } from "../link-supplier-product-modal/link-supplier-product-modal.types";
 import {
 	ProductQualityEnum,
@@ -195,25 +201,9 @@ const toDataUrlImages = (images?: ImageOutput[]): string[] =>
 		})
 		.slice(0, 2);
 
-const mapCurrencyCodeToApiValue = (
-	code?: CurrencyCode | null,
-): QuotationCurrencyValue | null => {
-	if (code === "NIO") return CurrencyEnum.NIO.value;
-	if (code === "USD") return CurrencyEnum.USD.value;
-	return null;
-};
-
-const mapApiCurrencyToCode = (
-	value?: number | null,
-): CurrencyCode | null => {
-	if (value === CurrencyEnum.NIO.value) return "NIO";
-	if (value === CurrencyEnum.USD.value) return "USD";
-	return null;
-};
-
 type EmptyQuotationItemOptions = {
-	price_unit?: number | null;
-	preferential_price?: number | null;
+	unit_price?: number | null;
+	unit_measure_id?: string | null;
 	currency_code?: CurrencyCode | null;
 	needs_supplier_product_link?: boolean;
 };
@@ -258,12 +248,17 @@ const emptyQuotationItem = (
 		warranty_period_time_type: undefined,
 		supplier_payment_methods: normalizedMethods,
 		preferred_payment_method: preferred,
-		price_unit: priceOptions?.price_unit ?? null,
-		preferential_price: priceOptions?.preferential_price ?? null,
 		currency_code: priceOptions?.currency_code ?? null,
 		needs_supplier_product_link: Boolean(
 			priceOptions?.needs_supplier_product_link,
 		),
+		...(priceOptions?.needs_supplier_product_link
+			? {
+					create_supplier_product_if_missing: true,
+					unit_price: priceOptions.unit_price ?? null,
+					unit_measure_id: priceOptions.unit_measure_id ?? null,
+				}
+			: {}),
 		attachments_form: {
 			pdf_base64: null,
 			pdf_file_name: null,
@@ -290,7 +285,7 @@ const mapDraftItemToForm = (item: DraftQuotationItem): QuotationItemForm => {
 		warranty_period_time_type: normalizeTimeTypeValue(
 			item.warranty_period_time_type,
 		),
-		currency_code: mapApiCurrencyToCode(currency),
+		currency_code: toQuotationCurrency(currency),
 		needs_supplier_product_link: Boolean(needs_supplier_product_link),
 		attachments_form: {
 			pdf_base64: attachments?.pdf_base64 ?? null,
@@ -333,10 +328,18 @@ const buildInitialQuotationItems = (
 			"";
 
 		return [
-			emptyQuotationItem(purchaseRequestItemId, {
-				supplier_id: supplierId,
-				supplier_legal_name: legalName,
-			}),
+			emptyQuotationItem(
+				purchaseRequestItemId,
+				{
+					supplier_id: supplierId,
+					supplier_legal_name: legalName,
+				},
+				undefined,
+				undefined,
+				{
+					currency_code: toQuotationCurrency(supplierProduct.currency),
+				},
+			),
 		];
 	});
 };
@@ -350,6 +353,8 @@ function QuotationItemFields({
 	accordionValue,
 	canRemove,
 	supplierLegalName,
+	requestedQuantity,
+	supplierProducts,
 	onRemove,
 }: QuotationItemFieldsProps) {
 	const {
@@ -388,6 +393,47 @@ function QuotationItemFields({
 		control,
 		name: `products.${productIndex}.items.${itemIndex}.attachments_form`,
 	});
+	const supplierId = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.supplier_id`,
+	});
+	const needsSupplierProductLink = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.needs_supplier_product_link`,
+	});
+	const enteredUnitPrice = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.unit_price`,
+	});
+	const enteredCurrency = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.currency_code`,
+	});
+	const enteredUnitMeasureId = useWatch({
+		control,
+		name: `products.${productIndex}.items.${itemIndex}.unit_measure_id`,
+	});
+
+	const linkedSupplierProduct = supplierProducts.find(
+		(supplierProduct) => supplierProduct.supplier_id === supplierId,
+	);
+	const resolvedExistingPrice = resolveSupplierLinkPrice(
+		linkedSupplierProduct,
+		requestedQuantity,
+	);
+	const displayCurrency = needsSupplierProductLink
+		? (toQuotationCurrency(enteredCurrency) ?? "NIO")
+		: resolvedExistingPrice.currency;
+	const displayAmount = needsSupplierProductLink
+		? Number(enteredUnitPrice) || 0
+		: resolvedExistingPrice.amount;
+	const priceIsBlocked = needsSupplierProductLink
+		? !hasUsableNewSupplierLink({
+				unit_price: enteredUnitPrice,
+				unit_measure_id: enteredUnitMeasureId,
+				currency_code: enteredCurrency,
+			})
+		: resolvedExistingPrice.amount <= 0;
 
 	const itemErrors = errors.products?.[productIndex]?.items?.[itemIndex];
 	const fieldPath = `products.${productIndex}.items.${itemIndex}` as const;
@@ -498,6 +544,25 @@ function QuotationItemFields({
 					className={quoteFormInputClassName}
 					labelClassName={quoteFormLabelClassName}
 				/>
+
+				<div className="flex flex-col gap-1">
+					<InputText
+						label="Precio del vínculo"
+						value={formatCurrency(displayAmount, displayCurrency)}
+						disabled
+						className={quoteFormInputClassName}
+						labelClassName={quoteFormLabelClassName}
+					/>
+					<p
+						className={`m-0 text-[12px] ${priceIsBlocked ? "text-red-500" : "text-slate-500 dark:text-slate-400"}`}
+					>
+						{needsSupplierProductLink && priceIsBlocked
+							? "Complete precio, moneda y unidad de medida del vínculo."
+							: priceIsBlocked
+								? "No hay un precio vigente para esta cantidad. No se puede confirmar esta cotización."
+								: "El subtotal y los impuestos los calcula el sistema al guardar."}
+					</p>
+				</div>
 
 				<InputText
 					label="Marca"
@@ -935,6 +1000,8 @@ function QuoteProductGroupFields({
 	productIndex,
 	productName,
 	categoryName,
+	quantity,
+	supplierProducts,
 }: QuoteProductGroupFieldsProps) {
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
@@ -1068,8 +1135,8 @@ function QuoteProductGroupFields({
 					paymentMethods,
 					preferred,
 					{
-						price_unit: entry.price_unit,
-						preferential_price: entry.preferential_price,
+						unit_price: entry.unit_price,
+						unit_measure_id: entry.unit_measure_id,
 						currency_code: entry.currency,
 						needs_supplier_product_link: true,
 					},
@@ -1131,10 +1198,10 @@ function QuoteProductGroupFields({
 			</div>
 
 			<p className="m-0 text-[13px] text-slate-500 dark:text-slate-400">
-				Los proveedores vinculados al producto se precargan automáticamente.
-				Use &quot;Agregar Proveedor&quot; para incluir adicionales (registre
-				precio; el vínculo se crea al guardar la cotización). Mínimo{" "}
-				{MIN_SUPPLIERS_PER_PRODUCT} por producto.
+				Los proveedores vinculados se precargan con su precio vigente. Use
+				&quot;Agregar Proveedor&quot; para incluir uno nuevo con precio,
+				moneda y unidad de medida. Mínimo {MIN_SUPPLIERS_PER_PRODUCT} por
+				producto.
 			</p>
 
 			{groupError ? (
@@ -1168,6 +1235,8 @@ function QuoteProductGroupFields({
 							accordionValue={field.id}
 							canRemove
 							supplierLegalName={field.supplier_legal_name || ""}
+							requestedQuantity={quantity}
+							supplierProducts={supplierProducts}
 							onRemove={() => remove(itemIndex)}
 						/>
 					))}
@@ -1207,6 +1276,75 @@ function QuoteProductGroupFields({
 	);
 }
 
+function QuoteConfirmActions({
+	productsCount,
+	isSubmitting,
+	isEnrichingPaymentMethods,
+	supplierLinksByItemId,
+	onCancel,
+}: {
+	productsCount: number;
+	isSubmitting: boolean;
+	isEnrichingPaymentMethods: boolean;
+	supplierLinksByItemId: Map<string, PurchaseRequestSupplierProduct[]>;
+	onCancel: () => void;
+}) {
+	const { control } = useFormContext<QuoteProductFormValues>();
+	const watchedProducts = useWatch({ control, name: "products" });
+	const hasBlockedPrice = (watchedProducts ?? []).some((product) =>
+		product.items.some((item) => {
+			if (item.needs_supplier_product_link) {
+				return !hasUsableNewSupplierLink(item);
+			}
+
+			const links =
+				supplierLinksByItemId.get(product.purchase_request_item_id) ?? [];
+			const link = links.find(
+				(entry) => entry.supplier_id === item.supplier_id,
+			);
+			return resolveSupplierLinkPrice(link, product.quantity).amount <= 0;
+		}),
+	);
+
+	return (
+		<div className="-mx-4 -mb-4 mt-4 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6">
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+				{hasBlockedPrice ? (
+					<p className="m-0 text-[13px] text-red-500 sm:mr-auto">
+						Hay proveedores sin precio vigente. Quite ese proveedor o registre
+						el vínculo para confirmar.
+					</p>
+				) : null}
+				<Button
+					type="button"
+					label="Cancelar"
+					size="giant"
+					disabled={isSubmitting}
+					onClick={onCancel}
+					isHiddenLabelOnMobile
+					icon={<XIcon size={20} />}
+					className={quoteFormSecondaryButtonClassName}
+				/>
+				<Button
+					type="submit"
+					label="Confirmar cotización"
+					size="giant"
+					disabled={
+						productsCount === 0 ||
+						isSubmitting ||
+						isEnrichingPaymentMethods ||
+						hasBlockedPrice
+					}
+					isLoading={isSubmitting || isEnrichingPaymentMethods}
+					isHiddenLabelOnMobile
+					icon={<SaveIcon size={20} />}
+					className={quoteFormPrimaryButtonClassName}
+				/>
+			</div>
+		</div>
+	);
+}
+
 export function QuoteProductModal({
 	isOpen,
 	products,
@@ -1237,6 +1375,18 @@ export function QuoteProductModal({
 		control,
 		name: "products",
 	});
+
+	const supplierLinksByItemId = useMemo(() => {
+		const links = new Map<string, PurchaseRequestSupplierProduct[]>();
+		for (const product of products) {
+			if (!product.purchase_request_item_id) continue;
+			links.set(
+				product.purchase_request_item_id,
+				product.product_details?.supplier_products ?? [],
+			);
+		}
+		return links;
+	}, [products]);
 
 	const [isEnrichingPaymentMethods, setIsEnrichingPaymentMethods] =
 		useState(false);
@@ -1401,11 +1551,18 @@ export function QuoteProductModal({
 		if (!isValid) return;
 
 		const missingPrice = values.products.some((product) =>
-			product.items.some(
-				(item) =>
-					item.needs_supplier_product_link &&
-					!(typeof item.price_unit === "number" && item.price_unit > 0),
-			),
+			product.items.some((item) => {
+				if (item.needs_supplier_product_link) {
+					return !hasUsableNewSupplierLink(item);
+				}
+
+				const links =
+					supplierLinksByItemId.get(product.purchase_request_item_id) ?? [];
+				const link = links.find(
+					(entry) => entry.supplier_id === item.supplier_id,
+				);
+				return resolveSupplierLinkPrice(link, product.quantity).amount <= 0;
+			}),
 		);
 		if (missingPrice) return;
 
@@ -1419,6 +1576,9 @@ export function QuoteProductModal({
 					supplier_legal_name,
 					currency_code,
 					needs_supplier_product_link,
+					unit_price,
+					unit_measure_id,
+					create_supplier_product_if_missing: _createLink,
 					...item
 				}) => {
 					const isInventoryAvailable = item.inventory_available !== false;
@@ -1429,10 +1589,8 @@ export function QuoteProductModal({
 
 					const paymentMethod =
 						normalizePaymentMethodType(paymentMethodForm) ?? null;
-					const currencyValue = mapCurrencyCodeToApiValue(currency_code);
-					const shouldSendPrice =
-						Boolean(needs_supplier_product_link) ||
-						(typeof item.price_unit === "number" && item.price_unit > 0);
+					const currencyValue = toQuotationCurrency(currency_code);
+					const isNewSupplierLink = Boolean(needs_supplier_product_link);
 
 					return {
 						supplier_id: item.supplier_id,
@@ -1472,12 +1630,12 @@ export function QuoteProductModal({
 									},
 								}
 							: {}),
-						...(shouldSendPrice
+						...(currencyValue ? { currency: currencyValue } : {}),
+						...(isNewSupplierLink
 							? {
-									price_unit: item.price_unit ?? null,
-									preferential_price: item.preferential_price ?? null,
-									currency: currencyValue,
 									create_supplier_product_if_missing: true,
+									unit_price: Number(unit_price),
+									unit_measure_id: unit_measure_id ?? null,
 								}
 							: {}),
 						product_id: product.product_id,
@@ -1532,6 +1690,10 @@ export function QuoteProductModal({
 												productName={field.product_name}
 												categoryName={field.category_name}
 												quantity={field.quantity}
+												supplierProducts={
+													products[index]?.product_details
+														?.supplier_products ?? []
+												}
 											/>
 										))}
 									</ul>
@@ -1540,34 +1702,13 @@ export function QuoteProductModal({
 						</div>
 					</div>
 
-					<div className="-mx-4 -mb-4 mt-4 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6">
-						<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-							<Button
-								type="button"
-								label="Cancelar"
-								size="giant"
-								disabled={isSubmitting}
-								onClick={handleClose}
-								isHiddenLabelOnMobile
-								icon={<XIcon size={20} />}
-								className={quoteFormSecondaryButtonClassName}
-							/>
-							<Button
-								type="submit"
-								label="Confirmar cotización"
-								size="giant"
-								disabled={
-									productsCount === 0 ||
-									isSubmitting ||
-									isEnrichingPaymentMethods
-								}
-								isLoading={isSubmitting || isEnrichingPaymentMethods}
-								isHiddenLabelOnMobile
-								icon={<SaveIcon size={20} />}
-								className={quoteFormPrimaryButtonClassName}
-							/>
-						</div>
-					</div>
+					<QuoteConfirmActions
+						productsCount={productsCount}
+						isSubmitting={isSubmitting}
+						isEnrichingPaymentMethods={isEnrichingPaymentMethods}
+						supplierLinksByItemId={supplierLinksByItemId}
+						onCancel={handleClose}
+					/>
 				</form>
 			</FormProvider>
 		</Modal>

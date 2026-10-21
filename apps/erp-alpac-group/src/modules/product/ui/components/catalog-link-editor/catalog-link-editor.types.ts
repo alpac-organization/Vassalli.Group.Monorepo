@@ -42,6 +42,8 @@ export type CatalogLinkEditorProps = {
 	disabled?: boolean;
 	lockEntity?: boolean;
 	onAddClick?: () => void;
+	hidePreferentialPrices?: boolean;
+	requireUnitMeasure?: boolean;
 };
 
 export const emptyCatalogLinkTier = (

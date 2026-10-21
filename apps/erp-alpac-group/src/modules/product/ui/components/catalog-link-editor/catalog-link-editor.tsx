@@ -144,6 +144,8 @@ export const CatalogLinkEditor = ({
 	disabled = false,
 	lockEntity = false,
 	onAddClick,
+	hidePreferentialPrices = false,
+	requireUnitMeasure = false,
 }: CatalogLinkEditorProps) => {
 	const [openItem, setOpenItem] = useState("");
 	const [openTierByItem, setOpenTierByItem] = useState<Record<string, string>>(
@@ -402,7 +404,8 @@ export const CatalogLinkEditor = ({
 													: "Seleccione..."
 											}
 											appearance="dark"
-											optional
+											optional={!requireUnitMeasure}
+											isRequired={requireUnitMeasure}
 											options={unitMeasureOptions}
 											value={item.unit_measure_id || null}
 											disabled={disabled || isLoadingUnitMeasures}
@@ -422,6 +425,7 @@ export const CatalogLinkEditor = ({
 									</div>
 								</div>
 
+								{hidePreferentialPrices ? null : (
 								<div className="flex flex-col gap-3">
 									<div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
 										<span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
@@ -596,6 +600,7 @@ export const CatalogLinkEditor = ({
 										</LazyMotion>
 									)}
 								</div>
+								)}
 							</AccordionItem>
 						);
 					})}

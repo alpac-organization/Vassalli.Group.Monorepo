@@ -24,8 +24,8 @@ export interface UpdateQuoteRequest extends BaseRequest {
 	availability_time_type?: TimeTypeValue | null;
 	supplier_selection_justification?: string | null;
 	attachments?: QuotationAttachmentsInput | null;
-	price_unit?: number | null;
-	preferential_price?: number | null;
 	currency?: QuotationCurrencyValue | null;
 	create_supplier_product_if_missing?: boolean;
+	unit_price?: number | null;
+	unit_measure_id?: string | null;
 }

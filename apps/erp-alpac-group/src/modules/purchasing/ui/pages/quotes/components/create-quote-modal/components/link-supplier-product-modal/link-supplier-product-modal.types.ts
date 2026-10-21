@@ -3,9 +3,9 @@ import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiCon
 
 export type LinkedSupplierQuotePrice = {
 	supplier: GetSuppliersResponse;
-	price_unit: number;
-	preferential_price: number | null;
+	unit_price: number;
 	currency: CurrencyCode;
+	unit_measure_id: string;
 };
 
 export type LinkSupplierProductModalProps = {

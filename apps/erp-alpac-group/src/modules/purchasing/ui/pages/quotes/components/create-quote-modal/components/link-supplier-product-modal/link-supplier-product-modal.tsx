@@ -36,16 +36,6 @@ const buildLinkItems = (
 		unit_measure_id: defaultUnitMeasureId,
 	}));
 
-const resolvePreferentialPrice = (link: CatalogLinkItemForm): number | null => {
-	const firstComplete = link.tier_prices.find(
-		(tier) =>
-			tier.preferential_price.trim() !== "" &&
-			Number(tier.preferential_price) > 0,
-	);
-	if (!firstComplete) return null;
-	return Number(firstComplete.preferential_price);
-};
-
 const validateLinkItems = (links: CatalogLinkItemForm[]): string | null => {
 	if (links.length === 0) {
 		return "Debe agregar al menos un proveedor.";
@@ -62,22 +52,8 @@ const validateLinkItems = (links: CatalogLinkItemForm[]): string | null => {
 		if (!link.currency) {
 			return `Seleccione la moneda para ${label}.`;
 		}
-
-		for (const [tierIndex, tier] of link.tier_prices.entries()) {
-			const hasAnyTierValue =
-				tier.min_quantity.trim() ||
-				tier.preferential_price.trim() ||
-				tier.valid_from.trim() ||
-				tier.valid_to.trim();
-			if (!hasAnyTierValue) continue;
-
-			if (
-				!tier.min_quantity.trim() ||
-				!tier.preferential_price.trim() ||
-				!tier.valid_from.trim()
-			) {
-				return `Complete el precio preferencial #${tierIndex + 1} de ${label}.`;
-			}
+		if (!link.unit_measure_id.trim()) {
+			return `Seleccione la unidad de medida para ${label}.`;
 		}
 	}
 
@@ -96,15 +72,18 @@ const mapLinksToQuotePrices = (
 		const supplier = suppliersById.get(link.entity_id.trim());
 		if (!supplier) return [];
 
-		const priceUnit = Number(link.unit_price);
-		if (!Number.isFinite(priceUnit) || priceUnit <= 0) return [];
+		const unitPrice = Number(link.unit_price);
+		const unitMeasureId = link.unit_measure_id.trim();
+		if (!Number.isFinite(unitPrice) || unitPrice <= 0 || !unitMeasureId) {
+			return [];
+		}
 
 		return [
 			{
 				supplier,
-				price_unit: priceUnit,
-				preferential_price: resolvePreferentialPrice(link),
+				unit_price: unitPrice,
 				currency: (link.currency || "USD") as CurrencyCode,
+				unit_measure_id: unitMeasureId,
 			},
 		];
 	});
@@ -224,8 +203,8 @@ export const LinkSupplierProductModal = ({
 				title="Precio del proveedor"
 				description={
 					productLabel
-						? `Registre precio para cotizar ${productLabel}. El vínculo se creará al guardar la cotización.`
-						: "Registre el precio unitario y, si aplica, un precio preferencial. El vínculo se creará al guardar la cotización."
+						? `Precio, moneda y unidad de ${productLabel}. El vínculo se crea al guardar la cotización.`
+						: "Indique precio unitario, moneda y unidad de medida. El vínculo se crea al guardar la cotización."
 				}
 				panelClassName={[
 					"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
@@ -251,6 +230,8 @@ export const LinkSupplierProductModal = ({
 							GetUnitMeasurements.isPending || GetUnitMeasurements.isFetching
 						}
 						lockEntity
+						hidePreferentialPrices
+						requireUnitMeasure
 						onAddClick={
 							onRequestAddMore
 								? () => {

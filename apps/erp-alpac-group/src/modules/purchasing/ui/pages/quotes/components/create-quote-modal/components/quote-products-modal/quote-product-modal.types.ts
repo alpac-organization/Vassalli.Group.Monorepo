@@ -1,4 +1,7 @@
-import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import type {
+	PurchaseRequestProductInformation,
+	PurchaseRequestSupplierProduct,
+} from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type {
 	QuotationAttachmentsInput,
 	QuotationCurrencyValue,
@@ -64,6 +67,8 @@ export type QuotationItemFieldsProps = {
 	accordionValue: string;
 	canRemove: boolean;
 	supplierLegalName: string;
+	requestedQuantity: number;
+	supplierProducts: PurchaseRequestSupplierProduct[];
 	onRemove: () => void;
 };
 
@@ -72,6 +77,7 @@ export type QuoteProductGroupFieldsProps = {
 	productName: string;
 	categoryName?: string | null;
 	quantity: number;
+	supplierProducts: PurchaseRequestSupplierProduct[];
 };
 
 export type { QuotationAttachmentsInput, QuotationCurrencyValue };
