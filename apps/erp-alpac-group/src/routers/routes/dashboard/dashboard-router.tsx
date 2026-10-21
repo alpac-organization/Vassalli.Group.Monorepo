@@ -13,6 +13,7 @@ import { PurchasingRouter } from "@app/routers/routes/purchasing/purchasing-rout
 import { FinanceRouter } from "../finance/finance-router";
 import { ManagementRouter } from "../management/management-router";
 import { TicketViewer } from "@app/modules/warehouse/ui/views/ticket-viewer/ticket-viewer";
+import { InventoryRouter } from "../inventory/inventory.router";
 
 export const DashboardRouter: RouteObject[] = [
 	{
@@ -73,7 +74,7 @@ export const DashboardRouter: RouteObject[] = [
 			},
 			{
 				path: "inventory",
-				children: []
+				children: InventoryRouter
 			}
 		],
 	},
