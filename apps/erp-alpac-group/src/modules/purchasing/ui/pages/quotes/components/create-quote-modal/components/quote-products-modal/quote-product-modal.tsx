@@ -1197,12 +1197,6 @@ function QuoteProductGroupFields({
 				/>
 			</div>
 
-			<p className="m-0 text-[13px] text-slate-500 dark:text-slate-400">
-				Los proveedores vinculados se precargan con su precio vigente. Use
-				&quot;Agregar Proveedor&quot; para incluir uno nuevo con precio,
-				moneda y unidad de medida. Mínimo {MIN_SUPPLIERS_PER_PRODUCT} por
-				producto.
-			</p>
 
 			{groupError ? (
 				<p className="m-0 text-[13px] text-red-500">{groupError}</p>
@@ -1657,11 +1651,6 @@ export function QuoteProductModal({
 			variant="form"
 			size="7xl"
 			title="Cotizar productos"
-			description={
-				productsCount > 0
-					? `Complete la cotización para ${productsCount} producto${productsCount === 1 ? "" : "s"}. Los proveedores vinculados se precargan; use "Agregar Proveedor" para incluir adicionales (mínimo ${MIN_SUPPLIERS_PER_PRODUCT} por producto).`
-					: "Complete la información de cotización de los productos seleccionados."
-			}
 			panelClassName={[
 				"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
 				"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",

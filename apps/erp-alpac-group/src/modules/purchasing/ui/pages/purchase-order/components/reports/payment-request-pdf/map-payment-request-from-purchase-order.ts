@@ -128,7 +128,7 @@ export function mapPurchaseOrderToPaymentRequestPdf({
           description:
             documentType === PaymentMethodEnum.Check.textValue
               ? "Solicitud de cheque firmada por el departamento solicitante."
-              : "Solicitud de transferencia firmada por el departamento solicitante.",
+              : "Solicitud de pago firmada por el departamento solicitante.",
         };
       }
       return { ...item };

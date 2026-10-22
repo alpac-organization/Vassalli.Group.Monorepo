@@ -201,12 +201,7 @@ export const LinkSupplierProductModal = ({
 				variant="form"
 				size="5xl"
 				title="Precio del proveedor"
-				description={
-					productLabel
-						? `Precio, moneda y unidad de ${productLabel}. El vínculo se crea al guardar la cotización.`
-						: "Indique precio unitario, moneda y unidad de medida. El vínculo se crea al guardar la cotización."
-				}
-				panelClassName={[
+			panelClassName={[
 					"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
 					"rounded-xl sm:!rounded-2xl !p-4 sm:!p-6",
 				].join(" ")}
