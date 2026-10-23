@@ -3,18 +3,17 @@ import type { EnumType } from "@app/shared/types/enum.type";
 export const ProductUsageTypeEnum = {
 	Insumo: {
 		value: 1,
-		label: "Insumo",
-		stringValue: "Insumo",
+		label: "Administrativo",
+		stringValue: "Administrative",
 	},
 	OperationalUse: {
 		value: 2,
-		label: "Uso operativo",
-		stringValue: "OperationalUse",
+		label: "Operativo",
+		stringValue: "Operational",
 	},
 } as const;
 
-export type ProductUsageTypeEnum =
-	(typeof ProductUsageTypeEnum)[keyof typeof ProductUsageTypeEnum];
+export type ProductUsageTypeEnum = (typeof ProductUsageTypeEnum)[keyof typeof ProductUsageTypeEnum];
 export type ProductUsageType = ProductUsageTypeEnum["stringValue"];
 
 export const ProductUsageTypeOptions: EnumType[] = Object.values(

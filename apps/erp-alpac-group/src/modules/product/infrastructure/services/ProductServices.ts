@@ -116,6 +116,8 @@ export class ProductServices implements IProductServices {
 		const { company_id, module_code, ...rest } = payload;
 		const url = `companies/${company_id}/modules/${module_code}/category-products`;
 
+		console.log(JSON.stringify(rest, null, 3));
+		
 		return this.apiHandler.post<CreateProductCategoryResponse>(url, rest);
 	}
 }

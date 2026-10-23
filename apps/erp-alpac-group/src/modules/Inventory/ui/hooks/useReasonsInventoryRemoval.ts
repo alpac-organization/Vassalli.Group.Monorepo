@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { warehouseHttpHandler } from "@app/core/adapters";
+import { httpHandler } from "@app/core/adapters";
 import { ReasonsInventoryRemovalServices } from "../../infrastructure/services/reasons-inventory-removal-services";
 
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
@@ -7,7 +7,7 @@ import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/
 import type { useReasonsInventoryRemovalProps } from "../../application/interfaces/hooks/useReasonsInventoryRemovalProps";
 import type { ReasonsInventoryRemovalResponse } from "../../domain/api-contract/responses/reasons-inventory-removal.reponse";
 
-const reasonsInventoryRemovalServices = new ReasonsInventoryRemovalServices(warehouseHttpHandler);
+const reasonsInventoryRemovalServices = new ReasonsInventoryRemovalServices(httpHandler);
 
 export const useReasonsInventoryRemoval = function(props: useReasonsInventoryRemovalProps) {
 

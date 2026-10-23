@@ -58,7 +58,7 @@ const emptyFormValues = (
 	description: "",
 	category_id: "",
 	unit_measure_id: "",
-	product_usage_type: "Insumo",
+	product_usage_type: "Administrative",
 	is_tax_exempt: false,
 	suppliers: [],
 });

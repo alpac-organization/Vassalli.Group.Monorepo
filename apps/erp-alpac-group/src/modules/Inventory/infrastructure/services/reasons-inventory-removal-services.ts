@@ -15,11 +15,17 @@ export class ReasonsInventoryRemovalServices implements IReasonsInventoryRemoval
 
 	// All services here
 	async GetReasonsInventoryRemoval(payload: ReasonsInventoryRemovalRequest): Promise<PaginateBaseResponse<ReasonsInventoryRemovalResponse>> {
-		const { company_id, module_code, ...rest } = payload;
-
-		return this.httpClient.get<PaginateBaseResponse<ReasonsInventoryRemovalResponse>>(`/companies/${company_id}/modules/${module_code}/inventory/reasons-removals`, {
-			params: cleanParams(rest),
-		});
+		try{
+			const { company_id, module_code, ...rest } = payload;
+	
+			return this.httpClient.get<PaginateBaseResponse<ReasonsInventoryRemovalResponse>>(`/companies/${company_id}/modules/${module_code}/inventory/reasons-removals`, {
+				params: cleanParams(rest),
+			});
+		}
+		catch(error: unknown)
+		{
+			throw error;
+		}
 	}
 
 }
