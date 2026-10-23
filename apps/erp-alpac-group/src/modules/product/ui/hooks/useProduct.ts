@@ -107,8 +107,11 @@ export const useProduct = (props?: useProductProps) => {
 		mutationKey: ["create-product"],
 		mutationFn: (payload: CreateProductRequest) =>
 			productServices.CreateProduct(payload),
-		onSuccess: () =>
-			queryClient.invalidateQueries({ queryKey: ["get-products"] }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["get-products"] });
+			queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+		},
 		retry: 1,
 	});
 
@@ -118,6 +121,8 @@ export const useProduct = (props?: useProductProps) => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-products"] });
 			queryClient.invalidateQueries({ queryKey: ["get-product-details"] });
+			queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
 		},
 		retry: 1,
 	});

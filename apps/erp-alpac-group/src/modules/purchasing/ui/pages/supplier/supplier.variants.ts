@@ -6,7 +6,7 @@ export const constitutionTypeBadgeVariants = {
    default: { label: "Sin consitución", badgeColor: "bg-slate-100 text-slate-800" }
 } as const satisfies Record<string, SupplierVariants>
 
-export const idenitificationTypeBadgeVariants = {
+export const identificationTypeBadgeVariants = {
    Ruc: { label: "Ruc", badgeColor: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200" },
    Cedula: { label: "Cedula", badgeColor: "bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200" },
    default: { label: "Sin identificación", badgeColor: "bg-slate-100 text-slate-800" }

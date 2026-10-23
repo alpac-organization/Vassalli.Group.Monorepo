@@ -34,58 +34,32 @@ export const useUpdateWorkInformation = ({
     }
   }, [alertInfo]);
 
-  const handleFieldUpdate = async (name: string, value: string) => {
+  const buildBasePayload =
+    (): UpdateCollaboratorProfileDetailsRequest | null => {
+      if (!companyId?.trim() || !moduleCode?.trim() || !targetIdentification) {
+        setAlertInfo({
+          type: "error",
+          title: "Error",
+          message: "Falta contexto de empresa o identificación.",
+        });
+        return null;
+      }
 
-    if (!companyId?.trim() || !moduleCode?.trim() || !targetIdentification) {
-      setAlertInfo({
-        type: "error",
-        title: "Error",
-        message: "Falta contexto de empresa o identificación.",
-      });
-      return;
-    }
-
-    const working: UpdateWorkingInformationRequest = {};
-
-    switch (name) {
-      case "workEmail":
-        working.work_email = value.trim();
-        break;
-      case "workPhoneNumber":
-        working.work_phone_number = value.trim();
-        break;
-      case "branchId":
-        working.branch_id = value.trim();
-        break;
-      case "bankId":
-        working.bank_id = value.trim();
-        break;
-      case "inssNumber":
-        working.inss_number = value.trim();
-        break;
-      case "bankAccountNumber":
-        working.bank_account_number = value.trim();
-        break;
-      default:
-        return;
-    }
-
-    if (Object.keys(working).length === 0) return;
-
-    const payload: UpdateCollaboratorProfileDetailsRequest = {
-      company_id: companyId,
-      module_code: moduleCode,
-      identification_number: targetIdentification,
-      working_information: working,
-      ...(resolvedMaritalStatusCode !== null
-        ? {
+      return {
+        company_id: companyId,
+        module_code: moduleCode,
+        identification_number: targetIdentification,
+        ...(resolvedMaritalStatusCode !== null
+          ? {
             personal_information: {
               marital_status: resolvedMaritalStatusCode,
             },
           }
-        : {}),
+          : {}),
+      };
     };
 
+  const persist = async (payload: UpdateCollaboratorProfileDetailsRequest) => {
     try {
       await UpdateCollaboratorProfileDetails.mutateAsync(payload);
       setAlertInfo({
@@ -100,6 +74,52 @@ export const useUpdateWorkInformation = ({
         message: getErrorMessage(error) ?? "No se pudo actualizar.",
       });
     }
+  };
+
+  const mapWorkingField = (
+    name: string,
+    value: string,
+  ): UpdateWorkingInformationRequest | null => {
+    switch (name) {
+      case "workEmail":
+        return { work_email: value.trim() };
+      case "workPhoneNumber":
+        return { work_phone_number: value.trim() };
+      case "branchId":
+        return { branch_id: value.trim() };
+      case "bankId":
+        return { bank_id: value.trim() };
+      case "inssNumber":
+        return { inss_number: value.trim() };
+      case "bankAccountNumber":
+        return { bank_account_number: value.trim() };
+      default:
+        return null;
+    }
+  };
+
+  const handleFieldUpdate = async (
+    name: string,
+    value: string | boolean,
+  ) => {
+    const base = buildBasePayload();
+    if (!base) return;
+
+    if (name === "isTimeClockExempt") {
+      await persist({
+        ...base,
+        is_time_clock_exempt: value === true,
+      });
+      return;
+    }
+
+    const working = mapWorkingField(name, String(value));
+    if (!working || Object.keys(working).length === 0) return;
+
+    await persist({
+      ...base,
+      working_information: working,
+    });
   };
 
   return {

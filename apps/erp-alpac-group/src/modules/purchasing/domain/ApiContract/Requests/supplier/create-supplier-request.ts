@@ -9,8 +9,8 @@ export interface CreateSupplierRequest extends BaseRequest {
 	suppliers_legal_name: string;
 	commercial_name?: string | null;
 	identification_number?: string | null;
-	constitution_type?: number | string;
-	identification_type?: number | string;
+	constitution_type?: string;
+	identification_type?: string;
 	supplier_type: SupplierType;
 	supplier_details: SupplierDetailsInformation;
 	payment_methods?: PaymentMethodType[];

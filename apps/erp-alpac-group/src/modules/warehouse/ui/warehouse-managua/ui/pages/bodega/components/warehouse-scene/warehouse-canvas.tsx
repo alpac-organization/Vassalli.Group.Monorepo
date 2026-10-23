@@ -141,6 +141,9 @@ function PreselectedPositionsOverlay({ hideLabels = false }: { hideLabels?: bool
 
   if (preselectedPositions.length === 0) return null;
 
+  // Evitar sobrecarga y layout thrashing en el DOM si hay muchas posiciones preseleccionadas (> 8)
+  const shouldRenderLabels = !hideLabels && preselectedPositions.length <= 8;
+
   return (
     <group>
       {preselectedPositions.map((pos) => {
@@ -180,7 +183,7 @@ function PreselectedPositionsOverlay({ hideLabels = false }: { hideLabels?: bool
               />
             </mesh>
 
-            {!hideLabels && <Html
+            {shouldRenderLabels && <Html
               center
               position={[0, ph / 2 + 0.14, 0]}
               distanceFactor={8}
@@ -233,6 +236,7 @@ function WarehouseScene({
   const showRacks = useBodegaViewerStore((s) => s.showRacks);
   const showTramos = useBodegaViewerStore((s) => s.showTramos);
   const showCargo = useBodegaViewerStore((s) => s.showCargo);
+  const isPreselectionMode = useBodegaViewerStore((s) => s.isPreselectionMode);
 
   // Filtrar racks si hay un filtro de sección activo
   const safeRacks = racks ?? [];
@@ -262,7 +266,7 @@ function WarehouseScene({
         castShadow
         position={[30, 50, 30]}
         intensity={1.4}
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[512, 512]}
         shadow-bias={-0.0001}
       />
       <hemisphereLight args={["#94a3b8", "#0f172a", 0.5]} />
@@ -291,7 +295,7 @@ function WarehouseScene({
         )}
 
         {/* Pallets y mercancías instanciados (racks y tramos con carga/polines y estados) */}
-        {showCargo && (
+        {(showCargo || isPreselectionMode) && (
           <Suspense fallback={null}>
             <PolinCargoInstances
               racks={showRacks ? displayedRacks : []}
@@ -309,9 +313,9 @@ function WarehouseScene({
 
       <ContactShadows
         position={[building.width / 2, 0.01, building.depth / 2]}
-        opacity={0.5}
+        opacity={0.3}
         scale={Math.max(building.width, building.depth) * 1.5}
-        blur={1.5}
+        blur={0.8}
         far={15}
       />
 
@@ -345,13 +349,23 @@ export default function WarehouseCanvas({
       />
 
       <Canvas
-        shadows
+        shadows="soft"
         frameloop="demand"
+        dpr={[1, 1.25]}
         camera={{ position: [25, 20, 35], fov: 45 }}
-        gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
+        gl={{
+          antialias: true,
+          alpha: false,
+          powerPreference: "high-performance",
+          stencil: false,
+          depth: true,
+        }}
       >
         <Suspense fallback={null}>
-          <WarehouseScene {...props} hidePositionLabels={hidePositionLabels} />
+          <WarehouseScene
+            {...props}
+            hidePositionLabels={hidePositionLabels}
+          />
         </Suspense>
       </Canvas>
 

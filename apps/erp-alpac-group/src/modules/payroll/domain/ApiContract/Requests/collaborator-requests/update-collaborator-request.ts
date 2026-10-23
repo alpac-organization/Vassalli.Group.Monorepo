@@ -13,6 +13,7 @@ export interface UpdateCollaboratorProfileDetailsRequest extends BaseRequest {
   third_name?: string;
   first_surname?: string;
   second_surname?: string;
+  is_time_clock_exempt?: boolean;
   personal_information?: UpdatePersonalInformationRequest;
   working_information?: UpdateWorkingInformationRequest;
   code_collaborator?: string;
