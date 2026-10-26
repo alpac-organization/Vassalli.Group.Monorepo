@@ -10,4 +10,10 @@ export interface CreateProductRequest extends BaseRequest {
 	product_usage_type: ProductUsageType;
 	is_tax_exempt?: boolean;
 	suppliers?: CreateProductSupplierPayload[];
+	configuration_stock ?: ConfigurationStock | null;
+}
+
+export interface ConfigurationStock {
+	minimum_stock: number;
+	maximum_stock: number;
 }

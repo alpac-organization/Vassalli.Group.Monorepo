@@ -59,6 +59,7 @@ export const Product = () => {
       company_id: companyId,
       module_code: moduleCode,
       page_size: PAGE_SIZE,
+      product_usage_type: "Administrative"
     },
     getProductCategoryPayload: {
       company_id: companyId,
@@ -260,6 +261,7 @@ export const Product = () => {
       </div>
 
       <CreateProductModal
+        typeProductToRegister="Administrative"
         isOpen={isProductFormOpen}
         onClose={onCloseProductForm}
         selectedProduct={productToEdit}

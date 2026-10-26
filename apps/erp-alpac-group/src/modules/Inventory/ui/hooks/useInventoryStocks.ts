@@ -20,7 +20,6 @@ export const useInventoryStocks = function(props: useInventoryStocksProps) {
         queryKey: ["inventory-stocks-items", payloadGetInventoryStocksRequest],
         queryFn: () => inventoryStocksServices.GetInventoryStocks(payloadGetInventoryStocksRequest),
         enabled: Boolean(payloadGetInventoryStocksRequest),
-
         retry: 1,
         staleTime: 0,
         refetchOnMount: true,

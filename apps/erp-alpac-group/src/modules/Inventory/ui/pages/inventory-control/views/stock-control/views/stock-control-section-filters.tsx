@@ -5,6 +5,7 @@ import { dropdownClassName, inputClassName, labelClassName } from "@app/modules/
 
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
 import { useUserStore } from "@app/shared/stores/useUserStore"
+import { DEFAULT_STOCK_FILTERS } from "../stock-control.variants"
 import { GetProductCategoryOptions } from "./stock-control-section-filters.variant"
 
 import type { StockControlFilters } from "../stock-control.types"
@@ -12,7 +13,7 @@ import type { StockControlSectionFiltersProps } from "./stock-control-section-fi
 
 export const StockControlSectionFilters = function(props: StockControlSectionFiltersProps){
    
-   const { control, handleSubmit, reset, formState: { isDirty, isValid }, register, watch } = useForm<StockControlFilters>({
+   const { control, handleSubmit, reset, formState: { isDirty, isValid }, register } = useForm<StockControlFilters>({
       defaultValues: props.filters,
    });
 
@@ -33,56 +34,58 @@ export const StockControlSectionFilters = function(props: StockControlSectionFil
    }
 
    const handleClear = () => {
-      reset(props.filters);
+      reset(DEFAULT_STOCK_FILTERS);
       props.onClear();
-   };
+   }; 
 
    return (
 		<form 
          className="flex gap-5 justify-between items-end"
          onSubmit={handleSubmit(onSubmit)}
       >
-         <div className="flex gap-6 ">
-            <InputText
-               label="Producto"
-               className={inputClassName}
-               placeholder="Nombre producto"
-               labelClassName={labelClassName}
-               {
-                  ...register("product_name")
-               }
-            />
+        <div className="flex gap-6 items-start">
+            <div className="w-64">
+               <InputText
+                  label="Producto"
+                  className={inputClassName}
+                  placeholder="Nombre producto"
+                  labelClassName={labelClassName}
+                  {...register("product_name")}
+               />
+            </div>
 
-            <InputText
-               label="Codigo producto"
-               value={watch("product_code")}
-               placeholder="ALP-MGA-01-01-001"
-               className={inputClassName}
-               labelClassName={labelClassName}
-               {
-                  ...register("product_code")
-               }
-            />
+            <div className="w-64">
+               <InputText
+                  label="Codigo producto"
+                  placeholder="ALP-MGA-01-01-001"
+                  className={inputClassName}
+                  labelClassName={labelClassName}
+                  {...register("product_code")}
+               />
+            </div>
 
-            <Controller
-               name="category_id"
-               control={control}
-               render={({ field }) => (
-                  <Dropdown
-                     isLoading={isPending || isFetching}
-                     label="Categoria"
-                     options={categoryOptions}
-                     value={field.value}
-                     onChange={(e) => field.onChange(e.value)}
-                     placeholder="Seleccionar Categoria"
-                     labelClassName={labelClassName}
-                     className={dropdownClassName}
-                     valueClassName={labelClassName}
-                  />
-               )}
-            />
+            <div className="w-64">
+               <Controller
+                  name="category_id"
+                  control={control}
+                  render={({ field }) => (
+                     <Dropdown
+                        isLoading={isPending || isFetching}
+                        label="Categoria"
+                        value={field.value}
+                        options={categoryOptions}
+                        onChange={(e) => {
+                           field.onChange(e);
+                        }}
+                        placeholder="Seleccionar Categoria"
+                        appearance="dark"
+                        labelClassName={labelClassName}
+                        className={dropdownClassName}
+                     />
+                  )}
+               />
+            </div>
          </div>
-
          <section className="flex gap-5">
             <div className="flex flex-col">
                <Button

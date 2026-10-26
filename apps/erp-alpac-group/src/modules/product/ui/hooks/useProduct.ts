@@ -60,7 +60,7 @@ export const useProduct = (props?: useProductProps) => {
 			getPriceHistoryPayload?.product_id?.trim() &&
 			getPriceHistoryPayload?.supplier_id?.trim(),
 	);
-	
+
 	const GetProductCategories = useQuery<GetProductCategoryResponse[], ApiErrorResponse>({
 		queryKey: ["get-product-categories", getProductCategoryPayload],
 		queryFn: () => productServices.GetProductCategories(getProductCategoryPayload!),
@@ -99,20 +99,17 @@ export const useProduct = (props?: useProductProps) => {
 		retry: 1,
 	});
 
-	const CreateProduct = useMutation<
-		CreateProductResponse,
-		ApiErrorResponse,
-		CreateProductRequest
-	>({
+	const CreateProduct = useMutation<CreateProductResponse, ApiErrorResponse, CreateProductRequest>({
 		mutationKey: ["create-product"],
-		mutationFn: (payload: CreateProductRequest) =>
-			productServices.CreateProduct(payload),
+		mutationFn: (payload: CreateProductRequest) => productServices.CreateProduct(payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-products"] });
 			queryClient.invalidateQueries({ queryKey: ["suppliers"] });
 			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+			queryClient.invalidateQueries({ queryKey: ["inventory-stocks-items"] });
 		},
 		retry: 1,
+		retryDelay: 3000,		
 	});
 
 	const UpdateProduct = useMutation<void, ApiErrorResponse, UpdateProductRequest>({

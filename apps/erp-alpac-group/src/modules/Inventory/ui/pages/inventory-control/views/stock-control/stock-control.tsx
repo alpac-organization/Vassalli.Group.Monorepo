@@ -24,7 +24,7 @@ export const StockControl = function(){
 		}
 	});
 
-	const { data: inventoryStocksData } = GetInventoryStocksQuery;
+	const { data: inventoryStocksData, isPending, isFetching } = GetInventoryStocksQuery;
 	const columnsStocks = GetInventoryStocksColumnsToTable();
 
    //Metodos de filtrado
@@ -35,12 +35,10 @@ export const StockControl = function(){
    const handleClearFilters = () => {
       setFilters(DEFAULT_STOCK_FILTERS);
    };
-   
 	return (
 		<div className="flex flex-col gap-5 bg-transparent">
-
 			{
-				GetInventoryStocksQuery.isPending && (
+				(isPending || isFetching) &&  (
 					<Loader title="Cargado información de inventario" />
 				)
 			}
@@ -65,6 +63,7 @@ export const StockControl = function(){
 			<DataTable 
 				title="Existencias y niveles de stock"
 				data={inventoryStocksData?.data ?? []}
+            enableSelectBorder
 				columns={columnsStocks}
 				pagination={
 					<Pagination
