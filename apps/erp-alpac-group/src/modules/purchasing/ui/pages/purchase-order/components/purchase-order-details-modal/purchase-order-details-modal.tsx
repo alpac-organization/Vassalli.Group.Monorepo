@@ -11,7 +11,7 @@ import {
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import type { PurchaseOrderDetailsProps } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-details-modal/purchase-order-details-modal.types";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseOrderDetail } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseOrderDetail";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
@@ -49,7 +49,7 @@ export const PurchaseOrderDetailsModal = ({
 		images: ImagePayload[];
 	} | null>(null);
 
-	const { GetPurchaseOrderDetails } = usePurchase({
+	const { GetPurchaseOrderDetails } = usePurchaseOrderDetail({
 		getPurchaseOrderDetailsPayload: {
 			company_id: companyId,
 			module_code: moduleCode,

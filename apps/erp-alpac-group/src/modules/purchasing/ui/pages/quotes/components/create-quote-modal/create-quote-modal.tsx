@@ -24,7 +24,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import { QuoteDetailAccordion } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/quote-detail-accordion/quote-detail-accordion";
 import { purchaseRequestTypeBadgeVariants } from "../../../purchase-requests/purchase-request.variants";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseRequestDetail } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestDetail";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { QuoteProductModal } from "./components/quote-products-modal/quote-product-modal";
 import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/types/create-quote-modal.types";
@@ -75,18 +75,19 @@ export function CreateQuoteModal({
 		? (purchaseRequest?.purchase_request_id ?? "")
 		: "";
 
-	const { GetPurchaseRequestDetails, GetPurchaseRequestProducts } = usePurchase({
-		getPurchaseRequestDetailsPayload: {
-			company_id: companyId,
-			module_code: moduleCode,
-			purchase_request_id: purchaseRequestId
-		},
-		getPurchaseRequestProductsPayload: {
-			company_id: companyId,
-			module_code: moduleCode,
-			purchase_request_id: purchaseRequestId
-		}
-	});
+	const { GetPurchaseRequestDetails, GetPurchaseRequestProducts } =
+		usePurchaseRequestDetail({
+			getPurchaseRequestDetailsPayload: {
+				company_id: companyId,
+				module_code: moduleCode,
+				purchase_request_id: purchaseRequestId,
+			},
+			getPurchaseRequestProductsPayload: {
+				company_id: companyId,
+				module_code: moduleCode,
+				purchase_request_id: purchaseRequestId,
+			},
+		});
 
 	const { RegisterQuote } = useQuotes();
 	const { getMappedError } = useMappedError();

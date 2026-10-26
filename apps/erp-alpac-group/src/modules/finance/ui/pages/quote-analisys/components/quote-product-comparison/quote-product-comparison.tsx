@@ -6,7 +6,6 @@ import {
 	Clock,
 	NotebookText,
 	Package,
-	Percent,
 	ShieldCheck,
 	Tag,
 	Award,
@@ -25,7 +24,6 @@ import {
 	chunkQuotations,
 	findSupplierProductForQuote,
 	getBestPriceQuotationId,
-	getQuoteIvaPercentage,
 	getQuoteSubtotal,
 	getQuoteTotalPrice,
 } from "./quote-product-comparison.utils";
@@ -88,13 +86,16 @@ const COMPARISON_ROWS: ComparisonRow[] = [
 		getValue: (quote) => formatCurrency(quote.iva ?? 0),
 	},
 	{
-		key: "iva_percent",
-		label: "IVA (%)",
-		icon: Percent,
-		getValue: (quote) => {
-			const percent = getQuoteIvaPercentage(quote);
-			return percent == null ? "—" : `${percent.toFixed(2)}%`;
-		},
+		key: "ir",
+		label: "IR",
+		icon: Package,
+		getValue: (quote) => formatCurrency(quote.ir ?? 0),
+	},
+	{
+		key: "imi",
+		label: "IMI",
+		icon: Package,
+		getValue: (quote) => formatCurrency(quote.imi ?? 0),
 	},
 	{
 		key: "total",

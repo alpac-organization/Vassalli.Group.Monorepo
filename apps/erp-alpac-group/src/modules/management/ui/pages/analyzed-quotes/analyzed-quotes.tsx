@@ -6,7 +6,7 @@ import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
-import { useManagement } from "@app/modules/management/ui/hooks/useManagement";
+import { useManagementReviews } from "@app/modules/management/ui/hooks/useManagementReviews";
 import { AnalyzedQuotesTable } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quotes-table/analyzed-quotes-table";
 import { AnalyzedQuoteDetailModal } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quote-detail-modal/analyzed-quote-detail-modal";
 import { AnalyzedQuotesFilters } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quotes-filters/analyzed-quotes-filters";
@@ -17,6 +17,7 @@ import type { ProcessPurchaseOrderPayload } from "@app/modules/management/domain
 import type { managementReviewStatusType } from "@app/modules/management/domain/enum/management-review-status";
 import { ProcessPurchaseOrderModal } from "./components/process-purchase-order-modal/process-purchase-order-modal";
 import { AnnulModal } from "@app/shared/components/annul-modal/annul-modal";
+import type { AnnulModalScope } from "@app/shared/components/annul-modal/annul-modal.types";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 
@@ -57,9 +58,11 @@ export const AnalyzedQuotes = () => {
 		[companyId, moduleCode, pageNumber, appliedStatus, appliedAreaId, appliedBranchId],
 	);
 
-	const { GetRequisitionManagementReviews, ProcessPurchaseOrder, AnnulManagementReview } = useManagement(
-		{ payloadGetRequisitionManagementReviews }
-	);
+	const {
+		GetRequisitionManagementReviews,
+		ProcessPurchaseOrder,
+		AnnulManagementReview,
+	} = useManagementReviews({ payloadGetRequisitionManagementReviews });
 
 	const {
 		data: managementReviews,
@@ -134,7 +137,7 @@ export const AnalyzedQuotes = () => {
 		);
 	};
 
-	const handleAnnulConfirm = (data: { scope: number; reason: string }) => {
+	const handleAnnulConfirm = (data: { scope: AnnulModalScope; reason: string }) => {
 		const reviewId = selectedReview?.purchase_requests_reviewed_management_id;
 		if (!reviewId || !companyId || !moduleCode) return;
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Avatar, Badges, Button, Dropdown, Modal } from "@alpac/design-system";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseRequestDetail } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestDetail";
+import { usePurchaseRequestCommands } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestCommands";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { RoleEnum } from "@app/core/enums/role.enum";
@@ -80,22 +81,23 @@ export const PurchaseRequestDetailModal = ({
 		rejectionReasonsQuery.data ?? [],
 	);
 
-	const {
-		GetPurchaseRequestDetails,
-		GetPurchaseRequestProducts,
-		ProcessPurchaseRequest,
-	} = usePurchase({
-		getPurchaseRequestDetailsPayload: {
-			company_id: companyId,
-			module_code: moduleCode,
-			purchase_request_id: purchaseRequest?.purchase_request_id ?? "",
-		},
-		getPurchaseRequestProductsPayload: {
-			company_id: companyId,
-			module_code: moduleCode,
-			purchase_request_id: purchaseRequest?.purchase_request_id ?? "",
-		},
-	});
+	const purchaseRequestId = purchaseRequest?.purchase_request_id ?? "";
+
+	const { GetPurchaseRequestDetails, GetPurchaseRequestProducts } =
+		usePurchaseRequestDetail({
+			getPurchaseRequestDetailsPayload: {
+				company_id: companyId,
+				module_code: moduleCode,
+				purchase_request_id: purchaseRequestId,
+			},
+			getPurchaseRequestProductsPayload: {
+				company_id: companyId,
+				module_code: moduleCode,
+				purchase_request_id: purchaseRequestId,
+			},
+		});
+
+	const { ProcessPurchaseRequest } = usePurchaseRequestCommands();
 
 	const details = GetPurchaseRequestDetails.data as
 		| GetPurchaseRequestDetailResponse

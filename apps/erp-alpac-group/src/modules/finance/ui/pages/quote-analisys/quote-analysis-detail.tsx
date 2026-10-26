@@ -13,7 +13,7 @@ import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { Loader } from "@app/shared/components/loaders/loader";
-import { useQuoteAnalysis } from "@app/modules/finance/ui/hooks/quotes-analysis/useQuoteAnalysis";
+import { useQuoteAnalysisDetail } from "@app/modules/finance/ui/hooks/quotes-analysis/useQuoteAnalysisDetail";
 import { getStatusBadge } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-table/utils/quote-analysis.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { QuoteProductComparison } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-product-comparison/quote-product-comparison";
@@ -115,20 +115,22 @@ export function QuoteAnalysisDetail() {
     handleRequestError,
   } = useAlertState();
 
-  const payloadGetQuoteAnalysisDetails = useMemo(
-    () => ({
+  const hasReviewId = Boolean(reviewId?.trim());
+
+  const payloadGetQuoteAnalysisDetails = useMemo(() => {
+    if (!hasReviewId) return undefined;
+    return {
       company_id: companyId,
       module_code: moduleCode,
-      purchase_requests_reviewed_accounting_id: reviewId || "",
-    }),
-    [companyId, moduleCode, reviewId],
-  );
+      purchase_requests_reviewed_accounting_id: reviewId!,
+    };
+  }, [companyId, moduleCode, hasReviewId, reviewId]);
 
   const {
     GetQuoteAnalysisDetails,
     AcceptQuotationToPurchase,
     SendReviewToManagement,
-  } = useQuoteAnalysis({
+  } = useQuoteAnalysisDetail({
     payloadGetQuoteAnalysisDetails,
   });
 
@@ -258,6 +260,20 @@ export function QuoteAnalysisDetail() {
   const pendingSupplierName =
     pendingAccept?.quotation.supplier_information?.suppliers_legal_name?.trim() ||
     "este proveedor";
+
+  if (!hasReviewId) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 text-slate-500 dark:text-slate-400">
+        <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+        <p>No se encontró el identificador del análisis.</p>
+        <Button
+          className="mt-4"
+          onClick={() => navigate(`${baseUrl}/finance/analisys`)}
+          label="Volver al listado"
+        />
+      </div>
+    );
+  }
 
   if (isLoadingDetail) {
     return <Loader title="Cargando detalle del análisis..." />;

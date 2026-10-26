@@ -4,7 +4,8 @@ import { DownloadIcon, PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseRequestList } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestList";
+import { useMonthlyPurchaseReport } from "@app/modules/purchasing/ui/hooks/purchase/useMonthlyPurchaseReport";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { Loader } from "@app/shared/components/loaders/loader";
@@ -56,7 +57,7 @@ export const MonthlyMaterialTab = ({
 
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>(getDefaultFilters);
 
-	const { GetPurchaseRequests, DeletePurchaseRequest, GetMonthlyPurchaseReport } = usePurchase({
+	const { GetPurchaseRequests, DeletePurchaseRequest } = usePurchaseRequestList({
 		getPurchaseRequestsPayload: {
 			...filters,
 			company_id: companyId,
@@ -65,6 +66,9 @@ export const MonthlyMaterialTab = ({
 			request_type: PurchaseRequestEnum.Monthly.textValue,
 			page_size: PAGE_SIZE,
 		},
+	});
+
+	const { GetMonthlyPurchaseReport } = useMonthlyPurchaseReport({
 		getMonthlyPurchaseReportPayload: {
 			company_id: companyId,
 			module_code: moduleCode,

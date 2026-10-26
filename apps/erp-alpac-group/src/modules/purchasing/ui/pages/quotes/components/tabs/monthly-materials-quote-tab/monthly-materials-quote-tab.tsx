@@ -10,7 +10,7 @@ import { RoleEnum } from "@app/core/enums/role.enum";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { QuotesModalType } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-modal.types";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseRequestList } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestList";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import type { MonthlyMaterialsQuoteTabProps } from "./monthly-materials-quote-tab.types";
 import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
@@ -49,16 +49,17 @@ export function MonthlyMaterialsQuoteTab({
 
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>(getDefaultFilters);
 
-	const { GetPurchaseRequests, SendPurchaseRequestToReview } = usePurchase({
-		getPurchaseRequestsPayload: {
-			...filters,
-			company_id: companyId,
-			module_code: moduleCode,
-			request_type: PurchaseRequestEnum.Monthly.textValue,
-			branch_id: isAdministrator ? undefined : currentBranchId,
-			page_size: PAGE_SIZE,
-		},
-	});
+	const { GetPurchaseRequests, SendPurchaseRequestToReview } =
+		usePurchaseRequestList({
+			getPurchaseRequestsPayload: {
+				...filters,
+				company_id: companyId,
+				module_code: moduleCode,
+				request_type: PurchaseRequestEnum.Monthly.textValue,
+				branch_id: isAdministrator ? undefined : currentBranchId,
+				page_size: PAGE_SIZE,
+			},
+		});
 
 	const purchaseRequests = GetPurchaseRequests.data?.data ?? [];
 	const totalRecords = GetPurchaseRequests.data?.total ?? 0;

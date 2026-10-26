@@ -113,6 +113,8 @@ export interface PurchaseRequestProductQuotation {
 	is_accepted_for_purchase: boolean;
 	is_best_option?: boolean;
 	iva: number;
+	ir?: number | null;
+	imi?: number | null;
 	price: number;
 	price_unit: number;
 	price_total: number;

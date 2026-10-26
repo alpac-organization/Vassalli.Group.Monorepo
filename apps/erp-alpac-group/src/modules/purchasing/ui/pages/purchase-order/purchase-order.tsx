@@ -13,7 +13,7 @@ import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseOrders } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseOrders";
 import { usePurchaseOrderPdf } from "@app/modules/purchasing/ui/pages/purchase-order/hooks/usePurchaseOrderPdf";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { m } from "framer-motion";
@@ -55,7 +55,7 @@ export const PurchaseOrder = () => {
 		module_code: moduleCode,
 	});
 	const { GetBranchesQuery } = useCompanies({ company_id: companyId });
-	const { GetPurchaseOrders } = usePurchase({
+	const { GetPurchaseOrders } = usePurchaseOrders({
 		getPurchaseOrdersPayload: {
 			...filters,
 			company_id: companyId,

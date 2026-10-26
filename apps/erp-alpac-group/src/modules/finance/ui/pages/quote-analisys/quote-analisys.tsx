@@ -7,7 +7,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
-import { useQuoteAnalysis } from "@app/modules/finance/ui/hooks/quotes-analysis/useQuoteAnalysis";
+import { useQuoteAnalysisList } from "@app/modules/finance/ui/hooks/quotes-analysis/useQuoteAnalysisList";
 import type { accountingReviewStatusType } from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
 import type { GetQuotesAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/get-quote-analysis";
 import type { RequisitionAccountingReviewDto } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
@@ -49,9 +49,10 @@ export function QuoteAnalisys() {
 		[companyId, moduleCode, pageNumber, appliedStatus, appliedAreaId],
 	);
 
-	const { GetQuoteAnalysis, SendReviewToManagement, AnnulQuoteAnalysis } = useQuoteAnalysis({
-		payloadGetQuoteAnalysis,
-	});
+	const { GetQuoteAnalysis, SendReviewToManagement, AnnulQuoteAnalysis } =
+		useQuoteAnalysisList({
+			payloadGetQuoteAnalysis,
+		});
 
 	const { data: quoteAnalysis, isLoading, isFetching } = GetQuoteAnalysis;
 	const quotes = quoteAnalysis?.data ?? [];

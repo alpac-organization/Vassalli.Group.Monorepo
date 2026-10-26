@@ -19,7 +19,8 @@ import type {
 	PurchaseRequestUnitMeasureInformation,
 } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseRequestDetail } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestDetail";
+import { usePurchaseRequestCommands } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestCommands";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
@@ -197,23 +198,24 @@ export const PurchaseRequestModal = ({
 		},
 	};
 
-	const {
-		CreatePurchaseRequest,
-		UpdatePurchaseRequest,
-		GetPurchaseRequestDetails,
-		GetPurchaseRequestProducts,
-	} = usePurchase({
-		getPurchaseRequestDetailsPayload: {
-			company_id: companyId,
-			module_code: moduleCode,
-			purchase_request_id: isEditMode && isOpen ? purchaseRequestId : "",
-		},
-		getPurchaseRequestProductsPayload: {
-			company_id: companyId,
-			module_code: moduleCode,
-			purchase_request_id: isEditMode && isOpen ? purchaseRequestId : "",
-		},
-	});
+	const editRequestId = isEditMode && isOpen ? purchaseRequestId : "";
+
+	const { GetPurchaseRequestDetails, GetPurchaseRequestProducts } =
+		usePurchaseRequestDetail({
+			getPurchaseRequestDetailsPayload: {
+				company_id: companyId,
+				module_code: moduleCode,
+				purchase_request_id: editRequestId,
+			},
+			getPurchaseRequestProductsPayload: {
+				company_id: companyId,
+				module_code: moduleCode,
+				purchase_request_id: editRequestId,
+			},
+		});
+
+	const { CreatePurchaseRequest, UpdatePurchaseRequest } =
+		usePurchaseRequestCommands();
 
 	const { GetUnitMeasurements } = useUnitOfMeasurement({
 		payloadUnitOfMeasurement: {

@@ -33,18 +33,6 @@ export function getQuoteTotalPrice(
 	return getQuoteSubtotal(quote) + (quote.iva ?? 0);
 }
 
-export function getQuoteIvaPercentage(
-	quote: Pick<
-		PurchaseRequestProductQuotation,
-		"price" | "price_total" | "price_unit" | "iva"
-	>,
-): number | null {
-	const subtotal = getQuoteSubtotal(quote);
-	const iva = quote.iva ?? 0;
-	if (subtotal <= 0) return null;
-	return Math.round((iva / subtotal) * 10000) / 100;
-}
-
 export function getBestPriceQuotationId(
 	quotations: PurchaseRequestProductQuotation[],
 ): string | null {

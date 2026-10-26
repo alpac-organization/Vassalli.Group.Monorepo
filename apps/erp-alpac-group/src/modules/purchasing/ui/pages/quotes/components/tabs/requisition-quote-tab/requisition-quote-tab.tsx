@@ -4,7 +4,7 @@ import { CreateQuoteModal } from "@app/modules/purchasing/ui/pages/quotes/compon
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { Loader } from "@app/shared/components/loaders/loader";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseRequestList } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestList";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -51,16 +51,17 @@ export function RequisitionQuoteTab({
 
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>(getDefaultFilters);
 
-	const { GetPurchaseRequests, SendPurchaseRequestToReview } = usePurchase({
-		getPurchaseRequestsPayload: {
-			...filters,
-			company_id: companyId,
-			module_code: moduleCode,
-			request_type: PurchaseRequestEnum.Requisition.textValue,
-			branch_id: isAdministrator ? undefined : currentBranchId,
-			page_size: PAGE_SIZE,
-		}
-	});
+	const { GetPurchaseRequests, SendPurchaseRequestToReview } =
+		usePurchaseRequestList({
+			getPurchaseRequestsPayload: {
+				...filters,
+				company_id: companyId,
+				module_code: moduleCode,
+				request_type: PurchaseRequestEnum.Requisition.textValue,
+				branch_id: isAdministrator ? undefined : currentBranchId,
+				page_size: PAGE_SIZE,
+			},
+		});
 
 	const purchaseRequests = GetPurchaseRequests.data?.data ?? [];
 	const totalRecords = GetPurchaseRequests.data?.total ?? 0;

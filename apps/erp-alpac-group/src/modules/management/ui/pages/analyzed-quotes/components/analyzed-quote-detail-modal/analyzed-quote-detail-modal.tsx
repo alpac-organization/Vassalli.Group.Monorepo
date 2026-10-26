@@ -14,7 +14,7 @@ import {
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
-import { useManagement } from "@app/modules/management/ui/hooks/useManagement";
+import { useManagementReviewDetail } from "@app/modules/management/ui/hooks/useManagementReviewDetail";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import {
 	ImagePreviewGallery,
@@ -88,7 +88,7 @@ export const AnalyzedQuoteDetailModal = ({
 		moduleCode,
 	]);
 
-	const { GetRequisitionManagementReviewDetails } = useManagement({
+	const { GetRequisitionManagementReviewDetails } = useManagementReviewDetail({
 		payloadGetRequisitionManagementReviewDetail,
 	});
 
