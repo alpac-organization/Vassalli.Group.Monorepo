@@ -1,6 +1,6 @@
 import type { TabItem } from "@alpac/design-system";
-import { StockControl } from "./views/stock-control";
-import { ProductsAndServicesControl } from "./views/products-and-services-control";
+import { StockControl } from "./views/stock-control/stock-control";
+import { ProductsAndServicesControl } from "./views/products-and-services-control/products-and-services-control";
 
 export const GetSectionViewsToInventoryControl = function(): TabItem<string>[] {
 

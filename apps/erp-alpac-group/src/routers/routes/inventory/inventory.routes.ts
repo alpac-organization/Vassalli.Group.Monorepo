@@ -1,16 +1,24 @@
-import { Settings } from "lucide-react";
+import { Settings, ArrowUpDown } from "lucide-react";
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
 
 export const getInventoryRoutes = () => {
 
-    const inventorySections: SidebarLink = {
-        id: "inventory",
+    const inventoryControl: SidebarLink = {
+        id:   "inventory",
         label: "Control de inventario",
-        path: "inventory",
+        path:  "inventory",
         icon: Settings
     };
 
+    const inventoryEntriesAndOutputs: SidebarLink = {
+        id:    "entry-output",
+        label: "Entradas y salidas",
+        path:  "entry-output",
+        icon:  ArrowUpDown
+    };
+
     return {
-        inventorySections
+        inventoryControl,
+        inventoryEntriesAndOutputs
     }
 }

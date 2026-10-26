@@ -63,7 +63,10 @@ const { quoteAnalisysSection } = getFinanceRoutes();
 
 const { analyzedQuoteSection } = getManagementRoutes();
 
-const { inventorySections } = getInventoryRoutes();
+const { 
+  inventoryControl, 
+  inventoryEntriesAndOutputs 
+} = getInventoryRoutes();
 
 export const routeConfig = {
   [ModuleEnum.PAYROLL]: {
@@ -164,6 +167,9 @@ export const routeConfig = {
     [RoleEnum.ADMINISTRATOR]: [analyzedQuoteSection],
   },
   [ModuleEnum.INVENTORY]: {
-    [RoleEnum.ADMINISTRATOR]: [inventorySections]
+    [RoleEnum.ADMINISTRATOR]: [
+      inventoryControl, 
+      inventoryEntriesAndOutputs
+    ]
   }
 };
