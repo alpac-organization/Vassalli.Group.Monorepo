@@ -20,6 +20,31 @@ const VIEWPORT_PADDING = 8;
 
 const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
+function DropdownSpinner({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      className={`w-4 h-4 shrink-0 animate-spin ${className}`}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z"
+      />
+    </svg>
+  );
+}
+
 function getTriggerBorderRing(isError: boolean, isOpen: boolean, isDarkSurface: boolean) {
   if (isError) return "border-red-400 ring-red-50 dark:ring-red-900/40";
   if (isOpen && isDarkSurface) return "border-blue-500 ring-2 ring-blue-500/25";
@@ -204,6 +229,7 @@ function DropdownMenu({
   filteredOptions,
   value,
   multiple = false,
+  isLoading = false,
   activeIndex,
   isDarkSurface,
   menuSurface,
@@ -258,7 +284,7 @@ function DropdownMenu({
               ))
             ) : (
               <li className="px-4 py-3 text-[14px] text-slate-500">
-                Resultados no encontrados.
+                {isLoading ? "Cargando opciones..." : "Resultados no encontrados."}
               </li>
             )}
           </ul>
@@ -274,7 +300,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     label, options, placeholder,
     error, errorVariant = "text", onChange, value, multiple = false, className,
     labelClassName, isRequired, disabled = false, optional = false, valueClassName,
-    appearance = "default", renderOptionAction, onEditOption }, ref) => {
+    appearance = "default", renderOptionAction, onEditOption, isLoading = false }, ref) => {
 
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -496,6 +522,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
               ref={triggerRef}
               tabIndex={disabled ? -1 : 0}
               aria-disabled={disabled}
+              aria-busy={isLoading}
               onClick={() => {
                 if (disabled) return;
                 setIsOpen(!isOpen);
@@ -520,29 +547,37 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
                     ${className ?? ""}
                  `}
             >
-              {isOpen ? (
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  disabled={disabled}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (disabled) return;
-                  }}
-                  className={`bg-transparent outline-none w-full min-w-0 truncate ${valueColorClass} ${inputPlaceholderClass}`}
-                  placeholder={
-                    displayLabel
-                      ? String(displayLabel)
-                      : placeholder || "Buscar..."
-                  }
-                />
-              ) : (
-                <span className={`truncate min-w-0 ${!displayLabel ? placeholderClass : valueColorClass}`}>
-                  {displayLabel ?? placeholder}
-                </span>
-              )}
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                {isLoading && (
+                  <DropdownSpinner
+                    className={isDarkSurface ? "text-blue-400" : "text-slate-500"}
+                  />
+                )}
+
+                {isOpen ? (
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    disabled={disabled}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (disabled) return;
+                    }}
+                    className={`bg-transparent outline-none w-full min-w-0 truncate ${valueColorClass} ${inputPlaceholderClass}`}
+                    placeholder={
+                      displayLabel
+                        ? String(displayLabel)
+                        : placeholder || "Buscar..."
+                    }
+                  />
+                ) : (
+                  <span className={`truncate min-w-0 ${!displayLabel ? placeholderClass : valueColorClass}`}>
+                    {displayLabel ?? placeholder}
+                  </span>
+                )}
+              </div>
 
               <m.svg
                 onClick={(e) => {
@@ -579,6 +614,7 @@ export const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
           filteredOptions={filteredOptions}
           value={value}
           multiple={multiple}
+          isLoading={isLoading}
           activeIndex={activeIndex}
           isDarkSurface={isDarkSurface}
           menuSurface={menuSurface}

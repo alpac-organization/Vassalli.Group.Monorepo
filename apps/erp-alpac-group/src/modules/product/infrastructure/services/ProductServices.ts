@@ -25,13 +25,11 @@ export class ProductServices implements IProductServices {
 		this.apiHandler = httpHandler;
 	}
 
-	async GetProductCategories(
-		payload: GetProductCategoryRequest,
-	): Promise<GetProductCategoryResponse> {
+	async GetProductCategories(payload: GetProductCategoryRequest): Promise<GetProductCategoryResponse[]> {
 		const { company_id, module_code, ...queryParams } = payload;
 		const url = `companies/${company_id}/modules/${module_code}/category-products`;
 
-		return this.apiHandler.get<GetProductCategoryResponse>(url, {
+		return this.apiHandler.get<GetProductCategoryResponse[]>(url, {
 			params: cleanParams(queryParams),
 		});
 	}

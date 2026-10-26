@@ -16,6 +16,7 @@ import type { UpdateProductSupplierPriceRequest } from "@app/modules/product/dom
 import type { GetProductSupplierPriceHistoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product-supplier-price-history.request";
 import type { GetProductSupplierPriceHistoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product-supplier-price-history.response";
 import type { DeleteProductSupplierLinkRequest } from "@app/modules/product/domain/ApiContract/Requests/product/delete-product-supplier-link.request";
+import type { GetProductCategoryResponse } from "../../domain/ApiContract/Responses/product-category/get-product-category.response";
 
 const productServices = new ProductServices(httpHandler);
 
@@ -59,11 +60,10 @@ export const useProduct = (props?: useProductProps) => {
 			getPriceHistoryPayload?.product_id?.trim() &&
 			getPriceHistoryPayload?.supplier_id?.trim(),
 	);
-
-	const GetProductCategories = useQuery({
+	
+	const GetProductCategories = useQuery<GetProductCategoryResponse[], ApiErrorResponse>({
 		queryKey: ["get-product-categories", getProductCategoryPayload],
-		queryFn: () =>
-			productServices.GetProductCategories(getProductCategoryPayload!),
+		queryFn: () => productServices.GetProductCategories(getProductCategoryPayload!),
 		enabled: productCategoryEnabled,
 		refetchOnWindowFocus: false,
 		staleTime: 1000 * 60 * 2,

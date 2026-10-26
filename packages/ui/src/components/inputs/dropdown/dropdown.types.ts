@@ -33,6 +33,7 @@ export type DropdownMenuProps = {
   listRef: RefObject<HTMLUListElement | null>;
   filteredOptions: Option[];
   value?: unknown;
+  isLoading ?: boolean;
   multiple?: boolean;
   activeIndex: number;
   isDarkSurface: boolean;
@@ -52,6 +53,7 @@ export interface DropdownProps {
   label?: string;
   options: Option[];
   placeholder?: string;
+  isLoading?: boolean;
   error?: string;
   errorVariant?: ErrorVariant;
   name?: string;
