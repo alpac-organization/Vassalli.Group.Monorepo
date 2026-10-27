@@ -1,5 +1,5 @@
 export interface ProductsAndServicesFilters {
-    category_id?:  string;
+    category_product_id?:  string;
     product_code?: string;
 }
 
