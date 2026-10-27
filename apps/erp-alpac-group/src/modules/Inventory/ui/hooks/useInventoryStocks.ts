@@ -15,14 +15,15 @@ export const useInventoryStocks = function(props: useInventoryStocksProps) {
     } = props;
 
     //#region Obtener listado de productos en stocks
-
+    
     const GetInventoryStocksQuery = useQuery<PagedResponseStock<InventoryStockData>, ApiErrorResponse>({
         queryKey: ["inventory-stocks-items", payloadGetInventoryStocksRequest],
         queryFn: () => inventoryStocksServices.GetInventoryStocks(payloadGetInventoryStocksRequest),
         enabled: Boolean(payloadGetInventoryStocksRequest),
         retry: 1,
         staleTime: 0,
-        refetchOnMount: true,
+        retryDelay: 3000,
+        refetchOnMount: false,
         refetchOnWindowFocus: false,
     });
 

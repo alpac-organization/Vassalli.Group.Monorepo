@@ -165,16 +165,13 @@ class AxiosHttpAdapter implements IHttpHandler {
     try {
       // Obtengo el refreshToken actual
       const refreshToken = CookieStorageAdapter.getRefreshToken();
-
-      // Obtengo el alias de la empresa
-      const { companyId } = useUserStore();
-      
+ 
       // Verifico que el refreshToken y el companyAlias y el refresher no sean nulos
-      if (refreshToken && companyId && this.authenticationService) {
+      if (refreshToken && this.authenticationService) {
         // Obtengo el nuevo token
         const response =
           await this.authenticationService.StartProcessToRefreshToken({
-            company_id: companyId,
+            company_id: useUserStore.getState().companyId,
             refresh_token: refreshToken,
           });
 

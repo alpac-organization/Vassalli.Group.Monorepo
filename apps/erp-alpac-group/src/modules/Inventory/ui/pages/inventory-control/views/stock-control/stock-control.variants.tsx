@@ -2,10 +2,11 @@ import { InventoryStockStatus } from "@app/core/enums/inventory-stock-status.enu
 import { Badges, ContextMenu, InputText } from "@alpac/design-system"
 import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/utils/styles"
 
-import type { ContextMenuItem, TableColumn } from "@alpac/design-system"
+import type { ContextMenuItem, Option, TableColumn } from "@alpac/design-system"
 import type { InventoryStockData } from "@app/modules/Inventory/domain/api-contract/responses/inventory-stocks.response"
 import type { InventoryStockStatusEnum } from "@app/core/enums/inventory-stock-status.enum"
 import type { StockControlFilters } from "./stock-control.types"
+import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response"
 
 export const GetInventoryStocksColumnsToTable = function(): TableColumn<InventoryStockData>[]{
    return [
@@ -116,10 +117,7 @@ export const GetInventoryStocksColumnsToTable = function(): TableColumn<Inventor
       {
          key: "options",
          label: "Opciones",
-         render(row){
-
-            console.log(row)
-            
+         render(){
             return (
                <ContextMenu
                   triggerClassName={contextMenuButton}
@@ -157,4 +155,14 @@ export const InvetoryStockStatusColorBadges: Record<InventoryStockStatusEnum, st
 export const DEFAULT_STOCK_FILTERS: StockControlFilters = {
    product_code: "",
    category_id:  "",
+}
+
+export const GetProductCategoryOptions = function(data: GetProductCategoryResponse[]): Option[] {
+   return data?.map(category =>  {
+      return {
+         label: category.name,
+         value: category.id,
+         disabled: false
+      }
+   });
 }

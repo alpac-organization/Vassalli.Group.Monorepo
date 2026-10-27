@@ -5,8 +5,7 @@ import { dropdownClassName, inputClassName, labelClassName } from "@app/modules/
 
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
 import { useUserStore } from "@app/shared/stores/useUserStore"
-import { DEFAULT_STOCK_FILTERS } from "../stock-control.variants"
-import { GetProductCategoryOptions } from "./stock-control-section-filters.variant"
+import { DEFAULT_STOCK_FILTERS, GetProductCategoryOptions } from "../stock-control.variants"
 
 import type { StockControlFilters } from "../stock-control.types"
 import type { StockControlSectionFiltersProps } from "./stock-control-section-filters.types"

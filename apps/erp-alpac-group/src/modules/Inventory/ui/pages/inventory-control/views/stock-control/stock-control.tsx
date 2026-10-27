@@ -54,9 +54,9 @@ export const StockControl = function(){
 			/>
 
 			<StockControlSectionFilters 
-            filters={filters}
-            onClear={handleClearFilters}
-            onApply={handleApplyFilters}
+				filters={filters}
+				onClear={handleClearFilters}
+				onApply={handleApplyFilters}
 			/>
 
 			{/* Información de stocks  */}

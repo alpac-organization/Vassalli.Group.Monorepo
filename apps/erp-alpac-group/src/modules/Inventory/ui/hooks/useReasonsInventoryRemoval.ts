@@ -21,10 +21,9 @@ export const useReasonsInventoryRemoval = function(props: useReasonsInventoryRem
 		queryKey: ["reasons-inventory-removal", payloadGetReasonsInventoryRemovalRequest],
 		queryFn: () => reasonsInventoryRemovalServices.GetReasonsInventoryRemoval(payloadGetReasonsInventoryRemovalRequest),
 		enabled: Boolean(payloadGetReasonsInventoryRemovalRequest),
-
 		retry: 1,
 		staleTime: 0,
-		refetchOnMount: true,
+		refetchOnMount: false,
 		refetchOnWindowFocus: false,
 	});
 
