@@ -1,6 +1,7 @@
 import { DataTable, Pagination, SectionHeader } from "@alpac/design-system"
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { GetProductColumnsToTable } from "./products-and-services-control.variant";
 
 export const ProductsAndServicesControl = function() {
 
@@ -18,6 +19,8 @@ export const ProductsAndServicesControl = function() {
 
    console.log(JSON.stringify(ProductsData, null, 3));
 
+   const productsAndServicesColumns = GetProductColumnsToTable();
+
    return (
 		<div className="flex flex-col gap-5">
          <SectionHeader
@@ -26,11 +29,10 @@ export const ProductsAndServicesControl = function() {
 			/>
 
          {/* Productos y servicios */}
-
          <DataTable
 				title="Productos y Servicios"
-				data={[]}
-				columns={[]}
+				data={ProductsData?.data ?? []}
+				columns={productsAndServicesColumns}
 				pagination={
 					<Pagination
 						pageSize={0}

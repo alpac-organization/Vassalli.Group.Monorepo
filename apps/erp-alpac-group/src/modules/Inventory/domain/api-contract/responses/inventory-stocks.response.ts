@@ -1,6 +1,6 @@
-import type { InventoryStockStatusEnum } from "@app/core/enums/inventory-stock-status.enum";
-import type { ProductUsageTypeEnum } from "@app/core/enums/product-usage-type.enum";
+import type { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
 import type { UnitMeasurementType } from "@app/core/enums/unit-measurements";
+import type { InventoryStockStatusEnum } from "@app/core/enums/inventory-stock-status.enum";
 
 export interface CategoryInformation {
   code: string;
@@ -13,7 +13,7 @@ export interface ProductInformation {
   product_code: string;
   product_name: string;
   description:  string | null;
-  product_usage_type:   ProductUsageTypeEnum;
+  product_usage_type:   ProductUsageType;
   category_information: CategoryInformation;
 }
 
@@ -32,10 +32,11 @@ export interface UnitMeasureInformation {
 }
 
 export interface InventoryStockData {
-  minimum_stock:       number;
-  maximum_stock:       number;
-  product_stock_id:    string;
-  available_quantity:  number;
+  minimum_stock:         number;
+  maximum_stock:         number;
+  product_stock_id:      string;
+  available_quantity:    number;
+  weighted_average_cost: number;
   product_information: ProductInformation;
   status:              InventoryStockStatusEnum;
   cost_center_information:  CostCenterInformation;

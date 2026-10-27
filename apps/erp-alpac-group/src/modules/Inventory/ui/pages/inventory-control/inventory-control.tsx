@@ -1,58 +1,67 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import { PlusSquare } from "lucide-react";
-import { Button, SectionHeader, Tabs } from "@alpac/design-system"
+import { Button, SectionHeader, Tabs } from "@alpac/design-system";
 
-import { GetSectionViewsToInventoryControl } from "./inventory-control.variants"
+import { GetSectionViewsToInventoryControl } from "./inventory-control.variants";
 import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
+import { useParams } from "@app/shared/hooks/useParams";
 
-export const InventoryControl = function() {
 
+export const InventoryControl = function () {
    const [productModal, setProductModal] = useState(false);
+   const { setParam, searchParams } = useParams();
 
-   //Obtener los items de secciones de inventario...
    const tabsItems = GetSectionViewsToInventoryControl();
+   const tabFromUrl = searchParams.get("tab");
+
+   const isValidTab = tabsItems.some(
+      (item) => item.id === tabFromUrl
+   );
+   
+   const activeTab = isValidTab
+      ? tabFromUrl!
+      : "stock-control";
+
+   useEffect(() => {
+      if (!isValidTab) {
+         setParam("tab", "stock-control");
+      }
+   }, [isValidTab, setParam]);
+
+   const handleTabChange = (tabId: string) => {
+      setParam("tab", tabId);
+   };
 
    return (
       <div className="flex flex-col gap-4">
          <div className="flex flex-baseline justify-between">
-
-            <SectionHeader 
+            <SectionHeader
                title="Control de Inventario"
                subtitle="Gestiona niveles de stock, solicitudes por área y movimientos de almacén"
             />
-            
-            {/* Si se agrega mas botones, pasar esto a un componente Independiente */}
+
             <div className="flex gap-5 flex-end">
-               <Button 
-                  icon={
-                     <PlusSquare 
-                        size={15}
-                     />
-                  }
+               <Button
+                  icon={<PlusSquare size={15} />}
                   size="medium"
                   label="Nuevo producto"
-                  onClick={() => {
-                     setProductModal(true);
-                  }}
+                  onClick={() => setProductModal(true)}
                />
             </div>
          </div>
 
-         <Tabs 
-            activeTab="stock-control"
+         <Tabs
+            activeTab={activeTab}
             tabItems={tabsItems}
+            onTabChange={handleTabChange}
          />
 
-         {/* Modales interactivas  */}
-
-         <CreateProductModal 
+         <CreateProductModal
             typeProductToRegister="Operational"
             isOpen={productModal}
-            onClose={() => {
-               setProductModal(false)
-            }}
+            onClose={() => setProductModal(false)}
          />
-
       </div>
-   )
-}
+   );
+};

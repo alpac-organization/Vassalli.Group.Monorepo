@@ -1,24 +1,27 @@
 import type { EnumType } from "@app/shared/types/enum.type";
 
-export const ProductUsageTypeEnum = {
-	Insumo: {
+export type ProductUsageType = "Administrative" | "Operational"
+
+export interface ProductUsageTypeValues {
+	value: number;
+	stringValue: string;
+	label: string;
+}
+
+export const ProductUsageType : Record<ProductUsageType,ProductUsageTypeValues> = {
+	Administrative: {
 		value: 1,
 		label: "Administrativo",
 		stringValue: "Administrative",
 	},
-	OperationalUse: {
+	Operational: {
 		value: 2,
 		label: "Operativo",
 		stringValue: "Operational",
 	},
 } as const;
 
-export type ProductUsageTypeEnum = (typeof ProductUsageTypeEnum)[keyof typeof ProductUsageTypeEnum];
-export type ProductUsageType = ProductUsageTypeEnum["stringValue"];
-
-export const ProductUsageTypeOptions: EnumType[] = Object.values(
-	ProductUsageTypeEnum,
-).map((item) => ({
+export const ProductUsageTypeOptions: EnumType[] = Object.values(ProductUsageType).map((item) => ({
 	value: item.stringValue,
 	label: item.label,
 }));

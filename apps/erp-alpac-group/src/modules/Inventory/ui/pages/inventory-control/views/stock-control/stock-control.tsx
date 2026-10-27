@@ -35,6 +35,7 @@ export const StockControl = function(){
    const handleClearFilters = () => {
       setFilters(DEFAULT_STOCK_FILTERS);
    };
+
 	return (
 		<div className="flex flex-col gap-5 bg-transparent">
 			{
@@ -59,11 +60,9 @@ export const StockControl = function(){
 			/>
 
 			{/* Información de stocks  */}
-
 			<DataTable 
 				title="Existencias y niveles de stock"
 				data={inventoryStocksData?.data ?? []}
-            enableSelectBorder
 				columns={columnsStocks}
 				pagination={
 					<Pagination

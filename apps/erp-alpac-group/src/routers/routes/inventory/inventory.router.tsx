@@ -4,7 +4,7 @@ import type { RouteObject } from "react-router-dom";
 
 export const InventoryRouter: RouteObject[] = [
     {
-        path: "inventory",
+        path: "inventory-control",
         element: <InventoryControl />,
     },
 ];

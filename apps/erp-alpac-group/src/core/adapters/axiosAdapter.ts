@@ -12,6 +12,7 @@ import {
   clearSessionPersistedStores,
 } from "@app/modules/auth/utils/save-state-storage";
 import { getDeviceName } from "@app/shared/utils/device-name.utils";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 type ConfigType = {
   baseUrl?: string;
@@ -166,14 +167,14 @@ class AxiosHttpAdapter implements IHttpHandler {
       const refreshToken = CookieStorageAdapter.getRefreshToken();
 
       // Obtengo el alias de la empresa
-      const companyAlias = CookieStorageAdapter.getCompanyAlias();
-
+      const { companyId } = useUserStore();
+      
       // Verifico que el refreshToken y el companyAlias y el refresher no sean nulos
-      if (refreshToken && companyAlias && this.authenticationService) {
+      if (refreshToken && companyId && this.authenticationService) {
         // Obtengo el nuevo token
         const response =
           await this.authenticationService.StartProcessToRefreshToken({
-            company_id: companyAlias,
+            company_id: companyId,
             refresh_token: refreshToken,
           });
 

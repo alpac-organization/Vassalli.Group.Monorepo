@@ -6,7 +6,7 @@ export const getInventoryRoutes = () => {
     const inventoryControl: SidebarLink = {
         id:   "inventory",
         label: "Control de inventario",
-        path:  "inventory",
+        path:  "inventory-control",
         icon: Settings
     };
 

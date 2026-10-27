@@ -1,6 +1,10 @@
-import { Badges, Button, InputText, type TableColumn } from "@alpac/design-system"
-import { InventoryStockStatus, type InventoryStockStatusEnum } from "@app/core/enums/inventory-stock-status.enum"
+import { InventoryStockStatus } from "@app/core/enums/inventory-stock-status.enum"
+import { Badges, ContextMenu, InputText } from "@alpac/design-system"
+import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/utils/styles"
+
+import type { ContextMenuItem, TableColumn } from "@alpac/design-system"
 import type { InventoryStockData } from "@app/modules/Inventory/domain/api-contract/responses/inventory-stocks.response"
+import type { InventoryStockStatusEnum } from "@app/core/enums/inventory-stock-status.enum"
 import type { StockControlFilters } from "./stock-control.types"
 
 export const GetInventoryStocksColumnsToTable = function(): TableColumn<InventoryStockData>[]{
@@ -33,13 +37,6 @@ export const GetInventoryStocksColumnsToTable = function(): TableColumn<Inventor
          }
       },
       { 
-         key: "cost_center_name",   
-         label: "Centro Costo",
-         render(item){
-            return <span>{item.cost_center_information.cost_center_name}</span>
-         }
-      },
-      { 
          key: "unit", 
          label: "Unidad Medida",
          render(item){
@@ -66,6 +63,7 @@ export const GetInventoryStocksColumnsToTable = function(): TableColumn<Inventor
             return (
                <InputText 
                   readOnly 
+                  disabled
                   value={item.minimum_stock} 
                   className="bg-transparent! w-[130px]! border-slate-600!"
                />
@@ -79,10 +77,18 @@ export const GetInventoryStocksColumnsToTable = function(): TableColumn<Inventor
             return (
                <InputText 
                   readOnly 
+                  disabled
                   value={item.maximum_stock} 
                   className="bg-transparent! w-[130px]! border-slate-600!"
                />
             )
+         }
+      },
+      { 
+         key: "cost_center_name",   
+         label: "Centro Costo",
+         render(item){
+            return <span>{item.cost_center_information.cost_center_name}</span>
          }
       },
       { 
@@ -98,15 +104,47 @@ export const GetInventoryStocksColumnsToTable = function(): TableColumn<Inventor
             )
          }
       },
+      { 
+         key: "cost", 
+         label: "Costo Promedio",
+         render(item){
+            return (
+               <span> C$ { item.weighted_average_cost }</span>
+            )
+         }
+      },
       {
-         key: "Editar",
+         key: "options",
          label: "Opciones",
-         render(){
-            return <Button label="editar" />
+         render(row){
+
+            console.log(row)
+            
+            return (
+               <ContextMenu
+                  triggerClassName={contextMenuButton}
+                  items={ContextMenuItems}
+                  openUpOnMobile
+               />
+            )
          }
       }
    ]
 }
+
+//Optiones de menu de item row
+const ContextMenuItems: ContextMenuItem[] = [
+   {
+      label: "Editar Stock",
+      onClick(){
+      }
+   },
+   {
+      label: "Sacar del Inventario",
+      onClick(){
+      }
+   }
+]
 
 export const InvetoryStockStatusColorBadges: Record<InventoryStockStatusEnum, string> = {
    Empty:    "bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
@@ -118,5 +156,5 @@ export const InvetoryStockStatusColorBadges: Record<InventoryStockStatusEnum, st
 //Valores iniciales
 export const DEFAULT_STOCK_FILTERS: StockControlFilters = {
    product_code: "",
-   category_id: "",
+   category_id:  "",
 }

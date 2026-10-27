@@ -1,3 +1,4 @@
+import type { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
 import type { GetProductCategoryResponse } from "../product-category/get-product-category.response";
 
 export interface GetProductResponse {
@@ -6,6 +7,7 @@ export interface GetProductResponse {
 	product_name: string;
 	description?: string;
 	category_id: string;
+	usage_type?: ProductUsageType;
 	category?: GetProductCategoryResponse;
 	unit_measure_id?: string;
 	suppliers_count?: number;

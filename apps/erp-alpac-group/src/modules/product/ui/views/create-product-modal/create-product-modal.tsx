@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import {
+   Alert,
 	Button,
 	Checkbox,
 	Dropdown,
@@ -550,6 +551,12 @@ export const CreateProductModal = ({
                            title="Datos dentro del stock de inventario"
                            subtitle="Controla el máximo y mínimo de stock que puedes mantener en tu inventario de este producto."
                            headerClassName="text-[15px!]"
+                        />
+
+                        <Alert
+                           type="warning"
+                           title="Alertas de stock"
+                           message="Recibirás una alerta cuando las existencias de este producto estén por debajo del stock mínimo configurado."
                         />
 
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
