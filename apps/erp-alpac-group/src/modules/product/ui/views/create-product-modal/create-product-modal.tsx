@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import {
-   Alert,
+	Alert,
 	Button,
 	Checkbox,
 	Dropdown,
@@ -43,7 +43,7 @@ import {
 import { readPagedRows } from "@app/shared/utils/paged-response.utils";
 import { SelectSupplierModal } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/select-supplier-modal/select-supplier-modal";
 import {
-   buildStockConfiguration,
+	buildStockConfiguration,
 	GetTitleModalByProductUsageType,
 	GetTitleModalToEditByProductUsageType,
 } from "./create-product-modal.variants";
@@ -102,7 +102,7 @@ const resolveCreateProductDraft = (source: CreateProductDraftSource): CreateProd
 			unit_measure_id: productDetails.unit_measure_id ?? "",
 			product_usage_type: source.usageType,
 			is_tax_exempt: Boolean(productDetails.is_tax_exempt),
-			suppliers: []
+			suppliers: [],
 		},
 		categoryName: productDetails.category?.name ?? "",
 		supplierLinks: readPagedRows(productDetails.suppliers).rows.map(
@@ -201,6 +201,8 @@ export const CreateProductModal = ({
 	);
 	const [supplierLinksDirty, setSupplierLinksDirty] = useState(false);
 	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
+	// Activa o desactiva la configuración inicial de stock (opcional)
+	const [enableStockConfig, setEnableStockConfig] = useState(false);
 	const [appliedFormValues, setAppliedFormValues] = useState<CreateProductRequest>(
 		() =>
 			mountedDraft?.formValues ??
@@ -225,6 +227,7 @@ export const CreateProductModal = ({
 			setSupplierLinksDirty(false);
 			setSelectedProductCategory(nextDraft.categoryName);
 			setIsSelectSupplierOpen(false);
+			setEnableStockConfig(false);
 		}
 	}
 
@@ -234,6 +237,8 @@ export const CreateProductModal = ({
 		handleSubmit,
 		reset,
 		getValues,
+		unregister,
+		clearErrors,
 		formState: { errors },
 	} = useForm<CreateProductRequest>({
 		defaultValues: emptyFormValues(companyId, moduleCode, typeProductToRegister),
@@ -277,12 +282,23 @@ export const CreateProductModal = ({
 		if (isEditMode) setSupplierLinksDirty(true);
 	};
 
+	const handleToggleStockConfig = (checked: boolean) => {
+		setEnableStockConfig(checked);
+
+		// Al desactivar, se eliminan valores, registro y errores de los campos de stock
+		if (!checked) {
+			unregister("configuration_stock");
+			clearErrors("configuration_stock");
+		}
+	};
+
 	const handleClose = () => {
 		reset(emptyFormValues(companyId, moduleCode, typeProductToRegister));
 		setSupplierLinks([]);
 		setSupplierLinksDirty(false);
 		setSelectedProductCategory("");
 		setIsSelectSupplierOpen(false);
+		setEnableStockConfig(false);
 		onClose();
 	};
 
@@ -332,6 +348,8 @@ export const CreateProductModal = ({
 	const handleCreateProduct = (values: CreateProductRequest) => {
 		if (!validateSupplierLinks()) return;
 
+		const shouldSendStock = isOperational && enableStockConfig;
+
 		const payload: CreateProductRequest = {
 			...values,
 			company_id: companyId,
@@ -340,7 +358,9 @@ export const CreateProductModal = ({
 			description: values.description?.trim() || undefined,
 			product_usage_type: typeProductToRegister,
 			is_tax_exempt: Boolean(values.is_tax_exempt),
-			configuration_stock: buildStockConfiguration(values, typeProductToRegister),
+			configuration_stock: shouldSendStock
+				? buildStockConfiguration(values, typeProductToRegister)
+				: null,
 			suppliers:
 				supplierLinks.length > 0
 					? mapSupplierLinksToPayload(supplierLinks)
@@ -381,7 +401,7 @@ export const CreateProductModal = ({
 			category_id: values.category_id,
 			unit_measure_id: values.unit_measure_id || null,
 			product_usage_type: typeProductToRegister,
-			is_tax_exempt: Boolean(values.is_tax_exempt)
+			is_tax_exempt: Boolean(values.is_tax_exempt),
 		};
 
 		if (supplierLinksDirty) {
@@ -543,83 +563,94 @@ export const CreateProductModal = ({
 						enableCharacterCount
 					/>
 
-					{/* Configuración de stock: solo para productos Operacionales */}
-					{
-                  isOperational && !isEditMode && (
-                     <>
-                        <SectionHeader
-                           title="Datos dentro del stock de inventario"
-                           subtitle="Controla el máximo y mínimo de stock que puedes mantener en tu inventario de este producto."
-                           headerClassName="text-[15px!]"
-                        />
+					{/* Configuración de stock (opcional): solo para productos Operacionales al crear */}
+					{isOperational && !isEditMode && (
+						<>
+							<SectionHeader
+								title="Datos dentro del stock de inventario"
+								subtitle="Controla el máximo y mínimo de stock que puedes mantener en tu inventario de este producto."
+								headerClassName="text-[15px!]"
+							/>
 
-                        <Alert
-                           type="warning"
-                           title="Alertas de stock"
-                           message="Recibirás una alerta cuando las existencias de este producto estén por debajo del stock mínimo configurado."
-                        />
+							<Checkbox
+								label="Configurar stock inicial (opcional)"
+								checked={enableStockConfig}
+								disabled={isSaving || isLoadingDetails}
+								onChange={(event) =>
+									handleToggleStockConfig(event.target.checked)
+								}
+							/>
 
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                           <InputText
-                              label="Stock mínimo"
-                              type="number"
-                              min={0}
-                              placeholder="Ej: 10"
-                              isRequired
-                              error={errors.configuration_stock?.maximum_stock?.message}
-                              className={inputClassName}
-                              labelClassName={labelClassName}
-                              disabled={isSaving || isLoadingDetails}
-                              {
-                                 ...register("configuration_stock.minimum_stock", {
-                                    required: "El stock mínimo es obligatorio.",
-                                    setValueAs: toOptionalNumber,
-                                    validate: (value) => {
-                                       const number = toOptionalNumber(value);
-                                       if (number === undefined || Number.isNaN(number))
-                                          return "Ingrese un número válido.";
-                                       if (number < 0) return "El stock mínimo no puede ser negativo.";
-                                       return true;
-                                    },
-                                 })
-                              }
-                           />
+							{enableStockConfig && (
+								<>
+									<Alert
+										type="warning"
+										title="Alertas de stock"
+										message="Recibirás una alerta cuando las existencias de este producto estén por debajo del stock mínimo configurado."
+									/>
 
-                           <InputText
-                              label="Stock máximo"
-                              type="number"
-                              min={0}
-                              placeholder="Ej: 100"
-                              isRequired
-                              error={errors.configuration_stock?.maximum_stock?.message}
-                              className={inputClassName}
-                              labelClassName={labelClassName}
-                              disabled={isSaving || isLoadingDetails}
-                              {...register("configuration_stock.maximum_stock", {
-                                 required: "El stock máximo es obligatorio.",
-                                 setValueAs: toOptionalNumber,
-                                 validate: (value) => {
-                                    const max = toOptionalNumber(value);
+									<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+										<InputText
+											label="Stock mínimo"
+											type="number"
+											min={0}
+											placeholder="Ej: 10"
+											isRequired
+											error={errors.configuration_stock?.minimum_stock?.message}
+											className={inputClassName}
+											labelClassName={labelClassName}
+											disabled={isSaving || isLoadingDetails}
+											{...register("configuration_stock.minimum_stock", {
+												required: "El stock mínimo es obligatorio.",
+												setValueAs: toOptionalNumber,
+												validate: (value) => {
+													const number = toOptionalNumber(value);
+													if (number === undefined || Number.isNaN(number))
+														return "Ingrese un número válido.";
+													if (number < 0)
+														return "El stock mínimo no puede ser negativo.";
+													return true;
+												},
+											})}
+										/>
 
-                                    if (max === undefined || Number.isNaN(max))
-                                       return "Ingrese un número válido.";
+										<InputText
+											label="Stock máximo"
+											type="number"
+											min={0}
+											placeholder="Ej: 100"
+											isRequired
+											error={errors.configuration_stock?.maximum_stock?.message}
+											className={inputClassName}
+											labelClassName={labelClassName}
+											disabled={isSaving || isLoadingDetails}
+											{...register("configuration_stock.maximum_stock", {
+												required: "El stock máximo es obligatorio.",
+												setValueAs: toOptionalNumber,
+												validate: (value) => {
+													const max = toOptionalNumber(value);
 
-                                    if (max < 0) return "El stock máximo no puede ser negativo.";
+													if (max === undefined || Number.isNaN(max))
+														return "Ingrese un número válido.";
 
-                                    const min = toOptionalNumber(
-                                       getValues("configuration_stock.minimum_stock"),
-                                    );
+													if (max < 0)
+														return "El stock máximo no puede ser negativo.";
 
-                                    if (min !== undefined && max < min)
-                                       return "El stock máximo no puede ser menor al mínimo.";
-                                    return true;
-                                 },
-                              })}
-                           />
-                        </div>
-                     </>
-					   )
-               }
+													const min = toOptionalNumber(
+														getValues("configuration_stock.minimum_stock"),
+													);
+
+													if (min !== undefined && max < min)
+														return "El stock máximo no puede ser menor al mínimo.";
+													return true;
+												},
+											})}
+										/>
+									</div>
+								</>
+							)}
+						</>
+					)}
 
 					<CatalogLinkEditor
 						title="Proveedores vinculados (opcional)"

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
@@ -7,6 +7,8 @@ import { DataTable, Pagination, SectionHeader } from "@alpac/design-system"
 import { ProductsAndServicesSectionFilters } from "./views/products-and-services-section-filters";
 import { DEFAULT_PRODUCT_FILTERS, GetProductColumnsToTable } from "./products-and-services-control.variant";
 import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters.types";
+
+const PAGE_SIZE = 5;
 
 export const ProductsAndServicesControl = function() {
 
@@ -19,6 +21,9 @@ export const ProductsAndServicesControl = function() {
          module_code: moduleCode,
          product_usage_type: "Operational",  
          ...(filters.category_product_id  && { category_product_id: filters.category_product_id  }),
+         
+         page_size: PAGE_SIZE,
+         page_number: 1
       }
    });
 
@@ -33,6 +38,13 @@ export const ProductsAndServicesControl = function() {
    const handleClearFilters = () => {
       setFilters(DEFAULT_PRODUCT_FILTERS);
    };
+
+   const handlePageChange = useCallback((page: number) => {
+      setFilters((prev) => ({
+         ...prev,
+         page_number: page,
+      }));
+   },[]);
 
    return (
 		<div className="flex flex-col gap-5">
@@ -64,7 +76,7 @@ export const ProductsAndServicesControl = function() {
 						pageSize={0}
 						totalRecords={0}
 						currentPage={0}
-						onPageChange={() => {}}
+						onPageChange={handlePageChange}
 					/>
 				}
 			/>

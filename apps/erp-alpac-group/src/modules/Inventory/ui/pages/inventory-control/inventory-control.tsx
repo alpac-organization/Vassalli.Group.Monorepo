@@ -6,10 +6,17 @@ import { Button, SectionHeader, Tabs } from "@alpac/design-system";
 import { GetSectionViewsToInventoryControl } from "./inventory-control.variants";
 import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import { useParams } from "@app/shared/hooks/useParams";
-
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 
 export const InventoryControl = function () {
    const [productModal, setProductModal] = useState(false);
+   
+   const { 
+      AlertComponent,
+      handleRequestError, 
+      handleRequestSuccess, 
+   } = useAlertState();
+
    const { setParam, searchParams } = useParams();
 
    const tabsItems = GetSectionViewsToInventoryControl();
@@ -61,7 +68,11 @@ export const InventoryControl = function () {
             typeProductToRegister="Operational"
             isOpen={productModal}
             onClose={() => setProductModal(false)}
+            onRequestError={handleRequestError}
+            onRequestSuccess={handleRequestSuccess}
          />
+
+         { AlertComponent }
       </div>
    );
 };

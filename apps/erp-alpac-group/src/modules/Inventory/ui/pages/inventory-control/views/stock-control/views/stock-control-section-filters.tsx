@@ -39,11 +39,11 @@ export const StockControlSectionFilters = function(props: StockControlSectionFil
 
    return (
 		<form 
-         className="flex gap-5 justify-between items-end"
+         className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-5"
          onSubmit={handleSubmit(onSubmit)}
       >
-        <div className="flex gap-6 items-start">
-            <div className="w-64">
+        <div className="flex w-full flex-wrap items-start gap-4 lg:flex-1 lg:gap-6">
+            <div className="w-full sm:w-64">
                <InputText
                   label="Producto"
                   className={inputClassName}
@@ -53,7 +53,7 @@ export const StockControlSectionFilters = function(props: StockControlSectionFil
                />
             </div>
 
-            <div className="w-64">
+            <div className="w-full sm:w-64">
                <InputText
                   label="Codigo producto"
                   placeholder="ALP-MGA-01-01-001"
@@ -63,7 +63,7 @@ export const StockControlSectionFilters = function(props: StockControlSectionFil
                />
             </div>
 
-            <div className="w-64">
+            <div className="w-full sm:w-64">
                <Controller
                   name="category_id"
                   control={control}
@@ -85,14 +85,11 @@ export const StockControlSectionFilters = function(props: StockControlSectionFil
                />
             </div>
          </div>
-         <section className="flex gap-5">
-            <div className="flex flex-col">
+
+         <section className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-5">
+            <div className="flex w-full flex-col sm:w-auto">
                <Button
-                  icon={
-                     <Filter 
-                        size={15}
-                     />
-                  }
+                  icon={<Filter size={15} />}
                   type="submit"
                   size="giant"
                   className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
@@ -101,13 +98,9 @@ export const StockControlSectionFilters = function(props: StockControlSectionFil
                />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex w-full flex-col sm:w-auto">
                <Button
-                  icon={
-                     <FilterX 
-                        size={15}
-                     />
-                  }
+                  icon={<FilterX size={15} />}
                   type="button"
                   size="giant"
                   className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
