@@ -8,6 +8,7 @@ import type { RouteObject } from "react-router-dom";
 import { ActiveDeductionsPage } from "@app/modules/payroll/ui/pages/active-deduction-index/active-deduction.page";
 import { AttendanceControlPage } from "@app/modules/payroll/ui/pages/attendance-control/attendance-control.page";
 import { SubsidyHistoryPage } from "@app/modules/payroll/ui/pages/subsidy-history/subsidy-history.page";
+import { DisciplinaryManagementPage } from "@app/modules/payroll/ui/pages/disciplinary-management/disciplinary-management.page";
 
 export const PayrollRouter: RouteObject[] = [
   {
@@ -23,6 +24,10 @@ export const PayrollRouter: RouteObject[] = [
   {
     path: "gestion-nomina",
     element: <PayrollPage />,
+  },
+  {
+    path: "disciplinary-management",
+    element: <DisciplinaryManagementPage />,
   },
   {
     path: "historial-periodos-nomina",
