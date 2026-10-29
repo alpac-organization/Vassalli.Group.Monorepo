@@ -1,6 +1,7 @@
 import { CollaboratorPage } from "@app/modules/payroll/ui/pages/collaborator-index/collaborator.page";
 import { CollaboratorProfilePage } from "@app/modules/payroll/ui/pages/collaborator-profile/collaborator-profile-page";
 import { PayrollPage } from "@app/modules/payroll/ui/pages/nomina/payroll-page";
+import { PermissionPoliciesPage } from "@app/modules/payroll/ui/pages/permission-policies/permission-policies";
 import { PayrollPeriodsHistoryPage } from "@app/modules/payroll/ui/pages/periods-payroll/Payroll-periods-history";
 import { ApplicationsPage } from "@app/modules/applications/ui/pages/applications-index/applications.page";
 import { PayrollClosedHistoryPage } from "@app/modules/payroll/ui/pages/payroll-closed-history/payroll-closed-history";
@@ -52,5 +53,9 @@ export const PayrollRouter: RouteObject[] = [
   {
     path: "subsidy-history",
     element: <SubsidyHistoryPage />,
+  },
+  {
+    path: "permission-policies",
+    element: <PermissionPoliciesPage />,
   },
 ];

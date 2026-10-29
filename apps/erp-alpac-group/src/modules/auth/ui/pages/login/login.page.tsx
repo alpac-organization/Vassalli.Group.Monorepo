@@ -21,8 +21,8 @@ function resolveGrupoVasalliCompanyId(
   companies: GetCompaniesResponse[] | undefined,
 ): string | null {
   if (!Array.isArray(companies) || companies.length === 0) return null;
-  const normalize = (s: string) =>
-    s.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").trim();
+  const normalize = (s: string | null | undefined) =>
+    (s ?? "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").trim();
   const match = companies.find((c) => {
     const alias = normalize(c.alias);
     const name = normalize(c.company_name);
@@ -45,7 +45,7 @@ export const LoginPage = function () {
   const companyOptions = useMemo(() => {
     if (!Array.isArray(data)) return [];
     return data.map((c: GetCompaniesResponse) => ({
-      label: c.alias,
+      label: c.alias ?? c.company_name ?? "",
       value: c.company_id,
       image: c.image_url ?? "",
     }));

@@ -5,14 +5,18 @@ import type { CreatePermissionRequestBase } from "@app/modules/payroll/domain/Ap
 import type { PermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/permission-request";
 import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/cancel-permission-request";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+
 const permissionServices = new PermissionServices(httpHandler);
+
 export type UseVacationPayload = {
   company_id: string;
   module_code: string;
   identification_number: string;
 };
+
 export const usePermission = (filters?: PermissionRequest) => {
   const queryClient = useQueryClient();
+
   const createPermissionRequestMutation = useMutation({
     mutationKey: ["createPermissionRequest"],
     mutationFn: (payload: CreatePermissionRequestBase) =>
@@ -25,6 +29,7 @@ export const usePermission = (filters?: PermissionRequest) => {
       ]);
     },
   });
+
   const cancelPermissionRequestMutation = useMutation<
     void,
     ApiErrorResponse,
@@ -54,9 +59,11 @@ export const usePermission = (filters?: PermissionRequest) => {
       ]);
     },
   });
+
   const historyQueryEnabled = Boolean(
     filters?.companie_id && filters?.module_code,
   );
+
   const GetPermissionHistory = useQuery({
     queryKey: ["permissionRecords", filters],
     queryFn: () => {
@@ -67,21 +74,13 @@ export const usePermission = (filters?: PermissionRequest) => {
     },
     enabled: historyQueryEnabled,
     refetchOnWindowFocus: false,
-    staleTime: 0,
+    staleTime: 5 * 60 * 1000,
     retry: 1,
   });
-  //   const generatePermissionDocumentMutation = useMutation({
-  //     mutationKey: ["generatePermissionDocument"],
-  //     mutationFn: (payload: GeneratePermissionDocumentRequest) =>
-  //       permissionServices.generatePermissionDocument(payload),
-  //     onSuccess: () => {
-  //       queryClient.invalidateQueries({ queryKey: ["vacationHistory"] });
-  //     },
-  //   });
+
   return {
     createPermissionRequestMutation,
     cancelPermissionRequestMutation,
     GetPermissionHistory,
-    //  generatePermissionDocumentMutation,
   };
 };
