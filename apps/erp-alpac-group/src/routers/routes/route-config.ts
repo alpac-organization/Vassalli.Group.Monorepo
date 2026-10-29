@@ -13,6 +13,7 @@ import { getManagementRoutes } from "@app/routers/routes/management/management-r
 const {
   collboratorSection,
   gestionPayrollSection,
+  gestionDisciplinariaSection,
   payrollPeriodsHistorySection,
   applicationFromPayrollSection,
   activeDeductionSection,
@@ -73,7 +74,9 @@ export const routeConfig = {
       liquidacionSection,
       attendanceControlSection,
       subsidyHistorialSection,
+      gestionDisciplinariaSection,
     ],
+    [RoleEnum.MANAGER]: [gestionDisciplinariaSection],
   },
   [ModuleEnum.ADMINISTRATION]: {
     [RoleEnum.ADMINISTRATOR]: [
