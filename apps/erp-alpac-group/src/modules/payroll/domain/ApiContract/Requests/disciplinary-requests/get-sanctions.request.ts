@@ -1,8 +1,6 @@
 import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
-import type { SanctionTypeEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
-import { SanctionTypeEnum as SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
-import type { SanctionStatusEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-status.enum";
-import { SanctionStatusEnum as SanctionStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-status.enum";
+import type { SanctionStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-status.enum";
+import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
 
 /**
  * Request para listar sanciones disciplinarias con paginación y filtros.
@@ -17,8 +15,8 @@ import { SanctionStatusEnum as SanctionStatusEnumMap } from "@app/modules/payrol
  * @property {string} module_code - Código del módulo (heredado de {@link BaseRequest}).
  * @property {string} [collaborator_id] - Filtro por colaborador (GUID).
  * @property {string} [fault_id] - Filtro por falta asociada (GUID).
- * @property {string|number} [sanction_type] - Tipo: `VerbalWarning` | `Memorandum` | `Suspension` | `CommitmentLetter` | `Termination`.
- * @property {string|number} [sanction_status] - Estado: `Applied` | `Cancelled` (o número/clave del enum).
+ * @property {SanctionTypeEnumMap|number} [sanction_type] - Tipo: `VerbalWarning` | `Memorandum` | `Suspension` | `CommitmentLetter` | `Termination` (o valor numérico del enum).
+ * @property {SanctionStatusEnumMap|number} [sanction_status] - Estado: `Applied` | `Cancelled` (o valor numérico del enum).
  * @property {number} [page_number] - Número de página (default: `1`).
  * @property {number} [page_size] - Cantidad de registros por página (default: `10`).
  *
@@ -37,16 +35,8 @@ import { SanctionStatusEnum as SanctionStatusEnumMap } from "@app/modules/payrol
 export interface GetSanctionsRequest extends BaseRequest {
   collaborator_id?: string;
   fault_id?: string;
-  sanction_type?:
-    | keyof typeof SanctionTypeEnumMap
-    | SanctionTypeEnum
-    | number
-    | string;
-  sanction_status?:
-    | keyof typeof SanctionStatusEnumMap
-    | SanctionStatusEnum
-    | number
-    | string;
+  sanction_type?: SanctionTypeEnumMap | number;
+  sanction_status?: SanctionStatusEnumMap | number;
   page_number?: number;
   page_size?: number;
 }

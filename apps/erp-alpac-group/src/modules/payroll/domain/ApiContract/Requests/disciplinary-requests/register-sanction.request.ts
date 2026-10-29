@@ -1,7 +1,6 @@
 import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
 import type { DisciplinaryEvidenceRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/disciplinary-evidence.request";
-import type { SanctionTypeEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
-import { SanctionTypeEnum as SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
+import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
 
 /**
  * Request para aplicar una sanción disciplinaria (estado `Applied`, definitiva).
@@ -21,7 +20,7 @@ import { SanctionTypeEnum as SanctionTypeEnumMap } from "@app/modules/payroll/do
  * @property {string} company_id - Identificador de la empresa (heredado de {@link BaseRequest}).
  * @property {string} module_code - Código del módulo (heredado de {@link BaseRequest}).
  * @property {string} fault_id - Falta a sancionar (debe ser el target del suggested; no una hija absorbida).
- * @property {string|number} sanction_type - Tipo: `VerbalWarning` | `Memorandum` | `Suspension` | `CommitmentLetter` | `Termination`.
+ * @property {SanctionTypeEnumMap|number} sanction_type - Tipo: `VerbalWarning` | `Memorandum` | `Suspension` | `CommitmentLetter` | `Termination` (o valor numérico del enum).
  * @property {string} reason - Motivo de la sanción (máximo 500 caracteres).
  * @property {string|null} [suspension_start_date] - Inicio de suspensión (`YYYY-MM-DD`). Obligatorio si el tipo es `Suspension`.
  * @property {string|null} [suspension_end_date] - Fin de suspensión (`YYYY-MM-DD`). Obligatorio si Suspension; rango 3–7 días inclusive.
@@ -41,7 +40,7 @@ import { SanctionTypeEnum as SanctionTypeEnumMap } from "@app/modules/payroll/do
  */
 export interface RegisterSanctionRequest extends BaseRequest {
   fault_id: string;
-  sanction_type: keyof typeof SanctionTypeEnumMap | SanctionTypeEnum | number;
+  sanction_type: SanctionTypeEnumMap | number;
   reason: string;
   suspension_start_date?: string | null;
   suspension_end_date?: string | null;

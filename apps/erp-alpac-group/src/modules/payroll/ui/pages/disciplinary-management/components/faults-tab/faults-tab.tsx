@@ -9,8 +9,11 @@ import { RegisterSanctionModal } from "@app/modules/payroll/ui/pages/disciplinar
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 
-import type { FaultDto } from "@app/modules/payroll/domain/ApiContract/Responses/disciplinary-responses/get-faults.response";
 import type { GetFaultsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/get-faults.request";
+import type { FaultDto } from "@app/modules/payroll/domain/ApiContract/Responses/disciplinary-responses/get-faults.response";
+import type { FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
+import type { FaultSourceEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
+import type { FaultStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-status.enum";
 import type { FaultsFilterFormValues } from "@app/modules/payroll/ui/pages/disciplinary-management/components/faults-filters/faults-filters.types";
 
 const PAGE_SIZE = 5;
@@ -44,10 +47,14 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 			page_size: PAGE_SIZE,
 			...(appliedFilters.code.trim() && { code: appliedFilters.code.trim() }),
 			...(appliedFilters.severity !== "all" && {
-				severity: appliedFilters.severity,
+				severity: appliedFilters.severity as FaultSeverityEnumMap,
 			}),
-			...(appliedFilters.status !== "all" && { status: appliedFilters.status }),
-			...(appliedFilters.source !== "all" && { source: appliedFilters.source }),
+			...(appliedFilters.status !== "all" && {
+				status: appliedFilters.status as FaultStatusEnumMap,
+			}),
+			...(appliedFilters.source !== "all" && {
+				source: appliedFilters.source as FaultSourceEnumMap,
+			}),
 		}),
 		[companyId, moduleCode, pageNumber, appliedFilters],
 	);

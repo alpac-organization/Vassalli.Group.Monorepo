@@ -1,3 +1,5 @@
+import type { FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
+
 /**
  * Tipo de falta del catálogo disciplinario de la empresa.
  *
@@ -9,7 +11,7 @@
  * @property {string} name - Nombre corto de la falta.
  * @property {string|null} [description] - Descripción opcional / detalle normativo.
  * @property {boolean} [is_active] - Indica si el tipo está activo para nuevos registros.
- * @property {string} [fault_severity] - Severidad como texto enum: `Minor` | `Serious` | `VerySerious`.
+ * @property {FaultSeverityEnumMap} [fault_severity] - Severidad: `Minor` | `Serious` | `VerySerious`.
  *
  * @example
  * ```ts
@@ -31,7 +33,7 @@ export interface FaultCatalogDto {
   name: string;
   description?: string | null;
   is_active?: boolean;
-  fault_severity?: string;
+  fault_severity?: FaultSeverityEnumMap;
 }
 
 /**

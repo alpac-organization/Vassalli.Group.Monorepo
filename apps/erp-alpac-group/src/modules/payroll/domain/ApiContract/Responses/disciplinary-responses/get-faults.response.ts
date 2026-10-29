@@ -1,6 +1,6 @@
-import { type FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
-import { type FaultSourceEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
-import { type FaultStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-status.enum";
+import type { FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
+import type { FaultSourceEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
+import type { FaultStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-status.enum";
 
 /**
  * Referencia compacta al catálogo de falta (listados y detalles).
@@ -18,16 +18,16 @@ export interface FaultCatalogRefDto {
 /**
  * Fila de falta disciplinaria en listados paginados.
  *
- * Los enums (`severity`, `source`, `status`) llegan como **texto**.
+ * Los enums (`severity`, `source`, `status`) llegan como clave de {@link FaultSeverityEnumMap} / {@link FaultSourceEnumMap} / {@link FaultStatusEnumMap}.
  *
  * @property {string} fault_id - Identificador de la falta.
  * @property {string} collaborator_id - Identificador del colaborador.
  * @property {string} collaborator_name - Nombre completo del colaborador.
  * @property {FaultCatalogRefDto} fault_catalog - Referencia al tipo de falta.
  * @property {string} occurrence_date - Fecha de ocurrencia (`YYYY-MM-DD`).
- * @property {string} severity - Severidad: `Minor` | `Serious` | `VerySerious`.
- * @property {string} source - Origen: `Manual` | `SystemEscalation` | `BiometricClock`.
- * @property {string} status - Estado: `Open` | `SanctionApplied` | `Prescribed`.
+ * @property {FaultSeverityEnumMap} severity - Severidad: `Minor` | `Serious` | `VerySerious`.
+ * @property {FaultSourceEnumMap} source - Origen: `Manual` | `SystemEscalation` | `BiometricClock`.
+ * @property {FaultStatusEnumMap} status - Estado: `Open` | `SanctionApplied` | `Prescribed`.
  *
  * @example
  * ```ts

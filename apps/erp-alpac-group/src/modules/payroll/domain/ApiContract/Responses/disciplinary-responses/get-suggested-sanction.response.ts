@@ -1,3 +1,6 @@
+import type { FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
+import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
+
 /**
  * Sanción sugerida según severidad y reincidencia en el mes.
  *
@@ -12,9 +15,9 @@
  * @property {string|null} parent_fault_id - Id de la falta padre si hubo escalamiento; `null` si no.
  * @property {boolean} is_covered_by_escalation - `true` si la falta hija ya no debe sancionarse individualmente.
  * @property {number} count_occurrence_in_month - Cantidad de faltas de la misma severidad en el mes (sobre el target).
- * @property {string} severity - Severidad del **target** (texto enum).
- * @property {string} suggested_sanction_type - Tipo sugerido (texto `SanctionType`, ej. `VerbalWarning`).
- * @property {string[]} allowed_sanction_types - Tipos que la UI puede ofrecer en el select.
+ * @property {FaultSeverityEnumMap} severity - Severidad del **target**: `Minor` | `Serious` | `VerySerious`.
+ * @property {SanctionTypeEnumMap} suggested_sanction_type - Tipo sugerido (ej. `VerbalWarning`).
+ * @property {SanctionTypeEnumMap[]} allowed_sanction_types - Tipos que la UI puede ofrecer en el select.
  *
  * @example
  * ```ts
@@ -36,7 +39,7 @@ export interface SuggestedSanctionDto {
   parent_fault_id: string | null;
   is_covered_by_escalation: boolean;
   count_occurrence_in_month: number;
-  severity: string;
-  suggested_sanction_type: string;
-  allowed_sanction_types: string[];
+  severity: FaultSeverityEnumMap;
+  suggested_sanction_type: SanctionTypeEnumMap;
+  allowed_sanction_types: SanctionTypeEnumMap[];
 }

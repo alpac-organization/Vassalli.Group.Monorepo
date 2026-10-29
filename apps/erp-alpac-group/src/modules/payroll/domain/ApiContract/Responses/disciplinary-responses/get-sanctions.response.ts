@@ -4,14 +4,14 @@ import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disc
 /**
  * Fila de sanción disciplinaria en listados paginados.
  *
- * Los enums (`sanction_type`, `sanction_status`) llegan como **texto**.
+ * Los enums (`sanction_type`, `sanction_status`) llegan como clave de {@link SanctionTypeEnumMap} / {@link SanctionStatusEnumMap}.
  *
  * @property {string} sanction_id - Identificador de la sanción.
  * @property {string} fault_id - Falta a la que se aplicó.
  * @property {string} collaborator_id - Colaborador sancionado.
  * @property {string} collaborator_name - Nombre completo del colaborador.
- * @property {string} sanction_type - Tipo: `VerbalWarning` | `Memorandum` | `Suspension` | `CommitmentLetter` | `Termination`.
- * @property {string} sanction_status - Estado: `Applied` | `Cancelled`.
+ * @property {SanctionTypeEnumMap} sanction_type - Tipo: `VerbalWarning` | `Memorandum` | `Suspension` | `CommitmentLetter` | `Termination`.
+ * @property {SanctionStatusEnumMap} sanction_status - Estado: `Applied` | `Cancelled`.
  * @property {string} reason - Motivo de la sanción.
  * @property {string|null} suspension_start_date - Inicio de suspensión (`YYYY-MM-DD`) si aplica.
  * @property {string|null} suspension_end_date - Fin de suspensión (`YYYY-MM-DD`) si aplica.

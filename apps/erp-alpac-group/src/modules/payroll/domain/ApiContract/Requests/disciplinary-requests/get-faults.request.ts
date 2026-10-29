@@ -1,10 +1,7 @@
 import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
-import type { FaultSeverityEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
-import { FaultSeverityEnum as FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
-import type { FaultStatusEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-status.enum";
-import { FaultStatusEnum as FaultStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-status.enum";
-import type { FaultSourceEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
-import { FaultSourceEnum as FaultSourceEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
+import type { FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
+import type { FaultSourceEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
+import type { FaultStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-status.enum";
 
 /**
  * Request para listar faltas disciplinarias con paginación y filtros.
@@ -19,9 +16,9 @@ import { FaultSourceEnum as FaultSourceEnumMap } from "@app/modules/payroll/doma
  * @property {string} module_code - Código del módulo (heredado de {@link BaseRequest}).
  * @property {string} [code] - Filtro por código del catálogo de falta (ej. `FL-ALP-01`).
  * @property {string} [collaborator_id] - Filtro por colaborador (GUID).
- * @property {string|number} [severity] - Severidad: `Minor` | `Serious` | `VerySerious` (o número/clave del enum).
- * @property {string|number} [status] - Estado: `Open` | `SanctionApplied` | `Prescribed` (o número/clave del enum).
- * @property {string|number} [source] - Origen: `Manual` | `SystemEscalation` | `BiometricClock` (o número/clave).
+ * @property {FaultSeverityEnumMap|number} [severity] - Severidad: `Minor` | `Serious` | `VerySerious` (o valor numérico del enum).
+ * @property {FaultStatusEnumMap|number} [status] - Estado: `Open` | `SanctionApplied` | `Prescribed` (o valor numérico del enum).
+ * @property {FaultSourceEnumMap|number} [source] - Origen: `Manual` | `SystemEscalation` | `BiometricClock` (o valor numérico del enum).
  * @property {number} [page_number] - Número de página (default: `1`).
  * @property {number} [page_size] - Cantidad de registros por página (default: `10`).
  *
@@ -40,21 +37,9 @@ import { FaultSourceEnum as FaultSourceEnumMap } from "@app/modules/payroll/doma
 export interface GetFaultsRequest extends BaseRequest {
   code?: string;
   collaborator_id?: string;
-  severity?:
-    | keyof typeof FaultSeverityEnumMap
-    | FaultSeverityEnum
-    | number
-    | string;
-  status?:
-    | keyof typeof FaultStatusEnumMap
-    | FaultStatusEnum
-    | number
-    | string;
-  source?:
-    | keyof typeof FaultSourceEnumMap
-    | FaultSourceEnum
-    | number
-    | string;
+  severity?: FaultSeverityEnumMap | number;
+  status?: FaultStatusEnumMap | number;
+  source?: FaultSourceEnumMap | number;
   page_number?: number;
   page_size?: number;
 }

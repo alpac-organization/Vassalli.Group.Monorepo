@@ -1,6 +1,9 @@
 import type { DisciplinaryEvidenceResponse } from "@app/modules/payroll/domain/ApiContract/Responses/disciplinary-responses/disciplinary-evidence.response";
 import type { DisciplinaryUserResponse } from "@app/modules/payroll/domain/ApiContract/Responses/disciplinary-responses/disciplinary-user.response";
 import type { FaultCatalogRefDto } from "@app/modules/payroll/domain/ApiContract/Responses/disciplinary-responses/get-faults.response";
+import type { FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
+import type { SanctionStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-status.enum";
+import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
 
 /**
  * Detalle completo de una sanción disciplinaria.
@@ -17,9 +20,9 @@ import type { FaultCatalogRefDto } from "@app/modules/payroll/domain/ApiContract
  * @property {string|null} identification_number - Cédula / identificación.
  * @property {FaultCatalogRefDto} fault_catalog - Catálogo de la falta asociada.
  * @property {string} occurrence_date - Fecha de la falta (`YYYY-MM-DD`).
- * @property {string} fault_severity - Severidad de la falta (texto enum).
- * @property {string} sanction_type - Tipo de sanción (texto enum).
- * @property {string} sanction_status - Estado de la sanción (texto enum).
+ * @property {FaultSeverityEnumMap} fault_severity - Severidad de la falta: `Minor` | `Serious` | `VerySerious`.
+ * @property {SanctionTypeEnumMap} sanction_type - Tipo: `VerbalWarning` | `Memorandum` | `Suspension` | `CommitmentLetter` | `Termination`.
+ * @property {SanctionStatusEnumMap} sanction_status - Estado: `Applied` | `Cancelled`.
  * @property {string} reason - Motivo.
  * @property {string|null} suspension_start_date - Inicio de suspensión si aplica.
  * @property {string|null} suspension_end_date - Fin de suspensión si aplica.
@@ -66,9 +69,9 @@ export interface SanctionDetailDto {
   identification_number: string | null;
   fault_catalog: FaultCatalogRefDto;
   occurrence_date: string;
-  fault_severity: string;
-  sanction_type: string;
-  sanction_status: string;
+  fault_severity: FaultSeverityEnumMap;
+  sanction_type: SanctionTypeEnumMap;
+  sanction_status: SanctionStatusEnumMap;
   reason: string;
   suspension_start_date: string | null;
   suspension_end_date: string | null;

@@ -1,6 +1,5 @@
 import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
-import type { FaultSeverityEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
-import { FaultSeverityEnum as FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
+import type { FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
 
 /**
  * Request para listar el catálogo de faltas disciplinarias de la empresa.
@@ -13,7 +12,7 @@ import { FaultSeverityEnum as FaultSeverityEnumMap } from "@app/modules/payroll/
  *
  * @property {string} company_id - Identificador de la empresa (heredado de {@link BaseRequest}).
  * @property {string} module_code - Código del módulo (heredado de {@link BaseRequest}).
- * @property {string|number} [severity] - Filtro por severidad (`Minor` | `Serious` | `VerySerious` o valor numérico).
+ * @property {FaultSeverityEnumMap|number} [severity] - Filtro por severidad (`Minor` | `Serious` | `VerySerious` o valor numérico del enum).
  * @property {string} [code] - Filtro por código de catálogo (ej. `FL-ALP-01`).
  * @property {number} [page_number] - Número de página (default backend: `1`).
  * @property {number} [page_size] - Tamaño de página. Si no se envía, el API puede usar el total.
@@ -30,11 +29,7 @@ import { FaultSeverityEnum as FaultSeverityEnumMap } from "@app/modules/payroll/
  * ```
  */
 export interface GetFaultCatalogRequest extends BaseRequest {
-  severity?:
-    | keyof typeof FaultSeverityEnumMap
-    | FaultSeverityEnum
-    | number
-    | string;
+  severity?: FaultSeverityEnumMap | number;
   code?: string;
   page_number?: number;
   page_size?: number;

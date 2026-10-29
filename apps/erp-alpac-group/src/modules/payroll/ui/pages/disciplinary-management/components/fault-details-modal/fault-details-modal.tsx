@@ -107,9 +107,7 @@ export const FaultDetailsModal = ({
 										value={
 											<Badges
 												label={
-													FaultStatusEnum[
-														view.status as keyof typeof FaultStatusEnum
-													]?.label ?? String(view.status)
+													FaultStatusEnum[view.status]?.label ?? String(view.status)
 												}
 												color="transparent"
 												className={getFaultStatusBadgeClass(view.status)}
@@ -121,9 +119,7 @@ export const FaultDetailsModal = ({
 										value={
 											<Badges
 												label={
-													FaultSeverityEnum[
-														view.severity as keyof typeof FaultSeverityEnum
-													]?.label ?? String(view.severity)
+													FaultSeverityEnum[view.severity]?.label ?? String(view.severity)
 												}
 												color="transparent"
 												className={getFaultSeverityBadgeClass(view.severity)}
@@ -135,9 +131,7 @@ export const FaultDetailsModal = ({
 										value={
 											<Badges
 												label={
-													FaultSourceEnum[
-														view.source as keyof typeof FaultSourceEnum
-													]?.label ?? String(view.source)
+													FaultSourceEnum[view.source]?.label ?? String(view.source)
 												}
 												color="transparent"
 												className={getFaultSourceBadgeClass(view.source)}
@@ -194,9 +188,7 @@ export const FaultDetailsModal = ({
 											<DetailField
 												label="Estado usuario"
 												value={
-													UserStatusEnum[
-														registeredBy.status as keyof typeof UserStatusEnum
-													]?.label ?? registeredBy.status
+													UserStatusEnum[registeredBy.status]?.label ?? registeredBy.status
 												}
 												icon={<UserIcon size={18} />}
 											/>
@@ -223,9 +215,7 @@ export const FaultDetailsModal = ({
 											value={
 												<Badges
 													label={
-														FaultSeverityEnum[
-															parentFault.severity as keyof typeof FaultSeverityEnum
-														]?.label ?? String(parentFault.severity)
+														FaultSeverityEnum[parentFault.severity]?.label ?? String(parentFault.severity)
 													}
 													color="transparent"
 													className={getFaultSeverityBadgeClass(
@@ -239,9 +229,7 @@ export const FaultDetailsModal = ({
 											value={
 												<Badges
 													label={
-														FaultStatusEnum[
-															parentFault.status as keyof typeof FaultStatusEnum
-														]?.label ?? String(parentFault.status)
+														FaultStatusEnum[parentFault.status]?.label ?? String(parentFault.status)
 													}
 													color="transparent"
 													className={getFaultStatusBadgeClass(

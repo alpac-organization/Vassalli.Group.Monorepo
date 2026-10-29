@@ -2,6 +2,8 @@ import { Pagination } from "@alpac/design-system";
 import { useCallback, useMemo, useState } from "react";
 import type { GetSanctionsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/get-sanctions.request";
 import type { SanctionDto } from "@app/modules/payroll/domain/ApiContract/Responses/disciplinary-responses/get-sanctions.response";
+import type { SanctionStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-status.enum";
+import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
 import { useSanction } from "@app/modules/payroll/ui/hooks/sanction/useSanction";
 import { SanctionsFilters } from "@app/modules/payroll/ui/pages/disciplinary-management/components/sanctions-filters/sanctions-filters";
 import type { SanctionsFilterFormValues } from "@app/modules/payroll/ui/pages/disciplinary-management/components/sanctions-filters/sanctions-filters.types";
@@ -34,10 +36,11 @@ export const SanctionsTab = () => {
       page_number: pageNumber,
       page_size: PAGE_SIZE,
       ...(appliedFilters.sanction_type !== "all" && {
-        sanction_type: appliedFilters.sanction_type,
+        sanction_type: appliedFilters.sanction_type as SanctionTypeEnumMap,
       }),
       ...(appliedFilters.sanction_status !== "all" && {
-        sanction_status: appliedFilters.sanction_status,
+        sanction_status:
+          appliedFilters.sanction_status as SanctionStatusEnumMap,
       }),
     }),
     [companyId, moduleCode, pageNumber, appliedFilters],

@@ -1,7 +1,6 @@
 import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
 import type { DisciplinaryEvidenceRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/disciplinary-evidence.request";
-import type { FaultSourceEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
-import { FaultSourceEnum as FaultSourceEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
+import type { FaultSourceEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
 
 /**
  * Ítem individual de falta a registrar dentro de {@link RegisterFaultRequest}.
@@ -12,7 +11,7 @@ import { FaultSourceEnum as FaultSourceEnumMap } from "@app/modules/payroll/doma
  * @property {string} collaborator_id - Colaborador al que se imputa la falta.
  * @property {string} fault_catalog_id - Tipo de falta del catálogo (`fault-catalogs`).
  * @property {string} occurrence_date - Fecha de ocurrencia (`YYYY-MM-DD`). No puede ser futura.
- * @property {string|number} source - Origen: `Manual` | `SystemEscalation` | `BiometricClock`.
+ * @property {FaultSourceEnumMap|number} source - Origen: `Manual` | `SystemEscalation` | `BiometricClock` (o valor numérico del enum).
  * @property {string|null} [parent_fault_id] - Falta padre si ya está vinculada a reincidencia. En registro manual normalmente `null`.
  * @property {DisciplinaryEvidenceRequest[]} [evidences] - Evidencias opcionales (imágenes en base64). Default recomendado: `[]`.
  *
@@ -32,7 +31,7 @@ export interface RegisterFaultItemRequest {
   collaborator_id: string;
   fault_catalog_id: string;
   occurrence_date: string;
-  source: keyof typeof FaultSourceEnumMap | FaultSourceEnum | number;
+  source: FaultSourceEnumMap | number;
   parent_fault_id?: string | null;
   evidences?: DisciplinaryEvidenceRequest[];
 }

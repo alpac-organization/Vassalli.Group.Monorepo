@@ -1,6 +1,9 @@
 import type { DisciplinaryEvidenceResponse } from "@app/modules/payroll/domain/ApiContract/Responses/disciplinary-responses/disciplinary-evidence.response";
 import type { DisciplinaryUserResponse } from "@app/modules/payroll/domain/ApiContract/Responses/disciplinary-responses/disciplinary-user.response";
 import type { FaultCatalogRefDto } from "@app/modules/payroll/domain/ApiContract/Responses/disciplinary-responses/get-faults.response";
+import type { FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
+import type { FaultSourceEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
+import type { FaultStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-status.enum";
 
 /**
  * Resumen de la falta padre cuando la falta actual fue absorbida por reincidencia.
@@ -10,14 +13,14 @@ import type { FaultCatalogRefDto } from "@app/modules/payroll/domain/ApiContract
  *
  * @property {string} fault_id - Identificador de la falta escalada (padre).
  * @property {string} occurrence_date - Fecha de ocurrencia de la falta padre (`YYYY-MM-DD`).
- * @property {string} severity - Severidad de la falta padre (texto enum).
- * @property {string} status - Estado de la falta padre (texto enum).
+ * @property {FaultSeverityEnumMap} severity - Severidad de la falta padre.
+ * @property {FaultStatusEnumMap} status - Estado de la falta padre.
  */
 export interface ParentFaultDto {
   fault_id: string;
   occurrence_date: string;
-  severity: string;
-  status: string;
+  severity: FaultSeverityEnumMap;
+  status: FaultStatusEnumMap;
 }
 
 /**
@@ -25,7 +28,8 @@ export interface ParentFaultDto {
  *
  * Endpoint: `GET .../faults/{fault_id}`
  *
- * Los enums vienen como texto. Las evidencias exponen `image_url` (no base64).
+ * Los enums llegan como clave de {@link FaultSeverityEnumMap} / {@link FaultSourceEnumMap} / {@link FaultStatusEnumMap}.
+ * Las evidencias exponen `image_url` (no base64).
  *
  * @property {string} fault_id - Identificador de la falta.
  * @property {string} collaborator_id - Identificador del colaborador.
@@ -33,9 +37,9 @@ export interface ParentFaultDto {
  * @property {string|null} identification_number - Cédula / identificación (si está disponible).
  * @property {FaultCatalogRefDto} fault_catalog - Catálogo de la falta.
  * @property {string} occurrence_date - Fecha de ocurrencia (`YYYY-MM-DD`).
- * @property {string} severity - Severidad (texto enum).
- * @property {string} source - Origen (texto enum).
- * @property {string} status - Estado (texto enum).
+ * @property {FaultSeverityEnumMap} severity - Severidad: `Minor` | `Serious` | `VerySerious`.
+ * @property {FaultSourceEnumMap} source - Origen: `Manual` | `SystemEscalation` | `BiometricClock`.
+ * @property {FaultStatusEnumMap} status - Estado: `Open` | `SanctionApplied` | `Prescribed`.
  * @property {DisciplinaryEvidenceResponse[]} evidences - Evidencias con URL S3 (puede ser `[]`).
  * @property {ParentFaultDto|null} parent_fault - Falta padre por reincidencia; `null` si no aplica.
  * @property {DisciplinaryUserResponse|null} registered_by - Usuario que registró la falta.
@@ -67,9 +71,9 @@ export interface FaultDetailDto {
   identification_number: string | null;
   fault_catalog: FaultCatalogRefDto;
   occurrence_date: string;
-  severity: string;
-  source: string;
-  status: string;
+  severity: FaultSeverityEnumMap;
+  source: FaultSourceEnumMap;
+  status: FaultStatusEnumMap;
   evidences: DisciplinaryEvidenceResponse[];
   parent_fault: ParentFaultDto | null;
   registered_by: DisciplinaryUserResponse | null;
