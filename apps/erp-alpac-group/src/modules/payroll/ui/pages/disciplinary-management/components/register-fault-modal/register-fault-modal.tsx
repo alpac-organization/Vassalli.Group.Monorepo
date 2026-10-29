@@ -25,6 +25,7 @@ import type { ImageOutput } from "@app/shared/components/image-uploader/image-up
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { getMappedOptionList } from "@app/shared/utils/values.utils";
 
 import { BanIcon, CheckIcon, NotebookTextIcon, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -84,13 +85,16 @@ export const RegisterFaultModal = ({
 	});
 
 	const catalogOptions = useMemo(
-		() =>
-			(GetFaultCatalog.data?.data ?? [])
-				.filter((item) => item.is_active !== false)
-				.map((item) => ({
-					label: item.code ? `${item.code} — ${item.name}` : item.name,
-					value: item.fault_catalog_id,
-				})),
+		() => {
+			const faultCatalogList = (GetFaultCatalog.data?.data ?? [])
+				.filter((item) => item.is_active !== false);
+
+			return getMappedOptionList({
+				list: faultCatalogList,
+				label: (item) => item.code ? `${item.code} — ${item.name}` : item.name,
+				value: (item) => item.fault_catalog_id
+			})
+		},
 		[GetFaultCatalog.data?.data],
 	);
 

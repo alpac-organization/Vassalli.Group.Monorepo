@@ -1,45 +1,44 @@
-import type { Option } from "@alpac/design-system";
 import { FaultSeverityEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
 import { FaultSourceEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
 import { FaultStatusEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-status.enum";
 import { SanctionStatusEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-status.enum";
 import { SanctionTypeEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
+import { getMappedOptionList } from "@app/shared/utils/values.utils";
 
-const toOptions = (
-  enumMap: Record<string, { value: number | string; label: string }>,
-  allLabel: string,
-): Option[] => [
-  { label: allLabel, value: "all" },
-  ...Object.entries(enumMap).map(([key, item]) => ({
-    label: item.label,
-    value: key,
-  })),
-];
+export const FAULT_SEVERITY_FILTER_OPTIONS = getMappedOptionList({
+  list: Object.entries(FaultSeverityEnum),
+  label: ([, item]) => item.label,
+  value: ([key]) => key,
+  allLabel: "Todas las severidades",
+});
 
-export const FAULT_SEVERITY_FILTER_OPTIONS = toOptions(
-  FaultSeverityEnum,
-  "Todas las severidades",
-);
+export const FAULT_STATUS_FILTER_OPTIONS = getMappedOptionList({
+  list: Object.entries(FaultStatusEnum),
+  label: ([, item]) => item.label,
+  value: ([key]) => key,
+  allLabel: "Todos los estados",
+});
 
-export const FAULT_STATUS_FILTER_OPTIONS = toOptions(
-  FaultStatusEnum,
-  "Todos los estados",
-);
+export const FAULT_SOURCE_FILTER_OPTIONS = getMappedOptionList({
+  list: Object.entries(FaultSourceEnum),
+  label: ([, item]) => item.label,
+  value: ([key]) => key,
+  allLabel: "Todos los orígenes",
+});
 
-export const FAULT_SOURCE_FILTER_OPTIONS = toOptions(
-  FaultSourceEnum,
-  "Todos los orígenes",
-);
+export const SANCTION_TYPE_FILTER_OPTIONS = getMappedOptionList({
+  list: Object.entries(SanctionTypeEnum),
+  label: ([, item]) => item.label,
+  value: ([key]) => key,
+  allLabel: "Todos los tipos",
+});
 
-export const SANCTION_TYPE_FILTER_OPTIONS = toOptions(
-  SanctionTypeEnum,
-  "Todos los tipos",
-);
-
-export const SANCTION_STATUS_FILTER_OPTIONS = toOptions(
-  SanctionStatusEnum,
-  "Todos los estados",
-);
+export const SANCTION_STATUS_FILTER_OPTIONS = getMappedOptionList({
+  list: Object.entries(SanctionStatusEnum),
+  label: ([, item]) => item.label,
+  value: ([key]) => key,
+  allLabel: "Todos los estados",
+});
 
 export const disciplinaryInputClassName =
   "w-full rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
