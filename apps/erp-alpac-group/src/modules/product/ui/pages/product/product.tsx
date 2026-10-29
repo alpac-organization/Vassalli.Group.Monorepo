@@ -16,6 +16,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
+import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/utils/styles";
 import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import { ProductDetailsModal } from "@app/modules/product/ui/views/product-details-modal/product-details-modal";
 import { ProductSuppliersModal } from "@app/modules/product/ui/views/product-suppliers-modal/product-suppliers-modal";
@@ -25,8 +26,6 @@ import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
 
-const contextMenuButton =
-  "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 const PAGE_SIZE = 5;
 
