@@ -54,3 +54,10 @@ export const disciplinaryPrimaryButtonClassName =
 
 export const disciplinarySecondaryButtonClassName =
   "w-full text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!";
+
+/** Footer actions — mismo patrón visual que purchase-request-detail-modal */
+export const disciplinaryApproveButtonClassName =
+  "rounded-md! h-11 px-6! border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-40 shadow-sm transition-all duration-200";
+
+export const disciplinaryRejectButtonClassName =
+  "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";

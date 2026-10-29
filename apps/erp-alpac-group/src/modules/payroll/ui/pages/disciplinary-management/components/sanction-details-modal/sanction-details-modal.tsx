@@ -1,8 +1,6 @@
 import { Badges, Modal, Spinner } from "@alpac/design-system";
 import {
-  getSanctionStatusBadgeClass,
-  getSanctionStatusLabel,
-  getSanctionTypeLabel,
+  getSanctionStatusBadgeClass
 } from "@app/modules/payroll/ui/pages/disciplinary-management/utils/disciplinary-labels.utils";
 import type { SanctionDetailsModalProps } from "@app/modules/payroll/ui/pages/disciplinary-management/components/sanction-details-modal/sanction-details-modal.types";
 
@@ -47,16 +45,12 @@ export const SanctionDetailsModal = ({
                 {view.collaborator_name || "—"}
               </p>
               <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">
-                {getSanctionTypeLabel(view.sanction_type)}
+                {""}
               </p>
-              {"identification_number" in view && view.identification_number && (
-                <p className="mt-0.5 text-[13px] text-slate-500 dark:text-slate-400">
-                  Identificación: {view.identification_number}
-                </p>
-              )}
+              
             </div>
             <Badges
-              label={getSanctionStatusLabel(view.sanction_status)}
+              label={""}
               color="transparent"
               className={`shrink-0 ${getSanctionStatusBadgeClass(view.sanction_status)}`}
             />
