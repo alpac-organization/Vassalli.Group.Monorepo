@@ -2,5 +2,5 @@ import type { ReasonsInventoryRemovalRequest } from "@app/modules/Inventory/doma
 
 export interface useReasonsInventoryRemovalProps
 {
-    payloadGetReasonsInventoryRemovalRequest : ReasonsInventoryRemovalRequest
+    payloadGetReasonsInventoryRemovalRequest?: ReasonsInventoryRemovalRequest
 }

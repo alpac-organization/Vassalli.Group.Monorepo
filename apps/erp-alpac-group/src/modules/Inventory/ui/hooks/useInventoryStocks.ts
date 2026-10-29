@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, skipToken  } from "@tanstack/react-query";
 import { warehouseHttpHandler } from "@app/core/adapters";
 import { InventoryStocksServices } from "../../infrastructure/services/inventory-stocks-services";
 
@@ -18,15 +18,16 @@ export const useInventoryStocks = function(props: useInventoryStocksProps) {
     
     const GetInventoryStocksQuery = useQuery<PagedResponseStock<InventoryStockData>, ApiErrorResponse>({
         queryKey: ["inventory-stocks-items", payloadGetInventoryStocksRequest],
-        queryFn: () => inventoryStocksServices.GetInventoryStocks(payloadGetInventoryStocksRequest),
-        enabled: Boolean(payloadGetInventoryStocksRequest),
-        retry: 1,
+        queryFn: payloadGetInventoryStocksRequest
+            ? () => inventoryStocksServices.GetInventoryStocks(payloadGetInventoryStocksRequest)
+            : skipToken,
+        
         staleTime: 0,
         retryDelay: 3000,
         refetchOnMount: false,
         refetchOnWindowFocus: false,
     });
-
+    
     //#endregion 
 
     return {

@@ -2,5 +2,5 @@ import type { InventoryStocksRequest } from "@app/modules/Inventory/domain/api-c
 
 export interface useInventoryStocksProps
 {
-    payloadGetInventoryStocksRequest : InventoryStocksRequest
+    payloadGetInventoryStocksRequest?: InventoryStocksRequest
 }

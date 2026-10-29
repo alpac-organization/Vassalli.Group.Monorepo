@@ -16,6 +16,7 @@ export class InventoryStocksServices implements IInventoryStocksServices {
    async GetInventoryStocks(payload: InventoryStocksRequest) : Promise<PagedResponseStock<InventoryStockData>>{
       try {
          const { company_id, module_code, ...rest } = payload;
+         
          return this.httpClient.get<PagedResponseStock<InventoryStockData>>(`/companies/${company_id}/modules/${module_code}/inventory-stock`, {
             params: cleanParams(rest),
          });

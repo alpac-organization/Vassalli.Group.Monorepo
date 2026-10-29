@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { skipToken, useQuery } from "@tanstack/react-query";
 import { httpHandler } from "@app/core/adapters";
 import { ReasonsInventoryRemovalServices } from "../../infrastructure/services/reasons-inventory-removal-services";
 
@@ -19,8 +19,10 @@ export const useReasonsInventoryRemoval = function(props: useReasonsInventoryRem
 
 	const GetReasonsInventoryRemovalQuery = useQuery<PaginateBaseResponse<ReasonsInventoryRemovalResponse>, ApiErrorResponse>({
 		queryKey: ["reasons-inventory-removal", payloadGetReasonsInventoryRemovalRequest],
-		queryFn: () => reasonsInventoryRemovalServices.GetReasonsInventoryRemoval(payloadGetReasonsInventoryRemovalRequest),
-		enabled: Boolean(payloadGetReasonsInventoryRemovalRequest),
+		queryFn: payloadGetReasonsInventoryRemovalRequest
+			? () => reasonsInventoryRemovalServices.GetReasonsInventoryRemoval(payloadGetReasonsInventoryRemovalRequest)
+			: skipToken,
+			
 		retry: 1,
 		staleTime: 0,
 		refetchOnMount: false,
