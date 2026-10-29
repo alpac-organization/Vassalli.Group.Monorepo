@@ -4,6 +4,9 @@ import { DataTableProps } from "./datatable.type";
 const SELECTED_ROW_BORDER =
 	"outline outline-2 outline-sky-600 dark:outline-sky-500 outline-offset-[-2px]";
 
+/** Cantidad de filas skeleton que se muestran mientras carga. */
+const LOADING_ROWS = 5;
+
 export function DataTable<T>({
 	title,
 	data,
@@ -21,9 +24,14 @@ export function DataTable<T>({
 	maxHeight,
 	enableSelectBorder = false,
 	selectedRowKey = null,
+	isLoading = false,
 	getRowKey,
 }: DataTableProps<T>): React.ReactElement {
 	const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+	const rows = data ?? [];
+	const hasData = rows.length > 0;
+	const showTable = isLoading || hasData;
 
 	const handleRowClick = (item: T, index: number) => {
 		setSelectedIndex(index);
@@ -75,8 +83,10 @@ export function DataTable<T>({
 				</div>
 			)}
 
-			{data !== undefined && data.length ? (
-				<div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto"
+			{showTable ? (
+				<div
+					className="min-h-0 flex-1 overflow-x-auto overflow-y-auto"
+					aria-busy={isLoading}
 					style={{
 						...(height !== undefined ? { height } : {}),
 						...(minHeight !== undefined ? { minHeight } : {}),
@@ -102,60 +112,79 @@ export function DataTable<T>({
 							</tr>
 						</thead>
 						<tbody className="divide-y divide-slate-600 dark:divide-neutral-600">
-							{data.map((item, index) => {
-								const isSelected = isRowSelected(item, index);
-								const baseRowClass =
-									rowClassName !== undefined
-										? rowClassName
-										: `hover:bg-neutral-50/80 dark:hover:bg-[#363a45] ${onRowClick !== undefined ||
-											onRowDoubleClick !== undefined
-											? "cursor-pointer"
-											: ""
-										}`;
-
-								return (
-									<tr
-										key={getRowKey ? getRowKey(item) : index}
-										className={`${baseRowClass} ${isSelected && enableSelectBorder ? SELECTED_ROW_BORDER : ""}`}
-										onClick={() => handleRowClick(item, index)}
-										onDoubleClick={() => handleRowDoubleClick(item, index)}
-									>
+							{isLoading
+								? Array.from({ length: LOADING_ROWS }).map((_, rowIndex) => (
+									<tr key={`skeleton-${rowIndex}`} aria-hidden="true">
 										{columns.map((column) => (
 											<td
 												key={column.key as string}
-												className="whitespace-nowrap px-6 py-4 text-sm text-neutral-900 dark:text-white"
+												className="whitespace-nowrap px-6 py-4"
 											>
-												{column.render
-													? column.render(item)
-													: (item !== undefined
-														? (item as any)[column.key]
-														: "—") || "—"}
+												<div className="h-4 w-full max-w-40 animate-pulse rounded bg-slate-300 dark:bg-neutral-600" />
 											</td>
 										))}
 
 										{onDelete !== undefined && (
-											<td className="whitespace-nowrap px-6 py-4 text-sm text-right">
-												<button
-													type="button"
-													onClick={(e) => {
-														e.stopPropagation();
-														onDelete(item);
-													}}
-													className="inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-red-900 rounded-md focus:outline-none focus:ring-2
-                          									focus:ring-offset-2 dark:focus:ring-offset-[#272b34] transition-colors"
-												>
-													{deleteIcon && <span>{deleteIcon}</span>}
-
-													{deleteText && <span>{deleteText}</span>}
-													{!deleteText && !deleteIcon && (
-														<span>Eliminar</span>
-													)}
-												</button>
+											<td className="whitespace-nowrap px-6 py-4">
+												<div className="ml-auto h-7 w-20 animate-pulse rounded bg-slate-300 dark:bg-neutral-600" />
 											</td>
 										)}
 									</tr>
-								);
-							})}
+								))
+								: rows.map((item, index) => {
+									const isSelected = isRowSelected(item, index);
+									const baseRowClass =
+										rowClassName !== undefined
+											? rowClassName
+											: `hover:bg-neutral-50/80 dark:hover:bg-[#363a45] ${onRowClick !== undefined ||
+												onRowDoubleClick !== undefined
+												? "cursor-pointer"
+												: ""
+											}`;
+
+									return (
+										<tr
+											key={getRowKey ? getRowKey(item) : index}
+											className={`${baseRowClass} ${isSelected && enableSelectBorder ? SELECTED_ROW_BORDER : ""}`}
+											onClick={() => handleRowClick(item, index)}
+											onDoubleClick={() => handleRowDoubleClick(item, index)}
+										>
+											{columns.map((column) => (
+												<td
+													key={column.key as string}
+													className="whitespace-nowrap px-6 py-4 text-sm text-neutral-900 dark:text-white"
+												>
+													{column.render
+														? column.render(item)
+														: (item !== undefined
+															? (item as any)[column.key]
+															: "—") || "—"}
+												</td>
+											))}
+
+											{onDelete !== undefined && (
+												<td className="whitespace-nowrap px-6 py-4 text-sm text-right">
+													<button
+														type="button"
+														onClick={(e) => {
+															e.stopPropagation();
+															onDelete(item);
+														}}
+														className="inline-flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-red-900 rounded-md focus:outline-none focus:ring-2
+                          									focus:ring-offset-2 dark:focus:ring-offset-[#272b34] transition-colors"
+													>
+														{deleteIcon && <span>{deleteIcon}</span>}
+
+														{deleteText && <span>{deleteText}</span>}
+														{!deleteText && !deleteIcon && (
+															<span>Eliminar</span>
+														)}
+													</button>
+												</td>
+											)}
+										</tr>
+									);
+								})}
 						</tbody>
 					</table>
 				</div>

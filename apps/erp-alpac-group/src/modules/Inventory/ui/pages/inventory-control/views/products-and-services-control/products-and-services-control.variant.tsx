@@ -21,19 +21,6 @@ export const GetProductColumnsToTable = function(): TableColumn<GetProductRespon
          label: "Producto"
       },
       {
-         key: "usage_type",       
-         label: "Tipo de uso",
-         render(item){
-            return (
-               <Badges 
-                  color="info"
-                  className="bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
-                  label={ ProductUsageType[item.usage_type ?? "Operational"].label ?? "-"}
-               />
-            )
-         }
-      },
-      {
          key: "category",       
          label: "Categoria",
          render(item) {
@@ -45,6 +32,19 @@ export const GetProductColumnsToTable = function(): TableColumn<GetProductRespon
                />
             )
          },
+      },
+      {
+         key: "usage_type",       
+         label: "Tipo de uso",
+         render(item){
+            return (
+               <Badges 
+                  color="info"
+                  className="bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
+                  label={ ProductUsageType[item.usage_type ?? "Operational"].label ?? "-"}
+               />
+            )
+         }
       },
       {
          key: "options",

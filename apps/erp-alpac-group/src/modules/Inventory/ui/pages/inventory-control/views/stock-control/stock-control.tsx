@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { Loader } from "@app/shared/components/loaders/loader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { DataTable, Pagination, SectionHeader } from "@alpac/design-system";
 
@@ -50,12 +49,6 @@ export const StockControl = function(){
    
 	return (
 		<div className="flex flex-col gap-5 bg-transparent">
-			{
-				(isPending || isFetching) &&  (
-					<Loader title="Cargado información de inventario" />
-				)
-			}
-
 			{/* Resumen de información */}
 
 
@@ -73,6 +66,7 @@ export const StockControl = function(){
 
 			{/* Información de stocks  */}
 			<DataTable 
+            isLoading={isPending || isFetching}
 				title="Existencias y niveles de stock"
 				data={inventoryStocksData?.data ?? []}
 				columns={columnsStocks}

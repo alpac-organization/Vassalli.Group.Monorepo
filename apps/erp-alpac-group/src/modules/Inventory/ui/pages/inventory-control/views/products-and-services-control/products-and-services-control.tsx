@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { Loader } from "@app/shared/components/loaders/loader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
 import { DataTable, Pagination, SectionHeader } from "@alpac/design-system"
@@ -27,7 +26,7 @@ export const ProductsAndServicesControl = function() {
       }
    });
 
-   const { data: ProductsData, isPending, isFetching } = GetProducts;
+   const { data: productsData, isPending, isFetching } = GetProducts;
    const productsAndServicesColumns = GetProductColumnsToTable();
 
       //Metodos de filtrado
@@ -48,12 +47,6 @@ export const ProductsAndServicesControl = function() {
 
    return (
 		<div className="flex flex-col gap-5">
-         {
-            (isPending || isFetching) &&  (
-               <Loader title="Cargado productos operativos" />
-            )
-         }
-
          <SectionHeader
 				title="Filtros de búsqueda"
 				subtitle="Utiliza los filtros de busquedas para una busqueda mas rapida."
@@ -64,18 +57,20 @@ export const ProductsAndServicesControl = function() {
             filters={filters}
             onApply={handleApplyFilters}
             onClear={handleClearFilters}
-         /> 
-
+         />
+         
+         
          {/* Productos y servicios */}
          <DataTable
+            isLoading={isPending || isFetching}
 				title="Productos y Servicios"
-				data={ProductsData?.data ?? []}
+				data={productsData?.data ?? []}
 				columns={productsAndServicesColumns}
 				pagination={
 					<Pagination
-						pageSize={0}
-						totalRecords={0}
-						currentPage={0}
+						pageSize={PAGE_SIZE}
+						totalRecords={productsData?.page_size ?? 0}
+						currentPage={productsData?.page_number ?? 0}
 						onPageChange={handlePageChange}
 					/>
 				}
