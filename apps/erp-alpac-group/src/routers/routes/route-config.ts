@@ -9,6 +9,7 @@ import { getPurchasingRoutes } from "@app/routers/routes/purchasing/purchasing-r
 import { getFinanceRoutes } from "@app/routers/routes/finance/finance-routes";
 import { getWarehouseAdminRoutes } from "@app/routers/routes/warehouse-admin/warehouse-admin-routes";
 import { getManagementRoutes } from "@app/routers/routes/management/management-routes";
+import { getInventoryRoutes } from "./inventory/inventory.routes";
 
 const {
   collboratorSection,
@@ -62,6 +63,11 @@ const {
 const { quoteAnalisysSection } = getFinanceRoutes();
 
 const { analyzedQuoteSection } = getManagementRoutes();
+
+const { 
+  inventoryControl, 
+  inventoryEntriesAndOutputs 
+} = getInventoryRoutes();
 
 export const routeConfig = {
   [ModuleEnum.PAYROLL]: {
@@ -163,4 +169,10 @@ export const routeConfig = {
   [ModuleEnum.MANAGEMENT]: {
     [RoleEnum.ADMINISTRATOR]: [analyzedQuoteSection],
   },
+  [ModuleEnum.INVENTORY]: {
+    [RoleEnum.ADMINISTRATOR]: [
+      inventoryControl, 
+      inventoryEntriesAndOutputs
+    ]
+  }
 };

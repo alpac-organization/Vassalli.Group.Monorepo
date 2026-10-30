@@ -1,30 +1,36 @@
 import { useMemo, useState } from "react";
 import {
+	Alert,
 	Button,
 	Checkbox,
 	Dropdown,
 	InputText,
 	Modal,
+	SectionHeader,
 	Textarea,
 } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
+import { Loader } from "@app/shared/components/loaders/loader";
+
 import type {
 	CreatedProductDto,
+	CreateProductDraft,
+	CreateProductDraftSource,
 	CreateProductModalProps,
 } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
+
+import type { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import type { CatalogLinkItemForm } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 import type { CreateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/create-product.request";
 import type { UpdateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/update-product.request";
+import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
+
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
-import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
-import type { GetProductDetailsResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product-details.response";
-import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
-import {
-	ProductUsageTypeOptions,
-	type ProductUsageType,
-} from "@app/core/enums/product-usage-type.enum";
 import { CatalogLinkEditor } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor";
 import {
 	mapCatalogLinkItemsToTierPayload,
@@ -33,17 +39,21 @@ import {
 	resolveLinkCurrencyPayload,
 	resolveLinkUnitMeasureId,
 	validateCatalogLinkPreferentialDates,
-	type CatalogLinkItemForm,
 } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 import { readPagedRows } from "@app/shared/utils/paged-response.utils";
 import { SelectSupplierModal } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/select-supplier-modal/select-supplier-modal";
-import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
-import { Loader } from "@app/shared/components/loaders/loader";
+import {
+	buildStockConfiguration,
+	GetTitleModalByProductUsageType,
+	GetTitleModalToEditByProductUsageType,
+} from "./create-product-modal.variants";
+import {
+	dropdownClassName,
+	inputClassName,
+	labelClassName,
+} from "@app/modules/purchasing/ui/pages/supplier/utils/style";
+import { toOptionalNumber } from "@app/shared/utils/globals.utils";
 
-const inputClassName =
-	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-const dropdownClassName = `${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
-const labelClassName = "text-black! dark:text-white!";
 const primaryButtonClassName =
 	"text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
 const secondaryButtonClassName =
@@ -52,6 +62,7 @@ const secondaryButtonClassName =
 const emptyFormValues = (
 	companyId: string,
 	moduleCode: string,
+	usageType: ProductUsageType,
 ): CreateProductRequest => ({
 	company_id: companyId,
 	module_code: moduleCode,
@@ -59,31 +70,20 @@ const emptyFormValues = (
 	description: "",
 	category_id: "",
 	unit_measure_id: "",
-	product_usage_type: "Insumo",
+	product_usage_type: usageType,
 	is_tax_exempt: false,
 	suppliers: [],
+	configuration_stock: null,
 });
 
-type CreateProductDraftSource = {
-	isOpen: boolean;
-	isEditMode: boolean;
-	productDetails?: GetProductDetailsResponse;
-	companyId: string;
-	moduleCode: string;
-};
-
-type CreateProductDraft = {
-	formValues: CreateProductRequest;
-	supplierLinks: CatalogLinkItemForm[];
-	categoryName: string;
-};
-
-const resolveCreateProductDraft = (
-	source: CreateProductDraftSource,
-): CreateProductDraft | null => {
+const resolveCreateProductDraft = (source: CreateProductDraftSource): CreateProductDraft | null => {
 	if (!source.isOpen || !source.isEditMode) {
 		return {
-			formValues: emptyFormValues(source.companyId, source.moduleCode),
+			formValues: emptyFormValues(
+				source.companyId,
+				source.moduleCode,
+				source.usageType,
+			),
 			supplierLinks: [],
 			categoryName: "",
 		};
@@ -100,8 +100,7 @@ const resolveCreateProductDraft = (
 			description: productDetails.description ?? "",
 			category_id: productDetails.category_id ?? "",
 			unit_measure_id: productDetails.unit_measure_id ?? "",
-			product_usage_type:
-				(productDetails.product_usage_type as ProductUsageType) || "Insumo",
+			product_usage_type: source.usageType,
 			is_tax_exempt: Boolean(productDetails.is_tax_exempt),
 			suppliers: [],
 		},
@@ -148,33 +147,31 @@ export const CreateProductModal = ({
 	onSubmit,
 	onRequestSuccess,
 	onRequestError,
+	typeProductToRegister,
 }: CreateProductModalProps) => {
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
 	const isEditMode = Boolean(selectedProduct?.product_id);
+	const isOperational = typeProductToRegister === "Operational";
 
-	const {
-		GetProductCategories,
-		CreateProduct,
-		UpdateProduct,
-		GetProductDetails,
-	} = useProduct({
-		getProductCategoryPayload: {
-			company_id: companyId,
-			module_code: moduleCode,
-		},
-		getProductDetailsPayload:
-			isOpen && selectedProduct?.product_id
-				? {
-						company_id: companyId,
-						module_code: moduleCode,
-						product_id: selectedProduct.product_id,
-						page_number: 1,
-						page_size: 100,
-					}
-				: undefined,
-	});
-
+	const { GetProductCategories, CreateProduct, UpdateProduct, GetProductDetails } =
+		useProduct({
+			getProductCategoryPayload: {
+				company_id: companyId,
+				module_code: moduleCode,
+			},
+			getProductDetailsPayload:
+				isOpen && selectedProduct?.product_id
+					?   {
+							company_id: companyId,
+							module_code: moduleCode,
+							product_id: selectedProduct.product_id,
+							page_number: 1,
+							page_size: 100,
+						}
+					: undefined,
+		});
+		
 	const { GetUnitMeasurements } = useUnitOfMeasurement({
 		payloadUnitOfMeasurement: {
 			companie_id: companyId,
@@ -184,13 +181,16 @@ export const CreateProductModal = ({
 	});
 
 	const productDetails = GetProductDetails.data;
+
 	const draftSource: CreateProductDraftSource = {
 		isOpen,
 		isEditMode,
 		productDetails,
 		companyId,
 		moduleCode,
+		usageType: typeProductToRegister,
 	};
+
 	const mountedDraft = resolveCreateProductDraft(draftSource);
 
 	const [selectedProductCategory, setSelectedProductCategory] = useState(
@@ -201,8 +201,12 @@ export const CreateProductModal = ({
 	);
 	const [supplierLinksDirty, setSupplierLinksDirty] = useState(false);
 	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
+	// Activa o desactiva la configuración inicial de stock (opcional)
+	const [enableStockConfig, setEnableStockConfig] = useState(false);
 	const [appliedFormValues, setAppliedFormValues] = useState<CreateProductRequest>(
-		() => mountedDraft?.formValues ?? emptyFormValues(companyId, moduleCode),
+		() =>
+			mountedDraft?.formValues ??
+			emptyFormValues(companyId, moduleCode, typeProductToRegister),
 	);
 	const [syncedDraftSource, setSyncedDraftSource] =
 		useState<CreateProductDraftSource>(draftSource);
@@ -212,7 +216,8 @@ export const CreateProductModal = ({
 		syncedDraftSource.isEditMode !== draftSource.isEditMode ||
 		syncedDraftSource.productDetails !== draftSource.productDetails ||
 		syncedDraftSource.companyId !== draftSource.companyId ||
-		syncedDraftSource.moduleCode !== draftSource.moduleCode
+		syncedDraftSource.moduleCode !== draftSource.moduleCode ||
+		syncedDraftSource.usageType !== draftSource.usageType
 	) {
 		setSyncedDraftSource(draftSource);
 		const nextDraft = resolveCreateProductDraft(draftSource);
@@ -222,6 +227,7 @@ export const CreateProductModal = ({
 			setSupplierLinksDirty(false);
 			setSelectedProductCategory(nextDraft.categoryName);
 			setIsSelectSupplierOpen(false);
+			setEnableStockConfig(false);
 		}
 	}
 
@@ -231,16 +237,17 @@ export const CreateProductModal = ({
 		handleSubmit,
 		reset,
 		getValues,
+		unregister,
+		clearErrors,
 		formState: { errors },
 	} = useForm<CreateProductRequest>({
-		defaultValues: emptyFormValues(companyId, moduleCode),
+		defaultValues: emptyFormValues(companyId, moduleCode, typeProductToRegister),
 		values: appliedFormValues,
 		mode: "onSubmit",
 	});
 
 	const isLoadingDetails =
-		isEditMode &&
-		(GetProductDetails.isPending || GetProductDetails.isFetching);
+		isEditMode && (GetProductDetails.isPending || GetProductDetails.isFetching);
 
 	const productCategories = useMemo(() => {
 		if (!GetProductCategories.data || !Array.isArray(GetProductCategories.data)) {
@@ -248,10 +255,14 @@ export const CreateProductModal = ({
 		}
 
 		const categories: GetProductCategoryResponse[] = GetProductCategories.data;
-		return categories.map((item) => ({
-			value: item.id,
-			label: item.name,
-		}));
+
+		return categories.map((item) => {
+			return {
+				value: item.category_id,
+				label: item.name,
+			}
+		});
+
 	}, [GetProductCategories.data]);
 
 	const unitMeasureOptions = useMemo(() => {
@@ -275,12 +286,23 @@ export const CreateProductModal = ({
 		if (isEditMode) setSupplierLinksDirty(true);
 	};
 
+	const handleToggleStockConfig = (checked: boolean) => {
+		setEnableStockConfig(checked);
+
+		// Al desactivar, se eliminan valores, registro y errores de los campos de stock
+		if (!checked) {
+			unregister("configuration_stock");
+			clearErrors("configuration_stock");
+		}
+	};
+
 	const handleClose = () => {
-		reset(emptyFormValues(companyId, moduleCode));
+		reset(emptyFormValues(companyId, moduleCode, typeProductToRegister));
 		setSupplierLinks([]);
 		setSupplierLinksDirty(false);
 		setSelectedProductCategory("");
 		setIsSelectSupplierOpen(false);
+		setEnableStockConfig(false);
 		onClose();
 	};
 
@@ -319,8 +341,7 @@ export const CreateProductModal = ({
 			);
 			return false;
 		}
-		const preferentialError =
-			validateCatalogLinkPreferentialDates(supplierLinks);
+		const preferentialError = validateCatalogLinkPreferentialDates(supplierLinks);
 		if (preferentialError) {
 			onRequestError?.(preferentialError);
 			return false;
@@ -331,13 +352,19 @@ export const CreateProductModal = ({
 	const handleCreateProduct = (values: CreateProductRequest) => {
 		if (!validateSupplierLinks()) return;
 
+		const shouldSendStock = isOperational && enableStockConfig;
+
 		const payload: CreateProductRequest = {
 			...values,
 			company_id: companyId,
 			module_code: moduleCode,
 			product_name: values.product_name?.trim(),
 			description: values.description?.trim() || undefined,
+			product_usage_type: typeProductToRegister,
 			is_tax_exempt: Boolean(values.is_tax_exempt),
+			configuration_stock: shouldSendStock
+				? buildStockConfiguration(values, typeProductToRegister)
+				: null,
 			suppliers:
 				supplierLinks.length > 0
 					? mapSupplierLinksToPayload(supplierLinks)
@@ -377,7 +404,7 @@ export const CreateProductModal = ({
 			description: values.description?.trim() || undefined,
 			category_id: values.category_id,
 			unit_measure_id: values.unit_measure_id || null,
-			product_usage_type: values.product_usage_type,
+			product_usage_type: typeProductToRegister,
 			is_tax_exempt: Boolean(values.is_tax_exempt),
 		};
 
@@ -416,7 +443,11 @@ export const CreateProductModal = ({
 			<Modal
 				isOpen={isOpen}
 				onClose={handleClose}
-				title={isEditMode ? "Actualizar producto" : "Registro de producto"}
+				title={
+					isEditMode
+						? GetTitleModalToEditByProductUsageType[typeProductToRegister]
+						: GetTitleModalByProductUsageType[typeProductToRegister]
+				}
 				variant="form"
 				size="7xl"
 				description={
@@ -468,11 +499,15 @@ export const CreateProductModal = ({
 									appearance="dark"
 									isRequired
 									value={field.value}
-									disabled={isSaving || isLoadingDetails}
+									disabled={isSaving && !GetProductCategories.isPending && !GetProductCategories.isFetching}
 									onChange={(value) => {
 										field.onChange(value);
+
+										console.log(value)
+
+										const stringValue = String(value);
 										const [category] = productCategories.filter(
-											(item) => item.value === value,
+											(item) => item.value === stringValue || item.value == value,
 										);
 										setSelectedProductCategory(category?.label ?? "");
 									}}
@@ -509,29 +544,6 @@ export const CreateProductModal = ({
 								/>
 							)}
 						/>
-
-						<Controller
-							control={control}
-							name="product_usage_type"
-							rules={{ required: "El tipo de uso es obligatorio." }}
-							render={({ field, fieldState }) => (
-								<Dropdown
-									label="Tipo de uso"
-									placeholder="Seleccione..."
-									appearance="dark"
-									isRequired
-									value={field.value}
-									disabled={isSaving || isLoadingDetails}
-									onChange={(value) =>
-										field.onChange(String(value ?? "") as ProductUsageType)
-									}
-									options={ProductUsageTypeOptions}
-									error={fieldState.error?.message}
-									labelClassName={labelClassName}
-									className={dropdownClassName}
-								/>
-							)}
-						/>
 					</div>
 
 					<Controller
@@ -558,6 +570,95 @@ export const CreateProductModal = ({
 						maxLength={500}
 						enableCharacterCount
 					/>
+
+					{/* Configuración de stock (opcional): solo para productos Operacionales al crear */}
+					{isOperational && !isEditMode && (
+						<>
+							<SectionHeader
+								title="Datos dentro del stock de inventario"
+								subtitle="Controla el máximo y mínimo de stock que puedes mantener en tu inventario de este producto."
+								headerClassName="text-[15px!]"
+							/>
+
+							<Checkbox
+								label="Configurar stock inicial (opcional)"
+								checked={enableStockConfig}
+								disabled={isSaving || isLoadingDetails}
+								onChange={(event) =>
+									handleToggleStockConfig(event.target.checked)
+								}
+							/>
+
+							{enableStockConfig && (
+								<>
+									<Alert
+										type="warning"
+										title="Alertas de stock"
+										message="Recibirás una alerta cuando las existencias de este producto estén por debajo del stock mínimo configurado."
+									/>
+
+									<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+										<InputText
+											label="Stock mínimo"
+											type="number"
+											min={0}
+											placeholder="Ej: 10"
+											isRequired
+											error={errors.configuration_stock?.minimum_stock?.message}
+											className={inputClassName}
+											labelClassName={labelClassName}
+											disabled={isSaving || isLoadingDetails}
+											{...register("configuration_stock.minimum_stock", {
+												required: "El stock mínimo es obligatorio.",
+												setValueAs: toOptionalNumber,
+												validate: (value) => {
+													const number = toOptionalNumber(value);
+													if (number === undefined || Number.isNaN(number))
+														return "Ingrese un número válido.";
+													if (number < 0)
+														return "El stock mínimo no puede ser negativo.";
+													return true;
+												},
+											})}
+										/>
+
+										<InputText
+											label="Stock máximo"
+											type="number"
+											min={0}
+											placeholder="Ej: 100"
+											isRequired
+											error={errors.configuration_stock?.maximum_stock?.message}
+											className={inputClassName}
+											labelClassName={labelClassName}
+											disabled={isSaving || isLoadingDetails}
+											{...register("configuration_stock.maximum_stock", {
+												required: "El stock máximo es obligatorio.",
+												setValueAs: toOptionalNumber,
+												validate: (value) => {
+													const max = toOptionalNumber(value);
+
+													if (max === undefined || Number.isNaN(max))
+														return "Ingrese un número válido.";
+
+													if (max < 0)
+														return "El stock máximo no puede ser negativo.";
+
+													const min = toOptionalNumber(
+														getValues("configuration_stock.minimum_stock"),
+													);
+
+													if (min !== undefined && max < min)
+														return "El stock máximo no puede ser menor al mínimo.";
+													return true;
+												},
+											})}
+										/>
+									</div>
+								</>
+							)}
+						</>
+					)}
 
 					<CatalogLinkEditor
 						title="Proveedores vinculados (opcional)"

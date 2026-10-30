@@ -13,6 +13,9 @@ export type CatalogLinkTierForm = {
 	valid_to: string;
 };
 
+/**
+ * @property entity_id
+ */
 export type CatalogLinkItemForm = {
 	entity_id: string;
 	entity_label: string;
