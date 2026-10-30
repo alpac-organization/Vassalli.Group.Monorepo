@@ -6,6 +6,8 @@ export type MovementDetailFormValues = {
   country_of_origin: string;
   start_date: string;
   start_time: string;
+  vehicle_exit_time: string;
+  container_exit_time: string;
   customs_decaration_number: string;
   plate_number: string;
   trailer_chassis: string;
@@ -39,6 +41,8 @@ export const MOVEMENT_DETAIL_DEFAULT_VALUES: MovementDetailFormValues = {
   country_of_origin: "",
   start_date: "",
   start_time: "",
+  vehicle_exit_time: "",
+  container_exit_time: "",
   customs_decaration_number: "",
   plate_number: "",
   trailer_chassis: "",

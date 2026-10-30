@@ -7,9 +7,9 @@ export function getAccessControlMetrics(
 ): AccessControlMetrics {
   return {
     totalIngresos: stats?.total_entries ?? totalCount,
-    totalesEnPlanta: stats?.total_on_site ?? 0,
-    totalDespachados: stats?.total_exists ?? 0,
-    totalContainerEnSitio: stats?.total_container_on_site ?? 0,
-    totalContainerFuera: stats?.total_container_exited ?? 0
+    totalesEnPlanta: stats?.totals_in_plant ?? 0,
+    totalDespachados: stats?.total_dispatched ?? 0,
+    totalContainerEnSitio: stats?.containers_on_site ?? 0,
+    totalContainerFuera: stats?.containers_dispatched ?? 0
   };
 }

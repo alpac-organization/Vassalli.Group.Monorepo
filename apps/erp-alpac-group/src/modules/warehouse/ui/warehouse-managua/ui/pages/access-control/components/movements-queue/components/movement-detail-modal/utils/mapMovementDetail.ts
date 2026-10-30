@@ -80,15 +80,27 @@ export function mapDetailToFormValues(
     country_of_origin: detail.country_of_origin ?? "",
     start_date: formatDateToSpanishWords(startDateRaw) ?? "",
     start_time: formatTimeWithSeconds(startTimeRaw) ?? "",
+    vehicle_exit_time: detail.vehicle_exit_time ?? "",
+    container_exit_time: detail.container_exit_time ?? "",
     customs_decaration_number: customsDoc?.document_numbers ?? "",
-    plate_number: transport?.vehicle_plate_number ?? "",
+    plate_number: transport?.vehicle_plate_number ?? detail.vehicle_plate_number ?? "",
     trailer_chassis: transport?.vehicle_chassis_number ?? "",
     container_number: detail.container_number ?? "",
     driver_name: transport?.driver_name ?? "",
     driver_license: transport?.driver_license ?? "",
     transportista: transport?.transportista ?? "",
     transport_unit:
-      transport?.transport_unit != null ? String(transport.transport_unit) : "",
+      transport?.transport_unit === "Container" ||
+      transport?.transport_unit === 1 ||
+      transport?.transport_unit === "1"
+        ? "1"
+        : transport?.transport_unit === "Van" ||
+            transport?.transport_unit === 2 ||
+            transport?.transport_unit === "2"
+          ? "2"
+          : transport?.transport_unit != null
+            ? String(transport.transport_unit)
+            : "",
     seal_number: detail.seal_number ?? "",
     custom_branch:
       customBranches?.customs_branch_name || customBranches?.code || "",
