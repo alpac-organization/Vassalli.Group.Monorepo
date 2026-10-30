@@ -1,64 +1,65 @@
 import { Modal } from "@alpac/design-system";
-import type { ApplicationModalProps } from "./application-modal.types";
+import type { ApplicationModalProps } from "@app/modules/applications/ui/pages/applications-index/components/application-modal/application-modal.types";
 import { PermitApplicationTypeEnum } from "@app/modules/applications/domain/enums/permit-application-type.enum";
-// import { DonatedVacationForm } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/donated-vacation-form/donated-vacation-form";
-import { useEffect, useState } from "react";
-import { MedicalAppointmentForm } from "../application-forms/medical-appointment-form/medical-appointment-form";
-import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
-import { VacationForm } from "../application-forms/vacation-form/vacation-form";
-import { VacationPayForm } from "../application-forms/vacation-pay-form/vacation-pay-form";
+import { MedicalAppointmentForm } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/medical-appointment-form/medical-appointment-form";
+import { VacationForm } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/vacation-form/vacation-form";
+import { VacationPayForm } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/vacation-pay-form/vacation-pay-form";
+import { LeaveApplicationForm } from "@app/modules/applications/ui/pages/applications-index/components/application-forms/leave-form/leave-form";
+
+const LEAVE_APPLICATION_TYPES = new Set([
+  PermitApplicationTypeEnum.JudicialAppointment,
+  PermitApplicationTypeEnum.MarriageLeave,
+  PermitApplicationTypeEnum.BirthLeave,
+  PermitApplicationTypeEnum.BereavementLeave,
+]);
 
 export const ApplicationModal = (
-   props: ApplicationModalProps,
+  props: ApplicationModalProps,
 ): React.ReactNode => {
-   const [applicationData, setApplicationData] =
-      useState<GetApplicationsResponse>(props.application);
-   const applicationType =
-      PermitApplicationTypeEnum[applicationData.type] ?? null;
+  const application = props.application;
+  const applicationType = PermitApplicationTypeEnum[application.type] ?? null;
+  const isLeaveApplication =
+    applicationType !== null && LEAVE_APPLICATION_TYPES.has(applicationType);
 
-   useEffect(() => {
-      if (props.application && props.application?.permit_apllication_id) {
-         setApplicationData(props.application);
-      }
-   }, [props.application]);
-
-   return (
-      <Modal
-         variant="form"
-         size="5xl"
-         isOpen={props.isOpen}
-         onClose={() => props.onClose?.()}
-         title="Detalle de Solicitud"
-         description="Información detallada sobre la solicitud seleccionada"
-      >
-         <div className="flex flex-col gap-6">
-            {applicationType === PermitApplicationTypeEnum.Vacation && (
-               <VacationForm
-                  application={applicationData}
-                  onFinishProcess={() => props.onClose?.()}
-               />
-            )}
-
-            {applicationType === PermitApplicationTypeEnum.MedicalAppointment && (
-               <MedicalAppointmentForm
-                  application={applicationData}
-                  onFinishProcess={() => props.onClose?.()}
-               />
-            )}
-
-            {applicationType === PermitApplicationTypeEnum.VacationPay && (
-               <VacationPayForm application={applicationData}
-                  onFinishProcess={() => props.onClose?.()}
-               />
-            )}
-
-            {/* {applicationType === PermitApplicationTypeEnum.DonatedVacations && (
-          <DonatedVacationForm
-            application={applicationData}
+  return (
+    <Modal
+      variant="form"
+      size="5xl"
+      isOpen={props.isOpen}
+      onClose={() => props.onClose?.()}
+      title="Detalle de Solicitud"
+      description="Información detallada sobre la solicitud seleccionada"
+    >
+      <div className="flex flex-col gap-6">
+        {applicationType === PermitApplicationTypeEnum.Vacation ? (
+          <VacationForm
+            application={application}
             onFinishProcess={() => props.onClose?.()}
           />
-        )} */}
-         </div>
-      </Modal>
-   );
+        ) : null}
+
+        {applicationType === PermitApplicationTypeEnum.MedicalAppointment ? (
+          <MedicalAppointmentForm
+            application={application}
+            onFinishProcess={() => props.onClose?.()}
+          />
+        ) : null}
+
+        {applicationType === PermitApplicationTypeEnum.VacationPay ? (
+          <VacationPayForm
+            application={application}
+            onFinishProcess={() => props.onClose?.()}
+          />
+        ) : null}
+
+        {/* Formulario de solicitudes de permisos especiales */}
+        {isLeaveApplication ? (
+          <LeaveApplicationForm
+            application={application}
+            onFinishProcess={() => props.onClose?.()}
+          />
+        ) : null}
+      </div>
+    </Modal>
+  );
 };

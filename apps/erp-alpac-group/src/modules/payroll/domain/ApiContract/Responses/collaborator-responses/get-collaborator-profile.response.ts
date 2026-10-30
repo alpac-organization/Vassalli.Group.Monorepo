@@ -1,4 +1,5 @@
 import type { SalaryType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/utils/utils_permissions";
+import type { PayrollType } from "@app/modules/payroll/domain/ApiContract/Requests/payroll-requests/payroll-process.request";
 export interface CollaboratorProfilePersonalInformation {
   gender?: string;
   identification_type?: string | number | null;
@@ -20,6 +21,8 @@ interface CollaboratorProfileWorkingInformation {
   work_phone_number?: string;
   work_position?: string;
   branch_name?: string;
+  branch_id?: string;
+  payroll_type?: PayrollType;
   entry_date?: string;
 }
 

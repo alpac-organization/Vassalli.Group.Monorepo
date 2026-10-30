@@ -4,9 +4,12 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { usePermissionPolicies } from "@app/modules/payroll/ui/hooks/permission/usePermissionPolicies";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
-import type { CreatePermissionPoliciesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-policies";
+import { buildPermissionPolicyPayload } from "@app/modules/payroll/ui/pages/permission-policies/utils/build-permission-policy-payload";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { NewPermissionPolicyModalProps } from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/types/permission-policy-form.types";
+import type {
+  NewPermissionPolicyModalProps,
+  PermissionPolicyFormValues,
+} from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/types/permission-policy-form.types";
 import { NewPermissionPolicyForm } from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/new-permission-policy-form";
 
 export function NewPermissionPolicyModal({
@@ -43,7 +46,15 @@ export function NewPermissionPolicyModal({
     };
   }, [isOpen]);
 
-  const handleSubmit = (payload: CreatePermissionPoliciesRequest) => {
+  const handleSubmit = (values: PermissionPolicyFormValues) => {
+    if (!companyId || !moduleCode) return;
+
+    const payload = buildPermissionPolicyPayload({
+      companyId,
+      moduleCode,
+      values,
+    });
+
     createPermissionPoliciesMutation.mutate(payload, {
       onSuccess: () => {
         onClose();
@@ -90,8 +101,6 @@ export function NewPermissionPolicyModal({
           permitTypes={formsQuery.data.permit_types}
           beneficiaryScopes={formsQuery.data.beneficiary_scopes}
           familyRelationships={formsQuery.data.family_relationships}
-          companyId={companyId}
-          moduleCode={moduleCode}
           onSubmit={handleSubmit}
           onCancel={onClose}
         />

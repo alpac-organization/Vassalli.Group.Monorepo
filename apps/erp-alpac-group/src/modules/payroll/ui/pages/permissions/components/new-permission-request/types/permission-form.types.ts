@@ -7,9 +7,6 @@ export type MedicalAppointmentImage = {
   content_type: string;
 };
 
-/**
- * Valores capturados y gestionados dentro del formulario de permiso.
- */
 export interface PermissionRequestFormValues {
   type: PermissionType;
   start_date: DatePickerValue;
@@ -20,9 +17,11 @@ export interface PermissionRequestFormValues {
   donated_vacation_days?: number;
   beneficiary_identification?: string;
   medical_images?: MedicalAppointmentImage[];
+  beneficiary_scope?: string;
+  family_relationship?: string;
+  related_person?: string;
   description: string;
 }
 
-/** Tipo de `setError` de react-hook-form alineado con los campos del formulario. */
 export type PermissionFormSetError =
   UseFormSetError<PermissionRequestFormValues>;

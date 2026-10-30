@@ -1,11 +1,23 @@
 import type { CreatePermissionRequestBase } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-request";
 import type { PermissionRequestFormValues } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission-form.types";
 import { PERMISSION_TYPE_TO_ENUM_VALUE } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/new-permissionFormProps";
+import { isLeavePermissionType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission.types";
+import { PermitBeneficiaryScopeEnum } from "@app/modules/payroll/domain/enums/permission-enums/permit-beneficiary-scope.enum";
+import { PermitFamilyRelationshipEnum } from "@app/modules/payroll/domain/enums/permission-enums/permit-family-relationship.enum";
 import { formatTimeHoursOnly } from "@app/shared/utils/string.utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
 dayjs.extend(utc);
+
+function resolveEnumNumber(
+  enumMap: Record<string, { value: number; label: string }>,
+  key: string | undefined,
+  fallback = 0,
+): number {
+  if (!key) return fallback;
+  return Number(enumMap[key]?.value ?? fallback);
+}
 
 interface PayloadContext {
    companyId: string;
@@ -117,13 +129,42 @@ export const generatePermissionPayload = (
             values.beneficiary_identification?.trim() || "",
       };
 
-   } else if (values.type === 'VacationPay') {
-
+   } else if (values.type === "VacationPay") {
       payload.permit_application_vacation_pay = {
          amount_days: values.amount_days || 0,
-         request_date: convertToIsoUtcZ()
+         request_date: convertToIsoUtcZ(),
       };
+   } else if (isLeavePermissionType(values.type)) {
+      const isRangeOfHours =
+         isSameDay && timeFormatType === "rangeOfHours";
+      const isOwnScope = values.beneficiary_scope === "Own";
 
+      payload.permit_application_leave = {
+         start_date: convertToIsoUtcZ(values.start_date),
+         end_date: convertToIsoUtcZ(values.end_date),
+         start_time: isRangeOfHours
+            ? formatTimeHoursOnly(values.start_time)
+            : null,
+         end_time: isRangeOfHours
+            ? formatTimeHoursOnly(values.end_time)
+            : null,
+         beneficiary_scope: resolveEnumNumber(
+            PermitBeneficiaryScopeEnum,
+            values.beneficiary_scope,
+            1,
+         ),
+         family_relationship: isOwnScope
+            ? 0
+            : resolveEnumNumber(
+                 PermitFamilyRelationshipEnum,
+                 values.family_relationship,
+                 0,
+              ),
+         related_person: isOwnScope
+            ? null
+            : values.related_person?.trim() || null,
+         images: values.medical_images ?? [],
+      };
    }
 
    return payload;

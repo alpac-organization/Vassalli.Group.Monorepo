@@ -3,6 +3,7 @@ import { m, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { Modal, RadioButton } from "@alpac/design-system";
 import { usePermission } from "@app/modules/payroll/ui/hooks/permission/usePermission";
+import { usePermissionPolicies } from "@app/modules/payroll/ui/hooks/permission/usePermissionPolicies";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
 import { NewPermissionRequestForm } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-form";
@@ -36,6 +37,20 @@ export function NewPermissionRequestModal({
 }: NewPermissionRequestModalProps) {
   const { companyId, moduleCode, identificationNumber, role } = useUserStore();
   const { createPermissionRequestMutation } = usePermission();
+
+  const policiesContext = useMemo(() => {
+    if (!companyId || !moduleCode) return undefined;
+    return {
+      company_id: companyId,
+      module_code: moduleCode,
+    };
+  }, [companyId, moduleCode]);
+
+  const { policiesQuery, formsQuery } = usePermissionPolicies(policiesContext, {
+    enablePolicies: isOpen,
+    enableForms: isOpen,
+  });
+
   const [foundCollaborator, setFoundCollaborator] =
     useState<GetCollaboratorProfileDetailsResponse | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -47,11 +62,9 @@ export function NewPermissionRequestModal({
   const isOperator = role === RoleEnum.OPERATOR;
   const channel = useMemo(() => {
     if (isOperator || (isManager && managerTarget === "self")) {
-      console.log("PersonalPanel");
       return ChannelEnum.PersonalPanel;
     }
     if (isManager && managerTarget === "other") {
-      console.log("manager");
       return ChannelEnum.PersonalPanel;
     }
     return ChannelEnum.AdministrativePanel;
@@ -295,6 +308,11 @@ export function NewPermissionRequestModal({
                 moduleCode={moduleCode}
                 identificationNumber={targetIdentification}
                 channel={channel}
+                policies={policiesQuery.data ?? []}
+                beneficiaryScopes={formsQuery.data?.beneficiary_scopes ?? []}
+                familyRelationships={
+                  formsQuery.data?.family_relationships ?? []
+                }
               />
             </m.div>
           )}

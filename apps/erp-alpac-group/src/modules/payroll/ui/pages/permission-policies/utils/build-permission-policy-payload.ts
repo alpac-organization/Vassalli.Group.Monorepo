@@ -4,9 +4,7 @@ import { PermitFamilyRelationshipEnum } from "@app/modules/applications/domain/e
 import type { CreatePermissionPoliciesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-policies";
 import type { PermissionPolicyFormValues } from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/types/permission-policy-form.types";
 import type { EnumType } from "@app/shared/types/enum.type";
-import type {
-  CatalogItem,
-} from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/get-permission-forms";
+import type { CatalogItem } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/get-permission-forms";
 
 type BuildPermissionPolicyPayloadArgs = {
   companyId: string;
@@ -51,8 +49,8 @@ export function buildPermissionPolicyPayload({
       PermitFamilyRelationshipEnum,
       isFamilyNucleus ? values.family_relationship : "None",
     ),
-    is_paid: values.is_paid,
-    is_active: values.is_active,
+    is_paid: false,
+    is_active: true,
     requires_evidence: requiresEvidence,
     consumes_vacation_balance: false,
     min_evidence_count: Number(values.min_evidence_count),

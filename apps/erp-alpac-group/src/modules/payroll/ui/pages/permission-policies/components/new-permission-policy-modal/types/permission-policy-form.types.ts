@@ -1,5 +1,4 @@
 import type { CatalogItem } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/get-permission-forms";
-import type { CreatePermissionPoliciesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-policies";
 
 export type PermissionPolicyFormValues = {
   permit_application_type: string;
@@ -10,9 +9,6 @@ export type PermissionPolicyFormValues = {
   requires_evidence: boolean;
   min_evidence_count: string;
   max_evidence_count: string;
-  is_paid: boolean;
-  is_active: boolean;
-  consumes_vacation_balance: boolean;
 };
 
 export type PermissionPolicyFormProps = {
@@ -20,10 +16,8 @@ export type PermissionPolicyFormProps = {
   permitTypes: CatalogItem[];
   beneficiaryScopes: CatalogItem[];
   familyRelationships: CatalogItem[];
-  onSubmit: (payload: CreatePermissionPoliciesRequest) => void;
+  onSubmit: (values: PermissionPolicyFormValues) => void;
   onCancel: () => void;
-  companyId: string;
-  moduleCode: string;
 };
 
 export type NewPermissionPolicyModalProps = {

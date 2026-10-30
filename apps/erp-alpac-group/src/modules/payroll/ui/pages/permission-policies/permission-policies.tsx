@@ -3,6 +3,7 @@ import {
   Breadcrumb,
   Button,
   Dropdown,
+  Modal,
   SectionHeader,
   useTheme,
   type Option,
@@ -26,6 +27,7 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
 import { usePermissionPolicies } from "@app/modules/payroll/ui/hooks/permission/usePermissionPolicies";
 import { PermissionPoliciesTable } from "@app/modules/payroll/ui/pages/permission-policies/components/permission-policies-table/permission-policies-table";
+import type { GetPermissionPoliciesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/get-permission-policies";
 import type { NewPermissionPolicyModalProps } from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/types/permission-policy-form.types";
 
 const loadFeatures = () =>
@@ -66,6 +68,8 @@ export const PermissionPoliciesPage = () => {
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [pendingStatusPolicy, setPendingStatusPolicy] =
+    useState<GetPermissionPoliciesResponse | null>(null);
   const [typeDraft, setTypeDraft] = useState<string>("all");
   const [activeDraft, setActiveDraft] = useState<ActiveFilterValue>("all");
   const [appliedType, setAppliedType] = useState<string>("all");
@@ -132,6 +136,35 @@ export const PermissionPoliciesPage = () => {
     setAppliedType("all");
     setAppliedActive("all");
   }, []);
+
+  const handleUpdatePolicy = useCallback(
+    (_row: GetPermissionPoliciesResponse) => {
+    },
+    [],
+  );
+
+  const handleRequestStatusChange = useCallback(
+    (row: GetPermissionPoliciesResponse) => {
+      setPendingStatusPolicy(row);
+    },
+    [],
+  );
+
+  const handleCloseStatusModal = useCallback(() => {
+    setPendingStatusPolicy(null);
+  }, []);
+
+  const handleConfirmStatusChange = useCallback(() => {
+    setPendingStatusPolicy(null);
+  }, []);
+
+  const statusModalTitle = pendingStatusPolicy?.is_active
+    ? "Desactivar política"
+    : "Activar política";
+
+  const statusModalDescription = pendingStatusPolicy
+    ? `¿Desea ${pendingStatusPolicy.is_active ? "desactivar" : "activar"} la política "${pendingStatusPolicy.permit_application_type_label || "seleccionada"}"?`
+    : "";
 
   if (!companyId || !moduleCode) {
     return (
@@ -250,7 +283,11 @@ export const PermissionPoliciesPage = () => {
           />
         </div>
 
-        <PermissionPoliciesTable data={filteredPolicies} />
+        <PermissionPoliciesTable
+          data={filteredPolicies}
+          onUpdate={handleUpdatePolicy}
+          onRequestStatusChange={handleRequestStatusChange}
+        />
 
         {isCreateOpen ? (
           <Suspense fallback={<Loader title="Cargando formulario..." />}>
@@ -263,6 +300,33 @@ export const PermissionPoliciesPage = () => {
           </Suspense>
         ) : null}
       </m.div>
+
+      <Modal
+        isOpen={pendingStatusPolicy != null}
+        onClose={handleCloseStatusModal}
+        variant="warning"
+        size="md"
+        title={statusModalTitle}
+        description={statusModalDescription}
+        panelClassName="dark:bg-[#272b34]"
+      >
+        <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            size="giant"
+            label="Cancelar"
+            className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+            onClick={handleCloseStatusModal}
+          />
+          <Button
+            type="button"
+            size="giant"
+            label="Confirmar"
+            className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+            onClick={handleConfirmStatusChange}
+          />
+        </div>
+      </Modal>
 
       {AlertComponent}
     </LazyMotion>
