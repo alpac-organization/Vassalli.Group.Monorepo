@@ -7,6 +7,7 @@ import { GetSectionViewsToInventoryControl } from "./inventory-control.variants"
 import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import { useParams } from "@app/shared/hooks/useParams";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { BreadcrumbSection } from "./views/breadcrumb-section/breadcrumb-section";
 
 export const InventoryControl = function () {
    const [productModal, setProductModal] = useState(false);
@@ -30,6 +31,8 @@ export const InventoryControl = function () {
       ? tabFromUrl!
       : "stock-control";
 
+   const activeTabLabel = tabsItems.find((item) => item.id === activeTab)?.label ?? "";
+   
    useEffect(() => {
       if (!isValidTab) {
          setParam("tab", "stock-control");
@@ -42,6 +45,11 @@ export const InventoryControl = function () {
 
    return (
       <div className="flex flex-col gap-4">
+         <BreadcrumbSection 
+            currentLabel={activeTabLabel}
+            onInventoryClick={() => setParam("tab", "stock-control")}
+         />
+
          <div className="flex flex-baseline justify-between">
             <SectionHeader
                title="Control de Inventario"
