@@ -447,6 +447,30 @@ export function MovementDetailModal({
               missingMessage="Hora inicial no registrada"
               className={editableFieldInputClasses}
             />
+            <EditableField
+              name="vehicle_exit_time"
+              label="Hora salida vehículo"
+              formMethods={formMethods}
+              isEditing={false}
+              onEditStart={handleEditStart}
+              onEditEnd={handleEditEnd}
+              onConfirmUpdate={onFieldUpdate}
+              allowEdit={false}
+              missingMessage="Salida no registrada"
+              className={editableFieldInputClasses}
+            />
+            <EditableField
+              name="container_exit_time"
+              label="Hora salida contenedor"
+              formMethods={formMethods}
+              isEditing={false}
+              onEditStart={handleEditStart}
+              onEditEnd={handleEditEnd}
+              onConfirmUpdate={onFieldUpdate}
+              allowEdit={false}
+              missingMessage="Salida no registrada"
+              className={editableFieldInputClasses}
+            />
           </div>
 
           {showCustomsDeclaration ? (
@@ -533,7 +557,7 @@ export function MovementDetailModal({
           />
           <EditableField
             name="transportista"
-            label="Transportista"
+            label="Empresa Transportista"
             formMethods={formMethods}
             isEditing={Boolean(editingFields.transportista)}
             onEditStart={handleEditStart}
@@ -568,7 +592,7 @@ export function MovementDetailModal({
           />
           <EditableField
             name="custom_branch"
-            label="Aduana"
+            label="Aduana de ingreso"
             formMethods={formMethods}
             isEditing={Boolean(editingFields.custom_branch)}
             onEditStart={handleEditStart}

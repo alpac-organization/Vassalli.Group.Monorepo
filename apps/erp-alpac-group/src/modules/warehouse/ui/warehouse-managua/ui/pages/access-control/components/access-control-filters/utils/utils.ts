@@ -19,9 +19,11 @@ export function buildFiltersPayload(
   values: AccessControlFilters,
 ): AccessControlFilters {
   return {
-    document_number: (values.document_number ?? "").trim(),
-    document_type: (values.document_type ?? "").trim(),
-    vehicle_plate_number: (values.vehicle_plate_number ?? "").trim(),
-    container_number: (values.container_number ?? "").trim(),
+    date: (values.date ?? "").trim() || undefined,
+    plate_number: (values.vehicle_plate_number ?? "").trim() || undefined,
+    document_number: (values.document_number ?? "").trim() || undefined,
+    container_number: (values.container_number ?? "").trim() || undefined,
+    reception_code: (values.reception_code ?? "").trim() || undefined,
+    document_type: (values.document_type ?? "").trim() || undefined,
   };
 }

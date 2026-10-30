@@ -12,11 +12,12 @@ import {
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-filters/utils/styles";
 
 const EMPTY_FILTERS: AccessControlFilters = {
+  date: "",
   document_number: "",
   document_type: "",
   vehicle_plate_number: "",
   container_number: "",
-
+  reception_code: "",
 };
 
 export function AccessControlFiltersBar({
@@ -55,8 +56,31 @@ export function AccessControlFiltersBar({
         onSubmit={handleSubmit((values) => {
           onApply(buildFiltersPayload(values));
         })}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 items-end"
       >
+        <div className="flex flex-col min-w-0">
+          <InputText
+            label="Fecha"
+            className={inputClassName}
+            labelClassName={labelClassName}
+            type="date"
+            errorVariant="tooltip"
+            {...register("date")}
+          />
+        </div>
+
+        <div className="flex flex-col min-w-0">
+          <InputText
+            label="Código de recepción"
+            className={inputClassName}
+            labelClassName={labelClassName}
+            type="text"
+            placeholder="Buscar por código..."
+            errorVariant="tooltip"
+            {...register("reception_code")}
+          />
+        </div>
+
         <div className="flex flex-col min-w-0">
           <Controller
             name="document_type"
