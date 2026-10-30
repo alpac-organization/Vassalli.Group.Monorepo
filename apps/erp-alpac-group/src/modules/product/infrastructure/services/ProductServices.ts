@@ -42,10 +42,8 @@ export class ProductServices implements IProductServices {
 			params: cleanParams(queryParams),
 		});
 	}
-
-	async GetProductDetails(
-		payload: GetProductDetailsRequest,
-	): Promise<GetProductDetailsResponse> {
+	
+	async GetProductDetails(payload: GetProductDetailsRequest): Promise<GetProductDetailsResponse> {
 		const { company_id, module_code, product_id, ...queryParams } = payload;
 		const url = `companies/${company_id}/modules/${module_code}/products/${product_id}`;
 

@@ -10,27 +10,27 @@ const inventoryStocksServices = new InventoryStocksServices(warehouseHttpHandler
 
 export const useInventoryStocks = function(props: useInventoryStocksProps) {
 
-    const { 
-        payloadGetInventoryStocksRequest
-    } = props;
+   const { 
+      payloadGetInventoryStocksRequest
+   } = props;
 
-    //#region Obtener listado de productos en stocks
-    
-    const GetInventoryStocksQuery = useQuery<PagedResponseStock<InventoryStockData>, ApiErrorResponse>({
-        queryKey: ["inventory-stocks-items", payloadGetInventoryStocksRequest],
-        queryFn: payloadGetInventoryStocksRequest
-            ? () => inventoryStocksServices.GetInventoryStocks(payloadGetInventoryStocksRequest)
-            : skipToken,
-        
-        staleTime: 0,
-        retryDelay: 3000,
-        refetchOnMount: false,
-        refetchOnWindowFocus: false,
-    });
-    
-    //#endregion 
+   //#region Obtener listado de productos en stocks
+   
+   const GetInventoryStocksQuery = useQuery<PagedResponseStock<InventoryStockData>, ApiErrorResponse>({
+      queryKey: ["inventory-stocks-items", payloadGetInventoryStocksRequest],
+      queryFn: payloadGetInventoryStocksRequest
+         ? () => inventoryStocksServices.GetInventoryStocks(payloadGetInventoryStocksRequest)
+         : skipToken,
+      
+      staleTime: 0,
+      retryDelay: 3000,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+   });
+   
+   //#endregion 
 
-    return {
-        GetInventoryStocksQuery
-    }
+   return {
+      GetInventoryStocksQuery
+   }
 }

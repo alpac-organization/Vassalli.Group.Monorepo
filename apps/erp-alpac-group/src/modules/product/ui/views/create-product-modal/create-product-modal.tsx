@@ -162,7 +162,7 @@ export const CreateProductModal = ({
 			},
 			getProductDetailsPayload:
 				isOpen && selectedProduct?.product_id
-					? {
+					?   {
 							company_id: companyId,
 							module_code: moduleCode,
 							product_id: selectedProduct.product_id,
@@ -171,7 +171,7 @@ export const CreateProductModal = ({
 						}
 					: undefined,
 		});
-
+		
 	const { GetUnitMeasurements } = useUnitOfMeasurement({
 		payloadUnitOfMeasurement: {
 			companie_id: companyId,
@@ -255,10 +255,14 @@ export const CreateProductModal = ({
 		}
 
 		const categories: GetProductCategoryResponse[] = GetProductCategories.data;
-		return categories.map((item) => ({
-			value: item.id,
-			label: item.name,
-		}));
+
+		return categories.map((item) => {
+			return {
+				value: item.category_id,
+				label: item.name,
+			}
+		});
+
 	}, [GetProductCategories.data]);
 
 	const unitMeasureOptions = useMemo(() => {
@@ -495,11 +499,15 @@ export const CreateProductModal = ({
 									appearance="dark"
 									isRequired
 									value={field.value}
-									disabled={isSaving || isLoadingDetails}
+									disabled={isSaving && !GetProductCategories.isPending && !GetProductCategories.isFetching}
 									onChange={(value) => {
 										field.onChange(value);
+
+										console.log(value)
+
+										const stringValue = String(value);
 										const [category] = productCategories.filter(
-											(item) => item.value === value,
+											(item) => item.value === stringValue || item.value == value,
 										);
 										setSelectedProductCategory(category?.label ?? "");
 									}}

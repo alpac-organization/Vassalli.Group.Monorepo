@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { DataTable, Pagination, SectionHeader } from "@alpac/design-system";
 
@@ -7,29 +7,41 @@ import { StockControlSectionFilters } from "./views/stock-control-section-filter
 import { DEFAULT_STOCK_FILTERS, GetInventoryStocksColumnsToTable } from "./stock-control.variants";
 import type { StockControlFilters } from "./stock-control.types";
 
-const PAGE_SIZE = 5;
+const SEARCH_DEBOUNCE_MS = 5000;
 
 export const StockControl = function(){
 	//Consumir el endpoint para obtener existencias de productos en inventarios con su codigo.
 	const { moduleCode, companyId } = useUserStore();
 
+   const [searchText, setSearchText] = useState("");
    const [filters, setFilters] = useState<StockControlFilters>(DEFAULT_STOCK_FILTERS);
 
 	const { GetInventoryStocksQuery } = useInventoryStocks({
 		payloadGetInventoryStocksRequest: {
 			company_id: companyId,
 			module_code: moduleCode,
-         
-         ...(filters.product_code && { product_code: filters.product_code }),
-         ...(filters.category_id  && { category_id:  filters.category_id  }),
 
-         page_size: PAGE_SIZE,
-         page_number: 1
+         ...filters
 		}
 	});
 
 	const { data: inventoryStocksData, isPending, isFetching } = GetInventoryStocksQuery;
 	const columnsStocks = GetInventoryStocksColumnsToTable();
+
+   useEffect(() => {
+		const text = searchText.trim();
+		if (!text) return;
+
+		const timer = setTimeout(() => {
+			setFilters((prev) => ({
+				...prev,
+				product_code: text,
+				page_number: 1,
+			}));
+		}, SEARCH_DEBOUNCE_MS);
+
+		return () => clearTimeout(timer);
+	}, [searchText]);
 
    //Metodos de filtrado
    const handleApplyFilters = (newFilters: StockControlFilters) => {

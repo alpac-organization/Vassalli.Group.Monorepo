@@ -44,21 +44,33 @@ export const ProductDetailsModal = ({isOpen, onClose, selectedProduct }: Product
         <div className="flex flex-col gap-6">
           <section className="flex flex-col gap-3">
             <h5 className={sectionTitleClassName}>Información general</h5>
+            
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              <DetailField label="Código" value={details?.code || "—"} />
-              <DetailField label="Nombre" value={productName} />
+              <DetailField 
+                label="Código" 
+                value={details?.code || "—"} 
+              />
+              
+              <DetailField 
+                label="Nombre" 
+                value={productName} 
+              />
+              
               <DetailField
                 label="Categoría"
                 value={details?.category?.name || "—"}
               />
+
               <DetailField
                 label="Tipo de uso"
-                value={ProductUsageType[details?.product_usage_type ?? "Administrative"].label}
+                value={ProductUsageType[details?.usage_type ?? "Administrative"].label}
               />
+
               <DetailField
                 label="Exento de impuestos"
                 value={details?.is_tax_exempt ? "Sí" : "No"}
               />
+
               <DetailField
                 label="Descripción"
                 value={details?.description || "—"}

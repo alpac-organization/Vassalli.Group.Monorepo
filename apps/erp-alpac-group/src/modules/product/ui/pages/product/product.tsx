@@ -7,6 +7,7 @@ import {
   Pagination,
   AnimatedAlertWrapper,
   type TableColumn,
+  Badges,
 } from "@alpac/design-system";
 import { BlocksIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -25,6 +26,7 @@ import { dropdownClassName, labelClassName } from "../../views/product-price-edi
 import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product.request";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
+import { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
 
 
 const PAGE_SIZE = 5;
@@ -84,8 +86,9 @@ export const Product = () => {
       }
 
       const categories: GetProductCategoryResponse[] = GetProductCategories.data;
+      
       return categories.map((item) => ({
-         value: item.id,
+         value: item.category_id,
          label: item.name,
       }));
    }, [GetProductCategories.data]);
@@ -148,14 +151,37 @@ export const Product = () => {
       () => [
          {
             key: "code",
-            label: "Código",
-            render: (row) => row.code || "—",
+            label: "Código"
          },
-         { key: "product_name", label: "Nombre Producto" },
+         { 
+            key: "product_name", 
+            label: "Nombre Producto" 
+         },
          {
             key: "category",
             label: "Categoría producto",
-            render: (row) => row.category?.name ?? "—",
+            render: (row) => {
+               return (
+                  <Badges 
+                     color="info"
+                     className="bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
+                     label={row.category.name}
+                  />
+               )
+            }
+         },
+         {
+            key: "category",
+            label: "Categoría producto",
+            render: (row) => {
+               return (
+                  <Badges
+                     color="info"
+                     className="bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
+                     label={ProductUsageType[row.usage_type].label}
+                  />
+               )
+            },
          },
          {
             key: "suppliers_count",
@@ -255,11 +281,11 @@ export const Product = () => {
                columns={columnConfig}
                pagination={
                   <Pagination
-                  currentPage={currentPage}
-                  pageSize={PAGE_SIZE}
-                  totalRecords={totalRecords}
-                  onPageChange={handlePageChange}
-                  disabled={GetProducts.isFetching}
+                     currentPage={currentPage}
+                     pageSize={PAGE_SIZE}
+                     totalRecords={totalRecords}
+                     onPageChange={handlePageChange}
+                     disabled={GetProducts.isFetching}
                   />
                }
             />
