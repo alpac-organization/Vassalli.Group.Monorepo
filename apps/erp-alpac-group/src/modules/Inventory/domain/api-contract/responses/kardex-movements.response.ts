@@ -1,7 +1,7 @@
 import type { KardexTypeEnum } from "@app/core/enums/kardex-type.enum";
 import type { KardexMovementTypeEnum } from "@app/core/enums/kardex-movement-type.enum";
 
-export interface KardexMovementsResponse
+export interface KardexMovementsData
 {
    /**
     * Identificador único del registro de Kardex (GUID).

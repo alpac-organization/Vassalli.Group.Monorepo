@@ -1,5 +1,6 @@
 import { Modal } from "@alpac/design-system"
 import type { EditStockModalProps } from "./edit-stock-modal.types"
+import { useInventoryStocks } from "@app/modules/Inventory/ui/hooks/useInventoryStocks";
 
 export const EditStockModal = function(props: EditStockModalProps){
 
@@ -8,6 +9,8 @@ export const EditStockModal = function(props: EditStockModalProps){
       onClose = () => {},
       stockSelected
    } = props;
+
+   const { } = useInventoryStocks({});
    
    console.log(JSON.stringify(stockSelected, null, 3));
 

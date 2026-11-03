@@ -30,6 +30,17 @@ export const useInventoryStocks = function(props: useInventoryStocksProps) {
    
    //#endregion 
 
+   //#region obtener movimiento de kardex
+
+
+   //#endregion
+
+   //#region Actualizar niveles de stock para lanzar notificaciones de alerta
+
+
+
+   //#endregion
+
    return {
       GetInventoryStocksQuery
    }

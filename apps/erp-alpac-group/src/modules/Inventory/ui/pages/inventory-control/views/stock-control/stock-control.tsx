@@ -9,6 +9,7 @@ import { EditStockModal } from "./components/edit-stock-modal/edit-stock-modal";
 
 import type { StockControlFilters } from "./stock-control.types";
 import type { InventoryStockData } from "@app/modules/Inventory/domain/api-contract/responses/inventory-stocks.response";
+import { StockControlSectionCards } from "./views/stock-control-cards/stock-control-section-cards";
 
 const SEARCH_DEBOUNCE_MS = 5000;
 
@@ -86,7 +87,16 @@ export const StockControl = function(){
 
    return (
       <div className="flex flex-col gap-5 bg-transparent">
+
          {/* Resumen de información */}
+         <SectionHeader
+            title="Resumen de existencias"
+            subtitle="Estado actual de los niveles de stock"
+         />
+
+         <StockControlSectionCards
+            data={inventoryStocksData}
+         /> 
 
          {/* Filtros de busquedas */}
          <SectionHeader
@@ -99,10 +109,11 @@ export const StockControl = function(){
             onClear={handleClearFilters}
             onApply={handleApplyFilters}
          />
-
+         
          {/* Información de stocks  */}
          <DataTable
-            isLoading={isPending || isFetching}
+            // isLoading={isPending || isFetching}
+            isLoading
             title="Existencias y niveles de stock"
             data={inventoryStocksData?.data ?? []}
             columns={columnsStocks}
