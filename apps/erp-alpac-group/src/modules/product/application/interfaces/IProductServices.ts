@@ -15,9 +15,8 @@ import type { GetProductSupplierPriceHistoryResponse } from "@app/modules/produc
 import type { GetProductResponseList } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 
 export interface IProductServices {
-	GetProductCategories(
-		payload: GetProductCategoryRequest,
-	): Promise<GetProductCategoryResponse>;
+	
+	GetProductCategories( payload: GetProductCategoryRequest): Promise<GetProductCategoryResponse[]>;
 
 	GetProducts(payload: GetProductRequest): Promise<GetProductResponseList>;
 

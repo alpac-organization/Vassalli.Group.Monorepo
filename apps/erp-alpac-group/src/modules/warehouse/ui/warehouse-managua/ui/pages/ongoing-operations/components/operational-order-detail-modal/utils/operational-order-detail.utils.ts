@@ -59,7 +59,7 @@ export function mapEvidenceImages(
 	return (parsed?.evidence_urls ?? [])
 		.map((evidence) => evidence?.image_url ?? evidence?.document_url ?? "")
 		.filter(Boolean)
-		.map((url) => ({ image_base64: url }));
+		.map((url) => ({ image_url: url }));
 }
 
 export function buildDetailModalTitle(poCode?: string | null): string {

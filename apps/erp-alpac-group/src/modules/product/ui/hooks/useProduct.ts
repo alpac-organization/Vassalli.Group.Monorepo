@@ -16,6 +16,7 @@ import type { UpdateProductSupplierPriceRequest } from "@app/modules/product/dom
 import type { GetProductSupplierPriceHistoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product-supplier-price-history.request";
 import type { GetProductSupplierPriceHistoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product-supplier-price-history.response";
 import type { DeleteProductSupplierLinkRequest } from "@app/modules/product/domain/ApiContract/Requests/product/delete-product-supplier-link.request";
+import type { GetProductCategoryResponse } from "../../domain/ApiContract/Responses/product-category/get-product-category.response";
 
 const productServices = new ProductServices(httpHandler);
 
@@ -60,10 +61,9 @@ export const useProduct = (props?: useProductProps) => {
 			getPriceHistoryPayload?.supplier_id?.trim(),
 	);
 
-	const GetProductCategories = useQuery({
+	const GetProductCategories = useQuery<GetProductCategoryResponse[], ApiErrorResponse>({
 		queryKey: ["get-product-categories", getProductCategoryPayload],
-		queryFn: () =>
-			productServices.GetProductCategories(getProductCategoryPayload!),
+		queryFn: () => productServices.GetProductCategories(getProductCategoryPayload!),
 		enabled: productCategoryEnabled,
 		refetchOnWindowFocus: false,
 		staleTime: 1000 * 60 * 2,
@@ -99,20 +99,17 @@ export const useProduct = (props?: useProductProps) => {
 		retry: 1,
 	});
 
-	const CreateProduct = useMutation<
-		CreateProductResponse,
-		ApiErrorResponse,
-		CreateProductRequest
-	>({
+	const CreateProduct = useMutation<CreateProductResponse, ApiErrorResponse, CreateProductRequest>({
 		mutationKey: ["create-product"],
-		mutationFn: (payload: CreateProductRequest) =>
-			productServices.CreateProduct(payload),
+		mutationFn: (payload: CreateProductRequest) => productServices.CreateProduct(payload),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["get-products"] });
 			queryClient.invalidateQueries({ queryKey: ["suppliers"] });
 			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+			queryClient.invalidateQueries({ queryKey: ["inventory-stocks-items"] });
 		},
 		retry: 1,
+		retryDelay: 3000,		
 	});
 
 	const UpdateProduct = useMutation<void, ApiErrorResponse, UpdateProductRequest>({
