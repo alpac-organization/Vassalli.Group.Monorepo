@@ -25,13 +25,11 @@ export class ProductServices implements IProductServices {
 		this.apiHandler = httpHandler;
 	}
 
-	async GetProductCategories(
-		payload: GetProductCategoryRequest,
-	): Promise<GetProductCategoryResponse> {
+	async GetProductCategories(payload: GetProductCategoryRequest): Promise<GetProductCategoryResponse[]> {
 		const { company_id, module_code, ...queryParams } = payload;
 		const url = `companies/${company_id}/modules/${module_code}/category-products`;
 
-		return this.apiHandler.get<GetProductCategoryResponse>(url, {
+		return this.apiHandler.get<GetProductCategoryResponse[]>(url, {
 			params: cleanParams(queryParams),
 		});
 	}
@@ -44,10 +42,8 @@ export class ProductServices implements IProductServices {
 			params: cleanParams(queryParams),
 		});
 	}
-
-	async GetProductDetails(
-		payload: GetProductDetailsRequest,
-	): Promise<GetProductDetailsResponse> {
+	
+	async GetProductDetails(payload: GetProductDetailsRequest): Promise<GetProductDetailsResponse> {
 		const { company_id, module_code, product_id, ...queryParams } = payload;
 		const url = `companies/${company_id}/modules/${module_code}/products/${product_id}`;
 
@@ -116,6 +112,8 @@ export class ProductServices implements IProductServices {
 		const { company_id, module_code, ...rest } = payload;
 		const url = `companies/${company_id}/modules/${module_code}/category-products`;
 
+		console.log(JSON.stringify(rest, null, 3));
+		
 		return this.apiHandler.post<CreateProductCategoryResponse>(url, rest);
 	}
 }

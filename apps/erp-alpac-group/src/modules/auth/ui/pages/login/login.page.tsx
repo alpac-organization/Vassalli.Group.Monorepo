@@ -21,8 +21,8 @@ function resolveGrupoVasalliCompanyId(
   companies: GetCompaniesResponse[] | undefined,
 ): string | null {
   if (!Array.isArray(companies) || companies.length === 0) return null;
-  const normalize = (s: string | null | undefined) =>
-    (s ?? "").toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").trim();
+  const normalize = (s: string) =>
+    s?.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").trim();
   const match = companies.find((c) => {
     const alias = normalize(c.alias);
     const name = normalize(c.company_name);
