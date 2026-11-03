@@ -66,7 +66,8 @@ const { analyzedQuoteSection } = getManagementRoutes();
 
 const { 
   inventoryControl, 
-  inventoryEntriesAndOutputs 
+  inventoryEntriesAndOutputs,
+  supplyRequestsSection
 } = getInventoryRoutes();
 
 export const routeConfig = {
@@ -172,7 +173,17 @@ export const routeConfig = {
   [ModuleEnum.INVENTORY]: {
     [RoleEnum.ADMINISTRATOR]: [
       inventoryControl, 
-      inventoryEntriesAndOutputs
+      inventoryEntriesAndOutputs,
+      supplyRequestsSection
+    ],
+    [RoleEnum.SUPERVISOR]: [
+      supplyRequestsSection
+    ],
+    [RoleEnum.MANAGER]: [
+      supplyRequestsSection
+    ],
+    [RoleEnum.OPERATOR]: [
+      supplyRequestsSection
     ]
   }
 };
