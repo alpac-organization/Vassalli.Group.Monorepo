@@ -12,6 +12,10 @@ export interface ReceptionTransportEntranceDto {
   vehicle_plate_number: string;
   vehicle_chassis_number: string;
   transport_unit: string | number;
+  vehicle_exit_date?: string | null;
+  vehicle_exit_time?: string | null;
+  container_exit_date?: string | null;
+  container_exit_time?: string | null;
 }
 
 export interface AdditionalDataEvidenceUrl {
@@ -42,7 +46,9 @@ export interface ReceptionEntranceDetail {
   country_of_origin?: string | null;
   document_type?: DocumentType | number | string | null;
   created_at?: string | null;
+  vehicle_exit_date?: string | null;
   vehicle_exit_time?: string | null;
+  container_exit_date?: string | null;
   container_exit_time?: string | null;
   additional_data?: AdditionalReceptionEntranceData | string | null;
   custom_branches_information?: CustomBranchesInformation | null;

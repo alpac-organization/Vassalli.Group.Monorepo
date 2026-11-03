@@ -17,4 +17,6 @@ export interface TabProps<T extends string> {
    */
   keepMounted?: boolean;
   onTabChange?: (tabId: T) => void;
+  /** En móvil: `"select"` (default) dropdown, o `"tabs"` mismas pestañas responsivas. */
+  mobileMode?: "select" | "tabs";
 }

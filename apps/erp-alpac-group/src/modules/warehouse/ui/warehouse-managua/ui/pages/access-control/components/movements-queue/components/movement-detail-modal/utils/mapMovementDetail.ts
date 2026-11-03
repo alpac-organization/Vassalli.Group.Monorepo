@@ -47,6 +47,49 @@ export function isDucaDocumentType(detail: ReceptionEntranceDetail): boolean {
 export function mapDetailToFormValues(
   detail: ReceptionEntranceDetail,
 ): MovementDetailFormValues {
+  const normalizeTime = (value?: string | null): string => {
+    if (!value?.trim()) return "";
+    return value
+      .trim()
+      .split(":")
+      .map((part, index) => (index === 2 ? part.split(".")[0] || "00" : part))
+      .join(":");
+  };
+
+  const formatSpanishDateTime = (date?: string | null, time?: string | null): string => {
+    if (!date && !time) return "";
+    let datePart = "";
+    if (date) {
+      const parts = date.split("-");
+      if (parts.length === 3) {
+        const [year, month, day] = parts;
+        const parsedDate = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), 12, 0, 0));
+        const weekday = parsedDate.toLocaleDateString("es-NI", { weekday: "long", timeZone: "UTC" });
+        datePart = `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+      } else {
+        datePart = date;
+      }
+    }
+
+    let timePart = "";
+    if (time?.trim()) {
+      const [hours, minutes, secondsRaw = "00"] = time.split(":");
+      const hourNumber = Number(hours);
+      const minuteNumber = Number(minutes);
+      const seconds = (secondsRaw || "00").split(".")[0] || "00";
+      const secondNumber = Number(seconds);
+      if (!Number.isNaN(hourNumber) && !Number.isNaN(minuteNumber)) {
+        const period = hourNumber >= 12 ? "pm" : "am";
+        const normalizedHour = hourNumber % 12 || 12;
+        timePart = `${String(normalizedHour).padStart(2, "0")}:${String(minuteNumber).padStart(2, "0")}:${String(Number.isNaN(secondNumber) ? 0 : secondNumber).padStart(2, "0")} ${period}`;
+      } else {
+        timePart = time;
+      }
+    }
+
+    return [datePart, timePart].filter(Boolean).join(" ");
+  };
+
   const transport = detail.reception_transport_entrance_information;
   const customBranches = detail.custom_branches_information;
   const parsed = parseAdditionalData(detail.additional_data);
@@ -80,8 +123,19 @@ export function mapDetailToFormValues(
     country_of_origin: detail.country_of_origin ?? "",
     start_date: formatDateToSpanishWords(startDateRaw) ?? "",
     start_time: formatTimeWithSeconds(startTimeRaw) ?? "",
-    vehicle_exit_time: detail.vehicle_exit_time ?? "",
-    container_exit_time: detail.container_exit_time ?? "",
+    registration_date_time: formatSpanishDateTime(startDateRaw, startTimeRaw),
+    vehicle_exit_date: detail.vehicle_exit_date ?? transport?.vehicle_exit_date ?? "",
+    vehicle_exit_time: normalizeTime(detail.vehicle_exit_time ?? transport?.vehicle_exit_time ?? ""),
+    vehicle_exit_date_time: formatSpanishDateTime(
+      detail.vehicle_exit_date ?? transport?.vehicle_exit_date ?? "",
+      detail.vehicle_exit_time ?? transport?.vehicle_exit_time ?? "",
+    ),
+    container_exit_date: detail.container_exit_date ?? transport?.container_exit_date ?? "",
+    container_exit_time: normalizeTime(detail.container_exit_time ?? transport?.container_exit_time ?? ""),
+    container_exit_date_time: formatSpanishDateTime(
+      detail.container_exit_date ?? transport?.container_exit_date ?? "",
+      detail.container_exit_time ?? transport?.container_exit_time ?? "",
+    ),
     customs_decaration_number: customsDoc?.document_numbers ?? "",
     plate_number: transport?.vehicle_plate_number ?? detail.vehicle_plate_number ?? "",
     trailer_chassis: transport?.vehicle_chassis_number ?? "",

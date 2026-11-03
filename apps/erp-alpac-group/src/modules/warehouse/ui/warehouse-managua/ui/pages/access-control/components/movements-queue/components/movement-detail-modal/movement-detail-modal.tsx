@@ -56,6 +56,7 @@ const documentTypeOptions: Option[] = [
 
 export function MovementDetailModal({
   isOpen,
+  receptionId,
   detail,
   isLoading = false,
   onClose,
@@ -76,6 +77,13 @@ export function MovementDetailModal({
   const [newDucatDraft, setNewDucatDraft] = useState("");
   const [isSavingNewDucat, setIsSavingNewDucat] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("resumen");
+
+  useEffect(() => {
+    if (receptionId) {
+      setActiveTab("resumen");
+    }
+  }, [receptionId]);
 
   const { companyId, moduleCode } = useUserStore();
   const { GetCustomBranches } = useWarehouse({
@@ -119,13 +127,13 @@ export function MovementDetailModal({
         String(d.document_type) === "3" ||
         String(d.document_type).toUpperCase().includes("DUCA"),
     );
-    
+
     return ducaDocs.map((d) => ({
       value: d.document_id || d.operational_order_id || d.document_numbers,
       label: d.document_numbers,
     } as Option));
 
-  }, [detail?.additional_data]);  
+  }, [detail?.additional_data]);
 
   const ducatsMissing = ducatOptions.length === 0;
 
@@ -240,67 +248,6 @@ export function MovementDetailModal({
       render: () => (
         <div className="min-w-0 pt-1 sm:pt-2">
           <div className={fieldsGridClasses}>
-            <EditableField
-              name="document_type"
-              label="Tipo de documento"
-              formMethods={formMethods}
-              options={documentTypeOptions}
-              isEditing={Boolean(editingFields.document_type)}
-              onEditStart={handleEditStart}
-              onEditEnd={handleEditEnd}
-              onConfirmUpdate={onFieldUpdate}
-              missingMessage="Tipo de documento no registrado"
-              className={editableFieldInputClasses}
-            />
-            {!showCustomsDeclaration && (
-              <div className="min-w-0">
-                <div className="flex items-start gap-2">
-                  <div className="flex-1 min-w-0 relative">
-                    <Dropdown
-                      appearance="dark"
-                      label="DUCAs del registro"
-                      optional
-                      labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
-                      placeholder={
-                        ducatsMissing
-                          ? "DUCAs no registradas"
-                          : "Seleccione una DUCA"
-                      }
-                      options={ducatOptions}
-                      value={
-                        ducatsMissing ? undefined : selectedDucatId || undefined
-                      }
-                      onChange={(value) => {
-                        setSelectedDucatId(String(value));
-                        setIsEditingDucat(false);
-                        const option = ducatOptions.find(
-                          (item) => String(item.value) === String(value),
-                        );
-                        setDucatDraft(option?.label ?? "");
-                      }}
-                      onEditOption={(option) => startDucatEdit(option)}
-                      className={`${baseInputClasses} h-10.5! sm:h-11.5! px-3!`}
-                      valueClassName={
-                        ducatsMissing
-                          ? missingDataInInputClassName
-                          : "text-white! dark:text-white!"
-                      }
-                    />
-                  </div>
-                  {!isAddingDucat && (
-                    <div className="flex shrink-0 mt-6 sm:mt-6.5">
-                      <Button
-                        type="button"
-                        ariaLabel="Agregar DUCA"
-                        onClick={startDucatAdd}
-                        icon={<Plus size={16} />}
-                        className="h-10.5! w-10.5! sm:h-11.5! sm:w-11.5! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-slate-200! dark:border-slate-700/50! bg-white! dark:bg-[#1e2229]! text-slate-500! dark:text-slate-400! hover:text-blue-600! dark:hover:text-white! hover:border-cyan-300! dark:hover:border-blue-600! hover:bg-cyan-50! dark:hover:bg-cyan-500/10! transition-all duration-200"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
 
             {isAddingDucat && (
               <div className="min-w-0">
@@ -413,18 +360,18 @@ export function MovementDetailModal({
             ) : null}
 
             <EditableField
-              name="country_of_origin"
-              label="País de origen"
+              name="plate_number"
+              label="Número de Placa"
               formMethods={formMethods}
-              isEditing={Boolean(editingFields.country_of_origin)}
+              isEditing={Boolean(editingFields.plate_number)}
               onEditStart={handleEditStart}
               onEditEnd={handleEditEnd}
               onConfirmUpdate={onFieldUpdate}
-              missingMessage="País no registrado"
+              missingMessage="Placa no registrada"
               className={editableFieldInputClasses}
             />
             <EditableField
-              name="start_date"
+              name="registration_date_time"
               label="Fecha de registro"
               formMethods={formMethods}
               isEditing={false}
@@ -435,21 +382,10 @@ export function MovementDetailModal({
               missingMessage="Fecha no registrada"
               className={editableFieldInputClasses}
             />
+            <hr className="col-span-full border-t border-slate-200 dark:border-neutral-600 my-1" />
             <EditableField
-              name="start_time"
-              label="Hora inicial registro"
-              formMethods={formMethods}
-              isEditing={false}
-              onEditStart={handleEditStart}
-              onEditEnd={handleEditEnd}
-              onConfirmUpdate={onFieldUpdate}
-              allowEdit={false}
-              missingMessage="Hora inicial no registrada"
-              className={editableFieldInputClasses}
-            />
-            <EditableField
-              name="vehicle_exit_time"
-              label="Hora salida vehículo"
+              name="vehicle_exit_date_time"
+              label="Salida de vehículo"
               formMethods={formMethods}
               isEditing={false}
               onEditStart={handleEditStart}
@@ -460,8 +396,8 @@ export function MovementDetailModal({
               className={editableFieldInputClasses}
             />
             <EditableField
-              name="container_exit_time"
-              label="Hora salida contenedor"
+              name="container_exit_date_time"
+              label="Salida de contenedor"
               formMethods={formMethods}
               isEditing={false}
               onEditStart={handleEditStart}
@@ -501,14 +437,28 @@ export function MovementDetailModal({
       render: () => (
         <div className={`min-w-0 pt-1 sm:pt-2 ${fieldsGridClasses}`}>
           <EditableField
-            name="plate_number"
-            label="Numero de Placa"
+            name="transport_unit"
+            label="Tipo de Transporte"
             formMethods={formMethods}
-            isEditing={Boolean(editingFields.plate_number)}
+            isEditing={Boolean(editingFields.transport_unit)}
             onEditStart={handleEditStart}
             onEditEnd={handleEditEnd}
             onConfirmUpdate={onFieldUpdate}
-            missingMessage="Placa no registrada"
+            missingMessage="Unidad no registrada"
+            className="rounded-full! bg-blue-100! dark:bg-blue-500/20! border-blue-200! dark:border-blue-500/40! text-blue-700! dark:text-blue-300! px-3! py-2.5! min-h-12! h-12! md:h-12! w-fit! max-w-full! text-sm! flex! items-center!"
+            options={transportUnitOptions}
+            placeholder="Transporte"
+            compact
+          />
+          <EditableField
+            name="container_number"
+            label="Número de Contenedor"
+            formMethods={formMethods}
+            isEditing={Boolean(editingFields.container_number)}
+            onEditStart={handleEditStart}
+            onEditEnd={handleEditEnd}
+            onConfirmUpdate={onFieldUpdate}
+            missingMessage="Número de contenedor no registrado"
             className={editableFieldInputClasses}
           />
           <EditableField
@@ -523,16 +473,17 @@ export function MovementDetailModal({
             className={editableFieldInputClasses}
           />
           <EditableField
-            name="container_number"
-            label="Número de Contenedor"
+            name="seal_number"
+            label="Número de marchamo"
             formMethods={formMethods}
-            isEditing={Boolean(editingFields.container_number)}
+            isEditing={Boolean(editingFields.seal_number)}
             onEditStart={handleEditStart}
             onEditEnd={handleEditEnd}
             onConfirmUpdate={onFieldUpdate}
-            missingMessage="Número de contenedor no registrado"
+            missingMessage="Marchamo no registrado"
             className={editableFieldInputClasses}
           />
+          <hr className="col-span-full border-t border-slate-200 dark:border-neutral-600 my-4" />
           <EditableField
             name="driver_name"
             label="Conductor"
@@ -567,30 +518,6 @@ export function MovementDetailModal({
             className={editableFieldInputClasses}
           />
           <EditableField
-            name="transport_unit"
-            label="Unidad de transporte"
-            formMethods={formMethods}
-            isEditing={Boolean(editingFields.transport_unit)}
-            onEditStart={handleEditStart}
-            onEditEnd={handleEditEnd}
-            onConfirmUpdate={onFieldUpdate}
-            missingMessage="Unidad no registrada"
-            className={editableFieldInputClasses}
-            options={transportUnitOptions}
-            placeholder="Transporte"
-          />
-          <EditableField
-            name="seal_number"
-            label="Número de marchamo"
-            formMethods={formMethods}
-            isEditing={Boolean(editingFields.seal_number)}
-            onEditStart={handleEditStart}
-            onEditEnd={handleEditEnd}
-            onConfirmUpdate={onFieldUpdate}
-            missingMessage="Marchamo no registrado"
-            className={editableFieldInputClasses}
-          />
-          <EditableField
             name="custom_branch"
             label="Aduana de ingreso"
             formMethods={formMethods}
@@ -603,6 +530,18 @@ export function MovementDetailModal({
             options={customBranchesOptions}
             placeholder="Seleccione aduana"
           />
+          <EditableField
+            name="country_of_origin"
+            label="País de origen"
+            formMethods={formMethods}
+            isEditing={Boolean(editingFields.country_of_origin)}
+            onEditStart={handleEditStart}
+            onEditEnd={handleEditEnd}
+            onConfirmUpdate={onFieldUpdate}
+            missingMessage="País no registrado"
+            className={editableFieldInputClasses}
+          />
+          <hr className="col-span-full border-t border-slate-200 dark:border-neutral-600 my-4" />
           <EvidenceManager
             initialEvidences={formMethods.getValues("evidence_urls") || []}
             onSave={onEvidenceUpdate ? async (toAdd, toDelete) => await onEvidenceUpdate(toAdd, toDelete) : undefined}
@@ -619,7 +558,16 @@ export function MovementDetailModal({
       <Modal
         isOpen={isOpen}
         onClose={onClose}
-        title="Detalle del movimiento"
+        title={
+          <span className="inline-flex w-full items-center justify-between gap-2">
+            <span>Detalle del movimiento</span>
+            <Badges
+              label={`Código: ${detail?.reception_code || "Código no registrado"}`}
+              color="gray"
+              className="bg-slate-800! border! border-slate-700! text-slate-400!"
+            />
+          </span>
+        }
         variant="info"
         size="5xl"
         panelClassName="max-md:max-h-[min(92dvh,56rem)]! md:max-h-none! flex! flex-col! max-md:overflow-hidden! md:overflow-visible! p-4! sm:p-6!"
@@ -634,18 +582,78 @@ export function MovementDetailModal({
               <div className="w-full max-w-full">
                 <section className="w-full dark:bg-[#272b34] bg-white border border-slate-200 dark:border-neutral-700 shadow-sm rounded-xl">
                   <div className="p-4 sm:p-6 flex flex-col gap-4 sm:gap-5">
-                    <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:justify-end">
-                      <Badges
-                        label={`Código: ${detail.reception_code || "Código no registrado"}`}
-                        color="gray"
-                        className="bg-slate-800! border! border-slate-700! text-slate-400!"
-                      />
+                  <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-start">
+                      <div className="w-full min-w-0 sm:min-w-[220px] sm:flex-1">
+                        <EditableField
+                          name="document_type"
+                          label="Tipo de documento"
+                          formMethods={formMethods}
+                          options={documentTypeOptions}
+                          isEditing={Boolean(editingFields.document_type)}
+                          onEditStart={handleEditStart}
+                          onEditEnd={handleEditEnd}
+                          onConfirmUpdate={onFieldUpdate}
+                          missingMessage="Tipo de documento no registrado"
+                          className={editableFieldInputClasses}
+                        />
+                      </div>
+                        {!showCustomsDeclaration && (
+                          <div className="w-full min-w-0 sm:flex-1">
+                            <div className="flex items-start gap-2">
+                              <div className="flex-1 min-w-0 relative">
+                                <Dropdown
+                                  appearance="dark"
+                                  label="DUCAs del registro"
+                                  optional
+                                  labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
+                                  placeholder={
+                                    ducatsMissing
+                                      ? "DUCAs no registradas"
+                                      : "Seleccione una DUCA"
+                                  }
+                                  options={ducatOptions}
+                                  value={
+                                    ducatsMissing ? undefined : selectedDucatId || undefined
+                                  }
+                                  onChange={(value) => {
+                                    setSelectedDucatId(String(value));
+                                    setIsEditingDucat(false);
+                                    const option = ducatOptions.find(
+                                      (item) => String(item.value) === String(value),
+                                    );
+                                    setDucatDraft(option?.label ?? "");
+                                  }}
+                                  onEditOption={(option) => startDucatEdit(option)}
+                                  className={`${baseInputClasses} h-10.5! sm:h-11.5! px-3!`}
+                                  valueClassName={
+                                    ducatsMissing
+                                      ? missingDataInInputClassName
+                                      : "text-white! dark:text-white!"
+                                  }
+                                />
+                              </div>
+                              {!isAddingDucat && (
+                                <div className="flex shrink-0 mt-6 sm:mt-6.5">
+                                  <Button
+                                    type="button"
+                                    ariaLabel="Agregar DUCA"
+                                    onClick={startDucatAdd}
+                                    icon={<Plus size={16} />}
+                                    className="h-10.5! w-10.5! sm:h-11.5! sm:w-11.5! min-w-0! shrink-0! p-0! md:p-0! rounded-lg! shadow-none! border! border-slate-200! dark:border-slate-700/50! bg-white! dark:bg-[#1e2229]! text-slate-500! dark:text-slate-400! hover:text-blue-600! dark:hover:text-white! hover:border-cyan-300! dark:hover:border-blue-600! hover:bg-cyan-50! dark:hover:bg-cyan-500/10! transition-all duration-200"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                     </div>
 
                     <Tabs
                       key={detail.reception_entrance_id}
-                      activeTab="resumen"
+                      activeTab={activeTab}
+                      onTabChange={setActiveTab}
                       tabItems={tabItems}
+  mobileMode="tabs"
                     />
                   </div>
                 </section>

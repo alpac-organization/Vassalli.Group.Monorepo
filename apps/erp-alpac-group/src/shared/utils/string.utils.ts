@@ -369,7 +369,8 @@ export const validateLaboralHours = (time?: string): boolean | string => {
 export const formatTime = (time?: string): string => {
   if (!time?.trim()) return "";
 
-  let validatedTime = new Date(time);
+  const normalizedTime = time?.includes(".") ? time.split(".")[0] : time;
+  let validatedTime = new Date(normalizedTime);
 
   if (validatedTime.toString() === "Invalid Date") {
     const [hours, minutes] = time.split(":").map(Number);
@@ -394,7 +395,10 @@ export const formatTimeWithSeconds = (time?: string): string => {
   let validatedTime = new Date(time);
 
   if (validatedTime.toString() === "Invalid Date") {
-    const [hours, minutes, seconds = 0] = time.split(":").map(Number);
+    const [hoursRaw, minutesRaw, secondsRaw = "0"] = time.split(":");
+    const hours = Number(String(hoursRaw || "").split(".")[0]);
+    const minutes = Number(String(minutesRaw || "").split(".")[0]);
+    const seconds = Number(String(secondsRaw || "0").split(".")[0]);
 
     if (isNaN(hours) || isNaN(minutes)) return "";
 
