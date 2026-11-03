@@ -109,11 +109,10 @@ export const StockControl = function(){
             onClear={handleClearFilters}
             onApply={handleApplyFilters}
          />
-         
+
          {/* Información de stocks  */}
          <DataTable
-            // isLoading={isPending || isFetching}
-            isLoading
+            isLoading={isPending || isFetching}
             title="Existencias y niveles de stock"
             data={inventoryStocksData?.data ?? []}
             columns={columnsStocks}

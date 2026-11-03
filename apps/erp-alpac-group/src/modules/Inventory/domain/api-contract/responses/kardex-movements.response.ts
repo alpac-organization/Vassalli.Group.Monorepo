@@ -6,17 +6,17 @@ export interface KardexMovementsData
    /**
     * Identificador único del registro de Kardex (GUID).
     */
-   kardexId: string;
+   kardex_id: string;
 
    /**
     * Tipo de Kardex al que pertenece el registro.
     */
-   kardexType: KardexTypeEnum;
+   kardex_type: KardexTypeEnum;
 
    /**
     * Tipo de movimiento registrado (por ejemplo: entrada, salida, ajuste).
     */
-   movementType: KardexMovementTypeEnum;
+   movement_type: KardexMovementTypeEnum;
 
    /**
     * Unidades involucradas en el movimiento.
@@ -26,30 +26,30 @@ export interface KardexMovementsData
    /**
     * Total acumulado de unidades en existencia después del movimiento.
     */
-   totalUnits: number;
+   total_units: number;
 
    /**
     * Costo unitario del producto en el movimiento.
     */
-   unitCost: number;
+   unit_cost: number;
 
    /**
     * Monto total de entrada (valor monetario) del movimiento.
     */
-   totalInput: number;
+   total_input: number;
 
    /**
     * Monto total de salida (valor monetario) del movimiento.
     */
-   totalOutput: number;
+   total_output: number;
 
    /**
     * Costo promedio ponderado del producto tras el movimiento.
     */
-   averageCost: number;
+   average_cost: number;
 
    /**
     * Valor total del Kardex (saldo valorizado) tras el movimiento.
     */
-   totalKardex: number;
+   total_kardex: number;
 }
