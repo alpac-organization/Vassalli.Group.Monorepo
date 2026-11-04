@@ -51,12 +51,20 @@ export const getManaguaWarehouseRoutes = () => {
 		icon: TicketIcon,
 	};
 
+  const supplyRequestsSection: SidebarLink = {
+    id: "supply-requests",
+    label: "Solicitudes",
+    path: "supply-requests",
+    icon: ClipboardListIcon,
+  };
+
 	return {
 		warehouseManaguaSection,
 		ongoingOperationsSection,
 		warehouseAssignmentSection,
 		warehouseDescargueSection,
 		BodegaSection,
-		ticketSection
+		ticketSection,
+		supplyRequestsSection
 	};
 };

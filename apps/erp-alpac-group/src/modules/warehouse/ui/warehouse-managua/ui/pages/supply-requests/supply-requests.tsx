@@ -48,7 +48,7 @@ export const SupplyRequests = function () {
               onClick: (url) => navigate(url),
             },
             {
-              label: "Inventario",
+              label: "Almacén",
               url: `${baseUrl}/${moduleBasePath}`,
               onClick: (url) => navigate(url),
             },

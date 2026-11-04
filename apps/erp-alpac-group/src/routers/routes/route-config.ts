@@ -48,7 +48,8 @@ const {
   warehouseAssignmentSection,
   warehouseDescargueSection,
   BodegaSection,
-  ticketSection
+  ticketSection,
+  supplyRequestsSection
 } = getManaguaWarehouseRoutes();
 
 const { manageSection } = getWarehouseAdminRoutes();
@@ -66,8 +67,7 @@ const { analyzedQuoteSection } = getManagementRoutes();
 
 const { 
   inventoryControl, 
-  inventoryEntriesAndOutputs,
-  supplyRequestsSection
+  inventoryEntriesAndOutputs
 } = getInventoryRoutes();
 
 export const routeConfig = {
@@ -121,6 +121,7 @@ export const routeConfig = {
       warehouseDescargueSection,
       BodegaSection,
       warehouseReportSection,
+      supplyRequestsSection,
     ],
     [RoleEnum.ADMINISTRATOR]: [
       warehouseManaguaSection,
@@ -129,7 +130,8 @@ export const routeConfig = {
       warehouseDescargueSection,
       BodegaSection,
       warehouseReportSection,
-      ticketSection
+      ticketSection,
+      supplyRequestsSection,
     ],
     [RoleEnum.MANAGER]: [
       warehouseManaguaSection,
@@ -138,6 +140,7 @@ export const routeConfig = {
       warehouseDescargueSection,
       BodegaSection,
       warehouseReportSection,
+      supplyRequestsSection,
     ],
     [RoleEnum.SUPERVISOR]: [
       warehouseManaguaSection,
@@ -146,6 +149,7 @@ export const routeConfig = {
       warehouseDescargueSection,
       BodegaSection,
       warehouseReportSection,
+      supplyRequestsSection,
     ],
   },
   [ModuleEnum.WAREHOUSE_ADMIN]: {
@@ -172,18 +176,8 @@ export const routeConfig = {
   },
   [ModuleEnum.INVENTORY]: {
     [RoleEnum.ADMINISTRATOR]: [
-      inventoryControl, 
-      inventoryEntriesAndOutputs,
-      supplyRequestsSection
-    ],
-    [RoleEnum.SUPERVISOR]: [
-      supplyRequestsSection
-    ],
-    [RoleEnum.MANAGER]: [
-      supplyRequestsSection
-    ],
-    [RoleEnum.OPERATOR]: [
-      supplyRequestsSection
+      inventoryControl,
+      inventoryEntriesAndOutputs
     ]
   }
 };

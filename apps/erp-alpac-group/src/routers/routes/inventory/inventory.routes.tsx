@@ -28,16 +28,8 @@ export const getInventoryRoutes = () => {
         icon:  ArrowUpDown
     };
 
-    const supplyRequestsSection: SidebarLink = {
-        id:    "supply-requests",
-        label: "Solicitudes",
-        path:  "supply-requests",
-        icon:  SolicitudesSidebarIcon
-    };
-
     return {
         inventoryControl,
-        inventoryEntriesAndOutputs,
-        supplyRequestsSection
+        inventoryEntriesAndOutputs
     }
 }

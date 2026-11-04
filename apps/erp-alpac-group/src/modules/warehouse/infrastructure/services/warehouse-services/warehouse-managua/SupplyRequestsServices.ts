@@ -1,11 +1,11 @@
 import { cleanParams } from "@app/shared/utils/object.utils";
 
 import type { IHttpHandler } from "@app/core/ports";
-import type { ISupplyRequestsServices } from "../../application/interfaces/services/ISupplyRequestsServices";
-import type { GetSupplyRequestsRequest } from "../../domain/api-contract/requests/supply-requests/get-supply-requests.request";
-import type { GetSupplyRequestDetailRequest } from "../../domain/api-contract/requests/supply-requests/get-supply-request-detail.request";
-import type { RegisterSupplyRequest } from "../../domain/api-contract/requests/supply-requests/register-supply-request.request";
-import type { SupplyRequestDetailDto, PagedSupplyRequestsResponse } from "../../domain/api-contract/responses/supply-requests.response";
+import type { ISupplyRequestsServices } from "@app/modules/warehouse/application/interfaces/warehouse-interfaces/warehouse-managua/supply-requests/ISupplyRequestsServices";
+import type { GetSupplyRequestsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/supply-requests/get-supply-requests.request";
+import type { GetSupplyRequestDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/supply-requests/get-supply-request-detail.request";
+import type { RegisterSupplyRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/supply-requests/register-supply-request.request";
+import type { SupplyRequestDetailDto, PagedSupplyRequestsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/supply-requests/supply-requests.response";
 
 export class SupplyRequestsServices implements ISupplyRequestsServices {
   private readonly httpClient: IHttpHandler;

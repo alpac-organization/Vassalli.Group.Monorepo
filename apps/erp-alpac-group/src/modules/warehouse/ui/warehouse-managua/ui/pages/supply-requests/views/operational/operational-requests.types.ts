@@ -1,11 +1,12 @@
+import type { ReasonUse } from "@app/core/enums/reason-use.enum";
+import type { OutflowStatus } from "@app/core/enums/outflow-status.enum";
+
 export interface OperationalRequestsFilters {
   code?: string;
-  work_area_id?: string;
-  warehouse_id?: string;
+  po_code?: string;
   branch_id?: string;
-  operational_order_id?: string;
-  requested_by_user_id?: string;
-  reason_use?: string;
+  reason_use?: ReasonUse;
+  status?: OutflowStatus;
 
   page_number?: number;
   page_size?: number;

@@ -12,6 +12,6 @@ export const ReasonUse: Record<ReasonUse, ReasonUseValues> = {
   },
   Operation: {
     value: 2,
-    label: "Operación",
-  },
+    label: "Operativo",
+  }
 } as const;

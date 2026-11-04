@@ -47,11 +47,13 @@ export interface SupplyRequestItemDetail {
 export interface SupplyRequestDto {
   supply_request_id: string;
   supply_request_code: string;
+  po_code: string | null;
   reason_use: ReasonUse;
   justification: string | null;
   outflow_status: OutflowStatus;
   requested_by_user_id: string;
   requested_by_user_name: string;
+  work_area_name: string | null;
   items_count: number;
 }
 
@@ -62,6 +64,8 @@ export interface SupplyRequestDetailDto extends SupplyRequestDto {
   warehouse_information: WarehouseInformation;
   operational_order_information: OperationalOrderInformation;
   items: SupplyRequestItemDetail[];
+  approved_by_user_chief_name: string | null;
+  annulled_by_user_chief_name: string | null;
 }
 
 export interface PagedSupplyRequestsResponse {

@@ -1,11 +1,11 @@
 import { skipToken, useQuery } from "@tanstack/react-query";
 
 import { warehouseHttpHandler } from "@app/core/adapters";
-import { SupplyRequestsServices } from "../../infrastructure/services/supply-requests-services";
+import { SupplyRequestsServices } from "@app/modules/warehouse/infrastructure/services/warehouse-services/warehouse-managua/SupplyRequestsServices";
 
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { PagedSupplyRequestsResponse } from "../../domain/api-contract/responses/supply-requests.response";
-import type { useSupplyRequestsProps } from "../../application/interfaces/hooks/useSupplyRequestsProps";
+import type { PagedSupplyRequestsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/supply-requests/supply-requests.response";
+import type { useSupplyRequestsProps } from "@app/modules/warehouse/application/interfaces/warehouse-interfaces/warehouse-managua/supply-requests/useSupplyRequestsProps";
 
 const supplyRequestsServices = new SupplyRequestsServices(warehouseHttpHandler);
 
@@ -17,9 +17,12 @@ export const useSupplyRequests = function (props: useSupplyRequestsProps) {
     queryFn: payloadGetSupplyRequestsRequest
       ? () => supplyRequestsServices.GetSupplyRequests(payloadGetSupplyRequestsRequest)
       : skipToken,
-    staleTime: 0,
-    retryDelay: 3000,
-    refetchOnMount: false,
+    enabled: Boolean(
+      payloadGetSupplyRequestsRequest?.company_id &&
+        payloadGetSupplyRequestsRequest?.module_code,
+    ),
+    staleTime: 1000 * 60 * 5,
+    retry: 1,
     refetchOnWindowFocus: false,
   });
 

@@ -31,78 +31,92 @@ export const OperationalRequestsSectionFilters = function (
       className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-5"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="flex w-full flex-wrap items-start gap-4 lg:flex-1 lg:gap-6">
-        <div className="w-full sm:w-64">
+      <div className="flex w-full flex-nowrap items-end gap-4 overflow-x-auto lg:flex-1 lg:gap-6">
+        <div className="w-44 shrink-0">
           <InputText
-            label="Codigo"
-            placeholder="SI-00001"
+            label="Codigo de solicitud"
+            placeholder="OR-ALP-MGA-001"
             className={inputClassName}
             labelClassName={labelClassName}
             {...register("code")}
           />
         </div>
 
-        <div className="w-full sm:w-64">
+        <div className="w-44 shrink-0">
           <InputText
-            label="Area de trabajo"
-            placeholder="Work area ID"
+            label="Codigo de PO"
+            placeholder="PO-01"
             className={inputClassName}
             labelClassName={labelClassName}
-            {...register("work_area_id")}
+            {...register("po_code")}
           />
         </div>
 
-        <div className="w-full sm:w-64">
-          <InputText
-            label="Almacen"
-            placeholder="Warehouse ID"
-            className={inputClassName}
-            labelClassName={labelClassName}
-            {...register("warehouse_id")}
+        {/* Sucursal temporalmente oculta
+        <div className="w-44 shrink-0">
+          <Controller
+            name="branch_id"
+            control={control}
+            render={({ field }) => (
+              <Dropdown
+                label="Sucursal"
+                value={field.value}
+                options={[
+                  { value: "", label: "Todos" },
+                  ...(props.branchOptions ?? []),
+                ]}
+                onChange={(e) => {
+                  field.onChange(e);
+                }}
+                placeholder={props.isBranchesLoading ? "Cargando..." : "Todos"}
+                appearance="dark"
+                labelClassName={labelClassName}
+                className={inputClassName}
+                disabled={props.isBranchesLoading}
+              />
+            )}
           />
         </div>
+        */}
 
-        <div className="w-full sm:w-64">
-          <InputText
-            label="Sucursal"
-            placeholder="Branch ID"
-            className={inputClassName}
-            labelClassName={labelClassName}
-            {...register("branch_id")}
-          />
-        </div>
-
-        <div className="w-full sm:w-64">
-          <InputText
-            label="Orden operativa"
-            placeholder="Operational order ID"
-            className={inputClassName}
-            labelClassName={labelClassName}
-            {...register("operational_order_id")}
-          />
-        </div>
-
-        <div className="w-full sm:w-64">
-          <InputText
-            label="Solicitado por"
-            placeholder="User ID"
-            className={inputClassName}
-            labelClassName={labelClassName}
-            {...register("requested_by_user_id")}
-          />
-        </div>
-
-        <div className="w-full sm:w-64">
+        <div className="w-44 shrink-0">
           <Controller
             name="reason_use"
             control={control}
             render={({ field }) => (
               <Dropdown
-                label="Motivo"
+                label="Motivo de solicitud"
                 value={field.value}
                 options={[
                   { value: "Sale", label: "Venta" },
-                  { value: "Operation", label: "Operación" },
+                  { value: "Operation", label: "Operativo" },
+                ]}
+                onChange={(e) => {
+                  field.onChange(e);
+                }}
+                placeholder="Todos"
+                appearance="dark"
+                labelClassName={labelClassName}
+                className={inputClassName}
+              />
+            )}
+          />
+        </div>
+
+        <div className="w-44 shrink-0">
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <Dropdown
+                label="Estado"
+                value={field.value}
+                options={[
+                  { value: "PendingReview", label: "Pendiente revisión" },
+                  { value: "Approved", label: "Aprobado" },
+                  { value: "Annuled", label: "Anulado" },
+                  { value: "PendingDispatch", label: "Pendiente despacho" },
+                  { value: "DispatchCancelled", label: "Despacho cancelado" },
                 ]}
                 onChange={(e) => {
                   field.onChange(e);
