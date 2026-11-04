@@ -5,19 +5,18 @@ import { dropdownClassName, inputClassName, labelClassName } from "@app/modules/
 
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
 import { useUserStore } from "@app/shared/stores/useUserStore"
-import { GetProductCategoryOptions } from "../../stock-control/stock-control.variants"
-import { DEFAULT_PRODUCT_FILTERS } from "../products-and-services-control.variant"
+import { DEFAULT_STOCK_FILTERS, GetProductCategoryOptions } from "../../stock-control.variants"
 
-import type { ProductsAndServicesFilters, ProductsAndServicesProps } from "./products-and-services-section-filters.types"
+import type { StockControlFilters } from "../../stock-control.types"
+import type { StockControlSectionFiltersProps } from "./stock-control-section-filters.types"
 
-export const ProductsAndServicesSectionFilters = function(props: ProductsAndServicesProps){
+export const StockControlSectionFilters = function(props: StockControlSectionFiltersProps){
    
-   const { control, handleSubmit, reset, formState: { isDirty, isValid }, register } = useForm({
+   const { control, handleSubmit, reset, formState: { isDirty, isValid }, register } = useForm<StockControlFilters>({
       defaultValues: props.filters,
    });
 
    const { companyId, moduleCode } = useUserStore();
-
    const { GetProductCategories } = useProduct({
       getProductCategoryPayload: { 
          company_id: companyId, 
@@ -28,24 +27,33 @@ export const ProductsAndServicesSectionFilters = function(props: ProductsAndServ
    const { isPending, isFetching, data: productCategoriesData } = GetProductCategories;
    const categoryOptions = GetProductCategoryOptions(productCategoriesData ?? []);
 
-   const onSubmit = (values: ProductsAndServicesFilters) => {
+   const onSubmit = (values: StockControlFilters) => {
       props.onApply(values);
-      reset(values);    
+      reset(values);
    }
 
    const handleClear = () => {
-      reset(DEFAULT_PRODUCT_FILTERS);
+      reset(DEFAULT_STOCK_FILTERS);
       props.onClear();
    }; 
 
    return (
-      <form 
-         className="flex gap-5 justify-between items-end"
+		<form 
+         className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-5"
          onSubmit={handleSubmit(onSubmit)}
       >
-        <div className="flex gap-6 items-start">
+        <div className="flex w-full flex-wrap items-start gap-4 lg:flex-1 lg:gap-6">
+            <div className="w-full sm:w-64">
+               <InputText
+                  label="Producto"
+                  className={inputClassName}
+                  placeholder="Nombre producto"
+                  labelClassName={labelClassName}
+                  {...register("product_name")}
+               />
+            </div>
 
-            <div className="w-64">
+            <div className="w-full sm:w-64">
                <InputText
                   label="Codigo producto"
                   placeholder="ALP-MGA-01-01-001"
@@ -55,9 +63,9 @@ export const ProductsAndServicesSectionFilters = function(props: ProductsAndServ
                />
             </div>
 
-            <div className="w-64">
+            <div className="w-full sm:w-64">
                <Controller
-                  name="category_product_id"
+                  name="category_id"
                   control={control}
                   render={({ field }) => (
                      <Dropdown
@@ -77,14 +85,11 @@ export const ProductsAndServicesSectionFilters = function(props: ProductsAndServ
                />
             </div>
          </div>
-         <section className="flex gap-5">
-            <div className="flex flex-col">
+
+         <section className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-5">
+            <div className="flex w-full flex-col sm:w-auto">
                <Button
-                  icon={
-                     <Filter 
-                        size={15}
-                     />
-                  }
+                  icon={<Filter size={15} />}
                   type="submit"
                   size="giant"
                   className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
@@ -93,13 +98,9 @@ export const ProductsAndServicesSectionFilters = function(props: ProductsAndServ
                />
             </div>
 
-            <div className="flex flex-col">
+            <div className="flex w-full flex-col sm:w-auto">
                <Button
-                  icon={
-                     <FilterX 
-                        size={15}
-                     />
-                  }
+                  icon={<FilterX size={15} />}
                   type="button"
                   size="giant"
                   className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
@@ -108,6 +109,6 @@ export const ProductsAndServicesSectionFilters = function(props: ProductsAndServ
                />
             </div>
          </section>
-        </form>
-    )
+		</form>
+	)
 }

@@ -15,7 +15,7 @@ const SolicitudesSidebarIcon = ({ className, style }: Pick<FontAwesomeIconProps,
 export const getInventoryRoutes = () => {
 
     const inventoryControl: SidebarLink = {
-        id:   "inventory",
+        id:   "inventory-control",
         label: "Control de inventario",
         path:  "inventory-control",
         icon: Settings
