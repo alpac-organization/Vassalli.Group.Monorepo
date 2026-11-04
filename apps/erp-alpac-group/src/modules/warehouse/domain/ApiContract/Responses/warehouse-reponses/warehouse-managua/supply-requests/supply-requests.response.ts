@@ -1,5 +1,6 @@
 import type { ReasonUse } from "@app/core/enums/reason-use.enum";
 import type { OutflowStatus } from "@app/core/enums/outflow-status.enum";
+import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 
 export interface WorkAreaInformation {
   work_area_id: string;
@@ -70,9 +71,4 @@ export interface SupplyRequestDetailDto extends SupplyRequestDto {
   annulled_by_user_chief_name: string | null;
 }
 
-export interface PagedSupplyRequestsResponse {
-  data: SupplyRequestDto[];
-  page_number: number;
-  page_size: number;
-  total: number;
-}
+export type PagedSupplyRequestsResponse = PaginateBaseResponse<SupplyRequestDto>;

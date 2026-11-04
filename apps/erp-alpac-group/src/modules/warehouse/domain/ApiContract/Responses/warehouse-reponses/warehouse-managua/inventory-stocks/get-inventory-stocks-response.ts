@@ -1,3 +1,5 @@
+import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
+
 export interface InventoryStockProductInformation {
   product_id: string;
   product_code?: string | null;
@@ -13,10 +15,7 @@ export interface InventoryStockDto {
   product_information?: InventoryStockProductInformation | null;
 }
 
-export interface GetInventoryStocksResponse {
-  data: InventoryStockDto[];
-  page_number: number;
-  page_size: number;
-  total: number;
+export interface GetInventoryStocksResponse
+  extends PaginateBaseResponse<InventoryStockDto> {
   in_minimum_stock: number;
 }
