@@ -1,6 +1,7 @@
 import { Filter, FilterX } from "lucide-react";
 import { Button, Dropdown, InputText } from "@alpac/design-system";
 import { Controller, useForm } from "react-hook-form";
+import { useEffect } from "react";
 
 import { inputClassName, labelClassName } from "@app/modules/purchasing/ui/pages/supplier/utils/style";
 import { DEFAULT_OPERATIONAL_FILTERS } from "./operational-requests.types";
@@ -11,19 +12,34 @@ import type { OperationalRequestsSectionFiltersProps } from "./operational-reque
 export const OperationalRequestsSectionFilters = function (
   props: OperationalRequestsSectionFiltersProps,
 ) {
-  const { register, control, handleSubmit, reset, formState: { isDirty } } =
+  const { register, control, handleSubmit, reset, setValue, formState: { isDirty } } =
     useForm<OperationalRequestsFilters>({
       defaultValues: props.filters,
     });
 
+  useEffect(() => {
+    reset(props.filters);
+  }, [props.filters, reset]);
+
+  const handleClear = () => {
+    const clearedFilters: OperationalRequestsFilters = {
+      page_number: 1,
+      page_size: 10,
+    };
+
+    reset(clearedFilters);
+    setValue("code", "", { shouldDirty: false });
+    setValue("po_code", "", { shouldDirty: false });
+    setValue("branch_id", "", { shouldDirty: false });
+    setValue("reason_use", undefined, { shouldDirty: false });
+    setValue("status", undefined, { shouldDirty: false });
+
+    props.onClear();
+  };
+
   const onSubmit = (values: OperationalRequestsFilters) => {
     props.onApply(values);
     reset(values);
-  };
-
-  const handleClear = () => {
-    reset(DEFAULT_OPERATIONAL_FILTERS);
-    props.onClear();
   };
 
   return (
