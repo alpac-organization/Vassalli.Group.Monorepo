@@ -1,5 +1,5 @@
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
-import { CircleMinus, DollarSign, FileClock, Fingerprint, FolderClock, HandCoins, History, UsersRound } from "lucide-react";
+import { CircleMinus, DollarSign, FileClock, Fingerprint, FolderClock, HandCoins, History, Scale, UsersRound } from "lucide-react";
 
 export const getPayrollRoutes = () => {
 
@@ -16,6 +16,13 @@ export const getPayrollRoutes = () => {
       label: "Gestión de Nómina",
       path: "gestion-nomina",
       icon: DollarSign,
+   };
+
+   const gestionDisciplinariaSection: SidebarLink = {
+      id: "disciplinary-management",
+      label: "Régimen Disciplinario",
+      path: "disciplinary-management",
+      icon: Scale,
    };
 
    const payrollPeriodsHistorySection: SidebarLink = {
@@ -64,6 +71,7 @@ export const getPayrollRoutes = () => {
    return {
       collboratorSection,
       gestionPayrollSection,
+      gestionDisciplinariaSection,
       payrollPeriodsHistorySection,
       applicationFromPayrollSection,
       activeDeductionSection,
