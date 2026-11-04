@@ -9,6 +9,7 @@ import {
   formatDateToSpanishWords,
   formatTimeWithSeconds,
 } from "@app/shared/utils/string.utils";
+import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
 
 export function parseAdditionalData(
   additionalData: unknown,
@@ -56,39 +57,6 @@ export function mapDetailToFormValues(
       .join(":");
   };
 
-  const formatSpanishDateTime = (date?: string | null, time?: string | null): string => {
-    if (!date && !time) return "";
-    let datePart = "";
-    if (date) {
-      const parts = date.split("-");
-      if (parts.length === 3) {
-        const [year, month, day] = parts;
-        const parsedDate = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day), 12, 0, 0));
-        const weekday = parsedDate.toLocaleDateString("es-NI", { weekday: "long", timeZone: "UTC" });
-        datePart = `${weekday.charAt(0).toUpperCase() + weekday.slice(1)}, ${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
-      } else {
-        datePart = date;
-      }
-    }
-
-    let timePart = "";
-    if (time?.trim()) {
-      const [hours, minutes, secondsRaw = "00"] = time.split(":");
-      const hourNumber = Number(hours);
-      const minuteNumber = Number(minutes);
-      const seconds = (secondsRaw || "00").split(".")[0] || "00";
-      const secondNumber = Number(seconds);
-      if (!Number.isNaN(hourNumber) && !Number.isNaN(minuteNumber)) {
-        const period = hourNumber >= 12 ? "pm" : "am";
-        const normalizedHour = hourNumber % 12 || 12;
-        timePart = `${String(normalizedHour).padStart(2, "0")}:${String(minuteNumber).padStart(2, "0")}:${String(Number.isNaN(secondNumber) ? 0 : secondNumber).padStart(2, "0")} ${period}`;
-      } else {
-        timePart = time;
-      }
-    }
-
-    return [datePart, timePart].filter(Boolean).join(" ");
-  };
 
   const transport = detail.reception_transport_entrance_information;
   const customBranches = detail.custom_branches_information;

@@ -68,33 +68,6 @@ export const OperationalRequestsSectionFilters = function (
           />
         </div>
 
-        {/* Sucursal temporalmente oculta
-        <div className="w-full md:w-44 md:shrink-0">
-          <Controller
-            name="branch_id"
-            control={control}
-            render={({ field }) => (
-              <Dropdown
-                label="Sucursal"
-                value={field.value}
-                options={[
-                  { value: "", label: "Todos" },
-                  ...(props.branchOptions ?? []),
-                ]}
-                onChange={(e) => {
-                  field.onChange(e);
-                }}
-                placeholder={props.isBranchesLoading ? "Cargando..." : "Todos"}
-                appearance="dark"
-                labelClassName={labelClassName}
-                className={inputClassName}
-                disabled={props.isBranchesLoading}
-              />
-            )}
-          />
-        </div>
-        */}
-
         <div className="w-full md:w-44 md:shrink-0">
           <Controller
             name="reason_use"
