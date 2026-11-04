@@ -5,11 +5,12 @@ import { dropdownClassName, inputClassName, labelClassName } from "@app/modules/
 
 import { useUserStore } from "@app/shared/stores/useUserStore"
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
-import { DEFAULT_KARDEX_MOVEMENT_FILTERS } from "../../kardex-movement.variants"
+import { DEFAULT_KARDEX_MOVEMENT_FILTERS, GetMovementTypeOptions } from "../../kardex-movement.variants"
 import { GetProductCategoryOptions } from "../../../stock-control/stock-control.variants"
 
 import type { KardexMovementSectionFiltersProps } from "./kardex-movement-section-filters.types"
 import type { KardexMovementFilters } from "../../kardex-movements.types"
+import { KardexMovementType } from "@app/core/enums/kardex-movement-type.enum"
 
 export const KardexMovementSectionFilters = function(props: KardexMovementSectionFiltersProps){
    
@@ -28,6 +29,7 @@ export const KardexMovementSectionFilters = function(props: KardexMovementSectio
    const { isPending, isFetching, data: productCategoriesData } = GetProductCategories;
 
    const categoryOptions = GetProductCategoryOptions(productCategoriesData ?? []);
+   const momentTypeOptions = GetMovementTypeOptions();
 
    const onSubmit = (values: KardexMovementFilters) => {
       props.onApply(values);
@@ -54,7 +56,7 @@ export const KardexMovementSectionFilters = function(props: KardexMovementSectio
                         isLoading={isPending || isFetching}
                         label="Tipo Movimiento"
                         value={field.value}
-                        options={categoryOptions}
+                        options={momentTypeOptions}
                         onChange={(e) => {
                            field.onChange(e);
                         }}

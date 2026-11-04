@@ -1,11 +1,11 @@
-import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { Badges, ContextMenu } from "@alpac/design-system";
+import { formatCurrency } from "@app/shared/utils/currency.utils";
 
 import { KardexType } from "@app/core/enums/kardex-type.enum";
 import { KardexMovementType, type KardexMovementTypeEnum } from "@app/core/enums/kardex-movement-type.enum";
 import { contextMenuButton } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-table/constants/supplier-table.constants";
 
-import type { TableColumn } from "@alpac/design-system"
+import type { ContextMenuItem, TableColumn } from "@alpac/design-system";
 import type { KardexMovementFilters } from "./kardex-movements.types";
 import type { KardexMovementsData } from "@app/modules/Inventory/domain/api-contract/responses/kardex-movements.response";
 
@@ -13,7 +13,7 @@ export const KardexMovementTypeColorBadges: Record<KardexMovementTypeEnum, strin
    Buys:    "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
    Exit:    "bg-orange-100 text-orange-800 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800",
    Returns: "bg-purple-100 text-purple-800 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800"
-}
+};
 
 const ColumnBadgeColors = {
    category:     "bg-indigo-100 text-indigo-800 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800",
@@ -117,13 +117,30 @@ export const GetKardexMovementsColumnsToTable = function(): TableColumn<KardexMo
             return (
                <ContextMenu
                   triggerClassName={contextMenuButton}
-                  items={[]}
+                  items={GetContextMenuItems()}
                   openUpOnMobile
                />
             )
          }
       }
    ]
+}
+
+const GetContextMenuItems = function(): ContextMenuItem[] {
+   return [
+      {
+         label: "Ver detalle del movimiento",
+         onClick(){
+         }
+      }
+   ]
+}
+
+export const GetMovementTypeOptions = function() {
+   return Object.entries(KardexMovementType).map(([key, value]) => ({
+      label: value.label,
+      value: key
+   }));
 }
 
 export const DEFAULT_KARDEX_MOVEMENT_FILTERS: KardexMovementFilters = {
