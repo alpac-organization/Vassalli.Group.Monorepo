@@ -1,12 +1,11 @@
-import { useEffect } from "react";
-import { Breadcrumb, SectionHeader, Tabs, useTheme } from "@alpac/design-system";
+import { Breadcrumb, SectionHeader, useTheme } from "@alpac/design-system";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
-import { useParams } from "@app/shared/hooks/useParams";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
-import { GetSectionViewsToSupplyRequests } from "./supply-requests.variants";
+
+import { OperationalRequests } from "./views/operational/operational-requests";
 
 export const SupplyRequests = function () {
   const navigate = useNavigate();
@@ -15,25 +14,6 @@ export const SupplyRequests = function () {
   const { moduleBasePath } = useUserStore();
   const { urlImage, neutralUrlImage } = useCompanyStore();
   const { AlertComponent } = useAlertState();
-
-  const tabsItems = GetSectionViewsToSupplyRequests();
-  const { setParam, searchParams } = useParams();
-
-  const tabFromUrl = searchParams.get("tab");
-
-  const isValidTab = tabsItems.some((item) => item.id === tabFromUrl);
-
-  const activeTab = isValidTab ? tabFromUrl! : "operational";
-
-  useEffect(() => {
-    if (!isValidTab) {
-      setParam("tab", "operational");
-    }
-  }, [isValidTab, setParam]);
-
-  const handleTabChange = (tabId: string) => {
-    setParam("tab", tabId);
-  };
 
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
@@ -53,7 +33,7 @@ export const SupplyRequests = function () {
               onClick: (url) => navigate(url),
             },
             {
-              label: "Solicitudes",
+              label: "Solicitudes a inventario",
               url: `${baseUrl}/${moduleBasePath}/supply-requests`,
             },
           ]}
@@ -63,7 +43,7 @@ export const SupplyRequests = function () {
       <div className="flex flex-row justify-between items-start sm:items-center gap-3 min-w-0">
         <div className="flex flex-col justify-center gap-1 sm:gap-2 min-w-0 flex-1">
           <SectionHeader
-            title="Solicitudes"
+            title="Solicitudes a inventario"
             subtitle="Consulta y gestiona las solicitudes de inventario."
           />
         </div>
@@ -77,11 +57,7 @@ export const SupplyRequests = function () {
         )}
       </div>
 
-      <Tabs
-        activeTab={activeTab}
-        tabItems={tabsItems}
-        onTabChange={handleTabChange}
-      />
+      <OperationalRequests />
 
       {AlertComponent}
     </div>

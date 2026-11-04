@@ -54,6 +54,8 @@ export interface SupplyRequestDto {
   requested_by_user_id: string;
   requested_by_user_name: string;
   work_area_name: string | null;
+  warehouse_code: string;
+  created_at: string;
   items_count: number;
 }
 

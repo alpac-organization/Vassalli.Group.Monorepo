@@ -31,8 +31,8 @@ export const OperationalRequestsSectionFilters = function (
       className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-5"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="flex w-full flex-nowrap items-end gap-4 overflow-x-auto lg:flex-1 lg:gap-6">
-        <div className="w-44 shrink-0">
+      <div className="flex w-full flex-col gap-4 md:flex-row md:flex-nowrap md:items-end md:gap-6">
+        <div className="w-full md:w-44 md:shrink-0">
           <InputText
             label="Codigo de solicitud"
             placeholder="OR-ALP-MGA-001"
@@ -42,7 +42,7 @@ export const OperationalRequestsSectionFilters = function (
           />
         </div>
 
-        <div className="w-44 shrink-0">
+        <div className="w-full md:w-44 md:shrink-0">
           <InputText
             label="Codigo de PO"
             placeholder="PO-01"
@@ -53,7 +53,7 @@ export const OperationalRequestsSectionFilters = function (
         </div>
 
         {/* Sucursal temporalmente oculta
-        <div className="w-44 shrink-0">
+        <div className="w-full md:w-44 md:shrink-0">
           <Controller
             name="branch_id"
             control={control}
@@ -79,7 +79,7 @@ export const OperationalRequestsSectionFilters = function (
         </div>
         */}
 
-        <div className="w-44 shrink-0">
+        <div className="w-full md:w-44 md:shrink-0">
           <Controller
             name="reason_use"
             control={control}
@@ -103,7 +103,7 @@ export const OperationalRequestsSectionFilters = function (
           />
         </div>
 
-        <div className="w-44 shrink-0">
+        <div className="block md:hidden w-full md:w-44 md:shrink-0">
           <Controller
             name="status"
             control={control}

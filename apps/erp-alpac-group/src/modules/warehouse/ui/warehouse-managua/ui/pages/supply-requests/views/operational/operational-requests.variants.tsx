@@ -50,10 +50,10 @@ export const GetOperationalSupplyRequestColumnsToTable = function (
       },
     },
     {
-      key: "work_area_name",
-      label: "Area de trabajo",
+      key: "warehouse_code",
+      label: "Almacén",
       render(item) {
-        return <span>{item.work_area_name ?? "—"}</span>;
+        return <span>{item.warehouse_code ?? "—"}</span>;
       },
     },
     {
@@ -94,6 +94,13 @@ export const GetOperationalSupplyRequestColumnsToTable = function (
       label: "Items",
       render(item) {
         return <span>{item.items_count}</span>;
+      },
+    },
+    {
+      key: "created_at",
+      label: "Fecha de solicitud",
+      render(item) {
+        return <span>{new Date(item.created_at).toLocaleDateString()}</span>;
       },
     },
     {
