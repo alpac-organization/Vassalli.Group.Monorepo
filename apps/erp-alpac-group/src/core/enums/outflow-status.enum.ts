@@ -1,3 +1,5 @@
+import type { EnumType } from "@app/shared/types/enum.type";
+
 export type OutflowStatus =
   | "PendingReview"
   | "Annuled"
@@ -5,12 +7,7 @@ export type OutflowStatus =
   | "DispatchCancelled"
   | "Approved";
 
-export interface OutflowStatusValues {
-  value: number;
-  label: string;
-}
-
-export const OutflowStatus: Record<OutflowStatus, OutflowStatusValues> = {
+export const OutflowStatus: Record<OutflowStatus, EnumType> = {
   PendingReview: {
     value: 1,
     label: "Pendiente revisión",

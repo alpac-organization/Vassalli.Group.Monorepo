@@ -1,11 +1,8 @@
+import type { EnumType } from "@app/shared/types/enum.type";
+
 export type ReasonUse = "Sale" | "Operation";
 
-export interface ReasonUseValues {
-  value: number;
-  label: string;
-}
-
-export const ReasonUse: Record<ReasonUse, ReasonUseValues> = {
+export const ReasonUse: Record<ReasonUse, EnumType> = {
   Sale: {
     value: 1,
     label: "Venta",
@@ -13,5 +10,5 @@ export const ReasonUse: Record<ReasonUse, ReasonUseValues> = {
   Operation: {
     value: 2,
     label: "Operativo",
-  }
+  },
 } as const;
