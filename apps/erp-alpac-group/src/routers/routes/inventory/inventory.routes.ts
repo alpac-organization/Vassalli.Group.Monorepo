@@ -4,7 +4,7 @@ import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/component
 export const getInventoryRoutes = () => {
 
     const inventoryControl: SidebarLink = {
-        id:   "inventory",
+        id:   "inventory-control",
         label: "Control de inventario",
         path:  "inventory-control",
         icon: Settings
