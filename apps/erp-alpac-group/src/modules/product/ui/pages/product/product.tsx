@@ -299,7 +299,7 @@ export const Product = () => {
             onRequestSuccess={handleRequestSuccess}
             onRequestError={handleRequestError}
          />
-
+         
          <ProductDetailsModal
             isOpen={isProductDetailsOpen}
             onClose={() => {

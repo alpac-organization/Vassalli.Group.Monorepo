@@ -7,4 +7,8 @@ export const InventoryRouter: RouteObject[] = [
         path: "inventory-control",
         element: <InventoryControl />,
     },
+    {
+        path: "entry-output",
+        element: <div>Entradas y salidas</div>,
+    }
 ];

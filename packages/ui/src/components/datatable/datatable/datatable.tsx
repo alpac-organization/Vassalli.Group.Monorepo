@@ -50,6 +50,8 @@ export function DataTable<T>({
 		return selectedIndex === index;
 	};
 
+	const SKELETON_MIN_HEIGHT = `${(LOADING_ROWS * 48) + 53}px`;
+
 	return (
 		<div
 			className="flex h-full min-h-0 w-full flex-col
@@ -89,9 +91,15 @@ export function DataTable<T>({
 					aria-busy={isLoading}
 					style={{
 						...(height !== undefined ? { height } : {}),
-						...(minHeight !== undefined ? { minHeight } : {}),
+						// Si está cargando y no hay un minHeight explícito, usamos el del skeleton
+						...(minHeight !== undefined 
+							? { minHeight } 
+							: isLoading 
+								? { minHeight: SKELETON_MIN_HEIGHT } 
+								: {}),
 						...(maxHeight !== undefined ? { maxHeight } : {}),
-					}}>
+					}}
+				>
 					<table className="w-full text-left border-collapse whitespace-nowrap">
 						<thead className="border-b-2 border-slate-600 dark:border-neutral-600">
 							<tr className="dark:bg-[#272b34]">
