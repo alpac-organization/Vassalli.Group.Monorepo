@@ -10,7 +10,6 @@ import { GetProductCategoryOptions } from "../../../stock-control/stock-control.
 
 import type { KardexMovementSectionFiltersProps } from "./kardex-movement-section-filters.types"
 import type { KardexMovementFilters } from "../../kardex-movements.types"
-import { KardexMovementType } from "@app/core/enums/kardex-movement-type.enum"
 
 export const KardexMovementSectionFilters = function(props: KardexMovementSectionFiltersProps){
    
