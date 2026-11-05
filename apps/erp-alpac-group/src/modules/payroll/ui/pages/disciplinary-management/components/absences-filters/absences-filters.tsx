@@ -7,6 +7,7 @@ import {
 } from "@alpac/design-system";
 import type {
   AbsencesFiltersProps,
+  InternalFilterFormValues,
 } from "@app/modules/payroll/ui/pages/disciplinary-management/components/absences-filters/absences-filters.types";
 import {
   ABSENCE_SOURCE_FILTER_OPTIONS,
@@ -17,16 +18,9 @@ import {
   disciplinaryPrimaryButtonClassName,
   disciplinarySecondaryButtonClassName,
 } from "@app/modules/payroll/ui/pages/disciplinary-management/utils/disciplinary-form.constants";
-import dayjs from "dayjs";
+import { toApiDate } from "@app/shared/utils/date.utils";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 
-type InternalFilterFormValues = {
-  identification_number: string;
-  status: string;
-  source: string;
-  start_date: DatePickerValue | null;
-  end_date: DatePickerValue | null;
-};
 
 const DEFAULT_VALUES: InternalFilterFormValues = {
   identification_number: "",
@@ -36,11 +30,6 @@ const DEFAULT_VALUES: InternalFilterFormValues = {
   end_date: null,
 };
 
-const toApiDate = (date: DatePickerValue | null | undefined): string | null => {
-  if (!date) return null;
-  const d = dayjs((date as DatePickerValue)?.$d ?? date);
-  return d.isValid() ? d.format("YYYY-MM-DD") : null;
-};
 
 export const AbsencesFilters = ({
   onApply,

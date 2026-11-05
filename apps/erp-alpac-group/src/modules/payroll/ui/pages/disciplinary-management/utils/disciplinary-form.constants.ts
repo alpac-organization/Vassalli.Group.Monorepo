@@ -78,3 +78,6 @@ export const disciplinaryRejectButtonClassName =
 
   export const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
+
+export const sectionTitleClassName =
+  "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";

@@ -10,6 +10,7 @@ import { useAbsence } from "@app/modules/payroll/ui/hooks/absence/useAbsence";
 import { AbsenceDetailsModal } from "@app/modules/payroll/ui/pages/disciplinary-management/components/absence-details-modal/absence-details-modal";
 import { AbsencesFilters } from "@app/modules/payroll/ui/pages/disciplinary-management/components/absences-filters/absences-filters";
 import type { AbsencesFilterFormValues } from "@app/modules/payroll/ui/pages/disciplinary-management/components/absences-filters/absences-filters.types";
+import type { AbsencesTabProps } from "./absences-tab.types";
 import { AbsencesTable } from "@app/modules/payroll/ui/pages/disciplinary-management/components/absences-table/absences-table";
 import { RegisterAbsenceModal } from "@app/modules/payroll/ui/pages/disciplinary-management/components/register-absence-modal/register-absence-modal";
 import {
@@ -25,9 +26,6 @@ import { useCallback, useMemo, useState } from "react";
 
 const PAGE_SIZE = 10;
 
-type AbsencesTabProps = {
-  canWrite?: boolean;
-};
 
 export const AbsencesTab = ({ canWrite = true }: AbsencesTabProps) => {
   const { companyId, moduleCode } = useUserStore();

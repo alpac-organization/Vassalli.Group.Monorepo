@@ -6,6 +6,7 @@ import {
 import type { AbsenceDetailsModalProps } from "@app/modules/payroll/ui/pages/disciplinary-management/components/absence-details-modal/absence-details-modal.types";
 import {
   disciplinaryApproveButtonClassName,
+  sectionTitleClassName,
   disciplinaryRejectButtonClassName,
 } from "@app/modules/payroll/ui/pages/disciplinary-management/utils/disciplinary-form.constants";
 import {
@@ -26,8 +27,6 @@ import {
   NotebookTextIcon,
 } from "lucide-react";
 
-const sectionTitleClassName =
-  "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
 
 export const AbsenceDetailsModal = ({
   isOpen,

@@ -13,6 +13,7 @@ import { useAbsence } from "@app/modules/payroll/ui/hooks/absence/useAbsence";
 import type { RegisterAbsenceModalProps } from "@app/modules/payroll/ui/pages/disciplinary-management/components/register-absence-modal/register-absence-modal.types";
 import {
   disciplinaryApproveButtonClassName,
+  sectionTitleClassName,
   disciplinaryDropdownClassName,
   disciplinaryInputClassName,
   disciplinaryLabelClassName,
@@ -29,8 +30,6 @@ import { BanIcon, CheckIcon, NotebookTextIcon, X } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 
-const sectionTitleClassName =
-  "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
 
 type RegisterAbsenceFormValues = {
   date: DatePickerValue | null;
