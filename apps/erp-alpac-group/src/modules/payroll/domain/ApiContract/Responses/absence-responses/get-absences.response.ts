@@ -12,4 +12,4 @@ export interface AbsenceDto {
 }
 
 
-export type GetAbsencesResponse = PaginateBaseResponse<AbsenceDto[]>;
+export type GetAbsencesResponse = PaginateBaseResponse<AbsenceDto>;
