@@ -73,3 +73,14 @@ export const formatSpanishDateTime = (
 
   return [datePart, timePart].filter(Boolean).join(" ");
 };
+
+/**
+ * Convierte un valor de DatePickerValue a formato YYYY-MM-DD para el API.
+ * @param date - DatePickerValue | null | undefined
+ * @returns string | null
+ */
+export const toApiDate = (date: DatePickerValue | null | undefined): string | null => {
+  if (!date) return null;
+  const d = dayjs((date as DatePickerValue)?.$d ?? date);
+  return d.isValid() ? d.format("YYYY-MM-DD") : null;
+};
