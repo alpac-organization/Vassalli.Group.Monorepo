@@ -31,3 +31,16 @@ export interface UserInformation {
    user_status: UserStatusKey;
    work_area_information: WorkAreaInformation | null;
 }
+
+export interface WarehouseInformation {
+   warehouse_id: string;
+   code: string;
+   warehouse_type: number;
+}
+
+export interface OperationalOrderInformation {
+   operational_order_id: string;
+   po_code: string | null;
+   packages_count: number | null;
+   is_alerted: boolean;
+}

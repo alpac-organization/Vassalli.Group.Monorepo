@@ -39,7 +39,9 @@ const getVariants = (animation: TabsAnimation): Variants =>
 export function Tabs(props: TabProps<string>): React.ReactNode {
 
 	const animation = props.animation ?? "slide";
-	const [activeTab, setActiveTab] = useState(props.activeTab);
+	const isControlled = props.onTabChange !== undefined;
+	const [internalActive, setInternalActive] = useState(props.activeTab);
+	const activeTab = isControlled ? props.activeTab : internalActive;
 	const [direction, setDirection] = useState(0);
 
 	const activeItem = props.tabItems.find((item) => item.id === activeTab);
@@ -54,7 +56,7 @@ export function Tabs(props: TabProps<string>): React.ReactNode {
 			setDirection(nextIndex > currentIndex ? 1 : -1);
 		}
 
-		setActiveTab(nextTab);
+		if (!isControlled) setInternalActive(nextTab);
 		props.onTabChange?.(nextTab);
 	};
 
@@ -63,7 +65,8 @@ export function Tabs(props: TabProps<string>): React.ReactNode {
 			<TabHeader
 				tabs={props.tabItems}
 				activeTab={activeTab}
-				onTabChange={handleTabChange}				
+				onTabChange={handleTabChange}
+				mobileMode={props.mobileMode}
 			/>
 
 			<div className="relative w-full min-w-0 overflow-hidden">

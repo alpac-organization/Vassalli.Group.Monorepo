@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { Modal } from "@alpac/design-system";
 import { AccessControlHeader } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/access-control-header/access-control-header";
@@ -33,16 +33,19 @@ import type { ReceptionEntranceListItem } from "@app/modules/warehouse/domain/Ap
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { useQueryClient } from "@tanstack/react-query";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { DocumentEnum, type DocumentType } from "@app/core/enums/document.enum";
 import type { Path } from "react-hook-form";
 
 const PAGE_SIZE = 10;
 const EMPTY_FILTERS: AccessControlFilters = {
+  date: "",
   document_number: "",
   document_type: "",
   vehicle_plate_number: "",
   container_number: "",
+  reception_code: "",
 };
 
 const UPDATABLE_FIELDS = new Set<Path<MovementDetailFormValues>>([
@@ -61,6 +64,7 @@ const UPDATABLE_FIELDS = new Set<Path<MovementDetailFormValues>>([
 ]);
 
 export function AccessControlPage() {
+  const queryClient = useQueryClient();
   const { companyId, moduleCode } = useUserStore();
   const { getMappedError } = useMappedError();
   const {
@@ -78,9 +82,11 @@ export function AccessControlPage() {
   const [exitReception, setExitReception] = useState<ReceptionEntranceListItem | null>(null);
 
   const payloadAccessControl = useMemo<GetAccessControlRequest>(() => {
+    const date = (appliedFilters.date ?? "").trim();
     const plateNumber = (appliedFilters.vehicle_plate_number ?? "").trim();
     const containerNumber = (appliedFilters.container_number ?? "").trim();
     const docNumber = (appliedFilters.document_number ?? "").trim();
+    const receptionCode = (appliedFilters.reception_code ?? "").trim();
 
     let docTypeNumber: number | undefined = undefined;
     if (appliedFilters.document_type) {
@@ -99,9 +105,11 @@ export function AccessControlPage() {
     }
 
     const hasFilter = Boolean(
+      date ||
       plateNumber ||
       containerNumber ||
       docNumber ||
+      receptionCode ||
       docTypeNumber !== undefined,
     );
 
@@ -109,11 +117,13 @@ export function AccessControlPage() {
       company_id: companyId,
       module_code: moduleCode,
       only_day: !hasFilter,
+      date: date || undefined,
       plate_number: plateNumber || undefined,
       container_number: containerNumber || undefined,
       contaniner_number: containerNumber || undefined,
       document_type: docTypeNumber,
       document_number: docNumber || undefined,
+      reception_code: receptionCode || undefined,
       page_number: pageNumber,
       page_size: PAGE_SIZE,
     };
@@ -149,7 +159,12 @@ export function AccessControlPage() {
     detailPayload,
   });
 
-  const { data: accessControl, isLoading, isFetching } = GetAccessControl;
+  const { data: accessControl, isLoading, isFetching, refetch: refetchAccessControl } = GetAccessControl;
+
+  useEffect(() => {
+    refetchAccessControl();
+  }, [appliedFilters, pageNumber, refetchAccessControl]);
+
   const {
     data: detail,
     isLoading: isDetailLoading,
@@ -172,13 +187,20 @@ export function AccessControlPage() {
 
   const handleApplyFilters = useCallback((filters: AccessControlFilters) => {
     setAppliedFilters({
+      date: (filters.date ?? "").trim(),
       document_number: (filters.document_number ?? "").trim(),
       document_type: (filters.document_type ?? "").trim(),
-      vehicle_plate_number: (filters.vehicle_plate_number ?? "").trim(),
+      vehicle_plate_number: (
+        filters.vehicle_plate_number ??
+        filters.plate_number ??
+        ""
+      ).trim(),
       container_number: (filters.container_number ?? "").trim(),
+      reception_code: (filters.reception_code ?? "").trim(),
     });
+    queryClient.invalidateQueries({ queryKey: ["access-control"] });
     setPageNumber(1);
-  }, []);
+  }, [queryClient]);
 
   const handleClearFilters = useCallback(() => {
     setAppliedFilters(EMPTY_FILTERS);
