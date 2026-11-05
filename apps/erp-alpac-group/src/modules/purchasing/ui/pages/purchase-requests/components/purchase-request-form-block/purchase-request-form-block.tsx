@@ -22,17 +22,22 @@ const filteredPriorityOptions = PriorityLevelOptions.filter(
    label: priority.label,
 }));
 
-export const PurchaseRequestFormBlock = ({
-   index,
-   defaults,
-   requestType,
-   isEditMode = false,
-   onDuplicate,
-   onRemove,
-   onRequestError,
-   onRequestSuccess,
-   ref,
-}: PurchaseRequestFormBlockProps) => {
+export const PurchaseRequestFormBlock = (props: PurchaseRequestFormBlockProps) => {
+   const {
+      index,
+      defaults,
+      requestType,
+      isEditMode = false,
+      onDuplicate,
+      onRemove,
+      onRequestError,
+      onRequestSuccess,
+      ref,
+   } = props;
+
+
+
+   console.log(JSON.stringify(defaults, null, 3))
 
    const { costCenterName } = useUserStore();
    const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;

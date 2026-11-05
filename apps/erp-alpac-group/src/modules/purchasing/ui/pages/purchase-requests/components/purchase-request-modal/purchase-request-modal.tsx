@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type SubmitEvent } from "react";
 import { Button, Modal } from "@alpac/design-system";
 import { PlusIcon } from "lucide-react";
 import type { PurchaseRequestEntry, PurchaseRequestModalProps } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal.types";
@@ -21,18 +21,17 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PurchaseRequestFormBlock } from "../purchase-request-form-block/purchase-request-form-block";
-import type { PurchaseRequestFormBlockHandle } from "../purchase-request-form-block/purchase-request-form-block.types";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { toDataUrl } from "@app/shared/utils/toDataUrl";
 import { extractPurchaseRequestItemImages } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-item-images.utils";
-import { useArrayData } from "@app/shared/hooks/useArrayData";
-import type { GetUnitMeasurementsResponse } from "@app/modules/unit-of-measurement/domain/responses/get-unit-measurements";
+
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import type { PurchaseRequestFormBlockHandle } from "../purchase-request-form-block/purchase-request-form-block.types";
 
 const emptyFormValues = (): CreatePurchaseRequestPayload => ({
 	request_type: PurchaseRequestEnum.Requisition.textValue,
@@ -48,7 +47,7 @@ const createEntry = (defaults: CreatePurchaseRequestPayload = emptyFormValues())
 		...defaults,
 		purchase_request_items: defaults.purchase_request_items.map((item) => ({
 			...item,
-			images: item.images
+			images: item.additional_data
 				? {
 					images_product_to_changed: [
 						...(item.images.images_product_to_changed ?? []),
@@ -109,24 +108,23 @@ const resolveUnitMeasureId = (
 
 const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestItem => {
 	const productJustification = item.justification?.trim() ?? "";
+	const productImages = item.additional_data?.images_product_to_changed ?? [];
 
-	// const productImages = item.additional_data?.images_product_to_changed ?? [];
-	// const additionalData: PurchaseRequestItemAdditionalData | null = productImages.length
-	// 	? { images_product_to_changed: productImages }
-	// 	: null;
+	const additionalData = productImages.length
+		? { images_product_to_changed: productImages }
+		: null;
 
-	
 	return {
 		product_id: item.product_id ?? "",
 		quantity: Number(item.quantity),
 		description: item.description ?? "",
 		unit_measure_id: item.unit_measure_id ?? "",
-		// additional_data: additionalData ? JSON.stringify(additionalData) : null,
+		additional_data: additionalData ? JSON.stringify(additionalData) : null,
 		...(productJustification ? { justification: productJustification } : {}),
 		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
 			? { quantity_unit: Number(item.quantity_unit) }
 			: {}),
-	};
+	} as UpdateNewPurchaseRequestItem;
 };
 
 // Crear un item
@@ -136,30 +134,42 @@ const mapCreateItem = (item: PurchaseRequestItem): PurchaseRequestItem => {
 
 	return {
 		...mapped,
+
 		unit_measure_id: unitMeasureId,
-		additional_data: ""		
+		additional_data: mapped.additional_data ?? null
 	};
 };
 
 //Actualizar item existente
 const mapExistingUpdateItem = (item: PurchaseRequestItem & { purchase_request_item_id: string }): UpdateExistingPurchaseRequestItem => {
 
-	const productImages 		= item.additional_data ?? [];
-	const productJustification  = item.justification?.trim() ?? "";
+	const productJustification = item.justification?.trim() ?? "";
+
+	// Read images from additional_data (backend format: JSON string with images_product_to_changed)
+	let imagesProductToChanged: string[] = [];
+	if (item.additional_data) {
+		try {
+			const parsed = JSON.parse(item.additional_data);
+			imagesProductToChanged = parsed.images_product_to_changed || [];
+		} catch {
+			// If JSON parsing fails, use empty array
+		}
+	}
 
 	return {
-		id: item.purchase_request_item_id,
 		product_id: item.product_id ?? undefined,
 		quantity: Number(item.quantity),
 		description: item.description ?? undefined,
 		unit_measure_id: item.unit_measure_id ?? undefined,
-		images_product_to_changed: productImages,
+		images_product_to_changed: imagesProductToChanged,
 		...(productJustification ? { justification: productJustification } : {}),
 		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
 			? { quantity_unit: Number(item.quantity_unit) }
 			: {}),
-	};
+} as UpdateExistingPurchaseRequestItem;
 };
+
+
 
 export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 
@@ -185,9 +195,6 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 
 	const [entries, setEntries] = useState<PurchaseRequestEntry[]>([]);
 	const [editDefaultsReady, setEditDefaultsReady] = useState(false);
-
-	console.log(JSON.stringify(entries, null, 3));
-	console.log(JSON.stringify(currentBranchId, null, 3))
 
 	//#region Referencias
 
@@ -287,15 +294,11 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 	}, [isOpen, isEditMode, purchaseRequestId]);
 
 	useEffect(() => {
-
 		if (!isOpen  || !isEditMode || isLoadingEditData || editDefaultsReady) return;
 		if (!details || !productsResponse) return;
-
-		const products = productsResponse.data ?? [];
-
-		console.log(JSON.stringify({productsData: products}, null, 3));
 		
-		const unitMeasureLookup = buildUnitMeasureLookup(unitsOfMeasurement);
+		//Productos 
+		const products = productsResponse.data ?? [];
 
 		const editDefaults: CreatePurchaseRequestPayload = {
 			request_type: 			requestType.textValue,
@@ -305,34 +308,33 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 			
 			purchase_request_items: products.map((product) => {
 
+				console.log(product);
+
 				const storedImages = extractPurchaseRequestItemImages(
 					product.additional_data,
 				);
 
-				const imageDataUrls = storedImages
-					.map((image) => toDataUrl(image.image_base64, image.content_type))
-					.filter((src): src is string => Boolean(src));
+				console.log(JSON.stringify(storedImages, null, 3));
 
 				return {
-					product_id: 	product.product_details?.product_id ?? "",
-					product_name: 	product.product_details?.product_name,
+					product_name: 	 product.product_details?.product_name,
+					product_id: 	 product.product_details?.product_id 			   ?? "",
+					unit_measure_id: product.unit_measure_information?.unit_measure_id ?? "",
 
-					quantity: 		product.quantity,
-					quantity_unit: 	product.quantity_unit ?? 0,
-					
-					unit_measure_id: resolveUnitMeasureId(
-						product.unit_measure_information as PurchaseRequestUnitMeasureInformation,
-						unitMeasureLookup,
-					),
+					quantity: 		 product.quantity,
+					quantity_unit: 	 product.quantity_unit ?? 0,
+					description: 	 product.description   ?? "",
+					justification: 	 product.justification ?? "",
 
-					description: product.description ?? "",
-					justification: product.justification ?? "",
-					images: {
-						images_product_to_changed: imageDataUrls,
-					},
+					// images: 
+					// images: {
+					// 	images_product_to_changed: imageDataUrls,
+					// },
 				};
 			}),
 		};
+
+		// console.log(JSON.stringify(editDefaults, null, 3));
 
 		setEntries([createEntry(editDefaults)]);
 		setEditDefaultsReady(true);
@@ -398,31 +400,31 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 		}
 	};
 
-	const buildUpdatePayload = (values: CreatePurchaseRequestPayload): UpdatePurchaseRequestPayload => ({
-		company_id: companyId,
-		module_code: moduleCode,
-		purchase_request_id: purchaseRequestId,
-		observations: values.observations.trim(),
-		destination_request:
-			values.destination ?? PurchaseRequestDestinationEnum.Internal.textValue,
-		...(isRequisition
-			? { priority_level: values.priority_level }
-			: { priority_level: PriorityLevelEnum.None.textValue }),
+	const buildUpdatePayload = (values: CreatePurchaseRequestPayload): UpdatePurchaseRequestPayload => {
+		console.log("Called! \"build update payload\"");
 
-		purchase_request_items: values.purchase_request_items.map((item) => {
-			const existingId = item.purchase_request_item_id?.trim();
-			if (existingId) {
-				return mapExistingUpdateItem({
-					...item,
-					purchase_request_item_id: existingId,
-				});
-			}
+		return {
+			company_id: 			companyId,
+			module_code: 			moduleCode,
+			purchase_request_id: 	purchaseRequestId,
+			observations: 			values.observations.trim(),
+			destination_request: 	values.destination    ?? PurchaseRequestDestinationEnum.Internal.textValue,
 
-			return mapNewCreateItem(item);
-		}),
-	});
+			...(
+				isRequisition
+				? { priority_level: values.priority_level }
+				: { priority_level: PriorityLevelEnum.None.textValue }
+			),
 
-	const handleFormSubmit = async () => {
+			// purchase_request_items: values.purchase_request_items.map((item: PurchaseRequestItem): PurchaseRequestItem => ({
+			// 	...item
+			// })),	
+		}
+	}
+	
+	//#region Logica para lanzar actualización o creación
+	const handleFormSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
+		event.preventDefault();
 
 		if (!currentBranchId || entries.length === 0) return;
 
@@ -443,15 +445,23 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 		try {
 			if (isEditMode) {
 				await UpdatePurchaseRequest.mutateAsync(buildUpdatePayload(valuesList[0]));
+
+				//Notificar que se realizo la actualización.
 				onRequestSuccess?.("Solicitud de compra actualizada con éxito.");
-			} 
+			}
 			else {
+				
 				const mainPayload: PurchaseRequestMainPayload = {
 					company_id: 	   companyId,
 					module_code: 	   moduleCode,
 					purchase_requests: valuesList.map((values) => buildCreatePayload(values)),
 				};
 
+				console.log(JSON.stringify(mainPayload, null, 2));
+
+				return;
+
+				//Lanzar el servicio que consume la creación de las solcitudes
 				await CreatePurchaseRequest.mutateAsync(mainPayload);
 
 				onRequestSuccess?.(
@@ -473,7 +483,9 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 			onRequestError?.(mappedError.description);
 		}
 	};
+	//#endregion
 
+	//#region casos de labels
 	const modalTitle = isEditMode
 		? `Actualizar ${requestType.label}`
 		: `Registrar  ${requestType.label}`;
@@ -481,6 +493,7 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 	const modalDescription = isEditMode
 		? "Modifique la información de la solicitud de compra"
 		: "Complete la información de la solicitud de compra";
+	//#endregion
 
 	const showForm = !isEditMode || (editDefaultsReady && !isLoadingEditData);
 
@@ -515,10 +528,7 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 				contentClassName="flex min-h-0 flex-1 flex-col"
 			>
 				<form
-					onSubmit={(evt) => {
-						evt.preventDefault();
-						handleFormSubmit();
-					}}
+					onSubmit={handleFormSubmit}
 					className="flex min-h-0 flex-1 flex-col"
 					noValidate
 				>
@@ -576,18 +586,20 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 						</div>
 					</div>
 
-					{!isEditMode && (
-						<div className="shrink-0 bg-white py-4 dark:bg-[#272b34]">
-							<Button
-								type="button"
-								size="medium"
-								icon={<PlusIcon size={16} />}
-								label={`Crear ${requestType.label}`}
-								onClick={handleCreate}
-								className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-							/>
-						</div>
-					)}
+					{
+						!isEditMode && (
+							<div className="shrink-0 bg-white py-4 dark:bg-[#272b34]">
+								<Button
+									type="button"
+									size="medium"
+									icon={<PlusIcon size={16} />}
+									label={`Crear ${requestType.label}`}
+									onClick={handleCreate}
+									className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+								/>
+							</div>
+						)
+					}
 
 					<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
 						<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

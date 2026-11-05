@@ -7,9 +7,7 @@ const asRecord = (value: unknown): AdditionalDataRecord | null =>
 		? value as AdditionalDataRecord
 		: null;
 
-export function parsePurchaseRequestItemAdditionalData(
-	additionalData?: string | null,
-): AdditionalDataRecord | null {
+export function parsePurchaseRequestItemAdditionalData(additionalData?: string | null): AdditionalDataRecord | null {
 	if (!additionalData?.trim()) return null;
 
 	try {
@@ -18,9 +16,10 @@ export function parsePurchaseRequestItemAdditionalData(
 		if (typeof parsed === "string") {
 			parsed = JSON.parse(parsed) as unknown;
 		}
-
+		
 		return asRecord(parsed);
-	} catch {
+	} 
+	catch {
 		return null;
 	}
 }
@@ -57,10 +56,9 @@ const normalizeImage = (image: unknown): ImagePayload | null => {
 	};
 };
 
-export function extractPurchaseRequestItemImages(
-	additionalData?: string | null,
-): ImagePayload[] {
+export function extractPurchaseRequestItemImages(additionalData?: string | null): ImagePayload[] {
 	const parsed = parsePurchaseRequestItemAdditionalData(additionalData);
+
 	if (!parsed) return [];
 
 	const images = [

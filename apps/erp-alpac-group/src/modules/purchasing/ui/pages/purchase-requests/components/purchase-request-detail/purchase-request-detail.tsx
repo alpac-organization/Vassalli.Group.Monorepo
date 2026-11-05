@@ -87,7 +87,7 @@ export const PurchaseRequestDetail = (
 
 	useEffect(() => {
 		setOpenProducts(fields.map((field) => field.id));
-	}, [fields]);
+	}, [fields]);   
 
 	const { GetUnitMeasurements } = useUnitOfMeasurement({
 		payloadUnitOfMeasurement: {
@@ -244,10 +244,12 @@ export const PurchaseRequestDetail = (
 						const selectedUnit = unitsOfMeasurementOptions.find(
 							(option) => String(option.value) === String(selectedUnitId),
 						);
+
 						const isBoxOrPackage = hasUnitsPerPackage(
 							selectedUnit?.label,
 							selectedUnit?.symbol,
 						);
+
 						const isPersistedItem = Boolean(
 							item.purchase_request_item_id?.trim(),
 						);
@@ -267,8 +269,9 @@ export const PurchaseRequestDetail = (
 											<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
 												{index + 1}
 											</span>
+											
 											<span className="min-w-0 truncate text-[15px] font-semibold text-slate-800 dark:text-white">
-												{item.product_name || `#${index + 1}`}
+												{item.product_id || `#${index + 1}`}
 											</span>
 										</div>
 										{canRemoveItem ? (

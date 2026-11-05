@@ -6,6 +6,7 @@ import type { PurchaseRequestDestinationType } from "@app/modules/purchasing/dom
 export interface PurchaseRequestMainPayload extends BaseRequest {
 	purchase_requests: CreatePurchaseRequestPayload[];
 }
+
 export interface CreatePurchaseRequestPayload {
 	observations: 		   string;
 	request_type: 		   PurchaseRequestType;
@@ -18,15 +19,15 @@ export interface CreatePurchaseRequestPayload {
 }
 
 export interface PurchaseRequestItem {
-	unit_measure_id: 			string;
-	product_id: 				string;
 	quantity: 					number;
+	product_id: 				string;
 	description: 				string;
 	justification:   			string;
+	unit_measure_id: 			string;
 	quantity_unit?: 			number | null;
 	additional_data?: 			string | null;
 }
 
 export interface PurchaseRequestItemAdditionalData {
-	
+	images_product_to_changed: string[]
 }

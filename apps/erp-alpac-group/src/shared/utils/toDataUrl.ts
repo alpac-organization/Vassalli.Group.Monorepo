@@ -1,7 +1,4 @@
-export const toDataUrl = (
-  image_base64?: string | null,
-  content_type?: string | null,
-): string | null => {
+export const toDataUrl = (image_base64?: string | null, content_type?: string | null): string | null => {
   const value = image_base64?.trim();
   if (!value) return null;
 

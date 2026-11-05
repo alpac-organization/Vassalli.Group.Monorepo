@@ -90,9 +90,10 @@ export interface PurchaseRequestCategoryInformation {
 }
 
 export interface PurchaseRequestUnitMeasureInformation {
-	code: string | null;
-	name: string | null;
-	symbol: string | null;
+	unit_measure_id: string;
+	code: 			 string | null;
+	name: 			 string | null;
+	symbol: 		 string | null;
 }
 
 export interface PurchaseRequestProductQuotationSupplier {
