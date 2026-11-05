@@ -6,6 +6,7 @@ import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useWarehouseAssignment } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAssignment";
+import { useSupplyRequest } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useSupplyRequest";
 import { AssignmentOperationalStatus } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/warehouse-assignment/assignment-enums";
 import type { AssignmentOperationalDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignments";
 import type { AssignmentOperationalDetailsDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-assignment-details";
@@ -15,6 +16,7 @@ import { DescargueFilters } from "./components/descargue-filters/descargue-filte
 import { DescargueTable } from "./components/descargue-table/descargue-table";
 import { AssignmentDetailModal } from "../warehouse-assignment/components/assignment-detail-modal/assignment-detail-modal";
 import { FinishDescargueModal } from "./components/finish-descargue-modal/finish-descargue-modal";
+import { SupplyRequestModal } from "./components/supply-request-modal/supply-request-modal";
 import type { PositioningInformation } from "./components/finish-descargue-modal/finish-descargue-modal";
 
 const PAGE_SIZE = 10;
@@ -33,8 +35,14 @@ export function DescarguePage() {
     useState<AssignmentOperationalDto | null>(null);
   const [selectedAssignmentForFinish, setSelectedAssignmentForFinish] =
     useState<AssignmentOperationalDto | null>(null);
+  const [supplyModalContext, setSupplyModalContext] = useState<{
+    assignment: AssignmentOperationalDto;
+    warehouseId: string;
+    warehouseName: string;
+  } | null>(null);
   const [isStartingTask, setIsStartingTask] = useState(false);
   const [isFinishingTask, setIsFinishingTask] = useState(false);
+  const [isRegisteringSupplies, setIsRegisteringSupplies] = useState(false);
 
   const { setActiveDescargueAssignment, setBodega } = useBodegaViewerStore();
 
@@ -53,6 +61,8 @@ export function DescarguePage() {
           }
         : null,
     });
+
+  const { RegisterSupplyRequest } = useSupplyRequest();
 
   const { data: assignmentsData, isLoading, isFetching, error } = GetAssignments;
 
@@ -166,12 +176,18 @@ export function DescarguePage() {
         // 4. Cerrar el modal
         setSelectedAssignmentForStart(null);
 
+        // 5. Abrir modal opcional de solicitud de insumos
+        setSupplyModalContext({
+          assignment,
+          warehouseId,
+          warehouseName,
+        });
+
         handleRequestSuccess(
           `¡Descarga iniciada para "${assignment.merchandise || "la mercancía"}"! Selecciona las posiciones en la bodega 3D.`,
         );
 
-        // 5. Redireccionar a la ruta correcta de Bodegas 3D
-        navigate(`${baseUrl}/warehouse-mga/bodegas`);
+        // La redirección se realiza al cerrar/saltar/registrar en el modal de insumos.
       } catch (err) {
         handleRequestError(err);
       } finally {
@@ -186,6 +202,61 @@ export function DescarguePage() {
       setActiveDescargueAssignment,
       setBodega,
       StartTask,
+      handleRequestSuccess,
+      handleRequestError,
+    ],
+  );
+
+  const handleSkipSupplyRequest = useCallback(() => {
+    if (!supplyModalContext) return;
+
+    const { warehouseId, warehouseName } = supplyModalContext;
+
+    setBodega(warehouseId, warehouseName);
+    setSupplyModalContext(null);
+    navigate(`${baseUrl}/warehouse-mga/bodegas`);
+  }, [baseUrl, navigate, setBodega, supplyModalContext]);
+
+  const handleSubmitSupplyRequest = useCallback(
+    async (
+      items: { product_stock_id: string; amount: number }[],
+      justification: string,
+    ) => {
+      if (!supplyModalContext || !companyId || !moduleCode) return;
+
+      try {
+        setIsRegisteringSupplies(true);
+
+        await RegisterSupplyRequest.mutateAsync({
+          company_id: companyId,
+          module_code: moduleCode,
+          justification,
+          operational_order_id: supplyModalContext.assignment.operational_order_id,
+          items,
+          reason_use: 2,
+        });
+
+        const { warehouseId, warehouseName } = supplyModalContext;
+
+        setBodega(warehouseId, warehouseName);
+        setSupplyModalContext(null);
+
+        handleRequestSuccess("Solicitud de insumos registrada correctamente.");
+        navigate(`${baseUrl}/warehouse-mga/bodegas`);
+      } catch (err) {
+        handleRequestError(err);
+      } finally {
+        setIsRegisteringSupplies(false);
+      }
+    },
+    [
+      baseUrl,
+      companyId,
+      moduleCode,
+      navigate,
+      supplyModalContext,
+      RegisterSupplyRequest,
+      setBodega,
       handleRequestSuccess,
       handleRequestError,
     ],
@@ -342,6 +413,15 @@ export function DescarguePage() {
         assignment={selectedAssignmentForFinish}
         isSubmitting={isFinishingTask}
         onConfirm={handleConfirmFinishDescargue}
+      />
+
+      {/* Modal opcional de solicitud de insumos */}
+      <SupplyRequestModal
+        isOpen={Boolean(supplyModalContext)}
+        onClose={handleSkipSupplyRequest}
+        isSubmitting={isRegisteringSupplies}
+        onSubmit={handleSubmitSupplyRequest}
+        onSkip={handleSkipSupplyRequest}
       />
 
       {AlertComponent}

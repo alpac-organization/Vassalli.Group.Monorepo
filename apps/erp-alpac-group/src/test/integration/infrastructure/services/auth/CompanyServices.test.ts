@@ -8,8 +8,8 @@ describe('authentication_services_infrastructure', () => {
    let http_handler_mock: IHttpHandler;
 
    const mock_companies: GetCompaniesResponse[] = [
-      { company_id: 1, company_name: 'ALPAC_PROD', alias: "ALPAC" },
-      { company_id: 2, company_name: 'ALPAC_DEV',  alias: "ALPAC" }
+      { company_id: crypto.randomUUID(), company_name: 'ALPAC_PROD', alias: "ALPAC" },
+      { company_id: crypto.randomUUID(), company_name: 'ALPAC_DEV',  alias: "ALPAC" }
    ];
 
    beforeEach(() => {

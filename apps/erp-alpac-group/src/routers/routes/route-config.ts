@@ -9,6 +9,7 @@ import { getPurchasingRoutes } from "@app/routers/routes/purchasing/purchasing-r
 import { getFinanceRoutes } from "@app/routers/routes/finance/finance-routes";
 import { getWarehouseAdminRoutes } from "@app/routers/routes/warehouse-admin/warehouse-admin-routes";
 import { getManagementRoutes } from "@app/routers/routes/management/management-routes";
+import { getInventoryRoutes } from "./inventory/inventory.routes";
 
 const {
   collboratorSection,
@@ -47,7 +48,8 @@ const {
   warehouseAssignmentSection,
   warehouseDescargueSection,
   BodegaSection,
-  ticketSection
+  ticketSection,
+  supplyRequestsSection
 } = getManaguaWarehouseRoutes();
 
 const { manageSection } = getWarehouseAdminRoutes();
@@ -62,6 +64,11 @@ const {
 const { quoteAnalisysSection } = getFinanceRoutes();
 
 const { analyzedQuoteSection } = getManagementRoutes();
+
+const { 
+  inventoryControl, 
+  inventoryEntriesAndOutputs
+} = getInventoryRoutes();
 
 export const routeConfig = {
   [ModuleEnum.PAYROLL]: {
@@ -114,6 +121,7 @@ export const routeConfig = {
       warehouseDescargueSection,
       BodegaSection,
       warehouseReportSection,
+      supplyRequestsSection,
     ],
     [RoleEnum.ADMINISTRATOR]: [
       warehouseManaguaSection,
@@ -122,7 +130,8 @@ export const routeConfig = {
       warehouseDescargueSection,
       BodegaSection,
       warehouseReportSection,
-      ticketSection
+      ticketSection,
+      supplyRequestsSection,
     ],
     [RoleEnum.MANAGER]: [
       warehouseManaguaSection,
@@ -131,6 +140,7 @@ export const routeConfig = {
       warehouseDescargueSection,
       BodegaSection,
       warehouseReportSection,
+      supplyRequestsSection,
     ],
     [RoleEnum.SUPERVISOR]: [
       warehouseManaguaSection,
@@ -139,6 +149,7 @@ export const routeConfig = {
       warehouseDescargueSection,
       BodegaSection,
       warehouseReportSection,
+      supplyRequestsSection,
     ],
   },
   [ModuleEnum.WAREHOUSE_ADMIN]: {
@@ -163,4 +174,10 @@ export const routeConfig = {
   [ModuleEnum.MANAGEMENT]: {
     [RoleEnum.ADMINISTRATOR]: [analyzedQuoteSection],
   },
+  [ModuleEnum.INVENTORY]: {
+    [RoleEnum.ADMINISTRATOR]: [
+      inventoryControl,
+      inventoryEntriesAndOutputs
+    ]
+  }
 };

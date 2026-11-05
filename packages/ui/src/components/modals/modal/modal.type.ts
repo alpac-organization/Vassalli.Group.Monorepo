@@ -25,7 +25,7 @@ export interface ModalProps {
   onClose: () => void;
   variant?: ModalVariant;
   size?: ModalSize;
-  title?: string;
+  title?: string | ReactNode;
   description?: string | ReactNode;
   children?: ReactNode;
   panelClassName?: string;

@@ -17,10 +17,12 @@ import defaultNeutralLogo from "@app/assets/logos/blanco/vasalli-logo.png";
 
 const DEFAULT_LOGIN_BRANDING = "Grupo Vassalli";
 
-function resolveGrupoVasalliCompanyId(companies: GetCompaniesResponse[] | undefined): string | null {
-
-  if (!Array.isArray(companies) || companies.length === 0) return null;  
-  const normalize = (s: string) => s.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").trim();
+function resolveGrupoVasalliCompanyId(
+  companies: GetCompaniesResponse[] | undefined,
+): string | null {
+  if (!Array.isArray(companies) || companies.length === 0) return null;
+  const normalize = (s: string) =>
+    s?.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").trim();
   const match = companies.find((c) => {
     const alias = normalize(c.alias ?? "ALPAC");
     const name = normalize(c.company_name ?? "ALPAC") ;
