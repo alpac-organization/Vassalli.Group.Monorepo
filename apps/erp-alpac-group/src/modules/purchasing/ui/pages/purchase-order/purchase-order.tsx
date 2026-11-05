@@ -126,8 +126,6 @@ export const PurchaseOrder = () => {
 			try {
 				await generatePurchaseOrderPdf({
 					purchaseOrderId: row.purchase_order_id,
-					branchName:
-						row.purchase_request?.branch_information?.branch_name ?? null,
 				});
 			} catch (error) {
 				const message =

@@ -63,8 +63,7 @@ const normalizePaymentMethodType = (raw: unknown): PaymentMethodType | null => {
 const resolveAcceptedPaymentMethod = (
   details?: GetPurchaseOrderDetailsResponse | null,
 ): PaymentMethodType | null => {
-  const purchaseRequest =
-    details?.purchase_request_details ?? details?.purchase_request;
+  const purchaseRequest = details?.purchase_request_details;
   const items = purchaseRequest?.purchase_request_items ?? [];
 
   for (const item of items) {
@@ -129,7 +128,6 @@ export const PurchaseOrderDocumentModal = ({
 
   const branchNameForSeal =
     details?.purchase_request_details?.branch_information?.branch_name ??
-    details?.purchase_request?.branch_information?.branch_name ??
     companyName;
 
   useEffect(() => {

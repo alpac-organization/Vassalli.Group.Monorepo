@@ -58,8 +58,7 @@ export const PurchaseOrderDetailsModal = ({
 	});
 
 	const details = GetPurchaseOrderDetails.data ?? ({} as GetPurchaseOrderDetailsResponse);
-	const purchaseRequest =
-		details.purchase_request_details ?? details.purchase_request;
+	const purchaseRequest = details.purchase_request_details;
 
 	const products = purchaseRequest?.purchase_request_items ?? [];
 
