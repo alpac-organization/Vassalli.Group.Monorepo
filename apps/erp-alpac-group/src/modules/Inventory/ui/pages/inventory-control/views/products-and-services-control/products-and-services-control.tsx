@@ -3,14 +3,19 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
 import { DataTable, Pagination, SectionHeader } from "@alpac/design-system"
 
+import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import { ProductsAndServicesSectionFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters";
 import { DEFAULT_PRODUCT_FILTERS, GetProductColumnsToTable } from "./products-and-services-control.variant";
 import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types";
+import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 
 const PAGE_SIZE = 5;
 
 export const ProductsAndServicesControl = function() {
 
+   const [openProductEditModal, setOpenProductEditModal] = useState(false);
+   const [productSelected, setProductSelected] = useState<GetProductResponse | null>(null);
+   
    const [filters, setFilters] = useState<ProductsAndServicesFilters>(DEFAULT_PRODUCT_FILTERS);
 
    const { companyId, moduleCode } = useUserStore();
@@ -18,18 +23,34 @@ export const ProductsAndServicesControl = function() {
       getProductPayload: {
          company_id: companyId,
          module_code: moduleCode,
-         product_usage_type: "Operational",  
-         ...(filters.category_product_id  && { category_product_id: filters.category_product_id  }),
-         
-         page_size: PAGE_SIZE,
-         page_number: 1
+         product_usage_type: "Operational",
+         ...filters,         
       }
    });
+   
+
+   //#region Acciones del producto
+   const handleOpenModalToEditProduct = function(){
+      setOpenProductEditModal(true);
+   }
+
+   const handleCloseModal = function(){
+      setOpenProductEditModal(false);
+   }
+
+   const handleSelectProduct = function(product: GetProductResponse) {
+      setProductSelected(product);  
+   }
+   //#endregion
 
    const { data: productsData, isPending, isFetching } = GetProducts;
-   const productsAndServicesColumns = GetProductColumnsToTable();
+   
+   const productsAndServicesColumns = GetProductColumnsToTable({
+      selectProductToEdit: handleSelectProduct,
+      openModalToEdit: handleOpenModalToEditProduct
+   });
 
-      //Metodos de filtrado
+   //Metodos de filtrado
    const handleApplyFilters = (newFilters: ProductsAndServicesFilters) => {
       setFilters(newFilters);
    };
@@ -74,6 +95,14 @@ export const ProductsAndServicesControl = function() {
 					/>
 				}
 			/>
+         
+         {/* Modal para editar un producto */}
+         <CreateProductModal 
+            isOpen={openProductEditModal}
+            onClose={handleCloseModal}
+            typeProductToRegister="Operational"
+            selectedProduct={productSelected}
+         />
 		</div>
 	)
 }

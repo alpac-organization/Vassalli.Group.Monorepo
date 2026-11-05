@@ -181,6 +181,7 @@ export const PurchaseRequestModal = ({
 	const [entries, setEntries] = useState<PurchaseRequestEntry[]>([]);
 	const [editDefaultsReady, setEditDefaultsReady] = useState(false);
 	const blockRefs = useRef<Map<string, PurchaseRequestFormBlockHandle>>(new Map());
+
 	const lastBlockRef = useRef<HTMLDivElement>(null);
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -188,9 +189,9 @@ export const PurchaseRequestModal = ({
 		id: crypto.randomUUID(),
 		defaults: {
 			branch_id: "",
+			observations: "",
 			cost_center_id: costCenterId,
 			destination: PurchaseRequestDestinationEnum.Internal.textValue,
-			observations: "",
 			request_type: requestType.textValue,
 			priority_level: PriorityLevelEnum.None.textValue,
 			purchase_request_items: [],
@@ -276,33 +277,36 @@ export const PurchaseRequestModal = ({
 		const unitMeasureLookup = buildUnitMeasureLookup(unitsOfMeasurement);
 
 		const editDefaults: CreatePurchaseRequestPayload = {
-			branch_id: currentBranchId,
-			cost_center_id: costCenterId,
-			request_type: requestType.textValue,
-			priority_level:
-				details.priority_level ?? PriorityLevelEnum.None.textValue,
-			destination:
-				details.destination ??
-				PurchaseRequestDestinationEnum.Internal.textValue,
-			observations: details.observations?.trim() ?? "",
+			branch_id: 				currentBranchId,
+			cost_center_id: 		costCenterId,
+			request_type: 			requestType.textValue,
+			priority_level: 		details.priority_level ?? PriorityLevelEnum.None.textValue,
+			destination:			details.destination ?? PurchaseRequestDestinationEnum.Internal.textValue,
+			observations: 			details.observations?.trim() ?? "",
+			
 			purchase_request_items: products.map((product) => {
+
 				const storedImages = extractPurchaseRequestItemImages(
 					product.additional_data,
 				);
+
 				const imageDataUrls = storedImages
 					.map((image) => toDataUrl(image.image_base64, image.content_type))
 					.filter((src): src is string => Boolean(src));
 
 				return {
+					
 					purchase_request_item_id: product.purchase_request_item_id,
 					product_id: product.product_details?.product_id ?? "",
 					product_name: product.product_details?.product_name,
 					quantity: product.quantity,
 					quantity_unit: product.quantity_unit ?? 0,
+					
 					unit_measure_id: resolveUnitMeasureId(
 						product.unit_measure_information as PurchaseRequestUnitMeasureInformation,
 						unitMeasureLookup,
 					),
+
 					description: product.description ?? "",
 					justification: product.justification ?? "",
 					images: {

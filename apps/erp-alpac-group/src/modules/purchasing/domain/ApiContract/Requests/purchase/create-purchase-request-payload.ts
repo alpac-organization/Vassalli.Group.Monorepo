@@ -15,6 +15,7 @@ export interface CreatePurchaseRequestPayload {
 	service_order_id?: string | null;
 	operational_order_id?: string | null;
 	observations: string;
+	
 	priority_level?: PriorityLevelType;
 	destination: PurchaseRequestDestinationType;
 	request_type: PurchaseRequestType;

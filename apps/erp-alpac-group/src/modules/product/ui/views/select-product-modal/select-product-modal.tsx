@@ -9,13 +9,16 @@ import {
 	RadioButton,
 	type TableColumn,
 } from "@alpac/design-system";
+
 import type {
 	SelectableCatalogProduct,
 	SelectProductModalProps,
 } from "./select-product-modal.types";
+
+import { Loader } from "@app/shared/components/loaders/loader";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { Loader } from "@app/shared/components/loaders/loader";
+
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
 import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product.request";
@@ -35,14 +38,7 @@ function normalizeProducts(
 	return [];
 }
 
-export function SelectProductModal({
-	isOpen,
-	onClose,
-	onSelect,
-	selectionType = "single",
-	excludeProductIds = [],
-	description,
-}: SelectProductModalProps) {
+export function SelectProductModal({ isOpen, onClose, onSelect, selectionType = "single", excludeProductIds = [], description}: SelectProductModalProps) {
 
 	const { companyId, moduleCode } = useUserStore();
 
@@ -51,13 +47,15 @@ export function SelectProductModal({
 	const [categoryId, setCategoryId] = useState("");
 	const [tempSelected, setTempSelected] = useState<SelectableCatalogProduct | null>(null);
 	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<SelectableCatalogProduct[]>([]);
+	
 	const [filters, setFilters] = useState<GetProductRequest>({
 		company_id: companyId,
 		module_code: moduleCode,
 		category_product_id: "",
 		page_number: 1,
 		page_size: PAGE_SIZE,
-	} as GetProductRequest);
+	});
+
 	const [listSession, setListSession] = useState({
 		isOpen,
 		companyId,
@@ -102,7 +100,10 @@ export function SelectProductModal({
 	);
 
 	const { GetProductCategories, GetProducts } = useProduct({
-		getProductPayload: filters,
+		getProductPayload: {
+			...filters,
+			product_usage_type: "Administrative"
+		},
 		getProductCategoryPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
@@ -114,7 +115,7 @@ export function SelectProductModal({
 		const categories: GetProductCategoryResponse[] = GetProductCategories.data;
 		return categories.map(item => {
 			return {
-				value: item.id,
+				value: item.category_id,
 				label: item.name
 			}
 		})

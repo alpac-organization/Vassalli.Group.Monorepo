@@ -1,13 +1,12 @@
 import {
   Alert,
   Button,
-  ContextMenu,
-  DataTable,
-  Dropdown,
-  Pagination,
-  AnimatedAlertWrapper,
-  type TableColumn,
   Badges,
+  Dropdown,
+  DataTable,
+  Pagination,
+  ContextMenu,
+  AnimatedAlertWrapper
 } from "@alpac/design-system";
 import { BlocksIcon } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -17,16 +16,17 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
+import { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
 import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/utils/styles";
 import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import { ProductDetailsModal } from "@app/modules/product/ui/views/product-details-modal/product-details-modal";
 import { ProductSuppliersModal } from "@app/modules/product/ui/views/product-suppliers-modal/product-suppliers-modal";
 import { dropdownClassName, labelClassName } from "../../views/product-price-edit-modal/constants/product-price.constants";
 
+import type { TableColumn } from "@alpac/design-system";
 import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product.request";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
-import { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
 
 
 const PAGE_SIZE = 5;

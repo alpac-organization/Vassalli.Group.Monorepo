@@ -6,8 +6,9 @@ import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/u
 import type { ContextMenuItem, TableColumn } from "@alpac/design-system"
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response"
 import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types"
+import type { GetProductColumnsToTableProps } from "./products-and-services-control.types"
 
-export const GetProductColumnsToTable = function(): TableColumn<GetProductResponse>[]{
+export const GetProductColumnsToTable = function(props: GetProductColumnsToTableProps): TableColumn<GetProductResponse>[]{
    return [
       { 
          key: "product_code",       
@@ -49,7 +50,11 @@ export const GetProductColumnsToTable = function(): TableColumn<GetProductRespon
       {
          key: "options",
          label: "Opciones",
-         render(){
+         render(item){
+
+            props.item = item;
+            const ContextMenuItems = getContexMenuItems(props);
+
             return (
                <ContextMenu
                   triggerClassName={contextMenuButton}
@@ -62,26 +67,40 @@ export const GetProductColumnsToTable = function(): TableColumn<GetProductRespon
    ]
 }
 
-const ContextMenuItems: ContextMenuItem[] = [
-   {
-      label: "Editar",
-      onClick(){
-      }
-   },
-   {
-      label: "Elminar Producto",
-      onClick(){
-      }
-   },
-   {
-      label: "Ver Detalles",
-      onClick(){
+const getContexMenuItems = function(subProps: GetProductColumnsToTableProps): ContextMenuItem[] {
+   const { item, openModalToEdit, selectProductToEdit } = subProps;
 
-      }
+   if (!item)
+   {
+      return [];
    }
-]
+   
+   return [
+      {
+         label: "Editar",
+         onClick(){
+            selectProductToEdit(item);
+            openModalToEdit();
+         }
+      },
+      {
+         label: "Elminar Producto",
+         onClick(){
+            console.log("Eliminar producto.");
+         }
+      },
+      {
+         label: "Ver Detalles",
+         onClick(){
+            console.log("Ver detalles del producto");
+         }
+      }
+   ]
+}
 
 export const DEFAULT_PRODUCT_FILTERS: ProductsAndServicesFilters = {
    product_code:       "",
    category_product_id:"",
+   page_number:        1,
+   page_size:          5
 }
