@@ -20,8 +20,8 @@ import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/A
 import type { PurchaseRequestFilterForm } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-filters/purchase-request-filters.types";
 import { getPurchaseRequestColumnConfig } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-table-config";
 import { toYearMonthObject } from "@app/shared/utils/date.utils";
-const PAGE_SIZE = 5;
 
+const PAGE_SIZE = 5;
 
 const allowedStatus: string[] = [
 	PurchaseRequestStatusEnum.Pending.textValue,
@@ -50,7 +50,6 @@ export const RequisitionTab = ({
 
 	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
 
-
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>({
 		company_id: companyId,
 		module_code: moduleCode,
@@ -59,7 +58,6 @@ export const RequisitionTab = ({
 		page_number: 1,
 		page_size: PAGE_SIZE,
 	});
-
 
 	const { GetPurchaseRequests, AnnulPurchaseRequest } = usePurchase({
 		getPurchaseRequestsPayload: {
@@ -73,8 +71,8 @@ export const RequisitionTab = ({
 	});
 
 	const purchaseRequests = GetPurchaseRequests.data?.data ?? [];
-	const totalRecords = GetPurchaseRequests.data?.total ?? 0;
-	const currentPage = filters.page_number ?? 1;
+	const totalRecords 	   = GetPurchaseRequests.data?.total ?? 0;
+	const currentPage 	   = filters.page_number ?? 1;
 
 	useEffect(() => {
 		setFilters({
@@ -287,36 +285,48 @@ export const RequisitionTab = ({
 				/>
 			</div>
 
-			<PurchaseRequestModal
-				isOpen={isRequisitionModalOpen}
-				onClose={() => setIsRequisitionModalOpen(false)}
-				onRequestSuccess={onRequestSuccess}
-				onRequestError={onRequestError}
-				currentBranchId={currentBranchId}
-				requestType={PurchaseRequestEnum.Requisition}
-				purchaseRequest={requisitionDetail}
-			/>
+			{
+				isRequisitionModalOpen && (
+					<PurchaseRequestModal
+						isOpen={isRequisitionModalOpen}
+						onClose={() => setIsRequisitionModalOpen(false)}
+						onRequestSuccess={onRequestSuccess}
+						onRequestError={onRequestError}
+						currentBranchId={currentBranchId}
+						requestType={PurchaseRequestEnum.Requisition}
+						purchaseRequest={requisitionDetail}
+					/>
+				)
+			}
 
-			<PurchaseRequestDetailModal
-				isOpen={isRequisitionDetailModalOpen}
-				onClose={() => setIsRequisitionDetailModalOpen(false)}
-				purchaseRequest={requisitionDetail}
-				onRequestSuccess={onRequestSuccess}
-				onRequestError={onRequestError}
-			/>
-
-			<AnnulModal
-				isOpen={isAnnulModalOpen}
-				title="Anular Solicitud de Compra"
-				description={`¿Está seguro que desea anular la solicitud de compra ${requisitionDetail?.code ?? ""}? Esta acción es irreversible.`}
-				showScopeSelection={false}
-				isSubmitting={AnnulPurchaseRequest.isPending}
-				onClose={() => {
-					if (AnnulPurchaseRequest.isPending) return;
-					setIsAnnulModalOpen(false);
-				}}
-				onConfirm={handleConfirmAnnul}
-			/>
+			{
+				isRequisitionDetailModalOpen && (
+					<PurchaseRequestDetailModal
+						isOpen={isRequisitionDetailModalOpen}
+						onClose={() => setIsRequisitionDetailModalOpen(false)}
+						purchaseRequest={requisitionDetail}
+						onRequestSuccess={onRequestSuccess}
+						onRequestError={onRequestError}
+					/>
+				)
+			}
+			
+			{
+				isAnnulModalOpen && (
+					<AnnulModal
+						isOpen={isAnnulModalOpen}
+						title="Anular Solicitud de Compra"
+						description={`¿Está seguro que desea anular la solicitud de compra ${requisitionDetail?.code ?? ""}? Esta acción es irreversible.`}
+						showScopeSelection={false}
+						isSubmitting={AnnulPurchaseRequest.isPending}
+						onClose={() => {
+							if (AnnulPurchaseRequest.isPending) return;
+							setIsAnnulModalOpen(false);
+						}}
+						onConfirm={handleConfirmAnnul}
+					/>
+				)
+			}
 
 		</div>
 	);

@@ -354,17 +354,21 @@ export const PurchaseRequestProductsTable = ({
 				</div>
 
 				<div className="flex flex-col divide-y divide-slate-100 dark:divide-neutral-700">
-					<EmptyProductsMessage productsCount={products.length} />
+
+					<EmptyProductsMessage 
+						productsCount={products.length} 
+					/>
+					
 					{products.length > 0 &&
 						products.map((product, index) => {
 							const productImages = extractPurchaseRequestItemImages(
 								product.additional_data,
 							);
-							const productName =
-								product.product_details.product_name?.trim() || "producto";
+							const productName = product.product_details?.product_name?.trim() || "producto";
+
 							const acceptedSupplierId = getAcceptedSupplierId(product);
 							const hasExpandableContent = Boolean(acceptedSupplierId);
-							const rowKey = `${product?.purchase_request_item_id}-${product.product_details.product_id}-${index}`;
+							const rowKey = `${product?.purchase_request_item_id}-${product.product_details?.product_id}-${index}`;
 
 							if (!hasExpandableContent) {
 								return (

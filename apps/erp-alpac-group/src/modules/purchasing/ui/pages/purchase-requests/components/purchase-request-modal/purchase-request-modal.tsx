@@ -5,7 +5,6 @@ import type { PurchaseRequestEntry, PurchaseRequestModalProps } from "@app/modul
 import type {
 	CreatePurchaseRequestPayload,
 	PurchaseRequestItem,
-	PurchaseRequestItemAdditionalData,
 	PurchaseRequestMainPayload,
 } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import type {
@@ -32,10 +31,10 @@ import type { PurchaseRequestFormBlockHandle } from "../purchase-request-form-bl
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { toDataUrl } from "@app/shared/utils/toDataUrl";
 import { extractPurchaseRequestItemImages } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-item-images.utils";
+import { useArrayData } from "@app/shared/hooks/useArrayData";
+import type { GetUnitMeasurementsResponse } from "@app/modules/unit-of-measurement/domain/responses/get-unit-measurements";
 
 const emptyFormValues = (): CreatePurchaseRequestPayload => ({
-	branch_id: "",
-	cost_center_id: "",
 	request_type: PurchaseRequestEnum.Requisition.textValue,
 	priority_level: PriorityLevelEnum.None.textValue,
 	destination: PurchaseRequestDestinationEnum.Internal.textValue,
@@ -68,18 +67,19 @@ type UnitMeasureLookup = {
 	bySymbol: Map<string, string>;
 };
 
-const buildUnitMeasureLookup = (
-	units: { unit_measure_id: string; code: string; symbol: string }[],
-): UnitMeasureLookup => {
-	const byCode = new Map<string, string>();
-	const bySymbol = new Map<string, string>();
+//Funcion constructora.
+const buildUnitMeasureLookup = (units: { unit_measure_id: string; code: string; symbol: string }[] ): UnitMeasureLookup => {
+	const byCode 	= new Map<string, string>();
+	const bySymbol 	= new Map<string, string>();
 
 	for (const unit of units) {
-		const codeKey = normalizeUnitKey(unit.code);
+		const codeKey 	= normalizeUnitKey(unit.code);
 		const symbolKey = normalizeUnitKey(unit.symbol);
+
 		if (codeKey && !byCode.has(codeKey)) {
 			byCode.set(codeKey, unit.unit_measure_id);
 		}
+
 		if (symbolKey && !bySymbol.has(symbolKey)) {
 			bySymbol.set(symbolKey, unit.unit_measure_id);
 		}
@@ -109,17 +109,19 @@ const resolveUnitMeasureId = (
 
 const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestItem => {
 	const productJustification = item.justification?.trim() ?? "";
-	const productImages = item.images?.images_product_to_changed ?? [];
-	const additionalData: PurchaseRequestItemAdditionalData | null = productImages.length
-		? { images_product_to_changed: productImages }
-		: null;
 
+	// const productImages = item.additional_data?.images_product_to_changed ?? [];
+	// const additionalData: PurchaseRequestItemAdditionalData | null = productImages.length
+	// 	? { images_product_to_changed: productImages }
+	// 	: null;
+
+	
 	return {
 		product_id: item.product_id ?? "",
 		quantity: Number(item.quantity),
 		description: item.description ?? "",
 		unit_measure_id: item.unit_measure_id ?? "",
-		additional_data: additionalData ? JSON.stringify(additionalData) : null,
+		// additional_data: additionalData ? JSON.stringify(additionalData) : null,
 		...(productJustification ? { justification: productJustification } : {}),
 		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
 			? { quantity_unit: Number(item.quantity_unit) }
@@ -127,23 +129,23 @@ const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestIt
 	};
 };
 
+// Crear un item
 const mapCreateItem = (item: PurchaseRequestItem): PurchaseRequestItem => {
-	const mapped = mapNewCreateItem(item);
-	const unitMeasureId = item.unit_measure_id?.trim() || null;
+	const mapped 		= mapNewCreateItem(item);
+	const unitMeasureId = item.unit_measure_id?.trim();
 
 	return {
 		...mapped,
 		unit_measure_id: unitMeasureId,
-		additional_supplier_ids: item.additional_supplier_ids,
-		new_product: item.new_product ?? null,
+		additional_data: ""		
 	};
 };
 
-const mapExistingUpdateItem = (
-	item: PurchaseRequestItem & { purchase_request_item_id: string },
-): UpdateExistingPurchaseRequestItem => {
-	const productJustification = item.justification?.trim() ?? "";
-	const productImages = item.images?.images_product_to_changed ?? [];
+//Actualizar item existente
+const mapExistingUpdateItem = (item: PurchaseRequestItem & { purchase_request_item_id: string }): UpdateExistingPurchaseRequestItem => {
+
+	const productImages 		= item.additional_data ?? [];
+	const productJustification  = item.justification?.trim() ?? "";
 
 	return {
 		id: item.purchase_request_item_id,
@@ -159,38 +161,46 @@ const mapExistingUpdateItem = (
 	};
 };
 
-export const PurchaseRequestModal = ({
-	isOpen,
-	onClose,
-	onSubmit,
-	currentBranchId,
-	requestType,
-	onRequestError,
-	onRequestSuccess,
-	purchaseRequest = null,
-}: PurchaseRequestModalProps) => {
+export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 
-	const { companyId, moduleCode, role, areaId, costCenterId } = useUserStore();
+	const {
+		isOpen,
+		onClose,
+		onSubmit,
+		currentBranchId,
+		requestType,
+		onRequestError,
+		onRequestSuccess,
+		purchaseRequest = null,
+	} = props;
 
 	const { getMappedError } = useMappedError();
-	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
-	const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
-	const isEditMode = Boolean(purchaseRequest?.purchase_request_id);
+	const { companyId, moduleCode, role, areaId, costCenterId } = useUserStore();
+
+	const isAdministrator 	= role === RoleEnum.ADMINISTRATOR;
+	const isRequisition 	= requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
+	
+	const isEditMode 		= Boolean(purchaseRequest?.purchase_request_id);
 	const purchaseRequestId = purchaseRequest?.purchase_request_id ?? "";
 
 	const [entries, setEntries] = useState<PurchaseRequestEntry[]>([]);
 	const [editDefaultsReady, setEditDefaultsReady] = useState(false);
-	const blockRefs = useRef<Map<string, PurchaseRequestFormBlockHandle>>(new Map());
 
-	const lastBlockRef = useRef<HTMLDivElement>(null);
+	console.log(JSON.stringify(entries, null, 3));
+	console.log(JSON.stringify(currentBranchId, null, 3))
+
+	//#region Referencias
+
+	const blockRefs 		 = useRef<Map<string, PurchaseRequestFormBlockHandle>>(new Map());
+	const lastBlockRef 		 = useRef<HTMLDivElement>(null);
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+	//#endregion
 
 	const defaultData: PurchaseRequestEntry = {
 		id: crypto.randomUUID(),
 		defaults: {
-			branch_id: "",
 			observations: "",
-			cost_center_id: costCenterId,
 			destination: PurchaseRequestDestinationEnum.Internal.textValue,
 			request_type: requestType.textValue,
 			priority_level: PriorityLevelEnum.None.textValue,
@@ -198,6 +208,7 @@ export const PurchaseRequestModal = ({
 		},
 	};
 
+	//#region services
 	const {
 		CreatePurchaseRequest,
 		UpdatePurchaseRequest,
@@ -222,33 +233,39 @@ export const PurchaseRequestModal = ({
 			module_code: moduleCode,
 		},
 	});
+	//#endregion
+
+	//#region Evaluar estados de submit y fetching 
+	const details = GetPurchaseRequestDetails.data as
+		| GetPurchaseRequestDetailResponse
+		| undefined;
+	
+	const productsResponse = GetPurchaseRequestProducts.data as
+		| PurchaseRequestProductInformationList
+		| undefined;
+		
+		const isLoadingEditData =
+		isEditMode &&
+		isOpen &&
+		(
+			GetPurchaseRequestDetails.isPending   ||
+			GetPurchaseRequestDetails.isFetching  ||
+			GetPurchaseRequestProducts.isPending  ||
+			GetPurchaseRequestProducts.isFetching ||
+			GetUnitMeasurements.isPending 		  ||
+			GetUnitMeasurements.isFetching
+		);
+		
+	const isSubmitting =
+		CreatePurchaseRequest.isPending || UpdatePurchaseRequest.isPending;
+
+	//#endregion
 
 	const unitsOfMeasurement = useMemo(() => {
 		const data = GetUnitMeasurements.data;
 		return Array.isArray(data) ? data : [];
 	}, [GetUnitMeasurements.data]);
-
-	const details = GetPurchaseRequestDetails.data as
-		| GetPurchaseRequestDetailResponse
-		| undefined;
-
-	const productsResponse = GetPurchaseRequestProducts.data as
-		| PurchaseRequestProductInformationList
-		| undefined;
-
-	const isLoadingEditData =
-		isEditMode &&
-		isOpen &&
-		(GetPurchaseRequestDetails.isPending ||
-			GetPurchaseRequestDetails.isFetching ||
-			GetPurchaseRequestProducts.isPending ||
-			GetPurchaseRequestProducts.isFetching ||
-			GetUnitMeasurements.isPending ||
-			GetUnitMeasurements.isFetching);
-
-	const isSubmitting =
-		CreatePurchaseRequest.isPending || UpdatePurchaseRequest.isPending;
-
+		
 	useEffect(() => {
 		if (!isOpen) {
 			setEntries([]);
@@ -270,18 +287,20 @@ export const PurchaseRequestModal = ({
 	}, [isOpen, isEditMode, purchaseRequestId]);
 
 	useEffect(() => {
-		if (!isOpen || !isEditMode || isLoadingEditData || editDefaultsReady) return;
+
+		if (!isOpen  || !isEditMode || isLoadingEditData || editDefaultsReady) return;
 		if (!details || !productsResponse) return;
 
 		const products = productsResponse.data ?? [];
+
+		console.log(JSON.stringify({productsData: products}, null, 3));
+		
 		const unitMeasureLookup = buildUnitMeasureLookup(unitsOfMeasurement);
 
 		const editDefaults: CreatePurchaseRequestPayload = {
-			branch_id: 				currentBranchId,
-			cost_center_id: 		costCenterId,
 			request_type: 			requestType.textValue,
 			priority_level: 		details.priority_level ?? PriorityLevelEnum.None.textValue,
-			destination:			details.destination ?? PurchaseRequestDestinationEnum.Internal.textValue,
+			destination:			details.destination    ?? PurchaseRequestDestinationEnum.Internal.textValue,
 			observations: 			details.observations?.trim() ?? "",
 			
 			purchase_request_items: products.map((product) => {
@@ -295,12 +314,11 @@ export const PurchaseRequestModal = ({
 					.filter((src): src is string => Boolean(src));
 
 				return {
-					
-					purchase_request_item_id: product.purchase_request_item_id,
-					product_id: product.product_details?.product_id ?? "",
-					product_name: product.product_details?.product_name,
-					quantity: product.quantity,
-					quantity_unit: product.quantity_unit ?? 0,
+					product_id: 	product.product_details?.product_id ?? "",
+					product_name: 	product.product_details?.product_name,
+
+					quantity: 		product.quantity,
+					quantity_unit: 	product.quantity_unit ?? 0,
 					
 					unit_measure_id: resolveUnitMeasureId(
 						product.unit_measure_information as PurchaseRequestUnitMeasureInformation,
@@ -366,19 +384,19 @@ export const PurchaseRequestModal = ({
 		setEntries((prev) => prev.filter((entry) => entry.id !== id));
 	};
 
-	const buildCreatePayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => ({
-		...(isAdministrator && areaId ? { area_id: areaId } : {}),
-		branch_id: currentBranchId,
-		cost_center_id: costCenterId,
-		request_type: requestType.textValue,
-		...(isRequisition ? { priority_level: values.priority_level } : {}),
-		destination:
-			values.destination ?? PurchaseRequestDestinationEnum.Internal.textValue,
-		observations: values.observations.trim(),
-		purchase_request_items: values.purchase_request_items.map((item) =>
-			mapCreateItem(item),
-		),
-	});
+	const buildCreatePayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => {		
+		return {
+			...(isAdministrator && areaId ? { area_id: areaId } : {}),
+			...(isRequisition ? { priority_level: values.priority_level } : {}),
+
+			request_type: 			requestType.textValue,
+			destination:			values.destination ?? PurchaseRequestDestinationEnum.Internal.textValue,
+			observations: 			values.observations.trim(),
+			purchase_request_items: values.purchase_request_items.map((item) =>
+				mapCreateItem(item),
+			),
+		}
+	};
 
 	const buildUpdatePayload = (values: CreatePurchaseRequestPayload): UpdatePurchaseRequestPayload => ({
 		company_id: companyId,
@@ -390,6 +408,7 @@ export const PurchaseRequestModal = ({
 		...(isRequisition
 			? { priority_level: values.priority_level }
 			: { priority_level: PriorityLevelEnum.None.textValue }),
+
 		purchase_request_items: values.purchase_request_items.map((item) => {
 			const existingId = item.purchase_request_item_id?.trim();
 			if (existingId) {
@@ -404,6 +423,7 @@ export const PurchaseRequestModal = ({
 	});
 
 	const handleFormSubmit = async () => {
+
 		if (!currentBranchId || entries.length === 0) return;
 
 		const valuesList: CreatePurchaseRequestPayload[] = [];
@@ -424,14 +444,16 @@ export const PurchaseRequestModal = ({
 			if (isEditMode) {
 				await UpdatePurchaseRequest.mutateAsync(buildUpdatePayload(valuesList[0]));
 				onRequestSuccess?.("Solicitud de compra actualizada con éxito.");
-			} else {
+			} 
+			else {
 				const mainPayload: PurchaseRequestMainPayload = {
-					company_id: companyId,
-					module_code: moduleCode,
+					company_id: 	   companyId,
+					module_code: 	   moduleCode,
 					purchase_requests: valuesList.map((values) => buildCreatePayload(values)),
 				};
 
 				await CreatePurchaseRequest.mutateAsync(mainPayload);
+
 				onRequestSuccess?.(
 					valuesList.length === 1
 						? "Solicitud de compra creada con éxito."
@@ -442,9 +464,11 @@ export const PurchaseRequestModal = ({
 			setEntries([]);
 			blockRefs.current.clear();
 			setEditDefaultsReady(false);
+			
 			onSubmit?.();
 			onClose();
-		} catch (error) {
+		} 
+		catch (error) {
 			const mappedError = getMappedError(error as ApiErrorResponse);
 			onRequestError?.(mappedError.description);
 		}
@@ -452,7 +476,7 @@ export const PurchaseRequestModal = ({
 
 	const modalTitle = isEditMode
 		? `Actualizar ${requestType.label}`
-		: `Registrar ${requestType.label}`;
+		: `Registrar  ${requestType.label}`;
 
 	const modalDescription = isEditMode
 		? "Modifique la información de la solicitud de compra"
@@ -462,14 +486,19 @@ export const PurchaseRequestModal = ({
 
 	return (
 		<>
-			{isOpen && isLoadingEditData && (
-				<Loader title="Cargando solicitud..." />
-			)}
-			{isOpen && isSubmitting && (
-				<Loader
-					title={isEditMode ? "Actualizando solicitud..." : "Creando solicitud..."}
-				/>
-			)}
+			{
+				isOpen && isLoadingEditData && (
+					<Loader title="Cargando solicitud..." />
+				)
+			}
+
+			{
+				isOpen && isSubmitting && (
+					<Loader
+						title={isEditMode ? "Actualizando solicitud..." : "Creando solicitud..."}
+					/>
+				)
+			}
 
 			<Modal
 				isOpen={isOpen}

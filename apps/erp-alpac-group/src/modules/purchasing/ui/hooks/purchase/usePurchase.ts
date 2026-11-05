@@ -213,11 +213,18 @@ export const usePurchase = (props?: usePurchasePayloads) => {
    });
 
    return {
-      GetPurchaseRequests, GetPurchaseRequestDetails,
-      CreatePurchaseRequest, UpdatePurchaseRequest, ProcessPurchaseRequest, DeletePurchaseRequest,
-      SendPurchaseRequestToReview, GetPurchaseRequestProducts,
+      GetPurchaseRequests, 
+      GetPurchaseRequestDetails,
+      CreatePurchaseRequest, 
+      UpdatePurchaseRequest, 
+      ProcessPurchaseRequest, 
+      DeletePurchaseRequest,
+      SendPurchaseRequestToReview, 
+      GetPurchaseRequestProducts,
       GetMonthlyPurchaseReport,
-      GetPurchaseOrders, GetPurchaseOrderDetails, GetPurchaseOrderDocument,
+      GetPurchaseOrders, 
+      GetPurchaseOrderDetails, 
+      GetPurchaseOrderDocument,
       GetPurchaseRequestDocument,
       AnnulPurchaseRequest,
    }
