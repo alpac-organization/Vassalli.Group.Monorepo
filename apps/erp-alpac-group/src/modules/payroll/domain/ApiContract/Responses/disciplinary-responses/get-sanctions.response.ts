@@ -1,5 +1,6 @@
 import type { SanctionStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-status.enum";
 import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
+import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 
 /**
  * Fila de sanción disciplinaria en listados paginados.
@@ -54,9 +55,4 @@ export interface SanctionDto {
  * @property {number} page_size - Tamaño de página.
  * @property {number} total - Total de registros filtrados.
  */
-export interface GetSanctionsResponse {
-  data: SanctionDto[];
-  page_number: number;
-  page_size: number;
-  total: number;
-}
+export type GetSanctionsResponse = PaginateBaseResponse<SanctionDto[]>;

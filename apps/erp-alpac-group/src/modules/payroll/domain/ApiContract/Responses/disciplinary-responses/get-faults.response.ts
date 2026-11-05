@@ -1,6 +1,7 @@
 import type { FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
 import type { FaultSourceEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
 import type { FaultStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-status.enum";
+import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 
 /**
  * Referencia compacta al catálogo de falta (listados y detalles).
@@ -66,9 +67,4 @@ export interface FaultDto {
  * @property {number} page_size - Tamaño de página.
  * @property {number} total - Total de registros filtrados.
  */
-export interface GetFaultsResponse {
-  data: FaultDto[];
-  page_number: number;
-  page_size: number;
-  total: number;
-}
+export type GetFaultsResponse = PaginateBaseResponse<FaultDto[]>;

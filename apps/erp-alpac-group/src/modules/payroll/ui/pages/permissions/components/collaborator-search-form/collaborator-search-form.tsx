@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SearchIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { Alert, Button, InputText } from "@alpac/design-system";
+import { Button, InputText } from "@alpac/design-system";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -11,10 +11,7 @@ import { formatIdentificationNumber, validateIdentificationNumber } from "@app/s
 import type { CollaboratorSearchFormProps } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form.types";
 import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator-profile.request";
 import { useQueryClient } from "@tanstack/react-query";
-// import { m, LazyMotion, AnimatePresence } from "framer-motion";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
-
-// const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
 const normalizeIdentification = (value?: string | null) =>
    (value ?? "").toString().replace(/-/g, "").toUpperCase().trim();
@@ -30,12 +27,6 @@ export const CollaboratorSearchForm = ({
    const { companyId, moduleCode } = useUserStore();
    const { getMappedError } = useMappedError();
    const { handleRequestError, handleCloseAlert, InlineAlertComponent } = useAlertState();
-
-   /*    const searchErrorVariants = {
-         initial: { opacity: 0, y: 16, height: 0, overflow: 'hidden' },
-         animate: { opacity: 1, y: 0, height: 'auto', overflow: 'visible' },
-         exit: { opacity: 0, y: 8, height: 0, overflow: 'hidden' },
-      } */
 
    const {
       handleSubmit,

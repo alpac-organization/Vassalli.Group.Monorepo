@@ -1,7 +1,9 @@
+export type AlertType = "success" | "error" | "warning" | "info";
+
 export type AlertProps = {
     title?: string;
     message: string;
-    type: "success" | "error" | "warning" | "info";
+    type: AlertType;
     icon?: React.ReactNode;
     className?: string;
     showCloseButton?: boolean;

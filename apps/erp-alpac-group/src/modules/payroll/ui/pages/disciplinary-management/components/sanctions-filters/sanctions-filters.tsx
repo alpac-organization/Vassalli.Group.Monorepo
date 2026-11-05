@@ -10,7 +10,7 @@ import {
   disciplinaryLabelClassName,
   disciplinaryPrimaryButtonClassName,
   disciplinarySecondaryButtonClassName,
-} from "@app/modules/payroll/ui/pages/disciplinary-management/utils/disciplinary-form.constants";
+} from "@app/modules/payroll/ui/pages/disciplinary-management/utils/disciplinary-managment.variants";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 
 const DEFAULT_VALUES: SanctionsFilterFormValues = {

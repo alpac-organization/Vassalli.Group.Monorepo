@@ -7,7 +7,7 @@ import type { FaultDetailsModalProps } from "@app/modules/payroll/ui/pages/disci
 import {
 	disciplinaryApproveButtonClassName,
 	disciplinaryRejectButtonClassName,
-} from "@app/modules/payroll/ui/pages/disciplinary-management/utils/disciplinary-form.constants";
+} from "@app/modules/payroll/ui/pages/disciplinary-management/utils/disciplinary-managment.variants";
 import {
 	getFaultSeverityBadgeClass,
 	getFaultSourceBadgeClass,
@@ -16,12 +16,11 @@ import {
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { ImagePreviewGallery } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
 import { Loader } from "@app/shared/components/loaders/loader";
-import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
+import { formatDateToSpanishWords, formatIdentificationNumber } from "@app/shared/utils/string.utils";
 import {
 	BanIcon,
 	CalendarIcon,
 	GavelIcon,
-	HashIcon,
 	IdCardIcon,
 	MailIcon,
 	NotebookTextIcon,
@@ -41,6 +40,7 @@ export const FaultDetailsModal = ({
 	onCancelFault,
 	onApplySanction,
 }: FaultDetailsModalProps) => {
+
 	const view = detail ?? summary;
 	const isOpenStatus =
 		view?.status === "Open" || String(view?.status) === "1";
@@ -49,6 +49,12 @@ export const FaultDetailsModal = ({
 	const registeredBy = detail?.registered_by;
 	const parentFault = detail?.parent_fault;
 	const evidences = detail?.evidences ?? [];
+
+	let testing: string = "";
+	if (view && view.fault_catalog && view.fault_catalog) {
+		testing = String(view.fault_catalog?.code)
+			.concat(" - ").concat(view.fault_catalog?.name);
+	}
 
 	return (
 		<Modal
@@ -91,7 +97,7 @@ export const FaultDetailsModal = ({
 									/>
 									<DetailField
 										label="Identificación"
-										value={detail?.identification_number ?? ""}
+										value={formatIdentificationNumber(detail?.identification_number ?? "")}
 										icon={<IdCardIcon size={18} />}
 									/>
 								</div>
@@ -139,13 +145,8 @@ export const FaultDetailsModal = ({
 										}
 									/>
 									<DetailField
-										label="Código"
-										value={view.fault_catalog?.code ?? ""}
-										icon={<HashIcon size={18} />}
-									/>
-									<DetailField
 										label="Tipo de falta"
-										value={view.fault_catalog?.name ?? ""}
+										value={testing}
 										icon={<NotebookTextIcon size={18} />}
 									/>
 									<DetailField
