@@ -5,6 +5,7 @@ import { SectionsPage } from "@app/modules/admin-warehouse/warehouse-managua/ui/
 import { OngoingOperationsPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/ongoing-operations/ongoing-operations";
 import { AssignmentPage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/assignment";
 import { DescarguePage } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/descargue/descargue";
+import { SupplyRequests } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/supply-requests/supply-requests";
 
 export const WarehouseManaguaRouter: RouteObject[] = [
   {
@@ -22,6 +23,10 @@ export const WarehouseManaguaRouter: RouteObject[] = [
   {
     path: "descargue",
     element: <DescarguePage />,
+  },
+  {
+    path: "supply-requests",
+    element: <SupplyRequests />,
   },
   {
     path: "gate-entry",

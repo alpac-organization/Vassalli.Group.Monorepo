@@ -3,9 +3,9 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
 import { DataTable, Pagination, SectionHeader } from "@alpac/design-system"
 
-import { ProductsAndServicesSectionFilters } from "./views/products-and-services-section-filters";
+import { ProductsAndServicesSectionFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters";
 import { DEFAULT_PRODUCT_FILTERS, GetProductColumnsToTable } from "./products-and-services-control.variant";
-import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters.types";
+import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types";
 
 const PAGE_SIZE = 5;
 
@@ -58,7 +58,6 @@ export const ProductsAndServicesControl = function() {
             onApply={handleApplyFilters}
             onClear={handleClearFilters}
          />
-         
          
          {/* Productos y servicios */}
          <DataTable

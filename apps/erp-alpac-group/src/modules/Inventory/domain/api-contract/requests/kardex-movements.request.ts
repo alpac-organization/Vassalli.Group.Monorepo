@@ -30,22 +30,22 @@ export interface KardexMovementsRequest extends BaseRequest
      * Tipo de Kardex a consultar.
      * @see KardexTypeEnum
      */
-    kardex_type?:   KardexTypeEnum;
+    kardex_type?:   KardexTypeEnum | null;
 
     /**
      * Tipo de movimiento a filtrar (por ejemplo: entrada, salida, ajuste).
      * @see KardexMovementTypeEnum
      */
-    movement_type?: KardexMovementTypeEnum;
+    movement_type?: KardexMovementTypeEnum | null;
 
     /**
      * Cantidad de registros por página.
      */
-    page_size:      number;
+    page_size?:      number;
 
     /**
      * Número de página a consultar (según el criterio de indexación del
      * backend, normalmente iniciando en 1).
      */
-    page_number:    number
+    page_number?:    number
 }

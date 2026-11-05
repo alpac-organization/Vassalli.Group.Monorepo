@@ -8,4 +8,5 @@ export interface TabHeaderProps<T extends string> {
   tabs: TabOption<T>[];
   activeTab: T;
   onTabChange: (id: T) => void;
+  mobileMode?: "select" | "tabs";
 }

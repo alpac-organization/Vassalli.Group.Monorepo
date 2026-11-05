@@ -5,7 +5,7 @@ import { KardexMovementsServices } from "../../infrastructure/services/kardex-mo
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 import type { useKardexMovementsProps } from "../../application/interfaces/hooks/useKardexMovementsProps";
-import type { KardexMovementsResponse } from "../../domain/api-contract/responses/kardex-movements.response";
+import type { KardexMovementsData } from "../../domain/api-contract/responses/kardex-movements.response";
 
 const kardexMovementsServices = new KardexMovementsServices(warehouseHttpHandler);
 
@@ -17,7 +17,7 @@ export const useKardexMovements = function(props: useKardexMovementsProps){
 
    //#region Obtener movimientos de kardex
    
-   const GetKardexMovementsQuery = useQuery<PaginateBaseResponse<KardexMovementsResponse>, ApiErrorResponse>({
+   const GetKardexMovementsQuery = useQuery<PaginateBaseResponse<KardexMovementsData>, ApiErrorResponse>({
       queryKey: ["kardex-movements", payloadGetKardexMovementsRequest],
       queryFn: payloadGetKardexMovementsRequest
          ? () => kardexMovementsServices.GetKardexMovements(payloadGetKardexMovementsRequest)
@@ -30,6 +30,8 @@ export const useKardexMovements = function(props: useKardexMovementsProps){
    });
 
    //#endregion
+
+   //Agregar detalles de cada movimiento de kardex para mostrar en modal
 
    return {
       GetKardexMovementsQuery

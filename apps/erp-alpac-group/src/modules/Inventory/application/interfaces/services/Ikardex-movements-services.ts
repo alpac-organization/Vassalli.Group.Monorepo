@@ -1,6 +1,6 @@
+import type { KardexMovementsData } from "@app/modules/Inventory/domain/api-contract/responses/kardex-movements.response";
 import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 import type { KardexMovementsRequest } from "@app/modules/Inventory/domain/api-contract/requests/kardex-movements.request";
-import type { KardexMovementsResponse } from "@app/modules/Inventory/domain/api-contract/responses/kardex-movements.response";
 
 /**
  * Contrato del servicio de movimientos de Kardex.
@@ -20,7 +20,7 @@ export interface IKardexMovementsServices {
      * categoría, código de producto, tipo de Kardex, tipo de movimiento y
      * parámetros de paginación (`page_size` y `page_number`).
      *
-     * @returns {Promise<PaginateBaseResponse<KardexMovementsResponse>>}
+     * @returns {Promise<PaginateBaseResponse<KardexMovementsData>>}
      * Promesa que se resuelve con la respuesta paginada que contiene los
      * movimientos encontrados junto con la información de paginación.
      *
@@ -35,5 +35,5 @@ export interface IKardexMovementsServices {
      *   page_number: 1
      * });
      */
-    GetKardexMovements(payload: KardexMovementsRequest): Promise<PaginateBaseResponse<KardexMovementsResponse>>;
+    GetKardexMovements(payload: KardexMovementsRequest): Promise<PaginateBaseResponse<KardexMovementsData>>;
 }

@@ -6,6 +6,7 @@ export type MovementDetailFormValues = {
   country_of_origin: string;
   start_date: string;
   start_time: string;
+  registration_date_time: string;
   customs_decaration_number: string;
   plate_number: string;
   trailer_chassis: string;
@@ -16,6 +17,12 @@ export type MovementDetailFormValues = {
   transport_unit: string;
   seal_number: string;
   custom_branch: string;
+  vehicle_exit_date: string;
+  vehicle_exit_time: string;
+  vehicle_exit_date_time: string;
+  container_exit_date: string;
+  container_exit_time: string;
+  container_exit_date_time: string;
   evidence_urls: string[];
 };
 
@@ -39,6 +46,13 @@ export const MOVEMENT_DETAIL_DEFAULT_VALUES: MovementDetailFormValues = {
   country_of_origin: "",
   start_date: "",
   start_time: "",
+  registration_date_time: "",
+  vehicle_exit_date: "",
+  vehicle_exit_time: "",
+  vehicle_exit_date_time: "",
+  container_exit_date: "",
+  container_exit_time: "",
+  container_exit_date_time: "",
   customs_decaration_number: "",
   plate_number: "",
   trailer_chassis: "",

@@ -5,7 +5,7 @@ import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/u
 
 import type { ContextMenuItem, TableColumn } from "@alpac/design-system"
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response"
-import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters.types"
+import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types"
 
 export const GetProductColumnsToTable = function(): TableColumn<GetProductResponse>[]{
    return [
