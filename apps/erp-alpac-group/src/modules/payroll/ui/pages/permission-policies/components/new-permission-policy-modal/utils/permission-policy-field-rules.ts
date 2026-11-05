@@ -55,6 +55,8 @@ export function validateMaxEvidenceCount(
   value: FieldValue,
   minEvidenceCount: FieldValue,
 ): true | string {
+  if (isEmpty(value)) return true;
+
   const max = toInteger(value);
   if (max === null) return MESSAGES.integer;
   if (max < 0) return MESSAGES.nonNegative;

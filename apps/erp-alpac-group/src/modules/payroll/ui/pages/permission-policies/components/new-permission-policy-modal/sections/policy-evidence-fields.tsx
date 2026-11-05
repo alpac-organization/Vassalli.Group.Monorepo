@@ -44,7 +44,7 @@ export function PolicyEvidenceFields() {
                 setValue("max_evidence_count", "0", { shouldValidate: true });
               } else {
                 setValue("min_evidence_count", "1", { shouldValidate: true });
-                setValue("max_evidence_count", "1", { shouldValidate: true });
+                setValue("max_evidence_count", "", { shouldValidate: true });
               }
             }}
           />
@@ -86,7 +86,6 @@ export function PolicyEvidenceFields() {
                 errorVariant="tooltip"
                 error={errors.max_evidence_count?.message}
                 {...register("max_evidence_count", {
-                  required: "Ingrese la evidencia máxima",
                   validate: (value) =>
                     validateMaxEvidenceCount(
                       value,

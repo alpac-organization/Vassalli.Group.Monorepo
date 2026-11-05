@@ -6,3 +6,7 @@ export const PermitBeneficiaryScopeEnum: Record<string, EnumType> = {
 } as const;
 
 export type PermitBeneficiaryScopeEnum = keyof typeof PermitBeneficiaryScopeEnum;
+
+export function getPermitBeneficiaryScopeLabel(apiName: string): string {
+   return PermitBeneficiaryScopeEnum[apiName]?.label ?? apiName;
+}

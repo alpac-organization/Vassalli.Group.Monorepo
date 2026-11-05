@@ -6,6 +6,11 @@ export const PermitFamilyRelationshipEnum: Record<string, EnumType> = {
    Child: { value: 2, label: "Hijo(a)" },
    Parent: { value: 3, label: "Padre(a)" },
    Sibling: { value: 4, label: "Hermano(a)" },
+   Other: { value: 5, label: "Otro" },
 } as const;
 
 export type PermitFamilyRelationshipEnum = keyof typeof PermitFamilyRelationshipEnum;
+
+export function getPermitFamilyRelationshipLabel(apiName: string): string {
+   return PermitFamilyRelationshipEnum[apiName]?.label ?? apiName;
+}

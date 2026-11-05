@@ -7,15 +7,20 @@ import type { CancelPermissionRequest } from "@app/modules/payroll/domain/ApiCon
 import type { GeneratePermissionDocumentRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/generate-permission-docs-request";
 import { cleanParams } from "@app/shared/utils/object.utils";
 import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
-import type { PermitTypePolicyResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/get-permission-policies";
+import type {
+  GetPermissionPoliciesResponse,
+  PagedPermitTypePoliciesResponse,
+} from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/get-permission-policies";
+import type { GetPermitTypePoliciesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/get-permit-type-policies";
 import type { CreatePermissionPoliciesRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/create-permission-policies";
 import type {
   PermissionFormsOptions,
 } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/get-permission-forms";
 import { getPermissionTypeLabel } from "@app/modules/payroll/domain/enums/permission-enums/permissionType.enum";
-import { getPermitBeneficiaryScopeLabel } from "@app/modules/payroll/domain/enums/permission-enums/permit-beneficiary-scope.enum";
-import { getPermitFamilyRelationshipLabel } from "@app/modules/payroll/domain/enums/permission-enums/permit-family-relationship.enum";
+import { getPermitBeneficiaryScopeLabel } from "@app/modules/applications/domain/enums/permit-beneficiary-scope.enum";
+import { getPermitFamilyRelationshipLabel } from "@app/modules/applications/domain/enums/permit-family-relationship.enum";
 import { mapCatalogItem, type ApiCatalogItem } from "@app/modules/payroll/ui/pages/permission-policies/utils/build-permission-policy-payload";
+import type { UpdatePermitTypePolicyRequest } from "@app/modules/payroll/domain/ApiContract/Requests/permission-requests/update-permit-type-policy";
 
 
 export class PermissionServices implements IPermissionRequestServices {
@@ -85,73 +90,48 @@ export class PermissionServices implements IPermissionRequestServices {
   }
 
   public async getPermissionPolicies(
-    payload: BaseRequest,
-  ): Promise<PermitTypePolicyResponse> {
-    const { company_id, module_code } = payload;
-    const response = await this.apiHandler.get<PermitTypePolicyResponse>(
+    payload: GetPermitTypePoliciesRequest,
+  ): Promise<PagedPermitTypePoliciesResponse> {
+    const { company_id, module_code, ...query } = payload;
+    const params = cleanParams(query);
+    const response = await this.apiHandler.get<{
+      data: PermitTypePolicyApiItem[];
+      page_number: number;
+      page_size: number;
+      total: number;
+    }>(
       `/companies/${company_id}/modules/${module_code}/permit-type-policies`,
+      { params },
     );
 
-    return (response ?? []).map((policy) => {
-      const typeName = String(policy.permit_application_type ?? "");
-      const scopeName = String(policy.permit_beneficiary_scope ?? "");
-      const relationshipName = String(policy.family_relationship ?? "");
-
-      return {
-        ...policy,
-        permit_application_type_label: getPermissionTypeLabel(typeName),
-        permit_beneficiary_label: getPermitBeneficiaryScopeLabel(scopeName),
-        family_relationship_label:
-          getPermitFamilyRelationshipLabel(relationshipName),
-      };
-    });
+    return {
+      data: (response?.data ?? []).map(withPolicyLabels),
+      page_number: response?.page_number ?? query.page_number ?? 1,
+      page_size: response?.page_size ?? query.page_size ?? 10,
+      total: response?.total ?? 0,
+    };
   }
 
   public async CreatePermissionPolicies(
     payload: CreatePermissionPoliciesRequest,
   ): Promise<void> {
-    const {
-      company_id,
-      module_code,
-      max_amount_days,
-      is_active,
-      permit_application_type,
-      permit_beneficiary_scope,
-      family_relationship,
-      is_paid,
-      requires_evidence,
-      consumes_vacation_balance,
-      min_evidence_count,
-      max_evidence_count,
-      required_approval_steps,
-    } = payload;
-
-    const body: Record<string, unknown> = {
-      permit_application_type,
-      permit_beneficiary_scope,
-      family_relationship,
-      is_paid,
-      requires_evidence,
-      consumes_vacation_balance,
-      min_evidence_count,
-      max_evidence_count,
-      required_approval_steps,
-    };
-
-    if (is_active !== undefined) {
-      body.is_active = is_active;
-    }
-
-    if (max_amount_days != null && max_amount_days > 0) {
-      body.max_amount_days = max_amount_days;
-    }
+    const { company_id, module_code, ...body } = payload;
 
     await this.apiHandler.post<void>(
       `/companies/${company_id}/modules/${module_code}/permit-type-policies`,
       body,
     );
   }
+  public async updatePermitTypePolicy(
+    payload: UpdatePermitTypePolicyRequest,
+  ): Promise<void> {
+    const { company_id, module_code, permit_type_policy_id, ...body } = payload;
 
+    await this.apiHandler.patch<void>(
+      `/companies/${company_id}/modules/${module_code}/permit-type-policies/${permit_type_policy_id}`,
+      body,
+    );
+  }
   public async getPermissionFormsOptions(
     payload: BaseRequest,
   ): Promise<PermissionFormsOptions> {
@@ -174,4 +154,28 @@ export class PermissionServices implements IPermissionRequestServices {
       ),
     };
   }
+}
+
+type PermitTypePolicyApiItem = Omit<
+  GetPermissionPoliciesResponse,
+  | "permit_application_type_label"
+  | "permit_beneficiary_label"
+  | "family_relationship_label"
+>;
+
+function withPolicyLabels(
+  policy: PermitTypePolicyApiItem,
+): GetPermissionPoliciesResponse {
+  return {
+    ...policy,
+    permit_application_type_label: getPermissionTypeLabel(
+      policy.permit_application_type,
+    ),
+    permit_beneficiary_label: getPermitBeneficiaryScopeLabel(
+      policy.permit_beneficiary_scope,
+    ),
+    family_relationship_label: getPermitFamilyRelationshipLabel(
+      policy.family_relationship,
+    ),
+  };
 }

@@ -3,14 +3,18 @@ import { Button } from "@alpac/design-system";
 
 type PolicyFormActionsProps = {
   isPending: boolean;
+  submitLabel: string;
+  requireDirty?: boolean;
   onCancel: () => void;
 };
 
 export function PolicyFormActions({
   isPending,
+  submitLabel,
+  requireDirty = false,
   onCancel,
 }: PolicyFormActionsProps) {
-  const { isValid } = useFormState();
+  const { isValid, isDirty } = useFormState();
 
   return (
     <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
@@ -25,8 +29,8 @@ export function PolicyFormActions({
       <Button
         type="submit"
         size="giant"
-        label="Registrar política"
-        disabled={!isValid || isPending}
+        label={submitLabel}
+        disabled={!isValid || isPending || (requireDirty && !isDirty)}
         className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
       />
     </div>

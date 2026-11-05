@@ -4,9 +4,9 @@ import {
   Button,
   Dropdown,
   Modal,
+  Pagination,
   SectionHeader,
   useTheme,
-  type Option,
 } from "@alpac/design-system";
 import {
   lazy,
@@ -27,8 +27,14 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
 import { usePermissionPolicies } from "@app/modules/payroll/ui/hooks/permission/usePermissionPolicies";
 import { PermissionPoliciesTable } from "@app/modules/payroll/ui/pages/permission-policies/components/permission-policies-table/permission-policies-table";
+import { PermitApplicationTypeEnum } from "@app/modules/applications/domain/enums/permit-application-type.enum";
 import type { GetPermissionPoliciesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/get-permission-policies";
 import type { NewPermissionPolicyModalProps } from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/types/permission-policy-form.types";
+import { 
+  PAGE_SIZE, TYPE_FILTER_OPTIONS,
+  ACTIVE_FILTER_OPTIONS, labelClassName,
+  dropdownClassName } from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/constants/permission-policy-form.constants";
+import { getMutationErrorMessage } from "@app/modules/payroll/ui/pages/permission-policies/utils/get-mutation-error-message";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -43,18 +49,8 @@ const NewPermissionPolicyModal = lazy(() =>
   })),
 );
 
-type ActiveFilterValue = "all" | "active" | "inactive";
+type ActiveFilterValue = "all" | "active";
 
-const ACTIVE_FILTER_OPTIONS: Option[] = [
-  { label: "Todas", value: "all" },
-  { label: "Activas", value: "active" },
-  { label: "Inactivas", value: "inactive" },
-];
-
-const dropdownClassName =
-  "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
-
-const labelClassName = "text-black! dark:text-white!";
 
 export const PermissionPoliciesPage = () => {
   const navigate = useNavigate();
@@ -68,8 +64,11 @@ export const PermissionPoliciesPage = () => {
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingPolicy, setEditingPolicy] =
+    useState<GetPermissionPoliciesResponse | null>(null);
   const [pendingStatusPolicy, setPendingStatusPolicy] =
     useState<GetPermissionPoliciesResponse | null>(null);
+  const [pageNumber, setPageNumber] = useState(1);
   const [typeDraft, setTypeDraft] = useState<string>("all");
   const [activeDraft, setActiveDraft] = useState<ActiveFilterValue>("all");
   const [appliedType, setAppliedType] = useState<string>("all");
@@ -84,50 +83,33 @@ export const PermissionPoliciesPage = () => {
     };
   }, [companyId, moduleCode]);
 
-  const { policiesQuery } = usePermissionPolicies(context, {
-    enablePolicies: true,
-    enableForms: false,
-  });
+  const permitApplicationType = useMemo(() => {
+    if (appliedType === "all") return undefined;
+    const entry = PermitApplicationTypeEnum[appliedType];
+    return entry ? Number(entry.value) : undefined;
+  }, [appliedType]);
 
-  const policies = policiesQuery.data ?? [];
+  const { policiesQuery, updatePermitTypePolicyMutation } =
+    usePermissionPolicies(
+      context,
+      {
+        enablePolicies: true,
+        enableForms: false,
+      },
+      {
+        onlyActive: appliedActive === "active",
+        permitApplicationType,
+        pageNumber,
+        pageSize: PAGE_SIZE,
+      },
+    );
 
-  const typeFilterOptions = useMemo<Option[]>(() => {
-    const uniqueTypes = new Map<string, string>();
-    for (const policy of policies) {
-      const typeValue = String(policy.permit_application_type ?? "");
-      if (!typeValue || uniqueTypes.has(typeValue)) continue;
-
-      uniqueTypes.set(
-        typeValue,
-        policy.permit_application_type_label || typeValue,
-      );
-    }
-
-    return [
-      { label: "Todos los tipos", value: "all" },
-      ...Array.from(uniqueTypes.entries()).map(([value, label]) => ({
-        value,
-        label,
-      })),
-    ];
-  }, [policies]);
-
-  const filteredPolicies = useMemo(() => {
-    return policies.filter((policy) => {
-      const matchesType =
-        appliedType === "all" ||
-        String(policy.permit_application_type) === appliedType;
-      const matchesActive =
-        appliedActive === "all" ||
-        (appliedActive === "active" && policy.is_active) ||
-        (appliedActive === "inactive" && !policy.is_active);
-      return matchesType && matchesActive;
-    });
-  }, [policies, appliedType, appliedActive]);
+  const policies = policiesQuery.data?.data ?? [];
 
   const handleApplyFilters = useCallback(() => {
     setAppliedType(typeDraft);
     setAppliedActive(activeDraft);
+    setPageNumber(1);
   }, [typeDraft, activeDraft]);
 
   const handleClearFilters = useCallback(() => {
@@ -135,10 +117,13 @@ export const PermissionPoliciesPage = () => {
     setActiveDraft("all");
     setAppliedType("all");
     setAppliedActive("all");
+    setPageNumber(1);
   }, []);
 
   const handleUpdatePolicy = useCallback(
-    (_row: GetPermissionPoliciesResponse) => {
+    (row: GetPermissionPoliciesResponse) => {
+      setEditingPolicy(row);
+      setIsCreateOpen(false);
     },
     [],
   );
@@ -155,8 +140,36 @@ export const PermissionPoliciesPage = () => {
   }, []);
 
   const handleConfirmStatusChange = useCallback(() => {
-    setPendingStatusPolicy(null);
-  }, []);
+    if (!pendingStatusPolicy || !companyId || !moduleCode) return;
+
+    const nextIsActive = !pendingStatusPolicy.is_active;
+    updatePermitTypePolicyMutation.mutate(
+      {
+        company_id: companyId,
+        module_code: moduleCode,
+        permit_type_policy_id: pendingStatusPolicy.permit_type_policy_id,
+        is_active: nextIsActive,
+      },
+      {
+        onSuccess: () => {
+          setPendingStatusPolicy(null);
+          handleRequestSuccess(
+            `Política ${nextIsActive ? "activada" : "desactivada"} exitosamente`,
+          );
+        },
+        onError: (err) => {
+          handleRequestError(getMutationErrorMessage(err));
+        },
+      },
+    );
+  }, [
+    companyId,
+    handleRequestError,
+    handleRequestSuccess,
+    moduleCode,
+    pendingStatusPolicy,
+    updatePermitTypePolicyMutation,
+  ]);
 
   const statusModalTitle = pendingStatusPolicy?.is_active
     ? "Desactivar política"
@@ -176,11 +189,11 @@ export const PermissionPoliciesPage = () => {
     );
   }
 
-  if (policiesQuery.isPending) {
+  if (policiesQuery.isPending && !policiesQuery.data) {
     return <Loader title="Cargando políticas de permisos..." />;
   }
 
-  if (policiesQuery.isError) {
+  if (policiesQuery.isError && !policiesQuery.data) {
     return (
       <Banner
         variant="error"
@@ -226,7 +239,10 @@ export const PermissionPoliciesPage = () => {
             label="Nueva política"
             icon={<Plus size={20} />}
             className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-            onClick={() => setIsCreateOpen(true)}
+            onClick={() => {
+              setEditingPolicy(null);
+              setIsCreateOpen(true);
+            }}
           />
         </SectionHeader>
 
@@ -234,7 +250,7 @@ export const PermissionPoliciesPage = () => {
           <div className="flex flex-col justify-center">
             <h3 className="p-0! m-0!">Filtros</h3>
             <small className="text-gray-500 dark:text-gray-300">
-              Filtra por tipo de permiso o estado de la política
+              Filtra por tipo de permiso o solo políticas activas
             </small>
           </div>
         </div>
@@ -246,7 +262,7 @@ export const PermissionPoliciesPage = () => {
             placeholder="Todos los tipos"
             value={typeDraft}
             onChange={(value) => setTypeDraft(String(value))}
-            options={typeFilterOptions}
+            options={TYPE_FILTER_OPTIONS}
             labelClassName={labelClassName}
             valueClassName={labelClassName}
             className={dropdownClassName}
@@ -283,17 +299,41 @@ export const PermissionPoliciesPage = () => {
           />
         </div>
 
+        {policiesQuery.isError ? (
+          <Banner
+            variant="error"
+            title="Error al cargar las políticas de permisos"
+            description={getErrorMessage(policiesQuery.error)}
+          />
+        ) : null}
+
         <PermissionPoliciesTable
-          data={filteredPolicies}
+          data={policies}
+          pagination={
+            <Pagination
+              currentPage={policiesQuery.data?.page_number ?? pageNumber}
+              pageSize={policiesQuery.data?.page_size ?? PAGE_SIZE}
+              totalRecords={policiesQuery.data?.total ?? 0}
+              onPageChange={setPageNumber}
+              disabled={
+                policiesQuery.isFetching ||
+                updatePermitTypePolicyMutation.isPending
+              }
+            />
+          }
           onUpdate={handleUpdatePolicy}
           onRequestStatusChange={handleRequestStatusChange}
         />
 
-        {isCreateOpen ? (
+        {isCreateOpen || editingPolicy ? (
           <Suspense fallback={<Loader title="Cargando formulario..." />}>
             <NewPermissionPolicyModal
-              isOpen={isCreateOpen}
-              onClose={() => setIsCreateOpen(false)}
+              isOpen
+              policy={editingPolicy}
+              onClose={() => {
+                setIsCreateOpen(false);
+                setEditingPolicy(null);
+              }}
               onSuccess={handleRequestSuccess}
               onError={handleRequestError}
             />
@@ -316,12 +356,14 @@ export const PermissionPoliciesPage = () => {
             size="giant"
             label="Cancelar"
             className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+            disabled={updatePermitTypePolicyMutation.isPending}
             onClick={handleCloseStatusModal}
           />
           <Button
             type="button"
             size="giant"
             label="Confirmar"
+            disabled={updatePermitTypePolicyMutation.isPending}
             className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
             onClick={handleConfirmStatusChange}
           />

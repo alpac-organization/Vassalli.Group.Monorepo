@@ -2,8 +2,8 @@ import type { CreatePermissionRequestBase } from "@app/modules/payroll/domain/Ap
 import type { PermissionRequestFormValues } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission-form.types";
 import { PERMISSION_TYPE_TO_ENUM_VALUE } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/new-permissionFormProps";
 import { isLeavePermissionType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission.types";
-import { PermitBeneficiaryScopeEnum } from "@app/modules/payroll/domain/enums/permission-enums/permit-beneficiary-scope.enum";
-import { PermitFamilyRelationshipEnum } from "@app/modules/payroll/domain/enums/permission-enums/permit-family-relationship.enum";
+import { PermitBeneficiaryScopeEnum } from "@app/modules/applications/domain/enums/permit-beneficiary-scope.enum";
+import { PermitFamilyRelationshipEnum } from "@app/modules/applications/domain/enums/permit-family-relationship.enum";
 import { formatTimeHoursOnly } from "@app/shared/utils/string.utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -11,7 +11,7 @@ import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
 
 function resolveEnumNumber(
-  enumMap: Record<string, { value: number; label: string }>,
+  enumMap: Record<string, { value: number | string; label: string }>,
   key: string | undefined,
   fallback = 0,
 ): number {

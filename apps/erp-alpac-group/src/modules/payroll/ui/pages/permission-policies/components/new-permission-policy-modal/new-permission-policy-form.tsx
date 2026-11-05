@@ -11,10 +11,16 @@ export function NewPermissionPolicyForm({
   permitTypes,
   beneficiaryScopes,
   familyRelationships,
+  initialValues,
+  submitLabel,
+  requireDirty = false,
   onSubmit,
   onCancel,
 }: PermissionPolicyFormProps) {
-  const { methods, submitPolicy } = usePermissionPolicyForm({ onSubmit });
+  const { methods, submitPolicy } = usePermissionPolicyForm({
+    defaultValues: initialValues,
+    onSubmit,
+  });
 
   return (
     <FormProvider {...methods}>
@@ -33,7 +39,12 @@ export function NewPermissionPolicyForm({
 
         <PolicyEvidenceFields />
 
-        <PolicyFormActions isPending={isPending} onCancel={onCancel} />
+        <PolicyFormActions
+          isPending={isPending}
+          submitLabel={submitLabel}
+          requireDirty={requireDirty}
+          onCancel={onCancel}
+        />
       </form>
     </FormProvider>
   );

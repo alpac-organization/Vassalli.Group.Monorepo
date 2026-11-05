@@ -3,6 +3,7 @@ import { DEFAULT_VALUES } from "@app/modules/payroll/ui/pages/permission-policie
 import type { PermissionPolicyFormValues } from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/types/permission-policy-form.types";
 
 type UsePermissionPolicyFormArgs = {
+  defaultValues?: PermissionPolicyFormValues;
   onSubmit: (values: PermissionPolicyFormValues) => void;
 };
 
@@ -12,11 +13,12 @@ type UsePermissionPolicyFormResult = {
 };
 
 export function usePermissionPolicyForm({
+  defaultValues = DEFAULT_VALUES,
   onSubmit,
 }: UsePermissionPolicyFormArgs): UsePermissionPolicyFormResult {
   const methods = useForm<PermissionPolicyFormValues>({
     mode: "onChange",
-    defaultValues: DEFAULT_VALUES,
+    defaultValues,
     shouldUnregister: false,
   });
 

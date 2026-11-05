@@ -4,7 +4,7 @@ import { Dropdown } from "@alpac/design-system";
 import type { CatalogItem } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/get-permission-forms";
 import {
   FAMILY_ONLY_PERMIT_TYPES,
-  HIDDEN_PERMIT_TYPES,
+  POLICY_PERMIT_TYPES,
   dropdownClassName,
   labelClassName,
 } from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/constants/permission-policy-form.constants";
@@ -33,6 +33,10 @@ export function PolicyIdentityFields({
     control,
     name: "permit_beneficiary_scope",
   });
+  const familyRelationship = useWatch({
+    control,
+    name: "family_relationship",
+  });
 
   const isFamilyNucleus = beneficiaryScope === "FamilyNucleus";
   const hideOwnScope = FAMILY_ONLY_PERMIT_TYPES.has(permitApplicationType);
@@ -40,35 +44,54 @@ export function PolicyIdentityFields({
   const permitTypeOptions = useMemo(
     () =>
       permitTypes
-        .filter((item) => !HIDDEN_PERMIT_TYPES.has(item.name))
+        .filter(
+          (item) =>
+            POLICY_PERMIT_TYPES.has(item.name) ||
+            item.name === permitApplicationType,
+        )
         .map((item) => ({
           label: item.label,
           value: item.name,
         })),
-    [permitTypes],
+    [permitApplicationType, permitTypes],
   );
 
   const beneficiaryScopeOptions = useMemo(
     () =>
       beneficiaryScopes
-        .filter((item) => !(hideOwnScope && item.name === "Own"))
+        .filter(
+          (item) =>
+            !(hideOwnScope && item.name === "Own") ||
+            item.name === beneficiaryScope,
+        )
         .map((item) => ({
           label: item.label,
           value: item.name,
         })),
-    [beneficiaryScopes, hideOwnScope],
+    [beneficiaryScope, beneficiaryScopes, hideOwnScope],
   );
 
-  const familyRelationshipOptions = useMemo(
-    () =>
-      familyRelationships
-        .filter((item) => item.name !== "None")
-        .map((item) => ({
-          label: item.label,
-          value: item.name,
-        })),
-    [familyRelationships],
-  );
+  const familyRelationshipOptions = useMemo(() => {
+    const options = familyRelationships
+      .filter((item) => item.name !== "None")
+      .map((item) => ({
+        label: item.label,
+        value: item.name,
+      }));
+
+    if (
+      familyRelationship &&
+      familyRelationship !== "None" &&
+      !options.some((item) => item.value === familyRelationship)
+    ) {
+      options.push({
+        label: familyRelationship,
+        value: familyRelationship,
+      });
+    }
+
+    return options;
+  }, [familyRelationships, familyRelationship]);
 
   return (
     <>

@@ -18,6 +18,7 @@ const contextMenuButton =
 
 export function PermissionPoliciesTable({
   data,
+  pagination,
   onUpdate,
   onRequestStatusChange,
 }: PermissionPoliciesTableProps) {
@@ -98,6 +99,7 @@ export function PermissionPoliciesTable({
       title="Políticas de permisos"
       data={data}
       columns={columns}
+      pagination={pagination}
       getRowKey={(row) => row.permit_type_policy_id}
     />
   );

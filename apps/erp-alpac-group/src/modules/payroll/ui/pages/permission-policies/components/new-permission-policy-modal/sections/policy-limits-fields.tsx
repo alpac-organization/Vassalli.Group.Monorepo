@@ -1,5 +1,5 @@
-import { useFormContext } from "react-hook-form";
-import { InputText } from "@alpac/design-system";
+import { Controller, useFormContext } from "react-hook-form";
+import { Checkbox, InputText } from "@alpac/design-system";
 import {
   inputClassName,
   labelClassName,
@@ -12,6 +12,7 @@ import type { PermissionPolicyFormValues } from "@app/modules/payroll/ui/pages/p
 
 export function PolicyLimitsFields() {
   const {
+    control,
     register,
     formState: { errors },
   } = useFormContext<PermissionPolicyFormValues>();
@@ -41,6 +42,19 @@ export function PolicyLimitsFields() {
           required: "Ingrese los pasos de aprobación",
           validate: validateRequiredInteger,
         })}
+      />
+
+      <Controller
+        name="consumes_vacation_balance"
+        control={control}
+        render={({ field }) => (
+          <Checkbox
+            label="Consume saldo de vacaciones"
+            labelClassName={labelClassName}
+            checked={field.value}
+            onChange={(event) => field.onChange(event.target.checked)}
+          />
+        )}
       />
     </>
   );

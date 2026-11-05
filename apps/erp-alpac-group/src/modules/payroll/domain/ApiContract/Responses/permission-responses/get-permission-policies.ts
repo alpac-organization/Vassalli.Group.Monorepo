@@ -9,10 +9,15 @@ export interface GetPermissionPoliciesResponse {
   max_amount_days?: number | null;
   max_evidence_count: number;
   min_evidence_count: number;
-  is_paid: boolean;
   is_active: boolean;
   consumes_vacation_balance: boolean;
   required_approval_steps: number;
 }
 
-export type PermitTypePolicyResponse = GetPermissionPoliciesResponse[];
+export interface PagedPermitTypePoliciesResponse {
+  data: GetPermissionPoliciesResponse[];
+  page_number: number;
+  page_size: number;
+  total: number;
+}
+

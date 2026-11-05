@@ -46,10 +46,18 @@ export function NewPermissionRequestModal({
     };
   }, [companyId, moduleCode]);
 
-  const { policiesQuery, formsQuery } = usePermissionPolicies(policiesContext, {
-    enablePolicies: isOpen,
-    enableForms: isOpen,
-  });
+  const { policiesQuery, formsQuery } = usePermissionPolicies(
+    policiesContext,
+    {
+      enablePolicies: isOpen,
+      enableForms: isOpen,
+    },
+    {
+      onlyActive: true,
+      pageNumber: 1,
+      pageSize: 10,
+    },
+  );
 
   const [foundCollaborator, setFoundCollaborator] =
     useState<GetCollaboratorProfileDetailsResponse | null>(null);
@@ -308,7 +316,7 @@ export function NewPermissionRequestModal({
                 moduleCode={moduleCode}
                 identificationNumber={targetIdentification}
                 channel={channel}
-                policies={policiesQuery.data ?? []}
+                policies={policiesQuery.data?.data ?? []}
                 beneficiaryScopes={formsQuery.data?.beneficiary_scopes ?? []}
                 familyRelationships={
                   formsQuery.data?.family_relationships ?? []
