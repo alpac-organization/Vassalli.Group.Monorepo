@@ -2,6 +2,7 @@ import { httpHandler } from "@app/core/adapters";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { GetSanctionDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/get-sanction-details.request";
 import type { GetSanctionsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/get-sanctions.request";
+import type { ProcessSanctionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/process-sanction.request";
 import type { RegisterSanctionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/register-sanction.request";
 import { SanctionServices } from "@app/modules/payroll/infrastructure/services/sanction-services/SanctionServices";
 import {
@@ -44,14 +45,25 @@ const sanctionDetailsQueryOptions = (filters?: GetSanctionDetailsRequest) => ({
 
 const registerSanctionMutationOptions = (queryClient: QueryClient) => ({
    mutationKey: ["register-sanction"] as const,
-   mutationFn: (payload: RegisterSanctionRequest) =>
-      sanctionServices.registerSanction(payload),
+   mutationFn: (payload: RegisterSanctionRequest) => sanctionServices.registerSanction(payload),
    onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ["sanctions"] });
-      queryClient.invalidateQueries({ queryKey: ["sanction-details"] });
-      queryClient.invalidateQueries({ queryKey: ["faults"] });
-      queryClient.invalidateQueries({ queryKey: ["fault-details"] });
-      queryClient.invalidateQueries({ queryKey: ["suggested-sanction"] });
+      queryClient.invalidateQueries({ queryKey: ["sanctions"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["sanction-details"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["faults"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["fault-details"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["suggested-sanction"], refetchType: "all" });
+   },
+   retry: 1,
+});
+
+const processSanctionMutationOptions = (queryClient: QueryClient) => ({
+   mutationKey: ["process-sanction"] as const,
+   mutationFn: (payload: ProcessSanctionRequest) => sanctionServices.processSanction(payload),
+   onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ["sanctions"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["sanction-details"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["faults"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["fault-details"], refetchType: "all" });
    },
    retry: 1,
 });
@@ -90,9 +102,14 @@ export const useSanction = (props?: UseSanctionProps) => {
       registerSanctionMutationOptions(queryClient)
    );
 
+   const ProcessSanction = useMutation<void, ApiErrorResponse, ProcessSanctionRequest>(
+      processSanctionMutationOptions(queryClient)
+   );
+
    return {
       GetSanctions,
       GetSanctionDetails,
       RegisterSanction,
+      ProcessSanction
    };
 };

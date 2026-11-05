@@ -5,4 +5,8 @@ export type SanctionsTableProps = {
   data: SanctionDto[];
   pagination?: ReactNode;
   onViewDetail: (row: SanctionDto) => void;
+  onApprove?: (row: SanctionDto) => void;
+  onReject?: (row: SanctionDto) => void;
+  canApprove?: boolean;
+  canReject?: boolean;
 };

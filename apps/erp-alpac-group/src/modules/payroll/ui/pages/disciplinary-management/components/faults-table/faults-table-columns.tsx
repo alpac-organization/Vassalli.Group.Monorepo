@@ -22,6 +22,11 @@ export const faultTableColumns = ({
    canWrite = true,
 }: FaultTableActions): TableColumn<FaultDto>[] => [
       {
+         key: "code",
+         label: "Código",
+         render: (row) => row.code?.trim() || "—",
+      },
+      {
          key: "collaborator_name",
          label: "Colaborador",
          render: (row) => row.collaborator_name?.trim() || "—",
@@ -30,7 +35,7 @@ export const faultTableColumns = ({
          key: "fault_catalog",
          label: "Falta",
          render: (row) => (
-            <span className="text-neutral-700 dark:text-neutral-300">
+            <span className="block max-w-full truncate text-neutral-700 dark:text-neutral-300">
                {row.fault_catalog?.code
                   ? `${row.fault_catalog.code} — ${row.fault_catalog.name}`
                   : "—"}

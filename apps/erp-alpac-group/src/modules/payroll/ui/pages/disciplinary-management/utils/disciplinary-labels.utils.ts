@@ -67,12 +67,14 @@ export const SanctionTypeBadgeClassByValue: Record<number, string> = {
 export const SanctionStatusBadgeClassByKey: Record<string, string> = {
 	Applied: "bg-emerald-100! text-emerald-800! dark:bg-emerald-900/40! dark:text-emerald-200!",
 	Cancelled: "bg-rose-100! text-rose-800! dark:bg-rose-900/40! dark:text-rose-200!",
+	Pending: "bg-amber-100! text-amber-800! dark:bg-amber-900/40! dark:text-amber-200!",
 };
 
 /** Lookup de clases de badge por valor numérico de `SanctionStatus`. */
 export const SanctionStatusBadgeClassByValue: Record<number, string> = {
 	1: SanctionStatusBadgeClassByKey.Applied,
 	2: SanctionStatusBadgeClassByKey.Cancelled,
+	3: SanctionStatusBadgeClassByKey.Pending,
 };
 
 export const getFaultSeverityBadgeClass = (

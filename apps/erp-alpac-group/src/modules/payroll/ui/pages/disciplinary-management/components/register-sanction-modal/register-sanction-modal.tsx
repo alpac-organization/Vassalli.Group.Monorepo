@@ -48,11 +48,15 @@ const getSuspensionDayCount = (start: string, end: string): number =>
 	dayjs(end).diff(dayjs(start), "day") + 1;
 
 const getSuggestedAlert = (suggested: SuggestedSanctionDto) => {
+
+
 	if (suggested.is_covered_by_escalation) {
+		const parentFaultCode = suggested.parent_fault_code;
+		const severity = FaultSeverityEnum[suggested.severity].label ?? "";
 		return {
 			type: "error" as AlertType,
 			title: "Escalamiento por reincidencia",
-			message: `Esta falta fue absorbida por reincidencia. Se sancionará la falta padre.`,
+			message: `Esta falta fue absorbida por reincidencia. Se sancionará la falta ${severity} padre con código: ${parentFaultCode}.`,
 		};
 	}
 
@@ -262,6 +266,7 @@ export const RegisterSanctionModal = ({
 									<Dropdown
 										label="Tipo de sanción"
 										appearance="dark"
+										isRequired
 										placeholder="Seleccionar tipo permitido"
 										value={field.value}
 										onChange={(value) => field.onChange(value)}
@@ -283,6 +288,7 @@ export const RegisterSanctionModal = ({
 								render={({ field }) => (
 									<Textarea
 										label="Motivo"
+										isRequired
 										className={disciplinaryInputClassName}
 										labelClassName={disciplinaryLabelClassName}
 										placeholder="Describe el motivo (máx. 500)"
@@ -313,6 +319,7 @@ export const RegisterSanctionModal = ({
 												fieldWidth="large"
 												className={disciplinaryInputClassName}
 												labelClassName={disciplinaryLabelClassName}
+												shouldDisableDate={(date) => date.day() === 0}
 												value={
 													field.value ? dayjs(field.value) : null
 												}
@@ -405,7 +412,7 @@ export const RegisterSanctionModal = ({
 						<Button
 							type="submit"
 							size="giant"
-							label="Aplicar sanción"
+							label="Crear sanción"
 							className={`${disciplinaryPrimaryButtonClassName} w-auto!`}
 							icon={<CheckIcon size={20} />}
 							isHiddenLabelOnMobile

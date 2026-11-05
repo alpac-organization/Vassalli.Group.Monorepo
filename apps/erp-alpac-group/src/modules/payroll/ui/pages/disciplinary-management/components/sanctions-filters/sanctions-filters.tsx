@@ -1,4 +1,4 @@
-import { Button, Dropdown } from "@alpac/design-system";
+import { Button, Dropdown, InputText } from "@alpac/design-system";
 import type {
   SanctionsFilterFormValues,
   SanctionsFiltersProps,
@@ -7,6 +7,7 @@ import {
   SANCTION_STATUS_FILTER_OPTIONS,
   SANCTION_TYPE_FILTER_OPTIONS,
   disciplinaryDropdownClassName,
+  disciplinaryInputClassName,
   disciplinaryLabelClassName,
   disciplinaryPrimaryButtonClassName,
   disciplinarySecondaryButtonClassName,
@@ -14,6 +15,7 @@ import {
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 
 const DEFAULT_VALUES: SanctionsFilterFormValues = {
+  code: "",
   sanction_type: "all",
   sanction_status: "all",
 };
@@ -23,6 +25,7 @@ export const SanctionsFilters = ({
   onClear,
 }: SanctionsFiltersProps) => {
   const {
+    register,
     handleSubmit,
     control,
     reset,
@@ -46,14 +49,22 @@ export const SanctionsFilters = ({
       <div className="flex flex-col justify-center dark:border-t-neutral-600">
         <h3 className="m-0! p-0!">Filtros</h3>
         <small className="text-gray-500 dark:text-gray-300">
-          Filtra sanciones por tipo o estado
+          Filtra sanciones por código de instancia, tipo o estado
         </small>
       </div>
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-5"
       >
+        <InputText
+          label="Código de sanción"
+          className={disciplinaryInputClassName}
+          labelClassName={disciplinaryLabelClassName}
+          placeholder="Ej. SAN-ALP-2026-001"
+          {...register("code")}
+        />
+
         <Controller
           name="sanction_type"
           control={control}

@@ -12,12 +12,14 @@ import type { FaultStatusEnumMap } from "@app/modules/payroll/domain/enums/disci
  * Se sanciona la padre, no cada origen por separado.
  *
  * @property {string} fault_id - Identificador de la falta escalada (padre).
+ * @property {string} code - Código de instancia de la falta padre (ej. `FLT-ALP-2026-010`).
  * @property {string} occurrence_date - Fecha de ocurrencia de la falta padre (`YYYY-MM-DD`).
  * @property {FaultSeverityEnumMap} severity - Severidad de la falta padre.
  * @property {FaultStatusEnumMap} status - Estado de la falta padre.
  */
 export interface ParentFaultDto {
   fault_id: string;
+  code: string;
   occurrence_date: string;
   severity: FaultSeverityEnumMap;
   status: FaultStatusEnumMap;
@@ -32,6 +34,7 @@ export interface ParentFaultDto {
  * Las evidencias exponen `image_url` (no base64).
  *
  * @property {string} fault_id - Identificador de la falta.
+ * @property {string} code - Código de instancia de la falta (ej. `FLT-ALP-2026-001`).
  * @property {string} collaborator_id - Identificador del colaborador.
  * @property {string} collaborator_name - Nombre completo del colaborador.
  * @property {string|null} identification_number - Cédula / identificación (si está disponible).
@@ -39,7 +42,7 @@ export interface ParentFaultDto {
  * @property {string} occurrence_date - Fecha de ocurrencia (`YYYY-MM-DD`).
  * @property {FaultSeverityEnumMap} severity - Severidad: `Minor` | `Serious` | `VerySerious`.
  * @property {FaultSourceEnumMap} source - Origen: `Manual` | `SystemEscalation` | `BiometricClock`.
- * @property {FaultStatusEnumMap} status - Estado: `Open` | `SanctionApplied` | `Prescribed`.
+ * @property {FaultStatusEnumMap} status - Estado: `Open` | `SanctionApplied` | `Prescribed` | `Cancelled`.
  * @property {DisciplinaryEvidenceResponse[]} evidences - Evidencias con URL S3 (puede ser `[]`).
  * @property {ParentFaultDto|null} parent_fault - Falta padre por reincidencia; `null` si no aplica.
  * @property {DisciplinaryUserResponse|null} registered_by - Usuario que registró la falta.
@@ -49,6 +52,7 @@ export interface ParentFaultDto {
  * ```ts
  * const detail: FaultDetailDto = {
  *   fault_id: "...",
+ *   code: "FLT-ALP-2026-001",
  *   collaborator_id: "...",
  *   collaborator_name: "Juan Perez",
  *   identification_number: "001-120390-0001A",
@@ -66,6 +70,7 @@ export interface ParentFaultDto {
  */
 export interface FaultDetailDto {
   fault_id: string;
+  code: string;
   collaborator_id: string;
   collaborator_name: string;
   identification_number: string | null;

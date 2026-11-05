@@ -13,10 +13,11 @@ import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disc
  *
  * @property {string} company_id - Identificador de la empresa (heredado de {@link BaseRequest}).
  * @property {string} module_code - Código del módulo (heredado de {@link BaseRequest}).
+ * @property {string} [code] - Filtro por código de instancia de la sanción (ej. `SAN-ALP-2026-001`).
  * @property {string} [collaborator_id] - Filtro por colaborador (GUID).
  * @property {string} [fault_id] - Filtro por falta asociada (GUID).
  * @property {SanctionTypeEnumMap|number} [sanction_type] - Tipo: `VerbalWarning` | `Memorandum` | `Suspension` | `CommitmentLetter` | `Termination` (o valor numérico del enum).
- * @property {SanctionStatusEnumMap|number} [sanction_status] - Estado: `Applied` | `Cancelled` (o valor numérico del enum).
+ * @property {SanctionStatusEnumMap|number} [sanction_status] - Estado: `Pending` | `Applied` | `Cancelled` (o valor numérico del enum).
  * @property {number} [page_number] - Número de página (default: `1`).
  * @property {number} [page_size] - Cantidad de registros por página (default: `10`).
  *
@@ -25,6 +26,7 @@ import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disc
  * const payload: GetSanctionsRequest = {
  *   company_id: "...",
  *   module_code: "PAYROLL",
+ *   code: "SAN-ALP-2026-001",
  *   sanction_type: "Suspension",
  *   sanction_status: "Applied",
  *   page_number: 1,
@@ -33,6 +35,7 @@ import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disc
  * ```
  */
 export interface GetSanctionsRequest extends BaseRequest {
+  code?: string;
   collaborator_id?: string;
   fault_id?: string;
   sanction_type?: SanctionTypeEnumMap | number;

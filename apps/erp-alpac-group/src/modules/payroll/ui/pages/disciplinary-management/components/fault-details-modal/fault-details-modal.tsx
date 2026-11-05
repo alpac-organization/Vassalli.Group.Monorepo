@@ -109,6 +109,11 @@ export const FaultDetailsModal = ({
 								</h4>
 								<div className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2 lg:grid-cols-3">
 									<DetailField
+										label="Código"
+										value={view.code?.trim() || "—"}
+										icon={<NotebookTextIcon size={18} />}
+									/>
+									<DetailField
 										label="Estado"
 										value={
 											<Badges
@@ -205,6 +210,11 @@ export const FaultDetailsModal = ({
 									</h4>
 									<div className="grid grid-cols-1 gap-4 p-1 sm:grid-cols-2 lg:grid-cols-3">
 										<DetailField
+											label="Código"
+											value={parentFault.code?.trim() || "—"}
+											icon={<NotebookTextIcon size={18} />}
+										/>
+										<DetailField
 											label="Fecha de ocurrencia"
 											value={formatDateToSpanishWords(
 												parentFault.occurrence_date,
@@ -273,7 +283,7 @@ export const FaultDetailsModal = ({
 								/>
 								<Button
 									type="button"
-									label="Aplicar sanción"
+									label="Crear sanción"
 									className={`${disciplinaryApproveButtonClassName} w-full min-w-0 sm:w-auto`}
 									icon={<GavelIcon size={20} />}
 									isHiddenLabelOnMobile

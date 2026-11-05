@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { ImagePlus, X } from "lucide-react";
 import { Modal } from "@alpac/design-system";
@@ -16,8 +16,7 @@ function generateId(): string {
 }
 
 async function processFiles(files: File[], existing: ImageOutput[], maxFiles?: number): Promise<ImageOutput[]> {
-	
-	const generatedId = useId() ?? generateId();
+		
 	const newImages = await Promise.all(
 		files.map(async (file) => {
 
@@ -29,7 +28,7 @@ async function processFiles(files: File[], existing: ImageOutput[], maxFiles?: n
 			});
 
 			return {
-				id: generatedId,
+				id: generateId(),
 				file: alignedFile,
 				base64: result.image_base64,
 				preview: URL.createObjectURL(file),

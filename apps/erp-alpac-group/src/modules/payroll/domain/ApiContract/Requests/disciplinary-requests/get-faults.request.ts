@@ -14,10 +14,11 @@ import type { FaultStatusEnumMap } from "@app/modules/payroll/domain/enums/disci
  *
  * @property {string} company_id - Identificador de la empresa (heredado de {@link BaseRequest}).
  * @property {string} module_code - Código del módulo (heredado de {@link BaseRequest}).
- * @property {string} [code] - Filtro por código del catálogo de falta (ej. `FL-ALP-01`).
+ * @property {string} [code] - Filtro por código de instancia de la falta (ej. `FLT-ALP-2026-001`).
+ * @property {string} [catalog_code] - Filtro por código del catálogo de falta (ej. `FL-ALP-01`).
  * @property {string} [collaborator_id] - Filtro por colaborador (GUID).
  * @property {FaultSeverityEnumMap|number} [severity] - Severidad: `Minor` | `Serious` | `VerySerious` (o valor numérico del enum).
- * @property {FaultStatusEnumMap|number} [status] - Estado: `Open` | `SanctionApplied` | `Prescribed` (o valor numérico del enum).
+ * @property {FaultStatusEnumMap|number} [status] - Estado: `Open` | `SanctionApplied` | `Prescribed` | `Cancelled` (o valor numérico del enum).
  * @property {FaultSourceEnumMap|number} [source] - Origen: `Manual` | `SystemEscalation` | `BiometricClock` (o valor numérico del enum).
  * @property {number} [page_number] - Número de página (default: `1`).
  * @property {number} [page_size] - Cantidad de registros por página (default: `10`).
@@ -27,6 +28,7 @@ import type { FaultStatusEnumMap } from "@app/modules/payroll/domain/enums/disci
  * const payload: GetFaultsRequest = {
  *   company_id: "...",
  *   module_code: "PAYROLL",
+ *   code: "FLT-ALP-2026-001",
  *   status: "Open",
  *   severity: "Minor",
  *   page_number: 1,
@@ -36,6 +38,7 @@ import type { FaultStatusEnumMap } from "@app/modules/payroll/domain/enums/disci
  */
 export interface GetFaultsRequest extends BaseRequest {
   code?: string;
+  catalog_code?: string;
   collaborator_id?: string;
   severity?: FaultSeverityEnumMap | number;
   status?: FaultStatusEnumMap | number;

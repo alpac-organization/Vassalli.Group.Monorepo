@@ -1,5 +1,6 @@
 export type FaultsFilterFormValues = {
   code: string;
+  catalog_code: string;
   severity: string;
   status: string;
   source: string;

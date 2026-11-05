@@ -1,5 +1,12 @@
 import type { EnumType } from "@app/shared/types/enum.type";
 
+/**
+ * Origen / fuente de una falta disciplinaria.
+ *
+ * @property Manual - Registro manual.
+ * @property SystemEscalation - Escalamiento por reincidencia.
+ * @property BiometricClock - Reloj biométrico.
+ */
 export const FaultSourceEnum = {
   Manual: { value: 1, label: "Registro manual" },
   SystemEscalation: { value: 2, label: "Escalamiento por reincidencia" },

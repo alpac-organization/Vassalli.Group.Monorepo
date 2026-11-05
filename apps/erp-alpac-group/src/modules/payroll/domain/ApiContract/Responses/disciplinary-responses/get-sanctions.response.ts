@@ -8,12 +8,13 @@ import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/
  * Los enums (`sanction_type`, `sanction_status`) llegan como clave de {@link SanctionTypeEnumMap} / {@link SanctionStatusEnumMap}.
  *
  * @property {string} sanction_id - Identificador de la sanción.
- * @property {string} fault_id - Falta a la que se aplicó.
+ * @property {string} fault_id - Falta asociada.
+ * @property {string} code - Código de instancia (ej. `SAN-ALP-2026-001`).
  * @property {string} collaborator_id - Colaborador sancionado.
  * @property {string} collaborator_name - Nombre completo del colaborador.
  * @property {SanctionTypeEnumMap} sanction_type - Tipo: `VerbalWarning` | `Memorandum` | `Suspension` | `CommitmentLetter` | `Termination`.
- * @property {SanctionStatusEnumMap} sanction_status - Estado: `Applied` | `Cancelled`.
- * @property {string} reason - Motivo de la sanción.
+ * @property {SanctionStatusEnumMap} sanction_status - Estado: `Pending` | `Applied` | `Cancelled`.
+ * @property {string} reason - Motivo de la propuesta / sanción.
  * @property {string|null} suspension_start_date - Inicio de suspensión (`YYYY-MM-DD`) si aplica.
  * @property {string|null} suspension_end_date - Fin de suspensión (`YYYY-MM-DD`) si aplica.
  * @property {string} created_at - Fecha/hora de registro (ISO 8601).
@@ -23,10 +24,11 @@ import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/
  * const row: SanctionDto = {
  *   sanction_id: "cccccccc-cccc-cccc-cccc-cccccccccccc",
  *   fault_id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1",
+ *   code: "SAN-ALP-2026-001",
  *   collaborator_id: "ee702059-9d26-4464-9900-c95b616d55c9",
  *   collaborator_name: "Juan Perez Gomez",
  *   sanction_type: "Memorandum",
- *   sanction_status: "Applied",
+ *   sanction_status: "Pending",
  *   reason: "Segunda falta leve en el mes",
  *   suspension_start_date: null,
  *   suspension_end_date: null,
@@ -37,6 +39,7 @@ import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/
 export interface SanctionDto {
   sanction_id: string;
   fault_id: string;
+  code: string;
   collaborator_id: string;
   collaborator_name: string;
   sanction_type: SanctionTypeEnumMap;
@@ -55,4 +58,4 @@ export interface SanctionDto {
  * @property {number} page_size - Tamaño de página.
  * @property {number} total - Total de registros filtrados.
  */
-export type GetSanctionsResponse = PaginateBaseResponse<SanctionDto[]>;
+export type GetSanctionsResponse = PaginateBaseResponse<SanctionDto>;

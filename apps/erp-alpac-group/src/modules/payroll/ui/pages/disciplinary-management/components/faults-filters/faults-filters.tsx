@@ -17,6 +17,7 @@ import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 
 const DEFAULT_VALUES: FaultsFilterFormValues = {
   code: "",
+  catalog_code: "",
   severity: "all",
   status: "all",
   source: "all",
@@ -54,7 +55,7 @@ export const FaultsFilters = ({
         <div className="flex flex-col justify-center">
           <h3 className="m-0! p-0!">Filtros</h3>
           <small className="text-gray-500 dark:text-gray-300">
-            Filtra faltas por código, severidad, estado u origen
+            Filtra faltas por código de instancia, catálogo, severidad, estado u origen
           </small>
         </div>
         {canWrite && (
@@ -71,14 +72,22 @@ export const FaultsFilters = ({
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
+        className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7"
       >
+        <InputText
+          label="Código de falta"
+          className={disciplinaryInputClassName}
+          labelClassName={disciplinaryLabelClassName}
+          placeholder="Ej. FLT-ALP-2026-001"
+          {...register("code")}
+        />
+
         <InputText
           label="Código catálogo"
           className={disciplinaryInputClassName}
           labelClassName={disciplinaryLabelClassName}
           placeholder="Ej. FL-ALP-01"
-          {...register("code")}
+          {...register("catalog_code")}
         />
 
         <Controller

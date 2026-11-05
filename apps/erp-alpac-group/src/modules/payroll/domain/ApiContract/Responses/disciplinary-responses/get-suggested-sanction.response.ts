@@ -37,9 +37,24 @@ export interface SuggestedSanctionDto {
   fault_id: string;
   sanction_target_fault_id: string;
   parent_fault_id: string | null;
+  parent_fault_code: string | null;
   is_covered_by_escalation: boolean;
   count_occurrence_in_month: number;
   severity: FaultSeverityEnumMap;
   suggested_sanction_type: SanctionTypeEnumMap;
   allowed_sanction_types: SanctionTypeEnumMap[];
 }
+
+
+    /* "fault_id": "1dba307f-ea79-4399-87b7-d35c4ebf548a",
+    "sanction_target_fault_id": "d653300b-9e44-49e3-8b87-ad03057b7e6d",
+    "parent_fault_id": "d653300b-9e44-49e3-8b87-ad03057b7e6d",
+    "parent_fault_code": "FLT-ALP-2026-004",
+    "is_covered_by_escalation": true,
+    "count_occurrence_in_month": 1,
+    "severity": "Serious",
+    "suggested_sanction_type": "Memorandum",
+    "allowed_sanction_types": [
+        "Memorandum",
+        "Suspension"
+    ] */

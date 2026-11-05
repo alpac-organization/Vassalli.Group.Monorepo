@@ -1,4 +1,5 @@
 export type SanctionsFilterFormValues = {
+  code: string;
   sanction_type: string;
   sanction_status: string;
 };

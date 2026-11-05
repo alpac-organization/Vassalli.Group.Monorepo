@@ -38,7 +38,7 @@ export const ConfirmModal = ({
 
 	const handleInternalFinalAction = (type: ConfirmActionType) => {
 		if (hasObservation && !observation?.trim() && isObservationRequired) {
-			handleRequestWarning(`Debe ingresar una ${observationLabel ?? "observación"}.`, "Campo requerido");
+			handleRequestWarning(`Debe ingresar un ${observationLabel ?? "observación"}.`, "Campo requerido");
 			return;
 		}
 

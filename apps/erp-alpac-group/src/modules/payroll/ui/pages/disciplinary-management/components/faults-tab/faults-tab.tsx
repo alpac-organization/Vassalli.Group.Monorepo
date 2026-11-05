@@ -35,6 +35,7 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 	const [pageNumber, setPageNumber] = useState(1);
 	const [appliedFilters, setAppliedFilters] = useState<FaultsFilterFormValues>({
 		code: "",
+		catalog_code: "",
 		severity: "all",
 		status: "all",
 		source: "all",
@@ -60,6 +61,9 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 			page_number: pageNumber,
 			page_size: PAGE_SIZE,
 			...(appliedFilters.code.trim() && { code: appliedFilters.code.trim() }),
+			...(appliedFilters.catalog_code.trim() && {
+				catalog_code: appliedFilters.catalog_code.trim(),
+			}),
 			...(appliedFilters.severity !== "all" && {
 				severity: appliedFilters.severity as FaultSeverityEnumMap,
 			}),
@@ -97,6 +101,7 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 	const handleClearFilters = useCallback(() => {
 		setAppliedFilters({
 			code: "",
+			catalog_code: "",
 			severity: "all",
 			status: "all",
 			source: "all",
