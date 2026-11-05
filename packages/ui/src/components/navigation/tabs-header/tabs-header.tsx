@@ -6,6 +6,7 @@ function MobileTabSelect<T extends string>({
   tabs,
   activeTab,
   onTabChange,
+  mobileMode = "select",
 }: TabHeaderProps<T>) {
   const baseId = useId();
   const listboxId = `${baseId}-listbox`;
@@ -48,6 +49,7 @@ function MobileTabSelect<T extends string>({
     setIsOpen(false);
   };
 
+  const useMobileTabs = mobileMode !== "tabs";
   return (
     <div ref={rootRef} className="relative w-full min-w-0">
       <button
@@ -116,21 +118,28 @@ export const TabHeader = <T extends string>({
   tabs,
   activeTab,
   onTabChange,
+  mobileMode = "select",
 }: TabHeaderProps<T>) => {
+  const useMobileTabs = mobileMode !== "tabs";
   return (
     <div className="w-full min-w-0">
-      <div className="sm:hidden">
-        <MobileTabSelect
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={onTabChange}
-        />
-      </div>
+      {useMobileTabs ? (
+        <div className="sm:hidden">
+          <MobileTabSelect
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={onTabChange}
+          />
+        </div>
+      ) : null}
 
       <div
         role="tablist"
         aria-label="Secciones del perfil"
-        className="hidden min-w-0 border-b border-slate-600/40 sm:flex sm:flex-wrap sm:items-end sm:gap-x-4 sm:gap-y-0 sm:overflow-x-auto items-center"
+        className={useMobileTabs
+          ? "hidden min-w-0 border-b border-slate-600/40 sm:flex sm:flex-wrap sm:items-end sm:gap-x-4 sm:gap-y-0 sm:overflow-x-auto items-center"
+          : "min-w-0 flex flex-wrap items-end gap-x-3 gap-y-2 overflow-x-auto border-b border-slate-600/40"
+        }
       >
         {tabs.map((tab) => (
           <span
@@ -143,7 +152,7 @@ export const TabHeader = <T extends string>({
               disabled={tab?.disabled ?? false}
               aria-selected={activeTab === tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`min-h-0 w-auto shrink-0 touch-manipulation rounded-t-md border-b-2 px-3 py-3 text-left text-sm font-medium transition-colors duration-200 -mb-px disabled:pointer-events-none disabled:text-slate-600 disabled:hover:text-slate-600 ${activeTab === tab.id
+              className={`min-h-0 w-auto shrink-0 touch-manipulation whitespace-nowrap rounded-t-md border-b-2 px-3 py-3 text-left text-sm font-medium transition-colors duration-200 -mb-px disabled:pointer-events-none disabled:text-slate-600 disabled:hover:text-slate-600 ${activeTab === tab.id
                 ? "border-blue-600 bg-transparent text-blue-400"
                 : "border-transparent text-slate-400 hover:text-slate-200"
                 }`}

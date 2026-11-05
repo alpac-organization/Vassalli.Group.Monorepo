@@ -3,7 +3,6 @@ import {
 	AccordionGroup,
 	AccordionItem,
 	Button,
-	ContextMenu,
 	Dropdown,
 	InputText,
 	Textarea,
@@ -19,19 +18,16 @@ import {
 	validateIntegerNumber,
 	validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
-import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import type { PurchaseRequestDetailProps } from "./purchase-request-detail.types";
-import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
 import { PurchaseRequestImageUploader } from "../purchase-request-image-uploader/purchase-request-image-uploader";
 import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
-import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
-import { RoleEnum } from "@app/core/enums/role.enum";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const dropdownClassName = `${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
 const labelClassName = "text-black! dark:text-white!";
-const contextMenuButton = "text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
+const addProductButtonClassName =
+	"text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
 
 const parseIntegerInput = (value: string): number | "" => {
 	const formatted = formatAmount(value, 10, 0);
@@ -59,17 +55,12 @@ const hasUnitsPerPackage = (label?: string, symbol?: string) => {
 };
 
 export const PurchaseRequestDetail = (
-	{ requestType, disableActions, lockItems = false, isEditMode = false, hasAttemptedSubmit = false, onRequestError, onRequestSuccess }: PurchaseRequestDetailProps
+	{ disableActions, lockItems = false, isEditMode = false, hasAttemptedSubmit = false }: PurchaseRequestDetailProps
 ) => {
 
-	const { companyId, moduleCode, role } = useUserStore();
+	const { companyId, moduleCode } = useUserStore();
 	const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
-	const [isCreateProductOpen, setIsCreateProductOpen] = useState(false);
 	const [openProducts, setOpenProducts] = useState<string[]>([]);
-
-	const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
-	const canCreateProduct =
-		!isEditMode && isRequisition && role === RoleEnum.ADMINISTRATOR;
 
 	const {
 		control,
@@ -133,28 +124,6 @@ export const PurchaseRequestDetail = (
 		clearErrors("purchase_request_items");
 	};
 
-	const handleCreateProduct = (product: CreatedProductDto) => {
-
-		const existingIds = new Set(fields.map((item) => item.product_id));
-
-		if (existingIds.has(product?.data?.product_id)) return;
-
-		append({
-			product_id: product?.data?.product_id,
-			product_name: product?.product_name,
-			description: "",
-			quantity: 0,
-			quantity_unit: 0,
-			unit_measure_id: "",
-			justification: "",
-			images: {
-				images_product_to_changed: [],
-			},
-		});
-
-		clearErrors("purchase_request_items");
-	};
-
 	const assignedProductIds = useMemo(
 		() =>
 			fields
@@ -179,31 +148,17 @@ export const PurchaseRequestDetail = (
 
 				{lockItems ? null : (
 					<div className="shrink-0 self-stretch sm:self-auto">
-						<ContextMenu
-							triggerClassName={contextMenuButton}
-							triggerLabel="Agregar Producto"
-							triggerIcon={<PlusIcon size={18} />}
+						<Button
+							type="button"
+							size="medium"
+							label="Agregar Producto"
+							icon={<PlusIcon size={18} />}
 							disabled={disableActions}
-							items={[
-								{
-									label: "Agregar Producto Existente",
-									onClick: () => {
-										setIsSelectProductOpen(true);
-										clearErrors();
-									}
-								},
-								...(canCreateProduct
-									? [
-											{
-												label: "Crear Nuevo Producto",
-												onClick: () => {
-													setIsCreateProductOpen(true);
-													clearErrors();
-												}
-											},
-										]
-									: []),
-							]}
+							className={addProductButtonClassName}
+							onClick={() => {
+								setIsSelectProductOpen(true);
+								clearErrors();
+							}}
 						/>
 					</div>
 				)}
@@ -584,16 +539,6 @@ export const PurchaseRequestDetail = (
 				selectionType="multiple"
 				excludeProductIds={assignedProductIds}
 			/>
-
-			{canCreateProduct ? (
-				<CreateProductModal
-					isOpen={isCreateProductOpen}
-					onClose={() => setIsCreateProductOpen(false)}
-					onRequestSuccess={onRequestSuccess}
-					onRequestError={onRequestError}
-					onSubmit={handleCreateProduct}
-				/>
-			) : null}
 		</div>
 	);
 };
