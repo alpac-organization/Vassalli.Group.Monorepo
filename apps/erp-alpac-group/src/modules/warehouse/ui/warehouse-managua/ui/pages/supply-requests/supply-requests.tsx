@@ -7,7 +7,7 @@ import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useParams } from "@app/shared/hooks/useParams";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 
-import { GetSectionViewsToSupplyRequests } from "./supply-requests.variants";
+import { GetSectionViewsToSupplyRequests } from "./components/supply-requests-tabs/supply-requests-tabs";
 
 export const SupplyRequests = function () {
   const navigate = useNavigate();

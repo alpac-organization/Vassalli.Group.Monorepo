@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import type { OutflowStatus } from "@app/core/enums/outflow-status.enum";
 import { OutflowStatus as OutflowStatusValues } from "@app/core/enums/outflow-status.enum";
-import { Badges, Button, DataTable, Dropdown, Modal, Pagination, SectionHeader } from "@alpac/design-system";
+import { Badges, Button, DataTable, Modal, Pagination, SectionHeader } from "@alpac/design-system";
 
 import { Loader } from "@app/shared/components/loaders/loader";
 import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
@@ -11,8 +11,7 @@ import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useWarehouseAssignment } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAssignment";
 import { useFuelRequests } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useFuelRequests";
 import { useFuelRequestDetail } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useFuelRequestDetail";
-import { useApproveFuelRequest } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useApproveFuelRequest";
-import { useDeclineFuelRequest } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useDeclineFuelRequest";
+import { useSupplyRequestDecision } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useSupplyRequestDecision";
 import { useReasonsInventoryRemoval } from "@app/modules/Inventory/ui/hooks/useReasonsInventoryRemoval";
 import type { useReasonsInventoryRemovalProps } from "@app/modules/Inventory/application/interfaces/hooks/useReasonsInventoryRemovalProps";
 
@@ -20,52 +19,20 @@ import { FuelRequestsSectionFilters } from "./fuel-requests-section-filters";
 import type { FuelRequestsFilters } from "./fuel-requests-section-filters.types";
 import type { FuelRequestDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/fuel-requests/fuel-requests.response";
 
+import { ModalInfoField as SharedModalInfoField } from "../modal-info-field/modal-info-field";
+import { ApproveRequestModal } from "../approve-request-modal/approve-request-modal";
+import { DeclineRequestModal } from "../decline-request-modal/decline-request-modal";
+import { REQUEST_STATUS_TABS, getStatusBadgeClassName } from "../../utils/request-status";
+import { StatusTabsOverlay } from "../status-tabs-overlay/status-tabs-overlay";
+
 const DEFAULT_FUEL_FILTERS: FuelRequestsFilters = {
   page_number: 1,
   page_size: 10,
 };
-function ModalInfoField({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[10px] font-semibold uppercase tracking-widest text-[#91A0B5]">
-        {label}
-      </span>
-      <div className="text-[15px] font-medium text-[#E2E8F0]">{value ?? "—"}</div>
-    </div>
-  );
+
+function ModalInfoField(props: { label: string; value: React.ReactNode }) {
+  return <SharedModalInfoField {...props} valueClassName="text-[15px]" />;
 }
-
-const FUEL_STATUS_TABS = [
-  { id: "", label: "Todos", color: "#94a3b8" },
-  { id: "PendingReview", label: "Pendiente revisión", color: "#F97316" },
-  { id: "Approved", label: "Aprobado", color: "#22c55e" },
-  { id: "Annuled", label: "Anulado", color: "#f87171" },
-  { id: "PendingDispatch", label: "En proceso", color: "#5e57eb" },
-  { id: "DispatchCancelled", label: "Despacho cancelado", color: "#c084fc" },
-] as const;
-
-const getFuelStatusBadgeClassName = (status: OutflowStatus) => {
-  switch (status) {
-    case "PendingReview":
-      return "bg-orange-100 text-orange-800 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800";
-    case "Approved":
-      return "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800";
-    case "Annuled":
-      return "bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800";
-    case "PendingDispatch":
-      return "bg-indigo-100 text-indigo-800 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800";
-    case "DispatchCancelled":
-      return "bg-purple-100 text-purple-800 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800";
-    default:
-      return "bg-gray-100 text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
-  }
-};
 
 export const CombustibleRequests = function () {
   const { companyId, moduleCode } = useUserStore();
@@ -74,8 +41,11 @@ export const CombustibleRequests = function () {
   const [selectedFuelRequestId, setSelectedFuelRequestId] = useState<string | null>(null);
 
   const { AlertComponent, handleRequestSuccess, handleRequestError } = useAlertState();
-  const { ApproveFuelRequest } = useApproveFuelRequest();
-  const { DeclineFuelRequest } = useDeclineFuelRequest();
+  const { ApproveSupplyRequest: ApproveFuelRequest, DeclineSupplyRequest: DeclineFuelRequest } =
+    useSupplyRequestDecision({
+      listKey: "fuel-requests",
+      detailKey: "fuel-request-detail",
+    });
 
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
@@ -235,7 +205,7 @@ export const CombustibleRequests = function () {
         render: (item: FuelRequestDto) => (
           <Badges
             color="info"
-            className={getFuelStatusBadgeClassName(item.outflow_status)}
+            className={getStatusBadgeClassName(item.outflow_status)}
             label={OutflowStatusValues[item.outflow_status]?.label ?? String(item.outflow_status)}
           />
         ),
@@ -321,29 +291,11 @@ export const CombustibleRequests = function () {
             />
           }
         />
-        <div className="pointer-events-none absolute left-0 right-0 top-0 hidden h-[4.5rem] items-center justify-center overflow-hidden md:flex">
-          <div className="pointer-events-auto flex items-center gap-1">
-            {FUEL_STATUS_TABS.map((tab) => {
-              const active = selectedStatusTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => handleStatusTabChange(tab.id)}
-                  className="min-h-0 shrink-0 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors text-slate-300 hover:text-white"
-                  style={{ borderColor: active ? tab.color : "transparent" }}
-                >
-                  <span
-                    className="rounded px-2 py-1"
-                    style={{ backgroundColor: active ? `${tab.color}22` : "transparent" }}
-                  >
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <StatusTabsOverlay
+          tabs={REQUEST_STATUS_TABS}
+          activeTab={selectedStatusTab}
+          onChange={handleStatusTabChange}
+        />
       </div>
 
       <Modal
@@ -374,7 +326,7 @@ export const CombustibleRequests = function () {
               </div>
               <Badges
                 color="info"
-                className={getFuelStatusBadgeClassName(detailData.outflow_status)}
+                className={getStatusBadgeClassName(detailData.outflow_status)}
                 label={
                   OutflowStatusValues[detailData.outflow_status]?.label ??
                   String(detailData.outflow_status)
@@ -519,103 +471,38 @@ export const CombustibleRequests = function () {
         )}
       </Modal>
 
-      <Modal
-        isOpen={isApproveModalOpen}
-        onClose={() => {
-          setIsApproveModalOpen(false);
-          setApproveObservations("");
-          setSelectedReasonId("");
-          setApproveError("");
-        }}
-        title="Aprobar solicitud"
-        description="Selecciona el motivo de salida de inventario."
-        variant="default"
-        size="md"
-      >
-        <div className="flex flex-col gap-3">
-          <Dropdown
-            label="Motivo de salida"
-            value={selectedReasonId}
-            options={[
-              { value: "", label: "Seleccione un motivo" },
-              ...reasonOptions,
-            ]}
-            onChange={(e: any) => setSelectedReasonId(String(e?.target?.value ?? e ?? ""))}
-            placeholder={GetReasonsInventoryRemovalQuery.isPending ? "Cargando..." : "Seleccione un motivo"}
-            appearance="dark"
-            labelClassName="text-slate-300"
-            className="w-full"
-            disabled={GetReasonsInventoryRemovalQuery.isPending}
-          />
-          <textarea
-            className="min-h-[80px] rounded-md border border-slate-600 bg-[#252B36] p-2 text-sm text-slate-100"
-            placeholder="Observaciones (opcional)"
-            value={approveObservations}
-            onChange={(e) => setApproveObservations(e.target.value)}
-          />
-          {approveError ? <p className="text-sm text-red-400">{approveError}</p> : null}
-          <div className="flex justify-end gap-2">
-            <Button
-              label="Cancelar"
-              size="small"
-              onClick={() => {
-                setIsApproveModalOpen(false);
-                setApproveObservations("");
-                setSelectedReasonId("");
-                setApproveError("");
-              }}
-            />
-            <Button
-              label={ApproveFuelRequest.isPending ? "Aprobando..." : "Aprobar"}
-              size="small"
-              onClick={() => void handleApprove()}
-              disabled={!selectedReasonId || ApproveFuelRequest.isPending}
-              className="bg-blue-600! text-white!"
-            />
-          </div>
-        </div>
-      </Modal>
+      <ApproveRequestModal
+      isOpen={isApproveModalOpen}
+      onClose={() => {
+        setIsApproveModalOpen(false);
+        setApproveObservations("");
+        setSelectedReasonId("");
+        setApproveError("");
+      }}
+      reasonOptions={reasonOptions}
+      isLoadingReasons={GetReasonsInventoryRemovalQuery.isPending}
+      selectedReasonId={selectedReasonId}
+      onReasonChange={setSelectedReasonId}
+      observations={approveObservations}
+      onObservationsChange={setApproveObservations}
+      error={approveError}
+      isPending={ApproveFuelRequest.isPending}
+      onConfirm={() => void handleApprove()}
+    />
 
-      <Modal
-        isOpen={isDeclineModalOpen}
-        onClose={() => {
-          setIsDeclineModalOpen(false);
-          setDeclineObservations("");
-          setDeclineError("");
-        }}
-        title="Anular solicitud"
-        description="Ingresa las observaciones de anulación."
-        variant="default"
-        size="md"
-      >
-        <div className="flex flex-col gap-3">
-          <textarea
-            className="min-h-[80px] rounded-md border border-slate-600 bg-[#252B36] p-2 text-sm text-slate-100"
-            placeholder="Observaciones (opcional)"
-            value={declineObservations}
-            onChange={(e) => setDeclineObservations(e.target.value)}
-          />
-          {declineError ? <p className="text-sm text-red-400">{declineError}</p> : null}
-          <div className="flex justify-end gap-2">
-            <Button
-              label="Cancelar"
-              size="small"
-              onClick={() => {
-                setIsDeclineModalOpen(false);
-                setDeclineObservations("");
-                setDeclineError("");
-              }}
-            />
-            <Button
-              label={DeclineFuelRequest.isPending ? "Anulando..." : "Anular"}
-              size="small"
-              onClick={() => void handleDecline()}
-              disabled={DeclineFuelRequest.isPending}
-              className="bg-red-600! text-white!"
-            />
-          </div>
-        </div>
-      </Modal>
+      <DeclineRequestModal
+      isOpen={isDeclineModalOpen}
+      onClose={() => {
+        setIsDeclineModalOpen(false);
+        setDeclineObservations("");
+        setDeclineError("");
+      }}
+      observations={declineObservations}
+      onObservationsChange={setDeclineObservations}
+      error={declineError}
+      isPending={DeclineFuelRequest.isPending}
+      onConfirm={() => void handleDecline()}
+    />
 
       {AlertComponent}
     </div>

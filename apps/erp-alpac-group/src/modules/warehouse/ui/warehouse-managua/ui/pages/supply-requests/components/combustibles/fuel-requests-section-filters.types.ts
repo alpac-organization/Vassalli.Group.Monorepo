@@ -5,11 +5,6 @@ export interface BranchOption {
   label: string;
 }
 
-export interface BranchOption {
-  value: string;
-  label: string;
-}
-
 export interface FuelRequestsFilters {
   code?: string;
   machinery_id?: string;

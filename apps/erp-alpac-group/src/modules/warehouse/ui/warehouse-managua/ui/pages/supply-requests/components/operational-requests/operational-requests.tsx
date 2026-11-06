@@ -3,15 +3,14 @@ import { useCallback, useMemo, useState } from "react";
 import type { OutflowStatus } from "@app/core/enums/outflow-status.enum";
 import { OutflowStatus as OutflowStatusValues } from "@app/core/enums/outflow-status.enum";
 import { ReasonUse as ReasonUseValues } from "@app/core/enums/reason-use.enum";
-import { Badges, Button, DataTable, Dropdown, Modal, Pagination, SectionHeader } from "@alpac/design-system";
+import { Badges, Button, DataTable, Modal, Pagination, SectionHeader } from "@alpac/design-system";
 
 import { Loader } from "@app/shared/components/loaders/loader";
 // import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useSupplyRequests } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useSupplyRequests";
 import { useSupplyRequestDetail } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useSupplyRequestDetail";
-import { useApproveSupplyRequest } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useApproveSupplyRequest";
-import { useDeclineSupplyRequest } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useDeclineSupplyRequest";
+import { useSupplyRequestDecision } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useSupplyRequestDecision";
 import { useReasonsInventoryRemoval } from "@app/modules/Inventory/ui/hooks/useReasonsInventoryRemoval";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -24,56 +23,11 @@ import { GetOperationalSupplyRequestColumnsToTable } from "./operational-request
 import type { OperationalRequestsFilters } from "./operational-requests.types";
 import type { SupplyRequestDetailDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/supply-requests/supply-requests.response";
 
-const STATUS_TABS = [
-  { id: "", label: "Todos", color: "#94a3b8" },
-  { id: "PendingReview", label: "Pendiente revisión", color: "#F97316" },
-  { id: "Approved", label: "Aprobado", color: "#22c55e" },
-  { id: "Annuled", label: "Anulado", color: "#f87171" },
-  { id: "PendingDispatch", label: "En proceso", color: "#5e57eb" },
-  { id: "DispatchCancelled", label: "Despacho cancelado", color: "#c084fc" },
-] as const;
-
-const STATUS_BADGE_CLASS_NAME: Record<string, string> = {
-  PendingReview:
-    "bg-orange-100 text-orange-800 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800",
-  Approved:
-    "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
-  Annuled:
-    "bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
-  PendingDispatch:
-    "bg-indigo-100 text-indigo-800 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800",
-  DispatchCancelled:
-    "bg-purple-100 text-purple-800 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800",
-};
-
-const getStatusBadgeClassName = (status: OutflowStatus) =>
-  STATUS_BADGE_CLASS_NAME[status] ??
-  "bg-gray-100 text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
-
-const REASON_BADGE_CLASS_NAME: Record<string, string> = {
-  Sale: "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
-};
-
-const getReasonBadgeClassName = (reasonUse: string) =>
-  REASON_BADGE_CLASS_NAME[reasonUse] ??
-  "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800";
-
-function ModalInfoField({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[10px] font-semibold uppercase tracking-widest text-[#91A0B5]">
-        {label}
-      </span>
-      <div className="text-[13px] font-medium text-[#E2E8F0]">{value ?? "—"}</div>
-    </div>
-  );
-}
+import { ModalInfoField } from "../modal-info-field/modal-info-field";
+import { ApproveRequestModal } from "../approve-request-modal/approve-request-modal";
+import { DeclineRequestModal } from "../decline-request-modal/decline-request-modal";
+import { REQUEST_STATUS_TABS, getStatusBadgeClassName, getReasonBadgeClassName } from "../../utils/request-status";
+import { StatusTabsOverlay } from "../status-tabs-overlay/status-tabs-overlay";
 
 export const OperationalRequests = function () {
   const { companyId, moduleCode } = useUserStore();
@@ -113,8 +67,10 @@ export const OperationalRequests = function () {
 
   const { AlertComponent, handleRequestSuccess, handleRequestError } =
     useAlertState();
-  const { ApproveSupplyRequest } = useApproveSupplyRequest();
-  const { DeclineSupplyRequest } = useDeclineSupplyRequest();
+  const { ApproveSupplyRequest, DeclineSupplyRequest } = useSupplyRequestDecision({
+    listKey: "supply-requests",
+    detailKey: "supply-request-detail",
+  });
 
   const [isApproveModalOpen, setIsApproveModalOpen] = useState(false);
   const [isDeclineModalOpen, setIsDeclineModalOpen] = useState(false);
@@ -292,29 +248,11 @@ export const OperationalRequests = function () {
             />
           }
         />
-        <div className="pointer-events-none absolute left-0 right-0 top-0 hidden h-[4.5rem] items-center justify-center overflow-hidden md:flex">
-          <div className="pointer-events-auto flex items-center gap-1">
-            {STATUS_TABS.map((tab) => {
-              const active = selectedStatusTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => handleStatusTabChange(tab.id)}
-                  className="min-h-0 shrink-0 whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors text-slate-300 hover:text-white"
-                  style={{ borderColor: active ? tab.color : "transparent" }}
-                >
-                  <span
-                    className="rounded px-2 py-1"
-                    style={{ backgroundColor: active ? `${tab.color}22` : "transparent" }}
-                  >
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <StatusTabsOverlay
+          tabs={REQUEST_STATUS_TABS}
+          activeTab={selectedStatusTab}
+          onChange={handleStatusTabChange}
+        />
       </div>
 
       <Modal
@@ -498,7 +436,7 @@ export const OperationalRequests = function () {
         )}
       </Modal>
 
-      <Modal
+      <ApproveRequestModal
         isOpen={isApproveModalOpen}
         onClose={() => {
           setIsApproveModalOpen(false);
@@ -506,97 +444,30 @@ export const OperationalRequests = function () {
           setSelectedReasonId("");
           setApproveError("");
         }}
-        title="Aprobar solicitud"
-        description="Selecciona el motivo de salida de inventario."
-        variant="default"
-        size="md"
-      >
-        <div className="flex flex-col gap-3">
-          <Dropdown
-            label="Motivo de salida"
-            value={selectedReasonId}
-            options={[
-              { value: "", label: "Seleccione un motivo" },
-              ...reasonOptions,
-            ]}
-            onChange={(e: any) => setSelectedReasonId(String(e?.target?.value ?? e ?? ""))}
-            placeholder={GetReasonsInventoryRemovalQuery.isPending ? "Cargando..." : "Seleccione un motivo"}
-            appearance="dark"
-            labelClassName="text-slate-300"
-            className="w-full"
-            disabled={GetReasonsInventoryRemovalQuery.isPending}
-          />
-          <textarea
-            className="min-h-[80px] rounded-md border border-slate-600 bg-[#252B36] p-2 text-sm text-slate-100"
-            placeholder="Observaciones (opcional)"
-            value={approveObservations}
-            onChange={(e) => setApproveObservations(e.target.value)}
-          />
-          {approveError ? (
-            <p className="text-sm text-red-400">{approveError}</p>
-          ) : null}
-          <div className="flex justify-end gap-2">
-            <Button
-              label="Cancelar"
-              size="small"
-              onClick={() => {
-                setIsApproveModalOpen(false);
-                setApproveObservations("");
-                setSelectedReasonId("");
-                setApproveError("");
-              }}
-            />
-            <Button
-              label={ApproveSupplyRequest.isPending ? "Aprobando..." : "Aprobar"}
-              size="small"
-              onClick={() => void handleApprove()}
-              disabled={!selectedReasonId || ApproveSupplyRequest.isPending}
-              className="bg-blue-600! text-white!"
-            />
-          </div>
-        </div>
-      </Modal>
+        reasonOptions={reasonOptions}
+        isLoadingReasons={GetReasonsInventoryRemovalQuery.isPending}
+        selectedReasonId={selectedReasonId}
+        onReasonChange={setSelectedReasonId}
+        observations={approveObservations}
+        onObservationsChange={setApproveObservations}
+        error={approveError}
+        isPending={ApproveSupplyRequest.isPending}
+        onConfirm={() => void handleApprove()}
+      />
 
-      <Modal
+      <DeclineRequestModal
         isOpen={isDeclineModalOpen}
         onClose={() => {
           setIsDeclineModalOpen(false);
           setDeclineObservations("");
           setDeclineError("");
         }}
-        title="Anular solicitud"
-        description="Ingresa las observaciones de anulación."
-        variant="default"
-        size="md"
-      >
-        <div className="flex flex-col gap-3">
-          <textarea
-            className="min-h-[80px] rounded-md border border-slate-600 bg-[#252B36] p-2 text-sm text-slate-100"
-            placeholder="Observaciones (opcional)"
-            value={declineObservations}
-            onChange={(e) => setDeclineObservations(e.target.value)}
-          />
-          {declineError ? <p className="text-sm text-red-400">{declineError}</p> : null}
-          <div className="flex justify-end gap-2">
-            <Button
-              label="Cancelar"
-              size="small"
-              onClick={() => {
-                setIsDeclineModalOpen(false);
-                setDeclineObservations("");
-                setDeclineError("");
-              }}
-            />
-            <Button
-              label={DeclineSupplyRequest.isPending ? "Anulando..." : "Anular"}
-              size="small"
-              onClick={() => void handleDecline()}
-              disabled={DeclineSupplyRequest.isPending}
-              className="bg-red-600! text-white!"
-            />
-          </div>
-        </div>
-      </Modal>
+        observations={declineObservations}
+        onObservationsChange={setDeclineObservations}
+        error={declineError}
+        isPending={DeclineSupplyRequest.isPending}
+        onConfirm={() => void handleDecline()}
+      />
 
       {AlertComponent}
     </div>

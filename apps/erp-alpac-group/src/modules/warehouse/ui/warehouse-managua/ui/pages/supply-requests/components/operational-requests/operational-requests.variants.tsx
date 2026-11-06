@@ -6,30 +6,7 @@ import { OutflowStatus } from "@app/core/enums/outflow-status.enum";
 import type { TableColumn } from "@alpac/design-system";
 import type { SupplyRequestDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/supply-requests/supply-requests.response";
 
-const REASON_BADGE_CLASS_NAME: Record<string, string> = {
-  Sale: "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
-};
-
-const getReasonBadgeClassName = (reasonUse: SupplyRequestDto["reason_use"]) =>
-  REASON_BADGE_CLASS_NAME[reasonUse] ??
-  "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800";
-
-const STATUS_BADGE_CLASS_NAME: Record<string, string> = {
-  PendingReview:
-    "bg-orange-100 text-orange-800 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800",
-  Approved:
-    "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
-  Annuled:
-    "bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
-  PendingDispatch:
-    "bg-indigo-100 text-indigo-800 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800",
-  DispatchCancelled:
-    "bg-purple-100 text-purple-800 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800",
-};
-
-const getStatusBadgeClassName = (status: SupplyRequestDto["outflow_status"]) =>
-  STATUS_BADGE_CLASS_NAME[status] ??
-  "bg-gray-100 text-gray-800 border border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
+import { getReasonBadgeClassName, getStatusBadgeClassName } from "../../utils/request-status";
 
 export const GetOperationalSupplyRequestColumnsToTable = function (
   onViewDetail?: (item: SupplyRequestDto) => void,
