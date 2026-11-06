@@ -1,9 +1,24 @@
+import { AbsenceSourceEnum, AbsenceStatusEnum } from "@app/modules/payroll/domain/enums/absence-enums/absence.enum";
 import { FaultSeverityEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
 import { FaultSourceEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
 import { FaultStatusEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-status.enum";
 import { SanctionStatusEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-status.enum";
 import { SanctionTypeEnum } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
 import { getMappedOptionList } from "@app/shared/utils/values.utils";
+
+export const ABSENCE_STATUS_FILTER_OPTIONS = getMappedOptionList({
+  list: Object.entries(AbsenceStatusEnum),
+  label: ([, item]) => item.label,
+  value: ([key]) => key,
+  allLabel: "Todos los estados",
+});
+
+export const ABSENCE_SOURCE_FILTER_OPTIONS = getMappedOptionList({
+  list: Object.entries(AbsenceSourceEnum),
+  label: ([, item]) => item.label,
+  value: ([key]) => key,
+  allLabel: "Todos los orígenes",
+});
 
 export const FAULT_SEVERITY_FILTER_OPTIONS = getMappedOptionList({
   list: Object.entries(FaultSeverityEnum),
@@ -60,3 +75,9 @@ export const disciplinaryApproveButtonClassName =
 
 export const disciplinaryRejectButtonClassName =
   "rounded-md! h-11 px-6! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200";
+
+  export const contextMenuButton =
+  "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
+
+export const sectionTitleClassName =
+  "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";

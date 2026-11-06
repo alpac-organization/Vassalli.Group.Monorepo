@@ -1,4 +1,5 @@
 import { Breadcrumb, Tabs, type TabItem } from "@alpac/design-system";
+import { AbsencesTab } from "@app/modules/payroll/ui/pages/disciplinary-management/components/absences-tab/absences-tab";
 import { DisciplinaryPageHeader } from "@app/modules/payroll/ui/pages/disciplinary-management/components/disciplinary-page-header/disciplinary-page-header";
 import { FaultsTab } from "@app/modules/payroll/ui/pages/disciplinary-management/components/faults-tab/faults-tab";
 import { SanctionsTab } from "@app/modules/payroll/ui/pages/disciplinary-management/components/sanctions-tab/sanctions-tab";
@@ -20,6 +21,11 @@ export const DisciplinaryManagementPage = () => {
       id: "sanctions",
       label: "Sanciones",
       render: () => <SanctionsTab />,
+    },
+    {
+      id: "absences",
+      label: "Ausencias",
+      render: () => <AbsencesTab canWrite />,
     },
   ];
 
