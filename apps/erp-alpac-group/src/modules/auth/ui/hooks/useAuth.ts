@@ -33,6 +33,8 @@ export const useAuth = function () {
       CookieStorageAdapter.setRefreshToken(response.refresh_token);
       CookieStorageAdapter.setCompanyAlias(companyAlias);
 
+      console.log(response)
+
       useUserStore.setState({
         fullName: response.full_name,
         email: response.email,
@@ -44,6 +46,7 @@ export const useAuth = function () {
         userType: response.user_type,
         areaId: response.area_id,
         branchId: response.branch_id,
+        pictureUrl: response.picture_url,
         costCenterId: response.cost_center_information?.cost_center_id,
         costCenterName: response.cost_center_information?.cost_center_name,
         costCenterCode: response.cost_center_information?.cost_center_code.toString(),
