@@ -135,30 +135,36 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 		setFaultToCancel(null);
 	}, []);
 
-	const handleConfirmCancelFault = useCallback(async () => {
-		if (!faultToCancel?.fault_id) return;
+	const handleConfirmCancelFault = useCallback(
+		async (_type: ConfirmActionType, observation?: string) => {
 
-		const payload: CancelFaultRequest = {
-			company_id: companyId,
-			module_code: moduleCode,
-			fault_id: faultToCancel.fault_id,
-		};
+			const reason = observation?.trim() ?? "";
 
-		try {
-			await CancelFault.mutateAsync(payload);
-			closeCancelConfirm();
-			setIsDetailOpen(false);
-			setSelectedFault(null);
-			handleRequestSuccess("Falta anulada exitosamente");
-		} catch (error) {
-			closeCancelConfirm();
-			const mapped = getMappedError(error as ApiErrorResponse);
-			handleRequestError(
-				mapped.description ||
+			if (!faultToCancel?.fault_id || !reason) return;
+
+
+			const payload: CancelFaultRequest = {
+				company_id: companyId,
+				module_code: moduleCode,
+				fault_id: faultToCancel.fault_id,
+				cancellation_reason: reason
+			};
+
+			try {
+				await CancelFault.mutateAsync(payload);
+				closeCancelConfirm();
+				setIsDetailOpen(false);
+				setSelectedFault(null);
+				handleRequestSuccess("Falta anulada exitosamente");
+			} catch (error) {
+				closeCancelConfirm();
+				const mapped = getMappedError(error as ApiErrorResponse);
+				handleRequestError(
+					mapped.description ||
 					"No se pudo anular la falta. Intente de nuevo.",
-			);
-		}
-	}, [
+				);
+			}
+		}, [
 		CancelFault,
 		closeCancelConfirm,
 		companyId,
@@ -239,6 +245,9 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 			<ConfirmModal
 				variant="warning"
 				title="¿Está seguro de anular esta falta disciplinaria?"
+				hasObservation
+				isObservationRequired
+				observationLabel="motivo de anulación"
 				buttonActionLabel="Anular falta"
 				buttonActionClass={cancelConfirmActionClass}
 				buttonCancelClass={cancelConfirmExitClass}
@@ -247,8 +256,8 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 				type={cancelConfirm.type}
 				isLoading={CancelFault.isPending}
 				disabled={CancelFault.isPending}
-				handleFinalAction={() => {
-					void handleConfirmCancelFault();
+				handleFinalAction={(type, observation) => {
+					void handleConfirmCancelFault(type, observation);
 				}}
 			/>
 

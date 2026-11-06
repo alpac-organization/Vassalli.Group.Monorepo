@@ -22,6 +22,7 @@ export const FaultStatusBadgeClassByKey: Record<string, string> = {
 	Open: "bg-amber-100! text-amber-800! dark:bg-amber-900/40! dark:text-amber-200!",
 	SanctionApplied: "bg-emerald-100! text-emerald-800! dark:bg-emerald-900/40! dark:text-emerald-200!",
 	Prescribed: "bg-slate-100! text-slate-700! dark:bg-slate-700/50! dark:text-slate-300!",
+	Cancelled: "bg-rose-100! text-rose-800! dark:bg-rose-900/40! dark:text-rose-200!",
 };
 
 /** Lookup de clases de badge por valor numérico de `FaultStatus`. */
@@ -29,6 +30,7 @@ export const FaultStatusBadgeClassByValue: Record<number, string> = {
 	1: FaultStatusBadgeClassByKey.Open,
 	2: FaultStatusBadgeClassByKey.SanctionApplied,
 	3: FaultStatusBadgeClassByKey.Prescribed,
+	4: FaultStatusBadgeClassByKey.Cancelled,
 };
 
 /** Lookup de clases de badge por clave de `FaultSource`. */

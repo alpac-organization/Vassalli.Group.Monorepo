@@ -4,12 +4,30 @@ import { DisciplinaryPageHeader } from "@app/modules/payroll/ui/pages/disciplina
 import { FaultsTab } from "@app/modules/payroll/ui/pages/disciplinary-management/components/faults-tab/faults-tab";
 import { SanctionsTab } from "@app/modules/payroll/ui/pages/disciplinary-management/components/sanctions-tab/sanctions-tab";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
+import { useParams } from "@app/shared/hooks/useParams";
 import { m } from "framer-motion";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+const tabsIds = ["faults", "sanctions", "absences"] as const;
+
+const [defaultTab] = tabsIds;
+
 export const DisciplinaryManagementPage = () => {
+
   const navigate = useNavigate();
   const { baseUrl } = useBaseUrl();
+  const { searchParams, setParam } = useParams();
+
+  const tabFromUrl = searchParams.get("tab");
+  const isValidTab = tabsIds.some(tab => tab === tabFromUrl);
+  const activeTab = (isValidTab && tabFromUrl) ? tabFromUrl : defaultTab;
+
+  useEffect(() => {
+    if (!isValidTab) {
+      setParam("tab", defaultTab);
+    }
+  }, [isValidTab, setParam]);
 
   const tabs: TabItem<string>[] = [
     {
@@ -57,7 +75,11 @@ export const DisciplinaryManagementPage = () => {
       <DisciplinaryPageHeader />
 
       <div className="relative mx-auto w-full rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
-        <Tabs tabItems={tabs} activeTab="faults" animation="slide" />
+        <Tabs
+          tabItems={tabs}
+          activeTab={activeTab}
+          animation="slide"
+          onTabChange={(tabId) => setParam("tab", tabId)} />
       </div>
     </m.div>
   );

@@ -65,7 +65,7 @@ export interface FaultDto {
 /**
  * Respuesta paginada de faltas disciplinarias.
  *
- * @property {FaultDto[]} data - Lista de faltas.
+ * @property {FaultDto} data - Lista de faltas.
  * @property {number} page_number - Página actual.
  * @property {number} page_size - Tamaño de página.
  * @property {number} total - Total de registros filtrados.
