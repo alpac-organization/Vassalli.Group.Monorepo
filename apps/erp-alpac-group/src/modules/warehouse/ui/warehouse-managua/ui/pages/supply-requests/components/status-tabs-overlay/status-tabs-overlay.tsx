@@ -1,14 +1,4 @@
-interface StatusTab {
-  id: string;
-  label: string;
-  color: string;
-}
-
-interface StatusTabsOverlayProps {
-  tabs: readonly StatusTab[];
-  activeTab: string;
-  onChange: (status: string) => void;
-}
+import type { StatusTabsOverlayProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/supply-requests/components/status-tabs-overlay/types/status-tabs-overlay.types";
 
 export function StatusTabsOverlay({ tabs, activeTab, onChange }: StatusTabsOverlayProps) {
   return (

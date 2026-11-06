@@ -1,18 +1,6 @@
 import { Button, Dropdown, Modal } from "@alpac/design-system";
 
-interface ApproveRequestModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  reasonOptions: Array<{ value: string; label: string }>;
-  isLoadingReasons: boolean;
-  selectedReasonId: string;
-  onReasonChange: (value: string) => void;
-  observations: string;
-  onObservationsChange: (value: string) => void;
-  error?: string;
-  isPending: boolean;
-  onConfirm: () => void;
-}
+import type { ApproveRequestModalProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/supply-requests/components/approve-request-modal/types/approve-request-modal.types";
 
 export function ApproveRequestModal({
   isOpen,
@@ -41,7 +29,7 @@ export function ApproveRequestModal({
           label="Motivo de salida"
           value={selectedReasonId}
           options={[{ value: "", label: "Seleccione un motivo" }, ...reasonOptions]}
-          onChange={(e: any) => onReasonChange(String(e?.target?.value ?? e ?? ""))}
+          onChange={(e: unknown) => onReasonChange(String((e as { target?: { value?: unknown } })?.target?.value ?? e ?? ""))}
           placeholder={isLoadingReasons ? "Cargando..." : "Seleccione un motivo"}
           appearance="dark"
           labelClassName="text-slate-300"

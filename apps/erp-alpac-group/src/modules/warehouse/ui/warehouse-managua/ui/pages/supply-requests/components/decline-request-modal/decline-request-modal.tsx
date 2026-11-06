@@ -1,14 +1,6 @@
 import { Button, Modal } from "@alpac/design-system";
 
-interface DeclineRequestModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  observations: string;
-  onObservationsChange: (value: string) => void;
-  error?: string;
-  isPending: boolean;
-  onConfirm: () => void;
-}
+import type { DeclineRequestModalProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/supply-requests/components/decline-request-modal/types/decline-request-modal.types";
 
 export function DeclineRequestModal({
   isOpen,
