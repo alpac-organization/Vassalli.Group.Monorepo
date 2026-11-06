@@ -280,7 +280,7 @@ export const OperationalRequests = function () {
       <div className="relative">
         <DataTable
           isLoading={isPending || isFetching}
-          title="Solicitudes a inventario"
+          title="Solicitudes de Insumos"
           data={memoizedRows}
           columns={columns}
           pagination={
