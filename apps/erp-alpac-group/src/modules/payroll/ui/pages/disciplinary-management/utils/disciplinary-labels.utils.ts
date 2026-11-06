@@ -77,6 +77,32 @@ export const SanctionStatusBadgeClassByValue: Record<number, string> = {
 	3: SanctionStatusBadgeClassByKey.Pending,
 };
 
+/** Lookup de clases de badge por clave de `AbsenceStatus`. */
+export const AbsenceStatusBadgeClassByKey: Record<string, string> = {
+  Pending: "bg-amber-100! text-amber-800! dark:bg-amber-900/40! dark:text-amber-200!",
+  Applied: "bg-emerald-100! text-emerald-800! dark:bg-emerald-900/40! dark:text-emerald-200!",
+  Cancelled: "bg-rose-100! text-rose-800! dark:bg-rose-900/40! dark:text-rose-200!",
+};
+
+/** Lookup de clases de badge por valor numérico de `AbsenceStatus`. */
+export const AbsenceStatusBadgeClassByValue: Record<number, string> = {
+  1: AbsenceStatusBadgeClassByKey.Pending,
+  2: AbsenceStatusBadgeClassByKey.Applied,
+  3: AbsenceStatusBadgeClassByKey.Cancelled,
+};
+
+/** Lookup de clases de badge por clave de `AbsenceSource`. */
+export const AbsenceSourceBadgeClassByKey: Record<string, string> = {
+  Manual: "bg-sky-100! text-sky-800! dark:bg-sky-900/40! dark:text-sky-200!",
+  BiometricClock: "bg-purple-100! text-purple-800! dark:bg-purple-900/40! dark:text-purple-200!",
+};
+
+/** Lookup de clases de badge por valor numérico de `AbsenceSource`. */
+export const AbsenceSourceBadgeClassByValue: Record<number, string> = {
+  1: AbsenceSourceBadgeClassByKey.Manual,
+  2: AbsenceSourceBadgeClassByKey.BiometricClock,
+};
+
 export const getFaultSeverityBadgeClass = (
 	value: string | number | null | undefined,
 ): string =>
@@ -120,9 +146,29 @@ export const getSanctionTypeBadgeClass = (
 export const getSanctionStatusBadgeClass = (
 	value: string | number | null | undefined,
 ): string =>
-	resolveEnumValue(
-		value,
-		SanctionStatusBadgeClassByKey,
-		SanctionStatusBadgeClassByValue,
-		DEFAULT_BADGE_CLASS,
-	);
+  resolveEnumValue(
+    value,
+    SanctionStatusBadgeClassByKey,
+    SanctionStatusBadgeClassByValue,
+    DEFAULT_BADGE_CLASS,
+  );
+
+export const getAbsenceStatusBadgeClass = (
+  value: string | number | null | undefined,
+): string =>
+  resolveEnumValue(
+    value,
+    AbsenceStatusBadgeClassByKey,
+    AbsenceStatusBadgeClassByValue,
+    DEFAULT_BADGE_CLASS,
+  );
+
+export const getAbsenceSourceBadgeClass = (
+  value: string | number | null | undefined,
+): string =>
+  resolveEnumValue(
+    value,
+    AbsenceSourceBadgeClassByKey,
+    AbsenceSourceBadgeClassByValue,
+    DEFAULT_BADGE_CLASS,
+  );

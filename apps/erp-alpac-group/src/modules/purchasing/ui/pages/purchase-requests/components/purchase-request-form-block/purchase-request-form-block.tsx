@@ -29,8 +29,6 @@ export const PurchaseRequestFormBlock = ({
    isEditMode = false,
    onDuplicate,
    onRemove,
-   onRequestError,
-   onRequestSuccess,
    ref,
 }: PurchaseRequestFormBlockProps) => {
 
@@ -213,12 +211,9 @@ export const PurchaseRequestFormBlock = ({
                />
 
                <PurchaseRequestDetail
-                  requestType={requestType}
                   disableActions={isDisabledActions}
                   isEditMode={isEditMode}
                   hasAttemptedSubmit={hasAttemptedSubmit}
-                  onRequestError={onRequestError}
-                  onRequestSuccess={onRequestSuccess}
                />
             </div>
          </div>

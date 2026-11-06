@@ -9,7 +9,4 @@ export interface MachineryCatalogItemDto {
   status?: number | string;
 }
 
-export interface GetMachineryCatalogResponse
-  extends PaginateBaseResponse<MachineryCatalogItemDto[]> {
-  data: MachineryCatalogItemDto[];
-}
+export type GetMachineryCatalogResponse = PaginateBaseResponse<MachineryCatalogItemDto>;
