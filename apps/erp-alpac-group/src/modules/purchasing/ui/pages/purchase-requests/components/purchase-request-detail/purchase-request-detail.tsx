@@ -24,6 +24,7 @@ import type { PurchaseRequestDetailProps } from "./purchase-request-detail.types
 import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
 import { PurchaseRequestImageUploader } from "../purchase-request-image-uploader/purchase-request-image-uploader";
 import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
+import { getProductUsageTypeByDestination } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { RoleEnum } from "@app/core/enums/role.enum";
 
@@ -79,6 +80,10 @@ export const PurchaseRequestDetail = (
 		trigger,
 		formState: { errors },
 	} = useFormContext<CreatePurchaseRequestPayload>();
+	const destination = watch("destination");
+	const productUsageType = isRequisition
+		? getProductUsageTypeByDestination(destination)
+		: undefined;
 
 	const { fields, append, remove } = useFieldArray({
 		control,
@@ -580,15 +585,17 @@ export const PurchaseRequestDetail = (
 				onSelect={handleSelectProduct}
 				selectionType="multiple"
 				excludeProductIds={assignedProductIds}
+				productUsageType={productUsageType}
 			/>
 
-			{canCreateProduct ? (
+			{canCreateProduct && productUsageType ? (
 				<CreateProductModal
 					isOpen={isCreateProductOpen}
 					onClose={() => setIsCreateProductOpen(false)}
 					onRequestSuccess={onRequestSuccess}
 					onRequestError={onRequestError}
 					onSubmit={handleCreateProduct}
+					typeProductToRegister={productUsageType}
 				/>
 			) : null}
 		</div>
