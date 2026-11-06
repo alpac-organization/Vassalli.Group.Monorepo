@@ -16,6 +16,7 @@ export interface FuelRequestDto {
   machinery_code: string;
   machinery_brand: string;
   machinery_model: string | null;
+  justification: string | null;
   created_at: string;
   requested_quantity?: number;
 }
