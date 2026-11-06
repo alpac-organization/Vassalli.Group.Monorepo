@@ -162,6 +162,7 @@ export const OperationalRequests = function () {
         company_id: companyId,
         module_code: moduleCode,
         supply_request_id: selectedSupplyRequestId,
+        code: detailData?.supply_request_code ?? "",
         reason_inventory_removal_id: selectedReasonId,
         observations: approveObservations || undefined,
       });
@@ -186,6 +187,7 @@ export const OperationalRequests = function () {
         company_id: companyId,
         module_code: moduleCode,
         supply_request_id: selectedSupplyRequestId,
+        code: detailData?.supply_request_code ?? "",
         observations: declineObservations || undefined,
       });
       handleRequestSuccess("Solicitud anulada correctamente.");
