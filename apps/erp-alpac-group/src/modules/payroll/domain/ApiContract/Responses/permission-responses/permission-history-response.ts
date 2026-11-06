@@ -16,6 +16,9 @@ export interface PermissionResponse {
   second_step_status: StepStatus;
 
   amount_days?: number;
+  related_person_name?: string | null;
+  beneficiary_scope?: string | null;
+  family_relationship?: string | null;
 
   end_time?: string;
   start_time?: string;
@@ -31,7 +34,7 @@ export interface StepStatus {
   reviewed_by?: string;
 }
 
-export interface MedicalAppointmentImageAttachment {
+export interface EvidenceImage {
   ContentType?: string | null;
   ImageBase64?: string | null;
 }
@@ -39,18 +42,17 @@ export interface MedicalAppointmentImageAttachment {
 export type PermissionAdditionalData = {
   MedicalAppointmentData?: {
     IsFullDay?: boolean;
-    ImagesAttached?: MedicalAppointmentImageAttachment[];
+    ImagesAttached?: EvidenceImage[];
   };
   VacationData?: {
     IsFullDay?: boolean;
     IsItMidday?: boolean;
     WithRangeHours?: boolean;
   };
-  LeaveData?: {
-    BeneficiaryScope?: string;
-    FamilyRelationship?: string;
-    RelatedPerson?: string | null;
-    ImagesAttached?: MedicalAppointmentImageAttachment[];
+  LeaveEvidenceData?: {
+    Evidence?: EvidenceImage[];
+    RequireApprovalSteps?: number;
+    ConsumesVacationBalance?: boolean;
   };
 };
 

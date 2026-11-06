@@ -537,3 +537,11 @@ export const formatNumber = (value: string) => {
   if (isNaN(number)) return "0";
   return new Intl.NumberFormat("en-US").format(number);
 };
+
+/** Deja en entero los decimales */
+export function formatWholeDecimalsInMessage(message: string): string {
+  return message.replace(/\d+\.\d+/g, (value) => {
+    const amount = Number(value);
+    return Number.isInteger(amount) ? String(amount) : value;
+  });
+}

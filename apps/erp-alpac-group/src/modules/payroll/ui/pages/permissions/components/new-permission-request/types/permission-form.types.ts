@@ -1,5 +1,6 @@
 import type { DatePickerValue } from "@alpac/design-system";
 import type { PermissionType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission.types";
+import type { ImageOutput } from "@app/shared/components/image-uploader/image-uploader.types";
 import type { UseFormSetError } from "react-hook-form";
 
 export type MedicalAppointmentImage = {
@@ -16,7 +17,7 @@ export interface PermissionRequestFormValues {
   amount_days?: number;
   donated_vacation_days?: number;
   beneficiary_identification?: string;
-  medical_images?: MedicalAppointmentImage[];
+  medical_images?: ImageOutput[];
   beneficiary_scope?: string;
   family_relationship?: string;
   related_person?: string;

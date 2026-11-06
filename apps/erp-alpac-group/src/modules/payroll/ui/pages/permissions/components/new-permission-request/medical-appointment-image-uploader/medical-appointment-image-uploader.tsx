@@ -22,6 +22,7 @@ export function MedicalAppointmentImageUploader({
   onChange,
   maxFiles = DEFAULT_MAX_FILES,
   minFiles = DEFAULT_MIN_FILES,
+  label = "Comprobantes médicos",
   error,
 }: MedicalAppointmentImageUploaderProps) {
   const [previews, setPreviews] = useState<ImagePreview[]>([]);
@@ -109,7 +110,7 @@ export function MedicalAppointmentImageUploader({
   return (
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium text-black dark:text-white">
-        Comprobantes médicos
+        {label}
         <span className="ml-1 text-red-500">*</span>
         <span className="ml-1 text-xs font-normal text-slate-500 dark:text-slate-400">
           ({minFiles} a {maxFiles} imágenes)

@@ -5,6 +5,7 @@ export type MedicalAppointmentImageUploaderProps = {
   onChange: (images: MedicalAppointmentImage[]) => void;
   maxFiles?: number;
   minFiles?: number;
+  label?: string;
   error?: string;
 };
 

@@ -137,7 +137,7 @@ export function derivePermissionRequestDetails(
   const managerFullname = item.first_step_status.reviewed_by ?? null;
   const administratorFullname = item.second_step_status.reviewed_by ?? null;
   const medicalAppointmentImages = isMedicalAppointment
-    ? extractMedicalAppointmentImages(item.additional_data)
+    ? extractMedicalAppointmentImages(additional)
     : [];
 
   return {

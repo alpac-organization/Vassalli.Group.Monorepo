@@ -6,7 +6,7 @@ export interface UpdatePermitTypePolicyRequest extends BaseRequest {
   family_relationship?: number;
   permit_beneficiary_scope?: number;
   max_amount_days?: number;
-  max_evidence_count?: number;
+  max_evidence_count?: number | null;
   min_evidence_count?: number;
   is_active?: boolean;
   requires_evidence?: boolean;

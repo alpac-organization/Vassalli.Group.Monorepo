@@ -4,7 +4,10 @@ import {
   formatTime,
 } from "@app/shared/utils/string.utils";
 import { ImagePreviewGallery } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
-import { extractMedicalAppointmentImages } from "@app/modules/payroll/ui/pages/permissions/utils/permission-additional-data.utils";
+import {
+  extractMedicalAppointmentImages,
+  parsePermissionAdditionalData,
+} from "@app/modules/payroll/ui/pages/permissions/utils/permission-additional-data.utils";
 
 export const MedicalAppointmentPanel = ({
   application,
@@ -14,7 +17,9 @@ export const MedicalAppointmentPanel = ({
     (application.amount_days ?? 0) > 1 ||
     (!application.start_time && !application.end_time);
   const medicalAppointmentImages = isMedicalAppointment
-    ? extractMedicalAppointmentImages(application.additional_data)
+    ? extractMedicalAppointmentImages(
+        parsePermissionAdditionalData(application.additional_data),
+      )
     : [];
 
   return (

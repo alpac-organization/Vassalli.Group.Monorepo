@@ -1,7 +1,8 @@
 import {
   Badges,
-  Button,
+  ContextMenu,
   DataTable,
+  type ContextMenuItem,
   type TableColumn,
 } from "@alpac/design-system";
 import { getPermissionStatusUiLabel } from "@app/modules/payroll/ui/pages/permissions/constants/vacation-status.constants";
@@ -11,6 +12,9 @@ import type { PermissionTableProps } from "@app/modules/payroll/ui/pages/permiss
 import type { PermissionResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/permission-history-response";
 import { statusBadgeColor } from "@app/modules/payroll/ui/pages/permissions/components/permission-table/utils/statusBadgeColor";
 import { formatTimeOrDash } from "@app/modules/payroll/ui/pages/control-vacations/components/control-vacation-details/utils/validate.details-content";
+
+const contextMenuButton =
+  "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 export function PermissionTable({
   data,
@@ -102,27 +106,22 @@ export function PermissionTable({
       key: "actions",
       label: "Acciones",
       render: (row: PermissionResponse) => {
-        const canCancel = row.status === "Pending";
+        const items: ContextMenuItem[] = [
+          {
+            label: "Ver detalles",
+            onClick: () => onViewDetails?.(row),
+          },
+        ];
+
+        if (row.status === "Pending") {
+          items.push({
+            label: "Cancelar solicitud",
+            onClick: () => onCancelRequest?.(row),
+          });
+        }
+
         return (
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              type="button"
-              size="small"
-              label="Ver detalles"
-              onClick={() => onViewDetails?.(row)}
-              className="text-[13px]! bg-white! text-neutral-900! border! border-neutral-900! dark:bg-transparent! dark:text-white! dark:border-neutral-400! hover:scale-[1.03] transition-transform duration-150"
-            />
-            {canCancel && (
-              <Button
-                type="button"
-                size="small"
-                label="Cancelar solicitud"
-                disabled={!canCancel}
-                onClick={() => onCancelRequest?.(row)}
-                className="text-[13px]! bg-white! text-alpac-primary-600! border! border-alpac-primary-500! dark:bg-transparent! dark:text-alpac-primary-400! dark:border-alpac-primary-500! hover:scale-[1.03] transition-transform duration-150 disabled:opacity-50 disabled:pointer-events-none"
-              />
-            )}
-          </div>
+          <ContextMenu items={items} triggerClassName={contextMenuButton} />
         );
       },
     },

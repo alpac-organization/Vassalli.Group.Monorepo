@@ -29,8 +29,10 @@ export const ApplicationModal = (
       onClose={() => props.onClose?.()}
       title="Detalle de Solicitud"
       description="Información detallada sobre la solicitud seleccionada"
+      panelClassName="flex max-h-[min(90dvh,56rem)] w-[min(calc(100vw-1rem),64rem)] flex-col"
+      contentClassName="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-dashboard pr-1"
     >
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 pb-1">
         {applicationType === PermitApplicationTypeEnum.Vacation ? (
           <VacationForm
             application={application}
@@ -52,7 +54,6 @@ export const ApplicationModal = (
           />
         ) : null}
 
-        {/* Formulario de solicitudes de permisos especiales */}
         {isLeaveApplication ? (
           <LeaveApplicationForm
             application={application}

@@ -4,6 +4,7 @@ import {
   Banner,
   Breadcrumb,
   Button,
+  Modal,
   Pagination,
   RadioButton,
 } from "@alpac/design-system";
@@ -42,12 +43,13 @@ import {
 import { Loader } from "@app/shared/components/loaders/loader";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
+import { formatWholeDecimalsInMessage } from "@app/shared/utils/string.utils";
 import { usePayrollStatus } from "@app/modules/payroll/ui/hooks/payroll/usePayroll";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
 
-const maxPageSize = 5;
+const maxPageSize = 10;
 
 type ViewTarget = "self" | "other";
 
@@ -151,7 +153,6 @@ export default function PermissionsPage() {
   const {
     GetPermissionHistory,
     cancelPermissionRequestMutation,
-    //  generatePermissionDocumentMutation,
   } = usePermission(historyFilters);
 
   const requestorBranchId =
@@ -250,6 +251,8 @@ export default function PermissionsPage() {
   const [selectedPermissionItem, setSelectedPermissionItem] =
     useState<PermissionResponse | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [permissionToCancel, setPermissionToCancel] =
+    useState<PermissionResponse | null>(null);
 
   const [alertState, setAlertState] = useState<{
     open: boolean;
@@ -276,7 +279,11 @@ export default function PermissionsPage() {
 
   const handleRequestError = useCallback((description: string) => {
     setIsNewRequestOpen(false);
-    setAlertState({ open: true, type: "error", message: description });
+    setAlertState({
+      open: true,
+      type: "error",
+      message: formatWholeDecimalsInMessage(description),
+    });
   }, []);
 
   const permissionRows = useMemo(
@@ -311,74 +318,51 @@ export default function PermissionsPage() {
     setSelectedPermissionItem(null);
   }, []);
 
-  //   const handleGenerateDocument = useCallback((_item: PermissionResponse) => {
-  //     if (!companyId || !moduleCode) return;
-  //     generatePermissionDocumentMutation.mutate(
-  //       {
-  //         company_id: companyId,
-  //         module_code: moduleCode,
-  //         permit_application_id: _row.id,
-  //       },
-  //       {
-  //         onSuccess: () => {
-  //           console.log("Documento generado exitosamente.");
-  //           // window.open(
-  //           //   generatePermissionDocumentMutation.data?.document_url,
-  //           //   "_blank",
-  //           // );
-  //           setAlertState({
-  //             open: true,
-  //             type: "success",
-  //             message: "Documento generado exitosamente.",
-  //           });
-  //         },
-  //         onError: () => {
-  //           setAlertState({
-  //             open: true,
-  //             type: "error",
-  //             message: "No se pudo generar el documento. Intente nuevamente.",
-  //           });
-  //         },
-  //       },
-  //     );
-  //   }, []);
 
-  const handleCancellVacation = useCallback(
-    (item: PermissionResponse) => {
-      if (!companyId || !moduleCode) return;
-      cancelPermissionRequestMutation.mutate(
-        {
-          company_id: companyId,
-          module_code: moduleCode,
-          permit_application_id: item.permit_apllication_id,
-        },
-        {
-          onSuccess: () => {
-            setAlertState({
-              open: true,
-              type: "success",
-              message: "Su solicitud ha sido cancelada exitosamente.",
-            });
-          },
-          onError: (error) => {
-            const apiDescription =
-              error && typeof error === "object" && "error" in error
-                ? (error as ApiErrorResponse).error?.description
-                : undefined;
+  const handleRequestCancel = useCallback((item: PermissionResponse) => {
+    setPermissionToCancel(item);
+  }, []);
 
-            setAlertState({
-              open: true,
-              type: "error",
-              message:
-                apiDescription ??
-                "No se pudo cancelar la solicitud. Intente nuevamente.",
-            });
-          },
+  const handleCloseCancelModal = useCallback(() => {
+    if (cancelPermissionRequestMutation.isPending) return;
+    setPermissionToCancel(null);
+  }, [cancelPermissionRequestMutation.isPending]);
+
+  const handleConfirmCancel = useCallback(() => {
+    if (!companyId || !moduleCode || !permissionToCancel) return;
+
+    cancelPermissionRequestMutation.mutate(
+      {
+        company_id: companyId,
+        module_code: moduleCode,
+        permit_application_id: permissionToCancel.permit_apllication_id,
+      },
+      {
+        onSuccess: () => {
+          setPermissionToCancel(null);
+          setAlertState({
+            open: true,
+            type: "success",
+            message: "Su solicitud ha sido cancelada exitosamente.",
+          });
         },
-      );
-    },
-    [companyId, moduleCode, cancelPermissionRequestMutation],
-  );
+        onError: (error) => {
+          const apiDescription =
+            error && typeof error === "object" && "error" in error
+              ? (error as ApiErrorResponse).error?.description
+              : undefined;
+
+          setAlertState({
+            open: true,
+            type: "error",
+            message:
+              apiDescription ??
+              "No se pudo cancelar la solicitud. Intente nuevamente.",
+          });
+        },
+      },
+    );
+  }, [companyId, moduleCode, permissionToCancel, cancelPermissionRequestMutation]);
 
   const showInitialPageLoader = utilsPermissionPageInitialLoader({
     contextReady: saldoContextReady,
@@ -618,8 +602,7 @@ export default function PermissionsPage() {
         <PermissionTable
           data={permissionRows}
           onViewDetails={handleViewDetails}
-          //  onGenerateDocument={handleGenerateDocument}
-          onCancelRequest={handleCancellVacation}
+          onCancelRequest={handleRequestCancel}
           pagination={
             <Pagination
               currentPage={GetPermissionHistory.data?.page_number ?? 0}
@@ -631,6 +614,36 @@ export default function PermissionsPage() {
           }
         />
       </m.div>
+
+      <Modal
+        isOpen={permissionToCancel != null}
+        onClose={handleCloseCancelModal}
+        variant="warning"
+        size="md"
+        title="Cancelar solicitud"
+        description="Se cancelará esta solicitud. Esta acción no se puede deshacer."
+        panelClassName="dark:bg-[#272b34]"
+      >
+        <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end">
+          <Button
+            type="button"
+            size="giant"
+            label="Salir"
+            className="h-11! w-full! sm:min-w-40! sm:w-auto! rounded-md! text-[15px]! text-white! bg-slate-500! hover:bg-slate-600! dark:bg-slate-700! dark:hover:bg-slate-600!"
+            disabled={cancelPermissionRequestMutation.isPending}
+            onClick={handleCloseCancelModal}
+          />
+          <Button
+            type="button"
+            size="giant"
+            label="Sí, cancelar"
+            className="h-11! w-full! sm:min-w-40! sm:w-auto! rounded-md! text-[15px]! text-white! bg-[#722F37]! hover:bg-[#5c242c]! dark:bg-[#8a3a44]! dark:hover:bg-[#722F37]!"
+            disabled={cancelPermissionRequestMutation.isPending}
+            isLoading={cancelPermissionRequestMutation.isPending}
+            onClick={handleConfirmCancel}
+          />
+        </div>
+      </Modal>
 
       <AnimatedAlertWrapper open={alertState.open}>
         <Alert

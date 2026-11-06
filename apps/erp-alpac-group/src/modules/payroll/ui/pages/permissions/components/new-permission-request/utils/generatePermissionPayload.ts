@@ -4,6 +4,7 @@ import { PERMISSION_TYPE_TO_ENUM_VALUE } from "@app/modules/payroll/ui/pages/per
 import { isLeavePermissionType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission.types";
 import { PermitBeneficiaryScopeEnum } from "@app/modules/applications/domain/enums/permit-beneficiary-scope.enum";
 import { PermitFamilyRelationshipEnum } from "@app/modules/applications/domain/enums/permit-family-relationship.enum";
+import type { ImageOutput } from "@app/shared/components/image-uploader/image-uploader.types";
 import { formatTimeHoursOnly } from "@app/shared/utils/string.utils";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -17,6 +18,13 @@ function resolveEnumNumber(
 ): number {
   if (!key) return fallback;
   return Number(enumMap[key]?.value ?? fallback);
+}
+
+function mapImagesForPayload(images: ImageOutput[] | undefined) {
+  return (images ?? []).map((image) => ({
+    image_base64: image.base64,
+    content_type: image.contentType,
+  }));
 }
 
 interface PayloadContext {
@@ -118,7 +126,7 @@ export const generatePermissionPayload = (
             ? null
             : formatTimeHoursOnly(values.start_time),
          end_time: isMedicalFullDay ? null : formatTimeHoursOnly(values.end_time),
-         images: values.medical_images ?? [],
+         images: mapImagesForPayload(values.medical_images),
       };
 
    } else if (values.type === "DonatedVacations") {
@@ -163,7 +171,7 @@ export const generatePermissionPayload = (
          related_person: isOwnScope
             ? null
             : values.related_person?.trim() || null,
-         images: values.medical_images ?? [],
+         images: mapImagesForPayload(values.medical_images),
       };
    }
 

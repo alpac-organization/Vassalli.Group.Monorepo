@@ -7,7 +7,7 @@ export interface GetPermissionPoliciesResponse {
   family_relationship: string;
   family_relationship_label: string;
   max_amount_days?: number | null;
-  max_evidence_count: number;
+  max_evidence_count: number | null;
   min_evidence_count: number;
   is_active: boolean;
   consumes_vacation_balance: boolean;
