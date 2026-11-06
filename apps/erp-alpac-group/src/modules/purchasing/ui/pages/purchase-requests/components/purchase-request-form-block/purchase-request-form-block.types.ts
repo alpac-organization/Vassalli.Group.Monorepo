@@ -14,7 +14,5 @@ export type PurchaseRequestFormBlockProps = {
 	isEditMode?: boolean;
 	onDuplicate: (purchaseRequestPayload: CreatePurchaseRequestPayload) => void;
 	onRemove: () => void;
-	onRequestError?: (message?: string) => void;
-	onRequestSuccess?: (message: string) => void;
 	ref?: Ref<PurchaseRequestFormBlockHandle>;
 };

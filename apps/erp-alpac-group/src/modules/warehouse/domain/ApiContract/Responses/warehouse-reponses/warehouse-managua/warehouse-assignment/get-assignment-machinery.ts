@@ -19,6 +19,5 @@ export interface AssignmentMachineryDto {
   machinery_information: MachineryInformationDto;
 }
 
-export interface GetAssignmentMachineryResponse extends PaginateBaseResponse<AssignmentMachineryDto[]> {
-  data: AssignmentMachineryDto[];
-}
+export type GetAssignmentMachineryResponse = PaginateBaseResponse<AssignmentMachineryDto>;
+

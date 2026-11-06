@@ -44,3 +44,10 @@ export interface OperationalOrderInformation {
    packages_count: number | null;
    is_alerted: boolean;
 }
+
+export interface MachineryInformation {
+   machinery_type: number;
+   machinery_code: string;
+   machinery_brand: string;
+   machinery_model?: string | null;
+}
