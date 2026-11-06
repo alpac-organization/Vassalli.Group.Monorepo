@@ -12,8 +12,9 @@ export interface UserMenuItem {
 }
 
 export interface UserMenuProps {
-   userName?:       string;
-   email?:          string;
-   costCenterName?: string;
-   items:           UserMenuItem[];
+    userName?:       string;
+    email?:          string;
+    costCenterName?: string;
+    pictureUrl?:     string | null; // 👈 nuevo
+    items:           UserMenuItem[];
 }
