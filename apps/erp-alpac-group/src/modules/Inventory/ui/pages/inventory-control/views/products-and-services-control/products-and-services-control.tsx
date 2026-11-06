@@ -8,6 +8,7 @@ import { ProductsAndServicesSectionFilters } from "./views/products-and-services
 import { DEFAULT_PRODUCT_FILTERS, GetProductColumnsToTable } from "./products-and-services-control.variant";
 import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 
 const PAGE_SIZE = 5;
 
@@ -15,10 +16,12 @@ export const ProductsAndServicesControl = function() {
 
    const [openProductEditModal, setOpenProductEditModal] = useState(false);
    const [productSelected, setProductSelected] = useState<GetProductResponse | null>(null);
+   const { AlertComponent, handleRequestSuccess, handleRequestError } = useAlertState();
    
    const [filters, setFilters] = useState<ProductsAndServicesFilters>(DEFAULT_PRODUCT_FILTERS);
 
    const { companyId, moduleCode } = useUserStore();
+
    const { GetProducts } = useProduct({
       getProductPayload: {
          company_id: companyId,
@@ -28,7 +31,6 @@ export const ProductsAndServicesControl = function() {
       }
    });
    
-
    //#region Acciones del producto
    const handleOpenModalToEditProduct = function(){
       setOpenProductEditModal(true);
@@ -102,7 +104,11 @@ export const ProductsAndServicesControl = function() {
             onClose={handleCloseModal}
             typeProductToRegister="Operational"
             selectedProduct={productSelected}
+            onRequestError={handleRequestError}
+            onRequestSuccess={handleRequestSuccess}
          />
+
+         { AlertComponent }
 		</div>
 	)
 }

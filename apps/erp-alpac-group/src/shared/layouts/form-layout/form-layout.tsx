@@ -7,11 +7,13 @@ export const FormLayout = ({ children, imageUrl = Logo }: FormLayoutProps) => {
   return (
     <div className="flex flex-col w-full min-h-dvh md:min-h-auto items-center justify-center">
       <div className="flex flex-col w-full min-h-dvh md:min-h-70 md:w-108 bg-white md:rounded-2xl transition-all duration-300 px-5 py-8 md:px-8 md:py-9">
-        <div className="mb-8 flex justify-center w-full h-full max-w-25 md:max-w-25 mx-auto overflow-hidden">
+        <div className="mb-8 mx-auto flex h-25 w-25 items-center justify-center overflow-hidden">
           <div
             key={imageUrl}
-            className="w-25 h-25 bg-cover bg-center transition-all duration-700 ease-in-out animate-bg-fade-logo"
+            className="h-full w-full bg-contain bg-center bg-no-repeat transition-all duration-700 ease-in-out animate-bg-fade-logo"
             style={{ backgroundImage: `url(${imageUrl})` }}
+            role="img"
+            aria-label="Logo"
           ></div>
         </div>
 

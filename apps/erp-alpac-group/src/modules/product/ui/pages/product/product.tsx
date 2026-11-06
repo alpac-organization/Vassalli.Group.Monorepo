@@ -49,6 +49,7 @@ export const Product = () => {
     company_id: companyId,
     module_code: moduleCode,
     category_product_id: "",
+    product_usage_type: "Administrative",
     page_number: 1,
     page_size: PAGE_SIZE,
   });
@@ -81,7 +82,7 @@ export const Product = () => {
 
     const categories: GetProductCategoryResponse[] = GetProductCategories.data;
     return categories.map((item) => ({
-      value: item.id,
+      value: item.category_id,
       label: item.name,
     }));
   }, [GetProductCategories.data]);
@@ -91,6 +92,7 @@ export const Product = () => {
       company_id: companyId,
       module_code: moduleCode,
       category_product_id: categoryId || "",
+      product_usage_type: "Administrative",
       page_number: 1,
       page_size: PAGE_SIZE,
     });
@@ -102,6 +104,7 @@ export const Product = () => {
       company_id: companyId,
       module_code: moduleCode,
       category_product_id: "",
+      product_usage_type: "Administrative",
       page_number: 1,
       page_size: PAGE_SIZE,
     });
@@ -260,6 +263,7 @@ export const Product = () => {
       </div>
 
       <CreateProductModal
+        typeProductToRegister="Administrative"
         isOpen={isProductFormOpen}
         onClose={onCloseProductForm}
         selectedProduct={productToEdit}

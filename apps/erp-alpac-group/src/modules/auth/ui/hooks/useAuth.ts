@@ -33,8 +33,6 @@ export const useAuth = function () {
       CookieStorageAdapter.setRefreshToken(response.refresh_token);
       CookieStorageAdapter.setCompanyAlias(companyAlias);
 
-      console.log(response)
-
       useUserStore.setState({
         fullName: response.full_name,
         email: response.email,

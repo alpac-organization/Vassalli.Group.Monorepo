@@ -3,18 +3,11 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
-import { ProductUsageTypeEnum } from "@app/core/enums/product-usage-type.enum";
 import type { ProductDetailsModalProps } from "@app/modules/product/ui/views/product-details-modal/product-details-modal.types";
+import { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
 
 const sectionTitleClassName =
   "m-0 pb-2 text-xs font-bold tracking-wider text-slate-500 dark:text-slate-200 border-b border-slate-200 dark:border-neutral-600";
-
-const resolveUsageLabel = (value?: string) => {
-  const found = Object.values(ProductUsageTypeEnum).find(
-    (item) => item.stringValue === value,
-  );
-  return found?.label ?? value ?? "—";
-};
 
 export const ProductDetailsModal = ({
   isOpen,
@@ -65,7 +58,7 @@ export const ProductDetailsModal = ({
               />
               <DetailField
                 label="Tipo de uso"
-                value={resolveUsageLabel(details?.product_usage_type)}
+                value={ProductUsageType[details?.product_usage_type ?? "Administrative"].label}
               />
               <DetailField
                 label="Exento de impuestos"
