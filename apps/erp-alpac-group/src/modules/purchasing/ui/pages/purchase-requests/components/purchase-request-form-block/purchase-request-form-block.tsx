@@ -219,6 +219,7 @@ export const PurchaseRequestFormBlock = ({
                />
 
                <PurchaseRequestDetail
+                  isRequisition={isRequisition}
                   disableActions={isDisabledActions}
                   isEditMode={isEditMode}
                   hasAttemptedSubmit={hasAttemptedSubmit}

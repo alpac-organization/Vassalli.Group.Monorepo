@@ -22,8 +22,6 @@ import type { PurchaseRequestDetailProps } from "./purchase-request-detail.types
 import { PurchaseRequestImageUploader } from "../purchase-request-image-uploader/purchase-request-image-uploader";
 import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import { getProductUsageTypeByDestination } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
-import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
-import { RoleEnum } from "@app/core/enums/role.enum";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -58,7 +56,7 @@ const hasUnitsPerPackage = (label?: string, symbol?: string) => {
 };
 
 export const PurchaseRequestDetail = (
-	{ disableActions, lockItems = false, isEditMode = false, hasAttemptedSubmit = false }: PurchaseRequestDetailProps
+	{ isRequisition, disableActions, lockItems = false, isEditMode = false, hasAttemptedSubmit = false }: PurchaseRequestDetailProps
 ) => {
 
 	const { companyId, moduleCode } = useUserStore();
@@ -544,17 +542,6 @@ export const PurchaseRequestDetail = (
 				excludeProductIds={assignedProductIds}
 				productUsageType={productUsageType}
 			/>
-
-			{canCreateProduct && productUsageType ? (
-				<CreateProductModal
-					isOpen={isCreateProductOpen}
-					onClose={() => setIsCreateProductOpen(false)}
-					onRequestSuccess={onRequestSuccess}
-					onRequestError={onRequestError}
-					onSubmit={handleCreateProduct}
-					typeProductToRegister={productUsageType}
-				/>
-			) : null}
 		</div>
 	);
 };
