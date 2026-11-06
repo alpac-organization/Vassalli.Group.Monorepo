@@ -11,16 +11,16 @@ export interface ReceptionEntranceListItem {
   vehicle_plate_number?: string;
   driver_name?: string;
   document_type?: DocumentType | number | string;
-  vehicle_exit_date?: string | null;
-  container_exit_date?: string | null;
+  vehicle_exit_time?: string | null;
+  container_exit_time?: string | null;
 }
 
 export interface ReceptionEntranceStatsResponse {
-  total_entries?: number;
-  totals_in_plant?: number;
-  total_dispatched?: number;
-  containers_on_site?: number;
-  containers_dispatched?: number;
+  total_entries: number;
+  total_on_site: number;
+  total_exists: number;
+  total_container_on_site: number;
+  total_container_exited: number;
 }
 export interface GetReceptionEntrancesResponse {
   data: ReceptionEntranceListItem[];

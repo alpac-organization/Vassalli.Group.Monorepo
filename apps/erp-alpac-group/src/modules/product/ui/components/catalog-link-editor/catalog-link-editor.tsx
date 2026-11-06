@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
 	AccordionGroup,
 	AccordionItem,
@@ -88,28 +88,6 @@ const loadMotionFeatures = () =>
 const itemAccordionValue = (item: CatalogLinkItemForm, index: number) =>
 	item.entity_id || `tmp-${index}`;
 
-const resolveOpenItem = (
-	items: CatalogLinkItemForm[],
-	previousLength: number,
-	currentOpen: string,
-) => {
-	if (items.length === 0) return "";
-
-	if (items.length > previousLength) {
-		return itemAccordionValue(items[items.length - 1], items.length - 1);
-	}
-
-	if (!currentOpen) return currentOpen;
-
-	const stillExists = items.some(
-		(item, index) => itemAccordionValue(item, index) === currentOpen,
-	);
-
-	if (stillExists) return currentOpen;
-
-	return itemAccordionValue(items[items.length - 1], items.length - 1);
-};
-
 const toDayjsValue = (value: string) => {
 	if (!value.trim()) return null;
 	const parsed = dayjs(value);
@@ -149,17 +127,40 @@ export const CatalogLinkEditor = ({
 	const [openTierByItem, setOpenTierByItem] = useState<Record<string, string>>(
 		{},
 	);
-	const [trackedItems, setTrackedItems] = useState(items);
-
-	if (items !== trackedItems) {
-		const nextOpenItem = resolveOpenItem(items, trackedItems.length, openItem);
-		setTrackedItems(items);
-		if (nextOpenItem !== openItem) setOpenItem(nextOpenItem);
-	}
+	const previousLengthRef = useRef(items.length);
 
 	const selectedIds = new Set(
 		items.map((item) => item.entity_id).filter(Boolean),
 	);
+
+	useEffect(() => {
+		const previousLength = previousLengthRef.current;
+		previousLengthRef.current = items.length;
+
+		if (items.length === 0) {
+			setOpenItem("");
+			return;
+		}
+
+		if (items.length > previousLength) {
+			setOpenItem(
+				itemAccordionValue(items[items.length - 1], items.length - 1),
+			);
+			return;
+		}
+
+		setOpenItem((current) => {
+			if (!current) return current;
+
+			const stillExists = items.some(
+				(item, index) => itemAccordionValue(item, index) === current,
+			);
+
+			if (stillExists) return current;
+
+			return itemAccordionValue(items[items.length - 1], items.length - 1);
+		});
+	}, [items]);
 
 	const updateItem = (index: number, patch: Partial<CatalogLinkItemForm>) => {
 		onChange(

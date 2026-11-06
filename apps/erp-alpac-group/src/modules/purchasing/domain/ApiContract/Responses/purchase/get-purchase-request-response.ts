@@ -20,4 +20,4 @@ export interface GetPurchaseRequestResponse {
 }
 
 export type GetPurchaseRequestResponseList =
-	PaginateBaseResponse<GetPurchaseRequestResponse>;
+	PaginateBaseResponse<GetPurchaseRequestResponse[]>;

@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useLocation, useParams } from "react-router-dom";
 import {
   Alert,
   AnimatedAlertWrapper,
-  Checkbox,
   Dropdown,
   InputText,
 } from "@alpac/design-system";
@@ -45,7 +44,6 @@ const defaultInformationWork: WorkFormData = {
   salaryAmount: "",
   currency: "",
   salaryType: "",
-  isTimeClockExempt: false
 };
 
 export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
@@ -84,7 +82,6 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
       salaryAmount: s?.salary != null ? String(s.salary) : "",
       currency: currencyRawToLabel(s?.currency as string | null) ?? "",
       salaryType: salaryTypeRawToLabel(s?.salary_type as string | null) ?? "",
-      isTimeClockExempt: profile.is_time_clock_exempt === true
     };
   }, [profile]);
 
@@ -344,17 +341,17 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                     </div>
                     {(currentRole === "Operator" ||
                       currentRole === "Manager") && (
-                        <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
-                          <button
-                            type="button"
-                            title="Cambiar sucursal"
-                            onClick={() => setBranchModalOpen(true)}
-                            className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                        </div>
-                      )}
+                      <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
+                        <button
+                          type="button"
+                          title="Cambiar sucursal"
+                          onClick={() => setBranchModalOpen(true)}
+                          className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -371,17 +368,17 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                     </div>
                     {(currentRole === "Operator" ||
                       currentRole === "Manager") && (
-                        <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
-                          <button
-                            type="button"
-                            title="Cambiar banco"
-                            onClick={() => setBankModalOpen(true)}
-                            className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                        </div>
-                      )}
+                      <div className="flex shrink-0 gap-2 mt-[24px] sm:mt-[26px]">
+                        <button
+                          type="button"
+                          title="Cambiar banco"
+                          onClick={() => setBankModalOpen(true)}
+                          className="h-[42px] w-[42px] sm:h-[46px] sm:w-[46px] flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-[#1e2229] text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-white hover:border-cyan-300 dark:hover:border-blue-600 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition-all duration-200"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <EditableField
@@ -402,12 +399,12 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                 >
                   <Dropdown
                     appearance="dark"
-                    label="Centro de Costo"
+                    label="Centros de Costos"
                     labelClassName="text-[13px]! sm:text-[14px]! font-medium! text-white! ml-0.5!"
                     placeholder={
                       costCentersMissing
-                        ? "Centro de costo no registrado"
-                        : "Seleccione un centro de costo"
+                        ? "Centros de costos no registrados"
+                        : "Seleccione un centro de costos"
                     }
                     options={costCenterOptions}
                     value={
@@ -420,35 +417,6 @@ export const WorkManagementSection = ({ profile }: WorkInformationProps) => {
                     valueClassName="text-white! dark:text-white!"
                   />
                 </div>
-
-                <Controller
-                  name="isTimeClockExempt"
-                  control={formMethods.control}
-                  render={({ field }) => (
-                    <Checkbox
-                      label="¿Exento de marcación?"
-                      value="is_time_clock_exempt"
-                      labelClassName="dark:text-white!"
-                      checked={Boolean(field.value)}
-                      disabled={
-                        isUpdating ||
-                        !(
-                          currentRole === "Administrator" ||
-                          currentRole === "Operator"
-                        )
-                      }
-                      onChange={async (e) => {
-                        const checked = e.target.checked;
-                        field.onChange(checked);
-                        await handleFieldUpdate("isTimeClockExempt", checked);
-                      }}
-                      onBlur={field.onBlur}
-                      name={field.name}
-                      ref={field.ref}
-                    />
-                  )}
-                />
-
               </div>
             </div>
 

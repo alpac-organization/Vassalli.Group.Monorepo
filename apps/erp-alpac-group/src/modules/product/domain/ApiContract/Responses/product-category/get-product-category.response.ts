@@ -1,5 +1,5 @@
 interface ProductCategory {
-  category_id: string;
+  id: string;
   name: string;
   code: string;
   is_active: boolean;

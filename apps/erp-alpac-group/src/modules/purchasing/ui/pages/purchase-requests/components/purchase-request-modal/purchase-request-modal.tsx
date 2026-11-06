@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type SubmitEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Modal } from "@alpac/design-system";
 import { PlusIcon } from "lucide-react";
 import type { PurchaseRequestEntry, PurchaseRequestModalProps } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal.types";
 import type {
 	CreatePurchaseRequestPayload,
 	PurchaseRequestItem,
+	PurchaseRequestItemAdditionalData,
 	PurchaseRequestMainPayload,
 } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import type {
@@ -21,19 +22,20 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { RoleEnum } from "@app/core/enums/role.enum";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PurchaseRequestFormBlock } from "../purchase-request-form-block/purchase-request-form-block";
+import type { PurchaseRequestFormBlockHandle } from "../purchase-request-form-block/purchase-request-form-block.types";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { toDataUrl } from "@app/shared/utils/toDataUrl";
 import { extractPurchaseRequestItemImages } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-item-images.utils";
 
-import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { PurchaseRequestFormBlockHandle } from "../purchase-request-form-block/purchase-request-form-block.types";
-
 const emptyFormValues = (): CreatePurchaseRequestPayload => ({
+	branch_id: "",
+	cost_center_id: "",
 	request_type: PurchaseRequestEnum.Requisition.textValue,
 	priority_level: PriorityLevelEnum.None.textValue,
 	destination: PurchaseRequestDestinationEnum.Internal.textValue,
@@ -47,7 +49,7 @@ const createEntry = (defaults: CreatePurchaseRequestPayload = emptyFormValues())
 		...defaults,
 		purchase_request_items: defaults.purchase_request_items.map((item) => ({
 			...item,
-			images: item.additional_data
+			images: item.images
 				? {
 					images_product_to_changed: [
 						...(item.images.images_product_to_changed ?? []),
@@ -66,19 +68,18 @@ type UnitMeasureLookup = {
 	bySymbol: Map<string, string>;
 };
 
-//Funcion constructora.
-const buildUnitMeasureLookup = (units: { unit_measure_id: string; code: string; symbol: string }[] ): UnitMeasureLookup => {
-	const byCode 	= new Map<string, string>();
-	const bySymbol 	= new Map<string, string>();
+const buildUnitMeasureLookup = (
+	units: { unit_measure_id: string; code: string; symbol: string }[],
+): UnitMeasureLookup => {
+	const byCode = new Map<string, string>();
+	const bySymbol = new Map<string, string>();
 
 	for (const unit of units) {
-		const codeKey 	= normalizeUnitKey(unit.code);
+		const codeKey = normalizeUnitKey(unit.code);
 		const symbolKey = normalizeUnitKey(unit.symbol);
-
 		if (codeKey && !byCode.has(codeKey)) {
 			byCode.set(codeKey, unit.unit_measure_id);
 		}
-
 		if (symbolKey && !bySymbol.has(symbolKey)) {
 			bySymbol.set(symbolKey, unit.unit_measure_id);
 		}
@@ -108,9 +109,8 @@ const resolveUnitMeasureId = (
 
 const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestItem => {
 	const productJustification = item.justification?.trim() ?? "";
-	const productImages = item.additional_data?.images_product_to_changed ?? [];
-
-	const additionalData = productImages.length
+	const productImages = item.images?.images_product_to_changed ?? [];
+	const additionalData: PurchaseRequestItemAdditionalData | null = productImages.length
 		? { images_product_to_changed: productImages }
 		: null;
 
@@ -124,98 +124,79 @@ const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestIt
 		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
 			? { quantity_unit: Number(item.quantity_unit) }
 			: {}),
-	} as UpdateNewPurchaseRequestItem;
-};
-
-// Crear un item
-const mapCreateItem = (item: PurchaseRequestItem): PurchaseRequestItem => {
-	const mapped 		= mapNewCreateItem(item);
-	const unitMeasureId = item.unit_measure_id?.trim();
-
-	return {
-		...mapped,
-
-		unit_measure_id: unitMeasureId,
-		additional_data: mapped.additional_data ?? null
 	};
 };
 
-//Actualizar item existente
-const mapExistingUpdateItem = (item: PurchaseRequestItem & { purchase_request_item_id: string }): UpdateExistingPurchaseRequestItem => {
-
-	const productJustification = item.justification?.trim() ?? "";
-
-	// Read images from additional_data (backend format: JSON string with images_product_to_changed)
-	let imagesProductToChanged: string[] = [];
-	if (item.additional_data) {
-		try {
-			const parsed = JSON.parse(item.additional_data);
-			imagesProductToChanged = parsed.images_product_to_changed || [];
-		} catch {
-			// If JSON parsing fails, use empty array
-		}
-	}
+const mapCreateItem = (item: PurchaseRequestItem): PurchaseRequestItem => {
+	const mapped = mapNewCreateItem(item);
+	const unitMeasureId = item.unit_measure_id?.trim() || null;
 
 	return {
+		...mapped,
+		unit_measure_id: unitMeasureId,
+		additional_supplier_ids: item.additional_supplier_ids,
+		new_product: item.new_product ?? null,
+	};
+};
+
+const mapExistingUpdateItem = (
+	item: PurchaseRequestItem & { purchase_request_item_id: string },
+): UpdateExistingPurchaseRequestItem => {
+	const productJustification = item.justification?.trim() ?? "";
+	const productImages = item.images?.images_product_to_changed ?? [];
+
+	return {
+		id: item.purchase_request_item_id,
 		product_id: item.product_id ?? undefined,
 		quantity: Number(item.quantity),
 		description: item.description ?? undefined,
 		unit_measure_id: item.unit_measure_id ?? undefined,
-		images_product_to_changed: imagesProductToChanged,
+		images_product_to_changed: productImages,
 		...(productJustification ? { justification: productJustification } : {}),
 		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
 			? { quantity_unit: Number(item.quantity_unit) }
 			: {}),
-} as UpdateExistingPurchaseRequestItem;
+	};
 };
 
+export const PurchaseRequestModal = ({
+	isOpen,
+	onClose,
+	onSubmit,
+	currentBranchId,
+	requestType,
+	onRequestError,
+	onRequestSuccess,
+	purchaseRequest = null,
+}: PurchaseRequestModalProps) => {
 
-
-export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
-
-	const {
-		isOpen,
-		onClose,
-		onSubmit,
-		currentBranchId,
-		requestType,
-		onRequestError,
-		onRequestSuccess,
-		purchaseRequest = null,
-	} = props;
-
-	const { getMappedError } = useMappedError();
 	const { companyId, moduleCode, role, areaId, costCenterId } = useUserStore();
 
-	const isAdministrator 	= role === RoleEnum.ADMINISTRATOR;
-	const isRequisition 	= requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
-	
-	const isEditMode 		= Boolean(purchaseRequest?.purchase_request_id);
+	const { getMappedError } = useMappedError();
+	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+	const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
+	const isEditMode = Boolean(purchaseRequest?.purchase_request_id);
 	const purchaseRequestId = purchaseRequest?.purchase_request_id ?? "";
 
 	const [entries, setEntries] = useState<PurchaseRequestEntry[]>([]);
 	const [editDefaultsReady, setEditDefaultsReady] = useState(false);
-
-	//#region Referencias
-
-	const blockRefs 		 = useRef<Map<string, PurchaseRequestFormBlockHandle>>(new Map());
-	const lastBlockRef 		 = useRef<HTMLDivElement>(null);
+	const blockRefs = useRef<Map<string, PurchaseRequestFormBlockHandle>>(new Map());
+	const lastBlockRef = useRef<HTMLDivElement>(null);
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-	//#endregion
 
 	const defaultData: PurchaseRequestEntry = {
 		id: crypto.randomUUID(),
 		defaults: {
-			observations: "",
+			branch_id: "",
+			cost_center_id: costCenterId,
 			destination: PurchaseRequestDestinationEnum.Internal.textValue,
+			observations: "",
 			request_type: requestType.textValue,
 			priority_level: PriorityLevelEnum.None.textValue,
 			purchase_request_items: [],
 		},
 	};
 
-	//#region services
 	const {
 		CreatePurchaseRequest,
 		UpdatePurchaseRequest,
@@ -240,39 +221,33 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 			module_code: moduleCode,
 		},
 	});
-	//#endregion
-
-	//#region Evaluar estados de submit y fetching 
-	const details = GetPurchaseRequestDetails.data as
-		| GetPurchaseRequestDetailResponse
-		| undefined;
-	
-	const productsResponse = GetPurchaseRequestProducts.data as
-		| PurchaseRequestProductInformationList
-		| undefined;
-		
-		const isLoadingEditData =
-		isEditMode &&
-		isOpen &&
-		(
-			GetPurchaseRequestDetails.isPending   ||
-			GetPurchaseRequestDetails.isFetching  ||
-			GetPurchaseRequestProducts.isPending  ||
-			GetPurchaseRequestProducts.isFetching ||
-			GetUnitMeasurements.isPending 		  ||
-			GetUnitMeasurements.isFetching
-		);
-		
-	const isSubmitting =
-		CreatePurchaseRequest.isPending || UpdatePurchaseRequest.isPending;
-
-	//#endregion
 
 	const unitsOfMeasurement = useMemo(() => {
 		const data = GetUnitMeasurements.data;
 		return Array.isArray(data) ? data : [];
 	}, [GetUnitMeasurements.data]);
-		
+
+	const details = GetPurchaseRequestDetails.data as
+		| GetPurchaseRequestDetailResponse
+		| undefined;
+
+	const productsResponse = GetPurchaseRequestProducts.data as
+		| PurchaseRequestProductInformationList
+		| undefined;
+
+	const isLoadingEditData =
+		isEditMode &&
+		isOpen &&
+		(GetPurchaseRequestDetails.isPending ||
+			GetPurchaseRequestDetails.isFetching ||
+			GetPurchaseRequestProducts.isPending ||
+			GetPurchaseRequestProducts.isFetching ||
+			GetUnitMeasurements.isPending ||
+			GetUnitMeasurements.isFetching);
+
+	const isSubmitting =
+		CreatePurchaseRequest.isPending || UpdatePurchaseRequest.isPending;
+
 	useEffect(() => {
 		if (!isOpen) {
 			setEntries([]);
@@ -294,47 +269,48 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 	}, [isOpen, isEditMode, purchaseRequestId]);
 
 	useEffect(() => {
-		if (!isOpen  || !isEditMode || isLoadingEditData || editDefaultsReady) return;
+		if (!isOpen || !isEditMode || isLoadingEditData || editDefaultsReady) return;
 		if (!details || !productsResponse) return;
-		
-		//Productos 
+
 		const products = productsResponse.data ?? [];
+		const unitMeasureLookup = buildUnitMeasureLookup(unitsOfMeasurement);
 
 		const editDefaults: CreatePurchaseRequestPayload = {
-			request_type: 			requestType.textValue,
-			priority_level: 		details.priority_level ?? PriorityLevelEnum.None.textValue,
-			destination:			details.destination    ?? PurchaseRequestDestinationEnum.Internal.textValue,
-			observations: 			details.observations?.trim() ?? "",
-			
+			branch_id: currentBranchId,
+			cost_center_id: costCenterId,
+			request_type: requestType.textValue,
+			priority_level:
+				details.priority_level ?? PriorityLevelEnum.None.textValue,
+			destination:
+				details.destination ??
+				PurchaseRequestDestinationEnum.Internal.textValue,
+			observations: details.observations?.trim() ?? "",
 			purchase_request_items: products.map((product) => {
-
-				console.log(product);
-
 				const storedImages = extractPurchaseRequestItemImages(
 					product.additional_data,
 				);
-
-				console.log(JSON.stringify(storedImages, null, 3));
+				const imageDataUrls = storedImages
+					.map((image) => toDataUrl(image.image_base64, image.content_type))
+					.filter((src): src is string => Boolean(src));
 
 				return {
-					product_name: 	 product.product_details?.product_name,
-					product_id: 	 product.product_details?.product_id 			   ?? "",
-					unit_measure_id: product.unit_measure_information?.unit_measure_id ?? "",
-
-					quantity: 		 product.quantity,
-					quantity_unit: 	 product.quantity_unit ?? 0,
-					description: 	 product.description   ?? "",
-					justification: 	 product.justification ?? "",
-
-					// images: 
-					// images: {
-					// 	images_product_to_changed: imageDataUrls,
-					// },
+					purchase_request_item_id: product.purchase_request_item_id,
+					product_id: product.product_details.product_id,
+					product_name: product.product_details.product_name,
+					quantity: product.quantity,
+					quantity_unit: product.quantity_unit ?? 0,
+					unit_measure_id: resolveUnitMeasureId(
+						product.unit_measure_information,
+						unitMeasureLookup,
+					),
+					description: product.description ?? "",
+					justification: product.justification ?? "",
+					images: {
+						images_product_to_changed: imageDataUrls,
+					},
 				};
 			}),
 		};
-
-		// console.log(JSON.stringify(editDefaults, null, 3));
 
 		setEntries([createEntry(editDefaults)]);
 		setEditDefaultsReady(true);
@@ -386,46 +362,44 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 		setEntries((prev) => prev.filter((entry) => entry.id !== id));
 	};
 
-	const buildCreatePayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => {		
-		return {
-			...(isAdministrator && areaId ? { area_id: areaId } : {}),
-			...(isRequisition ? { priority_level: values.priority_level } : {}),
+	const buildCreatePayload = (values: CreatePurchaseRequestPayload): CreatePurchaseRequestPayload => ({
+		...(isAdministrator && areaId ? { area_id: areaId } : {}),
+		branch_id: currentBranchId,
+		cost_center_id: costCenterId,
+		request_type: requestType.textValue,
+		...(isRequisition ? { priority_level: values.priority_level } : {}),
+		destination:
+			values.destination ?? PurchaseRequestDestinationEnum.Internal.textValue,
+		observations: values.observations.trim(),
+		purchase_request_items: values.purchase_request_items.map((item) =>
+			mapCreateItem(item),
+		),
+	});
 
-			request_type: 			requestType.textValue,
-			destination:			values.destination ?? PurchaseRequestDestinationEnum.Internal.textValue,
-			observations: 			values.observations.trim(),
-			purchase_request_items: values.purchase_request_items.map((item) =>
-				mapCreateItem(item),
-			),
-		}
-	};
+	const buildUpdatePayload = (values: CreatePurchaseRequestPayload): UpdatePurchaseRequestPayload => ({
+		company_id: companyId,
+		module_code: moduleCode,
+		purchase_request_id: purchaseRequestId,
+		observations: values.observations.trim(),
+		destination_request:
+			values.destination ?? PurchaseRequestDestinationEnum.Internal.textValue,
+		...(isRequisition
+			? { priority_level: values.priority_level }
+			: { priority_level: PriorityLevelEnum.None.textValue }),
+		purchase_request_items: values.purchase_request_items.map((item) => {
+			const existingId = item.purchase_request_item_id?.trim();
+			if (existingId) {
+				return mapExistingUpdateItem({
+					...item,
+					purchase_request_item_id: existingId,
+				});
+			}
 
-	const buildUpdatePayload = (values: CreatePurchaseRequestPayload): UpdatePurchaseRequestPayload => {
-		console.log("Called! \"build update payload\"");
+			return mapNewCreateItem(item);
+		}),
+	});
 
-		return {
-			company_id: 			companyId,
-			module_code: 			moduleCode,
-			purchase_request_id: 	purchaseRequestId,
-			observations: 			values.observations.trim(),
-			destination_request: 	values.destination    ?? PurchaseRequestDestinationEnum.Internal.textValue,
-
-			...(
-				isRequisition
-				? { priority_level: values.priority_level }
-				: { priority_level: PriorityLevelEnum.None.textValue }
-			),
-
-			// purchase_request_items: values.purchase_request_items.map((item: PurchaseRequestItem): PurchaseRequestItem => ({
-			// 	...item
-			// })),	
-		}
-	}
-	
-	//#region Logica para lanzar actualización o creación
-	const handleFormSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
-		event.preventDefault();
-
+	const handleFormSubmit = async () => {
 		if (!currentBranchId || entries.length === 0) return;
 
 		const valuesList: CreatePurchaseRequestPayload[] = [];
@@ -445,25 +419,15 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 		try {
 			if (isEditMode) {
 				await UpdatePurchaseRequest.mutateAsync(buildUpdatePayload(valuesList[0]));
-
-				//Notificar que se realizo la actualización.
 				onRequestSuccess?.("Solicitud de compra actualizada con éxito.");
-			}
-			else {
-				
+			} else {
 				const mainPayload: PurchaseRequestMainPayload = {
-					company_id: 	   companyId,
-					module_code: 	   moduleCode,
+					company_id: companyId,
+					module_code: moduleCode,
 					purchase_requests: valuesList.map((values) => buildCreatePayload(values)),
 				};
 
-				console.log(JSON.stringify(mainPayload, null, 2));
-
-				return;
-
-				//Lanzar el servicio que consume la creación de las solcitudes
 				await CreatePurchaseRequest.mutateAsync(mainPayload);
-
 				onRequestSuccess?.(
 					valuesList.length === 1
 						? "Solicitud de compra creada con éxito."
@@ -474,44 +438,34 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 			setEntries([]);
 			blockRefs.current.clear();
 			setEditDefaultsReady(false);
-			
 			onSubmit?.();
 			onClose();
-		} 
-		catch (error) {
+		} catch (error) {
 			const mappedError = getMappedError(error as ApiErrorResponse);
 			onRequestError?.(mappedError.description);
 		}
 	};
-	//#endregion
 
-	//#region casos de labels
 	const modalTitle = isEditMode
 		? `Actualizar ${requestType.label}`
-		: `Registrar  ${requestType.label}`;
+		: `Registrar ${requestType.label}`;
 
 	const modalDescription = isEditMode
 		? "Modifique la información de la solicitud de compra"
 		: "Complete la información de la solicitud de compra";
-	//#endregion
 
 	const showForm = !isEditMode || (editDefaultsReady && !isLoadingEditData);
 
 	return (
 		<>
-			{
-				isOpen && isLoadingEditData && (
-					<Loader title="Cargando solicitud..." />
-				)
-			}
-
-			{
-				isOpen && isSubmitting && (
-					<Loader
-						title={isEditMode ? "Actualizando solicitud..." : "Creando solicitud..."}
-					/>
-				)
-			}
+			{isOpen && isLoadingEditData && (
+				<Loader title="Cargando solicitud..." />
+			)}
+			{isOpen && isSubmitting && (
+				<Loader
+					title={isEditMode ? "Actualizando solicitud..." : "Creando solicitud..."}
+				/>
+			)}
 
 			<Modal
 				isOpen={isOpen}
@@ -528,7 +482,10 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 				contentClassName="flex min-h-0 flex-1 flex-col"
 			>
 				<form
-					onSubmit={handleFormSubmit}
+					onSubmit={(evt) => {
+						evt.preventDefault();
+						handleFormSubmit();
+					}}
 					className="flex min-h-0 flex-1 flex-col"
 					noValidate
 				>
@@ -570,6 +527,8 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 											isEditMode={isEditMode}
 											onDuplicate={handleDuplicate}
 											onRemove={() => handleRemove(entry.id)}
+											onRequestError={onRequestError}
+											onRequestSuccess={onRequestSuccess}
 											ref={(instance) => {
 												if (instance) {
 													blockRefs.current.set(entry.id, instance);
@@ -584,20 +543,18 @@ export const PurchaseRequestModal = (props: PurchaseRequestModalProps) => {
 						</div>
 					</div>
 
-					{
-						!isEditMode && (
-							<div className="shrink-0 bg-white py-4 dark:bg-[#272b34]">
-								<Button
-									type="button"
-									size="medium"
-									icon={<PlusIcon size={16} />}
-									label={`Crear ${requestType.label}`}
-									onClick={handleCreate}
-									className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-								/>
-							</div>
-						)
-					}
+					{!isEditMode && (
+						<div className="shrink-0 bg-white py-4 dark:bg-[#272b34]">
+							<Button
+								type="button"
+								size="medium"
+								icon={<PlusIcon size={16} />}
+								label={`Crear ${requestType.label}`}
+								onClick={handleCreate}
+								className="text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+							/>
+						</div>
+					)}
 
 					<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
 						<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

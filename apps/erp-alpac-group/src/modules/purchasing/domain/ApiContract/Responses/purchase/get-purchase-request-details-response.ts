@@ -33,7 +33,7 @@ export interface PurchaseRequestAdditionalData {
 }
 
 export type PurchaseRequestProductInformationList =
-	PaginateBaseResponse<PurchaseRequestProductInformation>;
+	PaginateBaseResponse<PurchaseRequestProductInformation[]>;
 
 export interface PurchaseRequestItemRecommendations {
 	best_warranty_quotation_id: string | null;
@@ -90,10 +90,9 @@ export interface PurchaseRequestCategoryInformation {
 }
 
 export interface PurchaseRequestUnitMeasureInformation {
-	unit_measure_id: string;
-	code: 			 string | null;
-	name: 			 string | null;
-	symbol: 		 string | null;
+	code: string | null;
+	name: string | null;
+	symbol: string | null;
 }
 
 export interface PurchaseRequestProductQuotationSupplier {

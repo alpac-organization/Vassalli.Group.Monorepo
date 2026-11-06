@@ -13,9 +13,6 @@ export type CatalogLinkTierForm = {
 	valid_to: string;
 };
 
-/**
- * @property entity_id
- */
 export type CatalogLinkItemForm = {
 	entity_id: string;
 	entity_label: string;
@@ -138,7 +135,6 @@ export const validateCatalogLinkPreferentialDates = (
 export const mapCatalogLinkItemsToTierPayload = (
 	tiers: CatalogLinkTierForm[],
 	fallbackCurrency?: CurrencyCode | null,
-	unitMeasureId?: string | null,
 ): ProductSupplierTierPricePayload[] =>
 	tiers
 		.filter(
@@ -154,21 +150,16 @@ export const mapCatalogLinkItemsToTierPayload = (
 			currency: resolveLinkCurrency(tier.currency || fallbackCurrency),
 			valid_from: tier.valid_from,
 			valid_to: tier.valid_to.trim() ? tier.valid_to : null,
-			unit_measure_id: resolveLinkUnitMeasureId(unitMeasureId),
+			unit_measure_id: null,
 		}));
 
 export const resolveTierPricesForPatch = (
 	preferentialTouched: boolean,
 	tiers: CatalogLinkTierForm[],
 	fallbackCurrency?: CurrencyCode | null,
-	unitMeasureId?: string | null,
 ): ProductSupplierTierPricePayload[] | undefined => {
 	if (!preferentialTouched) return undefined;
-	return mapCatalogLinkItemsToTierPayload(
-		tiers,
-		fallbackCurrency,
-		unitMeasureId,
-	);
+	return mapCatalogLinkItemsToTierPayload(tiers, fallbackCurrency);
 };
 
 export const mapTierPricesToCatalogForm = (

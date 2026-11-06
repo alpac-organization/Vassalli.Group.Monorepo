@@ -8,7 +8,6 @@ export const ModuleEnum = {
   PURCHASING: "COM-129U",
   FINANCE: "FIN-567W",
   MANAGEMENT: "GRC-873Y",
-  INVENTORY: "INV-001",
   PUBLIC: "PUBLIC",
 } as const;
 

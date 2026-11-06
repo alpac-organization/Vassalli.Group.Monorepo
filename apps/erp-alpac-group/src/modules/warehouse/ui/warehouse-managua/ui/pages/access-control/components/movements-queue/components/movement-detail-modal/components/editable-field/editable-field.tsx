@@ -31,7 +31,6 @@ export function EditableField<TFieldValues extends FieldValues>({
   allowEmptySubmit = false,
   options,
   placeholder,
-  compact = false,
 }: AccessControlEditableFieldProps<TFieldValues>) {
   const {
     register,
@@ -123,7 +122,7 @@ export function EditableField<TFieldValues extends FieldValues>({
   return (
     <div className="flex min-w-0 flex-col gap-2 w-full max-w-full">
       <div className="flex min-w-0 items-start gap-2 sm:gap-2.5">
-        <div className={`min-w-0 relative ${compact ? "w-auto shrink-0" : "flex-1"}`}>
+        <div className="min-w-0 flex-1 relative">
           {isEditing ? (
             options ? (
               <Dropdown

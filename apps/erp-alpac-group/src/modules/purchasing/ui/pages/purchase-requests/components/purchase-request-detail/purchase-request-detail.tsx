@@ -3,6 +3,7 @@ import {
 	AccordionGroup,
 	AccordionItem,
 	Button,
+	ContextMenu,
 	Dropdown,
 	InputText,
 	Textarea,
@@ -18,16 +19,19 @@ import {
 	validateIntegerNumber,
 	validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
+import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import type { PurchaseRequestDetailProps } from "./purchase-request-detail.types";
+import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
 import { PurchaseRequestImageUploader } from "../purchase-request-image-uploader/purchase-request-image-uploader";
 import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
+import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
+import { RoleEnum } from "@app/core/enums/role.enum";
 
 const inputClassName =
 	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const dropdownClassName = `${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
 const labelClassName = "text-black! dark:text-white!";
-const addProductButtonClassName =
-	"text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
+const contextMenuButton = "text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
 
 const parseIntegerInput = (value: string): number | "" => {
 	const formatted = formatAmount(value, 10, 0);
@@ -55,12 +59,17 @@ const hasUnitsPerPackage = (label?: string, symbol?: string) => {
 };
 
 export const PurchaseRequestDetail = (
-	{ disableActions, lockItems = false, isEditMode = false, hasAttemptedSubmit = false }: PurchaseRequestDetailProps
+	{ requestType, disableActions, lockItems = false, isEditMode = false, hasAttemptedSubmit = false, onRequestError, onRequestSuccess }: PurchaseRequestDetailProps
 ) => {
 
-	const { companyId, moduleCode } = useUserStore();
+	const { companyId, moduleCode, role } = useUserStore();
 	const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
+	const [isCreateProductOpen, setIsCreateProductOpen] = useState(false);
 	const [openProducts, setOpenProducts] = useState<string[]>([]);
+
+	const isRequisition = requestType.textValue === PurchaseRequestEnum.Requisition.textValue;
+	const canCreateProduct =
+		!isEditMode && isRequisition && role === RoleEnum.ADMINISTRATOR;
 
 	const {
 		control,
@@ -78,7 +87,7 @@ export const PurchaseRequestDetail = (
 
 	useEffect(() => {
 		setOpenProducts(fields.map((field) => field.id));
-	}, [fields]);   
+	}, [fields]);
 
 	const { GetUnitMeasurements } = useUnitOfMeasurement({
 		payloadUnitOfMeasurement: {
@@ -124,6 +133,28 @@ export const PurchaseRequestDetail = (
 		clearErrors("purchase_request_items");
 	};
 
+	const handleCreateProduct = (product: CreatedProductDto) => {
+
+		const existingIds = new Set(fields.map((item) => item.product_id));
+
+		if (existingIds.has(product?.data?.product_id)) return;
+
+		append({
+			product_id: product?.data?.product_id,
+			product_name: product?.product_name,
+			description: "",
+			quantity: 0,
+			quantity_unit: 0,
+			unit_measure_id: "",
+			justification: "",
+			images: {
+				images_product_to_changed: [],
+			},
+		});
+
+		clearErrors("purchase_request_items");
+	};
+
 	const assignedProductIds = useMemo(
 		() =>
 			fields
@@ -148,17 +179,31 @@ export const PurchaseRequestDetail = (
 
 				{lockItems ? null : (
 					<div className="shrink-0 self-stretch sm:self-auto">
-						<Button
-							type="button"
-							size="medium"
-							label="Agregar Producto"
-							icon={<PlusIcon size={18} />}
+						<ContextMenu
+							triggerClassName={contextMenuButton}
+							triggerLabel="Agregar Producto"
+							triggerIcon={<PlusIcon size={18} />}
 							disabled={disableActions}
-							className={addProductButtonClassName}
-							onClick={() => {
-								setIsSelectProductOpen(true);
-								clearErrors();
-							}}
+							items={[
+								{
+									label: "Agregar Producto Existente",
+									onClick: () => {
+										setIsSelectProductOpen(true);
+										clearErrors();
+									}
+								},
+								...(canCreateProduct
+									? [
+											{
+												label: "Crear Nuevo Producto",
+												onClick: () => {
+													setIsCreateProductOpen(true);
+													clearErrors();
+												}
+											},
+										]
+									: []),
+							]}
 						/>
 					</div>
 				)}
@@ -199,12 +244,10 @@ export const PurchaseRequestDetail = (
 						const selectedUnit = unitsOfMeasurementOptions.find(
 							(option) => String(option.value) === String(selectedUnitId),
 						);
-
 						const isBoxOrPackage = hasUnitsPerPackage(
 							selectedUnit?.label,
 							selectedUnit?.symbol,
 						);
-
 						const isPersistedItem = Boolean(
 							item.purchase_request_item_id?.trim(),
 						);
@@ -224,9 +267,8 @@ export const PurchaseRequestDetail = (
 											<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
 												{index + 1}
 											</span>
-											
 											<span className="min-w-0 truncate text-[15px] font-semibold text-slate-800 dark:text-white">
-												{item.product_id || `#${index + 1}`}
+												{item.product_name || `#${index + 1}`}
 											</span>
 										</div>
 										{canRemoveItem ? (
@@ -539,6 +581,16 @@ export const PurchaseRequestDetail = (
 				selectionType="multiple"
 				excludeProductIds={assignedProductIds}
 			/>
+
+			{canCreateProduct ? (
+				<CreateProductModal
+					isOpen={isCreateProductOpen}
+					onClose={() => setIsCreateProductOpen(false)}
+					onRequestSuccess={onRequestSuccess}
+					onRequestError={onRequestError}
+					onSubmit={handleCreateProduct}
+				/>
+			) : null}
 		</div>
 	);
 };

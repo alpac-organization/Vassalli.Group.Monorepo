@@ -140,10 +140,7 @@ export const HomePage = function () {
             <SettingIndex />
          ) : (
             <>
-               <HeaderHome 
-                  company_name={companyName} 
-                  username={validatedName} 
-               />
+               <HeaderHome company_name={companyName} username={validatedName} />
 
                <div className="max-w-330 m-auto mt-2 p-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 w-full">
                   {
