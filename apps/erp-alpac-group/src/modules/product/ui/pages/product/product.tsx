@@ -171,8 +171,8 @@ export const Product = () => {
             }
          },
          {
-            key: "category",
-            label: "Categoría producto",
+            key: "usage_type",
+            label: "Tipo de uso",
             render: (row) => {
                return (
                   <Badges
@@ -182,11 +182,6 @@ export const Product = () => {
                   />
                )
             },
-         },
-         {
-            key: "suppliers_count",
-            label: "Cant. Proveedores",
-            render: (row) => String(row.suppliers_count ?? 0),
          },
          {
             key: "actions",
