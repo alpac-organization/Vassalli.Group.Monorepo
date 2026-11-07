@@ -5,6 +5,8 @@ export type AccordionItemProps = {
   value: string;
   title: ReactNode;
   children: ReactNode;
+  leading?: ReactNode;
+  actions?: ReactNode;
   disabled?: boolean;
   className?: string;
   triggerClassName?: string;

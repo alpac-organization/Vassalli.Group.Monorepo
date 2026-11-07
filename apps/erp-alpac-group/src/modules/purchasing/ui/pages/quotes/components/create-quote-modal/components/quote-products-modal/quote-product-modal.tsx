@@ -450,32 +450,26 @@ function QuotationItemFields({
 			className="rounded-md! border-slate-300! dark:border-slate-600! dark:bg-[#272b34]!"
 			contentClassName="p-4"
 			title={
-				<div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-					<div className="flex min-w-0 items-center gap-3">
-						<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
-							{itemIndex + 1}
-						</span>
-						<span className="min-w-0 truncate text-[15px] font-semibold text-slate-800 dark:text-white">
-							Cotización · {supplierLabel}
-						</span>
-					</div>
-					{canRemove ? (
-						<span
-							className="flex shrink-0 items-center"
-							onClick={(evt) => evt.stopPropagation()}
-							onKeyDown={(evt) => evt.stopPropagation()}
-						>
-							<Button
-								type="button"
-								size="small"
-								tooltip="Eliminar proveedor"
-								icon={<Trash2Icon size={18} />}
-								onClick={onRemove}
-								className={`${quoteFormDangerButtonClassName} h-10 w-10!`}
-							/>
-						</span>
-					) : null}
+				<div className="flex min-w-0 items-center gap-3">
+					<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
+						{itemIndex + 1}
+					</span>
+					<span className="min-w-0 truncate text-[15px] font-semibold text-slate-800 dark:text-white">
+						Cotización · {supplierLabel}
+					</span>
 				</div>
+			}
+			actions={
+				canRemove ? (
+					<Button
+						type="button"
+						size="small"
+						tooltip="Eliminar proveedor"
+						icon={<Trash2Icon size={18} />}
+						onClick={onRemove}
+						className={`${quoteFormDangerButtonClassName} h-10 w-10!`}
+					/>
+				) : null
 			}
 		>
 			<input

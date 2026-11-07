@@ -143,6 +143,7 @@ export const CatalogLinkEditor = ({
 	isLoadingUnitMeasures = false,
 	disabled = false,
 	lockEntity = false,
+	canRemove = true,
 	onAddClick,
 }: CatalogLinkEditorProps) => {
 	const [openItem, setOpenItem] = useState("");
@@ -309,11 +310,13 @@ export const CatalogLinkEditor = ({
 												</small>
 											</div>
 										</div>
-										<AccordionRemoveControl
-											label="Quitar"
-											disabled={disabled}
-											onRemove={() => removeItem(index)}
-										/>
+										{canRemove ? (
+											<AccordionRemoveControl
+												label="Quitar"
+												disabled={disabled}
+												onRemove={() => removeItem(index)}
+											/>
+										) : null}
 									</div>
 								}
 							>
