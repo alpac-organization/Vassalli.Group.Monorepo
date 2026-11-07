@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { warehouseHttpHandler } from "@app/core/adapters/axiosAdapter";
+import { warehouseHttpHandler } from "@app/core/adapters";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { RegisterSupplyRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/supply-requests/register-supply-request.request";
-import { SupplyRequestServices } from "@app/modules/warehouse/infrastructure/services/warehouse-services/warehouse-managua/SupplyRequestServices";
+import { SupplyRequestsServices } from "@app/modules/warehouse/infrastructure/services/warehouse-services/warehouse-managua/SupplyRequestsServices";
 
-const supplyRequestServices = new SupplyRequestServices(warehouseHttpHandler);
+const supplyRequestsServices = new SupplyRequestsServices(warehouseHttpHandler);
 
 export const useSupplyRequest = () => {
   const queryClient = useQueryClient();
@@ -14,7 +14,7 @@ export const useSupplyRequest = () => {
     ApiErrorResponse,
     RegisterSupplyRequest
   >({
-    mutationFn: (payload) => supplyRequestServices.registerSupplyRequest(payload),
+    mutationFn: (payload) => supplyRequestsServices.RegisterSupplyRequest(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["assignments"] });
     },

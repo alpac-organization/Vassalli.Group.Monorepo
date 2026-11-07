@@ -529,8 +529,6 @@ export const PurchaseRequestModal = ({
 											isEditMode={isEditMode}
 											onDuplicate={handleDuplicate}
 											onRemove={() => handleRemove(entry.id)}
-											onRequestError={onRequestError}
-											onRequestSuccess={onRequestSuccess}
 											ref={(instance) => {
 												if (instance) {
 													blockRefs.current.set(entry.id, instance);

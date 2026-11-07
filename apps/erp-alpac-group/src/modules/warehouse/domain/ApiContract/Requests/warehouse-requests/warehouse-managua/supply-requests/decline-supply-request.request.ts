@@ -2,5 +2,6 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
 
 export interface DeclineSupplyRequestRequest extends BaseRequest {
   supply_request_id: string;
+  code: string;
   observations?: string;
 }

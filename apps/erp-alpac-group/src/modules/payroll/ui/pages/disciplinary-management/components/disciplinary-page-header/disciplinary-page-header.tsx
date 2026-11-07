@@ -12,7 +12,7 @@ export const DisciplinaryPageHeader = () => {
         <div className="flex flex-col justify-center">
           <h3 className="m-0! p-0!">Gestión Disciplinaria</h3>
           <small className="mt-2 text-gray-500 dark:text-gray-300">
-            Administra faltas y sanciones disciplinarias del personal
+            Administra faltas, sanciones y ausencias del personal
           </small>
         </div>
         <img
