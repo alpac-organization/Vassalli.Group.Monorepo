@@ -63,19 +63,9 @@ export function getPurchaseOrderTableColumns({
       render: (row) => displayText(row.purchase_order_code),
     },
     {
-      key: "payment_request_code",
-      label: "Solicitud de pago",
-      render: (row) => displayText(row.payment_request_code),
-    },
-    {
       key: "supplier_name",
       label: "Proveedor",
       render: (row) => displayText(row.supplier_name),
-    },
-    {
-      key: "request_code",
-      label: "Solicitud",
-      render: (row) => displayText(row.purchase_request?.code),
     },
     {
       key: "request_status",

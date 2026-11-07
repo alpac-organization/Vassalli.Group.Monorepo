@@ -21,7 +21,8 @@ import type { AnnulModalScope } from "@app/shared/components/annul-modal/annul-m
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_NUMBER = 1;
+const DEFAULT_PAGE_SIZE = 10;
 
 export const AnalyzedQuotes = () => {
 
@@ -36,7 +37,7 @@ export const AnalyzedQuotes = () => {
 		AlertComponent,
 	} = useAlertState();
 
-	const [pageNumber, setPageNumber] = useState(1);
+	const [pageNumber, setPageNumber] = useState(DEFAULT_PAGE_NUMBER);
 	const [appliedStatus, setAppliedStatus] = useState<managementReviewStatusType | "">("");
 	const [appliedAreaId, setAppliedAreaId] = useState("");
 	const [appliedBranchId, setAppliedBranchId] = useState("");
@@ -50,7 +51,6 @@ export const AnalyzedQuotes = () => {
 			company_id: companyId,
 			module_code: moduleCode,
 			page_number: pageNumber,
-			page_size: PAGE_SIZE,
 			...(appliedStatus && { status: appliedStatus }),
 			...(appliedAreaId && { area_id: appliedAreaId }),
 			...(appliedBranchId && { branch_id: appliedBranchId }),
@@ -72,19 +72,21 @@ export const AnalyzedQuotes = () => {
 
 	const quotes = managementReviews?.data ?? [];
 	const totalRecords = managementReviews?.total ?? 0;
+	const currentPage = managementReviews?.page_number ?? pageNumber;
+	const resolvedPageSize = managementReviews?.page_size ?? DEFAULT_PAGE_SIZE;
 
 	const handleApplyFilters = useCallback((filters: AnalyzedQuotesFiltersValues) => {
 		setAppliedStatus(filters.status);
 		setAppliedAreaId(filters.area_id);
 		setAppliedBranchId(filters.branch_id);
-		setPageNumber(1);
+		setPageNumber(DEFAULT_PAGE_NUMBER);
 	}, []);
 
 	const handleClearFilters = useCallback(() => {
 		setAppliedStatus("");
 		setAppliedAreaId("");
 		setAppliedBranchId("");
-		setPageNumber(1);
+		setPageNumber(DEFAULT_PAGE_NUMBER);
 	}, []);
 
 	const handlePageChange = useCallback((page: number) => {
@@ -205,9 +207,9 @@ export const AnalyzedQuotes = () => {
 
 			<AnalyzedQuotesTable
 				data={quotes}
-				currentPage={managementReviews?.page_number ?? pageNumber}
+				currentPage={currentPage}
 				totalRecords={totalRecords}
-				pageSize={PAGE_SIZE}
+				pageSize={resolvedPageSize}
 				onPageChange={handlePageChange}
 				isFetching={isFetching}
 				onViewDetail={handleViewDetail}

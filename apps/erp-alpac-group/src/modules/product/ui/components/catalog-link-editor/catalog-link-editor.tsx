@@ -8,90 +8,35 @@ import {
   InputText,
 } from "@alpac/design-system";
 import { PlusIcon, Trash2Icon } from "lucide-react";
-import dayjs from "dayjs";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import {
   CurrencyCodeOptions,
   type CurrencyCode,
 } from "@app/core/enums/currency.enum";
+import { toDateOnly, toDayjsValue } from "@app/shared/utils/date.utils";
+import {
+  datePickerSlotProps,
+  dropdownClassName,
+  inputClassName,
+  labelClassName,
+  primaryButtonClassName,
+  removeItemButtonClassName,
+  secondaryButtonClassName,
+  tierEnterTransition,
+} from "@app/modules/product/ui/components/catalog-link-editor/constants/catalog-link-editor.constants";
+import {
+  itemAccordionValue,
+  loadMotionFeatures,
+  resolveOpenItem,
+} from "@app/modules/product/ui/components/catalog-link-editor/helper/catalog-link-editor.helpers";
 import {
   emptyCatalogLinkItem,
   emptyCatalogLinkTier,
+  formatPreferentialTierTitle,
   type CatalogLinkEditorProps,
   type CatalogLinkItemForm,
   type CatalogLinkTierForm,
-} from "./catalog-link-editor.types";
-
-const inputClassName =
-  "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-const dropdownClassName = `${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
-const labelClassName = "text-black! dark:text-white!";
-const secondaryButtonClassName =
-  "text-[14px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!";
-const removeItemButtonClassName =
-  "h-8 w-8! shrink-0 rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!";
-const primaryButtonClassName =
-  "text-[14px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
-
-const datePickerSlotProps = {
-  popper: {
-    disablePortal: false,
-    sx: { zIndex: 2000 },
-  },
-};
-
-const tierEnterTransition = {
-  height: { duration: 0.28, ease: "easeInOut" as const },
-  opacity: { duration: 0.32, ease: "easeOut" as const, delay: 0.04 },
-  y: { duration: 0.28, ease: "easeOut" as const, delay: 0.04 },
-};
-
-const loadMotionFeatures = () =>
-  import("framer-motion").then((res) => res.domAnimation);
-
-const itemAccordionValue = (item: CatalogLinkItemForm, index: number) =>
-  item.entity_id || `tmp-${index}`;
-
-const resolveOpenItem = (
-  items: CatalogLinkItemForm[],
-  previousLength: number,
-  currentOpen: string,
-) => {
-  if (items.length === 0) return "";
-
-  if (items.length > previousLength) {
-    return itemAccordionValue(items[items.length - 1], items.length - 1);
-  }
-
-  if (!currentOpen) return currentOpen;
-
-  const stillExists = items.some(
-    (item, index) => itemAccordionValue(item, index) === currentOpen,
-  );
-
-  if (stillExists) return currentOpen;
-
-  return itemAccordionValue(items[items.length - 1], items.length - 1);
-};
-
-const toDayjsValue = (value: string) => {
-  if (!value.trim()) return null;
-  const parsed = dayjs(value);
-  return parsed.isValid() ? parsed : null;
-};
-
-const toDateString = (value: unknown) => {
-  if (!value) return "";
-  const parsed = dayjs.isDayjs(value) ? value : dayjs(value as string | Date);
-  return parsed.isValid() ? parsed.format("YYYY-MM-DD") : "";
-};
-
-const formatTierTitle = (tier: CatalogLinkTierForm, tierIndex: number) => {
-  if (tier.min_quantity.trim() && tier.preferential_price.trim()) {
-    return `Desde ${tier.min_quantity} · ${tier.preferential_price}`;
-  }
-  return `Precio preferencial #${tierIndex + 1}`;
-};
+} from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 
 export const CatalogLinkEditor = ({
   title,
@@ -461,7 +406,9 @@ export const CatalogLinkEditor = ({
                                   contentClassName="flex flex-col gap-4 p-4"
                                   title={
                                     <span className="truncate text-sm font-medium text-slate-900 dark:text-white">
-                                      {formatTierTitle(tier, tierIndex)}
+                                      {formatPreferentialTierTitle(tier, {
+                                        index: tierIndex,
+                                      })}
                                     </span>
                                   }
                                   actions={
@@ -536,7 +483,7 @@ export const CatalogLinkEditor = ({
                                         value={toDayjsValue(tier.valid_from)}
                                         onChange={(value) =>
                                           updateTier(index, tierIndex, {
-                                            valid_from: toDateString(value),
+                                            valid_from: toDateOnly(value),
                                           })
                                         }
                                         slotProps={datePickerSlotProps}
@@ -553,7 +500,7 @@ export const CatalogLinkEditor = ({
                                         value={toDayjsValue(tier.valid_to)}
                                         onChange={(value) =>
                                           updateTier(index, tierIndex, {
-                                            valid_to: toDateString(value),
+                                            valid_to: toDateOnly(value),
                                           })
                                         }
                                         slotProps={datePickerSlotProps}

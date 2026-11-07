@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Dropdown, Modal, RadioButton } from "@alpac/design-system";
 import { pdf } from "@react-pdf/renderer";
 import type { PurchaseOrderDocumentModalProps } from "./purchase-order-document-modal.types";
+import { PaymentRequestDocumentOptions } from "./payment-request-document-options";
 import { PaymentMethodEnum as DocumentPaymentMethodEnum } from "@app/modules/purchasing/domain/enums/payment-method.enum";
 import type { PaymentMethodType as DocumentPaymentMethodType } from "@app/modules/purchasing/domain/enums/payment-method.enum";
 import {
@@ -13,6 +14,7 @@ import { RoleEnum } from "@app/core/enums/role.enum";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { PaymentRequestPDF } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/payment-request-pdf/payment-request-pdf";
+import { buildPaymentRequestChecklist } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/payment-request-pdf/payment-request-pdf.checklist";
 import { mapTransferRequestReportToPdf } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/payment-request-pdf/map-transfer-request-report-to-pdf";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
@@ -20,6 +22,8 @@ import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
 import { warehouseHttpHandler } from "@app/core/adapters/axiosAdapter";
 import { PurchaseServices } from "@app/modules/purchasing/infrastructure/services/purchase/PurchaseServices";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
+import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import { fetchAllPurchaseRequestProducts } from "@app/modules/purchasing/ui/pages/purchase-order/utils/fetch-purchase-request-products";
 
 const purchaseServices = new PurchaseServices(warehouseHttpHandler);
 
@@ -63,20 +67,14 @@ const normalizePaymentMethodType = (raw: unknown): PaymentMethodType | null => {
 const resolveAcceptedPaymentMethod = (
   details?: GetPurchaseOrderDetailsResponse | null,
 ): PaymentMethodType | null => {
-  const purchaseRequest = details?.purchase_request_details;
-  const items = purchaseRequest?.purchase_request_items ?? [];
+  const items = details?.items ?? [];
 
   for (const item of items) {
-    const accepted = (item.quotations ?? []).find(
-      (quote) => quote.is_accepted_for_purchase,
-    );
-    if (!accepted) continue;
+    const quotation = item.quotation;
+    if (!quotation?.is_accepted_for_purchase) continue;
 
-    const fromType = normalizePaymentMethodType(accepted.payment_method_type);
+    const fromType = normalizePaymentMethodType(quotation.payment_method_type);
     if (fromType) return fromType;
-
-    const fromLegacy = normalizePaymentMethodType(accepted.payment_method);
-    if (fromLegacy) return fromLegacy;
   }
 
   return null;
@@ -86,6 +84,7 @@ export const PurchaseOrderDocumentModal = ({
   isOpen,
   onClose,
   purchaseOrderId,
+  purchaseRequestId,
   details,
 }: PurchaseOrderDocumentModalProps) => {
   const { urlImage } = useCompanyStore();
@@ -108,6 +107,8 @@ export const PurchaseOrderDocumentModal = ({
     acceptedPaymentMethod ?? defaultPaymentMethodValue,
   );
   const [selectedBankId, setSelectedBankId] = useState<number | string>("");
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(() => new Set());
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -126,16 +127,28 @@ export const PurchaseOrderDocumentModal = ({
     null;
   const hasSelectedBank = Boolean(selectedBankName);
 
-  const branchNameForSeal =
-    details?.purchase_request_details?.branch_information?.branch_name ??
-    companyName;
+  const branchNameForSeal = companyName;
 
   useEffect(() => {
     if (!isOpen) return;
     setSelectedBankId("");
     setPaymentMethod(acceptedPaymentMethod ?? defaultPaymentMethodValue);
+    setReferenceNumber("");
+    setCheckedIds(new Set());
     setErrorMessage(null);
   }, [isOpen, acceptedPaymentMethod]);
+
+  const handleToggleChecklistItem = useCallback((itemId: string) => {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  }, []);
 
   const resolveDocumentType = (): DocumentPaymentMethodType => {
     if (paymentMethod === PaymentMethodEnum.Check.stringValue) {
@@ -155,11 +168,27 @@ export const PurchaseOrderDocumentModal = ({
       setIsGenerating(true);
       setErrorMessage(null);
 
-      const report = await purchaseServices.GetTransferRequestReport({
+      const trimmedRequestId = purchaseRequestId?.trim() || "";
+
+      const reportPromise = purchaseServices.GetTransferRequestReport({
         company_id: companyId,
         module_code: moduleCode,
         purchase_order_id: purchaseOrderId,
       });
+
+      const productsPromise = trimmedRequestId
+        ? fetchAllPurchaseRequestProducts({
+            purchaseServices,
+            companyId,
+            moduleCode,
+            purchaseRequestId: trimmedRequestId,
+          }).catch(() => [] as PurchaseRequestProductInformation[])
+        : Promise.resolve([] as PurchaseRequestProductInformation[]);
+
+      const [report, purchaseRequestProducts] = await Promise.all([
+        reportPromise,
+        productsPromise,
+      ]);
 
       const documentType = resolveDocumentType();
       const pdfData = mapTransferRequestReportToPdf({
@@ -171,6 +200,9 @@ export const PurchaseOrderDocumentModal = ({
         branchName: branchNameForSeal,
         generatedBy: fullName,
         generatedAt: new Date().toISOString(),
+        checklist: buildPaymentRequestChecklist(checkedIds),
+        referenceNumber: referenceNumber.trim() || null,
+        purchaseRequestProducts,
       });
 
       const blob = await pdf(<PaymentRequestPDF data={pdfData} />).toBlob();
@@ -201,12 +233,12 @@ export const PurchaseOrderDocumentModal = ({
       isOpen={isOpen}
       onClose={onClose}
       variant="form"
-      size="lg"
+      size="xl"
       title="Generar documento"
       description={
         canSelectBank
-          ? "Confirme el medio de pago del proveedor y seleccione el banco"
-          : "Confirme el medio de pago del proveedor para generar la solicitud"
+          ? "Confirme el medio de pago, el banco, la referencia y los documentos a marcar"
+          : "Confirme el medio de pago, la referencia y los documentos a marcar"
       }
     >
       <div className="mt-4 flex flex-col gap-4">
@@ -261,6 +293,13 @@ export const PurchaseOrderDocumentModal = ({
             La selección de banco está restringida a Supervisor y Administrador.
           </p>
         )}
+
+        <PaymentRequestDocumentOptions
+          referenceNumber={referenceNumber}
+          onReferenceChange={setReferenceNumber}
+          checkedIds={checkedIds}
+          onToggleItem={handleToggleChecklistItem}
+        />
 
         {errorMessage ? (
           <p className="m-0 text-[13px] text-red-500">{errorMessage}</p>

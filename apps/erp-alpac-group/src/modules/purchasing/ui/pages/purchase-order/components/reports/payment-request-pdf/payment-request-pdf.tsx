@@ -6,15 +6,7 @@ import type {
 	PaymentRequestChecklistSection,
 	PaymentRequestPdfProps,
 } from "./payment-request-pdf.types";
-
-const formatMoney = (value: number, currency = "NIO") => {
-	const prefix = currency === "USD" ? "US$" : "C$";
-	const formatted = new Intl.NumberFormat("es-NI", {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	}).format(value ?? 0);
-	return `${prefix} ${formatted}`;
-};
+import { formatPurchaseOrderReportMoney } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/purchase-order-pdf/utils/resolve-purchase-order-report-currency";
 
 const Checkbox = ({ checked }: { checked?: boolean }) => (
 	<View style={[styles.checkbox, checked ? styles.checkboxChecked : {}]}>
@@ -36,15 +28,6 @@ const Field = ({
 		</View>
 	</View>
 );
-
-const resolveDocumentTitle = (
-	documentType: PaymentRequestPdfProps["data"]["documentType"],
-) => {
-	if (documentType === PaymentMethodEnum.Check.textValue) {
-		return "SOLICITUD DE CHEQUE";
-	}
-	return "SOLICITUD DE TRANSFERENCIA";
-};
 
 const resolveDocumentBadge = (
 	documentType: PaymentRequestPdfProps["data"]["documentType"],
@@ -79,17 +62,21 @@ const SignatureCard = ({
 }) => (
 	<View style={[styles.signatureCard, isLast ? styles.signatureCardLast : {}]}>
 		<Text style={styles.signatureTitle}>{title}</Text>
-		{sealSrc ? <Image src={sealSrc} style={styles.authorizationSeal} /> : null}
 		<View style={styles.signatureLine}>
 			<Text style={styles.signatureHint}>{name?.trim() || "Firma"}</Text>
 		</View>
+		{sealSrc ? (
+			<View style={styles.sealWrap}>
+				<Image src={sealSrc} style={styles.authorizationSeal} />
+			</View>
+		) : null}
 	</View>
 );
 
 export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
-	const title = resolveDocumentTitle(data.documentType);
+	const title = data.title?.trim() || "Solicitud de pago";
 	const badge = resolveDocumentBadge(data.documentType);
-	const currency = data.amounts.currency ?? "NIO";
+	const currency = data.amounts.currency;
 	const companyName =
 		data.companyName?.trim() || "ALMACENADORA DEL PACIFICO, S.A.";
 
@@ -102,7 +89,10 @@ export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
 
 	const amountLines = [
 		{ label: "Monto Servicio", amount: data.amounts.serviceAmount },
-		{ label: "Monto Serv Exento", amount: data.amounts.exemptServiceAmount ?? 0 },
+		{
+			label: "Monto Serv Exento",
+			amount: data.amounts.exemptServiceAmount ?? 0,
+		},
 		{ label: "Desembolso/Otros", amount: data.amounts.disbursementOther ?? 0 },
 		{ label: "IVA", amount: data.amounts.iva ?? 0 },
 		{ label: "IR", amount: data.amounts.ir ?? 0 },
@@ -190,18 +180,6 @@ export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
 									/>
 								</View>
 							</View>
-
-							<View style={styles.priorityRow}>
-								<Text style={styles.priorityLabel}>Trámite</Text>
-								<View style={styles.checkOption}>
-									<Checkbox checked={data.priority === "normal"} />
-									<Text style={styles.checkOptionLabel}>Normal</Text>
-								</View>
-								<View style={styles.checkOption}>
-									<Checkbox checked={data.priority === "critical"} />
-									<Text style={styles.checkOptionLabel}>Crítica</Text>
-								</View>
-							</View>
 						</View>
 					</View>
 
@@ -224,7 +202,7 @@ export function PaymentRequestPDF({ data }: PaymentRequestPdfProps) {
 											line.emphasize ? styles.amountValueNet : styles.amountValue
 										}
 									>
-										{formatMoney(line.amount, currency)}
+										{formatPurchaseOrderReportMoney(line.amount, currency)}
 									</Text>
 								</View>
 							))}

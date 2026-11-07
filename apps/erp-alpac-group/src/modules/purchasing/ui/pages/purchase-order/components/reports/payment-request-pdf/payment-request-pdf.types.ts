@@ -1,12 +1,5 @@
 import type { PaymentMethodType } from "@app/modules/purchasing/domain/enums/payment-method.enum";
-
-export type PaymentRequestPriority = "normal" | "critical";
-
-export type PaymentRequestAmountLine = {
-	label: string;
-	amount: number;
-	emphasize?: boolean;
-};
+import type { PurchaseOrderReportCurrency } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/purchase-order-pdf/utils/resolve-purchase-order-report-currency";
 
 export type PaymentRequestChecklistItem = {
 	id: string;
@@ -21,6 +14,7 @@ export type PaymentRequestChecklistSection = {
 };
 
 export type PaymentRequestPdfData = {
+	title: string;
 	documentType: PaymentMethodType;
 	requestNumber: string;
 	assignmentNumber?: string | null;
@@ -35,7 +29,6 @@ export type PaymentRequestPdfData = {
 	administrativeFineNumber?: string | null;
 	referenceNumber?: string | null;
 	declarationNumber?: string | null;
-	priority: PaymentRequestPriority;
 	amounts: {
 		serviceAmount: number;
 		exemptServiceAmount?: number;
@@ -45,7 +38,7 @@ export type PaymentRequestPdfData = {
 		imi?: number;
 		other?: number;
 		netPayable: number;
-		currency?: string;
+		currency?: PurchaseOrderReportCurrency;
 	};
 	checklist?: PaymentRequestChecklistSection[];
 	requestedBy?: string | null;

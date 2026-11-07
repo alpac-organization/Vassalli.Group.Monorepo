@@ -22,9 +22,7 @@ export const usePurchaseOrders = (props?: UsePurchaseOrdersProps) => {
 
 	const purchaseOrdersEnabled = Boolean(
 		getPurchaseOrdersPayload?.company_id?.trim() &&
-			getPurchaseOrdersPayload?.module_code?.trim() &&
-			getPurchaseOrdersPayload?.page_number &&
-			getPurchaseOrdersPayload?.page_size,
+			getPurchaseOrdersPayload?.module_code?.trim(),
 	);
 
 	const GetPurchaseOrders = useQuery<

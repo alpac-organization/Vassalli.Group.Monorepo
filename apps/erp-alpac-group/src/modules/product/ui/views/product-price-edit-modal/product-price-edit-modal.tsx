@@ -21,9 +21,11 @@ import {
 	CurrencyCodeOptions,
 	type CurrencyCode,
 } from "@app/core/enums/currency.enum";
-import { loadMotionFeatures, toDayjsValue, toDateString, formatPreferentialTitle } from "@app/modules/product/ui/views/product-price-edit-modal/utils/product-price.utils";
+import { toDateOnly, toDayjsValue } from "@app/shared/utils/date.utils";
+import { loadMotionFeatures } from "@app/modules/product/ui/views/product-price-edit-modal/utils/product-price.utils";
 import {
 	emptyCatalogLinkTier,
+	formatPreferentialTierTitle,
 	resolveLinkCurrency,
 	resolveLinkUnitMeasureId,
 	resolveTierPricesForPatch,
@@ -499,7 +501,9 @@ export const ProductPriceEditModal = ({
 															contentClassName="flex flex-col gap-4 p-4"
 															title={
 																<span className="truncate text-sm font-medium text-slate-900 dark:text-white">
-																	{formatPreferentialTitle(tier)}
+																	{formatPreferentialTierTitle(tier, {
+																		showCurrency: true,
+																	})}
 																</span>
 															}
 															actions={
@@ -567,7 +571,7 @@ export const ProductPriceEditModal = ({
 																		value={toDayjsValue(tier.valid_from)}
 																		onChange={(value) =>
 																			updateTier(tier.id, {
-																				valid_from: toDateString(value),
+																				valid_from: toDateOnly(value),
 																			})
 																		}
 																		slotProps={datePickerSlotProps}
@@ -583,7 +587,7 @@ export const ProductPriceEditModal = ({
 																		value={toDayjsValue(tier.valid_to)}
 																		onChange={(value) =>
 																			updateTier(tier.id, {
-																				valid_to: toDateString(value),
+																				valid_to: toDateOnly(value),
 																			})
 																		}
 																		slotProps={datePickerSlotProps}

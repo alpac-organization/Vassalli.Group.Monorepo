@@ -17,6 +17,7 @@ import { useQuoteAnalysisDetail } from "@app/modules/finance/ui/hooks/quotes-ana
 import { getStatusBadge } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-table/utils/quote-analysis.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { QuoteProductComparison } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-product-comparison/quote-product-comparison";
+import { QuoteReturnHistory } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-return-history/quote-return-history";
 import { AcceptOfferModal } from "@app/modules/finance/ui/pages/quote-analisys/components/accept-offer-modal/accept-offer-modal";
 import { SendReviewModal } from "@app/modules/finance/ui/pages/quote-analisys/components/send-review-modal/send-review-modal";
 import type { SendReviewModalConfirmPayload } from "@app/modules/finance/ui/pages/quote-analisys/components/send-review-modal/send-review-modal.types";
@@ -45,6 +46,9 @@ import {
 } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import type { accountingReviewStatusType } from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
 import { openQuoteAnalysisPdf } from "@app/modules/finance/ui/pages/quote-analisys/templates/quote-analysis.generate";
+
+const TEXT_WRAP_CLASS =
+  "min-w-0 max-w-full whitespace-normal [overflow-wrap:anywhere]";
 
 const SendToReviewButton = ({
   setIsSendReviewOpen,
@@ -78,7 +82,7 @@ const GeneratePdfButton = ({
   isGenerating: boolean;
   onGenerate: () => void;
 }): ReactNode => {
-  if (!Boolean(status && status !== "Pending")) return null;
+  if (!status || status === "Pending") return null;
 
   return (
     <Button
@@ -499,19 +503,23 @@ export function QuoteAnalysisDetail() {
               </div>
             </div>
 
-            {purchase_request.observations && (
-              <div className="mt-2 wrap-break-words rounded-md bg-slate-50 p-3 text-sm text-slate-700 dark:bg-[#272b34] dark:text-slate-300">
+            {purchase_request.observations ? (
+              <div
+                className={`mt-2 ${TEXT_WRAP_CLASS} rounded-md bg-slate-50 p-3 text-sm text-slate-700 dark:bg-[#272b34] dark:text-slate-300`}
+              >
                 <span className="font-semibold">Observaciones: </span>
                 {purchase_request.observations}
               </div>
-            )}
+            ) : null}
             
-            {purchase_request.annulment_reason && (
-              <div className="mt-2 wrap-break-words rounded-md bg-slate-50 p-3 text-sm text-slate-700 dark:bg-[#272b34] dark:text-slate-300">
+            {purchase_request.annulment_reason ? (
+              <div
+                className={`mt-2 ${TEXT_WRAP_CLASS} rounded-md bg-slate-50 p-3 text-sm text-slate-700 dark:bg-[#272b34] dark:text-slate-300`}
+              >
                 <span className="font-semibold">Motivo de retorno: </span>
                 {purchase_request.annulment_reason}
               </div>
-            )}
+            ) : null}
           </div>
 
           <div className="flex min-w-0 flex-col gap-4 rounded-lg border border-slate-200 p-3 sm:p-5 dark:border-slate-700/50 dark:bg-[#1e2229]">
@@ -556,14 +564,21 @@ export function QuoteAnalysisDetail() {
               </div>
             </div>
 
-            {comments && (
-              <div className="mt-auto wrap-break-words rounded-md bg-slate-50 p-3 text-sm text-slate-700 dark:bg-[#272b34] dark:text-slate-300">
+            {comments ? (
+              <div
+                className={`mt-auto ${TEXT_WRAP_CLASS} rounded-md bg-slate-50 p-3 text-sm text-slate-700 dark:bg-[#272b34] dark:text-slate-300`}
+              >
                 <span className="font-semibold">Comentarios: </span>
                 {comments}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
+
+        <QuoteReturnHistory
+          requotationCount={purchase_request.requotation_count}
+          returnHistory={purchase_request.return_history}
+        />
 
         <div className="mt-2 flex min-w-0 flex-col gap-4 sm:mt-4 sm:gap-5">
           <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3 dark:border-slate-700/50">
@@ -586,7 +601,6 @@ export function QuoteAnalysisDetail() {
                 const productName =
                   product.product_details?.product_name ||
                   "Producto sin nombre";
-                const productDescription = product.description?.trim();
                 const categoryName =
                   product.product_details?.category_information?.name ||
                   "Sin categoría";
@@ -612,12 +626,6 @@ export function QuoteAnalysisDetail() {
                               <p className="m-0 line-clamp-2 text-sm font-semibold text-slate-900 dark:text-white sm:text-[15px]">
                                 {productName}
                               </p>
-                              {productDescription && (
-                                <span className="font-normal text-slate-500 dark:text-slate-400">
-                                  {" "}
-                                  - {productDescription}
-                                </span>
-                              )}
                             </div>
                           </div>
 
@@ -651,14 +659,16 @@ export function QuoteAnalysisDetail() {
                     contentClassName="border-t border-slate-200 dark:border-slate-700/50"
                   >
                     <div className="flex min-w-0 flex-col gap-3 p-3 sm:gap-4 sm:p-4">
-                      {product.justification && (
-                        <div className="wrap-break-words rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 sm:px-3.5 sm:py-3 dark:border-slate-700/50 dark:bg-[#272b34] dark:text-slate-300">
+                      {product.justification ? (
+                        <div
+                          className={`${TEXT_WRAP_CLASS} rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 sm:px-3.5 sm:py-3 dark:border-slate-700/50 dark:bg-[#272b34] dark:text-slate-300`}
+                        >
                           <span className="font-semibold text-slate-800 dark:text-slate-200">
                             Justificación:{" "}
                           </span>
                           {product.justification}
                         </div>
-                      )}
+                      ) : null}
 
                       <QuoteProductComparison
                         itemId={productKey}
@@ -705,12 +715,14 @@ export function QuoteAnalysisDetail() {
       />
 
       <AnimatedAlertWrapper open={alertState?.open ?? false}>
-        <Alert
-          type={alertState?.type!}
-          title={alertState?.title}
-          message={alertState?.message!}
-          onClose={handleCloseAlert}
-        />
+        {alertState ? (
+          <Alert
+            type={alertState.type}
+            title={alertState.title}
+            message={alertState.message}
+            onClose={handleCloseAlert}
+          />
+        ) : null}
       </AnimatedAlertWrapper>
     </m.div>
   );

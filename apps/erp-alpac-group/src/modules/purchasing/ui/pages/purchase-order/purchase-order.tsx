@@ -26,7 +26,8 @@ import { PurchaseOrderDetailsModal } from "@app/modules/purchasing/ui/pages/purc
 const dropdownClassName =
 	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_NUMBER = 1;
+const DEFAULT_PAGE_SIZE = 10;
 
 export const PurchaseOrder = () => {
 	const navigate = useNavigate();
@@ -39,16 +40,35 @@ export const PurchaseOrder = () => {
 
 	const [selectedAreaId, setSelectedAreaId] = useState("");
 	const [selectedBranchId, setSelectedBranchId] = useState("");
+	const [appliedAreaId, setAppliedAreaId] = useState("");
+	const [appliedBranchId, setAppliedBranchId] = useState("");
+	const [pageNumber, setPageNumber] = useState(DEFAULT_PAGE_NUMBER);
+	const [pageSize, setPageSize] = useState<number | undefined>(undefined);
 	const [isPurchaseOrderDetailsOpen, setIsPurchaseOrderDetailsOpen] =
 		useState(false);
 	const [selectedPurchaseOrder, setSelectedPurchaseOrder] =
 		useState<GetPurchaseOrdersResponse | null>(null);
-	const [filters, setFilters] = useState<GetPurchaseOrdersPayload>({
-		company_id: companyId,
-		module_code: moduleCode,
-		page_number: 1,
-		page_size: PAGE_SIZE,
-	});
+
+	const purchaseOrdersPayload = useMemo<GetPurchaseOrdersPayload>(
+		() => ({
+			company_id: companyId,
+			module_code: moduleCode,
+			page_number: pageNumber,
+			...(pageSize != null && pageSize !== DEFAULT_PAGE_SIZE
+				? { page_size: pageSize }
+				: {}),
+			...(appliedAreaId ? { area_id: appliedAreaId } : {}),
+			...(appliedBranchId ? { branch_id: appliedBranchId } : {}),
+		}),
+		[
+			companyId,
+			moduleCode,
+			pageNumber,
+			pageSize,
+			appliedAreaId,
+			appliedBranchId,
+		],
+	);
 
 	const { GetAreasByCompany } = useAreas({
 		company_id: companyId,
@@ -56,17 +76,13 @@ export const PurchaseOrder = () => {
 	});
 	const { GetBranchesQuery } = useCompanies({ company_id: companyId });
 	const { GetPurchaseOrders } = usePurchaseOrders({
-		getPurchaseOrdersPayload: {
-			...filters,
-			company_id: companyId,
-			module_code: moduleCode,
-			page_size: PAGE_SIZE,
-		},
+		getPurchaseOrdersPayload: purchaseOrdersPayload,
 	});
 
 	const purchaseOrders = GetPurchaseOrders.data?.data ?? [];
 	const totalRecords = GetPurchaseOrders.data?.total ?? 0;
-	const currentPage = filters.page_number;
+	const currentPage = GetPurchaseOrders.data?.page_number ?? pageNumber;
+	const resolvedPageSize = GetPurchaseOrders.data?.page_size ?? DEFAULT_PAGE_SIZE;
 	const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
 	const areaOptions = useMemo(
@@ -88,32 +104,22 @@ export const PurchaseOrder = () => {
 	);
 
 	const handleApplyFilters = () => {
-		setFilters({
-			company_id: companyId,
-			module_code: moduleCode,
-			page_number: 1,
-			page_size: PAGE_SIZE,
-			...(selectedAreaId && { area_id: selectedAreaId }),
-			...(selectedBranchId && { branch_id: selectedBranchId }),
-		});
+		setAppliedAreaId(selectedAreaId);
+		setAppliedBranchId(selectedBranchId);
+		setPageNumber(DEFAULT_PAGE_NUMBER);
 	};
 
 	const handleClearFilters = () => {
 		setSelectedAreaId("");
 		setSelectedBranchId("");
-		setFilters({
-			company_id: companyId,
-			module_code: moduleCode,
-			page_number: 1,
-			page_size: PAGE_SIZE,
-		});
+		setAppliedAreaId("");
+		setAppliedBranchId("");
+		setPageNumber(DEFAULT_PAGE_NUMBER);
+		setPageSize(undefined);
 	};
 
 	const handlePageChange = useCallback((page: number) => {
-		setFilters((prev) => ({
-			...prev,
-			page_number: page,
-		}));
+		setPageNumber(page);
 	}, []);
 
 	const onViewDetail = useCallback((data: GetPurchaseOrdersResponse) => {
@@ -126,6 +132,7 @@ export const PurchaseOrder = () => {
 			try {
 				await generatePurchaseOrderPdf({
 					purchaseOrderId: row.purchase_order_id,
+					purchaseRequestId: row.purchase_request?.purchase_request_id,
 				});
 			} catch (error) {
 				const message =
@@ -259,7 +266,7 @@ export const PurchaseOrder = () => {
 					pagination={
 						<Pagination
 							currentPage={currentPage}
-							pageSize={PAGE_SIZE}
+							pageSize={resolvedPageSize}
 							totalRecords={totalRecords}
 							onPageChange={handlePageChange}
 						/>

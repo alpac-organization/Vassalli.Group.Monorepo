@@ -2,8 +2,8 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
 import type { managementReviewStatusType } from "@app/modules/management/domain/enum/management-review-status";
 
 export interface GetRequisitionManagementReviewsRequest extends BaseRequest {
-  page_number: number;
-  page_size: number;
+  page_number?: number;
+  page_size?: number;
   status?: managementReviewStatusType;
   area_id?: string;
   branch_id?: string;

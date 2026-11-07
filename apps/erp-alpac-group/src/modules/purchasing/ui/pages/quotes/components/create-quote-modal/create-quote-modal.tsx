@@ -1,29 +1,25 @@
 import { useEffect, useState, useCallback } from "react";
 
-import {
-	FormProvider,
-	useFieldArray,
-	useForm,
-} from "react-hook-form";
+import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 
 import {
-	AccordionGroup,
-	Avatar,
-	Badges,
-	Button,
-	Modal,
+  AccordionGroup,
+  Avatar,
+  Badges,
+  Button,
+  Modal,
 } from "@alpac/design-system";
 
 import {
-	quoteFormPrimaryButtonClassName,
-	quoteFormSecondaryButtonClassName,
+  quoteFormPrimaryButtonClassName,
+  quoteFormSecondaryButtonClassName,
 } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
 
 import { FileTextIcon, PlusIcon, SaveIcon, XIcon } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import { QuoteDetailAccordion } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/quote-detail-accordion/quote-detail-accordion";
-import { purchaseRequestTypeBadgeVariants } from "../../../purchase-requests/purchase-request.variants";
+import { purchaseRequestTypeBadgeVariants } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import { usePurchaseRequestDetail } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestDetail";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { QuoteProductModal } from "./components/quote-products-modal/quote-product-modal";
@@ -37,483 +33,536 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 
 const defaultFormValues: RequestedProducts = {
-	requested_products: []
+  requested_products: [],
 };
 
 export function CreateQuoteModal({
-	isOpen,
-	onClose,
-	purchaseRequest,
-	onRequestError,
-	onRequestSuccess
+  isOpen,
+  onClose,
+  purchaseRequest,
+  onRequestError,
+  onRequestSuccess,
 }: CreateQuoteModalProps) {
-	const { companyId, moduleCode } = useUserStore();
+  const { companyId, moduleCode } = useUserStore();
 
-	const methods = useForm<RequestedProducts>({
-		defaultValues: defaultFormValues,
-		mode: "onSubmit",
-	});
+  const methods = useForm<RequestedProducts>({
+    defaultValues: defaultFormValues,
+    mode: "onSubmit",
+  });
 
-	const {
-		control,
-		handleSubmit,
-		reset,
-		formState: { isSubmitting },
-	} = methods;
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = methods;
 
-	const { fields } = useFieldArray({
-		control,
-		name: "requested_products",
-	});
+  const { fields } = useFieldArray({
+    control,
+    name: "requested_products",
+  });
 
-	const [openProducts, setOpenProducts] = useState<string[]>([]);
-	const [isQuoteProductModalOpen, setIsQuoteProductModalOpen] = useState(false);
-	const [selectedProducts, setSelectedProducts] = useState<PurchaseRequestProductInformation[]>([]);
-	const [quotationItems, setQuotationItems] = useState<DraftQuotationItem[]>([]);
+  const [openProducts, setOpenProducts] = useState<string[]>([]);
+  const [isQuoteProductModalOpen, setIsQuoteProductModalOpen] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<
+    PurchaseRequestProductInformation[]
+  >([]);
+  const [quotationItems, setQuotationItems] = useState<DraftQuotationItem[]>(
+    [],
+  );
 
-	const purchaseRequestId = isOpen
-		? (purchaseRequest?.purchase_request_id ?? "")
-		: "";
+  const purchaseRequestId = isOpen
+    ? (purchaseRequest?.purchase_request_id ?? "")
+    : "";
 
-	const { GetPurchaseRequestDetails, GetPurchaseRequestProducts } =
-		usePurchaseRequestDetail({
-			getPurchaseRequestDetailsPayload: {
-				company_id: companyId,
-				module_code: moduleCode,
-				purchase_request_id: purchaseRequestId,
-			},
-			getPurchaseRequestProductsPayload: {
-				company_id: companyId,
-				module_code: moduleCode,
-				purchase_request_id: purchaseRequestId,
-			},
-		});
+  const { GetPurchaseRequestDetails, GetPurchaseRequestProducts } =
+    usePurchaseRequestDetail({
+      getPurchaseRequestDetailsPayload: {
+        company_id: companyId,
+        module_code: moduleCode,
+        purchase_request_id: purchaseRequestId,
+      },
+      getPurchaseRequestProductsPayload: {
+        company_id: companyId,
+        module_code: moduleCode,
+        purchase_request_id: purchaseRequestId,
+      },
+    });
 
-	const { RegisterQuote } = useQuotes();
-	const { getMappedError } = useMappedError();
+  const { RegisterQuote } = useQuotes();
+  const { getMappedError } = useMappedError();
 
-	const {
-		data: purchaseRequestDetails,
-		isLoading: isLoadingPurchaseRequestDetails,
-		isFetching: isFetchingPurchaseRequestDetails,
-	} = GetPurchaseRequestDetails;
+  const {
+    data: purchaseRequestDetails,
+    isLoading: isLoadingPurchaseRequestDetails,
+    isFetching: isFetchingPurchaseRequestDetails,
+  } = GetPurchaseRequestDetails;
 
-	const {
-		data: purchaseRequestProducts,
-		isLoading: isLoadingPurchaseRequestProducts,
-		isFetching: isFetchingPurchaseRequestProducts
-	} = GetPurchaseRequestProducts;
+  const {
+    data: purchaseRequestProducts,
+    isLoading: isLoadingPurchaseRequestProducts,
+    isFetching: isFetchingPurchaseRequestProducts,
+  } = GetPurchaseRequestProducts;
 
-	const isRegisteringQuote = RegisterQuote.isPending;
+  const isRegisteringQuote = RegisterQuote.isPending;
 
-	const isLoading = isOpen &&
-		((
-			isLoadingPurchaseRequestDetails ||
-			isFetchingPurchaseRequestDetails ||
-			isLoadingPurchaseRequestProducts ||
-			isFetchingPurchaseRequestProducts
-		) || isRegisteringQuote);
+  const isLoading =
+    isOpen &&
+    (isLoadingPurchaseRequestDetails ||
+      isFetchingPurchaseRequestDetails ||
+      isLoadingPurchaseRequestProducts ||
+      isFetchingPurchaseRequestProducts ||
+      isRegisteringQuote);
 
-	const hasQuotedProducts = quotationItems.length > 0;
+  const hasQuotedProducts = quotationItems.length > 0;
 
-	const resetQuoteDraft = () => {
-		reset(defaultFormValues);
-		setOpenProducts([]);
-		setSelectedProducts([]);
-		setQuotationItems([]);
-		setIsQuoteProductModalOpen(false);
-	};
+  const resetQuoteDraft = () => {
+    reset(defaultFormValues);
+    setOpenProducts([]);
+    setSelectedProducts([]);
+    setQuotationItems([]);
+    setIsQuoteProductModalOpen(false);
+  };
 
-	useEffect(() => {
-		if (!isOpen) {
-			resetQuoteDraft();
-			return;
-		}
+  useEffect(() => {
+    if (!isOpen) {
+      resetQuoteDraft();
+      return;
+    }
 
-		const requestId = purchaseRequestDetails?.purchase_request_id;
+    const requestId = purchaseRequestDetails?.purchase_request_id;
 
-		if (!purchaseRequestDetails || !requestId) return;
+    if (!purchaseRequestDetails || !requestId) return;
 
-		const requestedProducts = purchaseRequestProducts?.data ?? [];
+    const requestedProducts = purchaseRequestProducts?.data ?? [];
 
-		reset({
-			...defaultFormValues,
-			requested_products: requestedProducts.map((product: PurchaseRequestProductInformation) => ({ ...product, suppliers: [] }))
-		});
-	}, [isOpen, purchaseRequestDetails, purchaseRequestProducts, reset]);
+    reset({
+      ...defaultFormValues,
+      requested_products: requestedProducts.map(
+        (product: PurchaseRequestProductInformation) => ({
+          ...product,
+          suppliers: [],
+        }),
+      ),
+    });
+  }, [isOpen, purchaseRequestDetails, purchaseRequestProducts, reset]);
 
-	useEffect(() => {
-		if (!isOpen || fields.length === 0) return;
-		setOpenProducts(fields.map((field) => field.id));
-	}, [isOpen, fields]);
+  useEffect(() => {
+    if (!isOpen || fields.length === 0) return;
+    setOpenProducts(fields.map((field) => field.id));
+  }, [isOpen, fields]);
 
-	const [isConfirmDiscardOpen, setIsConfirmDiscardOpen] = useState(false);
+  const [isConfirmDiscardOpen, setIsConfirmDiscardOpen] = useState(false);
 
-	const handleCancel = () => {
-		resetQuoteDraft();
-		onClose();
-	};
+  const handleCancel = () => {
+    resetQuoteDraft();
+    onClose();
+  };
 
-	const handleAttemptClose = () => {
-		if (isSubmitting || isRegisteringQuote) return;
-		if (hasQuotedProducts) {
-			setIsConfirmDiscardOpen(true);
-		} else {
-			handleCancel();
-		}
-	};
+  const handleAttemptClose = () => {
+    if (isSubmitting || isRegisteringQuote) return;
+    if (hasQuotedProducts) {
+      setIsConfirmDiscardOpen(true);
+    } else {
+      handleCancel();
+    }
+  };
 
-	const handleSelectProduct = (product: PurchaseRequestProductInformation, isChecked: boolean) => {
-		const productId = product.product_details?.product_id;
+  const handleSelectProduct = (
+    product: PurchaseRequestProductInformation,
+    isChecked: boolean,
+  ) => {
+    const productId = product.product_details?.product_id;
 
-		setSelectedProducts((prevArray) => {
-			if (!isChecked) {
-				return prevArray.filter((item) => item.product_details?.product_id !== productId);
-			}
+    setSelectedProducts((prevArray) => {
+      if (!isChecked) {
+        return prevArray.filter(
+          (item) => item.product_details?.product_id !== productId,
+        );
+      }
 
-			if (prevArray.some((item) => item.product_details?.product_id === productId)) {
-				return prevArray;
-			}
+      if (
+        prevArray.some((item) => item.product_details?.product_id === productId)
+      ) {
+        return prevArray;
+      }
 
-			return [...prevArray, product];
-		});
-	};
+      return [...prevArray, product];
+    });
+  };
 
-	const handleCloseQuoteProductModal = () => {
-		setIsQuoteProductModalOpen(false);
-		setSelectedProducts([]);
-	};
+  const handleCloseQuoteProductModal = () => {
+    setIsQuoteProductModalOpen(false);
+    setSelectedProducts([]);
+  };
 
-	const handleQuoteProducts = () => {
-		if (selectedProducts.length < 1) {
-			onRequestError?.("Seleccione al menos un producto para cotizar");
-			return;
-		}
+  const handleQuoteProducts = () => {
+    if (selectedProducts.length < 1) {
+      onRequestError?.("Seleccione al menos un producto para cotizar");
+      return;
+    }
 
-		setIsQuoteProductModalOpen(true);
-	}
+    setIsQuoteProductModalOpen(true);
+  };
 
-	const onSubmit = (_values: RequestedProducts) => {
+  const onSubmit = (_values: RequestedProducts) => {
+    if (!quotationItems.length) {
+      onRequestError?.(
+        "Debe cotizar al menos un producto con sus proveedores antes de guardar.",
+      );
+      return;
+    }
 
-		if (!quotationItems.length) {
-			onRequestError?.(
-				"Debe cotizar al menos un producto con sus proveedores antes de guardar.",
-			);
-			return;
-		}
+    const payload: RegisterQuoteRequest = {
+      company_id: companyId,
+      module_code: moduleCode,
+      quotation_items: quotationItems.map(
+        ({
+          product_id: _productId,
+          supplier_legal_name: _supplierName,
+          ...item
+        }) => ({
+          ...item,
+          create_supplier_product_if_missing: false,
+        }),
+      ),
+    };
 
-		const payload: RegisterQuoteRequest = {
-			company_id: companyId,
-			module_code: moduleCode,
-			quotation_items: quotationItems.map(
-				({
-					product_id: _productId,
-					supplier_legal_name: _supplierName,
-					needs_supplier_product_link: _needsLink,
-					...item
-				}) => item,
-			),
-		};
+    RegisterQuote.mutate(payload, {
+      onSuccess() {
+        onRequestSuccess?.("Cotización registrada con éxito.");
+        resetQuoteDraft();
+        onClose();
+      },
+      onError(error) {
+        const mappedError = getMappedError(error);
+        const typeError = mappedError.typeError;
+        const quoteErrorMessages: Record<string, string> = {
+          "ERP:SUPPLIER_PRODUCT_NOT_FOUND":
+            "No existe vínculo proveedor–producto en el catálogo. Vincule el proveedor al producto antes de cotizar.",
+          "ERP:UNIT_MEASURE_REQUIRED":
+            "El vínculo proveedor–producto no tiene unidad de medida. Complétela en el catálogo.",
+        };
+        onRequestError?.(
+          quoteErrorMessages[typeError] ||
+            mappedError.description ||
+            "Error al registrar la cotización.",
+        );
+      },
+    });
+  };
 
-		RegisterQuote.mutate(payload, {
-			onSuccess() {
-				onRequestSuccess?.("Cotización registrada con éxito.");
-				resetQuoteDraft();
-				onClose();
-			},
-			onError(error) {
-				const mappedError = getMappedError(error);
-				const typeError = mappedError.typeError;
-				const quoteErrorMessages: Record<string, string> = {
-					"ERP:PRICE_UNIT_REQUIRED":
-						"Debe indicar el precio unitario para el proveedor no vinculado al producto.",
-					"ERP:SUPPLIER_PRODUCT_NOT_FOUND":
-						"No existe vínculo proveedor–producto. Envíe precio unitario o cree el vínculo en catálogo.",
-					"ERP:UNIT_MEASURE_REQUIRED":
-						"Debe indicar la unidad de medida del producto o del vínculo.",
-				};
-				onRequestError?.(
-					quoteErrorMessages[typeError] ||
-						mappedError.description ||
-						"Error al registrar la cotización.",
-				);
-			},
-		});
-	};
+  return (
+    <>
+      {isLoading && (
+        <Loader
+          title={
+            isRegisteringQuote
+              ? "Registrando cotización..."
+              : "Cargando Productos Solicitados..."
+          }
+        />
+      )}
+      <Modal
+        isOpen={isOpen}
+        onClose={handleAttemptClose}
+        variant="form"
+        size="6xl"
+        title="Detalle de solicitud de compras"
+        description={
+          purchaseRequest?.code
+            ? `Complete el formulario para registrar una cotización de la solicitud ${purchaseRequest.code}.`
+            : "Complete el formulario para registrar una nueva cotización."
+        }
+        contentClassName="flex min-h-0 flex-1 flex-col"
+      >
+        <FormProvider {...methods}>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex min-h-0 flex-1 flex-col"
+            noValidate
+          >
+            <div className="flex flex-col gap-4 pb-2">
+              {purchaseRequest?.code ? (
+                <section className="flex items-start gap-3 overflow-hidden rounded-md border border-slate-200 bg-slate-50 px-4 py-3 dark:border-neutral-600 dark:bg-[#1e2229]">
+                  <span className="mt-0.5 flex shrink-0 items-center justify-center rounded-md bg-alpac-primary-500/10 text-alpac-primary-600 dark:text-alpac-primary-300">
+                    <FileTextIcon size={18} />
+                  </span>
 
-	return (
-		<>
-			{isLoading && (
-				<Loader
-					title={
-						isRegisteringQuote
-							? "Registrando cotización..."
-							: "Cargando Productos Solicitados..."
-					}
-				/>
-			)}
-			<Modal
-				isOpen={isOpen}
-				onClose={handleAttemptClose}
-				variant="form"
-				size="6xl"
-				title="Detalle de solicitud de compras"
-				description={
-					purchaseRequest?.code
-						? `Complete el formulario para registrar una cotización de la solicitud ${purchaseRequest.code}.`
-						: "Complete el formulario para registrar una nueva cotización."
-				}
-				contentClassName="flex min-h-0 flex-1 flex-col"
-			>
-				<FormProvider {...methods}>
-					<form
-						onSubmit={handleSubmit(onSubmit)}
-						className="flex min-h-0 flex-1 flex-col"
-						noValidate
-					>
-							<div className="flex flex-col gap-4 pb-2">
-								{purchaseRequest?.code ? (
-									<section className="flex items-start gap-3 overflow-hidden rounded-md border border-slate-200 bg-slate-50 px-4 py-3 dark:border-neutral-600 dark:bg-[#1e2229]">
-										<span className="mt-0.5 flex shrink-0 items-center justify-center rounded-md bg-alpac-primary-500/10 text-alpac-primary-600 dark:text-alpac-primary-300">
-											<FileTextIcon size={18} />
-										</span>
+                  <div className="grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-3 min-[480px]:grid-cols-2 lg:grid-cols-4">
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <span className="whitespace-nowrap text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        Código Solicitud
+                      </span>
+                      <span className="min-w-0 max-w-full overflow-hidden">
+                        <Badges
+                          label={purchaseRequest?.code ?? ""}
+                          color="bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"
+                        />
+                      </span>
+                    </div>
 
-										<div className="grid min-w-0 flex-1 grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
-											<div className="flex min-w-0 flex-col gap-1">
-												<span className="whitespace-nowrap text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-													Código Solicitud
-												</span>
-												<span className="min-w-0 max-w-full overflow-hidden">
-													<Badges
-														label={purchaseRequest?.code ?? ""}
-														color="bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"
-													/>
-												</span>
-											</div>
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <span className="whitespace-nowrap text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        Tipo de solicitud
+                      </span>
+                      <span className="min-w-0 max-w-full overflow-hidden">
+                        <Badges
+                          label={
+                            purchaseRequestTypeBadgeVariants[
+                              purchaseRequest.request_type as keyof typeof purchaseRequestTypeBadgeVariants
+                            ]?.label ?? ""
+                          }
+                          color={
+                            purchaseRequestTypeBadgeVariants[
+                              purchaseRequest.request_type as keyof typeof purchaseRequestTypeBadgeVariants
+                            ]?.badgeColor ??
+                            purchaseRequestTypeBadgeVariants.default.badgeColor
+                          }
+                        />
+                      </span>
+                    </div>
 
-											<div className="flex min-w-0 flex-col gap-1">
-												<span className="whitespace-nowrap text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-													Tipo de solicitud
-												</span>
-												<span className="min-w-0 max-w-full overflow-hidden">
-													<Badges
-														label={
-															purchaseRequestTypeBadgeVariants[
-																purchaseRequest.request_type as keyof typeof purchaseRequestTypeBadgeVariants
-															]?.label ?? ""
-														}
-														color={
-															purchaseRequestTypeBadgeVariants[
-																purchaseRequest.request_type as keyof typeof purchaseRequestTypeBadgeVariants
-															]?.badgeColor ??
-															purchaseRequestTypeBadgeVariants.default.badgeColor
-														}
-													/>
-												</span>
-											</div>
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <DetailField
+                        label="Centro de costo"
+                        value={
+                          purchaseRequestDetails?.cost_center_information
+                            .cost_center_name ?? ""
+                        }
+                        icon={
+                          <Avatar
+                            label={
+                              purchaseRequestDetails?.cost_center_information
+                                ?.cost_center_name ?? ""
+                            }
+                            hasLabel={false}
+                          />
+                        }
+                      />
+                    </div>
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <DetailField
+                        label="Solicitante"
+                        value={
+                          purchaseRequestDetails?.creator_user_information
+                            ?.fullname ?? ""
+                        }
+                        icon={
+                          <Avatar
+                            label={
+                              purchaseRequestDetails?.creator_user_information
+                                ?.fullname ?? ""
+                            }
+                            hasLabel={false}
+                          />
+                        }
+                      />
+                    </div>
 
-											<div className="flex min-w-0 flex-col gap-1">
-												<DetailField
-													label="Centro de costo"
-													value={purchaseRequestDetails?.cost_center_information.cost_center_name ?? ""}
-													icon={<Avatar label={purchaseRequestDetails?.cost_center_information?.cost_center_name ?? ""} hasLabel={false} />}
-												/>
-											</div>
-											<div className="flex min-w-0 flex-col gap-1">
-												<DetailField
-													label="Solicitante"
-													value={purchaseRequestDetails?.creator_user_information?.fullname ?? ""}
-													icon={<Avatar label={purchaseRequestDetails?.creator_user_information?.fullname ?? ""} hasLabel={false} />}
-												/>
-											</div>
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <DetailField
+                        label="Aprobado Por"
+                        value={
+                          purchaseRequestDetails?.reviewer_user_information
+                            ?.fullname ?? ""
+                        }
+                        icon={
+                          <Avatar
+                            label={
+                              purchaseRequestDetails?.reviewer_user_information
+                                ?.fullname ?? ""
+                            }
+                            hasLabel={false}
+                          />
+                        }
+                      />
+                    </div>
+                  </div>
+                </section>
+              ) : null}
 
-											<div className="flex min-w-0 flex-col gap-1">
-												<DetailField
-													label="Aprobado Por"
-													value={purchaseRequestDetails?.reviewer_user_information?.fullname ?? ""}
-													icon={<Avatar label={purchaseRequestDetails?.reviewer_user_information?.fullname ?? ""} hasLabel={false} />}
-												/>
-											</div>
-										</div>
-									</section>
-								) : null}
+              <section className="flex flex-col gap-4 dark:border-t-neutral-600">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="m-0! text-[16px]! font-bold text-slate-800 dark:text-white!">
+                    Productos solicitados
+                  </h3>
 
-								<section className="flex flex-col gap-4 dark:border-t-neutral-600">
-									<div className="flex items-center justify-between gap-2">
-										<h3 className="m-0! text-[16px]! font-bold text-slate-800 dark:text-white!">
-											Productos solicitados
-										</h3>
+                  {!!selectedProducts?.length && (
+                    <Button
+                      type="button"
+                      label={`Cotizar Producto${selectedProducts?.length > 1 ? "s" : ""}`}
+                      size="giant"
+                      disabled={false}
+                      onClick={handleQuoteProducts}
+                      icon={<PlusIcon size={20} />}
+                      className={quoteFormPrimaryButtonClassName}
+                      isHiddenLabelOnMobile
+                    />
+                  )}
+                </div>
 
-										{!!selectedProducts?.length &&
-											<Button
-												type="button"
-												label={`Cotizar Producto${selectedProducts?.length > 1 ? "s" : ""}`}
-												size="giant"
-												disabled={false}
-												onClick={handleQuoteProducts}
-												icon={<PlusIcon size={20} />}
-												className={quoteFormPrimaryButtonClassName}
-												isHiddenLabelOnMobile
-											/>
-										}
-									</div>
+                {fields.length === 0 ? (
+                  <p className="m-0 text-sm text-slate-500 dark:text-slate-400">
+                    Aún no hay productos agregados a esta cotización.
+                  </p>
+                ) : (
+                  <AccordionGroup
+                    type="multiple"
+                    value={openProducts}
+                    onValueChange={(value) => {
+                      const validateValue = Array.isArray(value)
+                        ? value
+                        : value
+                          ? [value]
+                          : [];
+                      setOpenProducts(validateValue);
+                    }}
+                    className="gap-3 pb-3"
+                  >
+                    {fields.map((field, index) => {
+                      const productId = field.product_details?.product_id;
+                      const assignedSuppliersCount = quotationItems.filter(
+                        (item) =>
+                          (productId && item.product_id === productId) ||
+                          (field.purchase_request_item_id &&
+                            item.purchase_request_item_id ===
+                              field.purchase_request_item_id),
+                      ).length;
 
-									{fields.length === 0 ? (
-										<p className="m-0 text-sm text-slate-500 dark:text-slate-400">
-											Aún no hay productos agregados a esta cotización.
-										</p>
-									) : (
-										<AccordionGroup
-											type="multiple"
-											value={openProducts}
-											onValueChange={(value) => {
-												const validateValue = Array.isArray(value)
-													? value
-													: value
-														? [value]
-														: [];
-												setOpenProducts(validateValue);
-											}}
-											className="gap-3 pb-3"
-										>
-											{fields.map((field, index) => {
-												const productId = field.product_details?.product_id;
-												const assignedSuppliersCount = quotationItems.filter(
-													(item) =>
-														(productId && item.product_id === productId) ||
-														(field.purchase_request_item_id &&
-															item.purchase_request_item_id ===
-																field.purchase_request_item_id),
-												).length;
+                      return (
+                        <QuoteDetailAccordion
+                          key={field.id}
+                          accordionValue={field.id}
+                          quoteDetailIndex={index}
+                          requestedProduct={field}
+                          assignedSuppliersCount={assignedSuppliersCount}
+                          isSelected={selectedProducts.some(
+                            (item) =>
+                              item.product_details?.product_id ===
+                              field.product_details?.product_id,
+                          )}
+                          onSelectedChange={handleSelectProduct}
+                        />
+                      );
+                    })}
+                  </AccordionGroup>
+                )}
+              </section>
+            </div>
+            <div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+                <Button
+                  type="button"
+                  label="Descartar"
+                  size="giant"
+                  disabled={isSubmitting || isRegisteringQuote}
+                  onClick={handleAttemptClose}
+                  isHiddenLabelOnMobile
+                  icon={<XIcon size={20} />}
+                  className={quoteFormSecondaryButtonClassName}
+                />
+                <Button
+                  type="submit"
+                  label="Guardar cotización"
+                  size="giant"
+                  isLoading={isSubmitting || isRegisteringQuote}
+                  disabled={
+                    isSubmitting || isRegisteringQuote || !hasQuotedProducts
+                  }
+                  isHiddenLabelOnMobile
+                  icon={<SaveIcon size={20} />}
+                  className={quoteFormPrimaryButtonClassName}
+                />
+              </div>
+            </div>
+          </form>
+        </FormProvider>
+      </Modal>
 
-												return (
-												<QuoteDetailAccordion
-													key={field.id}
-													accordionValue={field.id}
-													quoteDetailIndex={index}
-													requestedProduct={field}
-													assignedSuppliersCount={assignedSuppliersCount}
-													isSelected={selectedProducts.some(
-														(item) => item.product_details?.product_id === field.product_details?.product_id,
-													)}
-													onSelectedChange={handleSelectProduct}
-												/>
-												);
-											})}
-										</AccordionGroup>
-									)}
-								</section>
-							</div>
-						<div className="-mx-4 -mb-4 mt-0 shrink-0 border-t border-t-slate-300 bg-white px-4 py-4 dark:border-t-neutral-600 dark:bg-[#272b34] sm:-mx-6 sm:-mb-6 sm:px-6 rounded-b-xl">
-							<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-								<Button
-									type="button"
-									label="Descartar"
-									size="giant"
-									disabled={isSubmitting || isRegisteringQuote}
-									onClick={handleAttemptClose}
-									isHiddenLabelOnMobile
-									icon={<XIcon size={20} />}
-									className={quoteFormSecondaryButtonClassName}
-								/>
-								<Button
-									type="submit"
-									label="Guardar cotización"
-									size="giant"
-									isLoading={isSubmitting || isRegisteringQuote}
-									disabled={isSubmitting || isRegisteringQuote || !hasQuotedProducts}
-									isHiddenLabelOnMobile
-									icon={<SaveIcon size={20} />}
-									className={quoteFormPrimaryButtonClassName}
-								/>
-							</div>
-						</div>
-					</form>
-				</FormProvider>
-			</Modal>
+      <QuoteProductModal
+        isOpen={isQuoteProductModalOpen}
+        onClose={handleCloseQuoteProductModal}
+        products={selectedProducts}
+        existingItems={quotationItems}
+        onConfirm={(items) => {
+          const resolveProductId = (
+            item: DraftQuotationItem,
+          ): string | null => {
+            const existingId = item.product_id?.trim();
+            if (existingId) return existingId;
 
-			<QuoteProductModal
-				isOpen={isQuoteProductModalOpen}
-				onClose={handleCloseQuoteProductModal}
-				products={selectedProducts}
-				existingItems={quotationItems}
-				onConfirm={(items) => {
-					const resolveProductId = (item: DraftQuotationItem): string | null => {
-						const existingId = item.product_id?.trim();
-						if (existingId) return existingId;
+            if (selectedProducts.length === 1) {
+              const onlyId =
+                selectedProducts[0]?.product_details?.product_id?.trim();
+              return onlyId || null;
+            }
 
-						if (selectedProducts.length === 1) {
-							const onlyId =
-								selectedProducts[0]?.product_details?.product_id?.trim();
-							return onlyId || null;
-						}
+            const selectedProduct = selectedProducts.find(
+              (product) =>
+                Boolean(product.purchase_request_item_id) &&
+                product.purchase_request_item_id ===
+                  item.purchase_request_item_id,
+            );
 
-						const selectedProduct = selectedProducts.find(
-							(product) =>
-								Boolean(product.purchase_request_item_id) &&
-								product.purchase_request_item_id ===
-									item.purchase_request_item_id,
-						);
+            return selectedProduct?.product_details?.product_id?.trim() || null;
+          };
 
-						return (
-							selectedProduct?.product_details?.product_id?.trim() || null
-						);
-					};
+          const itemsWithProductId: DraftQuotationItem[] = [];
+          for (const item of items) {
+            const productId = resolveProductId(item);
+            if (!productId) continue;
+            itemsWithProductId.push({ ...item, product_id: productId });
+          }
 
-					const itemsWithProductId: DraftQuotationItem[] = [];
-					for (const item of items) {
-						const productId = resolveProductId(item);
-						if (!productId) continue;
-						itemsWithProductId.push({ ...item, product_id: productId });
-					}
+          const quotedProductIds = new Set(
+            itemsWithProductId.map((item) => item.product_id),
+          );
+          const quotedItemIds = new Set(
+            itemsWithProductId
+              .map((item) => item.purchase_request_item_id)
+              .filter(Boolean),
+          );
 
-					const quotedProductIds = new Set(
-						itemsWithProductId.map((item) => item.product_id),
-					);
-					const quotedItemIds = new Set(
-						itemsWithProductId
-							.map((item) => item.purchase_request_item_id)
-							.filter(Boolean),
-					);
+          setQuotationItems((prevItems) => [
+            ...prevItems.filter((item) => {
+              if (item.product_id && quotedProductIds.has(item.product_id)) {
+                return false;
+              }
 
-					setQuotationItems((prevItems) => [
-						...prevItems.filter((item) => {
-							if (item.product_id && quotedProductIds.has(item.product_id)) {
-								return false;
-							}
+              if (
+                item.purchase_request_item_id &&
+                quotedItemIds.has(item.purchase_request_item_id)
+              ) {
+                return false;
+              }
 
-							if (
-								item.purchase_request_item_id &&
-								quotedItemIds.has(item.purchase_request_item_id)
-							) {
-								return false;
-							}
+              return true;
+            }),
+            ...itemsWithProductId,
+          ]);
+          handleCloseQuoteProductModal();
+        }}
+      />
 
-							return true;
-						}),
-						...itemsWithProductId,
-					]);
-					handleCloseQuoteProductModal();
-				}}
-			/>
-
-			<ConfirmModal
-				isOpen={isConfirmDiscardOpen}
-				type="CANCEL"
-				title="¿Está seguro de descartar la cotización?"
-				buttonActionLabel="Descartar"
-				buttonCancelClass="rounded-md! h-11 px-6! text-[15px]! text-white! bg-alpac-primary-500! hover:bg-alpac-primary-600! dark:bg-alpac-primary-700! dark:hover:bg-alpac-primary-800!"
-				buttonActionClass="rounded-md! h-11 px-6! text-[15px]! text-white! bg-slate-500! hover:bg-slate-600! dark:bg-slate-700! dark:hover:bg-slate-600!"
-				onClose={() => setIsConfirmDiscardOpen(false)}
-				handleFinalAction={() => {
-					setIsConfirmDiscardOpen(false);
-					handleCancel();
-				}}
-			>
-				<p className="m-0 text-center text-sm text-slate-500 dark:text-slate-400">
-					Tiene productos cotizados en curso. Si descarta ahora, se perderán todos los datos ingresados.
-				</p>
-			</ConfirmModal>
-		</>
-	);
+      <ConfirmModal
+        isOpen={isConfirmDiscardOpen}
+        type="CANCEL"
+        title="¿Está seguro de descartar la cotización?"
+        buttonActionLabel="Descartar"
+        buttonCancelClass="rounded-md! h-11 px-6! text-[15px]! text-white! bg-alpac-primary-500! hover:bg-alpac-primary-600! dark:bg-alpac-primary-700! dark:hover:bg-alpac-primary-800!"
+        buttonActionClass="rounded-md! h-11 px-6! text-[15px]! text-white! bg-slate-500! hover:bg-slate-600! dark:bg-slate-700! dark:hover:bg-slate-600!"
+        onClose={() => setIsConfirmDiscardOpen(false)}
+        handleFinalAction={() => {
+          setIsConfirmDiscardOpen(false);
+          handleCancel();
+        }}
+      >
+        <p className="m-0 text-center text-sm text-slate-500 dark:text-slate-400">
+          Tiene productos cotizados en curso. Si descarta ahora, se perderán
+          todos los datos ingresados.
+        </p>
+      </ConfirmModal>
+    </>
+  );
 }

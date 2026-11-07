@@ -12,7 +12,7 @@ import {
 	SUB_COL_WIDTH,
 	TOTALS_ROWS,
 } from "@app/modules/finance/ui/pages/quote-analisys/templates/constants/quote-analysis-report";
-import { getProviderHeaderColor } from "@app/modules/finance/ui/pages/quote-analisys/templates/utils/quote-analysis.utils";
+import { getProviderHeaderColor } from "@app/modules/finance/ui/pages/quote-analisys/templates/utils/pdf-layout.utils";
 import type {
 	QuoteAnalysisPdfItemRow,
 	QuoteAnalysisPdfSupplier,
@@ -232,7 +232,7 @@ export function QuoteAnalysisPdfItemsTable({
 					{suppliers.map((supplier, index) => {
 						const amount = formatCurrency(
 							totals[row.key][supplier.supplierId] ?? 0,
-							"NIO",
+							supplier.currency,
 						);
 						const values = ["", "", "", amount] as const;
 						return (

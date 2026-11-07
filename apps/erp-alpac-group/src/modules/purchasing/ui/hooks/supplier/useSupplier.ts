@@ -49,12 +49,13 @@ const isSupplierDetailsEnabled = (filters?: GetSupplierDetailsRequest) =>
 			filters.supplier_id,
 	);
 
-const supplierDetailsQueryOptions = (filters?: GetSupplierDetailsRequest) => ({
+export const supplierDetailsQueryOptions = (filters?: GetSupplierDetailsRequest) => ({
 	queryKey: ["supplier-details", filters] as const,
 	queryFn: () => suppliersServices.GetSupplierDetails(filters!),
 	enabled: isSupplierDetailsEnabled(filters),
 	refetchOnWindowFocus: false as const,
 	retry: 1,
+	staleTime: SUPPLIERS_STALE_TIME,
 });
 
 const createSupplierMutationOptions = (queryClient: QueryClient) => ({

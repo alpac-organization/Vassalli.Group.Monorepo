@@ -9,10 +9,33 @@ import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import type { ProductQualityType } from "@app/modules/purchasing/domain/enums/product-quality";
 
+export type PurchaseRequestReturnScope = "QuotationOnly" | "FullProcess";
+export type PurchaseRequestReturnSource = "Accounting" | "Management";
+
+export interface PurchaseRequestReturnHistoryEntry {
+	scope: PurchaseRequestReturnScope;
+	source: PurchaseRequestReturnSource;
+	reason: string;
+	returned_at: string;
+	user_information: UserInformation;
+}
+
+export interface PurchaseRequestQuotationFile {
+	file_id: string;
+	file_name: string;
+	file_url: string;
+	uploaded_at: string;
+}
+
 export interface GetPurchaseRequestDetailResponse extends GetPurchaseRequestResponse {
 	observations: string | null;
 	reason_rejection: string | null;
+	reason_rejection_id?: string | null;
+	reason_rejection_description?: string | null;
+	rejection_comments?: string | null;
 	additional_data?: string | null;
+	requotation_count?: number;
+	return_history?: PurchaseRequestReturnHistoryEntry[];
 	is_management_approved?: boolean;
 	is_accounting_approved?: boolean;
 	is_purchase_order_generated?: boolean;
@@ -33,7 +56,7 @@ export interface PurchaseRequestAdditionalData {
 }
 
 export type PurchaseRequestProductInformationList =
-	PaginateBaseResponse<PurchaseRequestProductInformation[]>;
+	PaginateBaseResponse<PurchaseRequestProductInformation>;
 
 export interface PurchaseRequestItemRecommendations {
 	best_warranty_quotation_id: string | null;
@@ -132,6 +155,8 @@ export interface PurchaseRequestProductQuotation {
 	availability_time?: number | null;
 	availability_time_type?: string | number | null;
 	additional_data?: string | null;
+	images?: PurchaseRequestQuotationFile[];
+	documents?: PurchaseRequestQuotationFile[];
 	supplier_product_id?: string | null;
 	supplier_id: string;
 	supplier_information: PurchaseRequestProductQuotationSupplier;

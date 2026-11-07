@@ -59,12 +59,3 @@ export const resolveSupplierLinkPrice = (
 
 	return { amount: 0, currency, source: "none" };
 };
-
-export const hasUsableNewSupplierLink = (item: {
-	unit_price?: number | null;
-	unit_measure_id?: string | null;
-	currency_code?: string | number | null;
-}): boolean =>
-	Number(item.unit_price) > 0 &&
-	Boolean(item.unit_measure_id?.trim()) &&
-	toQuotationCurrency(item.currency_code) !== null;

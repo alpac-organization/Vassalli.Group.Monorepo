@@ -8,6 +8,8 @@ export type PurchaseOrderReportPaymentMethod =
 	| 2
 	| 3;
 
+export type PurchaseOrderPaymentCondition = "Credit" | "Cash";
+
 export interface PurchaseOrderTaxMetadata {
 	exchange_rate: number;
 	total_nio: number;
@@ -41,22 +43,25 @@ export interface PurchaseOrderReportDocumentInfo {
 	assignment_number?: string | null;
 	is_normal?: boolean;
 	is_critical?: boolean;
+	is_unforeseen?: boolean;
 	administrative_fine_number?: string | null;
 	declaration_number?: string | null;
-	quote_count: number;
+	quote_count?: number;
 }
 
 export interface PurchaseOrderReportPaymentInfo {
-	payee: string | null;
+	supplier?: string | null;
+	payee?: string | null;
 	customer: string | null;
 	department: string | null;
 	customs?: string | null;
 	service_amount: number;
 	exempt_service_amount?: number;
 	other_disbursement?: number;
-	vat: number;
+	iva?: number;
+	vat?: number;
 	income_tax: number;
-	municipal_tax: number;
+	municipal_tax?: number;
 	others?: number;
 	net_to_pay: number;
 }
@@ -74,12 +79,13 @@ export interface PurchaseOrderTemplateDto {
 	concept: string | null;
 	purchase_order_id: string;
 	purchase_order_code: string | null;
-	payment_method: PurchaseOrderReportPaymentMethod | null;
+	payment_condition?: PurchaseOrderPaymentCondition | null;
+	payment_method?: PurchaseOrderReportPaymentMethod | null;
 	payment_request_code: string | null;
-	tax: PurchaseOrderTaxMetadata | null;
+	tax?: PurchaseOrderTaxMetadata | null;
 	document_info: PurchaseOrderReportDocumentInfo;
 	payment_info: PurchaseOrderReportPaymentInfo;
-	sent_by_user_information: UserInformation;
-	company_information: PurchaseOrderReportCompanyInformation;
+	sent_by_user_information: UserInformation | null;
+	company_information: PurchaseOrderReportCompanyInformation | null;
 	items: PurchaseOrderReportItemDto[];
 }

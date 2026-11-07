@@ -1,3 +1,4 @@
+import { formatCurrency } from "@app/shared/utils/currency.utils";
 import type {
 	PurchaseRequestProductQuotation,
 	PurchaseRequestSupplierProduct,
@@ -46,6 +47,28 @@ export function getBestPriceQuotationId(
 		}
 	}
 	return best.quotation_id;
+}
+
+export function resolveQuoteCurrency(
+	quote: PurchaseRequestProductQuotation,
+	supplierProducts?: PurchaseRequestSupplierProduct[],
+): string | undefined {
+	const currency = findSupplierProductForQuote(
+		supplierProducts,
+		quote,
+	)?.currency?.trim();
+	return currency || undefined;
+}
+
+export function formatQuoteMoney(
+	amount: number | null | undefined,
+	quote: PurchaseRequestProductQuotation,
+	supplierProducts?: PurchaseRequestSupplierProduct[],
+): string {
+	return formatCurrency(
+		amount ?? 0,
+		resolveQuoteCurrency(quote, supplierProducts),
+	);
 }
 
 export function findSupplierProductForQuote(

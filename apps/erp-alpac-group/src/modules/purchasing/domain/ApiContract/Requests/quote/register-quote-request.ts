@@ -16,7 +16,7 @@ export interface QuotationItem {
 	purchase_request_item_id: string;
 	has_delivery: boolean;
 	has_guarantee: boolean;
-	inventory_available?: boolean;
+	inventory_available?: boolean | null;
 	supplier_selection_justification: string;
 	brand_product?: string | null;
 	product_quality: ProductQualityType;
@@ -29,9 +29,7 @@ export interface QuotationItem {
 	warranty_period_time_type?: TimeTypeValue | null;
 	attachments?: QuotationAttachmentsInput | null;
 	currency?: QuotationCurrencyValue | null;
-	create_supplier_product_if_missing?: boolean;
-	unit_price?: number | null;
-	unit_measure_id?: string | null;
+	create_supplier_product_if_missing: false;
 }
 
 export interface RegisterQuoteRequest extends BaseRequest {

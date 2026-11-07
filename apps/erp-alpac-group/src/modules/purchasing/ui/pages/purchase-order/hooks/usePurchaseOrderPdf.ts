@@ -4,6 +4,7 @@ import { fetchAndOpenPurchaseOrderPdf } from "@app/modules/purchasing/ui/pages/p
 
 type GeneratePurchaseOrderPdfArgs = {
 	purchaseOrderId: string;
+	purchaseRequestId?: string | null;
 	branchName?: string | null;
 };
 
@@ -13,7 +14,11 @@ export function usePurchaseOrderPdf() {
 	const isGeneratingRef = useRef(false);
 
 	const generatePurchaseOrderPdf = useCallback(
-		async ({ purchaseOrderId, branchName }: GeneratePurchaseOrderPdfArgs) => {
+		async ({
+			purchaseOrderId,
+			purchaseRequestId,
+			branchName,
+		}: GeneratePurchaseOrderPdfArgs) => {
 			if (isGeneratingRef.current) return;
 			if (!purchaseOrderId.trim()) {
 				throw new Error("No se encontró la orden de compra.");
@@ -27,6 +32,7 @@ export function usePurchaseOrderPdf() {
 					companyId,
 					moduleCode,
 					purchaseOrderId,
+					purchaseRequestId,
 					branchName: branchName ?? companyName,
 				});
 			} finally {
