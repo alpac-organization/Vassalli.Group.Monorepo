@@ -134,6 +134,7 @@ export const SupplierModal = ({
               onChange={handleProductLinksChange}
               onAddClick={openProductPicker}
               disabled={isSubmitting}
+              canRemove={!isEditMode}
             />
           </Suspense>
         ),

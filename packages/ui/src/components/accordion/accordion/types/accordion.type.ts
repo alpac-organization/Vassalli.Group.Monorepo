@@ -6,6 +6,8 @@ export type AccordionType = "single" | "multiple";
 export type AccordionProps = {
   title: ReactNode;
   children: ReactNode;
+  leading?: ReactNode;
+  actions?: ReactNode;
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;

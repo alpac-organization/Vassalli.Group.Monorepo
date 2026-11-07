@@ -498,29 +498,19 @@ export const ProductPriceEditModal = ({
 															triggerClassName="h-auto! min-h-11! py-2! pr-3!"
 															contentClassName="flex flex-col gap-4 p-4"
 															title={
-																<div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-																	<span className="truncate text-sm font-medium text-slate-900 dark:text-white">
-																		{formatPreferentialTitle(tier)}
-																	</span>
-																	<span
-																		className="mr-3 flex shrink-0 items-center"
-																		onClick={(event) =>
-																			event.stopPropagation()
-																		}
-																		onKeyDown={(event) =>
-																			event.stopPropagation()
-																		}
-																	>
-																		<Button
-																			type="button"
-																			size="small"
-																			tooltip="Quitar precio preferencial"
-																			icon={<Trash2Icon size={16} />}
-																			className={removeItemButtonClassName}
-																			onClick={handleRequestRemovePreferential}
-																		/>
-																	</span>
-																</div>
+																<span className="truncate text-sm font-medium text-slate-900 dark:text-white">
+																	{formatPreferentialTitle(tier)}
+																</span>
+															}
+															actions={
+																<Button
+																	type="button"
+																	size="small"
+																	tooltip="Quitar precio preferencial"
+																	icon={<Trash2Icon size={16} />}
+																	className={removeItemButtonClassName}
+																	onClick={handleRequestRemovePreferential}
+																/>
 															}
 														>
 															<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
