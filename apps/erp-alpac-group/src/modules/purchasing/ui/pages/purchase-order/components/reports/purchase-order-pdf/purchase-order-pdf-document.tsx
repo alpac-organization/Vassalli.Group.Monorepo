@@ -1,7 +1,11 @@
-import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
+import { Document, Font, Image, Page, Text, View } from "@react-pdf/renderer";
 import { PURCHASE_ORDER_PDF_COMPANY } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/purchase-order-pdf/constants/purchase-order-pdf.constants";
 import { purchaseOrderPdfStyles as styles } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/purchase-order-pdf/styles/purchase-order-pdf.styles";
 import type { PurchaseOrderPdfDocumentProps } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/purchase-order-pdf/types/purchase-order-pdf.types";
+
+Font.registerHyphenationCallback((word) =>
+	word.length <= 1 ? [word] : Array.from(word),
+);
 
 export function PurchaseOrderPdfDocument({
 	viewModel,
@@ -13,12 +17,11 @@ export function PurchaseOrderPdfDocument({
 		purchaseOrderCode,
 		orderDateLabel,
 		paymentCondition,
+		priorityLabel,
 		materialsRequest,
 		requestingDepartment,
 		notes,
-		requisitionCode,
 		elaboratedBy,
-		authorizedBy,
 		sealSrc,
 		items,
 		totals,
@@ -63,6 +66,10 @@ export function PurchaseOrderPdfDocument({
 						<View style={styles.infoLine}>
 							<Text style={styles.infoLabel}>Condición de Pago:</Text>
 							<Text style={styles.infoValue}>{paymentCondition}</Text>
+						</View>
+						<View style={styles.infoLine}>
+							<Text style={styles.infoLabel}>Prioridad:</Text>
+							<Text style={styles.infoValue}>{priorityLabel}</Text>
 						</View>
 					</View>
 				</View>
@@ -163,16 +170,8 @@ export function PurchaseOrderPdfDocument({
 							<Text style={styles.totalValue}>{totals.subtotalLabel}</Text>
 						</View>
 						<View style={styles.totalLine}>
-							<Text style={styles.totalLabel}>Descuento</Text>
-							<Text style={styles.totalValue}>{totals.discountLabel}</Text>
-						</View>
-						<View style={styles.totalLine}>
 							<Text style={styles.totalLabel}>IVA</Text>
 							<Text style={styles.totalValue}>{totals.ivaLabel}</Text>
-						</View>
-						<View style={styles.totalLine}>
-							<Text style={styles.totalLabel}>EXO</Text>
-							<Text style={styles.totalValue}>{totals.exoLabel}</Text>
 						</View>
 						<View style={styles.totalLine}>
 							<Text style={[styles.totalLabel, styles.totalBold]}>Total</Text>
@@ -186,14 +185,6 @@ export function PurchaseOrderPdfDocument({
 				<Text style={styles.paymentNote}>
 					{PURCHASE_ORDER_PDF_COMPANY.paymentInstruction}
 				</Text>
-
-				<View style={styles.metaRow} wrap={false}>
-					<Text style={styles.metaItem}>Proveedor</Text>
-					<Text style={styles.metaItem}>Requisicion: {requisitionCode}</Text>
-					<Text style={styles.metaItem}>
-						OC autorizada por:{authorizedBy ? ` ${authorizedBy}` : ""}
-					</Text>
-				</View>
 
 				<View style={styles.signaturesRow} wrap={false}>
 					<View style={styles.signatureBlock}>

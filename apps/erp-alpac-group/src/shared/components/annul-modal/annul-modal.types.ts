@@ -1,3 +1,5 @@
+export type AnnulModalScope = 1 | 2;
+
 export interface AnnulModalProps {
 	isOpen: boolean;
 	title?: string;
@@ -7,5 +9,5 @@ export interface AnnulModalProps {
 	confirmButtonLabel?: string;
 	confirmButtonVariant?: "primary" | "danger";
 	onClose: () => void;
-	onConfirm: (data: { scope: number; reason: string }) => void;
+	onConfirm: (data: { scope: AnnulModalScope; reason: string }) => void;
 }

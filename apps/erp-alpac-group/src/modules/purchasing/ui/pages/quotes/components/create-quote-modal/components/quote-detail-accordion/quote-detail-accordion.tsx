@@ -61,10 +61,10 @@ export function QuoteDetailAccordion({
         value={accordionValue}
         isOpen={true}
         className="rounded-md! border-slate-300! dark:border-slate-600! dark:bg-[#272b34]!"
-        contentClassName="p-4"
-        triggerClassName="h-auto! min-h-10!"
+        contentClassName="p-3 sm:p-4"
+        triggerClassName="h-auto! min-h-10! items-start! gap-y-1.5!"
         leading={
-          <div className="flex min-w-0 items-center gap-3 overflow-hidden">
+          <div className="flex min-w-0 max-w-full flex-1 items-center gap-2 overflow-hidden md:gap-3">
             <span className={indexBadgeClassName}>{quoteDetailIndex + 1}</span>
             {hasQuotation ? (
               <Checkbox
@@ -90,14 +90,14 @@ export function QuoteDetailAccordion({
           </div>
         }
         title={
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 md:gap-3">
             {categoryName ? (
-              <span className="block min-w-0 truncate text-[14px] font-normal text-slate-500 dark:text-slate-300">
+              <span className="block min-w-0 truncate text-[13px] font-normal text-slate-500 md:text-[14px] dark:text-slate-300">
                 / {categoryName}
               </span>
             ) : null}
             <span
-              className={`flex shrink-0 items-center gap-1 text-[14px] font-normal ${quotationStatusColor}`}
+              className={`flex min-w-0 items-center gap-1 text-[13px] font-normal md:shrink-0 md:text-[14px] ${quotationStatusColor}`}
             >
               <span className="text-slate-500 dark:text-slate-300">/</span>
               {hasQuotation ? (
@@ -106,7 +106,7 @@ export function QuoteDetailAccordion({
                 <CircleXIcon size={15} color="#94a3b8" />
               )}
               {hasQuotation ? (
-                <span>
+                <span className="min-w-0 truncate">
                   Cotizado
                   {assignedSuppliersCount > 0
                     ? ` · ${assignedSuppliersCount} proveedor${assignedSuppliersCount === 1 ? "" : "es"}`
@@ -119,41 +119,39 @@ export function QuoteDetailAccordion({
           </div>
         }
       >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-          <div className="order-2 grid min-w-0 flex-1 grid-cols-1 gap-4 sm:order-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <DetailField
-              label="Producto"
-              value={productName}
-              icon={<PackageIcon size={18} />}
-            />
-            <DetailField
-              label="Categoría"
-              value={categoryName ? categoryName : null}
-              icon={<LayersIcon size={18} />}
-            />
-            <DetailField
-              label="Cantidad"
-              value={quantityLabel}
-              icon={<HashIcon size={18} />}
-            />
-            <DetailField
-              label="Unidad de medida"
-              value={unitMeasure}
-              icon={<RulerIcon size={18} />}
-            />
-            <DetailField
-              label="Detalles del producto"
-              value={requestedProduct?.description}
-              icon={<NotebookTextIcon size={18} />}
-              containerClass="sm:col-span-2"
-            />
-            <DetailField
-              label="Justificación"
-              value={justification}
-              icon={<NotebookTextIcon size={18} />}
-              containerClass="sm:col-span-2"
-            />
-          </div>
+        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <DetailField
+            label="Producto"
+            value={productName}
+            icon={<PackageIcon size={18} />}
+          />
+          <DetailField
+            label="Categoría"
+            value={categoryName ? categoryName : null}
+            icon={<LayersIcon size={18} />}
+          />
+          <DetailField
+            label="Cantidad"
+            value={quantityLabel}
+            icon={<HashIcon size={18} />}
+          />
+          <DetailField
+            label="Unidad de medida"
+            value={unitMeasure}
+            icon={<RulerIcon size={18} />}
+          />
+          <DetailField
+            label="Detalles del producto"
+            value={requestedProduct?.description}
+            icon={<NotebookTextIcon size={18} />}
+            containerClass="sm:col-span-2"
+          />
+          <DetailField
+            label="Justificación"
+            value={justification}
+            icon={<NotebookTextIcon size={18} />}
+            containerClass="sm:col-span-2"
+          />
         </div>
       </AccordionItem>
     </>
