@@ -1,5 +1,4 @@
 import type { PurchaseOrderTemplateDto } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-report-response";
-import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 
 export interface PurchaseOrderPdfLineItem {
   quantityLabel: string;
@@ -29,7 +28,6 @@ export interface PurchaseOrderPdfViewModel {
   notes: string;
   paymentRequestCode: string;
   elaboratedBy: string;
-  authorizedBy: string;
   sealSrc?: string | null;
   items: PurchaseOrderPdfLineItem[];
   totals: PurchaseOrderPdfTotals;
@@ -43,7 +41,6 @@ export interface FetchPurchaseOrderPdfParams {
   companyId: string;
   moduleCode: string;
   purchaseOrderId: string;
-  purchaseRequestId?: string | null;
   branchName?: string | null;
 }
 
@@ -51,5 +48,4 @@ export type MapPurchaseOrderReportToPdfInput = {
   report: PurchaseOrderTemplateDto;
   companyLogoUrl?: string | null;
   branchName?: string | null;
-  purchaseRequestProducts?: PurchaseRequestProductInformation[];
 };

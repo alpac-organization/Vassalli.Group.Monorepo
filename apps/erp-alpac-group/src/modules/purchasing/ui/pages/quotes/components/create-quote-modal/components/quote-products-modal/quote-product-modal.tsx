@@ -77,9 +77,14 @@ export function QuoteProductModal({
 	};
 
 	const onSubmit = async (values: QuoteProductFormValues) => {
-		const invalidProduct = values.products.find(
-			(product) => product.items.length < MIN_SUPPLIERS_PER_PRODUCT,
-		);
+		const invalidProduct = values.products.find((product) => {
+			const uniqueSupplierIds = new Set(
+				product.items
+					.map((item) => item.supplier_id?.trim())
+					.filter(Boolean),
+			);
+			return uniqueSupplierIds.size < MIN_SUPPLIERS_PER_PRODUCT;
+		});
 
 		if (invalidProduct) return;
 

@@ -25,14 +25,14 @@ export function QuoteProductGroupFields({
     name: `products.${productIndex}.items`,
     rules: {
       validate: (items) => {
-        if (!items || items.length < MIN_SUPPLIERS_PER_PRODUCT) {
-          return "Este producto no tiene proveedores vinculados en el catálogo. Vincúlelos antes de cotizar.";
-        }
-
-        const supplierIds = items
+        const supplierIds = (items ?? [])
           .map((item) => item.supplier_id?.trim())
           .filter(Boolean);
         const uniqueIds = new Set(supplierIds);
+
+        if (uniqueIds.size < MIN_SUPPLIERS_PER_PRODUCT) {
+          return "Cada producto debe cotizarse con al menos dos proveedores distintos para competir.";
+        }
 
         if (uniqueIds.size < supplierIds.length) {
           return "No puede repetir el mismo proveedor en un producto.";

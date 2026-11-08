@@ -1,4 +1,3 @@
-import { EMPTY_CELL } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/purchase-order-pdf/constants/purchase-order-pdf.constants";
 import type {
 	MapPurchaseOrderReportToPdfInput,
 	PurchaseOrderPdfViewModel,
@@ -7,10 +6,8 @@ import type { PurchaseOrderReportDocumentInfo } from "@app/modules/purchasing/do
 import { resolvePaymentConditionLabel } from "@app/modules/purchasing/domain/utils/quotation-label.utils";
 import { resolveComprasSealSrc } from "@app/modules/purchasing/ui/pages/purchase-order/utils/resolve-compras-seal";
 import {
-	buildPurchaseRequestProductMap,
 	formatPurchaseOrderReportMoney,
-	resolveAcceptedQuoteCurrency,
-	resolveSharedReportCurrency,
+	toReportCurrency,
 } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/purchase-order-pdf/utils/resolve-purchase-order-report-currency";
 
 function formatQuantity(value: number): string {
@@ -32,84 +29,60 @@ export function mapPurchaseOrderReportToPdfViewModel({
 	report,
 	companyLogoUrl,
 	branchName,
-	purchaseRequestProducts,
 }: MapPurchaseOrderReportToPdfInput): PurchaseOrderPdfViewModel {
 	const payment = report.payment_info;
 	const documentInfo = report.document_info;
 	const company = report.company_information;
+	const currency = toReportCurrency(payment?.currency);
 
 	const companyName =
-		company?.company_name?.trim() ||
-		company?.alias?.trim() ||
-		payment?.customer?.trim() ||
+		company?.company_name ||
+		payment?.customer ||
 		"ALMACENADORA DEL PACIFICO, S.A.";
 
 	const sealSrc =
-		resolveComprasSealSrc(branchName) ??
-		resolveComprasSealSrc(companyName) ??
-		resolveComprasSealSrc(company?.alias);
+		resolveComprasSealSrc(branchName) ?? resolveComprasSealSrc(companyName);
 
-	const logo =
-		companyLogoUrl?.trim() ||
-		(typeof company?.image_url === "string" ? company.image_url.trim() : "") ||
-		null;
+	const logo = companyLogoUrl || null;
 
-	const productByItemId = buildPurchaseRequestProductMap(
-		purchaseRequestProducts,
-	);
-	const reportItems = report.items ?? [];
-	const itemCurrencies = reportItems.map((item) => {
-		const requestItemId = item.purchase_request_item_id?.trim();
-		if (!requestItemId) return undefined;
-		return resolveAcceptedQuoteCurrency(productByItemId.get(requestItemId));
-	});
-	const totalsCurrency = resolveSharedReportCurrency(itemCurrencies);
-
-	const items = reportItems.map((item, index) => {
-		const currency = itemCurrencies[index];
-		return {
-			quantityLabel: formatQuantity(item.quantity),
-			unitMeasure: EMPTY_CELL,
-			productCode: item.product_code?.trim() || EMPTY_CELL,
-			description:
-				item.product_name?.trim() || item.product_code?.trim() || EMPTY_CELL,
-			unitPriceLabel: formatPurchaseOrderReportMoney(
-				item.unit_price ?? 0,
-				currency,
-			),
-			lineTotalLabel: formatPurchaseOrderReportMoney(
-				item.price_total ?? 0,
-				currency,
-			),
-		};
-	});
+	const items = (report.items ?? []).map((item) => ({
+		quantityLabel: formatQuantity(item.quantity),
+		unitMeasure: item.unit_measure ?? "",
+		productCode: item.product_code ?? "",
+		description: item.product_name || item.product_code || "",
+		unitPriceLabel: formatPurchaseOrderReportMoney(
+			item.unit_price ?? 0,
+			currency,
+		),
+		lineTotalLabel: formatPurchaseOrderReportMoney(
+			item.price_total ?? 0,
+			currency,
+		),
+	}));
 
 	const subtotal = payment?.service_amount ?? 0;
-	const iva = payment?.iva ?? payment?.vat ?? 0;
+	const iva = payment?.iva ?? 0;
 	const total = payment?.net_to_pay ?? subtotal + iva;
 
 	return {
 		companyLogoUrl: logo,
 		companyName,
-		supplierName:
-			payment?.supplier?.trim() || payment?.payee?.trim() || EMPTY_CELL,
-		purchaseOrderCode: report.purchase_order_code?.trim() || EMPTY_CELL,
-		orderDateLabel: documentInfo?.date?.trim() || EMPTY_CELL,
+		supplierName: payment?.supplier ?? "",
+		purchaseOrderCode: report.purchase_order_code ?? "",
+		orderDateLabel: documentInfo?.date ?? "",
 		paymentCondition: resolvePaymentConditionLabel(report.payment_condition),
 		priorityLabel: resolvePriorityLabel(documentInfo),
 		materialsRequest: "",
-		requestingDepartment: payment?.department?.trim() || EMPTY_CELL,
-		notes: report.concept?.trim() || "",
-		paymentRequestCode: report.payment_request_code?.trim() || EMPTY_CELL,
-		elaboratedBy:
-			report.sent_by_user_information?.fullname?.trim() || EMPTY_CELL,
-		authorizedBy: EMPTY_CELL,
+		requestingDepartment: payment?.department ?? "",
+		notes: report.concept ?? "",
+		paymentRequestCode: report.payment_request_code ?? "",
+		elaboratedBy: report.sent_by_user_information?.fullname ?? "",
 		sealSrc,
 		items,
 		totals: {
-			subtotalLabel: formatPurchaseOrderReportMoney(subtotal, totalsCurrency),
-			ivaLabel: formatPurchaseOrderReportMoney(iva, totalsCurrency),
-			totalLabel: formatPurchaseOrderReportMoney(total, totalsCurrency),
+			subtotalLabel: formatPurchaseOrderReportMoney(subtotal, currency),
+			ivaLabel: formatPurchaseOrderReportMoney(iva, currency),
+			totalLabel: formatPurchaseOrderReportMoney(total, currency),
 		},
 	};
 }

@@ -132,7 +132,6 @@ export const PurchaseOrder = () => {
 			try {
 				await generatePurchaseOrderPdf({
 					purchaseOrderId: row.purchase_order_id,
-					purchaseRequestId: row.purchase_request?.purchase_request_id,
 				});
 			} catch (error) {
 				const message =

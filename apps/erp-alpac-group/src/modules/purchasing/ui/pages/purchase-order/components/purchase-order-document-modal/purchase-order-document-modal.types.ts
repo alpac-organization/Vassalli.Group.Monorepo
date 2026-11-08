@@ -4,6 +4,5 @@ export interface PurchaseOrderDocumentModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	purchaseOrderId: string;
-	purchaseRequestId?: string | null;
 	details?: GetPurchaseOrderDetailsResponse | null;
 }

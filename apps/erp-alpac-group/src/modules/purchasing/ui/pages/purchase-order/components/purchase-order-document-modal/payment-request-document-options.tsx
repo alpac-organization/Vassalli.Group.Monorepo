@@ -36,7 +36,7 @@ export const PaymentRequestDocumentOptions = ({
 				Seleccione los ítems que deben aparecer marcados en el documento.
 			</p>
 
-			<div className="max-h-64 overflow-y-auto rounded-md border border-slate-200 bg-slate-50/80 p-3 dark:border-neutral-700 dark:bg-neutral-900/40">
+			<div className="max-h-64 overflow-y-auto rounded-md border border-slate-200 p-3 dark:border-neutral-700">
 				<div className="flex flex-col gap-4">
 					{DEFAULT_PAYMENT_REQUEST_CHECKLIST.map((section) => (
 						<div key={section.title} className="flex flex-col gap-2">

@@ -158,19 +158,21 @@ export const MonthlyMaterialTab = ({
 		});
 	};
 
-	const monthlyReportItems = GetMonthlyPurchaseReport.data ?? [];
+	const monthlyReport = GetMonthlyPurchaseReport.data;
+	const monthlyReportItems = monthlyReport?.items ?? [];
 	const canDownloadReport =
 		monthlyReportItems.length > 0 &&
 		!GetMonthlyPurchaseReport.isFetching &&
 		!isGeneratingReport;
 
 	const handleDownloadReport = async () => {
-		if (!canDownloadReport) return;
+		if (!canDownloadReport || !monthlyReport) return;
 
 		try {
 			setIsGeneratingReport(true);
 			const blob = await generateMonthlyPurchaseReportPdf({
-				items: monthlyReportItems,
+				items: monthlyReport.items,
+				grandTotal: monthlyReport.grand_total,
 				logoUrl: urlImage,
 				year: filters.year,
 				month: filters.month,

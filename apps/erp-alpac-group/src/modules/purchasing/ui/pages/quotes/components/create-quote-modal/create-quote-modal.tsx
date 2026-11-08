@@ -27,7 +27,11 @@ import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quo
 import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { RequestedProducts } from "./types/create-quote-form.types";
 import type { RegisterQuoteRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
-import type { DraftQuotationItem } from "./components/quote-products-modal/quote-product-modal.types";
+import {
+  MIN_SUPPLIERS_PER_PRODUCT,
+  type DraftQuotationItem,
+} from "./components/quote-products-modal/quote-product-modal.types";
+import { hasEnoughSuppliersPerProduct } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/utils/has-enough-suppliers-per-product";
 import { useQuotes } from "@app/modules/purchasing/ui/hooks/quote/useQuote";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
@@ -209,6 +213,13 @@ export function CreateQuoteModal({
     if (!quotationItems.length) {
       onRequestError?.(
         "Debe cotizar al menos un producto con sus proveedores antes de guardar.",
+      );
+      return;
+    }
+
+    if (!hasEnoughSuppliersPerProduct(quotationItems)) {
+      onRequestError?.(
+        `Cada producto debe cotizarse con al menos ${MIN_SUPPLIERS_PER_PRODUCT} proveedores distintos para competir.`,
       );
       return;
     }

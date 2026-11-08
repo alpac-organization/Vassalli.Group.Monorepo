@@ -19,7 +19,10 @@ export function QuoteProductComparison({
   accountingReviewStatus,
 }: QuoteProductComparisonProps) {
   const activeQuotations = quotations.filter((quote) => quote.is_active);
-  const bestPriceId = getBestPriceQuotationId(activeQuotations);
+  const bestPriceId = getBestPriceQuotationId(
+    activeQuotations,
+    supplierProducts,
+  );
   const bestWarrantyId = recommendations?.best_warranty_quotation_id ?? null;
   const bestDeliveryId = recommendations?.best_delivery_quotation_id ?? null;
   const chunks = chunkQuotations(activeQuotations, MAX_COLUMNS);

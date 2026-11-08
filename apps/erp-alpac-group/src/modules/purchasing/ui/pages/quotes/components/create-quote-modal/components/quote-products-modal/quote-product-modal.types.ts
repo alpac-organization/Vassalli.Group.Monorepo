@@ -9,7 +9,7 @@ import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
 import type { CurrencyCode } from "@app/core/enums/currency.enum";
 import type { ImageOutput } from "@app/shared/components/image-uploader/image-uploader.types";
 
-export const MIN_SUPPLIERS_PER_PRODUCT = 1;
+export const MIN_SUPPLIERS_PER_PRODUCT = 2;
 
 export type DraftQuotationItem = QuotationItem & {
 	product_id: string;

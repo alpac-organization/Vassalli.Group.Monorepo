@@ -194,10 +194,29 @@ export function QuoteAnalysisDetail() {
             }));
             setPendingAccept(null);
           },
+          onError: (error) => {
+            const mappedError = getMappedError(error);
+            const acceptErrorMessages: Record<string, string> = {
+              "ERP:NOT_ENOUGH_QUOTATIONS":
+                "El producto solicitado debe tener al menos dos cotizaciones para aceptar una para compra",
+            };
+            handleRequestError(
+              acceptErrorMessages[mappedError.typeError] ||
+                mappedError.description ||
+                "Error al aceptar la oferta.",
+            );
+          },
         },
       );
     },
-    [AcceptQuotationToPurchase, companyId, moduleCode, pendingAccept],
+    [
+      AcceptQuotationToPurchase,
+      companyId,
+      moduleCode,
+      pendingAccept,
+      getMappedError,
+      handleRequestError,
+    ],
   );
 
   const handleCloseSendModal = useCallback(() => {

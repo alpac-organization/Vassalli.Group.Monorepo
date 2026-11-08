@@ -4,70 +4,57 @@ import { formatCurrency } from "@app/shared/utils/currency.utils";
 export type PurchaseOrderReportCurrency = "NIO" | "USD";
 
 const PLAIN_AMOUNT_FORMATTER = new Intl.NumberFormat("es-NI", {
-	minimumFractionDigits: 2,
-	maximumFractionDigits: 2,
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
 });
 
-function toReportCurrency(
-	value: string | null | undefined,
+/** mapea y Acepta solo NIO o USD. . */
+export function toReportCurrency(
+  value: string | null | undefined,
 ): PurchaseOrderReportCurrency | undefined {
-	const currency = value?.trim();
-	if (currency === "NIO" || currency === "USD") return currency;
-	return undefined;
+  if (value === "NIO" || value === "USD") return value;
+  return undefined;
 }
 
 export function resolveAcceptedQuoteCurrency(
-	product: PurchaseRequestProductInformation | undefined,
+  product: PurchaseRequestProductInformation | undefined,
 ): PurchaseOrderReportCurrency | undefined {
-	if (!product) return undefined;
+  if (!product) return undefined;
 
-	const acceptedQuote = product.quotations?.find(
-		(quote) => quote.is_accepted_for_purchase === true,
-	);
-	const supplierProductId = acceptedQuote?.supplier_product_id?.trim();
-	if (!supplierProductId) return undefined;
+  const acceptedQuote = product.quotations?.find(
+    (quote) => quote.is_accepted_for_purchase === true,
+  );
+  const supplierProductId = acceptedQuote?.supplier_product_id?.trim();
+  if (!supplierProductId) return undefined;
 
-	const supplierProduct = product.product_details?.supplier_products?.find(
-		(item) => item.supplier_product_id === supplierProductId,
-	);
+  const supplierProduct = product.product_details?.supplier_products?.find(
+    (item) => item.supplier_product_id === supplierProductId,
+  );
 
-	return toReportCurrency(supplierProduct?.currency);
+  return toReportCurrency(supplierProduct?.currency);
 }
 
+/** Imprime el monto con símbolo NIO/USD. */
 export function formatPurchaseOrderReportMoney(
-	amount: number,
-	currency?: PurchaseOrderReportCurrency,
+  amount: number,
+  currency?: PurchaseOrderReportCurrency,
 ): string {
-	if (!currency) return PLAIN_AMOUNT_FORMATTER.format(amount ?? 0);
-	return formatCurrency(amount ?? 0, currency);
+  if (!currency) return PLAIN_AMOUNT_FORMATTER.format(amount ?? 0);
+  return formatCurrency(amount ?? 0, currency);
 }
 
-export function resolveSharedReportCurrency(
-	currencies: Array<PurchaseOrderReportCurrency | undefined>,
-): PurchaseOrderReportCurrency | undefined {
-	if (currencies.length === 0) return undefined;
-
-	const first = currencies[0];
-	if (!first) return undefined;
-
-	for (const currency of currencies) {
-		if (currency !== first) return undefined;
-	}
-
-	return first;
-}
-
+/** Índice por purchase_request_item_id para cruzar el detalle con la solicitud. */
 export function buildPurchaseRequestProductMap(
-	products: PurchaseRequestProductInformation[] | undefined,
+  products: PurchaseRequestProductInformation[] | undefined,
 ): Map<string, PurchaseRequestProductInformation> {
-	const map = new Map<string, PurchaseRequestProductInformation>();
-	if (!products?.length) return map;
+  const map = new Map<string, PurchaseRequestProductInformation>();
+  if (!products?.length) return map;
 
-	for (const product of products) {
-		const itemId = product.purchase_request_item_id?.trim();
-		if (!itemId) continue;
-		map.set(itemId, product);
-	}
+  for (const product of products) {
+    const itemId = product.purchase_request_item_id?.trim();
+    if (!itemId) continue;
+    map.set(itemId, product);
+  }
 
-	return map;
+  return map;
 }

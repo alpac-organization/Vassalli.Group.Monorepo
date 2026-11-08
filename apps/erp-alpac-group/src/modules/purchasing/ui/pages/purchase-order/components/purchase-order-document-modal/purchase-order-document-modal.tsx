@@ -22,8 +22,6 @@ import { mapCatalogToOptions } from "@app/shared/utils/catalog.utils";
 import { warehouseHttpHandler } from "@app/core/adapters/axiosAdapter";
 import { PurchaseServices } from "@app/modules/purchasing/infrastructure/services/purchase/PurchaseServices";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
-import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
-import { fetchAllPurchaseRequestProducts } from "@app/modules/purchasing/ui/pages/purchase-order/utils/fetch-purchase-request-products";
 
 const purchaseServices = new PurchaseServices(warehouseHttpHandler);
 
@@ -33,62 +31,27 @@ const dropdownClassName =
 
 const defaultPaymentMethodValue = PaymentMethodEnum.LocalTransfer.stringValue;
 
-const normalizePaymentMethodType = (raw: unknown): PaymentMethodType | null => {
-  if (raw == null || raw === "") return null;
-
-  if (typeof raw === "number") {
-    return (
-      Object.values(PaymentMethodEnum).find((entry) => entry.value === raw)
-        ?.stringValue ?? null
-    );
-  }
-
-  if (typeof raw === "string") {
-    const byString = Object.values(PaymentMethodEnum).find(
-      (entry) =>
-        entry.stringValue === raw ||
-        entry.stringValue.toLowerCase() === raw.toLowerCase(),
-    );
-    if (byString) return byString.stringValue;
-
-    const asNumber = Number(raw);
-    if (!Number.isNaN(asNumber)) {
-      return (
-        Object.values(PaymentMethodEnum).find(
-          (entry) => entry.value === asNumber,
-        )?.stringValue ?? null
-      );
-    }
-  }
-
-  return null;
-};
-
+/**
+ * Toma el payment_method_type de la cotización aceptada en el detalle.
+ * El modal lo usa para filtrar el radio-button y fijar el valor inicial del PDF.
+ */
 const resolveAcceptedPaymentMethod = (
   details?: GetPurchaseOrderDetailsResponse | null,
 ): PaymentMethodType | null => {
-  const items = details?.items ?? [];
-
-  for (const item of items) {
-    const quotation = item.quotation;
-    if (!quotation?.is_accepted_for_purchase) continue;
-
-    const fromType = normalizePaymentMethodType(quotation.payment_method_type);
-    if (fromType) return fromType;
-  }
-
-  return null;
+  const accepted = details?.items.find(
+    (item) => item.quotation.is_accepted_for_purchase,
+  );
+  return accepted?.quotation.payment_method_type ?? null;
 };
 
 export const PurchaseOrderDocumentModal = ({
   isOpen,
   onClose,
   purchaseOrderId,
-  purchaseRequestId,
   details,
 }: PurchaseOrderDocumentModalProps) => {
   const { urlImage } = useCompanyStore();
-  const { companyAlias, companyId, moduleCode, fullName, role, companyName } =
+  const { companyAlias, companyId, moduleCode, role, companyName } =
     useUserStore();
 
   const canSelectBank =
@@ -168,27 +131,11 @@ export const PurchaseOrderDocumentModal = ({
       setIsGenerating(true);
       setErrorMessage(null);
 
-      const trimmedRequestId = purchaseRequestId?.trim() || "";
-
-      const reportPromise = purchaseServices.GetTransferRequestReport({
+      const report = await purchaseServices.GetTransferRequestReport({
         company_id: companyId,
         module_code: moduleCode,
         purchase_order_id: purchaseOrderId,
       });
-
-      const productsPromise = trimmedRequestId
-        ? fetchAllPurchaseRequestProducts({
-            purchaseServices,
-            companyId,
-            moduleCode,
-            purchaseRequestId: trimmedRequestId,
-          }).catch(() => [] as PurchaseRequestProductInformation[])
-        : Promise.resolve([] as PurchaseRequestProductInformation[]);
-
-      const [report, purchaseRequestProducts] = await Promise.all([
-        reportPromise,
-        productsPromise,
-      ]);
 
       const documentType = resolveDocumentType();
       const pdfData = mapTransferRequestReportToPdf({
@@ -198,11 +145,8 @@ export const PurchaseOrderDocumentModal = ({
         companyNameFallback: companyAlias || companyName,
         bankName: canSelectBank ? selectedBankName : null,
         branchName: branchNameForSeal,
-        generatedBy: fullName,
-        generatedAt: new Date().toISOString(),
         checklist: buildPaymentRequestChecklist(checkedIds),
         referenceNumber: referenceNumber.trim() || null,
-        purchaseRequestProducts,
       });
 
       const blob = await pdf(<PaymentRequestPDF data={pdfData} />).toBlob();

@@ -17,7 +17,6 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { PurchaseOrderDocumentModal } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-document-modal/purchase-order-document-modal";
 import { PurchaseOrderItems } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-details-modal/purchase-order-items";
 import { buildPurchaseRequestProductMap } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/purchase-order-pdf/utils/resolve-purchase-order-report-currency";
-import { stripPurchaseOrderTaxMetadata } from "@app/modules/purchasing/ui/pages/purchase-order/utils/strip-purchase-order-tax-metadata";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 
 const sectionTitleClassName =
@@ -113,7 +112,7 @@ export const PurchaseOrderDetailsModal = ({
 								/>
 								<DetailField
 									label="Comentarios"
-									value={stripPurchaseOrderTaxMetadata(details?.comments)}
+									value={details?.comments ?? ""}
 									icon={<NotebookTextIcon size={18} />}
 									containerClass={
 										(details?.comments?.length ?? 0) > 40 ? "sm:col-span-2" : ""
@@ -193,9 +192,6 @@ export const PurchaseOrderDetailsModal = ({
 				isOpen={isDocumentModalOpen}
 				onClose={() => setIsDocumentModalOpen(false)}
 				purchaseOrderId={purchaseOrder?.purchase_order_id ?? ""}
-				purchaseRequestId={
-					purchaseOrder?.purchase_request?.purchase_request_id
-				}
 				details={GetPurchaseOrderDetails.data}
 			/>
 		</>
