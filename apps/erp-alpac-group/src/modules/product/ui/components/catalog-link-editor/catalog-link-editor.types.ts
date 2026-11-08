@@ -59,6 +59,25 @@ export const emptyCatalogLinkTier = (
   valid_to: "",
 });
 
+export const formatPreferentialTierTitle = (
+  tier: Pick<
+    CatalogLinkTierForm,
+    "min_quantity" | "preferential_price" | "currency"
+  >,
+  options?: { showCurrency?: boolean; index?: number },
+): string => {
+  if (tier.min_quantity.trim() && tier.preferential_price.trim()) {
+    const base = `Desde ${tier.min_quantity} · ${tier.preferential_price}`;
+    return options?.showCurrency ? `${base} ${tier.currency}` : base;
+  }
+
+  if (options?.index != null) {
+    return `Precio preferencial #${options.index + 1}`;
+  }
+
+  return "Precio preferencial";
+};
+
 export const emptyCatalogLinkItem = (): CatalogLinkItemForm => ({
   entity_id: "",
   entity_label: "",

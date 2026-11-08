@@ -173,22 +173,6 @@ export const paymentRequestPdfStyles = StyleSheet.create({
 		flex: 1,
 		marginRight: 6,
 	},
-	priorityRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		marginTop: 2,
-	},
-	priorityLabel: {
-		fontSize: 7,
-		fontFamily: "Helvetica-Bold",
-		color: colors.muted,
-		marginRight: 6,
-	},
-	checkOption: {
-		flexDirection: "row",
-		alignItems: "center",
-		marginRight: 8,
-	},
 	checkbox: {
 		width: 8,
 		height: 8,
@@ -208,10 +192,6 @@ export const paymentRequestPdfStyles = StyleSheet.create({
 		fontFamily: "Helvetica-Bold",
 		color: colors.white,
 		lineHeight: 1,
-	},
-	checkOptionLabel: {
-		fontSize: 7,
-		color: colors.ink,
 	},
 	amountRow: {
 		flexDirection: "row",
@@ -316,8 +296,6 @@ export const paymentRequestPdfStyles = StyleSheet.create({
 		paddingHorizontal: 6,
 		minHeight: 52,
 		backgroundColor: colors.white,
-		position: "relative",
-		overflow: "hidden",
 	},
 	signatureCardLast: {
 		marginRight: 0,
@@ -335,14 +313,15 @@ export const paymentRequestPdfStyles = StyleSheet.create({
 		borderTopColor: colors.line,
 		paddingTop: 2,
 	},
+	sealWrap: {
+		marginTop: 6,
+		alignItems: "center",
+		justifyContent: "center",
+	},
 	authorizationSeal: {
-		position: "absolute",
-		width: 56,
-		height: 56,
+		width: 52,
+		height: 52,
 		objectFit: "contain",
-		right: 4,
-		top: 14,
-		opacity: 0.9,
 	},
 	signatureName: {
 		fontSize: 7,

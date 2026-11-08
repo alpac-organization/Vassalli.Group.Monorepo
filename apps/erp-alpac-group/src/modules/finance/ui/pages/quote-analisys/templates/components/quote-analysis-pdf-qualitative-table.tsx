@@ -9,7 +9,7 @@ import {
 import {
 	getProviderHeaderColor,
 	getQualitativeProviderWidth,
-} from "@app/modules/finance/ui/pages/quote-analisys/templates/utils/quote-analysis.utils";
+} from "@app/modules/finance/ui/pages/quote-analisys/templates/utils/pdf-layout.utils";
 import type {
 	QuoteAnalysisPdfQualitative,
 	QuoteAnalysisPdfSupplier,
