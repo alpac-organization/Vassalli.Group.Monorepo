@@ -70,7 +70,7 @@ export function getPurchaseOrderTableColumns({
 			key: "area",
 			label: "Área solicitante",
 			render: (row) =>
-				row.purchase_request.information_from_requesting_area.work_area_name?.trim() ||
+				row.purchase_request.information_from_requesting_area?.work_area_name?.trim() ||
 				"—",
 		},
 		{

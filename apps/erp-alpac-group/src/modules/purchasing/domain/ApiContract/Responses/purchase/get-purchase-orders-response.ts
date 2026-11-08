@@ -21,4 +21,4 @@ export interface GetPurchaseOrdersResponse {
    work_area_information: WorkAreaInformation;
 }
 
-export type GetPurchaseOrdersResponseList = PaginateBaseResponse<GetPurchaseOrdersResponse[]>;
+export type GetPurchaseOrdersResponseList = PaginateBaseResponse<GetPurchaseOrdersResponse>;

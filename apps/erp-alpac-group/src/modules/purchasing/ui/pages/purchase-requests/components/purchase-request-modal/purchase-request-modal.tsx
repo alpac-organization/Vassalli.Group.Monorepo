@@ -107,18 +107,22 @@ const resolveUnitMeasureId = (
 	return "";
 };
 
+const selectedUnitMeasureId = (value?: string | null): string | null => {
+	const unitMeasureId = value?.trim();
+	return unitMeasureId ? unitMeasureId : null;
+};
+
 const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestItem => {
 	const productJustification = item.justification?.trim() ?? "";
 	const productImages = item.images?.images_product_to_changed ?? [];
 	const additionalData: PurchaseRequestItemAdditionalData | null = productImages.length
 		? { images_product_to_changed: productImages }
 		: null;
-
 	return {
 		product_id: item.product_id ?? "",
 		quantity: Number(item.quantity),
 		description: item.description ?? "",
-		unit_measure_id: item.unit_measure_id ?? "",
+		unit_measure_id: selectedUnitMeasureId(item.unit_measure_id),
 		additional_data: additionalData ? JSON.stringify(additionalData) : null,
 		...(productJustification ? { justification: productJustification } : {}),
 		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
@@ -129,11 +133,9 @@ const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestIt
 
 const mapCreateItem = (item: PurchaseRequestItem): PurchaseRequestItem => {
 	const mapped = mapNewCreateItem(item);
-	const unitMeasureId = item.unit_measure_id?.trim() || null;
 
 	return {
 		...mapped,
-		unit_measure_id: unitMeasureId,
 		additional_supplier_ids: item.additional_supplier_ids,
 		new_product: item.new_product ?? null,
 	};
@@ -144,13 +146,12 @@ const mapExistingUpdateItem = (
 ): UpdateExistingPurchaseRequestItem => {
 	const productJustification = item.justification?.trim() ?? "";
 	const productImages = item.images?.images_product_to_changed ?? [];
-
 	return {
 		id: item.purchase_request_item_id,
 		product_id: item.product_id ?? undefined,
 		quantity: Number(item.quantity),
 		description: item.description ?? undefined,
-		unit_measure_id: item.unit_measure_id ?? undefined,
+		unit_measure_id: selectedUnitMeasureId(item.unit_measure_id),
 		images_product_to_changed: productImages,
 		...(productJustification ? { justification: productJustification } : {}),
 		...(item.quantity_unit != null && Number(item.quantity_unit) > 0

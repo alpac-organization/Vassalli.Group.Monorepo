@@ -11,6 +11,11 @@ import {
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import type { QuoteDetailAccordionProps } from "./quote-detail-accordion.types";
 
+const productNameLabelClassName =
+  "block min-w-0 truncate text-[15px] font-semibold text-slate-800 dark:text-white";
+const indexBadgeClassName =
+  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700";
+
 export function QuoteDetailAccordion({
   quoteDetailIndex,
   accordionValue,
@@ -57,57 +62,44 @@ export function QuoteDetailAccordion({
         isOpen={true}
         className="rounded-md! border-slate-300! dark:border-slate-600! dark:bg-[#272b34]!"
         contentClassName="p-4"
+        triggerClassName="h-auto! min-h-10!"
+        leading={
+          <div className="flex min-w-0 items-center gap-3 overflow-hidden">
+            <span className={indexBadgeClassName}>{quoteDetailIndex + 1}</span>
+            {hasQuotation ? (
+              <Checkbox
+                className="min-w-0 flex-1 overflow-hidden"
+                labelClassName={productNameLabelClassName}
+                label={productName}
+                checked
+                disabled
+              />
+            ) : (
+              <Checkbox
+                className="min-w-0 flex-1 overflow-hidden"
+                name={`select-quote-product-${quoteDetailIndex}`}
+                checked={isSelected}
+                label={productName}
+                labelClassName={productNameLabelClassName}
+                onChange={(evt) => {
+                  onSelectedChange?.(requestedProduct!, evt.target.checked ?? false);
+                }}
+                aria-label={`Seleccionar ${productName}`}
+              />
+            )}
+          </div>
+        }
         title={
           <div className="flex min-w-0 items-center gap-3">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
-              {quoteDetailIndex + 1}
-            </span>
-            <span
-              className="flex h-8 shrink-0 items-center "
-              onClick={(evt) => evt.stopPropagation()}
-              onKeyDown={(evt) => evt.stopPropagation()}
-            >
-              {hasQuotation ? (
-                <Checkbox
-                  labelClassName="block truncate text-[15px] font-semibold text-slate-800 dark:text-white"
-                  label={productName}
-                  checked
-                  disabled
-                />
-              ) : (
-                <Checkbox
-                  name={`select-quote-product-${quoteDetailIndex}`}
-                  checked={isSelected}
-                  label={productName}
-                  labelClassName="block truncate text-[15px] font-semibold text-slate-800 dark:text-white"
-                  onChange={(evt) => {
-                    const isChecked = evt.target.checked ?? false;
-                    onSelectedChange?.(requestedProduct!, isChecked);
-                  }}
-                  aria-label={`Seleccionar ${productName}`}
-                />
-              )}
-            </span>
-
             {categoryName ? (
-              <span className="flex h-8 min-w-0 flex-row items-center justify-center font-normal text-slate-500 dark:text-slate-300">
-                /
+              <span className="block min-w-0 truncate text-[14px] font-normal text-slate-500 dark:text-slate-300">
+                / {categoryName}
               </span>
             ) : null}
-
-            {categoryName ? (
-              <span className="block text-[14px] font-normal text-slate-500 dark:text-slate-300">
-                {categoryName ?? ""}
-              </span>
-            ) : null}
-
-            <span className="flex h-8 min-w-0 flex-row items-center justify-center font-normal text-slate-500 dark:text-slate-300">
-              /
-            </span>
-
             <span
-              className={`flex items-center gap-1 text-[14px] font-normal ${quotationStatusColor}`}
+              className={`flex shrink-0 items-center gap-1 text-[14px] font-normal ${quotationStatusColor}`}
             >
+              <span className="text-slate-500 dark:text-slate-300">/</span>
               {hasQuotation ? (
                 <CircleCheckBigIcon size={14} color="#22c55e" />
               ) : (

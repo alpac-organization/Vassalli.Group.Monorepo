@@ -61,6 +61,7 @@ export class SupplyRequestsServices implements ISupplyRequestsServices {
     const { company_id, module_code, supply_request_id, ...body } = payload;
 
     const requestBody = cleanParams({
+      code: body.code,
       reason_inventory_removal_id: body.reason_inventory_removal_id,
       observations: body.observations,
     });
@@ -75,6 +76,7 @@ export class SupplyRequestsServices implements ISupplyRequestsServices {
     const { company_id, module_code, supply_request_id, ...body } = payload;
 
     const requestBody = cleanParams({
+      code: body.code,
       observations: body.observations,
     });
 
