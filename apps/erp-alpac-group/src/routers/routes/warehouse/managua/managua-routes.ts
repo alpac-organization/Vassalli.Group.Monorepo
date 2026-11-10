@@ -2,12 +2,12 @@ import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/component
 import {
 	ClipboardListIcon,
 	FileStackIcon,
+	FuelIcon,
 	InboxIcon,
 	PackageCheck,
 	TicketIcon,
 	TruckIcon,
 	WarehouseIcon,
-	WrenchIcon,
 } from "lucide-react";
 
 export const getManaguaWarehouseRoutes = () => {
@@ -60,6 +60,13 @@ export const getManaguaWarehouseRoutes = () => {
 		icon: InboxIcon,
 	};
 
+	const reabastecimientoSection: SidebarLink = {
+		id: "reabastecimiento",
+		label: "Reabastecimiento",
+		path: "reabastecimiento",
+		icon: FuelIcon,
+	};
+	
 	return {
 		warehouseManaguaSection,
 		ongoingOperationsSection,
@@ -67,6 +74,7 @@ export const getManaguaWarehouseRoutes = () => {
 		warehouseDescargueSection,
 		BodegaSection,
 		ticketSection,
-		supplyRequestsSection
+		supplyRequestsSection,
+		reabastecimientoSection
 	};
 };
