@@ -45,7 +45,7 @@ export const LoginPage = function () {
   const companyOptions = useMemo(() => {
     if (!Array.isArray(data)) return [];
     return data.map((c: GetCompaniesResponse) => ({
-      label: c.alias,
+      label: c.alias ?? c.company_name ?? "",
       value: c.company_id,
       image: c.image_url ?? "",
     }));

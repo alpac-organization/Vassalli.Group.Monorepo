@@ -6,7 +6,7 @@ import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
-import { useManagement } from "@app/modules/management/ui/hooks/useManagement";
+import { useManagementReviews } from "@app/modules/management/ui/hooks/useManagementReviews";
 import { AnalyzedQuotesTable } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quotes-table/analyzed-quotes-table";
 import { AnalyzedQuoteDetailModal } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quote-detail-modal/analyzed-quote-detail-modal";
 import { AnalyzedQuotesFilters } from "@app/modules/management/ui/pages/analyzed-quotes/components/analyzed-quotes-filters/analyzed-quotes-filters";
@@ -17,10 +17,12 @@ import type { ProcessPurchaseOrderPayload } from "@app/modules/management/domain
 import type { managementReviewStatusType } from "@app/modules/management/domain/enum/management-review-status";
 import { ProcessPurchaseOrderModal } from "./components/process-purchase-order-modal/process-purchase-order-modal";
 import { AnnulModal } from "@app/shared/components/annul-modal/annul-modal";
+import type { AnnulModalScope } from "@app/shared/components/annul-modal/annul-modal.types";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_NUMBER = 1;
+const DEFAULT_PAGE_SIZE = 10;
 
 export const AnalyzedQuotes = () => {
 
@@ -35,7 +37,7 @@ export const AnalyzedQuotes = () => {
 		AlertComponent,
 	} = useAlertState();
 
-	const [pageNumber, setPageNumber] = useState(1);
+	const [pageNumber, setPageNumber] = useState(DEFAULT_PAGE_NUMBER);
 	const [appliedStatus, setAppliedStatus] = useState<managementReviewStatusType | "">("");
 	const [appliedAreaId, setAppliedAreaId] = useState("");
 	const [appliedBranchId, setAppliedBranchId] = useState("");
@@ -49,7 +51,6 @@ export const AnalyzedQuotes = () => {
 			company_id: companyId,
 			module_code: moduleCode,
 			page_number: pageNumber,
-			page_size: PAGE_SIZE,
 			...(appliedStatus && { status: appliedStatus }),
 			...(appliedAreaId && { area_id: appliedAreaId }),
 			...(appliedBranchId && { branch_id: appliedBranchId }),
@@ -57,9 +58,11 @@ export const AnalyzedQuotes = () => {
 		[companyId, moduleCode, pageNumber, appliedStatus, appliedAreaId, appliedBranchId],
 	);
 
-	const { GetRequisitionManagementReviews, ProcessPurchaseOrder, AnnulManagementReview } = useManagement(
-		{ payloadGetRequisitionManagementReviews }
-	);
+	const {
+		GetRequisitionManagementReviews,
+		ProcessPurchaseOrder,
+		AnnulManagementReview,
+	} = useManagementReviews({ payloadGetRequisitionManagementReviews });
 
 	const {
 		data: managementReviews,
@@ -69,19 +72,21 @@ export const AnalyzedQuotes = () => {
 
 	const quotes = managementReviews?.data ?? [];
 	const totalRecords = managementReviews?.total ?? 0;
+	const currentPage = managementReviews?.page_number ?? pageNumber;
+	const resolvedPageSize = managementReviews?.page_size ?? DEFAULT_PAGE_SIZE;
 
 	const handleApplyFilters = useCallback((filters: AnalyzedQuotesFiltersValues) => {
 		setAppliedStatus(filters.status);
 		setAppliedAreaId(filters.area_id);
 		setAppliedBranchId(filters.branch_id);
-		setPageNumber(1);
+		setPageNumber(DEFAULT_PAGE_NUMBER);
 	}, []);
 
 	const handleClearFilters = useCallback(() => {
 		setAppliedStatus("");
 		setAppliedAreaId("");
 		setAppliedBranchId("");
-		setPageNumber(1);
+		setPageNumber(DEFAULT_PAGE_NUMBER);
 	}, []);
 
 	const handlePageChange = useCallback((page: number) => {
@@ -134,7 +139,7 @@ export const AnalyzedQuotes = () => {
 		);
 	};
 
-	const handleAnnulConfirm = (data: { scope: number; reason: string }) => {
+	const handleAnnulConfirm = (data: { scope: AnnulModalScope; reason: string }) => {
 		const reviewId = selectedReview?.purchase_requests_reviewed_management_id;
 		if (!reviewId || !companyId || !moduleCode) return;
 
@@ -202,9 +207,9 @@ export const AnalyzedQuotes = () => {
 
 			<AnalyzedQuotesTable
 				data={quotes}
-				currentPage={managementReviews?.page_number ?? pageNumber}
+				currentPage={currentPage}
 				totalRecords={totalRecords}
-				pageSize={PAGE_SIZE}
+				pageSize={resolvedPageSize}
 				onPageChange={handlePageChange}
 				isFetching={isFetching}
 				onViewDetail={handleViewDetail}

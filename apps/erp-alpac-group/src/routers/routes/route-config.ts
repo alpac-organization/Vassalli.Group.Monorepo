@@ -21,6 +21,7 @@ const {
   liquidacionSection,
   attendanceControlSection,
   subsidyHistorialSection,
+  permissionPoliciesSection
 } = getPayrollRoutes();
 
 const {
@@ -80,6 +81,7 @@ export const routeConfig = {
       applicationFromPayrollSection,
       activeDeductionSection,
       liquidacionSection,
+      permissionPoliciesSection,
       attendanceControlSection,
       subsidyHistorialSection,
       gestionDisciplinariaSection,

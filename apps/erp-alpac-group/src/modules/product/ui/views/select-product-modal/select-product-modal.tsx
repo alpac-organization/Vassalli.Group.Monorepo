@@ -19,8 +19,10 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
 import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product.request";
-
-const PAGE_SIZE = 5;
+import {
+	buildProductListFilters,
+	SELECT_PRODUCT_PAGE_SIZE,
+} from "@app/modules/product/ui/views/select-product-modal/select-product-modal.utils";
 
 const primaryButtonClassName = "text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
 const secondaryButtonClassName = "text-[15px]! rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!";
@@ -42,6 +44,7 @@ export function SelectProductModal({
 	selectionType = "single",
 	excludeProductIds = [],
 	description,
+	productUsageType,
 }: SelectProductModalProps) {
 
 	const { companyId, moduleCode } = useUserStore();
@@ -51,31 +54,34 @@ export function SelectProductModal({
 	const [categoryId, setCategoryId] = useState("");
 	const [tempSelected, setTempSelected] = useState<SelectableCatalogProduct | null>(null);
 	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<SelectableCatalogProduct[]>([]);
-	const [filters, setFilters] = useState<GetProductRequest>({
-		company_id: companyId,
-		module_code: moduleCode,
-		category_product_id: "",
-		page_number: 1,
-		page_size: PAGE_SIZE,
-	} as GetProductRequest);
+	const [filters, setFilters] = useState<GetProductRequest>(() =>
+		buildProductListFilters(companyId, moduleCode, productUsageType),
+	);
 	const [listSession, setListSession] = useState({
 		isOpen,
 		companyId,
 		moduleCode,
+		productUsageType,
 	});
 
-	if (
-		listSession.isOpen !== isOpen ||
-		listSession.companyId !== companyId ||
-		listSession.moduleCode !== moduleCode
-	) {
+	const sessionMatches =
+		listSession.isOpen === isOpen &&
+		listSession.companyId === companyId &&
+		listSession.moduleCode === moduleCode &&
+		listSession.productUsageType === productUsageType;
+
+	let activeFilters = filters;
+
+	if (!sessionMatches) {
+		const usageChanged = listSession.productUsageType !== productUsageType;
 		const shouldResetQuery =
 			isOpen &&
-			(!listSession.isOpen ||
+			(usageChanged ||
+				!listSession.isOpen ||
 				listSession.companyId !== companyId ||
 				listSession.moduleCode !== moduleCode);
 
-		setListSession({ isOpen, companyId, moduleCode });
+		setListSession({ isOpen, companyId, moduleCode, productUsageType });
 
 		if (!isOpen) {
 			setError("");
@@ -85,14 +91,17 @@ export function SelectProductModal({
 		}
 
 		if (shouldResetQuery) {
+			const nextFilters = buildProductListFilters(
+				companyId,
+				moduleCode,
+				productUsageType,
+			);
+			activeFilters = nextFilters;
 			setCategoryId("");
-			setFilters({
-				company_id: companyId,
-				module_code: moduleCode,
-				category_product_id: "",
-				page_number: 1,
-				page_size: PAGE_SIZE,
-			});
+			setPageNumber(1);
+			setTempSelected(null);
+			setTempSelectedMultiple([]);
+			setFilters(nextFilters);
 		}
 	}
 
@@ -102,7 +111,7 @@ export function SelectProductModal({
 	);
 
 	const { GetProductCategories, GetProducts } = useProduct({
-		getProductPayload: filters,
+		getProductPayload: isOpen ? activeFilters : undefined,
 		getProductCategoryPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
@@ -143,13 +152,12 @@ export function SelectProductModal({
 	const onApplyFilters = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 		setPageNumber(1);
-		setFilters({
-			company_id: companyId,
-			module_code: moduleCode,
-			category_product_id: categoryId || "",
-			page_number: 1,
-			page_size: PAGE_SIZE,
-		});
+		setFilters(
+			buildProductListFilters(companyId, moduleCode, productUsageType, {
+				category_product_id: categoryId || "",
+				page_number: 1,
+			}),
+		);
 	};
 
 	const handlePageChange = useCallback((page: number) => {
@@ -157,7 +165,7 @@ export function SelectProductModal({
 		setFilters((prev) => ({
 			...prev,
 			page_number: page,
-			page_size: PAGE_SIZE,
+			page_size: SELECT_PRODUCT_PAGE_SIZE,
 		}));
 	}, []);
 
@@ -209,13 +217,7 @@ export function SelectProductModal({
 	const onClearFilters = () => {
 		setCategoryId("");
 		setPageNumber(1);
-		setFilters({
-			company_id: companyId,
-			module_code: moduleCode,
-			category_product_id: "",
-			page_number: 1,
-			page_size: PAGE_SIZE,
-		});
+		setFilters(buildProductListFilters(companyId, moduleCode, productUsageType));
 	};
 
 	const columnConfig: TableColumn<SelectableCatalogProduct>[] = useMemo(
@@ -340,7 +342,7 @@ export function SelectProductModal({
 					pagination={
 						<Pagination
 							currentPage={pageNumber}
-							pageSize={PAGE_SIZE}
+							pageSize={SELECT_PRODUCT_PAGE_SIZE}
 							totalRecords={totalRecords}
 							onPageChange={handlePageChange}
 						/>

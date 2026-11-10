@@ -23,7 +23,7 @@ export const PaymentMethodOptions: EnumType[] = Object.values(
 
 export const PaymentConditionEnum = {
 	Credit: { value: 1, label: "Credito", stringValue: "Credit" },
-	Cash: { value: 2, label: "Efectivo", stringValue: "Cash" },
+	Cash: { value: 2, label: "Contado", stringValue: "Cash" },
 } as const;
 
 export type PaymentConditionTypeEnum =
