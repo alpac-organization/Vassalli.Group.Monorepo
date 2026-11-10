@@ -19,11 +19,11 @@ import { FuelRequestsSectionFilters } from "./fuel-requests-section-filters";
 import type { FuelRequestsFilters } from "./fuel-requests-section-filters.types";
 import type { FuelRequestDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/fuel-requests/fuel-requests.response";
 
-import { ModalInfoField as SharedModalInfoField } from "../modal-info-field/modal-info-field";
+import { ModalInfoField as SharedModalInfoField } from "@app/shared/components/modal-info-field/modal-info-field";
 import { ApproveRequestModal } from "../approve-request-modal/approve-request-modal";
 import { DeclineRequestModal } from "../decline-request-modal/decline-request-modal";
 import { REQUEST_STATUS_TABS, getStatusBadgeClassName } from "../../utils/request-status";
-import { StatusTabsOverlay } from "../status-tabs-overlay/status-tabs-overlay";
+import { StatusTabsOverlay } from "@app/shared/components/status-tabs-overlay/status-tabs-overlay";
 
 const DEFAULT_FUEL_FILTERS: FuelRequestsFilters = {
   page_number: 1,

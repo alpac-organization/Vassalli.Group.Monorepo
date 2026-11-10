@@ -1,4 +1,4 @@
-import type { ModalInfoFieldProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/supply-requests/components/modal-info-field/types/modal-info-field.types";
+import type { ModalInfoFieldProps } from "@app/shared/components/modal-info-field/modal-info-field.types";
 
 export function ModalInfoField({ label, value, valueClassName = "text-[13px]" }: ModalInfoFieldProps) {
   return (
