@@ -7,6 +7,7 @@ import type { ContextMenuItem, TableColumn } from "@alpac/design-system"
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response"
 import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types"
 import type { GetProductColumnsToTableProps } from "./products-and-services-control.types"
+import { ProductStatus } from "@app/core/enums/product-status.enum"
 
 export const GetProductColumnsToTable = function(props: GetProductColumnsToTableProps): TableColumn<GetProductResponse>[]{
    return [
@@ -20,6 +21,19 @@ export const GetProductColumnsToTable = function(props: GetProductColumnsToTable
       { 
          key: "product_name",       
          label: "Producto"
+      },
+      {
+         key: "status",       
+         label: "Estado",
+         render(item) {
+            return (
+               <Badges 
+                  color="info"
+                  className={ProductStatus[item.product_status ?? "Active"].BadgeColor}
+                  label={ProductStatus[item.product_status ?? "Active"].label}
+               />
+            )
+         },
       },
       {
          key: "category",       
@@ -68,7 +82,7 @@ export const GetProductColumnsToTable = function(props: GetProductColumnsToTable
 }
 
 const getContexMenuItems = function(subProps: GetProductColumnsToTableProps): ContextMenuItem[] {
-   const { item, openModalToEdit, selectProductToEdit } = subProps;
+   const { item, openModalToEdit, openModalToDelete, selectProduct } = subProps;
 
    if (!item)
    {
@@ -79,20 +93,15 @@ const getContexMenuItems = function(subProps: GetProductColumnsToTableProps): Co
       {
          label: "Editar",
          onClick(){
-            selectProductToEdit(item);
+            selectProduct(item);
             openModalToEdit();
          }
       },
       {
          label: "Elminar Producto",
          onClick(){
-            console.log("Eliminar producto.");
-         }
-      },
-      {
-         label: "Ver Detalles",
-         onClick(){
-            console.log("Ver detalles del producto");
+            selectProduct(item);
+            openModalToDelete()
          }
       }
    ]

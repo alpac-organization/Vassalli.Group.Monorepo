@@ -2,6 +2,7 @@ import type { GetProductResponse } from "@app/modules/product/domain/ApiContract
 
 export interface GetProductColumnsToTableProps {
     item?: GetProductResponse;
-    selectProductToEdit: (product: GetProductResponse) => void;
-    openModalToEdit: () => void;
+    selectProduct:       (product: GetProductResponse) => void;   
+    openModalToEdit:     () => void;
+    openModalToDelete:   () => void;
 }

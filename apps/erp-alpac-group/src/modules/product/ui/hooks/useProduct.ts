@@ -16,6 +16,7 @@ import type { UpdateProductSupplierPriceRequest } from "@app/modules/product/dom
 import type { GetProductSupplierPriceHistoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product-supplier-price-history.request";
 import type { GetProductSupplierPriceHistoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product-supplier-price-history.response";
 import type { DeleteProductSupplierLinkRequest } from "@app/modules/product/domain/ApiContract/Requests/product/delete-product-supplier-link.request";
+import type { DeleteProductRequest } from "../../domain/ApiContract/Requests/product/delete-product.request";
 
 const productServices = new ProductServices(httpHandler);
 
@@ -154,6 +155,16 @@ export const useProduct = (props?: useProductProps) => {
 		retry: 1,
 	});
 
+	const DeleteProductCommand = useMutation<void, ApiErrorResponse, DeleteProductRequest>({
+		mutationKey: ["delete-product"],
+		mutationFn: (payload) => productServices.DeleteProductAsync(payload),
+		onSuccess: () => {
+			//realizar un acción en segundo plano en background...
+			queryClient.invalidateQueries({ queryKey: ["get-products"] });
+		},
+		retry: 1,
+	});
+
 	const CreateProductCategory = useMutation<
 		CreateProductCategoryResponse,
 		ApiErrorResponse,
@@ -177,5 +188,6 @@ export const useProduct = (props?: useProductProps) => {
 		UpdateProductSupplierPrice,
 		DeleteProductSupplierLink,
 		CreateProductCategory,
+		DeleteProductCommand
 	};
 };

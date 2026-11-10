@@ -17,6 +17,7 @@ import type { CreateProductResponse } from "@app/modules/product/domain/ApiContr
 import type { GetProductDetailsResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product-details.response";
 import type { GetProductSupplierPriceHistoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product-supplier-price-history.response";
 import type { GetProductResponseList } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
+import type { DeleteProductRequest } from "../../domain/ApiContract/Requests/product/delete-product.request";
 
 export class ProductServices implements IProductServices {
 	private readonly apiHandler: IHttpHandler;
@@ -117,5 +118,19 @@ export class ProductServices implements IProductServices {
 		const url = `companies/${company_id}/modules/${module_code}/category-products`;
 
 		return this.apiHandler.post<CreateProductCategoryResponse>(url, rest);
+	}
+
+	async DeleteProductAsync(payload: DeleteProductRequest): Promise<void>
+	{
+		try {
+			const { company_id, module_code, product_id } = payload;
+
+			const url = `companies/${company_id}/modules/${module_code}/products/${product_id}`;
+			return this.apiHandler.delete<void>(url);
+		}
+		catch(error: unknown)
+		{
+			throw error;
+		}
 	}
 }

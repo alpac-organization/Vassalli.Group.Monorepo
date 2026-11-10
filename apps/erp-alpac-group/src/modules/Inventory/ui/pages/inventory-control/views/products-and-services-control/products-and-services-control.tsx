@@ -9,12 +9,15 @@ import { DEFAULT_PRODUCT_FILTERS, GetProductColumnsToTable } from "./products-an
 import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { DeleteProductModal } from "./modals/delete-product-modal";
 
 const PAGE_SIZE = 5;
 
 export const ProductsAndServicesControl = function() {
 
    const [openProductEditModal, setOpenProductEditModal] = useState(false);
+   const [openProductDeleteModal, setOpenProductDeleteModal] = useState(false);
+
    const [productSelected, setProductSelected] = useState<GetProductResponse | null>(null);
    const { AlertComponent, handleRequestSuccess, handleRequestError } = useAlertState();
    
@@ -36,9 +39,10 @@ export const ProductsAndServicesControl = function() {
       setOpenProductEditModal(true);
    }
 
-   const handleCloseModal = function(){
-      setOpenProductEditModal(false);
+   const handleOpenModalToDeleteProduct = function(){
+      setOpenProductDeleteModal(true);
    }
+
 
    const handleSelectProduct = function(product: GetProductResponse) {
       setProductSelected(product);  
@@ -48,8 +52,9 @@ export const ProductsAndServicesControl = function() {
    const { data: productsData, isPending, isFetching } = GetProducts;
    
    const productsAndServicesColumns = GetProductColumnsToTable({
-      selectProductToEdit: handleSelectProduct,
-      openModalToEdit: handleOpenModalToEditProduct
+      selectProduct:     handleSelectProduct,
+      openModalToDelete: handleOpenModalToDeleteProduct,
+      openModalToEdit:   handleOpenModalToEditProduct,
    });
 
    //Metodos de filtrado
@@ -98,14 +103,29 @@ export const ProductsAndServicesControl = function() {
 				}
 			/>
          
-         {/* Modal para editar un producto */}
-         <CreateProductModal 
-            isOpen={openProductEditModal}
-            onClose={handleCloseModal}
-            typeProductToRegister="Operational"
-            selectedProduct={productSelected}
+         {
+            productSelected && openProductEditModal && (
+               <CreateProductModal 
+                  isOpen={openProductEditModal}
+                  onClose={() => {
+                     setOpenProductEditModal(false)
+                  }}
+                  typeProductToRegister="Operational"
+                  selectedProduct={productSelected}
+                  onRequestError={handleRequestError}
+                  onRequestSuccess={handleRequestSuccess}
+               />
+            )
+         }
+
+         <DeleteProductModal
+            isOpen={openProductDeleteModal}
+            onClose={() => {
+               setOpenProductDeleteModal(false);
+            }}
             onRequestError={handleRequestError}
-            onRequestSuccess={handleRequestSuccess}
+            onRequestSuccess={handleRequestSuccess} 
+            productSelected={productSelected}
          />
 
          { AlertComponent }
