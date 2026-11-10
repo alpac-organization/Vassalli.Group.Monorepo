@@ -1,12 +1,12 @@
 import { Document, Page } from "@react-pdf/renderer";
 import { formatDate } from "@app/shared/utils/string.utils";
 import { quoteAnalysisPdfStyles as styles } from "@app/modules/finance/ui/pages/quote-analisys/templates/styles/quote-analysis.styles";
+import { buildQuoteAnalysisPdfViewModel } from "@app/modules/finance/ui/pages/quote-analisys/templates/utils/build-quote-analysis-view-model";
 import {
-	buildQuoteAnalysisPdfViewModel,
 	chunkSuppliers,
 	getProviderBlockWidth,
 	SUPPLIERS_PER_PAGE_CHUNK,
-} from "@app/modules/finance/ui/pages/quote-analisys/templates/utils/quote-analysis.utils";
+} from "@app/modules/finance/ui/pages/quote-analisys/templates/utils/pdf-layout.utils";
 import type { QuoteAnalysisPDFProps } from "@app/modules/finance/ui/pages/quote-analisys/templates/types/quote-analysis.types";
 import { QuoteAnalysisPdfHeader } from "@app/modules/finance/ui/pages/quote-analisys/templates/components/quote-analysis-pdf-header";
 import { QuoteAnalysisPdfItemsTable } from "@app/modules/finance/ui/pages/quote-analisys/templates/components/quote-analysis-pdf-items-table";

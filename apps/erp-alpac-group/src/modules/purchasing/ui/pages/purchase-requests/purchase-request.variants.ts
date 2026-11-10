@@ -97,9 +97,14 @@ export const purchaseRequestDestinationBadgeVariants = {
 		badgeColor: "bg-indigo-500/15 text-indigo-300 border border-indigo-400/40",
 	},
 
-	[PurchaseRequestDestinationEnum.External.textValue]: {
-		label: PurchaseRequestDestinationEnum.External.label,
+	[PurchaseRequestDestinationEnum.Client.textValue]: {
+		label: PurchaseRequestDestinationEnum.Client.label,
 		badgeColor: "bg-cyan-500/15 text-cyan-300 border border-cyan-400/40",
+	},
+
+	[PurchaseRequestDestinationEnum.ServiceOrder.textValue]: {
+		label: PurchaseRequestDestinationEnum.ServiceOrder.label,
+		badgeColor: "bg-emerald-500/15 text-emerald-300 border border-emerald-400/40",
 	},
 
 	default: {

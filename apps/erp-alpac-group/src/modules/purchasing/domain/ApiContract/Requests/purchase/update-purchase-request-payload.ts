@@ -15,7 +15,7 @@ export interface UpdateExistingPurchaseRequestItem {
 	quantity?: number;
 	quantity_unit?: number;
 	product_id?: string;
-	unit_measure_id?: string;
+	unit_measure_id?: string | null;
 	description?: string;
 	justification?: string;
 	images_product_to_changed?: string[];
@@ -26,7 +26,7 @@ export interface UpdateNewPurchaseRequestItem {
 	product_id: string;
 	quantity: number;
 	quantity_unit?: number;
-	unit_measure_id: string;
+	unit_measure_id?: string | null;
 	description?: string;
 	justification?: string;
 	additional_data?: string | null;
