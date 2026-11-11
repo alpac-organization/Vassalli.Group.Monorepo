@@ -727,6 +727,7 @@ export const CreateProductModal = ({
 						items={supplierLinks}
 						onChange={handleSupplierLinksChange}
 						lockEntity
+						canRemove={!isEditMode}
 						onAddClick={() => setIsSelectSupplierOpen(true)}
 						disabled={isSaving || isLoadingDetails}
 					/>

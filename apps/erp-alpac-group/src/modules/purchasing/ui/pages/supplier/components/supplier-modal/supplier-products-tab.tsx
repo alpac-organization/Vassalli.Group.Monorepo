@@ -10,6 +10,7 @@ type SupplierProductsTabProps = {
   onChange: (items: CatalogLinkItemForm[]) => void;
   onAddClick: () => void;
   disabled: boolean;
+  canRemove?: boolean;
 };
 
 export const SupplierProductsTab = ({
@@ -19,6 +20,7 @@ export const SupplierProductsTab = ({
   onChange,
   onAddClick,
   disabled,
+  canRemove = true,
 }: SupplierProductsTabProps) => {
   const { GetUnitMeasurements } = useUnitOfMeasurement({
     payloadUnitOfMeasurement: {
@@ -53,6 +55,7 @@ export const SupplierProductsTab = ({
         items={items}
         onChange={onChange}
         lockEntity
+        canRemove={canRemove}
         onAddClick={onAddClick}
         disabled={disabled}
       />

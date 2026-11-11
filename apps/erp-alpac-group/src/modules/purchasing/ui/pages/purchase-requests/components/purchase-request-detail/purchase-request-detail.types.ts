@@ -1,7 +1,7 @@
 import type { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 
 export type PurchaseRequestDetailProps = {
-   requestType: PurchaseRequestEnum;
+   isRequisition: boolean;
    disableActions?: boolean;
    lockItems?: boolean;
    isEditMode?: boolean;

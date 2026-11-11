@@ -17,31 +17,177 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const suppliersServices = new SupplierServices(httpHandler);
 
-type useSuppliersProps = {
-	suppliersFilters?: GetSuppliersRequest;
-	supplierDetailFilters?: GetSupplierDetailsRequest;
+const SUPPLIERS_STALE_TIME = 1000 * 60 * 2;
+
+const isSuppliersListEnabled = (filters?: GetSuppliersRequest) =>
+	Boolean(
+		filters?.company_id?.trim() &&
+			filters.module_code?.trim() &&
+			filters.page_number,
+	);
+
+export const useSuppliersList = (filters: GetSuppliersRequest) =>
+	useQuery({
+		queryKey: ["suppliers", filters],
+		queryFn: () => suppliersServices.getSuppliers(filters),
+		staleTime: SUPPLIERS_STALE_TIME,
+		enabled: isSuppliersListEnabled(filters),
+		refetchOnWindowFocus: false,
+		refetchOnMount: false,
+		retry: 1,
+	});
+
+
+const isSupplierDetailsEnabled = (filters?: GetSupplierDetailsRequest) =>
+	Boolean(
+		filters?.company_id?.trim() &&
+			filters.module_code?.trim() &&
+			filters.supplier_id,
+	);
+
+export const supplierDetailsQueryOptions = (filters?: GetSupplierDetailsRequest) => ({
+	queryKey: ["supplier-details", filters] as const,
+	queryFn: () => suppliersServices.GetSupplierDetails(filters!),
+	enabled: isSupplierDetailsEnabled(filters),
+	refetchOnWindowFocus: false as const,
+	retry: 1,
+	staleTime: SUPPLIERS_STALE_TIME,
+});
+
+const createSupplierMutationOptions = (queryClient: QueryClient) => ({
+	mutationKey: ["create-supplier"] as const,
+	mutationFn: (payload: CreateSupplierRequest) =>
+		suppliersServices.CreateSupplier(payload),
+	onSuccess() {
+		queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+		queryClient.invalidateQueries({ queryKey: ["get-products"] });
+		queryClient.invalidateQueries({ queryKey: ["get-product-details"] });
+	},
+	retry: 1,
+});
+
+const updateSupplierMutationOptions = (queryClient: QueryClient) => ({
+	mutationKey: ["update-supplier"] as const,
+	mutationFn: (payload: UpdateSupplierRequest) =>
+		suppliersServices.UpdateSupplier(payload),
+	onSuccess() {
+		queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+		queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+		queryClient.invalidateQueries({ queryKey: ["get-products"] });
+		queryClient.invalidateQueries({ queryKey: ["get-product-details"] });
+	},
+});
+
+const createBankAccountMutationOptions = (queryClient: QueryClient) => ({
+	mutationKey: ["create-supplier-bank-account"] as const,
+	mutationFn: ({
+		companyId,
+		moduleCode,
+		supplierId,
+		payload,
+	}: CreateBankAccountMutationArgs) =>
+		suppliersServices.createBankAccount(
+			companyId,
+			moduleCode,
+			supplierId,
+			payload,
+		),
+	onSuccess() {
+		queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+		queryClient.invalidateQueries({ queryKey: ["supplier-bank-accounts"] });
+	},
+});
+
+const updateBankAccountMutationOptions = (queryClient: QueryClient) => ({
+	mutationKey: ["update-supplier-bank-account"] as const,
+	mutationFn: ({
+		companyId,
+		moduleCode,
+		supplierId,
+		bankAccountId,
+		payload,
+	}: UpdateBankAccountMutationArgs) =>
+		suppliersServices.updateBankAccount(
+			companyId,
+			moduleCode,
+			supplierId,
+			bankAccountId,
+			payload,
+		),
+	onSuccess() {
+		queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+		queryClient.invalidateQueries({ queryKey: ["supplier-bank-accounts"] });
+	},
+});
+
+const deleteBankAccountMutationOptions = (queryClient: QueryClient) => ({
+	mutationKey: ["delete-supplier-bank-account"] as const,
+	mutationFn: ({
+		companyId,
+		moduleCode,
+		supplierId,
+		bankAccountId,
+	}: DeleteBankAccountMutationArgs) =>
+		suppliersServices.deleteBankAccount(
+			companyId,
+			moduleCode,
+			supplierId,
+			bankAccountId,
+		),
+	onSuccess() {
+		queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+		queryClient.invalidateQueries({ queryKey: ["supplier-bank-accounts"] });
+	},
+});
+
+const useSupplierEditorMutations = () => {
+	const queryClient = useQueryClient();
+
+	const CreateSupplier = useMutation<
+		CreateSupplierResponse,
+		ApiErrorResponse,
+		CreateSupplierRequest
+	>(createSupplierMutationOptions(queryClient));
+
+	const UpdateSupplier = useMutation<void, ApiErrorResponse, UpdateSupplierRequest>(
+		updateSupplierMutationOptions(queryClient),
+	);
+
+	const CreateBankAccount = useMutation<
+		SupplierBankAccount,
+		ApiErrorResponse,
+		CreateBankAccountMutationArgs
+	>(createBankAccountMutationOptions(queryClient));
+
+	const UpdateBankAccount = useMutation<
+		void,
+		ApiErrorResponse,
+		UpdateBankAccountMutationArgs
+	>(updateBankAccountMutationOptions(queryClient));
+
+	const DeleteBankAccount = useMutation<
+		void,
+		ApiErrorResponse,
+		DeleteBankAccountMutationArgs
+	>(deleteBankAccountMutationOptions(queryClient));
+
+	return {
+		CreateSupplier,
+		UpdateSupplier,
+		CreateBankAccount,
+		UpdateBankAccount,
+		DeleteBankAccount,
+	};
 };
 
-export type CreateBankAccountMutationArgs = {
-	companyId: string;
-	moduleCode: string;
-	supplierId: string;
-	payload: CreateSupplierBankAccountPayload;
-};
+export const useSupplierEditor = (detailFilters?: GetSupplierDetailsRequest) => {
+	const GetSupplierDetails = useQuery(supplierDetailsQueryOptions(detailFilters));
+	const mutations = useSupplierEditorMutations();
 
-export type UpdateBankAccountMutationArgs = {
-	companyId: string;
-	moduleCode: string;
-	supplierId: string;
-	bankAccountId: string;
-	payload: UpdateSupplierBankAccountPayload;
-};
-
-export type DeleteBankAccountMutationArgs = {
-	companyId: string;
-	moduleCode: string;
-	supplierId: string;
-	bankAccountId: string;
+	return {
+		GetSupplierDetails,
+		...mutations,
+	};
 };
 
 export const useSupplier = (props?: useSuppliersProps) => {

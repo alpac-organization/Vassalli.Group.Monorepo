@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence, m, type Variants } from "framer-motion";
 import {
    useForm,
+   useWatch,
    Controller,
    type ControllerRenderProps,
 } from "react-hook-form";
@@ -33,12 +34,17 @@ import { validateMaximumDonatedVacation } from "./utils/validateMaximumDonatedVa
 import { CollaboratorSearchForm } from "../collaborator-search-form/collaborator-search-form";
 import { CollaboratorSummary } from "./collaborator-summary";
 import { MedicalAppointmentImageUploader } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/medical-appointment-image-uploader/medical-appointment-image-uploader";
+import { LeavePermissionFields } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/leave-permission-fields/leave-permission-fields";
+import { findMatchingLeavePolicy } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/utils/find-matching-leave-policy";
 
 import type { PermissionRequestFormValues } from "./types/permission-form.types";
 import type { NewPermissionRequestFormProps } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/new-permissionFormProps";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
 import { VACATION_PAY_OPTIONS } from "../../constants/vacation-pay.filters.constants";
-import type { PermissionType } from "./types/permission.types";
+import {
+  isLeavePermissionType,
+  type PermissionType,
+} from "./types/permission.types";
 import type { ApplicationType } from "./types/application.types";
 // import { RoleEnum } from "@app/core/enums/role.enum";
 // import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -80,6 +86,9 @@ export function NewPermissionRequestForm({
    channel,
    payrollId,
    onValidationError,
+   policies = [],
+   beneficiaryScopes = [],
+   familyRelationships = [],
 }: NewPermissionRequestFormProps) {
 
    const defaultValues = {
@@ -89,6 +98,9 @@ export function NewPermissionRequestForm({
       start_time: "",
       end_time: "",
       medical_images: [],
+      beneficiary_scope: "",
+      family_relationship: "None",
+      related_person: "",
       description: "",
    };
 
@@ -157,11 +169,24 @@ export function NewPermissionRequestForm({
       mode: "onChange",
    });
 
+   const watchedBeneficiaryScope = useWatch({
+      control,
+      name: "beneficiary_scope",
+   });
+   const watchedFamilyRelationship = useWatch({
+      control,
+      name: "family_relationship",
+   });
+
    const initialSelectedType: Record<ApplicationType | PermissionType, boolean> = {
       Vacation: false,
       DonatedVacations: false,
       MedicalAppointment: false,
-      VacationPay: false
+      VacationPay: false,
+      JudicialAppointment: false,
+      MarriageLeave: false,
+      BirthLeave: false,
+      BereavementLeave: false,
    };
 
    const [applicationType, setApplicationType] = useState(initialSelectedType);
@@ -211,6 +236,21 @@ export function NewPermissionRequestForm({
       applicationType.Vacation,
    ]);
 
+   const selectedLeaveType = useMemo(() => {
+      if (applicationType.JudicialAppointment) return "JudicialAppointment";
+      if (applicationType.MarriageLeave) return "MarriageLeave";
+      if (applicationType.BirthLeave) return "BirthLeave";
+      if (applicationType.BereavementLeave) return "BereavementLeave";
+      return undefined;
+   }, [
+      applicationType.JudicialAppointment,
+      applicationType.MarriageLeave,
+      applicationType.BirthLeave,
+      applicationType.BereavementLeave,
+   ]);
+
+   const isLeaveTypeSelected = Boolean(selectedLeaveType);
+
    const requiresTimeRange = useMemo(() => {
       if (applicationType.MedicalAppointment) {
          return timeFormatType === "rangeOfHours";
@@ -220,10 +260,15 @@ export function NewPermissionRequestForm({
          return timeFormatType === "rangeOfHours";
       }
 
+      if (isLeaveTypeSelected && isSameDay) {
+         return timeFormatType === "rangeOfHours";
+      }
+
       return false;
    }, [
       applicationType.MedicalAppointment,
       applicationType.Vacation,
+      isLeaveTypeSelected,
       isSameDay,
       timeFormatType,
    ]);
@@ -255,6 +300,20 @@ export function NewPermissionRequestForm({
          setValue("medical_images", []);
          clearTimeFields();
       }
+
+      if (isLeavePermissionType(type)) {
+         setTimeFormatType("fullDay");
+         setStartDate(null);
+         setEndDate(null);
+         setIsEndDateDisabled(true);
+         setValue("start_date", null);
+         setValue("end_date", null);
+         setValue("medical_images", []);
+         setValue("beneficiary_scope", "");
+         setValue("family_relationship", "None");
+         setValue("related_person", "");
+         clearTimeFields();
+      }
    };
 
    const handleFormSubmit = (values: PermissionRequestFormValues) => {
@@ -279,6 +338,25 @@ export function NewPermissionRequestForm({
             "No hay una nómina en progreso asociada. No se puede registrar el permiso.",
          );
          return;
+      }
+
+      if (isLeavePermissionType(values.type)) {
+         const matchedPolicy = findMatchingLeavePolicy({
+            policies,
+            permitApplicationType: values.type,
+            beneficiaryScope: values.beneficiary_scope ?? "",
+            familyRelationship:
+               values.beneficiary_scope === "FamilyNucleus"
+                  ? values.family_relationship ?? "None"
+                  : "None",
+         });
+
+         if (!matchedPolicy) {
+            onValidationError?.(
+               "No hay una política activa para esta combinación de tipo, alcance y parentesco.",
+            );
+            return;
+         }
       }
 
       const payload = generatePermissionPayload(values, {
@@ -388,8 +466,83 @@ export function NewPermissionRequestForm({
                   className="flex flex-col gap-4 sm:gap-5"
                >
                   <AnimatePresence mode="popLayout">
-                     {(applicationType.Vacation ||
-                        applicationType.MedicalAppointment) && (
+                     {isLeaveTypeSelected && selectedLeaveType ? (
+                        <m.div
+                           key="leave-permission-section"
+                           variants={formFieldVariants}
+                           initial="hidden"
+                           animate="visible"
+                           exit="exit"
+                        >
+                           <LeavePermissionFields
+                              control={control}
+                              errors={errors}
+                              register={register}
+                              getValues={getValues}
+                              permitApplicationType={selectedLeaveType}
+                              startDate={startDate}
+                              endDate={endDate}
+                              isSameDay={isSameDay}
+                              timeFormatType={timeFormatType}
+                              requiresTimeRange={requiresTimeRange}
+                              isEndDateDisabled={isEndDateDisabled}
+                              isEndTimeDisabled={isEndTimeDisabled}
+                              beneficiaryScope={watchedBeneficiaryScope ?? ""}
+                              familyRelationship={
+                                 watchedFamilyRelationship ?? "None"
+                              }
+                              policies={policies}
+                              beneficiaryScopes={beneficiaryScopes}
+                              familyRelationships={familyRelationships}
+                              onTimeFormatChange={(value) => {
+                                 setTimeFormatType(value);
+                                 if (value === "fullDay") {
+                                    clearTimeFields();
+                                 }
+                              }}
+                              onStartDateChange={(value) => {
+                                 const nextStart = value?.$d ?? null;
+                                 setStartDate(nextStart);
+                                 setIsEndDateDisabled(false);
+                                 if (nextStart && endDate) {
+                                    applyTimeFormat(nextStart, endDate);
+                                    if (!dayjs(nextStart).isSame(dayjs(endDate), "day")) {
+                                       clearTimeFields();
+                                       setTimeFormatType("fullDay");
+                                    }
+                                 }
+                              }}
+                              onEndDateChange={(value) => {
+                                 const nextEnd = value?.$d ?? null;
+                                 setEndDate(nextEnd);
+                                 if (startDate && nextEnd) {
+                                    applyTimeFormat(startDate, nextEnd);
+                                    if (!dayjs(startDate).isSame(dayjs(nextEnd), "day")) {
+                                       clearTimeFields();
+                                       setTimeFormatType("fullDay");
+                                    }
+                                 }
+                              }}
+                              onStartTimeChange={() => {
+                                 setIsEndTimeDisabled(false);
+                              }}
+                              onBeneficiaryScopeChange={(value) => {
+                                 setValue("medical_images", []);
+                                 if (value !== "FamilyNucleus") {
+                                    setValue("family_relationship", "None");
+                                    setValue("related_person", "");
+                                 }
+                              }}
+                              onFamilyRelationshipChange={() => {
+                                 setValue("medical_images", []);
+                              }}
+                           />
+                        </m.div>
+                     ) : null}
+
+                     {!isLeaveTypeSelected &&
+                        (applicationType.Vacation ||
+                           applicationType.MedicalAppointment) && (
                            <m.div
                               key="dates-section"
                               variants={formFieldVariants}
@@ -545,8 +698,10 @@ export function NewPermissionRequestForm({
                            </m.div>
                         )}
 
-                     {((applicationType.Vacation && isSameDay) ||
-                        (applicationType.MedicalAppointment && startDate)) && (
+                     {!isLeaveTypeSelected &&
+                        ((applicationType.Vacation && isSameDay) ||
+                           (applicationType.MedicalAppointment &&
+                              startDate)) && (
                            <m.div
                               key="time-format-section"
                               variants={formFieldVariants}
@@ -596,7 +751,7 @@ export function NewPermissionRequestForm({
                            </m.div>
                         )}
 
-                     {requiresTimeRange && (
+                     {!isLeaveTypeSelected && requiresTimeRange && (
                         <m.div
                            key="hours-section"
                            variants={formFieldVariants}

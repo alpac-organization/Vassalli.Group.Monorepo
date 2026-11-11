@@ -20,6 +20,7 @@ const {
   liquidacionSection,
   attendanceControlSection,
   subsidyHistorialSection,
+  permissionPoliciesSection
 } = getPayrollRoutes();
 
 const {
@@ -47,7 +48,9 @@ const {
   warehouseAssignmentSection,
   warehouseDescargueSection,
   BodegaSection,
-  ticketSection
+  ticketSection,
+  supplyRequestsSection,
+  reabastecimientoSection
 } = getManaguaWarehouseRoutes();
 
 const { manageSection } = getWarehouseAdminRoutes();
@@ -77,6 +80,7 @@ export const routeConfig = {
       applicationFromPayrollSection,
       activeDeductionSection,
       liquidacionSection,
+      permissionPoliciesSection,
       attendanceControlSection,
       subsidyHistorialSection,
     ],
@@ -125,7 +129,9 @@ export const routeConfig = {
       warehouseDescargueSection,
       BodegaSection,
       warehouseReportSection,
-      ticketSection
+      ticketSection,
+      supplyRequestsSection,
+      reabastecimientoSection,
     ],
     [RoleEnum.MANAGER]: [
       warehouseManaguaSection,
@@ -134,6 +140,8 @@ export const routeConfig = {
       warehouseDescargueSection,
       BodegaSection,
       warehouseReportSection,
+      supplyRequestsSection,
+      reabastecimientoSection,
     ],
     [RoleEnum.SUPERVISOR]: [
       warehouseManaguaSection,
@@ -142,6 +150,8 @@ export const routeConfig = {
       warehouseDescargueSection,
       BodegaSection,
       warehouseReportSection,
+      supplyRequestsSection,
+      reabastecimientoSection,
     ],
   },
   [ModuleEnum.WAREHOUSE_ADMIN]: {

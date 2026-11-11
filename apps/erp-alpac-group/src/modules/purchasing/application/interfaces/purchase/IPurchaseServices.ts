@@ -27,6 +27,7 @@ import type {
 	GetTransferRequestReportPayload,
 } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-order-report-payload";
 import type { PurchaseOrderTemplateDto } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-report-response";
+import type { TransferRequestReportDto } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-transfer-request-report-response";
 
 export interface IPurchaseServices {
 	GetPurchaseRequests(
@@ -81,7 +82,7 @@ export interface IPurchaseServices {
 
 	GetTransferRequestReport(
 		payload: GetTransferRequestReportPayload,
-	): Promise<PurchaseOrderTemplateDto>;
+	): Promise<TransferRequestReportDto>;
 
 	AnnulPurchaseRequest(payload: AnnulPurchaseRequestPayload): Promise<void>;
 }

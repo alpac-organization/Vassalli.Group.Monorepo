@@ -3,7 +3,6 @@ import { useState } from "react";
 import { secondaryButtonClassName } from "@app/modules/product/ui/views/product-price-edit-modal/constants/product-price.constants";
 import { Alert, Button, InputText, Modal } from "@alpac/design-system";
 import { inputClassName, labelClassName } from "@app/modules/purchasing/ui/pages/supplier/utils/style";
-import { quoteFormDangerButtonClassName } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
 
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -122,7 +121,6 @@ export const DeleteProductModal = (props: DeleteProductModalProps) => {
                   type="submit"
                   size="giant"
                   label="Dar de baja"
-                  className={quoteFormDangerButtonClassName}
                   isLoading={isDeleting}
                   disabled={!canConfirm || isDeleting}
                />

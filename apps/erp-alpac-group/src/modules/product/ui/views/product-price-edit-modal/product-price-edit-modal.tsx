@@ -22,8 +22,11 @@ import {
 	CurrencyCodeOptions,
 	type CurrencyCode,
 } from "@app/core/enums/currency.enum";
+import { toDateOnly, toDayjsValue } from "@app/shared/utils/date.utils";
+import { loadMotionFeatures } from "@app/modules/product/ui/views/product-price-edit-modal/utils/product-price.utils";
 import {
 	emptyCatalogLinkTier,
+	formatPreferentialTierTitle,
 	resolveLinkCurrency,
 	resolveLinkUnitMeasureId,
 	resolveTierPricesForPatch,
@@ -490,29 +493,21 @@ export const ProductPriceEditModal = ({
 															triggerClassName="h-auto! min-h-11! py-2! pr-3!"
 															contentClassName="flex flex-col gap-4 p-4"
 															title={
-																<div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-																	<span className="truncate text-sm font-medium text-slate-900 dark:text-white">
-																		{formatPreferentialTitle(tier)}
-																	</span>
-																	<span
-																		className="mr-3 flex shrink-0 items-center"
-																		onClick={(event) =>
-																			event.stopPropagation()
-																		}
-																		onKeyDown={(event) =>
-																			event.stopPropagation()
-																		}
-																	>
-																		<Button
-																			type="button"
-																			size="small"
-																			tooltip="Quitar precio preferencial"
-																			icon={<Trash2Icon size={16} />}
-																			className={removeItemButtonClassName}
-																			onClick={handleRemovePreferential}
-																		/>
-																	</span>
-																</div>
+																<span className="truncate text-sm font-medium text-slate-900 dark:text-white">
+																	{formatPreferentialTierTitle(tier, {
+																		showCurrency: true,
+																	})}
+																</span>
+															}
+															actions={
+																<Button
+																	type="button"
+																	size="small"
+																	tooltip="Quitar precio preferencial"
+																	icon={<Trash2Icon size={16} />}
+																	className={removeItemButtonClassName}
+																	onClick={handleRequestRemovePreferential}
+																/>
 															}
 														>
 															<div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -569,7 +564,7 @@ export const ProductPriceEditModal = ({
 																		value={toDayjsValue(tier.valid_from)}
 																		onChange={(value) =>
 																			updateTier(tier.id, {
-																				valid_from: toDateString(value),
+																				valid_from: toDateOnly(value),
 																			})
 																		}
 																		slotProps={datePickerSlotProps}
@@ -585,7 +580,7 @@ export const ProductPriceEditModal = ({
 																		value={toDayjsValue(tier.valid_to)}
 																		onChange={(value) =>
 																			updateTier(tier.id, {
-																				valid_to: toDateString(value),
+																				valid_to: toDateOnly(value),
 																			})
 																		}
 																		slotProps={datePickerSlotProps}

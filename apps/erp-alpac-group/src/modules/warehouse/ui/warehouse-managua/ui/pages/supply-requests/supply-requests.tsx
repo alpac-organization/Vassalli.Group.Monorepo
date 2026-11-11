@@ -1,19 +1,41 @@
-import { Breadcrumb, SectionHeader, useTheme } from "@alpac/design-system";
+import { useEffect } from "react";
+import { Breadcrumb, SectionHeader, Tabs, useTheme } from "@alpac/design-system";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
+import { useParams } from "@app/shared/hooks/useParams";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 
-import { OperationalRequests } from "./views/operational/operational-requests";
+import { GetSectionViewsToSupplyRequests } from "./components/supply-requests-tabs/supply-requests-tabs";
 
 export const SupplyRequests = function () {
   const navigate = useNavigate();
   const { baseUrl } = useBaseUrl();
-  const { theme } = useTheme();
   const { moduleBasePath } = useUserStore();
   const { urlImage, neutralUrlImage } = useCompanyStore();
+  const { theme } = useTheme();
   const { AlertComponent } = useAlertState();
+
+  const { setParam, searchParams } = useParams();
+
+  const tabsItems = GetSectionViewsToSupplyRequests();
+
+  const tabFromUrl = searchParams.get("tab");
+
+  const isValidTab = tabsItems.some((item) => item.id === tabFromUrl);
+
+  const activeTab = isValidTab ? tabFromUrl! : "insumos";
+
+  useEffect(() => {
+    if (!isValidTab) {
+      setParam("tab", "insumos");
+    }
+  }, [isValidTab, setParam]);
+
+  const handleTabChange = (tabId: string) => {
+    setParam("tab", tabId);
+  };
 
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
@@ -57,7 +79,11 @@ export const SupplyRequests = function () {
         )}
       </div>
 
-      <OperationalRequests />
+      <Tabs
+        activeTab={activeTab}
+        tabItems={tabsItems}
+        onTabChange={handleTabChange}
+      />
 
       {AlertComponent}
     </div>

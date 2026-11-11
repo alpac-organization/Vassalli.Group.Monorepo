@@ -2,6 +2,7 @@ import { useImperativeHandle, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { ContextMenu, Dropdown, Textarea } from "@alpac/design-system";
 import { PurchaseRequestDetail } from "../purchase-request-detail/purchase-request-detail";
+import { RequisitionDestinationField } from "./requisition-destination-field";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { PriorityLevelEnum, PriorityLevelOptions } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
@@ -41,7 +42,9 @@ export const PurchaseRequestFormBlock = ({
    const methods = useForm<CreatePurchaseRequestPayload>({
       defaultValues: {
          ...defaults,
-         destination: PurchaseRequestDestinationEnum.Internal.textValue,
+         destination:
+            defaults.destination ??
+            PurchaseRequestDestinationEnum.Internal.textValue,
       },
       mode: "onSubmit",
       reValidateMode: "onChange",
@@ -76,7 +79,9 @@ export const PurchaseRequestFormBlock = ({
 
          return {
             ...values,
-            destination: PurchaseRequestDestinationEnum.Internal.textValue,
+            destination:
+               values.destination ??
+               PurchaseRequestDestinationEnum.Internal.textValue,
             purchase_request_items: values.purchase_request_items.map((item, index) => {
                const imagesDirtyField =
                   dirtyItems?.[index]?.images?.images_product_to_changed;
@@ -99,10 +104,7 @@ export const PurchaseRequestFormBlock = ({
    }));
 
    const handleDuplicate = () => {
-      onDuplicate({
-         ...methods.getValues(),
-         destination: PurchaseRequestDestinationEnum.Internal.textValue,
-      });
+      onDuplicate(methods.getValues());
    };
 
    return (
@@ -142,41 +144,47 @@ export const PurchaseRequestFormBlock = ({
                      </p>
                   </div>
 
-                  {isRequisition && (
-                     <div className="min-w-0 w-full">
-                        <Controller
-                           name="priority_level"
-                           control={control}
-                           rules={{
-                              required: true,
-                              validate: (value) =>
-                                 (Boolean(value) &&
-                                    value !== PriorityLevelEnum.None.textValue) ||
-                                 "El nivel de prioridad es requerida",
-                           }}
-                           render={({ field }) => (
-                              <Dropdown
-                                 label="Nivel de prioridad"
-                                 isRequired
-                                 appearance="dark"
-                                 placeholder="Seleccione la prioridad de la solicitud"
-                                 value={field.value}
-                                 onChange={(value) => {
-                                    field.onChange(value);
-                                    if (hasAttemptedSubmit) {
-                                       void trigger("priority_level");
-                                    }
-                                 }}
-                                 options={filteredPriorityOptions}
-                                 labelClassName={labelClassName}
-                                 valueClassName={labelClassName}
-                                 className={`${dropdownClassName} `}
-                                 error={errors.priority_level?.message}
-                              />
-                           )}
+                  {isRequisition ? (
+                     <>
+                        <div className="min-w-0 w-full">
+                           <Controller
+                              name="priority_level"
+                              control={control}
+                              rules={{
+                                 required: true,
+                                 validate: (value) =>
+                                    (Boolean(value) &&
+                                       value !== PriorityLevelEnum.None.textValue) ||
+                                    "El nivel de prioridad es requerida",
+                              }}
+                              render={({ field }) => (
+                                 <Dropdown
+                                    label="Nivel de prioridad"
+                                    isRequired
+                                    appearance="dark"
+                                    placeholder="Seleccione la prioridad de la solicitud"
+                                    value={field.value}
+                                    onChange={(value) => {
+                                       field.onChange(value);
+                                       if (hasAttemptedSubmit) {
+                                          void trigger("priority_level");
+                                       }
+                                    }}
+                                    options={filteredPriorityOptions}
+                                    labelClassName={labelClassName}
+                                    valueClassName={labelClassName}
+                                    className={`${dropdownClassName} `}
+                                    error={errors.priority_level?.message}
+                                 />
+                              )}
+                           />
+                        </div>
+                        <RequisitionDestinationField
+                           isEditMode={isEditMode}
+                           hasAttemptedSubmit={hasAttemptedSubmit}
                         />
-                     </div>
-                  )}
+                     </>
+                  ) : null}
                </div>
 
                <Controller
@@ -214,6 +222,7 @@ export const PurchaseRequestFormBlock = ({
 
                <PurchaseRequestDetail
                   requestType={requestType}
+                  isRequisition={isRequisition}
                   disableActions={isDisabledActions}
                   isEditMode={isEditMode}
                   hasAttemptedSubmit={hasAttemptedSubmit}
