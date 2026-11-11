@@ -23,6 +23,8 @@ import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
 import { usePermissionPolicies } from "@app/modules/payroll/ui/hooks/permission/usePermissionPolicies";
@@ -34,7 +36,6 @@ import {
   PAGE_SIZE, TYPE_FILTER_OPTIONS,
   ACTIVE_FILTER_OPTIONS, labelClassName,
   dropdownClassName } from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/constants/permission-policy-form.constants";
-import { getMutationErrorMessage } from "@app/modules/payroll/ui/pages/permission-policies/utils/get-mutation-error-message";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -60,6 +61,7 @@ export const PermissionPoliciesPage = () => {
   const { baseUrl } = useBaseUrl();
   const { handleRequestSuccess, handleRequestError, AlertComponent } =
     useAlertState();
+  const { getMappedError } = useMappedError();
 
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
@@ -158,12 +160,15 @@ export const PermissionPoliciesPage = () => {
           );
         },
         onError: (err) => {
-          handleRequestError(getMutationErrorMessage(err));
+          handleRequestError(
+            getMappedError(err as ApiErrorResponse).description,
+          );
         },
       },
     );
   }, [
     companyId,
+    getMappedError,
     handleRequestError,
     handleRequestSuccess,
     moduleCode,
@@ -355,7 +360,7 @@ export const PermissionPoliciesPage = () => {
             type="button"
             size="giant"
             label="Cancelar"
-            className="w-full! sm:w-auto! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+            className="fw-ull! sm:w-auto! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
             disabled={updatePermitTypePolicyMutation.isPending}
             onClick={handleCloseStatusModal}
           />
