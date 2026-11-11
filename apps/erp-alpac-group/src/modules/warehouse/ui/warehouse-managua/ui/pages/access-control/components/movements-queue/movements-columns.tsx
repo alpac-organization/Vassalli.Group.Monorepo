@@ -1,8 +1,6 @@
 import { ContextMenu, type TableColumn } from "@alpac/design-system";
 import type { ReceptionEntranceListItem } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/access-control/get-access-control";
 import { resolveDocumentTypeLabel } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/movements-queue/components/movement-detail-modal/utils/resolveStatus";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLocationArrow } from "@fortawesome/free-solid-svg-icons";
 
 const contextMenuButton =
   "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
@@ -31,34 +29,12 @@ export function getMovementsColumns({
     {
       key: "vehicle_plate_number",
       label: "Placa del vehículo",
-      render: (item) => (
-        <span className="inline-flex items-center gap-2">
-          {item.vehicle_plate_number || "—"}
-          {item.vehicle_plate_number ? (
-            item.vehicle_exit_date ? (
-              <FontAwesomeIcon icon={faLocationArrow} style={{ color: "rgb(255, 0, 0)", transform: "rotate(-45deg)" }} />
-            ) : (
-              <FontAwesomeIcon icon={faLocationArrow} style={{ color: "rgb(0, 255, 0)", transform: "rotate(135deg)" }} />
-            )
-          ) : null}
-        </span>
-      ),
+      render: (item) => item.vehicle_plate_number || "—",
     },
     {
       key: "container_number",
       label: "Número de contenedor",
-      render: (item) => (
-        <span className="inline-flex items-center gap-2">
-          {item.container_number || "—"}
-          {item.container_number ? (
-            item.container_exit_date ? (
-              <FontAwesomeIcon icon={faLocationArrow} style={{ color: "rgb(255, 0, 0)", transform: "rotate(-45deg)" }} />
-            ) : (
-              <FontAwesomeIcon icon={faLocationArrow} style={{ color: "rgb(0, 255, 0)", transform: "rotate(135deg)" }} />
-            )
-          ) : null}
-        </span>
-      ),
+      render: (item) => item.container_number || "—",
     },
     {
       key: "seal_number",

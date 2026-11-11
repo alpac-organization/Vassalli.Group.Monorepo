@@ -123,7 +123,7 @@ export function SelectProductModal({
 		const categories: GetProductCategoryResponse[] = GetProductCategories.data;
 		return categories.map(item => {
 			return {
-				value: item.id,
+				value: item.category_id,
 				label: item.name
 			}
 		})

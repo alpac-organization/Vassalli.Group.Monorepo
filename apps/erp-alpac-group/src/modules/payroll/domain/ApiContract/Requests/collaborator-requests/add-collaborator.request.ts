@@ -11,7 +11,6 @@ export interface AddCollaboratorRequest extends BaseRequest {
   identification_type: number;
   gender: number;
   does_work_saturday: boolean;
-  is_time_clock_exempt: boolean;
   personal_information: AddPersonalInformationRequest;
   working_information: AddWorkingInformationRequest;
   salary_information: AddSalaryInformationRequest;
@@ -29,7 +28,7 @@ interface AddPersonalInformationRequest {
 
 interface AddWorkingInformationRequest {
   area_id: string;
-  job_position_id: string;
+  work_position_id: number;
   branch_id: number;
   bank_account_number?: string;
   work_email?: string;

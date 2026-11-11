@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { SearchIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Alert, Button, InputText } from "@alpac/design-system";
@@ -11,13 +11,10 @@ import { formatIdentificationNumber, validateIdentificationNumber } from "@app/s
 import type { CollaboratorSearchFormProps } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form.types";
 import type { CollaboratorProfileDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/collaborator-requests/collaborator-profile.request";
 import { useQueryClient } from "@tanstack/react-query";
-// import { m, LazyMotion, AnimatePresence } from "framer-motion";
+import { m, LazyMotion, AnimatePresence } from "framer-motion";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 
-// const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
-
-const normalizeIdentification = (value?: string | null) =>
-   (value ?? "").toString().replace(/-/g, "").toUpperCase().trim();
+const loadFeatures = () => import("framer-motion").then((res) => res.domAnimation);
 
 export const CollaboratorSearchForm = ({
    onSuccess,
@@ -26,16 +23,22 @@ export const CollaboratorSearchForm = ({
    excludeIdentifications,
    label,
 }: CollaboratorSearchFormProps) => {
-
    const { companyId, moduleCode } = useUserStore();
    const { getMappedError } = useMappedError();
-   const { handleRequestError, handleCloseAlert, InlineAlertComponent } = useAlertState();
+   const { alertState, handleRequestError } = useAlertState();
 
-   /*    const searchErrorVariants = {
-         initial: { opacity: 0, y: 16, height: 0, overflow: 'hidden' },
-         animate: { opacity: 1, y: 0, height: 'auto', overflow: 'visible' },
-         exit: { opacity: 0, y: 8, height: 0, overflow: 'hidden' },
-      } */
+   const initialFilters: CollaboratorProfileDetailsRequest = {
+      company_id: companyId,
+      module_code: moduleCode,
+      identification_number: "",
+      QueryEnabled: false,
+   };
+
+   const searchErrorVariants = {
+      initial: { opacity: 0, y: 16, height: 0, overflow: 'hidden' },
+      animate: { opacity: 1, y: 0, height: 'auto', overflow: 'visible' },
+      exit: { opacity: 0, y: 8, height: 0, overflow: 'hidden' },
+   }
 
    const {
       handleSubmit,
@@ -43,15 +46,8 @@ export const CollaboratorSearchForm = ({
       formState: { errors },
    } = useForm<CollaboratorProfileDetailsRequest>();
 
-   const [filters, setFilters] = useState<CollaboratorProfileDetailsRequest>({
-      company_id: companyId,
-      module_code: moduleCode,
-      identification_number: "",
-      QueryEnabled: false,
-   });
-
-   const searchRequestIdRef = useRef(0);
-   const handledRequestIdRef = useRef(0);
+   const [filters, setFilters] =
+      useState<CollaboratorProfileDetailsRequest>(initialFilters);
 
    const { GetProfileDetails } = useCollaborators({
       CollaboratorDetailsPayload: filters,
@@ -60,73 +56,39 @@ export const CollaboratorSearchForm = ({
    const queryClient = useQueryClient();
 
    useEffect(() => {
-      if (!filters.QueryEnabled) return;
-      if (GetProfileDetails.isLoading || GetProfileDetails.isFetching) return;
 
-      const requestId = searchRequestIdRef.current;
-      if (requestId === 0 || handledRequestIdRef.current === requestId) return;
-
-      if (GetProfileDetails.isSuccess && GetProfileDetails.data) {
-         handledRequestIdRef.current = requestId;
-         handleCloseAlert();
+      if (GetProfileDetails.data) {
          onSuccess(GetProfileDetails.data);
-         return;
       }
 
       if (GetProfileDetails.isError) {
-         handledRequestIdRef.current = requestId;
          const mapped = getMappedError(GetProfileDetails.error);
-         handleRequestError(mapped.description ?? "Hubo un error al buscar colaborador");
+         handleRequestError(mapped.description);
          onError(mapped.description);
       }
-   }, [
-      filters.QueryEnabled,
-      GetProfileDetails.isLoading,
-      GetProfileDetails.isFetching,
-      GetProfileDetails.isSuccess,
-      GetProfileDetails.isError,
-      GetProfileDetails.data,
-      GetProfileDetails.error,
-      getMappedError,
-      handleCloseAlert,
-      handleRequestError,
-      onError,
-      onSuccess,
-   ]);
+
+   }, [GetProfileDetails.data, GetProfileDetails.isError, GetProfileDetails.fetchStatus]);
 
    const handleSearchSubmit = (data: CollaboratorProfileDetailsRequest) => {
-      const identificationNumber = normalizeIdentification(
-         data.identification_number,
-      );
 
-      if (!identificationNumber) {
-         handleRequestError("El número de identificación es requerido");
-         onError("El número de identificación es requerido");
-         return;
-      }
 
-      const excluded = (excludeIdentifications ?? []).map(normalizeIdentification);
-      if (excluded.includes(identificationNumber)) {
+      if (excludeIdentifications && excludeIdentifications.includes(data.identification_number!)) {
+
          const messageError = `
             Por favor busca el perfil de otro colaborador o 
             inicia el trámite a través de los canales establecidos.`;
-         handleRequestError(messageError);
+         handleRequestError(messageError)
          onError(messageError);
+
          return;
       }
-
-      handleCloseAlert();
-      searchRequestIdRef.current += 1;
-      handledRequestIdRef.current = 0;
 
       queryClient.resetQueries({ queryKey: ["collaboratorProfileDetails"] });
 
       onSearchStart();
 
       setFilters({
-         company_id: companyId,
-         module_code: moduleCode,
-         identification_number: identificationNumber,
+         ...filters, identification_number: data.identification_number,
          QueryEnabled: true,
       });
    };
@@ -145,9 +107,6 @@ export const CollaboratorSearchForm = ({
                   errorVariant="tooltip"
                   {...register("identification_number", {
                      validate: {
-                        required: (value?: string) =>
-                           Boolean(normalizeIdentification(value)) ||
-                           "El número de identificación es requerido",
                         validateIdentification: (value?: string) =>
                            validateIdentificationNumber(
                               value!,
@@ -187,8 +146,33 @@ export const CollaboratorSearchForm = ({
 
          </div>
 
-         {InlineAlertComponent}
+         <LazyMotion features={loadFeatures} strict>
+            <AnimatePresence>
+               {
+                  (alertState?.open || GetProfileDetails.isError) && (
+                     <m.div
+                        key="search-error"
+                        variants={searchErrorVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        className="col-span-3"
+                        transition={{
+                           height: { duration: 0.3, ease: "easeInOut" },
+                           opacity: { duration: 0.45, ease: "easeOut", delay: 0.1 },
+                           y: { duration: 0.3, ease: "easeOut", delay: 0.1 },
+                        }}>
 
+                        <Alert
+                           type="error"
+                           title="Error"
+                           message={alertState?.message ?? "Hubo un error al buscar colaborador"}
+                        />
+                     </m.div>
+                  )
+               }
+            </AnimatePresence>
+         </LazyMotion>
       </div>
    );
 };

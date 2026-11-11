@@ -19,8 +19,6 @@ interface PolinCargoInstancesProps {
   tramos?: ProcessedTramo3D[];
 }
 
-const MARKER_BOX_GEOMETRY = new THREE.BoxGeometry(1, 1, 1);
-
 export function PolinCargoInstances({
   racks = [],
   tramos = [],
@@ -53,6 +51,7 @@ export function PolinCargoInstances({
     () => statusMarkers.filter((m) => m.status === "Reserved"),
     [statusMarkers],
   );
+  const markerGeometry = useMemo(() => new THREE.BoxGeometry(1, 1, 1), []);
 
   const maintenanceMatRef = useRef<THREE.MeshStandardMaterial>(null);
   const blockedMatRef = useRef<THREE.MeshStandardMaterial>(null);
@@ -211,7 +210,9 @@ export function PolinCargoInstances({
           key={`polines-${polines.length}`}
           ref={polinesRef}
           args={[polinAsset.geometry, polinAsset.material, polines.length]}
+          castShadow
           receiveShadow
+          frustumCulled={false}
           onClick={(e) => handleInstanceClick(e, polines)}
           onPointerOver={(e) => handleInstancePointerOver(e, polines)}
           onPointerOut={handleInstancePointerOut}
@@ -224,7 +225,9 @@ export function PolinCargoInstances({
           key={`boxes-${boxes.length}`}
           ref={boxesRef}
           args={[boxAsset.geometry, boxAsset.material, boxes.length]}
+          castShadow
           receiveShadow
+          frustumCulled={false}
           onClick={(e) => handleInstanceClick(e, boxes)}
           onPointerOver={(e) => handleInstancePointerOver(e, boxes)}
           onPointerOut={handleInstancePointerOut}
@@ -236,7 +239,10 @@ export function PolinCargoInstances({
         <instancedMesh
           key={`maintenance-${maintenanceMarkers.length}`}
           ref={maintenanceRef}
-          args={[MARKER_BOX_GEOMETRY, undefined, maintenanceMarkers.length]}
+          args={[markerGeometry, undefined, maintenanceMarkers.length]}
+          castShadow
+          receiveShadow
+          frustumCulled={false}
           onClick={(e) => handleInstanceClick(e, maintenanceMarkers)}
           onPointerOver={(e) => handleInstancePointerOver(e, maintenanceMarkers)}
           onPointerOut={handleInstancePointerOut}
@@ -257,7 +263,10 @@ export function PolinCargoInstances({
         <instancedMesh
           key={`blocked-${blockedMarkers.length}`}
           ref={blockedRef}
-          args={[MARKER_BOX_GEOMETRY, undefined, blockedMarkers.length]}
+          args={[markerGeometry, undefined, blockedMarkers.length]}
+          castShadow
+          receiveShadow
+          frustumCulled={false}
           onClick={(e) => handleInstanceClick(e, blockedMarkers)}
           onPointerOver={(e) => handleInstancePointerOver(e, blockedMarkers)}
           onPointerOut={handleInstancePointerOut}
@@ -278,7 +287,10 @@ export function PolinCargoInstances({
         <instancedMesh
           key={`reserved-${reservedMarkers.length}`}
           ref={reservedRef}
-          args={[MARKER_BOX_GEOMETRY, undefined, reservedMarkers.length]}
+          args={[markerGeometry, undefined, reservedMarkers.length]}
+          castShadow
+          receiveShadow
+          frustumCulled={false}
           onClick={(e) => handleInstanceClick(e, reservedMarkers)}
           onPointerOver={(e) => handleInstancePointerOver(e, reservedMarkers)}
           onPointerOut={handleInstancePointerOut}

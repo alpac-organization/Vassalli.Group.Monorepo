@@ -18,7 +18,9 @@ import {
   validateIntegerNumber,
   validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
+import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import type { PurchaseRequestDetailProps } from "./purchase-request-detail.types";
+import type { CreatedProductDto } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
 import { PurchaseRequestImageUploader } from "../purchase-request-image-uploader/purchase-request-image-uploader";
 import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
 import { getProductUsageTypeByDestination } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";

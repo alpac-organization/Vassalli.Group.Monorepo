@@ -10,6 +10,7 @@ interface UserState {
   companyName: string;
   companyAlias: string;
   moduleCode: string;
+  pictureUrl: string;
   userType: string;
   role: string;
   moduleBasePath: string;
@@ -22,6 +23,7 @@ interface UserState {
 
 const initialUserState: UserState = {
   fullName: '',
+  pictureUrl:  '',
   email: '',
   userName: '',
   identificationNumber: '',

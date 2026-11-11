@@ -38,12 +38,14 @@ export class JobPositionServices implements IJobPositions {
       throw error;
     }
   }
-
-  public async getJobPositions(payload: GetJobPositionsRequest): Promise<GetJobPositionsResponse[] | undefined> {
+  public async getJobPositions(
+    payload: GetJobPositionsRequest,
+  ): Promise<GetJobPositionsResponse[] | undefined> {
     try {
-      const { company_id, module_code } = payload;
-      const url = `/companies/${company_id}/modules/${module_code}/job-positions`;
-      const jobPositions = await this.apiHandler.get<GetJobPositionsResponse[]>(url);
+      const { company_id } = payload;
+      const jobPositions = await this.apiHandler.get<GetJobPositionsResponse[]>(
+        `/companies/${company_id}/job-positions`,
+      );
       return jobPositions;
     } catch (error) {
       throw error;

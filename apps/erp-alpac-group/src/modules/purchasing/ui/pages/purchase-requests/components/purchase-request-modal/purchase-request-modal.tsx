@@ -298,12 +298,12 @@ export const PurchaseRequestModal = ({
 
 				return {
 					purchase_request_item_id: product.purchase_request_item_id,
-					product_id: product.product_details?.product_id ?? "",
-					product_name: product.product_details?.product_name,
+					product_id: product.product_details.product_id,
+					product_name: product.product_details.product_name,
 					quantity: product.quantity,
 					quantity_unit: product.quantity_unit ?? 0,
 					unit_measure_id: resolveUnitMeasureId(
-						product.unit_measure_information as PurchaseRequestUnitMeasureInformation,
+						product.unit_measure_information,
 						unitMeasureLookup,
 					),
 					description: product.description ?? "",
@@ -530,6 +530,8 @@ export const PurchaseRequestModal = ({
 											isEditMode={isEditMode}
 											onDuplicate={handleDuplicate}
 											onRemove={() => handleRemove(entry.id)}
+											onRequestError={onRequestError}
+											onRequestSuccess={onRequestSuccess}
 											ref={(instance) => {
 												if (instance) {
 													blockRefs.current.set(entry.id, instance);

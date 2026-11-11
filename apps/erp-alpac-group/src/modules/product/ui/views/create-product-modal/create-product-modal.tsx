@@ -1,35 +1,27 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
-	Alert,
 	Button,
 	Checkbox,
 	Dropdown,
 	InputText,
 	Modal,
-	SectionHeader,
 	Textarea,
 } from "@alpac/design-system";
-import { Controller, useForm } from "react-hook-form";
-import { Loader } from "@app/shared/components/loaders/loader";
-
+import { Controller, useForm, useWatch } from "react-hook-form";
 import type {
 	CreatedProductDto,
-	CreateProductDraft,
-	CreateProductDraftSource,
 	CreateProductModalProps,
 } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
-
-import type { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
-import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
-import type { CatalogLinkItemForm } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
-import type { CreateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/create-product.request";
+import type {
+	ConfigurationStockToInventory,
+	CreateProductRequest,
+} from "@app/modules/product/domain/ApiContract/Requests/product/create-product.request";
 import type { UpdateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/update-product.request";
-import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
-import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
-
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
+import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { CatalogLinkEditor } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor";
 import {
@@ -39,91 +31,56 @@ import {
 	resolveLinkCurrencyPayload,
 	resolveLinkUnitMeasureId,
 	validateCatalogLinkPreferentialDates,
+	type CatalogLinkItemForm,
 } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 import { readPagedRows } from "@app/shared/utils/paged-response.utils";
 import { SelectSupplierModal } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/select-supplier-modal/select-supplier-modal";
-import {
-	buildStockConfiguration,
-	GetTitleModalByProductUsageType,
-	GetTitleModalToEditByProductUsageType,
-} from "./create-product-modal.variants";
-import {
-	dropdownClassName,
-	inputClassName,
-	labelClassName,
-} from "@app/modules/purchasing/ui/pages/supplier/utils/style";
-import { toOptionalNumber } from "@app/shared/utils/globals.utils";
+import { Loader } from "@app/shared/components/loaders/loader";
+import { GetTitleModalByProductUsageType, GetTitleModalToEditByProductUsageType } from "./create-product-modal.variants";
+import { dropdownClassName, inputClassName, labelClassName } from "@app/modules/purchasing/ui/pages/supplier/utils/style";
+import { primaryButtonClassName, secondaryButtonClassName } from "../product-price-edit-modal/constants/product-price.constants";
 
-const primaryButtonClassName =
-	"text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
-const secondaryButtonClassName =
-	"text-[15px]! rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!";
+import type { GetSuppliersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/get-suppliers-response";
+
+type ConditionalStockField =
+	| "configuration_stock.available_quantity"
+	| "configuration_stock.weighted_average_cost";
+
+/**
+ * Los campos arrancan vacíos (undefined) para poder saber si el usuario
+ * ya ingresó un valor. Se van desbloqueando a medida que se llenan.
+ */
+const emptyStockConfiguration = {
+	minimum_stock: 		   undefined,
+	maximum_stock: 		   undefined,
+	available_quantity:    undefined,
+	weighted_average_cost: undefined,
+} as unknown as ConfigurationStockToInventory;
+
+const hasNumber = (value: unknown): value is number =>
+	typeof value === "number" && !Number.isNaN(value);
+
+const toNumber = (value: unknown): number => (hasNumber(value) ? value : 0);
+
+const toNumberOrNull = (value: unknown): number | null =>
+	hasNumber(value) ? value : null;
 
 const emptyFormValues = (
 	companyId: string,
 	moduleCode: string,
-	usageType: ProductUsageType,
+	hasStockConfig = false,
 ): CreateProductRequest => ({
-	company_id: companyId,
-	module_code: moduleCode,
-	product_name: "",
-	description: "",
-	category_id: "",
-	unit_measure_id: "",
-	product_usage_type: usageType,
-	is_tax_exempt: false,
-	suppliers: [],
-	configuration_stock: null,
+	company_id: 		 companyId,
+	module_code: 		 moduleCode,
+	product_name: 		 "",
+	description: 		 "",
+	category_id: 		 "",
+	unit_measure_id: 	 "",
+	product_usage_type:  "Administrative",
+	configuration_stock: hasStockConfig ? { ...emptyStockConfiguration } : null,
+	is_tax_exempt: 		 false,
+	suppliers: 			 [],
 });
-
-const resolveCreateProductDraft = (source: CreateProductDraftSource): CreateProductDraft | null => {
-	if (!source.isOpen || !source.isEditMode) {
-		return {
-			formValues: emptyFormValues(
-				source.companyId,
-				source.moduleCode,
-				source.usageType,
-			),
-			supplierLinks: [],
-			categoryName: "",
-		};
-	}
-
-	const productDetails = source.productDetails;
-	if (!productDetails) return null;
-
-	return {
-		formValues: {
-			company_id: source.companyId,
-			module_code: source.moduleCode,
-			product_name: productDetails.product_name ?? "",
-			description: productDetails.description ?? "",
-			category_id: productDetails.category_id ?? "",
-			unit_measure_id: productDetails.unit_measure_id ?? "",
-			product_usage_type: source.usageType,
-			is_tax_exempt: Boolean(productDetails.is_tax_exempt),
-			suppliers: [],
-		},
-		categoryName: productDetails.category?.name ?? "",
-		supplierLinks: readPagedRows(productDetails.suppliers).rows.map(
-			(supplier) => ({
-				entity_id: supplier.supplier_id,
-				entity_label:
-					supplier.commercial_name?.trim() ||
-					supplier.supplier_legal_name ||
-					supplier.supplier_id,
-				unit_price: String(supplier.unit_price ?? ""),
-				currency: resolveLinkCurrency(supplier.currency),
-				unit_measure_id:
-					supplier.unit_measure_id ?? productDetails.unit_measure_id ?? "",
-				tier_prices: mapTierPricesToCatalogForm(
-					supplier.tier_prices,
-					supplier.currency,
-				),
-			}),
-		),
-	};
-};
 
 const mapSupplierLinksToPayload = (links: CatalogLinkItemForm[]) =>
 	links
@@ -136,7 +93,6 @@ const mapSupplierLinksToPayload = (links: CatalogLinkItemForm[]) =>
 			tier_prices: mapCatalogLinkItemsToTierPayload(
 				link.tier_prices,
 				link.currency,
-				link.unit_measure_id,
 			),
 		}));
 
@@ -146,32 +102,80 @@ export const CreateProductModal = ({
 	selectedProduct = null,
 	onSubmit,
 	onRequestSuccess,
-	onRequestError,
 	typeProductToRegister,
+	onRequestError,
 }: CreateProductModalProps) => {
 	const { companyId, moduleCode } = useUserStore();
 	const { getMappedError } = useMappedError();
 	const isEditMode = Boolean(selectedProduct?.product_id);
+
 	const isOperational = typeProductToRegister === "Operational";
 
-	const { GetProductCategories, CreateProduct, UpdateProduct, GetProductDetails } =
-		useProduct({
-			getProductCategoryPayload: {
-				company_id: companyId,
-				module_code: moduleCode,
-			},
-			getProductDetailsPayload:
-				isOpen && selectedProduct?.product_id
-					?   {
-							company_id: companyId,
-							module_code: moduleCode,
-							product_id: selectedProduct.product_id,
-							page_number: 1,
-							page_size: 100,
-						}
-					: undefined,
-		});
-		
+	// El control de stock solo aplica al crear productos operacionales.
+	// En modo edición no se muestra, no se valida y no se envía.
+	const hasStockConfig = isOperational && !isEditMode;
+
+	const [selectedProductCategory, setSelectedProductCategory] = useState("");
+	const [supplierLinks, setSupplierLinks] = useState<CatalogLinkItemForm[]>([]);
+	const [supplierLinksDirty, setSupplierLinksDirty] = useState(false);
+	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
+
+	const {
+		control,
+		register,
+		handleSubmit,
+		reset,
+		getValues,
+		setValue,
+		clearErrors,
+		formState: { errors },
+	} = useForm<CreateProductRequest>({
+		defaultValues: emptyFormValues(companyId, moduleCode, hasStockConfig),
+		mode: "onSubmit",
+	});
+
+	const [minimumStock, maximumStock, availableQuantity] = useWatch({
+		control,
+		name: [
+			"configuration_stock.minimum_stock",
+			"configuration_stock.maximum_stock",
+			"configuration_stock.available_quantity",
+		],
+	});
+
+	// 1) Cantidad inicial (opcional): se habilita solo si hay stock mínimo y máximo.
+	const canEditAvailableQuantity =
+		hasStockConfig && hasNumber(minimumStock) && hasNumber(maximumStock);
+
+	// 2) Costo promedio: se habilita y pasa a ser obligatorio solo cuando
+	//    se escribe una cantidad inicial mayor a 0.
+	const canEditAverageCost =
+		canEditAvailableQuantity &&
+		hasNumber(availableQuantity) &&
+		availableQuantity > 0;
+
+	const {
+		GetProductCategories,
+		CreateProduct,
+		UpdateProduct,
+		GetProductDetails,
+	} = useProduct({
+		getProductCategoryPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+		},
+		getProductDetailsPayload:
+			isOpen && selectedProduct?.product_id
+				? {
+						company_id: companyId,
+						module_code: moduleCode,
+						product_id: selectedProduct.product_id,
+						page_number: 1,
+						page_size: 100,
+					}
+				: undefined,
+	});
+
 	const { GetUnitMeasurements } = useUnitOfMeasurement({
 		payloadUnitOfMeasurement: {
 			companie_id: companyId,
@@ -181,73 +185,9 @@ export const CreateProductModal = ({
 	});
 
 	const productDetails = GetProductDetails.data;
-
-	const draftSource: CreateProductDraftSource = {
-		isOpen,
-		isEditMode,
-		productDetails,
-		companyId,
-		moduleCode,
-		usageType: typeProductToRegister,
-	};
-
-	const mountedDraft = resolveCreateProductDraft(draftSource);
-
-	const [selectedProductCategory, setSelectedProductCategory] = useState(
-		mountedDraft?.categoryName ?? "",
-	);
-	const [supplierLinks, setSupplierLinks] = useState<CatalogLinkItemForm[]>(
-		mountedDraft?.supplierLinks ?? [],
-	);
-	const [supplierLinksDirty, setSupplierLinksDirty] = useState(false);
-	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
-	// Activa o desactiva la configuración inicial de stock (opcional)
-	const [enableStockConfig, setEnableStockConfig] = useState(false);
-	const [appliedFormValues, setAppliedFormValues] = useState<CreateProductRequest>(
-		() =>
-			mountedDraft?.formValues ??
-			emptyFormValues(companyId, moduleCode, typeProductToRegister),
-	);
-	const [syncedDraftSource, setSyncedDraftSource] =
-		useState<CreateProductDraftSource>(draftSource);
-
-	if (
-		syncedDraftSource.isOpen !== draftSource.isOpen ||
-		syncedDraftSource.isEditMode !== draftSource.isEditMode ||
-		syncedDraftSource.productDetails !== draftSource.productDetails ||
-		syncedDraftSource.companyId !== draftSource.companyId ||
-		syncedDraftSource.moduleCode !== draftSource.moduleCode ||
-		syncedDraftSource.usageType !== draftSource.usageType
-	) {
-		setSyncedDraftSource(draftSource);
-		const nextDraft = resolveCreateProductDraft(draftSource);
-		if (nextDraft) {
-			setAppliedFormValues(nextDraft.formValues);
-			setSupplierLinks(nextDraft.supplierLinks);
-			setSupplierLinksDirty(false);
-			setSelectedProductCategory(nextDraft.categoryName);
-			setIsSelectSupplierOpen(false);
-			setEnableStockConfig(false);
-		}
-	}
-
-	const {
-		control,
-		register,
-		handleSubmit,
-		reset,
-		getValues,
-		unregister,
-		clearErrors,
-		formState: { errors },
-	} = useForm<CreateProductRequest>({
-		defaultValues: emptyFormValues(companyId, moduleCode, typeProductToRegister),
-		values: appliedFormValues,
-		mode: "onSubmit",
-	});
-
 	const isLoadingDetails =
-		isEditMode && (GetProductDetails.isPending || GetProductDetails.isFetching);
+		isEditMode &&
+		(GetProductDetails.isPending || GetProductDetails.isFetching);
 
 	const productCategories = useMemo(() => {
 		if (!GetProductCategories.data || !Array.isArray(GetProductCategories.data)) {
@@ -256,13 +196,10 @@ export const CreateProductModal = ({
 
 		const categories: GetProductCategoryResponse[] = GetProductCategories.data;
 
-		return categories.map((item) => {
-			return {
-				value: item.category_id,
-				label: item.name,
-			}
-		});
-
+		return categories.map((item) => ({
+			value: item.category_id,
+			label: item.name,
+		}));
 	}, [GetProductCategories.data]);
 
 	const unitMeasureOptions = useMemo(() => {
@@ -286,23 +223,99 @@ export const CreateProductModal = ({
 		if (isEditMode) setSupplierLinksDirty(true);
 	};
 
-	const handleToggleStockConfig = (checked: boolean) => {
-		setEnableStockConfig(checked);
-
-		// Al desactivar, se eliminan valores, registro y errores de los campos de stock
-		if (!checked) {
-			unregister("configuration_stock");
-			clearErrors("configuration_stock");
-		}
+	const clearStockField = (name: ConditionalStockField) => {
+		setValue(name, "" as unknown as number);
+		clearErrors(name);
 	};
 
+	// Si se borra el stock mínimo o máximo, se limpia la cantidad inicial.
+	useEffect(() => {
+		if (!hasStockConfig || canEditAvailableQuantity) return;
+		if (availableQuantity === undefined || availableQuantity === ("" as unknown)) {
+			return;
+		}
+		clearStockField("configuration_stock.available_quantity");
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [hasStockConfig, canEditAvailableQuantity]);
+
+	// Si se borra la cantidad inicial (o es 0), se limpia el costo promedio.
+	useEffect(() => {
+		if (!hasStockConfig || canEditAverageCost) return;
+		clearStockField("configuration_stock.weighted_average_cost");
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [hasStockConfig, canEditAverageCost]);
+
+	useEffect(() => {
+		if (!isOpen) {
+			reset(emptyFormValues(companyId, moduleCode, hasStockConfig));
+			setSupplierLinks([]);
+			setSupplierLinksDirty(false);
+			setSelectedProductCategory("");
+			setIsSelectSupplierOpen(false);
+			return;
+		}
+
+		if (!isEditMode) {
+			reset(emptyFormValues(companyId, moduleCode, hasStockConfig));
+			setSupplierLinks([]);
+			setSupplierLinksDirty(false);
+			setSelectedProductCategory("");
+			setIsSelectSupplierOpen(false);
+			return;
+		}
+
+		if (!productDetails) return;
+
+		reset({
+			company_id: companyId,
+			module_code: moduleCode,
+			product_name: productDetails.product_name ?? "",
+			description: productDetails.description ?? "",
+			category_id: productDetails.category_id ?? "",
+			unit_measure_id: productDetails.unit_measure_id ?? "",
+			product_usage_type: typeProductToRegister,
+			configuration_stock: null,
+			is_tax_exempt: Boolean(productDetails.is_tax_exempt),
+			suppliers: [],
+		});
+
+		setSelectedProductCategory(productDetails.category?.name ?? "");
+		setSupplierLinks(
+			readPagedRows(productDetails.suppliers).rows.map((supplier) => ({
+				entity_id: supplier.supplier_id,
+				entity_label:
+					supplier.commercial_name?.trim() ||
+					supplier.supplier_legal_name ||
+					supplier.supplier_id,
+				unit_price: String(supplier.unit_price ?? ""),
+				currency: resolveLinkCurrency(supplier.currency),
+				unit_measure_id:
+					supplier.unit_measure_id ?? productDetails.unit_measure_id ?? "",
+				tier_prices: mapTierPricesToCatalogForm(
+					supplier.tier_prices,
+					supplier.currency,
+				),
+			})),
+		);
+		setSupplierLinksDirty(false);
+		setIsSelectSupplierOpen(false);
+	}, [
+		isOpen,
+		isEditMode,
+		hasStockConfig,
+		productDetails,
+		companyId,
+		moduleCode,
+		typeProductToRegister,
+		reset,
+	]);
+
 	const handleClose = () => {
-		reset(emptyFormValues(companyId, moduleCode, typeProductToRegister));
+		reset(emptyFormValues(companyId, moduleCode, hasStockConfig));
 		setSupplierLinks([]);
 		setSupplierLinksDirty(false);
 		setSelectedProductCategory("");
 		setIsSelectSupplierOpen(false);
-		setEnableStockConfig(false);
 		onClose();
 	};
 
@@ -341,7 +354,8 @@ export const CreateProductModal = ({
 			);
 			return false;
 		}
-		const preferentialError = validateCatalogLinkPreferentialDates(supplierLinks);
+		const preferentialError =
+			validateCatalogLinkPreferentialDates(supplierLinks);
 		if (preferentialError) {
 			onRequestError?.(preferentialError);
 			return false;
@@ -349,10 +363,27 @@ export const CreateProductModal = ({
 		return true;
 	};
 
+	const buildConfigurationStock = (
+		values: CreateProductRequest,
+	): ConfigurationStockToInventory | null => {
+		if (!hasStockConfig) return null;
+
+		const stock = values.configuration_stock;
+
+		return {
+			minimum_stock: toNumber(stock?.minimum_stock),
+			maximum_stock: toNumber(stock?.maximum_stock),
+			available_quantity: canEditAvailableQuantity
+				? toNumberOrNull(stock?.available_quantity)
+				: null,
+			weighted_average_cost: canEditAverageCost
+				? toNumberOrNull(stock?.weighted_average_cost)
+				: null,
+		};
+	};
+
 	const handleCreateProduct = (values: CreateProductRequest) => {
 		if (!validateSupplierLinks()) return;
-
-		const shouldSendStock = isOperational && enableStockConfig;
 
 		const payload: CreateProductRequest = {
 			...values,
@@ -360,11 +391,9 @@ export const CreateProductModal = ({
 			module_code: moduleCode,
 			product_name: values.product_name?.trim(),
 			description: values.description?.trim() || undefined,
-			product_usage_type: typeProductToRegister,
 			is_tax_exempt: Boolean(values.is_tax_exempt),
-			configuration_stock: shouldSendStock
-				? buildStockConfiguration(values, typeProductToRegister)
-				: null,
+			product_usage_type: typeProductToRegister,
+			configuration_stock: buildConfigurationStock(values),
 			suppliers:
 				supplierLinks.length > 0
 					? mapSupplierLinksToPayload(supplierLinks)
@@ -404,7 +433,7 @@ export const CreateProductModal = ({
 			description: values.description?.trim() || undefined,
 			category_id: values.category_id,
 			unit_measure_id: values.unit_measure_id || null,
-			product_usage_type: typeProductToRegister,
+			product_usage_type: values.product_usage_type,
 			is_tax_exempt: Boolean(values.is_tax_exempt),
 		};
 
@@ -443,16 +472,12 @@ export const CreateProductModal = ({
 			<Modal
 				isOpen={isOpen}
 				onClose={handleClose}
-				title={
-					isEditMode
-						? GetTitleModalToEditByProductUsageType[typeProductToRegister]
-						: GetTitleModalByProductUsageType[typeProductToRegister]
-				}
+				title={GetTitleModalByProductUsageType[typeProductToRegister]}
 				variant="form"
 				size="7xl"
 				description={
 					isEditMode
-						? "Modifique la información del producto y sus proveedores vinculados."
+						? GetTitleModalToEditByProductUsageType[typeProductToRegister]
 						: "Complete el formulario para registrar un nuevo producto."
 				}
 			>
@@ -499,15 +524,11 @@ export const CreateProductModal = ({
 									appearance="dark"
 									isRequired
 									value={field.value}
-									disabled={isSaving && !GetProductCategories.isPending && !GetProductCategories.isFetching}
+									disabled={isSaving || isLoadingDetails}
 									onChange={(value) => {
 										field.onChange(value);
-
-										console.log(value)
-
-										const stringValue = String(value);
 										const [category] = productCategories.filter(
-											(item) => item.value === stringValue || item.value == value,
+											(item) => item.value === value,
 										);
 										setSelectedProductCategory(category?.label ?? "");
 									}}
@@ -571,93 +592,125 @@ export const CreateProductModal = ({
 						enableCharacterCount
 					/>
 
-					{/* Configuración de stock (opcional): solo para productos Operacionales al crear */}
-					{isOperational && !isEditMode && (
-						<>
-							<SectionHeader
-								title="Datos dentro del stock de inventario"
-								subtitle="Controla el máximo y mínimo de stock que puedes mantener en tu inventario de este producto."
-								headerClassName="text-[15px!]"
-							/>
+					{hasStockConfig && (
+						<section className="flex flex-col gap-4">
+							<div className="flex flex-col gap-2">
+								<h4 className="m-0! text-sm font-semibold text-slate-800 dark:text-white">
+									Control de stocks de inventario
+								</h4>
+								<small className="text-slate-500 dark:text-slate-300">
+									Ingrese el stock mínimo y máximo para habilitar la cantidad
+									inicial. Si indica una cantidad inicial, el costo promedio
+									ponderado será obligatorio.
+								</small>
+							</div>
 
-							<Checkbox
-								label="Configurar stock inicial (opcional)"
-								checked={enableStockConfig}
-								disabled={isSaving || isLoadingDetails}
-								onChange={(event) =>
-									handleToggleStockConfig(event.target.checked)
-								}
-							/>
+							<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+								<InputText
+									label="Stock mínimo"
+									type="number"
+									min={0}
+									step="any"
+									placeholder="0"
+									error={errors.configuration_stock?.minimum_stock?.message}
+									className={inputClassName}
+									labelClassName={labelClassName}
+									disabled={isSaving || isLoadingDetails}
+									{...register("configuration_stock.minimum_stock", {
+										valueAsNumber: true,
+										validate: (value) => {
+											if (!hasNumber(value)) return true;
+											return (
+												value >= 0 || "El stock mínimo no puede ser negativo."
+											);
+										},
+									})}
+								/>
 
-							{enableStockConfig && (
-								<>
-									<Alert
-										type="warning"
-										title="Alertas de stock"
-										message="Recibirás una alerta cuando las existencias de este producto estén por debajo del stock mínimo configurado."
-									/>
+								<InputText
+									label="Stock máximo"
+									type="number"
+									min={0}
+									step="any"
+									placeholder="0"
+									error={errors.configuration_stock?.maximum_stock?.message}
+									className={inputClassName}
+									labelClassName={labelClassName}
+									disabled={isSaving || isLoadingDetails}
+									{...register("configuration_stock.maximum_stock", {
+										valueAsNumber: true,
+										validate: (value) => {
+											if (!hasNumber(value)) return true;
+											if (value < 0) {
+												return "El stock máximo no puede ser negativo.";
+											}
+											const min = getValues(
+												"configuration_stock.minimum_stock",
+											);
+											return (
+												!hasNumber(min) ||
+												value >= min ||
+												"El stock máximo no puede ser menor al stock mínimo."
+											);
+										},
+									})}
+								/>
 
-									<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-										<InputText
-											label="Stock mínimo"
-											type="number"
-											min={0}
-											placeholder="Ej: 10"
-											isRequired
-											error={errors.configuration_stock?.minimum_stock?.message}
-											className={inputClassName}
-											labelClassName={labelClassName}
-											disabled={isSaving || isLoadingDetails}
-											{...register("configuration_stock.minimum_stock", {
-												required: "El stock mínimo es obligatorio.",
-												setValueAs: toOptionalNumber,
-												validate: (value) => {
-													const number = toOptionalNumber(value);
-													if (number === undefined || Number.isNaN(number))
-														return "Ingrese un número válido.";
-													if (number < 0)
-														return "El stock mínimo no puede ser negativo.";
-													return true;
-												},
-											})}
-										/>
+								<InputText
+									label="Cantidad disponible inicial"
+									type="number"
+									min={0}
+									step="any"
+									placeholder="0"
+									error={errors.configuration_stock?.available_quantity?.message}
+									className={inputClassName}
+									labelClassName={labelClassName}
+									disabled={
+										isSaving || isLoadingDetails || !canEditAvailableQuantity
+									}
+									{...register("configuration_stock.available_quantity", {
+										valueAsNumber: true,
+										validate: (value) => {
+											if (!hasNumber(value)) return true;
+											return (
+												value >= 0 ||
+												"La cantidad disponible no puede ser negativa."
+											);
+										},
+									})}
+								/>
 
-										<InputText
-											label="Stock máximo"
-											type="number"
-											min={0}
-											placeholder="Ej: 100"
-											isRequired
-											error={errors.configuration_stock?.maximum_stock?.message}
-											className={inputClassName}
-											labelClassName={labelClassName}
-											disabled={isSaving || isLoadingDetails}
-											{...register("configuration_stock.maximum_stock", {
-												required: "El stock máximo es obligatorio.",
-												setValueAs: toOptionalNumber,
-												validate: (value) => {
-													const max = toOptionalNumber(value);
-
-													if (max === undefined || Number.isNaN(max))
-														return "Ingrese un número válido.";
-
-													if (max < 0)
-														return "El stock máximo no puede ser negativo.";
-
-													const min = toOptionalNumber(
-														getValues("configuration_stock.minimum_stock"),
-													);
-
-													if (min !== undefined && max < min)
-														return "El stock máximo no puede ser menor al mínimo.";
-													return true;
-												},
-											})}
-										/>
-									</div>
-								</>
-							)}
-						</>
+								<InputText
+									label="Costo promedio ponderado"
+									type="number"
+									min={0}
+									step="any"
+									isRequired={canEditAverageCost}
+									placeholder="0.00"
+									error={
+										errors.configuration_stock?.weighted_average_cost?.message
+									}
+									className={inputClassName}
+									labelClassName={labelClassName}
+									disabled={
+										isSaving || isLoadingDetails || !canEditAverageCost
+									}
+									{...register("configuration_stock.weighted_average_cost", {
+										valueAsNumber: true,
+										required: canEditAverageCost
+											? "El costo promedio ponderado es obligatorio."
+											: false,
+										validate: (value) => {
+											if (!canEditAverageCost) return true;
+											return (
+												(hasNumber(value) && value >= 0) ||
+												"El costo debe ser un número mayor o igual a 0."
+											);
+										},
+									})}
+								/>
+							</div>
+						</section>
 					)}
 
 					<CatalogLinkEditor
@@ -688,6 +741,7 @@ export const CreateProductModal = ({
 							className={secondaryButtonClassName}
 							onClick={handleClose}
 						/>
+						
 						<Button
 							type="submit"
 							size="giant"

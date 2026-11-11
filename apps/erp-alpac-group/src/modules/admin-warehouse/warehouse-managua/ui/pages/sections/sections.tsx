@@ -98,7 +98,8 @@ export function SectionsPage() {
 			const error = GetWarehouseDetails.error;
 			const mappedError = getMappedError(error);
 			handleRequestError(mappedError?.description || "Error al cargar la bodega");
-		} catch {
+		} 
+		catch {
 			handleRequestError("Error al cargar la bodega");
 		}
 	}, [

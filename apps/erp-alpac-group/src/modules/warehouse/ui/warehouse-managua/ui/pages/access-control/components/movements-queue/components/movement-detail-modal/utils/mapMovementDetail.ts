@@ -9,7 +9,6 @@ import {
   formatDateToSpanishWords,
   formatTimeWithSeconds,
 } from "@app/shared/utils/string.utils";
-import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
 
 export function parseAdditionalData(
   additionalData: unknown,
@@ -48,16 +47,6 @@ export function isDucaDocumentType(detail: ReceptionEntranceDetail): boolean {
 export function mapDetailToFormValues(
   detail: ReceptionEntranceDetail,
 ): MovementDetailFormValues {
-  const normalizeTime = (value?: string | null): string => {
-    if (!value?.trim()) return "";
-    return value
-      .trim()
-      .split(":")
-      .map((part, index) => (index === 2 ? part.split(".")[0] || "00" : part))
-      .join(":");
-  };
-
-
   const transport = detail.reception_transport_entrance_information;
   const customBranches = detail.custom_branches_information;
   const parsed = parseAdditionalData(detail.additional_data);
@@ -91,38 +80,15 @@ export function mapDetailToFormValues(
     country_of_origin: detail.country_of_origin ?? "",
     start_date: formatDateToSpanishWords(startDateRaw) ?? "",
     start_time: formatTimeWithSeconds(startTimeRaw) ?? "",
-    registration_date_time: formatSpanishDateTime(startDateRaw, startTimeRaw),
-    vehicle_exit_date: detail.vehicle_exit_date ?? transport?.vehicle_exit_date ?? "",
-    vehicle_exit_time: normalizeTime(detail.vehicle_exit_time ?? transport?.vehicle_exit_time ?? ""),
-    vehicle_exit_date_time: formatSpanishDateTime(
-      detail.vehicle_exit_date ?? transport?.vehicle_exit_date ?? "",
-      detail.vehicle_exit_time ?? transport?.vehicle_exit_time ?? "",
-    ),
-    container_exit_date: detail.container_exit_date ?? transport?.container_exit_date ?? "",
-    container_exit_time: normalizeTime(detail.container_exit_time ?? transport?.container_exit_time ?? ""),
-    container_exit_date_time: formatSpanishDateTime(
-      detail.container_exit_date ?? transport?.container_exit_date ?? "",
-      detail.container_exit_time ?? transport?.container_exit_time ?? "",
-    ),
     customs_decaration_number: customsDoc?.document_numbers ?? "",
-    plate_number: transport?.vehicle_plate_number ?? detail.vehicle_plate_number ?? "",
+    plate_number: transport?.vehicle_plate_number ?? "",
     trailer_chassis: transport?.vehicle_chassis_number ?? "",
     container_number: detail.container_number ?? "",
     driver_name: transport?.driver_name ?? "",
     driver_license: transport?.driver_license ?? "",
     transportista: transport?.transportista ?? "",
     transport_unit:
-      transport?.transport_unit === "Container" ||
-      transport?.transport_unit === 1 ||
-      transport?.transport_unit === "1"
-        ? "1"
-        : transport?.transport_unit === "Van" ||
-            transport?.transport_unit === 2 ||
-            transport?.transport_unit === "2"
-          ? "2"
-          : transport?.transport_unit != null
-            ? String(transport.transport_unit)
-            : "",
+      transport?.transport_unit != null ? String(transport.transport_unit) : "",
     seal_number: detail.seal_number ?? "",
     custom_branch:
       customBranches?.customs_branch_name || customBranches?.code || "",
