@@ -1,26 +1,28 @@
-import { useEffect, useState } from "react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useState } from "react";
+import { secondaryButtonClassName } from "@app/modules/product/ui/views/product-price-edit-modal/constants/product-price.constants";
 import { Alert, Button, InputText, Modal } from "@alpac/design-system";
 import { inputClassName, labelClassName } from "@app/modules/purchasing/ui/pages/supplier/utils/style";
-import { secondaryButtonClassName } from "@app/modules/product/ui/views/product-price-edit-modal/constants/product-price.constants";
 import { quoteFormDangerButtonClassName } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/styles/create-quote-form.styles";
 
+import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { ProductSummary } from "./components/product-summary/product-summary";
 import { SectionInstruction } from "./components/section-instruction/section-Instructions";
 
 import type { SubmitEvent } from "react";
 import type { DeleteProductModalProps } from "./delete-product-modal.types";
-import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
-import { useMappedError } from "@app/shared/hooks/useMappedError";
+
+const DEFAULT_ERROR_MESSAGE = "No se pudo dar de baja el producto";
 
 export const DeleteProductModal = (props: DeleteProductModalProps) => {
-   
-   const { 
-      isOpen, 
-      onClose, 
-      onRequestError, 
-      onRequestSuccess, 
-      productSelected: product 
+
+   const {
+      isOpen,
+      onClose,
+      onRequestError,
+      onRequestSuccess,
+      productSelected: product,
    } = props;
 
    const { getMappedError }        = useMappedError();
@@ -29,43 +31,42 @@ export const DeleteProductModal = (props: DeleteProductModalProps) => {
 
    const [confirmText, setConfirmText] = useState("");
 
-   const confirmValue   = product?.code ?? product?.product_name ?? "";
+   const confirmValue   = (product?.code || product?.product_name || "").trim();
    const canConfirm     = confirmValue !== "" && confirmText.trim() === confirmValue;
    const suppliersCount = product?.suppliers_count ?? 0;
-
-
-   useEffect(() => {
-      setConfirmText("");
-   }, [isOpen, product?.product_id]);
+   const isDeleting     = DeleteProductCommand.isPending;
 
    const handleClose = () => {
-      
+      if (isDeleting) return;
       setConfirmText("");
       onClose();
    };
 
-   const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
+   const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
       e.preventDefault();
+      if (!canConfirm || !product || isDeleting) return;
 
-      if (!canConfirm || !product) return;
-
-      //your code here...
-
-      try
-      {
-         await DeleteProductCommand.mutateAsync({
+      DeleteProductCommand.mutate(
+         {
             company_id:  companyId,
             module_code: moduleCode,
-            product_id:  product.product_id
-         });
-         
-         onRequestSuccess?.("Se realizo con exito la eliminación del producto");
-         handleClose();
-      }
-      catch(error: unknown){
-         // getMappedError(error);
-         onRequestError?.();
-      }
+            product_id:  product.product_id,
+         },
+         {
+            onSuccess: () => {
+               onRequestSuccess?.("Se realizó con éxito la eliminación del producto");
+               setConfirmText("");
+               onClose();
+            },
+            onError: (error) => {
+               const message = getMappedError(error)?.description || DEFAULT_ERROR_MESSAGE;
+
+               onRequestError?.(message);
+               setConfirmText("");
+               onClose();
+            },
+         },
+      );
    };
 
    return (
@@ -94,18 +95,17 @@ export const DeleteProductModal = (props: DeleteProductModalProps) => {
                />
             )}
 
-            <SectionInstruction 
-            />
+            <SectionInstruction />
 
             <InputText
                label={`Para confirmar, escribe (${confirmValue}) en el siguiente campo`}
-               className={inputClassName}
-               labelClassName={labelClassName}
-               placeholder={confirmValue}
                value={confirmText}
+               className={inputClassName}
+               placeholder={confirmValue}
+               labelClassName={labelClassName}
                onChange={(e) => setConfirmText(e.target.value)}
                autoComplete="off"
-               // disabled={isDeleting}
+               disabled={isDeleting}
             />
 
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
@@ -115,7 +115,7 @@ export const DeleteProductModal = (props: DeleteProductModalProps) => {
                   label="Cancelar"
                   className={secondaryButtonClassName}
                   onClick={handleClose}
-                  // disabled={isDeleting}
+                  disabled={isDeleting}
                />
 
                <Button
@@ -123,8 +123,8 @@ export const DeleteProductModal = (props: DeleteProductModalProps) => {
                   size="giant"
                   label="Dar de baja"
                   className={quoteFormDangerButtonClassName}
-                  // isLoading={isDeleting}
-                  // disabled={!canConfirm || isDeleting}
+                  isLoading={isDeleting}
+                  disabled={!canConfirm || isDeleting}
                />
             </div>
          </form>

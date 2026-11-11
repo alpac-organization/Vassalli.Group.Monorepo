@@ -29,7 +29,7 @@ export const ProductsAndServicesControl = function() {
       getProductPayload: {
          company_id: companyId,
          module_code: moduleCode,
-         product_usage_type: "Operational",
+         product_usage_type: "Operational", 
          ...filters,         
       }
    });
