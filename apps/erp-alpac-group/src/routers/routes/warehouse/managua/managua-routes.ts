@@ -20,24 +20,24 @@ export const getManaguaWarehouseRoutes = () => {
 
 	const ongoingOperationsSection: SidebarLink = {
 		id: "Ongoing-operations",
-		label: "Operaciones en curso",
+		label: "Documentación",
 		path: "ongoing-operations",
-		icon: WrenchIcon,
+		icon: FileStackIcon,
 	};
 
-  const warehouseAssignmentSection: SidebarLink = {
-    id: "assignment",
-    label: "Asignación",
-    path: "assignment",
-    icon: ClipboardListIcon,
-  };
+	const warehouseAssignmentSection: SidebarLink = {
+		id: "assignment",
+		label: "Asignamiento",
+		path: "assignment",
+		icon: ClipboardListIcon,
+	};
 
-  const warehouseDescargueSection: SidebarLink = {
-    id: "descargue",
-    label: "Descargue",
-    path: "descargue",
-    icon: PackageCheck,
-  };
+	const warehouseDescargueSection: SidebarLink = {
+		id: "descargue",
+		label: "Descargue",
+		path: "descargue",
+		icon: PackageCheck,
+	};
 
 	const BodegaSection: SidebarLink = {
 		id: "warehouse-3d",

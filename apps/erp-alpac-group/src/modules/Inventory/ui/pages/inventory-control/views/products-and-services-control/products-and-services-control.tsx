@@ -11,7 +11,6 @@ import type { GetProductResponse } from "@app/modules/product/domain/ApiContract
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { DeleteProductModal } from "./modals/delete-product-modal";
 
-const PAGE_SIZE = 5;
 
 export const ProductsAndServicesControl = function() {
 
@@ -33,6 +32,8 @@ export const ProductsAndServicesControl = function() {
          ...filters,         
       }
    });
+
+   console.log(JSON.stringify(GetProducts.data, null, 3))
    
    //#region Acciones del producto
    const handleOpenModalToEditProduct = function(){
@@ -95,8 +96,8 @@ export const ProductsAndServicesControl = function() {
 				columns={productsAndServicesColumns}
 				pagination={
 					<Pagination
-						pageSize={PAGE_SIZE}
-						totalRecords={productsData?.page_size ?? 0}
+						pageSize={filters.page_size ?? 0}
+						totalRecords={productsData?.total ?? 0}
 						currentPage={productsData?.page_number ?? 0}
 						onPageChange={handlePageChange}
 					/>

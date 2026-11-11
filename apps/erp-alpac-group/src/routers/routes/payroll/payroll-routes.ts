@@ -18,6 +18,13 @@ export const getPayrollRoutes = () => {
       icon: DollarSign,
    };
 
+   const gestionDisciplinariaSection: SidebarLink = {
+      id: "disciplinary-management",
+      label: "Régimen Disciplinario",
+      path: "disciplinary-management",
+      icon: Scale,
+   };
+
    const payrollPeriodsHistorySection: SidebarLink = {
       id: "historial-periodos-nómina",
       label: "Períodos de Nómina",
@@ -70,6 +77,7 @@ export const getPayrollRoutes = () => {
    return {
       collboratorSection,
       gestionPayrollSection,
+      gestionDisciplinariaSection,
       payrollPeriodsHistorySection,
       applicationFromPayrollSection,
       activeDeductionSection,

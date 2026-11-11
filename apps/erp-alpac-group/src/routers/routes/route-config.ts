@@ -14,6 +14,7 @@ import { getInventoryRoutes } from "./inventory/inventory.routes";
 const {
   collboratorSection,
   gestionPayrollSection,
+  gestionDisciplinariaSection,
   payrollPeriodsHistorySection,
   applicationFromPayrollSection,
   activeDeductionSection,
@@ -68,7 +69,7 @@ const { analyzedQuoteSection } = getManagementRoutes();
 
 const { 
   inventoryControl, 
-  inventoryEntriesAndOutputs 
+  inventoryEntriesAndOutputs
 } = getInventoryRoutes();
 
 export const routeConfig = {
@@ -83,7 +84,9 @@ export const routeConfig = {
       permissionPoliciesSection,
       attendanceControlSection,
       subsidyHistorialSection,
+      gestionDisciplinariaSection,
     ],
+    [RoleEnum.MANAGER]: [gestionDisciplinariaSection],
   },
   [ModuleEnum.ADMINISTRATION]: {
     [RoleEnum.ADMINISTRATOR]: [
@@ -121,6 +124,7 @@ export const routeConfig = {
       warehouseDescargueSection,
       BodegaSection,
       warehouseReportSection,
+      supplyRequestsSection,
     ],
     [RoleEnum.ADMINISTRATOR]: [
       warehouseManaguaSection,
