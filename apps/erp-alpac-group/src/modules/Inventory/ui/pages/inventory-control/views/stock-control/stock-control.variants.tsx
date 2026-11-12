@@ -108,7 +108,7 @@ export const GetInventoryStocksColumnsToTable = function(props: InventoryStocksC
                <Badges
                   color="info"
                   className={InventoryStockStatusColorBadges[item.status]}
-                  label={InventoryStockStatus[item.status].label}
+                  label={InventoryStockStatus[item.status]?.label ?? ""}
                />
             )
          }
