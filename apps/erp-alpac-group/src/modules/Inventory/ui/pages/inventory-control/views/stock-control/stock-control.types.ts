@@ -6,6 +6,7 @@ export interface StockControlFilters {
     product_name?: string;
 
     page_number?:  number;
+    
     page_size?:    number;
 }
 
