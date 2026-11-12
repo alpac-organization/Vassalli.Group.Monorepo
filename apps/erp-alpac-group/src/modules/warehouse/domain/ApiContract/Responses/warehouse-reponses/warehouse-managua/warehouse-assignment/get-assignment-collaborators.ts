@@ -17,5 +17,6 @@ export interface AssignmentCollaboratorDto {
   collaborator_information: CollaboratorInformationDto;
 }
 
-export type  GetAssignmentCollaboratorsResponse  =  PaginateBaseResponse<AssignmentCollaboratorDto> ;
-
+export interface GetAssignmentCollaboratorsResponse  extends PaginateBaseResponse<AssignmentCollaboratorDto[]> {
+  data: AssignmentCollaboratorDto[];
+}

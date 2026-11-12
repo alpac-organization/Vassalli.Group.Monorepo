@@ -117,26 +117,26 @@ export function BuildingShell({
           {/* Anotación discreta en el Vértice opuesto (width, depth) */}
           <FloorBlueprintBadge
             title={`(${width}m, ${depth}m)`}
-            subtitle="Límite de bodega"
+            subtitle="Límite Nave"
             position={[width + 0.85, 0.015, depth + 0.85]}
             size={[2.2, 0.52]}
             opacity={0.5}
           />
 
-          {/* Muros perimetrales semi-transparentes (raycast desactivado para rendimiento) */}
-          <mesh position={[width / 2, wallY, -wallT / 2]} raycast={() => null}>
+          {/* Muros perimetrales semi-transparentes */}
+          <mesh position={[width / 2, wallY, -wallT / 2]}>
             <boxGeometry args={[width, wallH, wallT]} />
             <meshStandardMaterial color="#334155" transparent opacity={0.90} />
           </mesh>
-          <mesh position={[width / 2, wallY, depth + wallT / 2]} raycast={() => null}>
+          <mesh position={[width / 2, wallY, depth + wallT / 2]}>
             <boxGeometry args={[width, wallH, wallT]} />
             <meshStandardMaterial color="#334155" transparent opacity={0.90} />
           </mesh>
-          <mesh position={[-wallT / 2, wallY, depth / 2]} raycast={() => null}>
+          <mesh position={[-wallT / 2, wallY, depth / 2]}>
             <boxGeometry args={[wallT, wallH, depth]} />
             <meshStandardMaterial color="#334155" transparent opacity={0.90} />
           </mesh>
-          <mesh position={[width + wallT / 2, wallY, depth / 2]} raycast={() => null}>
+          <mesh position={[width + wallT / 2, wallY, depth / 2]}>
             <boxGeometry args={[wallT, wallH, depth]} />
             <meshStandardMaterial color="#334155" transparent opacity={0.90} />
           </mesh>

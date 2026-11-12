@@ -13,10 +13,12 @@ import type { CreateProductResponse } from "@app/modules/product/domain/ApiContr
 import type { GetProductDetailsResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product-details.response";
 import type { GetProductSupplierPriceHistoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product-supplier-price-history.response";
 import type { GetProductResponseList } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
+import type { DeleteProductRequest } from "../../domain/ApiContract/Requests/product/delete-product.request";
 
 export interface IProductServices {
-	
-	GetProductCategories( payload: GetProductCategoryRequest): Promise<GetProductCategoryResponse[]>;
+	GetProductCategories(
+		payload: GetProductCategoryRequest,
+	): Promise<GetProductCategoryResponse>;
 
 	GetProducts(payload: GetProductRequest): Promise<GetProductResponseList>;
 
@@ -39,6 +41,8 @@ export interface IProductServices {
 	DeleteProductSupplierLink(
 		payload: DeleteProductSupplierLinkRequest,
 	): Promise<void>;
+
+	DeleteProductAsync(payload: DeleteProductRequest): Promise<void>;
 
 	CreateProductCategory(
 		payload: CreateProductCategoryRequest,

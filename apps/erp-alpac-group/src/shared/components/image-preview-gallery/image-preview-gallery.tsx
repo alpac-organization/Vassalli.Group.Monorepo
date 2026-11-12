@@ -4,10 +4,8 @@ import { ZoomInIcon } from "lucide-react";
 import { toDataUrl } from "@app/shared/utils/toDataUrl";
 
 export interface ImagePayload {
-  file_name?: string | null;
-  content_type?: string | null;
-  image_url?: string | null;
   image_base64?: string | null;
+  content_type?: string | null;
 }
 
 export interface ImagePreviewGalleryProps {
@@ -15,13 +13,6 @@ export interface ImagePreviewGalleryProps {
   title?: string;
   imageAlt?: string;
 }
-
-const resolveImageSrc = (image: ImagePayload): string | null => {
-  const url = image.image_url?.trim();
-  if (url) return url;
-
-  return toDataUrl(image.image_base64, image.content_type);
-};
 
 export const ImagePreviewGallery = ({
   images,
@@ -33,13 +24,13 @@ export const ImagePreviewGallery = ({
   if (!images || images.length === 0) return null;
 
   const displayImages = images
-    .map(resolveImageSrc)
+    .map((image) => toDataUrl(image.image_base64, image.content_type))
     .filter((src): src is string => Boolean(src));
 
   if (displayImages.length === 0) return null;
 
   const rows: string[][] = [];
-
+  
   if (displayImages.length === 2) {
     rows.push(displayImages);
   } else {
@@ -72,7 +63,7 @@ export const ImagePreviewGallery = ({
             className={`flex justify-center gap-2 ${rowIndex > 0 ? "-mt-8" : ""}`}
           >
             {row.map((src, colIndex) => {
-              const globalIndex = rowIndex * 2 + colIndex;
+              const globalIndex = rowIndex * 2 + colIndex; 
               return (
                 <div
                   key={`preview-imagen-${src.slice(-32)}-${globalIndex}`}

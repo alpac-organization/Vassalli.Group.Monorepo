@@ -44,9 +44,9 @@ export interface InventoryStockData {
 }
 
 export interface PagedResponseStock<T> {
-   data:             T[];
-   in_minimum_stock: number;
-   page_number:      number;
-   page_size:        number;
-   total:            number;
+  data:             T[];
+  in_minimum_stock: number;
+  page_number:      number;
+  page_size:        number;
+  total:            number;
 }

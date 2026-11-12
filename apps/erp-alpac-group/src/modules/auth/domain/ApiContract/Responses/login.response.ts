@@ -58,6 +58,12 @@ export interface LoginResponse {
     */
    area_id: string;
 
+
+   /**
+    * Area asociada al usuario
+    */
+   picture_url: string;
+
    /**
     * Sucursal asociado al usuario
     */

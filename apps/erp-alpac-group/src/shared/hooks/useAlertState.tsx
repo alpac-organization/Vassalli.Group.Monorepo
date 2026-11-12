@@ -1,9 +1,4 @@
-import {
-   Alert,
-   AnimatedAlertWrapper,
-   InlineAnimatedAlertWrapper,
-   type AlertProps,
-} from "@alpac/design-system";
+import { Alert, AnimatedAlertWrapper, type AlertProps } from "@alpac/design-system";
 import { useCallback, useEffect, useState } from "react";
 
 interface AlertConfig {
@@ -39,6 +34,7 @@ function getAlertMessage(value: unknown, fallback: string): string {
 }
 
 export const useAlertState = () => {
+
    const [alertState, setAlertState] = useState<AlertConfig | undefined>(undefined);
 
    useEffect(() => {
@@ -87,26 +83,14 @@ export const useAlertState = () => {
       setAlertState(undefined);
    }, []);
 
-   const alertElement = alertState ? (
-      <Alert
-         type={alertState.type}
-         title={alertState.title}
-         message={alertState.message}
-         onClose={handleCloseAlert}
-      />
-   ) : null;
-
-   const isOpen = Boolean(alertState?.open);
-
-   const InlineAlertComponent = (
-      <InlineAnimatedAlertWrapper open={isOpen}>
-         {alertElement}
-      </InlineAnimatedAlertWrapper>
-   );
-
    const AlertComponent = (
-      <AnimatedAlertWrapper open={isOpen}>
-         {alertElement}
+      <AnimatedAlertWrapper open={alertState?.open ?? false}>
+         <Alert
+            type={alertState?.type ?? "error"}
+            title={alertState?.title}
+            message={alertState?.message ?? ""}
+            onClose={handleCloseAlert}
+         />
       </AnimatedAlertWrapper>
    );
 
@@ -117,7 +101,6 @@ export const useAlertState = () => {
       handleRequestSuccess,
       handleRequestWarning,
       handleRequestInfo,
-      AlertComponent,
-      InlineAlertComponent,
-   };
-};
+      AlertComponent
+   }
+}

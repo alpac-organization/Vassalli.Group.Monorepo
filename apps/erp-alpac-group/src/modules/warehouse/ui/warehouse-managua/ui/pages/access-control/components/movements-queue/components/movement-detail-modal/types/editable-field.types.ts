@@ -17,5 +17,4 @@ export type AccessControlEditableFieldProps<TFieldValues extends FieldValues> = 
   allowEmptySubmit?: boolean;
   options?: Option[];
   placeholder?: string;
-  compact?: boolean;
 };

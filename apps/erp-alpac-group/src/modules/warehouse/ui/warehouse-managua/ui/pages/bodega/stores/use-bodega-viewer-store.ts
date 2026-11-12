@@ -116,13 +116,13 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
       cameraPreset: null,
       cameraFlyTo: null,
 
-      // Capas activadas por defecto (Paredes, Secciones, Cuadrícula y Carga ocultas por defecto)
+      // Capas activadas por defecto (Paredes, Secciones y Cuadrícula ocultas por defecto)
       showWarehouse: false,
       showSections: false,
       showRacks: true,
       showTramos: true,
       showPositions: false,
-      showCargo: false,
+      showCargo: true,
       layerFilterMode: null,
 
       navigationMode: "orbit",
@@ -174,18 +174,16 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
           return {
             isPreselectionMode: nextMode,
             showPositions: nextMode,
-            showCargo: nextMode ? true : s.showCargo,
           };
         }),
 
       activeDescargueAssignment: null,
       setActiveDescargueAssignment: (assignment) =>
-        set((state) => ({
+        set({
           activeDescargueAssignment: assignment,
           isPreselectionMode: Boolean(assignment),
           showPositions: Boolean(assignment),
-          showCargo: Boolean(assignment) ? true : state.showCargo,
-        })),
+        }),
       clearActiveDescargueAssignment: () =>
         set({
           activeDescargueAssignment: null,
@@ -211,7 +209,7 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
           showRacks: true,
           showTramos: true,
           showPositions: false,
-          showCargo: false,
+          showCargo: true,
           layerFilterMode: null,
         }),
 
@@ -366,7 +364,7 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
               showSections: true,
               showRacks: true,
               showTramos: true,
-              showPositions: true,
+              showPositions: false,
               showCargo: true,
             };
           }
@@ -400,7 +398,7 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
               showRacks: true,
               showTramos: false,
               showPositions: false,
-              showCargo: false,
+              showCargo: true,
             };
           }
           if (mode === "tramos") {
@@ -411,7 +409,7 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
               showRacks: false,
               showTramos: true,
               showPositions: false,
-              showCargo: false,
+              showCargo: true,
             };
           }
           if (mode === "positions") {
@@ -435,7 +433,7 @@ export const useBodegaViewerStore = create<BodegaViewerState>()(
           showRacks: true,
           showTramos: true,
           showPositions: false,
-          showCargo: false,
+          showCargo: true,
           layerFilterMode: null,
         }),
 

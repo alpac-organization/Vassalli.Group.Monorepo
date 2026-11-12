@@ -1,14 +1,12 @@
-import type { EnumType } from "@app/shared/types/enum.type";
-
-export type ProductUsageType = "Administrative" | "Operational"
+export type ProductUsageTypeEnum = 'Administrative' | 'Operational'
 
 export interface ProductUsageTypeValues {
 	value: number;
-	stringValue: string;
 	label: string;
+	stringValue: string;	
 }
 
-export const ProductUsageType : Record<ProductUsageType,ProductUsageTypeValues> = {
+export const ProductUsageType : Record<ProductUsageTypeEnum, ProductUsageTypeValues> = {
 	Administrative: {
 		value: 1,
 		label: "Administrativo",
@@ -19,9 +17,4 @@ export const ProductUsageType : Record<ProductUsageType,ProductUsageTypeValues> 
 		label: "Operativo",
 		stringValue: "Operational",
 	},
-} as const;
-
-export const ProductUsageTypeOptions: EnumType[] = Object.values(ProductUsageType).map((item) => ({
-	value: item.stringValue,
-	label: item.label,
-}));
+}

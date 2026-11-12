@@ -13,7 +13,7 @@ export interface PersonalFormData {
    personalPhone?: string;
    department_id?: string;
    department?: string;
-   code_collaborator?: string;   
+   code_collaborator?: string;
 }
 
 export interface WorkFormData {
@@ -29,7 +29,6 @@ export interface WorkFormData {
    salaryAmount?: string;
    currency?: string;
    salaryType?: string;
-   isTimeClockExempt?: boolean;
 }
 
 /*export interface ProfileSummary {

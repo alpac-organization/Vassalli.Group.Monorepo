@@ -72,13 +72,17 @@ export const InventoryControl = function () {
             onTabChange={handleTabChange}
          />
 
-         <CreateProductModal
-            typeProductToRegister="Operational"
-            isOpen={productModal}
-            onClose={() => setProductModal(false)}
-            onRequestError={handleRequestError}
-            onRequestSuccess={handleRequestSuccess}
-         />
+         {
+            productModal && (
+               <CreateProductModal
+                  typeProductToRegister="Operational"
+                  isOpen={productModal}
+                  onClose={() => setProductModal(false)}
+                  onRequestError={handleRequestError}
+                  onRequestSuccess={handleRequestSuccess}
+               />
+            )
+         }
 
          { AlertComponent }
       </div>

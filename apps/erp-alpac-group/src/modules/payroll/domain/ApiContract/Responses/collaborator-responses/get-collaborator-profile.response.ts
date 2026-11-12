@@ -72,11 +72,6 @@ export interface GetCollaboratorProfileDetailsResponse {
    */
   work_position: string;
 
-  /**
-   * Si el colaborador está exento de marcar en el reloj
-   */
-  is_time_clock_exempt?: boolean;
-
   cost_centers: CostCenterDto[];
 
   /**

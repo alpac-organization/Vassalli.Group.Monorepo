@@ -8,16 +8,12 @@ import type { UpdateSupplierProductPriceRequest } from "@app/modules/purchasing/
 import type { UpdateSupplierRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/supplier/update-suppliers-request";
 import type { CreateSupplierResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/supplier/create-supplier-response";
 import type {
+	CreateSupplierBankAccountPayload,
 	SupplierBankAccount,
+	UpdateSupplierBankAccountPayload,
 } from "@app/modules/purchasing/domain/ApiContract/shared/supplier/supplier-bank-account";
-import type { CreateBankAccountMutationArgs, DeleteBankAccountMutationArgs, UpdateBankAccountMutationArgs, useSuppliersProps } from "@app/modules/purchasing/ui/hooks/supplier/types/useSupplier.types";
 import { SupplierServices } from "@app/modules/purchasing/infrastructure/services/supplier/SupplierServices";
-import {
-	useMutation,
-	useQuery,
-	useQueryClient,
-	type QueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const suppliersServices = new SupplierServices(httpHandler);
 
@@ -199,29 +195,53 @@ export const useSupplier = (props?: useSuppliersProps) => {
 
 	const { suppliersFilters, supplierDetailFilters } = props || {};
 
-	const suppliersListEnabled = isSuppliersListEnabled(suppliersFilters);
+	const suppliersListEnabled = Boolean(
+		suppliersFilters?.company_id?.trim() &&
+		suppliersFilters.module_code?.trim() &&
+		suppliersFilters?.page_number
+	);
+
+	const supplierDetailsEnabled = Boolean(
+		supplierDetailFilters?.company_id?.trim() &&
+		supplierDetailFilters.module_code?.trim() &&
+		supplierDetailFilters?.supplier_id
+	);
 
 	const GetSuppliers = useQuery({
 		queryKey: ["suppliers", suppliersFilters],
 		queryFn: () => suppliersServices.getSuppliers(suppliersFilters!),
-		staleTime: SUPPLIERS_STALE_TIME,
+		staleTime: 1000 * 60 * 2,
 		enabled: suppliersListEnabled,
 		refetchOnWindowFocus: false,
 		refetchOnMount: false,
 		retry: 1,
 	});
 
-	const GetSupplierDetails = useQuery(
-		supplierDetailsQueryOptions(supplierDetailFilters),
-	);
+	const GetSupplierDetails = useQuery({
+		queryKey: ["supplier-details", supplierDetailFilters],
+		queryFn: () => suppliersServices.GetSupplierDetails(supplierDetailFilters!),
+		enabled: supplierDetailsEnabled,
+		refetchOnWindowFocus: false,
+		retry: 1,
+	});
 
-	const {
-		CreateSupplier,
-		UpdateSupplier,
-		CreateBankAccount,
-		UpdateBankAccount,
-		DeleteBankAccount,
-	} = useSupplierEditorMutations();
+	const CreateSupplier = useMutation<CreateSupplierResponse, ApiErrorResponse, CreateSupplierRequest>({
+		mutationKey: ["create-supplier"],
+		mutationFn: (payload: CreateSupplierRequest) => suppliersServices.CreateSupplier(payload),
+		onSuccess() {
+			queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+		},
+		retry: 1,
+	});
+
+	const UpdateSupplier = useMutation<void, ApiErrorResponse, UpdateSupplierRequest>({
+		mutationKey: ["update-supplier"],
+		mutationFn: (payload: UpdateSupplierRequest) => suppliersServices.UpdateSupplier(payload),
+		onSuccess() {
+			queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+		},
+	});
 
 	const UpdateSupplierExclusiveStatus = useMutation<
 		void,
@@ -256,6 +276,36 @@ export const useSupplier = (props?: useSuppliersProps) => {
 			queryClient.invalidateQueries({ queryKey: ["get-products"] });
 		},
 		retry: 1,
+	});
+
+	const CreateBankAccount = useMutation<SupplierBankAccount, ApiErrorResponse, CreateBankAccountMutationArgs>({
+		mutationKey: ["create-supplier-bank-account"],
+		mutationFn: ({ companyId, moduleCode, supplierId, payload }) =>
+			suppliersServices.createBankAccount(companyId, moduleCode, supplierId, payload),
+		onSuccess() {
+			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+			queryClient.invalidateQueries({ queryKey: ["supplier-bank-accounts"] });
+		},
+	});
+
+	const UpdateBankAccount = useMutation<void, ApiErrorResponse, UpdateBankAccountMutationArgs>({
+		mutationKey: ["update-supplier-bank-account"],
+		mutationFn: ({ companyId, moduleCode, supplierId, bankAccountId, payload }) =>
+			suppliersServices.updateBankAccount(companyId, moduleCode, supplierId, bankAccountId, payload),
+		onSuccess() {
+			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+			queryClient.invalidateQueries({ queryKey: ["supplier-bank-accounts"] });
+		},
+	});
+
+	const DeleteBankAccount = useMutation<void, ApiErrorResponse, DeleteBankAccountMutationArgs>({
+		mutationKey: ["delete-supplier-bank-account"],
+		mutationFn: ({ companyId, moduleCode, supplierId, bankAccountId }) =>
+			suppliersServices.deleteBankAccount(companyId, moduleCode, supplierId, bankAccountId),
+		onSuccess() {
+			queryClient.invalidateQueries({ queryKey: ["supplier-details"] });
+			queryClient.invalidateQueries({ queryKey: ["supplier-bank-accounts"] });
+		},
 	});
 
 	return {

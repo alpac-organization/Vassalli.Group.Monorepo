@@ -21,7 +21,6 @@ export interface GetDescargueColumnsProps {
 
 export function getDescargueColumns({
   onStartDescargue,
-  onFinishDescargue,
   onGoTo3D,
 }: GetDescargueColumnsProps): TableColumn<AssignmentOperationalDto>[] {
   return [
@@ -145,18 +144,11 @@ export function getDescargueColumns({
           });
         }
 
-        if (isInProgress) {
+        if (isInProgress && onGoTo3D) {
           items.push({
-            label: "Finalizar tarea",
-            onClick: () => onFinishDescargue(item),
+            label: "Ver en Bodega",
+            onClick: () => onGoTo3D(item),
           });
-
-          if (onGoTo3D) {
-            items.push({
-              label: "Ver en Bodega",
-              onClick: () => onGoTo3D(item),
-            });
-          }
         }
 
         if (items.length === 0) {

@@ -20,5 +20,7 @@ export interface AssignmentOperationalDto {
   warehouse_name?: string;
 }
 
-
-export type GetAssignmentsResponse = PaginateBaseResponse<AssignmentOperationalDto>;
+export interface GetAssignmentsResponse
+  extends PaginateBaseResponse<AssignmentOperationalDto[]> {
+  data: AssignmentOperationalDto[];
+}
