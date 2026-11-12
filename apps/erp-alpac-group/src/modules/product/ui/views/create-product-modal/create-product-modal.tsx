@@ -159,6 +159,7 @@ export const CreateProductModal = ({
 			getProductCategoryPayload: {
 				company_id: companyId,
 				module_code: moduleCode,
+				category_type: typeProductToRegister,
 			},
 			getProductDetailsPayload:
 				isOpen && selectedProduct?.product_id

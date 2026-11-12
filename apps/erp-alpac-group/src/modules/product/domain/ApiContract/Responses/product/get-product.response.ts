@@ -34,6 +34,8 @@ export interface ProductCategoryInformation {
 	is_active:   boolean;
 }
 
+export type ProductStatus = "Active" | "Inactive";
+
 export interface GetProductResponse {
 	product_id:                string;
 	code:                      string;
@@ -41,6 +43,8 @@ export interface GetProductResponse {
 	category_id:			   string;
 	unit_measure_id:		   string;
 	is_tax_exempt:			   boolean;
+	is_active:                 boolean;
+	product_status:            ProductStatus;
 	description:               string | null;
 	usage_type:                ProductUsageType;
 	suppliers_count:           number;

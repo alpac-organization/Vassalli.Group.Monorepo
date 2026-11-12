@@ -45,6 +45,7 @@ export function SelectProductModal({
 	excludeProductIds = [],
 	description,
 	productUsageType,
+	categoryType,
 }: SelectProductModalProps) {
 
 	const { companyId, moduleCode } = useUserStore();
@@ -115,6 +116,7 @@ export function SelectProductModal({
 		getProductCategoryPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
+			...(categoryType ? { category_type: categoryType } : {}),
 		}
 	});
 
@@ -123,7 +125,7 @@ export function SelectProductModal({
 		const categories: GetProductCategoryResponse[] = GetProductCategories.data;
 		return categories.map(item => {
 			return {
-				value: item.id,
+				value: item.category_id,
 				label: item.name
 			}
 		})
