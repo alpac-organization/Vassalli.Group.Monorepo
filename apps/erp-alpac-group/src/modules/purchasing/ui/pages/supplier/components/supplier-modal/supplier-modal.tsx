@@ -253,6 +253,8 @@ export const SupplierModal = ({
             onSelect={handleSelectProducts}
             selectionType="multiple"
             excludeProductIds={assignedProductIds}
+            productUsageType="Administrative"
+            categoryType="Administrative"
             description="Elija uno o más productos registrados para vincularlos al proveedor."
           />
         </Suspense>
