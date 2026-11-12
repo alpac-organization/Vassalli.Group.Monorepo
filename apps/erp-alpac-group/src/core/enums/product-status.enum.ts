@@ -18,6 +18,6 @@ export const ProductStatus: Record<ProductStatusEnum, ProductStatusEnumValues> =
       value:      2,
       label:      "Inactivo",
       labelValue: "Inactive",
-      BadgeColor: "bg-gray-100 text-gray-800 border border-gray-200 dark:bg-gray-900/30 dark:text-gray-300 dark:border-gray-800"
+      BadgeColor: "bg-red-100 text-red-900 border border-red-300 dark:bg-red-950/50 dark:text-red-300 dark:border-red-900"
    }
 } as const;

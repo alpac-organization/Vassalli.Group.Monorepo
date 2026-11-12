@@ -28,7 +28,7 @@ export const StockControl = function(){
 
    const { GetInventoryStocksQuery } = useInventoryStocks({
       payloadGetInventoryStocksRequest: {
-         company_id: companyId,
+         company_id:  companyId,
          module_code: moduleCode,
          ...filters
       }

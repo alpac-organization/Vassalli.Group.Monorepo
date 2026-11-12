@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState, type FormEvent } from "react";
 import {
+	Badges,
 	Button,
 	Checkbox,
 	DataTable,
@@ -23,6 +24,7 @@ import {
 	buildProductListFilters,
 	SELECT_PRODUCT_PAGE_SIZE,
 } from "@app/modules/product/ui/views/select-product-modal/select-product-modal.utils";
+import { ProductStatus } from "@app/core/enums/product-status.enum";
 
 const primaryButtonClassName = "text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
 const secondaryButtonClassName = "text-[15px]! rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!";
@@ -248,7 +250,23 @@ export function SelectProductModal({
 					);
 				},
 			},
-			{ key: "product_name", label: "Producto" },
+			{ 
+				key: "product_name", 
+				label: "Producto" 
+			},
+			{ 
+				key:   "product_status",
+				label: "Estatus",
+				render(row){
+					return (
+						<Badges
+							color="info"
+							className={ProductStatus[row.product_status ?? "Active"].BadgeColor}
+							label={ProductStatus[row.product_status ?? "Active"].label}
+						/>
+					)
+				}
+			},
 			{
 				key: "category",
 				label: "Categoría",
