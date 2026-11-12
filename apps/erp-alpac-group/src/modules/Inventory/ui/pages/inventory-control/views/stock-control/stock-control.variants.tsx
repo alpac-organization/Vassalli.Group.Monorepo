@@ -1,4 +1,4 @@
-import { InventoryStockStatus } from "@app/core/enums/inventory-stock-status.enum"
+import { getInventoryStockStatusLabel } from "@app/core/enums/inventory-stock-status.enum"
 import { Badges, ContextMenu, InputText } from "@alpac/design-system"
 import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/utils/styles"
 
@@ -108,7 +108,7 @@ export const GetInventoryStocksColumnsToTable = function(props: InventoryStocksC
                <Badges
                   color="info"
                   className={InventoryStockStatusColorBadges[item.status]}
-                  label={InventoryStockStatus[item.status].label}
+                   label={getInventoryStockStatusLabel(item.status)}
                />
             )
          }
@@ -168,9 +168,9 @@ const GetContextMenuItems = function(props: ContextMenuItemsProps): ContextMenuI
 }
 
 export const InventoryStockStatusColorBadges: Record<InventoryStockStatusEnum, string> = {
-   Empty:    "bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
-   LowStock: "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
-   Stable:   "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
+   Empty:      "bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
+   LowBalance: "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+   Stable:     "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
 }
 
 //Valores iniciales
