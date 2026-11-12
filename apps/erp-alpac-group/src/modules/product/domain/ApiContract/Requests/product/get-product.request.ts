@@ -5,6 +5,7 @@ export interface GetProductRequest {
    module_code:          string;   
    product_usage_type:   ProductUsageTypeEnum;
    category_product_id?: string;
-   page_number?:         number;   
-   page_size?:           number;   
+   only_active?:boolean;
+   page_number?: number;   
+   page_size?: number;   
 }
