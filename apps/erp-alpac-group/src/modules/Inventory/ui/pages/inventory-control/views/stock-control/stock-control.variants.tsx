@@ -1,4 +1,4 @@
-import { getInventoryStockStatusLabel } from "@app/core/enums/inventory-stock-status.enum"
+import { InventoryStockStatus } from "@app/core/enums/inventory-stock-status.enum"
 import { Badges, ContextMenu, InputText } from "@alpac/design-system"
 import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/utils/styles"
 
@@ -108,7 +108,7 @@ export const GetInventoryStocksColumnsToTable = function(props: InventoryStocksC
                <Badges
                   color="info"
                   className={InventoryStockStatusColorBadges[item.status]}
-                   label={getInventoryStockStatusLabel(item.status)}
+                  label={InventoryStockStatus[item.status]?.label ?? ""}
                />
             )
          }

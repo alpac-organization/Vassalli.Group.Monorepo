@@ -28,8 +28,8 @@ export function ReabastecimientoPage() {
     mileage?: number;
     engine_hours?: number;
     justification: string;
-  }) => {
-    if (!companyId || !moduleCode) return;
+  }): Promise<boolean> => {
+    if (!companyId || !moduleCode) return false;
 
     const payload: RegisterFuelRequest = {
       company_id: companyId,
@@ -45,8 +45,10 @@ export function ReabastecimientoPage() {
     try {
       await RegisterFuelRequest.mutateAsync(payload);
       handleRequestSuccess("Solicitud de combustible registrada exitosamente.");
+      return true;
     } catch (error) {
       handleRequestError(error);
+      return false;
     }
   };
 
@@ -95,8 +97,8 @@ export function ReabastecimientoPage() {
         )}
       </div>
 
-      <div className="w-full md:w-1/3 flex flex-col gap-3
-      rounded-lg border border-slate-200 dark:border-slate-500 p4 sm:p-6">
+      <div className="w-full md:w-1/3 min-w-0 box-border flex flex-col gap-3
+      rounded-lg border border-slate-200 dark:border-slate-500 p-4 sm:p-6">
         <h3 className="p-0! m-0!">Solicitud de combustible</h3>
         <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
           Registra una solicitud de combustible para una maquinaria.
