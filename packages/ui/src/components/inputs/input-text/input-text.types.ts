@@ -9,4 +9,8 @@ export interface InputProps
   missingLabel?: string;
   labelClassName?: string;
   errorVariant?: "text" | "tooltip";
+  prefixNode?: React.ReactNode;
+  prefixClassName?: string;
+  suffix?: React.ReactNode;
+  suffixClassName?: string;
 }

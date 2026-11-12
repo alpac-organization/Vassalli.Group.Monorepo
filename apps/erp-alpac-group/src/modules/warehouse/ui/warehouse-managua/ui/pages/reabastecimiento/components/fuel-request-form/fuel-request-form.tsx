@@ -1,8 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { m, AnimatePresence, LazyMotion } from "framer-motion";
 import {
   Button,
   Dropdown,
   InputText,
+  Switch,
   Textarea,
 } from "@alpac/design-system";
 import { Loader } from "@app/shared/components/loaders/loader";
@@ -26,7 +28,7 @@ interface FuelRequestFormProps {
     mileage?: number;
     engine_hours?: number;
     justification: string;
-  }) => void | Promise<void>;
+  }) => void | Promise<void | boolean>;
 }
 
 interface FuelRequestFormValues {
@@ -47,21 +49,21 @@ export function FuelRequestForm({
   const stockPayload =
     companyId && moduleCode
       ? {
-          company_id: companyId,
-          module_code: moduleCode,
-          page_size: 100,
-          page_number: 1,
-        }
+        company_id: companyId,
+        module_code: moduleCode,
+        page_size: 100,
+        page_number: 1,
+      }
       : null;
 
   const machineryPayload =
     companyId && moduleCode
       ? {
-          company_id: companyId,
-          module_code: moduleCode,
-          page_size: 100,
-          page_number: 1,
-        }
+        company_id: companyId,
+        module_code: moduleCode,
+        page_size: 100,
+        page_number: 1,
+      }
       : null;
 
   const { GetInventoryStocks } = useInventoryStocks(stockPayload);
@@ -78,6 +80,8 @@ export function FuelRequestForm({
     () => GetMachineryCatalog.data?.data ?? [],
     [GetMachineryCatalog.data],
   );
+
+  const [useMileage, setUseMileage] = useState(true);
 
   const stockOptions = useMemo(
     () =>
@@ -106,6 +110,7 @@ export function FuelRequestForm({
     reset,
   } = useForm<FuelRequestFormValues>({
     mode: "onSubmit",
+    shouldUnregister: true,
     defaultValues: {
       machinery_id: "",
       product_stock_id: "",
@@ -125,18 +130,20 @@ export function FuelRequestForm({
     if (!values.machinery_id.trim() || !values.product_stock_id.trim()) return;
     if (!values.justification.trim()) return;
 
-    await onSubmit({
+    const result = await onSubmit({
       machinery_id: values.machinery_id.trim(),
       product_stock_id: values.product_stock_id.trim(),
       requested_quantity: quantity,
-      mileage: values.mileage.trim() ? Number(values.mileage) : undefined,
-      engine_hours: values.engine_hours.trim()
-        ? Number(values.engine_hours)
+      mileage: useMileage
+        ? (String(values.mileage ?? "").trim() ? Number(values.mileage) : undefined)
+        : undefined,
+      engine_hours: !useMileage
+        ? (String(values.engine_hours ?? "").trim() ? Number(values.engine_hours) : undefined)
         : undefined,
       justification: values.justification.trim(),
     });
 
-    reset();
+    if (result !== false) reset();
   };
 
   return (
@@ -191,10 +198,11 @@ export function FuelRequestForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InputText
             label="Cantidad solicitada"
             type="number"
+            placeholder="Ej: 14.5"
             className={inputClassName}
             labelClassName={labelClassName}
             {...register("requested_quantity", {
@@ -206,31 +214,66 @@ export function FuelRequestForm({
             disabled={isSubmitting}
           />
 
-          <InputText
-            label="Kilometraje (opcional)"
-            type="number"
-            className={inputClassName}
-            labelClassName={labelClassName}
-            {...register("mileage", {
-              min: { value: 0, message: "No puede ser negativo" },
-              valueAsNumber: true,
-            })}
-            error={errors.mileage?.message}
-            disabled={isSubmitting}
-          />
-
-          <InputText
-            label="Horas motor (opcional)"
-            type="number"
-            className={inputClassName}
-            labelClassName={labelClassName}
-            {...register("engine_hours", {
-              min: { value: 0, message: "No puede ser negativo" },
-              valueAsNumber: true,
-            })}
-            error={errors.engine_hours?.message}
-            disabled={isSubmitting}
-          />
+          <div className="flex flex-col gap-2">
+            <Switch
+              checked={useMileage}
+              onChange={(e) => setUseMileage(e.target.checked)}
+              disabled={isSubmitting}
+              trackClassName="relative inline-block w-[40px] h-[24px] shrink-0 rounded-[24px] cursor-pointer bg-[#e9e9ea] dark:bg-slate-600 transition-colors duration-300 group-has-focus-visible:outline group-has-focus-visible:outline-2 group-has-focus-visible:outline-[#007aff] group-has-focus-visible:outline-offset-2 group-has-disabled:opacity-50 group-has-disabled:cursor-not-allowed"
+              knobClassName="absolute top-[2px] left-[2px] w-[20px] h-[20px] bg-white rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.3)] transition-transform duration-300 group-has-checked:translate-x-[16px]"
+            />
+            <LazyMotion features={() => import("framer-motion").then((r) => r.domAnimation)} strict>
+              <AnimatePresence mode="wait">
+                {useMileage ? (
+                  <m.div
+                    key="mileage"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                  >
+                    <InputText
+                      label="Kilometraje"
+                      placeholder="Ej: 14182.5"
+                      type="number"
+                      className={inputClassName}
+                      labelClassName={labelClassName}
+                      suffix="km"
+                      suffixClassName="text-slate-400 text-sm"
+                      {...register("mileage", {
+                        min: { value: 0, message: "No puede ser negativo" },
+                      })}
+                      error={errors.mileage?.message}
+                      disabled={isSubmitting}
+                    />
+                  </m.div>
+                ) : (
+                  <m.div
+                    key="hours"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                  >
+                    <InputText
+                      label="Horas motor"
+                      type="number"
+                      placeholder="Ej: 1234.23"
+                      className={inputClassName}
+                      labelClassName={labelClassName}
+                      suffix="hrs"
+                      suffixClassName="text-slate-400 text-sm"
+                      {...register("engine_hours", {
+                        min: { value: 0, message: "No puede ser negativo" },
+                      })}
+                      error={errors.engine_hours?.message}
+                      disabled={isSubmitting}
+                    />
+                  </m.div>
+                )}
+              </AnimatePresence>
+            </LazyMotion>
+          </div>
         </div>
 
         <Textarea

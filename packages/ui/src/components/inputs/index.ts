@@ -19,3 +19,6 @@ export * from "./radio-button/radio-button.types"
 
 export * from "./checkbox/checkbox"
 export * from "./checkbox/checkbox.types"
+
+export * from "./switch/switch"
+export * from "./switch/switch.types"
