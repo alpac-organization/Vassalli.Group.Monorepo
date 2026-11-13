@@ -6,7 +6,6 @@ import { ReasonUse as ReasonUseValues } from "@app/core/enums/reason-use.enum";
 import { Badges, Button, DataTable, Modal, Pagination, SectionHeader } from "@alpac/design-system";
 
 import { Loader } from "@app/shared/components/loaders/loader";
-// import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useSupplyRequests } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useSupplyRequests";
 import { useSupplyRequestDetail } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useSupplyRequestDetail";
@@ -23,11 +22,11 @@ import { GetOperationalSupplyRequestColumnsToTable } from "./operational-request
 import type { OperationalRequestsFilters } from "./operational-requests.types";
 import type { SupplyRequestDetailDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/supply-requests/supply-requests.response";
 
-import { ModalInfoField } from "../modal-info-field/modal-info-field";
+import { ModalInfoField } from "@app/shared/components/modal-info-field/modal-info-field";
 import { ApproveRequestModal } from "../approve-request-modal/approve-request-modal";
 import { DeclineRequestModal } from "../decline-request-modal/decline-request-modal";
 import { REQUEST_STATUS_TABS, getStatusBadgeClassName, getReasonBadgeClassName } from "../../utils/request-status";
-import { StatusTabsOverlay } from "../status-tabs-overlay/status-tabs-overlay";
+import { StatusTabsOverlay } from "@app/shared/components/status-tabs-overlay/status-tabs-overlay";
 
 export const OperationalRequests = function () {
   const { companyId, moduleCode } = useUserStore();

@@ -17,6 +17,10 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
       disabled,
       isRequired,
       errorVariant = "text",
+      prefixNode,
+      prefixClassName,
+      suffix,
+      suffixClassName,
       ...rest
     },
     ref,
@@ -65,8 +69,8 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
                  h-12 md:h-12 
                  py-2 md:py-2.5
                  text-[14px] md:text-[16px]                  
-                 ${icon ? "pl-11 md:pl-12" : "pl-4"} 
-                 ${isPassword ? "pr-11 md:pr-12" : "pr-4"}
+                 ${prefixNode || icon ? "pl-11 md:pl-12" : "pl-4"}
+                 ${suffix || isPassword ? "pr-11 md:pr-12" : "pr-4"}
                  placeholder:text-slate-500
                  focus:border-blue-600 focus:ring-2 focus:ring-green-50/50
                  disabled:bg-slate-50 disabled:cursor-not-allowed               
@@ -74,6 +78,18 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
                  ${className || ""}
               `}
             />
+
+            {suffix && (
+               <div className={`pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 ${suffixClassName ?? "text-slate-400"}`}>
+                  {suffix}
+               </div>
+            )}
+
+            {prefixNode && (
+               <div className={`pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 ${prefixClassName ?? "text-slate-400"}`}>
+                  {prefixNode}
+               </div>
+            )}
 
             {isPassword && (
               <button

@@ -17,5 +17,6 @@ export function buildProductListFilters(
 		page_size: SELECT_PRODUCT_PAGE_SIZE,
 		...(productUsageType ? { product_usage_type: productUsageType } : {}),
 		...overrides,
+		only_active: true,
 	};
 }

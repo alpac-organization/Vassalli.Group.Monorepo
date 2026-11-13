@@ -1,4 +1,4 @@
-import type { StatusTabsOverlayProps } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/supply-requests/components/status-tabs-overlay/types/status-tabs-overlay.types";
+import type { StatusTabsOverlayProps } from "@app/shared/components/status-tabs-overlay/status-tabs-overlay.types";
 
 export function StatusTabsOverlay({ tabs, activeTab, onChange }: StatusTabsOverlayProps) {
   return (
