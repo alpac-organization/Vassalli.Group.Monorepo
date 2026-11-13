@@ -31,6 +31,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
+import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters";
 import { CatalogLinkEditor } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor";
 import {
 	mapCatalogLinkItemsToTierPayload,
@@ -183,6 +184,12 @@ export const CreateProductModal = ({
 
 	const productDetails = GetProductDetails.data;
 
+	const { GetCostCentersByCompany } = useCostCenters(undefined, {
+		company_id: companyId,
+		module_code: moduleCode,
+		only_operational: true,
+	});
+
 	const draftSource: CreateProductDraftSource = {
 		isOpen,
 		isEditMode,
@@ -194,6 +201,7 @@ export const CreateProductModal = ({
 
 	const mountedDraft = resolveCreateProductDraft(draftSource);
 
+	const [selectedCategoryIsService, setSelectedCategoryIsService] = useState(false);
 	const [selectedProductCategory, setSelectedProductCategory] = useState(
 		mountedDraft?.categoryName ?? "",
 	);
@@ -238,6 +246,7 @@ export const CreateProductModal = ({
 		handleSubmit,
 		reset,
 		getValues,
+		watch,
 		unregister,
 		clearErrors,
 		formState: { errors },
@@ -275,11 +284,20 @@ export const CreateProductModal = ({
 		}));
 	}, [GetUnitMeasurements.data]);
 
+	const costCenterOptions = useMemo(() => {
+		const data = GetCostCentersByCompany.data;
+		if (!data || !Array.isArray(data)) return [];
+		return data.map((item: any) => ({
+			value: item.cost_center_id,
+			label: item.cost_center_name,
+		}));
+	}, [GetCostCentersByCompany.data]);
 	const assignedSupplierIds = useMemo(
 		() => supplierLinks.map((link) => link.entity_id).filter(Boolean),
 		[supplierLinks],
 	);
 
+	const availableStockValue = watch("configuration_stock.available_quantity");
 	const isSaving = CreateProduct.isPending || UpdateProduct.isPending;
 
 	const handleSupplierLinksChange = (items: CatalogLinkItemForm[]) => {
@@ -363,6 +381,7 @@ export const CreateProductModal = ({
 			description: values.description?.trim() || undefined,
 			product_usage_type: typeProductToRegister,
 			is_tax_exempt: Boolean(values.is_tax_exempt),
+			cost_center_id: isOperational ? values.cost_center_id ?? null : null,
 			configuration_stock: shouldSendStock
 				? buildStockConfiguration(values, typeProductToRegister)
 				: null,
@@ -507,10 +526,10 @@ export const CreateProductModal = ({
 										console.log(value)
 
 										const stringValue = String(value);
-										const [category] = productCategories.filter(
-											(item) => item.value === stringValue || item.value == value,
-										);
-										setSelectedProductCategory(category?.label ?? "");
+										const categories = Array.isArray(GetProductCategories.data) ? GetProductCategories.data : [];
+										const category = categories.find((item: any) => item.category_id === stringValue || item.category_id == value);
+										setSelectedProductCategory(category?.name ?? "");
+										setSelectedCategoryIsService(Boolean(category?.is_service));
 									}}
 									options={productCategories ?? []}
 									error={fieldState.error?.message}
@@ -545,6 +564,31 @@ export const CreateProductModal = ({
 								/>
 							)}
 						/>
+
+						{isOperational && (
+							<Controller
+								control={control}
+								name="cost_center_id"
+								render={({ field, fieldState }) => (
+									<Dropdown
+										label="Centro de costo"
+										placeholder={
+											GetCostCentersByCompany.isPending ||
+											GetCostCentersByCompany.isFetching
+												? "Cargando centros de costo..."
+												: "Seleccione un centro de costo"
+										}
+										appearance="dark"
+										value={field.value ?? ""}
+										disabled={isSaving || isLoadingDetails || isEditMode}
+										options={costCenterOptions}
+										error={fieldState.error?.message}
+										labelClassName={labelClassName}
+										className={dropdownClassName}
+									/>
+								)}
+							/>
+						)}
 					</div>
 
 					<Controller
@@ -573,7 +617,7 @@ export const CreateProductModal = ({
 					/>
 
 					{/* Configuración de stock (opcional): solo para productos Operacionales al crear */}
-					{isOperational && !isEditMode && (
+					{isOperational && !isEditMode && !selectedCategoryIsService && (
 						<>
 							<SectionHeader
 								title="Datos dentro del stock de inventario"
@@ -651,6 +695,42 @@ export const CreateProductModal = ({
 
 													if (min !== undefined && max < min)
 														return "El stock máximo no puede ser menor al mínimo.";
+													return true;
+												},
+											})}
+										/>
+
+										<InputText
+											label="Stock disponible (opcional)"
+											type="number"
+											min={0}
+											placeholder="Ej: 10"
+											error={errors.configuration_stock?.available_quantity?.message}
+											className={inputClassName}
+											labelClassName={labelClassName}
+											disabled={isSaving || isLoadingDetails}
+											{...register("configuration_stock.available_quantity", {
+												setValueAs: toOptionalNumber,
+											})}
+										/>
+
+										<InputText
+											label="Costo promedio ponderado (opcional)"
+											type="number"
+											min={0}
+											placeholder="Ej: 10.5"
+											error={errors.configuration_stock?.weighted_average_cost?.message}
+											className={inputClassName}
+											labelClassName={labelClassName}
+											disabled={isSaving || isLoadingDetails || !availableStockValue}
+											{...register("configuration_stock.weighted_average_cost", {
+												setValueAs: toOptionalNumber,
+												validate: (value) => {
+													const available = toOptionalNumber(getValues("configuration_stock.available_quantity"));
+													const weighted = toOptionalNumber(value);
+													if (available !== undefined && (weighted === undefined || Number.isNaN(weighted))) {
+														return "El costo promedio ponderado es obligatorio si ingresa stock disponible.";
+													}
 													return true;
 												},
 											})}

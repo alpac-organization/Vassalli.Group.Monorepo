@@ -3,8 +3,10 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
 import { DataTable, Pagination, SectionHeader } from "@alpac/design-system"
 
-import { ProductsAndServicesSectionFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters";
+import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
+import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import { DEFAULT_PRODUCT_FILTERS, GetProductColumnsToTable } from "./products-and-services-control.variant";
+import { ProductsAndServicesSectionFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters";
 import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types";
 
 const PAGE_SIZE = 5;
@@ -12,6 +14,8 @@ const PAGE_SIZE = 5;
 export const ProductsAndServicesControl = function() {
 
    const [filters, setFilters] = useState<ProductsAndServicesFilters>(DEFAULT_PRODUCT_FILTERS);
+   const [isProductFormOpen, setIsProductFormOpen] = useState(false);
+   const [productToEdit, setProductToEdit] = useState<GetProductResponse | null>(null);
 
    const { companyId, moduleCode } = useUserStore();
    const { GetProducts } = useProduct({
@@ -27,7 +31,10 @@ export const ProductsAndServicesControl = function() {
    });
 
    const { data: productsData, isPending, isFetching } = GetProducts;
-   const productsAndServicesColumns = GetProductColumnsToTable();
+   const productsAndServicesColumns = GetProductColumnsToTable((row) => {
+      setProductToEdit(row);
+      setIsProductFormOpen(true);
+   });
 
       //Metodos de filtrado
    const handleApplyFilters = (newFilters: ProductsAndServicesFilters) => {
@@ -74,6 +81,15 @@ export const ProductsAndServicesControl = function() {
 					/>
 				}
 			/>
+		<CreateProductModal
+			typeProductToRegister="Operational"
+			isOpen={isProductFormOpen}
+			onClose={() => {
+				setIsProductFormOpen(false);
+				setProductToEdit(null);
+			}}
+			selectedProduct={productToEdit}
+		/>
 		</div>
-	)
+   )
 }

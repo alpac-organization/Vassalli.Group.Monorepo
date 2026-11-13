@@ -4,8 +4,13 @@ import type { GetCostCentersRequest } from "@app/modules/admin/domain/ApiContrac
 import type { CreateCostCenterRequest } from "@app/modules/admin/domain/ApiContract/requests/cost-centers/create-cost-center.request";
 import type { DeleteCostCentersRequest } from "@app/modules/admin/domain/ApiContract/requests/cost-centers/delete-cost-centers";
 import { CostCentersServices } from "@app/modules/admin/infrastructure/cost-centers/CostCentersServices";
+
 const costCenterServices = new CostCentersServices(httpHandler);
-export const useCostCenters = (payload?: GetCostCentersRequest) => {
+
+export const useCostCenters = (
+  payload?: GetCostCentersRequest,
+  companyPayload?: { company_id?: string; module_code?: string; only_operational?: boolean },
+) => {
   const queryClient = useQueryClient();
   const GetCostCenters = useQuery({
     queryKey: ["cost-centers", payload?.company_id, payload?.area_id],
@@ -35,5 +40,24 @@ export const useCostCenters = (payload?: GetCostCentersRequest) => {
       });
     },
   });
-  return { GetCostCenters, createCostCenter, deleteCostCenter };
+  const GetCostCentersByCompany = useQuery({
+    queryKey: [
+      "cost-centers-by-company",
+      companyPayload?.company_id,
+      companyPayload?.module_code,
+      companyPayload?.only_operational,
+    ],
+    queryFn: () =>
+      costCenterServices.getCostCentersByCompany({
+        company_id: companyPayload?.company_id ?? "",
+        module_code: companyPayload?.module_code ?? "",
+        only_operational: companyPayload?.only_operational,
+      }),
+    staleTime: 1000 * 60 * 5,
+    enabled: Boolean(companyPayload?.company_id && companyPayload?.module_code),
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
+  return { GetCostCenters, createCostCenter, deleteCostCenter, GetCostCentersByCompany };
 };

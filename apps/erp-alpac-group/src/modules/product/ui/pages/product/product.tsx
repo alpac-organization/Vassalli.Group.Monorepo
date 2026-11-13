@@ -27,6 +27,7 @@ import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
 import { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
+import { ProductStatus } from "@app/core/enums/product-status.enum";
 
 
 const PAGE_SIZE = 5;
@@ -188,9 +189,9 @@ export const Product = () => {
             label: "Estado",
             render: (row) => (
                <Badges
-                  label={row.is_active ? "Activo" : "Inactivo"}
+                  label={ProductStatus[row.product_status].label}
                   color={
-                     row.is_active
+                     row.product_status === "Active"
                         ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200"
                         : "bg-[#722F37]/15 text-[#722F37] dark:bg-[#5c1a22]/45 dark:text-[#e8a0a8]"
                   }
