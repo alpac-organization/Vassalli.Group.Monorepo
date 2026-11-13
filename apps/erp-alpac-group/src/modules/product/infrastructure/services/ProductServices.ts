@@ -5,7 +5,7 @@ import type { IProductServices } from "@app/modules/product/application/interfac
 import type { CreateProductCategoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product-category/create-product-category.request";
 import type { GetProductCategoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product-category/get-product-category.request";
 import type { CreateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/create-product.request";
-import type { DeleteProductSupplierLinkRequest } from "@app/modules/product/domain/ApiContract/Requests/product/delete-product-supplier-link.request";
+import type { DeleteProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/delete-product.request";
 import type { GetProductDetailsRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product-details.request";
 import type { GetProductSupplierPriceHistoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product-supplier-price-history.request";
 import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product.request";
@@ -17,6 +17,7 @@ import type { CreateProductResponse } from "@app/modules/product/domain/ApiContr
 import type { GetProductDetailsResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product-details.response";
 import type { GetProductSupplierPriceHistoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product-supplier-price-history.response";
 import type { GetProductResponseList } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
+import type { DeleteProductSupplierLinkRequest } from "../../domain/ApiContract/Requests/product/delete-product-supplier-link.request";
 
 export class ProductServices implements IProductServices {
 	private readonly apiHandler: IHttpHandler;
@@ -104,6 +105,12 @@ export class ProductServices implements IProductServices {
 		const { company_id, module_code, product_id, supplier_id } = payload;
 		const url = `companies/${company_id}/modules/${module_code}/products/${product_id}/suppliers/${supplier_id}`;
 
+		await this.apiHandler.delete<void>(url);
+	}
+
+	async DeleteProduct(payload: DeleteProductRequest): Promise<void> {
+		const { company_id, module_code, product_id } = payload;
+		const url = `companies/${company_id}/modules/${module_code}/products/${product_id}`;
 		await this.apiHandler.delete<void>(url);
 	}
 

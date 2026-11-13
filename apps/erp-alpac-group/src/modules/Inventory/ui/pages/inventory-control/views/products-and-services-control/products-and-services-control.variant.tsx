@@ -7,7 +7,7 @@ import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/u
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response"
 import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types"
 
-export const GetProductColumnsToTable = function(onEditProduct?: (row: GetProductResponse) => void): TableColumn<GetProductResponse>[] {
+export const GetProductColumnsToTable = function(onEditProduct?: (row: GetProductResponse) => void, onDeleteProduct?: (row: GetProductResponse) => void): TableColumn<GetProductResponse>[] {
    return [
       { 
          key: "product_code",       
@@ -19,6 +19,19 @@ export const GetProductColumnsToTable = function(onEditProduct?: (row: GetProduc
       { 
          key: "product_name",       
          label: "Producto"
+      },
+      {
+         key: "status",       
+         label: "Estado",
+         render(item){
+            return (
+               <Badges 
+                  color="info"
+                  className={ ProductStatus[item.product_status ?? "Active"].colorBadge }
+                  label={ ProductStatus[item.product_status ?? "Active"].label ?? "-"}
+               />
+            )
+         }
       },
       {
          key: "category",       
@@ -47,19 +60,6 @@ export const GetProductColumnsToTable = function(onEditProduct?: (row: GetProduc
          }
       },
       {
-         key: "status",       
-         label: "Estado",
-         render(item){
-            return (
-               <Badges 
-                  color="info"
-                  className="bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
-                  label={ ProductStatus[item.product_status ?? "Active"].label ?? "-"}
-               />
-            )
-         }
-      },
-      {
          key: "options",
          label: "Opciones",
          render(item){
@@ -68,6 +68,7 @@ export const GetProductColumnsToTable = function(onEditProduct?: (row: GetProduc
                   triggerClassName={contextMenuButton}
                   items={[
                      { label: "Editar Producto", onClick: () => onEditProduct?.(item) },
+                     ...(item.is_active ? [{ label: "Eliminar Producto", onClick: () => onDeleteProduct?.(item) }] : []),
                   ]}
                   openUpOnMobile
                />

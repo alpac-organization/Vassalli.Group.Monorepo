@@ -1,7 +1,7 @@
 ﻿import type { CreateProductCategoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product-category/create-product-category.request";
 import type { GetProductCategoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product-category/get-product-category.request";
 import type { CreateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/create-product.request";
-import type { DeleteProductSupplierLinkRequest } from "@app/modules/product/domain/ApiContract/Requests/product/delete-product-supplier-link.request";
+import type { DeleteProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/delete-product.request";
 import type { GetProductDetailsRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product-details.request";
 import type { GetProductSupplierPriceHistoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product-supplier-price-history.request";
 import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product.request";
@@ -36,9 +36,7 @@ export interface IProductServices {
 		payload: GetProductSupplierPriceHistoryRequest,
 	): Promise<GetProductSupplierPriceHistoryResponse>;
 
-	DeleteProductSupplierLink(
-		payload: DeleteProductSupplierLinkRequest,
-	): Promise<void>;
+	DeleteProduct(payload: DeleteProductRequest): Promise<void>;
 
 	CreateProductCategory(
 		payload: CreateProductCategoryRequest,

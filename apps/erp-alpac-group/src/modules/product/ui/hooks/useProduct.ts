@@ -15,6 +15,7 @@ import type { UpdateProductRequest } from "@app/modules/product/domain/ApiContra
 import type { UpdateProductSupplierPriceRequest } from "@app/modules/product/domain/ApiContract/Requests/product/update-product-supplier-price.request";
 import type { GetProductSupplierPriceHistoryRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product-supplier-price-history.request";
 import type { GetProductSupplierPriceHistoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product-supplier-price-history.response";
+import type { DeleteProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/delete-product.request";
 import type { DeleteProductSupplierLinkRequest } from "@app/modules/product/domain/ApiContract/Requests/product/delete-product-supplier-link.request";
 import type { GetProductCategoryResponse } from "../../domain/ApiContract/Responses/product-category/get-product-category.response";
 
@@ -156,6 +157,14 @@ export const useProduct = (props?: useProductProps) => {
 		retry: 1,
 	});
 
+	const DeleteProduct = useMutation<void, ApiErrorResponse, DeleteProductRequest>({
+		mutationKey: ["delete-product"],
+		mutationFn: (payload) => productServices.DeleteProduct(payload),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["get-products"] });
+		},
+		retry: 1,
+	});
 	const CreateProductCategory = useMutation<
 		CreateProductCategoryResponse,
 		ApiErrorResponse,
@@ -178,6 +187,7 @@ export const useProduct = (props?: useProductProps) => {
 		UpdateProduct,
 		UpdateProductSupplierPrice,
 		DeleteProductSupplierLink,
+		DeleteProduct,
 		CreateProductCategory,
 	};
 };

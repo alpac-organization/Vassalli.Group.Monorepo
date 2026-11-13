@@ -57,7 +57,7 @@ export const Product = () => {
       page_size: PAGE_SIZE,
    });
 
-   const { GetProductCategories, GetProducts } = useProduct({
+	const { GetProductCategories, GetProducts, DeleteProduct } = useProduct({
       getProductPayload: {
          ...filters,
          company_id:         companyId,
@@ -138,10 +138,19 @@ export const Product = () => {
       setIsProductFormOpen(true);
    };
 
-   const onOpenCreateProduct = () => {
-      setProductToEdit(null);
-      setIsProductFormOpen(true);
-   };
+	const onDeleteProduct = (row: GetProductResponse) => {
+		if (!window.confirm("¿Está seguro de dar de baja este producto?")) return;
+		DeleteProduct.mutate({
+			company_id: companyId,
+			module_code: moduleCode,
+			product_id: row.product_id,
+		});
+	};
+
+	const onOpenCreateProduct = () => {
+		setProductToEdit(null);
+		setIsProductFormOpen(true);
+	};
 
    const onCloseProductForm = () => {
       setIsProductFormOpen(false);
@@ -209,6 +218,7 @@ export const Product = () => {
                      ...(row.is_active
                         ? [{ label: "Editar", onClick: () => onEditProduct(row) }]
                         : []),
+                     { label: "Eliminar", onClick: () => onDeleteProduct(row) },
                      {
                         label: "Ver proveedores",
                         onClick: () => onViewSuppliers(row),
