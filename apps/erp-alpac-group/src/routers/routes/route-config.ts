@@ -184,6 +184,9 @@ export const routeConfig = {
     [RoleEnum.ADMINISTRATOR]: [
       inventoryControl,
       inventoryEntriesAndOutputs
+    ],
+    [RoleEnum.MANAGER]: [
+      inventoryControl
     ]
   }
 };

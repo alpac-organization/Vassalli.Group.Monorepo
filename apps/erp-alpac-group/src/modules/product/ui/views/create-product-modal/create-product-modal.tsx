@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import {
 	Alert,
 	Button,
@@ -60,6 +60,8 @@ const primaryButtonClassName =
 const secondaryButtonClassName =
 	"text-[15px]! rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!";
 
+// configuration_stock solo existe en el formulario de productos operacionales.
+// Para el resto de tipos la propiedad no se crea (no se envía ni como null).
 const emptyFormValues = (
 	companyId: string,
 	moduleCode: string,
@@ -75,10 +77,12 @@ const emptyFormValues = (
 	product_usage_type: usageType,
 	is_tax_exempt: false,
 	suppliers: [],
-	configuration_stock: null,
+	...(usageType === "Operational" ? { configuration_stock: null } : {}),
 });
 
-const resolveCreateProductDraft = (source: CreateProductDraftSource): CreateProductDraft | null => {
+const resolveCreateProductDraft = (
+	source: CreateProductDraftSource,
+): CreateProductDraft | null => {
 	if (!source.isOpen || !source.isEditMode) {
 		return {
 			formValues: emptyFormValues(
@@ -92,6 +96,7 @@ const resolveCreateProductDraft = (source: CreateProductDraftSource): CreateProd
 	}
 
 	const productDetails = source.productDetails;
+
 	if (!productDetails) return null;
 
 	return {
@@ -166,7 +171,7 @@ export const CreateProductModal = ({
 			},
 			getProductDetailsPayload:
 				isOpen && selectedProduct?.product_id
-					?   {
+					? {
 							company_id: companyId,
 							module_code: moduleCode,
 							product_id: selectedProduct.product_id,
@@ -175,7 +180,7 @@ export const CreateProductModal = ({
 						}
 					: undefined,
 		});
-		
+
 	const { GetUnitMeasurements } = useUnitOfMeasurement({
 		payloadUnitOfMeasurement: {
 			companie_id: companyId,
@@ -212,8 +217,6 @@ export const CreateProductModal = ({
 	);
 	const [supplierLinksDirty, setSupplierLinksDirty] = useState(false);
 	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
-	// Activa o desactiva la configuración inicial de stock (opcional)
-	const [enableStockConfig, setEnableStockConfig] = useState(false);
 	const [appliedFormValues, setAppliedFormValues] = useState<CreateProductRequest>(
 		() =>
 			mountedDraft?.formValues ??
@@ -237,8 +240,8 @@ export const CreateProductModal = ({
 			setSupplierLinks(nextDraft.supplierLinks);
 			setSupplierLinksDirty(false);
 			setSelectedProductCategory(nextDraft.categoryName);
+			setSelectedCategoryIsService(false);
 			setIsSelectSupplierOpen(false);
-			setEnableStockConfig(false);
 		}
 	}
 
@@ -268,13 +271,10 @@ export const CreateProductModal = ({
 
 		const categories: GetProductCategoryResponse[] = GetProductCategories.data;
 
-		return categories.map((item) => {
-			return {
-				value: item.category_id,
-				label: item.name,
-			}
-		});
-
+		return categories.map((item) => ({
+			value: item.category_id,
+			label: item.name,
+		}));
 	}, [GetProductCategories.data]);
 
 	const unitMeasureOptions = useMemo(() => {
@@ -294,6 +294,7 @@ export const CreateProductModal = ({
 			label: item.cost_center_name,
 		}));
 	}, [GetCostCentersByCompany.data]);
+
 	const assignedSupplierIds = useMemo(
 		() => supplierLinks.map((link) => link.entity_id).filter(Boolean),
 		[supplierLinks],
@@ -302,19 +303,12 @@ export const CreateProductModal = ({
 	const availableStockValue = watch("configuration_stock.available_quantity");
 	const isSaving = CreateProduct.isPending || UpdateProduct.isPending;
 
+	// La configuración de stock aplica solo al crear productos operacionales que no son servicios
+	const showStockConfig = isOperational && !isEditMode && !selectedCategoryIsService;
+
 	const handleSupplierLinksChange = (items: CatalogLinkItemForm[]) => {
 		setSupplierLinks(items);
 		if (isEditMode) setSupplierLinksDirty(true);
-	};
-
-	const handleToggleStockConfig = (checked: boolean) => {
-		setEnableStockConfig(checked);
-
-		// Al desactivar, se eliminan valores, registro y errores de los campos de stock
-		if (!checked) {
-			unregister("configuration_stock");
-			clearErrors("configuration_stock");
-		}
 	};
 
 	const handleClose = () => {
@@ -322,8 +316,8 @@ export const CreateProductModal = ({
 		setSupplierLinks([]);
 		setSupplierLinksDirty(false);
 		setSelectedProductCategory("");
+		setSelectedCategoryIsService(false);
 		setIsSelectSupplierOpen(false);
-		setEnableStockConfig(false);
 		onClose();
 	};
 
@@ -373,10 +367,12 @@ export const CreateProductModal = ({
 	const handleCreateProduct = (values: CreateProductRequest) => {
 		if (!validateSupplierLinks()) return;
 
-		const shouldSendStock = isOperational && enableStockConfig;
+		// Se separa configuration_stock del resto de valores del formulario para que
+		// nunca llegue al payload por el spread cuando el producto no es operacional.
+		const { configuration_stock: _formStockConfiguration, ...baseValues } = values;
 
 		const payload: CreateProductRequest = {
-			...values,
+			...baseValues,
 			company_id: companyId,
 			module_code: moduleCode,
 			product_name: values.product_name?.trim(),
@@ -384,14 +380,21 @@ export const CreateProductModal = ({
 			product_usage_type: typeProductToRegister,
 			is_tax_exempt: Boolean(values.is_tax_exempt),
 			cost_center_id: isOperational ? values.cost_center_id ?? null : null,
-			configuration_stock: shouldSendStock
-				? buildStockConfiguration(values, typeProductToRegister)
-				: null,
 			suppliers:
 				supplierLinks.length > 0
 					? mapSupplierLinksToPayload(supplierLinks)
 					: undefined,
 		};
+
+		// configuration_stock solo se envía en productos operacionales:
+		// - operacional con stock  -> objeto de configuración
+		// - operacional servicio   -> null
+		// - cualquier otro tipo    -> la propiedad no existe en el payload
+		if (isOperational) {
+			payload.configuration_stock = showStockConfig
+				? buildStockConfiguration(values, typeProductToRegister)
+				: null;
+		}
 
 		CreateProduct.mutate(payload, {
 			onSuccess(product) {
@@ -521,17 +524,33 @@ export const CreateProductModal = ({
 									appearance="dark"
 									isRequired
 									value={field.value}
-									disabled={isSaving && !GetProductCategories.isPending && !GetProductCategories.isFetching}
+									disabled={
+										isSaving &&
+										!GetProductCategories.isPending &&
+										!GetProductCategories.isFetching
+									}
 									onChange={(value) => {
 										field.onChange(value);
 
-										console.log(value)
-
 										const stringValue = String(value);
-										const categories = Array.isArray(GetProductCategories.data) ? GetProductCategories.data : [];
-										const category = categories.find((item: any) => item.category_id === stringValue || item.category_id == value);
+										const categories = Array.isArray(GetProductCategories.data)
+											? GetProductCategories.data
+											: [];
+										const category = categories.find(
+											(item: any) =>
+												item.category_id === stringValue ||
+												item.category_id == value,
+										);
+										const isService = Boolean(category?.is_service);
+
 										setSelectedProductCategory(category?.name ?? "");
-										setSelectedCategoryIsService(Boolean(category?.is_service));
+										setSelectedCategoryIsService(isService);
+
+										// Los servicios no manejan stock: se limpian los campos y sus errores
+										if (isService) {
+											unregister("configuration_stock");
+											clearErrors("configuration_stock");
+										}
 									}}
 									options={productCategories ?? []}
 									error={fieldState.error?.message}
@@ -587,6 +606,9 @@ export const CreateProductModal = ({
 										error={fieldState.error?.message}
 										labelClassName={labelClassName}
 										className={dropdownClassName}
+										onChange={(value) =>
+											field.onChange(value ? String(value) : null)
+										}
 									/>
 								)}
 							/>
@@ -618,130 +640,125 @@ export const CreateProductModal = ({
 						enableCharacterCount
 					/>
 
-					{/* Configuración de stock (opcional): solo para productos Operacionales al crear */}
-					{isOperational && !isEditMode && !selectedCategoryIsService && (
-						<>
-							<SectionHeader
-								title="Datos dentro del stock de inventario"
-								subtitle="Controla el máximo y mínimo de stock que puedes mantener en tu inventario de este producto."
-								headerClassName="text-[15px!]"
-							/>
+					{
+						showStockConfig && (
+							<Fragment>
+								<SectionHeader
+									title="Datos dentro del stock de inventario"
+									subtitle="Define el stock mínimo y máximo que quieres mantener de este producto."
+									headerClassName="text-[15px!]"
+								/>
 
-							<Checkbox
-								label="Configurar stock inicial (opcional)"
-								checked={enableStockConfig}
-								disabled={isSaving || isLoadingDetails}
-								onChange={(event) =>
-									handleToggleStockConfig(event.target.checked)
-								}
-							/>
+								<Alert
+									type="warning"
+									title="Alertas de stock"
+									message="Recibirás una alerta cuando las existencias de este producto estén por debajo del stock mínimo configurado."
+								/>
 
-							{enableStockConfig && (
-								<>
-									<Alert
-										type="warning"
-										title="Alertas de stock"
-										message="Recibirás una alerta cuando las existencias de este producto estén por debajo del stock mínimo configurado."
+								<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+									<InputText
+										label="Stock mínimo"
+										type="number"
+										min={0}
+										placeholder="Ej: 10"
+										isRequired
+										error={errors.configuration_stock?.minimum_stock?.message}
+										className={inputClassName}
+										labelClassName={labelClassName}
+										disabled={isSaving || isLoadingDetails}
+										{...register("configuration_stock.minimum_stock", {
+											required: "El stock mínimo es obligatorio.",
+											setValueAs: toOptionalNumber,
+											// Revalida el máximo cuando cambia el mínimo
+											deps: ["configuration_stock.maximum_stock"],
+											validate: (value) => {
+												const number = toOptionalNumber(value);
+												if (number === undefined || Number.isNaN(number))
+													return "Ingrese un número válido.";
+												if (number < 0)
+													return "El stock mínimo no puede ser negativo.";
+												return true;
+											},
+										})}
 									/>
 
-									<div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-										<InputText
-											label="Stock mínimo"
-											type="number"
-											min={0}
-											placeholder="Ej: 10"
-											isRequired
-											error={errors.configuration_stock?.minimum_stock?.message}
-											className={inputClassName}
-											labelClassName={labelClassName}
-											disabled={isSaving || isLoadingDetails}
-											{...register("configuration_stock.minimum_stock", {
-												required: "El stock mínimo es obligatorio.",
-												setValueAs: toOptionalNumber,
-												validate: (value) => {
-													const number = toOptionalNumber(value);
-													if (number === undefined || Number.isNaN(number))
-														return "Ingrese un número válido.";
-													if (number < 0)
-														return "El stock mínimo no puede ser negativo.";
-													return true;
-												},
-											})}
-										/>
+									<InputText
+										label="Stock máximo"
+										type="number"
+										min={0}
+										placeholder="Ej: 100"
+										isRequired
+										error={errors.configuration_stock?.maximum_stock?.message}
+										className={inputClassName}
+										labelClassName={labelClassName}
+										disabled={isSaving || isLoadingDetails}
+										{...register("configuration_stock.maximum_stock", {
+											required: "El stock máximo es obligatorio.",
+											setValueAs: toOptionalNumber,
+											validate: (value) => {
+												const max = toOptionalNumber(value);
 
-										<InputText
-											label="Stock máximo"
-											type="number"
-											min={0}
-											placeholder="Ej: 100"
-											isRequired
-											error={errors.configuration_stock?.maximum_stock?.message}
-											className={inputClassName}
-											labelClassName={labelClassName}
-											disabled={isSaving || isLoadingDetails}
-											{...register("configuration_stock.maximum_stock", {
-												required: "El stock máximo es obligatorio.",
-												setValueAs: toOptionalNumber,
-												validate: (value) => {
-													const max = toOptionalNumber(value);
+												if (max === undefined || Number.isNaN(max))
+													return "Ingrese un número válido.";
 
-													if (max === undefined || Number.isNaN(max))
-														return "Ingrese un número válido.";
+												if (max < 0)
+													return "El stock máximo no puede ser negativo.";
 
-													if (max < 0)
-														return "El stock máximo no puede ser negativo.";
+												const min = toOptionalNumber(
+													getValues("configuration_stock.minimum_stock"),
+												);
 
-													const min = toOptionalNumber(
-														getValues("configuration_stock.minimum_stock"),
-													);
+												if (min !== undefined && max < min)
+													return "El stock máximo no puede ser menor al mínimo.";
+												return true;
+											},
+										})}
+									/>
 
-													if (min !== undefined && max < min)
-														return "El stock máximo no puede ser menor al mínimo.";
-													return true;
-												},
-											})}
-										/>
+									<InputText
+										label="Stock disponible (opcional)"
+										type="number"
+										min={0}
+										placeholder="Ej: 10"
+										error={errors.configuration_stock?.available_quantity?.message}
+										className={inputClassName}
+										labelClassName={labelClassName}
+										disabled={isSaving || isLoadingDetails}
+										{...register("configuration_stock.available_quantity", {
+											setValueAs: toOptionalNumber,
+										})}
+									/>
 
-										<InputText
-											label="Stock disponible (opcional)"
-											type="number"
-											min={0}
-											placeholder="Ej: 10"
-											error={errors.configuration_stock?.available_quantity?.message}
-											className={inputClassName}
-											labelClassName={labelClassName}
-											disabled={isSaving || isLoadingDetails}
-											{...register("configuration_stock.available_quantity", {
-												setValueAs: toOptionalNumber,
-											})}
-										/>
-
-										<InputText
-											label="Costo promedio ponderado (opcional)"
-											type="number"
-											min={0}
-											placeholder="Ej: 10.5"
-											error={errors.configuration_stock?.weighted_average_cost?.message}
-											className={inputClassName}
-											labelClassName={labelClassName}
-											disabled={isSaving || isLoadingDetails || !availableStockValue}
-											{...register("configuration_stock.weighted_average_cost", {
-												setValueAs: toOptionalNumber,
-												validate: (value) => {
-													const available = toOptionalNumber(getValues("configuration_stock.available_quantity"));
-													const weighted = toOptionalNumber(value);
-													if (available !== undefined && (weighted === undefined || Number.isNaN(weighted))) {
-														return "El costo promedio ponderado es obligatorio si ingresa stock disponible.";
-													}
-													return true;
-												},
-											})}
-										/>
-									</div>
-								</>
-							)}
-						</>
-					)}
+									<InputText
+										label="Costo promedio ponderado (opcional)"
+										type="number"
+										min={0}
+										placeholder="Ej: 10.5"
+										error={errors.configuration_stock?.weighted_average_cost?.message}
+										className={inputClassName}
+										labelClassName={labelClassName}
+										disabled={isSaving || isLoadingDetails || !availableStockValue}
+										{...register("configuration_stock.weighted_average_cost", {
+											setValueAs: toOptionalNumber,
+											validate: (value) => {
+												const available = toOptionalNumber(
+													getValues("configuration_stock.available_quantity"),
+												);
+												const weighted = toOptionalNumber(value);
+												if (
+													available !== undefined &&
+													(weighted === undefined || Number.isNaN(weighted))
+												) {
+													return "El costo promedio ponderado es obligatorio si ingresa stock disponible.";
+												}
+												return true;
+											},
+										})}
+									/>
+								</div>
+							</Fragment>
+						)
+					}
 
 					<CatalogLinkEditor
 						title="Proveedores vinculados (opcional)"

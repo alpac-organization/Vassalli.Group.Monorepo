@@ -16,14 +16,6 @@ export const DeactivateProductModal = ({
 	onConfirm,
 	isLoading = false,
 }: DeleteProductOrServiceModalProps) => {
-	if (!product) {
-		return (
-			<Modal isOpen={isOpen} onClose={onClose} title="Error" size="md">
-				<Alert type="error" title="Producto no disponible" message="No se pudo cargar la información del producto." />
-			</Modal>
-		);
-	}
-
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} title="Confirmar baja de producto" size="md">
 			<Alert

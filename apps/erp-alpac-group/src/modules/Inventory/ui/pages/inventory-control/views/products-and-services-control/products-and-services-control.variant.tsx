@@ -34,6 +34,15 @@ export const GetProductColumnsToTable = function(onEditProduct?: (row: GetProduc
          }
       },
       {
+         key: "cost_center",       
+         label: "Centro de costo",
+         render(item){
+            return (
+               <span>{item.cost_center_information.cost_center_name}</span>
+            )
+         }
+      },
+      {
          key: "category",       
          label: "Categoria",
          render(item) {

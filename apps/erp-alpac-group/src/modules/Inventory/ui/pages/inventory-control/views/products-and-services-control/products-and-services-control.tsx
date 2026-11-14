@@ -1,15 +1,16 @@
 import { useCallback, useState } from "react";
-import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 import { DataTable, Pagination, SectionHeader } from "@alpac/design-system";
 
-import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
-import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
-import { DEFAULT_PRODUCT_FILTERS, GetProductColumnsToTable } from "./products-and-services-control.variant";
-import { DeactivateProductModal } from "./views/delete-product-or-services/delete-product-or-services-modal";
-import { ProductsAndServicesSectionFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters";
-import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
+import { DeactivateProductModal } from "./views/delete-product-or-services/delete-product-or-services-modal";
+import { DEFAULT_PRODUCT_FILTERS, GetProductColumnsToTable } from "./products-and-services-control.variant";
+import { ProductsAndServicesSectionFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters";
+
+import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
+import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types";
 
 const PAGE_SIZE = 5;
 
@@ -20,18 +21,20 @@ export const ProductsAndServicesControl = function () {
 	const [pageNumber, setPageNumber] = useState(1);
 	const [filters, setFilters] = useState<ProductsAndServicesFilters>(DEFAULT_PRODUCT_FILTERS);
 
-	
+	const [productToEdit, setProductToEdit] 		= useState<GetProductResponse | null>(null);
+	const [productToDelete, setProductToDelete]		= useState<GetProductResponse | null>(null);
 	const [isProductFormOpen, setIsProductFormOpen] = useState(false);
-	const [productToEdit, setProductToEdit] = useState<GetProductResponse | null>(null);
-	const [productToDelete, setProductToDelete] = useState<GetProductResponse | null>(null);
 
 	const { companyId, moduleCode } = useUserStore();
+	
 	const { GetProducts, DeleteProduct } = useProduct({
 		getProductPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
 			product_usage_type: "Operational",
 			...(filters.category_product_id && { category_product_id: filters.category_product_id }),
+			...(filters.product_code?.trim() && { product_code: filters.product_code.trim() }),
+			...(filters.status && { status: filters.status }),
 			page_size: PAGE_SIZE,
 			page_number: pageNumber,
 		},
@@ -68,32 +71,6 @@ export const ProductsAndServicesControl = function () {
 		setProductToEdit(null);
 	};
 
-
-
-	const handleDeleteProduct = () => {
-		if (!productToDelete) return;
-
-		setProductToDelete(null); // Cerrar modal primero
-
-		DeleteProduct.mutate(
-			{
-				company_id: companyId,
-				module_code: moduleCode,
-				product_id: productToDelete.product_id,
-			},
-			{
-				onSuccess: () => {
-					setProductToDelete(null);
-					handleRequestSuccess("Producto dado de baja correctamente.");
-				},
-				onError: (error) => {
-					handleRequestError(error, "No se pudo dar de baja el producto.");
-					setProductToDelete(productToDelete); // Reabrir modal si falla
-				},
-			},
-		);
-	};
-
 	return (
 		<div className="flex flex-col gap-5">
 			<SectionHeader
@@ -116,9 +93,9 @@ export const ProductsAndServicesControl = function () {
 				columns={productsAndServicesColumns}
 				pagination={
 					<Pagination
-						pageSize={PAGE_SIZE}
-						totalRecords={productsData?.page_size ?? 0}
-						currentPage={pageNumber}
+						pageSize={productsData?.page_size ?? 0}
+						totalRecords={productsData?.total ?? 0}
+						currentPage={productsData?.page_number ?? 0}
 						onPageChange={handlePageChange}
 					/>
 				}
@@ -132,17 +109,7 @@ export const ProductsAndServicesControl = function () {
 				onRequestSuccess={handleRequestSuccess}
 				selectedProduct={productToEdit}
 			/>
-
-			<DeactivateProductModal
-				isOpen={Boolean(productToDelete)}
-				onClose={() => setProductToDelete(null)}
-				product={productToDelete}
-				onConfirm={handleDeleteProduct}
-				isLoading={DeleteProduct.isPending}
-			/>
-
-
-
+			
 			{ AlertComponent }
 		</div>
 	);

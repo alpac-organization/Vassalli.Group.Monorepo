@@ -38,6 +38,12 @@ export const ProductsAndServicesSectionFilters = function(props: ProductsAndServ
       props.onClear();
    }; 
 
+   const statusOptions = [
+		{ value: "Active", label: "Activo" },
+		{ value: "Inactive", label: "Inactivo" },
+	];
+
+
    return (
       <form 
          className="flex gap-5 justify-between items-end"
@@ -69,6 +75,25 @@ export const ProductsAndServicesSectionFilters = function(props: ProductsAndServ
                            field.onChange(e);
                         }}
                         placeholder="Seleccionar Categoria"
+                        appearance="dark"
+                        labelClassName={labelClassName}
+                        className={dropdownClassName}
+                     />
+                  )}
+               />
+            </div>
+
+            <div className="w-64">
+               <Controller
+                  name="status"
+                  control={control}
+                  render={({ field }) => (
+                     <Dropdown
+                        label="Estado"
+                        value={field.value ?? ""}
+                        options={statusOptions}
+                        onChange={(value) => field.onChange(value ? String(value) : undefined)}
+                        placeholder="Seleccionar estado"
                         appearance="dark"
                         labelClassName={labelClassName}
                         className={dropdownClassName}
