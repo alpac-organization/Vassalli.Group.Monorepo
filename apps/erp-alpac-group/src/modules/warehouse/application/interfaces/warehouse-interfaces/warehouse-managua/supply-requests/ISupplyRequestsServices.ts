@@ -8,7 +8,7 @@ import type { SupplyRequestDetailDto, PagedSupplyRequestsResponse } from "@app/m
 export interface ISupplyRequestsServices {
   GetSupplyRequests(payload: GetSupplyRequestsRequest): Promise<PagedSupplyRequestsResponse>;
   GetSupplyRequestDetail(payload: GetSupplyRequestDetailRequest): Promise<SupplyRequestDetailDto>;
-  RegisterSupplyRequest(payload: RegisterSupplyRequest): Promise<void>;
+  RegisterSupplyRequest(payload: RegisterSupplyRequest): Promise<string>;
   ApproveSupplyRequest(payload: ApproveSupplyRequestRequest): Promise<void>;
   DeclineSupplyRequest(payload: DeclineSupplyRequestRequest): Promise<void>;
 }

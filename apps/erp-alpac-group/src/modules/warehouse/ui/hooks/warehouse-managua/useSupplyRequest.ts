@@ -10,7 +10,7 @@ export const useSupplyRequest = () => {
   const queryClient = useQueryClient();
 
   const RegisterSupplyRequest = useMutation<
-    void,
+    string,
     ApiErrorResponse,
     RegisterSupplyRequest
   >({

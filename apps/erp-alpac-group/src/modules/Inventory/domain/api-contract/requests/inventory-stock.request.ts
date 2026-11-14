@@ -3,6 +3,7 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
 export interface InventoryStocksRequest extends BaseRequest
 {
     readonly category_id ?: string;
+    readonly is_fuel?:     boolean;
     readonly product_code?: string;
     readonly product_name?: string;
 

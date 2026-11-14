@@ -227,13 +227,13 @@ export function DescarguePage() {
       try {
         setIsRegisteringSupplies(true);
 
-        await RegisterSupplyRequest.mutateAsync({
+        const code = await RegisterSupplyRequest.mutateAsync({
           company_id: companyId,
           module_code: moduleCode,
           justification,
           operational_order_id: supplyModalContext.assignment.operational_order_id,
           items,
-          reason_use: 2,
+          reason_use: "Operation",
         });
 
         const { warehouseId, warehouseName } = supplyModalContext;
@@ -241,7 +241,7 @@ export function DescarguePage() {
         setBodega(warehouseId, warehouseName);
         setSupplyModalContext(null);
 
-        handleRequestSuccess("Solicitud de insumos registrada correctamente.");
+        handleRequestSuccess(`Solicitud de insumos registrada correctamente. Código: ${code}`, "Éxito", false);
         navigate(`${baseUrl}/warehouse-mga/bodegas`);
       } catch (err) {
         handleRequestError(err);

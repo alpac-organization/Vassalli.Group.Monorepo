@@ -6,5 +6,5 @@ import type { FuelRequestDetailDto, PagedFuelRequestsResponse } from "@app/modul
 export interface IFuelRequestsServices {
   GetFuelRequests(payload: GetFuelRequestsRequest): Promise<PagedFuelRequestsResponse>;
   GetFuelRequestDetail(payload: GetFuelRequestDetailRequest): Promise<FuelRequestDetailDto>;
-  RegisterFuelRequest(payload: RegisterFuelRequest): Promise<void>;
+  RegisterFuelRequest(payload: RegisterFuelRequest): Promise<string>;
 }

@@ -8,6 +8,7 @@ import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useRegisterFuelRequest } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useRegisterFuelRequest";
 import type { RegisterFuelRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/fuel-requests/register-fuel-request.request";
 import { FuelRequestForm } from "./components/fuel-request-form/fuel-request-form";
+import { InventoryStocksTable } from "./components/inventory-stocks-table/inventory-stocks-table";
 
 export function ReabastecimientoPage() {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ export function ReabastecimientoPage() {
     mileage?: number;
     engine_hours?: number;
     justification: string;
+    customer_id?: string;
   }): Promise<boolean> => {
     if (!companyId || !moduleCode) return false;
 
@@ -40,11 +42,12 @@ export function ReabastecimientoPage() {
       requested_quantity: data.requested_quantity,
       mileage: data.mileage,
       engine_hours: data.engine_hours,
+      customer_id: data.customer_id,
     };
 
     try {
-      await RegisterFuelRequest.mutateAsync(payload);
-      handleRequestSuccess("Solicitud de combustible registrada exitosamente.");
+      const code = await RegisterFuelRequest.mutateAsync(payload);
+      handleRequestSuccess(`Solicitud de combustible registrada exitosamente. Código: ${code}`, "Éxito", false);
       return true;
     } catch (error) {
       handleRequestError(error);
@@ -97,16 +100,22 @@ export function ReabastecimientoPage() {
         )}
       </div>
 
-      <div className="w-full md:w-1/3 min-w-0 box-border flex flex-col gap-3
-      rounded-lg border border-slate-200 dark:border-slate-500 p-4 sm:p-6">
-        <h3 className="p-0! m-0!">Solicitud de combustible</h3>
-        <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
-          Registra una solicitud de combustible para una maquinaria.
-        </small>
-        <FuelRequestForm
-          isSubmitting={RegisterFuelRequest.isPending}
-          onSubmit={handleSubmitFuelRequest}
-        />
+      <div className="flex flex-col lg:flex-row gap-4 min-w-0">
+        <div className="w-full lg:w-1/3 min-w-0 box-border flex flex-col gap-3
+        rounded-lg border border-slate-200 dark:border-slate-500 p-4 sm:p-6">
+          <h3 className="p-0! m-0!">Solicitud de combustible</h3>
+          <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
+            Registra una solicitud de combustible para una maquinaria.
+          </small>
+          <FuelRequestForm
+            isSubmitting={RegisterFuelRequest.isPending}
+            onSubmit={handleSubmitFuelRequest}
+          />
+        </div>
+
+        <div className="w-full lg:w-2/3 min-w-0 box-border rounded-lg border border-slate-200 dark:border-slate-500 p-4 sm:p-6">
+          <InventoryStocksTable />
+        </div>
       </div>
 
       {AlertComponent}

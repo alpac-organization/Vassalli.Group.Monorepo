@@ -51,3 +51,17 @@ export interface MachineryInformation {
    machinery_brand: string;
    machinery_model?: string | null;
 }
+
+export interface CustomerInformation {
+   customer_id: string;
+   cif: string | null;
+   legal_name: string | null;
+   identification_number: string | null;
+   identification_type: string | null;
+}
+
+export interface UnitMeasureInformation {
+   name: string;
+   symbol: string;
+   type: number;
+}

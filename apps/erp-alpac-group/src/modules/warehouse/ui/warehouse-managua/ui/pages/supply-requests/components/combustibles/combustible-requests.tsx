@@ -3,6 +3,9 @@ import { useCallback, useMemo, useState } from "react";
 import type { OutflowStatus } from "@app/core/enums/outflow-status.enum";
 import { OutflowStatus as OutflowStatusValues } from "@app/core/enums/outflow-status.enum";
 import { Badges, Button, DataTable, Modal, Pagination, SectionHeader } from "@alpac/design-system";
+import { FileText } from "lucide-react";
+import { pdf } from "@react-pdf/renderer";
+import { FuelRequestPDF } from "./reports/fuel-request-pdf/fuel-request-pdf";
 
 import { Loader } from "@app/shared/components/loaders/loader";
 import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
@@ -35,10 +38,16 @@ function ModalInfoField(props: { label: string; value: React.ReactNode }) {
 }
 
 export const CombustibleRequests = function () {
-  const { companyId, moduleCode } = useUserStore();
+  const { companyId, moduleCode, branchCode } = useUserStore();
+
+  const CORINTO_BRANCH_CODES = ["ALP-CTO"];
+  const isCorinto = CORINTO_BRANCH_CODES.some((code) =>
+    (branchCode ?? "").toUpperCase().includes(code),
+  );
 
   const [filters, setFilters] = useState<FuelRequestsFilters>(DEFAULT_FUEL_FILTERS);
   const [selectedFuelRequestId, setSelectedFuelRequestId] = useState<string | null>(null);
+  const [isGeneratingFuelPdf, setIsGeneratingFuelPdf] = useState(false);
 
   const { AlertComponent, handleRequestSuccess, handleRequestError } = useAlertState();
   const { ApproveSupplyRequest: ApproveFuelRequest, DeclineSupplyRequest: DeclineFuelRequest } =
@@ -261,6 +270,20 @@ export const CombustibleRequests = function () {
 
   const handleCloseDetail = useCallback(() => setSelectedFuelRequestId(null), []);
 
+  const handleGenerateFuelPdf = useCallback(async () => {
+    if (!detailData) return;
+    try {
+      setIsGeneratingFuelPdf(true);
+      const blob = await pdf(<FuelRequestPDF data={detailData} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      handleRequestError(error, "Error");
+    } finally {
+      setIsGeneratingFuelPdf(false);
+    }
+  }, [detailData, handleRequestError]);
+
   return (
     <div className="flex flex-col gap-5 bg-transparent">
       <SectionHeader
@@ -323,6 +346,17 @@ export const CombustibleRequests = function () {
                   className="bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
                   label={detailData.fuel_request_code}
                 />
+                {detailData.outflow_status === "Approved" ? (
+                  <button
+                    type="button"
+                    onClick={() => void handleGenerateFuelPdf()}
+                    disabled={isGeneratingFuelPdf}
+                    className="inline-flex items-center justify-center rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                    title="Generar boleta PDF"
+                  >
+                    <FileText size={18} />
+                  </button>
+                ) : null}
               </div>
               <Badges
                 color="info"
@@ -368,16 +402,35 @@ export const CombustibleRequests = function () {
                 />
                 <ModalInfoField
                   label="CANTIDAD SOLICITADA"
-                  value={Number(detailData.requested_quantity).toLocaleString(
-                    "es-NI",
-                    { minimumFractionDigits: 2, maximumFractionDigits: 2 },
-                  )}
+                  value={
+                    <>
+                      {Number(detailData.requested_quantity).toLocaleString(
+                        "es-NI",
+                        { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+                      )}{" "}
+                      {detailData.unit_measure_symbol}
+                      <div className="text-xs text-slate-400">
+                        (
+                        {Number(detailData.requested_quantity_litters).toLocaleString(
+                          "es-NI",
+                          { minimumFractionDigits: 2, maximumFractionDigits: 2 },
+                        )}{" "}
+                        L)
+                      </div>
+                    </>
+                  }
+                />
+                {isCorinto ? (
+                  <ModalInfoField
+                    label="CLIENTE"
+                    value={detailData.customer_information?.legal_name ?? "—"}
+                  />
+                ) : null}
+                <ModalInfoField
+                  label="SOLICITANTE"
+                  value={detailData.requested_by_user_name ?? "—"}
                 />
                 <div className="sm:col-span-2">
-                  <ModalInfoField
-                    label="SOLICITANTE"
-                    value={detailData.requested_by_user_name ?? "—"}
-                  />
                   <div className="mt-4 rounded-md bg-[#303846] p-3">
                     <p className="mb-1 text-[10px] font-semibold text-[#91A0B5]">
                       JUSTIFICACIÓN

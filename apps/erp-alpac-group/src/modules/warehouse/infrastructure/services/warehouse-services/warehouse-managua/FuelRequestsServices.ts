@@ -32,7 +32,7 @@ export class FuelRequestsServices implements IFuelRequestsServices {
     );
   }
 
-  async RegisterFuelRequest(payload: RegisterFuelRequest): Promise<void> {
+  async RegisterFuelRequest(payload: RegisterFuelRequest): Promise<string> {
     const { company_id, module_code, ...body } = payload;
 
     const requestBody = cleanParams({
@@ -42,9 +42,10 @@ export class FuelRequestsServices implements IFuelRequestsServices {
       requested_quantity: body.requested_quantity,
       mileage: body.mileage,
       engine_hours: body.engine_hours,
+      customer_id: body.customer_id,
     });
 
-    return this.httpClient.post<void>(
+    return this.httpClient.post<string>(
       `/companies/${company_id}/modules/${module_code}/inventory/fuel-requests`,
       requestBody,
     );

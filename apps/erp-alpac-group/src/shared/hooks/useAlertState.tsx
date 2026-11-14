@@ -11,6 +11,7 @@ interface AlertConfig {
    type: Exclude<AlertProps["type"], undefined>;
    title: string;
    message: string;
+  autoClose?: boolean;
 }
 
 function getAlertMessage(value: unknown, fallback: string): string {
@@ -42,17 +43,18 @@ export const useAlertState = () => {
    const [alertState, setAlertState] = useState<AlertConfig | undefined>(undefined);
 
    useEffect(() => {
-      if (!alertState?.open) return;
+      if (!alertState?.open || alertState?.autoClose === false) return;
       const timer = setTimeout(() => setAlertState(undefined), 5000);
       return () => clearTimeout(timer);
-   }, [alertState?.open]);
+   }, [alertState?.open, alertState?.autoClose]);
 
-   const handleRequestSuccess = useCallback((message: string, title?: string) => {
+   const handleRequestSuccess = useCallback((message: string, title?: string, autoClose: boolean = true) => {
       setAlertState({
          open: true,
          type: "success",
          title: title ?? "Éxito",
          message,
+         autoClose,
       });
    }, []);
 

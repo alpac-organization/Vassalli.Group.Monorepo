@@ -64,6 +64,11 @@ export interface LoginResponse {
    branch_id: string;
 
    /**
+    * Código de la sucursal asociada al usuario
+    */
+   branch_code?: string;
+
+   /**
     * Centro de costo asociado al usuario
     */
    cost_center_information?: CostCenterInformation;

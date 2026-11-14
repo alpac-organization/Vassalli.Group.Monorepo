@@ -1,6 +1,7 @@
 import { Loader } from "@app/shared/components/loaders/loader";
 import { ModalInfoField } from "@app/shared/components/modal-info-field/modal-info-field";
 import { Badges, Modal } from "@alpac/design-system";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 import { InventoryOutputsStatus } from "@app/core/enums/inventory-output-status.enum";
 import { ReasonUse as ReasonUseValues } from "@app/core/enums/reason-use.enum";
@@ -141,6 +142,12 @@ const FuelRequestBlock = function ({
   detail?: InventoryOutputFuelRequestDetail | null;
   selectedOutput?: InventoryOutputDto | null;
 }) {
+  const { branchCode } = useUserStore();
+  const CORINTO_BRANCH_CODES = ["ALP-CTO"];
+  const isCorinto = CORINTO_BRANCH_CODES.some((code) =>
+    (branchCode ?? "").toUpperCase().includes(code),
+  );
+
   if (!detail) {
     return (
       <span className="text-sm text-slate-500 dark:text-slate-400">
@@ -180,12 +187,38 @@ const FuelRequestBlock = function ({
           label="SOLICITANTE"
           value={detail.requested_by_user_name ?? "—"}
         />
+        {isCorinto ? (
+          <ModalInfoField
+            label="CLIENTE"
+            value={detail.customer_information?.legal_name ?? "—"}
+          />
+        ) : null}
         <ModalInfoField
           label="MÁQUINA/VEHÍCULO"
           value={
             [detail.machinery_code, detail.machinery_brand, detail.machinery_model]
               .filter(Boolean)
               .join(" / ") || "—"
+          }
+        />
+        <ModalInfoField
+          label="CANTIDAD SOLICITADA"
+          value={
+            <>
+              {Number(detail.requested_quantity ?? 0).toLocaleString("es-NI", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}{" "}
+              {detail.unit_measure_symbol ?? ""}
+              <div className="text-xs text-slate-400">
+                (
+                {Number(detail.requested_quantity_litters ?? 0).toLocaleString("es-NI", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{" "}
+                L)
+              </div>
+            </>
           }
         />
         {detail.engine_hours != null ? (
