@@ -1,20 +1,10 @@
 import { Alert, Button, Modal } from "@alpac/design-system";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 
-export interface DeleteProductOrServiceModalProps {
-	isOpen: boolean;
-	onClose: () => void;
-	product: GetProductResponse | null;
-	onConfirm: () => void;
-	isLoading?: boolean;
-}
-
 export const DeactivateProductModal = ({
 	isOpen,
 	onClose,
-	product,
-	onConfirm,
-	isLoading = false,
+	product
 }: DeleteProductOrServiceModalProps) => {
 	return (
 		<Modal isOpen={isOpen} onClose={onClose} title="Confirmar baja de producto" size="md">
