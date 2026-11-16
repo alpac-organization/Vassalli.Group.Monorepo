@@ -14,7 +14,7 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
       isPassword,
       type,
       editable = false,
-      disabled,
+      disabled = false,
       isRequired,
       errorVariant = "text",
       prefixNode,
@@ -31,8 +31,8 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
     const inputId = rest.id ?? generatedId;
     const fieldRef = useRef<HTMLDivElement>(null);
 
-    const inputType = isPassword ? (showPassword ? "text" : "password") : type;
-    const isInputDisabled = editable ? !isEditing : disabled;
+    const inputType = isPassword ? (showPassword ? "text" : "password") : type;    
+    const isInputDisabled = Boolean(disabled) || (editable && !isEditing);
 
     return (
       <div className="flex flex-col gap-1.5 w-full max-w-full box-border">
@@ -51,7 +51,10 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
         )}
 
         <div className="flex items-center gap-2">
-          <div className="relative w-full isolate" ref={fieldRef}>
+          <div
+            className={`relative w-full isolate ${disabled ? "opacity-60" : ""}`}
+            ref={fieldRef}
+          >
             {icon && (
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
                 {icon}
@@ -63,6 +66,7 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
               id={inputId}
               {...rest}
               disabled={isInputDisabled}
+              aria-disabled={isInputDisabled}
               type={inputType}
               className={`
                  w-full box-border bg-white border rounded-[10px] outline-none transition-all
@@ -71,9 +75,11 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
                  text-[14px] md:text-[16px]                  
                  ${prefixNode || icon ? "pl-11 md:pl-12" : "pl-4"}
                  ${suffix || isPassword ? "pr-11 md:pr-12" : "pr-4"}
+                 ${isInputDisabled ? "cursor-not-allowed" : ""}
                  placeholder:text-slate-500
                  focus:border-blue-600 focus:ring-2 focus:ring-green-50/50
-                 disabled:bg-slate-50 disabled:cursor-not-allowed               
+                 disabled:bg-slate-50 disabled:cursor-not-allowed disabled:hover:border-slate-200
+                 dark:disabled:bg-slate-800/50
                  ${error ? "border-red-400 ring-red-50" : "border-slate-200 hover:border-blue-300"}                
                  ${className || ""}
               `}
@@ -94,8 +100,17 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
             {isPassword && (
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 hover:text-blue-500 transition-colors"
+                disabled={disabled}
+                aria-disabled={disabled}
+                onClick={() => {
+                  if (disabled) return;
+                  setShowPassword(!showPassword);
+                }}
+                className={`absolute inset-y-0 right-0 flex items-center pr-4 text-slate-400 transition-colors ${
+                  disabled
+                    ? "cursor-not-allowed opacity-60"
+                    : "hover:text-blue-500"
+                }`}
               >
                 {showPassword ? (
                   <svg
@@ -143,12 +158,19 @@ export const InputText = forwardRef<HTMLInputElement, InputProps>(
           {editable && (
             <button
               type="button"
-              onClick={() => setIsEditing(!isEditing)}
+              disabled={disabled}
+              aria-disabled={disabled}
+              onClick={() => {
+                if (disabled) return;
+                setIsEditing(!isEditing);
+              }}
               title={isEditing ? "Guardar cambios" : "Editar campo"}
               className={`shrink-0 h-12 w-12 flex items-center justify-center rounded-[10px] border transition-colors duration-200 ${
-                isEditing
-                  ? "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
-                  : "bg-white border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-300 hover:bg-slate-50"
+                disabled
+                  ? "cursor-not-allowed opacity-60 bg-slate-50 border-slate-200 text-slate-400"
+                  : isEditing
+                    ? "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100"
+                    : "bg-white border-slate-200 text-slate-400 hover:text-blue-600 hover:border-blue-300 hover:bg-slate-50"
               }`}
             >
               {isEditing ? <Check size={20} /> : <Pencil size={20} />}
