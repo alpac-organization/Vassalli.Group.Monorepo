@@ -1,4 +1,4 @@
-import { Alert, Button, Modal } from "@alpac/design-system";
+import { Modal } from "@alpac/design-system";
 import type { DeleteProductOrServiceModalProps } from "./delete-product-or-services-modal.types";
 
 export const DeactivateProductModal = function(props: DeleteProductOrServiceModalProps){
