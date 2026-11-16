@@ -60,9 +60,20 @@ export const CatalogLinkEditor = ({
     {},
   );
   const [trackedItems, setTrackedItems] = useState(items);
+  const [trackedDisabled, setTrackedDisabled] = useState(disabled);
+
+  if (disabled !== trackedDisabled) {
+    setTrackedDisabled(disabled);
+    if (disabled) {
+      setOpenItem("");
+      setOpenTierByItem({});
+    }
+  }
 
   if (items !== trackedItems) {
-    const nextOpenItem = resolveOpenItem(items, trackedItems.length, openItem);
+    const nextOpenItem = disabled
+      ? ""
+      : resolveOpenItem(items, trackedItems.length, openItem);
     setTrackedItems(items);
     if (nextOpenItem !== openItem) setOpenItem(nextOpenItem);
   }
@@ -153,15 +164,17 @@ export const CatalogLinkEditor = ({
             volumen (máximo 1).
           </small>
         </div>
-        <Button
-          type="button"
-          size="medium"
-          label={addButtonLabel}
-          icon={<PlusIcon size={16} />}
-          disabled={disabled}
-          className={primaryButtonClassName}
-          onClick={addItem}
-        />
+        {!disabled && (
+          <Button
+            type="button"
+            size="medium"
+            label={addButtonLabel}
+            icon={<PlusIcon size={16} />}
+            disabled={disabled}
+            className={primaryButtonClassName}
+            onClick={addItem}
+          />
+        )}
       </div>
 
       {items.length === 0 ? (
@@ -172,10 +185,11 @@ export const CatalogLinkEditor = ({
         <AccordionGroup
           type="single"
           collapsible
-          value={openItem}
-          onValueChange={(value) =>
-            setOpenItem(typeof value === "string" ? value : (value[0] ?? ""))
-          }
+          value={disabled ? "" : openItem}
+          onValueChange={(value) => {
+            if (disabled) return;
+            setOpenItem(typeof value === "string" ? value : (value[0] ?? ""));
+          }}
           className="gap-3"
         >
           {items.map((item, index) => {
