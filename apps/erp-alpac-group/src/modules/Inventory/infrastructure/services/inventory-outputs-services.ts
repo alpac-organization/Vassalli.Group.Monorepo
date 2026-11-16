@@ -1,15 +1,15 @@
 import { cleanParams } from "@app/shared/utils/object.utils";
 
 import type { IHttpHandler } from "@app/core/ports";
-import type { IInventoryOutputsServices } from "../../application/interfaces/services/IInventoryOutputsServices";
+import type { IInventoryOutputsServices } from "@app/modules/Inventory/application/interfaces/services/IInventoryOutputsServices";
 import type {
   InventoryOutputsRequest,
   GetInventoryOutputDetailRequest,
   StartInventoryOutputRequest,
   ConfirmInventoryOutputRequest,
   RejectInventoryOutputRequest,
-} from "../../domain/api-contract/requests/inventory-outputs.request";
-import type { PagedInventoryOutputsResponse, InventoryOutputDetailDto } from "../../domain/api-contract/responses/inventory-outputs.response";
+} from "@app/modules/Inventory/domain/api-contract/requests/inventory-outputs.request";
+import type { PagedInventoryOutputsResponse, InventoryOutputDetailDto } from "@app/modules/Inventory/domain/api-contract/responses/inventory-outputs.response";
 
 export class InventoryOutputsServices implements IInventoryOutputsServices {
   private readonly httpClient: IHttpHandler;
