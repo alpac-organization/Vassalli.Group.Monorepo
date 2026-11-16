@@ -2,34 +2,35 @@ import type { Option } from "@alpac/design-system";
 import type { PermissionType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission.types";
 
 export const VACATION_STATUS_FILTER_OPTIONS: Option[] = [
-   { label: "Todos los estados", value: "all" },
-   { label: "Pendiente", value: "Pending" },
-   { label: "Aprobado", value: "Approved" },
-   { label: "Rechazado", value: "Rejected" },
-   { label: "Cancelado", value: "Cancelled" },
+  { label: "Todos los estados", value: "all" },
+  { label: "Pendiente", value: "Pending" },
+  { label: "Aprobado", value: "Approved" },
+  { label: "Rechazado", value: "Rejected" },
+  { label: "Cancelado", value: "Cancelled" },
 ];
 
 type PermissionTypeEntry = {
-   value: PermissionType;
-   label: string;
+  value: PermissionType;
+  label: string;
 };
 
 const PERMISSION_TYPE_ENTRIES: Array<PermissionTypeEntry> = [
-   { value: "Vacation", label: "Vacaciones" },
-   { value: "MedicalAppointment", label: "Cita médica" },
-   // { value: "DonatedVacations", label: "Donación de vacaciones" },
-   // { value: "CompensatoryTime", label: "Tiempo compensatorio" },
-   // { value: "SpecialLeave", label: "Permiso especial" },
+  { value: "Vacation", label: "Vacaciones" },
+  { value: "MedicalAppointment", label: "Cita médica" },
+  { value: "JudicialAppointment", label: "Cita judicial" },
+  { value: "MarriageLeave", label: "Permiso de matrimonio" },
+  { value: "BirthLeave", label: "Permiso de nacimiento" },
+  { value: "BereavementLeave", label: "Permiso de fallecimiento" },
 ];
 
 export const PERMISSION_TYPE_LABEL: Record<PermissionType, string> =
-   Object.fromEntries(
-      PERMISSION_TYPE_ENTRIES.map(({ value, label }) => [value, label]),
-   ) as Record<PermissionType, string>;
+  Object.fromEntries(
+    PERMISSION_TYPE_ENTRIES.map(({ value, label }) => [value, label]),
+  ) as Record<PermissionType, string>;
 
 export const PERMISSION_TYPE_OPTIONS: Option[] = PERMISSION_TYPE_ENTRIES;
 
 export const PERMISSION_TYPE_FILTER_OPTIONS: Option[] = [
-   { label: "Todos los tipos", value: "all" },
-   ...PERMISSION_TYPE_ENTRIES,
+  { label: "Todos los tipos", value: "all" },
+  ...PERMISSION_TYPE_ENTRIES,
 ];

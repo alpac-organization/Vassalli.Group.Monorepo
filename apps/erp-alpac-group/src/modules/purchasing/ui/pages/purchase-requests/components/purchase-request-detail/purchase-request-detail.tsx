@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-	AccordionGroup,
-	AccordionItem,
-	Button,
-	Dropdown,
-	InputText,
-	Textarea,
+  AccordionGroup,
+  AccordionItem,
+  Button,
+  Dropdown,
+  InputText,
+  Textarea,
 } from "@alpac/design-system";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
@@ -14,528 +14,552 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { SelectProductModal } from "@app/modules/product/ui/views/select-product-modal/select-product-modal";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import {
-	formatAmount,
-	validateIntegerNumber,
-	validatePositiveNumber,
+  formatAmount,
+  validateIntegerNumber,
+  validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
 import type { PurchaseRequestDetailProps } from "./purchase-request-detail.types";
 import { PurchaseRequestImageUploader } from "../purchase-request-image-uploader/purchase-request-image-uploader";
 import type { CreatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/create-purchase-request-payload";
+import { getProductUsageTypeByDestination } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
 
 const inputClassName =
-	"w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
+  "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
 const dropdownClassName = `${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
 const labelClassName = "text-black! dark:text-white!";
 const addProductButtonClassName =
-	"text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
+  "text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
+const removeProductButtonClassName =
+  "h-8 w-8! shrink-0 rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!";
 
 const parseIntegerInput = (value: string): number | "" => {
-	const formatted = formatAmount(value, 10, 0);
-	const raw = formatted.replace(/,/g, "");
-	return raw === "" ? "" : Number(raw);
+  const formatted = formatAmount(value, 10, 0);
+  const raw = formatted.replace(/,/g, "");
+  return raw === "" ? "" : Number(raw);
 };
 
 const formatIntegerDisplay = (value: number | "" | undefined): string => {
-	if (value === "" || value === undefined || value === null) return "";
-	return formatAmount(String(value), 10, 0);
+  if (value === "" || value === undefined || value === null) return "";
+  return formatAmount(String(value), 10, 0);
 };
 
 const hasUnitsPerPackage = (label?: string, symbol?: string) => {
-	const unitLabel = label?.toLowerCase() ?? "";
-	const unitSymbol = symbol?.toLowerCase() ?? "";
+  const unitLabel = label?.toLowerCase() ?? "";
+  const unitSymbol = symbol?.toLowerCase() ?? "";
 
-	return (
-		unitLabel.includes("caja") ||
-		unitLabel.includes("paquete") ||
-		unitSymbol.includes("caja") ||
-		unitSymbol.includes("paquete") ||
-		unitSymbol === "cj" ||
-		unitSymbol === "paq"
-	);
+  return (
+    unitLabel.includes("caja") ||
+    unitLabel.includes("paquete") ||
+    unitSymbol.includes("caja") ||
+    unitSymbol.includes("paquete") ||
+    unitSymbol === "cj" ||
+    unitSymbol === "paq"
+  );
 };
 
-export const PurchaseRequestDetail = (
-	{ disableActions, lockItems = false, isEditMode = false, hasAttemptedSubmit = false }: PurchaseRequestDetailProps
-) => {
+export const PurchaseRequestDetail = ({
+  isRequisition,
+  disableActions,
+  lockItems = false,
+  isEditMode = false,
+  hasAttemptedSubmit = false,
+}: PurchaseRequestDetailProps) => {
+  const { companyId, moduleCode } = useUserStore();
+  const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
+  const [openProducts, setOpenProducts] = useState<string[]>([]);
 
-	const { companyId, moduleCode } = useUserStore();
-	const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
-	const [openProducts, setOpenProducts] = useState<string[]>([]);
+  const {
+    control,
+    watch,
+    setValue,
+    clearErrors,
+    trigger,
+    formState: { errors },
+  } = useFormContext<CreatePurchaseRequestPayload>();
+  const destination = watch("destination");
+  // aqui el se determina el uso del producto para filtrar el catálogo: en requisición depende del destino
+  // interno → administrativo, service order → operacional);
+  const productUsageType = isRequisition
+    ? getProductUsageTypeByDestination(destination)
+    : "Administrative";
 
-	const {
-		control,
-		watch,
-		setValue,
-		clearErrors,
-		trigger,
-		formState: { errors },
-	} = useFormContext<CreatePurchaseRequestPayload>();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "purchase_request_items",
+  });
 
-	const { fields, append, remove } = useFieldArray({
-		control,
-		name: "purchase_request_items",
-	});
+  useEffect(() => {
+    setOpenProducts(fields.map((field) => field.id));
+  }, [fields]);
 
-	useEffect(() => {
-		setOpenProducts(fields.map((field) => field.id));
-	}, [fields]);
+  const { GetUnitMeasurements } = useUnitOfMeasurement({
+    payloadUnitOfMeasurement: {
+      companie_id: companyId,
+      module_code: moduleCode,
+    },
+  });
 
-	const { GetUnitMeasurements } = useUnitOfMeasurement({
-		payloadUnitOfMeasurement: {
-			companie_id: companyId,
-			module_code: moduleCode,
-		},
-	});
+  const { data: unitsOfMeasurement, isLoading: isLoadingUnits } =
+    GetUnitMeasurements;
 
-	const { data: unitsOfMeasurement, isLoading: isLoadingUnits } =
-		GetUnitMeasurements;
+  const unitsOfMeasurementOptions = useMemo(() => {
+    if (isLoadingUnits) return [];
+    if (!unitsOfMeasurement || !Array.isArray(unitsOfMeasurement)) return [];
+    return unitsOfMeasurement.map((item) => ({
+      value: item.unit_measure_id,
+      label: item.name,
+      symbol: item.symbol,
+    }));
+  }, [unitsOfMeasurement, isLoadingUnits]);
 
-	const unitsOfMeasurementOptions = useMemo(() => {
-		if (isLoadingUnits) return [];
-		if (!unitsOfMeasurement || !Array.isArray(unitsOfMeasurement)) return [];
-		return unitsOfMeasurement.map((item) => ({
-			value: item.unit_measure_id,
-			label: item.name,
-			symbol: item.symbol,
-		}));
-	}, [unitsOfMeasurement, isLoadingUnits]);
+  const validUnitMeasureIds = useMemo(
+    () =>
+      new Set(unitsOfMeasurementOptions.map((option) => String(option.value))),
+    [unitsOfMeasurementOptions],
+  );
 
-	const handleSelectProduct = (products: GetProductResponse[]) => {
+  const handleSelectProduct = (products: GetProductResponse[]) => {
+    const existingIds = new Set(fields.map((item) => item.product_id));
 
-		const existingIds = new Set(fields.map((item) => item.product_id));
+    products.forEach((product) => {
+      if (existingIds.has(product.product_id)) return;
 
-		products.forEach((product) => {
-			if (existingIds.has(product.product_id)) return;
+      append({
+        product_id: product.product_id,
+        product_name: product.product_name,
+        description: "",
+        quantity: 0,
+        quantity_unit: 0,
+        unit_measure_id: "",
+        justification: "",
+        images: {
+          images_product_to_changed: [],
+        },
+      });
+    });
 
-			append({
-				product_id: product.product_id,
-				product_name: product.product_name,
-				description: "",
-				quantity: 0,
-				quantity_unit: 0,
-				unit_measure_id: "",
-				justification: "",
-				images: {
-					images_product_to_changed: [],
-				},
-			});
-		});
+    clearErrors("purchase_request_items");
+  };
 
-		clearErrors("purchase_request_items");
-	};
+  const assignedProductIds = useMemo(
+    () =>
+      fields
+        .map((field) => field.product_id)
+        .filter((id): id is string => Boolean(id)),
+    [fields],
+  );
 
-	const assignedProductIds = useMemo(
-		() =>
-			fields
-				.map((field) => field.product_id)
-				.filter((id): id is string => Boolean(id)),
-		[fields],
-	);
+  return (
+    <div className="flex flex-col gap-3 border-t border-t-slate-300 pt-2 dark:border-t-neutral-600">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 flex flex-col">
+          <span className="text-[15px] font-medium text-black dark:text-white">
+            Productos solicitados
+          </span>
+          <small className="text-gray-500 dark:text-gray-300">
+            {isEditMode
+              ? "Puede agregar productos nuevos y editar cantidad, unidad y datos de los existentes"
+              : "Seleccione los productos y complete cantidad y unidad de medida"}
+          </small>
+        </div>
 
-	return (
-		<div className="flex flex-col gap-3 border-t border-t-slate-300 pt-2 dark:border-t-neutral-600">
-			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<div className="min-w-0 flex flex-col">
-					<span className="text-[15px] font-medium text-black dark:text-white">
-						Productos solicitados
-					</span>
-					<small className="text-gray-500 dark:text-gray-300">
-						{isEditMode
-							? "Puede agregar productos nuevos y editar cantidad, unidad y datos de los existentes"
-							: "Seleccione los productos y complete cantidad y unidad de medida"}
-					</small>
-				</div>
+        {lockItems ? null : (
+          <div className="shrink-0 self-stretch sm:self-auto">
+            <Button
+              type="button"
+              size="medium"
+              label="Agregar Producto"
+              icon={<PlusIcon size={18} />}
+              disabled={disableActions}
+              className={addProductButtonClassName}
+              onClick={() => {
+                setIsSelectProductOpen(true);
+                clearErrors();
+              }}
+            />
+          </div>
+        )}
+      </div>
 
-				{lockItems ? null : (
-					<div className="shrink-0 self-stretch sm:self-auto">
-						<Button
-							type="button"
-							size="medium"
-							label="Agregar Producto"
-							icon={<PlusIcon size={18} />}
-							disabled={disableActions}
-							className={addProductButtonClassName}
-							onClick={() => {
-								setIsSelectProductOpen(true);
-								clearErrors();
-							}}
-						/>
-					</div>
-				)}
-			</div>
+      {errors.purchase_request_items?.root?.message ||
+      errors.purchase_request_items?.message ? (
+        <p className="m-0 text-sm text-red-500 dark:text-red-400">
+          {errors.purchase_request_items?.root?.message ||
+            errors.purchase_request_items?.message}
+        </p>
+      ) : null}
 
-			{errors.purchase_request_items?.root?.message ||
-				errors.purchase_request_items?.message ? (
-				<p className="m-0 text-sm text-red-500 dark:text-red-400">
-					{errors.purchase_request_items?.root?.message ||
-						errors.purchase_request_items?.message}
-				</p>
-			) : null}
+      {fields.length === 0 ? (
+        <p className="m-0 text-sm text-slate-500 dark:text-slate-400">
+          Aún no hay productos agregados a esta requisición.
+        </p>
+      ) : null}
 
-			{fields.length === 0 ? (
-				<p className="m-0 text-sm text-slate-500 dark:text-slate-400">
-					Aún no hay productos agregados a esta requisición.
-				</p>
-			) : null}
+      {fields.length > 0 ? (
+        <AccordionGroup
+          type="multiple"
+          value={openProducts}
+          onValueChange={(value) => {
+            const nextValue = Array.isArray(value)
+              ? value
+              : value
+                ? [value]
+                : [];
+            setOpenProducts(nextValue);
+          }}
+          className="gap-3"
+        >
+          {fields.map((item, index) => {
+            const selectedUnitId = watch(
+              `purchase_request_items.${index}.unit_measure_id`,
+            );
+            const selectedUnit = unitsOfMeasurementOptions.find(
+              (option) => String(option.value) === String(selectedUnitId),
+            );
+            const isBoxOrPackage = hasUnitsPerPackage(
+              selectedUnit?.label,
+              selectedUnit?.symbol,
+            );
+            const isPersistedItem = Boolean(
+              item.purchase_request_item_id?.trim(),
+            );
+            const canRemoveItem = !lockItems && !isPersistedItem;
+            const requiresDescription = !isPersistedItem;
 
-			{fields.length > 0 ? (
-				<AccordionGroup
-					type="multiple"
-					value={openProducts}
-					onValueChange={(value) => {
-						const nextValue = Array.isArray(value)
-							? value
-							: value
-								? [value]
-								: [];
-						setOpenProducts(nextValue);
-					}}
-					className="gap-3"
-				>
-					{fields.map((item, index) => {
-						const selectedUnitId = watch(
-							`purchase_request_items.${index}.unit_measure_id`,
-						);
-						const selectedUnit = unitsOfMeasurementOptions.find(
-							(option) => String(option.value) === String(selectedUnitId),
-						);
-						const isBoxOrPackage = hasUnitsPerPackage(
-							selectedUnit?.label,
-							selectedUnit?.symbol,
-						);
-						const isPersistedItem = Boolean(
-							item.purchase_request_item_id?.trim(),
-						);
-						const canRemoveItem = !lockItems && !isPersistedItem;
-						const requiresDescription = !isPersistedItem;
+            return (
+              <AccordionItem
+                key={item.id}
+                value={item.id}
+                className="rounded-md! border-slate-300! dark:border-slate-600! dark:bg-[#272b34]!"
+                triggerClassName="h-auto! min-h-12! py-2.5! pr-3!"
+                contentClassName="flex flex-col gap-5 p-4"
+                title={
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
+                      {index + 1}
+                    </span>
+                    <span className="min-w-0 truncate text-[15px] font-semibold text-slate-800 dark:text-white">
+                      {item.product_name || `#${index + 1}`}
+                    </span>
+                  </div>
+                }
+                actions={
+                  canRemoveItem ? (
+                    <Button
+                      type="button"
+                      size="small"
+                      tooltip="Quitar producto"
+                      icon={<Trash2Icon size={16} />}
+                      onClick={() => remove(index)}
+                      className={removeProductButtonClassName}
+                    />
+                  ) : null
+                }
+              >
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <div>
+                    <InputText
+                      label={`Producto #${index + 1}`}
+                      placeholder="Producto seleccionado"
+                      className={inputClassName}
+                      labelClassName={labelClassName}
+                      value={item.product_name ?? ""}
+                      disabled
+                    />
+                  </div>
+                  <div>
+                    <Controller
+                      name={`purchase_request_items.${index}.quantity`}
+                      control={control}
+                      rules={{
+                        required: "La cantidad es requerida",
+                        validate: {
+                          validateInteger: (value) =>
+                            validateIntegerNumber(value),
+                          validatePositive: (value) =>
+                            validatePositiveNumber(value),
+                        },
+                      }}
+                      render={({ field }) => (
+                        <InputText
+                          label="Cantidad"
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="0"
+                          isRequired
+                          className={inputClassName}
+                          labelClassName={labelClassName}
+                          value={formatIntegerDisplay(field.value)}
+                          onChange={(e) => {
+                            field.onChange(parseIntegerInput(e.target.value));
+                            if (hasAttemptedSubmit) {
+                              void trigger(
+                                `purchase_request_items.${index}.quantity`,
+                              );
+                            }
+                          }}
+                          error={
+                            errors.purchase_request_items?.[index]?.quantity
+                              ?.message
+                          }
+                          errorVariant="text"
+                        />
+                      )}
+                    />
+                  </div>
 
-						return (
-							<AccordionItem
-								key={item.id}
-								value={item.id}
-								className="rounded-md! border-slate-300! dark:border-slate-600! dark:bg-[#272b34]!"
-								triggerClassName="h-auto! min-h-12! py-2.5! pr-3!"
-								contentClassName="flex flex-col gap-5 p-4"
-								title={
-									<div className="flex min-w-0 flex-1 items-center justify-between gap-3">
-										<div className="flex min-w-0 items-center gap-3">
-											<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
-												{index + 1}
-											</span>
-											<span className="min-w-0 truncate text-[15px] font-semibold text-slate-800 dark:text-white">
-												{item.product_name || `#${index + 1}`}
-											</span>
-										</div>
-										{canRemoveItem ? (
-											<span
-												className="mr-3 flex shrink-0 items-center"
-												onClick={(evt) => evt.stopPropagation()}
-												onKeyDown={(evt) => evt.stopPropagation()}
-											>
-												<Button
-													type="button"
-													size="small"
-													tooltip="Quitar producto"
-													icon={<Trash2Icon size={16} />}
-													onClick={() => remove(index)}
-													className="h-8 w-8! shrink-0 rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!"
-												/>
-											</span>
-										) : null}
-									</div>
-								}
-							>
-								<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-									<div>
-										<InputText
-											label={`Producto #${index + 1}`}
-											placeholder="Producto seleccionado"
-											className={inputClassName}
-											labelClassName={labelClassName}
-											value={item.product_name ?? ""}
-											disabled
-										/>
-									</div>
-									<div>
-										<Controller
-											name={`purchase_request_items.${index}.quantity`}
-											control={control}
-											rules={{
-												required: "La cantidad es requerida",
-												validate: {
-													validateInteger: (value) =>
-														validateIntegerNumber(value),
-													validatePositive: (value) =>
-														validatePositiveNumber(value),
-												},
-											}}
-											render={({ field }) => (
-												<InputText
-													label="Cantidad"
-													type="text"
-													inputMode="numeric"
-													placeholder="0"
-													isRequired
-													className={inputClassName}
-													labelClassName={labelClassName}
-													value={formatIntegerDisplay(field.value)}
-													onChange={(e) => {
-														field.onChange(parseIntegerInput(e.target.value));
-														if (hasAttemptedSubmit) {
-															void trigger(
-																`purchase_request_items.${index}.quantity`,
-															);
-														}
-													}}
-													error={
-														errors.purchase_request_items?.[index]?.quantity
-															?.message
-													}
-													errorVariant="text"
-												/>
-											)}
-										/>
-									</div>
+                  <div>
+                    <Controller
+                      name={`purchase_request_items.${index}.unit_measure_id`}
+                      control={control}
+                      rules={{
+                        validate: (value) => {
+                          const unitMeasureId = String(value ?? "").trim();
+                          if (!unitMeasureId) {
+                            return "La unidad de medida es requerida";
+                          }
+                          if (!validUnitMeasureIds.has(unitMeasureId)) {
+                            return "Seleccione una unidad de medida válida";
+                          }
+                          return true;
+                        },
+                      }}
+                      render={({ field }) => (
+                        <Dropdown
+                          label="Unidad de Medida"
+                          isRequired
+                          options={unitsOfMeasurementOptions}
+                          placeholder={
+                            isLoadingUnits
+                              ? "Cargando unidades..."
+                              : "Seleccione..."
+                          }
+                          onChange={(value) => {
+                            const nextUnitId = String(value ?? "");
+                            field.onChange(nextUnitId);
 
-									<div>
-										<Controller
-											name={`purchase_request_items.${index}.unit_measure_id`}
-											control={control}
-											render={({ field }) => (
-												<Dropdown
-													label="Unidad de Medida"
-													options={unitsOfMeasurementOptions}
-													placeholder={
-														isLoadingUnits
-															? "Cargando unidades..."
-															: "Seleccione..."
-													}
-													onChange={(value) => {
-														const nextUnitId = String(value ?? "");
-														field.onChange(nextUnitId);
+                            const nextUnit = unitsOfMeasurementOptions.find(
+                              (option) => String(option.value) === nextUnitId,
+                            );
 
-														const nextUnit = unitsOfMeasurementOptions.find(
-															(option) =>
-																String(option.value) === nextUnitId,
-														);
+                            const nextIsBoxOrPackage = hasUnitsPerPackage(
+                              nextUnit?.label,
+                              nextUnit?.symbol,
+                            );
 
-														const nextIsBoxOrPackage = hasUnitsPerPackage(
-															nextUnit?.label,
-															nextUnit?.symbol,
-														);
+                            if (!nextIsBoxOrPackage) {
+                              setValue(
+                                `purchase_request_items.${index}.quantity_unit`,
+                                0,
+                                { shouldValidate: false },
+                              );
+                              clearErrors(
+                                `purchase_request_items.${index}.quantity_unit`,
+                              );
+                            }
 
-														if (!nextIsBoxOrPackage) {
-															setValue(
-																`purchase_request_items.${index}.quantity_unit`,
-																0,
-																{ shouldValidate: false },
-															);
-															clearErrors(
-																`purchase_request_items.${index}.quantity_unit`,
-															);
-														}
+                            if (hasAttemptedSubmit) {
+                              void trigger(
+                                `purchase_request_items.${index}.unit_measure_id`,
+                              );
+                            }
+                          }}
+                          error={
+                            errors.purchase_request_items?.[index]
+                              ?.unit_measure_id?.message
+                          }
+                          errorVariant="text"
+                          value={field.value}
+                          appearance="dark"
+                          labelClassName={labelClassName}
+                          valueClassName={labelClassName}
+                          className={dropdownClassName}
+                        />
+                      )}
+                    />
+                  </div>
 
-														if (hasAttemptedSubmit) {
-															void trigger(
-																`purchase_request_items.${index}.unit_measure_id`,
-															);
-														}
-													}}
-													error={
-														errors.purchase_request_items?.[index]
-															?.unit_measure_id?.message
-													}
-													errorVariant="text"
-													value={field.value}
-													appearance="dark"
-													labelClassName={labelClassName}
-													valueClassName={labelClassName}
-													className={dropdownClassName}
-												/>
-											)}
-										/>
-									</div>
+                  <div>
+                    <Controller
+                      name={`purchase_request_items.${index}.quantity_unit`}
+                      control={control}
+                      rules={{
+                        validate: (value, formValues) => {
+                          const unitId =
+                            formValues.purchase_request_items?.[index]
+                              ?.unit_measure_id;
+                          const unit = unitsOfMeasurementOptions.find(
+                            (option) => String(option.value) === String(unitId),
+                          );
+                          const requiresUnitsPerPackage = hasUnitsPerPackage(
+                            unit?.label,
+                            unit?.symbol,
+                          );
 
-									<div>
-										<Controller
-											name={`purchase_request_items.${index}.quantity_unit`}
-											control={control}
-											rules={{
-												validate: (value, formValues) => {
-													const unitId =
-														formValues.purchase_request_items?.[index]
-															?.unit_measure_id;
-													const unit = unitsOfMeasurementOptions.find(
-														(option) =>
-															String(option.value) === String(unitId),
-													);
-													const requiresUnitsPerPackage = hasUnitsPerPackage(
-														unit?.label,
-														unit?.symbol,
-													);
+                          if (!requiresUnitsPerPackage) return true;
 
-													if (!requiresUnitsPerPackage) return true;
+                          if (
+                            value === 0 ||
+                            value === undefined ||
+                            value === null
+                          ) {
+                            return "Agregue las unidades por presentación";
+                          }
 
-													if (
-														value === 0 ||
-														value === undefined ||
-														value === null
-													) {
-														return "Agregue las unidades por presentación";
-													}
+                          const integerResult = validateIntegerNumber(value);
+                          if (integerResult !== true) return integerResult;
 
-													const integerResult = validateIntegerNumber(value);
-													if (integerResult !== true) return integerResult;
+                          return validatePositiveNumber(value);
+                        },
+                      }}
+                      render={({ field }) => (
+                        <InputText
+                          label="Unidades por presentación"
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="0"
+                          isRequired={isBoxOrPackage}
+                          disabled={!isBoxOrPackage}
+                          className={inputClassName}
+                          labelClassName={labelClassName}
+                          value={formatIntegerDisplay(field.value ?? 0)}
+                          onChange={(e) => {
+                            field.onChange(parseIntegerInput(e.target.value));
+                            if (hasAttemptedSubmit) {
+                              void trigger(
+                                `purchase_request_items.${index}.quantity_unit`,
+                              );
+                            }
+                          }}
+                          error={
+                            errors.purchase_request_items?.[index]
+                              ?.quantity_unit?.message
+                          }
+                          errorVariant="text"
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
 
-													return validatePositiveNumber(value);
-												},
-											}}
-											render={({ field }) => (
-												<InputText
-													label="Unidades por presentación"
-													type="text"
-													inputMode="numeric"
-													placeholder="0"
-													isRequired={isBoxOrPackage}
-													disabled={!isBoxOrPackage}
-													className={inputClassName}
-													labelClassName={labelClassName}
-													value={formatIntegerDisplay(field.value ?? 0)}
-													onChange={(e) => {
-														field.onChange(parseIntegerInput(e.target.value));
-														if (hasAttemptedSubmit) {
-															void trigger(
-																`purchase_request_items.${index}.quantity_unit`,
-															);
-														}
-													}}
-													error={
-														errors.purchase_request_items?.[index]
-															?.quantity_unit?.message
-													}
-													errorVariant="text"
-												/>
-											)}
-										/>
-									</div>
-								</div>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <Controller
+                      name={`purchase_request_items.${index}.description`}
+                      control={control}
+                      rules={
+                        requiresDescription
+                          ? {
+                              validate: (value) =>
+                                (typeof value === "string" &&
+                                  value.trim().length > 0) ||
+                                "La descripción es requerida",
+                            }
+                          : undefined
+                      }
+                      render={({ field }) => (
+                        <Textarea
+                          label="Descripción"
+                          isRequired={requiresDescription}
+                          placeholder="Ej. Resma de papel bond carta, 75 g, paquete de 500 hojas."
+                          className={inputClassName}
+                          labelClassName={labelClassName}
+                          value={field.value ?? ""}
+                          onChange={(event) => {
+                            field.onChange(event);
+                            if (hasAttemptedSubmit) {
+                              void trigger(
+                                `purchase_request_items.${index}.description`,
+                              );
+                            }
+                          }}
+                          enableCharacterCount
+                          error={
+                            errors.purchase_request_items?.[index]?.description
+                              ?.message
+                          }
+                        />
+                      )}
+                    />
+                  </div>
 
-								<div className="grid grid-cols-1 gap-4">
-									<div>
-										<Controller
-											name={`purchase_request_items.${index}.description`}
-											control={control}
-											rules={
-												requiresDescription
-													? {
-															validate: (value) =>
-																(typeof value === "string" && value.trim().length > 0) ||
-																"La descripción es requerida",
-														}
-													: undefined
-											}
-											render={({ field }) => (
-												<Textarea
-													label="Descripción"
-													isRequired={requiresDescription}
-													placeholder="Ej. Resma de papel bond carta, 75 g, paquete de 500 hojas."
-													className={inputClassName}
-													labelClassName={labelClassName}
-													value={field.value ?? ""}
-													onChange={(event) => {
-														field.onChange(event);
-														if (hasAttemptedSubmit) {
-															void trigger(
-																`purchase_request_items.${index}.description`,
-															);
-														}
-													}}
-													enableCharacterCount
-													error={
-														errors.purchase_request_items?.[index]?.description
-															?.message
-													}
-												/>
-											)}
-										/>
-									</div>
+                  <div>
+                    <Controller
+                      name={`purchase_request_items.${index}.justification`}
+                      control={control}
+                      rules={{
+                        required: "La justificación de compra es requerida",
+                      }}
+                      render={({ field }) => (
+                        <Textarea
+                          label="Justificación"
+                          isRequired
+                          placeholder="Ej. Se requiere para reponer el inventario de papelería"
+                          className={inputClassName}
+                          labelClassName={labelClassName}
+                          value={field.value ?? ""}
+                          onChange={(event) => {
+                            field.onChange(event);
+                            if (hasAttemptedSubmit) {
+                              void trigger(
+                                `purchase_request_items.${index}.justification`,
+                              );
+                            }
+                          }}
+                          enableCharacterCount
+                          error={
+                            errors.purchase_request_items?.[index]
+                              ?.justification?.message
+                          }
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
 
-									<div>
-										<Controller
-											name={`purchase_request_items.${index}.justification`}
-											control={control}
-											rules={{
-												required: "La justificación de compra es requerida",
-											}}
-											render={({ field }) => (
-												<Textarea
-													label="Justificación"
-													isRequired
-													placeholder="Ej. Se requiere para reponer el inventario de papelería"
-													className={inputClassName}
-													labelClassName={labelClassName}
-													value={field.value ?? ""}
-													onChange={(event) => {
-														field.onChange(event);
-														if (hasAttemptedSubmit) {
-															void trigger(
-																`purchase_request_items.${index}.justification`,
-															);
-														}
-													}}
-													enableCharacterCount
-													error={
-														errors.purchase_request_items?.[index]
-															?.justification?.message
-													}
-												/>
-											)}
-										/>
-									</div>
-								</div>
+                <Controller
+                  name={`purchase_request_items.${index}.images.images_product_to_changed`}
+                  control={control}
+                  render={({ field }) => (
+                    <PurchaseRequestImageUploader
+                      value={field.value ?? []}
+                      onChange={(value) => field.onChange(value)}
+                    />
+                  )}
+                />
+              </AccordionItem>
+            );
+          })}
+        </AccordionGroup>
+      ) : null}
 
-								<Controller
-									name={`purchase_request_items.${index}.images.images_product_to_changed`}
-									control={control}
-									render={({ field }) => (
-										<PurchaseRequestImageUploader
-											value={field.value ?? []}
-											onChange={(value) => field.onChange(value)}
-										/>
-									)}
-								/>
-							</AccordionItem>
-						);
-					})}
-				</AccordionGroup>
-			) : null}
+      <Controller
+        name="purchase_request_items"
+        control={control}
+        rules={{
+          validate: (value) =>
+            (value?.length ?? 0) > 0 ||
+            "Debe agregar al menos un producto a la requisición",
+        }}
+        render={({ field }) => (
+          <input
+            type="hidden"
+            ref={field.ref}
+            name={field.name}
+            value={JSON.stringify(field.value ?? [])}
+            readOnly
+          />
+        )}
+      />
 
-			<Controller
-				name="purchase_request_items"
-				control={control}
-				rules={{
-					validate: (value) =>
-						(value?.length ?? 0) > 0 ||
-						"Debe agregar al menos un producto a la requisición",
-				}}
-				render={({ field }) => (
-					<input
-						type="hidden"
-						ref={field.ref}
-						name={field.name}
-						value={JSON.stringify(field.value ?? [])}
-						readOnly
-					/>
-				)}
-			/>
-
-			<SelectProductModal
-				isOpen={isSelectProductOpen}
-				onClose={() => setIsSelectProductOpen(false)}
-				onSelect={handleSelectProduct}
-				selectionType="multiple"
-				excludeProductIds={assignedProductIds}
-			/>
-		</div>
-	);
+      <SelectProductModal
+        isOpen={isSelectProductOpen}
+        onClose={() => setIsSelectProductOpen(false)}
+        onSelect={handleSelectProduct}
+        selectionType="multiple"
+        excludeProductIds={assignedProductIds}
+        productUsageType={productUsageType}
+      />
+    </div>
+  );
 };

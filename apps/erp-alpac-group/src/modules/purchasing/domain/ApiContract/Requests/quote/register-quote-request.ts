@@ -9,14 +9,14 @@ export interface QuotationAttachmentsInput {
 	images_base64?: string[] | null;
 }
 
-export type QuotationCurrencyValue = 1 | 2;
+export type QuotationCurrencyValue = "NIO" | "USD";
 
 export interface QuotationItem {
 	supplier_id: string;
 	purchase_request_item_id: string;
 	has_delivery: boolean;
 	has_guarantee: boolean;
-	inventory_available?: boolean;
+	inventory_available?: boolean | null;
 	supplier_selection_justification: string;
 	brand_product?: string | null;
 	product_quality: ProductQualityType;
@@ -28,10 +28,8 @@ export interface QuotationItem {
 	warranty_period?: number | null;
 	warranty_period_time_type?: TimeTypeValue | null;
 	attachments?: QuotationAttachmentsInput | null;
-	price_unit?: number | null;
-	preferential_price?: number | null;
 	currency?: QuotationCurrencyValue | null;
-	create_supplier_product_if_missing?: boolean;
+	create_supplier_product_if_missing: false;
 }
 
 export interface RegisterQuoteRequest extends BaseRequest {

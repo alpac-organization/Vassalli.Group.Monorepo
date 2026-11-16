@@ -10,6 +10,7 @@ export interface CreatePermissionRequestBase {
   permit_application_donated_vacations?: CreateDonatedVacationPermissionRequest;
   permit_application_medical_appointment?: CreateMedicalAppointmentPermissionRequest;
   permit_application_vacation_pay?: CreateVacationPayApplicationRequest;
+  permit_application_leave?: CreatePermissionLeaveReq;
 }
 
 interface CreateVacationPermissionRequest {
@@ -32,10 +33,10 @@ interface CreateMedicalAppointmentPermissionRequest {
   start_date: string;
   start_time?: string | null;
   end_time?: string | null;
-  images: ImageMedicalAppointment[];
+  images: ImageBaseType[];
 }
 
-interface ImageMedicalAppointment {
+interface ImageBaseType {
   image_base64?: string | null;
   content_type?: string | null;
 }
@@ -43,4 +44,14 @@ interface ImageMedicalAppointment {
 interface CreateVacationPayApplicationRequest {
   amount_days: number;
   request_date: string;
+}
+interface CreatePermissionLeaveReq {
+  start_date: string;
+  end_date: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  beneficiary_scope: number;
+  family_relationship: number;
+  related_person: string | null;
+  images: ImageBaseType[];
 }

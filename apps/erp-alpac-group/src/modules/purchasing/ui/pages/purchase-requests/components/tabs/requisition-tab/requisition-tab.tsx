@@ -4,7 +4,7 @@ import { PackagePlusIcon } from "lucide-react";
 import { PurchaseRequestModal } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseRequestList } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestList";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { RoleEnum } from "@app/core/enums/role.enum";
@@ -61,7 +61,7 @@ export const RequisitionTab = ({
 	});
 
 
-	const { GetPurchaseRequests, AnnulPurchaseRequest } = usePurchase({
+	const { GetPurchaseRequests, AnnulPurchaseRequest } = usePurchaseRequestList({
 		getPurchaseRequestsPayload: {
 			...filters,
 			company_id: companyId,

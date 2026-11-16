@@ -7,7 +7,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { QuotesPageHeader } from "@app/modules/purchasing/ui/pages/quotes/components/quotes-page-header/quotes-page-header";
-import { useQuoteAnalysis } from "@app/modules/finance/ui/hooks/quotes-analysis/useQuoteAnalysis";
+import { useQuoteAnalysisList } from "@app/modules/finance/ui/hooks/quotes-analysis/useQuoteAnalysisList";
 import type { accountingReviewStatusType } from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
 import type { GetQuotesAnalysisRequest } from "@app/modules/finance/domain/ApiContract/requests/get-quote-analysis";
 import type { RequisitionAccountingReviewDto } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
@@ -20,14 +20,15 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { AnnulModal } from "@app/shared/components/annul-modal/annul-modal";
 import { fetchAndOpenQuoteAnalysisPdf } from "@app/modules/finance/ui/pages/quote-analisys/templates/quote-analysis.generate";
 
-const PAGE_SIZE = 10;
+const DEFAULT_PAGE_NUMBER = 1;
+const DEFAULT_PAGE_SIZE = 10;
 
 export function QuoteAnalisys() {
 	const navigate = useNavigate();
 	const { baseUrl } = useBaseUrl();
 	const { getMappedError } = useMappedError();
 	const { companyId, moduleCode } = useUserStore();
-	const [pageNumber, setPageNumber] = useState(1);
+	const [pageNumber, setPageNumber] = useState(DEFAULT_PAGE_NUMBER);
 	const [appliedStatus, setAppliedStatus] = useState<accountingReviewStatusType | "">("");
 	const [appliedAreaId, setAppliedAreaId] = useState("");
 	const [pendingReview, setPendingReview] =
@@ -42,26 +43,28 @@ export function QuoteAnalisys() {
 			company_id: companyId,
 			module_code: moduleCode,
 			page_number: pageNumber,
-			page_size: PAGE_SIZE,
 			...(appliedStatus && { status: appliedStatus }),
 			...(appliedAreaId && { area_id: appliedAreaId }),
 		}),
 		[companyId, moduleCode, pageNumber, appliedStatus, appliedAreaId],
 	);
 
-	const { GetQuoteAnalysis, SendReviewToManagement, AnnulQuoteAnalysis } = useQuoteAnalysis({
-		payloadGetQuoteAnalysis,
-	});
+	const { GetQuoteAnalysis, SendReviewToManagement, AnnulQuoteAnalysis } =
+		useQuoteAnalysisList({
+			payloadGetQuoteAnalysis,
+		});
 
 	const { data: quoteAnalysis, isLoading, isFetching } = GetQuoteAnalysis;
 	const quotes = quoteAnalysis?.data ?? [];
 	const totalRecords = quoteAnalysis?.total ?? 0;
+	const currentPage = quoteAnalysis?.page_number ?? pageNumber;
+	const resolvedPageSize = quoteAnalysis?.page_size ?? DEFAULT_PAGE_SIZE;
 
 	const handleApplyFilters = useCallback(
 		(filters: QuoteAnalysisFiltersValues) => {
 			setAppliedStatus(filters.status);
 			setAppliedAreaId(filters.area_id);
-			setPageNumber(1);
+			setPageNumber(DEFAULT_PAGE_NUMBER);
 		},
 		[],
 	);
@@ -69,7 +72,7 @@ export function QuoteAnalisys() {
 	const handleClearFilters = useCallback(() => {
 		setAppliedStatus("");
 		setAppliedAreaId("");
-		setPageNumber(1);
+		setPageNumber(DEFAULT_PAGE_NUMBER);
 	}, []);
 
 	const handlePageChange = useCallback((page: number) => {
@@ -252,9 +255,9 @@ export function QuoteAnalisys() {
 
 			<QuoteAnalysisTable
 				data={quotes}
-				currentPage={quoteAnalysis?.page_number ?? pageNumber}
+				currentPage={currentPage}
 				totalRecords={totalRecords}
-				pageSize={quoteAnalysis?.page_size ?? PAGE_SIZE}
+				pageSize={resolvedPageSize}
 				onPageChange={handlePageChange}
 				isFetching={isFetching || isGeneratingPdf}
 				onViewDetail={handleViewDetail}

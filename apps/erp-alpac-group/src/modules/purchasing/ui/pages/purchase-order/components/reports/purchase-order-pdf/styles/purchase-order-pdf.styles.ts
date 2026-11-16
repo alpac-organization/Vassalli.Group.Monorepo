@@ -154,8 +154,8 @@ export const purchaseOrderPdfStyles = StyleSheet.create({
 	},
 	colQty: { width: "10%" },
 	colUm: { width: "10%" },
-	colCode: { width: "10%" },
-	colDesc: { width: "38%" },
+	colCode: { width: "14%" },
+	colDesc: { width: "34%" },
 	colUnitPrice: { width: "16%" },
 	colTotal: { width: "16%" },
 	notesTotalsRow: {
@@ -239,7 +239,7 @@ export const purchaseOrderPdfStyles = StyleSheet.create({
 		width: 72,
 		height: 72,
 		objectFit: "contain",
-		top: -28,
+		top: 24,
 		right: 8,
 	},
 });

@@ -134,6 +134,7 @@ export const SupplierModal = ({
               onChange={handleProductLinksChange}
               onAddClick={openProductPicker}
               disabled={isSubmitting}
+              canRemove={!isEditMode}
             />
           </Suspense>
         ),
@@ -252,6 +253,8 @@ export const SupplierModal = ({
             onSelect={handleSelectProducts}
             selectionType="multiple"
             excludeProductIds={assignedProductIds}
+            productUsageType="Administrative"
+            categoryType="Administrative"
             description="Elija uno o más productos registrados para vincularlos al proveedor."
           />
         </Suspense>

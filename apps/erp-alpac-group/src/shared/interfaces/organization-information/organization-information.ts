@@ -5,7 +5,7 @@ export interface CostCenterInformation {
    description: string | null;
    cost_center_name: string | null;
    coil_code: number;
-   cost_center_code: number;
+   cost_center_code: string | number;
 }
 
 export interface WorkAreaInformation {
@@ -43,4 +43,11 @@ export interface OperationalOrderInformation {
    po_code: string | null;
    packages_count: number | null;
    is_alerted: boolean;
+}
+
+export interface MachineryInformation {
+   machinery_type: number;
+   machinery_code: string;
+   machinery_brand: string;
+   machinery_model?: string | null;
 }

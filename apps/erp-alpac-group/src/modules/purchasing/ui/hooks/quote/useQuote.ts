@@ -4,6 +4,7 @@ import type { AcceptQuotationForPurchaseRequest } from "@app/modules/purchasing/
 import type { RegisterQuoteRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
 import type { UpdateQuoteRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/update-quote-request";
 import { QuoteServices } from "@app/modules/purchasing/infrastructure/services/quote/QuoteServices";
+import { invalidatePurchaseQueries } from "@app/modules/purchasing/ui/hooks/purchase/purchase-query-cache";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const quoteServices = new QuoteServices(warehouseHttpHandler);
@@ -11,18 +12,15 @@ const quoteServices = new QuoteServices(warehouseHttpHandler);
 export const useQuotes = () => {
 	const queryClient = useQueryClient();
 
-	const invalidatePurchaseQueries = () => {
-		queryClient.invalidateQueries({ queryKey: ["get-purchase-requests"] });
-		queryClient.invalidateQueries({ queryKey: ["get-purchase-request-details"] });
-		queryClient.invalidateQueries({ queryKey: ["get-purchase-request-products"] });
-		queryClient.invalidateQueries({ queryKey: ["quotes-analysis"] });
+	const onPurchaseMutationSuccess = () => {
+		void invalidatePurchaseQueries(queryClient);
 	};
 
 	const RegisterQuote = useMutation<void, ApiErrorResponse, RegisterQuoteRequest>({
 		mutationKey: ["register-quote"],
 		mutationFn: (payload: RegisterQuoteRequest) =>
 			quoteServices.RegisterQuote(payload),
-		onSuccess: invalidatePurchaseQueries,
+		onSuccess: onPurchaseMutationSuccess,
 		retry: 1,
 	});
 
@@ -30,7 +28,7 @@ export const useQuotes = () => {
 		mutationKey: ["update-quote"],
 		mutationFn: (payload: UpdateQuoteRequest) =>
 			quoteServices.UpdateQuote(payload),
-		onSuccess: invalidatePurchaseQueries,
+		onSuccess: onPurchaseMutationSuccess,
 		retry: 1,
 	});
 
@@ -42,7 +40,7 @@ export const useQuotes = () => {
 		mutationKey: ["accept-quotation-for-purchase"],
 		mutationFn: (payload: AcceptQuotationForPurchaseRequest) =>
 			quoteServices.AcceptQuotationForPurchase(payload),
-		onSuccess: invalidatePurchaseQueries,
+		onSuccess: onPurchaseMutationSuccess,
 		retry: 1,
 	});
 

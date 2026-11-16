@@ -4,6 +4,8 @@ import { AccordionPanel } from "./components/accordion-panel";
 export function Accordion({
   title,
   children,
+  leading,
+  actions,
   defaultOpen = false,
   open: openProp,
   onOpenChange,
@@ -28,6 +30,8 @@ export function Accordion({
   return (
     <AccordionPanel
       title={title}
+      leading={leading}
+      actions={actions}
       isOpen={isOpen}
       onToggle={handleToggle}
       disabled={disabled}

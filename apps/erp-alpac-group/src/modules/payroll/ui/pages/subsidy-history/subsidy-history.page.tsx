@@ -51,6 +51,7 @@ export const SubsidyHistoryPage = () => {
 
   const { GetAreasByCompany: areasQuery } = useAreas({
     company_id: companyId ?? "",
+    module_code: moduleCode ?? "",
   });
 
   const {

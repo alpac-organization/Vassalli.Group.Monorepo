@@ -21,12 +21,13 @@ export function QuoteAnalysisFilters({
   onApply,
   onClear,
 }: QuoteAnalysisFiltersProps) {
-  const { companyId } = useUserStore();
+  const { companyId, moduleCode } = useUserStore();
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [selectedAreaId, setSelectedAreaId] = useState<string>("");
 
   const { GetAreasByCompany } = useAreas({
-    company_id: companyId ?? "",
+    company_id: companyId,
+    module_code: moduleCode,
   });
 
   const areaOptions = useMemo(

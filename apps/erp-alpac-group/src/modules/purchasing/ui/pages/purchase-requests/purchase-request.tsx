@@ -123,8 +123,8 @@ export const PurchaseRequest = () => {
 
 			<div className="relative mx-auto w-full rounded-xl border border-slate-200 bg-white p-4 dark:border-neutral-700 dark:bg-[#272B34]">
 				<Tabs
-					tabItems={tabs ?? []}
-					activeTab="requisitions"
+					tabItems={tabs}
+					activeTab={activeTab}
 					animation="slide"
 					onTabChange={setActiveTab}
 				/>

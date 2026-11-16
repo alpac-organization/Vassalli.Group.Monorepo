@@ -51,11 +51,12 @@ export class ProductServices implements IProductServices {
 			params: cleanParams(queryParams),
 		});
 
-		if (!response.suppliers) return response;
+		const suppliers = normalizePagedList(response.suppliers);
+		if (!suppliers) return response;
 
 		return {
 			...response,
-			suppliers: normalizePagedList(response.suppliers),
+			suppliers,
 		};
 	}
 

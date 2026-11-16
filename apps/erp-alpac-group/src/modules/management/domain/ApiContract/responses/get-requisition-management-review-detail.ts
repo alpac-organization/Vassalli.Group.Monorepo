@@ -2,7 +2,10 @@ import type { UserInformation } from "@app/shared/interfaces/organization-inform
 import type { GetPurchaseRequestDetailResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { RequisitionManagementReviewDto } from "@app/modules/management/domain/ApiContract/responses/get-requisition-management-reviews";
 
-export interface RequisitionManagementReviewDetailsResponse extends RequisitionManagementReviewDto {
-	reviewer_user_information: UserInformation | null;
-	purchase_request_details: GetPurchaseRequestDetailResponse;
+export interface RequisitionManagementReviewDetailsResponse extends Omit<
+  RequisitionManagementReviewDto,
+  "purchase_request"
+> {
+  reviewer_user_information: UserInformation | null;
+  purchase_request: GetPurchaseRequestDetailResponse;
 }

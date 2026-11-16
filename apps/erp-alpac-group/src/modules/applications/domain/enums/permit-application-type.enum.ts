@@ -5,8 +5,10 @@ export const PermitApplicationTypeEnum: Record<string, EnumType> = {
    MedicalAppointment: { value: 2, label: "Cita médica" },
    DonatedVacations: { value: 7, label: "Vacaciones donadas" },
    VacationPay: { value: 8, label: "Pago de vacaciones" },
-   // CompensatoryTime: { value: 3, label: "Tiempo compensatorio" }, 
-   // SpecialLeave: { value: 6, label: "Permiso especial" },
+   JudicialAppointment: { value: 9, label: "Cita judicial" },
+   MarriageLeave: { value: 10, label: "Permiso de matrimonio" },
+   BirthLeave: { value: 11, label: "Permiso de nacimiento" },
+   BereavementLeave: { value: 12, label: "Permiso de fallecimiento" },
 } as const;
 
 export type PermitApplicationTypeEnum = keyof typeof PermitApplicationTypeEnum;

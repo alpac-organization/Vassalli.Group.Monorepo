@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Dropdown, Modal, RadioButton } from "@alpac/design-system";
 import { pdf } from "@react-pdf/renderer";
 import type { PurchaseOrderDocumentModalProps } from "./purchase-order-document-modal.types";
+import { PaymentRequestDocumentOptions } from "./payment-request-document-options";
 import { PaymentMethodEnum as DocumentPaymentMethodEnum } from "@app/modules/purchasing/domain/enums/payment-method.enum";
 import type { PaymentMethodType as DocumentPaymentMethodType } from "@app/modules/purchasing/domain/enums/payment-method.enum";
 import {
@@ -13,6 +14,7 @@ import { RoleEnum } from "@app/core/enums/role.enum";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { PaymentRequestPDF } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/payment-request-pdf/payment-request-pdf";
+import { buildPaymentRequestChecklist } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/payment-request-pdf/payment-request-pdf.checklist";
 import { mapTransferRequestReportToPdf } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/payment-request-pdf/map-transfer-request-report-to-pdf";
 import { useCatalog } from "@app/modules/catalog/ui/hooks/useCatalog";
 import { CatalogEnum } from "@app/core/enums/catalog.enum";
@@ -29,58 +31,17 @@ const dropdownClassName =
 
 const defaultPaymentMethodValue = PaymentMethodEnum.LocalTransfer.stringValue;
 
-const normalizePaymentMethodType = (raw: unknown): PaymentMethodType | null => {
-  if (raw == null || raw === "") return null;
-
-  if (typeof raw === "number") {
-    return (
-      Object.values(PaymentMethodEnum).find((entry) => entry.value === raw)
-        ?.stringValue ?? null
-    );
-  }
-
-  if (typeof raw === "string") {
-    const byString = Object.values(PaymentMethodEnum).find(
-      (entry) =>
-        entry.stringValue === raw ||
-        entry.stringValue.toLowerCase() === raw.toLowerCase(),
-    );
-    if (byString) return byString.stringValue;
-
-    const asNumber = Number(raw);
-    if (!Number.isNaN(asNumber)) {
-      return (
-        Object.values(PaymentMethodEnum).find(
-          (entry) => entry.value === asNumber,
-        )?.stringValue ?? null
-      );
-    }
-  }
-
-  return null;
-};
-
+/**
+ * Toma el payment_method_type de la cotización aceptada en el detalle.
+ * El modal lo usa para filtrar el radio-button y fijar el valor inicial del PDF.
+ */
 const resolveAcceptedPaymentMethod = (
   details?: GetPurchaseOrderDetailsResponse | null,
 ): PaymentMethodType | null => {
-  const purchaseRequest =
-    details?.purchase_request_details ?? details?.purchase_request;
-  const items = purchaseRequest?.purchase_request_items ?? [];
-
-  for (const item of items) {
-    const accepted = (item.quotations ?? []).find(
-      (quote) => quote.is_accepted_for_purchase,
-    );
-    if (!accepted) continue;
-
-    const fromType = normalizePaymentMethodType(accepted.payment_method_type);
-    if (fromType) return fromType;
-
-    const fromLegacy = normalizePaymentMethodType(accepted.payment_method);
-    if (fromLegacy) return fromLegacy;
-  }
-
-  return null;
+  const accepted = details?.items.find(
+    (item) => item.quotation.is_accepted_for_purchase,
+  );
+  return accepted?.quotation.payment_method_type ?? null;
 };
 
 export const PurchaseOrderDocumentModal = ({
@@ -90,7 +51,7 @@ export const PurchaseOrderDocumentModal = ({
   details,
 }: PurchaseOrderDocumentModalProps) => {
   const { urlImage } = useCompanyStore();
-  const { companyAlias, companyId, moduleCode, fullName, role, companyName } =
+  const { companyAlias, companyId, moduleCode, role, companyName } =
     useUserStore();
 
   const canSelectBank =
@@ -109,6 +70,8 @@ export const PurchaseOrderDocumentModal = ({
     acceptedPaymentMethod ?? defaultPaymentMethodValue,
   );
   const [selectedBankId, setSelectedBankId] = useState<number | string>("");
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(() => new Set());
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -127,17 +90,28 @@ export const PurchaseOrderDocumentModal = ({
     null;
   const hasSelectedBank = Boolean(selectedBankName);
 
-  const branchNameForSeal =
-    details?.purchase_request_details?.branch_information?.branch_name ??
-    details?.purchase_request?.branch_information?.branch_name ??
-    companyName;
+  const branchNameForSeal = companyName;
 
   useEffect(() => {
     if (!isOpen) return;
     setSelectedBankId("");
     setPaymentMethod(acceptedPaymentMethod ?? defaultPaymentMethodValue);
+    setReferenceNumber("");
+    setCheckedIds(new Set());
     setErrorMessage(null);
   }, [isOpen, acceptedPaymentMethod]);
+
+  const handleToggleChecklistItem = useCallback((itemId: string) => {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) {
+        next.delete(itemId);
+      } else {
+        next.add(itemId);
+      }
+      return next;
+    });
+  }, []);
 
   const resolveDocumentType = (): DocumentPaymentMethodType => {
     if (paymentMethod === PaymentMethodEnum.Check.stringValue) {
@@ -171,8 +145,8 @@ export const PurchaseOrderDocumentModal = ({
         companyNameFallback: companyAlias || companyName,
         bankName: canSelectBank ? selectedBankName : null,
         branchName: branchNameForSeal,
-        generatedBy: fullName,
-        generatedAt: new Date().toISOString(),
+        checklist: buildPaymentRequestChecklist(checkedIds),
+        referenceNumber: referenceNumber.trim() || null,
       });
 
       const blob = await pdf(<PaymentRequestPDF data={pdfData} />).toBlob();
@@ -203,12 +177,12 @@ export const PurchaseOrderDocumentModal = ({
       isOpen={isOpen}
       onClose={onClose}
       variant="form"
-      size="lg"
+      size="xl"
       title="Generar documento"
       description={
         canSelectBank
-          ? "Confirme el medio de pago del proveedor y seleccione el banco"
-          : "Confirme el medio de pago del proveedor para generar la solicitud"
+          ? "Confirme el medio de pago, el banco, la referencia y los documentos a marcar"
+          : "Confirme el medio de pago, la referencia y los documentos a marcar"
       }
     >
       <div className="mt-4 flex flex-col gap-4">
@@ -263,6 +237,13 @@ export const PurchaseOrderDocumentModal = ({
             La selección de banco está restringida a Supervisor y Administrador.
           </p>
         )}
+
+        <PaymentRequestDocumentOptions
+          referenceNumber={referenceNumber}
+          onReferenceChange={setReferenceNumber}
+          checkedIds={checkedIds}
+          onToggleItem={handleToggleChecklistItem}
+        />
 
         {errorMessage ? (
           <p className="m-0 text-[13px] text-red-500">{errorMessage}</p>

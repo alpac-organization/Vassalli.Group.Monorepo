@@ -27,15 +27,28 @@ function mapMedicalAppointmentImage(
   };
 }
 
-export function extractMedicalAppointmentImages(
-  additionalData?: string,
+function extractAttachedImages(
+  attached: MedicalAppointmentImageAttachment[] | undefined,
 ): ImagePayload[] {
-  const additional = parsePermissionAdditionalData(additionalData);
-  const attached = additional?.MedicalAppointmentData?.ImagesAttached;
-
   if (!Array.isArray(attached) || attached.length === 0) return [];
 
   return attached
     .map(mapMedicalAppointmentImage)
     .filter((image): image is ImagePayload => image !== null);
+}
+
+export function extractMedicalAppointmentImages(
+  additionalData?: string,
+): ImagePayload[] {
+  const additional = parsePermissionAdditionalData(additionalData);
+  return extractAttachedImages(
+    additional?.MedicalAppointmentData?.ImagesAttached,
+  );
+}
+
+export function extractLeaveImages(
+  additionalData?: string,
+): ImagePayload[] {
+  const additional = parsePermissionAdditionalData(additionalData);
+  return extractAttachedImages(additional?.LeaveData?.ImagesAttached);
 }

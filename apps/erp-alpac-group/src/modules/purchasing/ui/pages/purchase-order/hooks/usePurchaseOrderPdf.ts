@@ -3,39 +3,42 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { fetchAndOpenPurchaseOrderPdf } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/purchase-order-pdf/purchase-order-pdf.generate";
 
 type GeneratePurchaseOrderPdfArgs = {
-	purchaseOrderId: string;
-	branchName?: string | null;
+  purchaseOrderId: string;
+  branchName?: string | null;
 };
 
+/*
+ * el hook como tal Genera el PDF de la orden de compra desde la lista.
+ */
 export function usePurchaseOrderPdf() {
-	const { companyId, moduleCode, companyName } = useUserStore();
-	const [isGenerating, setIsGenerating] = useState(false);
-	const isGeneratingRef = useRef(false);
+  const { companyId, moduleCode, companyName } = useUserStore();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const isGeneratingRef = useRef(false);
 
-	const generatePurchaseOrderPdf = useCallback(
-		async ({ purchaseOrderId, branchName }: GeneratePurchaseOrderPdfArgs) => {
-			if (isGeneratingRef.current) return;
-			if (!purchaseOrderId.trim()) {
-				throw new Error("No se encontró la orden de compra.");
-			}
+  const generatePurchaseOrderPdf = useCallback(
+    async ({ purchaseOrderId, branchName }: GeneratePurchaseOrderPdfArgs) => {
+      if (isGeneratingRef.current) return;
+      if (!purchaseOrderId.trim()) {
+        throw new Error("No se encontró la orden de compra.");
+      }
 
-			isGeneratingRef.current = true;
-			setIsGenerating(true);
+      isGeneratingRef.current = true;
+      setIsGenerating(true);
 
-			try {
-				await fetchAndOpenPurchaseOrderPdf({
-					companyId,
-					moduleCode,
-					purchaseOrderId,
-					branchName: branchName ?? companyName,
-				});
-			} finally {
-				isGeneratingRef.current = false;
-				setIsGenerating(false);
-			}
-		},
-		[companyId, moduleCode, companyName],
-	);
+      try {
+        await fetchAndOpenPurchaseOrderPdf({
+          companyId,
+          moduleCode,
+          purchaseOrderId,
+          branchName: branchName ?? companyName,
+        });
+      } finally {
+        isGeneratingRef.current = false;
+        setIsGenerating(false);
+      }
+    },
+    [companyId, moduleCode, companyName],
+  );
 
-	return { isGenerating, generatePurchaseOrderPdf };
+  return { isGenerating, generatePurchaseOrderPdf };
 }

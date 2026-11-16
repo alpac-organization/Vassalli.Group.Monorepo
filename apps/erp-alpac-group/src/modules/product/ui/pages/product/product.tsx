@@ -171,8 +171,8 @@ export const Product = () => {
             }
          },
          {
-            key: "category",
-            label: "Categoría producto",
+            key: "usage_type",
+            label: "Tipo de uso",
             render: (row) => {
                return (
                   <Badges
@@ -184,9 +184,18 @@ export const Product = () => {
             },
          },
          {
-            key: "suppliers_count",
-            label: "Cant. Proveedores",
-            render: (row) => String(row.suppliers_count ?? 0),
+            key: "is_active",
+            label: "Estado",
+            render: (row) => (
+               <Badges
+                  label={row.is_active ? "Activo" : "Inactivo"}
+                  color={
+                     row.is_active
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200"
+                        : "bg-[#722F37]/15 text-[#722F37] dark:bg-[#5c1a22]/45 dark:text-[#e8a0a8]"
+                  }
+               />
+            ),
          },
          {
             key: "actions",
@@ -196,7 +205,9 @@ export const Product = () => {
                   triggerClassName={contextMenuButton}
                   items={[
                      { label: "Ver detalle", onClick: () => onViewDetails(row) },
-                     { label: "Editar", onClick: () => onEditProduct(row) },
+                     ...(row.is_active
+                        ? [{ label: "Editar", onClick: () => onEditProduct(row) }]
+                        : []),
                      {
                         label: "Ver proveedores",
                         onClick: () => onViewSuppliers(row),

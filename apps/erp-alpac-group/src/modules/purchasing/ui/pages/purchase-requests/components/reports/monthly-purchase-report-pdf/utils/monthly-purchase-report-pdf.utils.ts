@@ -33,15 +33,6 @@ export const resolveReportPeriod = (
 	};
 };
 
-export const formatCordoba = (value: number): string => {
-	const formatted = new Intl.NumberFormat("es-NI", {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	}).format(value);
-
-	return `C$ ${formatted}`;
-};
-
 export const formatQuantity = (value: number): string => {
 	return new Intl.NumberFormat("es-NI", {
 		maximumFractionDigits: 2,
@@ -56,9 +47,6 @@ export const resolveRequestTypeLabel = (
 	);
 	return match?.label.toUpperCase() ?? (requestType?.toUpperCase() ?? "");
 };
-
-export const sumTotalPrice = (items: MonthlyPurchaseReportItemDto[]): number =>
-	items.reduce((acc, item) => acc + (Number(item.total_price) || 0), 0);
 
 export const buildReportTitle = (year: number, month: number): string => {
 	const monthName = getMonthNameEs(month);

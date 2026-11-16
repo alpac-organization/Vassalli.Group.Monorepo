@@ -10,7 +10,7 @@ import { RoleEnum } from "@app/core/enums/role.enum";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
 import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-payload";
 import type { QuotesModalType } from "@app/modules/purchasing/ui/pages/quotes/types/quotes-modal.types";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseRequestList } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestList";
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import type { MonthlyMaterialsQuoteTabProps } from "./monthly-materials-quote-tab.types";
 import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
@@ -22,7 +22,8 @@ import {
 } from "@app/modules/purchasing/ui/pages/quotes/components/quote-filters/quote-filters";
 import { toYearMonthObject } from "@app/shared/utils/date.utils";
 
-const PAGE_SIZE = 5;
+const DEFAULT_PAGE_NUMBER = 1;
+const DEFAULT_PAGE_SIZE = 10;
 const sendButtonClass = "rounded-md! h-11 px-6! border border-blue-200 dark:border-blue-500/70 bg-blue-50 dark:bg-blue-500/30 text-blue-600 dark:text-blue-200 hover:bg-blue-100 dark:hover:bg-blue-500/20 hover:border-blue-400 dark:hover:border-blue-500/60 hover:text-blue-700 dark:hover:text-blue-300 shadow-sm transition-all duration-200";
 const cancelButtonClass = "rounded-md! h-11 px-6! hover:bg-slate-200 bg-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600";
 
@@ -43,26 +44,26 @@ export function MonthlyMaterialsQuoteTab({
 		module_code: moduleCode,
 		...(isAdministrator ? {} : { branch_id: currentBranchId }),
 		status: PurchaseRequestStatusEnum.Approved.textValue,
-		page_number: 1,
-		page_size: PAGE_SIZE,
+		page_number: DEFAULT_PAGE_NUMBER,
 	});
 
 	const [filters, setFilters] = useState<GetPurchaseRequestPayload>(getDefaultFilters);
 
-	const { GetPurchaseRequests, SendPurchaseRequestToReview } = usePurchase({
-		getPurchaseRequestsPayload: {
-			...filters,
-			company_id: companyId,
-			module_code: moduleCode,
-			request_type: PurchaseRequestEnum.Monthly.textValue,
-			branch_id: isAdministrator ? undefined : currentBranchId,
-			page_size: PAGE_SIZE,
-		},
-	});
+	const { GetPurchaseRequests, SendPurchaseRequestToReview } =
+		usePurchaseRequestList({
+			getPurchaseRequestsPayload: {
+				...filters,
+				company_id: companyId,
+				module_code: moduleCode,
+				request_type: PurchaseRequestEnum.Monthly.textValue,
+				branch_id: isAdministrator ? undefined : currentBranchId,
+			},
+		});
 
 	const purchaseRequests = GetPurchaseRequests.data?.data ?? [];
 	const totalRecords = GetPurchaseRequests.data?.total ?? 0;
-	const currentPage = filters.page_number ?? 1;
+	const currentPage = GetPurchaseRequests.data?.page_number ?? filters.page_number ?? DEFAULT_PAGE_NUMBER;
+	const resolvedPageSize = GetPurchaseRequests.data?.page_size ?? DEFAULT_PAGE_SIZE;
 
 	useEffect(() => {
 		setFilters(getDefaultFilters());
@@ -80,8 +81,7 @@ export function MonthlyMaterialsQuoteTab({
 			code: data.code,
 			month, year,
 			status: data.status ?? PurchaseRequestStatusEnum.Approved.textValue,
-			page_number: 1,
-			page_size: PAGE_SIZE,
+			page_number: DEFAULT_PAGE_NUMBER,
 		}));
 	};
 
@@ -163,7 +163,7 @@ export function MonthlyMaterialsQuoteTab({
 				<QuotesTable
 					data={purchaseRequests}
 					currentPage={currentPage}
-					pageSize={PAGE_SIZE}
+					pageSize={resolvedPageSize}
 					totalRecords={totalRecords}
 					onPageChange={handlePageChange}
 					isPaginationDisabled={GetPurchaseRequests.isFetching}

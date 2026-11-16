@@ -1,29 +1,33 @@
 import type { DatePickerValue } from "@alpac/design-system";
-import dayjs from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 
-/** Convierte Dayjs, Date, ISO string u otro valor a `yyyy-MM-dd` para el API. */
 export function toDateOnly(value: unknown): string {
-   if (!value) return "";
-   const date = dayjs(value as dayjs.ConfigType);
-   return date.isValid() ? date.format("YYYY-MM-DD") : "";
+  if (!value) return "";
+  const date = dayjs(value as dayjs.ConfigType);
+  return date.isValid() ? date.format("YYYY-MM-DD") : "";
+}
+
+export function toDayjsValue(value: string | null | undefined): Dayjs | null {
+  if (!value?.trim()) return null;
+  const parsed = dayjs(value);
+  return parsed.isValid() ? parsed : null;
 }
 
 /**
  * Obtener objeto de mes y año por separado
- * @param {DatePickerValue} date 
+ * @param {DatePickerValue} date
  * @returns {{ year:number, month: number }}
  */
 export const toYearMonthObject = (date?: DatePickerValue) => {
+  if (!date) return { year: undefined, month: undefined };
 
-   if (!date) return { year: undefined, month: undefined };
+  const parsed = dayjs.isDayjs(date) ? date : dayjs(date);
+  if (!parsed.isValid()) return { year: undefined, month: undefined };
 
-   const parsed = dayjs.isDayjs(date) ? date : dayjs(date);
-   if (!parsed.isValid()) return { year: undefined, month: undefined };
-
-   return {
-      year: parsed.year(),
-      month: parsed.month() + 1,
-   };
+  return {
+    year: parsed.year(),
+    month: parsed.month() + 1,
+  };
 };
 /**
  * Formatea una fecha y hora a un texto legible en español.
@@ -79,7 +83,9 @@ export const formatSpanishDateTime = (
  * @param date - DatePickerValue | null | undefined
  * @returns string | null
  */
-export const toApiDate = (date: DatePickerValue | null | undefined): string | null => {
+export const toApiDate = (
+  date: DatePickerValue | null | undefined,
+): string | null => {
   if (!date) return null;
   const d = dayjs((date as DatePickerValue)?.$d ?? date);
   return d.isValid() ? d.format("YYYY-MM-DD") : null;

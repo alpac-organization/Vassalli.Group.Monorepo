@@ -14,7 +14,6 @@ export const MIN_SUPPLIERS_PER_PRODUCT = 2;
 export type DraftQuotationItem = QuotationItem & {
 	product_id: string;
 	supplier_legal_name?: string;
-	needs_supplier_product_link?: boolean;
 };
 
 export type QuoteProductModalProps = {
@@ -34,7 +33,10 @@ export type QuotationAttachmentForm = {
 
 export type QuotationItemForm = Omit<
 	QuotationItem,
-	"payment_method_type" | "attachments" | "currency"
+	| "payment_method_type"
+	| "attachments"
+	| "currency"
+	| "create_supplier_product_if_missing"
 > & {
 	payment_method?: PaymentMethodType;
 	supplier_legal_name?: string;
@@ -42,7 +44,6 @@ export type QuotationItemForm = Omit<
 	preferred_payment_method?: PaymentMethodType;
 	attachments_form?: QuotationAttachmentForm;
 	currency_code?: CurrencyCode | null;
-	needs_supplier_product_link?: boolean;
 };
 
 export type QuoteProductGroup = {
@@ -62,16 +63,17 @@ export type QuotationItemFieldsProps = {
 	productIndex: number;
 	itemIndex: number;
 	accordionValue: string;
-	canRemove: boolean;
 	supplierLegalName: string;
-	onRemove: () => void;
+	isLoadingPaymentMethods?: boolean;
+	isOpen?: boolean;
 };
 
 export type QuoteProductGroupFieldsProps = {
 	productIndex: number;
 	productName: string;
 	categoryName?: string | null;
-	quantity: number;
+	isLoadingPaymentMethods?: boolean;
+	isOpen?: boolean;
 };
 
 export type { QuotationAttachmentsInput, QuotationCurrencyValue };

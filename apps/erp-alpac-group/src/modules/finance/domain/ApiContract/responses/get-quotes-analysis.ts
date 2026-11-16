@@ -10,4 +10,5 @@ export interface RequisitionAccountingReviewDto {
   sent_by_user_information: UserInformation;
 }
 
-export type GetRequisitionAccountingReviewsResponse = PaginateBaseResponse<RequisitionAccountingReviewDto[]>;
+export type GetRequisitionAccountingReviewsResponse =
+  PaginateBaseResponse<RequisitionAccountingReviewDto>;

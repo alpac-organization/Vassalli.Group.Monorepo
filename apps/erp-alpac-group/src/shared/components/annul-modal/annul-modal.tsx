@@ -18,7 +18,7 @@ export function AnnulModal({
 	onConfirm,
 }: AnnulModalProps) {
 	const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
-	const [scope, setScope] = useState<number>(1);
+	const [scope, setScope] = useState<1 | 2>(1);
 	const [reason, setReason] = useState("");
 	const { handleCloseAlert, handleRequestWarning, AlertComponent } = useAlertState();
 

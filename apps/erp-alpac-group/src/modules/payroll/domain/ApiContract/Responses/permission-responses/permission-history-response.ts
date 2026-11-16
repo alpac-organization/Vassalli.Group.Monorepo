@@ -46,6 +46,12 @@ export type PermissionAdditionalData = {
     IsItMidday?: boolean;
     WithRangeHours?: boolean;
   };
+  LeaveData?: {
+    BeneficiaryScope?: string;
+    FamilyRelationship?: string;
+    RelatedPerson?: string | null;
+    ImagesAttached?: MedicalAppointmentImageAttachment[];
+  };
 };
 
 export interface PermissionListResponse {

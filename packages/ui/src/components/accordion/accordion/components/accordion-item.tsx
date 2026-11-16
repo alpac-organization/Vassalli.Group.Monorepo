@@ -6,6 +6,8 @@ export function AccordionItem({
   value,
   title,
   children,
+  leading,
+  actions,
   disabled = false,
   className,
   triggerClassName,
@@ -25,6 +27,8 @@ export function AccordionItem({
   return (
     <AccordionPanel
       title={title}
+      leading={leading}
+      actions={actions}
       isOpen={isOpenItem}
       onToggle={() => {
         if (!disabled) ctx.toggle(value);

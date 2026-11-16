@@ -23,6 +23,7 @@ import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/do
 import type { PurchaseRequestDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-document-response";
 import type { PurchaseOrderDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-document-response";
 import type { PurchaseOrderTemplateDto } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-report-response";
+import type { TransferRequestReportDto } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-transfer-request-report-response";
 import type { GetPurchaseOrdersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
 import type {
 	GetPurchaseRequestDetailResponse,
@@ -165,10 +166,10 @@ export class PurchaseServices implements IPurchaseServices {
 
 	async GetTransferRequestReport(
 		payload: GetTransferRequestReportPayload,
-	): Promise<PurchaseOrderTemplateDto> {
+	): Promise<TransferRequestReportDto> {
 		const { company_id, module_code, purchase_order_id } = payload;
 		const url = `/companies/${company_id}/modules/${module_code}/reports/transfer-request/${purchase_order_id}`;
-		return this.apiHandler.get<PurchaseOrderTemplateDto>(url);
+		return this.apiHandler.get<TransferRequestReportDto>(url);
 	}
 
 	async AnnulPurchaseRequest(

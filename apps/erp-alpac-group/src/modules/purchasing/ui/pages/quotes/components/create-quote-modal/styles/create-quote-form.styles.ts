@@ -14,6 +14,3 @@ export const quoteFormOutlineButtonClassName =
 
 export const quoteFormSecondaryButtonClassName =
   "text-[15px]! rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!";
-
-export const quoteFormDangerButtonClassName =
-  "rounded-md! bg-red-500! text-[13px]! text-white! hover:bg-red-800! dark:bg-red-900!";

@@ -43,11 +43,6 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { getErrorMessage } from "@app/modules/payroll/ui/pages/collaborator-profile/utils/get-error-message";
 import { usePayrollStatus } from "@app/modules/payroll/ui/hooks/payroll/usePayroll";
-import {
-  mapBranchNametoBranchId,
-  mapSalaryTypeToPayrollType,
-} from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/utils/utils_permissions";
-import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -158,23 +153,22 @@ export default function PermissionsPage() {
     cancelPermissionRequestMutation,
     //  generatePermissionDocumentMutation,
   } = usePermission(historyFilters);
-  const branches = useCompanies({
-    company_id: companyId ?? "",
-  });
+
+  const requestorBranchId =
+    requestorProfile.data?.working_information?.branch_id?.trim() ?? "";
+  const requestorPayrollType =
+    requestorProfile.data?.working_information?.payroll_type;
 
   const requestorPayrollStatusQuery = usePayrollStatus({
     payload: {
-      companie_id: companyId,
-      module_code: moduleCode,
-      branch_id:
-        mapBranchNametoBranchId(
-          requestorProfile.data?.working_information.branch_name ?? "",
-          branches.GetBranchesQuery.data ?? [],
-        ) ?? "",
-      payrol_type: mapSalaryTypeToPayrollType(
-        requestorProfile.data?.salary_information.salary_type ?? "Fixed",
-      ),
+      companie_id: companyId ?? "",
+      module_code: moduleCode ?? "",
+      branch_id: requestorBranchId,
+      payrol_type: requestorPayrollType ?? "None",
     },
+    enabled: Boolean(
+      companyId && moduleCode && requestorBranchId && requestorPayrollType,
+    ),
   });
 
   const requestorPayrollId = useMemo(() => {

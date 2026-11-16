@@ -19,7 +19,8 @@ import type {
 	PurchaseRequestUnitMeasureInformation,
 } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { usePurchase } from "@app/modules/purchasing/ui/hooks/purchase/usePurchase";
+import { usePurchaseRequestDetail } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestDetail";
+import { usePurchaseRequestCommands } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestCommands";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
@@ -107,18 +108,22 @@ const resolveUnitMeasureId = (
 	return "";
 };
 
+const selectedUnitMeasureId = (value?: string | null): string | null => {
+	const unitMeasureId = value?.trim();
+	return unitMeasureId ? unitMeasureId : null;
+};
+
 const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestItem => {
 	const productJustification = item.justification?.trim() ?? "";
 	const productImages = item.images?.images_product_to_changed ?? [];
 	const additionalData: PurchaseRequestItemAdditionalData | null = productImages.length
 		? { images_product_to_changed: productImages }
 		: null;
-
 	return {
 		product_id: item.product_id ?? "",
 		quantity: Number(item.quantity),
 		description: item.description ?? "",
-		unit_measure_id: item.unit_measure_id ?? "",
+		unit_measure_id: selectedUnitMeasureId(item.unit_measure_id),
 		additional_data: additionalData ? JSON.stringify(additionalData) : null,
 		...(productJustification ? { justification: productJustification } : {}),
 		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
@@ -129,11 +134,9 @@ const mapNewCreateItem = (item: PurchaseRequestItem): UpdateNewPurchaseRequestIt
 
 const mapCreateItem = (item: PurchaseRequestItem): PurchaseRequestItem => {
 	const mapped = mapNewCreateItem(item);
-	const unitMeasureId = item.unit_measure_id?.trim() || null;
 
 	return {
 		...mapped,
-		unit_measure_id: unitMeasureId,
 		additional_supplier_ids: item.additional_supplier_ids,
 		new_product: item.new_product ?? null,
 	};
@@ -144,13 +147,12 @@ const mapExistingUpdateItem = (
 ): UpdateExistingPurchaseRequestItem => {
 	const productJustification = item.justification?.trim() ?? "";
 	const productImages = item.images?.images_product_to_changed ?? [];
-
 	return {
 		id: item.purchase_request_item_id,
 		product_id: item.product_id ?? undefined,
 		quantity: Number(item.quantity),
 		description: item.description ?? undefined,
-		unit_measure_id: item.unit_measure_id ?? undefined,
+		unit_measure_id: selectedUnitMeasureId(item.unit_measure_id),
 		images_product_to_changed: productImages,
 		...(productJustification ? { justification: productJustification } : {}),
 		...(item.quantity_unit != null && Number(item.quantity_unit) > 0
@@ -197,23 +199,24 @@ export const PurchaseRequestModal = ({
 		},
 	};
 
-	const {
-		CreatePurchaseRequest,
-		UpdatePurchaseRequest,
-		GetPurchaseRequestDetails,
-		GetPurchaseRequestProducts,
-	} = usePurchase({
-		getPurchaseRequestDetailsPayload: {
-			company_id: companyId,
-			module_code: moduleCode,
-			purchase_request_id: isEditMode && isOpen ? purchaseRequestId : "",
-		},
-		getPurchaseRequestProductsPayload: {
-			company_id: companyId,
-			module_code: moduleCode,
-			purchase_request_id: isEditMode && isOpen ? purchaseRequestId : "",
-		},
-	});
+	const editRequestId = isEditMode && isOpen ? purchaseRequestId : "";
+
+	const { GetPurchaseRequestDetails, GetPurchaseRequestProducts } =
+		usePurchaseRequestDetail({
+			getPurchaseRequestDetailsPayload: {
+				company_id: companyId,
+				module_code: moduleCode,
+				purchase_request_id: editRequestId,
+			},
+			getPurchaseRequestProductsPayload: {
+				company_id: companyId,
+				module_code: moduleCode,
+				purchase_request_id: editRequestId,
+			},
+		});
+
+	const { CreatePurchaseRequest, UpdatePurchaseRequest } =
+		usePurchaseRequestCommands();
 
 	const { GetUnitMeasurements } = useUnitOfMeasurement({
 		payloadUnitOfMeasurement: {

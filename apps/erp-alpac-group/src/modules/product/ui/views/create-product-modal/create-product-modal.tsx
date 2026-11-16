@@ -159,6 +159,7 @@ export const CreateProductModal = ({
 			getProductCategoryPayload: {
 				company_id: companyId,
 				module_code: moduleCode,
+				category_type: typeProductToRegister,
 			},
 			getProductDetailsPayload:
 				isOpen && selectedProduct?.product_id
@@ -674,6 +675,7 @@ export const CreateProductModal = ({
 						items={supplierLinks}
 						onChange={handleSupplierLinksChange}
 						lockEntity
+						canRemove={!isEditMode}
 						onAddClick={() => setIsSelectSupplierOpen(true)}
 						disabled={isSaving || isLoadingDetails}
 					/>
