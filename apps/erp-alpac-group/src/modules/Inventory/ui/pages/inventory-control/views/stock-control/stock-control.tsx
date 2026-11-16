@@ -79,6 +79,8 @@ export const StockControl = function(){
 
    const { data: inventoryStocksData, isPending, isFetching } = GetInventoryStocksQuery;
 
+   console.log(inventoryStocksData)
+
    const columnsStocks = GetInventoryStocksColumnsToTable({
       ActionsMenuContext: {
          onEditStock: handleOpenEditStockModal

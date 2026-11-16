@@ -22,6 +22,20 @@ export class CostCentersServices implements ICostCentersServices {
       throw error;
     }
   }
+  public async getCostCentersByCompany(
+    payload: { company_id: string; module_code: string; only_operational?: boolean },
+  ): Promise<GetCostCentersResponse[] | undefined> {
+    try {
+      const { company_id, module_code, only_operational } = payload;
+      const query = only_operational !== undefined ? `?only_operational=${only_operational}` : "";
+      const costCenters = await this.apiHandler.get<
+        GetCostCentersResponse[] | undefined
+      >(`/companies/${company_id}/modules/${module_code}/cost-centers${query}`);
+      return costCenters;
+    } catch (error) {
+      throw error;
+    }
+  }
   public async createCostCenter(
     payload: CreateCostCenterRequest,
   ): Promise<void> {

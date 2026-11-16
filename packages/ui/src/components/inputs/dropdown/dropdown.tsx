@@ -191,6 +191,12 @@ function DropdownOptionItem({
         isDisabled ? "" : "cursor-pointer"
       } ${itemClass}`}
     >
+      {
+        option.code && (
+          <span>{option.code}</span>
+        )
+      }
+
       <span className="truncate">{option.label}</span>
       <div className="flex shrink-0 items-center ml-auto! gap-1.5">
         {!isDisabled && renderOptionAction(option)}

@@ -9,15 +9,29 @@ import { GetProductCategoryOptions } from "../../../stock-control/stock-control.
 import { DEFAULT_PRODUCT_FILTERS } from "../../products-and-services-control.variant"
 
 import type { ProductsAndServicesFilters, ProductsAndServicesProps } from "./products-and-services-section-filters.types"
+import { statusOptions } from "./products-and-services-section-filters.options"
+import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters"
 
 export const ProductsAndServicesSectionFilters = function(props: ProductsAndServicesProps){
+
    
    const { control, handleSubmit, reset, formState: { isDirty, isValid }, register } = useForm({
       defaultValues: props.filters,
    });
-
-   const { companyId, moduleCode } = useUserStore();
-
+   
+   const { companyId, moduleCode, role } = useUserStore();
+   
+   const { GetCostCenters } = useCostCenters({
+      getCostCentersByBranchPayload: {
+         company_id:       companyId,
+         module_code:      moduleCode,
+         only_operational: true
+      }
+   });
+   
+   const { data: CostCentersData, }  = GetCostCenters;
+   console.log(JSON.stringify(CostCentersData, null, 3));
+   
    const { GetProductCategories } = useProduct({
       getProductCategoryPayload: { 
          company_id: companyId, 
@@ -76,7 +90,51 @@ export const ProductsAndServicesSectionFilters = function(props: ProductsAndServ
                   )}
                />
             </div>
+
+            <div className="w-64">
+               <Controller
+                  name="status"
+                  control={control}
+                  render={({ field }) => (
+                     <Dropdown
+                        label="Estado"
+                        value={field.value ?? ""}
+                        options={statusOptions}
+                        onChange={(value) => field.onChange(value ? String(value) : undefined)}
+                        placeholder="Seleccionar estado"
+                        appearance="dark"
+                        labelClassName={labelClassName}
+                        className={dropdownClassName}
+                     />
+                  )}
+               />
+            </div>
+
+            {
+               role === "Administrator" ||
+               role === "Manager"       && (
+                  <div className="w-64">
+                     <Controller
+                        name="status"
+                        control={control}
+                        render={({ field }) => (
+                           <Dropdown
+                              label="Estado"
+                              value={field.value ?? ""}
+                              options={statusOptions}
+                              onChange={(value) => field.onChange(value ? String(value) : undefined)}
+                              placeholder="Seleccionar estado"
+                              appearance="dark"
+                              labelClassName={labelClassName}
+                              className={dropdownClassName}
+                           />
+                        )}
+                     />
+                  </div>
+               )
+            }
          </div>
+         
          <section className="flex gap-5">
             <div className="flex flex-col">
                <Button

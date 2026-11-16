@@ -7,6 +7,7 @@ export interface CreateProductRequest extends BaseRequest {
 	description?: string;
 	category_id: string;
 	unit_measure_id: string;
+	cost_center_id?: string | null;
 	product_usage_type: ProductUsageType;
 	is_tax_exempt	?: boolean;
 	suppliers		?: CreateProductSupplierPayload[];
@@ -16,5 +17,6 @@ export interface CreateProductRequest extends BaseRequest {
 export interface ConfigurationStock {
 	minimum_stock: 		   number;
 	maximum_stock: 		   number;
-	// weighted_average_cost: number;
+	available_quantity?:   number | null;
+	weighted_average_cost?: number | null;
 }

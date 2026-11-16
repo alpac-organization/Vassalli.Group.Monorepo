@@ -11,10 +11,18 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { ManagerPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/manager-panel/manager-panel";
 import { AdministratorPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/administrator-panel/administrator-panel";
 import { MedicalAppointmentPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/medical-appointment-panel/medical-appointment-panel";
+import { LeavePanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/leave-panel/leave-panel";
 import { VacationPanel } from "@app/modules/applications/ui/pages/applications-index/components/application-panels/vacation-panel/vacation-panel";
 import { usePermission } from "@app/modules/payroll/ui/hooks/permission/usePermission";
 import { PermitApplicationStatus } from "@app/modules/applications/domain/enums/permit-application-status.enum";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
+
+const LEAVE_APPLICATION_TYPES = new Set([
+  "JudicialAppointment",
+  "MarriageLeave",
+  "BirthLeave",
+  "BereavementLeave",
+]);
 
 import type { ApplicationProcessRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.process.request";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
@@ -169,6 +177,10 @@ export const ManagerForm = ({
 
         {application.type === "MedicalAppointment" && (
           <MedicalAppointmentPanel application={application} />
+        )}
+
+        {LEAVE_APPLICATION_TYPES.has(String(application.type)) && (
+          <LeavePanel application={application} />
         )}
 
         {/* {application.type === "DonatedVacations" && (
