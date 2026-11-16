@@ -1,4 +1,4 @@
-export type InventoryStockStatusEnum = "Stable" | "LowStock" | "Empty"
+export type InventoryStockStatusEnum = "Stable" | "LowBalance" | "Empty"
 
 export interface InventoryStockStatusValues {
    value: number;
@@ -10,7 +10,7 @@ export const InventoryStockStatus : Record<InventoryStockStatusEnum, InventorySt
       value: 1,
       label: "Normal",
    },
-   LowStock: {
+   LowBalance: {
       value: 2,
       label: "Bajo stock",
    },
