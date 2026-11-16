@@ -7,4 +7,10 @@ export interface SalidasDetailModalProps {
   detailData?: InventoryOutputDetailDto;
   selectedOutput?: InventoryOutputDto | null;
   requestType?: string | null;
+  onStartDispatch?: () => void | Promise<void>;
+  onConfirmDispatch?: () => void | Promise<void>;
+  onRejectDispatch?: () => void | Promise<void>;
+  isStartingDispatch?: boolean;
+  isConfirmingDispatch?: boolean;
+  isRejectingDispatch?: boolean;
 }

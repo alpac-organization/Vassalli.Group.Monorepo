@@ -20,7 +20,7 @@ export function FuelRequestPDF({ data }: { data: any }) {
     .join(" / ") || "—";
 
   return (
-    <Document>
+    <Document title={`solicitud ${data?.fuel_request_code ?? "combustible"}.pdf`}>
       <Page size="LETTER" style={styles.page}>
         <View style={styles.header}>
           {urlImage ? <Image src={urlImage} style={styles.logo} /> : <View />}

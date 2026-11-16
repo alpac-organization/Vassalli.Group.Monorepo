@@ -404,7 +404,7 @@ export const CombustibleRequests = function () {
                     onClick={() => void handleGenerateFuelPdf()}
                     disabled={isGeneratingFuelPdf}
                     className="inline-flex items-center justify-center rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
-                    title="Generar boleta PDF"
+                    title="Generar imprimible PDF"
                   >
                     <FileText size={18} />
                   </button>
