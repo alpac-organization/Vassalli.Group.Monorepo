@@ -13,4 +13,5 @@ export interface InputProps
   prefixClassName?: string;
   suffix?: React.ReactNode;
   suffixClassName?: string;
+  disabled?: boolean;
 }

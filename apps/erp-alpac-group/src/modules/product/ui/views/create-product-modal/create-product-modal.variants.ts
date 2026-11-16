@@ -21,5 +21,13 @@ export const buildStockConfiguration = (values: CreateProductRequest, usageType:
 
     if (min === undefined || max === undefined) return null;
 
-    return { minimum_stock: min, maximum_stock: max };
+    const available = toOptionalNumber(values.configuration_stock?.available_quantity);
+    const weighted = toOptionalNumber(values.configuration_stock?.weighted_average_cost);
+
+    return {
+        minimum_stock: min,
+        maximum_stock: max,
+        available_quantity: available ?? null,
+        weighted_average_cost: weighted ?? null,
+    };
 };

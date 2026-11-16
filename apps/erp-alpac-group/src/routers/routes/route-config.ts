@@ -51,7 +51,6 @@ const {
   BodegaSection,
   ticketSection,
   supplyRequestsSection,
-  reabastecimientoSection
 } = getManaguaWarehouseRoutes();
 
 const { manageSection } = getWarehouseAdminRoutes();
@@ -135,7 +134,6 @@ export const routeConfig = {
       warehouseReportSection,
       ticketSection,
       supplyRequestsSection,
-      reabastecimientoSection,
     ],
     [RoleEnum.MANAGER]: [
       warehouseManaguaSection,
@@ -145,7 +143,6 @@ export const routeConfig = {
       BodegaSection,
       warehouseReportSection,
       supplyRequestsSection,
-      reabastecimientoSection,
     ],
     [RoleEnum.SUPERVISOR]: [
       warehouseManaguaSection,
@@ -155,7 +152,6 @@ export const routeConfig = {
       BodegaSection,
       warehouseReportSection,
       supplyRequestsSection,
-      reabastecimientoSection,
     ],
   },
   [ModuleEnum.WAREHOUSE_ADMIN]: {
@@ -184,6 +180,9 @@ export const routeConfig = {
     [RoleEnum.ADMINISTRATOR]: [
       inventoryControl,
       inventoryEntriesAndOutputs
+    ],
+    [RoleEnum.MANAGER]: [
+      inventoryControl
     ]
   }
 };
