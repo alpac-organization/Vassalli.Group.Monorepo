@@ -157,8 +157,9 @@ export const CreateProductModal = ({
 	onRequestError,
 	typeProductToRegister,
 }: CreateProductModalProps) => {
-	const { companyId, moduleCode } = useUserStore();
+
 	const { getMappedError } = useMappedError();
+	const { companyId, moduleCode } = useUserStore();
 	const isEditMode = Boolean(selectedProduct?.product_id);
 	const isOperational = typeProductToRegister === "Operational";
 
@@ -291,6 +292,7 @@ export const CreateProductModal = ({
 	const costCenterOptions = useMemo(() => {
 		const data = GetCostCentersByBranch.data;
 		if (!data || !Array.isArray(data)) return [];
+
 		return data.map((item: any) => ({
 			value: item.cost_center_id,
 			label: item.cost_center_name,
@@ -369,8 +371,6 @@ export const CreateProductModal = ({
 	const handleCreateProduct = (values: CreateProductRequest) => {
 		if (!validateSupplierLinks()) return;
 
-		// Se separa configuration_stock del resto de valores del formulario para que
-		// nunca llegue al payload por el spread cuando el producto no es operacional.
 		const { configuration_stock: _formStockConfiguration, ...baseValues } = values;
 
 		const payload: CreateProductRequest = {
@@ -388,10 +388,6 @@ export const CreateProductModal = ({
 					: undefined,
 		};
 
-		// configuration_stock solo se envía en productos operacionales:
-		// - operacional con stock  -> objeto de configuración
-		// - operacional servicio   -> null
-		// - cualquier otro tipo    -> la propiedad no existe en el payload
 		if (isOperational) {
 			payload.configuration_stock = showStockConfig
 				? buildStockConfiguration(values, typeProductToRegister)
@@ -608,9 +604,9 @@ export const CreateProductModal = ({
 										error={fieldState.error?.message}
 										labelClassName={labelClassName}
 										className={dropdownClassName}
-										onChange={(value) =>
+										onChange={(value) => {
 											field.onChange(value ? String(value) : null)
-										}
+										}}
 									/>
 								)}
 							/>
