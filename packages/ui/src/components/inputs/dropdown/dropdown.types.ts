@@ -1,8 +1,9 @@
 import type { Dispatch, ReactNode, RefObject, SetStateAction } from "react";
 
 export interface Option {
-  label: string;
-  value: string | number;
+  label:     string;
+  value:     string | number;
+  code?:     string;
   disabled?: boolean;
 }
 
