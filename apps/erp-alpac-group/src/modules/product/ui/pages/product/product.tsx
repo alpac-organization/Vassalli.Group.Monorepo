@@ -29,7 +29,6 @@ import type { GetProductCategoryResponse } from "@app/modules/product/domain/Api
 import { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
 import { ProductStatus } from "@app/core/enums/product-status.enum";
 
-
 const PAGE_SIZE = 5;
 
 export const Product = () => {
