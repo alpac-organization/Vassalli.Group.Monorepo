@@ -1,5 +1,5 @@
 import type {
-  MedicalAppointmentImageAttachment,
+  EvidenceImage,
   PermissionAdditionalData,
 } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/permission-history-response";
 import type { ImagePayload } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
@@ -8,6 +8,7 @@ export function parsePermissionAdditionalData(
   additionalData?: string,
 ): PermissionAdditionalData | null {
   if (!additionalData?.trim()) return null;
+
   try {
     return JSON.parse(additionalData) as PermissionAdditionalData;
   } catch {
@@ -15,40 +16,32 @@ export function parsePermissionAdditionalData(
   }
 }
 
-function mapMedicalAppointmentImage(
-  image: MedicalAppointmentImageAttachment,
-): ImagePayload | null {
-  const image_base64 = image.ImageBase64?.trim();
-  if (!image_base64) return null;
+function toImagePayload(image: EvidenceImage): ImagePayload | null {
+  const imageBase64 = image.ImageBase64?.trim();
+  if (!imageBase64) return null;
 
   return {
-    image_base64,
-    content_type: image.ContentType ?? "image/jpeg",
+    image_base64: imageBase64,
+    content_type: image.ContentType?.trim() || "image/jpeg",
   };
 }
 
-function extractAttachedImages(
-  attached: MedicalAppointmentImageAttachment[] | undefined,
-): ImagePayload[] {
-  if (!Array.isArray(attached) || attached.length === 0) return [];
+function mapEvidence(images: EvidenceImage[] | undefined): ImagePayload[] {
+  if (!images?.length) return [];
 
-  return attached
-    .map(mapMedicalAppointmentImage)
+  return images
+    .map(toImagePayload)
     .filter((image): image is ImagePayload => image !== null);
 }
 
 export function extractMedicalAppointmentImages(
-  additionalData?: string,
+  additional: PermissionAdditionalData | null,
 ): ImagePayload[] {
-  const additional = parsePermissionAdditionalData(additionalData);
-  return extractAttachedImages(
-    additional?.MedicalAppointmentData?.ImagesAttached,
-  );
+  return mapEvidence(additional?.MedicalAppointmentData?.ImagesAttached);
 }
 
 export function extractLeaveImages(
-  additionalData?: string,
+  additional: PermissionAdditionalData | null,
 ): ImagePayload[] {
-  const additional = parsePermissionAdditionalData(additionalData);
-  return extractAttachedImages(additional?.LeaveData?.ImagesAttached);
+  return mapEvidence(additional?.LeaveEvidenceData?.Evidence);
 }
