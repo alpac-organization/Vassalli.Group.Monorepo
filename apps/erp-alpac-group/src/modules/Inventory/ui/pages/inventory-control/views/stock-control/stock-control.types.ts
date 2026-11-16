@@ -4,9 +4,8 @@ export interface StockControlFilters {
     category_id?:  string;
     product_code?: string;
     product_name?: string;
-
-    page_number?:  number;
     
+    page_number?:  number;
     page_size?:    number;
 }
 
@@ -23,4 +22,9 @@ export interface ActionsMenuContext {
 
 export interface InventoryStocksColumnsToTableProps {
     ActionsMenuContext: ActionsMenuContext;
+}
+
+export interface StockModalActions { 
+    openEditStockModal: boolean; 
+    openDeleteStockModal: boolean 
 }

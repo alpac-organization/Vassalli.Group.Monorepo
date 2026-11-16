@@ -1,4 +1,4 @@
-import { useQuery, skipToken  } from "@tanstack/react-query";
+import { useQuery, skipToken, useMutation  } from "@tanstack/react-query";
 import { warehouseHttpHandler } from "@app/core/adapters";
 import { InventoryStocksServices } from "../../infrastructure/services/inventory-stocks-services";
 
@@ -27,17 +27,14 @@ export const useInventoryStocks = function(props: useInventoryStocksProps) {
       refetchOnMount: false,
       refetchOnWindowFocus: false,
    });
-   
-   //#endregion 
-
-   //#region obtener movimiento de kardex
-
 
    //#endregion
 
    //#region Actualizar niveles de stock para lanzar notificaciones de alerta
 
-
+   const PatchInventoryStockCommand = useMutation({
+      mutationKey: [""]      
+   })
 
    //#endregion
 
