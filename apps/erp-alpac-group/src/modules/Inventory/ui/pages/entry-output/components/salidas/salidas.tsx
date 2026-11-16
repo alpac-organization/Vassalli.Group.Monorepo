@@ -1,10 +1,14 @@
 import { useCallback, useState } from "react";
-import { DataTable, Pagination, SectionHeader } from "@alpac/design-system";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button, DataTable, Modal, Pagination, SectionHeader } from "@alpac/design-system";
 
 import { StatusTabsOverlay } from "@app/shared/components/status-tabs-overlay/status-tabs-overlay";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useInventoryOutputs } from "@app/modules/Inventory/ui/hooks/useInventoryOutputs";
 import { useInventoryOutputDetail } from "@app/modules/Inventory/ui/hooks/useInventoryOutputDetail";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { warehouseHttpHandler } from "@app/core/adapters";
+import { InventoryOutputsServices } from "@app/modules/Inventory/infrastructure/services/inventory-outputs-services";
 import { DEFAULT_SALIDAS_FILTERS } from "./salidas.types";
 import { SalidasSectionFilters } from "./salidas-section-filters";
 import { GetInventoryOutputsColumnsToTable } from "./salidas.variants";
@@ -12,6 +16,8 @@ import { SalidasDetailModal } from "./salidas-detail-modal";
 
 import type { SalidasFilters } from "./salidas.types";
 import type { InventoryOutputsStatus } from "@app/core/enums/inventory-output-status.enum";
+
+const inventoryOutputsServices = new InventoryOutputsServices(warehouseHttpHandler);
 
 const SALIDAS_STATUS_TABS = [
   { id: "", label: "Todos", color: "#94a3b8" },
@@ -23,8 +29,11 @@ const SALIDAS_STATUS_TABS = [
 
 export const Salidas = function () {
   const { companyId, moduleCode } = useUserStore();
+  const { AlertComponent, handleRequestSuccess, handleRequestError } = useAlertState();
+  const queryClient = useQueryClient();
   const [filters, setFilters] = useState<SalidasFilters>(DEFAULT_SALIDAS_FILTERS);
   const [selectedOutputId, setSelectedOutputId] = useState<string | null>(null);
+  const [dispatchActionToConfirm, setDispatchActionToConfirm] = useState<"start" | "confirm" | "reject" | null>(null);
 
   const payload = {
     company_id: companyId,
@@ -95,6 +104,94 @@ export const Salidas = function () {
     setSelectedOutputId(null);
   }, []);
 
+  const startDispatchMutation = useMutation({
+    mutationFn: (inventory_output_id: string) =>
+      inventoryOutputsServices.StartInventoryOutput({
+        company_id: companyId!,
+        module_code: moduleCode!,
+        inventory_output_id,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory-outputs"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-output-detail"] });
+      handleRequestSuccess("Despacho iniciado correctamente.");
+      setDispatchActionToConfirm(null);
+    },
+    onError: (error) => {
+      handleRequestError(error);
+      setDispatchActionToConfirm(null);
+    },
+  });
+
+  const confirmDispatchMutation = useMutation({
+    mutationFn: (inventory_output_id: string) =>
+      inventoryOutputsServices.ConfirmInventoryOutput({
+        company_id: companyId!,
+        module_code: moduleCode!,
+        inventory_output_id,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory-outputs"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-output-detail"] });
+      handleRequestSuccess("Despacho confirmado correctamente.");
+      setDispatchActionToConfirm(null);
+    },
+    onError: (error) => {
+      handleRequestError(error);
+      setDispatchActionToConfirm(null);
+    },
+  });
+
+  const rejectDispatchMutation = useMutation({
+    mutationFn: (payload: { inventory_output_id: string; dispatched_justification?: string }) =>
+      inventoryOutputsServices.RejectInventoryOutput({
+        company_id: companyId!,
+        module_code: moduleCode!,
+        inventory_output_id: payload.inventory_output_id,
+        dispatched_justification: payload.dispatched_justification,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["inventory-outputs"] });
+      handleRequestSuccess("Salida rechazada correctamente.");
+      setDispatchActionToConfirm(null);
+      setSelectedOutputId(null);
+    },
+    onError: (error) => {
+      handleRequestError(error);
+      setDispatchActionToConfirm(null);
+    },
+  });
+
+  const handleStartDispatch = useCallback(() => {
+    if (!selectedOutputId) return;
+    setDispatchActionToConfirm("start");
+  }, [selectedOutputId]);
+
+  const handleConfirmDispatch = useCallback(() => {
+    if (!selectedOutputId) return;
+    setDispatchActionToConfirm("confirm");
+  }, [selectedOutputId]);
+
+  const handleConfirmDispatchAction = useCallback(() => {
+    if (!selectedOutputId) return;
+    if (dispatchActionToConfirm === "start") {
+      void startDispatchMutation.mutateAsync(selectedOutputId);
+    } else if (dispatchActionToConfirm === "confirm") {
+      void confirmDispatchMutation.mutateAsync(selectedOutputId);
+    } else if (dispatchActionToConfirm === "reject") {
+      void rejectDispatchMutation.mutateAsync({ inventory_output_id: selectedOutputId });
+    }
+  }, [dispatchActionToConfirm, selectedOutputId, startDispatchMutation, confirmDispatchMutation, rejectDispatchMutation]);
+
+  const handleCancelDispatchAction = useCallback(() => {
+    setDispatchActionToConfirm(null);
+  }, []);
+
+  const handleRejectDispatch = useCallback(() => {
+    if (!selectedOutputId) return;
+    setDispatchActionToConfirm("reject");
+  }, [selectedOutputId]);
+
   return (
     <div className="flex flex-col gap-5 bg-transparent">
       <SectionHeader
@@ -137,7 +234,63 @@ export const Salidas = function () {
         detailData={GetInventoryOutputDetailQuery.data}
         selectedOutput={selectedOutput}
         requestType={selectedOutput?.request_type}
+        onStartDispatch={handleStartDispatch}
+        onConfirmDispatch={handleConfirmDispatch}
+        onRejectDispatch={handleRejectDispatch}
+        isStartingDispatch={startDispatchMutation.isPending}
+        isConfirmingDispatch={confirmDispatchMutation.isPending}
+        isRejectingDispatch={rejectDispatchMutation.isPending}
       />
+
+      <Modal
+        isOpen={dispatchActionToConfirm !== null}
+        onClose={handleCancelDispatchAction}
+        title={
+          dispatchActionToConfirm === "start"
+            ? "Iniciar despacho"
+            : dispatchActionToConfirm === "confirm"
+              ? "Confirmar despacho"
+              : "Rechazar salida"
+        }
+        description={
+          dispatchActionToConfirm === "start"
+            ? "¿Deseas iniciar el despacho de esta salida?"
+            : dispatchActionToConfirm === "confirm"
+              ? "¿Deseas confirmar el despacho de esta salida?"
+              : "¿Deseas rechazar esta salida de inventario?"
+        }
+        variant="default"
+        size="sm"
+      >
+        <div className="flex justify-end gap-2 pt-2">
+          <Button
+            label="Cancelar"
+            onClick={handleCancelDispatchAction}
+            className="rounded-md! h-10 px-4!"
+          />
+          <Button
+            label="Confirmar"
+            onClick={handleConfirmDispatchAction}
+            isLoading={
+              dispatchActionToConfirm === "start"
+                ? startDispatchMutation.isPending
+                : dispatchActionToConfirm === "confirm"
+                  ? confirmDispatchMutation.isPending
+                  : rejectDispatchMutation.isPending
+            }
+            disabled={
+              dispatchActionToConfirm === "start"
+                ? startDispatchMutation.isPending
+                : dispatchActionToConfirm === "confirm"
+                  ? confirmDispatchMutation.isPending
+                  : rejectDispatchMutation.isPending
+            }
+            className="rounded-md! h-10 px-4! bg-blue-600 text-white hover:bg-blue-700"
+          />
+        </div>
+      </Modal>
+
+      {AlertComponent}
     </div>
   );
 };

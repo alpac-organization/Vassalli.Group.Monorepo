@@ -73,7 +73,7 @@ export function Alert(props: AlertProps): React.ReactElement | null {
                     </div>
                 </div>
 
-                <div className="mt-1 text-[15px]! font-medium">
+                <div className="mt-1 text-[15px]! font-medium whitespace-pre-line">
                     {props.message}
                 </div>
             </div>

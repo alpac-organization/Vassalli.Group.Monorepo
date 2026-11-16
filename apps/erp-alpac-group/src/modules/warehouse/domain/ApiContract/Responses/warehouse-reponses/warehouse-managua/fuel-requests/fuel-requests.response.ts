@@ -5,6 +5,7 @@ import type {
   CostCenterInformation,
   BranchInformation,
   MachineryInformation,
+  CustomerInformation,
 } from "@app/shared/interfaces/organization-information/organization-information";
 
 export interface FuelRequestDto {
@@ -26,9 +27,12 @@ export interface FuelRequestDetailDto extends FuelRequestDto {
   cost_center_information: CostCenterInformation;
   branch_information: BranchInformation;
   machinery_information: MachineryInformation;
+  customer_information: CustomerInformation;
   product_stock_id: string;
   product_stock_name: string;
   requested_quantity: number;
+  unit_measure_symbol: string;
+  requested_quantity_litters: number;
   mileage: number | null;
   engine_hours: number | null;
   approved_by_user_chief_name: string | null;

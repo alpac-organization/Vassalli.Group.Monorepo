@@ -312,6 +312,7 @@ const ProductAccordionRow = ({
 				<div className="min-h-0 overflow-hidden">
 					<AnalyzedQuoteProductQuotations
 						quotations={product.quotations ?? []}
+						supplierProducts={product.product_details?.supplier_products}
 						onGenerateDocument={onGenerateDocument}
 					/>
 					{acceptedSupplierId ? (
@@ -361,10 +362,10 @@ export const PurchaseRequestProductsTable = ({
 								product.additional_data,
 							);
 							const productName =
-								product.product_details.product_name?.trim() || "producto";
+								product.product_details?.product_name?.trim() || "producto";
 							const acceptedSupplierId = getAcceptedSupplierId(product);
 							const hasExpandableContent = Boolean(acceptedSupplierId);
-							const rowKey = `${product?.purchase_request_item_id}-${product.product_details.product_id}-${index}`;
+							const rowKey = `${product?.purchase_request_item_id}-${product.product_details?.product_id}-${index}`;
 
 							if (!hasExpandableContent) {
 								return (

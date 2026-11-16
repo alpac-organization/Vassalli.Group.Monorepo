@@ -8,7 +8,7 @@ export interface CreatePermissionPoliciesRequest extends BaseRequest {
   requires_evidence: boolean;
   consumes_vacation_balance: boolean;
   min_evidence_count: number;
-  max_evidence_count: number;
+  max_evidence_count: number | null;
   required_approval_steps: number;
   max_amount_days?: number;
 }

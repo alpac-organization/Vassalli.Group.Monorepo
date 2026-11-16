@@ -38,7 +38,7 @@ export class SupplyRequestsServices implements ISupplyRequestsServices {
     );
   }
 
-  async RegisterSupplyRequest(payload: RegisterSupplyRequest): Promise<void> {
+  async RegisterSupplyRequest(payload: RegisterSupplyRequest): Promise<string> {
     const { company_id, module_code, ...body } = payload;
 
     const requestBody = cleanParams({
@@ -51,7 +51,7 @@ export class SupplyRequestsServices implements ISupplyRequestsServices {
       reason_use: body.reason_use,
     });
 
-    return this.httpClient.post<void>(
+    return this.httpClient.post<string>(
       `/companies/${company_id}/modules/${module_code}/inventory/supply-requests`,
       requestBody,
     );

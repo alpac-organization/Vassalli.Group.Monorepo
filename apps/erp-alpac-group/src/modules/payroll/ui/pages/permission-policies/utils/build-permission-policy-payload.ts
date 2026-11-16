@@ -69,30 +69,29 @@ function applyEvidenceChanges(
   current: ResolvedPolicyValues,
   next: ResolvedPolicyValues,
 ): void {
-  if (current.requires_evidence === next.requires_evidence) {
-    if (!next.requires_evidence) return;
-
-    assignIfChanged(payload, "min_evidence_count", current, next);
-    if (
-      next.max_evidence_count != null &&
-      next.max_evidence_count !== current.max_evidence_count
-    ) {
-      payload.max_evidence_count = next.max_evidence_count;
-    }
-    return;
-  }
-
-  payload.requires_evidence = next.requires_evidence;
-
   if (!next.requires_evidence) {
+    if (!current.requires_evidence) return;
+
+    payload.requires_evidence = false;
     payload.min_evidence_count = 0;
     payload.max_evidence_count = 0;
     return;
   }
 
+  const minChanged = next.min_evidence_count !== current.min_evidence_count;
+  const maxChanged = next.max_evidence_count !== current.max_evidence_count;
+  const evidenceEnabled = !current.requires_evidence && next.requires_evidence;
+
+  if (!evidenceEnabled && !minChanged && !maxChanged) return;
+
+  if (evidenceEnabled) {
+    payload.requires_evidence = true;
+  }
+
   payload.min_evidence_count = next.min_evidence_count;
-  payload.max_evidence_count =
-    next.max_evidence_count ?? next.min_evidence_count;
+  if (evidenceEnabled || maxChanged) {
+    payload.max_evidence_count = next.max_evidence_count;
+  }
 }
 
 function resolveEnumValue(
@@ -163,7 +162,9 @@ function resolvePolicyValues(
 export function policyToFormValues(
   policy: GetPermissionPoliciesResponse,
 ): PermissionPolicyFormValues {
-  const requiresEvidence = policy.min_evidence_count > 0 || policy.max_evidence_count > 0;
+  const requiresEvidence =
+    policy.min_evidence_count > 0 ||
+    (policy.max_evidence_count != null && policy.max_evidence_count > 0);
 
   return {
     permit_application_type: policy.permit_application_type,
@@ -178,7 +179,12 @@ export function policyToFormValues(
     requires_evidence: requiresEvidence,
     consumes_vacation_balance: policy.consumes_vacation_balance,
     min_evidence_count: String(requiresEvidence ? policy.min_evidence_count : 0),
-    max_evidence_count: String(requiresEvidence ? policy.max_evidence_count : 0),
+    max_evidence_count:
+      requiresEvidence &&
+      policy.max_evidence_count != null &&
+      policy.max_evidence_count > 0
+        ? String(policy.max_evidence_count)
+        : "",
   };
 }
 
@@ -200,8 +206,7 @@ export function buildPermissionPolicyPayload({
     requires_evidence: resolved.requires_evidence,
     consumes_vacation_balance: resolved.consumes_vacation_balance,
     min_evidence_count: resolved.min_evidence_count,
-    max_evidence_count:
-      resolved.max_evidence_count ?? resolved.min_evidence_count,
+    max_evidence_count: resolved.max_evidence_count,
     required_approval_steps: resolved.required_approval_steps,
     ...(resolved.max_amount_days != null
       ? { max_amount_days: resolved.max_amount_days }

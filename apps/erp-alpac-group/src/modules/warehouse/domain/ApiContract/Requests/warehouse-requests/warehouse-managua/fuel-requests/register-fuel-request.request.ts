@@ -7,5 +7,5 @@ export interface RegisterFuelRequest extends BaseRequest {
   requested_quantity: number;
   mileage?: number;
   engine_hours?: number;
-  reason_use?: number;
+  customer_id?: string;
 }
