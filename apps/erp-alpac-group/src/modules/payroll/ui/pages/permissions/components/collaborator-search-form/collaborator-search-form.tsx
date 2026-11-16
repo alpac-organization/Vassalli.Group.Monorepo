@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { SearchIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { Button, InputText } from "@alpac/design-system";
-import { Button, InputText } from "@alpac/design-system";
 import { useCollaborators } from "@app/modules/payroll/ui/hooks/collaborator/useCollaborators";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
