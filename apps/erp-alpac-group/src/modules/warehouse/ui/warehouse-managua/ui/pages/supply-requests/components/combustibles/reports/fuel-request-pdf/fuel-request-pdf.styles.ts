@@ -78,4 +78,31 @@ export const fuelRequestPdfStyles = StyleSheet.create({
     textAlign: "center",
     color: "#64748b",
   },
+  signaturesRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 80,
+    gap: 24,
+  },
+  signatureBlock: {
+    width: "45%",
+    alignItems: "center",
+  },
+  signatureName: {
+    fontSize: 10,
+    fontWeight: "bold",
+    marginBottom: 2,
+    textAlign: "center",
+  },
+  signatureLabel: {
+    fontSize: 9,
+    color: "#475569",
+    marginBottom: 8,
+  },
+  signatureLine: {
+    width: "100%",
+    borderBottom: "1px solid #94a3b8",
+    height: 1,
+    marginBottom: 4,
+  },
 });

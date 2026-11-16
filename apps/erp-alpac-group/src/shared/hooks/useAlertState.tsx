@@ -94,7 +94,8 @@ export const useAlertState = () => {
          type={alertState.type}
          title={alertState.title}
          message={alertState.message}
-         onClose={handleCloseAlert}
+         showCloseButton
+          onClose={handleCloseAlert}
       />
    ) : null;
 

@@ -25,7 +25,7 @@ export function FuelRequestPDF({ data }: { data: any }) {
         <View style={styles.header}>
           {urlImage ? <Image src={urlImage} style={styles.logo} /> : <View />}
           <View style={styles.headerCenter}>
-            <Text style={styles.companyName}>ALPAC GROUP</Text>
+            <Text style={styles.companyName}>ALPAC</Text>
             <Text style={styles.title}>BOLETA DE SOLICITUD DE COMBUSTIBLE</Text>
           </View>
           <View style={{ width: 70 }} />
@@ -101,6 +101,19 @@ export function FuelRequestPDF({ data }: { data: any }) {
         <Text style={styles.sectionTitle}>Justificación</Text>
         <View style={styles.justificationBox}>
           <Text style={styles.value}>{data?.justification ?? "—"}</Text>
+        </View>
+
+        <View style={styles.signaturesRow}>
+          <View style={styles.signatureBlock}>
+            <View style={styles.signatureLine} />
+            <Text style={styles.signatureName}>{data?.requested_by_user_name ?? "—"}</Text>
+            <Text style={styles.signatureLabel}>Solicitante</Text>
+          </View>
+          <View style={styles.signatureBlock}>
+            <View style={styles.signatureLine} />
+            <Text style={styles.signatureName}>{data?.approved_by_user_chief_name ?? "—"}</Text>
+            <Text style={styles.signatureLabel}>Jefe directo</Text>
+          </View>
         </View>
 
         <Text style={styles.footer}>Documento generado para impresión</Text>

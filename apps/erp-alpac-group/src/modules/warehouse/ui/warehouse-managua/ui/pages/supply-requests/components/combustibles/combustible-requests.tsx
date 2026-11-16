@@ -15,6 +15,10 @@ import { useWarehouseAssignment } from "@app/modules/warehouse/ui/hooks/warehous
 import { useFuelRequests } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useFuelRequests";
 import { useFuelRequestDetail } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useFuelRequestDetail";
 import { useSupplyRequestDecision } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useSupplyRequestDecision";
+import { useRegisterFuelRequest } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useRegisterFuelRequest";
+import type { RegisterFuelRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/fuel-requests/register-fuel-request.request";
+import { FuelRequestForm } from "./fuel-request-form/fuel-request-form";
+import { InventoryStocksTable } from "./inventory-stocks-table/inventory-stocks-table";
 import { useReasonsInventoryRemoval } from "@app/modules/Inventory/ui/hooks/useReasonsInventoryRemoval";
 import type { useReasonsInventoryRemovalProps } from "@app/modules/Inventory/application/interfaces/hooks/useReasonsInventoryRemovalProps";
 
@@ -48,6 +52,47 @@ export const CombustibleRequests = function () {
   const [filters, setFilters] = useState<FuelRequestsFilters>(DEFAULT_FUEL_FILTERS);
   const [selectedFuelRequestId, setSelectedFuelRequestId] = useState<string | null>(null);
   const [isGeneratingFuelPdf, setIsGeneratingFuelPdf] = useState(false);
+  const [isReabastecimientoOpen, setIsReabastecimientoOpen] = useState(false);
+
+  const { RegisterFuelRequest } = useRegisterFuelRequest();
+
+  const handleSubmitFuelRequest = async (data: {
+    machinery_id: string;
+    product_stock_id: string;
+    requested_quantity: number;
+    mileage?: number;
+    engine_hours?: number;
+    justification: string;
+    customer_id?: string;
+  }): Promise<boolean> => {
+    if (!companyId || !moduleCode) return false;
+
+    const payload: RegisterFuelRequest = {
+      company_id: companyId,
+      module_code: moduleCode,
+      justification: data.justification,
+      machinery_id: data.machinery_id,
+      product_stock_id: data.product_stock_id,
+      requested_quantity: data.requested_quantity,
+      mileage: data.mileage,
+      engine_hours: data.engine_hours,
+      customer_id: data.customer_id,
+    };
+
+    try {
+      const code = await RegisterFuelRequest.mutateAsync(payload);
+      handleRequestSuccess(
+        `Solicitud de combustible registrada exitosamente.\nCódigo: ${code}`,
+        "Éxito",
+        false,
+      );
+      setIsReabastecimientoOpen(false);
+      return true;
+    } catch (error) {
+      handleRequestError(error);
+      return false;
+    }
+  };
 
   const { AlertComponent, handleRequestSuccess, handleRequestError } = useAlertState();
   const { ApproveSupplyRequest: ApproveFuelRequest, DeclineSupplyRequest: DeclineFuelRequest } =
@@ -286,6 +331,13 @@ export const CombustibleRequests = function () {
 
   return (
     <div className="flex flex-col gap-5 bg-transparent">
+      <div className="flex justify-end">
+        <Button
+          label="+ Solicitar"
+          onClick={() => setIsReabastecimientoOpen(true)}
+        />
+      </div>
+
       <SectionHeader
         title="Filtros de búsqueda"
         subtitle="Utiliza los filtros de busqueda para una busqueda mas rapida."
@@ -556,6 +608,33 @@ export const CombustibleRequests = function () {
       isPending={DeclineFuelRequest.isPending}
       onConfirm={() => void handleDecline()}
     />
+
+      <Modal
+        isOpen={isReabastecimientoOpen}
+        onClose={() => setIsReabastecimientoOpen(false)}
+        title="Reabastecimiento"
+        description="Gestión de solicitudes de combustible."
+        variant="default"
+        size="full"
+        panelClassName="w-full max-w-none"
+      >
+        <div className="flex flex-col lg:flex-row gap-4 min-w-0">
+          <div className="w-full lg:w-1/3 min-w-0 box-border flex flex-col gap-3 rounded-lg border border-slate-200 dark:border-slate-500 p-4 sm:p-6">
+            <h3 className="p-0! m-0!">Solicitud de combustible</h3>
+            <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
+              Registra una solicitud de combustible para una maquinaria.
+            </small>
+            <FuelRequestForm
+              isSubmitting={RegisterFuelRequest.isPending}
+              onSubmit={handleSubmitFuelRequest}
+            />
+          </div>
+
+          <div className="w-full lg:w-2/3 min-w-0 box-border rounded-lg border border-slate-200 dark:border-slate-500 p-4 sm:p-6">
+            <InventoryStocksTable />
+          </div>
+        </div>
+      </Modal>
 
       {AlertComponent}
     </div>

@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -25,7 +25,7 @@ export function DescarguePage() {
   const { companyId, moduleCode } = useUserStore();
   const { baseUrl } = useBaseUrl();
   const navigate = useNavigate();
-  const { AlertComponent, handleRequestSuccess, handleRequestError } =
+  const { AlertComponent, alertState, handleRequestSuccess, handleRequestError } =
     useAlertState();
 
   const [pageNumber, setPageNumber] = useState(1);
@@ -40,6 +40,7 @@ export function DescarguePage() {
     warehouseId: string;
     warehouseName: string;
   } | null>(null);
+  const [navigateToBodegaAfterClose, setNavigateToBodegaAfterClose] = useState(false);
   const [isStartingTask, setIsStartingTask] = useState(false);
   const [isFinishingTask, setIsFinishingTask] = useState(false);
   const [isRegisteringSupplies, setIsRegisteringSupplies] = useState(false);
@@ -63,6 +64,13 @@ export function DescarguePage() {
     });
 
   const { RegisterSupplyRequest } = useSupplyRequest();
+
+  useEffect(() => {
+    if (navigateToBodegaAfterClose && !alertState) {
+      setNavigateToBodegaAfterClose(false);
+      navigate(`${baseUrl}/warehouse-mga/bodegas`);
+    }
+  }, [navigateToBodegaAfterClose, alertState, baseUrl, navigate]);
 
   const { data: assignmentsData, isLoading, isFetching, error } = GetAssignments;
 
@@ -240,9 +248,9 @@ export function DescarguePage() {
 
         setBodega(warehouseId, warehouseName);
         setSupplyModalContext(null);
+        setNavigateToBodegaAfterClose(true);
 
-        handleRequestSuccess(`Solicitud de insumos registrada correctamente. Código: ${code}`, "Éxito", false);
-        navigate(`${baseUrl}/warehouse-mga/bodegas`);
+        handleRequestSuccess(`Solicitud de insumos registrada correctamente.\nCódigo: ${code}`, "Éxito", false);
       } catch (err) {
         handleRequestError(err);
       } finally {
