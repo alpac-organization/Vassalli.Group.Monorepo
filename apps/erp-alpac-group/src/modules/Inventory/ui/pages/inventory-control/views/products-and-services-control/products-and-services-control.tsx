@@ -5,7 +5,6 @@ import { DataTable, Pagination, SectionHeader } from "@alpac/design-system";
 
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
-import { DeactivateProductModal } from "./views/delete-product-or-services/delete-product-or-services-modal";
 import { DEFAULT_PRODUCT_FILTERS, GetProductColumnsToTable } from "./products-and-services-control.variant";
 import { ProductsAndServicesSectionFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters";
 
@@ -22,12 +21,12 @@ export const ProductsAndServicesControl = function () {
 	const [filters, setFilters] = useState<ProductsAndServicesFilters>(DEFAULT_PRODUCT_FILTERS);
 
 	const [productToEdit, setProductToEdit] 		= useState<GetProductResponse | null>(null);
-	const [productToDelete, setProductToDelete]		= useState<GetProductResponse | null>(null);
+	const [_, setProductToDelete]		= useState<GetProductResponse | null>(null);
 	const [isProductFormOpen, setIsProductFormOpen] = useState(false);
 
 	const { companyId, moduleCode } = useUserStore();
 	
-	const { GetProducts, DeleteProduct } = useProduct({
+	const { GetProducts } = useProduct({
 		getProductPayload: {
 			company_id: companyId,
 			module_code: moduleCode,

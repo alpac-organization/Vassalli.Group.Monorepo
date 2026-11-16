@@ -191,10 +191,12 @@ export const CreateProductModal = ({
 
 	const productDetails = GetProductDetails.data;
 
-	const { GetCostCentersByCompany } = useCostCenters(undefined, {
-		company_id: companyId,
-		module_code: moduleCode,
-		only_operational: true,
+	const { GetCostCentersByBranch } = useCostCenters({
+		getCostCentersByBranchPayload: {
+			company_id: companyId,
+			module_code: moduleCode,
+			only_operational: true,
+		}
 	});
 
 	const draftSource: CreateProductDraftSource = {
@@ -287,13 +289,13 @@ export const CreateProductModal = ({
 	}, [GetUnitMeasurements.data]);
 
 	const costCenterOptions = useMemo(() => {
-		const data = GetCostCentersByCompany.data;
+		const data = GetCostCentersByBranch.data;
 		if (!data || !Array.isArray(data)) return [];
 		return data.map((item: any) => ({
 			value: item.cost_center_id,
 			label: item.cost_center_name,
 		}));
-	}, [GetCostCentersByCompany.data]);
+	}, [GetCostCentersByBranch.data]);
 
 	const assignedSupplierIds = useMemo(
 		() => supplierLinks.map((link) => link.entity_id).filter(Boolean),
@@ -594,8 +596,8 @@ export const CreateProductModal = ({
 									<Dropdown
 										label="Centro de costo"
 										placeholder={
-											GetCostCentersByCompany.isPending ||
-											GetCostCentersByCompany.isFetching
+											GetCostCentersByBranch.isPending ||
+											GetCostCentersByBranch.isFetching
 												? "Cargando centros de costo..."
 												: "Seleccione un centro de costo"
 										}
