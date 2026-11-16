@@ -11,8 +11,6 @@ import {
 import {
   lazy,
   Suspense,
-  useCallback,
-  useMemo,
   useState,
   type ComponentType,
 } from "react";
@@ -32,10 +30,19 @@ import { PermissionPoliciesTable } from "@app/modules/payroll/ui/pages/permissio
 import { PermitApplicationTypeEnum } from "@app/modules/applications/domain/enums/permit-application-type.enum";
 import type { GetPermissionPoliciesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/get-permission-policies";
 import type { NewPermissionPolicyModalProps } from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/types/permission-policy-form.types";
-import { 
-  PAGE_SIZE, TYPE_FILTER_OPTIONS,
-  ACTIVE_FILTER_OPTIONS, labelClassName,
-  dropdownClassName } from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/constants/permission-policy-form.constants";
+import {
+  PAGE_SIZE,
+  TYPE_FILTER_OPTIONS,
+  ACTIVE_FILTER_OPTIONS,
+  labelClassName,
+  dropdownClassName,
+} from "@app/modules/payroll/ui/pages/permission-policies/components/new-permission-policy-modal/constants/permission-policy-form.constants";
+import {
+  DEFAULT_POLICY_FILTERS,
+  type ActiveFilterValue,
+  type PolicyFilters,
+  type PolicyFormState,
+} from "@app/modules/payroll/ui/pages/permission-policies/types/permission-policies.types";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -50,8 +57,11 @@ const NewPermissionPolicyModal = lazy(() =>
   })),
 );
 
-type ActiveFilterValue = "all" | "active";
-
+const resolvePermitApplicationType = (type: string) => {
+  if (type === "all") return undefined;
+  const entry = PermitApplicationTypeEnum[type];
+  return entry ? Number(entry.value) : undefined;
+};
 
 export const PermissionPoliciesPage = () => {
   const navigate = useNavigate();
@@ -65,31 +75,25 @@ export const PermissionPoliciesPage = () => {
 
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingPolicy, setEditingPolicy] =
-    useState<GetPermissionPoliciesResponse | null>(null);
+  const [policyForm, setPolicyForm] = useState<PolicyFormState>({
+    status: "closed",
+  });
   const [pendingStatusPolicy, setPendingStatusPolicy] =
     useState<GetPermissionPoliciesResponse | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
-  const [typeDraft, setTypeDraft] = useState<string>("all");
-  const [activeDraft, setActiveDraft] = useState<ActiveFilterValue>("all");
-  const [appliedType, setAppliedType] = useState<string>("all");
-  const [appliedActive, setAppliedActive] =
-    useState<ActiveFilterValue>("all");
+  const [draftFilters, setDraftFilters] =
+    useState<PolicyFilters>(DEFAULT_POLICY_FILTERS);
+  const [appliedFilters, setAppliedFilters] =
+    useState<PolicyFilters>(DEFAULT_POLICY_FILTERS);
 
-  const context = useMemo(() => {
-    if (!companyId || !moduleCode) return undefined;
-    return {
-      company_id: companyId,
-      module_code: moduleCode,
-    };
-  }, [companyId, moduleCode]);
+  const context =
+    companyId && moduleCode
+      ? { company_id: companyId, module_code: moduleCode }
+      : undefined;
 
-  const permitApplicationType = useMemo(() => {
-    if (appliedType === "all") return undefined;
-    const entry = PermitApplicationTypeEnum[appliedType];
-    return entry ? Number(entry.value) : undefined;
-  }, [appliedType]);
+  const permitApplicationType = resolvePermitApplicationType(
+    appliedFilters.type,
+  );
 
   const { policiesQuery, updatePermitTypePolicyMutation } =
     usePermissionPolicies(
@@ -99,7 +103,7 @@ export const PermissionPoliciesPage = () => {
         enableForms: false,
       },
       {
-        onlyActive: appliedActive === "active",
+        onlyActive: appliedFilters.active === "active",
         permitApplicationType,
         pageNumber,
         pageSize: PAGE_SIZE,
@@ -107,41 +111,22 @@ export const PermissionPoliciesPage = () => {
     );
 
   const policies = policiesQuery.data?.data ?? [];
+  const isPolicyFormOpen = policyForm.status !== "closed";
+  const editingPolicy =
+    policyForm.status === "edit" ? policyForm.policy : null;
 
-  const handleApplyFilters = useCallback(() => {
-    setAppliedType(typeDraft);
-    setAppliedActive(activeDraft);
+  const handleApplyFilters = () => {
+    setAppliedFilters(draftFilters);
     setPageNumber(1);
-  }, [typeDraft, activeDraft]);
+  };
 
-  const handleClearFilters = useCallback(() => {
-    setTypeDraft("all");
-    setActiveDraft("all");
-    setAppliedType("all");
-    setAppliedActive("all");
+  const handleClearFilters = () => {
+    setDraftFilters(DEFAULT_POLICY_FILTERS);
+    setAppliedFilters(DEFAULT_POLICY_FILTERS);
     setPageNumber(1);
-  }, []);
+  };
 
-  const handleUpdatePolicy = useCallback(
-    (row: GetPermissionPoliciesResponse) => {
-      setEditingPolicy(row);
-      setIsCreateOpen(false);
-    },
-    [],
-  );
-
-  const handleRequestStatusChange = useCallback(
-    (row: GetPermissionPoliciesResponse) => {
-      setPendingStatusPolicy(row);
-    },
-    [],
-  );
-
-  const handleCloseStatusModal = useCallback(() => {
-    setPendingStatusPolicy(null);
-  }, []);
-
-  const handleConfirmStatusChange = useCallback(() => {
+  const handleConfirmStatusChange = () => {
     if (!pendingStatusPolicy || !companyId || !moduleCode) return;
 
     const nextIsActive = !pendingStatusPolicy.is_active;
@@ -166,15 +151,7 @@ export const PermissionPoliciesPage = () => {
         },
       },
     );
-  }, [
-    companyId,
-    getMappedError,
-    handleRequestError,
-    handleRequestSuccess,
-    moduleCode,
-    pendingStatusPolicy,
-    updatePermitTypePolicyMutation,
-  ]);
+  };
 
   const statusModalTitle = pendingStatusPolicy?.is_active
     ? "Desactivar política"
@@ -244,10 +221,7 @@ export const PermissionPoliciesPage = () => {
             label="Nueva política"
             icon={<Plus size={20} />}
             className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-            onClick={() => {
-              setEditingPolicy(null);
-              setIsCreateOpen(true);
-            }}
+            onClick={() => setPolicyForm({ status: "create" })}
           />
         </SectionHeader>
 
@@ -265,8 +239,13 @@ export const PermissionPoliciesPage = () => {
             label="Tipo de permiso"
             appearance="dark"
             placeholder="Todos los tipos"
-            value={typeDraft}
-            onChange={(value) => setTypeDraft(String(value))}
+            value={draftFilters.type}
+            onChange={(value) =>
+              setDraftFilters((prev) => ({
+                ...prev,
+                type: String(value),
+              }))
+            }
             options={TYPE_FILTER_OPTIONS}
             labelClassName={labelClassName}
             valueClassName={labelClassName}
@@ -277,9 +256,12 @@ export const PermissionPoliciesPage = () => {
             label="Estado"
             appearance="dark"
             placeholder="Todas"
-            value={activeDraft}
+            value={draftFilters.active}
             onChange={(value) =>
-              setActiveDraft(value as ActiveFilterValue)
+              setDraftFilters((prev) => ({
+                ...prev,
+                active: value as ActiveFilterValue,
+              }))
             }
             options={ACTIVE_FILTER_OPTIONS}
             labelClassName={labelClassName}
@@ -326,19 +308,16 @@ export const PermissionPoliciesPage = () => {
               }
             />
           }
-          onUpdate={handleUpdatePolicy}
-          onRequestStatusChange={handleRequestStatusChange}
+          onUpdate={(row) => setPolicyForm({ status: "edit", policy: row })}
+          onRequestStatusChange={setPendingStatusPolicy}
         />
 
-        {isCreateOpen || editingPolicy ? (
+        {isPolicyFormOpen ? (
           <Suspense fallback={<Loader title="Cargando formulario..." />}>
             <NewPermissionPolicyModal
               isOpen
               policy={editingPolicy}
-              onClose={() => {
-                setIsCreateOpen(false);
-                setEditingPolicy(null);
-              }}
+              onClose={() => setPolicyForm({ status: "closed" })}
               onSuccess={handleRequestSuccess}
               onError={handleRequestError}
             />
@@ -348,7 +327,7 @@ export const PermissionPoliciesPage = () => {
 
       <Modal
         isOpen={pendingStatusPolicy != null}
-        onClose={handleCloseStatusModal}
+        onClose={() => setPendingStatusPolicy(null)}
         variant="warning"
         size="md"
         title={statusModalTitle}
@@ -362,7 +341,7 @@ export const PermissionPoliciesPage = () => {
             label="Cancelar"
             className="fw-ull! sm:w-auto! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
             disabled={updatePermitTypePolicyMutation.isPending}
-            onClick={handleCloseStatusModal}
+            onClick={() => setPendingStatusPolicy(null)}
           />
           <Button
             type="button"
