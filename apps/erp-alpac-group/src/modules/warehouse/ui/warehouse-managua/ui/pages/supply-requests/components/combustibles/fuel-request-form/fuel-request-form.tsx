@@ -12,6 +12,8 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useForm, Controller } from "react-hook-form";
 import { useInventoryStocks } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useInventoryStocks";
 import { useWarehouseAssignment } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAssignment";
+import { useCustomer } from "@app/modules/customer/ui/hooks/useCustomer";
+import type { CustomerDto } from "@app/modules/customer/domain/ApiContract/Responses/customer-responses/get-customer.response";
 import type { InventoryStockDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/inventory-stocks/get-inventory-stocks-response";
 import type { MachineryCatalogItemDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-machinery-catalog";
 
@@ -28,6 +30,7 @@ interface FuelRequestFormProps {
     mileage?: number;
     engine_hours?: number;
     justification: string;
+    customer_id?: string;
   }) => void | Promise<void | boolean>;
 }
 
@@ -38,13 +41,21 @@ interface FuelRequestFormValues {
   mileage: string;
   engine_hours: string;
   justification: string;
+  customer_id: string;
 }
 
 export function FuelRequestForm({
   isSubmitting = false,
   onSubmit,
 }: FuelRequestFormProps) {
-  const { companyId, moduleCode } = useUserStore();
+  const { companyId, moduleCode, branchCode } = useUserStore();
+
+  const CORINTO_BRANCH_CODES = ["ALP-CTO"];
+  const isCorinto = CORINTO_BRANCH_CODES.some((code) =>
+    (branchCode ?? "").toUpperCase().includes(code),
+  );
+
+  const { GetCustomer } = useCustomer();
 
   const stockPayload =
     companyId && moduleCode
@@ -53,6 +64,7 @@ export function FuelRequestForm({
         module_code: moduleCode,
         page_size: 100,
         page_number: 1,
+        is_fuel: true,
       }
       : null;
 
@@ -71,6 +83,26 @@ export function FuelRequestForm({
     payloadMachineryCatalog: machineryPayload,
   });
 
+  const customersQuery = GetCustomer(
+    { company_id: companyId ?? "", module_code: moduleCode ?? "" },
+    { enabled: Boolean(isCorinto && companyId && moduleCode) },
+  );
+
+  const customerOptions = useMemo(
+    () => {
+      const records = (customersQuery.data?.data ?? []).flat() as CustomerDto[];
+      if (!Array.isArray(records)) return [];
+      return records.map((customer) => ({
+        value: customer.customer_id,
+        label:
+          customer.legal_name?.trim() ||
+          customer.customer_code?.trim() ||
+          "Cliente",
+      }));
+    },
+    [customersQuery.data],
+  );
+
   const stocks: InventoryStockDto[] = useMemo(
     () => GetInventoryStocks.data?.data ?? [],
     [GetInventoryStocks.data],
@@ -81,7 +113,7 @@ export function FuelRequestForm({
     [GetMachineryCatalog.data],
   );
 
-  const [useMileage, setUseMileage] = useState(true);
+  const [useMileage, setUseMileage] = useState(false);
 
   const stockOptions = useMemo(
     () =>
@@ -118,6 +150,7 @@ export function FuelRequestForm({
       mileage: "",
       engine_hours: "",
       justification: "",
+      customer_id: "",
     },
   });
 
@@ -129,6 +162,7 @@ export function FuelRequestForm({
     if (!Number.isFinite(quantity) || quantity <= 0) return;
     if (!values.machinery_id.trim() || !values.product_stock_id.trim()) return;
     if (!values.justification.trim()) return;
+    if (isCorinto && !values.customer_id.trim()) return;
 
     const result = await onSubmit({
       machinery_id: values.machinery_id.trim(),
@@ -141,6 +175,7 @@ export function FuelRequestForm({
         ? (String(values.engine_hours ?? "").trim() ? Number(values.engine_hours) : undefined)
         : undefined,
       justification: values.justification.trim(),
+      customer_id: values.customer_id.trim() || undefined,
     });
 
     if (result !== false) reset();
@@ -200,9 +235,9 @@ export function FuelRequestForm({
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <InputText
-            label="Cantidad solicitada"
+            label="Cantidad a solicitar"
             type="number"
-            placeholder="Ej: 14.5"
+            placeholder="Ej: 14"
             className={inputClassName}
             labelClassName={labelClassName}
             {...register("requested_quantity", {
@@ -236,6 +271,7 @@ export function FuelRequestForm({
                       label="Kilometraje"
                       placeholder="Ej: 14182.5"
                       type="number"
+                      step="any"
                       className={inputClassName}
                       labelClassName={labelClassName}
                       suffix="km"
@@ -258,6 +294,7 @@ export function FuelRequestForm({
                     <InputText
                       label="Horas motor"
                       type="number"
+                      step="any"
                       placeholder="Ej: 1234.23"
                       className={inputClassName}
                       labelClassName={labelClassName}
@@ -275,6 +312,28 @@ export function FuelRequestForm({
             </LazyMotion>
           </div>
         </div>
+
+        {isCorinto ? (
+          <Controller
+            control={control}
+            name="customer_id"
+            rules={{ required: "Seleccione un cliente" }}
+            render={({ field: controllerField }) => (
+              <Dropdown
+                label="Cliente"
+                placeholder="Seleccione un cliente"
+                options={customerOptions}
+                value={controllerField.value}
+                onChange={controllerField.onChange}
+                error={errors.customer_id?.message}
+                appearance="dark"
+                labelClassName={labelClassName}
+                className={`${inputClassName} h-[42px]! sm:h-[46px]!`}
+                disabled={isSubmitting || customersQuery.isPending}
+              />
+            )}
+          />
+        ) : null}
 
         <Textarea
           label="Justificación"

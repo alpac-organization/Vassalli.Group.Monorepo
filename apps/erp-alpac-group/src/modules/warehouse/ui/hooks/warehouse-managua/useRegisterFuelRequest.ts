@@ -9,7 +9,7 @@ const fuelRequestsServices = new FuelRequestsServices(warehouseHttpHandler);
 export const useRegisterFuelRequest = () => {
   const queryClient = useQueryClient();
 
-  const RegisterFuelRequest = useMutation<void, ApiErrorResponse, RegisterFuelRequest>({
+  const RegisterFuelRequest = useMutation<string, ApiErrorResponse, RegisterFuelRequest>({
     mutationFn: (payload) => fuelRequestsServices.RegisterFuelRequest(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["fuel-requests"] });
