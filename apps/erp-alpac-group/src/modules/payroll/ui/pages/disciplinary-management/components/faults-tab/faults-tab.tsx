@@ -1,34 +1,41 @@
 import { Pagination } from "@alpac/design-system";
-import { useCallback, useMemo, useState } from "react";
-import { useFault } from "@app/modules/payroll/ui/hooks/fault/useFault";
-import { FaultsFilters } from "@app/modules/payroll/ui/pages/disciplinary-management/components/faults-filters/faults-filters";
-import { FaultsTable } from "@app/modules/payroll/ui/pages/disciplinary-management/components/faults-table/faults-table";
-import { FaultDetailsModal } from "@app/modules/payroll/ui/pages/disciplinary-management/components/fault-details-modal/fault-details-modal";
-import { RegisterFaultModal } from "@app/modules/payroll/ui/pages/disciplinary-management/components/register-fault-modal/register-fault-modal";
-import { RegisterSanctionModal } from "@app/modules/payroll/ui/pages/disciplinary-management/components/register-sanction-modal/register-sanction-modal";
-import { Loader } from "@app/shared/components/loaders/loader";
-import { useUserStore } from "@app/shared/stores/useUserStore";
-
+import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
+import type { CancelFaultRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/cancel-fault.request";
 import type { GetFaultsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/get-faults.request";
 import type { FaultDto } from "@app/modules/payroll/domain/ApiContract/Responses/disciplinary-responses/get-faults.response";
 import type { FaultSeverityEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-severity.enum";
 import type { FaultSourceEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-source.enum";
 import type { FaultStatusEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/fault-status.enum";
+import { useFault } from "@app/modules/payroll/ui/hooks/fault/useFault";
+import { FaultDetailsModal } from "@app/modules/payroll/ui/pages/disciplinary-management/components/fault-details-modal/fault-details-modal";
+import { FaultsFilters } from "@app/modules/payroll/ui/pages/disciplinary-management/components/faults-filters/faults-filters";
 import type { FaultsFilterFormValues } from "@app/modules/payroll/ui/pages/disciplinary-management/components/faults-filters/faults-filters.types";
+import { FaultsTable } from "@app/modules/payroll/ui/pages/disciplinary-management/components/faults-table/faults-table";
+import { RegisterFaultModal } from "@app/modules/payroll/ui/pages/disciplinary-management/components/register-fault-modal/register-fault-modal";
+import { RegisterSanctionModal } from "@app/modules/payroll/ui/pages/disciplinary-management/components/register-sanction-modal/register-sanction-modal";
+import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
+import type { ConfirmActionType } from "@app/shared/components/confirm-modal/confirm-modal.types";
+import { Loader } from "@app/shared/components/loaders/loader";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useCallback, useMemo, useState } from "react";
+import { cancelConfirmActionClass, cancelConfirmExitClass } from "../../utils/disciplinary-managment.variants";
+import type { FaultsTabProps } from "./faults-tab.types";
 
 const PAGE_SIZE = 5;
-
-type FaultsTabProps = {
-	canWrite?: boolean;
-};
 
 export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 
 	const { companyId, moduleCode } = useUserStore();
+	const { getMappedError } = useMappedError();
+	const { AlertComponent, handleRequestSuccess, handleRequestError } =
+		useAlertState();
 
 	const [pageNumber, setPageNumber] = useState(1);
 	const [appliedFilters, setAppliedFilters] = useState<FaultsFilterFormValues>({
 		code: "",
+		catalog_code: "",
 		severity: "all",
 		status: "all",
 		source: "all",
@@ -38,6 +45,14 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 	const [isDetailOpen, setIsDetailOpen] = useState(false);
 	const [isSanctionOpen, setIsSanctionOpen] = useState(false);
 	const [selectedFault, setSelectedFault] = useState<FaultDto | null>(null);
+	const [faultToCancel, setFaultToCancel] = useState<FaultDto | null>(null);
+	const [cancelConfirm, setCancelConfirm] = useState<{
+		isOpen: boolean;
+		type: ConfirmActionType;
+	}>({
+		isOpen: false,
+		type: "CANCEL",
+	});
 
 	const faultsFilters = useMemo<GetFaultsRequest>(
 		() => ({
@@ -46,6 +61,9 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 			page_number: pageNumber,
 			page_size: PAGE_SIZE,
 			...(appliedFilters.code.trim() && { code: appliedFilters.code.trim() }),
+			...(appliedFilters.catalog_code.trim() && {
+				catalog_code: appliedFilters.catalog_code.trim(),
+			}),
 			...(appliedFilters.severity !== "all" && {
 				severity: appliedFilters.severity as FaultSeverityEnumMap,
 			}),
@@ -59,7 +77,7 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 		[companyId, moduleCode, pageNumber, appliedFilters],
 	);
 
-	
+
 
 	const faultDetailFilters = useMemo(
 		() => ({
@@ -70,7 +88,7 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 		[companyId, moduleCode, selectedFault?.fault_id],
 	);
 
-	const { GetFaults, GetFaultDetails } = useFault({
+	const { GetFaults, GetFaultDetails, CancelFault } = useFault({
 		faultsFilters,
 		faultDetailFilters: isDetailOpen ? faultDetailFilters : undefined,
 	});
@@ -83,6 +101,7 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 	const handleClearFilters = useCallback(() => {
 		setAppliedFilters({
 			code: "",
+			catalog_code: "",
 			severity: "all",
 			status: "all",
 			source: "all",
@@ -97,7 +116,64 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 
 	const handlePageChange = useCallback((page: number) => {
 		setPageNumber(page);
-	}, []);	
+	}, []);
+
+	const openCancelConfirm = useCallback((row: FaultDto) => {
+		if (row.status !== "Open") {
+			handleRequestError(
+				"Solo se pueden anular faltas pendientes de sanción.",
+			);
+			return;
+		}
+
+		setFaultToCancel(row);
+		setCancelConfirm({ isOpen: true, type: "CANCEL" });
+	}, [handleRequestError]);
+
+	const closeCancelConfirm = useCallback(() => {
+		setCancelConfirm({ isOpen: false, type: "CANCEL" });
+		setFaultToCancel(null);
+	}, []);
+
+	const handleConfirmCancelFault = useCallback(
+		async (_type: ConfirmActionType, observation?: string) => {
+
+			const reason = observation?.trim() ?? "";
+
+			if (!faultToCancel?.fault_id || !reason) return;
+
+
+			const payload: CancelFaultRequest = {
+				company_id: companyId,
+				module_code: moduleCode,
+				fault_id: faultToCancel.fault_id,
+				cancellation_reason: reason
+			};
+
+			try {
+				await CancelFault.mutateAsync(payload);
+				closeCancelConfirm();
+				setIsDetailOpen(false);
+				setSelectedFault(null);
+				handleRequestSuccess("Falta anulada exitosamente");
+			} catch (error) {
+				closeCancelConfirm();
+				const mapped = getMappedError(error as ApiErrorResponse);
+				handleRequestError(
+					mapped.description ||
+					"No se pudo anular la falta. Intente de nuevo.",
+				);
+			}
+		}, [
+		CancelFault,
+		closeCancelConfirm,
+		companyId,
+		faultToCancel?.fault_id,
+		getMappedError,
+		handleRequestError,
+		handleRequestSuccess,
+		moduleCode,
+	]);
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -114,7 +190,9 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 
 			<FaultsTable
 				data={GetFaults.data?.data ?? []}
+				canWrite={canWrite}
 				onViewDetail={handleViewDetail}
+				onCancel={openCancelConfirm}
 				pagination={
 					<Pagination
 						currentPage={GetFaults.data?.page_number ?? pageNumber}
@@ -129,6 +207,8 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 			<RegisterFaultModal
 				isOpen={isRegisterOpen}
 				onClose={() => setIsRegisterOpen(false)}
+				onRequestError={handleRequestError}
+				onRequestSuccess={handleRequestSuccess}
 			/>
 
 			<FaultDetailsModal
@@ -142,8 +222,8 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 				isDetailLoading={GetFaultDetails.isLoading || GetFaultDetails.isFetching}
 				canWrite={canWrite}
 				onCancelFault={() => {
-					setIsDetailOpen(false);
-					setSelectedFault(null);
+					if (!selectedFault) return;
+					openCancelConfirm(selectedFault);
 				}}
 				onApplySanction={() => {
 					setIsDetailOpen(false);
@@ -158,7 +238,30 @@ export const FaultsTab = ({ canWrite = true }: FaultsTabProps) => {
 					setSelectedFault(null);
 				}}
 				faultSummary={selectedFault}
+				onRequestError={handleRequestError}
+				onRequestSuccess={handleRequestSuccess}
 			/>
+
+			<ConfirmModal
+				variant="warning"
+				title="¿Está seguro de anular esta falta disciplinaria?"
+				hasObservation
+				isObservationRequired
+				observationLabel="motivo de anulación"
+				buttonActionLabel="Anular falta"
+				buttonActionClass={cancelConfirmActionClass}
+				buttonCancelClass={cancelConfirmExitClass}
+				isOpen={cancelConfirm.isOpen}
+				onClose={closeCancelConfirm}
+				type={cancelConfirm.type}
+				isLoading={CancelFault.isPending}
+				disabled={CancelFault.isPending}
+				handleFinalAction={(type, observation) => {
+					void handleConfirmCancelFault(type, observation);
+				}}
+			/>
+
+			{AlertComponent}
 		</div>
 	);
 };

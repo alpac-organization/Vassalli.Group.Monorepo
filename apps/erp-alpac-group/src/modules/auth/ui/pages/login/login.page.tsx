@@ -24,12 +24,12 @@ function resolveGrupoVasalliCompanyId(
   const normalize = (s: string) =>
     s?.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").trim();
   const match = companies.find((c) => {
-    const alias = normalize(c.alias);
-    const name = normalize(c.company_name);
+    const alias = normalize(c.alias ?? "ALPAC");
+    const name = normalize(c.company_name ?? "ALPAC") ;
     const blob = `${alias} ${name}`;
     return blob.includes("vasalli") || blob.includes("vassalli");
   });
-  return match?.company_id ?? null;
+  return match?.company_id ?? null;  
 }
 
 export const LoginPage = function () {

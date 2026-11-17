@@ -11,10 +11,11 @@ import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disc
  * Endpoint: `GET .../sanctions/{sanction_id}`
  *
  * Extiende conceptualmente a {@link SanctionDto} con datos de la falta,
- * evidencias, emisor y vínculo a nómina (`payroll_id`) si hubo efectos.
+ * evidencias, proponente, aprobador RRHH (si aplica) y vínculo a nómina (`payroll_id`).
  *
  * @property {string} sanction_id - Identificador de la sanción.
- * @property {string} fault_id - Falta sancionada.
+ * @property {string} code - Código de instancia (ej. `SAN-ALP-2026-001`).
+ * @property {string} fault_id - Falta asociada.
  * @property {string} collaborator_id - Colaborador sancionado.
  * @property {string} collaborator_name - Nombre completo.
  * @property {string|null} identification_number - Cédula / identificación.
@@ -22,13 +23,17 @@ import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disc
  * @property {string} occurrence_date - Fecha de la falta (`YYYY-MM-DD`).
  * @property {FaultSeverityEnumMap} fault_severity - Severidad de la falta: `Minor` | `Serious` | `VerySerious`.
  * @property {SanctionTypeEnumMap} sanction_type - Tipo: `VerbalWarning` | `Memorandum` | `Suspension` | `CommitmentLetter` | `Termination`.
- * @property {SanctionStatusEnumMap} sanction_status - Estado: `Applied` | `Cancelled`.
- * @property {string} reason - Motivo.
+ * @property {SanctionStatusEnumMap} sanction_status - Estado: `Pending` | `Applied` | `Cancelled`.
+ * @property {string} reason - Motivo de la propuesta.
  * @property {string|null} suspension_start_date - Inicio de suspensión si aplica.
  * @property {string|null} suspension_end_date - Fin de suspensión si aplica.
  * @property {string|null} payroll_id - Nómina vinculada si hubo efectos; puede ser `null`.
- * @property {string} issued_by - Usuario que emitió la sanción (GUID).
- * @property {DisciplinaryUserResponse|null} issued_by_user - Detalle del emisor (si el API lo incluye).
+ * @property {string} issued_by - Usuario que registró/propuso la sanción (GUID).
+ * @property {DisciplinaryUserResponse|null} issued_by_user - Detalle del proponente (si el API lo incluye).
+ * @property {string|null} approved_by - Usuario RRHH que aplicó; `null` si aún `Pending` o cancelada sin aplicar.
+ * @property {DisciplinaryUserResponse|null} approved_by_user - Detalle del aprobador.
+ * @property {string|null} approved_at - Fecha/hora de aprobación (ISO 8601); `null` si no se aprobó.
+ * @property {string|null} cancellation_reason - Motivo si `Cancelled` (rechazo); `null` en otro caso.
  * @property {DisciplinaryEvidenceResponse[]} evidences - Evidencias con URL S3.
  * @property {string} created_at - Fecha/hora de creación (ISO 8601).
  *
@@ -36,6 +41,7 @@ import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disc
  * ```ts
  * const detail: SanctionDetailDto = {
  *   sanction_id: "...",
+ *   code: "SAN-ALP-2026-001",
  *   fault_id: "...",
  *   collaborator_id: "...",
  *   collaborator_name: "Juan Perez",
@@ -56,6 +62,15 @@ import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disc
  *     email: "maria.lopez@empresa.com",
  *     status: "Active",
  *   },
+ *   approved_by: "22222222-2222-2222-2222-222222222222",
+ *   approved_by_user: {
+ *     user_id: "...",
+ *     full_name: "Ana Ruiz",
+ *     email: "ana.ruiz@empresa.com",
+ *     status: "Active",
+ *   },
+ *   approved_at: "2026-10-17T09:30:00Z",
+ *   cancellation_reason: null,
  *   evidences: [],
  *   created_at: "2026-10-16T14:00:00Z",
  * };
@@ -63,6 +78,7 @@ import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disc
  */
 export interface SanctionDetailDto {
   sanction_id: string;
+  code: string;
   fault_id: string;
   collaborator_id: string;
   collaborator_name: string;
@@ -78,6 +94,10 @@ export interface SanctionDetailDto {
   payroll_id: string | null;
   issued_by: string;
   issued_by_user: DisciplinaryUserResponse | null;
+  approved_by: string | null;
+  approved_by_user: DisciplinaryUserResponse | null;
+  approved_at: string | null;
+  cancellation_reason: string | null;
   evidences: DisciplinaryEvidenceResponse[];
   created_at: string;
 }

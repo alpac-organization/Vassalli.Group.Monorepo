@@ -4,4 +4,6 @@ export type RegisterSanctionModalProps = {
   isOpen: boolean;
   onClose: () => void;
   faultSummary: FaultDto | null;
+  onRequestSuccess?: (message: string) => void;
+  onRequestError?: (message?: string) => void;
 };

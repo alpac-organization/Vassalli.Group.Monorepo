@@ -48,9 +48,9 @@ export class FaultServices implements IFaultService {
    }
 
    async cancelFault(payload: CancelFaultRequest): Promise<void> {
-      const { company_id, module_code, fault_id } = payload;
+      const { company_id, module_code, fault_id, cancellation_reason } = payload;
       const url = `/companies/${company_id}/modules/${module_code}/faults/${fault_id}`;
-      await this.httpHandler.delete<void>(url);
+      await this.httpHandler.delete<void>(url, { data: { cancellation_reason } });
    }
 
    async getSuggestedSanction(payload: GetSuggestedSanctionRequest): Promise<SuggestedSanctionDto> {
