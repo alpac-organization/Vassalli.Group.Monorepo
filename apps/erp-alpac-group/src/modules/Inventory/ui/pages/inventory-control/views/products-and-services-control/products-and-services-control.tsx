@@ -10,9 +10,10 @@ import { ProductsAndServicesSectionFilters } from "./views/products-and-services
 import { DeleteProductModal } from "../stock-control/components/delete-stock-modal/delete-product-modal";
 import { mapProductToDeleteProductData } from "../stock-control/components/delete-stock-modal/delete-product-modal.mapper";
 
+import { canDeleteProduct } from "./products-and-services-control.rules";
+
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types";
-import { canDeleteProduct } from "./products-and-services-control.rules";
 
 const PAGE_SIZE = 5;
 
@@ -36,13 +37,11 @@ export const ProductsAndServicesControl = function () {
 			company_id: companyId,
 			module_code: moduleCode,
 			product_usage_type: "Operational",
-			...(filters.category_product_id && { category_product_id: filters.category_product_id }),
-			...(filters.product_code?.trim() && { product_code: filters.product_code.trim() }),
-			...(filters.status && { status: filters.status }),
-			page_size: PAGE_SIZE,
+			...filters,
+			page_size:   PAGE_SIZE,
 			page_number: pageNumber,
 		},
-	});
+	});	
 
 	const { data: productsData, isPending, isFetching } = GetProducts;
 
@@ -52,7 +51,6 @@ export const ProductsAndServicesControl = function () {
 			setIsProductFormOpen(true);
 		},
 		(row) => {
-			// Protección extra: la opción ya se oculta en la tabla, pero se valida aquí también
 			if (!canDeleteProduct(row.product_status)) {
 				handleRequestError("Este producto no se puede dar de baja en su estado actual.");
 				return;

@@ -20,7 +20,6 @@ export const useCostCenters = (props: UseCostCenterProps) => {
       getCostCentersByBranchPayload
    } = props;
 
-
    const queryClient = useQueryClient();
 
    const GetCostCenters = useQuery({
@@ -63,9 +62,9 @@ export const useCostCenters = (props: UseCostCenterProps) => {
       ],
       queryFn: () =>
          costCenterServices.getCostCentersByCompany({
-         company_id: getCostCentersByBranchPayload?.company_id ?? "",
-         module_code: getCostCentersByBranchPayload?.module_code ?? "",
-         only_operational: getCostCentersByBranchPayload?.only_operational,
+            company_id: getCostCentersByBranchPayload?.company_id ?? "",
+            module_code: getCostCentersByBranchPayload?.module_code ?? "",
+            only_operational: getCostCentersByBranchPayload?.only_operational,
          }),
       staleTime: 1000 * 60 * 5,
       enabled: Boolean(getCostCentersByBranchPayload?.company_id && getCostCentersByBranchPayload?.module_code),
