@@ -1,4 +1,4 @@
-import { Badges, ContextMenu, type TableColumn }  from "@alpac/design-system"
+import { Badges, ContextMenu, type TableColumn } from "@alpac/design-system"
 
 import { ProductUsageType } from "@app/core/enums/product-usage-type.enum"
 import { ProductStatus } from "@app/core/enums/product-status.enum"
@@ -6,48 +6,54 @@ import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/u
 
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response"
 import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types"
+import { canDeleteProduct } from "./products-and-services-control.rules"
 
-export const GetProductColumnsToTable = function(onEditProduct?: (row: GetProductResponse) => void, onDeleteProduct?: (row: GetProductResponse) => void): TableColumn<GetProductResponse>[] {
+export const GetProductColumnsToTable = function (
+   onEditProduct?:   (row: GetProductResponse) => void,
+   onDeleteProduct?: (row: GetProductResponse) => void
+): TableColumn<GetProductResponse>[] {
    return [
-      { 
-         key: "product_code",       
+      {
+         key: "product_code",
          label: "Codigo",
-         render(item){
+         render(item) {
             return <span>{item.code}</span>
          }
       },
-      { 
-         key: "product_name",       
+      {
+         key: "product_name",
          label: "Producto"
       },
       {
-         key: "status",       
+         key: "status",
          label: "Estado",
-         render(item){
+         render(item) {
+            const status = ProductStatus[item.product_status ?? "Active"]
+
             return (
-               <Badges 
+               <Badges
                   color="info"
-                  className={ ProductStatus[item.product_status ?? "Active"].colorBadge }
-                  label={ ProductStatus[item.product_status ?? "Active"].label ?? "-"}
+                  className={status?.colorBadge}
+                  label={status?.label ?? "-"}
                />
             )
          }
       },
       {
-         key: "cost_center",       
+         key: "cost_center",
          label: "Centro de costo",
-         render(item){
+         render(item) {
             return (
                <span>{item.cost_center_information.cost_center_name}</span>
             )
          }
       },
       {
-         key: "category",       
+         key: "category",
          label: "Categoria",
          render(item) {
             return (
-               <Badges 
+               <Badges
                   color="info"
                   className="bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
                   label={item.category?.name ?? "-"}
@@ -56,14 +62,14 @@ export const GetProductColumnsToTable = function(onEditProduct?: (row: GetProduc
          },
       },
       {
-         key: "usage_type",       
+         key: "usage_type",
          label: "Tipo de uso",
-         render(item){
+         render(item) {
             return (
-               <Badges 
+               <Badges
                   color="info"
                   className="bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
-                  label={ ProductUsageType[item.usage_type ?? "Operational"].label ?? "-"}
+                  label={ProductUsageType[item.usage_type ?? "Operational"].label ?? "-"}
                />
             )
          }
@@ -71,13 +77,16 @@ export const GetProductColumnsToTable = function(onEditProduct?: (row: GetProduc
       {
          key: "options",
          label: "Opciones",
-         render(item){
+         render(item) {
             return (
                <ContextMenu
                   triggerClassName={contextMenuButton}
                   items={[
                      { label: "Editar Producto", onClick: () => onEditProduct?.(item) },
-                     ...(item.is_active ? [{ label: "Eliminar Producto", onClick: () => onDeleteProduct?.(item) }] : []),
+                     ...(canDeleteProduct(item.product_status)
+                        ? [{ label: "Eliminar Producto", onClick: () => onDeleteProduct?.(item) }]
+                        : []
+                     ),
                   ]}
                   openUpOnMobile
                />
@@ -87,8 +96,7 @@ export const GetProductColumnsToTable = function(onEditProduct?: (row: GetProduc
    ]
 }
 
-
 export const DEFAULT_PRODUCT_FILTERS: ProductsAndServicesFilters = {
-   product_code:       "",
-   category_product_id:"",
+   product_code:        "",
+   category_product_id: "",
 }

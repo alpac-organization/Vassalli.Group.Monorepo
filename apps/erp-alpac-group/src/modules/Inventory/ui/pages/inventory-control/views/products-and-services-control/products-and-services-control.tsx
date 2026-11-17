@@ -7,9 +7,12 @@ import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import { DEFAULT_PRODUCT_FILTERS, GetProductColumnsToTable } from "./products-and-services-control.variant";
 import { ProductsAndServicesSectionFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters";
+import { DeleteProductModal } from "../stock-control/components/delete-stock-modal/delete-product-modal";
+import { mapProductToDeleteProductData } from "../stock-control/components/delete-stock-modal/delete-product-modal.mapper";
 
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types";
+import { canDeleteProduct } from "./products-and-services-control.rules";
 
 const PAGE_SIZE = 5;
 
@@ -20,12 +23,14 @@ export const ProductsAndServicesControl = function () {
 	const [pageNumber, setPageNumber] = useState(1);
 	const [filters, setFilters] = useState<ProductsAndServicesFilters>(DEFAULT_PRODUCT_FILTERS);
 
-	const [productToEdit, setProductToEdit] 		= useState<GetProductResponse | null>(null);
-	const [_, setProductToDelete]		= useState<GetProductResponse | null>(null);
+	const [productToEdit, setProductToEdit] = useState<GetProductResponse | null>(null);
 	const [isProductFormOpen, setIsProductFormOpen] = useState(false);
 
+	const [productToDelete, setProductToDelete] = useState<GetProductResponse | null>(null);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
 	const { companyId, moduleCode } = useUserStore();
-	
+
 	const { GetProducts } = useProduct({
 		getProductPayload: {
 			company_id: companyId,
@@ -47,10 +52,18 @@ export const ProductsAndServicesControl = function () {
 			setIsProductFormOpen(true);
 		},
 		(row) => {
+			// Protección extra: la opción ya se oculta en la tabla, pero se valida aquí también
+			if (!canDeleteProduct(row.product_status)) {
+				handleRequestError("Este producto no se puede dar de baja en su estado actual.");
+				return;
+			}
+
 			setProductToDelete(row);
+			setIsDeleteModalOpen(true);
 		},
 	);
 
+	//#region Manejadores de filtros y paginación
 	const handleApplyFilters = (newFilters: ProductsAndServicesFilters) => {
 		setFilters(newFilters);
 		setPageNumber(1);
@@ -64,10 +77,30 @@ export const ProductsAndServicesControl = function () {
 	const handlePageChange = useCallback((page: number) => {
 		setPageNumber(page);
 	}, []);
+	//#endregion
 
+	//#region Cerrado de modales
 	const handleCloseProductForm = () => {
 		setIsProductFormOpen(false);
 		setProductToEdit(null);
+	};
+
+	const handleCloseDeleteModal = () => {
+		setIsDeleteModalOpen(false);
+		setProductToDelete(null);
+	};
+	//#endregion
+
+	const handleDeleteSuccess = (message: string) => {
+		handleRequestSuccess(message);
+
+		const isLastRowOfPage = (productsData?.data.length ?? 0) <= 1;
+
+		if (isLastRowOfPage && pageNumber > 1) {
+			setPageNumber(pageNumber - 1);
+		} else {
+			GetProducts.refetch();
+		}
 	};
 
 	return (
@@ -100,6 +133,7 @@ export const ProductsAndServicesControl = function () {
 				}
 			/>
 
+			{/* Modales */}
 			<CreateProductModal
 				typeProductToRegister="Operational"
 				isOpen={isProductFormOpen}
@@ -108,7 +142,19 @@ export const ProductsAndServicesControl = function () {
 				onRequestSuccess={handleRequestSuccess}
 				selectedProduct={productToEdit}
 			/>
-			
+
+			{
+				isDeleteModalOpen && (
+					<DeleteProductModal
+						data={productToDelete ? mapProductToDeleteProductData(productToDelete) : null}
+						isOpen={isDeleteModalOpen}
+						onClose={handleCloseDeleteModal}
+						handleRequestError={handleRequestError}
+						handleRequestSuccess={handleDeleteSuccess}
+					/>
+				)
+			}
+
 			{ AlertComponent }
 		</div>
 	);

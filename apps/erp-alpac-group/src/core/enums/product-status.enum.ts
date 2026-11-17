@@ -1,6 +1,6 @@
 import type { EnumType } from "@app/shared/types/enum.type";
 
-export type ProductStatus = "Active" | "Inactive";
+export type ProductStatus = "Active" | "Inactive" | "LowProcess";
 
 export interface ProductStatusValues {
 	value: 		 number;
@@ -21,6 +21,12 @@ export const ProductStatus: Record<ProductStatus, ProductStatusValues> = {
 		label: 		 "Inactivo",
 		stringValue: "Inactive",
 		colorBadge:  "bg-red-100 text-red-800 border border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800"
+	},
+	LowProcess: {
+		value:       3,
+		label:       "En proceso de baja",
+		stringValue: "LowProcess",
+		colorBadge:  "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800"
 	},
 } as const;
 
