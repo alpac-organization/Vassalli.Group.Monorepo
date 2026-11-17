@@ -11,7 +11,7 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
-import { useWarehouseAssignment } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAssignment";
+import { useEquipment } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useEquipment";
 import { useFuelRequests } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useFuelRequests";
 import { useFuelRequestDetail } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useFuelRequestDetail";
 import { useSupplyRequestDecision } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useSupplyRequestDecision";
@@ -57,7 +57,8 @@ export const CombustibleRequests = function () {
   const { RegisterFuelRequest } = useRegisterFuelRequest();
 
   const handleSubmitFuelRequest = async (data: {
-    machinery_id: string;
+    equipment_id: string;
+    warehouse_id?: string;
     product_stock_id: string;
     requested_quantity: number;
     mileage?: number;
@@ -71,7 +72,8 @@ export const CombustibleRequests = function () {
       company_id: companyId,
       module_code: moduleCode,
       justification: data.justification,
-      machinery_id: data.machinery_id,
+      equipment_id: data.equipment_id,
+      warehouse_id: data.warehouse_id,
       product_stock_id: data.product_stock_id,
       requested_quantity: data.requested_quantity,
       mileage: data.mileage,
@@ -187,19 +189,22 @@ export const CombustibleRequests = function () {
     }
   };
 
-  const { GetMachineryCatalog } = useWarehouseAssignment({
-    payloadMachineryCatalog: { company_id: companyId, module_code: moduleCode },
-  });
+  const equipmentPayload = useMemo(
+    () => ({ company_id: companyId ?? "", module_code: moduleCode ?? "", page_size: 100, page_number: 1 }),
+    [companyId, moduleCode],
+  );
 
-  const machineryOptions = useMemo(
+  const { GetEquipments } = useEquipment(equipmentPayload);
+
+  const equipmentOptions = useMemo(
     () =>
-      (GetMachineryCatalog.data?.data ?? []).map((machinery) => ({
-        value: machinery.machinery_id,
-        label: [machinery.code, machinery.brand, machinery.model]
+      (GetEquipments.data?.data ?? []).map((equipment) => ({
+        value: equipment.equipment_id,
+        label: [equipment.equipment_code, equipment.equipment_brand, equipment.equipment_model]
           .filter(Boolean)
-          .join(" - ") || machinery.machinery_id,
+          .join(" - ") || equipment.equipment_id,
       })),
-    [GetMachineryCatalog.data],
+    [GetEquipments.data],
   );
 
   const payloadGetFuelRequestsRequest = useMemo(
@@ -238,11 +243,11 @@ export const CombustibleRequests = function () {
         render: (item: FuelRequestDto) => <span>{item.fuel_request_code}</span>,
       },
       {
-        key: "machinery_code",
-        label: "Maquinaria",
+        key: "equipment_code",
+        label: "Activo Fijo",
         render: (item: FuelRequestDto) => (
           <span>
-            {[item.machinery_code, item.machinery_brand, item.machinery_model]
+            {[item.equipment_code, item.equipment_brand, item.equipment_model]
               .filter(Boolean)
               .join(" - ") || "—"}
           </span>
@@ -345,8 +350,8 @@ export const CombustibleRequests = function () {
 
       <FuelRequestsSectionFilters
         filters={filters}
-        machineryOptions={machineryOptions}
-        isMachineryLoading={GetMachineryCatalog.isPending || GetMachineryCatalog.isFetching}
+        machineryOptions={equipmentOptions}
+        isMachineryLoading={GetEquipments.isPending || GetEquipments.isFetching}
         onApply={handleApplyFilters}
         onClear={handleClearFilters}
       />
@@ -426,26 +431,55 @@ export const CombustibleRequests = function () {
               </h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <ModalInfoField
-                  label="MAQUINARIA"
+                  label="ACTIVO FIJO"
                   value={
                     [
-                      detailData.machinery_code,
-                      detailData.machinery_brand,
-                      detailData.machinery_model,
+                      detailData.equipment_code,
+                      detailData.equipment_brand,
+                      detailData.equipment_model,
                     ]
                       .filter(Boolean)
                       .join(" - ") || "—"
                   }
                 />
-                {detailData.mileage != null ? (
+                {detailData.warehouse_information ? (
+                  <ModalInfoField
+                    label="ALMACÉN"
+                    value={detailData.warehouse_information.code ?? detailData.warehouse_information.warehouse_id ?? "—"}
+                  />
+                ) : null}
+                {detailData.mileage != null || detailData.previous_mileage != null ? (
                   <ModalInfoField
                     label="KILOMETRAJE"
-                    value={detailData.mileage}
+                    value={
+                      <div className="flex flex-col gap-1">
+                        <div>
+                          <span className="text-xs text-slate-400">Anterior: </span>
+                          {detailData.previous_mileage != null ? `${detailData.previous_mileage} km` : "—"}
+                        </div>
+                        <div>
+                          <span className="text-xs text-slate-400">Actual: </span>
+                          {detailData.mileage != null ? `${detailData.mileage} km` : "—"}
+                        </div>
+                      </div>
+                    }
                   />
-                ) : detailData.engine_hours != null ? (
+                ) : null}
+                {detailData.engine_hours != null || detailData.previous_engine_hours != null ? (
                   <ModalInfoField
                     label="HORAS MOTOR"
-                    value={detailData.engine_hours}
+                    value={
+                      <div className="flex flex-col gap-1">
+                        <div>
+                          <span className="text-xs text-slate-400">Anterior: </span>
+                          {detailData.previous_engine_hours != null ? `${detailData.previous_engine_hours} hrs` : "—"}
+                        </div>
+                        <div>
+                          <span className="text-xs text-slate-400">Actual: </span>
+                          {detailData.engine_hours != null ? `${detailData.engine_hours} hrs` : "—"}
+                        </div>
+                      </div>
+                    }
                   />
                 ) : null}
                 <ModalInfoField

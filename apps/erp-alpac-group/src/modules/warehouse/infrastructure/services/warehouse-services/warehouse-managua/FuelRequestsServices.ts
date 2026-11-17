@@ -37,7 +37,8 @@ export class FuelRequestsServices implements IFuelRequestsServices {
 
     const requestBody = cleanParams({
       justification: body.justification,
-      machinery_id: body.machinery_id,
+      equipment_id: body.equipment_id,
+      warehouse_id: body.warehouse_id,
       product_stock_id: body.product_stock_id,
       requested_quantity: body.requested_quantity,
       mileage: body.mileage,

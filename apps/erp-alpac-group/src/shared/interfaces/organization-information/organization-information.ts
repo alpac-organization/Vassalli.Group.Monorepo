@@ -52,6 +52,19 @@ export interface MachineryInformation {
    machinery_model?: string | null;
 }
 
+export interface EquipmentInformation {
+   brand: string;
+   code: string;
+   model: string;
+   serial_number: string;
+   status: string;
+   type: string;
+   gasoline: boolean;
+   diesel: boolean;
+   electric: boolean;
+   lpg: boolean;
+}
+
 export interface CustomerInformation {
    customer_id: string;
    cif: string | null;

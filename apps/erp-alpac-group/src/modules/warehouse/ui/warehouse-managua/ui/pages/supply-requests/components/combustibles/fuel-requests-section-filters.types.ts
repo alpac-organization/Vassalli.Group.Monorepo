@@ -7,7 +7,7 @@ export interface BranchOption {
 
 export interface FuelRequestsFilters {
   code?: string;
-  machinery_id?: string;
+  equipment_id?: string;
   status?: OutflowStatus;
 
   page_number?: number;
