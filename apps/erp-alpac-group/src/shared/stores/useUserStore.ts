@@ -15,6 +15,7 @@ interface UserState {
   moduleBasePath: string;
   areaId: string;
   branchId: string;
+  branchCode: string;
   costCenterId: string;
   costCenterName: string;
   costCenterCode: string;
@@ -34,6 +35,7 @@ const initialUserState: UserState = {
   moduleBasePath: '',
   areaId: '',
   branchId: '',
+  branchCode: '',
   costCenterId: '',
   costCenterName: '',
   costCenterCode: '',

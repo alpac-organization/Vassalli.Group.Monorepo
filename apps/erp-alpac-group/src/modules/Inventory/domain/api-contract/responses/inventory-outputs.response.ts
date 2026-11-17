@@ -74,6 +74,15 @@ export interface InventoryOutputFuelRequestDetail {
   product_stock_id?: string | null;
   product_stock_name?: string | null;
   requested_quantity?: number | null;
+  unit_measure_symbol?: string | null;
+  requested_quantity_litters?: number | null;
+  customer_information?: {
+    customer_id?: string | null;
+    cif?: string | null;
+    legal_name?: string | null;
+    identification_number?: string | null;
+    identification_type?: string | null;
+  } | null;
   mileage?: number | null;
   engine_hours?: number | null;
   approved_by_user_chief_name?: string | null;

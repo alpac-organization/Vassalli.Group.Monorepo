@@ -28,7 +28,6 @@ import {
 } from "@app/shared/utils/collaborator.utils";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { ManagerForm } from "./components/application-forms/manager-form/manager-form";
-// import { Plus } from "lucide-react";
 
 import type { ApplicationRequest } from "@app/modules/applications/domain/ApiContract/Requests/application.request";
 import type { GetApplicationsResponse } from "@app/modules/applications/domain/ApiContract/Responses/get-application.response";
@@ -37,7 +36,6 @@ import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
 
-//import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
 
 export const ApplicationsPage = function () {
   const maxPageSize = 5;
@@ -87,7 +85,6 @@ export const ApplicationsPage = function () {
   const isAdministrator = role === RoleEnum.ADMINISTRATOR;
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
   const isListEnabled: boolean = isAdministrator;
-  //   const isDetailEnabled: boolean = isManager && !!filters.collaborator_code;
   const isDetailEnabled: boolean = isManager && !!filters.identification_number;
 
   const { GetApplicationsQuery, GetApplicationDetailQuery } = useApplications(
@@ -147,7 +144,6 @@ export const ApplicationsPage = function () {
       applicationsData.length === 0 &&
       isSuccess &&
       isManager &&
-      // !!filters.collaborator_code
       !!filters.identification_number
     ) {
       setShowAlert({
@@ -182,25 +178,6 @@ export const ApplicationsPage = function () {
     });
   }, [reset]);
 
-  /*    const handleRequestError = useCallback((description: string) => {
-         setShowAlert({
-            show: true,
-            type: "error",
-            title: "Error",
-            message: description,
-         });
-         handleCloseAlert();
-      }, []);
-   
-      const handleRequestSuccess = useCallback(() => {
-         setShowAlert({
-            show: true,
-            type: "success",
-            title: "Éxito",
-            message: "Solicitud creada exitosamente",
-         });
-         handleCloseAlert();
-      }, []); */
 
   const handlePageChange = useCallback((page: number) => {
     setFilters((prev) => ({ ...prev, page_number: page }));
@@ -374,13 +351,6 @@ export const ApplicationsPage = function () {
           </div>
         </form>
 
-        {/*<NewPermissionRequestModal
-               payrollId={"Aquí se debe pasar el id de la nómina"}
-               isOpen={isNewPermissionRequestModalOpen}
-               onClose={() => setIsNewPermissionRequestModalOpen(false)}
-               onRequestError={handleRequestError}
-               onRequestSuccess={handleRequestSuccess}
-            />*/}
 
         {isManager && applicationsData.length === 0 && !isLoading && (
           <div>
@@ -439,20 +409,6 @@ export const ApplicationsPage = function () {
         )}
       </m.div>
 
-      {/* {
-            isManager && (
-               <Button
-                  type="button"
-                  size="small"
-                  icon={<Plus size={18} />}
-                  label=""
-                  ariaLabel="Agregar Solicitud"
-                  tooltip="Agregar Solicitud"
-                  className="fixed! bottom-12! right-6! z-40! isolate! min-h-14! min-w-14! rounded-full! bg-alpac-primary-500! dark:bg-white! text-black! active:scale-100! md:hover:brightness-110! md:hover:shadow-2xl! md:hover:-translate-y-0.5! focus-visible:outline-none! focus-visible:ring-2! focus-visible:ring-alpac-primary-400! focus-visible:ring-offset-2! dark:focus-visible:ring-offset-[#0f172a]!"
-                  onClick={() => setIsNewPermissionRequestModalOpen(true)}
-               />
-            )
-         } */}
     </LazyMotion>
   );
 };

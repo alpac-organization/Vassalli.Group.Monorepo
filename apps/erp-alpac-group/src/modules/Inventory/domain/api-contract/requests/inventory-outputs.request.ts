@@ -16,3 +16,16 @@ export interface InventoryOutputsRequest extends BaseRequest {
 export interface GetInventoryOutputDetailRequest extends BaseRequest {
   inventory_output_id: string;
 }
+
+export interface StartInventoryOutputRequest extends BaseRequest {
+  inventory_output_id: string;
+}
+
+export interface ConfirmInventoryOutputRequest extends BaseRequest {
+  inventory_output_id: string;
+}
+
+export interface RejectInventoryOutputRequest extends BaseRequest {
+  inventory_output_id: string;
+  dispatched_justification?: string;
+}

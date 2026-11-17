@@ -39,13 +39,13 @@ export type CatalogLinkEditorProps = {
   options: CatalogLinkOption[];
   unitMeasureOptions?: CatalogLinkOption[];
   items: CatalogLinkItemForm[];
-  onChange: (items: CatalogLinkItemForm[]) => void;
   isLoadingOptions?: boolean;
   isLoadingUnitMeasures?: boolean;
   disabled?: boolean;
   lockEntity?: boolean;
-  canRemove?: boolean;
+  canRemove?: boolean;  
   onAddClick?: () => void;
+  onChange: (items: CatalogLinkItemForm[]) => void;
 };
 
 export const emptyCatalogLinkTier = (

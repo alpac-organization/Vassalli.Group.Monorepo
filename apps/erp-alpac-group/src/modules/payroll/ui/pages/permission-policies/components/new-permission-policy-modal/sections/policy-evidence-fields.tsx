@@ -17,6 +17,7 @@ export function PolicyEvidenceFields() {
     register,
     setValue,
     getValues,
+    clearErrors,
     trigger,
     formState: { errors },
   } = useFormContext<PermissionPolicyFormValues>();
@@ -24,6 +25,26 @@ export function PolicyEvidenceFields() {
   const requiresEvidence = useWatch({
     control,
     name: "requires_evidence",
+  });
+
+  const minEvidenceField = register("min_evidence_count", {
+    validate: (value) => {
+      if (!getValues("requires_evidence")) return true;
+      if (value === "" || value == null) {
+        return "Ingrese la evidencia mínima";
+      }
+      return validateRequiredPositiveInteger(value);
+    },
+    onChange: () => {
+      void trigger("max_evidence_count");
+    },
+  });
+
+  const maxEvidenceField = register("max_evidence_count", {
+    validate: (value) => {
+      if (!getValues("requires_evidence")) return true;
+      return validateMaxEvidenceCount(value, getValues("min_evidence_count"));
+    },
   });
 
   return (
@@ -40,11 +61,25 @@ export function PolicyEvidenceFields() {
               const checked = event.target.checked;
               field.onChange(checked);
               if (!checked) {
-                setValue("min_evidence_count", "0", { shouldValidate: true });
-                setValue("max_evidence_count", "0", { shouldValidate: true });
+                setValue("min_evidence_count", "0", {
+                  shouldDirty: true,
+                  shouldValidate: false,
+                });
+                setValue("max_evidence_count", "", {
+                  shouldDirty: true,
+                  shouldValidate: false,
+                });
+                clearErrors(["min_evidence_count", "max_evidence_count"]);
+                void trigger(["min_evidence_count", "max_evidence_count"]);
               } else {
-                setValue("min_evidence_count", "1", { shouldValidate: true });
-                setValue("max_evidence_count", "", { shouldValidate: true });
+                setValue("min_evidence_count", "1", {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
+                setValue("max_evidence_count", "", {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                });
               }
             }}
           />
@@ -69,13 +104,7 @@ export function PolicyEvidenceFields() {
                 labelClassName={labelClassName}
                 errorVariant="tooltip"
                 error={errors.min_evidence_count?.message}
-                {...register("min_evidence_count", {
-                  required: "Ingrese la evidencia mínima",
-                  validate: validateRequiredPositiveInteger,
-                  onChange: () => {
-                    void trigger("max_evidence_count");
-                  },
-                })}
+                {...minEvidenceField}
               />
 
               <InputText
@@ -85,13 +114,7 @@ export function PolicyEvidenceFields() {
                 labelClassName={labelClassName}
                 errorVariant="tooltip"
                 error={errors.max_evidence_count?.message}
-                {...register("max_evidence_count", {
-                  validate: (value) =>
-                    validateMaxEvidenceCount(
-                      value,
-                      getValues("min_evidence_count"),
-                    ),
-                })}
+                {...maxEvidenceField}
               />
             </div>
           </m.div>

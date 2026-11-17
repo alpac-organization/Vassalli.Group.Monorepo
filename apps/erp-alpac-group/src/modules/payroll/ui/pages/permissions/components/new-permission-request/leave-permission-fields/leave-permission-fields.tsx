@@ -9,12 +9,14 @@ import {
   Textarea,
   type DatePickerValue,
 } from "@alpac/design-system";
-import { MedicalAppointmentImageUploader } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/medical-appointment-image-uploader/medical-appointment-image-uploader";
 import { findMatchingLeavePolicy } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/utils/find-matching-leave-policy";
+import { ImageUploader } from "@app/shared/components/image-uploader/image-uploader";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import type { PermissionRequestFormValues } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/permission-form.types";
 import type { CatalogItem } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/get-permission-forms";
 import type { GetPermissionPoliciesResponse } from "@app/modules/payroll/domain/ApiContract/Responses/permission-responses/get-permission-policies";
+
+const EVIDENCE_MAX_SIZE_MB = 3;
 
 const inputClassName =
   "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -136,8 +138,15 @@ export function LeavePermissionFields({
   );
 
   const minEvidence = matchedPolicy?.min_evidence_count ?? 0;
-  const maxEvidence = matchedPolicy?.max_evidence_count ?? 0;
-  const showEvidenceUploader = Boolean(matchedPolicy) && maxEvidence > 0;
+  const maxEvidenceRaw = matchedPolicy?.max_evidence_count ?? null;
+  const showEvidenceUploader =
+    Boolean(matchedPolicy) &&
+    (minEvidence > 0 ||
+      (maxEvidenceRaw != null && maxEvidenceRaw > 0));
+  const maxEvidenceForUi =
+    maxEvidenceRaw != null && maxEvidenceRaw > 0
+      ? maxEvidenceRaw
+      : minEvidence;
   const showPolicyMissing =
     Boolean(permitApplicationType) &&
     Boolean(beneficiaryScope) &&
@@ -401,18 +410,21 @@ export function LeavePermissionFields({
                     if (minEvidence > 0 && count < minEvidence) {
                       return `Debe adjuntar al menos ${minEvidence} evidencia(s).`;
                     }
-                    if (count > maxEvidence) {
-                      return `No puede adjuntar más de ${maxEvidence} evidencia(s).`;
+                    if (maxEvidenceForUi > 0 && count > maxEvidenceForUi) {
+                      return `No puede adjuntar más de ${maxEvidenceForUi} evidencia(s).`;
                     }
                     return true;
                   },
                 }}
                 render={({ field }) => (
-                  <MedicalAppointmentImageUploader
+                  <ImageUploader
                     value={field.value ?? []}
                     onChange={field.onChange}
-                    minFiles={minEvidence}
-                    maxFiles={maxEvidence}
+                    label="Evidencias"
+                    minFiles={minEvidence > 0 ? minEvidence : undefined}
+                    maxFiles={maxEvidenceForUi > 0 ? maxEvidenceForUi : undefined}
+                    maxSizeMB={EVIDENCE_MAX_SIZE_MB}
+                    isRequired={minEvidence > 0}
                     error={errors.medical_images?.message as string}
                   />
                 )}

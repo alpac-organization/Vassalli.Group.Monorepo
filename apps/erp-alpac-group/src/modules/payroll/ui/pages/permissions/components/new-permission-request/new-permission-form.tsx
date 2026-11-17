@@ -24,30 +24,28 @@ import {
    validateTime,
    formatNumberWithDecimals,
 } from "@app/shared/utils/string.utils";
-import { generatePermissionPayload } from "./utils/generatePermissionPayload";
+import { generatePermissionPayload } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/utils/generatePermissionPayload";
 import {
    validateDecimalNumber,
    validateIntegerNumber,
    validatePositiveNumber,
 } from "@app/shared/utils/number.utils";
-import { validateMaximumDonatedVacation } from "./utils/validateMaximumDonatedVacation";
-import { CollaboratorSearchForm } from "../collaborator-search-form/collaborator-search-form";
+import { validateMaximumDonatedVacation } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/utils/validateMaximumDonatedVacation";
+import { CollaboratorSearchForm } from "@app/modules/payroll/ui/pages/permissions/components/collaborator-search-form/collaborator-search-form";
 import { CollaboratorSummary } from "./collaborator-summary";
-import { MedicalAppointmentImageUploader } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/medical-appointment-image-uploader/medical-appointment-image-uploader";
 import { LeavePermissionFields } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/leave-permission-fields/leave-permission-fields";
 import { findMatchingLeavePolicy } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/utils/find-matching-leave-policy";
+import { ImageUploader } from "@app/shared/components/image-uploader/image-uploader";
 
 import type { PermissionRequestFormValues } from "./types/permission-form.types";
 import type { NewPermissionRequestFormProps } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/new-permissionFormProps";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
-import { VACATION_PAY_OPTIONS } from "../../constants/vacation-pay.filters.constants";
+import { VACATION_PAY_OPTIONS } from "@app/modules/payroll/ui/pages/permissions/constants/vacation-pay.filters.constants";
 import {
   isLeavePermissionType,
   type PermissionType,
 } from "./types/permission.types";
-import type { ApplicationType } from "./types/application.types";
-// import { RoleEnum } from "@app/core/enums/role.enum";
-// import { useUserStore } from "@app/shared/stores/useUserStore";
+import type { ApplicationType } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/types/application.types";
 
 const inputClassName =
    "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -151,10 +149,6 @@ export function NewPermissionRequestForm({
       exit: { opacity: 0, y: 8, height: 0, overflow: "hidden" },
    };
 
-   // const { role } = useUserStore();
-
-   // const endOfYear = dayjs().endOf('year');
-   // const isOperator = role === RoleEnum.OPERATOR;
 
    const {
       register,
@@ -581,8 +575,6 @@ export function NewPermissionRequestForm({
                                                 label={`${applicationType.MedicalAppointment ? "Fecha de cita" : "Fecha inicio"}`}
                                                 className="w-full"
                                                 value={field.value}
-                                                //minDate={isOperator ? dayjs() : null}
-                                                //maxDate={endOfYear}
                                                 labelAbove
                                                 isRequired
                                                 shouldDisableDate={(date) =>
@@ -673,8 +665,6 @@ export function NewPermissionRequestForm({
                                              referenceDate={
                                                 startDate ? dayjs(startDate) : undefined
                                              }
-                                             //minDate={startDate ? dayjs(startDate) : undefined}
-                                             //maxDate={endOfYear}
                                              shouldDisableDate={(date) =>
                                                 !!startDate &&
                                                 date.day() === 0 &&
@@ -926,9 +916,14 @@ export function NewPermissionRequestForm({
                                     "Debe adjuntar al menos 1 comprobante médico.",
                               }}
                               render={({ field }) => (
-                                 <MedicalAppointmentImageUploader
+                                 <ImageUploader
                                     value={field.value ?? []}
                                     onChange={field.onChange}
+                                    label="Comprobantes médicos"
+                                    minFiles={1}
+                                    maxFiles={3}
+                                    maxSizeMB={3}
+                                    isRequired
                                     error={errors.medical_images?.message as string}
                                  />
                               )}

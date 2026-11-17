@@ -1,6 +1,10 @@
 import { Loader } from "@app/shared/components/loaders/loader";
 import { ModalInfoField } from "@app/shared/components/modal-info-field/modal-info-field";
-import { Badges, Modal } from "@alpac/design-system";
+import { Badges, Button, Modal } from "@alpac/design-system";
+import { pdf } from "@react-pdf/renderer";
+import { FileText } from "lucide-react";
+import { InventoryOutputPDF } from "./reports/inventory-output-pdf/inventory-output-pdf";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 
 import { InventoryOutputsStatus } from "@app/core/enums/inventory-output-status.enum";
 import { ReasonUse as ReasonUseValues } from "@app/core/enums/reason-use.enum";
@@ -26,6 +30,7 @@ import type {
   InventoryOutputSupplyRequestDetail,
   InventoryOutputFuelRequestDetail,
 } from "@app/modules/Inventory/domain/api-contract/responses/inventory-outputs.response";
+import { useState } from "react";
 import type { SalidasDetailModalProps } from "./salidas-detail-modal.types";
 
 const labelForStatus = (status?: string | null) => {
@@ -141,6 +146,12 @@ const FuelRequestBlock = function ({
   detail?: InventoryOutputFuelRequestDetail | null;
   selectedOutput?: InventoryOutputDto | null;
 }) {
+  const { branchCode } = useUserStore();
+  const CORINTO_BRANCH_CODES = ["ALP-CTO"];
+  const isCorinto = CORINTO_BRANCH_CODES.some((code) =>
+    (branchCode ?? "").toUpperCase().includes(code),
+  );
+
   if (!detail) {
     return (
       <span className="text-sm text-slate-500 dark:text-slate-400">
@@ -180,12 +191,38 @@ const FuelRequestBlock = function ({
           label="SOLICITANTE"
           value={detail.requested_by_user_name ?? "—"}
         />
+        {isCorinto ? (
+          <ModalInfoField
+            label="CLIENTE"
+            value={detail.customer_information?.legal_name ?? "—"}
+          />
+        ) : null}
         <ModalInfoField
           label="MÁQUINA/VEHÍCULO"
           value={
             [detail.machinery_code, detail.machinery_brand, detail.machinery_model]
               .filter(Boolean)
               .join(" / ") || "—"
+          }
+        />
+        <ModalInfoField
+          label="CANTIDAD SOLICITADA"
+          value={
+            <>
+              {Number(detail.requested_quantity ?? 0).toLocaleString("es-NI", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}{" "}
+              {detail.unit_measure_symbol ?? ""}
+              <div className="text-xs text-slate-400">
+                (
+                {Number(detail.requested_quantity_litters ?? 0).toLocaleString("es-NI", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}{" "}
+                L)
+              </div>
+            </>
           }
         />
         {detail.engine_hours != null ? (
@@ -239,7 +276,37 @@ const FuelRequestBlock = function ({
 };
 
 export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
-  const { isOpen, onClose, isLoading, detailData, selectedOutput, requestType } = props;
+  const {
+    isOpen,
+    onClose,
+    isLoading,
+    detailData,
+    selectedOutput,
+    requestType,
+    onStartDispatch,
+    onConfirmDispatch,
+    onRejectDispatch,
+    isStartingDispatch,
+    isConfirmingDispatch,
+    isRejectingDispatch,
+  } = props;
+
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  const handleGeneratePdf = async () => {
+    try {
+      setIsGeneratingPdf(true);
+      const blob = await pdf(
+        <InventoryOutputPDF data={{ detailData, selectedOutput }} />,
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Error generating inventory output PDF", error);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   const stocks = detailData?.inventory_stock_informations ?? [];
 
@@ -326,6 +393,17 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
                   "—"
                 }
               />
+              {selectedOutput?.status === "Dispatched" ? (
+                <button
+                  type="button"
+                  onClick={() => void handleGeneratePdf()}
+                  disabled={isGeneratingPdf}
+                  className="inline-flex items-center justify-center rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                  title="Generar imprimible PDF"
+                >
+                  <FileText size={18} />
+                </button>
+              ) : null}
             </div>
             <Badges
               color="info"
@@ -358,25 +436,6 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
                 )}
               </div>
 
-              {hasDispatchData ? (
-                <div className="flex flex-col gap-2 border-t border-slate-600 pt-4 dark:border-neutral-600">
-                  <h3 className="text-sm font-semibold text-slate-200">Despacho</h3>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <ModalInfoField
-                      label="DESPACHADO POR"
-                      value={detailData?.dispatched_by_user_name ?? "—"}
-                    />
-                    <ModalInfoField
-                      label="FECHA DE DESPACHO"
-                      value={
-                        detailData?.dispatched_at
-                          ? new Date(detailData.dispatched_at).toLocaleDateString()
-                          : "—"
-                      }
-                    />
-                  </div>
-                </div>
-              ) : null}
             </div>
 
             <div className="flex flex-col gap-4 lg:pl-4">
@@ -404,9 +463,11 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
                         <th className="px-3 py-2 text-right font-semibold text-gray-500 dark:text-gray-300">
                           Cantidad solicitada
                         </th>
-                        <th className="px-3 py-2 text-right font-semibold text-gray-500 dark:text-gray-300">
-                          Stock disponible
-                        </th>
+                        {selectedOutput?.status === "OutputPending" ? (
+                           <th className="px-3 py-2 text-right font-semibold text-gray-500 dark:text-gray-300">
+                             Stock disponible
+                           </th>
+                         ) : null}
                       </tr>
                     </thead>
                     <tbody>
@@ -419,17 +480,67 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
                           <td className="px-3 py-2 text-right font-medium">
                             {row.solicitada ?? "—"}
                           </td>
+                          {selectedOutput?.status === "OutputPending" ? (
                           <td className="px-3 py-2 text-right font-medium">
                             {row.disponible ?? "—"}
                           </td>
+                        ) : null}
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 )}
               </div>
+
+              {hasDispatchData ? (
+                <div className="flex flex-col gap-2 border-t border-slate-600 pt-4 dark:border-neutral-600">
+                  <h3 className="text-sm font-semibold text-slate-200">Despacho</h3>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <ModalInfoField
+                      label="DESPACHADO POR"
+                      value={detailData?.dispatched_by_user_name ?? "—"}
+                    />
+                    <ModalInfoField
+                      label="FECHA DE DESPACHO"
+                      value={
+                        detailData?.dispatched_at
+                          ? new Date(detailData.dispatched_at).toLocaleDateString()
+                          : "—"
+                      }
+                    />
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
+        <div className="flex justify-end gap-2 pt-4">
+          {selectedOutput?.status === "OutputPending" ? (
+            <>
+              <Button
+                label="Rechazar"
+                onClick={() => void onRejectDispatch?.()}
+                disabled={isRejectingDispatch}
+                isLoading={isRejectingDispatch}
+                className="rounded-md! h-10 px-4! border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/20 hover:border-red-400 dark:hover:border-red-500/60 hover:text-red-700 dark:hover:text-red-300 shadow-sm transition-all duration-200"
+              />
+              <Button
+                label="Iniciar despacho"
+                onClick={() => void onStartDispatch?.()}
+                disabled={isStartingDispatch}
+                isLoading={isStartingDispatch}
+                className="rounded-md! h-11 px-6! border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/20 hover:border-blue-400 dark:hover:border-blue-500/60 hover:text-blue-700 dark:hover:text-blue-300 shadow-sm transition-all duration-200 text-[14px] font-semibold"
+              />
+            </>
+          ) : selectedOutput?.status === "InProgress" ? (
+            <Button
+              label="Confirmar despacho"
+              onClick={() => void onConfirmDispatch?.()}
+              disabled={isConfirmingDispatch}
+              isLoading={isConfirmingDispatch}
+              className="rounded-md! h-11 px-6! border border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:text-emerald-700 dark:hover:text-emerald-300 shadow-sm transition-all duration-200 text-[14px] font-semibold"
+            />
+          ) : null}
+        </div>
         </div>
       )}
     </Modal>

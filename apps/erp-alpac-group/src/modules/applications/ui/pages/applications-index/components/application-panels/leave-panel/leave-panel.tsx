@@ -14,20 +14,20 @@ import type { LeavePanelProps } from "@app/modules/applications/ui/pages/applica
 export const LeavePanel = ({ application }: LeavePanelProps) => {
   const { start_date, end_date, start_time, end_time, amount_days } =
     application;
-  const leaveData = parsePermissionAdditionalData(
-    application.additional_data,
-  )?.LeaveData;
-  const leaveImages = extractLeaveImages(application.additional_data);
+  const additional = parsePermissionAdditionalData(application.additional_data);
+  const leaveImages = extractLeaveImages(additional);
 
-  const beneficiaryScopeLabel = leaveData?.BeneficiaryScope
-    ? (PermitBeneficiaryScopeEnum[leaveData.BeneficiaryScope]?.label ??
-      leaveData.BeneficiaryScope)
+  const beneficiaryScope = application.beneficiary_scope ?? null;
+  const familyRelationship = application.family_relationship ?? null;
+  const relatedPerson = application.related_person_name?.trim() || null;
+
+  const beneficiaryScopeLabel = beneficiaryScope
+    ? (PermitBeneficiaryScopeEnum[beneficiaryScope]?.label ?? beneficiaryScope)
     : null;
-  const familyRelationshipLabel = leaveData?.FamilyRelationship
-    ? (PermitFamilyRelationshipEnum[leaveData.FamilyRelationship]?.label ??
-      leaveData.FamilyRelationship)
+  const familyRelationshipLabel = familyRelationship
+    ? (PermitFamilyRelationshipEnum[familyRelationship]?.label ??
+      familyRelationship)
     : null;
-  const relatedPerson = leaveData?.RelatedPerson?.trim() || null;
 
   return (
     <>
@@ -109,8 +109,7 @@ export const LeavePanel = ({ application }: LeavePanelProps) => {
         </div>
       )}
 
-      {!!familyRelationshipLabel &&
-        leaveData?.FamilyRelationship !== "None" && (
+      {!!familyRelationshipLabel && familyRelationship !== "None" && (
           <div className="flex flex-col gap-1">
             <span className="text-[10px]! font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
               Parentesco
@@ -138,7 +137,7 @@ export const LeavePanel = ({ application }: LeavePanelProps) => {
 
       {leaveImages.length > 0 && (
         <div className="col-span-full">
-          <ImagePreviewGallery images={leaveImages} />
+          <ImagePreviewGallery images={leaveImages} title="Evidencias" />
         </div>
       )}
     </>

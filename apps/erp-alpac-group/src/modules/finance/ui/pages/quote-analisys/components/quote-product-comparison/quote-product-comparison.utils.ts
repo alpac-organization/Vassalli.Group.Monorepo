@@ -3,6 +3,8 @@ import type {
   PurchaseRequestProductQuotation,
   PurchaseRequestSupplierProduct,
 } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
+import type { QuotationCurrencyValue } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
+import { toQuotationCurrency } from "@app/modules/purchasing/ui/pages/quotes/utils/resolve-supplier-link-price";
 
 export function chunkQuotations<T>(items: T[], size: number): T[][] {
   if (size <= 0) return [];
@@ -70,12 +72,10 @@ export function getBestPriceQuotationId(
 export function resolveQuoteCurrency(
   quote: PurchaseRequestProductQuotation,
   supplierProducts?: PurchaseRequestSupplierProduct[],
-): string | undefined {
-  const currency = findSupplierProductForQuote(
-    supplierProducts,
-    quote,
-  )?.currency?.trim();
-  return currency || undefined;
+): QuotationCurrencyValue | undefined {
+  const raw = findSupplierProductForQuote(supplierProducts, quote)?.currency;
+  const currency = typeof raw === "string" ? raw.trim() : raw;
+  return toQuotationCurrency(currency) ?? undefined;
 }
 
 export function formatQuoteMoney(

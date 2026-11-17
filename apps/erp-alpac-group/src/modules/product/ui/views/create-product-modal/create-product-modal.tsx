@@ -162,6 +162,7 @@ export const CreateProductModal = ({
 	const { companyId, moduleCode } = useUserStore();
 	const isEditMode = Boolean(selectedProduct?.product_id);
 	const isOperational = typeProductToRegister === "Operational";
+	const isReadOnly = selectedProduct?.product_status === "Inactive";
 
 	const { GetProductCategories, CreateProduct, UpdateProduct, GetProductDetails } =
 		useProduct({
@@ -173,12 +174,12 @@ export const CreateProductModal = ({
 			getProductDetailsPayload:
 				isOpen && selectedProduct?.product_id
 					? {
-							company_id: companyId,
-							module_code: moduleCode,
-							product_id: selectedProduct.product_id,
-							page_number: 1,
-							page_size: 100,
-						}
+						company_id: companyId,
+						module_code: moduleCode,
+						product_id: selectedProduct.product_id,
+						page_number: 1,
+						page_size: 100,
+					}
 					: undefined,
 		});
 
@@ -262,6 +263,7 @@ export const CreateProductModal = ({
 		defaultValues: emptyFormValues(companyId, moduleCode, typeProductToRegister),
 		values: appliedFormValues,
 		mode: "onSubmit",
+		disabled: isReadOnly
 	});
 
 	const isLoadingDetails =
@@ -515,7 +517,7 @@ export const CreateProductModal = ({
 									label="Categoría"
 									placeholder={
 										GetProductCategories.isPending ||
-										GetProductCategories.isFetching
+											GetProductCategories.isFetching
 											? "Cargando categorías..."
 											: "Seleccione una categoría"
 									}
@@ -523,9 +525,9 @@ export const CreateProductModal = ({
 									isRequired
 									value={field.value}
 									disabled={
-										isSaving &&
-										!GetProductCategories.isPending &&
-										!GetProductCategories.isFetching
+										(isSaving &&
+											!GetProductCategories.isPending &&
+											!GetProductCategories.isFetching) || isReadOnly
 									}
 									onChange={(value) => {
 										field.onChange(value);
@@ -567,14 +569,14 @@ export const CreateProductModal = ({
 									label="Unidad de medida"
 									placeholder={
 										GetUnitMeasurements.isPending ||
-										GetUnitMeasurements.isFetching
+											GetUnitMeasurements.isFetching
 											? "Cargando unidades..."
 											: "Seleccione una unidad"
 									}
 									appearance="dark"
 									isRequired
 									value={field.value}
-									disabled={isSaving || isLoadingDetails}
+									disabled={isSaving || isLoadingDetails || isReadOnly}
 									onChange={(value) => field.onChange(String(value ?? ""))}
 									options={unitMeasureOptions}
 									error={fieldState.error?.message}
@@ -593,7 +595,7 @@ export const CreateProductModal = ({
 										label="Centro de costo"
 										placeholder={
 											GetCostCentersByBranch.isPending ||
-											GetCostCentersByBranch.isFetching
+												GetCostCentersByBranch.isFetching
 												? "Cargando centros de costo..."
 												: "Seleccione un centro de costo"
 										}
@@ -620,7 +622,7 @@ export const CreateProductModal = ({
 							<Checkbox
 								label="Producto exento de impuestos"
 								checked={Boolean(field.value)}
-								disabled={isSaving || isLoadingDetails}
+								disabled={isSaving || isLoadingDetails || isReadOnly}
 								onChange={(event) => field.onChange(event.target.checked)}
 							/>
 						)}
@@ -774,27 +776,30 @@ export const CreateProductModal = ({
 						lockEntity
 						canRemove={!isEditMode}
 						onAddClick={() => setIsSelectSupplierOpen(true)}
-						disabled={isSaving || isLoadingDetails}
+						disabled={isSaving || isLoadingDetails || isReadOnly}
 					/>
 
-					<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-						<Button
-							type="button"
-							size="giant"
-							label="Cancelar"
-							disabled={isSaving}
-							className={secondaryButtonClassName}
-							onClick={handleClose}
-						/>
-						<Button
-							type="submit"
-							size="giant"
-							label={isEditMode ? "Actualizar producto" : "Guardar producto"}
-							isLoading={isSaving}
-							disabled={isSaving || isLoadingDetails}
-							className={primaryButtonClassName}
-						/>
-					</div>
+					{!isReadOnly && (
+						<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+							<Button
+								type="button"
+								size="giant"
+								label="Cancelar"
+								disabled={isSaving}
+								className={secondaryButtonClassName}
+								onClick={handleClose}
+							/>
+							<Button
+								type="submit"
+								size="giant"
+								label={isEditMode ? "Actualizar producto" : "Guardar producto"}
+								isLoading={isSaving}
+								disabled={isSaving || isLoadingDetails}
+								className={primaryButtonClassName}
+							/>
+						</div>
+					)}
+
 				</form>
 			</Modal>
 

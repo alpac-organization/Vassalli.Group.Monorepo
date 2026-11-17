@@ -44,6 +44,7 @@ export const useAuth = function () {
         userType: response.user_type,
         areaId: response.area_id,
         branchId: response.branch_id,
+        branchCode: response.branch_code ?? "",
         costCenterId: response.cost_center_information?.cost_center_id,
         costCenterName: response.cost_center_information?.cost_center_name,
         costCenterCode: response.cost_center_information?.cost_center_code.toString(),
