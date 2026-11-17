@@ -8,6 +8,7 @@ import type { InventoryStockStatusEnum } from "@app/core/enums/inventory-stock-s
 import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response"
 import type { ContextMenuItemsProps, InventoryStocksColumnsToTableProps, StockControlFilters } from "./stock-control.types"
 import type { GetCostCentersResponse } from "@app/modules/admin/domain/ApiContract/responses/cost-centers/get-cost-centers.response"
+import type { GetBranchesResponse } from "@app/modules/auth/domain/ApiContract/Responses/get-branches.response"
 
 export const GetInventoryStocksColumnsToTable = function(props: InventoryStocksColumnsToTableProps): TableColumn<InventoryStockData>[]{
    //Opciones de menu de item row
@@ -198,6 +199,15 @@ export const GetCostCenterOptions = function(data: GetCostCentersResponse[]): Op
       return {
          label: costCenter.cost_center_name,
          value: costCenter.cost_center_id,
+      }
+   })
+}
+
+export const GetBranchesOptions = function(data: GetBranchesResponse[]): Option[]{
+   return data?.map(branch => {
+      return {
+         label: branch.branch_name,
+         value: branch.branch_id,
       }
    })
 }
