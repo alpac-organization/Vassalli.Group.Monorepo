@@ -5,33 +5,21 @@ import { dropdownClassName, inputClassName, labelClassName } from "@app/modules/
 
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
 import { useUserStore } from "@app/shared/stores/useUserStore"
-import { GetCostCenterOptions, GetProductCategoryOptions } from "../../../stock-control/stock-control.variants"
 import { DEFAULT_PRODUCT_FILTERS } from "../../products-and-services-control.variant"
 
-import type { ProductsAndServicesFilters, ProductsAndServicesProps } from "./products-and-services-section-filters.types"
+import { BranchFilter } from "../../../stock-control/views/stock-control-section-filters/components/branch-filter/branch-filter"
 import { statusOptions } from "./products-and-services-section-filters.options"
-import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters"
+import { CostCenterFilter } from "../../../stock-control/views/stock-control-section-filters/components/cost-center-filter/cost-center-filter"
+import { GetProductCategoryOptions } from "../../../stock-control/stock-control.variants"
+import type { ProductsAndServicesFilters, ProductsAndServicesProps } from "./products-and-services-section-filters.types"
 
 export const ProductsAndServicesSectionFilters = function(props: ProductsAndServicesProps){
 
    const { companyId, moduleCode, role } = useUserStore();
+
    const { control, handleSubmit, reset, formState: { isDirty, isValid }, register } = useForm({
       defaultValues: props.filters,
    });
-   
-   
-   //#region Servicios categorias, centros costos...
-   const { GetCostCentersByBranch } = useCostCenters({
-      getCostCentersByBranchPayload: {
-         company_id:       companyId,
-         module_code:      moduleCode,
-         only_operational: true
-      }
-   });
-   
-   const { data: CostCentersData }  = GetCostCentersByBranch;
-   const costCenterOptions = GetCostCenterOptions(CostCentersData ?? []);
-
    
    const { GetProductCategories } = useProduct({
       getProductCategoryPayload: { 
@@ -113,28 +101,14 @@ export const ProductsAndServicesSectionFilters = function(props: ProductsAndServ
             </div>
 
             {
-               (
-                  role === "Administrator" ||
-                  role === "Manager"
-               ) && (
-                  <div className="w-full lg:w-64">
-                     <Controller
-                        name="status"
-                        control={control}
-                        render={({ field }) => (
-                           <Dropdown
-                              label="Centro de costo"
-                              value={field.value ?? ""}
-                              options={costCenterOptions}
-                              onChange={(value) => field.onChange(value ? String(value) : undefined)}
-                              placeholder="Seleccionar centro de costo"
-                              appearance="dark"
-                              labelClassName={labelClassName}
-                              className={dropdownClassName}
-                           />
-                        )}
-                     />
-                  </div>
+               role === "Administrator" && (
+                  <BranchFilter control={control} />
+               )
+            }
+
+            {
+               (role === "Administrator" || role === "Manager") && (
+                  <CostCenterFilter control={control} />
                )
             }
          </div>
