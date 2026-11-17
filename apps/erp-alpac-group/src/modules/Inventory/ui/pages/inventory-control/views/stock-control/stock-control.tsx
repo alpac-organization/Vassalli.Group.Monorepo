@@ -2,33 +2,60 @@ import { useCallback, useEffect, useState } from "react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { DataTable, Pagination, SectionHeader } from "@alpac/design-system";
 
+import { EditStockModal } from "./components/edit-stock-modal/edit-stock-modal";
+import { StockControlSectionCards } from "./views/stock-control-cards/stock-control-section-cards";
+
 import { useInventoryStocks } from "../../../../hooks/useInventoryStocks";
 import { StockControlSectionFilters } from "./views/stock-control-section-filters/stock-control-section-filters";
 import { DEFAULT_STOCK_FILTERS, GetInventoryStocksColumnsToTable } from "./stock-control.variants";
-import { EditStockModal } from "./components/edit-stock-modal/edit-stock-modal";
 
-import type { StockControlFilters } from "./stock-control.types";
+import type { StockControlFilters, StockModalActions } from "./stock-control.types";
 import type { InventoryStockData } from "@app/modules/Inventory/domain/api-contract/responses/inventory-stocks.response";
-import { StockControlSectionCards } from "./views/stock-control-cards/stock-control-section-cards";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { DeleteProductModal } from "./components/delete-stock-modal/delete-product-modal";
+import { mapStockToDeleteProductData } from "./components/delete-stock-modal/delete-product-modal.mapper";
 
 const SEARCH_DEBOUNCE_MS = 5000;
 
 export const StockControl = function(){
-   //Consumir el endpoint para obtener existencias de productos en inventarios con su codigo.
    const { moduleCode, companyId } = useUserStore();
+   const { AlertComponent, handleRequestError, handleRequestSuccess } = useAlertState();
 
    const [searchText, setSearchText] = useState("");
    const [stockSelected, setStockSelected] = useState<InventoryStockData | null>(null);
 
-   const [modalActions, setModalActions] = useState({
-      openEditStockModal: false
+   const [modalActions, setModalActions] = useState<StockModalActions>({
+      openEditStockModal:   false,
+      openDeleteStockModal: false
    });
 
    const [filters, setFilters] = useState<StockControlFilters>(DEFAULT_STOCK_FILTERS);
 
+   const handleOpenEditStockModal = useCallback((stock: InventoryStockData) => {
+      setStockSelected(stock);
+      setModalActions(prev => ({ ...prev, openEditStockModal: true }));
+   }, []);
+
+   const handleOpenDeleteStockModal = useCallback((stock: InventoryStockData) => {
+      setStockSelected(stock);
+      setModalActions(prev => ({ ...prev, openDeleteStockModal: true }));
+   }, []);
+
+   //#region Cerrado de modales...
+   const handleCloseEditStockModal = () => {
+      setModalActions(prev => ({ ...prev, openEditStockModal: false }));
+      setStockSelected(null);
+   };
+
+   const handleCloseDeleteStockModal = () => {
+      setModalActions(prev => ({ ...prev, openDeleteStockModal: false }));
+      setStockSelected(null);
+   };
+   //#endregion
+
    const { GetInventoryStocksQuery } = useInventoryStocks({
       payloadGetInventoryStocksRequest: {
-         company_id: companyId,
+         company_id:  companyId,
          module_code: moduleCode,
          ...filters
       }
@@ -48,8 +75,8 @@ export const StockControl = function(){
 
       return () => clearTimeout(timer);
    }, [searchText]);
-
-   //Metodos de filtrado
+   
+   //#region Manejadores de filtros
    const handleClearFilters = () => {
       setSearchText("");
       setFilters(DEFAULT_STOCK_FILTERS);
@@ -65,25 +92,14 @@ export const StockControl = function(){
          page_number: page,
       }));
    }, []);
-
-   //Metodos de modales
-   const handleOpenEditStockModal = useCallback((stock: InventoryStockData) => {
-      setStockSelected(stock);
-      setModalActions((options) => ({ ...options, openEditStockModal: true }));
-   }, []);
-
-   const handleCloseEditStockModal = useCallback(() => {
-      setModalActions((options) => ({ ...options, openEditStockModal: false }));
-      setStockSelected(null);
-   }, []);
+   //#endregion
 
    const { data: inventoryStocksData, isPending, isFetching } = GetInventoryStocksQuery;
 
-   console.log(inventoryStocksData)
-
    const columnsStocks = GetInventoryStocksColumnsToTable({
       ActionsMenuContext: {
-         onEditStock: handleOpenEditStockModal
+         onEditStock:            handleOpenEditStockModal,
+         onDeleteInventoryStock: handleOpenDeleteStockModal
       }
    });
 
@@ -129,6 +145,7 @@ export const StockControl = function(){
          />
 
          {/* Modales */}
+
          {
             modalActions.openEditStockModal && (
                <EditStockModal
@@ -138,6 +155,21 @@ export const StockControl = function(){
                />
             )
          }
+
+         {
+            modalActions.openDeleteStockModal && (
+               <DeleteProductModal
+                  data={stockSelected ? mapStockToDeleteProductData(stockSelected) : null}
+                  handleRequestError={handleRequestError}
+                  handleRequestSuccess={handleRequestSuccess}
+                  isOpen={modalActions.openDeleteStockModal}
+                  onClose={handleCloseDeleteStockModal}
+               />
+            )
+         }
+
+         { AlertComponent }
+
       </div>
    )
 }

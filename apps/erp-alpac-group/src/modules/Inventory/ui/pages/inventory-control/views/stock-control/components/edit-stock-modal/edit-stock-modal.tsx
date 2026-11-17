@@ -1,6 +1,7 @@
 import { Modal } from "@alpac/design-system"
-import type { EditStockModalProps } from "./edit-stock-modal.types"
 import { useInventoryStocks } from "@app/modules/Inventory/ui/hooks/useInventoryStocks";
+
+import type { EditStockModalProps } from "./edit-stock-modal.types"
 
 export const EditStockModal = function(props: EditStockModalProps){
 

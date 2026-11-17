@@ -1,9 +1,10 @@
 export type ProductStatusFilter = "Active" | "Inactive";
 
 export interface ProductsAndServicesFilters {
-	category_product_id?: string;
-	product_code?: string;
-	status?: ProductStatusFilter;
+	category_product_id?: 	string;
+	product_code?: 			string;
+	const_center_id?: 		string;
+	status?: 				ProductStatusFilter;
 }
 
 export interface ProductsAndServicesProps {

@@ -34,7 +34,7 @@ export interface ProductCategoryInformation {
 	is_active:   boolean;
 }
 
-export type ProductStatus = "Active" | "Inactive";
+export type ProductStatus = "Active" | "Inactive" | "LowProcess";
 
 export interface GetProductResponse {
 	product_id:                string;

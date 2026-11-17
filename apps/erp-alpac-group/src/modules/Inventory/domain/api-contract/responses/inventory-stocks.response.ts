@@ -32,21 +32,21 @@ export interface UnitMeasureInformation {
 }
 
 export interface InventoryStockData {
-  minimum_stock:         number;
-  maximum_stock:         number;
-  product_stock_id:      string;
-  available_quantity:    number;
-  weighted_average_cost: number;
-  product_information: ProductInformation;
-  status:              InventoryStockStatusEnum;
+  minimum_stock:            number;
+  maximum_stock:            number;
+  product_stock_id:         string;
+  available_quantity:       number;
+  weighted_average_cost:    number;
+  product_information:      ProductInformation;
+  status:                   InventoryStockStatusEnum;
   cost_center_information:  CostCenterInformation;
   unit_measure_information: UnitMeasureInformation;
 }
 
 export interface PagedResponseStock<T> {
-   data:             T[];
-   in_minimum_stock: number;
-   page_number:      number;
-   page_size:        number;
-   total:            number;
+  data:             T[];
+  in_minimum_stock: number;
+  page_number:      number;
+  page_size:        number;
+  total:            number;
 }

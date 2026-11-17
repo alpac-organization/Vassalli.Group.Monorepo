@@ -7,6 +7,10 @@ import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import { DEFAULT_PRODUCT_FILTERS, GetProductColumnsToTable } from "./products-and-services-control.variant";
 import { ProductsAndServicesSectionFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters";
+import { DeleteProductModal } from "../stock-control/components/delete-stock-modal/delete-product-modal";
+import { mapProductToDeleteProductData } from "../stock-control/components/delete-stock-modal/delete-product-modal.mapper";
+
+import { canDeleteProduct } from "./products-and-services-control.rules";
 
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
 import type { ProductsAndServicesFilters } from "./views/products-and-services-section-filters/products-and-services-section-filters.types";
@@ -20,24 +24,24 @@ export const ProductsAndServicesControl = function () {
 	const [pageNumber, setPageNumber] = useState(1);
 	const [filters, setFilters] = useState<ProductsAndServicesFilters>(DEFAULT_PRODUCT_FILTERS);
 
-	const [productToEdit, setProductToEdit] 		= useState<GetProductResponse | null>(null);
-	const [_, setProductToDelete]		= useState<GetProductResponse | null>(null);
+	const [productToEdit, setProductToEdit] = useState<GetProductResponse | null>(null);
 	const [isProductFormOpen, setIsProductFormOpen] = useState(false);
 
+	const [productToDelete, setProductToDelete] = useState<GetProductResponse | null>(null);
+	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
 	const { companyId, moduleCode } = useUserStore();
-	
+
 	const { GetProducts } = useProduct({
 		getProductPayload: {
 			company_id: companyId,
 			module_code: moduleCode,
 			product_usage_type: "Operational",
-			...(filters.category_product_id && { category_product_id: filters.category_product_id }),
-			...(filters.product_code?.trim() && { product_code: filters.product_code.trim() }),
-			...(filters.status && { status: filters.status }),
-			page_size: PAGE_SIZE,
+			...filters,
+			page_size:   PAGE_SIZE,
 			page_number: pageNumber,
 		},
-	});
+	});	
 
 	const { data: productsData, isPending, isFetching } = GetProducts;
 
@@ -47,10 +51,17 @@ export const ProductsAndServicesControl = function () {
 			setIsProductFormOpen(true);
 		},
 		(row) => {
+			if (!canDeleteProduct(row.product_status)) {
+				handleRequestError("Este producto no se puede dar de baja en su estado actual.");
+				return;
+			}
+
 			setProductToDelete(row);
+			setIsDeleteModalOpen(true);
 		},
 	);
 
+	//#region Manejadores de filtros y paginación
 	const handleApplyFilters = (newFilters: ProductsAndServicesFilters) => {
 		setFilters(newFilters);
 		setPageNumber(1);
@@ -64,10 +75,30 @@ export const ProductsAndServicesControl = function () {
 	const handlePageChange = useCallback((page: number) => {
 		setPageNumber(page);
 	}, []);
+	//#endregion
 
+	//#region Cerrado de modales
 	const handleCloseProductForm = () => {
 		setIsProductFormOpen(false);
 		setProductToEdit(null);
+	};
+
+	const handleCloseDeleteModal = () => {
+		setIsDeleteModalOpen(false);
+		setProductToDelete(null);
+	};
+	//#endregion
+
+	const handleDeleteSuccess = (message: string) => {
+		handleRequestSuccess(message);
+
+		const isLastRowOfPage = (productsData?.data.length ?? 0) <= 1;
+
+		if (isLastRowOfPage && pageNumber > 1) {
+			setPageNumber(pageNumber - 1);
+		} else {
+			GetProducts.refetch();
+		}
 	};
 
 	return (
@@ -100,6 +131,7 @@ export const ProductsAndServicesControl = function () {
 				}
 			/>
 
+			{/* Modales */}
 			<CreateProductModal
 				typeProductToRegister="Operational"
 				isOpen={isProductFormOpen}
@@ -108,7 +140,19 @@ export const ProductsAndServicesControl = function () {
 				onRequestSuccess={handleRequestSuccess}
 				selectedProduct={productToEdit}
 			/>
-			
+
+			{
+				isDeleteModalOpen && (
+					<DeleteProductModal
+						data={productToDelete ? mapProductToDeleteProductData(productToDelete) : null}
+						isOpen={isDeleteModalOpen}
+						onClose={handleCloseDeleteModal}
+						handleRequestError={handleRequestError}
+						handleRequestSuccess={handleDeleteSuccess}
+					/>
+				)
+			}
+
 			{ AlertComponent }
 		</div>
 	);

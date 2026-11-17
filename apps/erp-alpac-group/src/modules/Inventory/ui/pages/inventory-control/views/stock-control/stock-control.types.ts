@@ -1,12 +1,13 @@
 import type { InventoryStockData } from "@app/modules/Inventory/domain/api-contract/responses/inventory-stocks.response";
 
 export interface StockControlFilters {
-    category_id?:  string;
-    product_code?: string;
-    product_name?: string;
-
-    page_number?:  number;
+    category_id?:    string;
+    product_code?:   string;
+    product_name?:   string;
+    branch_id?:      string;
+    cost_center_id?: string;
     
+    page_number?:  number;
     page_size?:    number;
 }
 
@@ -23,4 +24,9 @@ export interface ActionsMenuContext {
 
 export interface InventoryStocksColumnsToTableProps {
     ActionsMenuContext: ActionsMenuContext;
+}
+
+export interface StockModalActions { 
+    openEditStockModal: boolean; 
+    openDeleteStockModal: boolean 
 }

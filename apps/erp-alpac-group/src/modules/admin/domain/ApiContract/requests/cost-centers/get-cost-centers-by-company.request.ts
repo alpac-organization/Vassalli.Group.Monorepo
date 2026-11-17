@@ -2,5 +2,5 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
 
 export interface GetCostCentersByCompanyRequest extends BaseRequest
 { 
-    only_operational?: boolean 
+    only_operational?: boolean;
 }

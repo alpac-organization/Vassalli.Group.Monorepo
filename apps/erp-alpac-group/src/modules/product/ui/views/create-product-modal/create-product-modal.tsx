@@ -1,4 +1,5 @@
 import { Fragment, useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import {
 	Alert,
 	Button,
@@ -162,7 +163,13 @@ export const CreateProductModal = ({
 	const { companyId, moduleCode } = useUserStore();
 	const isEditMode = Boolean(selectedProduct?.product_id);
 	const isOperational = typeProductToRegister === "Operational";
+	const isOperationalEdit = isEditMode && isOperational; // único caso con cambios
 	const isReadOnly = selectedProduct?.product_status === "Inactive";
+
+	// TEMPORAL: logs de diagnóstico, solo al editar un operacional. Quitar al terminar.
+	const debugLog = (...args: unknown[]) => {
+		if (isOperationalEdit) console.log(...args);
+	};
 
 	const { GetProductCategories, CreateProduct, UpdateProduct, GetProductDetails } =
 		useProduct({
@@ -221,6 +228,8 @@ export const CreateProductModal = ({
 	);
 	const [supplierLinksDirty, setSupplierLinksDirty] = useState(false);
 	const [isSelectSupplierOpen, setIsSelectSupplierOpen] = useState(false);
+	// Solo se llena al editar un operacional; en los demás casos siempre es null
+	const [submitError, setSubmitError] = useState<string | null>(null);
 	const [appliedFormValues, setAppliedFormValues] = useState<CreateProductRequest>(
 		() =>
 			mountedDraft?.formValues ??
@@ -237,15 +246,31 @@ export const CreateProductModal = ({
 		syncedDraftSource.moduleCode !== draftSource.moduleCode ||
 		syncedDraftSource.usageType !== draftSource.usageType
 	) {
+		// Solo cambió la referencia del detalle (por ejemplo, un refetch en segundo plano)
+		const onlyDetailsRefreshed =
+			syncedDraftSource.isOpen === draftSource.isOpen &&
+			syncedDraftSource.isEditMode === draftSource.isEditMode &&
+			syncedDraftSource.companyId === draftSource.companyId &&
+			syncedDraftSource.moduleCode === draftSource.moduleCode &&
+			syncedDraftSource.usageType === draftSource.usageType;
+
 		setSyncedDraftSource(draftSource);
-		const nextDraft = resolveCreateProductDraft(draftSource);
-		if (nextDraft) {
-			setAppliedFormValues(nextDraft.formValues);
-			setSupplierLinks(nextDraft.supplierLinks);
-			setSupplierLinksDirty(false);
-			setSelectedProductCategory(nextDraft.categoryName);
-			setSelectedCategoryIsService(false);
-			setIsSelectSupplierOpen(false);
+
+		// Solo al editar un operacional: un refetch no debe pisar los proveedores ya modificados
+		const shouldKeepUserEdits =
+			isOperationalEdit && onlyDetailsRefreshed && supplierLinksDirty;
+
+		if (!shouldKeepUserEdits) {
+			const nextDraft = resolveCreateProductDraft(draftSource);
+			if (nextDraft) {
+				setAppliedFormValues(nextDraft.formValues);
+				setSupplierLinks(nextDraft.supplierLinks);
+				setSupplierLinksDirty(false);
+				setSelectedProductCategory(nextDraft.categoryName);
+				setSelectedCategoryIsService(false);
+				setIsSelectSupplierOpen(false);
+				setSubmitError(null);
+			}
 		}
 	}
 
@@ -312,8 +337,16 @@ export const CreateProductModal = ({
 	// La configuración de stock aplica solo al crear productos operacionales que no son servicios
 	const showStockConfig = isOperational && !isEditMode && !selectedCategoryIsService;
 
+	// Siempre notifica al padre, como el original. Solo al editar un operacional
+	// muestra además el error dentro del modal (la alerta del padre queda detrás).
+	const notifyError = (message: string) => {
+		if (isOperationalEdit) setSubmitError(message);
+		onRequestError?.(message);
+	};
+
 	const handleSupplierLinksChange = (items: CatalogLinkItemForm[]) => {
 		setSupplierLinks(items);
+		setSubmitError(null);
 		if (isEditMode) setSupplierLinksDirty(true);
 	};
 
@@ -324,6 +357,7 @@ export const CreateProductModal = ({
 		setSelectedProductCategory("");
 		setSelectedCategoryIsService(false);
 		setIsSelectSupplierOpen(false);
+		setSubmitError(null);
 		onClose();
 	};
 
@@ -349,6 +383,7 @@ export const CreateProductModal = ({
 			return [...prev, ...nextItems];
 		});
 		if (isEditMode) setSupplierLinksDirty(true);
+		setSubmitError(null);
 		setIsSelectSupplierOpen(false);
 	};
 
@@ -357,14 +392,12 @@ export const CreateProductModal = ({
 			(link) => !link.entity_id || !link.unit_price.trim(),
 		);
 		if (invalidLink) {
-			onRequestError?.(
-				"Cada proveedor vinculado debe tener selección y precio unitario.",
-			);
+			notifyError("Cada proveedor vinculado debe tener selección y precio unitario.");
 			return false;
 		}
 		const preferentialError = validateCatalogLinkPreferentialDates(supplierLinks);
 		if (preferentialError) {
-			onRequestError?.(preferentialError);
+			notifyError(preferentialError);
 			return false;
 		}
 		return true;
@@ -390,10 +423,13 @@ export const CreateProductModal = ({
 					: undefined,
 		};
 
-		if (isOperational) {
-			payload.configuration_stock = showStockConfig
-				? buildStockConfiguration(values, typeProductToRegister)
-				: null;
+		// Solo viaja al crear un operacional que no es servicio. En los demás casos
+		// la propiedad no se envía (ni como null).
+		if (showStockConfig) {
+			payload.configuration_stock = buildStockConfiguration(
+				values,
+				typeProductToRegister,
+			);
 		}
 
 		CreateProduct.mutate(payload, {
@@ -410,7 +446,7 @@ export const CreateProductModal = ({
 			},
 			onError(error) {
 				const mappedError = getMappedError(error as ApiErrorResponse);
-				onRequestError?.(
+				notifyError(
 					mappedError.description || "No se pudo registrar el producto.",
 				);
 			},
@@ -419,32 +455,38 @@ export const CreateProductModal = ({
 
 	const handleUpdateProduct = (values: CreateProductRequest) => {
 		if (!selectedProduct?.product_id) return;
+		// Solo se valida si el usuario modificó los proveedores
 		if (supplierLinksDirty && !validateSupplierLinks()) return;
 
+		// Solo los campos de UpdateProductCommand (snake_case).
+		// No se envían configuration_stock ni cost_center_id.
 		const payload: UpdateProductRequest = {
 			company_id: companyId,
 			module_code: moduleCode,
-			product_id: selectedProduct.product_id,
+			product_id: selectedProduct.product_id, // [JsonIgnore] en backend: va en la ruta
 			product_name: values.product_name?.trim(),
 			description: values.description?.trim() || undefined,
 			category_id: values.category_id,
 			unit_measure_id: values.unit_measure_id || null,
 			product_usage_type: typeProductToRegister,
 			is_tax_exempt: Boolean(values.is_tax_exempt),
+			// Siempre se envía: el contrato la maneja como lista (default []), nunca omitida
+			suppliers: mapSupplierLinksToPayload(supplierLinks),
 		};
 
-		if (supplierLinksDirty) {
-			payload.suppliers = mapSupplierLinksToPayload(supplierLinks);
-		}
+		// TEMPORAL: diagnóstico
+		debugLog("[update] payload:", JSON.stringify(payload, null, 2), { supplierLinksDirty });
 
 		UpdateProduct.mutate(payload, {
-			onSuccess() {
+			onSuccess(response) {
+				debugLog("[update] OK:", response); // TEMPORAL
 				onRequestSuccess?.("Producto actualizado correctamente.");
 				handleClose();
 			},
 			onError(error) {
+				debugLog("[update] error crudo:", error); // TEMPORAL
 				const mappedError = getMappedError(error as ApiErrorResponse);
-				onRequestError?.(
+				notifyError(
 					mappedError.description || "No se pudo actualizar el producto.",
 				);
 			},
@@ -452,11 +494,30 @@ export const CreateProductModal = ({
 	};
 
 	const handleProduct = (values: CreateProductRequest) => {
+		setSubmitError(null);
+
 		if (isEditMode) {
 			handleUpdateProduct(values);
 			return;
 		}
 		handleCreateProduct(values);
+	};
+
+	// TEMPORAL: muestra qué campo bloquea el envío del formulario
+	const onInvalid = (formErrors: unknown) => {
+		debugLog("[submit] formulario inválido:", formErrors);
+	};
+
+	// react-hook-form conserva las reglas de un campo registrado aunque su input ya no
+	// se renderice (por ejemplo, si el modal se abrió antes en modo crear). Si la
+	// configuración de stock no aplica (edición o categoría de servicio), se
+	// desregistra ANTES de validar para que no bloquee el envío.
+	const handleFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+		if (!showStockConfig) {
+			unregister("configuration_stock");
+			clearErrors("configuration_stock");
+		}
+		return handleSubmit(handleProduct, onInvalid)(event);
 	};
 
 	return (
@@ -482,7 +543,7 @@ export const CreateProductModal = ({
 				}
 			>
 				<form
-					onSubmit={handleSubmit(handleProduct)}
+					onSubmit={handleFormSubmit}
 					className="flex flex-col gap-6"
 					noValidate
 				>
@@ -778,6 +839,14 @@ export const CreateProductModal = ({
 						onAddClick={() => setIsSelectSupplierOpen(true)}
 						disabled={isSaving || isLoadingDetails || isReadOnly}
 					/>
+
+					{submitError && (
+						<Alert
+							type="warning"
+							title="No se pudo guardar"
+							message={submitError}
+						/>
+					)}
 
 					{!isReadOnly && (
 						<div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

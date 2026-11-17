@@ -7,16 +7,21 @@ import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
 import { useUserStore } from "@app/shared/stores/useUserStore"
 import { DEFAULT_STOCK_FILTERS, GetProductCategoryOptions } from "../../stock-control.variants"
 
+import { BranchFilter } from "./components/branch-filter/branch-filter"
+import { CostCenterFilter } from "./components/cost-center-filter/cost-center-filter"
+
 import type { StockControlFilters } from "../../stock-control.types"
 import type { StockControlSectionFiltersProps } from "./stock-control-section-filters.types"
 
-export const StockControlSectionFilters = function(props: StockControlSectionFiltersProps){
-   
+export const StockControlSectionFilters = function(props: StockControlSectionFiltersProps) {
+
    const { control, handleSubmit, reset, formState: { isDirty, isValid }, register } = useForm<StockControlFilters>({
       defaultValues: props.filters,
    });
 
-   const { companyId, moduleCode } = useUserStore();
+   const { companyId, moduleCode, role } = useUserStore();
+
+   //#region Servicios...
    const { GetProductCategories } = useProduct({
       getProductCategoryPayload: { 
          company_id: companyId, 
@@ -24,8 +29,9 @@ export const StockControlSectionFilters = function(props: StockControlSectionFil
       },
    });
 
-   const { isPending, isFetching, data: productCategoriesData } = GetProductCategories;
+   const { data: productCategoriesData } = GetProductCategories;
    const categoryOptions = GetProductCategoryOptions(productCategoriesData ?? []);
+   //#endregion
 
    const onSubmit = (values: StockControlFilters) => {
       props.onApply(values);
@@ -69,7 +75,7 @@ export const StockControlSectionFilters = function(props: StockControlSectionFil
                   control={control}
                   render={({ field }) => (
                      <Dropdown
-                        isLoading={isPending || isFetching}
+                        isLoading={GetProductCategories.isPending || GetProductCategories.isFetching}
                         label="Categoria"
                         value={field.value}
                         options={categoryOptions}
@@ -84,6 +90,20 @@ export const StockControlSectionFilters = function(props: StockControlSectionFil
                   )}
                />
             </div>
+
+            {
+               role === "Administrator" && (
+                  <BranchFilter control={control} />
+               )
+            }
+
+            {
+               (role === "Administrator" || role === "Manager") && (
+                  <CostCenterFilter 
+                     control={control} 
+                  />
+               )
+            }
          </div>
 
          <section className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:gap-5">
