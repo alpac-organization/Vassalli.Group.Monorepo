@@ -163,10 +163,9 @@ export const CreateProductModal = ({
 	const { companyId, moduleCode } = useUserStore();
 	const isEditMode = Boolean(selectedProduct?.product_id);
 	const isOperational = typeProductToRegister === "Operational";
-	const isOperationalEdit = isEditMode && isOperational; // único caso con cambios
+	const isOperationalEdit = isEditMode && isOperational;
 	const isReadOnly = selectedProduct?.product_status === "Inactive";
 
-	// TEMPORAL: logs de diagnóstico, solo al editar un operacional. Quitar al terminar.
 	const debugLog = (...args: unknown[]) => {
 		if (isOperationalEdit) console.log(...args);
 	};
@@ -458,8 +457,6 @@ export const CreateProductModal = ({
 		// Solo se valida si el usuario modificó los proveedores
 		if (supplierLinksDirty && !validateSupplierLinks()) return;
 
-		// Solo los campos de UpdateProductCommand (snake_case).
-		// No se envían configuration_stock ni cost_center_id.
 		const payload: UpdateProductRequest = {
 			company_id: companyId,
 			module_code: moduleCode,
