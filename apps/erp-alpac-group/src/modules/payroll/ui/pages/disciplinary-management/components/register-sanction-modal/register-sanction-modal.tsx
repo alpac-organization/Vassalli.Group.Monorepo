@@ -131,6 +131,7 @@ export const RegisterSanctionModal = ({
 	}, [suggested?.allowed_sanction_types]);
 
 	useEffect(() => {
+
 		if (!suggested?.suggested_sanction_type) return;
 		setValue("sanction_type", suggested.suggested_sanction_type);
 	}, [suggested?.suggested_sanction_type, setValue]);
@@ -193,13 +194,15 @@ export const RegisterSanctionModal = ({
 
 		try {
 			await RegisterSanction.mutateAsync(payload);
-			onRequestSuccess?.("Sanción aplicada exitosamente");
+			onRequestSuccess?.(
+				"Sanción registrada. Pendiente de aprobación de RRHH",
+			);
 			handleClose();
 		} catch (error) {
 			const mapped = getMappedError(error as ApiErrorResponse);
 			onRequestError?.(
 				mapped.description ||
-				"No se pudo aplicar la sanción. Intente de nuevo.",
+				"No se pudo registrar la sanción. Intente de nuevo.",
 			);
 		}
 	};
@@ -222,7 +225,7 @@ export const RegisterSanctionModal = ({
 			isOpen={isOpen}
 			onClose={handleClose}
 			variant="form"
-			title="Aplicar sanción"
+			title="Registrar sanción"
 			size="4xl"
 			panelClassName={[
 				"!mx-2 !my-2 sm:!mx-4 sm:!my-6",
@@ -346,6 +349,14 @@ export const RegisterSanctionModal = ({
 												if (!value || !formValues.suspension_start_date) {
 													return true;
 												}
+												if (
+													dayjs(value).isBefore(
+														dayjs(formValues.suspension_start_date),
+														"day",
+													)
+												) {
+													return "La fecha de fin no puede ser anterior a la de inicio";
+												}
 												const days = getSuspensionDayCount(
 													formValues.suspension_start_date,
 													value,
@@ -412,7 +423,7 @@ export const RegisterSanctionModal = ({
 						<Button
 							type="submit"
 							size="giant"
-							label="Crear sanción"
+							label="Registrar sanción"
 							className={`${disciplinaryPrimaryButtonClassName} w-auto!`}
 							icon={<CheckIcon size={20} />}
 							isHiddenLabelOnMobile

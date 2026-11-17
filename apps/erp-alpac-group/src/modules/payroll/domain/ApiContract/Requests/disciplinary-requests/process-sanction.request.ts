@@ -7,6 +7,7 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
  *
  * - `is_approved = true` → aplica (`Applied`). Solo `Administrator`.
  * - `is_approved = false` → rechaza (`Cancelled`). Requiere `cancellation_reason`. `Administrator` o `Manager`.
+ * - Si se aprueba una `Suspension`, `payroll_id` es obligatorio (nómina ordinaria en `Progress`).
  *
  * Una sanción `Applied` no se puede retractar. Respuesta esperada: `200 OK`.
  *
@@ -17,15 +18,25 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
  * @property {string} sanction_id - Identificador de la sanción (path param).
  * @property {boolean} is_approved - `true` aplica; `false` cancela/rechaza.
  * @property {string} [cancellation_reason] - Obligatorio si `is_approved` es `false`. Máx. 500 caracteres.
+ * @property {string|null} [payroll_id] - Obligatorio si se aprueba una `Suspension`. Nómina ordinaria en `Progress`.
  *
  * @example
  * ```ts
- * // Aprobar
+ * // Aprobar (sin suspensión)
  * const approve: ProcessSanctionRequest = {
  *   company_id: "...",
  *   module_code: "PAYROLL",
  *   sanction_id: "cccccccc-cccc-cccc-cccc-cccccccccccc",
  *   is_approved: true,
+ * };
+ *
+ * // Aprobar suspensión
+ * const approveSuspension: ProcessSanctionRequest = {
+ *   company_id: "...",
+ *   module_code: "PAYROLL",
+ *   sanction_id: "cccccccc-cccc-cccc-cccc-cccccccccccc",
+ *   is_approved: true,
+ *   payroll_id: "dddddddd-dddd-dddd-dddd-dddddddddddd",
  * };
  *
  * // Rechazar
@@ -42,4 +53,5 @@ export interface ProcessSanctionRequest extends BaseRequest {
   sanction_id: string;
   is_approved: boolean;
   cancellation_reason?: string;
+  payroll_id?: string | null;
 }

@@ -1,12 +1,14 @@
 import { Breadcrumb, Tabs, type TabItem } from "@alpac/design-system";
+import { RoleEnum } from "@app/core/enums/role.enum";
 import { AbsencesTab } from "@app/modules/payroll/ui/pages/disciplinary-management/components/absences-tab/absences-tab";
 import { DisciplinaryPageHeader } from "@app/modules/payroll/ui/pages/disciplinary-management/components/disciplinary-page-header/disciplinary-page-header";
 import { FaultsTab } from "@app/modules/payroll/ui/pages/disciplinary-management/components/faults-tab/faults-tab";
 import { SanctionsTab } from "@app/modules/payroll/ui/pages/disciplinary-management/components/sanctions-tab/sanctions-tab";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useParams } from "@app/shared/hooks/useParams";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 import { m } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 const tabsIds = ["faults", "sanctions", "absences"] as const;
@@ -17,7 +19,11 @@ export const DisciplinaryManagementPage = () => {
 
   const navigate = useNavigate();
   const { baseUrl } = useBaseUrl();
+  const { role } = useUserStore();
   const { searchParams, setParam } = useParams();
+
+  const canWriteDisciplinary =
+    role === RoleEnum.ADMINISTRATOR || role === RoleEnum.MANAGER;
 
   const tabFromUrl = searchParams.get("tab");
   const isValidTab = tabsIds.some(tab => tab === tabFromUrl);
@@ -29,23 +35,26 @@ export const DisciplinaryManagementPage = () => {
     }
   }, [isValidTab, setParam]);
 
-  const tabs: TabItem<string>[] = [
-    {
-      id: "faults",
-      label: "Faltas",
-      render: () => <FaultsTab canWrite />,
-    },
-    {
-      id: "sanctions",
-      label: "Sanciones",
-      render: () => <SanctionsTab />,
-    },
-    {
-      id: "absences",
-      label: "Ausencias",
-      render: () => <AbsencesTab canWrite />,
-    },
-  ];
+  const tabs: TabItem<string>[] = useMemo(
+    () => [
+      {
+        id: "faults",
+        label: "Faltas",
+        render: () => <FaultsTab canWrite={canWriteDisciplinary} />,
+      },
+      {
+        id: "sanctions",
+        label: "Sanciones",
+        render: () => <SanctionsTab />,
+      },
+      {
+        id: "absences",
+        label: "Ausencias",
+        render: () => <AbsencesTab canWrite={canWriteDisciplinary} />,
+      },
+    ],
+    [canWriteDisciplinary],
+  );
 
   return (
     <m.div
