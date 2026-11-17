@@ -2,6 +2,7 @@ import type { IHttpHandler } from "@app/core/ports";
 import type { ISanctionService } from "@app/modules/payroll/application/interfaces/sanction-interfaces/ISanctionService";
 import type { GetSanctionDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/get-sanction-details.request";
 import type { GetSanctionsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/get-sanctions.request";
+import type { ProcessSanctionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/process-sanction.request";
 import type { RegisterSanctionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/disciplinary-requests/register-sanction.request";
 import type { SanctionDetailDto } from "@app/modules/payroll/domain/ApiContract/Responses/disciplinary-responses/get-sanction-details.response";
 import type { GetSanctionsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/disciplinary-responses/get-sanctions.response";
@@ -32,6 +33,12 @@ export class SanctionServices implements ISanctionService {
    async registerSanction(payload: RegisterSanctionRequest): Promise<void> {
       const { company_id, module_code, ...rest } = payload;
       const url = `/companies/${company_id}/modules/${module_code}/sanctions`;
+      await this.httpHandler.post<void>(url, rest);
+   }
+
+   async processSanction(payload: ProcessSanctionRequest): Promise<void> {
+      const { company_id, module_code, sanction_id, ...rest } = payload;
+      const url = `/companies/${company_id}/modules/${module_code}/sanctions/${sanction_id}/process`;
       await this.httpHandler.post<void>(url, rest);
    }
 }

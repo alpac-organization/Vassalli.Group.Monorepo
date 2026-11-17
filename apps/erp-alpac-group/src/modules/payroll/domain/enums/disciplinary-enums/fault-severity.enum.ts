@@ -1,5 +1,12 @@
 import type { EnumType } from "@app/shared/types/enum.type";
 
+/**
+ * Severidad de una falta disciplinaria.
+ *
+ * @property Minor - Leve.
+ * @property Serious - Grave.
+ * @property VerySerious - Muy grave.
+ */
 export const FaultSeverityEnum = {
 	Minor: { value: 1, label: "Leve" },
 	Serious: { value: 2, label: "Grave" },

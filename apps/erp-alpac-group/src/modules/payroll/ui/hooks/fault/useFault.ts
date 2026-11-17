@@ -72,9 +72,9 @@ const registerFaultsMutationOptions = (queryClient: QueryClient) => ({
    mutationFn: (payload: RegisterFaultRequest) =>
       faultServices.registerFaults(payload),
    onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ["faults"] });
-      queryClient.invalidateQueries({ queryKey: ["fault-details"] });
-      queryClient.invalidateQueries({ queryKey: ["suggested-sanction"] });
+      queryClient.invalidateQueries({ queryKey: ["faults"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["fault-details"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["suggested-sanction"], refetchType: "all" });
    },
    retry: 1,
 });
@@ -84,9 +84,10 @@ const cancelFaultMutationOptions = (queryClient: QueryClient) => ({
    mutationFn: (payload: CancelFaultRequest) =>
       faultServices.cancelFault(payload),
    onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ["faults"] });
-      queryClient.invalidateQueries({ queryKey: ["fault-details"] });
-      queryClient.invalidateQueries({ queryKey: ["suggested-sanction"] });
+      queryClient.invalidateQueries({ queryKey: ["faults"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["fault-details"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["suggested-sanction"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["sanctions"], refetchType: "all" });
    },
    retry: 1,
 });

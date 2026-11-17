@@ -13,9 +13,26 @@ import { useMemo } from "react";
 const contextMenuButton =
 	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
-const buildColumns = (
-	onViewDetail: (row: SanctionDto) => void,
-): TableColumn<SanctionDto>[] => [
+type BuildColumnsParams = {
+	onViewDetail: (row: SanctionDto) => void;
+	onApprove?: (row: SanctionDto) => void;
+	onReject?: (row: SanctionDto) => void;
+	canApprove: boolean;
+	canReject: boolean;
+};
+
+const buildColumns = ({
+	onViewDetail,
+	onApprove,
+	onReject,
+	canApprove,
+	canReject,
+}: BuildColumnsParams): TableColumn<SanctionDto>[] => [
+		{
+			key: "code",
+			label: "Código",
+			render: (row) => row.code?.trim() || "—",
+		},
 		{
 			key: "collaborator_name",
 			label: "Colaborador",
@@ -60,13 +77,28 @@ const buildColumns = (
 			key: "actions",
 			label: "Acciones",
 			render: (row: SanctionDto) => {
+				const isPending = row.sanction_status === "Pending";
 
 				const items: ContextMenuItem[] = [
 					{
 						label: "Ver detalle",
-						onClick: () => onViewDetail?.(row),
+						onClick: () => onViewDetail(row),
 					},
 				];
+
+				if (isPending && canApprove && onApprove) {
+					items.push({
+						label: "Aplicar sanción",
+						onClick: () => onApprove(row),
+					});
+				}
+
+				if (isPending && canReject && onReject) {
+					items.push({
+						label: "Anular sanción",
+						onClick: () => onReject(row),
+					});
+				}
 
 				return (
 					<ContextMenu
@@ -82,8 +114,22 @@ export const SanctionsTable = ({
 	data,
 	pagination,
 	onViewDetail,
+	onApprove,
+	onReject,
+	canApprove = false,
+	canReject = false,
 }: SanctionsTableProps) => {
-	const columns = useMemo(() => buildColumns(onViewDetail), [onViewDetail]);
+	const columns = useMemo(
+		() =>
+			buildColumns({
+				onViewDetail,
+				onApprove,
+				onReject,
+				canApprove,
+				canReject,
+			}),
+		[onViewDetail, onApprove, onReject, canApprove, canReject],
+	);
 
 	return (
 		<DataTable

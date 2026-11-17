@@ -13,6 +13,7 @@ import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disc
  * @property {string} fault_id - Falta consultada (la abierta en UI).
  * @property {string} sanction_target_fault_id - Falta a usar como `fault_id` al registrar la sanción (padre si hubo escalamiento).
  * @property {string|null} parent_fault_id - Id de la falta padre si hubo escalamiento; `null` si no.
+ * @property {string|null} parent_fault_code - Código de la falta padre si hubo escalamiento; `null` si no.
  * @property {boolean} is_covered_by_escalation - `true` si la falta hija ya no debe sancionarse individualmente.
  * @property {number} count_occurrence_in_month - Cantidad de faltas de la misma severidad en el mes (sobre el target).
  * @property {FaultSeverityEnumMap} severity - Severidad del **target**: `Minor` | `Serious` | `VerySerious`.
@@ -25,6 +26,7 @@ import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disc
  *   fault_id: "aaa...",
  *   sanction_target_fault_id: "aaa...",
  *   parent_fault_id: null,
+ *   parent_fault_code: null,
  *   is_covered_by_escalation: false,
  *   count_occurrence_in_month: 1,
  *   severity: "Minor",
@@ -37,6 +39,7 @@ export interface SuggestedSanctionDto {
   fault_id: string;
   sanction_target_fault_id: string;
   parent_fault_id: string | null;
+  parent_fault_code: string | null;
   is_covered_by_escalation: boolean;
   count_occurrence_in_month: number;
   severity: FaultSeverityEnumMap;

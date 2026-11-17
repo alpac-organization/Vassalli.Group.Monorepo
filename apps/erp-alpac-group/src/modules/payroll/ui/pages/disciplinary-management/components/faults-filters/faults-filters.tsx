@@ -12,11 +12,12 @@ import {
   disciplinaryLabelClassName,
   disciplinaryPrimaryButtonClassName,
   disciplinarySecondaryButtonClassName,
-} from "@app/modules/payroll/ui/pages/disciplinary-management/utils/disciplinary-form.constants";
+} from "@app/modules/payroll/ui/pages/disciplinary-management/utils/disciplinary-managment.variants";
 import { Controller, useForm, type SubmitHandler } from "react-hook-form";
 
 const DEFAULT_VALUES: FaultsFilterFormValues = {
   code: "",
+  catalog_code: "",
   severity: "all",
   status: "all",
   source: "all",
@@ -54,7 +55,7 @@ export const FaultsFilters = ({
         <div className="flex flex-col justify-center">
           <h3 className="m-0! p-0!">Filtros</h3>
           <small className="text-gray-500 dark:text-gray-300">
-            Filtra faltas por código, severidad, estado u origen
+            Filtra faltas por código de instancia, catálogo, severidad, estado u origen
           </small>
         </div>
         {canWrite && (
@@ -62,94 +63,103 @@ export const FaultsFilters = ({
             type="button"
             size="giant"
             label="Registrar falta"
-            styles={{width: "max-content"}}
+            styles={{ width: "max-content" }}
             className={disciplinaryPrimaryButtonClassName}
             onClick={onRegisterFault}
           />
         )}
       </div>
 
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
-      >
-        <InputText
-          label="Código catálogo"
-          className={disciplinaryInputClassName}
-          labelClassName={disciplinaryLabelClassName}
-          placeholder="Ej. FL-ALP-01"
-          {...register("code")}
-        />
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <div className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+          <InputText
+            label="Código de falta"
+            className={disciplinaryInputClassName}
+            labelClassName={disciplinaryLabelClassName}
+            placeholder="Ej. FLT-ALP-2026-001"
+            {...register("code")}
+          />
 
-        <Controller
-          name="severity"
-          control={control}
-          render={({ field }) => (
-            <Dropdown
-              label="Severidad"
-              appearance="dark"
-              placeholder="Todas las severidades"
-              value={field.value}
-              onChange={(value) => field.onChange(value)}
-              options={FAULT_SEVERITY_FILTER_OPTIONS}
-              labelClassName={disciplinaryLabelClassName}
-              valueClassName={disciplinaryLabelClassName}
-              className={disciplinaryDropdownClassName}
-            />
-          )}
-        />
+          <InputText
+            label="Código catálogo"
+            className={disciplinaryInputClassName}
+            labelClassName={disciplinaryLabelClassName}
+            placeholder="Ej. FL-ALP-01"
+            {...register("catalog_code")}
+          />
 
-        <Controller
-          name="status"
-          control={control}
-          render={({ field }) => (
-            <Dropdown
-              label="Estado"
-              appearance="dark"
-              placeholder="Todos los estados"
-              value={field.value}
-              onChange={(value) => field.onChange(value)}
-              options={FAULT_STATUS_FILTER_OPTIONS}
-              labelClassName={disciplinaryLabelClassName}
-              valueClassName={disciplinaryLabelClassName}
-              className={disciplinaryDropdownClassName}
-            />
-          )}
-        />
+          <Controller
+            name="severity"
+            control={control}
+            render={({ field }) => (
+              <Dropdown
+                label="Severidad"
+                appearance="dark"
+                placeholder="Todas las severidades"
+                value={field.value}
+                onChange={(value) => field.onChange(value)}
+                options={FAULT_SEVERITY_FILTER_OPTIONS}
+                labelClassName={disciplinaryLabelClassName}
+                valueClassName={disciplinaryLabelClassName}
+                className={disciplinaryDropdownClassName}
+              />
+            )}
+          />
 
-        <Controller
-          name="source"
-          control={control}
-          render={({ field }) => (
-            <Dropdown
-              label="Origen"
-              appearance="dark"
-              placeholder="Todos los orígenes"
-              value={field.value}
-              onChange={(value) => field.onChange(value)}
-              options={FAULT_SOURCE_FILTER_OPTIONS}
-              labelClassName={disciplinaryLabelClassName}
-              valueClassName={disciplinaryLabelClassName}
-              className={disciplinaryDropdownClassName}
-            />
-          )}
-        />
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <Dropdown
+                label="Estado"
+                appearance="dark"
+                placeholder="Todos los estados"
+                value={field.value}
+                onChange={(value) => field.onChange(value)}
+                options={FAULT_STATUS_FILTER_OPTIONS}
+                labelClassName={disciplinaryLabelClassName}
+                valueClassName={disciplinaryLabelClassName}
+                className={disciplinaryDropdownClassName}
+              />
+            )}
+          />
 
-        <Button
-          type="submit"
-          size="giant"
-          disabled={!isDirty}
-          className={disciplinaryPrimaryButtonClassName}
-          label="Aplicar filtros"
-        />
+          <Controller
+            name="source"
+            control={control}
+            render={({ field }) => (
+              <Dropdown
+                label="Origen"
+                appearance="dark"
+                placeholder="Todos los orígenes"
+                value={field.value}
+                onChange={(value) => field.onChange(value)}
+                options={FAULT_SOURCE_FILTER_OPTIONS}
+                labelClassName={disciplinaryLabelClassName}
+                valueClassName={disciplinaryLabelClassName}
+                className={disciplinaryDropdownClassName}
+              />
+            )}
+          />
+        </div>
 
-        <Button
-          type="button"
-          size="giant"
-          className={disciplinarySecondaryButtonClassName}
-          label="Limpiar filtros"
-          onClick={handleClear}
-        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+          <Button
+            type="submit"
+            size="giant"
+            disabled={!isDirty}
+            className={disciplinaryPrimaryButtonClassName}
+            label="Aplicar filtros"
+          />
+
+          <Button
+            type="button"
+            size="giant"
+            className={disciplinarySecondaryButtonClassName}
+            label="Limpiar filtros"
+            onClick={handleClear}
+          />
+        </div>
       </form>
     </div>
   );

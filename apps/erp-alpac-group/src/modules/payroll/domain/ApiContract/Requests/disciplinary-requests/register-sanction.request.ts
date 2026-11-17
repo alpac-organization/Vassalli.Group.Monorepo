@@ -3,10 +3,11 @@ import type { DisciplinaryEvidenceRequest } from "@app/modules/payroll/domain/Ap
 import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disciplinary-enums/sanction-type.enum";
 
 /**
- * Request para aplicar una sanción disciplinaria (estado `Applied`, definitiva).
+ * Request para registrar/proponer una sanción disciplinaria (queda en estado `Pending`).
  *
  * Endpoint: `POST /companies/{company_id}/modules/{module_code}/sanctions`
  *
+ * La falta permanece `Open` hasta que RRHH la procese (`POST .../sanctions/{id}/process`).
  * Respuesta esperada: `201 Created` (sin body).
  *
  * Reglas importantes:
@@ -21,7 +22,7 @@ import type { SanctionTypeEnumMap } from "@app/modules/payroll/domain/enums/disc
  * @property {string} module_code - Código del módulo (heredado de {@link BaseRequest}).
  * @property {string} fault_id - Falta a sancionar (debe ser el target del suggested; no una hija absorbida).
  * @property {SanctionTypeEnumMap|number} sanction_type - Tipo: `VerbalWarning` | `Memorandum` | `Suspension` | `CommitmentLetter` | `Termination` (o valor numérico del enum).
- * @property {string} reason - Motivo de la sanción (máximo 500 caracteres).
+ * @property {string} reason - Motivo de la propuesta (máximo 500 caracteres).
  * @property {string|null} [suspension_start_date] - Inicio de suspensión (`YYYY-MM-DD`). Obligatorio si el tipo es `Suspension`.
  * @property {string|null} [suspension_end_date] - Fin de suspensión (`YYYY-MM-DD`). Obligatorio si Suspension; rango 3–7 días inclusive.
  * @property {DisciplinaryEvidenceRequest[]} [evidences] - Evidencias. Obligatorias salvo amonestación verbal.

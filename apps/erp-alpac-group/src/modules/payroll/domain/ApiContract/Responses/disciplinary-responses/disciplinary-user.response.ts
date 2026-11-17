@@ -2,7 +2,7 @@ import type { UserStatusEnumMap } from "@app/core/enums/user-status.enum";
 
 /**
  * Resumen de usuario asociado a una falta/sanción
- * (quién registró la falta o quién emitió la sanción).
+ * (quién registró la falta, quién propuso la sanción o quién la aprobó en RRHH).
  *
  * @property {string} user_id - Identificador del usuario.
  * @property {string|null} full_name - Nombre completo (puede ser null si no está disponible).

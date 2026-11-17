@@ -1,5 +1,14 @@
 import type { EnumType } from "@app/shared/types/enum.type";
 
+/**
+ * Tipos de sanción disciplinaria.
+ *
+ * @property VerbalWarning - Amonestación verbal (sin evidencias obligatorias).
+ * @property Memorandum - Amonestación escrita.
+ * @property Suspension - Suspensión sin goce (requiere fechas; rango 3–7 días).
+ * @property CommitmentLetter - Carta de compromiso.
+ * @property Termination - Terminación de contrato.
+ */
 export const SanctionTypeEnum = {
   VerbalWarning: { value: 1, label: "Amonestación verbal" },
   Memorandum: { value: 2, label: "Amonestación escrita" },
