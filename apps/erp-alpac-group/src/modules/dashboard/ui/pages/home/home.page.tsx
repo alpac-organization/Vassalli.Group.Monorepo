@@ -56,13 +56,8 @@ export const HomePage = function () {
 
          const companyId = useUserStore.getState().companyId ?? '';
          const refreshToken = CookieStorageAdapter.getRefreshToken() ?? '';
-         const messagingInstance = await getMessagingInstance();
-         const firebaseMessagingToken = await getFirebaseCloudMessagingToken(messagingInstance!) ?? '';
 
-         await UnlinkPushToken.mutateAsync({
-            company_id: companyId,
-            token: firebaseMessagingToken
-         });
+         await handleFirebaseMessagingToken();
 
          await startProcessToCloseSession.mutateAsync({
             company_id: companyId,
@@ -76,6 +71,30 @@ export const HomePage = function () {
          setLogout(false);
       }
    };
+
+   const handleFirebaseMessagingToken = async () => {
+      const companyId = useUserStore.getState().companyId ?? '';
+      const messagingInstance = await getMessagingInstance();
+      const canUnlinkPushToken = messagingInstance !== null &&
+         typeof Notification !== "undefined" &&
+         Notification.permission === "granted";
+
+      if (canUnlinkPushToken) {
+         try {
+            const firebaseMessagingToken =
+               (await getFirebaseCloudMessagingToken(messagingInstance)) ?? '';
+
+            if (firebaseMessagingToken) {
+               await UnlinkPushToken.mutateAsync({
+                  company_id: companyId,
+                  token: firebaseMessagingToken
+               });
+            }
+         } catch (error) {
+            console.error("No se pudo desvincular el token FCM:", error);
+         }
+      }
+   }
 
    const handleSelectModule = (module: ModulesAvailableResponse) => {
 
