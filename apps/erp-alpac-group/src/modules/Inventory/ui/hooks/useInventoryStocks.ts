@@ -32,9 +32,9 @@ export const useInventoryStocks = function(props: useInventoryStocksProps) {
 
    //#region Actualizar niveles de stock para lanzar notificaciones de alerta
 
-   const PatchInventoryStockCommand = useMutation({
-      mutationKey: [""]      
-   })
+   // const PatchInventoryStockCommand = useMutation({
+   //    mutationKey: [""]      
+   // })
 
    //#endregion
 
