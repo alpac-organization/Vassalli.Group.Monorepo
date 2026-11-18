@@ -6,6 +6,7 @@ import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/u
 import type { ContextMenuItem, TableColumn } from "@alpac/design-system";
 import type { InventoryEntry } from "@app/modules/Inventory/domain/api-contract/responses/inventory-entries.response";
 import type { ContextMenuItemsProps, InventoryEntriesColumnsToTableProps } from "./entradas.types";
+import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
 
 export const GetInventoryEntriesColumnsToTable = function (props: InventoryEntriesColumnsToTableProps = {}): TableColumn<InventoryEntry>[] {
   
@@ -57,9 +58,11 @@ export const GetInventoryEntriesColumnsToTable = function (props: InventoryEntri
       {
          key: "created_at",
          label: "Fecha",
-         render: (item) => (
-            <span>{item.created_at}</span>
-         ),
+         render: (item) => {
+            const datePart = item.created_at ? item.created_at.slice(0, 10)  : "";
+            const timePart = item.created_at ? item.created_at.slice(11, 19) : "";
+            return <span>{formatSpanishDateTime(datePart, timePart)}</span>;
+         }
       },
       {
          key: "options",
