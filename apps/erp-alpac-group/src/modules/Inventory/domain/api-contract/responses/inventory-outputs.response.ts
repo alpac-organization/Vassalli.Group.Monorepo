@@ -50,6 +50,18 @@ export interface InventoryOutputSupplyRequestDetail {
   }> | null;
   warehouse_code?: string | null;
   work_area_name?: string | null;
+  work_area_information?: { work_area_name?: string | null } | null;
+  cost_center_information?: { cost_center_name?: string | null; cost_center_code?: string | number | null } | null;
+  branch_information?: { branch_name?: string | null; branch_code?: string | null } | null;
+  equipment_information?: {
+    code?: string | null;
+    brand?: string | null;
+    model?: string | null;
+    serial_number?: string | null;
+    type?: string | null;
+  } | null;
+  customer_information?: { legal_name?: string | null } | null;
+  duca_or_transport_order?: string | null;
 }
 
 export interface InventoryOutputFuelRequestDetail {
@@ -71,6 +83,16 @@ export interface InventoryOutputFuelRequestDetail {
     status?: string | null;
     type?: string | null;
   } | null;
+  equipment_information?: {
+    code?: string | null;
+    brand?: string | null;
+    model?: string | null;
+    serial_number?: string | null;
+    type?: string | null;
+  } | null;
+  cost_center_information?: { cost_center_name?: string | null; cost_center_code?: string | number | null } | null;
+  branch_information?: { branch_name?: string | null; branch_code?: string | null } | null;
+  warehouse_information?: { code?: string | null } | null;
   product_stock_id?: string | null;
   product_stock_name?: string | null;
   requested_quantity?: number | null;
@@ -85,16 +107,42 @@ export interface InventoryOutputFuelRequestDetail {
   } | null;
   mileage?: number | null;
   engine_hours?: number | null;
+  previous_mileage?: number | null;
+  previous_engine_hours?: number | null;
   approved_by_user_chief_name?: string | null;
   annulled_by_user_chief_name?: string | null;
   justification?: string | null;
   work_area_information?: { work_area_name?: string | null } | null;
 }
 
+export interface InventoryOutputKardexMovement {
+  kardex_id?: string | null;
+  kardex_type?: string | null;
+  movement_type?: string | null;
+  units?: number | null;
+  total_units?: number | null;
+  unit_cost?: number | null;
+  total_input?: number | null;
+  total_output?: number | null;
+  average_cost?: number | null;
+  total_kardex?: number | null;
+  product_information?: {
+    product_id?: string | null;
+    product_code?: string | null;
+    product_name?: string | null;
+    description?: string | null;
+  } | null;
+  unit_measure_information?: {
+    name?: string | null;
+    symbol?: string | null;
+  } | null;
+}
+
 export interface InventoryOutputDetailDto {
   supply_request_detail?: InventoryOutputSupplyRequestDetail | null;
   fuel_request_detail?: InventoryOutputFuelRequestDetail | null;
   inventory_stock_informations?: InventoryOutputDetailStockInformation[] | null;
+  kardex_movements?: InventoryOutputKardexMovement[] | null;
   dispatched_by_user_name?: string | null;
   dispatched_at?: string | null;
   dispatched_justification?: string | null;

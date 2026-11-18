@@ -56,7 +56,7 @@ export function SupplyRequestForm({
   showDuca = false,
   onSubmit,
 }: SupplyRequestFormProps) {
-  const { companyId, moduleCode, costCenterId } = useUserStore();
+  const { companyId, moduleCode, costCenterId, branchId } = useUserStore();
 
   const stockPayload =
     companyId && moduleCode
@@ -109,6 +109,7 @@ export function SupplyRequestForm({
           module_code: moduleCode,
           page_size: 100,
           page_number: 1,
+          branch_id: branchId,
         }
       : null;
 
