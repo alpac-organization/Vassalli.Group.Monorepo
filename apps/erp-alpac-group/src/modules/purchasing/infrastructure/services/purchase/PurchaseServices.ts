@@ -11,6 +11,7 @@ import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/A
 import type { GetPurchaseRequestProductPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-product-payload";
 import type { GetPurchaseRequestDocumentRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-document-request";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
+import type { ProcessPurchaseOrderEntryPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-order-entry-payload";
 import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
 import type { UpdatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/update-purchase-request-payload";
 import type { AnnulPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/annul-purchase-request-payload";
@@ -20,6 +21,7 @@ import type {
 } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-order-report-payload";
 import type { GetMonthlyPurchaseReportResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-monthly-purchase-report-response";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
+import type { InventoryEntry } from "@app/modules/Inventory/domain/api-contract/responses/inventory-entries.response";
 import type { PurchaseRequestDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-document-response";
 import type { PurchaseOrderDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-document-response";
 import type { PurchaseOrderTemplateDto } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-report-response";
@@ -153,6 +155,16 @@ export class PurchaseServices implements IPurchaseServices {
 		const url = `/companies/${company_id}/modules/${module_code}/purchase-orders/${purchase_order_id}/document-generator`;
 		return this.apiHandler.get<PurchaseOrderDocumentResponse>(url, {
 			params: cleanParams({ payment_method }),
+		});
+	}
+
+	async ProcessPurchaseOrderEntry(
+		payload: ProcessPurchaseOrderEntryPayload,
+	): Promise<InventoryEntry> {
+		const { company_id, module_code, purchase_order_id, comments } = payload;
+		const url = `/companies/${company_id}/modules/${module_code}/purchase-orders/${purchase_order_id}/process-entry`;
+		return this.apiHandler.post<InventoryEntry>(url, {
+			comments,
 		});
 	}
 

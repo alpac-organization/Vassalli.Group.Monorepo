@@ -22,9 +22,9 @@ import type { GetPurchaseOrdersPayload } from "@app/modules/purchasing/domain/Ap
 import { getPurchaseOrderTableColumns } from "@app/modules/purchasing/ui/pages/purchase-order/utils/purchase-order-table-columns";
 import type { GetPurchaseOrdersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
 import { PurchaseOrderDetailsModal } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-details-modal/purchase-order-details-modal";
+import { ProcessInventoryEntryModal } from "@app/modules/purchasing/ui/pages/purchase-order/components/process-inventory-entry-modal/process-inventory-entry-modal";
 
-const dropdownClassName =
-	"w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
+const dropdownClassName = "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
 const labelClassName = "text-black! dark:text-white!";
 const DEFAULT_PAGE_NUMBER = 1;
 const DEFAULT_PAGE_SIZE = 10;
@@ -35,7 +35,7 @@ export const PurchaseOrder = () => {
 	const { theme } = useTheme();
 	const { urlImage, neutralUrlImage } = useCompanyStore();
 	const { companyId, moduleCode } = useUserStore();
-	const { AlertComponent, handleRequestError } = useAlertState();
+	const { AlertComponent, handleRequestError, handleRequestSuccess } = useAlertState();
 	const { isGenerating, generatePurchaseOrderPdf } = usePurchaseOrderPdf();
 
 	const [selectedAreaId, setSelectedAreaId] = useState("");
@@ -44,10 +44,12 @@ export const PurchaseOrder = () => {
 	const [appliedBranchId, setAppliedBranchId] = useState("");
 	const [pageNumber, setPageNumber] = useState(DEFAULT_PAGE_NUMBER);
 	const [pageSize, setPageSize] = useState<number | undefined>(undefined);
-	const [isPurchaseOrderDetailsOpen, setIsPurchaseOrderDetailsOpen] =
-		useState(false);
-	const [selectedPurchaseOrder, setSelectedPurchaseOrder] =
-		useState<GetPurchaseOrdersResponse | null>(null);
+
+	const [isPurchaseOrderDetailsOpen, setIsPurchaseOrderDetailsOpen] = useState(false);
+	const [selectedPurchaseOrder, setSelectedPurchaseOrder] = useState<GetPurchaseOrdersResponse | null>(null);
+
+	const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
+	const [entryOrder, setEntryOrder] = useState<GetPurchaseOrdersResponse | null>(null);
 
 	const purchaseOrdersPayload = useMemo<GetPurchaseOrdersPayload>(
 		() => ({
@@ -74,8 +76,9 @@ export const PurchaseOrder = () => {
 		company_id: companyId,
 		module_code: moduleCode,
 	});
+	
 	const { GetBranchesQuery } = useCompanies({ company_id: companyId });
-	const { GetPurchaseOrders } = usePurchaseOrders({
+	const { GetPurchaseOrders, ProcessPurchaseOrderEntry } = usePurchaseOrders({
 		getPurchaseOrdersPayload: purchaseOrdersPayload,
 	});
 
@@ -134,23 +137,64 @@ export const PurchaseOrder = () => {
 					purchaseOrderId: row.purchase_order_id,
 				});
 			} catch (error) {
-				const message =
-					error instanceof Error
-						? error.message
-						: "No se pudo generar la orden de compra.";
-				handleRequestError(message);
+				handleRequestError(error, "No se pudo generar la orden de compra.");
 			}
 		},
 		[generatePurchaseOrderPdf, handleRequestError],
 	);
+
+	const onProcessInventoryEntry = useCallback(
+		(row: GetPurchaseOrdersResponse) => {
+			setEntryOrder(row);
+			setIsEntryModalOpen(true);
+		},
+		[],
+	);
+
+	const handleCloseEntryModal = useCallback(() => {
+		setIsEntryModalOpen(false);
+		setEntryOrder(null);
+	}, []);
+
+	const handleConfirmProcessEntry = useCallback(async () => {
+		if (!entryOrder) return;
+
+		try {
+			const inventoryEntry = await ProcessPurchaseOrderEntry.mutateAsync({
+				company_id: companyId,
+				module_code: moduleCode,
+				purchase_order_id: entryOrder.purchase_order_id,
+			});
+
+			handleRequestSuccess(
+				`Entrada de inventario ${inventoryEntry.code ?? ""} creada correctamente.`.trim(),
+			);
+
+			handleCloseEntryModal();
+		} catch (error) {
+			handleRequestError(
+				error,
+				"No se pudo procesar la entrada de inventario.",
+			);
+		}
+	}, [
+		ProcessPurchaseOrderEntry,
+		companyId,
+		entryOrder,
+		handleCloseEntryModal,
+		handleRequestError,
+		handleRequestSuccess,
+		moduleCode,
+	]);
 
 	const columnsConfig = useMemo(
 		() =>
 			getPurchaseOrderTableColumns({
 				onViewDetail,
 				onGeneratePurchaseOrderPdf,
+				onProcessInventoryEntry,
 			}),
-		[onViewDetail, onGeneratePurchaseOrderPdf],
+		[onViewDetail, onGeneratePurchaseOrderPdf, onProcessInventoryEntry],
 	);
 
 	const showLoader = GetPurchaseOrders.isLoading || isGenerating;
@@ -277,6 +321,14 @@ export const PurchaseOrder = () => {
 				isOpen={isPurchaseOrderDetailsOpen}
 				onClose={() => setIsPurchaseOrderDetailsOpen(false)}
 				purchaseOrder={selectedPurchaseOrder}
+			/>
+
+			<ProcessInventoryEntryModal
+				isOpen={isEntryModalOpen}
+				order={entryOrder}
+				isLoading={ProcessPurchaseOrderEntry.isPending}
+				onClose={handleCloseEntryModal}
+				onConfirm={() => void handleConfirmProcessEntry()}
 			/>
 
 			{AlertComponent}

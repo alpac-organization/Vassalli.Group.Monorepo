@@ -2,14 +2,17 @@ import { warehouseHttpHandler } from "@app/core/adapters";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { PurchaseOrderDocumentRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-order-request";
 import type { GetPurchaseOrdersPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-orders-payload";
+import type { ProcessPurchaseOrderEntryPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-order-entry-payload";
+import type { InventoryEntry } from "@app/modules/Inventory/domain/api-contract/responses/inventory-entries.response";
 import type { PurchaseOrderDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-document-response";
 import type { GetPurchaseOrdersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
 import { PurchaseServices } from "@app/modules/purchasing/infrastructure/services/purchase/PurchaseServices";
 import {
+	invalidatePurchaseOrders,
 	purchaseQueryKeys,
 	STALE_TIME_ONE_MINUTE,
 } from "@app/modules/purchasing/ui/hooks/purchase/purchase-query-cache";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const purchaseServices = new PurchaseServices(warehouseHttpHandler);
 
@@ -19,6 +22,7 @@ type UsePurchaseOrdersProps = {
 
 export const usePurchaseOrders = (props?: UsePurchaseOrdersProps) => {
 	const { getPurchaseOrdersPayload } = props || {};
+	const queryClient = useQueryClient();
 
 	const purchaseOrdersEnabled = Boolean(
 		getPurchaseOrdersPayload?.company_id?.trim() &&
@@ -49,8 +53,25 @@ export const usePurchaseOrders = (props?: UsePurchaseOrdersProps) => {
 		retry: 1,
 	});
 
+	const ProcessPurchaseOrderEntry = useMutation<
+		InventoryEntry,
+		ApiErrorResponse,
+		ProcessPurchaseOrderEntryPayload
+	>({
+		mutationKey: ["process-purchase-order-entry"],
+		mutationFn: (payload) =>
+			purchaseServices.ProcessPurchaseOrderEntry(payload),
+		onSuccess() {
+			queryClient.invalidateQueries({
+				queryKey: ["inventory-entries"],
+			});
+		},
+		retry: 1,
+	});
+
 	return {
 		GetPurchaseOrders,
 		GetPurchaseOrderDocument,
+		ProcessPurchaseOrderEntry,
 	};
 };

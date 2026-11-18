@@ -27,6 +27,7 @@ export interface GetPurchaseOrdersResponse {
   payment_request_code: string | null;
   supplier_id: string | null;
   supplier_name: string | null;
+  requires_inventory_entry: boolean;
   comments: string | null;
   sent_to_review_at: string;
   sent_by_user_information: UserInformation;

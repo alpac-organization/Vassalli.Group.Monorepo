@@ -5,8 +5,8 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useInventoryEntries } from "@app/modules/Inventory/ui/hooks/useInventoryEntries";
 import { EntradasSectionFilters } from "./components/entradas-section-filters/entradas-section-filters";
 import { EntradasDetailModal } from "./components/entradas-detail-modal/entradas-detail-modal";
-import { GetInventoryEntriesColumnsToTable } from "./entradas.variants";
 import { DEFAULT_ENTRADAS_FILTERS } from "./entradas.types";
+import { GetInventoryEntriesColumnsToTable } from "./entradas.variants";
 
 import type { EntradasFilters } from "./entradas.types";
 import type { InventoryEntry } from "@app/modules/Inventory/domain/api-contract/responses/inventory-entries.response";

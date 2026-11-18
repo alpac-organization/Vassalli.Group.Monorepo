@@ -26,7 +26,7 @@ export const useInventoryEntries = function (props: useInventoryEntriesProps) {
     staleTime: 0,
     retryDelay: 3000,
     refetchOnMount: false,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
   });
 
   const GetInventoryEntryDetailQuery = useQuery<InventoryEntryDetail, ApiErrorResponse>({
