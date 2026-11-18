@@ -1,4 +1,5 @@
 import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
+import type { PurchaseOrderStatusType } from "@app/modules/purchasing/domain/enums/purchase-order-status.enum";
 import type { UserInformation } from "@app/shared/interfaces/organization-information/organization-information";
 
 export interface PurchaseOrderItemQuotationSupplier {
@@ -31,10 +32,11 @@ export interface PurchaseOrderDetailItem {
 }
 
 export interface GetPurchaseOrderDetailsResponse {
-	comments: string | null;
-	sent_to_review_at: string;
-	purchase_order_id: string;
-	purchase_order_code: string | null;
+  comments: string | null;
+  sent_to_review_at: string;
+  purchase_order_id: string;
+  purchase_order_code: string | null;
+  status: PurchaseOrderStatusType;
 	supplier_id: string | null;
 	supplier_name: string | null;
 	sent_by_user_information: UserInformation | null;

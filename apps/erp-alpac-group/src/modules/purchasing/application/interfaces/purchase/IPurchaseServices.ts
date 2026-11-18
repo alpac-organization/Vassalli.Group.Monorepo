@@ -9,11 +9,13 @@ import type { GetPurchaseRequestPayload } from "@app/modules/purchasing/domain/A
 import type { GetPurchaseRequestProductPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-product-payload";
 import type { GetPurchaseRequestDocumentRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-request-document-request";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
+import type { ProcessPurchaseOrderEntryPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-order-entry-payload";
 import type { SendPurchaseRequestToReviewPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/send-purchase-request-review-payload";
 import type { UpdatePurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/update-purchase-request-payload";
 import type { AnnulPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/annul-purchase-request-payload";
 import type { GetMonthlyPurchaseReportResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-monthly-purchase-report-response";
 import type { GetPurchaseOrderDetailsResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-details-response";
+import type { InventoryEntry } from "@app/modules/Inventory/domain/api-contract/responses/inventory-entries.response";
 import type { PurchaseOrderDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-order-document-response";
 import type { PurchaseRequestDocumentResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-document-response";
 import type { GetPurchaseOrdersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
@@ -75,6 +77,10 @@ export interface IPurchaseServices {
 	GetPurchaseOrderDocument(
 		payload: PurchaseOrderDocumentRequest,
 	): Promise<PurchaseOrderDocumentResponse>;
+
+	ProcessPurchaseOrderEntry(
+		payload: ProcessPurchaseOrderEntryPayload,
+	): Promise<InventoryEntry>;
 
 	GetPurchaseOrderReport(
 		payload: GetPurchaseOrderReportPayload,

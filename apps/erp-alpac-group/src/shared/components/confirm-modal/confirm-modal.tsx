@@ -109,11 +109,13 @@ export const ConfirmModal = ({
 			</div>
 
 			<AnimatedAlertWrapper open={alertState?.open ?? false}>
-				<Alert
-					type={alertState?.type!}
-					title={alertState?.title}
-					message={alertState?.message!}
-				/>
+				{alertState && (
+					<Alert
+						type={alertState.type}
+						title={alertState.title}
+						message={alertState.message}
+					/>
+				)}
 			</AnimatedAlertWrapper>
 		</Modal>
 	);
