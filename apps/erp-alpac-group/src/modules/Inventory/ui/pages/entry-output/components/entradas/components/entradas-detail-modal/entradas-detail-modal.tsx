@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Badges, DataTable, Modal } from "@alpac/design-system";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { ModalInfoField } from "@app/shared/components/modal-info-field/modal-info-field";
@@ -76,6 +77,11 @@ const ORDER_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
     ),
   },
   {
+    key: "cost_center_name",
+    label: "Centro de costo",
+    render: (item) => <span>{item.cost_center_name ?? "—"}</span>,
+  },
+  {
     key: "supplier_name",
     label: "Proveedor",
     render: (item) => <span>{item.supplier_name ?? "—"}</span>,
@@ -113,6 +119,7 @@ const getPurchaseRequestStatusLabel = (status?: string | null) => {
 export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
    const { isOpen, onClose, entry } = props;
    const { companyId, moduleCode } = useUserStore();
+   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
    const { GetInventoryEntryDetailQuery } = useInventoryEntries({
       payloadGetInventoryEntryDetailRequest:
@@ -126,8 +133,6 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
    });
 
    const detail = GetInventoryEntryDetailQuery.data ?? null;
-
-   console.log(JSON.stringify(detail, null, 3));
 
    const isLoading =
       GetInventoryEntryDetailQuery.isPending ||
@@ -227,6 +232,18 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                      value={formatDateOrDash(detail.created_at)}
                   />
                )}
+               {detail && (
+                  <ModalInfoField
+                     label="NÚMERO DE FACTURA"
+                     value={detail.invoice_number ?? "—"}
+                  />
+               )}
+               {detail && (
+                  <ModalInfoField
+                     label="FECHA DE FACTURA"
+                     value={formatDate(detail.invoice_date)}
+                  />
+               )}
                {detail?.supplier_name && (
                   <ModalInfoField
                      label="PROVEEDOR"
@@ -290,16 +307,59 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                </div>
             )}
 
+            {detail && detail.evidence_images?.length > 0 && (
+               <div className="flex flex-col gap-2 border-t border-slate-600 pt-4 dark:border-neutral-600">
+                <h3 className="text-sm font-semibold text-slate-200">
+                   Evidencias de la factura
+                </h3>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                   {detail.evidence_images.map((image) =>
+                      image.image_url ? (
+                         <button
+                            key={image.image_id}
+                            type="button"
+                            onClick={() => setPreviewImage(image.image_url)}
+                            className="overflow-hidden rounded-md border border-slate-200 transition-transform hover:scale-[1.02] dark:border-slate-600"
+                         >
+                            <img
+                               src={image.image_url}
+                               alt="Evidencia de la factura"
+                               className="h-24 w-full object-cover"
+                            />
+                         </button>
+                      ) : null,
+                   )}
+                </div>
+               </div>
+            )}
+
             {detail?.observations && (
                <div className="rounded-md bg-[#303846] p-3">
-               <p className="text-[10px] font-semibold text-[#91A0B5]">
-                  OBSERVACIONES
-               </p>
-               <p className="text-[13px] text-[#E2E8F0]">{detail.observations}</p>
+                <p className="text-[10px] font-semibold text-[#91A0B5]">
+                   OBSERVACIONES
+                </p>
+                <p className="text-[13px] text-[#E2E8F0]">{detail.observations}</p>
                </div>
             )}
          </div>
          )}
+
+         <Modal
+            isOpen={Boolean(previewImage)}
+            onClose={() => setPreviewImage(null)}
+            title="Vista previa de evidencia"
+            size="3xl"
+         >
+            {previewImage && (
+               <div className="flex h-full max-h-[80vh] w-full items-center justify-center rounded-md bg-slate-100 p-2 dark:bg-black/50">
+                  <img
+                     src={previewImage}
+                     alt="Evidencia ampliada"
+                     className="max-h-full max-w-full object-contain drop-shadow-lg"
+                  />
+               </div>
+            )}
+         </Modal>
       </Modal>
    );
 };

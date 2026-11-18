@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { DataTable, Pagination, SectionHeader } from "@alpac/design-system"
+import { toApiDate } from "@app/shared/utils/date.utils";
 import { useKardexMovements } from "@app/modules/Inventory/ui/hooks/useKardexMovements";
 import { DEFAULT_KARDEX_MOVEMENT_FILTERS, GetKardexMovementsColumnsToTable } from "./kardex-movement.variants";
 import { KardexMovementSectionFilters } from "./views/kardex-movement-section-filters/kardex-movement-section-filters";
@@ -17,7 +18,9 @@ export const KardexMovement = function(){
       payloadGetKardexMovementsRequest: {
          company_id:  companyId,
          module_code: moduleCode,
-         ...filters
+         ...filters,
+         date_from: toApiDate(filters.date_from) ?? undefined,
+         date_to: toApiDate(filters.date_to) ?? undefined,
       }
    });
 

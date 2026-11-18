@@ -2,9 +2,11 @@ import { useCallback, useState } from "react";
 import { DataTable, Pagination, SectionHeader } from "@alpac/design-system";
 
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useInventoryEntries } from "@app/modules/Inventory/ui/hooks/useInventoryEntries";
 import { EntradasSectionFilters } from "./components/entradas-section-filters/entradas-section-filters";
 import { EntradasDetailModal } from "./components/entradas-detail-modal/entradas-detail-modal";
+import { EntradasRegisterModal } from "./components/entradas-register-modal/entradas-register-modal";
 import { DEFAULT_ENTRADAS_FILTERS } from "./entradas.types";
 import { GetInventoryEntriesColumnsToTable } from "./entradas.variants";
 
@@ -13,8 +15,10 @@ import type { InventoryEntry } from "@app/modules/Inventory/domain/api-contract/
 
 export const Entradas = function () {
    const { companyId, moduleCode } = useUserStore();
+   const { AlertComponent, handleRequestSuccess, handleRequestError } = useAlertState();
    const [filters, setFilters] = useState<EntradasFilters>(DEFAULT_ENTRADAS_FILTERS);
    const [selectedEntry, setSelectedEntry] = useState<InventoryEntry | null>(null);
+   const [entryToRegister, setEntryToRegister] = useState<InventoryEntry | null>(null);
 
    const { GetInventoryEntriesQuery } = useInventoryEntries({
       payloadGetInventoryEntriesRequest: {
@@ -31,6 +35,7 @@ export const Entradas = function () {
    const columns = GetInventoryEntriesColumnsToTable({
       ActionsMenuContext: {
          onViewEntry: setSelectedEntry,
+         onRegisterEntry: setEntryToRegister,
       },
    });
 
@@ -77,11 +82,29 @@ export const Entradas = function () {
             }
          />
          
-         <EntradasDetailModal
-            isOpen={Boolean(selectedEntry)}
-            onClose={() => setSelectedEntry(null)}
-            entry={selectedEntry}
-         />
-      </div>
+          <EntradasDetailModal
+             isOpen={Boolean(selectedEntry)}
+             onClose={() => setSelectedEntry(null)}
+             entry={selectedEntry}
+          />
+
+          <EntradasRegisterModal
+             key={entryToRegister?.inventory_entry_id ?? "closed"}
+             isOpen={Boolean(entryToRegister)}
+             entry={entryToRegister}
+             onClose={() => setEntryToRegister(null)}
+             onRegistered={(registered) => {
+                handleRequestSuccess(
+                   `La entrada ${registered.code ?? ""} fue registrada correctamente.`.trim(),
+                );
+                setEntryToRegister(null);
+             }}
+             onError={(error) =>
+                handleRequestError(error, "No se pudo registrar la entrada de inventario.")
+             }
+          />
+
+          {AlertComponent}
+       </div>
    );
 };

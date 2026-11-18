@@ -8,7 +8,6 @@ import type { PurchaseOrderDocumentResponse } from "@app/modules/purchasing/doma
 import type { GetPurchaseOrdersResponseList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
 import { PurchaseServices } from "@app/modules/purchasing/infrastructure/services/purchase/PurchaseServices";
 import {
-	invalidatePurchaseOrders,
 	purchaseQueryKeys,
 	STALE_TIME_ONE_MINUTE,
 } from "@app/modules/purchasing/ui/hooks/purchase/purchase-query-cache";

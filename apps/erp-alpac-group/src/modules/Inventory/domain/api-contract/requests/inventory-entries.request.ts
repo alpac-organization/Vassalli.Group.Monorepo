@@ -14,3 +14,17 @@ export interface InventoryEntriesRequest extends BaseRequest {
 export interface GetInventoryEntryDetailRequest extends BaseRequest {
   inventory_entry_id: string;
 }
+
+export interface RegisterInventoryEntryItemRequest {
+  purchase_order_item_id: string;
+  cost_center_id: string;
+}
+
+export interface RegisterInventoryEntryRequest extends BaseRequest {
+  inventory_entry_id: string;
+  invoice_number: string;
+  invoice_date?: string | null;
+  observations?: string | null;
+  evidence_images_base64: string[];
+  items: RegisterInventoryEntryItemRequest[];
+}

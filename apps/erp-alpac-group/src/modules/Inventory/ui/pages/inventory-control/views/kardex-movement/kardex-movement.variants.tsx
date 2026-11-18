@@ -76,6 +76,13 @@ export const GetKardexMovementsColumnsToTable = function(): TableColumn<KardexMo
          }
       },
       {
+         key: "units",
+         label: "Cantidad",
+         render(item){
+            return <span>{item.units.toLocaleString("es-NI", { maximumFractionDigits: 2 })}</span>
+         }
+      },
+      {
          key: "unit_cost",
          label: "Costo Unitario",
          render(item){
@@ -104,8 +111,15 @@ export const GetKardexMovementsColumnsToTable = function(): TableColumn<KardexMo
          }
       },
       {
+         key: "total_units",
+         label: "Saldo unidades",
+         render(item){
+            return <span>{item.total_units.toLocaleString("es-NI", { maximumFractionDigits: 2 })}</span>
+         }
+      },
+      {
          key: "total_kardex",
-         label: "Total en Kardex",
+         label: "Saldo valorizado",
          render(item){
             return <span>{formatCurrency(item.total_kardex)}</span>
          }
@@ -148,6 +162,8 @@ export const DEFAULT_KARDEX_MOVEMENT_FILTERS: KardexMovementFilters = {
    category_id:  "",
    kardex_type:  null,
    movement_type: null,
+   date_from: null,
+   date_to: null,
 
    page_number:  0,
    page_size:    5

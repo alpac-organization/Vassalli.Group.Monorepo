@@ -44,11 +44,21 @@ export interface InventoryEntryItemDetail {
   unit_measure_symbol: string | null;
   supplier_id: string | null;
   supplier_name: string | null;
+  cost_center_id: string | null;
+  cost_center_name: string | null;
+}
+
+export interface InventoryEntryEvidenceImage {
+  image_id: string;
+  image_url: string | null;
 }
 
 export interface InventoryEntryDetail extends InventoryEntry {
   observations: string | null;
   additional_data: string | null;
+  invoice_number: string | null;
+  invoice_date: string | null;
+  evidence_images: InventoryEntryEvidenceImage[];
   work_area_information: WorkAreaInformation | null;
   purchase_request_information: GetPurchaseRequestResponse | null;
   purchase_request_items: InventoryEntryPurchaseRequestItem[];

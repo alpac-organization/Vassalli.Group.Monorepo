@@ -3,6 +3,7 @@ import type { InventoryEntry } from "@app/modules/Inventory/domain/api-contract/
 
 export interface ActionsMenuContext {
   onViewEntry?: (entry: InventoryEntry) => void;
+  onRegisterEntry?: (entry: InventoryEntry) => void;
 }
 
 export interface ContextMenuItemsProps extends ActionsMenuContext {
