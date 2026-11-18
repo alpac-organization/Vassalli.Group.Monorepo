@@ -1,6 +1,7 @@
 import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { fuelRequestPdfStyles as styles } from "./fuel-request-pdf.styles";
+import { getEquipmentTypeLabel } from "@app/modules/warehouse/domain/enums/equipment.enum";
 
 export function FuelRequestPDF({ data }: { data: any }) {
   const { urlImage } = useCompanyStore();
@@ -15,9 +16,29 @@ export function FuelRequestPDF({ data }: { data: any }) {
   });
   const createdAt = data?.created_at ? new Date(data.created_at).toLocaleString() : "—";
 
-  const machinery = [data?.machinery_code, data?.machinery_brand, data?.machinery_model]
+  const equipmentCode =
+    data?.equipment_information?.code ?? data?.equipment_code ?? "—";
+  const equipmentBrand =
+    data?.equipment_information?.brand ?? data?.equipment_brand ?? "—";
+  const equipmentModel =
+    data?.equipment_information?.model ?? data?.equipment_model ?? "—";
+  const equipmentSerial = data?.equipment_information?.serial_number ?? "—";
+  const equipmentTypeRaw = data?.equipment_information?.type ?? "—";
+  const equipmentType = getEquipmentTypeLabel(equipmentTypeRaw);
+
+  const fuelTypes = [
+    data?.equipment_information?.gasoline ? "Gasolina" : null,
+    data?.equipment_information?.diesel ? "Diésel" : null,
+    data?.equipment_information?.electric ? "Eléctrico" : null,
+    data?.equipment_information?.lpg ? "GLP" : null,
+  ]
     .filter(Boolean)
-    .join(" / ") || "—";
+    .join(", ") || "—";
+
+  const hasMileage =
+    data?.mileage != null || data?.previous_mileage != null;
+  const hasEngineHours =
+    data?.engine_hours != null || data?.previous_engine_hours != null;
 
   return (
     <Document title={`solicitud ${data?.fuel_request_code ?? "combustible"}.pdf`}>
@@ -36,11 +57,11 @@ export function FuelRequestPDF({ data }: { data: any }) {
         <Text style={styles.sectionTitle}>Información general</Text>
         <View style={styles.grid}>
           <View style={styles.field}>
-            <Text style={styles.label}>Código</Text>
+            <Text style={styles.label}>Código de Solicitud</Text>
             <Text style={styles.value}>{data?.fuel_request_code ?? "—"}</Text>
           </View>
           <View style={styles.field}>
-            <Text style={styles.label}>Estado</Text>
+            <Text style={styles.label}>Estado de Solicitud</Text>
             <Text style={styles.value}>{data?.outflow_status ?? "—"}</Text>
           </View>
           <View style={styles.field}>
@@ -61,20 +82,48 @@ export function FuelRequestPDF({ data }: { data: any }) {
             <Text style={styles.label}>Aprobado por</Text>
             <Text style={styles.value}>{data?.approved_by_user_chief_name ?? "—"}</Text>
           </View>
-          {data?.annulled_by_user_chief_name ? (
+        </View>
+
+        <View style={styles.divider} />
+        <Text style={styles.sectionTitle}>Información de activo fijo</Text>
+        <View style={styles.grid}>
+          <View style={styles.field}>
+            <Text style={styles.label}>Código de activo</Text>
+            <Text style={styles.value}>{equipmentCode}</Text>
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Marca</Text>
+            <Text style={styles.value}>{equipmentBrand}</Text>
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Modelo</Text>
+            <Text style={styles.value}>{equipmentModel}</Text>
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Número de serie</Text>
+            <Text style={styles.value}>{equipmentSerial}</Text>
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Tipo</Text>
+            <Text style={styles.value}>{equipmentType}</Text>
+          </View>
+          <View style={styles.field}>
+            <Text style={styles.label}>Combustible</Text>
+            <Text style={styles.value}>{fuelTypes}</Text>
+          </View>
+          {data?.warehouse_information?.code || data?.warehouse_information?.warehouse_id ? (
             <View style={styles.field}>
-              <Text style={styles.label}>Anulado por</Text>
-              <Text style={styles.value}>{data.annulled_by_user_chief_name}</Text>
+              <Text style={styles.label}>Almacén</Text>
+              <Text style={styles.value}>
+                {data?.warehouse_information?.code ?? data?.warehouse_information?.warehouse_id ?? "—"}
+              </Text>
             </View>
           ) : null}
         </View>
 
+        <View style={styles.divider} />
         <Text style={styles.sectionTitle}>Detalle de combustible</Text>
         <View style={styles.grid}>
-          <View style={styles.field}>
-            <Text style={styles.label}>Maquinaria</Text>
-            <Text style={styles.value}>{machinery}</Text>
-          </View>
           <View style={styles.field}>
             <Text style={styles.label}>Producto solicitado</Text>
             <Text style={styles.value}>{data?.product_stock_name ?? "—"}</Text>
@@ -85,15 +134,22 @@ export function FuelRequestPDF({ data }: { data: any }) {
               {quantity} {data?.unit_measure_symbol ?? ""} ({liters} L)
             </Text>
           </View>
-          {data?.mileage != null ? (
+          {hasMileage ? (
             <View style={styles.field}>
               <Text style={styles.label}>Kilometraje</Text>
-              <Text style={styles.value}>{data.mileage}</Text>
+              <Text style={styles.value}>
+                Anterior: {data?.previous_mileage != null ? `${data.previous_mileage} km` : "—"}{"\n"}
+                Actual: {data?.mileage != null ? `${data.mileage} km` : "—"}
+              </Text>
             </View>
-          ) : data?.engine_hours != null ? (
+          ) : null}
+          {hasEngineHours ? (
             <View style={styles.field}>
               <Text style={styles.label}>Horas motor</Text>
-              <Text style={styles.value}>{data.engine_hours}</Text>
+              <Text style={styles.value}>
+                Anterior: {data?.previous_engine_hours != null ? `${data.previous_engine_hours} hrs` : "—"}{"\n"}
+                Actual: {data?.engine_hours != null ? `${data.engine_hours} hrs` : "—"}
+              </Text>
             </View>
           ) : null}
         </View>
