@@ -19,13 +19,13 @@ export const GetOperationalSupplyRequestColumnsToTable = function (
         return <span>{item.supply_request_code}</span>;
       },
     },
-    {
-      key: "po_code",
-      label: "Codigo PO",
-      render(item) {
-        return <span>{item.po_code ?? "—"}</span>;
-      },
-    },
+    // {
+    //   key: "po_code",
+    //   label: "Codigo PO",
+    //   render(item) {
+    //     return <span>{item.po_code ?? "—"}</span>;
+    //   },
+    // },
     {
       key: "warehouse_code",
       label: "Almacén",

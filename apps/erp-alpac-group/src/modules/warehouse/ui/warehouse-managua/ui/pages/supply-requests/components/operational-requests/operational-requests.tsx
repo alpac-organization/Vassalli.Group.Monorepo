@@ -8,6 +8,9 @@ import { Badges, Button, DataTable, Modal, Pagination, SectionHeader } from "@al
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useSupplyRequests } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useSupplyRequests";
+import { useRegisterSupplyRequestManual } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useRegisterSupplyRequestManual";
+import { SupplyRequestForm } from "@app/modules/warehouse/ui/warehouse-managua/ui/components/supply-request-modal/supply-request-form";
+import { InventoryStocksTable } from "../combustibles/inventory-stocks-table/inventory-stocks-table";
 import { useSupplyRequestDetail } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useSupplyRequestDetail";
 import { useSupplyRequestDecision } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useSupplyRequestDecision";
 import { useReasonsInventoryRemoval } from "@app/modules/Inventory/ui/hooks/useReasonsInventoryRemoval";
@@ -33,6 +36,9 @@ export const OperationalRequests = function () {
 
   const [filters, setFilters] = useState<OperationalRequestsFilters>(DEFAULT_OPERATIONAL_FILTERS);
   const [selectedSupplyRequestId, setSelectedSupplyRequestId] = useState<string | null>(null);
+  const [isReabastecimientoOpen, setIsReabastecimientoOpen] = useState(false);
+
+  const { RegisterSupplyRequestManual } = useRegisterSupplyRequestManual();
 
   const payloadGetSupplyRequestsRequest = useMemo(
     () => ({
@@ -217,8 +223,45 @@ export const OperationalRequests = function () {
     setSelectedSupplyRequestId(null);
   }, []);
 
+  const handleSubmitSupplyRequest = async (payload: {
+    items: { product_stock_id: string; amount: number }[];
+    justification: string;
+    warehouse_id?: string;
+    reason_use?: any;
+  }) => {
+    if (!companyId || !moduleCode) return false;
+    if (!payload.warehouse_id) return false;
+    try {
+      const code = await RegisterSupplyRequestManual.mutateAsync({
+        company_id: companyId,
+        module_code: moduleCode,
+        justification: payload.justification,
+        warehouse_id: payload.warehouse_id,
+        items: payload.items,
+        reason_use: payload.reason_use ?? "Operation",
+      });
+      handleRequestSuccess(
+        `Solicitud de insumos registrada exitosamente.\nCódigo: ${code}`,
+        "Éxito",
+        false,
+      );
+      setIsReabastecimientoOpen(false);
+      return true;
+    } catch (error) {
+      handleRequestError(error);
+      return false;
+    }
+  };
+
   return (
     <div className="flex flex-col gap-5 bg-transparent">
+      <div className="flex justify-end">
+        <Button
+          label="+ Solicitar"
+          onClick={() => setIsReabastecimientoOpen(true)}
+        />
+      </div>
+
       <SectionHeader
         title="Filtros de búsqueda"
         subtitle="Utiliza los filtros de busqueda para una busqueda mas rapida."
@@ -467,6 +510,35 @@ export const OperationalRequests = function () {
         isPending={DeclineSupplyRequest.isPending}
         onConfirm={() => void handleDecline()}
       />
+
+      <Modal
+        isOpen={isReabastecimientoOpen}
+        onClose={() => setIsReabastecimientoOpen(false)}
+        title="Reabastecimiento"
+        description="Gestión de solicitudes de insumos."
+        variant="default"
+        size="full"
+        panelClassName="w-full max-w-none"
+      >
+        <div className="flex flex-col lg:flex-row gap-4 min-w-0">
+          <div className="w-full lg:w-1/3 min-w-0 box-border flex flex-col gap-3 rounded-lg border border-slate-200 dark:border-slate-500 p-4 sm:p-6">
+            <h3 className="p-0! m-0!">Solicitud de insumos</h3>
+            <small className="text-gray-500 dark:text-gray-300 text-[12px] sm:text-sm leading-snug">
+              Registra una solicitud de insumos de forma manual.
+            </small>
+            <SupplyRequestForm
+              isSubmitting={RegisterSupplyRequestManual.isPending}
+              showWarehouse
+              showReasonUse
+              onSubmit={handleSubmitSupplyRequest}
+            />
+          </div>
+
+          <div className="w-full lg:w-2/3 min-w-0 box-border rounded-lg border border-slate-200 dark:border-slate-500 p-4 sm:p-6">
+            <InventoryStocksTable isFuel={false} isMaterial />
+          </div>
+        </div>
+      </Modal>
 
       {AlertComponent}
     </div>
