@@ -23,7 +23,7 @@ export const FuelRequestsSectionFilters = function (props: FuelRequestsSectionFi
       page_size: 10,
     });
     setValue("code", "", { shouldDirty: false });
-    setValue("machinery_id", "", { shouldDirty: false });
+    setValue("equipment_id", "", { shouldDirty: false });
     setValue("status", undefined, { shouldDirty: false });
 
     props.onClear();
@@ -77,11 +77,11 @@ export const FuelRequestsSectionFilters = function (props: FuelRequestsSectionFi
 
         <div className="w-full md:w-72 md:shrink-0">
           <Controller
-            name="machinery_id"
+            name="equipment_id"
             control={control}
             render={({ field }) => (
               <Dropdown
-                label="Maquinaria / Vehículo"
+                label="Activo Fijo"
                 value={field.value}
                 options={[{ value: "", label: "Todos" }, ...(props.machineryOptions ?? [])]}
                 onChange={(e: any) => field.onChange(e?.target?.value ?? e)}

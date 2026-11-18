@@ -5,6 +5,7 @@ export interface GetInventoryStocksRequest extends BaseRequest {
   product_name?: string;
   category_id?: string;
   is_fuel?: boolean;
+  cost_center_id?: string;
   page_size?: number;
   page_number?: number;
 }
