@@ -5,6 +5,7 @@ import { pdf } from "@react-pdf/renderer";
 import { FileText } from "lucide-react";
 import { InventoryOutputPDF } from "./reports/inventory-output-pdf/inventory-output-pdf";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { formatCurrency } from "@app/shared/utils/currency.utils";
 
 import { InventoryOutputsStatus } from "@app/core/enums/inventory-output-status.enum";
 import { ReasonUse as ReasonUseValues } from "@app/core/enums/reason-use.enum";
@@ -91,7 +92,7 @@ const SupplyRequestBlock = function ({
           label="FECHA DE SOLICITUD"
           value={
             detail.created_at
-              ? new Date(detail.created_at).toLocaleDateString()
+              ? new Date(detail.created_at).toLocaleString()
               : "—"
           }
         />
@@ -103,6 +104,32 @@ const SupplyRequestBlock = function ({
           label="ALMACÉN"
           value={detail.warehouse_information?.code ?? detail.warehouse_code ?? "—"}
         />
+        {detail.equipment_information?.code || detail.equipment_information?.brand || detail.equipment_information?.model ? (
+          <ModalInfoField
+            label="Activo Fijo"
+            value={
+              [
+                detail.equipment_information?.code,
+                detail.equipment_information?.brand,
+                detail.equipment_information?.model,
+              ]
+                .filter(Boolean)
+                .join(" - ") || "—"
+            }
+          />
+        ) : null}
+        {detail.customer_information?.legal_name ? (
+          <ModalInfoField
+            label="CLIENTE"
+            value={detail.customer_information.legal_name}
+          />
+        ) : null}
+        {detail.duca_or_transport_order ? (
+          <ModalInfoField
+            label="DUCA / ORDEN DE TRANSPORTE"
+            value={detail.duca_or_transport_order}
+          />
+        ) : null}
         <ModalInfoField
           label="SOLICITANTE"
           value={detail.requested_by_user_name ?? "—"}
@@ -184,23 +211,31 @@ const FuelRequestBlock = function ({
           }
         />
         <ModalInfoField
+          label="ALMACÉN"
+          value={detail.warehouse_information?.code ?? "—"}
+        />
+        <ModalInfoField
           label="CENTRO DE COSTO"
-          value={selectedOutput?.cost_center_name ?? "—"}
+          value={selectedOutput?.cost_center_name ?? detail.cost_center_information?.cost_center_name ?? detail.cost_center_information?.cost_center_code ?? "—"}
         />
         <ModalInfoField
           label="SOLICITANTE"
           value={detail.requested_by_user_name ?? "—"}
         />
-        {isCorinto ? (
+        {isCorinto || detail.customer_information?.legal_name ? (
           <ModalInfoField
             label="CLIENTE"
             value={detail.customer_information?.legal_name ?? "—"}
           />
         ) : null}
         <ModalInfoField
-          label="MÁQUINA/VEHÍCULO"
+          label="ACTIVO FIJO"
           value={
-            [detail.machinery_code, detail.machinery_brand, detail.machinery_model]
+            [
+               detail.equipment_information?.code ?? detail.machinery_code,
+               detail.equipment_information?.brand ?? detail.machinery_brand,
+               detail.equipment_information?.model ?? detail.machinery_model,
+             ]
               .filter(Boolean)
               .join(" / ") || "—"
           }
@@ -225,15 +260,37 @@ const FuelRequestBlock = function ({
             </>
           }
         />
-        {detail.engine_hours != null ? (
+        {detail.engine_hours != null || detail.previous_engine_hours != null ? (
           <ModalInfoField
             label="HORAS MOTOR"
-            value={detail.engine_hours}
+            value={
+              <div className="flex flex-col gap-1">
+                <div>
+                  <span className="text-xs text-slate-400">Anterior: </span>
+                  {detail.previous_engine_hours != null ? detail.previous_engine_hours + " hrs" : "—"}
+                </div>
+                <div>
+                  <span className="text-xs text-slate-400">Actual: </span>
+                  {detail.engine_hours != null ? detail.engine_hours + " hrs" : "—"}
+                </div>
+              </div>
+            }
           />
-        ) : detail.mileage != null ? (
+        ) : detail.mileage != null || detail.previous_mileage != null ? (
           <ModalInfoField
             label="KILOMETRAJE"
-            value={detail.mileage}
+            value={
+              <div className="flex flex-col gap-1">
+                <div>
+                  <span className="text-xs text-slate-400">Anterior: </span>
+                  {detail.previous_mileage != null ? detail.previous_mileage + " km" : "—"}
+                </div>
+                <div>
+                  <span className="text-xs text-slate-400">Actual: </span>
+                  {detail.mileage != null ? detail.mileage + " km" : "—"}
+                </div>
+              </div>
+            }
           />
         ) : null}
         <ModalInfoField
@@ -308,14 +365,14 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
     }
   };
 
-  const stocks = detailData?.inventory_stock_informations ?? [];
-
   const resolvedRequestType =
     detailData?.supply_request_detail
       ? "Supply"
       : detailData?.fuel_request_detail
         ? "Fuel"
         : requestType ?? selectedOutput?.request_type ?? null;
+
+  const stocks = detailData?.inventory_stock_informations ?? [];
 
   const combinedRows =
     resolvedRequestType === "Supply"
@@ -442,14 +499,70 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
               <div className="flex flex-col gap-2 border-t border-slate-600 pt-4 dark:border-neutral-600">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-semibold text-slate-200">
-                    Información de artículos
+                    {selectedOutput?.status === "Dispatched" && detailData?.kardex_movements?.length
+                      ? "Movimiento de Kardex"
+                      : "Información de artículos"}
                   </h3>
                   <span className="rounded-full bg-slate-700 px-2 py-0.5 text-xs text-slate-200">
-                    {combinedRows.length} ítems
+                    {selectedOutput?.status === "Dispatched" && detailData?.kardex_movements?.length
+                      ? `${detailData.kardex_movements.length} movimientos`
+                      : `${combinedRows.length} ítems`}
                   </span>
                 </div>
 
-                {combinedRows.length === 0 ? (
+                {selectedOutput?.status === "Dispatched" && detailData?.kardex_movements?.length ? (
+                  <table className="w-full border-collapse text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-600 dark:border-neutral-600">
+                        <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">
+                          N°Item
+                        </th>
+                        <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">
+                          Código de inventario
+                        </th>
+                        <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">
+                          Nombre de producto
+                        </th>
+                        <th className="px-3 py-2 text-right font-semibold text-gray-500 dark:text-gray-300">
+                          Cantidad Solicitada
+                        </th>
+                        <th className="px-3 py-2 text-right font-semibold text-gray-500 dark:text-gray-300">
+                          Costo
+                        </th>
+                        <th className="px-3 py-2 text-right font-semibold text-gray-500 dark:text-gray-300">
+                          Costo Total
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {detailData.kardex_movements.map((movement, index) => (
+                        <tr
+                          key={movement.kardex_id ?? index}
+                          className="border-b border-slate-600 dark:border-neutral-600"
+                        >
+                          <td className="px-3 py-2">{index + 1}</td>
+                          <td className="px-3 py-2">
+                            {movement.product_information?.product_code ?? "—"}
+                          </td>
+                          <td className="px-3 py-2">
+                            {movement.product_information?.product_name ?? "—"}
+                          </td>
+                          <td className="px-3 py-2 text-right font-medium">
+                            {movement.units != null
+                              ? `${movement.units} ${movement.unit_measure_information?.symbol ?? ""}`.trim()
+                              : "—"}
+                          </td>
+                          <td className="px-3 py-2 text-right font-medium">
+                            {movement.unit_cost != null ? formatCurrency(movement.unit_cost) : "—"}
+                          </td>
+                          <td className="px-3 py-2 text-right font-medium">
+                            {movement.total_output != null ? formatCurrency(movement.total_output) : "—"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : combinedRows.length === 0 ? (
                   <span className="text-sm text-slate-500 dark:text-slate-400">
                     Sin ítems ni stock relacionado.
                   </span>
@@ -463,11 +576,6 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
                         <th className="px-3 py-2 text-right font-semibold text-gray-500 dark:text-gray-300">
                           Cantidad solicitada
                         </th>
-                        {selectedOutput?.status === "OutputPending" ? (
-                           <th className="px-3 py-2 text-right font-semibold text-gray-500 dark:text-gray-300">
-                             Stock disponible
-                           </th>
-                         ) : null}
                       </tr>
                     </thead>
                     <tbody>
@@ -480,11 +588,6 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
                           <td className="px-3 py-2 text-right font-medium">
                             {row.solicitada ?? "—"}
                           </td>
-                          {selectedOutput?.status === "OutputPending" ? (
-                          <td className="px-3 py-2 text-right font-medium">
-                            {row.disponible ?? "—"}
-                          </td>
-                        ) : null}
                         </tr>
                       ))}
                     </tbody>
@@ -504,7 +607,7 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
                       label="FECHA DE DESPACHO"
                       value={
                         detailData?.dispatched_at
-                          ? new Date(detailData.dispatched_at).toLocaleDateString()
+                          ? new Date(detailData.dispatched_at).toLocaleString()
                           : "—"
                       }
                     />

@@ -11,11 +11,12 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useForm, Controller } from "react-hook-form";
 import { useInventoryStocks } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useInventoryStocks";
-import { useWarehouseAssignment } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useAssignment";
+import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
+import { useEquipment } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useEquipment";
 import { useCustomer } from "@app/modules/customer/ui/hooks/useCustomer";
 import type { CustomerDto } from "@app/modules/customer/domain/ApiContract/Responses/customer-responses/get-customer.response";
 import type { InventoryStockDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/inventory-stocks/get-inventory-stocks-response";
-import type { MachineryCatalogItemDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/warehouse-assignment/get-machinery-catalog";
+import type { EquipmentDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-equipment.response";
 
 const inputClassName =
   "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
@@ -24,7 +25,8 @@ const labelClassName = "text-black! dark:text-white!";
 interface FuelRequestFormProps {
   isSubmitting?: boolean;
   onSubmit: (data: {
-    machinery_id: string;
+    equipment_id: string;
+    warehouse_id?: string;
     product_stock_id: string;
     requested_quantity: number;
     mileage?: number;
@@ -35,7 +37,8 @@ interface FuelRequestFormProps {
 }
 
 interface FuelRequestFormValues {
-  machinery_id: string;
+  equipment_id: string;
+  warehouse_id: string;
   product_stock_id: string;
   requested_quantity: string;
   mileage: string;
@@ -48,7 +51,7 @@ export function FuelRequestForm({
   isSubmitting = false,
   onSubmit,
 }: FuelRequestFormProps) {
-  const { companyId, moduleCode, branchCode } = useUserStore();
+  const { companyId, moduleCode, branchCode, branchId, costCenterId } = useUserStore();
 
   const CORINTO_BRANCH_CODES = ["ALP-CTO"];
   const isCorinto = CORINTO_BRANCH_CODES.some((code) =>
@@ -65,22 +68,29 @@ export function FuelRequestForm({
         page_size: 100,
         page_number: 1,
         is_fuel: true,
+        cost_center_id: costCenterId || undefined,
       }
       : null;
 
-  const machineryPayload =
-    companyId && moduleCode
+  const equipmentPayload =
+    companyId && moduleCode && branchId
       ? {
         company_id: companyId,
         module_code: moduleCode,
+        branch_id: branchId,
         page_size: 100,
         page_number: 1,
       }
       : null;
 
   const { GetInventoryStocks } = useInventoryStocks(stockPayload);
-  const { GetMachineryCatalog } = useWarehouseAssignment({
-    payloadMachineryCatalog: machineryPayload,
+  const { GetEquipments } = useEquipment(equipmentPayload);
+
+  const { GetWarehouses } = useWarehouse({
+    getWarehousesPayload: {
+      company_id: companyId ?? "",
+      module_code: moduleCode ?? "",
+    },
   });
 
   const customersQuery = GetCustomer(
@@ -108,9 +118,9 @@ export function FuelRequestForm({
     [GetInventoryStocks.data],
   );
 
-  const machineries: MachineryCatalogItemDto[] = useMemo(
-    () => GetMachineryCatalog.data?.data ?? [],
-    [GetMachineryCatalog.data],
+  const equipments: EquipmentDto[] = useMemo(
+    () => GetEquipments.data?.data ?? [],
+    [GetEquipments.data],
   );
 
   const [useMileage, setUseMileage] = useState(false);
@@ -125,13 +135,24 @@ export function FuelRequestForm({
     [stocks],
   );
 
-  const machineryOptions = useMemo(
+  const equipmentOptions = useMemo(
     () =>
-      machineries.map((m) => ({
-        value: m.machinery_id,
-        label: `${m.code ?? ""} ${m.brand ?? ""} ${m.model ?? ""}`.trim() || "Maquinaria",
+      equipments
+        .filter((equipment) => equipment.gasoline || equipment.lpg || equipment.diesel)
+        .map((equipment) => ({
+          value: equipment.equipment_id,
+          label: `${equipment.equipment_code ?? ""} ${equipment.equipment_brand ?? ""} ${equipment.equipment_model ?? ""}`.trim() || "Activo Fijo",
+        })),
+    [equipments],
+  );
+
+  const warehouseOptions = useMemo(
+    () =>
+      (GetWarehouses.data?.data ?? []).map((warehouse) => ({
+        value: warehouse.warehouse_id,
+        label: warehouse.code ?? "-",
       })),
-    [machineries],
+    [GetWarehouses.data],
   );
 
   const {
@@ -144,7 +165,8 @@ export function FuelRequestForm({
     mode: "onSubmit",
     shouldUnregister: true,
     defaultValues: {
-      machinery_id: "",
+      equipment_id: "",
+      warehouse_id: "",
       product_stock_id: "",
       requested_quantity: "",
       mileage: "",
@@ -155,17 +177,19 @@ export function FuelRequestForm({
   });
 
   const isStockLoading = GetInventoryStocks.isLoading;
-  const isMachineryLoading = GetMachineryCatalog.isLoading;
+  const isEquipmentLoading = GetEquipments.isLoading;
+  const isWarehouseLoading = GetWarehouses.isLoading;
 
   const onFormSubmit = async (values: FuelRequestFormValues) => {
     const quantity = Number(values.requested_quantity);
     if (!Number.isFinite(quantity) || quantity <= 0) return;
-    if (!values.machinery_id.trim() || !values.product_stock_id.trim()) return;
+    if (!values.equipment_id.trim() || !values.product_stock_id.trim()) return;
     if (!values.justification.trim()) return;
     if (isCorinto && !values.customer_id.trim()) return;
 
     const result = await onSubmit({
-      machinery_id: values.machinery_id.trim(),
+      equipment_id: values.equipment_id.trim(),
+      warehouse_id: values.warehouse_id.trim() || undefined,
       product_stock_id: values.product_stock_id.trim(),
       requested_quantity: quantity,
       mileage: useMileage
@@ -175,7 +199,7 @@ export function FuelRequestForm({
         ? (String(values.engine_hours ?? "").trim() ? Number(values.engine_hours) : undefined)
         : undefined,
       justification: values.justification.trim(),
-      customer_id: values.customer_id.trim() || undefined,
+      customer_id: values.customer_id?.trim() || undefined,
     });
 
     if (result !== false) reset();
@@ -183,7 +207,7 @@ export function FuelRequestForm({
 
   return (
     <div className="flex flex-col gap-4">
-      {(isStockLoading || isMachineryLoading) && (
+      {(isStockLoading || isEquipmentLoading || isWarehouseLoading) && (
         <Loader title="Cargando datos..." />
       )}
 
@@ -191,23 +215,42 @@ export function FuelRequestForm({
         onSubmit={handleSubmit(onFormSubmit)}
         className="flex flex-col gap-4"
       >
+        <Controller
+          control={control}
+          name="equipment_id"
+          rules={{ required: "Seleccione un activo fijo" }}
+          render={({ field: controllerField }) => (
+            <Dropdown
+              label="Activo Fijo"
+              placeholder="Seleccione un activo fijo"
+              options={equipmentOptions}
+              value={controllerField.value}
+              onChange={controllerField.onChange}
+              error={errors.equipment_id?.message}
+              appearance="dark"
+              labelClassName={labelClassName}
+              className={`${inputClassName} h-[42px]! sm:h-[46px]!`}
+              disabled={isSubmitting || isEquipmentLoading}
+            />
+          )}
+        />
+
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Controller
             control={control}
-            name="machinery_id"
-            rules={{ required: "Seleccione una maquinaria" }}
+            name="warehouse_id"
             render={({ field: controllerField }) => (
               <Dropdown
-                label="Maquinaria"
-                placeholder="Seleccione una maquinaria"
-                options={machineryOptions}
+                label="Almacén"
+                placeholder="Seleccione un almacén"
+                options={warehouseOptions}
                 value={controllerField.value}
                 onChange={controllerField.onChange}
-                error={errors.machinery_id?.message}
+                error={errors.warehouse_id?.message}
                 appearance="dark"
                 labelClassName={labelClassName}
                 className={`${inputClassName} h-[42px]! sm:h-[46px]!`}
-                disabled={isSubmitting || isMachineryLoading}
+                disabled={isSubmitting || isWarehouseLoading}
               />
             )}
           />
@@ -352,7 +395,7 @@ export function FuelRequestForm({
           <Button
             type="submit"
             label={isSubmitting ? "Registrando..." : "Registrar solicitud"}
-            disabled={isSubmitting || isStockLoading || isMachineryLoading}
+            disabled={isSubmitting || isStockLoading || isEquipmentLoading || isWarehouseLoading}
           />
         </div>
       </form>

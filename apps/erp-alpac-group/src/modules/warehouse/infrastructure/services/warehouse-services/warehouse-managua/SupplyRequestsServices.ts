@@ -5,6 +5,7 @@ import type { ISupplyRequestsServices } from "@app/modules/warehouse/application
 import type { GetSupplyRequestsRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/supply-requests/get-supply-requests.request";
 import type { GetSupplyRequestDetailRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/supply-requests/get-supply-request-detail.request";
 import type { RegisterSupplyRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/supply-requests/register-supply-request.request";
+import type { RegisterSupplyRequestManual } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/supply-requests/register-supply-request-manual.request";
 import type { ApproveSupplyRequestRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/supply-requests/approve-supply-request.request";
 import type { DeclineSupplyRequestRequest } from "@app/modules/warehouse/domain/ApiContract/Requests/warehouse-requests/warehouse-managua/supply-requests/decline-supply-request.request";
 import type { SupplyRequestDetailDto, PagedSupplyRequestsResponse } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/supply-requests/supply-requests.response";
@@ -53,6 +54,28 @@ export class SupplyRequestsServices implements ISupplyRequestsServices {
 
     return this.httpClient.post<string>(
       `/companies/${company_id}/modules/${module_code}/inventory/supply-requests`,
+      requestBody,
+    );
+  }
+
+  async RegisterSupplyRequestManual(payload: RegisterSupplyRequestManual): Promise<string> {
+    const { company_id, module_code, ...body } = payload;
+
+    const requestBody = cleanParams({
+      justification: body.justification,
+      warehouse_id: body.warehouse_id,
+      items: body.items.map((item) => ({
+        product_stock_id: item.product_stock_id,
+        amount: item.amount,
+      })),
+      reason_use: body.reason_use,
+      equipment_id: body.equipment_id,
+      customer_id: body.customer_id,
+      duca_or_transport_order: body.duca_or_transport_order,
+    });
+
+    return this.httpClient.post<string>(
+      `/companies/${company_id}/modules/${module_code}/inventory/supply-requests/manual`,
       requestBody,
     );
   }

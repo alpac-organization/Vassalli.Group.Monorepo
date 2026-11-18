@@ -4,7 +4,7 @@ import type { OutflowStatus } from "@app/core/enums/outflow-status.enum";
 export interface GetFuelRequestsRequest extends BaseRequest {
   code?: string;
   branch_id?: string;
-  machinery_id?: string;
+  equipment_id?: string;
   product_stock_id?: string;
   status?: OutflowStatus;
 

@@ -19,6 +19,7 @@ export type AdditionalDeductions = {
   Absences?: number;
   Purisima?: number;
   Sanction?: number;
+  SanctionDays?: number;
   CashShortage?: number;
   LateArrivals?: number;
   LateArrivalsInMinutes?: number;

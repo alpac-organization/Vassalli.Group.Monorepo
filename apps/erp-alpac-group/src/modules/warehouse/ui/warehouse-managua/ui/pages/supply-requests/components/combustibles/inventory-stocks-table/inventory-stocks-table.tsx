@@ -38,8 +38,8 @@ const columns: TableColumn<InventoryStockData>[] = [
   },
 ];
 
-export function InventoryStocksTable() {
-  const { companyId, moduleCode } = useUserStore();
+export function InventoryStocksTable({ isFuel = true, isMaterial }: { isFuel?: boolean; isMaterial?: boolean }) {
+  const { companyId, moduleCode, costCenterId } = useUserStore();
 
   const [filters, setFilters] = useState<StockControlFilters>({
     ...DEFAULT_STOCK_FILTERS,
@@ -47,14 +47,16 @@ export function InventoryStocksTable() {
   });
 
   const { GetInventoryStocksQuery } = useInventoryStocks({
-    payloadGetInventoryStocksRequest: companyId && moduleCode
+    payloadGetInventoryStocksRequest: (companyId && moduleCode
       ? {
           company_id: companyId,
           module_code: moduleCode,
           ...filters,
-          is_fuel: true,
+          is_fuel: isFuel ? true : undefined,
+          is_material: isMaterial,
+          cost_center_id: costCenterId || undefined,
         }
-      : undefined,
+      : undefined) as any,
   });
 
   const handlePageChange = useCallback((page: number) => {
