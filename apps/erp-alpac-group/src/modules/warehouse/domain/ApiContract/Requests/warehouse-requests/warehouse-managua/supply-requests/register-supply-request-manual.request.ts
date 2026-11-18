@@ -11,4 +11,7 @@ export interface RegisterSupplyRequestManual extends BaseRequest {
   warehouse_id: string;
   items: RegisterSupplyRequestManualItem[];
   reason_use: ReasonUse;
+  equipment_id?: string;
+  customer_id?: string;
+  duca_or_transport_order?: string;
 }

@@ -69,6 +69,9 @@ export class SupplyRequestsServices implements ISupplyRequestsServices {
         amount: item.amount,
       })),
       reason_use: body.reason_use,
+      equipment_id: body.equipment_id,
+      customer_id: body.customer_id,
+      duca_or_transport_order: body.duca_or_transport_order,
     });
 
     return this.httpClient.post<string>(

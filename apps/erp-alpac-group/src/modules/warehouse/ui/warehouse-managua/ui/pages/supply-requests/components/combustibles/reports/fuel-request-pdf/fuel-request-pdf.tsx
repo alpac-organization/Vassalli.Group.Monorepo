@@ -74,6 +74,24 @@ export function FuelRequestPDF({ data }: { data: any }) {
               <Text style={styles.value}>{data.customer_information.legal_name}</Text>
             </View>
           ) : null}
+          {data?.work_area_information?.work_area_name || data?.work_area_name ? (
+            <View style={styles.field}>
+              <Text style={styles.label}>Área de trabajo</Text>
+              <Text style={styles.value}>
+                {data?.work_area_information?.work_area_name ?? data?.work_area_name ?? "—"}
+              </Text>
+            </View>
+          ) : null}
+          {data?.cost_center_information?.cost_center_name || data?.cost_center_information?.cost_center_code ? (
+            <View style={styles.field}>
+              <Text style={styles.label}>Centro de costo</Text>
+              <Text style={styles.value}>
+                {data?.cost_center_information?.cost_center_name ??
+                  data?.cost_center_information?.cost_center_code ??
+                  "—"}
+              </Text>
+            </View>
+          ) : null}
           <View style={styles.field}>
             <Text style={styles.label}>Fecha de solicitud</Text>
             <Text style={styles.value}>{createdAt}</Text>

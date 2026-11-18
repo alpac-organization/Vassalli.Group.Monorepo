@@ -11,7 +11,11 @@ import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useInventoryStocks } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useInventoryStocks";
 import { useWarehouse } from "@app/modules/warehouse/ui/hooks/useWarehouse";
+import { useEquipment } from "@app/modules/warehouse/ui/hooks/warehouse-managua/useEquipment";
+import { useCustomer } from "@app/modules/customer/ui/hooks/useCustomer";
 import type { InventoryStockDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/warehouse-managua/inventory-stocks/get-inventory-stocks-response";
+import type { EquipmentDto } from "@app/modules/warehouse/domain/ApiContract/Responses/warehouse-reponses/get-equipment.response";
+import type { CustomerDto } from "@app/modules/customer/domain/ApiContract/Responses/customer-responses/get-customer.response";
 import type { ReasonUse } from "@app/core/enums/reason-use.enum";
 import { ReasonUse as ReasonUseValues } from "@app/core/enums/reason-use.enum";
 
@@ -19,18 +23,27 @@ export interface SupplyRequestFormProps {
   isSubmitting?: boolean;
   showWarehouse?: boolean;
   showReasonUse?: boolean;
+  showEquipment?: boolean;
+  showCustomer?: boolean;
+  showDuca?: boolean;
   onSubmit: (payload: {
     items: { product_stock_id: string; amount: number }[];
     justification: string;
     warehouse_id?: string;
     reason_use?: ReasonUse;
-  }) => void | Promise<void>;
+    equipment_id?: string;
+    customer_id?: string;
+    duca_or_transport_order?: string;
+  }) => void | Promise<void | boolean>;
 }
 
 interface SupplyRequestFormValues {
   justification: string;
   warehouse_id: string;
   reason_use: string;
+  equipment_id: string;
+  customer_id: string;
+  duca_or_transport_order: string;
   items: { product_stock_id: string; amount: string }[];
 }
 
@@ -38,6 +51,9 @@ export function SupplyRequestForm({
   isSubmitting = false,
   showWarehouse = false,
   showReasonUse = false,
+  showEquipment = false,
+  showCustomer = false,
+  showDuca = false,
   onSubmit,
 }: SupplyRequestFormProps) {
   const { companyId, moduleCode, costCenterId } = useUserStore();
@@ -86,6 +102,45 @@ export function SupplyRequestForm({
     [GetWarehouses.data],
   );
 
+  const equipmentPayload =
+    companyId && moduleCode
+      ? {
+          company_id: companyId,
+          module_code: moduleCode,
+          page_size: 100,
+          page_number: 1,
+        }
+      : null;
+
+  const { GetEquipments } = useEquipment(equipmentPayload);
+
+  const equipmentOptions = useMemo(
+    () =>
+      (GetEquipments.data?.data ?? []).map((equipment: EquipmentDto) => ({
+        value: equipment.equipment_id,
+        label: `${equipment.equipment_code ?? ""} ${equipment.equipment_brand ?? ""} ${equipment.equipment_model ?? ""}`.trim() || "Activo Fijo",
+      })),
+    [GetEquipments.data],
+  );
+
+  const { GetCustomer } = useCustomer();
+  const customersQuery = GetCustomer(
+    { company_id: companyId ?? "", module_code: moduleCode ?? "" },
+    { enabled: Boolean(showCustomer && companyId && moduleCode) },
+  );
+
+  const customerOptions = useMemo(() => {
+    const records = (customersQuery.data?.data ?? []).flat() as CustomerDto[];
+    if (!Array.isArray(records)) return [];
+    return records.map((customer) => ({
+      value: customer.customer_id,
+      label:
+        customer.legal_name?.trim() ||
+        customer.customer_code?.trim() ||
+        "Cliente",
+    }));
+  }, [customersQuery.data]);
+
   const {
     control,
     register,
@@ -97,6 +152,9 @@ export function SupplyRequestForm({
       justification: "",
       warehouse_id: "",
       reason_use: "Operation",
+      equipment_id: "",
+      customer_id: "",
+      duca_or_transport_order: "",
       items: [{ product_stock_id: "", amount: "" }],
     },
   });
@@ -133,6 +191,11 @@ export function SupplyRequestForm({
       reason_use: showReasonUse
         ? (values.reason_use as ReasonUse)
         : undefined,
+      equipment_id: showEquipment ? values.equipment_id.trim() || undefined : undefined,
+      customer_id: showCustomer ? values.customer_id.trim() || undefined : undefined,
+      duca_or_transport_order: showDuca
+        ? values.duca_or_transport_order.trim() || undefined
+        : undefined,
     });
   };
 
@@ -140,49 +203,105 @@ export function SupplyRequestForm({
     <div className="flex flex-col gap-4">
       {isSubmitting && <Loader title="Registrando solicitud de insumos..." />}
 
-      {showWarehouse ? (
+      {showEquipment ? (
         <Controller
           control={control}
-          name="warehouse_id"
-          rules={{ required: "Seleccione un almacén" }}
+          name="equipment_id"
           render={({ field: controllerField }) => (
             <Dropdown
-              label="Almacén"
-              placeholder="Seleccione un almacén"
-              options={warehouseOptions}
+              label="Activo fijo"
+              placeholder="Seleccione un activo fijo"
+              options={equipmentOptions}
               value={controllerField.value}
               onChange={controllerField.onChange}
-              error={errors.warehouse_id?.message}
               appearance="dark"
               labelClassName="text-black! dark:text-white!"
               className="bg-transparent!"
-              disabled={isSubmitting || isWarehouseLoading}
+              disabled={isSubmitting || GetEquipments.isLoading}
             />
           )}
         />
       ) : null}
 
-      {showReasonUse ? (
-        <Controller
-          control={control}
-          name="reason_use"
-          render={({ field: controllerField }) => (
-            <Dropdown
-              label="Motivo de uso"
-              placeholder="Seleccione un motivo"
-              options={Object.values(ReasonUseValues).map((r) => ({
-                value: r.label === "Venta" ? "Sale" : "Operation",
-                label: r.label,
-              }))}
-              value={controllerField.value}
-              onChange={controllerField.onChange}
-              appearance="dark"
+      {(showWarehouse || showReasonUse) ? (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {showWarehouse ? (
+            <Controller
+              control={control}
+              name="warehouse_id"
+              rules={{ required: "Seleccione un almacén" }}
+              render={({ field: controllerField }) => (
+                <Dropdown
+                  label="Almacén"
+                  placeholder="Seleccione un almacén"
+                  options={warehouseOptions}
+                  value={controllerField.value}
+                  onChange={controllerField.onChange}
+                  error={errors.warehouse_id?.message}
+                  appearance="dark"
+                  labelClassName="text-black! dark:text-white!"
+                  className="bg-transparent!"
+                  disabled={isSubmitting || isWarehouseLoading}
+                />
+              )}
+            />
+          ) : null}
+          {showReasonUse ? (
+            <Controller
+              control={control}
+              name="reason_use"
+              render={({ field: controllerField }) => (
+                <Dropdown
+                  label="Motivo de uso"
+                  placeholder="Seleccione un motivo"
+                  options={Object.values(ReasonUseValues).map((r) => ({
+                    value: r.label === "Venta" ? "Sale" : "Operation",
+                    label: r.label,
+                  }))}
+                  value={controllerField.value}
+                  onChange={controllerField.onChange}
+                  appearance="dark"
+                  labelClassName="text-black! dark:text-white!"
+                  className="bg-transparent!"
+                  disabled={isSubmitting}
+                />
+              )}
+            />
+          ) : null}
+        </div>
+      ) : null}
+
+      {(showCustomer || showDuca) ? (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {showCustomer ? (
+            <Controller
+              control={control}
+              name="customer_id"
+              render={({ field: controllerField }) => (
+                <Dropdown
+                  label="Cliente"
+                  placeholder="Seleccione un cliente"
+                  options={customerOptions}
+                  value={controllerField.value}
+                  onChange={controllerField.onChange}
+                  appearance="dark"
+                  labelClassName="text-black! dark:text-white!"
+                  className="bg-transparent!"
+                  disabled={isSubmitting || customersQuery.isPending}
+                />
+              )}
+            />
+          ) : null}
+          {showDuca ? (
+            <InputText
+              label="DUCA / Orden de transporte"
+              className="bg-transparent! text-white!"
               labelClassName="text-black! dark:text-white!"
-              className="bg-transparent!"
+              {...register("duca_or_transport_order")}
               disabled={isSubmitting}
             />
-          )}
-        />
+          ) : null}
+        </div>
       ) : null}
 
       <Textarea
@@ -217,17 +336,15 @@ export function SupplyRequestForm({
         ) : (
           <div className="flex flex-col gap-3">
             {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="grid grid-cols-1 gap-2 sm:grid-cols-[3.5fr_1fr_auto]"
-              >
+              <div key={field.id} className="flex flex-col gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[3.5fr_1fr_auto]">
                 <Controller
                   control={control}
                   name={`items.${index}.product_stock_id`}
                   rules={{ required: "Seleccione un insumo" }}
                   render={({ field: controllerField }) => (
                     <Dropdown
-                      label="Insumo"
+                      label={`Item #${index + 1}`}
                       placeholder="Seleccione un insumo"
                       options={productOptions}
                       value={controllerField.value}
@@ -267,6 +384,7 @@ export function SupplyRequestForm({
                     disabled={isSubmitting || fields.length === 1}
                   />
                 </div>
+              </div>
               </div>
             ))}
           </div>

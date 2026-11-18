@@ -3,7 +3,10 @@ import { useCallback, useMemo, useState } from "react";
 import type { OutflowStatus } from "@app/core/enums/outflow-status.enum";
 import { OutflowStatus as OutflowStatusValues } from "@app/core/enums/outflow-status.enum";
 import { ReasonUse as ReasonUseValues } from "@app/core/enums/reason-use.enum";
+import type { ReasonUse } from "@app/core/enums/reason-use.enum";
 import { Badges, Button, DataTable, Modal, Pagination, SectionHeader } from "@alpac/design-system";
+import { FileText } from "lucide-react";
+import { pdf } from "@react-pdf/renderer";
 
 import { Loader } from "@app/shared/components/loaders/loader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -28,6 +31,7 @@ import type { SupplyRequestDetailDto } from "@app/modules/warehouse/domain/ApiCo
 import { ModalInfoField } from "@app/shared/components/modal-info-field/modal-info-field";
 import { ApproveRequestModal } from "../approve-request-modal/approve-request-modal";
 import { DeclineRequestModal } from "../decline-request-modal/decline-request-modal";
+import { SupplyRequestPDF } from "./reports/supply-request-pdf/supply-request-pdf";
 import { REQUEST_STATUS_TABS, getStatusBadgeClassName, getReasonBadgeClassName } from "../../utils/request-status";
 import { StatusTabsOverlay } from "@app/shared/components/status-tabs-overlay/status-tabs-overlay";
 
@@ -37,6 +41,7 @@ export const OperationalRequests = function () {
   const [filters, setFilters] = useState<OperationalRequestsFilters>(DEFAULT_OPERATIONAL_FILTERS);
   const [selectedSupplyRequestId, setSelectedSupplyRequestId] = useState<string | null>(null);
   const [isReabastecimientoOpen, setIsReabastecimientoOpen] = useState(false);
+  const [isGeneratingSupplyPdf, setIsGeneratingSupplyPdf] = useState(false);
 
   const { RegisterSupplyRequestManual } = useRegisterSupplyRequestManual();
 
@@ -223,11 +228,28 @@ export const OperationalRequests = function () {
     setSelectedSupplyRequestId(null);
   }, []);
 
+  const handleGenerateSupplyPdf = useCallback(async () => {
+    if (!detailData) return;
+    try {
+      setIsGeneratingSupplyPdf(true);
+      const blob = await pdf(<SupplyRequestPDF data={detailData} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      handleRequestError(error, "Error");
+    } finally {
+      setIsGeneratingSupplyPdf(false);
+    }
+  }, [detailData, handleRequestError]);
+
   const handleSubmitSupplyRequest = async (payload: {
     items: { product_stock_id: string; amount: number }[];
     justification: string;
     warehouse_id?: string;
-    reason_use?: any;
+    reason_use?: ReasonUse;
+    equipment_id?: string;
+    customer_id?: string;
+    duca_or_transport_order?: string;
   }) => {
     if (!companyId || !moduleCode) return false;
     if (!payload.warehouse_id) return false;
@@ -239,6 +261,9 @@ export const OperationalRequests = function () {
         warehouse_id: payload.warehouse_id,
         items: payload.items,
         reason_use: payload.reason_use ?? "Operation",
+        equipment_id: payload.equipment_id,
+        customer_id: payload.customer_id,
+        duca_or_transport_order: payload.duca_or_transport_order,
       });
       handleRequestSuccess(
         `Solicitud de insumos registrada exitosamente.\nCódigo: ${code}`,
@@ -331,6 +356,17 @@ export const OperationalRequests = function () {
                     "—"
                   }
                 />
+                {detailData.outflow_status === "Approved" ? (
+                  <button
+                    type="button"
+                    onClick={() => void handleGenerateSupplyPdf()}
+                    disabled={isGeneratingSupplyPdf}
+                    className="inline-flex items-center justify-center rounded-md border border-slate-300 p-2 text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                    title="Generar imprimible PDF"
+                  >
+                    <FileText size={18} />
+                  </button>
+                ) : null}
               </div>
               <Badges
                 color="info"
@@ -351,6 +387,32 @@ export const OperationalRequests = function () {
                   label="ALMACÉN"
                   value={detailData.warehouse_information?.code ?? "—"}
                 />
+                {detailData.equipment_information ? (
+                  <ModalInfoField
+                    label="Activo Fijo"
+                    value={
+                      [
+                        detailData.equipment_information.code,
+                        detailData.equipment_information.brand,
+                        detailData.equipment_information.model,
+                      ]
+                        .filter(Boolean)
+                        .join(" - ") || "—"
+                    }
+                  />
+                ) : null}
+                {detailData.customer_information ? (
+                  <ModalInfoField
+                    label="CLIENTE"
+                    value={detailData.customer_information.legal_name ?? "—"}
+                  />
+                ) : null}
+                {detailData.duca_or_transport_order ? (
+                  <ModalInfoField
+                    label="DUCA / ORDEN DE TRANSPORTE"
+                    value={detailData.duca_or_transport_order}
+                  />
+                ) : null}
                 <ModalInfoField
                   label="SOLICITANTE"
                   value={detailData.requested_by_user_name ?? "—"}
@@ -514,7 +576,7 @@ export const OperationalRequests = function () {
       <Modal
         isOpen={isReabastecimientoOpen}
         onClose={() => setIsReabastecimientoOpen(false)}
-        title="Reabastecimiento"
+        title="Solicitud de insumos"
         description="Gestión de solicitudes de insumos."
         variant="default"
         size="full"
@@ -530,6 +592,9 @@ export const OperationalRequests = function () {
               isSubmitting={RegisterSupplyRequestManual.isPending}
               showWarehouse
               showReasonUse
+              showEquipment
+              showCustomer
+              showDuca
               onSubmit={handleSubmitSupplyRequest}
             />
           </div>
