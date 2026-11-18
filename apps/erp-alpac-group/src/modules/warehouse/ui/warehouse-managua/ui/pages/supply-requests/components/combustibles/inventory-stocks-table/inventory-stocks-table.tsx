@@ -38,7 +38,7 @@ const columns: TableColumn<InventoryStockData>[] = [
   },
 ];
 
-export function InventoryStocksTable() {
+export function InventoryStocksTable({ isFuel = true, isMaterial }: { isFuel?: boolean; isMaterial?: boolean }) {
   const { companyId, moduleCode, costCenterId } = useUserStore();
 
   const [filters, setFilters] = useState<StockControlFilters>({
@@ -52,7 +52,8 @@ export function InventoryStocksTable() {
           company_id: companyId,
           module_code: moduleCode,
           ...filters,
-          is_fuel: true,
+          is_fuel: isFuel ? true : undefined,
+          is_material: isMaterial,
           cost_center_id: costCenterId || undefined,
         }
       : undefined) as any,

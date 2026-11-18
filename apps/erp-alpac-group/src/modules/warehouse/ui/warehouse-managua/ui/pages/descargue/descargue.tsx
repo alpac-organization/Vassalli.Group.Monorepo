@@ -16,7 +16,7 @@ import { DescargueFilters } from "./components/descargue-filters/descargue-filte
 import { DescargueTable } from "./components/descargue-table/descargue-table";
 import { AssignmentDetailModal } from "../warehouse-assignment/components/assignment-detail-modal/assignment-detail-modal";
 import { FinishDescargueModal } from "./components/finish-descargue-modal/finish-descargue-modal";
-import { SupplyRequestModal } from "./components/supply-request-modal/supply-request-modal";
+import { SupplyRequestModal } from "@app/modules/warehouse/ui/warehouse-managua/ui/components/supply-request-modal/supply-request-modal";
 import type { PositioningInformation } from "./components/finish-descargue-modal/finish-descargue-modal";
 
 const PAGE_SIZE = 10;
@@ -226,10 +226,14 @@ export function DescarguePage() {
   }, [baseUrl, navigate, setBodega, supplyModalContext]);
 
   const handleSubmitSupplyRequest = useCallback(
-    async (
-      items: { product_stock_id: string; amount: number }[],
-      justification: string,
-    ) => {
+    async (payload: {
+      items: { product_stock_id: string; amount: number }[];
+      justification: string;
+      warehouse_id?: string;
+      reason_use?: any;
+    }) => {
+      const items = payload.items;
+      const justification = payload.justification;
       if (!supplyModalContext || !companyId || !moduleCode) return;
 
       try {

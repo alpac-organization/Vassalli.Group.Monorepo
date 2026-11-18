@@ -7,6 +7,8 @@ import type {
   BranchInformation,
   WarehouseInformation,
   OperationalOrderInformation,
+  EquipmentInformation,
+  CustomerInformation,
 } from "@app/shared/interfaces/organization-information/organization-information";
 
 export interface SupplyRequestItemDetail {
@@ -37,6 +39,9 @@ export interface SupplyRequestDetailDto extends SupplyRequestDto {
   branch_information: BranchInformation;
   warehouse_information: WarehouseInformation;
   operational_order_information: OperationalOrderInformation;
+  equipment_information?: EquipmentInformation | null;
+  customer_information?: CustomerInformation | null;
+  duca_or_transport_order?: string | null;
   items: SupplyRequestItemDetail[];
   approved_by_user_chief_name: string | null;
   annulled_by_user_chief_name: string | null;
