@@ -2,6 +2,7 @@ import type { PriorityLevelType } from "@app/modules/purchasing/domain/enums/pur
 import type { PurchaseRequestDestinationType } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
 import type { PurchaseRequestStatusType } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
 import type { PurchaseRequestType } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
+import type { PurchaseOrderStatusType } from "@app/modules/purchasing/domain/enums/purchase-order-status.enum";
 import type { UserInformation } from "@app/shared/interfaces/organization-information/organization-information";
 import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 
@@ -22,6 +23,7 @@ export interface PurchaseOrderRequestSummary {
 export interface GetPurchaseOrdersResponse {
   purchase_order_id: string;
   purchase_order_code: string | null;
+  status: PurchaseOrderStatusType;
   payment_request_code: string | null;
   supplier_id: string | null;
   supplier_name: string | null;

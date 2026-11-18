@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Avatar, Button, Modal } from "@alpac/design-system";
+import { Avatar, Badges, Button, Modal } from "@alpac/design-system";
 import {
 	BuildingIcon,
 	CalendarIcon,
@@ -17,6 +17,8 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { PurchaseOrderDocumentModal } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-document-modal/purchase-order-document-modal";
 import { PurchaseOrderItems } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-details-modal/purchase-order-items";
 import { buildPurchaseRequestProductMap } from "@app/modules/purchasing/ui/pages/purchase-order/components/reports/purchase-order-pdf/utils/resolve-purchase-order-report-currency";
+import { resolvePurchaseOrderStatusBadge } from "@app/modules/purchasing/ui/pages/purchase-order/utils/purchase-order-status.variants";
+import { purchaseRequestStatusBadgeVariants } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 
 const sectionTitleClassName =
@@ -56,6 +58,13 @@ export const PurchaseOrderDetailsModal = ({
 	const productByItemId = buildPurchaseRequestProductMap(
 		purchaseRequestProductsQuery.data,
 	);
+
+	const orderStatusVariant = resolvePurchaseOrderStatusBadge(details?.status);
+	const requestStatus = purchaseOrder?.purchase_request?.request_status;
+	const requestStatusVariant =
+		purchaseRequestStatusBadgeVariants[
+			requestStatus as keyof typeof purchaseRequestStatusBadgeVariants
+		] ?? purchaseRequestStatusBadgeVariants.default;
 
 	const isLoading =
 		GetPurchaseOrderDetails.isPending || GetPurchaseOrderDetails.isFetching;
@@ -97,6 +106,24 @@ export const PurchaseOrderDetailsModal = ({
 									label="Código"
 									value={details?.purchase_order_code ?? ""}
 									icon={<NotebookTextIcon size={18} />}
+								/>
+								<DetailField
+									label="Estado de la orden"
+									value={
+										<Badges
+											label={orderStatusVariant.label || "—"}
+											color={orderStatusVariant.badgeColor}
+										/>
+									}
+								/>
+								<DetailField
+									label="Estado de la solicitud"
+									value={
+										<Badges
+											label={requestStatusVariant.label || "—"}
+											color={requestStatusVariant.badgeColor}
+										/>
+									}
 								/>
 								<DetailField
 									label="Proveedor"
