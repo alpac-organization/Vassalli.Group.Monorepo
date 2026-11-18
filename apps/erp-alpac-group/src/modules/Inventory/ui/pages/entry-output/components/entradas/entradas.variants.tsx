@@ -6,7 +6,7 @@ import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/u
 import type { ContextMenuItem, TableColumn } from "@alpac/design-system";
 import type { InventoryEntry } from "@app/modules/Inventory/domain/api-contract/responses/inventory-entries.response";
 import type { ContextMenuItemsProps, InventoryEntriesColumnsToTableProps } from "./entradas.types";
-import { formatSpanishDateTime, toDateOnly } from "@app/shared/utils/date.utils";
+import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
 
 export const GetInventoryEntriesColumnsToTable = function (props: InventoryEntriesColumnsToTableProps = {}): TableColumn<InventoryEntry>[] {
   
