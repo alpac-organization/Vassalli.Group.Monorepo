@@ -162,6 +162,27 @@ export const payrollColumns: PayrollColumnDef[] = [
       parseAdditionalDeductions(item.deductions_additional_data)?.Absences ?? 0,
   },
   {
+    key: "sanction_days",
+    label: "Días de suspensión",
+    render: (item) => {
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return d?.SanctionDays ?? 0;
+    },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)?.SanctionDays ??
+      0,
+  },
+  {
+    key: "sanction",
+    label: "Monto suspensión",
+    render: (item) => {
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return formatCurrency(d?.Sanction ?? 0, "NIO") ?? "—";
+    },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)?.Sanction ?? 0,
+  },
+  {
     key: "loans",
     label: "Préstamos",
     render: (item) => {
