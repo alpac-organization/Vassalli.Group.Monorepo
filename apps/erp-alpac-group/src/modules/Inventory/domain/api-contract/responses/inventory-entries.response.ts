@@ -1,5 +1,5 @@
-import type { EntryStatus } from "@app/core/enums/entry-status.enum";
 import type { EntryType } from "@app/core/enums/entry-type.enum";
+import type { EntryStatus } from "@app/core/enums/entry-status.enum";
 import type {
   BranchInformation,
   WorkAreaInformation,
