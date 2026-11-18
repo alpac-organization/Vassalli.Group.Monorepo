@@ -4,6 +4,8 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ReasonUse as ReasonUseValues } from "@app/core/enums/reason-use.enum";
 import { InventoryOutputsStatus } from "@app/core/enums/inventory-output-status.enum";
 import { inventoryOutputPdfStyles as styles } from "./inventory-output-pdf.styles";
+import { formatCurrency } from "@app/shared/utils/currency.utils";
+import { getEquipmentTypeLabel } from "@app/modules/warehouse/domain/enums/equipment.enum";
 
 export function InventoryOutputPDF({ data }: { data: any }) {
   const { urlImage } = useCompanyStore();
@@ -51,9 +53,11 @@ export function InventoryOutputPDF({ data }: { data: any }) {
   const reasonUseLabel =
     resolvedRequestType === "Supply"
       ? ReasonUseValues[supplyDetail?.reason_use as keyof typeof ReasonUseValues]?.label ??
-      supplyDetail?.reason_use ??
-      "—"
+        supplyDetail?.reason_use ??
+        "—"
       : "—";
+
+  const kardexMovements = detail?.kardex_movements ?? [];
 
   const items =
     resolvedRequestType === "Supply"
@@ -82,19 +86,55 @@ export function InventoryOutputPDF({ data }: { data: any }) {
 
   const rawStatus = output?.status ?? "—";
   const status = InventoryOutputsStatus[rawStatus as keyof typeof InventoryOutputsStatus]?.label ?? rawStatus;
+  const isApproved = rawStatus === "Dispatched";
   const isPendingOutput = rawStatus === "OutputPending";
   const code = output?.output_code ?? "—";
-  const requestDate = output?.request_date ? new Date(output.request_date).toLocaleDateString() : (createdAt ? new Date(createdAt).toLocaleDateString() : "—");
+  const requestDate = output?.request_date ? new Date(output.request_date).toLocaleString() : (createdAt ? new Date(createdAt).toLocaleString() : "—");
   const area = output?.work_area_name ?? supplyDetail?.work_area_name ?? fuelDetail?.work_area_information?.work_area_name ?? "—";
-  const costCenter = output?.cost_center_name ?? "—";
+  const costCenter = output?.cost_center_name ?? supplyDetail?.cost_center_information?.cost_center_name ?? "—";
   const warehouse =
-    supplyDetail?.warehouse_code ??
     supplyDetail?.warehouse_information?.code ??
+    supplyDetail?.warehouse_code ??
+    fuelDetail?.warehouse_information?.code ??
     "—";
   const reasonRemoval = output?.reasons_inventory_removal_description ?? "—";
   const dispatchedBy = detail?.dispatched_by_user_name ?? "—";
-  const dispatchedAt = detail?.dispatched_at ? new Date(detail.dispatched_at).toLocaleDateString() : "—";
+  const dispatchedAt = detail?.dispatched_at ? new Date(detail.dispatched_at).toLocaleString() : "—";
   const observations = output?.observations ?? "—";
+
+  const equipment =
+    resolvedRequestType === "Supply"
+      ? supplyDetail?.equipment_information
+      : fuelDetail?.equipment_information ?? null;
+
+  const supplyFuelTypes = [
+    equipment?.gasoline ? "Gasolina" : null,
+    equipment?.diesel ? "Diésel" : null,
+    equipment?.electric ? "Eléctrico" : null,
+    equipment?.lpg ? "GLP" : null,
+  ]
+    .filter(Boolean)
+    .join(", ") || "—";
+
+  const machineryCode =
+    fuelDetail?.machinery_code ?? fuelDetail?.equipment_information?.code ?? "—";
+  const machineryBrand =
+    fuelDetail?.machinery_brand ?? fuelDetail?.equipment_information?.brand ?? "—";
+  const machineryModel =
+    fuelDetail?.machinery_model ?? fuelDetail?.equipment_information?.model ?? "—";
+  const machinerySerial =
+    fuelDetail?.equipment_information?.serial_number ?? "—";
+  const machineryType =
+    getEquipmentTypeLabel(fuelDetail?.equipment_information?.type) ?? "—";
+
+  const fuelTypes = [
+    fuelDetail?.equipment_information?.gasoline ? "Gasolina" : null,
+    fuelDetail?.equipment_information?.diesel ? "Diésel" : null,
+    fuelDetail?.equipment_information?.electric ? "Eléctrico" : null,
+    fuelDetail?.equipment_information?.lpg ? "GLP" : null,
+  ]
+    .filter(Boolean)
+    .join(", ") || "—";
 
   return (
     <Document title={`Salida ${output?.output_code ?? "inventario"}.pdf`}>
@@ -103,7 +143,7 @@ export function InventoryOutputPDF({ data }: { data: any }) {
           {urlImage ? <Image src={urlImage} style={styles.logo} /> : <View />}
           <View style={styles.headerCenter}>
             <Text style={styles.companyName}>ALPAC</Text>
-            <Text style={styles.title}>DETALLE DE SALIDA DE INVENTARIO</Text>
+            <Text style={styles.title}>BOLETA DE SALIDA DE INVENTARIO</Text>
           </View>
           <View style={{ width: 70 }} />
         </View>
@@ -112,21 +152,21 @@ export function InventoryOutputPDF({ data }: { data: any }) {
 
         <Text style={styles.sectionTitle}>Información general</Text>
         <View style={styles.grid}>
-          <View style={styles.field}>
-            <Text style={styles.label}>Código</Text>
+          <View style={styles.fieldThird}>
+            <Text style={styles.label}>Código de salida</Text>
             <Text style={styles.value}>{code}</Text>
           </View>
-          <View style={styles.field}>
+          <View style={styles.fieldThird}>
             <Text style={styles.label}>Estado</Text>
             <Text style={styles.value}>{status}</Text>
           </View>
-          <View style={styles.field}>
+          <View style={styles.fieldThird}>
             <Text style={styles.label}>Tipo de solicitud</Text>
             <Text style={styles.value}>
               {resolvedRequestType === "Supply" ? "Insumos" : resolvedRequestType === "Fuel" ? "Combustibles" : "—"}
             </Text>
           </View>
-          <View style={styles.field}>
+          <View style={styles.fieldThird}>
             <Text style={styles.label}>Código de solicitud</Text>
             <Text style={styles.value}>
               {resolvedRequestType === "Supply"
@@ -134,8 +174,8 @@ export function InventoryOutputPDF({ data }: { data: any }) {
                 : fuelDetail?.fuel_request_code ?? "—"}
             </Text>
           </View>
-          {resolvedRequestType === "Supply" ? (
-            <View style={styles.field}>
+          {resolvedRequestType === "Supply" && (supplyDetail?.operational_order_information?.po_code ?? supplyDetail?.po_code) ? (
+            <View style={styles.fieldThird}>
               <Text style={styles.label}>Código PO</Text>
               <Text style={styles.value}>
                 {supplyDetail?.operational_order_information?.po_code ?? supplyDetail?.po_code ?? "—"}
@@ -143,48 +183,138 @@ export function InventoryOutputPDF({ data }: { data: any }) {
             </View>
           ) : null}
           {resolvedRequestType === "Supply" ? (
-            <View style={styles.field}>
+            <View style={styles.fieldThird}>
               <Text style={styles.label}>Razón de uso</Text>
               <Text style={styles.value}>{reasonUseLabel}</Text>
             </View>
           ) : null}
-          <View style={styles.field}>
+          <View style={styles.fieldThird}>
             <Text style={styles.label}>Solicitante</Text>
             <Text style={styles.value}>{requester ?? "—"}</Text>
           </View>
-          <View style={styles.field}>
+          <View style={styles.fieldThird}>
             <Text style={styles.label}>Fecha de solicitud</Text>
             <Text style={styles.value}>{requestDate}</Text>
           </View>
-          <View style={styles.field}>
+          <View style={styles.fieldThird}>
             <Text style={styles.label}>Aprobado por</Text>
             <Text style={styles.value}>{approvedBy ?? "—"}</Text>
           </View>
           {annulledBy ? (
-            <View style={styles.field}>
+            <View style={styles.fieldThird}>
               <Text style={styles.label}>Anulado por</Text>
               <Text style={styles.value}>{annulledBy}</Text>
             </View>
           ) : null}
-          <View style={styles.field}>
+          <View style={styles.fieldThird}>
             <Text style={styles.label}>Área</Text>
             <Text style={styles.value}>{area}</Text>
           </View>
-          <View style={styles.field}>
+          <View style={styles.fieldThird}>
             <Text style={styles.label}>Centro de costo</Text>
             <Text style={styles.value}>{costCenter}</Text>
           </View>
-          {resolvedRequestType === "Supply" ? (
-            <View style={styles.field}>
-              <Text style={styles.label}>Almacén</Text>
-              <Text style={styles.value}>{warehouse}</Text>
-            </View>
-          ) : null}
-          <View style={styles.field}>
+          <View style={styles.fieldThird}>
+            <Text style={styles.label}>Almacén</Text>
+            <Text style={styles.value}>{warehouse}</Text>
+          </View>
+          <View style={styles.fieldThird}>
             <Text style={styles.label}>Motivo de salida</Text>
             <Text style={styles.value}>{reasonRemoval}</Text>
           </View>
+          {resolvedRequestType === "Supply" && supplyDetail?.customer_information?.legal_name ? (
+            <View style={styles.fieldThird}>
+              <Text style={styles.label}>Cliente</Text>
+              <Text style={styles.value}>{supplyDetail.customer_information.legal_name}</Text>
+            </View>
+          ) : null}
+          {resolvedRequestType === "Supply" && supplyDetail?.duca_or_transport_order ? (
+            <View style={styles.fieldThird}>
+              <Text style={styles.label}>DUCA / Orden de transporte</Text>
+              <Text style={styles.value}>{supplyDetail.duca_or_transport_order}</Text>
+            </View>
+          ) : null}
+          {resolvedRequestType === "Fuel" && isCorinto && fuelDetail?.customer_information?.legal_name ? (
+            <View style={styles.fieldThird}>
+              <Text style={styles.label}>Cliente</Text>
+              <Text style={styles.value}>{fuelDetail.customer_information.legal_name}</Text>
+            </View>
+          ) : null}
         </View>
+
+        {(resolvedRequestType === "Supply" && equipment) || (resolvedRequestType === "Fuel") ? (
+          <>
+            <View style={styles.divider} />
+            <Text style={styles.sectionTitle}>Información de activo fijo</Text>
+            <View style={styles.grid}>
+              {resolvedRequestType === "Supply" ? (
+                <>
+                  <View style={styles.fieldThird}>
+                    <Text style={styles.label}>Código de activo</Text>
+                    <Text style={styles.value}>{equipment?.code ?? "—"}</Text>
+                  </View>
+                  <View style={styles.fieldThird}>
+                    <Text style={styles.label}>Marca</Text>
+                    <Text style={styles.value}>{equipment?.brand ?? "—"}</Text>
+                  </View>
+                  <View style={styles.fieldThird}>
+                    <Text style={styles.label}>Modelo</Text>
+                    <Text style={styles.value}>{equipment?.model ?? "—"}</Text>
+                  </View>
+                  {equipment?.serial_number ? (
+                    <View style={styles.fieldThird}>
+                      <Text style={styles.label}>Número de serie</Text>
+                      <Text style={styles.value}>{equipment.serial_number}</Text>
+                    </View>
+                  ) : null}
+                  {equipment?.type ? (
+                    <View style={styles.fieldThird}>
+                      <Text style={styles.label}>Tipo</Text>
+                      <Text style={styles.value}>{equipment.type}</Text>
+                    </View>
+                  ) : null}
+                  {supplyFuelTypes !== "—" ? (
+                    <View style={styles.fieldThird}>
+                      <Text style={styles.label}>Combustible</Text>
+                      <Text style={styles.value}>{supplyFuelTypes}</Text>
+                    </View>
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <View style={styles.fieldThird}>
+                    <Text style={styles.label}>Código de activo</Text>
+                    <Text style={styles.value}>{machineryCode}</Text>
+                  </View>
+                  <View style={styles.fieldThird}>
+                    <Text style={styles.label}>Marca</Text>
+                    <Text style={styles.value}>{machineryBrand}</Text>
+                  </View>
+                  <View style={styles.fieldThird}>
+                    <Text style={styles.label}>Modelo</Text>
+                    <Text style={styles.value}>{machineryModel}</Text>
+                  </View>
+                  {machinerySerial !== "—" ? (
+                    <View style={styles.fieldThird}>
+                      <Text style={styles.label}>Número de serie</Text>
+                      <Text style={styles.value}>{machinerySerial}</Text>
+                    </View>
+                  ) : null}
+                  {machineryType !== "—" ? (
+                    <View style={styles.fieldThird}>
+                      <Text style={styles.label}>Tipo</Text>
+                      <Text style={styles.value}>{machineryType}</Text>
+                    </View>
+                  ) : null}
+                  <View style={styles.fieldThird}>
+                    <Text style={styles.label}>Combustible</Text>
+                    <Text style={styles.value}>{fuelTypes}</Text>
+                  </View>
+                </>
+              )}
+            </View>
+          </>
+        ) : null}
 
         {resolvedRequestType === "Fuel" && fuelDetail ? (
           <>
@@ -192,20 +322,12 @@ export function InventoryOutputPDF({ data }: { data: any }) {
             <Text style={styles.sectionTitle}>Detalle de combustible</Text>
             <View style={styles.grid}>
               {isCorinto && fuelDetail?.customer_information?.legal_name ? (
-                <View style={styles.field}>
+                <View style={styles.fieldThird}>
                   <Text style={styles.label}>Cliente</Text>
                   <Text style={styles.value}>{fuelDetail.customer_information.legal_name}</Text>
                 </View>
               ) : null}
-              <View style={styles.field}>
-                <Text style={styles.label}>Máquina / Vehículo</Text>
-                <Text style={styles.value}>
-                  {[fuelDetail.machinery_code, fuelDetail.machinery_brand, fuelDetail.machinery_model]
-                    .filter(Boolean)
-                    .join(" / ") || "—"}
-                </Text>
-              </View>
-              <View style={styles.field}>
+              <View style={styles.fieldThird}>
                 <Text style={styles.label}>Cantidad solicitada</Text>
                 <Text style={styles.value}>
                   {Number(fuelDetail.requested_quantity ?? 0).toLocaleString("es-NI", {
@@ -220,15 +342,18 @@ export function InventoryOutputPDF({ data }: { data: any }) {
                   L)
                 </Text>
               </View>
-              {fuelDetail.engine_hours != null ? (
-                <View style={styles.field}>
+              {fuelDetail.engine_hours != null || fuelDetail.previous_engine_hours != null ? (
+                <View style={styles.fieldThird}>
                   <Text style={styles.label}>Horas motor</Text>
-                  <Text style={styles.value}>{fuelDetail.engine_hours}</Text>
+                  <Text style={styles.value}>
+                    Anterior: {fuelDetail.previous_engine_hours != null ? `${fuelDetail.previous_engine_hours} hrs` : "—"}{"\n"}
+                    Actual: {fuelDetail.engine_hours != null ? `${fuelDetail.engine_hours} hrs` : "—"}
+                  </Text>
                 </View>
               ) : fuelDetail.mileage != null ? (
-                <View style={styles.field}>
+                <View style={styles.fieldThird}>
                   <Text style={styles.label}>Kilometraje</Text>
-                  <Text style={styles.value}>{fuelDetail.mileage}</Text>
+                  <Text style={styles.value}>{fuelDetail.mileage} km</Text>
                 </View>
               ) : null}
             </View>
@@ -236,30 +361,67 @@ export function InventoryOutputPDF({ data }: { data: any }) {
         ) : null}
 
         <View style={styles.divider} />
-        <Text style={styles.sectionTitle}>Artículos</Text>
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableCell, isPendingOutput ? styles.colProduct : styles.colProductWide]}>Insumo</Text>
-            <Text style={[styles.tableCell, styles.colQty]}>Cantidad solicitada</Text>
-            {isPendingOutput ? (
-              <Text style={[styles.tableCell, styles.colStock]}>Stock disponible</Text>
-            ) : null}
+        <Text style={styles.sectionTitle}>
+          {isApproved && kardexMovements.length ? "Movimiento de Kardex" : "Artículos"}
+        </Text>
+        {isApproved && kardexMovements.length ? (
+          <View style={styles.table}>
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableCell, styles.colProduct]}>N°Item</Text>
+              <Text style={[styles.tableCell, styles.colProduct]}>Código de inventario</Text>
+              <Text style={[styles.tableCell, styles.colProduct]}>Nombre de producto</Text>
+              <Text style={[styles.tableCell, styles.colQty]}>Cantidad Solicitada</Text>
+              <Text style={[styles.tableCell, styles.colQty]}>Costo</Text>
+              <Text style={[styles.tableCell, styles.colQty]}>Costo Total</Text>
+            </View>
+            {kardexMovements.map((movement: any, index: number) => (
+              <View key={movement.kardex_id ?? index} style={styles.tableRow}>
+                <Text style={[styles.tableCell, styles.colProduct]}>{index + 1}</Text>
+                <Text style={[styles.tableCell, styles.colProduct]}>
+                  {movement.product_information?.product_code ?? "—"}
+                </Text>
+                <Text style={[styles.tableCell, styles.colProduct]}>
+                  {movement.product_information?.product_name ?? "—"}
+                </Text>
+                <Text style={[styles.tableCell, styles.colQty]}>
+                  {movement.units != null
+                    ? `${movement.units} ${movement.unit_measure_information?.symbol ?? ""}`.trim()
+                    : "—"}
+                </Text>
+                <Text style={[styles.tableCell, styles.colQty]}>
+                  {movement.unit_cost != null ? formatCurrency(movement.unit_cost) : "—"}
+                </Text>
+                <Text style={[styles.tableCell, styles.colQty]}>
+                  {movement.total_output != null ? formatCurrency(movement.total_output) : "—"}
+                </Text>
+              </View>
+            ))}
           </View>
-          {items.map((item: any) => (
-            <View key={item.key} style={styles.tableRow}>
-              <Text style={[styles.tableCell, isPendingOutput ? styles.colProduct : styles.colProductWide]}>{item.name}</Text>
-              <Text style={[styles.tableCell, styles.colQty]}>{item.requested}</Text>
+        ) : (
+          <View style={styles.table}>
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableCell, isPendingOutput ? styles.colProduct : styles.colProductWide]}>Insumo</Text>
+              <Text style={[styles.tableCell, styles.colQty]}>Cantidad solicitada</Text>
               {isPendingOutput ? (
-                <Text style={[styles.tableCell, styles.colStock]}>{item.available}</Text>
+                <Text style={[styles.tableCell, styles.colStock]}>Stock disponible</Text>
               ) : null}
             </View>
-          ))}
-          {items.length === 0 ? (
-            <View style={styles.tableRow}>
-              <Text style={[styles.tableCell, styles.colProduct]}>Sin artículos</Text>
-            </View>
-          ) : null}
-        </View>
+            {items.map((item: any) => (
+              <View key={item.key} style={styles.tableRow}>
+                <Text style={[styles.tableCell, isPendingOutput ? styles.colProduct : styles.colProductWide]}>{item.name}</Text>
+                <Text style={[styles.tableCell, styles.colQty]}>{item.requested}</Text>
+                {isPendingOutput ? (
+                  <Text style={[styles.tableCell, styles.colStock]}>{item.available}</Text>
+                ) : null}
+              </View>
+            ))}
+            {items.length === 0 ? (
+              <View style={styles.tableRow}>
+                <Text style={[styles.tableCell, styles.colProduct]}>Sin artículos</Text>
+              </View>
+            ) : null}
+          </View>
+        )}
 
         <View style={styles.justificationRow}>
           <View style={styles.justificationColumn}>

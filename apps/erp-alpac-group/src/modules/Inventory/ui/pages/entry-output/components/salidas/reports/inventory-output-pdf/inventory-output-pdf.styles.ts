@@ -35,12 +35,12 @@ export const inventoryOutputPdfStyles = StyleSheet.create({
   },
   divider: {
     borderBottom: "1px solid #cbd5e1",
-    marginVertical: 8,
+    marginVertical: 4,
   },
   sectionTitle: {
     fontSize: 11,
     fontWeight: "bold",
-    marginTop: 12,
+    marginTop: 8,
     marginBottom: 6,
     color: "#0f172a",
   },
@@ -68,6 +68,10 @@ export const inventoryOutputPdfStyles = StyleSheet.create({
   },
   field: {
     width: "48%",
+    marginBottom: 6,
+  },
+  fieldThird: {
+    width: "31%",
     marginBottom: 6,
   },
   label: {
@@ -99,13 +103,13 @@ export const inventoryOutputPdfStyles = StyleSheet.create({
     fontSize: 9,
   },
   colProduct: {
-    width: "60%",
+    width: "37%",
   },
   colProductWide: {
-    width: "80%",
+    width: "60%",
   },
   colQty: {
-    width: "20%",
+    width: "35%",
     textAlign: "right",
   },
   colStock: {
