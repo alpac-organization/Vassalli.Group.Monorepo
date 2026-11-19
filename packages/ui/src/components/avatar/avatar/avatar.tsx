@@ -3,7 +3,7 @@ import { Tooltip } from "../../tooltips";
 import { AvatarProps } from "./avatar.type";
 
 export const Avatar = ({
-   label, pictureUrl, hasLabel = true, tooltip, tooltipPlacement = "right"
+   label, pictureUrl, hasLabel = true, description, tooltip, tooltipPlacement = "right"
 }: AvatarProps) => {
 
    const refAvatarImage = useRef<HTMLImageElement>(null);
@@ -21,7 +21,7 @@ export const Avatar = ({
          <div className="flex items-center gap-3 min-w-0">
             {pictureUrl ? (
                <img
-                  ref={refAvatarImage ?? null}
+                  ref={refAvatarImage}
                   src={pictureUrl}
                   alt={label}
                   className="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-slate-200 dark:ring-neutral-600 cursor-grab"
@@ -30,7 +30,7 @@ export const Avatar = ({
                />
             ) : (
                <span
-                  ref={refAvatarImage ?? null}
+                  ref={refAvatarImage}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-200 text-xs font-semibold text-slate-700 ring-1 ring-slate-200 dark:bg-[#363a45] dark:text-white dark:ring-neutral-600"
                   onMouseEnter={() => setIsVisibleTooltip(true)}
                   onMouseLeave={() => setIsVisibleTooltip(false)}
@@ -38,10 +38,20 @@ export const Avatar = ({
                   {getInitials(label)}
                </span>
             )}
-            {hasLabel && (
-               <span className="truncate text-slate-900 dark:text-white">
-                  {label}
-               </span>
+
+            {(hasLabel || description) && (
+               <div className="flex min-w-0 flex-col leading-tight">
+                  {hasLabel && (
+                     <span className="truncate text-sm font-medium text-slate-900 dark:text-white">
+                        {label}
+                     </span>
+                  )}
+                  {description && (
+                     <span className="truncate text-xs text-slate-500 dark:text-neutral-400">
+                        {description}
+                     </span>
+                  )}
+               </div>
             )}
          </div>
 

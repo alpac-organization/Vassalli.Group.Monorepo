@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState, type FormEvent } from "react";
+
 import {
 	Button,
 	Checkbox,
@@ -9,28 +10,28 @@ import {
 	RadioButton,
 	type TableColumn,
 } from "@alpac/design-system";
+
 import type {
 	SelectableCatalogProduct,
 	SelectProductModalProps,
 } from "./select-product-modal.types";
-import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
+
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
-import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
-import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
-import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product.request";
+import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import {
 	buildProductListFilters,
 	SELECT_PRODUCT_PAGE_SIZE,
 } from "@app/modules/product/ui/views/select-product-modal/select-product-modal.utils";
 
-const primaryButtonClassName = "text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
+import type { GetProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/get-product.request";
+import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
+import type { GetProductCategoryResponse } from "@app/modules/product/domain/ApiContract/Responses/product-category/get-product-category.response";
+
+const primaryButtonClassName   = "text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
 const secondaryButtonClassName = "text-[15px]! rounded-md! text-slate-500! hover:bg-slate-200! bg-slate-500! dark:bg-slate-700! dark:text-slate-300! dark:hover:bg-slate-600!";
 
-function normalizeProducts(
-	data: GetProductResponse | GetProductResponse[] | null | undefined
-): SelectableCatalogProduct[] {
-
+function normalizeProducts(data: GetProductResponse | GetProductResponse[] | null | undefined): SelectableCatalogProduct[] {
 	if (!data) return [];
 	if (Array.isArray(data)) return data;
 	if ("product_id" in data) return [data];
@@ -55,9 +56,11 @@ export function SelectProductModal({
 	const [categoryId, setCategoryId] = useState("");
 	const [tempSelected, setTempSelected] = useState<SelectableCatalogProduct | null>(null);
 	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<SelectableCatalogProduct[]>([]);
+
 	const [filters, setFilters] = useState<GetProductRequest>(() =>
 		buildProductListFilters(companyId, moduleCode, productUsageType),
 	);
+	
 	const [listSession, setListSession] = useState({
 		isOpen,
 		companyId,
@@ -114,7 +117,7 @@ export function SelectProductModal({
 	const { GetProductCategories, GetProducts } = useProduct({
 		getProductPayload: isOpen ? activeFilters : undefined,
 		getProductCategoryPayload: {
-			company_id: companyId,
+			company_id:  companyId,
 			module_code: moduleCode,
 			...(categoryType ? { category_type: categoryType } : {}),
 		}
@@ -250,6 +253,10 @@ export function SelectProductModal({
 					);
 				},
 			},
+			{
+				key: "code",
+				label: "Codigo Producto",
+			},
 			{ key: "product_name", label: "Producto" },
 			{
 				key: "category",
@@ -259,6 +266,14 @@ export function SelectProductModal({
 		],
 		[selectionType, tempSelected, tempSelectedMultiple],
 	);
+
+	if(productUsageType === "Operational"){
+		columnConfig.push({
+			key: "cost_center_name",
+			label: "Centro Costo",
+			render: (row) => row.cost_center_information.cost_center_name
+		})
+	}
 
 	const isLoadingProducts = GetProducts.isPending || GetProducts.isFetching;
 
