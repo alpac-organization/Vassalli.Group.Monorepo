@@ -68,7 +68,8 @@ const { analyzedQuoteSection } = getManagementRoutes();
 
 const { 
   inventoryControl, 
-  inventoryEntriesAndOutputs
+  inventoryEntriesAndOutputs,
+  reportsSection
 } = getInventoryRoutes();
 
 export const routeConfig = {
@@ -179,7 +180,8 @@ export const routeConfig = {
   [ModuleEnum.INVENTORY]: {
     [RoleEnum.ADMINISTRATOR]: [
       inventoryControl,
-      inventoryEntriesAndOutputs
+      inventoryEntriesAndOutputs,
+      reportsSection
     ],
     [RoleEnum.MANAGER]: [
       inventoryControl

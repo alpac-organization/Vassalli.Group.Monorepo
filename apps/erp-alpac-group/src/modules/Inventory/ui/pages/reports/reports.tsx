@@ -1,0 +1,183 @@
+import { Breadcrumb, SectionHeader, useTheme, Card, Badges, Button } from "@alpac/design-system";
+import { useNavigate } from "react-router-dom";
+
+import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+
+type ReportCardItem = {
+   slug: string;
+   title: string;
+   description: string;
+   badge: string;
+   badgeColor: string;
+};
+
+const existenceReports: ReportCardItem[] = [
+   {
+      slug: "stock-daily",
+      title: "Stock diario",
+      description: "Existencias actuales por sucursal, área y centro de costo.",
+      badge: "Disponible",
+      badgeColor: "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
+   },
+   {
+      slug: "stock-minimum",
+      title: "Stock mínimo",
+      description: "Productos por debajo del stock mínimo permitido.",
+      badge: "Próximo",
+      badgeColor: "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+   },
+   {
+      slug: "stock-valuation",
+      title: "Valorización de inventario",
+      description: "Valor total del inventario por categoría y centro de costo.",
+      badge: "Nuevo",
+      badgeColor: "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
+   },
+];
+
+const movementReports: ReportCardItem[] = [
+   {
+      slug: "kardex",
+      title: "Kardex de movimientos",
+      description: "Historial de entradas y salidas por producto.",
+      badge: "Disponible",
+      badgeColor: "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
+   },
+   {
+      slug: "movement-summary",
+      title: "Resumen de movimientos",
+      description: "Totales de entradas y salidas por período.",
+      badge: "Nuevo",
+      badgeColor: "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
+   },
+];
+
+const outputsByEquipmentReports: ReportCardItem[] = [
+   {
+      slug: "outputs-by-equipment",
+      title: "Salidas por equipo",
+      description: "Salidas de inventario asociadas a equipos.",
+      badge: "Disponible",
+      badgeColor: "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
+   },
+   {
+      slug: "outputs-by-cost-center",
+      title: "Salidas por centro de costo",
+      description: "Consumo de inventario por centro de costo.",
+      badge: "Nuevo",
+      badgeColor: "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
+   },
+   {
+      slug: "outputs-by-area",
+      title: "Salidas por área",
+      description: "Consumo de inventario por área operativa.",
+      badge: "Próximo",
+      badgeColor: "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+   },
+];
+
+export const Reports = function () {
+   const navigate = useNavigate();
+   const { baseUrl } = useBaseUrl();
+   const { moduleBasePath } = useUserStore();
+   const { urlImage, neutralUrlImage } = useCompanyStore();
+   const { theme } = useTheme();
+   const { AlertComponent } = useAlertState();
+
+   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
+
+   const renderReportCards = (items: ReportCardItem[]) => (
+   <div
+      className={`grid grid-cols-1 gap-4 ${
+         items.length === 2 ? "md:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-3"
+      }`}
+   >
+      {items.map((item) => (
+         <Card
+            key={item.slug}
+            className="flex flex-col px-[18px] py-7 !border-0 hover:!border-0"
+         >
+            <h3 className="text-[14.5px] font-semibold text-white">
+               {item.title}
+               <p className="text-[13px] text-neutral-400 leading-snug mt-1">
+                  {item.description}
+               </p>
+            </h3>
+           
+            <div className="flex items-center justify-between mt-1">
+               <Badges color="info" className={item.badgeColor} label={item.badge} />
+               <Button
+                  size="small"
+                  label="Abrir"
+                  onClick={() =>
+                     navigate(`${baseUrl}/${moduleBasePath}/reports-management/${item.slug}`)
+                  }
+               />
+            </div>
+         </Card>
+      ))}
+   </div>
+);
+
+   return (
+      <div className="flex flex-col gap-4">
+         <div className="flex justify-start min-w-0 overflow-x-auto">
+            <Breadcrumb
+               items={[
+                  {
+                     label: "Dashboard",
+                     url: `${baseUrl}/`,
+                     onClick: (url) => navigate(url),
+                  },
+                  {
+                     label: "Gestión de Reportes",
+                     url: `${baseUrl}/${moduleBasePath}/reports-management`,
+                     onClick: (url) => {
+                        navigate(url);
+                     },
+                  },
+               ]}
+            />
+         </div>
+
+         <div className="flex flex-row justify-between items-start sm:items-center gap-3 min-w-0">
+            <div className="flex flex-col justify-center gap-1 sm:gap-2 min-w-0 flex-1">
+               <SectionHeader
+                  title="Gestión de Reportes"
+                  subtitle="Elige un reporte, aplica filtros y genera o edita antes de imprimir."
+               />
+            </div>
+
+            {activeLogo && (
+               <img
+                  className="h-10 sm:h-16 md:h-20 w-auto max-w-[35%] sm:max-w-none object-contain shrink-0 self-start sm:self-center"
+                  src={activeLogo}
+                  alt="vassalli group"
+               />
+            )}
+         </div>
+
+         <div className="flex flex-col gap-6">
+            <section className="flex flex-col gap-3">
+               <h2 className="text-xl font-semibold text-neutral-100">Existencias</h2>
+               {renderReportCards(existenceReports)}
+            </section>
+
+            <section className="flex flex-col gap-3">
+               <h2 className="text-xl font-semibold text-neutral-100">Movimientos</h2>
+               {renderReportCards(movementReports)}
+            </section>
+
+            <section className="flex flex-col gap-3">
+               <h2 className="text-xl font-semibold text-neutral-100">Salidas por Equipo</h2>
+               {renderReportCards(outputsByEquipmentReports)}
+            </section>
+         </div>
+
+         {AlertComponent}
+      </div>
+   );
+};
