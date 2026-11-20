@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Breadcrumb, SectionHeader, useTheme, Card, Badges, Button } from "@alpac/design-system";
+import { StockDailyReportModal } from "./stock-daily/stock-daily-report-modal";
 import { useNavigate } from "react-router-dom";
 
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -12,6 +14,7 @@ type ReportCardItem = {
    description: string;
    badge: string;
    badgeColor: string;
+   onOpen?: () => void;
 };
 
 const existenceReports: ReportCardItem[] = [
@@ -89,6 +92,8 @@ export const Reports = function () {
 
    const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
+   const [isStockDailyModalOpen, setIsStockDailyModalOpen] = useState(false);
+
    const renderReportCards = (items: ReportCardItem[]) => (
    <div
       className={`grid grid-cols-1 gap-4 ${
@@ -112,9 +117,13 @@ export const Reports = function () {
                <Button
                   size="small"
                   label="Abrir"
-                  onClick={() =>
-                     navigate(`${baseUrl}/${moduleBasePath}/reports-management/${item.slug}`)
-                  }
+                  onClick={() => {
+                     if (item.slug === "stock-daily") {
+                        setIsStockDailyModalOpen(true);
+                     } else {
+                        navigate(`${baseUrl}/${moduleBasePath}/reports-management/${item.slug}`);
+                     }
+                  }}
                />
             </div>
          </Card>
@@ -176,6 +185,11 @@ export const Reports = function () {
                {renderReportCards(outputsByEquipmentReports)}
             </section>
          </div>
+
+         <StockDailyReportModal
+            isOpen={isStockDailyModalOpen}
+            onClose={() => setIsStockDailyModalOpen(false)}
+         />
 
          {AlertComponent}
       </div>
