@@ -1,5 +1,9 @@
 import { AccountingReviewStatus } from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
 import type { accountingReviewStatusType } from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
+import {
+	PriorityLevelEnum,
+	type PriorityLevelType,
+} from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 
 const FALLBACK_BADGE = {
   label: "—",
@@ -34,11 +38,6 @@ export const STATUS_BADGE_VARIANTS: Record<
 export function getStatusBadge(status: accountingReviewStatusType) {
   return STATUS_BADGE_VARIANTS[status] ?? FALLBACK_BADGE;
 }
-
-import {
-	PriorityLevelEnum,
-	type PriorityLevelType,
-} from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 
 const PRIORITY_LEVEL_COLORS: Record<PriorityLevelType, string> = {
 	None: "bg-slate-500/10 text-slate-600 ring-1 ring-inset ring-slate-500/20 dark:bg-slate-400/10 dark:text-slate-400 dark:ring-slate-400/20",

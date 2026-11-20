@@ -1,17 +1,16 @@
 import {
+  Avatar,
   Badges,
-  ContextMenu,
-  type ContextMenuItem,
-  type TableColumn,
+  ContextMenu
 } from "@alpac/design-system";
-import type { GetPurchaseOrdersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
-import { AvatarWithTooltip } from "@app/modules/purchasing/ui/pages/purchase-order/components/avatar-with-tooltip";
 import { PurchaseOrderStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-order-status.enum";
-import { resolvePurchaseOrderStatusBadge } from "@app/modules/purchasing/ui/pages/purchase-order/utils/purchase-order-status.variants";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
+import { getPriorityLevelBadge, resolvePurchaseOrderStatusBadge } from "@app/modules/purchasing/ui/pages/purchase-order/utils/purchase-order-status.variants";
 
-const contextMenuButton =
-  "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
+import type { GetPurchaseOrdersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
+import type { ContextMenuItem, TableColumn } from "@alpac/design-system"
+
+const contextMenuButton = "rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
 const emptyCell = "—";
 
@@ -40,23 +39,23 @@ export function getPurchaseOrderTableColumns({
       key: "sent_by",
       label: "Enviado por",
       render: (row) => {
-        const sender = row.sent_by_user_information;
-        const fullname = sender?.fullname?.trim() || emptyCell;
-        const pictureUrl = sender?.picture_url?.trim();
-        const email = sender?.email?.trim() || emptyCell;
+        const sender      = row.sent_by_user_information;
+        const email       = sender?.email?.trim()         || emptyCell;
+        const fullname    = sender?.fullname?.trim()      || emptyCell;
+        const pictureUrl  = sender?.picture_url?.trim();
 
         return (
-          <AvatarWithTooltip
-            fullname={fullname}
+          <Avatar
+            label={fullname}
+            description={email}
             pictureUrl={pictureUrl}
-            email={email}
           />
         );
       },
     },
     {
       key: "status",
-      label: "Estado",
+      label: "Estado de orden",
       render: (row) => {
         const variant = resolvePurchaseOrderStatusBadge(row.status);
 
@@ -67,6 +66,17 @@ export function getPurchaseOrderTableColumns({
           />
         );
       },
+    },
+    {
+      key: "priority_level",
+      label: "Nivel Prioridad",
+      render: (row) => {
+          const badge = getPriorityLevelBadge(
+            row.purchase_request?.priority_level,
+          );
+          
+          return <Badges label={badge.label} color={badge.color} />;
+        },
     },
     {
       key: "supplier_name",
