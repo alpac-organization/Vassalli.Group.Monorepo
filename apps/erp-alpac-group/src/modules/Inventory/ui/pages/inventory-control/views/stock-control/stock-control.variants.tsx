@@ -180,6 +180,7 @@ export const DEFAULT_STOCK_FILTERS: StockControlFilters = {
    product_code: "",
    category_id:  "",
    product_name: "",
+   usage_type:   "",
    page_number:  0,
    page_size:    5
 }

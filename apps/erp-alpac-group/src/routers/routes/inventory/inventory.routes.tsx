@@ -1,16 +1,5 @@
-import { Settings, ArrowUpDown } from "lucide-react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faInbox } from "@fortawesome/free-solid-svg-icons";
-import type { FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
+import { Settings, ArrowUpDown, FileChartColumn } from "lucide-react";
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
-
-const SolicitudesSidebarIcon = ({ className, style }: Pick<FontAwesomeIconProps, "className" | "style">) => (
-  <FontAwesomeIcon
-    icon={faInbox}
-    className={className}
-    style={{ color: "rgb(255, 255, 255)", ...style }}
-  />
-);
 
 export const getInventoryRoutes = () => {
 
@@ -28,8 +17,16 @@ export const getInventoryRoutes = () => {
         icon:  ArrowUpDown
     };
 
+    const reportsSection: SidebarLink = {
+        id:   "inventory-reports",
+        label: "Gestión de Reportes",
+        path:  "reports-management",
+        icon:  FileChartColumn
+    };
+
     return {
         inventoryControl,
-        inventoryEntriesAndOutputs
+        inventoryEntriesAndOutputs,
+        reportsSection
     }
 }
