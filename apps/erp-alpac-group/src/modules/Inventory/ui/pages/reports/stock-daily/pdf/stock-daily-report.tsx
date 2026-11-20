@@ -4,34 +4,26 @@ import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
 import type { StockDailyReportPdfProps } from "./stock-daily-report.types";
 import { stockDailyReportStyles as styles } from "./stock-daily-report.styles";
 
+const STATUS_BADGE_STYLE_LOOKUP: Record<string, typeof styles.statusBadgeDanger> = {
+   "Sin stock": styles.statusBadgeDanger,
+   "Bajo mínimo": styles.statusBadgeWarning,
+   "Sobre máximo": styles.statusBadgeInfo,
+   "Normal": styles.statusBadgeSuccess,
+};
+
 function getStatusBadgeStyle(status: string | null) {
-   switch (status) {
-      case "Sin stock":
-         return styles.statusBadgeDanger;
-      case "Bajo mínimo":
-         return styles.statusBadgeWarning;
-      case "Sobre máximo":
-         return styles.statusBadgeInfo;
-      case "Normal":
-         return styles.statusBadgeSuccess;
-      default:
-         return styles.statusBadgeNeutral;
-   }
+   return STATUS_BADGE_STYLE_LOOKUP[status ?? ""] ?? styles.statusBadgeNeutral;
 }
 
+const STATUS_BADGE_TEXT_STYLE_LOOKUP: Record<string, typeof styles.statusBadgeDangerText> = {
+   "Sin stock": styles.statusBadgeDangerText,
+   "Bajo mínimo": styles.statusBadgeWarningText,
+   "Sobre máximo": styles.statusBadgeInfoText,
+   "Normal": styles.statusBadgeSuccessText,
+};
+
 function getStatusBadgeTextStyle(status: string | null) {
-   switch (status) {
-      case "Sin stock":
-         return styles.statusBadgeDangerText;
-      case "Bajo mínimo":
-         return styles.statusBadgeWarningText;
-      case "Sobre máximo":
-         return styles.statusBadgeInfoText;
-      case "Normal":
-         return styles.statusBadgeSuccessText;
-      default:
-         return styles.statusBadgeNeutralText;
-   }
+   return STATUS_BADGE_TEXT_STYLE_LOOKUP[status ?? ""] ?? styles.statusBadgeNeutralText;
 }
 
 function StockDailyReportPdfComponent({ report, logoUrl }: StockDailyReportPdfProps) {
