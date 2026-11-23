@@ -73,7 +73,10 @@ export const buildOrderProducts = (
       currency,
     ),
     totalLabel: formatPurchaseOrderReportMoney(total, currency),
-    costCenterLabel: "Por asignar",
+    costCenterLabel:
+      item.cost_center_information?.cost_center_name ??
+      item.cost_center_information?.cost_center_code ??
+      "Por asignar",
   }));
 
   return {

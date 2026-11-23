@@ -74,6 +74,10 @@ export const PurchaseOrderItemAccordionRow = ({
   const paymentMethodLabel = resolvePaymentMethodLabel(
     quotation?.payment_method_type,
   );
+  const costCenterLabel =
+    item.cost_center_information?.cost_center_name ??
+    item.cost_center_information?.cost_center_code ??
+    emptyCell;
   const currency = resolveAcceptedQuoteCurrency(requestProduct);
   const unitPrice = formatPurchaseOrderReportMoney(
     item.unit_price ?? quotation?.price_unit ?? 0,
@@ -181,6 +185,7 @@ export const PurchaseOrderItemAccordionRow = ({
                 }`}
               />
               <QuoteField label="Método de pago" value={paymentMethodLabel} />
+              <QuoteField label="Centro de costo" value={costCenterLabel} />
               <QuoteField label="Precio unitario" value={unitPrice} />
               <QuoteField label="Total" value={totalPrice} emphasize />
             </div>

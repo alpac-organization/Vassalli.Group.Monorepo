@@ -21,17 +21,17 @@ export interface PurchaseOrderRequestSummary {
 }
 
 export interface GetPurchaseOrdersResponse {
-  purchase_order_id: string;
-  purchase_order_code: string | null;
-  status: PurchaseOrderStatusType;
+  purchase_order_id:    string;
+  purchase_order_code:  string | null;
   payment_request_code: string | null;
-  supplier_id: string | null;
-  supplier_name: string | null;
-  requires_inventory_entry: boolean;
-  comments: string | null;
-  sent_to_review_at: string;
+  supplier_id:          string | null;
+  supplier_name:        string | null;
+  comments:             string | null;
+  sent_to_review_at:    string;
+  status:               PurchaseOrderStatusType;
+  purchase_request:     PurchaseOrderRequestSummary;
   sent_by_user_information: UserInformation;
-  purchase_request: PurchaseOrderRequestSummary;
+  requires_inventory_entry: boolean;
 }
 
 export type GetPurchaseOrdersResponseList =
