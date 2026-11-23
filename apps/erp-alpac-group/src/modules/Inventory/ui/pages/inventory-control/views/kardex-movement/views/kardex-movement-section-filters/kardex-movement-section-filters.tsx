@@ -1,6 +1,8 @@
+import { useState } from "react"
+import dayjs from "dayjs"
 import { Filter, FilterX } from "lucide-react"
 import { Controller, useForm } from "react-hook-form"
-import { Button, Dropdown, InputText } from "@alpac/design-system"
+import { Button, DatePicker, Dropdown, InputText } from "@alpac/design-system"
 import { dropdownClassName, inputClassName, labelClassName } from "@app/modules/purchasing/ui/pages/supplier/utils/style"
 
 import { useUserStore } from "@app/shared/stores/useUserStore"
@@ -12,7 +14,8 @@ import type { KardexMovementSectionFiltersProps } from "./kardex-movement-sectio
 import type { KardexMovementFilters } from "../../kardex-movements.types"
 
 export const KardexMovementSectionFilters = function(props: KardexMovementSectionFiltersProps){
-   
+   const [dateError, setDateError] = useState<string | null>(null)
+
    const { control, handleSubmit, reset, formState: { isDirty, isValid }, register } = useForm<KardexMovementFilters>({
       defaultValues: props.filters,
    });
@@ -31,11 +34,23 @@ export const KardexMovementSectionFilters = function(props: KardexMovementSectio
    const momentTypeOptions = GetMovementTypeOptions();
 
    const onSubmit = (values: KardexMovementFilters) => {
+      if (values.date_from && values.date_to) {
+         const from = dayjs(values.date_from as dayjs.ConfigType);
+         const to = dayjs(values.date_to as dayjs.ConfigType);
+
+         if (from.isValid() && to.isValid() && from.isAfter(to, "day")) {
+            setDateError("La fecha desde no puede ser mayor que la fecha hasta.");
+            return;
+         }
+      }
+
+      setDateError(null);
       props.onApply(values);
       reset(values);
    }
 
    const handleClear = () => {
+      setDateError(null);
       reset(DEFAULT_KARDEX_MOVEMENT_FILTERS);
       props.onClear();
    }; 
@@ -100,6 +115,64 @@ export const KardexMovementSectionFilters = function(props: KardexMovementSectio
                   {...register("product_code")}
                />
             </div>
+
+            <div className="w-full sm:w-64">
+               <Controller
+                  name="date_from"
+                  control={control}
+                  render={({ field }) => (
+                     <DatePicker
+                        label="Desde"
+                        labelAbove
+                        format="DD/MM/YYYY"
+                        value={field.value ?? null}
+                        onChange={(value) => {
+                           field.onChange(value);
+                           setDateError(null);
+                        }}
+                        className={inputClassName}
+                        slotProps={{
+                           popper: {
+                              disablePortal: false,
+                              sx: { zIndex: 2000 },
+                           },
+                        }}
+                     />
+                  )}
+               />
+            </div>
+
+            <div className="w-full sm:w-64">
+               <Controller
+                  name="date_to"
+                  control={control}
+                  render={({ field }) => (
+                     <DatePicker
+                        label="Hasta"
+                        labelAbove
+                        format="DD/MM/YYYY"
+                        value={field.value ?? null}
+                        onChange={(value) => {
+                           field.onChange(value);
+                           setDateError(null);
+                        }}
+                        className={inputClassName}
+                        slotProps={{
+                           popper: {
+                              disablePortal: false,
+                              sx: { zIndex: 2000 },
+                           },
+                        }}
+                     />
+                  )}
+               />
+            </div>
+
+            {dateError && (
+               <p className="w-full text-[13px] text-red-500 dark:text-red-400" role="alert">
+                  {dateError}
+               </p>
+            )}
          </div>
          
          <section 

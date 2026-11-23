@@ -9,11 +9,12 @@ import { useInventoryStocks } from "../../../../hooks/useInventoryStocks";
 import { StockControlSectionFilters } from "./views/stock-control-section-filters/stock-control-section-filters";
 import { DEFAULT_STOCK_FILTERS, GetInventoryStocksColumnsToTable } from "./stock-control.variants";
 
-import type { StockControlFilters, StockModalActions } from "./stock-control.types";
-import type { InventoryStockData } from "@app/modules/Inventory/domain/api-contract/responses/inventory-stocks.response";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { DeleteProductModal } from "./components/delete-stock-modal/delete-product-modal";
 import { mapStockToDeleteProductData } from "./components/delete-stock-modal/delete-product-modal.mapper";
+
+import type { StockControlFilters, StockModalActions } from "./stock-control.types";
+import type { InventoryStockData } from "@app/modules/Inventory/domain/api-contract/responses/inventory-stocks.response";
 
 const SEARCH_DEBOUNCE_MS = 5000;
 

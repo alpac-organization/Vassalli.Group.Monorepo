@@ -11,7 +11,7 @@ import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
 export const GetInventoryEntriesColumnsToTable = function (props: InventoryEntriesColumnsToTableProps = {}): TableColumn<InventoryEntry>[] {
   
    const { ActionsMenuContext } = props;
-   const { onViewEntry = () => {} } = ActionsMenuContext ?? {};
+   const { onViewEntry = () => {}, onRegisterEntry = () => {} } = ActionsMenuContext ?? {};
 
    return [
       {
@@ -71,6 +71,7 @@ export const GetInventoryEntriesColumnsToTable = function (props: InventoryEntri
             const contextMenuItems = GetContextMenuItems({
                item,
                onViewEntry,
+               onRegisterEntry,
             });
 
             return (
@@ -89,9 +90,10 @@ const GetContextMenuItems = function (props: ContextMenuItemsProps): ContextMenu
    const {
       item,
       onViewEntry = () => {},
+      onRegisterEntry = () => {},
    } = props;
 
-   return [
+   const items: ContextMenuItem[] = [
       {
          label: "Ver detalle",
          onClick() {
@@ -99,4 +101,15 @@ const GetContextMenuItems = function (props: ContextMenuItemsProps): ContextMenu
          },
       },
    ];
+
+   if (EntryStatus[item.entry_status]?.value === EntryStatus.PendingReview.value) {
+      items.push({
+         label: "Registrar entrada",
+         onClick() {
+            onRegisterEntry(item);
+         },
+      });
+   }
+
+   return items;
 };

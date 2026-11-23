@@ -1,79 +1,66 @@
-import { Avatar, Badges, ContextMenu, type ContextMenuItem, type TableColumn } from "@alpac/design-system";
-import type { RequisitionAccountingReviewDto } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
+import { Avatar, Badges, ContextMenu } from "@alpac/design-system";
+import { getPriorityLevelBadge, getStatusBadge } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-table/utils/quote-analysis.utils";
 import { AccountingReviewStatus } from "@app/modules/finance/domain/enum/analysis-quotation/accounting-review-status";
-import { getStatusBadge } from "@app/modules/finance/ui/pages/quote-analisys/components/quote-analysis-table/utils/quote-analysis.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
+import type { RequisitionAccountingReviewDto } from "@app/modules/finance/domain/ApiContract/responses/get-quotes-analysis";
+import type { ContextMenuItem, TableColumn } from "@alpac/design-system"
 
 const contextMenuButton =
 	"rounded-md! w-10! bg-transparent! border dark:border-slate-600! dark:hover:border-neutral-600!";
 
-function AvatarWithTooltip({
-	fullname,
-	pictureUrl,
-	email,
-}: {
-	fullname: string;
-	pictureUrl?: string;
-	email: string;
-}) {
-
-	return (
-		<Avatar
-			label={fullname}
-			pictureUrl={pictureUrl}
-			tooltipPlacement="top"
-			tooltip={
-				<div className="flex flex-col gap-1 bg-linear-to-b from-white to-gray-100 dark:from-[#272b34] dark:to-[#1e2229]">
-					<span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">
-						Correo
-					</span>
-					<span className="break-all text-sm font-medium text-slate-900 dark:text-white">
-						{email}
-					</span>
-				</div>
-			}
-		/>
-	);
-}
 
 export function getQuoteAnalysisColumns(
-	onViewDetail?: (row: RequisitionAccountingReviewDto) => void,
+	onViewDetail?: 	 (row: RequisitionAccountingReviewDto) => void,
 	onSendToReview?: (row: RequisitionAccountingReviewDto) => void,
-	onAnnul?: (row: RequisitionAccountingReviewDto) => void,
-	onGeneratePdf?: (row: RequisitionAccountingReviewDto) => void,
+	onAnnul?: 		 (row: RequisitionAccountingReviewDto) => void,
+	onGeneratePdf?:  (row: RequisitionAccountingReviewDto) => void,
 ): TableColumn<RequisitionAccountingReviewDto>[] {
 
 	return [
 		{
+			key: "purchase_request_code",
+			label: "Codigo de solicitud",
+			render: (row: RequisitionAccountingReviewDto) => {
+				return <span>{row.purchase_request_information.code}</span>
+			},
+		},
+		{
 			key: "enviado_por",
 			label: "Enviado por",
 			render: (row: RequisitionAccountingReviewDto) => {
-				const sender = row.sent_by_user_information;
-				const fullname = sender?.fullname?.trim() || "—";
-				const pictureUrl = sender?.picture_url?.trim();
-				const email = sender?.email?.trim() || "—";
+				const sender 	 = row.sent_by_user_information;
+				
+				const email 	 = sender?.email?.trim() 		|| "—";
+				const fullname 	 = sender?.fullname?.trim() 	|| "—";
+				const pictureUrl = sender?.picture_url?.trim() 	|| "-";
 
 				return (
-					<AvatarWithTooltip
-						fullname={fullname}
+					<Avatar
+						label={fullname}
 						pictureUrl={pictureUrl}
-						email={email}
+						description={email}
 					/>
 				);
 			},
 		},
 		{
 			key: "status",
-			label: "Estado",
+			label: "Estado de revición",
 			render: (row: RequisitionAccountingReviewDto) => {
 				const badge = getStatusBadge(row.status);
 				return <Badges label={badge.label} color={badge.color} />;
 			},
 		},
 		{
-			key: "email",
-			label: "Email",
-			render: (row: RequisitionAccountingReviewDto) => row.sent_by_user_information?.email?.trim() || "—",
+			key: "priority_level",
+			label: "Prioridad de la solicitud",
+			render: (row: RequisitionAccountingReviewDto) => {
+				const badge = getPriorityLevelBadge(
+					row.purchase_request_information?.priority_level,
+				);
+
+				return <Badges label={badge.label} color={badge.color} />;
+			},
 		},
 		{
 			key: "area",
@@ -110,7 +97,8 @@ export function getQuoteAnalysisColumns(
 						label: "Anular / Retornar",
 						onClick: () => onAnnul?.(row),
 					});
-				}else {
+				}
+				else {
 					items.push({
 						label: "Generar PDF",
 						onClick: () => onGeneratePdf?.(row),

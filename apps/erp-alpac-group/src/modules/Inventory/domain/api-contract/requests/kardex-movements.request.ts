@@ -39,6 +39,16 @@ export interface KardexMovementsRequest extends BaseRequest
     movement_type?: KardexMovementTypeEnum | null;
 
     /**
+     * Fecha inicial del periodo (YYYY-MM-DD). Opcional.
+     */
+    date_from?: string;
+
+    /**
+     * Fecha final del periodo (YYYY-MM-DD). Opcional.
+     */
+    date_to?: string;
+
+    /**
      * Cantidad de registros por página.
      */
     page_size?:      number;

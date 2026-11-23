@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Avatar, Badges, Button, Dropdown, Modal } from "@alpac/design-system";
+import { Badges, Button, Dropdown, Modal } from "@alpac/design-system";
 import { usePurchaseRequestDetail } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestDetail";
 import { usePurchaseRequestCommands } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestCommands";
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -391,21 +391,23 @@ export const PurchaseRequestDetailModal = ({
 											Solicitante
 										</h4>
 										<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+											
 											<DetailField
 												label="Solicitante"
-												value={details?.creator_user_information?.fullname ?? ""}
-												icon={<Avatar label={details?.creator_user_information?.fullname ?? ""} hasLabel={false} />}
+												value={details?.creator_user_information?.fullname}
+												description={details?.creator_user_information?.email ?? ""}
+												avatar={{
+													label: details?.creator_user_information?.fullname ?? "",
+													pictureUrl: details?.creator_user_information?.picture_url ?? "",
+												}}
 											/>
-											<DetailField
-												label="Email"
-												value={details?.creator_user_information?.email ?? ""}
-												icon={<MailIcon size={18} />}
-											/>
+
 											<DetailField
 												label="Sucursal"
 												value={details?.branch_information?.branch_name ?? ""}
 												icon={<BuildingIcon size={18} />}
 											/>
+											
 											<DetailField
 												label="Centro de costo"
 												value={details?.cost_center_information?.cost_center_name ?? ""}
@@ -413,10 +415,10 @@ export const PurchaseRequestDetailModal = ({
 											/>
 										</div>
 									</section>
-
+									
 									<section className="flex flex-col gap-3">
 										<h4 className={sectionTitleClassName}>
-											Productos
+											Productos Solicitados
 										</h4>
 									</section>
 
@@ -427,16 +429,15 @@ export const PurchaseRequestDetailModal = ({
 
 									<section className="flex flex-col gap-3">
 										<div className="grid grid-cols-1 p-1 gap-4 sm:grid-cols-2">
+											
 											<DetailField
 												label="Revisado por"
 												value={details?.reviewer_user_information?.fullname}
-												icon={<Avatar label={details?.reviewer_user_information?.fullname ?? ""} hasLabel={false} />}
-											/>
-
-											<DetailField
-												label="Email del revisor"
-												value={details?.reviewer_user_information?.email}
-												icon={<MailIcon size={18} />}
+												description={details?.reviewer_user_information?.email ?? ""}
+												avatar={{
+													label: details?.reviewer_user_information?.fullname ?? "",
+													pictureUrl: details?.reviewer_user_information?.picture_url ?? "",
+												}}
 											/>
 										</div>
 									</section>
