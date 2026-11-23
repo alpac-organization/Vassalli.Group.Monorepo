@@ -1,6 +1,7 @@
 import { CollaboratorPage } from "@app/modules/payroll/ui/pages/collaborator-index/collaborator.page";
 import { CollaboratorProfilePage } from "@app/modules/payroll/ui/pages/collaborator-profile/collaborator-profile-page";
 import { PayrollPage } from "@app/modules/payroll/ui/pages/nomina/payroll-page";
+import { LiquidacionPage } from "@app/modules/payroll/ui/pages/liquidacion/liquidacion.page";
 import { PermissionPoliciesPage } from "@app/modules/payroll/ui/pages/permission-policies/permission-policies";
 import { PayrollPeriodsHistoryPage } from "@app/modules/payroll/ui/pages/periods-payroll/Payroll-periods-history";
 import { ApplicationsPage } from "@app/modules/applications/ui/pages/applications-index/applications.page";
@@ -25,6 +26,10 @@ export const PayrollRouter: RouteObject[] = [
   {
     path: "gestion-nomina",
     element: <PayrollPage />,
+  },
+  {
+    path: "liquidacion",
+    element: <LiquidacionPage />,
   },
   {
     path: "disciplinary-management",
