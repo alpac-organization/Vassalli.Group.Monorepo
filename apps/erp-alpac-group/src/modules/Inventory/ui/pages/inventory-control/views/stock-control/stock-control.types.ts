@@ -5,8 +5,10 @@ export interface StockControlFilters {
     product_code?:   string;
     product_name?:   string;
     branch_id?:      string;
+    area_id?:        string;
     cost_center_id?: string;
-    
+    usage_type?:     string;
+
     page_number?:  number;
     page_size?:    number;
 }

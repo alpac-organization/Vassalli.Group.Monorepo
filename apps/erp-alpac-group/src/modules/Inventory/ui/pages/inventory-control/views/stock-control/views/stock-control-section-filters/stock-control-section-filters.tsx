@@ -14,6 +14,7 @@ import type { StockControlFilters } from "../../stock-control.types"
 import type { StockControlSectionFiltersProps } from "./stock-control-section-filters.types"
 
 export const StockControlSectionFilters = function(props: StockControlSectionFiltersProps) {
+   const { applyLabel, forceEnableApply } = props;
 
    const { control, handleSubmit, reset, formState: { isDirty, isValid }, register } = useForm<StockControlFilters>({
       defaultValues: props.filters,
@@ -99,8 +100,8 @@ export const StockControlSectionFilters = function(props: StockControlSectionFil
 
             {
                (role === "Administrator" || role === "Manager") && (
-                  <CostCenterFilter 
-                     control={control} 
+                  <CostCenterFilter
+                     control={control}
                   />
                )
             }
@@ -113,8 +114,8 @@ export const StockControlSectionFilters = function(props: StockControlSectionFil
                   type="submit"
                   size="giant"
                   className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                  label="Aplicar filtros"
-                  disabled={!isDirty || !isValid}
+                  label={applyLabel ?? "Aplicar filtros"}
+                  disabled={forceEnableApply ? false : (!isDirty || !isValid)}
                />
             </div>
 
