@@ -13,6 +13,7 @@ import type {
   InventoryEntryItemDetail,
   InventoryEntryPurchaseRequestItem,
 } from "@app/modules/Inventory/domain/api-contract/responses/inventory-entries.response";
+import type { CostCenterInformation } from "@app/modules/Inventory/domain/api-contract/responses/inventory-stocks.response";
 
 const MUTED_CELL_CLASS = "text-sm text-slate-400 dark:text-slate-500";
 const NUMERIC_CELL_CLASS =
@@ -28,6 +29,45 @@ const BadgeCell = ({ label, color }: { label: string | null; color: string }) =>
   ) : (
     <EmptyCell />
   );
+
+const CostCenterCell = ({
+  name,
+  code,
+  costCenterInfo,
+}: {
+  name?: string | null;
+  code?: string | null;
+  costCenterInfo?: CostCenterInformation | null;
+}) => {
+  const resolvedName = costCenterInfo?.cost_center_name ?? name ?? null;
+  const resolvedCode =
+    costCenterInfo?.cost_center_code !== null && costCenterInfo?.cost_center_code !== undefined
+      ? String(costCenterInfo.cost_center_code)
+      : (code ?? null);
+  const label = resolvedName ?? resolvedCode;
+
+  if (!label) {
+    return (
+      <span className="inline-flex whitespace-nowrap">
+        <Badges label="Por asignar" color={BADGE_COLORS.neutral} className={COMPACT_BADGE_CLASS} />
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className="inline-flex flex-col gap-0.5 whitespace-nowrap"
+      title={costCenterInfo?.description ?? label}
+    >
+      <Badges label={label} color={BADGE_COLORS.costCenter} className={COMPACT_BADGE_CLASS} />
+      {resolvedCode && resolvedName && (
+        <span className="text-[11px] text-slate-500 dark:text-slate-400">
+          Código: {resolvedCode}
+        </span>
+      )}
+    </span>
+  );
+};
 
 const ProductNameCell = ({ name }: { name: string | null }) => (
   <span className="block min-w-[12rem] max-w-[26rem] whitespace-normal text-sm font-medium text-slate-800 [overflow-wrap:anywhere] dark:text-slate-100">
@@ -80,8 +120,14 @@ export const ORDER_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
   },
   {
     key: "cost_center_name",
-    label: "Centro de costo",
-    render: (item) => <BadgeCell label={item.cost_center_name} color={BADGE_COLORS.costCenter} />,
+    label: "Centro de costo destino",
+    render: (item) => (
+      <CostCenterCell
+        name={item.cost_center_name}
+        code={item.cost_center_code}
+        costCenterInfo={item.cost_center_information}
+      />
+    ),
   },
   {
     key: "supplier_name",
@@ -115,6 +161,17 @@ export const REQUEST_ITEMS_COLUMNS: TableColumn<InventoryEntryPurchaseRequestIte
       <span className={NUMERIC_CELL_CLASS}>
         {formatQuantity(item.quantity, item.unit_measure_symbol ?? item.unit_measure_name)}
       </span>
+    ),
+  },
+  {
+    key: "cost_center_name",
+    label: "Centro de costo destino",
+    render: (item) => (
+      <CostCenterCell
+        name={item.cost_center_name}
+        code={item.cost_center_code}
+        costCenterInfo={item.cost_center_information}
+      />
     ),
   },
   {

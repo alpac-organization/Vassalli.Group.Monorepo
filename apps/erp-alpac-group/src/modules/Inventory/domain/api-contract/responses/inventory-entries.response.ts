@@ -6,6 +6,7 @@ import type {
 } from "@app/shared/interfaces/organization-information/organization-information";
 import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-response";
+import type { CostCenterInformation } from "./inventory-stocks.response";
 
 export interface InventoryEntry {
   inventory_entry_id:     string;
@@ -28,6 +29,10 @@ export interface InventoryEntryPurchaseRequestItem {
   product_code: string | null;
   unit_measure_name: string | null;
   unit_measure_symbol: string | null;
+  cost_center_id?: string | null;
+  cost_center_name?: string | null;
+  cost_center_code?: string | null;
+  cost_center_information?: CostCenterInformation | null;
 }
 
 export interface InventoryEntryItemDetail {
@@ -46,6 +51,8 @@ export interface InventoryEntryItemDetail {
   supplier_name: string | null;
   cost_center_id: string | null;
   cost_center_name: string | null;
+  cost_center_code?: string | null;
+  cost_center_information?: CostCenterInformation | null;
 }
 
 export interface InventoryEntryEvidenceImage {
@@ -61,6 +68,7 @@ export interface InventoryEntryDetail extends InventoryEntry {
   evidence_images: InventoryEntryEvidenceImage[];
   work_area_information: WorkAreaInformation | null;
   purchase_request_information: GetPurchaseRequestResponse | null;
+  cost_center_information?: CostCenterInformation | null;
   purchase_request_items: InventoryEntryPurchaseRequestItem[];
   purchase_order_id: string | null;
   supplier_id:       string | null;

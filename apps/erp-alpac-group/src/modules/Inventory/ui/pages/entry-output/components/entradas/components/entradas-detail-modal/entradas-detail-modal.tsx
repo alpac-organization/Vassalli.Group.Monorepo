@@ -5,6 +5,7 @@ import {
   CoinsIcon,
   FileTextIcon,
   ImageIcon,
+  LandmarkIcon,
   MapPinIcon,
   PackageIcon,
   ReceiptTextIcon,
@@ -98,6 +99,38 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
 
    const headerSubtitle    = [detail?.supplier_name, branch?.branch_name].filter(Boolean).join(" · ");
    const branchDescription = [branch?.branch_code, branch?.company_alias].filter(Boolean).join(" · ");
+
+   const designatedCostCenters = (() => {
+      const seen = new Map<string, { name: string; code: string | null }>();
+      const sourceItems = showRequestItems ? requestItems : orderItems;
+
+      for (const item of sourceItems) {
+         const info = item.cost_center_information;
+         const name = info?.cost_center_name ?? item.cost_center_name ?? null;
+         const code =
+            info?.cost_center_code !== null && info?.cost_center_code !== undefined
+               ? String(info.cost_center_code)
+               : (item.cost_center_code ?? null);
+         const key = info?.cost_center_id ?? item.cost_center_id ?? name ?? code;
+
+         if (key && (name || code) && !seen.has(key)) {
+            seen.set(key, { name: name ?? code!, code: name ? code : null });
+         }
+      }
+
+      if (seen.size === 0 && detail?.cost_center_information) {
+         const info = detail.cost_center_information;
+         const name = info.cost_center_name || String(info.cost_center_code ?? "");
+         if (name) {
+            seen.set(info.cost_center_id, {
+               name,
+               code: info.cost_center_code ? String(info.cost_center_code) : null,
+            });
+         }
+      }
+
+      return Array.from(seen.values());
+   })();
 
    const itemsCountBadge = (
       <Badges
@@ -206,7 +239,7 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
 
                            <SectionHeader
                               title="Información general"
-                              subtitle="Datos de la sucursal, área y proveedor de la entrada."
+                              subtitle="Datos de la sucursal, área, centro de costo destino y proveedor de la entrada."
                               hasBorder
                            >
                               <div className={SECTION_GRID_CLASS}>
@@ -220,6 +253,28 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                                     label="Área de trabajo"
                                     value={displayText(workArea?.work_area_name)}
                                     icon={<BuildingIcon size={18} className={ICON_CLASS} aria-hidden />}
+                                 />
+                                 <DetailField
+                                    label={
+                                       designatedCostCenters.length > 1
+                                          ? "Centros de costo destino"
+                                          : "Centro de costo destino"
+                                    }
+                                    value={
+                                       designatedCostCenters.length === 0
+                                          ? "Por asignar"
+                                          : designatedCostCenters.length === 1
+                                             ? designatedCostCenters[0].name
+                                             : designatedCostCenters.map((cc) => cc.name).join(" · ")
+                                    }
+                                    description={
+                                       designatedCostCenters.length > 1
+                                          ? `${designatedCostCenters.length} centros asignados en los artículos`
+                                          : designatedCostCenters[0]?.code
+                                             ? `Código: ${designatedCostCenters[0].code}`
+                                             : undefined
+                                    }
+                                    icon={<LandmarkIcon size={18} className={ICON_CLASS} aria-hidden />}
                                  />
                                  <DetailField
                                     label="Proveedor"

@@ -3,7 +3,10 @@ import { cleanParams } from "@app/shared/utils/object.utils";
 import type { IHttpHandler } from "@app/core/ports";
 import type { KardexMovementsData } from "../../domain/api-contract/responses/kardex-movements.response";
 import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
-import type { InventoryStocksRequest } from "../../domain/api-contract/requests/inventory-stock.request";
+import type {
+   InventoryStocksRequest,
+   PatchInventoryStockRequest,
+} from "../../domain/api-contract/requests/inventory-stock.request";
 import type { KardexMovementsRequest } from "../../domain/api-contract/requests/kardex-movements.request";
 import type { IInventoryStocksServices } from "../../application/interfaces/services/IInventory-stocks-services";
 import type { InventoryStockData, PagedResponseStock } from "../../domain/api-contract/responses/inventory-stocks.response";
@@ -27,6 +30,15 @@ export class InventoryStocksServices implements IInventoryStocksServices {
       catch(error: unknown){
          throw error;
       }
+   }
+
+   async PatchInventoryStock(payload: PatchInventoryStockRequest): Promise<void> {
+      const { company_id, module_code, inventory_stock_id, ...body } = payload;
+
+      await this.httpClient.patch<void>(
+         `/companies/${company_id}/modules/${module_code}/inventory-stock/${inventory_stock_id}`,
+         body
+      );
    }
 
    async GetKardexMovements(payload: KardexMovementsRequest) : Promise<any>{
