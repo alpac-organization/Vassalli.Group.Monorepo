@@ -1,22 +1,15 @@
 import { memo } from "react";
-import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
+import { Document, Page, Text, View } from "@react-pdf/renderer";
 
 import { getEquipmentTypeLabel } from "@app/modules/warehouse/domain/enums/equipment.enum";
-import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
-import { formatDate } from "@app/shared/utils/string.utils";
 
 import type { OutputLineEquipmentProduct } from "@app/modules/Inventory/domain/api-contract/responses/output-line-equipment-report.response";
-import type { OutputsByEquipmentReportPdfProps } from "./outputs-by-equipment-report.types";
-import { outputsByEquipmentReportStyles as styles } from "./outputs-by-equipment-report.styles";
 
-function formatNumber(value: number) {
-   return new Intl.NumberFormat("es-NI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
-}
+import { EquipmentReportPdfHeader } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/pdf/equipment-report-pdf-header";
+import { formatDate, formatNumber } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/pdf/equipment-report-pdf.utils";
 
-function formatGeneratedAt(value: string) {
-   const [date, time] = value.split("T");
-   return formatSpanishDateTime(date, time);
-}
+import type { OutputsByEquipmentReportPdfProps } from "@app/modules/Inventory/ui/pages/reports/outputs-by-equipment/pdf/outputs-by-equipment-report.types";
+import { outputsByEquipmentReportStyles as styles } from "@app/modules/Inventory/ui/pages/reports/outputs-by-equipment/pdf/outputs-by-equipment-report.styles";
 
 function sumEquipmentTotals(products: OutputLineEquipmentProduct[]) {
    return products.reduce(
@@ -33,24 +26,11 @@ function OutputsByEquipmentReportPdfComponent({ report, logoUrl }: OutputsByEqui
    return (
       <Document>
          <Page size="A4" orientation="landscape" style={styles.page} wrap>
-            <View style={styles.header} wrap={false}>
-               <View style={styles.headerLeft}>
-                  {logoUrl ? <Image src={logoUrl} style={styles.logo} /> : null}
-               </View>
-               <View style={styles.headerCenter}>
-                  <Text style={styles.title}>REPORTE DE SALIDAS POR EQUIPO (LINEA-EQUIPO)</Text>
-                  <Text style={styles.subtitle}>
-                     Generado: {formatGeneratedAt(report.generated_at)}
-                  </Text>
-                  <Text style={styles.subtitle}>
-                     Generado por: {report.generated_by || "—"}
-                  </Text>
-                  <Text style={styles.subtitle}>
-                     Periodo: {formatDate(report.from)} - {formatDate(report.to)}
-                  </Text>
-               </View>
-               <View style={{ width: 70 }} />
-            </View>
+            <EquipmentReportPdfHeader
+               title="REPORTE DE SALIDAS POR EQUIPO (LINEA-EQUIPO)"
+               report={report}
+               logoUrl={logoUrl}
+            />
 
             <View style={styles.divider} />
 
@@ -100,7 +80,7 @@ function OutputsByEquipmentReportPdfComponent({ report, logoUrl }: OutputsByEqui
                                              >
                                                 <Text style={[styles.cell, styles.colCode]}>{item.output_code || "—"}</Text>
                                                 <Text style={[styles.cell, styles.colRequest]}>{item.request_code || "—"}</Text>
-                                                <Text style={[styles.cell, styles.colDate]}>{formatDate(item.output_date) || "—"}</Text>
+                                                <Text style={[styles.cell, styles.colDate]}>{formatDate(item.output_date)}</Text>
                                                 <Text style={[styles.cell, styles.colQty]}>{formatNumber(item.quantity)}</Text>
                                                 <Text style={[styles.cell, styles.colCost]}>{formatNumber(item.cost)}</Text>
                                                 <Text style={[styles.cell, styles.colTotal]}>{formatNumber(item.total_cost)}</Text>

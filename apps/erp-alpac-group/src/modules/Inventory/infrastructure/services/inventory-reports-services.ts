@@ -8,6 +8,7 @@ import type {
 } from "@app/modules/Inventory/application/interfaces/services/IInventoryReportsServices";
 import type { StockDailyReport } from "@app/modules/Inventory/domain/api-contract/responses/stock-daily-report.response";
 import type { OutputLineEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-line-equipment-report.response";
+import type { OutputDetailByEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-detail-by-equipment-report.response";
 
 export class InventoryReportsServices implements IInventoryReportsServices {
    private readonly httpClient: IHttpHandler;
@@ -17,34 +18,34 @@ export class InventoryReportsServices implements IInventoryReportsServices {
    }
 
    async GetStockDailyReport(payload: StockDailyReportType): Promise<StockDailyReport> {
-      try {
-         const { company_id, module_code, ...rest } = payload;
+      const { company_id, module_code, ...rest } = payload;
 
-         return this.httpClient.get<StockDailyReport>(
-            `/companies/${company_id}/modules/${module_code}/reports/stock-daily`,
-            {
-               params: cleanParams(rest),
-               paramsSerializer: { indexes: null },
-            },
-         );
-      } catch (error: unknown) {
-         throw error;
-      }
+      return this.httpClient.get<StockDailyReport>(
+         `/companies/${company_id}/modules/${module_code}/reports/stock-daily`,
+         {
+            params: cleanParams(rest),
+            paramsSerializer: { indexes: null },
+         },
+      );
    }
 
    async GetOutputsLineEquipmentReport(payload: EquipmentReportType): Promise<OutputLineEquipmentReport> {
-      try {
-         const { company_id, module_code, ...rest } = payload;
+      return this.getEquipmentReport<OutputLineEquipmentReport>(payload, "outputs-line-equipment");
+   }
 
-         return this.httpClient.get<OutputLineEquipmentReport>(
-            `/companies/${company_id}/modules/${module_code}/reports/outputs-line-equipment`,
-            {
-               params: cleanParams(rest),
-               paramsSerializer: { indexes: null },
-            },
-         );
-      } catch (error: unknown) {
-         throw error;
-      }
+   async GetOutputsDetailByEquipmentReport(payload: EquipmentReportType): Promise<OutputDetailByEquipmentReport> {
+      return this.getEquipmentReport<OutputDetailByEquipmentReport>(payload, "outputs-detail-by-equipment");
+   }
+
+   private getEquipmentReport<T>(payload: EquipmentReportType, endpoint: string): Promise<T> {
+      const { company_id, module_code, ...rest } = payload;
+
+      return this.httpClient.get<T>(
+         `/companies/${company_id}/modules/${module_code}/reports/${endpoint}`,
+         {
+            params: cleanParams(rest),
+            paramsSerializer: { indexes: null },
+         },
+      );
    }
 }

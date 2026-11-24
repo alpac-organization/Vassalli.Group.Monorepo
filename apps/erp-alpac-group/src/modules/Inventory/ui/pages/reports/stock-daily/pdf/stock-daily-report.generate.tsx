@@ -1,4 +1,4 @@
-import type { StockDailyReportPdfProps } from "./stock-daily-report.types";
+import type { StockDailyReportPdfProps } from "@app/modules/Inventory/ui/pages/reports/stock-daily/pdf/stock-daily-report.types";
 
 export type GenerateStockDailyReportPdfParams = {
    report: StockDailyReportPdfProps["report"];
@@ -10,7 +10,7 @@ export async function generateStockDailyReportPdf(
 ): Promise<Blob> {
    const [{ pdf }, { StockDailyReportPdf }] = await Promise.all([
       import("@react-pdf/renderer"),
-      import("./stock-daily-report"),
+      import("@app/modules/Inventory/ui/pages/reports/stock-daily/pdf/stock-daily-report"),
    ]);
 
    return pdf(
