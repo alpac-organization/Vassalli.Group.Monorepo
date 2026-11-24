@@ -2,6 +2,8 @@ import { memo } from "react";
 import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
 
 import { getEquipmentTypeLabel } from "@app/modules/warehouse/domain/enums/equipment.enum";
+import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
+import { formatDate } from "@app/shared/utils/string.utils";
 
 import type { OutputLineEquipmentProduct } from "@app/modules/Inventory/domain/api-contract/responses/output-line-equipment-report.response";
 import type { OutputsByEquipmentReportPdfProps } from "./outputs-by-equipment-report.types";
@@ -11,8 +13,9 @@ function formatNumber(value: number) {
    return new Intl.NumberFormat("es-NI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
 }
 
-function formatDate(value: string) {
-   return new Date(value).toLocaleDateString();
+function formatGeneratedAt(value: string) {
+   const [date, time] = value.split("T");
+   return formatSpanishDateTime(date, time);
 }
 
 function sumEquipmentTotals(products: OutputLineEquipmentProduct[]) {
@@ -37,13 +40,13 @@ function OutputsByEquipmentReportPdfComponent({ report, logoUrl }: OutputsByEqui
                <View style={styles.headerCenter}>
                   <Text style={styles.title}>REPORTE DE SALIDAS POR EQUIPO (LINEA-EQUIPO)</Text>
                   <Text style={styles.subtitle}>
-                     Generado: {new Date(report.generated_at).toLocaleString()}
+                     Generado: {formatGeneratedAt(report.generated_at)}
                   </Text>
                   <Text style={styles.subtitle}>
                      Generado por: {report.generated_by || "—"}
                   </Text>
                   <Text style={styles.subtitle}>
-                     Periodo: {new Date(report.from).toLocaleDateString()} - {new Date(report.to).toLocaleDateString()}
+                     Periodo: {formatDate(report.from)} - {formatDate(report.to)}
                   </Text>
                </View>
                <View style={{ width: 70 }} />
@@ -97,7 +100,7 @@ function OutputsByEquipmentReportPdfComponent({ report, logoUrl }: OutputsByEqui
                                              >
                                                 <Text style={[styles.cell, styles.colCode]}>{item.output_code || "—"}</Text>
                                                 <Text style={[styles.cell, styles.colRequest]}>{item.request_code || "—"}</Text>
-                                                <Text style={[styles.cell, styles.colDate]}>{formatDate(item.output_date)}</Text>
+                                                <Text style={[styles.cell, styles.colDate]}>{formatDate(item.output_date) || "—"}</Text>
                                                 <Text style={[styles.cell, styles.colQty]}>{formatNumber(item.quantity)}</Text>
                                                 <Text style={[styles.cell, styles.colCost]}>{formatNumber(item.cost)}</Text>
                                                 <Text style={[styles.cell, styles.colTotal]}>{formatNumber(item.total_cost)}</Text>
