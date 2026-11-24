@@ -1,11 +1,15 @@
 import { memo } from "react";
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 
+import type { OutputConsolidatedByEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-consolidated-by-equipment-report.response";
+
 import { EquipmentReportPdfHeader } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/pdf/equipment-report-pdf-header";
 import { formatNumber } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/pdf/equipment-report-pdf.utils";
+import type { EquipmentReportPdfProps } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/equipment-report.types";
 
-import type { OutputsConsolidatedByEquipmentReportPdfProps } from "@app/modules/Inventory/ui/pages/reports/outputs-consolidated-by-equipment/pdf/outputs-consolidated-by-equipment-report.types";
 import { outputsConsolidatedByEquipmentReportStyles as styles } from "@app/modules/Inventory/ui/pages/reports/outputs-consolidated-by-equipment/pdf/outputs-consolidated-by-equipment-report.styles";
+
+type OutputsConsolidatedByEquipmentReportPdfProps = EquipmentReportPdfProps<OutputConsolidatedByEquipmentReport>;
 
 function OutputsConsolidatedByEquipmentReportPdfComponent({ report, logoUrl }: OutputsConsolidatedByEquipmentReportPdfProps) {
    return (

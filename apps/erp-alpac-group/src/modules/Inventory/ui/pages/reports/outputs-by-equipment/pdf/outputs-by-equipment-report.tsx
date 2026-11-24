@@ -3,13 +3,15 @@ import { Document, Page, Text, View } from "@react-pdf/renderer";
 
 import { getEquipmentTypeLabel } from "@app/modules/warehouse/domain/enums/equipment.enum";
 
-import type { OutputLineEquipmentProduct } from "@app/modules/Inventory/domain/api-contract/responses/output-line-equipment-report.response";
+import type { OutputLineEquipmentProduct, OutputLineEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-line-equipment-report.response";
 
 import { EquipmentReportPdfHeader } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/pdf/equipment-report-pdf-header";
 import { formatDate, formatNumber } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/pdf/equipment-report-pdf.utils";
+import type { EquipmentReportPdfProps } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/equipment-report.types";
 
-import type { OutputsByEquipmentReportPdfProps } from "@app/modules/Inventory/ui/pages/reports/outputs-by-equipment/pdf/outputs-by-equipment-report.types";
 import { outputsByEquipmentReportStyles as styles } from "@app/modules/Inventory/ui/pages/reports/outputs-by-equipment/pdf/outputs-by-equipment-report.styles";
+
+type OutputsByEquipmentReportPdfProps = EquipmentReportPdfProps<OutputLineEquipmentReport>;
 
 function sumEquipmentTotals(products: OutputLineEquipmentProduct[]) {
    return products.reduce(

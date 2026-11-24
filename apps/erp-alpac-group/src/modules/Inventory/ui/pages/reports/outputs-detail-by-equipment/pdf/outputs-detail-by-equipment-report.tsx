@@ -1,11 +1,15 @@
 import { memo } from "react";
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 
+import type { OutputDetailByEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-detail-by-equipment-report.response";
+
 import { EquipmentReportPdfHeader } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/pdf/equipment-report-pdf-header";
 import { formatDate, formatNumber } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/pdf/equipment-report-pdf.utils";
+import type { EquipmentReportPdfProps } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/equipment-report.types";
 
-import type { OutputsDetailByEquipmentReportPdfProps } from "@app/modules/Inventory/ui/pages/reports/outputs-detail-by-equipment/pdf/outputs-detail-by-equipment-report.types";
 import { outputsDetailByEquipmentReportStyles as styles } from "@app/modules/Inventory/ui/pages/reports/outputs-detail-by-equipment/pdf/outputs-detail-by-equipment-report.styles";
+
+type OutputsDetailByEquipmentReportPdfProps = EquipmentReportPdfProps<OutputDetailByEquipmentReport>;
 
 function OutputsDetailByEquipmentReportPdfComponent({ report, logoUrl }: OutputsDetailByEquipmentReportPdfProps) {
    return (

@@ -8,3 +8,8 @@ export interface EquipmentReportFiltersValues {
    equipment_ids?: string[];
    product_ids?: string[];
 }
+
+export type EquipmentReportPdfProps<TReport> = {
+   report: TReport;
+   logoUrl?: string | null;
+};

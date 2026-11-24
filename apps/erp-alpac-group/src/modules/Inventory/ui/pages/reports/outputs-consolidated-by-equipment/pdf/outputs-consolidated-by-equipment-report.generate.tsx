@@ -1,19 +1,8 @@
-import type { OutputsConsolidatedByEquipmentReportPdfProps } from "@app/modules/Inventory/ui/pages/reports/outputs-consolidated-by-equipment/pdf/outputs-consolidated-by-equipment-report.types";
+import type { OutputConsolidatedByEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-consolidated-by-equipment-report.response";
 
-export type GenerateOutputsConsolidatedByEquipmentReportPdfParams = {
-   report: OutputsConsolidatedByEquipmentReportPdfProps["report"];
-   logoUrl?: string | null;
-};
+import { createEquipmentReportPdfGenerator } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/pdf/generate-equipment-report-pdf";
 
-export async function generateOutputsConsolidatedByEquipmentReportPdf(
-   params: GenerateOutputsConsolidatedByEquipmentReportPdfParams,
-): Promise<Blob> {
-   const [{ pdf }, { OutputsConsolidatedByEquipmentReportPdf }] = await Promise.all([
-      import("@react-pdf/renderer"),
-      import("@app/modules/Inventory/ui/pages/reports/outputs-consolidated-by-equipment/pdf/outputs-consolidated-by-equipment-report"),
-   ]);
-
-   return pdf(
-      <OutputsConsolidatedByEquipmentReportPdf report={params.report} logoUrl={params.logoUrl} />,
-   ).toBlob();
-}
+export const generateOutputsConsolidatedByEquipmentReportPdf = createEquipmentReportPdfGenerator<OutputConsolidatedByEquipmentReport>(
+   () => import("@app/modules/Inventory/ui/pages/reports/outputs-consolidated-by-equipment/pdf/outputs-consolidated-by-equipment-report")
+      .then((module) => module.OutputsConsolidatedByEquipmentReportPdf),
+);
