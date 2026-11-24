@@ -7,17 +7,17 @@ import type { UserInformation } from "@app/shared/interfaces/organization-inform
 import type { PaginateBaseResponse } from "@app/shared/interfaces/paginate-base/paginate-base-response";
 
 export interface PurchaseOrderRequestSummary {
-  purchase_request_id: string;
-  code: string | null;
-  request_date: string;
-  revision_date: string | null;
-  priority_level: PriorityLevelType;
-  destination: PurchaseRequestDestinationType;
-  request_type: PurchaseRequestType;
-  request_status: PurchaseRequestStatusType;
-  is_accounting_approved: boolean;
-  is_management_approved: boolean;
-  is_purchase_order_generated: boolean;
+  purchase_request_id:  string;
+  code:                 string | null;
+  request_date:         string;
+  revision_date:        string | null;
+  priority_level:       PriorityLevelType;
+  destination:          PurchaseRequestDestinationType;
+  request_type:         PurchaseRequestType;
+  request_status:       PurchaseRequestStatusType;
+  is_accounting_approved:       boolean;
+  is_management_approved:       boolean;
+  is_purchase_order_generated:  boolean;
 }
 
 export interface GetPurchaseOrdersResponse {

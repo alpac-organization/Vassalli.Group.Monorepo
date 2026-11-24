@@ -27,6 +27,14 @@ export interface OrderSummaryModel {
    status: PurchaseOrderStatusType;
 }
 
+export interface OrderCostCenterModel {
+   costCenterId: string;
+   name:        string | null;
+   code:        string | null;
+   description: string | null;
+   coilCode:    number | null;
+}
+
 export interface OrderProductRowModel {
    purchaseOrderItemId: string;
    productName:         string;
@@ -35,4 +43,5 @@ export interface OrderProductRowModel {
    unitPriceLabel:      string;
    totalLabel:          string;
    costCenterLabel:     string;
+   costCenter:          OrderCostCenterModel | null;
 }

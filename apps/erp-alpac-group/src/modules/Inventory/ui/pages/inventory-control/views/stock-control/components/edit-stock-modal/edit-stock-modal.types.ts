@@ -1,7 +1,9 @@
 import type { InventoryStockData } from "@app/modules/Inventory/domain/api-contract/responses/inventory-stocks.response";
 
 export interface EditStockModalProps {
-    isOpen:         boolean;
-    stockSelected:  InventoryStockData | null
-    onClose?:       () => void;
+    isOpen:                boolean;
+    stockSelected:         InventoryStockData | null;
+    onClose?:              () => void;
+    handleRequestSuccess?: (message: string) => void;
+    handleRequestError?:   (message: string) => void;
 }
