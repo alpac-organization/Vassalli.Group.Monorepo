@@ -2,6 +2,7 @@ import { Badges } from "@alpac/design-system";
 import {
   Building2,
   CalendarDays,
+  CircleDollarSign,
   IdCard,
   LayoutGrid,
   Wallet,
@@ -38,6 +39,11 @@ export function CollaboratorSummaryCard({
       icon: Wallet,
       label: "Salario base",
       value: formatCurrency(collaborator.baseSalary),
+    },
+    {
+      icon: CircleDollarSign,
+      label: "Tipo de salario",
+      value: collaborator.salaryType,
     },
   ];
 

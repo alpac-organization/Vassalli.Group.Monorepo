@@ -16,22 +16,26 @@ import {
   Calculator,
   FileText,
   HandCoins,
+  Mail,
   Search,
   ShieldCheck,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
+import { LiquidacionCalculationDetails } from "./components/liquidacion-calculation-details";
 import { CollaboratorSummaryCard } from "./components/collaborator-summary-card";
-import { LiquidacionConceptsTable } from "./components/liquidacion-concepts-table";
 import { LiquidacionStepper } from "./components/liquidacion-stepper";
 import { LiquidacionSummaryCards } from "./components/liquidacion-summary-cards";
 import {
+  CONTADOR_REVIEW_OPTIONS,
   LIQUIDACION_TYPE_OPTIONS,
   MOCK_COLLABORATOR,
+  MOCK_LIQUIDACION_CALCULATION_DETAILS,
   MOCK_LIQUIDACION_CONCEPTS,
 } from "./constants/liquidacion-mock.constants";
 import type {
+  LiquidacionCalculationDetail,
   LiquidacionConcept,
   LiquidacionType,
 } from "./types/liquidacion.types";
@@ -47,6 +51,26 @@ const primaryButtonClassName =
 const secondaryButtonClassName =
   "w-full! min-h-[48px]! px-4! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700! sm:w-auto!";
 
+type RevisionContadorStatus = "pendiente" | "correcto" | "incorrecto";
+
+const revisionBadgeConfig: Record<
+  RevisionContadorStatus,
+  { label: string; color: string }
+> = {
+  pendiente: {
+    label: "Pendiente de revisión",
+    color: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300",
+  },
+  correcto: {
+    label: "Cálculos correctos",
+    color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300",
+  },
+  incorrecto: {
+    label: "Cálculos incorrectos",
+    color: "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300",
+  },
+};
+
 export function LiquidacionPage() {
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -55,6 +79,7 @@ export function LiquidacionPage() {
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
   const [identification, setIdentification] = useState("");
+  const [collaboratorName, setCollaboratorName] = useState("");
   const [liquidacionType, setLiquidacionType] = useState<
     LiquidacionType | ""
   >("");
@@ -66,11 +91,21 @@ export function LiquidacionPage() {
     useState<DatePickerValue>(null);
   const [reason, setReason] = useState("");
   const [concepts, setConcepts] = useState<LiquidacionConcept[]>([]);
+  const [calculationDetails, setCalculationDetails] = useState<
+    LiquidacionCalculationDetail[]
+  >([]);
   const [activeStep, setActiveStep] = useState(0);
+  const [revisionContador, setRevisionContador] =
+    useState<RevisionContadorStatus>("pendiente");
+  const [isReviewPanelOpen, setIsReviewPanelOpen] = useState(false);
+  const [isReviewEmailModalOpen, setIsReviewEmailModalOpen] = useState(false);
+  const [isGenerateEmailModalOpen, setIsGenerateEmailModalOpen] =
+    useState(false);
   const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
 
   const handleCalculate = () => {
     setConcepts([...MOCK_LIQUIDACION_CONCEPTS]);
+    setCalculationDetails([...MOCK_LIQUIDACION_CALCULATION_DETAILS]);
   };
 
   const handleOpenCloseModal = () => {
@@ -132,15 +167,21 @@ export function LiquidacionPage() {
             size="giant"
             label="Generar liquidación"
             icon={<HandCoins size={20} />}
-            onClick={() => setActiveStep(1)}
+            onClick={() => {
+              setActiveStep(1);
+              setIsGenerateEmailModalOpen(true);
+            }}
             className={primaryButtonClassName}
           />
           <Button
             type="button"
             size="giant"
-            label="Revisar conceptos"
+            label="Revisado por Contador"
             icon={<FileText size={20} />}
-            onClick={() => setActiveStep(2)}
+            onClick={() => {
+              setActiveStep(2);
+              setIsReviewPanelOpen((open) => !open);
+            }}
             className={secondaryButtonClassName}
           />
           <Button
@@ -153,19 +194,65 @@ export function LiquidacionPage() {
           />
         </SectionHeader>
 
+        {isReviewPanelOpen && (
+          <div className="flex flex-col gap-3 rounded-lg border border-slate-600 bg-white p-4 dark:border-neutral-600 dark:bg-[#272b34] sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-2">
+              <p className="m-0 p-0 text-sm font-medium text-gray-500 dark:text-gray-300">
+                Resultado de la revisión contable
+              </p>
+              <Badges
+                label={revisionBadgeConfig[revisionContador].label}
+                color={revisionBadgeConfig[revisionContador].color}
+              />
+            </div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <Dropdown
+                label="Revisión del contador"
+                labelClassName={labelClassName}
+                className="w-full! sm:w-80!"
+                placeholder="Seleccione el resultado"
+                options={CONTADOR_REVIEW_OPTIONS}
+                value={revisionContador}
+                onChange={(value) =>
+                  setRevisionContador(value as RevisionContadorStatus)
+                }
+              />
+              <Button
+                type="button"
+                size="giant"
+                label="Revisar información"
+                icon={<Mail size={20} />}
+                disabled={revisionContador === "pendiente"}
+                onClick={() => setIsReviewEmailModalOpen(true)}
+                className={secondaryButtonClassName}
+              />
+            </div>
+          </div>
+        )}
+
         <SectionHeader
           title="Selección del colaborador"
-          subtitle="Ingrese la identificación del colaborador a liquidar"
+          subtitle="Ingrese la identificación o el nombre del colaborador a liquidar"
           hasBorder
         >
-          <InputText
-            label="Identificación"
-            labelClassName={labelClassName}
-            className="w-full! sm:w-80!"
-            placeholder="000-000000-0000A"
-            value={identification}
-            onChange={(event) => setIdentification(event.target.value)}
-          />
+          <div className="grid w-full grid-cols-2 gap-4">
+            <InputText
+              label="Nombre del Colaborador"
+              labelClassName={labelClassName}
+              className="w-full!"
+              placeholder="Ej. María Elena Pérez"
+              value={collaboratorName}
+              onChange={(event) => setCollaboratorName(event.target.value)}
+            />
+            <InputText
+              label="Identificación"
+              labelClassName={labelClassName}
+              className="w-full!"
+              placeholder="000-000000-0000A"
+              value={identification}
+              onChange={(event) => setIdentification(event.target.value)}
+            />
+          </div>
           <Button
             type="button"
             size="giant"
@@ -259,15 +346,57 @@ export function LiquidacionPage() {
 
         <LiquidacionSummaryCards concepts={concepts} />
 
-        <LiquidacionConceptsTable concepts={concepts} />
+        <LiquidacionCalculationDetails details={calculationDetails} />
+
+        <Modal
+          isOpen={isGenerateEmailModalOpen}
+          onClose={() => setIsGenerateEmailModalOpen(false)}
+          variant="success"
+          size="md"
+          title="Correo enviado al contador"
+          description="Se envió un correo al contador para que revise la nómina de la liquidación."
+        >
+          <div className="mt-6 flex justify-end">
+            <Button
+              type="button"
+              size="giant"
+              label="Aceptar"
+              onClick={() => setIsGenerateEmailModalOpen(false)}
+              className={primaryButtonClassName}
+            />
+          </div>
+        </Modal>
+
+        <Modal
+          isOpen={isReviewEmailModalOpen}
+          onClose={() => setIsReviewEmailModalOpen(false)}
+          variant={revisionContador === "correcto" ? "success" : "error"}
+          size="md"
+          title="Revisión enviada por correo"
+          description={
+            revisionContador === "correcto"
+              ? "Se envió un correo indicando que los cálculos de la liquidación son correctos."
+              : "Se envió un correo indicando que los cálculos de la liquidación son incorrectos."
+          }
+        >
+          <div className="mt-6 flex justify-end">
+            <Button
+              type="button"
+              size="giant"
+              label="Aceptar"
+              onClick={() => setIsReviewEmailModalOpen(false)}
+              className={primaryButtonClassName}
+            />
+          </div>
+        </Modal>
 
         <Modal
           isOpen={isCloseModalOpen}
           onClose={handleCloseModal}
           variant="warning"
           size="md"
-          title="Confirmación de cierre"
-          description="Esta es una vista de ejemplo: la liquidación no será cerrada ni guardada. ¿Desea continuar con la simulación?"
+          title="Confirmar cierre y baja del colaborador"
+          description="Esta acción simulada confirma el cierre de la liquidación y la baja del colaborador. No se guardará ni modificará información real. ¿Desea continuar?"
         >
           <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <Button

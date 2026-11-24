@@ -10,6 +10,19 @@ export interface LiquidacionConcept {
   estado: LiquidacionConceptStatus;
 }
 
+export type LiquidacionCalculationDetailKind = "concepto" | "deduccion";
+
+export interface LiquidacionCalculationDetail {
+  id: string;
+  concepto: string;
+  valor: number | null;
+  parametro?: string;
+  cantidad?: string;
+  kind: LiquidacionCalculationDetailKind;
+}
+
+export type SalaryType = "Fijo" | "Variable";
+
 export interface CollaboratorSummary {
   identification: string;
   fullName: string;
@@ -17,6 +30,7 @@ export interface CollaboratorSummary {
   costCenter: string;
   hireDate: string;
   baseSalary: number;
+  salaryType: SalaryType;
   status: string;
 }
 
