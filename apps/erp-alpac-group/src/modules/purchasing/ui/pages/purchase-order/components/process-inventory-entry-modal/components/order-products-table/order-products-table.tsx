@@ -68,12 +68,21 @@ const PRODUCT_TABLE_COLUMNS: TableColumn<OrderProductRowModel>[] = [
     key: "costCenterLabel",
     label: "Centro de costo",
     render: (row) => (
-      <span className="inline-flex whitespace-nowrap">
+      <span
+        className="inline-flex flex-col gap-0.5 whitespace-nowrap"
+        title={row.costCenter?.description ?? undefined}
+      >
         <Badges
           label={row.costCenterLabel}
           color="bg-sky-100 text-sky-800 border border-sky-200 dark:bg-sky-900/30 dark:text-sky-300 dark:border-sky-800"
           className="text-[12px]! px-2.5! py-1! font-semibold! tracking-wide"
         />
+
+        {row.costCenter?.code && (
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+            Código: {row.costCenter.code}
+          </span>
+        )}
       </span>
     ),
   },

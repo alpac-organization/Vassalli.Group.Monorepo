@@ -6,6 +6,7 @@ import {
 import { PurchaseOrderStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-order-status.enum";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { getPriorityLevelBadge, resolvePurchaseOrderStatusBadge } from "@app/modules/purchasing/ui/pages/purchase-order/utils/purchase-order-status.variants";
+import { purchaseRequestTypeBadgeVariants } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 
 import type { GetPurchaseOrdersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
 import type { ContextMenuItem, TableColumn } from "@alpac/design-system"
@@ -34,6 +35,24 @@ export function getPurchaseOrderTableColumns({
       key: "purchase_order_code",
       label: "Orden",
       render: (row) => displayText(row.purchase_order_code),
+    },
+    {
+      key: "request_type",
+      label: "Tipo de solicitud",
+      render: (row) => {
+        const requestType = row.purchase_request?.request_type;
+        const variant =
+          purchaseRequestTypeBadgeVariants[
+            requestType as keyof typeof purchaseRequestTypeBadgeVariants
+          ] ?? purchaseRequestTypeBadgeVariants.default;
+
+        return (
+          <Badges
+            label={variant.label || requestType || emptyCell}
+            color={variant.badgeColor}
+          />
+        );
+      },
     },
     {
       key: "sent_by",
