@@ -1,4 +1,4 @@
-import type { OutputsByEquipmentReportPdfProps } from "./outputs-by-equipment-report.types";
+import type { OutputsByEquipmentReportPdfProps } from "@app/modules/Inventory/ui/pages/reports/outputs-by-equipment/pdf/outputs-by-equipment-report.types";
 
 export type GenerateOutputsByEquipmentReportPdfParams = {
    report: OutputsByEquipmentReportPdfProps["report"];
@@ -10,7 +10,7 @@ export async function generateOutputsByEquipmentReportPdf(
 ): Promise<Blob> {
    const [{ pdf }, { OutputsByEquipmentReportPdf }] = await Promise.all([
       import("@react-pdf/renderer"),
-      import("./outputs-by-equipment-report"),
+      import("@app/modules/Inventory/ui/pages/reports/outputs-by-equipment/pdf/outputs-by-equipment-report"),
    ]);
 
    return pdf(
