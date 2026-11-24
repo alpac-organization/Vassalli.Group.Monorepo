@@ -1,4 +1,5 @@
 import type { StockDailyReport } from "@app/modules/Inventory/domain/api-contract/responses/stock-daily-report.response";
+import type { OutputLineEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-line-equipment-report.response";
 
 export interface IInventoryReportsServices {
    GetStockDailyReport(payload: {
@@ -12,4 +13,15 @@ export interface IInventoryReportsServices {
       product_code?: string;
       product_name?: string;
    }): Promise<StockDailyReport>;
+
+   GetOutputsLineEquipmentReport(payload: {
+      company_id: string;
+      module_code: string;
+      from?: string;
+      to?: string;
+      branch_id?: string;
+      category_ids?: string[];
+      equipment_ids?: string[];
+      product_ids?: string[];
+   }): Promise<OutputLineEquipmentReport>;
 }

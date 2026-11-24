@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Breadcrumb, SectionHeader, useTheme, Card, Badges, Button } from "@alpac/design-system";
 import { StockDailyReportModal } from "./stock-daily/stock-daily-report-modal";
+import { OutputsByEquipmentReportModal } from "./outputs-by-equipment/outputs-by-equipment-report-modal";
 import { useNavigate } from "react-router-dom";
 
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -61,8 +62,8 @@ const movementReports: ReportCardItem[] = [
 const outputsByEquipmentReports: ReportCardItem[] = [
    {
       slug: "outputs-by-equipment",
-      title: "Salidas por equipo",
-      description: "Salidas de inventario asociadas a equipos.",
+      title: "Linea-Equipo",
+      description: "Salidas de inventario por linea-equipo.",
       badge: "Disponible",
       badgeColor: "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
    },
@@ -93,6 +94,7 @@ export const Reports = function () {
    const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
    const [isStockDailyModalOpen, setIsStockDailyModalOpen] = useState(false);
+   const [isOutputsByEquipmentModalOpen, setIsOutputsByEquipmentModalOpen] = useState(false);
 
    const renderReportCards = (items: ReportCardItem[]) => (
    <div
@@ -120,6 +122,8 @@ export const Reports = function () {
                   onClick={() => {
                      if (item.slug === "stock-daily") {
                         setIsStockDailyModalOpen(true);
+                     } else if (item.slug === "outputs-by-equipment") {
+                        setIsOutputsByEquipmentModalOpen(true);
                      } else {
                         navigate(`${baseUrl}/${moduleBasePath}/reports-management/${item.slug}`);
                      }
@@ -185,6 +189,11 @@ export const Reports = function () {
                {renderReportCards(outputsByEquipmentReports)}
             </section>
          </div>
+
+         <OutputsByEquipmentReportModal
+            isOpen={isOutputsByEquipmentModalOpen}
+            onClose={() => setIsOutputsByEquipmentModalOpen(false)}
+         />
 
          <StockDailyReportModal
             isOpen={isStockDailyModalOpen}
