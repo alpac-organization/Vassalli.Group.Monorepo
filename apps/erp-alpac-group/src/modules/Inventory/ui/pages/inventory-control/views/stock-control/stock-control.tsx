@@ -150,7 +150,10 @@ export const StockControl = function(){
          {
             modalActions.openEditStockModal && (
                <EditStockModal
+                  key={stockSelected?.product_stock_id ?? "edit-stock"}
                   stockSelected={stockSelected}
+                  handleRequestError={handleRequestError}
+                  handleRequestSuccess={handleRequestSuccess}
                   isOpen={modalActions.openEditStockModal}
                   onClose={handleCloseEditStockModal}
                />

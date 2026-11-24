@@ -153,10 +153,18 @@ const GetContextMenuItems = function(props: ContextMenuItemsProps): ContextMenuI
       onDeleteInventoryStock = () => {}
    } = props;
 
+   const isOperational = item.product_information.product_usage_type === "Operational";
+   const isActive =
+      !item.product_information.product_status ||
+      item.product_information.product_status === "Active";
+   const canEditStock = isOperational && isActive;
+
    return [
       {
          label: "Editar Stock",
+         disabled: !canEditStock,
          onClick(){
+            if (!canEditStock) return;
             onEditStock(item);
          }
       },
