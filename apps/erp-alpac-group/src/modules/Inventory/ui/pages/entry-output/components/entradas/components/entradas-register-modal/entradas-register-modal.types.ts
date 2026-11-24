@@ -12,7 +12,6 @@ export interface EntradasRegisterFormState {
   invoiceNumber: string;
   invoiceDate: string | null;
   observations: string;
-  costCenters: Record<string, string>;
 }
 
 export type EntradasRegisterDetail = InventoryEntryDetail;

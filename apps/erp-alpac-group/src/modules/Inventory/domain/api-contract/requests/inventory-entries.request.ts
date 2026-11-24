@@ -17,7 +17,7 @@ export interface GetInventoryEntryDetailRequest extends BaseRequest {
 
 export interface RegisterInventoryEntryItemRequest {
   purchase_order_item_id: string;
-  cost_center_id: string;
+  cost_center_id?: string;
 }
 
 export interface RegisterInventoryEntryRequest extends BaseRequest {
@@ -26,5 +26,5 @@ export interface RegisterInventoryEntryRequest extends BaseRequest {
   invoice_date?: string | null;
   observations?: string | null;
   evidence_images_base64: string[];
-  items: RegisterInventoryEntryItemRequest[];
+  items?: RegisterInventoryEntryItemRequest[];
 }

@@ -55,6 +55,7 @@ export const useInventoryEntries = function (props: useInventoryEntriesProps) {
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["inventory-entries"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-entry-detail"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-stocks-items"] });
       queryClient.invalidateQueries({ queryKey: ["kardex-movements"] });
     },
     retry: 0,
