@@ -1,9 +1,10 @@
-import { useQuery, skipToken, useMutation  } from "@tanstack/react-query";
+import { useQuery, skipToken, useMutation, useQueryClient } from "@tanstack/react-query";
 import { warehouseHttpHandler } from "@app/core/adapters";
 import { InventoryStocksServices } from "../../infrastructure/services/inventory-stocks-services";
 
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { useInventoryStocksProps } from "../../application/interfaces/hooks/useInventoryStocksProps";
+import type { PatchInventoryStockRequest } from "../../domain/api-contract/requests/inventory-stock.request";
 import type { InventoryStockData, PagedResponseStock } from "../../domain/api-contract/responses/inventory-stocks.response";
 
 const inventoryStocksServices = new InventoryStocksServices(warehouseHttpHandler);
@@ -13,6 +14,8 @@ export const useInventoryStocks = function(props: useInventoryStocksProps) {
    const { 
       payloadGetInventoryStocksRequest
    } = props;
+
+   const queryClient = useQueryClient();
 
    //#region Obtener listado de productos en stocks
    
@@ -32,13 +35,19 @@ export const useInventoryStocks = function(props: useInventoryStocksProps) {
 
    //#region Actualizar niveles de stock para lanzar notificaciones de alerta
 
-   // const PatchInventoryStockCommand = useMutation({
-   //    mutationKey: [""]      
-   // })
+   const PatchInventoryStock = useMutation<void, ApiErrorResponse, PatchInventoryStockRequest>({
+      mutationKey: ["patch-inventory-stock"],
+      mutationFn: (payload) => inventoryStocksServices.PatchInventoryStock(payload),
+      onSuccess() {
+         queryClient.invalidateQueries({ queryKey: ["inventory-stocks-items"] });
+      },
+      retry: 0,
+   });
 
    //#endregion
 
    return {
-      GetInventoryStocksQuery
+      GetInventoryStocksQuery,
+      PatchInventoryStock,
    }
 }

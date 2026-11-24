@@ -16,11 +16,30 @@ import {
 
 import type {
   DocumentCodeBadgeModel,
+  OrderCostCenterModel,
   OrderProductRowModel,
   OrderSummaryModel,
 } from "./process-inventory-entry-modal.types";
 
 const EMPTY = "—";
+
+const buildCostCenter = (
+  item: PurchaseOrderDetailItem,
+): OrderCostCenterModel | null => {
+  const info = item.cost_center_information;
+  if (!info) return null;
+
+  return {
+    costCenterId: info.cost_center_id,
+    name: info.cost_center_name ?? null,
+    code:
+      info.cost_center_code !== null && info.cost_center_code !== undefined
+        ? String(info.cost_center_code)
+        : null,
+    description: info.description ?? null,
+    coilCode: info.coil_code ?? null,
+  };
+};
 
 const resolveItemCurrency = (
   item: PurchaseOrderDetailItem,
@@ -63,21 +82,23 @@ export const buildOrderProducts = (
     distinctCurrencies.size > 1 ||
     (resolvedCurrencies.length > 0 && resolvedCurrencies.length < computed.length);
 
-  const rows = computed.map(({ item, currency, total }) => ({
-    purchaseOrderItemId: item.purchase_order_item_id,
-    productName: item.product_name ?? EMPTY,
-    productCode: item.product_code ?? EMPTY,
-    quantityLabel: QUANTITY_FORMATTER.format(item.quantity ?? 0),
-    unitPriceLabel: formatPurchaseOrderReportMoney(
-      resolveItemUnitPrice(item),
-      currency,
-    ),
-    totalLabel: formatPurchaseOrderReportMoney(total, currency),
-    costCenterLabel:
-      item.cost_center_information?.cost_center_name ??
-      item.cost_center_information?.cost_center_code ??
-      "Por asignar",
-  }));
+  const rows = computed.map(({ item, currency, total }) => {
+    const costCenter = buildCostCenter(item);
+
+    return {
+      purchaseOrderItemId: item.purchase_order_item_id,
+      productName: item.product_name ?? EMPTY,
+      productCode: item.product_code ?? EMPTY,
+      quantityLabel: QUANTITY_FORMATTER.format(item.quantity ?? 0),
+      unitPriceLabel: formatPurchaseOrderReportMoney(
+        resolveItemUnitPrice(item),
+        currency,
+      ),
+      totalLabel: formatPurchaseOrderReportMoney(total, currency),
+      costCenterLabel: costCenter?.name ?? costCenter?.code ?? "Por asignar",
+      costCenter,
+    };
+  });
 
   return {
     rows,
