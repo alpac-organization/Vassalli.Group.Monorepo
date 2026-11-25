@@ -29,6 +29,10 @@ import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
 import { KardexType } from "@app/core/enums/kardex-type.enum";
 import { KardexMovementType } from "@app/core/enums/kardex-movement-type.enum";
 import { InventoryOutputsStatus } from "@app/core/enums/inventory-output-status.enum";
+import {
+   ReferenceType,
+   resolveReferenceTypeMeta,
+} from "@app/core/enums/reference-type.enum";
 import { useKardexMovements } from "@app/modules/Inventory/ui/hooks/useKardexMovements";
 import { buttonCancelClass } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/generate-exit-modal/utils/style.exit-modal";
 
@@ -59,8 +63,8 @@ const formatUnits = (value?: number | null, symbol?: string | null) => {
 };
 
 const resolveRequestTypeLabel = (requestType?: string | null) => {
-   if (requestType === "Supply") return "Solicitud de insumos";
-   if (requestType === "Fuel") return "Solicitud de combustible";
+   if (requestType === "Supply") return "Requisición de insumos";
+   if (requestType === "Fuel") return "Boleta de combustible";
    return "—";
 };
 
@@ -108,6 +112,16 @@ export const KardexDetailModal = function (props: KardexDetailModalProps) {
       InventoryOutputsStatus[detail.inventory_output_status]
          ? InventoryOutputsStatus[detail.inventory_output_status].label
          : null;
+
+   const referenceTypeMeta =
+      resolveReferenceTypeMeta(current?.reference_type) ??
+      (current?.movement_type === "Buys"
+         ? ReferenceType.FT
+         : current?.output_request_type === "Fuel"
+           ? ReferenceType.BL
+           : current?.output_request_type === "Supply"
+             ? ReferenceType.RQ
+             : null);
 
    return (
       <Modal
@@ -184,6 +198,13 @@ export const KardexDetailModal = function (props: KardexDetailModalProps) {
                         KardexMovementTypeColorBadges[current.movement_type]
                      }
                   />
+                  {referenceTypeMeta && (
+                     <Badges
+                        label={referenceTypeMeta.label}
+                        color="info"
+                        className={referenceTypeMeta.badgeColor}
+                     />
+                  )}
                   {costCenter?.cost_center_name && (
                      <Badges
                         label={costCenter.cost_center_name}
@@ -323,8 +344,59 @@ export const KardexDetailModal = function (props: KardexDetailModalProps) {
                         }
                         icon={<UserIcon size={18} className={ICON_CLASS} aria-hidden />}
                      />
+                     <DetailField
+                        label="Documento"
+                        value={referenceTypeMeta?.label ?? "—"}
+                        description={
+                           current.document_number
+                              ? `N° ${current.document_number}`
+                              : undefined
+                        }
+                        icon={<FileTextIcon size={18} className={ICON_CLASS} aria-hidden />}
+                     />
                   </div>
                </SectionHeader>
+
+               {detail?.inventory_entry_id && (
+                  <SectionHeader
+                     title="Documento de entrada asociado"
+                     subtitle="Información de la compra y entrada de almacén que originó este movimiento."
+                     hasBorder
+                  >
+                     <div className={SECTION_GRID_CLASS}>
+                        <DetailField
+                           label="Código de entrada"
+                           value={detail.inventory_entry_code ?? "—"}
+                           description={
+                              detail.purchase_order_code
+                                 ? `OC: ${detail.purchase_order_code}`
+                                 : undefined
+                           }
+                           icon={<FileTextIcon size={18} className={ICON_CLASS} aria-hidden />}
+                        />
+                        <DetailField
+                           label="Número de factura"
+                           value={detail.invoice_number ?? "—"}
+                           description={
+                              detail.invoice_date
+                                 ? `Fecha: ${detail.invoice_date}`
+                                 : undefined
+                           }
+                           icon={<FileTextIcon size={18} className={ICON_CLASS} aria-hidden />}
+                        />
+                        <DetailField
+                           label="Proveedor"
+                           value={detail.supplier_name ?? "—"}
+                           icon={<BuildingIcon size={18} className={ICON_CLASS} aria-hidden />}
+                        />
+                        <DetailField
+                           label="Observaciones"
+                           value={detail.entry_observations ?? "—"}
+                           icon={<FileTextIcon size={18} className={ICON_CLASS} aria-hidden />}
+                        />
+                     </div>
+                  </SectionHeader>
+               )}
 
                {detail?.inventory_output_id && (
                   <SectionHeader

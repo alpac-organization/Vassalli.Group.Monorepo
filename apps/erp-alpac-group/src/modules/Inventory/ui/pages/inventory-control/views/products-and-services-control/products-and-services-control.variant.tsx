@@ -10,7 +10,8 @@ import { canDeleteProduct } from "./products-and-services-control.rules"
 
 export const GetProductColumnsToTable = function (
    onEditProduct?:   (row: GetProductResponse) => void,
-   onDeleteProduct?: (row: GetProductResponse) => void
+   onDeleteProduct?: (row: GetProductResponse) => void,
+   canManageProducts = true
 ): TableColumn<GetProductResponse>[] {
    return [
       {
@@ -74,25 +75,27 @@ export const GetProductColumnsToTable = function (
             )
          }
       },
-      {
-         key: "options",
-         label: "Opciones",
-         render(item) {
-            return (
-               <ContextMenu
-                  triggerClassName={contextMenuButton}
-                  items={[
-                     { label: "Editar Producto", onClick: () => onEditProduct?.(item) },
-                     ...(canDeleteProduct(item.product_status)
-                        ? [{ label: "Eliminar Producto", onClick: () => onDeleteProduct?.(item) }]
-                        : []
-                     ),
-                  ]}
-                  openUpOnMobile
-               />
-            )
-         }
-      }
+      ...(canManageProducts
+         ? [{
+            key: "options",
+            label: "Opciones",
+            render(item: GetProductResponse) {
+               return (
+                  <ContextMenu
+                     triggerClassName={contextMenuButton}
+                     items={[
+                        { label: "Editar Producto", onClick: () => onEditProduct?.(item) },
+                        ...(canDeleteProduct(item.product_status)
+                           ? [{ label: "Eliminar Producto", onClick: () => onDeleteProduct?.(item) }]
+                           : []
+                        ),
+                     ]}
+                     openUpOnMobile
+                  />
+               )
+            }
+         }]
+         : [])
    ]
 }
 

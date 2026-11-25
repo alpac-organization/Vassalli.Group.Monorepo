@@ -10,6 +10,7 @@ import {
 } from "@app/modules/purchasing/ui/pages/supplier/utils/style";
 
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { RoleEnum } from "@app/core/enums/role.enum";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters";
@@ -17,6 +18,7 @@ import {
    DEFAULT_KARDEX_MOVEMENT_FILTERS,
    getKardexTypeOptions,
    getMovementTypeOptions,
+   getReferenceTypeOptions,
 } from "../../kardex-movement.variants";
 import {
    GetBranchesOptions,
@@ -28,6 +30,7 @@ import type { KardexMovementSectionFiltersProps } from "./kardex-movement-sectio
 import type { KardexMovementFilters } from "../../kardex-movements.types";
 import type { KardexMovementTypeEnum } from "@app/core/enums/kardex-movement-type.enum";
 import type { KardexTypeEnum } from "@app/core/enums/kardex-type.enum";
+import type { ReferenceTypeEnum } from "@app/core/enums/reference-type.enum";
 
 export const KardexMovementSectionFilters = function (
    props: KardexMovementSectionFiltersProps,
@@ -35,8 +38,9 @@ export const KardexMovementSectionFilters = function (
    const [dateError, setDateError] = useState<string | null>(null);
    const { companyId, moduleCode, role } = useUserStore();
 
-   const isAdministrator = role === "Administrator";
-   const canFilterByCostCenter = isAdministrator || role === "Manager";
+   const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+   const isManager = role === RoleEnum.MANAGER;
+   const canFilterByCostCenter = isAdministrator || isManager;
 
    const {
       control,
@@ -68,6 +72,7 @@ export const KardexMovementSectionFilters = function (
          ? {
               company_id: companyId,
               module_code: moduleCode,
+              ...(isManager ? { only_operational: true } : {}),
            }
          : undefined,
    });
@@ -81,6 +86,7 @@ export const KardexMovementSectionFilters = function (
    const categoryOptions = GetProductCategoryOptions(productCategoriesData ?? []);
    const movementTypeOptions = getMovementTypeOptions();
    const kardexTypeOptions = getKardexTypeOptions();
+   const referenceTypeOptions = getReferenceTypeOptions();
    const branchOptions = GetBranchesOptions(GetBranchesQuery.data ?? []);
    const costCenterOptions = GetCostCenterOptions(
       GetCostCentersByBranch.data ?? [],
@@ -97,9 +103,15 @@ export const KardexMovementSectionFilters = function (
          }
       }
 
+      const sanitizedValues: KardexMovementFilters = {
+         ...values,
+         branch_id: isAdministrator ? values.branch_id : undefined,
+         cost_center_id: canFilterByCostCenter ? values.cost_center_id : undefined,
+      };
+
       setDateError(null);
-      props.onApply(values);
-      reset(values);
+      props.onApply(sanitizedValues);
+      reset(sanitizedValues);
    };
 
    const handleClear = () => {
@@ -183,6 +195,29 @@ export const KardexMovementSectionFilters = function (
                            )
                         }
                         placeholder="Seleccionar Tipo Movimiento"
+                        appearance="dark"
+                        labelClassName={labelClassName}
+                        className={dropdownClassName}
+                     />
+                  )}
+               />
+            </div>
+
+            <div className="w-full sm:w-64">
+               <Controller
+                  name="reference_type"
+                  control={control}
+                  render={({ field }) => (
+                     <Dropdown
+                        label="Documento"
+                        value={field.value ?? ""}
+                        options={referenceTypeOptions}
+                        onChange={(value) =>
+                           field.onChange(
+                              value ? (String(value) as ReferenceTypeEnum) : null,
+                           )
+                        }
+                        placeholder="Seleccionar Documento"
                         appearance="dark"
                         labelClassName={labelClassName}
                         className={dropdownClassName}

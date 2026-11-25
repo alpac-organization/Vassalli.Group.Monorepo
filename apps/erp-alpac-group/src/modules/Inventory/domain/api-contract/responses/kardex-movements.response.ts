@@ -1,6 +1,7 @@
 import type { KardexTypeEnum } from "@app/core/enums/kardex-type.enum";
 import type { KardexMovementTypeEnum } from "@app/core/enums/kardex-movement-type.enum";
 import type { InventoryOutputsStatus } from "@app/core/enums/inventory-output-status.enum";
+import type { ReferenceTypeEnum } from "@app/core/enums/reference-type.enum";
 
 export interface KardexUnitMeasureInformation {
    name: string;
@@ -43,7 +44,16 @@ export interface KardexUserInformation {
 export interface KardexMovementsData {
    kardex_id: string;
    kardex_type: KardexTypeEnum;
+   reference_type?: ReferenceTypeEnum;
    movement_type: KardexMovementTypeEnum;
+   document_number?: string | null;
+   inventory_entry_id?: string | null;
+   inventory_entry_code?: string | null;
+   invoice_number?: string | null;
+   inventory_output_id?: string | null;
+   inventory_output_code?: string | null;
+   output_request_code?: string | null;
+   output_request_type?: string | null;
    units: number;
    total_units: number;
    unit_cost: number;
@@ -65,12 +75,13 @@ export interface KardexMovementDetail extends KardexMovementsData {
    previous_units: number;
    previous_kardex: number;
    movement_by_user_information?: KardexUserInformation | null;
-   inventory_output_id?: string | null;
-   inventory_output_code?: string | null;
+   invoice_date?: string | null;
+   inventory_entry_status?: string | null;
+   entry_observations?: string | null;
+   purchase_order_code?: string | null;
+   supplier_name?: string | null;
    inventory_output_status?: InventoryOutputsStatus | null;
    reason_removal_description?: string | null;
-   output_request_code?: string | null;
-   output_request_type?: string | null;
 }
 
 export interface KardexProductInformation {

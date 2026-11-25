@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { RoleEnum } from "@app/core/enums/role.enum";
 import { DataTable, Pagination, SectionHeader } from "@alpac/design-system";
 import { toApiDate } from "@app/shared/utils/date.utils";
 import { useKardexMovements } from "@app/modules/Inventory/ui/hooks/useKardexMovements";
@@ -14,7 +15,11 @@ import type { KardexMovementFilters } from "./kardex-movements.types";
 import type { KardexMovementsData } from "@app/modules/Inventory/domain/api-contract/responses/kardex-movements.response";
 
 export const KardexMovement = function () {
-   const { companyId, moduleCode } = useUserStore();
+   const { companyId, moduleCode, role } = useUserStore();
+
+   const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+   const canFilterByCostCenter =
+      isAdministrator || role === RoleEnum.MANAGER;
 
    const [filters, setFilters] = useState<KardexMovementFilters>(
       DEFAULT_KARDEX_MOVEMENT_FILTERS,
@@ -27,13 +32,24 @@ export const KardexMovement = function () {
          company_id: companyId,
          module_code: moduleCode,
          ...filters,
+         branch_id: isAdministrator ? filters.branch_id : undefined,
+         cost_center_id: canFilterByCostCenter
+            ? filters.cost_center_id
+            : undefined,
          date_from: toApiDate(filters.date_from) ?? undefined,
          date_to: toApiDate(filters.date_to) ?? undefined,
       },
    });
 
    const handleApplyFilters = (newFilters: KardexMovementFilters) => {
-      setFilters({ ...newFilters, page_number: 1 });
+      setFilters({
+         ...newFilters,
+         branch_id: isAdministrator ? newFilters.branch_id : undefined,
+         cost_center_id: canFilterByCostCenter
+            ? newFilters.cost_center_id
+            : undefined,
+         page_number: 1,
+      });
    };
 
    const handleClearFilters = () => {

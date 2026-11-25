@@ -9,6 +9,10 @@ import { formatCurrency } from "@app/shared/utils/currency.utils";
 
 import { InventoryOutputsStatus } from "@app/core/enums/inventory-output-status.enum";
 import { ReasonUse as ReasonUseValues } from "@app/core/enums/reason-use.enum";
+import {
+  ReferenceType,
+  resolveReferenceTypeMeta,
+} from "@app/core/enums/reference-type.enum";
 
 const STATUS_BADGE_CLASS_NAME: Record<InventoryOutputsStatus, string> = {
   OutputPending:
@@ -523,6 +527,12 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
                         <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">
                           Nombre de producto
                         </th>
+                        <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">
+                          Documento
+                        </th>
+                        <th className="px-3 py-2 text-left font-semibold text-gray-500 dark:text-gray-300">
+                          N° Documento
+                        </th>
                         <th className="px-3 py-2 text-right font-semibold text-gray-500 dark:text-gray-300">
                           Cantidad Solicitada
                         </th>
@@ -535,7 +545,22 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {detailData.kardex_movements.map((movement, index) => (
+                      {detailData.kardex_movements.map((movement, index) => {
+                        const docMeta =
+                          resolveReferenceTypeMeta(movement.reference_type) ??
+                          (movement.output_request_type === "Fuel"
+                            ? ReferenceType.BL
+                            : movement.output_request_type === "Supply"
+                              ? ReferenceType.RQ
+                              : null);
+                        const docCode =
+                          movement.document_number ??
+                          movement.output_request_code ??
+                          movement.inventory_output_code ??
+                          selectedOutput?.request_code ??
+                          selectedOutput?.output_code;
+
+                        return (
                         <tr
                           key={movement.kardex_id ?? index}
                           className="border-b border-slate-600 dark:border-neutral-600"
@@ -546,6 +571,20 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
                           </td>
                           <td className="px-3 py-2">
                             {movement.product_information?.product_name ?? "—"}
+                          </td>
+                          <td className="px-3 py-2">
+                            {docMeta ? (
+                              <Badges
+                                color="info"
+                                className={docMeta.badgeColor}
+                                label={docMeta.label}
+                              />
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+                          <td className="px-3 py-2 font-medium">
+                            {docCode ?? "—"}
                           </td>
                           <td className="px-3 py-2 text-right font-medium">
                             {movement.units != null
@@ -559,7 +598,8 @@ export const SalidasDetailModal = function (props: SalidasDetailModalProps) {
                             {movement.total_output != null ? formatCurrency(movement.total_output) : "—"}
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 ) : combinedRows.length === 0 ? (

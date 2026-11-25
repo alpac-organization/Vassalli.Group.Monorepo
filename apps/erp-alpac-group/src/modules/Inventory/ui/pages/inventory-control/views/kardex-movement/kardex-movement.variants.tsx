@@ -6,6 +6,10 @@ import {
    KardexMovementType,
    type KardexMovementTypeEnum,
 } from "@app/core/enums/kardex-movement-type.enum";
+import {
+   ReferenceType,
+   resolveReferenceTypeMeta,
+} from "@app/core/enums/reference-type.enum";
 import { contextMenuButton } from "@app/modules/purchasing/ui/pages/supplier/components/supplier-table/constants/supplier-table.constants";
 
 import type { ContextMenuItem, TableColumn } from "@alpac/design-system";
@@ -107,6 +111,67 @@ export const getKardexMovementsColumnsToTable = function (
                      item.movement_type
                   }
                />
+            );
+         },
+      },
+      {
+         key: "reference_type",
+         label: "Documento",
+         render(item) {
+            const refMeta =
+               resolveReferenceTypeMeta(item.reference_type) ??
+               (item.movement_type === "Buys"
+                  ? ReferenceType.FT
+                  : item.output_request_type === "Fuel"
+                    ? ReferenceType.BL
+                    : item.output_request_type === "Supply"
+                      ? ReferenceType.RQ
+                      : null);
+
+            if (!refMeta) {
+               return <span className="text-slate-400">—</span>;
+            }
+            return (
+               <Badges
+                  color="info"
+                  className={refMeta.badgeColor}
+                  label={refMeta.label}
+               />
+            );
+         },
+      },
+      {
+         key: "document_number",
+         label: "N° Documento",
+         render(item) {
+            const primaryCode =
+               item.document_number ??
+               (item.movement_type === "Buys"
+                  ? item.inventory_entry_code ?? item.invoice_number
+                  : item.output_request_code ?? item.inventory_output_code);
+            const secondaryCode =
+               item.movement_type === "Buys" || item.inventory_entry_id
+                  ? item.invoice_number && item.invoice_number !== primaryCode
+                     ? `Factura: ${item.invoice_number}`
+                     : null
+                  : item.inventory_output_code &&
+                      item.inventory_output_code !== primaryCode
+                    ? `Salida: ${item.inventory_output_code}`
+                    : null;
+
+            if (!primaryCode && !secondaryCode) {
+               return <span className="text-slate-400">—</span>;
+            }
+
+            return (
+               <div className="flex flex-col">
+                  <span className="font-medium">{primaryCode ?? "—"}</span>
+                  {secondaryCode && (
+                     <span className="text-xs text-slate-500 dark:text-slate-400">
+                        {secondaryCode}
+                     </span>
+                  )}
+               </div>
             );
          },
       },
@@ -215,12 +280,22 @@ export const getKardexTypeOptions = function () {
    }));
 };
 
+export const getReferenceTypeOptions = function () {
+   return Object.entries(ReferenceType)
+      .filter(([key]) => key !== "None")
+      .map(([key, value]) => ({
+         label: value.label,
+         value: key,
+      }));
+};
+
 export const DEFAULT_KARDEX_MOVEMENT_FILTERS: KardexMovementFilters = {
    branch_id: "",
    cost_center_id: "",
    product_code: "",
    category_id: "",
    kardex_type: null,
+   reference_type: null,
    movement_type: null,
    date_from: null,
    date_to: null,

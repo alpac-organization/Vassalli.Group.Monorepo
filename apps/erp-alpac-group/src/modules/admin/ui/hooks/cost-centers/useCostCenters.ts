@@ -23,10 +23,22 @@ export const useCostCenters = (props: UseCostCenterProps) => {
    const queryClient = useQueryClient();
 
    const GetCostCenters = useQuery({
-      queryKey: ["cost-centers", getCostCentersPayload?.company_id, getCostCentersPayload?.area_id],
+      queryKey: [
+         "cost-centers",
+         getCostCentersPayload?.company_id,
+         getCostCentersPayload?.module_code,
+         getCostCentersPayload?.area_id,
+         getCostCentersPayload?.only_operational,
+         getCostCentersPayload?.branch_id,
+         getCostCentersPayload?.only_user_branch,
+      ],
       queryFn: () => costCenterServices.getCostCenters(getCostCentersPayload!),
       staleTime: 1000 * 60 * 5,
-      enabled: Boolean(getCostCentersPayload?.company_id && getCostCentersPayload?.area_id),
+      enabled: Boolean(
+         getCostCentersPayload?.company_id &&
+         getCostCentersPayload?.module_code &&
+         getCostCentersPayload?.area_id
+      ),
       refetchOnWindowFocus: false,
       retry: 1,
    });

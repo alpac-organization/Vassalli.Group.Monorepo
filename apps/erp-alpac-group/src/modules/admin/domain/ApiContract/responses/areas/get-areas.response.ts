@@ -4,6 +4,7 @@ export interface GetAreasResponse {
   work_area_code: string;
   work_area_name: string;
   descripcion: string | null;
+  is_operational?: boolean;
   cost_centers: CostCenters[];
 }
 

@@ -10,6 +10,7 @@ import { ProductsAndServicesSectionFilters } from "./views/products-and-services
 import { DeleteProductModal } from "../stock-control/components/delete-stock-modal/delete-product-modal";
 import { mapProductToDeleteProductData } from "../stock-control/components/delete-stock-modal/delete-product-modal.mapper";
 
+import { RoleEnum } from "@app/core/enums/role.enum";
 import { canDeleteProduct } from "./products-and-services-control.rules";
 
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
@@ -30,7 +31,8 @@ export const ProductsAndServicesControl = function () {
 	const [productToDelete, setProductToDelete] = useState<GetProductResponse | null>(null);
 	const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-	const { companyId, moduleCode } = useUserStore();
+	const { companyId, moduleCode, role } = useUserStore();
+	const isSupervisor = role === RoleEnum.SUPERVISOR;
 
 	const { GetProducts } = useProduct({
 		getProductPayload: {
@@ -59,6 +61,7 @@ export const ProductsAndServicesControl = function () {
 			setProductToDelete(row);
 			setIsDeleteModalOpen(true);
 		},
+		!isSupervisor,
 	);
 
 	//#region Manejadores de filtros y paginación
