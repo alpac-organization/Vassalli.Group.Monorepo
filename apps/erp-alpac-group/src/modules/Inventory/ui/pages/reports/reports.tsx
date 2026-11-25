@@ -4,6 +4,7 @@ import { StockDailyReportModal } from "@app/modules/Inventory/ui/pages/reports/s
 import { OutputsByEquipmentReportModal } from "@app/modules/Inventory/ui/pages/reports/outputs-by-equipment/outputs-by-equipment-report-modal";
 import { OutputsDetailByEquipmentReportModal } from "@app/modules/Inventory/ui/pages/reports/outputs-detail-by-equipment/outputs-detail-by-equipment-report-modal";
 import { OutputsConsolidatedByEquipmentReportModal } from "@app/modules/Inventory/ui/pages/reports/outputs-consolidated-by-equipment/outputs-consolidated-by-equipment-report-modal";
+import { InventoryPeriodReportModal } from "@app/modules/Inventory/ui/pages/reports/inventory-period/inventory-period-report-modal";
 import { useNavigate } from "react-router-dom";
 
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -29,11 +30,11 @@ const existenceReports: ReportCardItem[] = [
       badgeColor: "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
    },
    {
-      slug: "stock-minimum",
-      title: "Stock mínimo",
-      description: "Productos por debajo del stock mínimo permitido.",
-      badge: "Próximo",
-      badgeColor: "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+      slug: "inventory-period",
+      title: "Inventario por periodo",
+      description: "Saldo inicial, entradas, salidas y saldo final por producto.",
+      badge: "Nuevo",
+      badgeColor: "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
    },
    {
       slug: "stock-valuation",
@@ -99,9 +100,11 @@ export const Reports = function () {
    const [isOutputsByEquipmentModalOpen, setIsOutputsByEquipmentModalOpen] = useState(false);
    const [isOutputsDetailByEquipmentModalOpen, setIsOutputsDetailByEquipmentModalOpen] = useState(false);
    const [isOutputsConsolidatedByEquipmentModalOpen, setIsOutputsConsolidatedByEquipmentModalOpen] = useState(false);
+   const [isInventoryPeriodModalOpen, setIsInventoryPeriodModalOpen] = useState(false);
 
    const openReportBySlug: Record<string, () => void> = {
       "stock-daily": () => setIsStockDailyModalOpen(true),
+      "inventory-period": () => setIsInventoryPeriodModalOpen(true),
       "outputs-by-equipment": () => setIsOutputsByEquipmentModalOpen(true),
       "outputs-detail-by-equipment": () => setIsOutputsDetailByEquipmentModalOpen(true),
       "outputs-consolidated-by-equipment": () => setIsOutputsConsolidatedByEquipmentModalOpen(true),
@@ -218,6 +221,11 @@ export const Reports = function () {
          <StockDailyReportModal
             isOpen={isStockDailyModalOpen}
             onClose={() => setIsStockDailyModalOpen(false)}
+         />
+
+         <InventoryPeriodReportModal
+            isOpen={isInventoryPeriodModalOpen}
+            onClose={() => setIsInventoryPeriodModalOpen(false)}
          />
 
          {AlertComponent}
