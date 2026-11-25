@@ -1,28 +1,44 @@
-import { validateRegisterEntryForm } from "./entradas-register-modal.rules";
+import dayjs from "dayjs";
+import {
+  validateInvoiceDate,
+  validateInvoiceNumber,
+  validateRegisterEntryForm,
+} from "./entradas-register-modal.rules";
 
 const buildValidInput = () => ({
   invoiceNumber: "FAC-001",
   hasEvidence: true,
-  items: [{ purchase_order_item_id: "order-item-1" }],
-  costCenters: { "order-item-1": "cost-center-1" },
+  items: [
+    {
+      purchase_order_item_id: "order-item-1",
+      cost_center_id: "cost-center-1",
+    },
+  ],
 });
 
 describe("register_inventory_entry_form_rules", () => {
-  it("returns valid when all required data is provided", () => {
+  it("returns valid when invoice, evidence, and product cost center exist", () => {
     const result = validateRegisterEntryForm(buildValidInput());
 
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
   });
 
-  it("requires an invoice number", () => {
-    const result = validateRegisterEntryForm({
-      ...buildValidInput(),
-      invoiceNumber: "   ",
-    });
+  it("requires an invoice number and enforces max length inline", () => {
+    expect(validateInvoiceNumber("   ")).toBe(
+      "El número de factura es obligatorio.",
+    );
+    expect(validateInvoiceNumber("A".repeat(51))).toBe(
+      "El número de factura no puede superar los 50 caracteres.",
+    );
+    expect(validateInvoiceNumber("FAC-001")).toBe(true);
+  });
 
-    expect(result.isValid).toBe(false);
-    expect(result.errors).toContain("El número de factura es obligatorio.");
+  it("rejects future invoice dates inline", () => {
+    expect(validateInvoiceDate(dayjs().add(2, "day"))).toBe(
+      "La fecha de la factura no puede ser una fecha futura.",
+    );
+    expect(validateInvoiceDate(dayjs())).toBe(true);
   });
 
   it("requires at least one evidence image", () => {
@@ -37,15 +53,15 @@ describe("register_inventory_entry_form_rules", () => {
     );
   });
 
-  it("requires a cost center for every item", () => {
+  it("rejects items when a product lacks an associated cost center", () => {
     const result = validateRegisterEntryForm({
       ...buildValidInput(),
-      costCenters: {},
+      items: [{ purchase_order_item_id: "order-item-1", cost_center_id: null }],
     });
 
     expect(result.isValid).toBe(false);
     expect(result.errors).toContain(
-      "Debe asignar el centro de costo a todos los ítems.",
+      "Uno o más productos de la entrada no tienen un centro de costo asociado.",
     );
   });
 });

@@ -47,9 +47,21 @@ export function SelectProductModal({
 	description,
 	productUsageType,
 	categoryType,
+	costCenterId,
+	branchId,
 }: SelectProductModalProps) {
 
 	const { companyId, moduleCode } = useUserStore();
+	const normalizedCostCenterId = costCenterId?.trim() || undefined;
+	const normalizedBranchId = branchId?.trim() || undefined;
+
+	const scopeOverrides = useMemo<Partial<GetProductRequest>>(
+		() => ({
+			...(normalizedCostCenterId ? { cost_center_id: normalizedCostCenterId } : {}),
+			...(normalizedBranchId ? { branch_id: normalizedBranchId } : {}),
+		}),
+		[normalizedCostCenterId, normalizedBranchId],
+	);
 
 	const [error, setError] = useState("");
 	const [pageNumber, setPageNumber] = useState(1);
@@ -58,7 +70,7 @@ export function SelectProductModal({
 	const [tempSelectedMultiple, setTempSelectedMultiple] = useState<SelectableCatalogProduct[]>([]);
 
 	const [filters, setFilters] = useState<GetProductRequest>(() =>
-		buildProductListFilters(companyId, moduleCode, productUsageType),
+		buildProductListFilters(companyId, moduleCode, productUsageType, scopeOverrides),
 	);
 	
 	const [listSession, setListSession] = useState({
@@ -66,26 +78,40 @@ export function SelectProductModal({
 		companyId,
 		moduleCode,
 		productUsageType,
+		normalizedCostCenterId,
+		normalizedBranchId,
 	});
 
 	const sessionMatches =
 		listSession.isOpen === isOpen &&
 		listSession.companyId === companyId &&
 		listSession.moduleCode === moduleCode &&
-		listSession.productUsageType === productUsageType;
+		listSession.productUsageType === productUsageType &&
+		listSession.normalizedCostCenterId === normalizedCostCenterId &&
+		listSession.normalizedBranchId === normalizedBranchId;
 
 	let activeFilters = filters;
 
 	if (!sessionMatches) {
-		const usageChanged = listSession.productUsageType !== productUsageType;
+		const scopeChanged =
+			listSession.productUsageType !== productUsageType ||
+			listSession.normalizedCostCenterId !== normalizedCostCenterId ||
+			listSession.normalizedBranchId !== normalizedBranchId;
 		const shouldResetQuery =
 			isOpen &&
-			(usageChanged ||
+			(scopeChanged ||
 				!listSession.isOpen ||
 				listSession.companyId !== companyId ||
 				listSession.moduleCode !== moduleCode);
 
-		setListSession({ isOpen, companyId, moduleCode, productUsageType });
+		setListSession({
+			isOpen,
+			companyId,
+			moduleCode,
+			productUsageType,
+			normalizedCostCenterId,
+			normalizedBranchId,
+		});
 
 		if (!isOpen) {
 			setError("");
@@ -99,6 +125,7 @@ export function SelectProductModal({
 				companyId,
 				moduleCode,
 				productUsageType,
+				scopeOverrides,
 			);
 			activeFilters = nextFilters;
 			setCategoryId("");
@@ -144,11 +171,22 @@ export function SelectProductModal({
 			| undefined,
 		);
 
-		if (excludedIds.size === 0) return products;
+		return products.filter((product) => {
+			if (excludedIds.has(product.product_id)) return false;
 
-		return products.filter((product) => !excludedIds.has(product.product_id));
+			if (
+				productUsageType === "Operational" &&
+				normalizedCostCenterId &&
+				product.cost_center_information?.cost_center_id &&
+				product.cost_center_information.cost_center_id !== normalizedCostCenterId
+			) {
+				return false;
+			}
 
-	}, [GetProducts.data, excludedIds]);
+			return true;
+		});
+
+	}, [GetProducts.data, excludedIds, productUsageType, normalizedCostCenterId]);
 
 	const totalRecords = useMemo(() => {
 		return GetProducts.data?.total ?? 0
@@ -159,6 +197,7 @@ export function SelectProductModal({
 		setPageNumber(1);
 		setFilters(
 			buildProductListFilters(companyId, moduleCode, productUsageType, {
+				...scopeOverrides,
 				category_product_id: categoryId || "",
 				page_number: 1,
 			}),
@@ -182,21 +221,23 @@ export function SelectProductModal({
 		onClose();
 	};
 
-	const handleToggleMultipleSelection = (product: SelectableCatalogProduct) => {
-		setError("");
-		setTempSelectedMultiple((prev) => {
+	const handleToggleMultipleSelection = useCallback(
+		(product: SelectableCatalogProduct) => {
+			setError("");
+			setTempSelectedMultiple((prev) => {
+				const alreadySelected = prev.some(
+					(item) => item.product_id === product.product_id,
+				);
 
-			const alreadySelected = prev.some(
-				(item) => item.product_id === product.product_id,
-			);
+				if (alreadySelected) {
+					return prev.filter((item) => item.product_id !== product.product_id);
+				}
 
-			if (alreadySelected) {
-				return prev.filter((item) => item.product_id !== product.product_id);
-			}
-
-			return [...prev, product];
-		});
-	};
+				return [...prev, product];
+			});
+		},
+		[],
+	);
 
 	const handleConfirm = () => {
 		if (selectionType === "multiple") {
@@ -222,11 +263,18 @@ export function SelectProductModal({
 	const onClearFilters = () => {
 		setCategoryId("");
 		setPageNumber(1);
-		setFilters(buildProductListFilters(companyId, moduleCode, productUsageType));
+		setFilters(
+			buildProductListFilters(
+				companyId,
+				moduleCode,
+				productUsageType,
+				scopeOverrides,
+			),
+		);
 	};
 
-	const columnConfig: TableColumn<SelectableCatalogProduct>[] = useMemo(
-		() => [
+	const columnConfig: TableColumn<SelectableCatalogProduct>[] = useMemo(() => {
+		const baseColumns: TableColumn<SelectableCatalogProduct>[] = [
 			{
 				key: "select",
 				label: "",
@@ -262,18 +310,25 @@ export function SelectProductModal({
 				key: "category",
 				label: "Categoría",
 				render: (row) => row.category?.name ?? "—",
-			}
-		],
-		[selectionType, tempSelected, tempSelectedMultiple],
-	);
+			},
+		];
 
-	if(productUsageType === "Operational"){
-		columnConfig.push({
-			key: "cost_center_name",
-			label: "Centro Costo",
-			render: (row) => row.cost_center_information.cost_center_name
-		})
-	}
+		if (productUsageType === "Operational") {
+			baseColumns.push({
+				key: "cost_center_name",
+				label: "Centro Costo",
+				render: (row) => row.cost_center_information?.cost_center_name ?? "—",
+			});
+		}
+
+		return baseColumns;
+	}, [
+		selectionType,
+		tempSelected,
+		tempSelectedMultiple,
+		handleToggleMultipleSelection,
+		productUsageType,
+	]);
 
 	const isLoadingProducts = GetProducts.isPending || GetProducts.isFetching;
 

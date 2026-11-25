@@ -37,7 +37,6 @@ describe("inventory_entries_services_infrastructure", () => {
       items: [
         {
           purchase_order_item_id: "order-item-1",
-          cost_center_id: "cost-center-1",
         },
       ],
     };
@@ -54,7 +53,6 @@ describe("inventory_entries_services_infrastructure", () => {
         items: [
           {
             purchase_order_item_id: "order-item-1",
-            cost_center_id: "cost-center-1",
           },
         ],
       },

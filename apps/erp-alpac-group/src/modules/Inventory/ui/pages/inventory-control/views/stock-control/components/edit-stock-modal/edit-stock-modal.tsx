@@ -20,7 +20,6 @@ import {
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
-import { toOptionalNumber } from "@app/shared/utils/globals.utils";
 import { InventoryStockStatus } from "@app/core/enums/inventory-stock-status.enum";
 import { ProductStatus } from "@app/core/enums/product-status.enum";
 import { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
@@ -34,12 +33,18 @@ import {
    buttonCancelClass,
 } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/generate-exit-modal/utils/style.exit-modal";
 import { InventoryStockStatusColorBadges } from "../../stock-control.variants";
+import {
+   parseStockInput,
+   validateMaximumStock,
+   validateMinimumStock,
+} from "./edit-stock-modal.rules";
 
+import type { KeyboardEvent } from "react";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { InventoryStockStatusEnum } from "@app/core/enums/inventory-stock-status.enum";
 import type { EditStockModalProps } from "./edit-stock-modal.types";
 
-const MAX_STOCK_LEVEL = 99999.99;
+const BLOCKED_NUMBER_KEYS = new Set(["e", "E", "+"]);
 const ICON_CLASS = "text-slate-500 dark:text-slate-300";
 const CATEGORY_BADGE_COLOR =
    "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800";
@@ -52,9 +57,15 @@ const NUMBER_FORMATTER = new Intl.NumberFormat("es-NI", {
 });
 
 interface EditStockFormValues {
-   minimum_stock?: number;
-   maximum_stock?: number;
+   minimum_stock: string;
+   maximum_stock: string;
 }
+
+const preventScientificKeys = (event: KeyboardEvent<HTMLInputElement>) => {
+   if (BLOCKED_NUMBER_KEYS.has(event.key)) {
+      event.preventDefault();
+   }
+};
 
 export const EditStockModal = function (props: EditStockModalProps) {
    const {
@@ -77,12 +88,18 @@ export const EditStockModal = function (props: EditStockModalProps) {
       getValues,
       formState: { errors },
    } = useForm<EditStockFormValues>({
+      mode: "all",
+      reValidateMode: "onChange",
       defaultValues: {
-         minimum_stock: stockSelected?.minimum_stock,
+         minimum_stock:
+            stockSelected?.minimum_stock !== undefined &&
+            stockSelected?.minimum_stock !== null
+               ? String(stockSelected.minimum_stock)
+               : "",
          maximum_stock:
             stockSelected?.maximum_stock && stockSelected.maximum_stock > 0
-               ? stockSelected.maximum_stock
-               : undefined,
+               ? String(stockSelected.maximum_stock)
+               : "",
       },
    });
 
@@ -119,9 +136,9 @@ export const EditStockModal = function (props: EditStockModalProps) {
    const projectedStatus = useMemo<InventoryStockStatusEnum | null>(() => {
       if (!stockSelected) return null;
 
-      const parsedMin = toOptionalNumber(watchedMinimum);
+      const parsedMin = parseStockInput(watchedMinimum);
       const effectiveMin =
-         parsedMin !== undefined && !Number.isNaN(parsedMin)
+         parsedMin !== undefined && !Number.isNaN(parsedMin) && parsedMin >= 0
             ? parsedMin
             : stockSelected.minimum_stock;
 
@@ -152,8 +169,8 @@ export const EditStockModal = function (props: EditStockModalProps) {
          return;
       }
 
-      const minimumStock = toOptionalNumber(values.minimum_stock);
-      const maximumStock = toOptionalNumber(values.maximum_stock);
+      const minimumStock = parseStockInput(values.minimum_stock);
+      const maximumStock = parseStockInput(values.maximum_stock);
 
       if (minimumStock === undefined && maximumStock === undefined) {
          setSubmitError("Debe proporcionar al menos el stock mínimo o el stock máximo.");
@@ -191,7 +208,11 @@ export const EditStockModal = function (props: EditStockModalProps) {
          variant="form"
          description="Edita los niveles de stock para tener controlados los niveles mínimos para alertas."
       >
-         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+         <form
+            noValidate
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col gap-5"
+         >
             <SectionHeader
                title={product.product_name}
                subtitle={product.description ?? undefined}
@@ -286,79 +307,49 @@ export const EditStockModal = function (props: EditStockModalProps) {
                <InputText
                   label="Stock mínimo"
                   type="number"
-                  step="any"
-                  min={0}
-                  max={MAX_STOCK_LEVEL}
+                  step="0.01"
+                  inputMode="decimal"
                   placeholder="Ej: 10"
                   isRequired
                   suffix={unit?.symbol}
                   error={errors.minimum_stock?.message}
+                  errorVariant="text"
+                  aria-invalid={Boolean(errors.minimum_stock)}
+                  onKeyDown={preventScientificKeys}
                   className={inputClassName}
                   labelClassName={labelClassName}
                   disabled={!canEditProduct || PatchInventoryStock.isPending}
                   {...register("minimum_stock", {
-                     required: "El stock mínimo es obligatorio.",
-                     setValueAs: toOptionalNumber,
                      deps: ["maximum_stock"],
-                     validate: (value) => {
-                        const number = toOptionalNumber(value);
-                        if (number === undefined || Number.isNaN(number))
-                           return "Ingrese un número válido.";
-                        if (number < 0)
-                           return "El stock mínimo no puede ser menor a 0.";
-                        if (number > MAX_STOCK_LEVEL)
-                           return `El stock mínimo no puede exceder ${NUMBER_FORMATTER.format(MAX_STOCK_LEVEL)}.`;
-                        return true;
-                     },
+                     onChange: () => setSubmitError(null),
+                     validate: validateMinimumStock,
                   })}
                />
 
                <InputText
                   label="Stock máximo"
                   type="number"
-                  step="any"
-                  min={0}
-                  max={MAX_STOCK_LEVEL}
+                  step="0.01"
+                  inputMode="decimal"
                   placeholder="Ej: 100"
                   suffix={unit?.symbol}
                   error={errors.maximum_stock?.message}
+                  errorVariant="text"
+                  aria-invalid={Boolean(errors.maximum_stock)}
+                  onKeyDown={preventScientificKeys}
                   className={inputClassName}
                   labelClassName={labelClassName}
                   disabled={!canEditProduct || PatchInventoryStock.isPending}
                   {...register("maximum_stock", {
-                     setValueAs: toOptionalNumber,
-                     validate: (value) => {
-                        const max = toOptionalNumber(value);
-                        if (max === undefined) {
-                           const existingMax =
-                              stockSelected.maximum_stock > 0
-                                 ? stockSelected.maximum_stock
-                                 : undefined;
-                           const min = toOptionalNumber(getValues("minimum_stock"));
-                           if (
-                              existingMax !== undefined &&
-                              min !== undefined &&
-                              existingMax <= min
-                           ) {
-                              return "El stock máximo actual es menor o igual al nuevo stock mínimo; ingresa un nuevo stock máximo.";
-                           }
-                           return true;
-                        }
-
-                        if (Number.isNaN(max)) return "Ingrese un número válido.";
-                        if (max <= 0) return "El stock máximo debe ser mayor a 0.";
-                        if (max > MAX_STOCK_LEVEL)
-                           return `El stock máximo no puede exceder ${NUMBER_FORMATTER.format(MAX_STOCK_LEVEL)}.`;
-
-                        const min =
-                           toOptionalNumber(getValues("minimum_stock")) ??
-                           stockSelected.minimum_stock;
-
-                        if (max <= min)
-                           return "El stock máximo debe ser mayor al stock mínimo.";
-
-                        return true;
-                     },
+                     deps: ["minimum_stock"],
+                     onChange: () => setSubmitError(null),
+                     validate: (value) =>
+                        validateMaximumStock({
+                           value,
+                           minimumStockInput: getValues("minimum_stock"),
+                           currentMinimumStock: stockSelected.minimum_stock,
+                           currentMaximumStock: stockSelected.maximum_stock,
+                        }),
                   })}
                />
             </div>

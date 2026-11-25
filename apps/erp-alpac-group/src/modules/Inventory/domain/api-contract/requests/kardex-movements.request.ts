@@ -5,57 +5,21 @@ import type { BaseRequest } from "@app/shared/interfaces/base-request/base-reque
 
 /**
  * Parámetros de consulta para obtener los movimientos del Kardex.
- *
- * Extiende {@link BaseRequest} y permite filtrar por categoría, producto,
- * tipo de Kardex y tipo de movimiento, con soporte de paginación.
- *
- * @interface KardexMovementsRequest
- * @extends BaseRequest
  */
-export interface KardexMovementsRequest extends BaseRequest
-{
-    /**
-     * Identificador de la categoría de productos por la cual filtrar.
-     * Si se omite, no se aplica filtro por categoría.
-     */
-    category_id?:   string;
+export interface KardexMovementsRequest extends BaseRequest {
+   branch_id?: string;
+   cost_center_id?: string;
+   work_area_id?: string;
+   category_id?: string;
+   product_code?: string;
+   kardex_type?: KardexTypeEnum | null;
+   movement_type?: KardexMovementTypeEnum | null;
+   date_from?: string;
+   date_to?: string;
+   page_size?: number;
+   page_number?: number;
+}
 
-    /**
-     * Código del producto por el cual filtrar.
-     * Si se omite, se consideran todos los productos.
-     */
-    product_code?:  string;
-
-    /**
-     * Tipo de Kardex a consultar.
-     * @see KardexTypeEnum
-     */
-    kardex_type?:   KardexTypeEnum | null;
-
-    /**
-     * Tipo de movimiento a filtrar (por ejemplo: entrada, salida, ajuste).
-     * @see KardexMovementTypeEnum
-     */
-    movement_type?: KardexMovementTypeEnum | null;
-
-    /**
-     * Fecha inicial del periodo (YYYY-MM-DD). Opcional.
-     */
-    date_from?: string;
-
-    /**
-     * Fecha final del periodo (YYYY-MM-DD). Opcional.
-     */
-    date_to?: string;
-
-    /**
-     * Cantidad de registros por página.
-     */
-    page_size?:      number;
-
-    /**
-     * Número de página a consultar (según el criterio de indexación del
-     * backend, normalmente iniciando en 1).
-     */
-    page_number?:    number
+export interface KardexMovementDetailRequest extends BaseRequest {
+   kardex_id: string;
 }

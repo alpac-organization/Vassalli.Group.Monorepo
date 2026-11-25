@@ -1,37 +1,181 @@
 import { useMemo, useState } from "react";
-import { Badges, Button, DataTable, DatePicker, Dropdown, InputText, Modal, Textarea } from "@alpac/design-system";
-import { FileCheck2, InfoIcon } from "lucide-react";
+import { Controller, useForm } from "react-hook-form";
+import {
+  Alert,
+  Badges,
+  Button,
+  DataTable,
+  DatePicker,
+  InputText,
+  Modal,
+  SectionHeader,
+  Textarea,
+} from "@alpac/design-system";
 
 import { Loader } from "@app/shared/components/loaders/loader";
 import { ImageUploader } from "@app/shared/components/image-uploader/image-uploader";
 import { useUserStore } from "@app/shared/stores/useUserStore";
-import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters";
 import { useInventoryEntries } from "@app/modules/Inventory/ui/hooks/useInventoryEntries";
 import { EntryStatus } from "@app/core/enums/entry-status.enum";
 import { toApiDate } from "@app/shared/utils/date.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
-import { dropdownClassName, inputClassName, labelClassName } from "@app/modules/purchasing/ui/pages/supplier/utils/style";
+import {
+  inputClassName,
+  labelClassName,
+} from "@app/modules/purchasing/ui/pages/supplier/utils/style";
+import {
+  buttonActionClass,
+  buttonCancelClass,
+} from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/generate-exit-modal/utils/style.exit-modal";
 
-import { validateRegisterEntryForm } from "./entradas-register-modal.rules";
+import {
+  BADGE_COLORS,
+  COMPACT_BADGE_CLASS,
+} from "../entradas-detail-modal/entradas-detail-modal.constants";
+import { formatQuantity } from "../entradas-detail-modal/entradas-detail-modal.utils";
+import {
+  MAX_INVOICE_NUMBER_LENGTH,
+  MAX_OBSERVATIONS_LENGTH,
+  resolveEntryItemCostCenterId,
+  validateEvidenceImages,
+  validateInvoiceDate,
+  validateInvoiceNumber,
+  validateObservations,
+  validateRegisterEntryForm,
+} from "./entradas-register-modal.rules";
 import type { EntradasRegisterModalProps } from "./entradas-register-modal.types";
 
-import type { TableColumn } from "@alpac/design-system";
-import type { DatePickerValue } from "@alpac/design-system";
+import type { DatePickerValue, TableColumn } from "@alpac/design-system";
 import type { ImageOutput } from "@app/shared/components/image-uploader/image-uploader.types";
 import type { InventoryEntryItemDetail } from "@app/modules/Inventory/domain/api-contract/responses/inventory-entries.response";
 
 const MAX_EVIDENCE_IMAGES = 5;
+const ITEMS_TABLE_WRAPPER_CLASS = "[&>div]:h-auto [&>div]:flex-none";
+
+interface RegisterEntryFormValues {
+  invoice_number: string;
+  invoice_date: DatePickerValue | null;
+  observations: string;
+  evidence_images: ImageOutput[];
+}
+
+const REGISTER_ENTRY_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
+  {
+    key: "product_code",
+    label: "Código",
+    render: (item) =>
+      item.product_code ? (
+        <Badges
+          label={item.product_code}
+          color={BADGE_COLORS.product}
+          className={COMPACT_BADGE_CLASS}
+        />
+      ) : (
+        <span className="text-sm text-slate-400 dark:text-slate-500">—</span>
+      ),
+  },
+  {
+    key: "product_name",
+    label: "Producto",
+    render: (item) => (
+      <span className="block min-w-[12rem] max-w-[24rem] whitespace-normal text-sm font-medium text-slate-800 [overflow-wrap:anywhere] dark:text-slate-100">
+        {item.product_name ?? item.product_code ?? "—"}
+      </span>
+    ),
+  },
+  {
+    key: "quantity",
+    label: "Cantidad",
+    render: (item) => (
+      <span className="flex w-full justify-center whitespace-nowrap text-sm font-medium tabular-nums text-slate-700 dark:text-slate-200">
+        {formatQuantity(
+          item.quantity,
+          item.unit_measure_symbol ?? item.unit_measure_name,
+        )}
+      </span>
+    ),
+  },
+  {
+    key: "unit_price",
+    label: "Costo unitario",
+    render: (item) => (
+      <span className="flex w-full justify-center whitespace-nowrap text-sm tabular-nums text-slate-700 dark:text-slate-200">
+        {formatCurrency(item.unit_price)}
+      </span>
+    ),
+  },
+  {
+    key: "subtotal",
+    label: "Total",
+    render: (item) => (
+      <span className="flex w-full justify-center whitespace-nowrap text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+        {formatCurrency((Number(item.quantity) || 0) * (Number(item.unit_price) || 0))}
+      </span>
+    ),
+  },
+  {
+    key: "cost_center",
+    label: "Centro de costo",
+    render: (item) => {
+      const info = item.cost_center_information;
+      const name = info?.cost_center_name ?? item.cost_center_name ?? null;
+      const code =
+        info?.cost_center_code !== null && info?.cost_center_code !== undefined
+          ? String(info.cost_center_code)
+          : (item.cost_center_code ?? null);
+      const label = name ?? code;
+
+      if (!label) {
+        return (
+          <Badges
+            label="Sin centro asociado"
+            color={BADGE_COLORS.neutral}
+            className={COMPACT_BADGE_CLASS}
+          />
+        );
+      }
+
+      return (
+        <span
+          className="inline-flex flex-col gap-0.5 whitespace-nowrap"
+          title={info?.description ?? label}
+        >
+          <Badges
+            label={label}
+            color={BADGE_COLORS.costCenter}
+            className={COMPACT_BADGE_CLASS}
+          />
+          {code && name && (
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              Código: {code}
+            </span>
+          )}
+        </span>
+      );
+    },
+  },
+];
 
 export const EntradasRegisterModal = function (props: EntradasRegisterModalProps) {
   const { isOpen, entry, onClose, onRegistered, onError } = props;
   const { companyId, moduleCode } = useUserStore();
-
-  const [invoiceNumber, setInvoiceNumber] = useState("");
-  const [invoiceDate, setInvoiceDate] = useState<DatePickerValue | null>(null);
-  const [observations, setObservations] = useState("");
-  const [images, setImages] = useState<ImageOutput[]>([]);
-  const [costCenters, setCostCenters] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
+
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterEntryFormValues>({
+    mode: "all",
+    reValidateMode: "onChange",
+    defaultValues: {
+      invoice_number: "",
+      invoice_date: null,
+      observations: "",
+      evidence_images: [],
+    },
+  });
 
   const { GetInventoryEntryDetailQuery, RegisterInventoryEntry } = useInventoryEntries({
     payloadGetInventoryEntryDetailRequest:
@@ -44,74 +188,17 @@ export const EntradasRegisterModal = function (props: EntradasRegisterModalProps
         : undefined,
   });
 
-  const { GetCostCentersByBranch } = useCostCenters({
-    getCostCentersByBranchPayload: {
-      company_id: companyId,
-      module_code: moduleCode,
-    },
-  });
-
-  const costCenterOptions = useMemo(
-    () =>
-      (GetCostCentersByBranch.data ?? []).map((costCenter) => ({
-        label: costCenter.cost_center_name,
-        value: costCenter.cost_center_id,
-      })),
-    [GetCostCentersByBranch.data],
-  );
-
   const detail = GetInventoryEntryDetailQuery.data ?? null;
-  const items = detail?.items ?? [];
-  const isLoadingDetail = GetInventoryEntryDetailQuery.isPending || GetInventoryEntryDetailQuery.isFetching;
+  const items = useMemo(() => detail?.items ?? [], [detail?.items]);
+  const isLoadingDetail =
+    GetInventoryEntryDetailQuery.isPending || GetInventoryEntryDetailQuery.isFetching;
 
-  const handleCostCenterChange = (purchaseOrderItemId: string, costCenterId: string) => {
-    setCostCenters((current) => ({
-      ...current,
-      [purchaseOrderItemId]: costCenterId,
-    }));
-    setFormError(null);
-  };
-
-  const itemColumns = useMemo<TableColumn<InventoryEntryItemDetail>[]>(
-    () => [
-      {
-        key: "product_name",
-        label: "Producto",
-        render: (item) => <span>{item.product_name ?? item.product_code ?? "—"}</span>,
-      },
-      {
-        key: "quantity",
-        label: "Cantidad",
-        render: (item) => <span className="font-medium">{item.quantity}</span>,
-      },
-      {
-        key: "unit_price",
-        label: "Costo unitario",
-        render: (item) => <span>{formatCurrency(item.unit_price)}</span>,
-      },
-      {
-        key: "cost_center",
-        label: "Centro de costo *",
-        render: (item) => {
-          const itemId = item.purchase_order_item_id ?? "";
-
-          return (
-            <Dropdown
-              isLoading={GetCostCentersByBranch.isPending || GetCostCentersByBranch.isFetching}
-              label="Centro de costo"
-              value={costCenters[itemId] ?? ""}
-              options={costCenterOptions}
-              onChange={(value) => handleCostCenterChange(itemId, String(value ?? ""))}
-              placeholder="Seleccionar"
-              appearance="dark"
-              labelClassName={labelClassName}
-              className={dropdownClassName}
-            />
-          );
-        },
-      },
-    ],
-    [costCenters, costCenterOptions, GetCostCentersByBranch.isPending, GetCostCentersByBranch.isFetching],
+  const hasUnassignedCostCenter = useMemo(
+    () =>
+      items.some(
+        (item) => !item.purchase_order_item_id || !resolveEntryItemCostCenterId(item),
+      ),
+    [items],
   );
 
   const handleClose = () => {
@@ -119,14 +206,15 @@ export const EntradasRegisterModal = function (props: EntradasRegisterModalProps
     onClose();
   };
 
-  const handleSubmit = async () => {
+  const onSubmit = async (values: RegisterEntryFormValues) => {
     if (!entry) return;
 
     const validation = validateRegisterEntryForm({
-      invoiceNumber,
-      hasEvidence: images.length > 0,
+      invoiceNumber: values.invoice_number,
+      invoiceDate: values.invoice_date,
+      observations: values.observations,
+      hasEvidence: values.evidence_images.length > 0,
       items,
-      costCenters,
     });
 
     if (!validation.isValid) {
@@ -141,13 +229,12 @@ export const EntradasRegisterModal = function (props: EntradasRegisterModalProps
         company_id: companyId,
         module_code: moduleCode,
         inventory_entry_id: entry.inventory_entry_id,
-        invoice_number: invoiceNumber.trim(),
-        invoice_date: toApiDate(invoiceDate),
-        observations: observations.trim() || null,
-        evidence_images_base64: images.map((image) => image.base64),
+        invoice_number: values.invoice_number.trim(),
+        invoice_date: toApiDate(values.invoice_date),
+        observations: values.observations.trim() || null,
+        evidence_images_base64: values.evidence_images.map((image) => image.base64),
         items: items.map((item) => ({
           purchase_order_item_id: item.purchase_order_item_id ?? "",
-          cost_center_id: costCenters[item.purchase_order_item_id ?? ""],
         })),
       });
 
@@ -157,15 +244,27 @@ export const EntradasRegisterModal = function (props: EntradasRegisterModalProps
     }
   };
 
-  const isProcessed = entry ? EntryStatus[entry.entry_status]?.value !== EntryStatus.PendingReview.value : false;
+  const isProcessed = entry
+    ? EntryStatus[entry.entry_status]?.value !== EntryStatus.PendingReview.value
+    : false;
+
+  const statusVariant = detail ? EntryStatus[detail.entry_status] : undefined;
+
+  const itemsCountBadge = (
+    <Badges
+      label={`${items.length} ${items.length === 1 ? "ítem" : "ítems"}`}
+      color={BADGE_COLORS.neutral}
+      className={COMPACT_BADGE_CLASS}
+    />
+  );
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
       title="Registrar entrada de inventario"
-      description="Completa la factura, adjunta la evidencia y asigna el centro de costo de cada ítem."
-      variant="default"
+      description="Completa los datos de la factura y adjunta la evidencia para procesar la entrada y actualizar el costo promedio ponderado en Kardex."
+      variant="form"
       size="5xl"
       panelClassName="flex max-h-[min(94dvh,58rem)] flex-col rounded-xl sm:!rounded-2xl !p-4 sm:!p-6"
       contentClassName="flex min-h-0 flex-1 flex-col overflow-y-auto"
@@ -175,121 +274,188 @@ export const EntradasRegisterModal = function (props: EntradasRegisterModalProps
           <Loader title="Cargando información de la entrada..." />
         </div>
       ) : !detail ? (
-        <span className="text-sm text-slate-500 dark:text-slate-400">
-          No se encontró información de la entrada.
-        </span>
+        <Alert
+          type="info"
+          title="Sin información"
+          message="No se encontró información de la entrada de inventario."
+        />
       ) : (
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badges
-              color="info"
-              className="bg-slate-100 text-slate-800 border border-slate-200 dark:bg-slate-900/30 dark:text-slate-300 dark:border-slate-700"
-              label={detail.code ?? "Entrada de inventario"}
-            />
-            <Badges
-              color="info"
-              className={EntryStatus[detail.entry_status]?.badgeColor}
-              label={EntryStatus[detail.entry_status]?.label ?? ""}
-            />
-          </div>
+        <form
+          noValidate
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-col gap-5"
+        >
+          <SectionHeader
+            title={detail.code ?? "Entrada de inventario"}
+            subtitle={detail.supplier_name ?? undefined}
+          >
+            {statusVariant && (
+              <Badges
+                label={statusVariant.label}
+                color={statusVariant.badgeColor}
+              />
+            )}
+            {detail.purchase_request_code && (
+              <Badges
+                label={`Solicitud: ${detail.purchase_request_code}`}
+                color={BADGE_COLORS.request}
+                className={COMPACT_BADGE_CLASS}
+              />
+            )}
+          </SectionHeader>
 
           {isProcessed && (
-            <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-200">
-              <FileCheck2 size={18} className="mt-0.5 shrink-0" />
-              <span>Esta entrada ya fue procesada y no puede editarse ni reprocesarse.</span>
-            </div>
+            <Alert
+              type="success"
+              title="Entrada procesada"
+              message="Esta entrada ya fue procesada y no puede editarse ni reprocesarse."
+            />
+          )}
+
+          {hasUnassignedCostCenter && (
+            <Alert
+              type="warning"
+              title="Centro de costo pendiente en catálogo"
+              message="Uno o más productos no tienen un centro de costo asociado en su catálogo. Verifica la configuración del producto antes de registrar la entrada."
+            />
           )}
 
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <InputText
               label="Número de factura"
               placeholder="FAC-0001"
-              value={invoiceNumber}
-              onChange={(event) => setInvoiceNumber(event.target.value)}
+              maxLength={MAX_INVOICE_NUMBER_LENGTH}
               isRequired
-              disabled={isProcessed}
+              error={errors.invoice_number?.message}
+              errorVariant="text"
+              aria-invalid={Boolean(errors.invoice_number)}
+              disabled={isProcessed || RegisterInventoryEntry.isPending}
               className={inputClassName}
               labelClassName={labelClassName}
+              {...register("invoice_number", {
+                onChange: () => setFormError(null),
+                validate: validateInvoiceNumber,
+              })}
             />
 
-            <DatePicker
-              label="Fecha de factura"
-              labelAbove
-              format="DD/MM/YYYY"
-              value={invoiceDate}
-              onChange={(value) => setInvoiceDate(value)}
-              disabled={isProcessed}
-              className={inputClassName}
-              slotProps={{
-                popper: {
-                  disablePortal: false,
-                  sx: { zIndex: 2000 },
-                },
+            <Controller
+              name="invoice_date"
+              control={control}
+              rules={{
+                validate: validateInvoiceDate,
               }}
+              render={({ field }) => (
+                <DatePicker
+                  label="Fecha de factura"
+                  labelAbove
+                  disableFuture
+                  format="DD/MM/YYYY"
+                  value={field.value}
+                  onChange={(value) => {
+                    field.onChange(value);
+                    setFormError(null);
+                  }}
+                  error={errors.invoice_date?.message}
+                  errorVariant="text"
+                  disabled={isProcessed || RegisterInventoryEntry.isPending}
+                  className={inputClassName}
+                  slotProps={{
+                    popper: {
+                      disablePortal: false,
+                      sx: { zIndex: 2000 },
+                    },
+                  }}
+                />
+              )}
             />
           </section>
 
           <Textarea
             label="Observaciones"
             placeholder="Observaciones adicionales (opcional)"
-            value={observations}
-            onChange={(event) => setObservations(event.target.value)}
-            disabled={isProcessed}
-            maxLength={500}
+            disabled={isProcessed || RegisterInventoryEntry.isPending}
+            maxLength={MAX_OBSERVATIONS_LENGTH}
+            enableCharacterCount
+            error={errors.observations?.message}
+            className={inputClassName}
             labelClassName={labelClassName}
+            {...register("observations", {
+              onChange: () => setFormError(null),
+              validate: validateObservations,
+            })}
           />
 
-          <ImageUploader
-            label="Evidencia de la factura"
-            description="Adjunta al menos una imagen de la factura. Formatos permitidos: JPG, PNG, WEBP."
-            value={images}
-            onChange={setImages}
-            maxFiles={MAX_EVIDENCE_IMAGES}
-            minFiles={1}
-            isRequired
-            maxSizeMB={5}
+          <Controller
+            name="evidence_images"
+            control={control}
+            rules={{
+              validate: (images) => validateEvidenceImages(images?.length ?? 0),
+            }}
+            render={({ field }) => (
+              <ImageUploader
+                label="Evidencia de la factura"
+                description="Adjunta al menos una imagen de la factura. Formatos permitidos: JPG, PNG, WEBP."
+                value={field.value}
+                onChange={(nextImages) => {
+                  field.onChange(nextImages);
+                  setFormError(null);
+                }}
+                error={errors.evidence_images?.message ?? null}
+                maxFiles={MAX_EVIDENCE_IMAGES}
+                minFiles={1}
+                isRequired
+                maxSizeMB={5}
+              />
+            )}
           />
 
-          <section className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Ítems de la entrada</h3>
-              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs text-slate-700 dark:bg-slate-700 dark:text-slate-200">
-                {items.length} ítems
-              </span>
-            </div>
-
-            <DataTable<InventoryEntryItemDetail> data={items} columns={itemColumns} />
-          </section>
-
-          <div className="flex items-start gap-2 rounded-lg border border-slate-200 bg-white p-3 text-sm text-slate-600 dark:border-neutral-600 dark:bg-[#272b34] dark:text-slate-300">
-            <InfoIcon size={18} className="mt-0.5 shrink-0 text-slate-400" />
-            <span>Al registrar la entrada, el estado cambiará a procesada y se actualizará el Kardex.</span>
+          <div className={ITEMS_TABLE_WRAPPER_CLASS}>
+            <DataTable<InventoryEntryItemDetail>
+              title="Ítems de la entrada"
+              data={items}
+              columns={REGISTER_ENTRY_ITEMS_COLUMNS}
+              getRowKey={(item) => item.purchase_order_item_id ?? item.product_id}
+              maxHeight="none"
+              toolbarEnd={itemsCountBadge}
+            />
           </div>
 
+          <Alert
+            type="info"
+            title="Actualización de existencias y Kardex"
+            message="Al registrar la entrada se cargarán las unidades al centro de costo asociado a cada producto, recalculando automáticamente el costo promedio ponderado en stock y Kardex."
+          />
+
           {formError && (
-            <p className="text-[13px] text-red-500 dark:text-red-400" role="alert">
-              {formError}
-            </p>
+            <Alert
+              type="error"
+              title="Validación de la entrada"
+              message={formError}
+            />
           )}
 
           <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end dark:border-neutral-600">
             <Button
+              type="button"
               label="Cancelar"
-              size="giant"
               onClick={handleClose}
               disabled={RegisterInventoryEntry.isPending}
-              className="w-full! sm:w-auto! rounded-md! bg-slate-500! text-white! hover:bg-slate-600! dark:bg-slate-700! dark:hover:bg-slate-600!"
+              className={buttonCancelClass}
             />
             <Button
+              type="submit"
               label="Registrar entrada"
-              size="giant"
-              onClick={() => void handleSubmit()}
               isLoading={RegisterInventoryEntry.isPending}
-              disabled={isProcessed || RegisterInventoryEntry.isPending || isLoadingDetail}
-              className="w-full! sm:w-auto! rounded-md! bg-blue-600! text-white! hover:bg-blue-700!"
+              disabled={
+                isProcessed ||
+                hasUnassignedCostCenter ||
+                RegisterInventoryEntry.isPending ||
+                isLoadingDetail
+              }
+              className={buttonActionClass}
             />
           </div>
-        </div>
+        </form>
       )}
     </Modal>
   );

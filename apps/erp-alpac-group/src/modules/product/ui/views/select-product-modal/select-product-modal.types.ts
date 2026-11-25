@@ -11,6 +11,8 @@ export type SelectProductModalProps = {
 	description?: string;
 	productUsageType?: ProductUsageType;
 	categoryType?: CategoryType;
+	costCenterId?: string;
+	branchId?: string;
 	onClose: () => void;
 	onSelect: (products: SelectableCatalogProduct[]) => void;
 };
