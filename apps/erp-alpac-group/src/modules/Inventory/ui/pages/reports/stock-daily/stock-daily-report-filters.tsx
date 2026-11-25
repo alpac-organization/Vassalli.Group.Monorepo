@@ -4,6 +4,7 @@ import { Filter, FilterX } from "lucide-react";
 
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
+import { RoleEnum } from "@app/core/enums/role.enum";
 import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
@@ -28,11 +29,14 @@ export const StockDailyReportFilters = function (props: {
    applyLabel?: string;
    forceEnableApply?: boolean;
 }) {
-   const { control, handleSubmit, reset, register, formState: { isDirty, isValid } } = useForm<StockDailyReportFiltersValues>({
-      defaultValues: props.filters,
-   });
+   const { companyId, moduleCode, role, branchId } = useUserStore();
 
-   const { companyId, moduleCode } = useUserStore();
+   const { control, handleSubmit, reset, register, formState: { isDirty, isValid } } = useForm<StockDailyReportFiltersValues>({
+      defaultValues: {
+         ...props.filters,
+         branch_ids: props.filters.branch_ids ?? (branchId ? [branchId] : []),
+      },
+   });
 
    const { GetBranchesQuery } = useCompanies({ company_id: companyId });
    const branchesOptions = GetBranchesOptions(GetBranchesQuery.data ?? []);
@@ -68,7 +72,7 @@ export const StockDailyReportFilters = function (props: {
       reset({
          product_code: "",
          product_name: "",
-         branch_ids: [],
+         branch_ids: branchId ? [branchId] : [],
          area_ids: [],
          cost_center_ids: [],
          category_ids: [],
@@ -88,6 +92,7 @@ export const StockDailyReportFilters = function (props: {
                      <Dropdown
                         isLoading={GetBranchesQuery.isPending || GetBranchesQuery.isFetching}
                         label="Sucursal"
+                        isRequired={role === RoleEnum.ADMINISTRATOR}
                         multiple
                         value={field.value ?? []}
                         options={branchesOptions}

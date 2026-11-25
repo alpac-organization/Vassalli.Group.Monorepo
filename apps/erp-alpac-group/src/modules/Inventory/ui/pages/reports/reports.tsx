@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Breadcrumb, SectionHeader, useTheme, Card, Badges, Button } from "@alpac/design-system";
-import { StockDailyReportModal } from "./stock-daily/stock-daily-report-modal";
+import { StockDailyReportModal } from "@app/modules/Inventory/ui/pages/reports/stock-daily/stock-daily-report-modal";
+import { OutputsByEquipmentReportModal } from "@app/modules/Inventory/ui/pages/reports/outputs-by-equipment/outputs-by-equipment-report-modal";
+import { OutputsDetailByEquipmentReportModal } from "@app/modules/Inventory/ui/pages/reports/outputs-detail-by-equipment/outputs-detail-by-equipment-report-modal";
+import { OutputsConsolidatedByEquipmentReportModal } from "@app/modules/Inventory/ui/pages/reports/outputs-consolidated-by-equipment/outputs-consolidated-by-equipment-report-modal";
+import { InventoryPeriodReportModal } from "@app/modules/Inventory/ui/pages/reports/inventory-period/inventory-period-report-modal";
 import { useNavigate } from "react-router-dom";
 
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -26,11 +30,11 @@ const existenceReports: ReportCardItem[] = [
       badgeColor: "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
    },
    {
-      slug: "stock-minimum",
-      title: "Stock mínimo",
-      description: "Productos por debajo del stock mínimo permitido.",
-      badge: "Próximo",
-      badgeColor: "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+      slug: "inventory-period",
+      title: "Inventario por periodo",
+      description: "Saldo inicial, entradas, salidas y saldo final por producto.",
+      badge: "Nuevo",
+      badgeColor: "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
    },
    {
       slug: "stock-valuation",
@@ -61,24 +65,24 @@ const movementReports: ReportCardItem[] = [
 const outputsByEquipmentReports: ReportCardItem[] = [
    {
       slug: "outputs-by-equipment",
-      title: "Salidas por equipo",
-      description: "Salidas de inventario asociadas a equipos.",
+      title: "Linea-Equipo",
+      description: "Salidas de inventario por linea-equipo.",
       badge: "Disponible",
       badgeColor: "bg-green-100 text-green-800 border border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
    },
    {
-      slug: "outputs-by-cost-center",
-      title: "Salidas por centro de costo",
-      description: "Consumo de inventario por centro de costo.",
+      slug: "outputs-detail-by-equipment",
+      title: "Salidas a detalle por equipo",
+      description: "Detalle de salidas de inventario por equipo.",
       badge: "Nuevo",
       badgeColor: "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
    },
    {
-      slug: "outputs-by-area",
-      title: "Salidas por área",
-      description: "Consumo de inventario por área operativa.",
-      badge: "Próximo",
-      badgeColor: "bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+      slug: "outputs-consolidated-by-equipment",
+      title: "Salidas consolidadas por equipo",
+      description: "Salidas de inventario consolidadas por equipo y categoría.",
+      badge: "Nuevo",
+      badgeColor: "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
    },
 ];
 
@@ -93,6 +97,18 @@ export const Reports = function () {
    const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
 
    const [isStockDailyModalOpen, setIsStockDailyModalOpen] = useState(false);
+   const [isOutputsByEquipmentModalOpen, setIsOutputsByEquipmentModalOpen] = useState(false);
+   const [isOutputsDetailByEquipmentModalOpen, setIsOutputsDetailByEquipmentModalOpen] = useState(false);
+   const [isOutputsConsolidatedByEquipmentModalOpen, setIsOutputsConsolidatedByEquipmentModalOpen] = useState(false);
+   const [isInventoryPeriodModalOpen, setIsInventoryPeriodModalOpen] = useState(false);
+
+   const openReportBySlug: Record<string, () => void> = {
+      "stock-daily": () => setIsStockDailyModalOpen(true),
+      "inventory-period": () => setIsInventoryPeriodModalOpen(true),
+      "outputs-by-equipment": () => setIsOutputsByEquipmentModalOpen(true),
+      "outputs-detail-by-equipment": () => setIsOutputsDetailByEquipmentModalOpen(true),
+      "outputs-consolidated-by-equipment": () => setIsOutputsConsolidatedByEquipmentModalOpen(true),
+   };
 
    const renderReportCards = (items: ReportCardItem[]) => (
    <div
@@ -118,11 +134,12 @@ export const Reports = function () {
                   size="small"
                   label="Abrir"
                   onClick={() => {
-                     if (item.slug === "stock-daily") {
-                        setIsStockDailyModalOpen(true);
-                     } else {
-                        navigate(`${baseUrl}/${moduleBasePath}/reports-management/${item.slug}`);
+                     const openReport = openReportBySlug[item.slug];
+                     if (openReport) {
+                        openReport();
+                        return;
                      }
+                     navigate(`${baseUrl}/${moduleBasePath}/reports-management/${item.slug}`);
                   }}
                />
             </div>
@@ -186,9 +203,29 @@ export const Reports = function () {
             </section>
          </div>
 
+         <OutputsByEquipmentReportModal
+            isOpen={isOutputsByEquipmentModalOpen}
+            onClose={() => setIsOutputsByEquipmentModalOpen(false)}
+         />
+
+         <OutputsDetailByEquipmentReportModal
+            isOpen={isOutputsDetailByEquipmentModalOpen}
+            onClose={() => setIsOutputsDetailByEquipmentModalOpen(false)}
+         />
+
+         <OutputsConsolidatedByEquipmentReportModal
+            isOpen={isOutputsConsolidatedByEquipmentModalOpen}
+            onClose={() => setIsOutputsConsolidatedByEquipmentModalOpen(false)}
+         />
+
          <StockDailyReportModal
             isOpen={isStockDailyModalOpen}
             onClose={() => setIsStockDailyModalOpen(false)}
+         />
+
+         <InventoryPeriodReportModal
+            isOpen={isInventoryPeriodModalOpen}
+            onClose={() => setIsInventoryPeriodModalOpen(false)}
          />
 
          {AlertComponent}

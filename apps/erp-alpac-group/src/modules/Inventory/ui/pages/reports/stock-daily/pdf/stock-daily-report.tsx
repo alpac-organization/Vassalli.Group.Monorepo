@@ -1,8 +1,8 @@
 import { memo } from "react";
 import { Document, Image, Page, Text, View } from "@react-pdf/renderer";
 
-import type { StockDailyReportPdfProps } from "./stock-daily-report.types";
-import { stockDailyReportStyles as styles } from "./stock-daily-report.styles";
+import type { StockDailyReportPdfProps } from "@app/modules/Inventory/ui/pages/reports/stock-daily/pdf/stock-daily-report.types";
+import { stockDailyReportStyles as styles } from "@app/modules/Inventory/ui/pages/reports/stock-daily/pdf/stock-daily-report.styles";
 
 const STATUS_BADGE_STYLE_LOOKUP: Record<string, typeof styles.statusBadgeDanger> = {
    "Sin stock": styles.statusBadgeDanger,
