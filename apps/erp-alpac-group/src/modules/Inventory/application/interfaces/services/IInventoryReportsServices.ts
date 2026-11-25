@@ -1,5 +1,8 @@
 import type { StockDailyReport } from "@app/modules/Inventory/domain/api-contract/responses/stock-daily-report.response";
 import type { OutputLineEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-line-equipment-report.response";
+import type { OutputDetailByEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-detail-by-equipment-report.response";
+import type { OutputConsolidatedByEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-consolidated-by-equipment-report.response";
+import type { PeriodInventoryReport } from "@app/modules/Inventory/domain/api-contract/responses/period-inventory-report.response";
 
 export type StockDailyReportType = {
    company_id: string;
@@ -24,8 +27,23 @@ export type EquipmentReportType = {
    product_ids?: string[];
 };
 
+export type PeriodInventoryReportType = {
+   company_id: string;
+   module_code: string;
+   from?: string;
+   to?: string;
+   branch_id?: string;
+   cost_center_id?: string;
+};
+
 export interface IInventoryReportsServices {
    GetStockDailyReport(payload: StockDailyReportType): Promise<StockDailyReport>;
 
    GetOutputsLineEquipmentReport(payload: EquipmentReportType): Promise<OutputLineEquipmentReport>;
+
+   GetOutputsDetailByEquipmentReport(payload: EquipmentReportType): Promise<OutputDetailByEquipmentReport>;
+
+   GetOutputsConsolidatedByEquipmentReport(payload: EquipmentReportType): Promise<OutputConsolidatedByEquipmentReport>;
+
+   GetPeriodInventoryReport(payload: PeriodInventoryReportType): Promise<PeriodInventoryReport>;
 }

@@ -1,5 +1,5 @@
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { Button, DatePicker, Dropdown, type DatePickerValue } from "@alpac/design-system";
+import { Button, DatePicker, Dropdown } from "@alpac/design-system";
 import { Filter, FilterX } from "lucide-react";
 
 import { useUserStore } from "@app/shared/stores/useUserStore";
@@ -13,27 +13,24 @@ import { useEquipment } from "@app/modules/warehouse/ui/hooks/warehouse-managua/
 import { GetBranchesOptions, GetProductCategoryOptions } from "@app/modules/Inventory/ui/pages/inventory-control/views/stock-control/stock-control.variants";
 import { dropdownClassName, labelClassName } from "@app/modules/purchasing/ui/pages/supplier/utils/style";
 
-export interface OutputsByEquipmentReportFiltersValues {
-   from: DatePickerValue | null;
-   to: DatePickerValue | null;
-   branch_id?: string;
-   category_ids?: string[];
-   equipment_ids?: string[];
-   product_ids?: string[];
-}
+import type { EquipmentReportFiltersValues } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/equipment-report.types";
 
-export const OutputsByEquipmentReportFilters = function (props: {
-   filters: OutputsByEquipmentReportFiltersValues;
-   onApply: (filters: OutputsByEquipmentReportFiltersValues) => void;
+export const EquipmentReportFilters = function (props: {
+   filters: EquipmentReportFiltersValues;
+   onApply: (filters: EquipmentReportFiltersValues) => void;
    onClear: () => void;
    applyLabel?: string;
    forceEnableApply?: boolean;
+   requireCategory?: boolean;
 }) {
-   const { control, handleSubmit, reset, getValues, setValue, formState: { isDirty, isValid } } = useForm<OutputsByEquipmentReportFiltersValues>({
-      defaultValues: props.filters,
-   });
-
    const { companyId, moduleCode, role, branchId } = useUserStore();
+
+   const { control, handleSubmit, reset, getValues, setValue, formState: { isDirty, isValid } } = useForm<EquipmentReportFiltersValues>({
+      defaultValues: {
+         ...props.filters,
+         branch_id: props.filters.branch_id ?? branchId,
+      },
+   });
 
    const { GetBranchesQuery } = useCompanies({ company_id: companyId });
    const branchesOptions = GetBranchesOptions(GetBranchesQuery.data ?? []);
@@ -97,7 +94,7 @@ export const OutputsByEquipmentReportFilters = function (props: {
       return nextCategoryIds;
    };
 
-   const onSubmit = (values: OutputsByEquipmentReportFiltersValues) => {
+   const onSubmit = (values: EquipmentReportFiltersValues) => {
       props.onApply(values);
       reset(values);
    };
@@ -124,7 +121,9 @@ export const OutputsByEquipmentReportFilters = function (props: {
                   rules={{ required: true }}
                   render={({ field }) => (
                      <DatePicker
-                        label="Desde"
+                        label="Fecha de inicio"
+                        labelAbove
+                        isRequired
                         value={field.value}
                         onChange={(e) => field.onChange(e)}
                         labelClassName={labelClassName}
@@ -141,7 +140,9 @@ export const OutputsByEquipmentReportFilters = function (props: {
                   rules={{ required: true }}
                   render={({ field }) => (
                      <DatePicker
-                        label="Hasta"
+                        label="Fecha fin"
+                        labelAbove
+                        isRequired
                         value={field.value}
                         onChange={(e) => field.onChange(e)}
                         labelClassName={labelClassName}
@@ -163,6 +164,7 @@ export const OutputsByEquipmentReportFilters = function (props: {
                      <Dropdown
                         isLoading={GetBranchesQuery.isPending || GetBranchesQuery.isFetching}
                         label="Sucursal"
+                        isRequired={role === RoleEnum.ADMINISTRATOR}
                         value={field.value ?? ""}
                         options={branchesOptions}
                         onChange={(e) => field.onChange(e)}
@@ -181,12 +183,15 @@ export const OutputsByEquipmentReportFilters = function (props: {
                   control={control}
                   rules={{
                      validate: (value) =>
-                        (value?.length ?? 0) > 0 || "Debe seleccionar al menos una categoría.",
+                        !props.requireCategory ||
+                        (value?.length ?? 0) > 0 ||
+                        "Debe seleccionar al menos una categoría.",
                   }}
                   render={({ field }) => (
                      <Dropdown
                         isLoading={GetProductCategories.isPending || GetProductCategories.isFetching}
                         label="Categoría"
+                        isRequired={props.requireCategory}
                         multiple
                         value={field.value ?? []}
                         options={categoryOptions}

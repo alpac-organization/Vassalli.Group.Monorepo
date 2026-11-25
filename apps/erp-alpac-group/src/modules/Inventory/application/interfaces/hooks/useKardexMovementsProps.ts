@@ -1,5 +1,9 @@
-import type { KardexMovementsRequest } from "@app/modules/Inventory/domain/api-contract/requests/kardex-movements.request";
+import type {
+   KardexMovementDetailRequest,
+   KardexMovementsRequest,
+} from "@app/modules/Inventory/domain/api-contract/requests/kardex-movements.request";
 
 export interface useKardexMovementsProps {
-    payloadGetKardexMovementsRequest?: KardexMovementsRequest;
+   payloadGetKardexMovementsRequest?: KardexMovementsRequest;
+   payloadGetKardexMovementDetailRequest?: KardexMovementDetailRequest;
 }

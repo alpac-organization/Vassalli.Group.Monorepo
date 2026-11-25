@@ -9,10 +9,10 @@ import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { warehouseHttpHandler } from "@app/core/adapters";
 import { InventoryReportsServices } from "@app/modules/Inventory/infrastructure/services/inventory-reports-services";
 
-import { StockDailyReportFilters } from "./stock-daily-report-filters";
-import type { StockDailyReportFiltersValues } from "./stock-daily-report-filters";
+import { StockDailyReportFilters } from "@app/modules/Inventory/ui/pages/reports/stock-daily/stock-daily-report-filters";
+import type { StockDailyReportFiltersValues } from "@app/modules/Inventory/ui/pages/reports/stock-daily/stock-daily-report-filters";
 
-import { generateStockDailyReportPdf } from "./pdf/stock-daily-report.generate";
+import { generateStockDailyReportPdf } from "@app/modules/Inventory/ui/pages/reports/stock-daily/pdf/stock-daily-report.generate";
 
 export const StockDailyReportModal = function ({
    isOpen,
@@ -21,12 +21,12 @@ export const StockDailyReportModal = function ({
    isOpen: boolean;
    onClose: () => void;
 }) {
-   const { companyId, moduleCode } = useUserStore();
+   const { companyId, moduleCode, branchId } = useUserStore();
    const { urlImage } = useCompanyStore();
    const { AlertComponent, handleRequestError, handleRequestSuccess } = useAlertState();
 
    const [filters, setFilters] = useState<StockDailyReportFiltersValues>({
-      branch_ids: [],
+      branch_ids: branchId ? [branchId] : [],
       area_ids: [],
       cost_center_ids: [],
       category_ids: [],
@@ -86,7 +86,7 @@ export const StockDailyReportModal = function ({
             filters={filters}
             onApply={handleGenerate}
             onClear={() => setFilters({
-               branch_ids: [],
+               branch_ids: branchId ? [branchId] : [],
                area_ids: [],
                cost_center_ids: [],
                category_ids: [],

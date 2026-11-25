@@ -1,19 +1,8 @@
-import type { OutputsByEquipmentReportPdfProps } from "./outputs-by-equipment-report.types";
+import type { OutputLineEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-line-equipment-report.response";
 
-export type GenerateOutputsByEquipmentReportPdfParams = {
-   report: OutputsByEquipmentReportPdfProps["report"];
-   logoUrl?: string | null;
-};
+import { createEquipmentReportPdfGenerator } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/pdf/generate-equipment-report-pdf";
 
-export async function generateOutputsByEquipmentReportPdf(
-   params: GenerateOutputsByEquipmentReportPdfParams,
-): Promise<Blob> {
-   const [{ pdf }, { OutputsByEquipmentReportPdf }] = await Promise.all([
-      import("@react-pdf/renderer"),
-      import("./outputs-by-equipment-report"),
-   ]);
-
-   return pdf(
-      <OutputsByEquipmentReportPdf report={params.report} logoUrl={params.logoUrl} />,
-   ).toBlob();
-}
+export const generateOutputsByEquipmentReportPdf = createEquipmentReportPdfGenerator<OutputLineEquipmentReport>(
+   () => import("@app/modules/Inventory/ui/pages/reports/outputs-by-equipment/pdf/outputs-by-equipment-report")
+      .then((module) => module.OutputsByEquipmentReportPdf),
+);
