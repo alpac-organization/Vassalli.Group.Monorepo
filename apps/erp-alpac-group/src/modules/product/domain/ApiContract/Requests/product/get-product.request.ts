@@ -3,6 +3,8 @@ import type { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
 export interface GetProductRequest {
    company_id: string;
    module_code: string;   
+   branch_id?: string;
+   cost_center_id?: string;
    category_product_id?: string;
    product_usage_type?: ProductUsageType;
    only_active?: boolean;

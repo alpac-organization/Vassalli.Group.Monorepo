@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   AccordionGroup,
   AccordionItem,
@@ -64,9 +64,14 @@ export const PurchaseRequestDetail = ({
   isEditMode = false,
   hasAttemptedSubmit = false,
 }: PurchaseRequestDetailProps) => {
-  const { companyId, moduleCode } = useUserStore();
+  const {
+    companyId,
+    moduleCode,
+    costCenterId: userCostCenterId,
+    branchId: userBranchId,
+  } = useUserStore();
   const [isSelectProductOpen, setIsSelectProductOpen] = useState(false);
-  const [openProducts, setOpenProducts] = useState<string[]>([]);
+  const [closedProductIds, setClosedProductIds] = useState<string[]>([]);
 
   const {
     control,
@@ -77,20 +82,34 @@ export const PurchaseRequestDetail = ({
     formState: { errors },
   } = useFormContext<CreatePurchaseRequestPayload>();
   const destination = watch("destination");
+  const formCostCenterId = watch("cost_center_id");
+  const formBranchId = watch("branch_id");
   // aqui el se determina el uso del producto para filtrar el catálogo: en requisición depende del destino
   // interno → administrativo, service order → operacional);
   const productUsageType = isRequisition
     ? getProductUsageTypeByDestination(destination)
     : "Administrative";
+  const effectiveCostCenterId =
+    isRequisition && productUsageType === "Operational"
+      ? (formCostCenterId?.trim() || userCostCenterId?.trim() || undefined)
+      : undefined;
+  const effectiveBranchId =
+    isRequisition && productUsageType === "Operational"
+      ? (formBranchId?.trim() || userBranchId?.trim() || undefined)
+      : undefined;
 
   const { fields, append, remove } = useFieldArray({
     control,
     name: "purchase_request_items",
   });
 
-  useEffect(() => {
-    setOpenProducts(fields.map((field) => field.id));
-  }, [fields]);
+  const openProducts = useMemo(
+    () =>
+      fields
+        .map((field) => field.id)
+        .filter((id) => !closedProductIds.includes(id)),
+    [fields, closedProductIds],
+  );
 
   const { GetUnitMeasurements } = useUnitOfMeasurement({
     payloadUnitOfMeasurement: {
@@ -200,12 +219,14 @@ export const PurchaseRequestDetail = ({
           type="multiple"
           value={openProducts}
           onValueChange={(value) => {
-            const nextValue = Array.isArray(value)
-              ? value
-              : value
-                ? [value]
-                : [];
-            setOpenProducts(nextValue);
+            const nextOpen = new Set(
+              Array.isArray(value) ? value : value ? [value] : [],
+            );
+            setClosedProductIds(
+              fields
+                .map((field) => field.id)
+                .filter((id) => !nextOpen.has(id)),
+            );
           }}
           className="gap-3"
         >
@@ -559,6 +580,8 @@ export const PurchaseRequestDetail = ({
         selectionType="multiple"
         excludeProductIds={assignedProductIds}
         productUsageType={productUsageType}
+        costCenterId={effectiveCostCenterId}
+        branchId={effectiveBranchId}
       />
     </div>
   );
