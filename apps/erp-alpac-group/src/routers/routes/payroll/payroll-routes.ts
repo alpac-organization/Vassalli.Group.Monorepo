@@ -1,5 +1,5 @@
 import type { SidebarLink } from "@app/shared/layouts/dashboard-layout/components/Sidebar/types/sidebar.types";
-import { CircleMinus, DollarSign, FileClock, Fingerprint, FolderClock, HandCoins, History, UsersRound, ShieldCheck, Scale } from "lucide-react";
+import { CircleMinus, DollarSign, FileClock, Fingerprint, FolderClock, HandCoins, History, UsersRound, ShieldCheck, Scale, UserCheck } from "lucide-react";
 
 export const getPayrollRoutes = () => {
 
@@ -74,6 +74,13 @@ export const getPayrollRoutes = () => {
       icon:  ShieldCheck 
    }
 
+   const personnelActionsSection: SidebarLink = {
+      id: "personnel-actions",
+      label: "Solicitudes del Personal",
+      path: "personnel-actions",
+      icon: UserCheck,
+   };
+
    return {
       collboratorSection,
       gestionPayrollSection,
@@ -84,6 +91,7 @@ export const getPayrollRoutes = () => {
       liquidacionSection,
       attendanceControlSection,
       subsidyHistorialSection,
-      permissionPoliciesSection
+      permissionPoliciesSection,
+      personnelActionsSection
    }
 }

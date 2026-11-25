@@ -1,3 +1,9 @@
+import {
+  CurrencyEnum,
+  type CurrencyCode,
+} from "@app/core/enums/currency.enum";
+import { resolveEnumEntry } from "@app/shared/utils/enum.utils";
+
 export const formatCurrency = (
   value: number,
   currency = "NIO",
@@ -12,3 +18,16 @@ export const formatCurrency = (
     minimumFractionDigits,
   }).format(numAmount);
 };
+
+type CurrencySource = string | number | null | undefined;
+
+export function resolveCurrencyCode(currency: CurrencySource): CurrencyCode {
+  if (currency === "U$") return "USD";
+  return resolveEnumEntry(CurrencyEnum, currency) === CurrencyEnum.USD
+    ? "USD"
+    : "NIO";
+}
+
+export function resolveCurrencyOptionValue(currency: CurrencySource): string {
+  return CurrencyEnum[resolveCurrencyCode(currency)].value.toString();
+}
