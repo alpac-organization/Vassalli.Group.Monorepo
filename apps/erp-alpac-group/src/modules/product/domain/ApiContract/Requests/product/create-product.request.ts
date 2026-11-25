@@ -7,6 +7,7 @@ export interface CreateProductRequest extends BaseRequest {
 	description?: string;
 	category_id: string;
 	unit_measure_id: string;
+	area_id?: string | null;
 	cost_center_id?: string | null;
 	product_usage_type: ProductUsageType;
 	is_tax_exempt	?: boolean;

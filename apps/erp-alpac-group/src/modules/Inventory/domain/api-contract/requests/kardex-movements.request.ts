@@ -1,5 +1,6 @@
 import type { KardexTypeEnum } from "@app/core/enums/kardex-type.enum";
 import type { KardexMovementTypeEnum } from "@app/core/enums/kardex-movement-type.enum";
+import type { ReferenceTypeEnum } from "@app/core/enums/reference-type.enum";
 
 import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
 
@@ -13,6 +14,7 @@ export interface KardexMovementsRequest extends BaseRequest {
    category_id?: string;
    product_code?: string;
    kardex_type?: KardexTypeEnum | null;
+   reference_type?: ReferenceTypeEnum | null;
    movement_type?: KardexMovementTypeEnum | null;
    date_from?: string;
    date_to?: string;

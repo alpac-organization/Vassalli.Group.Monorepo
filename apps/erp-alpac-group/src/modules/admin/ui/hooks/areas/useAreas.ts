@@ -5,15 +5,25 @@ import type { GetAreasRequest } from "@app/modules/admin/domain/ApiContract/requ
 import type { CreateAreaRequest } from "@app/modules/admin/domain/ApiContract/requests/areas/create-area.request";
 import type { DeleteAreaRequest } from "@app/modules/admin/domain/ApiContract/requests/areas/delete-cost-center";
 const areasServices = new AreasServices(httpHandler);
-export const useAreas = (payload: GetAreasRequest) => {
+export const useAreas = (
+  payload: GetAreasRequest,
+  options?: { enabled?: boolean },
+) => {
 
   const queryClient = useQueryClient();
 
   const GetAreasByCompany = useQuery({
-    queryKey: ["areas", payload.company_id],
+    queryKey: [
+      "areas",
+      payload.company_id,
+      payload.module_code,
+      payload.only_operational,
+    ],
     queryFn: () => areasServices.getAreas(payload),
     staleTime: 1000 * 60 * 5,
-    enabled: Boolean(payload.company_id),
+    enabled:
+      (options?.enabled ?? true) &&
+      Boolean(payload.company_id && payload.module_code),
     refetchOnWindowFocus: false,
     retry: 1,
   });
