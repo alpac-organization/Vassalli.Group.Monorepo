@@ -3,6 +3,7 @@ import { Breadcrumb, SectionHeader, useTheme, Card, Badges, Button } from "@alpa
 import { StockDailyReportModal } from "@app/modules/Inventory/ui/pages/reports/stock-daily/stock-daily-report-modal";
 import { OutputsByEquipmentReportModal } from "@app/modules/Inventory/ui/pages/reports/outputs-by-equipment/outputs-by-equipment-report-modal";
 import { OutputsDetailByEquipmentReportModal } from "@app/modules/Inventory/ui/pages/reports/outputs-detail-by-equipment/outputs-detail-by-equipment-report-modal";
+import { OutputsConsolidatedByEquipmentReportModal } from "@app/modules/Inventory/ui/pages/reports/outputs-consolidated-by-equipment/outputs-consolidated-by-equipment-report-modal";
 import { useNavigate } from "react-router-dom";
 
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
@@ -76,9 +77,9 @@ const outputsByEquipmentReports: ReportCardItem[] = [
       badgeColor: "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
    },
    {
-      slug: "outputs-by-cost-center",
-      title: "Salidas por centro de costo",
-      description: "Consumo de inventario por centro de costo.",
+      slug: "outputs-consolidated-by-equipment",
+      title: "Salidas consolidadas por equipo",
+      description: "Salidas de inventario consolidadas por equipo y categoría.",
       badge: "Nuevo",
       badgeColor: "bg-blue-100 text-blue-800 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
    },
@@ -97,11 +98,13 @@ export const Reports = function () {
    const [isStockDailyModalOpen, setIsStockDailyModalOpen] = useState(false);
    const [isOutputsByEquipmentModalOpen, setIsOutputsByEquipmentModalOpen] = useState(false);
    const [isOutputsDetailByEquipmentModalOpen, setIsOutputsDetailByEquipmentModalOpen] = useState(false);
+   const [isOutputsConsolidatedByEquipmentModalOpen, setIsOutputsConsolidatedByEquipmentModalOpen] = useState(false);
 
    const openReportBySlug: Record<string, () => void> = {
       "stock-daily": () => setIsStockDailyModalOpen(true),
       "outputs-by-equipment": () => setIsOutputsByEquipmentModalOpen(true),
       "outputs-detail-by-equipment": () => setIsOutputsDetailByEquipmentModalOpen(true),
+      "outputs-consolidated-by-equipment": () => setIsOutputsConsolidatedByEquipmentModalOpen(true),
    };
 
    const renderReportCards = (items: ReportCardItem[]) => (
@@ -205,6 +208,11 @@ export const Reports = function () {
          <OutputsDetailByEquipmentReportModal
             isOpen={isOutputsDetailByEquipmentModalOpen}
             onClose={() => setIsOutputsDetailByEquipmentModalOpen(false)}
+         />
+
+         <OutputsConsolidatedByEquipmentReportModal
+            isOpen={isOutputsConsolidatedByEquipmentModalOpen}
+            onClose={() => setIsOutputsConsolidatedByEquipmentModalOpen(false)}
          />
 
          <StockDailyReportModal

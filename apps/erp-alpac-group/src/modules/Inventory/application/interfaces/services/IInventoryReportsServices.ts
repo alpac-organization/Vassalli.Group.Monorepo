@@ -1,6 +1,7 @@
 import type { StockDailyReport } from "@app/modules/Inventory/domain/api-contract/responses/stock-daily-report.response";
 import type { OutputLineEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-line-equipment-report.response";
 import type { OutputDetailByEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-detail-by-equipment-report.response";
+import type { OutputConsolidatedByEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-consolidated-by-equipment-report.response";
 
 export type StockDailyReportType = {
    company_id: string;
@@ -31,4 +32,6 @@ export interface IInventoryReportsServices {
    GetOutputsLineEquipmentReport(payload: EquipmentReportType): Promise<OutputLineEquipmentReport>;
 
    GetOutputsDetailByEquipmentReport(payload: EquipmentReportType): Promise<OutputDetailByEquipmentReport>;
+
+   GetOutputsConsolidatedByEquipmentReport(payload: EquipmentReportType): Promise<OutputConsolidatedByEquipmentReport>;
 }

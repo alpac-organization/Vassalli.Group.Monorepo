@@ -105,3 +105,32 @@ export const equipmentReportBaseStyles = StyleSheet.create({
       textAlign: "center",
    },
 });
+
+export function getEquipmentReportCompactStyles(fontSize: number) {
+   return StyleSheet.create({
+      page: {
+         ...equipmentReportBaseStyles.page,
+         padding: 12,
+      },
+      cell: {
+         ...equipmentReportBaseStyles.cell,
+         fontSize,
+         padding: 2,
+      },
+      headerCell: {
+         ...equipmentReportBaseStyles.headerCell,
+         fontSize,
+         padding: 2,
+      },
+      totalsCell: {
+         ...equipmentReportBaseStyles.totalsCell,
+         fontSize,
+         padding: 2,
+      },
+      totalsLabel: {
+         ...equipmentReportBaseStyles.totalsLabel,
+         fontSize,
+         padding: 2,
+      },
+   });
+}

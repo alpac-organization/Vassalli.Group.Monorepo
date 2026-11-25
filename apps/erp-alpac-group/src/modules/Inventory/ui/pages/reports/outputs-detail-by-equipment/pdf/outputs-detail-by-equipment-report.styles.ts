@@ -1,33 +1,10 @@
 import { StyleSheet } from "@react-pdf/renderer";
 
-import { equipmentReportBaseStyles } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/pdf/equipment-report-pdf.styles";
+import { equipmentReportBaseStyles, getEquipmentReportCompactStyles } from "@app/modules/Inventory/ui/pages/reports/shared/equipment/pdf/equipment-report-pdf.styles";
 
 export const outputsDetailByEquipmentReportStyles = StyleSheet.create({
    ...equipmentReportBaseStyles,
-   page: {
-      ...equipmentReportBaseStyles.page,
-      padding: 12,
-   },
-   cell: {
-      ...equipmentReportBaseStyles.cell,
-      fontSize: 6,
-      padding: 2,
-   },
-   headerCell: {
-      ...equipmentReportBaseStyles.headerCell,
-      fontSize: 6,
-      padding: 2,
-   },
-   totalsCell: {
-      ...equipmentReportBaseStyles.totalsCell,
-      fontSize: 6,
-      padding: 2,
-   },
-   totalsLabel: {
-      ...equipmentReportBaseStyles.totalsLabel,
-      fontSize: 6,
-      padding: 2,
-   },
+   ...getEquipmentReportCompactStyles(6),
    colCode: { width: "9%" },
    colRequest: { width: "9%" },
    colEquipment: { width: "7%" },

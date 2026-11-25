@@ -9,6 +9,7 @@ import type {
 import type { StockDailyReport } from "@app/modules/Inventory/domain/api-contract/responses/stock-daily-report.response";
 import type { OutputLineEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-line-equipment-report.response";
 import type { OutputDetailByEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-detail-by-equipment-report.response";
+import type { OutputConsolidatedByEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-consolidated-by-equipment-report.response";
 
 export class InventoryReportsServices implements IInventoryReportsServices {
    private readonly httpClient: IHttpHandler;
@@ -35,6 +36,10 @@ export class InventoryReportsServices implements IInventoryReportsServices {
 
    async GetOutputsDetailByEquipmentReport(payload: EquipmentReportType): Promise<OutputDetailByEquipmentReport> {
       return this.getEquipmentReport<OutputDetailByEquipmentReport>(payload, "outputs-detail-by-equipment");
+   }
+
+   async GetOutputsConsolidatedByEquipmentReport(payload: EquipmentReportType): Promise<OutputConsolidatedByEquipmentReport> {
+      return this.getEquipmentReport<OutputConsolidatedByEquipmentReport>(payload, "outputs-consolidated-by-equipment");
    }
 
    private getEquipmentReport<T>(payload: EquipmentReportType, endpoint: string): Promise<T> {
