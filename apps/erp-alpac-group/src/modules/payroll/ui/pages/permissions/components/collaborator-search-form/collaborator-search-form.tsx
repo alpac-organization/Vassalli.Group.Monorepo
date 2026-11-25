@@ -68,7 +68,7 @@ export const CollaboratorSearchForm = ({
          handledRequestIdRef.current = requestId;
          const mapped = getMappedError(GetProfileDetails.error);
          handleRequestError(mapped.description ?? "Hubo un error al buscar colaborador");
-         onError(mapped.description);
+         onError?.(mapped.description);
       }
    }, [
       filters.QueryEnabled,
@@ -92,7 +92,7 @@ export const CollaboratorSearchForm = ({
 
       if (!identificationNumber) {
          handleRequestError("El número de identificación es requerido");
-         onError("El número de identificación es requerido");
+         onError?.("El número de identificación es requerido");
          return;
       }
 
@@ -102,7 +102,7 @@ export const CollaboratorSearchForm = ({
             Por favor busca el perfil de otro colaborador o 
             inicia el trámite a través de los canales establecidos.`;
          handleRequestError(messageError);
-         onError(messageError);
+         onError?.(messageError);
          return;
       }
 
@@ -112,7 +112,7 @@ export const CollaboratorSearchForm = ({
 
       queryClient.resetQueries({ queryKey: ["collaboratorProfileDetails"] });
 
-      onSearchStart();
+      onSearchStart?.();
 
       setFilters({
          company_id: companyId,
@@ -122,7 +122,9 @@ export const CollaboratorSearchForm = ({
       });
    };
 
-   const onSubmit = handleSubmit(handleSearchSubmit)
+   const submitSearch = () => {
+      void handleSubmit(handleSearchSubmit)();
+   };
 
    return (
       <div className="flex flex-col gap-5">
@@ -155,7 +157,7 @@ export const CollaboratorSearchForm = ({
                   onKeyDown={(evt) => {
                      if (evt.key === 'Enter') {
                         evt.preventDefault();
-                        onSubmit();
+                        submitSearch();
                      }
                   }}
                   error={errors.identification_number?.message}
@@ -167,7 +169,7 @@ export const CollaboratorSearchForm = ({
                label="Buscar"
                onClick={(evt) => {
                   evt.stopPropagation();
-                  onSubmit();
+                  submitSearch();
                }}
                size="giant"
                disabled={GetProfileDetails.isLoading}
