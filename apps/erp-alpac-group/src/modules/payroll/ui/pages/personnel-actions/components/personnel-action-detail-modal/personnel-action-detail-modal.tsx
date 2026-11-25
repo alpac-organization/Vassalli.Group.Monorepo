@@ -1,5 +1,4 @@
 import { Badges, Banner, Button, Modal } from "@alpac/design-system";
-import { formatSalaryAmount } from "@app/modules/payroll/domain/enums/personnel-action-enums/personnel-action-currency.enum";
 import { getPersonnelActionScopeLabel } from "@app/modules/payroll/domain/enums/personnel-action-enums/personnel-action-scope.enum";
 import {
   getPersonnelActionStatusBadgeColor,
@@ -11,6 +10,10 @@ import {
   getSalaryIncreaseTypeBadgeColor,
   getSalaryIncreaseTypeLabel,
 } from "@app/modules/payroll/domain/enums/personnel-action-enums/salary-increase-type.enum";
+import {
+  formatCurrency,
+  resolveCurrencyCode,
+} from "@app/shared/utils/currency.utils";
 import { usePersonnelAction } from "@app/modules/payroll/ui/hooks/personnel-action/usePersonnelAction";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { Loader } from "@app/shared/components/loaders/loader";
@@ -265,9 +268,9 @@ export const PersonnelActionDetailModal = ({
                               </td>
 
                               <td className="p-3 text-slate-700 dark:text-slate-300">
-                                {formatSalaryAmount(
-                                  item.current_salary,
-                                  item.current_currency,
+                                {formatCurrency(
+                                  item.current_salary ?? 0,
+                                  resolveCurrencyCode(item.current_currency),
                                 )}
                               </td>
 
@@ -275,14 +278,17 @@ export const PersonnelActionDetailModal = ({
                                 {salaryChanged ? (
                                   <div className="flex flex-col">
                                     <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                                      {formatSalaryAmount(
+                                      {formatCurrency(
                                         item.proposed_salary,
-                                        item.proposed_currency,
+                                        resolveCurrencyCode(item.proposed_currency),
                                       )}
                                     </span>
                                     {diffSalary > 0 && (
                                       <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-medium">
-                                        +{formatSalaryAmount(diffSalary, item.current_currency)}
+                                        +{formatCurrency(
+                                          diffSalary,
+                                          resolveCurrencyCode(item.current_currency),
+                                        )}
                                       </span>
                                     )}
                                   </div>

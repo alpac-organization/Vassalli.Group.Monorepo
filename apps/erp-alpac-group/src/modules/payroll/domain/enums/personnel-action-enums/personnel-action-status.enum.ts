@@ -1,5 +1,5 @@
 import type { EnumType } from "@app/shared/types/enum.type";
-import { resolveEnumEntry } from "./personnel-action-enum.utils";
+import { resolveEnumEntry } from "@app/shared/utils/enum.utils";
 
 export const PersonnelActionStatusEnum = {
   PendingApproval: { value: 1, label: "Pendiente de Aprobación" },

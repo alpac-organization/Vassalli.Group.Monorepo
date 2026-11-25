@@ -7,17 +7,13 @@ import {
   Modal,
   type Option,
 } from "@alpac/design-system";
+import { CurrencyOptions } from "@app/core/enums/currency.enum";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters";
 import { useJobPositions } from "@app/modules/admin/ui/hooks/job-positions/useJobPositions";
 import type { CreatePersonnelActionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/personnel-action-requests/create-personnel-action.request";
 import type { GetCollaboratorProfileDetailsResponse } from "@app/modules/payroll/domain/ApiContract/Responses/collaborator-responses/get-collaborator-profile.response";
-import {
-  formatSalaryAmount,
-  PersonnelActionCurrencyOptions,
-  resolveCurrencyOptionValue,
-} from "@app/modules/payroll/domain/enums/personnel-action-enums/personnel-action-currency.enum";
 import {
   formatIncreaseValueDisplay,
   getSalaryIncreaseTypeLabel,
@@ -31,6 +27,11 @@ import type { PdfUploaderValue } from "@app/shared/components/pdf-uploader/pdf-u
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import {
+  formatCurrency,
+  resolveCurrencyCode,
+  resolveCurrencyOptionValue,
+} from "@app/shared/utils/currency.utils";
 import { toApiDate } from "@app/shared/utils/date.utils";
 import { getMappedOptionList } from "@app/shared/utils/values.utils";
 import dayjs from "dayjs";
@@ -186,7 +187,7 @@ export const CreatePersonnelActionModal = ({
   const currencyOptions = useMemo<Option[]>(
     () =>
       getMappedOptionList({
-        list: PersonnelActionCurrencyOptions,
+        list: CurrencyOptions,
         label: "label",
         value: (c) => c.value.toString(),
       }),
@@ -783,9 +784,11 @@ export const CreatePersonnelActionModal = ({
                       <div>
                         <span className="text-slate-400 block">Salario Actual:</span>
                         <span className="font-semibold text-slate-800 dark:text-white">
-                          {formatSalaryAmount(
-                            currentCollaborator.salary_information?.salary,
-                            currentCollaborator.salary_information?.currency,
+                          {formatCurrency(
+                            currentCollaborator.salary_information?.salary ?? 0,
+                            resolveCurrencyCode(
+                              currentCollaborator.salary_information?.currency,
+                            ),
                           )}
                         </span>
                       </div>
@@ -922,9 +925,9 @@ export const CreatePersonnelActionModal = ({
                             </td>
                             <td className="p-2.5 text-slate-600 dark:text-slate-300">
                               {item.current_salary !== undefined
-                                ? formatSalaryAmount(
-                                    item.current_salary,
-                                    item.current_currency,
+                                ? formatCurrency(
+                                    item.current_salary ?? 0,
+                                    resolveCurrencyCode(item.current_currency),
                                   )
                                 : "—"}
                             </td>
@@ -947,21 +950,27 @@ export const CreatePersonnelActionModal = ({
                                   />
                                   {delta !== null && delta > 0 && (
                                     <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-                                      +{formatSalaryAmount(delta, item.current_currency)}
+                                      +{formatCurrency(
+                                        delta,
+                                        resolveCurrencyCode(item.current_currency),
+                                      )}
                                     </span>
                                   )}
                                 </div>
                               ) : item.proposed_salary ? (
                                 <div className="flex flex-col">
                                   <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                                    {formatSalaryAmount(
+                                    {formatCurrency(
                                       item.proposed_salary,
-                                      item.proposed_currency,
+                                      resolveCurrencyCode(item.proposed_currency),
                                     )}
                                   </span>
                                   {delta !== null && delta > 0 && (
                                     <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
-                                      +{formatSalaryAmount(delta, item.current_currency)}
+                                      +{formatCurrency(
+                                        delta,
+                                        resolveCurrencyCode(item.current_currency),
+                                      )}
                                     </span>
                                   )}
                                 </div>

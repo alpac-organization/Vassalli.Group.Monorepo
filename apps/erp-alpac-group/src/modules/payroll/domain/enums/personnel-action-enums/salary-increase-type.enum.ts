@@ -1,5 +1,5 @@
 import type { EnumType } from "@app/shared/types/enum.type";
-import { resolveEnumEntry } from "./personnel-action-enum.utils";
+import { resolveEnumEntry } from "@app/shared/utils/enum.utils";
 
 export const SalaryIncreaseTypeEnum = {
   None: { value: 0, label: "Sin Aumento Salarial" },
