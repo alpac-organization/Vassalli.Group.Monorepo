@@ -19,6 +19,7 @@ const loadFeatures = () =>
 import { useNavigate } from "react-router-dom";
 import { FileX } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
+import { CompanyEnum } from "@app/core/enums/company.enum";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { payrollTypeOptions } from "@app/modules/payroll/ui/pages/nomina/constants/payroll.constants";
 import {
@@ -113,6 +114,11 @@ import { isSelectablePayrollType } from "@app/modules/payroll/ui/pages/nomina/ut
 import { CreateIncomeModal } from "@app/modules/payroll/ui/pages/nomina/components/incomes/create-income-modal/create-income-modal";
 import { AddDeductionModal } from "@app/modules/payroll/ui/pages/nomina/components/deductions/add-deduction-modal/add-deduction-modal";
 import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
+import { AddShiftModal } from "@app/modules/payroll/ui/pages/nomina/components/add-shift-modal/add-shift-modal";
+import type {
+  ShiftSelections,
+  TeCarryOverFlags,
+} from "@app/modules/payroll/ui/pages/nomina/components/add-shift-modal/add-shift-modal.types";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { parseAdditionalDeductions } from "./components/payroll-table/utils/parse-additional-deductions";
 import type { AdditionalDeductions } from "./components/payroll-table/types/payroll-table.types";
@@ -124,11 +130,12 @@ export function PayrollPage() {
   const maxPageSize = 10;
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const { companyId, moduleCode, companyName } = useUserStore();
+  const { companyId, moduleCode, companyName, companyAlias } = useUserStore();
   const { GetBranchesQuery: branchesQuery, GetCompaniesQuery } = useCompanies(
     companyId ? { company_id: companyId } : undefined,
   );
   const { baseUrl } = useBaseUrl();
+  const isVigemsaCompany = companyAlias === CompanyEnum.VIGEMSA;
 
   const companiesData = GetCompaniesQuery?.data;
 
@@ -272,6 +279,16 @@ export function PayrollPage() {
 
   const [isIncomeModalOpen, setIsIncomeModalOpen] = useState(false);
   const [isDeductionModalOpen, setIsDeductionModalOpen] = useState(false);
+  const [isAddShiftModalOpen, setIsAddShiftModalOpen] = useState(false);
+  const [addShiftSelections, setAddShiftSelections] = useState<ShiftSelections>(
+    {},
+  );
+  const [addShiftDraftSelections, setAddShiftDraftSelections] =
+    useState<ShiftSelections>({});
+  const [addShiftCarryOverFlags, setAddShiftCarryOverFlags] =
+    useState<TeCarryOverFlags>({});
+  const [addShiftDraftCarryOverFlags, setAddShiftDraftCarryOverFlags] =
+    useState<TeCarryOverFlags>({});
 
   const {
     alertState,
@@ -2976,6 +2993,30 @@ export function PayrollPage() {
     setIsGenerateModalOpen(false);
   }, [isGenerateConfirmLoading]);
 
+  const handleOpenAddShiftModal = useCallback(() => {
+    setAddShiftDraftSelections(addShiftSelections);
+    setAddShiftDraftCarryOverFlags(addShiftCarryOverFlags);
+    setIsAddShiftModalOpen(true);
+  }, [addShiftCarryOverFlags, addShiftSelections]);
+
+  const handleCloseAddShiftModal = useCallback(() => {
+    setIsAddShiftModalOpen(false);
+  }, []);
+
+  const handleSaveAddShift = useCallback(() => {
+    setAddShiftSelections(addShiftDraftSelections);
+    setAddShiftCarryOverFlags(addShiftDraftCarryOverFlags);
+    setIsAddShiftModalOpen(false);
+    handleRequestSuccess(
+      "Los turnos se guardaron correctamente en esta sesión.",
+      "Turnos registrados",
+    );
+  }, [
+    addShiftDraftCarryOverFlags,
+    addShiftDraftSelections,
+    handleRequestSuccess,
+  ]);
+
   const executeExcelForAction = useCallback(
     async (action: PayrollActionValue) => {
       switch (action) {
@@ -3543,31 +3584,29 @@ export function PayrollPage() {
             </div>
 
             <div className="w-full dark:bg-[#272b34]! p-4 rounded-md border border-slate-600 dark:border-neutral-600">
-              <div className="w-full flex flex-col gap-4 lg:flex-row lg:flex-wrap lg:items-end lg:justify-start">
-                <div className="w-full lg:w-[20rem]">
-                  <Button
-                    type="button"
-                    size="giant"
-                    label="Generar reportes"
-                    isLoading={isGenerateConfirmLoading}
-                    disabled={
-                      !existPayrollInProgress || isGenerateConfirmLoading
-                    }
-                    onClick={handleOpenGenerateModal}
-                    className={`w-full! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                      isGenerateConfirmLoading
-                        ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
-                        : ""
-                    }`}
-                  />
-                </div>
+              <div className="w-full flex flex-col gap-4 lg:flex-row lg:flex-nowrap lg:items-stretch lg:justify-start">
+                <Button
+                  type="button"
+                  size="giant"
+                  label="Generar reportes"
+                  isLoading={isGenerateConfirmLoading}
+                  disabled={
+                    !existPayrollInProgress || isGenerateConfirmLoading
+                  }
+                  onClick={handleOpenGenerateModal}
+                  className={`w-full! lg:w-auto! lg:flex-1! min-w-0! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                    isGenerateConfirmLoading
+                      ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
+                      : ""
+                  }`}
+                />
                 <Button
                   type="button"
                   size="giant"
                   label="Registrar Ingreso"
                   disabled={!existPayrollInProgress}
                   onClick={handleRegisterIncome}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                  className={`w-full! lg:w-auto! lg:flex-1! min-w-0! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPdf ||
                     isGeneratingPaymentReceiptsPdf ||
                     isGeneratingPaymentRequestsPdf ||
@@ -3588,7 +3627,7 @@ export function PayrollPage() {
                   label="Registrar Deducción"
                   disabled={!existPayrollInProgress}
                   onClick={handleRegisterDeduction}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                  className={`w-full! lg:w-auto! lg:flex-1! min-w-0! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPdf ||
                     isGeneratingPaymentReceiptsPdf ||
                     isGeneratingPaymentRequestsPdf ||
@@ -3603,12 +3642,23 @@ export function PayrollPage() {
                   }`}
                 />
 
+                {isVigemsaCompany && (
+                  <Button
+                    type="button"
+                    size="giant"
+                    label="Agregar Turno"
+                    disabled={!existPayrollInProgress}
+                    onClick={handleOpenAddShiftModal}
+                    className="w-full! lg:w-auto! lg:flex-1! min-w-0! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                  />
+                )}
+
                 <Button
                   size="giant"
                   label="Registrar Solicitud"
                   disabled={!existPayrollInProgress}
                   onClick={handleOpenPermissionApplicationModal}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                  className={`w-full! lg:w-auto! lg:flex-1! min-w-0! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isGeneratingPdf ||
                     isGeneratingPaymentRequestsPdf ||
                     isGeneratingAccumulatedHistoryPdf ||
@@ -3632,7 +3682,7 @@ export function PayrollPage() {
                   }
                   isLoading={isDownloadingCollaboratorsTemplate}
                   onClick={handleDownloadCollaboratorsTemplate}
-                  className={`w-full! lg:w-auto! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
+                  className={`w-full! lg:w-auto! lg:flex-1! min-w-0! min-h-[48px]! px-4! text-center! text-[15px]! leading-snug! font-normal! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
                     isDownloadingCollaboratorsTemplate
                       ? "disabled:opacity-100! disabled:bg-alpac-primary-500! disabled:dark:bg-alpac-primary-700!"
                       : ""
@@ -3653,6 +3703,27 @@ export function PayrollPage() {
         {selectedPayrollType !== null &&
           selectedBranch !== null &&
           renderContent()}
+
+        {isVigemsaCompany && (
+          <AddShiftModal
+            key={`${selectedOrdinaryPayroll?.payroll_id ?? "sin-nomina"}-${
+              isAddShiftModalOpen ? "abierto" : "cerrado"
+            }`}
+            isOpen={isAddShiftModalOpen}
+            onClose={handleCloseAddShiftModal}
+            onSave={handleSaveAddShift}
+            selections={addShiftDraftSelections}
+            onSelectionsChange={setAddShiftDraftSelections}
+            carryOverFlags={addShiftDraftCarryOverFlags}
+            onCarryOverFlagsChange={setAddShiftDraftCarryOverFlags}
+            items={selectedOrdinaryPayroll?.payroll_details?.items ?? []}
+            startDate={selectedOrdinaryPayroll?.start_date}
+            endDate={selectedOrdinaryPayroll?.end_date}
+            branchName={displayedBranchName}
+            companyName={companyName}
+            payrollType={selectedPayrollType}
+          />
+        )}
 
         <CreateIncomeModal
           isOpen={isIncomeModalOpen}
