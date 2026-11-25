@@ -21,7 +21,8 @@ const {
   liquidacionSection,
   attendanceControlSection,
   subsidyHistorialSection,
-  permissionPoliciesSection
+  permissionPoliciesSection,
+  personnelActionsSection,
 } = getPayrollRoutes();
 
 const {
@@ -85,8 +86,15 @@ export const routeConfig = {
       attendanceControlSection,
       subsidyHistorialSection,
       gestionDisciplinariaSection,
+      personnelActionsSection,
     ],
-    [RoleEnum.MANAGER]: [gestionDisciplinariaSection],
+    [RoleEnum.MANAGER]: [
+      gestionDisciplinariaSection,
+      personnelActionsSection,
+    ],
+    [RoleEnum.OPERATOR]: [
+      personnelActionsSection,
+    ],
   },
   [ModuleEnum.ADMINISTRATION]: {
     [RoleEnum.ADMINISTRATOR]: [
