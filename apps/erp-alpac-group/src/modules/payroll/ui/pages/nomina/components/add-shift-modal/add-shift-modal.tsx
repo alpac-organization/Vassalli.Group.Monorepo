@@ -4,6 +4,7 @@ import type {
   AddShiftCell,
   AddShiftCollaborator,
   AddShiftModalProps,
+  PreviousShiftHours,
   ShiftSelections,
   ShiftValue,
   TeCarryOverFlags,
@@ -11,16 +12,20 @@ import type {
 import {
   buildDateColumns,
   formatDateLabel,
-  formatShiftCount,
   getContractTypeLabel,
+  getExtraHours,
   getShiftStorageKey,
   getShiftValueLabel,
   getTeHours,
+  isExtraShiftValue,
+  isValidPreviousShiftHours,
+  parsePreviousShiftHours,
 } from "./add-shift-modal.utils";
 
 const SHIFT_OPTIONS: { value: ShiftValue; label: string }[] = [
-  { value: 12, label: "Turno de 12 horas" },
   { value: 24, label: "Turno de 24 horas" },
+  { value: "E12", label: "Extra de 12 horas" },
+  { value: "E24", label: "Extra de 24 horas" },
   { value: "TE", label: "TE (Tiempo extra)" },
   { value: "Vac", label: "Vac" },
 ];
@@ -51,6 +56,8 @@ export function AddShiftModal({
   onSelectionsChange,
   carryOverFlags,
   onCarryOverFlagsChange,
+  previousShiftHours,
+  onPreviousShiftHoursChange,
   items,
   startDate,
   endDate,
@@ -60,6 +67,11 @@ export function AddShiftModal({
 }: AddShiftModalProps): React.ReactNode {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCell, setSelectedCell] = useState<AddShiftCell | null>(null);
+  const [customExtraHours, setCustomExtraHours] = useState("");
+  const [customExtraError, setCustomExtraError] = useState<string | null>(null);
+  const [previousHoursError, setPreviousHoursError] = useState<string | null>(
+    null,
+  );
 
   const dateColumns = useMemo(
     () => buildDateColumns(startDate, endDate),
@@ -120,6 +132,34 @@ export function AddShiftModal({
     }
     onSelectionsChange(next);
     setSelectedCell(null);
+    setCustomExtraHours("");
+    setCustomExtraError(null);
+  };
+
+  const handleAddCustomExtra = () => {
+    const trimmed = customExtraHours.trim();
+    const hours = Number(trimmed);
+
+    if (!/^\d+$/.test(trimmed) || !Number.isInteger(hours) || hours <= 0) {
+      setCustomExtraError("Ingrese un número entero de horas mayor a 0.");
+      return;
+    }
+
+    handleSelectShift(`E${hours}` as ShiftValue);
+  };
+
+  const handlePreviousHoursChange = (collaboratorId: string, value: string) => {
+    if (!isValidPreviousShiftHours(value)) {
+      setPreviousHoursError(collaboratorId);
+      return;
+    }
+
+    const next: PreviousShiftHours = {
+      ...previousShiftHours,
+      [collaboratorId]: value,
+    };
+    setPreviousHoursError(null);
+    onPreviousShiftHoursChange(next);
   };
 
   const getPreviousShift = (collaboratorId: string, dateKey: string) => {
@@ -127,22 +167,16 @@ export function AddShiftModal({
 
     for (let index = dateIndex - 1; index >= 0; index -= 1) {
       const value = getSelection(collaboratorId, dateColumns[index].key);
-      if (value !== null && value !== "Vac") return value;
+      if (
+        value !== null &&
+        !isExtraShiftValue(value) &&
+        value !== "Vac"
+      ) {
+        return value;
+      }
     }
 
     return carryOverFlags[collaboratorId] ? 24 : null;
-  };
-
-  const getRegularHoursBefore = (collaboratorId: string, dateKey: string) => {
-    const dateIndex = dateColumns.findIndex((date) => date.key === dateKey);
-    let hours = 0;
-
-    for (let index = 0; index < dateIndex; index += 1) {
-      const value = getSelection(collaboratorId, dateColumns[index].key);
-      if (value === 12 || value === 24) hours += value;
-    }
-
-    return hours;
   };
 
   const previousShift =
@@ -153,17 +187,31 @@ export function AddShiftModal({
         )
       : null;
 
-  const canRegisterTe =
-    selectedCell !== null &&
-    (previousShift === 24 ||
-      (previousShift === 12 &&
-        getRegularHoursBefore(
+  const canRegisterTe = selectedCell !== null && previousShift === 24;
+
+  const selectedDateIndex =
+    selectedCell !== null
+      ? dateColumns.findIndex((date) => date.key === selectedCell.date.key)
+      : -1;
+
+  const previousCalendarValue =
+    selectedCell !== null && selectedDateIndex > 0
+      ? getSelection(
           selectedCell.collaborator.id,
-          selectedCell.date.key,
-        ) >= 36));
+          dateColumns[selectedDateIndex - 1].key,
+        )
+      : null;
+
+  const isAfterExtra =
+    previousCalendarValue !== null && isExtraShiftValue(previousCalendarValue);
+
+  const needsTeOrVacWarning = isAfterExtra && previousShift === 24;
+  const needsRegularShiftWarning = isAfterExtra && previousShift === "TE";
 
   const handleCancel = () => {
     setSelectedCell(null);
+    setCustomExtraHours("");
+    setCustomExtraError(null);
     onClose();
   };
 
@@ -173,9 +221,9 @@ export function AddShiftModal({
   };
 
   const getTotals = (collaboratorId: string) => {
-    let hoursFrom12 = 0;
     let hoursFrom24 = 0;
     let teCount = 0;
+    let extraHours = 0;
 
     dateColumns.forEach((date) => {
       const value = getSelection(collaboratorId, date.key);
@@ -183,27 +231,40 @@ export function AddShiftModal({
 
       if (value === "TE") {
         teCount += 1;
-      } else if (value === 12) {
-        hoursFrom12 += 12;
       } else if (value === 24) {
         hoursFrom24 += 24;
+      } else {
+        const hours = getExtraHours(value);
+        if (hours !== null) extraHours += hours;
       }
     });
 
-    const totalHours = hoursFrom12 + hoursFrom24;
-    const teHours = getTeHours(teCount);
+    const hoursFromPreviousFortnight = parsePreviousShiftHours(
+      previousShiftHours[collaboratorId],
+    );
+    const totalHours = hoursFrom24 + hoursFromPreviousFortnight;
+    const teHours = getTeHours(teCount) + extraHours;
 
     return {
       totalHours,
       teHours,
-      totalShifts: formatShiftCount((totalHours + teHours) / 24),
+      totalHoursWithTe: totalHours + teHours,
     };
   };
+
+  const getPendingShifts = (collaboratorId: string) =>
+    dateColumns.filter(
+      (date) => getSelection(collaboratorId, date.key) === null,
+    ).length;
 
   const hasData = filteredCollaborators.length > 0 && dateColumns.length > 0;
   const registeredShifts = Object.values(selections).filter(
     (value) => value !== null && value !== "Vac",
   ).length;
+  const pendingShifts = collaborators.reduce(
+    (total, collaborator) => total + getPendingShifts(collaborator.id),
+    0,
+  );
 
   return (
     <>
@@ -211,9 +272,11 @@ export function AddShiftModal({
         isOpen={isOpen}
         onClose={handleCancel}
         variant="default"
-        size="7xl"
+        size="full"
         title="Agregar Turno"
-        description="Seleccione el turno de cada colaborador por fecha. Use Vac para vacaciones y marque “Inicia con TE” si terminó la quincena anterior con 24 horas. Los cambios se conservan solo en esta sesión."
+        description="Seleccione el turno de cada colaborador por fecha. Los extras se registran como E<horas> (E12, E24 o personalizados) y se suman en TE. Use Vac para vacaciones y marque “Inicia con TE” si terminó la quincena anterior con 24 horas. En “Turno Pendiente” puede anotar las horas de la quincena anterior: se suman a Horas o se restan si son negativas. Los cambios se conservan solo en esta sesión."
+        panelClassName="flex! max-h-[calc(100vh-2rem)]! flex-col!"
+        contentClassName="flex min-h-0 flex-1 flex-col"
       >
         <div className="mb-4 grid grid-cols-1 gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-neutral-600 dark:bg-[#272b34] sm:grid-cols-2 lg:grid-cols-4">
           <InfoItem
@@ -240,14 +303,16 @@ export function AddShiftModal({
           />
           <span className="shrink-0 text-[13px] text-slate-500 dark:text-slate-400">
             {registeredShifts} turno{registeredShifts === 1 ? "" : "s"}{" "}
-            registrado{registeredShifts === 1 ? "" : "s"}
+            registrado{registeredShifts === 1 ? "" : "s"} · {pendingShifts}{" "}
+            pendiente{pendingShifts === 1 ? "" : "s"} ·{" "}
+            {registeredShifts + pendingShifts} turnos en total
           </span>
         </div>
 
         {hasData ? (
-          <div className="max-h-[55vh] overflow-auto rounded-lg border border-slate-200 dark:border-neutral-600">
+          <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-slate-200 dark:border-neutral-600">
             <table
-              className="w-full border-collapse text-[13px]"
+              className="w-full border-collapse text-[14px]"
               style={{ minWidth: `${dateColumns.length * 3.5 + 46}rem` }}
             >
               <thead>
@@ -265,7 +330,7 @@ export function AddShiftModal({
                     Fechas
                   </th>
                   <th
-                    colSpan={3}
+                    colSpan={4}
                     className="sticky top-0 z-20 border-b border-l border-slate-200 px-3 py-2 text-center font-semibold dark:border-neutral-600"
                   >
                     Resumen
@@ -290,7 +355,7 @@ export function AddShiftModal({
                   {dateColumns.map((date) => (
                     <th
                       key={date.key}
-                      className="sticky top-[38px] z-20 min-w-[56px] border-b border-slate-200 px-2 py-2 text-center font-semibold dark:border-neutral-600"
+                      className="sticky top-[38px] z-20 min-w-[64px] border-b border-slate-200 px-2 py-2 text-center font-semibold dark:border-neutral-600"
                       title={`${date.fullLabel} de ${date.month}`}
                     >
                       <span className="block text-[11px] font-normal uppercase text-slate-400">
@@ -299,14 +364,17 @@ export function AddShiftModal({
                       <span>{date.day}</span>
                     </th>
                   ))}
-                  <th className="sticky top-[38px] z-20 min-w-[100px] border-b border-l border-slate-200 px-3 py-2 text-center font-semibold dark:border-neutral-600">
-                    Total Horas
-                  </th>
-                  <th className="sticky top-[38px] z-20 min-w-[90px] border-b border-slate-200 px-3 py-2 text-center font-semibold dark:border-neutral-600">
-                    Suma TE
+                  <th className="sticky top-[38px] z-20 min-w-[150px] border-b border-l border-slate-200 px-3 py-2 text-center font-semibold dark:border-neutral-600">
+                    Turno Pendiente
                   </th>
                   <th className="sticky top-[38px] z-20 min-w-[100px] border-b border-slate-200 px-3 py-2 text-center font-semibold dark:border-neutral-600">
-                    Total Turnos
+                    Horas
+                  </th>
+                  <th className="sticky top-[38px] z-20 min-w-[90px] border-b border-slate-200 px-3 py-2 text-center font-semibold dark:border-neutral-600">
+                    TE
+                  </th>
+                  <th className="sticky top-[38px] z-20 min-w-[100px] border-b border-slate-200 px-3 py-2 text-center font-semibold dark:border-neutral-600">
+                    Total Horas
                   </th>
                 </tr>
               </thead>
@@ -362,12 +430,16 @@ export function AddShiftModal({
                                   ? "sin turno"
                                   : getShiftValueLabel(value)
                               }`}
-                              className={`h-9 w-11 rounded-md border text-[13px] font-semibold transition-colors ${
+                              className={`h-10 w-12 rounded-md border text-[14px] font-semibold transition-colors ${
                                 value === null
                                   ? "border-slate-200 bg-slate-50! text-slate-400! hover:bg-slate-100 dark:border-neutral-600 dark:bg-[#272b34]! dark:text-slate-500! dark:hover:bg-[#343a46]!"
                                   : value === "Vac"
                                     ? "border-amber-200 bg-amber-50! text-amber-700! hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-900/30! dark:text-amber-300! dark:hover:bg-amber-900/50!"
-                                    : "border-transparent bg-alpac-primary-500! text-white! hover:bg-alpac-primary-600! dark:bg-alpac-primary-700!"
+                                    : isExtraShiftValue(value)
+                                      ? "border-indigo-300 bg-indigo-50! text-indigo-700! hover:bg-indigo-100! dark:border-indigo-500 dark:bg-indigo-950/40! dark:text-indigo-300! dark:hover:bg-indigo-900/40!"
+                                      : value === "TE"
+                                        ? "border-slate-300 bg-white! text-slate-900! hover:bg-slate-100! dark:border-slate-200 dark:bg-white! dark:text-slate-900! dark:hover:bg-slate-200!"
+                                        : "border-transparent bg-alpac-primary-500! text-white! hover:bg-alpac-primary-600! dark:bg-alpac-primary-700!"
                               }`}
                             >
                               {value ?? "—"}
@@ -376,13 +448,36 @@ export function AddShiftModal({
                         );
                       })}
                       <td className="border-l border-slate-200 px-3 py-2 text-center font-semibold text-slate-800 dark:border-neutral-600 dark:text-white">
+                        <div className="flex flex-col items-center gap-1">
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            aria-label={`Horas pendientes de la quincena pasada para ${collaborator.fullName}`}
+                            placeholder="Ej. -8"
+                            value={previousShiftHours[collaborator.id] ?? ""}
+                            onChange={(event) =>
+                              handlePreviousHoursChange(
+                                collaborator.id,
+                                event.target.value,
+                              )
+                            }
+                            className="w-full max-w-[110px] rounded border border-slate-200 bg-white px-1 py-0.5 text-center text-[12px] font-normal text-slate-700 outline-none focus:border-alpac-primary-500 dark:border-neutral-600 dark:bg-[#272b34] dark:text-white"
+                          />
+                          {previousHoursError === collaborator.id && (
+                            <span className="text-[11px] font-normal leading-tight text-amber-600 dark:text-amber-400">
+                              Ingrese horas válidas (ej. -8 o 5.5).
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-2 text-center font-semibold text-slate-800 dark:text-white">
                         {totals.totalHours}
                       </td>
                       <td className="px-3 py-2 text-center font-semibold text-slate-800 dark:text-white">
                         {totals.teHours}
                       </td>
                       <td className="px-3 py-2 text-center font-semibold text-slate-800 dark:text-white">
-                        {totals.totalShifts}
+                        {totals.totalHoursWithTe}
                       </td>
                     </tr>
                   );
@@ -391,12 +486,12 @@ export function AddShiftModal({
             </table>
           </div>
         ) : (
-          <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center text-[14px] text-slate-500 dark:border-neutral-600 dark:text-slate-400">
+          <div className="flex-1 rounded-lg border border-dashed border-slate-300 p-8 text-center text-[14px] text-slate-500 dark:border-neutral-600 dark:text-slate-400">
             No hay colaboradores o fechas disponibles para registrar turnos.
           </div>
         )}
 
-        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <div className="mt-6 flex shrink-0 flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <Button
             type="button"
             size="giant"
@@ -417,7 +512,11 @@ export function AddShiftModal({
 
       <Modal
         isOpen={isOpen && selectedCell !== null}
-        onClose={() => setSelectedCell(null)}
+        onClose={() => {
+          setSelectedCell(null);
+          setCustomExtraHours("");
+          setCustomExtraError(null);
+        }}
         variant="default"
         size="sm"
         title="Seleccionar turno"
@@ -428,6 +527,17 @@ export function AddShiftModal({
         }
       >
         <div className="mt-4 flex flex-col gap-3">
+          {needsTeOrVacWarning && (
+            <p className="text-[13px] text-amber-600 dark:text-amber-400">
+              Después de un turno extra, se recomienda TE o Vacaciones.
+            </p>
+          )}
+          {needsRegularShiftWarning && (
+            <p className="text-[13px] text-amber-600 dark:text-amber-400">
+              Después de un turno extra, se recomienda un turno de 24 horas o
+              Vacaciones.
+            </p>
+          )}
           {selectedCell && (
             <p
               className={`text-[13px] ${
@@ -437,43 +547,70 @@ export function AddShiftModal({
               }`}
             >
               {canRegisterTe
-                ? "El TE está disponible porque hay un turno de 24 horas o 36 horas acumuladas antes de esta fecha."
-                : "El TE requiere un turno de 24 horas o 36 horas acumuladas antes de esta fecha."}
+                ? "El TE se registra después de un turno programado de 24 horas."
+                : "El TE normalmente se registra después de un turno programado de 24 horas."}
             </p>
           )}
           {SHIFT_OPTIONS.map((option) => {
             const isTeOption = option.value === "TE";
-            const isDisabled = isTeOption && !canRegisterTe;
-
             return (
               <Button
                 key={option.value}
                 type="button"
-                size="giant"
+                size="medium"
                 label={option.label}
-                disabled={isDisabled}
                 onClick={() => handleSelectShift(option.value)}
-                className={`w-full! min-h-[48px]! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700! ${
-                  isDisabled
-                    ? "disabled:pointer-events-none disabled:opacity-50 disabled:saturate-75"
-                    : ""
+                className={`w-full! min-h-[38px]! text-[13px]! rounded-md! ${
+                  isTeOption
+                    ? "border border-slate-300 bg-white! text-slate-900! hover:bg-slate-100! dark:border-slate-200 dark:bg-white! dark:text-slate-900! dark:hover:bg-slate-200!"
+                    : "bg-alpac-primary-500! text-white! dark:bg-alpac-primary-700!"
                 }`}
               />
             );
           })}
+          <div className="mt-1 flex flex-col gap-2 rounded-lg border border-slate-200 p-3 dark:border-neutral-600">
+            <InputText
+              label="Horas extra personalizadas"
+              type="text"
+              inputMode="numeric"
+              placeholder="Ej. 5"
+              value={customExtraHours}
+              onChange={(event) => {
+                setCustomExtraHours(event.target.value);
+                setCustomExtraError(null);
+              }}
+              className="dark:bg-[#272b34]! dark:text-white!"
+            />
+            {customExtraError && (
+              <p className="text-[13px] text-amber-600 dark:text-amber-400">
+                {customExtraError}
+              </p>
+            )}
+            <Button
+              type="button"
+              size="medium"
+              label="Agregar extra"
+              onClick={handleAddCustomExtra}
+              className="w-full! min-h-[38px]! text-[13px]! rounded-md! bg-alpac-primary-500! text-white! dark:bg-alpac-primary-700!"
+            />
+          </div>
           <Button
             type="button"
-            size="giant"
+            size="medium"
             label="Quitar turno"
             onClick={() => handleSelectShift(null)}
-            className="w-full! min-h-[48px]! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+            className="w-full! min-h-[38px]! text-[13px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
           />
           <Button
             type="button"
-            size="giant"
+            size="medium"
             label="Cancelar"
-            onClick={() => setSelectedCell(null)}
-            className="w-full! min-h-[48px]! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+            onClick={() => {
+              setSelectedCell(null);
+              setCustomExtraHours("");
+              setCustomExtraError(null);
+            }}
+            className="w-full! min-h-[38px]! text-[13px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
           />
         </div>
       </Modal>

@@ -116,6 +116,7 @@ import { AddDeductionModal } from "@app/modules/payroll/ui/pages/nomina/componen
 import { NewPermissionRequestModal } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/new-permission-modal";
 import { AddShiftModal } from "@app/modules/payroll/ui/pages/nomina/components/add-shift-modal/add-shift-modal";
 import type {
+  PreviousShiftHours,
   ShiftSelections,
   TeCarryOverFlags,
 } from "@app/modules/payroll/ui/pages/nomina/components/add-shift-modal/add-shift-modal.types";
@@ -289,6 +290,10 @@ export function PayrollPage() {
     useState<TeCarryOverFlags>({});
   const [addShiftDraftCarryOverFlags, setAddShiftDraftCarryOverFlags] =
     useState<TeCarryOverFlags>({});
+  const [addShiftPreviousHours, setAddShiftPreviousHours] =
+    useState<PreviousShiftHours>({});
+  const [addShiftDraftPreviousHours, setAddShiftDraftPreviousHours] =
+    useState<PreviousShiftHours>({});
 
   const {
     alertState,
@@ -2996,8 +3001,9 @@ export function PayrollPage() {
   const handleOpenAddShiftModal = useCallback(() => {
     setAddShiftDraftSelections(addShiftSelections);
     setAddShiftDraftCarryOverFlags(addShiftCarryOverFlags);
+    setAddShiftDraftPreviousHours(addShiftPreviousHours);
     setIsAddShiftModalOpen(true);
-  }, [addShiftCarryOverFlags, addShiftSelections]);
+  }, [addShiftCarryOverFlags, addShiftPreviousHours, addShiftSelections]);
 
   const handleCloseAddShiftModal = useCallback(() => {
     setIsAddShiftModalOpen(false);
@@ -3006,6 +3012,7 @@ export function PayrollPage() {
   const handleSaveAddShift = useCallback(() => {
     setAddShiftSelections(addShiftDraftSelections);
     setAddShiftCarryOverFlags(addShiftDraftCarryOverFlags);
+    setAddShiftPreviousHours(addShiftDraftPreviousHours);
     setIsAddShiftModalOpen(false);
     handleRequestSuccess(
       "Los turnos se guardaron correctamente en esta sesión.",
@@ -3013,6 +3020,7 @@ export function PayrollPage() {
     );
   }, [
     addShiftDraftCarryOverFlags,
+    addShiftDraftPreviousHours,
     addShiftDraftSelections,
     handleRequestSuccess,
   ]);
@@ -3716,6 +3724,8 @@ export function PayrollPage() {
             onSelectionsChange={setAddShiftDraftSelections}
             carryOverFlags={addShiftDraftCarryOverFlags}
             onCarryOverFlagsChange={setAddShiftDraftCarryOverFlags}
+            previousShiftHours={addShiftDraftPreviousHours}
+            onPreviousShiftHoursChange={setAddShiftDraftPreviousHours}
             items={selectedOrdinaryPayroll?.payroll_details?.items ?? []}
             startDate={selectedOrdinaryPayroll?.start_date}
             endDate={selectedOrdinaryPayroll?.end_date}

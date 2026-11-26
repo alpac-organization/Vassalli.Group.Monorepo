@@ -34,21 +34,35 @@ const pad = (value: number) => `${value}`.padStart(2, "0");
 export const getShiftStorageKey = (collaboratorId: string, dateKey: string) =>
   `${collaboratorId}::${dateKey}`;
 
+export const getExtraHours = (value: ShiftValue): number | null => {
+  if (typeof value !== "string" || !value.startsWith("E")) return null;
+  const hours = Number(value.slice(1));
+  return Number.isInteger(hours) && hours > 0 ? hours : null;
+};
+
+export const isExtraShiftValue = (value: ShiftValue): boolean =>
+  getExtraHours(value) !== null;
+
 export const getShiftValueLabel = (value: ShiftValue): string => {
   if (value === "TE") return "TE (tiempo extra)";
   if (value === "Vac") return "Vacaciones";
-  return `${value} horas`;
+  const extraHours = getExtraHours(value);
+  if (extraHours !== null) return `Extra de ${extraHours} horas`;
+  return "Turno de 24 horas";
 };
 
-export const getTeHours = (teCount: number): number => {
-  if (teCount <= 0) return 0;
-  if (teCount < 3) return 11;
-  if (teCount === 3) return 34;
-  return 34 + (teCount - 3) * 10;
+export const getTeHours = (teCount: number): number => teCount * 11;
+
+export const isValidPreviousShiftHours = (value: string): boolean => {
+  const trimmed = value.trim();
+  return trimmed === "" || /^-?\d+(\.\d{1,2})?$/.test(trimmed);
 };
 
-export const formatShiftCount = (value: number): number =>
-  Number(value.toFixed(2));
+export const parsePreviousShiftHours = (value?: string): number => {
+  if (!value) return 0;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
 
 export const formatDateLabel = (value?: string): string => {
   const date = parseDateOnly(value);

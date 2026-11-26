@@ -1,8 +1,9 @@
 import type { PayrollItemResponse } from "@app/modules/payroll/domain/ApiContract/Responses/payroll-responses/get-payroll";
 
-export type ShiftValue = 12 | 24 | "TE" | "Vac";
+export type ShiftValue = 24 | "TE" | "Vac" | `E${number}`;
 export type ShiftSelections = Record<string, ShiftValue | null>;
 export type TeCarryOverFlags = Record<string, boolean>;
+export type PreviousShiftHours = Record<string, string>;
 
 export interface AddShiftDateColumn {
   key: string;
@@ -33,6 +34,8 @@ export interface AddShiftModalProps {
   onSelectionsChange: (selections: ShiftSelections) => void;
   carryOverFlags: TeCarryOverFlags;
   onCarryOverFlagsChange: (flags: TeCarryOverFlags) => void;
+  previousShiftHours: PreviousShiftHours;
+  onPreviousShiftHoursChange: (hours: PreviousShiftHours) => void;
   items: PayrollItemResponse[];
   startDate?: string;
   endDate?: string;
