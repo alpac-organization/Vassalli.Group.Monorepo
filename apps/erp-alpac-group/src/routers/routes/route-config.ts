@@ -192,7 +192,14 @@ export const routeConfig = {
       reportsSection
     ],
     [RoleEnum.MANAGER]: [
-      inventoryControl
+      inventoryControl,
+      inventoryEntriesAndOutputs,
+      reportsSection
+    ],
+    [RoleEnum.OPERATOR]: [
+      inventoryControl,
+      inventoryEntriesAndOutputs,
+      reportsSection
     ]
   }
 };
