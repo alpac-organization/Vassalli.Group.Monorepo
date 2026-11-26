@@ -36,6 +36,16 @@ export type PeriodInventoryReportType = {
    cost_center_id?: string;
 };
 
+export type InventoryMovementReportType = {
+   company_id: string;
+   module_code: string;
+   from?: string;
+   to?: string;
+   branch_id?: string;
+   cost_center_id?: string;
+   product_code?: string;
+};
+
 export interface IInventoryReportsServices {
    GetStockDailyReport(payload: StockDailyReportType): Promise<StockDailyReport>;
 
@@ -46,4 +56,8 @@ export interface IInventoryReportsServices {
    GetOutputsConsolidatedByEquipmentReport(payload: EquipmentReportType): Promise<OutputConsolidatedByEquipmentReport>;
 
    GetPeriodInventoryReport(payload: PeriodInventoryReportType): Promise<PeriodInventoryReport>;
+
+   GetInventoryMovementReportPdf(payload: InventoryMovementReportType): Promise<Blob>;
+
+   GetInventoryTurnoverReportPdf(payload: InventoryMovementReportType): Promise<Blob>;
 }
