@@ -73,6 +73,7 @@ export const InventoryTurnoverReportModal = function ({
          const pdfBlob = new Blob([blob], { type: "application/pdf" });
          const url = URL.createObjectURL(pdfBlob);
          window.open(url, "_blank");
+         setTimeout(() => URL.revokeObjectURL(url), 60_000);
 
          handleRequestSuccess("Reporte de rotación de inventario generado correctamente.");
          onClose();

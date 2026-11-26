@@ -73,6 +73,7 @@ export const InventoryMovementReportModal = function ({
          const pdfBlob = new Blob([blob], { type: "application/pdf" });
          const url = URL.createObjectURL(pdfBlob);
          window.open(url, "_blank");
+         setTimeout(() => URL.revokeObjectURL(url), 60_000);
 
          handleRequestSuccess("Reporte de movimientos de inventario generado correctamente.");
          onClose();
