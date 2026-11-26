@@ -14,7 +14,6 @@ import type { AnalyzedQuotesFiltersValues } from "@app/modules/management/ui/pag
 import type { GetRequisitionManagementReviewsRequest } from "@app/modules/management/domain/ApiContract/requests/get-requisition-management-reviews";
 import type { RequisitionManagementReviewDto } from "@app/modules/management/domain/ApiContract/responses/get-requisition-management-reviews";
 import type { ProcessPurchaseOrderPayload } from "@app/modules/management/domain/ApiContract/requests/process-purchase-order-payload";
-import type { managementReviewStatusType } from "@app/modules/management/domain/enum/management-review-status";
 import { ProcessPurchaseOrderModal } from "./components/process-purchase-order-modal/process-purchase-order-modal";
 import { AnnulModal } from "@app/shared/components/annul-modal/annul-modal";
 import type { AnnulModalScope } from "@app/shared/components/annul-modal/annul-modal.types";
@@ -23,6 +22,15 @@ import { useMappedError } from "@app/shared/hooks/useMappedError";
 
 const DEFAULT_PAGE_NUMBER = 1;
 const DEFAULT_PAGE_SIZE = 10;
+
+const DEFAULT_APPLIED_FILTERS: AnalyzedQuotesFiltersValues = {
+	code: "",
+	status: "",
+	priority_level: "",
+	request_type: "",
+	area_id: "",
+	branch_id: "",
+};
 
 export const AnalyzedQuotes = () => {
 
@@ -38,9 +46,9 @@ export const AnalyzedQuotes = () => {
 	} = useAlertState();
 
 	const [pageNumber, setPageNumber] = useState(DEFAULT_PAGE_NUMBER);
-	const [appliedStatus, setAppliedStatus] = useState<managementReviewStatusType | "">("");
-	const [appliedAreaId, setAppliedAreaId] = useState("");
-	const [appliedBranchId, setAppliedBranchId] = useState("");
+	const [appliedFilters, setAppliedFilters] = useState<AnalyzedQuotesFiltersValues>(
+		DEFAULT_APPLIED_FILTERS,
+	);
 	const [isAnalyzedQuoteDetailModalOpen, setIsAnalyzedQuoteDetailModalOpen] = useState(false);
 	const [isProcessPurchaseOrderModalOpen, setIsProcessPurchaseOrderModalOpen] = useState(false);
 	const [isAnnulModalOpen, setIsAnnulModalOpen] = useState(false);
@@ -51,11 +59,14 @@ export const AnalyzedQuotes = () => {
 			company_id: companyId,
 			module_code: moduleCode,
 			page_number: pageNumber,
-			...(appliedStatus && { status: appliedStatus }),
-			...(appliedAreaId && { area_id: appliedAreaId }),
-			...(appliedBranchId && { branch_id: appliedBranchId }),
+			...(appliedFilters.status && { status: appliedFilters.status }),
+			...(appliedFilters.area_id && { area_id: appliedFilters.area_id }),
+			...(appliedFilters.branch_id && { branch_id: appliedFilters.branch_id }),
+			...(appliedFilters.code && { code: appliedFilters.code }),
+			...(appliedFilters.priority_level && { priority_level: appliedFilters.priority_level }),
+			...(appliedFilters.request_type && { request_type: appliedFilters.request_type }),
 		}),
-		[companyId, moduleCode, pageNumber, appliedStatus, appliedAreaId, appliedBranchId],
+		[companyId, moduleCode, pageNumber, appliedFilters],
 	);
 
 	const {
@@ -76,16 +87,12 @@ export const AnalyzedQuotes = () => {
 	const resolvedPageSize = managementReviews?.page_size ?? DEFAULT_PAGE_SIZE;
 
 	const handleApplyFilters = useCallback((filters: AnalyzedQuotesFiltersValues) => {
-		setAppliedStatus(filters.status);
-		setAppliedAreaId(filters.area_id);
-		setAppliedBranchId(filters.branch_id);
+		setAppliedFilters(filters);
 		setPageNumber(DEFAULT_PAGE_NUMBER);
 	}, []);
 
 	const handleClearFilters = useCallback(() => {
-		setAppliedStatus("");
-		setAppliedAreaId("");
-		setAppliedBranchId("");
+		setAppliedFilters(DEFAULT_APPLIED_FILTERS);
 		setPageNumber(DEFAULT_PAGE_NUMBER);
 	}, []);
 

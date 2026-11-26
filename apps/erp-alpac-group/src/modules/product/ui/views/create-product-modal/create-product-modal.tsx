@@ -21,6 +21,7 @@ import type {
 } from "@app/modules/product/ui/views/create-product-modal/create-product-modal.types";
 
 import type { ProductUsageType } from "@app/core/enums/product-usage-type.enum";
+import { RoleEnum } from "@app/core/enums/role.enum";
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { CatalogLinkItemForm } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor.types";
 import type { CreateProductRequest } from "@app/modules/product/domain/ApiContract/Requests/product/create-product.request";
@@ -32,6 +33,7 @@ import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
+import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters";
 import { CatalogLinkEditor } from "@app/modules/product/ui/components/catalog-link-editor/catalog-link-editor";
 import {
@@ -74,6 +76,7 @@ const emptyFormValues = (
 	description: "",
 	category_id: "",
 	unit_measure_id: "",
+	area_id: null,
 	cost_center_id: null,
 	product_usage_type: usageType,
 	is_tax_exempt: false,
@@ -160,11 +163,20 @@ export const CreateProductModal = ({
 }: CreateProductModalProps) => {
 
 	const { getMappedError } = useMappedError();
-	const { companyId, moduleCode } = useUserStore();
+	const { companyId, moduleCode, role, branchId, costCenterId, costCenterName } =
+		useUserStore();
 	const isEditMode = Boolean(selectedProduct?.product_id);
 	const isOperational = typeProductToRegister === "Operational";
+	const isAdministrator = role === RoleEnum.ADMINISTRATOR;
+	const isManager = role === RoleEnum.MANAGER;
+	const isOperator = role === RoleEnum.OPERATOR;
+	const isSupervisor = role === RoleEnum.SUPERVISOR;
+	const needsOperationalAreaSelection = isOperational && !isEditMode && isAdministrator;
+	const canChooseOperationalCostCenter =
+		isOperational && !isEditMode && (isAdministrator || isManager);
 	const isOperationalEdit = isEditMode && isOperational;
-	const isReadOnly = selectedProduct?.product_status === "Inactive";
+	const isReadOnly =
+		selectedProduct?.product_status === "Inactive" || (isSupervisor && !isEditMode);
 
 	const debugLog = (...args: unknown[]) => {
 		if (isOperationalEdit) console.log(...args);
@@ -199,12 +211,37 @@ export const CreateProductModal = ({
 
 	const productDetails = GetProductDetails.data;
 
-	const { GetCostCentersByBranch } = useCostCenters({
-		getCostCentersByBranchPayload: {
+	const [selectedAreaId, setSelectedAreaId] = useState("");
+
+	const { GetAreasByCompany } = useAreas(
+		{
 			company_id: companyId,
 			module_code: moduleCode,
 			only_operational: true,
-		}
+		},
+		{ enabled: isOpen && needsOperationalAreaSelection },
+	);
+
+	const { GetCostCenters, GetCostCentersByBranch } = useCostCenters({
+		getCostCentersPayload:
+			isOpen && needsOperationalAreaSelection && selectedAreaId
+				? {
+					company_id: companyId,
+					module_code: moduleCode,
+					area_id: selectedAreaId,
+					only_operational: true,
+					branch_id: branchId || undefined,
+					only_user_branch: true,
+				}
+				: undefined,
+		getCostCentersByBranchPayload:
+			isOpen && isOperational && (isManager || isEditMode)
+				? {
+					company_id: companyId,
+					module_code: moduleCode,
+					only_operational: true,
+				}
+				: undefined,
 	});
 
 	const draftSource: CreateProductDraftSource = {
@@ -267,6 +304,7 @@ export const CreateProductModal = ({
 				setSupplierLinksDirty(false);
 				setSelectedProductCategory(nextDraft.categoryName);
 				setSelectedCategoryIsService(false);
+				setSelectedAreaId("");
 				setIsSelectSupplierOpen(false);
 				setSubmitError(null);
 			}
@@ -279,6 +317,7 @@ export const CreateProductModal = ({
 		handleSubmit,
 		reset,
 		getValues,
+		setValue,
 		watch,
 		unregister,
 		clearErrors,
@@ -315,15 +354,35 @@ export const CreateProductModal = ({
 		}));
 	}, [GetUnitMeasurements.data]);
 
-	const costCenterOptions = useMemo(() => {
-		const data = GetCostCentersByBranch.data;
+	const operationalAreaOptions = useMemo(() => {
+		const data = GetAreasByCompany.data;
 		if (!data || !Array.isArray(data)) return [];
 
-		return data.map((item: any) => ({
+		return data.map((area) => ({
+			value: area.work_area_id,
+			label: area.work_area_name,
+		}));
+	}, [GetAreasByCompany.data]);
+
+	const costCenterOptions = useMemo(() => {
+		const data = needsOperationalAreaSelection
+			? GetCostCenters.data
+			: GetCostCentersByBranch.data;
+		if (!data || !Array.isArray(data)) return [];
+
+		return data.map((item) => ({
 			value: item.cost_center_id,
 			label: item.cost_center_name,
 		}));
-	}, [GetCostCentersByBranch.data]);
+	}, [
+		needsOperationalAreaSelection,
+		GetCostCenters.data,
+		GetCostCentersByBranch.data,
+	]);
+
+	const isLoadingCostCenters = needsOperationalAreaSelection
+		? GetCostCenters.isPending || GetCostCenters.isFetching
+		: GetCostCentersByBranch.isPending || GetCostCentersByBranch.isFetching;
 
 	const assignedSupplierIds = useMemo(
 		() => supplierLinks.map((link) => link.entity_id).filter(Boolean),
@@ -355,6 +414,7 @@ export const CreateProductModal = ({
 		setSupplierLinksDirty(false);
 		setSelectedProductCategory("");
 		setSelectedCategoryIsService(false);
+		setSelectedAreaId("");
 		setIsSelectSupplierOpen(false);
 		setSubmitError(null);
 		onClose();
@@ -403,9 +463,16 @@ export const CreateProductModal = ({
 	};
 
 	const handleCreateProduct = (values: CreateProductRequest) => {
+		if (isSupervisor) return;
 		if (!validateSupplierLinks()) return;
 
 		const { configuration_stock: _formStockConfiguration, ...baseValues } = values;
+
+		const resolvedCostCenterId = !isOperational
+			? null
+			: canChooseOperationalCostCenter
+				? (values.cost_center_id ?? null)
+				: (costCenterId || null);
 
 		const payload: CreateProductRequest = {
 			...baseValues,
@@ -415,7 +482,10 @@ export const CreateProductModal = ({
 			description: values.description?.trim() || undefined,
 			product_usage_type: typeProductToRegister,
 			is_tax_exempt: Boolean(values.is_tax_exempt),
-			cost_center_id: isOperational ? values.cost_center_id ?? null : null,
+			...(needsOperationalAreaSelection
+				? { area_id: values.area_id ?? (selectedAreaId || null) }
+				: {}),
+			cost_center_id: resolvedCostCenterId,
 			suppliers:
 				supplierLinks.length > 0
 					? mapSupplierLinksToPayload(supplierLinks)
@@ -513,6 +583,10 @@ export const CreateProductModal = ({
 		if (!showStockConfig) {
 			unregister("configuration_stock");
 			clearErrors("configuration_stock");
+		}
+		if (!needsOperationalAreaSelection) {
+			unregister("area_id");
+			clearErrors("area_id");
 		}
 		return handleSubmit(handleProduct, onInvalid)(event);
 	};
@@ -644,31 +718,87 @@ export const CreateProductModal = ({
 							)}
 						/>
 
-						{isOperational && (
+						{needsOperationalAreaSelection && (
 							<Controller
 								control={control}
-								name="cost_center_id"
+								name="area_id"
+								rules={{ required: "El área operacional es obligatoria" }}
 								render={({ field, fieldState }) => (
 									<Dropdown
-										label="Centro de costo"
+										label="Área operacional"
+										isRequired
 										placeholder={
-											GetCostCentersByBranch.isPending ||
-												GetCostCentersByBranch.isFetching
-												? "Cargando centros de costo..."
-												: "Seleccione un centro de costo"
+											GetAreasByCompany.isPending || GetAreasByCompany.isFetching
+												? "Cargando áreas operacionales..."
+												: "Seleccione un área operacional"
 										}
 										appearance="dark"
 										value={field.value ?? ""}
-										disabled={isSaving || isLoadingDetails || isEditMode}
+										disabled={isSaving || isLoadingDetails}
+										options={operationalAreaOptions}
+										error={fieldState.error?.message}
+										labelClassName={labelClassName}
+										className={dropdownClassName}
+										onChange={(value) => {
+											const nextAreaId = value ? String(value) : "";
+											setSelectedAreaId(nextAreaId);
+											field.onChange(nextAreaId || null);
+											setValue("cost_center_id", null);
+											clearErrors(["area_id", "cost_center_id"]);
+										}}
+									/>
+								)}
+							/>
+						)}
+
+						{isOperational && (isEditMode || canChooseOperationalCostCenter) && (
+							<Controller
+								control={control}
+								name="cost_center_id"
+								rules={
+									canChooseOperationalCostCenter
+										? { required: "El centro de costo es obligatorio" }
+										: undefined
+								}
+								render={({ field, fieldState }) => (
+									<Dropdown
+										label="Centro de costo"
+										isRequired={canChooseOperationalCostCenter}
+										placeholder={
+											needsOperationalAreaSelection && !selectedAreaId
+												? "Seleccione primero un área operacional"
+												: isLoadingCostCenters
+													? "Cargando centros de costo..."
+													: "Seleccione un centro de costo"
+										}
+										appearance="dark"
+										value={field.value ?? ""}
+										disabled={
+											isSaving ||
+											isLoadingDetails ||
+											isEditMode ||
+											(needsOperationalAreaSelection && !selectedAreaId)
+										}
 										options={costCenterOptions}
 										error={fieldState.error?.message}
 										labelClassName={labelClassName}
 										className={dropdownClassName}
 										onChange={(value) => {
-											field.onChange(value ? String(value) : null)
+											field.onChange(value ? String(value) : null);
 										}}
 									/>
 								)}
+							/>
+						)}
+
+						{isOperational && !isEditMode && isOperator && (
+							<InputText
+								label="Centro de costo (perfil)"
+								value={costCenterName || "Asignado por tu perfil"}
+								disabled
+								readOnly
+								labelClassName={labelClassName}
+								className={inputClassName}
 							/>
 						)}
 					</div>

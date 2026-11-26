@@ -8,7 +8,6 @@ import {
   BuildingIcon,
   CalendarCheckIcon,
   CalendarIcon,
-  MailIcon,
   NotebookTextIcon,
 } from "lucide-react";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
@@ -247,22 +246,18 @@ export const AnalyzedQuoteDetailModal = ({
                       value={
                         purchaseRequest.creator_user_information?.fullname ?? ""
                       }
-                      icon={
-                        <Avatar
-                          label={
-                            purchaseRequest.creator_user_information
-                              ?.fullname ?? ""
-                          }
-                          hasLabel={false}
-                        />
+                      description={
+                        purchaseRequest.creator_user_information?.email?.trim() ||
+                        undefined
                       }
-                    />
-                    <DetailField
-                      label="Email"
-                      value={
-                        purchaseRequest.creator_user_information?.email ?? ""
-                      }
-                      icon={<MailIcon size={18} />}
+                      avatar={{
+                        label:
+                          purchaseRequest.creator_user_information?.fullname ??
+                          "",
+                        pictureUrl:
+                          purchaseRequest.creator_user_information?.picture_url?.trim() ||
+                          undefined,
+                      }}
                     />
                     <DetailField
                       label="Sucursal"
@@ -314,18 +309,11 @@ export const AnalyzedQuoteDetailModal = ({
                     <DetailField
                       label="Revisado por"
                       value={reviewer?.fullname}
-                      icon={
-                        <Avatar
-                          label={reviewer?.fullname ?? ""}
-                          hasLabel={false}
-                        />
-                      }
-                    />
-
-                    <DetailField
-                      label="Email del revisor"
-                      value={reviewer?.email}
-                      icon={<MailIcon size={18} />}
+                      description={reviewer?.email?.trim() || undefined}
+                      avatar={{
+                        label: reviewer?.fullname ?? "",
+                        pictureUrl: reviewer?.picture_url?.trim() || undefined,
+                      }}
                     />
                   </div>
                 </section>

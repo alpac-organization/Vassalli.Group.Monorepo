@@ -7,10 +7,14 @@ import { GetSectionViewsToInventoryControl } from "./inventory-control.variants"
 import { CreateProductModal } from "@app/modules/product/ui/views/create-product-modal/create-product-modal";
 import { useParams } from "@app/shared/hooks/useParams";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { useUserStore } from "@app/shared/stores/useUserStore";
+import { RoleEnum } from "@app/core/enums/role.enum";
 import { BreadcrumbSection } from "./views/breadcrumb-section/breadcrumb-section";
 
 export const InventoryControl = function () {
    const [productModal, setProductModal] = useState(false);
+   const { role } = useUserStore();
+   const isSupervisor = role === RoleEnum.SUPERVISOR;
    
    const { 
       AlertComponent,
@@ -56,14 +60,16 @@ export const InventoryControl = function () {
                subtitle="Gestiona niveles de stock, solicitudes por área y movimientos de almacén"
             />
 
-            <div className="flex gap-5 flex-end">
-               <Button
-                  icon={<PlusSquare size={15} />}
-                  size="medium"
-                  label="Nuevo producto"
-                  onClick={() => setProductModal(true)}
-               />
-            </div>
+            {!isSupervisor && (
+               <div className="flex gap-5 flex-end">
+                  <Button
+                     icon={<PlusSquare size={15} />}
+                     size="medium"
+                     label="Nuevo producto"
+                     onClick={() => setProductModal(true)}
+                  />
+               </div>
+            )}
          </div>
 
          <Tabs
@@ -72,13 +78,15 @@ export const InventoryControl = function () {
             onTabChange={handleTabChange}
          />
 
-         <CreateProductModal
-            typeProductToRegister="Operational"
-            isOpen={productModal}
-            onClose={() => setProductModal(false)}
-            onRequestError={handleRequestError}
-            onRequestSuccess={handleRequestSuccess}
-         />
+         {!isSupervisor && (
+            <CreateProductModal
+               typeProductToRegister="Operational"
+               isOpen={productModal}
+               onClose={() => setProductModal(false)}
+               onRequestError={handleRequestError}
+               onRequestSuccess={handleRequestSuccess}
+            />
+         )}
 
          { AlertComponent }
       </div>

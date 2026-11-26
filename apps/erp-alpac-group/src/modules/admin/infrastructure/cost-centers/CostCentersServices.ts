@@ -13,10 +13,31 @@ export class CostCentersServices implements ICostCentersServices {
     payload: GetCostCentersRequest,
   ): Promise<GetCostCentersResponse[] | undefined> {
     try {
-      const { company_id, area_id } = payload;
+      const {
+        company_id,
+        module_code,
+        area_id,
+        only_operational,
+        branch_id,
+        only_user_branch,
+      } = payload;
+      const params = new URLSearchParams();
+      if (only_operational !== undefined) {
+        params.set("only_operational", String(only_operational));
+      }
+      if (branch_id) {
+        params.set("branch_id", branch_id);
+      }
+      if (only_user_branch !== undefined) {
+        params.set("only_user_branch", String(only_user_branch));
+      }
+      const queryString = params.toString();
+      const suffix = queryString ? `?${queryString}` : "";
       const costCenters = await this.apiHandler.get<
         GetCostCentersResponse[] | undefined
-      >(`/companies/${company_id}/areas/${area_id}/cost-centers`);
+      >(
+        `/companies/${company_id}/modules/${module_code}/areas/${area_id}/cost-centers${suffix}`,
+      );
       return costCenters;
     } catch (error) {
       throw error;

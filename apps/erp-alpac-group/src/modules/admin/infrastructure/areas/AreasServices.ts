@@ -11,9 +11,13 @@ export class AreasServices implements IAreasServices {
   }
   public async getAreas(payload: GetAreasRequest): Promise<GetAreasResponse[]> {
     try {
-      const { company_id, module_code } = payload;
+      const { company_id, module_code, only_operational } = payload;
+      const query =
+        only_operational !== undefined
+          ? `?only_operational=${only_operational}`
+          : "";
       const areas = await this.apiHandler.get<GetAreasResponse[]>(
-        `/companies/${company_id}/modules/${module_code}/areas`,
+        `/companies/${company_id}/modules/${module_code}/areas${query}`,
       );
       return areas;
     } catch (error) {
