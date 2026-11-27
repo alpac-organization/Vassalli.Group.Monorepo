@@ -6,7 +6,10 @@ import type { CustomInternalAxiosRequestConfig } from "../interfaces/CustomInter
 import type { IAuthenticationServices } from "@app/modules/auth/application/interfaces/IAuthenticationServices";
 import type { LoginResponse } from "@app/modules/auth/domain/ApiContract/Responses/login.response";
 import { AuthenticationServices } from "@app/modules/auth/infrastructure/services/AuthenticationServices";
-import { useInactivityStore } from "@app/shared/stores/useInactivityStore";
+import {
+  INACTIVITY_TIMEOUT_MS,
+  useInactivityStore,
+} from "@app/shared/stores/useInactivityStore";
 import { useServerErrorStore } from "@app/shared/stores/useServerErrorStore";
 import {
   clearControlVacationsSelectionStorage,
@@ -49,8 +52,10 @@ class AxiosHttpAdapter implements IHttpHandler {
     });
 
     // Inicia un único intervalo compartido de refresh token cada 15 minutos
-    AxiosHttpAdapter.ensureSharedRefreshInterval(15 * 60 * 1000, () =>
-      this.refreshToken(),
+    AxiosHttpAdapter.ensureSharedRefreshInterval(
+      15 * 60 * 1000,
+      () => this.refreshToken(),
+      () => this.logout(),
     );
 
     // Interceptor to request
@@ -141,6 +146,7 @@ class AxiosHttpAdapter implements IHttpHandler {
   private static ensureSharedRefreshInterval(
     miliseconds: number,
     refreshCallback: () => Promise<LoginResponse | null>,
+    logoutCallback: () => void,
   ) {
     if (AxiosHttpAdapter.sharedRefreshIntervalId) return;
 
@@ -149,12 +155,9 @@ class AxiosHttpAdapter implements IHttpHandler {
 
       const { isInactive, lastActivity } = useInactivityStore.getState();
       const now = Date.now();
-      const inactivityThreshold = 20 * 60 * 1000;
 
-      if (isInactive || now - lastActivity > inactivityThreshold) {
-        console.warn(
-          "Sesion en pausa por inactividad. El token expirara naturalmente.",
-        );
+      if (isInactive || now - lastActivity >= INACTIVITY_TIMEOUT_MS) {
+        logoutCallback();
         return;
       }
 
@@ -172,12 +175,18 @@ class AxiosHttpAdapter implements IHttpHandler {
     clearSessionPersistedStores();
 
     CookieStorageAdapter.clearAuth();
+    useInactivityStore.getState().recordActivity();
     if (typeof window !== "undefined" && window.location.pathname !== "/auth") {
       window.location.href = "/auth";
     }
   }
 
   private async refreshToken(): Promise<LoginResponse | null> {
+    const { isInactive, lastActivity } = useInactivityStore.getState();
+    if (isInactive || Date.now() - lastActivity >= INACTIVITY_TIMEOUT_MS) {
+      return null;
+    }
+
     if (AxiosHttpAdapter.sharedRefreshPromise) {
       return AxiosHttpAdapter.sharedRefreshPromise;
     }

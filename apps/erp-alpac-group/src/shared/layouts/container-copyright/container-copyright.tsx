@@ -1,11 +1,8 @@
 import { Outlet } from "react-router-dom";
 import { CopyRight } from "@app/shared/components/copy-right/copy-right";
-import { useInactivityGuard } from "@app/shared/hooks/useInactivityGuard";
 import { AnimatePresence } from "framer-motion";
 
 export const ContainerCopyright = () => {
-  useInactivityGuard();
-
   return (
     <div className="flex flex-col min-h-screen w-full">
       <main className="grow flex flex-col w-full">

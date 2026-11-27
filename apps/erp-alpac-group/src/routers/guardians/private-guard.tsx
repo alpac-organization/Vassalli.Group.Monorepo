@@ -1,8 +1,11 @@
 import { Navigate, Outlet, useParams } from "react-router-dom";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
+import { useInactivityGuard } from "@app/shared/hooks/useInactivityGuard";
 import { SyncAuthenticatedCompanyDocument } from "@app/shared/components/sync-authenticated-company-document/sync-authenticated-company-document";
 
-export const AuthGuard = () => {  const { alias_company } = useParams();
+export const AuthGuard = () => {
+  useInactivityGuard();
+  const { alias_company } = useParams();
 
   const storedAlias = CookieStorageAdapter.getCompanyAlias();
 

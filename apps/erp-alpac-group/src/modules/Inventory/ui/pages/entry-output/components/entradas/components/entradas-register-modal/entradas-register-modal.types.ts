@@ -3,8 +3,10 @@ import type { InventoryEntry, InventoryEntryDetail } from "@app/modules/Inventor
 export interface EntradasRegisterModalProps {
   isOpen: boolean;
   entry: InventoryEntry | null;
+  canAnnul?: boolean;
   onClose: () => void;
   onRegistered: (entry: InventoryEntry) => void;
+  onRequestAnnul?: (entry: InventoryEntry) => void;
   onError: (error: unknown) => void;
 }
 

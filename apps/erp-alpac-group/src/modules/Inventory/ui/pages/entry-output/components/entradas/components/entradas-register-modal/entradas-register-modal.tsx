@@ -158,7 +158,15 @@ const REGISTER_ENTRY_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
 ];
 
 export const EntradasRegisterModal = function (props: EntradasRegisterModalProps) {
-  const { isOpen, entry, onClose, onRegistered, onError } = props;
+  const {
+    isOpen,
+    entry,
+    canAnnul = false,
+    onClose,
+    onRegistered,
+    onRequestAnnul,
+    onError,
+  } = props;
   const { companyId, moduleCode } = useUserStore();
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -436,26 +444,39 @@ export const EntradasRegisterModal = function (props: EntradasRegisterModalProps
             />
           )}
 
-          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end dark:border-neutral-600">
-            <Button
-              type="button"
-              label="Cancelar"
-              onClick={handleClose}
-              disabled={RegisterInventoryEntry.isPending}
-              className={buttonCancelClass}
-            />
-            <Button
-              type="submit"
-              label="Registrar entrada"
-              isLoading={RegisterInventoryEntry.isPending}
-              disabled={
-                isProcessed ||
-                hasUnassignedCostCenter ||
-                RegisterInventoryEntry.isPending ||
-                isLoadingDetail
-              }
-              className={buttonActionClass}
-            />
+          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-4 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-600">
+            <div>
+              {!isProcessed && canAnnul && entry && onRequestAnnul && (
+                <Button
+                  type="button"
+                  label="Anular entrada"
+                  onClick={() => onRequestAnnul(entry)}
+                  disabled={RegisterInventoryEntry.isPending || isLoadingDetail}
+                  className="h-11! w-full! rounded-md! bg-red-600! px-5! text-[15px]! text-white! hover:bg-red-700! sm:w-auto! dark:bg-red-600! dark:hover:bg-red-700!"
+                />
+              )}
+            </div>
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                label="Cancelar"
+                onClick={handleClose}
+                disabled={RegisterInventoryEntry.isPending}
+                className={buttonCancelClass}
+              />
+              <Button
+                type="submit"
+                label="Registrar entrada"
+                isLoading={RegisterInventoryEntry.isPending}
+                disabled={
+                  isProcessed ||
+                  hasUnassignedCostCenter ||
+                  RegisterInventoryEntry.isPending ||
+                  isLoadingDetail
+                }
+                className={buttonActionClass}
+              />
+            </div>
           </div>
         </form>
       )}

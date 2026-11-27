@@ -383,6 +383,15 @@ export const PurchaseRequestDetailModal = ({
 													icon={<BanIcon size={18} />}
 												/>
 											) : null}
+
+											{details.annulment_reason ? (
+												<DetailField
+													label="Motivo de anulación"
+													value={details.annulment_reason}
+													containerClass="col-span-full min-w-0"
+													icon={<BanIcon size={18} />}
+												/>
+											) : null}
 										</div>
 
 									</section>
@@ -448,6 +457,18 @@ export const PurchaseRequestDetailModal = ({
 													pictureUrl: details?.reviewer_user_information?.picture_url ?? "",
 												}}
 											/>
+
+											{details?.annulled_by_user_information?.fullname ? (
+												<DetailField
+													label="Anulado por"
+													value={details.annulled_by_user_information.fullname}
+													description={details.annulled_by_user_information.email ?? ""}
+													avatar={{
+														label: details.annulled_by_user_information.fullname,
+														pictureUrl: details.annulled_by_user_information.picture_url ?? "",
+													}}
+												/>
+											) : null}
 										</div>
 									</section>
 								</div>

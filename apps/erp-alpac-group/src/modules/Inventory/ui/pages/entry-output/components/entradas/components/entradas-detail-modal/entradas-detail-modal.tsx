@@ -90,6 +90,15 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
    const requesterName   = requestCreator?.fullname?.trim() || "";
    const requesterEmail  = requestCreator?.email?.trim() || undefined;
    const requesterAvatar = requestCreator?.picture_url?.trim() || undefined;
+   const annulledByUser  = purchaseRequest?.annulled_by_user_information ?? null;
+   const annulledByName  = annulledByUser?.fullname?.trim() || "";
+   const annulledByEmail = annulledByUser?.email?.trim() || undefined;
+   const annulledByAvatar = annulledByUser?.picture_url?.trim() || undefined;
+   const isCanceledEntry = current?.entry_status === "CancelEntry";
+   const annulmentReason =
+      purchaseRequest?.annulment_reason?.trim() ||
+      (isCanceledEntry ? detail?.observations?.trim() : "") ||
+      "";
    const requestItems    = detail?.purchase_request_items ?? [];
    const orderItems      = detail?.items ?? [];
    const evidenceImages  = (detail?.evidence_images ?? []).filter((image) => Boolean(image.image_url));
@@ -227,6 +236,14 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                   <Fragment>
                      {detail && (
                         <Fragment>
+                           {isCanceledEntry && annulmentReason && (
+                              <Banner
+                                 variant="error"
+                                 title="Entrada de inventario anulada"
+                                 description={`Motivo de anulación: ${annulmentReason}`}
+                              />
+                           )}
+
                            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                               <MetricCard
                                  size="compact"
@@ -373,6 +390,24 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                                           />
                                        }
                                     />
+                                    {annulledByName && (
+                                       <DetailField
+                                          label="Anulado por"
+                                          value={annulledByName}
+                                          description={annulledByEmail}
+                                          avatar={{
+                                             label: annulledByName,
+                                             pictureUrl: annulledByAvatar,
+                                          }}
+                                       />
+                                    )}
+                                    {annulmentReason && (
+                                       <DetailField
+                                          label="Motivo de anulación"
+                                          value={annulmentReason}
+                                          containerClass="col-span-full min-w-0"
+                                       />
+                                    )}
                                  </div>
                               </SectionHeader>
                            )}

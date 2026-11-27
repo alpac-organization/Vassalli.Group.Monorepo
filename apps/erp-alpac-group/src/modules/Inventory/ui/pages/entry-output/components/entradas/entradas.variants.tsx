@@ -12,7 +12,12 @@ import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
 export const GetInventoryEntriesColumnsToTable = function (props: InventoryEntriesColumnsToTableProps = {}): TableColumn<InventoryEntry>[] {
   
    const { ActionsMenuContext } = props;
-   const { onViewEntry = () => {}, onRegisterEntry = () => {} } = ActionsMenuContext ?? {};
+   const {
+      canAnnulEntry = false,
+      onViewEntry = () => {},
+      onRegisterEntry = () => {},
+      onAnnulEntry = () => {},
+   } = ActionsMenuContext ?? {};
 
    return [
       {
@@ -83,8 +88,10 @@ export const GetInventoryEntriesColumnsToTable = function (props: InventoryEntri
          render(item) {
             const contextMenuItems = GetContextMenuItems({
                item,
+               canAnnulEntry,
                onViewEntry,
                onRegisterEntry,
+               onAnnulEntry,
             });
 
             return (
@@ -102,8 +109,10 @@ export const GetInventoryEntriesColumnsToTable = function (props: InventoryEntri
 const GetContextMenuItems = function (props: ContextMenuItemsProps): ContextMenuItem[] {
    const {
       item,
+      canAnnulEntry = false,
       onViewEntry = () => {},
       onRegisterEntry = () => {},
+      onAnnulEntry = () => {},
    } = props;
 
    const items: ContextMenuItem[] = [
@@ -122,6 +131,15 @@ const GetContextMenuItems = function (props: ContextMenuItemsProps): ContextMenu
             onRegisterEntry(item);
          },
       });
+
+      if (canAnnulEntry) {
+         items.push({
+            label: "Anular entrada",
+            onClick() {
+               onAnnulEntry(item);
+            },
+         });
+      }
    }
 
    return items;

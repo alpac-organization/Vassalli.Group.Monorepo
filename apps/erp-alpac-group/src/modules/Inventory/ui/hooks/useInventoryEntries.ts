@@ -1,10 +1,17 @@
 import { useMutation, useQuery, useQueryClient, skipToken } from "@tanstack/react-query";
 import { warehouseHttpHandler } from "@app/core/adapters";
+import {
+  invalidatePurchaseRequestDetail,
+  invalidatePurchaseRequestList,
+} from "@app/modules/purchasing/ui/hooks/purchase/purchase-query-cache";
 import { InventoryEntriesServices } from "../../infrastructure/services/inventory-entries-services";
 
 import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import type { useInventoryEntriesProps } from "../../application/interfaces/hooks/useInventoryEntriesProps";
-import type { RegisterInventoryEntryRequest } from "../../domain/api-contract/requests/inventory-entries.request";
+import type {
+  AnnulInventoryEntryRequest,
+  RegisterInventoryEntryRequest,
+} from "../../domain/api-contract/requests/inventory-entries.request";
 import type {
   PagedInventoryEntriesResponse,
   InventoryEntry,
@@ -61,9 +68,27 @@ export const useInventoryEntries = function (props: useInventoryEntriesProps) {
     retry: 0,
   });
 
+  const AnnulInventoryEntry = useMutation<
+    InventoryEntry,
+    ApiErrorResponse,
+    AnnulInventoryEntryRequest
+  >({
+    mutationKey: ["annul-inventory-entry"],
+    mutationFn: (payload) =>
+      inventoryEntriesServices.AnnulInventoryEntry(payload),
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ["inventory-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["inventory-entry-detail"] });
+      void invalidatePurchaseRequestList(queryClient);
+      void invalidatePurchaseRequestDetail(queryClient);
+    },
+    retry: 0,
+  });
+
   return {
     GetInventoryEntriesQuery,
     GetInventoryEntryDetailQuery,
     RegisterInventoryEntry,
+    AnnulInventoryEntry,
   };
 };

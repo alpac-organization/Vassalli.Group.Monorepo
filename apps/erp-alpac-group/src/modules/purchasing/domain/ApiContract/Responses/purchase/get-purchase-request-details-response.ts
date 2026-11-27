@@ -10,7 +10,7 @@ import type { GetPurchaseRequestResponse } from "@app/modules/purchasing/domain/
 import type { ProductQualityType } from "@app/modules/purchasing/domain/enums/product-quality";
 
 export type PurchaseRequestReturnScope = "QuotationOnly" | "FullProcess";
-export type PurchaseRequestReturnSource = "Accounting" | "Management";
+export type PurchaseRequestReturnSource = "Accounting" | "Management" | "InventoryEntry";
 
 export interface PurchaseRequestReturnHistoryEntry {
 	scope: PurchaseRequestReturnScope;

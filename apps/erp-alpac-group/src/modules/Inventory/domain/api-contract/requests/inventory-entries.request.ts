@@ -3,6 +3,7 @@ import type { EntryStatus } from "@app/core/enums/entry-status.enum";
 
 export interface InventoryEntriesRequest extends BaseRequest {
   branch_id?: string;
+  work_area_id?: string;
   entry_status?: EntryStatus | null;
   entry_code?: string;
   purchase_request_code?: string;
@@ -27,4 +28,9 @@ export interface RegisterInventoryEntryRequest extends BaseRequest {
   observations?: string | null;
   evidence_images_base64: string[];
   items?: RegisterInventoryEntryItemRequest[];
+}
+
+export interface AnnulInventoryEntryRequest extends BaseRequest {
+  inventory_entry_id: string;
+  reason: string;
 }
