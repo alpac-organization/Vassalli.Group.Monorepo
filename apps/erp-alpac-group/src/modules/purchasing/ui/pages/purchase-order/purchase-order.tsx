@@ -19,7 +19,10 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { m } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import type { GetPurchaseOrdersPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/get-purchase-orders-payload";
-import { getPurchaseOrderTableColumns } from "@app/modules/purchasing/ui/pages/purchase-order/utils/purchase-order-table-columns";
+import {
+	canProcessPurchaseOrderInventoryEntry,
+	getPurchaseOrderTableColumns,
+} from "@app/modules/purchasing/ui/pages/purchase-order/utils/purchase-order-table-columns";
 import type { GetPurchaseOrdersResponse } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-orders-response";
 import { PurchaseOrderDetailsModal } from "@app/modules/purchasing/ui/pages/purchase-order/components/purchase-order-details-modal/purchase-order-details-modal";
 import { ProcessInventoryEntryModal } from "@app/modules/purchasing/ui/pages/purchase-order/components/process-inventory-entry-modal/process-inventory-entry-modal";
@@ -145,6 +148,7 @@ export const PurchaseOrder = () => {
 
 	const onProcessInventoryEntry = useCallback(
 		(row: GetPurchaseOrdersResponse) => {
+			if (!canProcessPurchaseOrderInventoryEntry(row)) return;
 			setEntryOrder(row);
 			setIsEntryModalOpen(true);
 		},
@@ -157,6 +161,7 @@ export const PurchaseOrder = () => {
 	}, []);
 
 	const handleConfirmProcessEntry = useCallback(async () => {
+		if (!canProcessPurchaseOrderInventoryEntry(entryOrder)) return;
 		if (!entryOrder) return;
 
 		try {

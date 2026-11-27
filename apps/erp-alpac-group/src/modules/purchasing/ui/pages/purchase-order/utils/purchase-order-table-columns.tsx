@@ -4,6 +4,8 @@ import {
   ContextMenu
 } from "@alpac/design-system";
 import { PurchaseOrderStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-order-status.enum";
+import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
+import { PurchaseRequestDestinationEnum } from "@app/modules/purchasing/domain/enums/purchase-request-destination.enum";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { getPriorityLevelBadge, resolvePurchaseOrderStatusBadge } from "@app/modules/purchasing/ui/pages/purchase-order/utils/purchase-order-status.variants";
 import { purchaseRequestTypeBadgeVariants } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
@@ -17,6 +19,27 @@ const emptyCell = "—";
 
 function displayText(value?: string | null) {
   return value?.trim() || emptyCell;
+}
+
+export function canProcessPurchaseOrderInventoryEntry(
+  order?: GetPurchaseOrdersResponse | null,
+): boolean {
+  if (!order) return false;
+  if (order.status !== PurchaseOrderStatusEnum.Pending.textValue) return false;
+  if (
+    order.purchase_request?.request_type !==
+    PurchaseRequestEnum.Requisition.textValue
+  ) {
+    return false;
+  }
+  if (
+    order.purchase_request?.destination !==
+    PurchaseRequestDestinationEnum.ServiceOrder.textValue
+  ) {
+    return false;
+  }
+
+  return order.requires_inventory_entry === true;
 }
 
 export type PurchaseOrderTableColumnHandlers = {
@@ -37,24 +60,6 @@ export function getPurchaseOrderTableColumns({
       render: (row) => displayText(row.purchase_order_code),
     },
     {
-      key: "request_type",
-      label: "Tipo de solicitud",
-      render: (row) => {
-        const requestType = row.purchase_request?.request_type;
-        const variant =
-          purchaseRequestTypeBadgeVariants[
-            requestType as keyof typeof purchaseRequestTypeBadgeVariants
-          ] ?? purchaseRequestTypeBadgeVariants.default;
-
-        return (
-          <Badges
-            label={variant.label || requestType || emptyCell}
-            color={variant.badgeColor}
-          />
-        );
-      },
-    },
-    {
       key: "sent_by",
       label: "Enviado por",
       render: (row) => {
@@ -68,6 +73,24 @@ export function getPurchaseOrderTableColumns({
             label={fullname}
             description={email}
             pictureUrl={pictureUrl}
+          />
+        );
+      },
+    },
+    {
+      key: "request_type",
+      label: "Tipo de solicitud",
+      render: (row) => {
+        const requestType = row.purchase_request?.request_type;
+        const variant =
+          purchaseRequestTypeBadgeVariants[
+            requestType as keyof typeof purchaseRequestTypeBadgeVariants
+          ] ?? purchaseRequestTypeBadgeVariants.default;
+
+        return (
+          <Badges
+            label={variant.label || requestType || emptyCell}
+            color={variant.badgeColor}
           />
         );
       },
@@ -122,7 +145,7 @@ export function getPurchaseOrderTableColumns({
           },
         ];
 
-        if (row.status === PurchaseOrderStatusEnum.Pending.textValue) {
+        if (canProcessPurchaseOrderInventoryEntry(row)) {
           items.push({
             label: "Procesar entrada de inventario",
             onClick: () => onProcessInventoryEntry?.(row),

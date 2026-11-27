@@ -9,6 +9,7 @@ import { OrderProductsTable }                from "./components/order-products-t
 import { DocumentCodeBadges }                from "./components/document-code-badges/document-code-badges";
 import { useProcessInventoryEntryModalData } from "./hooks/useProcessInventoryEntryModalData";
 import { resolvePurchaseOrderStatusBadge }   from "@app/modules/purchasing/ui/pages/purchase-order/utils/purchase-order-status.variants";
+import { canProcessPurchaseOrderInventoryEntry } from "@app/modules/purchasing/ui/pages/purchase-order/utils/purchase-order-table-columns";
 
 import type { ProcessInventoryEntryModalProps } from "./process-inventory-entry-modal.types";
 
@@ -17,6 +18,7 @@ export const ProcessInventoryEntryModal = function (props: ProcessInventoryEntry
    const { isOpen, order, isLoading = false, onClose, onConfirm } = props;
 
    const {
+      detail,
       products,
       documentBadges,
       summary,
@@ -28,7 +30,11 @@ export const ProcessInventoryEntryModal = function (props: ProcessInventoryEntry
 
    const statusVariant     = resolvePurchaseOrderStatusBadge(order?.status);
    const hasProducts       = products.rows.length > 0;
-   const isProcessDisabled = isLoading || isDetailLoading || isError || !hasProducts;
+   const canProcessEntry   =
+      canProcessPurchaseOrderInventoryEntry(order) &&
+      detail?.requires_inventory_entry !== false;
+   const isProcessDisabled =
+      isLoading || isDetailLoading || isError || !hasProducts || !canProcessEntry;
 
    const handleClose = () => {
       if (isLoading) return;
