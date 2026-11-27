@@ -22,6 +22,7 @@ import {
 
 type EmptyQuotationItemOptions = {
   currency_code?: CurrencyCode | null;
+  is_included?: boolean;
 };
 
 export const toNumberOrUndefined = (value: unknown) => {
@@ -52,6 +53,7 @@ export const emptyQuotationItem = (
   }
 
   return {
+    is_included: priceOptions?.is_included ?? true,
     supplier_id: supplier?.supplier_id ?? "",
     supplier_legal_name: supplier?.supplier_legal_name ?? "",
     purchase_request_item_id: purchaseRequestItemId,
@@ -86,11 +88,13 @@ export const mapDraftItemToForm = (
     payment_method_type,
     attachments,
     currency,
-    create_supplier_product_if_missing: _createLink,
+    create_supplier_product_if_missing: createLink,
     ...rest
   } = item;
+  void createLink;
   return {
     ...rest,
+    is_included: true,
     inventory_available: item.inventory_available !== false,
     product_quality: item.product_quality ?? ProductQualityEnum.Good.textValue,
     payment_method: normalizePaymentMethodType(payment_method_type),
@@ -124,18 +128,28 @@ export const buildInitialQuotationItems = (
         item.purchase_request_item_id === purchaseRequestItemId),
   );
 
-  if (draftItems.length > 0) {
-    return draftItems.map(mapDraftItemToForm);
+  const hasExistingDraft = draftItems.length > 0;
+  const draftBySupplierId = new Map<string, DraftQuotationItem>();
+  for (const draft of draftItems) {
+    const supplierId = draft.supplier_id?.trim();
+    if (supplierId) {
+      draftBySupplierId.set(supplierId, draft);
+    }
   }
 
   const linkedSuppliers = product.product_details?.supplier_products ?? [];
   const seenSupplierIds = new Set<string>();
 
-  return linkedSuppliers.flatMap((supplierProduct) => {
+  const catalogItems = linkedSuppliers.flatMap((supplierProduct) => {
     const supplierId = supplierProduct.supplier_id?.trim();
     if (!supplierId || seenSupplierIds.has(supplierId)) return [];
 
     seenSupplierIds.add(supplierId);
+
+    const existingDraft = draftBySupplierId.get(supplierId);
+    if (existingDraft) {
+      return [mapDraftItemToForm(existingDraft)];
+    }
 
     const legalName =
       supplierProduct.suppliers_legal_name?.trim() ||
@@ -153,10 +167,20 @@ export const buildInitialQuotationItems = (
         undefined,
         {
           currency_code: toQuotationCurrency(supplierProduct.currency),
+          is_included: !hasExistingDraft,
         },
       ),
     ];
   });
+
+  const extraDraftItems = draftItems
+    .filter((draft) => {
+      const supplierId = draft.supplier_id?.trim();
+      return Boolean(supplierId) && !seenSupplierIds.has(supplierId);
+    })
+    .map(mapDraftItemToForm);
+
+  return [...catalogItems, ...extraDraftItems];
 };
 
 export const hasBlockedCatalogPrice = (
@@ -164,30 +188,38 @@ export const hasBlockedCatalogPrice = (
   supplierLinksByItemId: Map<string, PurchaseRequestSupplierProduct[]>,
 ): boolean =>
   values.products.some((product) =>
-    product.items.some((item) => {
-      const links =
-        supplierLinksByItemId.get(product.purchase_request_item_id) ?? [];
-      const link = links.find(
-        (entry) => entry.supplier_id === item.supplier_id,
-      );
-      return resolveSupplierLinkPrice(link, product.quantity).amount <= 0;
-    }),
+    product.items
+      .filter((item) => item.is_included !== false)
+      .some((item) => {
+        const links =
+          supplierLinksByItemId.get(product.purchase_request_item_id) ?? [];
+        const link = links.find(
+          (entry) => entry.supplier_id === item.supplier_id,
+        );
+        return resolveSupplierLinkPrice(link, product.quantity).amount <= 0;
+      }),
   );
 
 export const mapFormValuesToDraftItems = (
   values: QuoteProductFormValues,
 ): DraftQuotationItem[] =>
   values.products.flatMap((product) =>
-    product.items.map(
-      ({
-        supplier_payment_methods: _spm,
-        preferred_payment_method: _ppm,
-        payment_method: paymentMethodForm,
-        attachments_form: attachmentsForm,
-        supplier_legal_name,
-        currency_code,
-        ...item
-      }) => {
+    product.items
+      .filter((item) => item.is_included !== false)
+      .map(
+        ({
+          is_included: isIncluded,
+          supplier_payment_methods: spm,
+          preferred_payment_method: ppm,
+          payment_method: paymentMethodForm,
+          attachments_form: attachmentsForm,
+          supplier_legal_name,
+          currency_code,
+          ...item
+        }) => {
+          void isIncluded;
+          void spm;
+          void ppm;
         const isInventoryAvailable = item.inventory_available !== false;
         const images = (attachmentsForm?.images ?? [])
           .map((image) => {

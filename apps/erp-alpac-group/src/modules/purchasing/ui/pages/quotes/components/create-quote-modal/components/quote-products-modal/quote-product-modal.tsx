@@ -20,6 +20,7 @@ export function QuoteProductModal({
 	isOpen,
 	products,
 	existingItems = [],
+	minSuppliersPerProduct = MIN_SUPPLIERS_PER_PRODUCT,
 	onClose,
 	onConfirm,
 }: QuoteProductModalProps) {
@@ -77,19 +78,20 @@ export function QuoteProductModal({
 	};
 
 	const onSubmit = async (values: QuoteProductFormValues) => {
+		const isValid = await trigger();
+		if (!isValid) return;
+
 		const invalidProduct = values.products.find((product) => {
 			const uniqueSupplierIds = new Set(
 				product.items
+					.filter((item) => item.is_included !== false)
 					.map((item) => item.supplier_id?.trim())
 					.filter(Boolean),
 			);
-			return uniqueSupplierIds.size < MIN_SUPPLIERS_PER_PRODUCT;
+			return uniqueSupplierIds.size < minSuppliersPerProduct;
 		});
 
 		if (invalidProduct) return;
-
-		const isValid = await trigger();
-		if (!isValid) return;
 
     if (hasBlockedCatalogPrice(values, supplierLinksByItemId)) return;
 
@@ -131,6 +133,7 @@ export function QuoteProductModal({
 												productIndex={index}
 												productName={field.product_name}
 												categoryName={field.category_name}
+												minSuppliersPerProduct={minSuppliersPerProduct}
                         isLoadingPaymentMethods={isEnrichingPaymentMethods}
                         isOpen={isOpen}
 											/>
@@ -143,6 +146,7 @@ export function QuoteProductModal({
 
           <QuoteConfirmActions
             productsCount={productsCount}
+            minSuppliersPerProduct={minSuppliersPerProduct}
             isSubmitting={isSubmitting}
             isEnrichingPaymentMethods={isEnrichingPaymentMethods}
             supplierLinksByItemId={supplierLinksByItemId}

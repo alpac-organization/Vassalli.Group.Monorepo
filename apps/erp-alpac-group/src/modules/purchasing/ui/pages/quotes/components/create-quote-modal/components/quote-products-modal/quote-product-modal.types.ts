@@ -9,6 +9,7 @@ import type { PaymentMethodType } from "@app/core/enums/payment-method.enum";
 import type { CurrencyCode } from "@app/core/enums/currency.enum";
 import type { ImageOutput } from "@app/shared/components/image-uploader/image-uploader.types";
 
+export const MIN_SUPPLIERS_CRITICAL_REQUISITION = 1;
 export const MIN_SUPPLIERS_PER_PRODUCT = 2;
 
 export type DraftQuotationItem = QuotationItem & {
@@ -20,6 +21,7 @@ export type QuoteProductModalProps = {
 	isOpen: boolean;
 	products: PurchaseRequestProductInformation[];
 	existingItems?: DraftQuotationItem[];
+	minSuppliersPerProduct?: number;
 	onClose: () => void;
 	onConfirm?: (items: DraftQuotationItem[]) => void;
 };
@@ -38,6 +40,7 @@ export type QuotationItemForm = Omit<
 	| "currency"
 	| "create_supplier_product_if_missing"
 > & {
+	is_included?: boolean;
 	payment_method?: PaymentMethodType;
 	supplier_legal_name?: string;
 	supplier_payment_methods?: SupplierPaymentMethod[];
@@ -66,12 +69,17 @@ export type QuotationItemFieldsProps = {
 	supplierLegalName: string;
 	isLoadingPaymentMethods?: boolean;
 	isOpen?: boolean;
+	isIncluded?: boolean;
+	canSelectOnlyThis?: boolean;
+	onToggleInclude?: (nextIncluded: boolean) => void;
+	onSelectOnlyThis?: () => void;
 };
 
 export type QuoteProductGroupFieldsProps = {
 	productIndex: number;
 	productName: string;
 	categoryName?: string | null;
+	minSuppliersPerProduct?: number;
 	isLoadingPaymentMethods?: boolean;
 	isOpen?: boolean;
 };
