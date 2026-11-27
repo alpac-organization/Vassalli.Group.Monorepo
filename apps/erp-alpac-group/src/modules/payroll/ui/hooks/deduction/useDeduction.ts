@@ -4,6 +4,8 @@ import { DeductionsServicesByPayroll } from "@app/modules/payroll/infrastructure
 import { httpHandler } from "@app/core/adapters/axiosAdapter";
 
 import type { CreateDeductionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/create-deduction.request";
+import type { RegisterChildSupportOfficialLetterRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/register-child-support-official-letter.request";
+import type { UpdateDeductionRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/update-deduction.request";
 import type { GetDeductionsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/get-deductions.request";
 import type { GetDeductionDetailsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/get-deduction-details.request";
 import type { GetDeductionPaymentsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/get-deduction-payments.request";
@@ -36,6 +38,45 @@ export const useDeduction = () => {
           variables.module_code,
         ],
       });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "deductions",
+          variables.company_id,
+          variables.module_code,
+        ],
+      });
+    },
+  });
+
+  const RegisterChildSupportOfficialLetter = useMutation<
+    void,
+    ApiErrorResponse,
+    RegisterChildSupportOfficialLetterRequest
+  >({
+    mutationFn: (payload: RegisterChildSupportOfficialLetterRequest) => {
+      return deductionServices.RegisterChildSupportOfficialLetter(payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deductions"] });
+      queryClient.invalidateQueries({ queryKey: ["deductionDetails"] });
+      queryClient.invalidateQueries({ queryKey: ["deductionPayments"] });
+      queryClient.invalidateQueries({ queryKey: ["detailsPayroll"] });
+    },
+  });
+
+  const UpdateDeduction = useMutation<
+    void,
+    ApiErrorResponse,
+    UpdateDeductionRequest
+  >({
+    mutationFn: (payload: UpdateDeductionRequest) => {
+      return deductionServices.UpdateDeduction(payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deductions"] });
+      queryClient.invalidateQueries({ queryKey: ["deductionDetails"] });
+      queryClient.invalidateQueries({ queryKey: ["deductionPayments"] });
+      queryClient.invalidateQueries({ queryKey: ["detailsPayroll"] });
     },
   });
 
@@ -51,6 +92,7 @@ export const useDeduction = () => {
         payload.identification_number,
         payload.status,
         payload.type,
+        payload.has_official_letter,
         payload.page_number,
         payload.page_size,
       ],
@@ -98,6 +140,8 @@ export const useDeduction = () => {
 
   return {
     CreateDeduction,
+    RegisterChildSupportOfficialLetter,
+    UpdateDeduction,
     useGetDeductions,
     useGetDeductionDetails,
     useGetDeductionPayments,

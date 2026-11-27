@@ -1,33 +1,40 @@
 import {
+  Banner,
   Breadcrumb,
   Button,
   Dropdown,
   InputText,
   Pagination,
-  useTheme,
-  type Option,
 } from "@alpac/design-system";
-
-import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
-import { m, LazyMotion } from "framer-motion";
-import { useCallback, useMemo, useState } from "react";
-import { Controller, useForm, type SubmitHandler } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
-import { ActiveDeductionTable } from "./components/active-deduction-table/active-deduction-table";
-import { useDeduction } from "../../hooks/deduction/useDeduction";
-import { useUserStore } from "@app/shared/stores/useUserStore";
-import { Loader } from "@app/shared/components/loaders/loader";
 import { IdentificationEnum } from "@app/core/enums/identification.enum";
+import type { GetDeductionsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/get-deductions.request";
+import type { DeductionDto } from "@app/modules/payroll/domain/ApiContract/Responses/deduction-responses/get-deductions.response";
 import { DeductionTypeEnum } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-type.enum";
+import { Loader } from "@app/shared/components/loaders/loader";
+import { useAlertState } from "@app/shared/hooks/useAlertState";
+import { useMappedError } from "@app/shared/hooks/useMappedError";
+import { useModulePageHeader } from "@app/shared/hooks/useModulePageHeader";
+import { useUserStore } from "@app/shared/stores/useUserStore";
 import {
   formatIdentificationNumber,
   validateIdentificationNumber,
 } from "@app/shared/utils/string.utils";
-
-import type { GetDeductionsRequest } from "@app/modules/payroll/domain/ApiContract/Requests/deduction-requests/get-deductions.request";
-import type { DeductionDto } from "@app/modules/payroll/domain/ApiContract/Responses/deduction-responses/get-deductions.response";
+import { LazyMotion, m } from "framer-motion";
+import { useCallback, useMemo, useState } from "react";
+import { Controller, useForm, type SubmitHandler } from "react-hook-form";
+import { useDeduction } from "../../hooks/deduction/useDeduction";
 import { ActiveDeductionDetailModal } from "./components/active-deduction-detail-modal/active-deduction-detail-modal";
-import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
+import { ActiveDeductionTable } from "./components/active-deduction-table/active-deduction-table";
+import { ChildSupportDetailModal } from "./components/child-support-detail-modal/child-support-detail-modal";
+import {
+  DEDUCTION_TYPE_FILTER_OPTIONS,
+  deductionDropdownClassName,
+  deductionInputClassName,
+  deductionLabelClassName,
+  deductionPrimaryButtonClassName,
+  deductionSecondaryButtonClassName,
+  isChildSupportDeduction,
+} from "./utils/active-deduction.constants";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -41,35 +48,17 @@ type ActiveDeductionFilterForm = {
   type: DeductionTypeFilterValue;
 };
 
-const DEDUCTION_TYPE_FILTER_OPTIONS: Option[] = [
-  { label: "Todos los tipos", value: "all" },
-  ...Object.entries(DeductionTypeEnum).map(([key, item]) => ({
-    label: item.label,
-    value: key,
-  })),
-];
-
-const dropdownClassName =
-  "w-full! focus:ring-2! focus:ring-green-50/50! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600!";
-
-const inputClassName =
-  "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-
-const labelClassName = "text-black! dark:text-white!";
-
 export const ActiveDeductionsPage = () => {
-
-  const navigate = useNavigate();
-
-  const { theme } = useTheme();
-
-  const { urlImage, neutralUrlImage } = useCompanyStore();
-
   const { companyId, moduleCode } = useUserStore();
 
-  const { baseUrl } = useBaseUrl();
+  const { activeLogo, breadcrumbItems } = useModulePageHeader((baseUrl) => [
+    { label: "Dashboard", url: `${baseUrl}/` },
+    { label: "Deducciones Activas", url: `${baseUrl}/active-deductions` },
+  ]);
 
-  const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
+  const { AlertComponent, handleRequestSuccess, handleRequestError } =
+    useAlertState();
+  const { getMappedError } = useMappedError();
 
   const {
     register,
@@ -88,14 +77,11 @@ export const ActiveDeductionsPage = () => {
   const { useGetDeductions, useGetDeductionDetails } = useDeduction();
 
   const [pageNumber, setPageNumber] = useState(1);
-
   const [appliedType, setAppliedType] =
     useState<DeductionTypeFilterValue>("all");
-
   const [appliedIdentification, setAppliedIdentification] = useState("");
 
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-
   const [selectedDeduction, setSelectedDeduction] =
     useState<DeductionDto | null>(null);
 
@@ -114,20 +100,32 @@ export const ActiveDeductionsPage = () => {
     [companyId, moduleCode, pageNumber, appliedType, appliedIdentification],
   );
 
-  const detailFIlters = {
+  const detailFilters = {
     company_id: companyId,
     module_code: moduleCode,
     deduction_id: selectedDeduction?.deduction_id ?? "",
     identification_number: selectedDeduction?.identification_number,
   };
 
-  const { data: deductions, isLoading, isFetching } = useGetDeductions(filters);
+  const {
+    data: deductions,
+    isLoading,
+    isFetching,
+    isError: isListError,
+    error: listError,
+  } = useGetDeductions(filters);
+
+  const listErrorDescription =
+    isListError && listError
+      ? getMappedError(listError).description ||
+        "No se pudo cargar las deducciones activas."
+      : null;
 
   const {
     data: detailData,
     isLoading: isDetailLoading,
     isError: isDetailError,
-  } = useGetDeductionDetails(detailFIlters, {
+  } = useGetDeductionDetails(detailFilters, {
     enabled:
       isDetailOpen &&
       !!selectedDeduction?.deduction_id &&
@@ -136,6 +134,7 @@ export const ActiveDeductionsPage = () => {
   });
 
   const datasource = deductions?.data ?? [];
+  const isChildSupportSelected = isChildSupportDeduction(selectedDeduction);
 
   const handlePageChange = useCallback((page: number) => {
     setPageNumber(page);
@@ -146,7 +145,7 @@ export const ActiveDeductionsPage = () => {
       setAppliedType(data.type);
       setAppliedIdentification(
         data.identification_number?.replace(/-/g, "").trim().toUpperCase() ??
-        "",
+          "",
       );
       setPageNumber(1);
     },
@@ -154,7 +153,10 @@ export const ActiveDeductionsPage = () => {
   );
 
   const handleClearFilters = useCallback(() => {
-    reset({ identification_number: "", type: "all" });
+    reset({
+      identification_number: "",
+      type: "all",
+    });
     setAppliedType("all");
     setAppliedIdentification("");
     setPageNumber(1);
@@ -170,6 +172,23 @@ export const ActiveDeductionsPage = () => {
     setSelectedDeduction(null);
   }, []);
 
+  const handleDetailActionSuccess = useCallback(
+    (message: string, closeModal?: boolean) => {
+      handleRequestSuccess(message);
+      if (closeModal) {
+        handleCloseDetail();
+      }
+    },
+    [handleRequestSuccess, handleCloseDetail],
+  );
+
+  const handleDetailActionError = useCallback(
+    (message?: string) => {
+      handleRequestError(message || "Ocurrió un error al procesar la acción.");
+    },
+    [handleRequestError],
+  );
+
   return (
     <LazyMotion features={loadFeatures}>
       <m.div
@@ -179,44 +198,35 @@ export const ActiveDeductionsPage = () => {
         transition={{ duration: 0.5 }}
         className="flex flex-col gap-4"
       >
-        {isLoading && <Loader title="Cargando Deducciones Activas..." />}
+        {(isLoading || isFetching) && (
+          <Loader title="Cargando Deducciones Activas..." />
+        )}
+
+        {AlertComponent}
 
         <div className="flex justify-start">
-          <Breadcrumb
-            items={[
-              {
-                label: "Dashboard",
-                url: `${baseUrl}/`,
-                onClick: (url) => navigate(url)
-              },
-              {
-                label: "Deducciones Activas",
-                url: `${baseUrl}/active-deductions`,
-                onClick: (url) => navigate(url),
-              },
-            ]}
-          />
+          <Breadcrumb items={breadcrumbItems} />
         </div>
 
         <div className="flex flex-col">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <div className="flex flex-col justify-center">
-              <h3 className="p-0! m-0!">Deducciones Activas</h3>
-              <small className="text-gray-500 dark:text-gray-300 mt-2">
-                Aqui puedes observar las deducciones activas
+              <h3 className="m-0! p-0!">Deducciones Activas</h3>
+              <small className="mt-2 text-gray-500 dark:text-gray-300">
+                Aquí puedes observar las deducciones activas
               </small>
             </div>
             <img
-              className="h-12 sm:h-16 md:h-20 w-auto object-contain"
+              className="h-12 w-auto object-contain sm:h-16 md:h-20"
               src={activeLogo}
               alt="logo alpac"
             />
           </div>
         </div>
 
-        <div className="flex justify-between items-center pt-4 border-t border-t-slate-600 dark:border-t-neutral-600">
+        <div className="flex items-center justify-between border-t border-t-slate-600 pt-4 dark:border-t-neutral-600">
           <div className="flex flex-col justify-center">
-            <h3 className="p-0! m-0!">Filtros</h3>
+            <h3 className="m-0! p-0!">Filtros</h3>
             <small className="text-gray-500 dark:text-gray-300">
               Filtra por identificación o tipo de deducción
             </small>
@@ -225,13 +235,13 @@ export const ActiveDeductionsPage = () => {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 items-end"
+          className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2 lg:grid-cols-4"
         >
           <div className="flex flex-col">
             <InputText
               label="Identificación"
-              className={inputClassName}
-              labelClassName={labelClassName}
+              className={deductionInputClassName}
+              labelClassName={deductionLabelClassName}
               type="text"
               placeholder="Ingrese la identificación"
               errorVariant="tooltip"
@@ -269,9 +279,9 @@ export const ActiveDeductionsPage = () => {
                     field.onChange(value as DeductionTypeFilterValue)
                   }
                   options={DEDUCTION_TYPE_FILTER_OPTIONS}
-                  labelClassName={labelClassName}
-                  valueClassName={labelClassName}
-                  className={dropdownClassName}
+                  labelClassName={deductionLabelClassName}
+                  valueClassName={deductionLabelClassName}
+                  className={deductionDropdownClassName}
                 />
               )}
             />
@@ -282,7 +292,7 @@ export const ActiveDeductionsPage = () => {
               type="submit"
               size="giant"
               disabled={!isValid || !isDirty}
-              className="w-full! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+              className={deductionPrimaryButtonClassName}
               label="Aplicar filtros"
             />
           </div>
@@ -291,36 +301,56 @@ export const ActiveDeductionsPage = () => {
             <Button
               type="button"
               size="giant"
-              className="w-full! text-[15px]! rounded-md! text-white! bg-slate-500! dark:bg-slate-700!"
+              className={deductionSecondaryButtonClassName}
               label="Limpiar filtros"
               onClick={handleClearFilters}
             />
           </div>
         </form>
 
-        <div className="flex flex-col">
-          <ActiveDeductionTable
-            data={datasource}
-            onViewDetail={handleViewDetail}
-            pagination={
-              <Pagination
-                currentPage={deductions?.page_number ?? 0}
-                pageSize={deductions?.page_size ?? 0}
-                totalRecords={deductions?.total_deductions ?? 0}
-                onPageChange={handlePageChange}
-                disabled={isFetching}
-              />
-            }
+        {listErrorDescription ? (
+          <Banner
+            variant="error"
+            title="Error al cargar las deducciones"
+            description={listErrorDescription}
           />
-        </div>
+        ) : (
+          <div className="flex flex-col">
+            <ActiveDeductionTable
+              data={datasource}
+              isLoading={isLoading}
+              onViewDetail={handleViewDetail}
+              pagination={
+                <Pagination
+                  currentPage={deductions?.page_number ?? pageNumber}
+                  pageSize={deductions?.page_size ?? PAGE_SIZE}
+                  totalRecords={deductions?.total_deductions ?? 0}
+                  onPageChange={handlePageChange}
+                  disabled={isFetching}
+                />
+              }
+            />
+          </div>
+        )}
 
         <ActiveDeductionDetailModal
-          isOpen={isDetailOpen}
+          isOpen={isDetailOpen && !isChildSupportSelected}
           onClose={handleCloseDetail}
           summary={selectedDeduction}
           detail={detailData}
           isLoading={isDetailLoading}
           isError={isDetailError}
+        />
+
+        <ChildSupportDetailModal
+          isOpen={isDetailOpen && isChildSupportSelected}
+          onClose={handleCloseDetail}
+          summary={selectedDeduction}
+          detail={detailData}
+          isLoading={isDetailLoading}
+          isError={isDetailError}
+          onActionSuccess={handleDetailActionSuccess}
+          onActionError={handleDetailActionError}
         />
       </m.div>
     </LazyMotion>

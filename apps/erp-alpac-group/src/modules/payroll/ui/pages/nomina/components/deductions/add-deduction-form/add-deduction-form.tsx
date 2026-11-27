@@ -9,6 +9,7 @@ import { Sanctions } from "@app/modules/payroll/ui/pages/nomina/components/deduc
 import { JudicialGarnishment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/judicial-garnishment/judicial-garnishment";
 import { LoanRepayment } from "@app/modules/payroll/ui/pages/nomina/components/deductions/loan-repayment/loan-repayment";
 import { useDeduction } from "@app/modules/payroll/ui/hooks/deduction/useDeduction";
+import { hasAnyChildSupportConcept } from "@app/modules/payroll/ui/pages/nomina/components/deductions/child-support-garnishment/child-support-form.utils";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { FileUploader } from "@app/shared/components/file-uploader/file-uploader";
 import { CollaboratorSummary } from "@app/modules/payroll/ui/pages/permissions/components/new-permission-request/collaborator-summary";
@@ -34,6 +35,8 @@ import type { AddDeductionFormProps } from "./add-deduction-form.types";
 
 import type {
    AddDeductionFormValues,
+   ChildSupportPayload,
+   CreateChildSupportDeductionRequest,
    CreateJudicialSeizureDeductionRequest,
    CreateLateArrivalsDeductionRequest,
    CreateLoanDeductionRequest,
@@ -65,6 +68,7 @@ const isPurisimaType = (type: AddDeductionFormValues["deduction_type"]) => type 
 const isLoanRepayment = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionTypeEnum.Loans.value;
 const isJudicialGarnishment = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionTypeEnum.JudicialGarnishment.value;
 const isSanctionType = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionTypeEnum.Sanction.value;
+const isChildSupportGarnishment = (type: AddDeductionFormValues["deduction_type"]) => type === DeductionTypeEnum.ChildSupportGarnishment.value;
 
 export const AddDeductionForm = ({
    branchId,
@@ -130,6 +134,8 @@ export const AddDeductionForm = ({
 
    const sanctionAmountDays = methods.watch("sansion_payload.amount_days");
 
+   const childSupportPayloadWatch = methods.watch("child_support_payload");
+
    useEffect(() => {
 
       if (!isLateArrivalType(deductionType)) methods.setValue("late_arrivals_information", undefined);
@@ -137,6 +143,27 @@ export const AddDeductionForm = ({
       if (!isPurisimaType(deductionType)) methods.setValue("purisima_information", undefined);
 
       if (!isLoanRepayment(deductionType)) methods.setValue("loans_payload", undefined);
+
+      if (isChildSupportGarnishment(deductionType)) {
+         const current = methods.getValues("child_support_payload");
+         if (!current) {
+            methods.setValue("child_support_payload", {
+               is_percentage: true,
+               currency: 1,
+               deduct_from_salary: true,
+               deduct_from_overtime: true,
+               deduct_from_christmas_bonus: true,
+               deduct_from_liquidation: true,
+               has_official_letter: false,
+               seizure_act_number: "",
+               start_date: "",
+               beneficiary_name: "",
+               description: "",
+            });
+         }
+      } else {
+         methods.setValue("child_support_payload", undefined);
+      }
 
    }, [deductionType, methods]);
 
@@ -420,7 +447,9 @@ export const AddDeductionForm = ({
             },
             onError: (error: ApiErrorResponse) => {
                const mappedError = getMappedError(error);
-               onRequestError?.(mappedError?.description);
+               onRequestError?.(
+                  mappedError.description || "No se pudo registrar el embargo alimenticio",
+               );
             },
          });
 
@@ -482,7 +511,9 @@ export const AddDeductionForm = ({
             },
             onError: (error: ApiErrorResponse) => {
                const mappedError = getMappedError(error);
-               onRequestError?.(mappedError?.description);
+               onRequestError?.(
+                  mappedError.description || "No se pudo registrar el embargo alimenticio",
+               );
             },
          });
 
@@ -521,7 +552,115 @@ export const AddDeductionForm = ({
             },
             onError: (error: ApiErrorResponse) => {
                const mappedError = getMappedError(error);
-               onRequestError?.(mappedError?.description);
+               onRequestError?.(
+                  mappedError.description || "No se pudo registrar el embargo alimenticio",
+               );
+            },
+         });
+         return;
+      }
+
+      if (isChildSupportGarnishment(data.deduction_type)) {
+         if (!foundCollaborator) {
+            onRequestError?.("Debe buscar un colaborador para agregar un embargo alimenticio");
+            return;
+         }
+
+         const cs = data.child_support_payload;
+         const seizureActNumber = cs?.seizure_act_number?.trim() ?? "";
+         const startDate = cs?.start_date ?? "";
+         const isPercentage = cs?.is_percentage !== false;
+         const percentage = cs?.percentage != null ? Number(cs.percentage) : null;
+         const fixedAmount = cs?.fixed_amount != null ? Number(cs.fixed_amount) : null;
+         const currency = Number(cs?.currency ?? 1);
+         const hasOfficialLetter = Boolean(cs?.has_official_letter);
+         const officialLetterNumber = cs?.official_letter_number?.trim() || null;
+         const officialLetterDate = cs?.official_letter_date || null;
+
+         const deductFromSalary = Boolean(cs?.deduct_from_salary);
+         const deductFromOvertime = Boolean(cs?.deduct_from_overtime);
+         const deductFromChristmasBonus = Boolean(cs?.deduct_from_christmas_bonus);
+         const deductFromLiquidation = Boolean(cs?.deduct_from_liquidation);
+
+         if (!seizureActNumber) {
+            onRequestError?.("El número de Acta de Embargo es obligatorio");
+            return;
+         }
+
+         if (!startDate) {
+            onRequestError?.("La fecha de inicio del Acta es obligatoria");
+            return;
+         }
+
+         if (!hasAnyChildSupportConcept({
+            deduct_from_salary: deductFromSalary,
+            deduct_from_overtime: deductFromOvertime,
+            deduct_from_christmas_bonus: deductFromChristmasBonus,
+            deduct_from_liquidation: deductFromLiquidation,
+         })) {
+            onRequestError?.("Debe seleccionar al menos un concepto de aplicación");
+            return;
+         }
+
+         if (isPercentage && (!percentage || percentage <= 0 || percentage > 60)) {
+            onRequestError?.("El porcentaje debe ser mayor a 0 y no exceder 60%");
+            return;
+         }
+
+         if (!isPercentage && (!fixedAmount || fixedAmount <= 0 || !currency || currency <= 0)) {
+            onRequestError?.("Debe seleccionar una moneda y un monto fijo mayor a 0");
+            return;
+         }
+
+         if (hasOfficialLetter && (!officialLetterNumber || !officialLetterDate)) {
+            onRequestError?.("El número y fecha de oficio son obligatorios cuando cuenta con oficio");
+            return;
+         }
+
+         const childSupportPayload: ChildSupportPayload = {
+            identification_number: foundCollaborator.personal_information.identification_number!,
+            is_percentage: isPercentage,
+            percentage: isPercentage ? percentage : null,
+            fixed_amount: !isPercentage ? fixedAmount : null,
+            currency,
+            deduct_from_salary: deductFromSalary,
+            deduct_from_overtime: deductFromOvertime,
+            deduct_from_christmas_bonus: deductFromChristmasBonus,
+            deduct_from_liquidation: deductFromLiquidation,
+            seizure_act_number: seizureActNumber,
+            start_date: startDate,
+            seizure_act_file_base64: cs?.seizure_act_file_base64 ?? null,
+            seizure_act_file_name: cs?.seizure_act_file_name ?? null,
+            has_official_letter: hasOfficialLetter,
+            official_letter_number: hasOfficialLetter ? officialLetterNumber : null,
+            official_letter_date: hasOfficialLetter ? officialLetterDate : null,
+            official_letter_file_base64: hasOfficialLetter ? (cs?.official_letter_file_base64 ?? null) : null,
+            official_letter_file_name: hasOfficialLetter ? (cs?.official_letter_file_name ?? null) : null,
+            beneficiary_name: cs?.beneficiary_name?.trim() || null,
+            description: cs?.description?.trim() || null,
+         };
+
+         const requestPayload: CreateChildSupportDeductionRequest = {
+            company_id: data.company_id,
+            module_code: data.module_code,
+            branch_id: data.branch_id,
+            payroll_id: data.payroll_id,
+            deduction_type: Number(DeductionTypeEnum.ChildSupportGarnishment.value),
+            child_support_payload: childSupportPayload,
+         };
+
+         CreateDeduction.mutate(requestPayload, {
+            onSuccess: () => {
+               methods.reset();
+               onSubmit?.(requestPayload);
+               onRequestSuccess?.("Embargo alimenticio registrado correctamente");
+               onCancel?.();
+            },
+            onError: (error: ApiErrorResponse) => {
+               const mappedError = getMappedError(error);
+               onRequestError?.(
+                  mappedError.description || "No se pudo registrar el embargo alimenticio",
+               );
             },
          });
          return;
@@ -576,6 +715,24 @@ export const AddDeductionForm = ({
 
    const isSanctionReady = !!foundCollaborator && Number(sanctionAmountDays);
 
+   const isChildSupportReady = (() => {
+      if (!foundCollaborator || !childSupportPayloadWatch) return false;
+      const hasAct = !!childSupportPayloadWatch.seizure_act_number?.trim() && !!childSupportPayloadWatch.start_date;
+      const hasConcept = hasAnyChildSupportConcept(childSupportPayloadWatch);
+      const isPct = childSupportPayloadWatch.is_percentage !== false;
+      const pctVal = Number(childSupportPayloadWatch.percentage);
+      const fixedVal = Number(childSupportPayloadWatch.fixed_amount);
+      const currVal = Number(childSupportPayloadWatch.currency);
+      const hasAmount = isPct
+         ? pctVal > 0 && pctVal <= 60
+         : fixedVal > 0 && currVal > 0;
+      const hasLetter = !childSupportPayloadWatch.has_official_letter || (
+         !!childSupportPayloadWatch.official_letter_number?.trim() &&
+         !!childSupportPayloadWatch.official_letter_date
+      );
+      return hasAct && hasConcept && hasAmount && hasLetter;
+   })();
+
    const isSubmitDisabled =
       CreateDeduction.isPending ||
       !methods.formState.isDirty ||
@@ -584,7 +741,8 @@ export const AddDeductionForm = ({
       (isPurisimaType(deductionType) && !isPurisimaReady) ||
       (isLoanRepayment(deductionType) && !isLoanReady) ||
       (isJudicialGarnishment(deductionType) && !isJudicialGarnishmentReady) ||
-      (isSanctionType(deductionType) && !isSanctionReady);
+      (isSanctionType(deductionType) && !isSanctionReady) ||
+      (isChildSupportGarnishment(deductionType) && !isChildSupportReady);
 
    return (
       <FormProvider {...methods}>
@@ -668,6 +826,7 @@ export const AddDeductionForm = ({
                   isLoanRepayment(deductionType) ||
                   isJudicialGarnishment(deductionType) ||
                   isSanctionType(deductionType) ||
+                  isChildSupportGarnishment(deductionType) ||
                   (
                      (isPurisimaType(deductionType) || isLateArrivalType(deductionType)) &&
                      selectedInputMethod === "manualEntry"
@@ -852,7 +1011,7 @@ export const AddDeductionForm = ({
                      </m.div>
                   )}
 
-                  {deductionType === DeductionTypeEnum.ChildSupportGarnishment.value && (
+                  {isChildSupportGarnishment(deductionType) && !!foundCollaborator && (
                      <m.div
                         key="child-support-garnishment"
                         initial={{ opacity: 0, y: 12, height: 0, overflow: "hidden" }}
