@@ -1,5 +1,6 @@
 import { Fragment, useState } from "react";
 import {
+  BanIcon,
   BuildingIcon,
   CalendarIcon,
   CoinsIcon,
@@ -236,12 +237,54 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                   <Fragment>
                      {detail && (
                         <Fragment>
-                           {isCanceledEntry && annulmentReason && (
-                              <Banner
-                                 variant="error"
-                                 title="Entrada de inventario anulada"
-                                 description={`Motivo de anulación: ${annulmentReason}`}
-                              />
+                           {isCanceledEntry && (
+                              <div
+                                 role="status"
+                                 className="relative overflow-hidden rounded-xl border border-red-200/90 bg-gradient-to-br from-red-50/90 via-white to-rose-50/50 p-4 sm:p-5 dark:border-red-500/30 dark:from-red-950/35 dark:via-[#1f232b] dark:to-red-950/15"
+                              >
+                                 <span
+                                    aria-hidden
+                                    className="absolute inset-y-0 left-0 w-1 bg-red-500 dark:bg-red-400"
+                                 />
+                                 <div className="flex flex-col gap-3.5 pl-1.5">
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                       <div className="flex items-start gap-3">
+                                          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-500/25 bg-red-500/12 text-red-600 dark:border-red-400/30 dark:bg-red-500/20 dark:text-red-300">
+                                             <BanIcon size={18} aria-hidden />
+                                          </span>
+                                          <div className="flex flex-col gap-0.5">
+                                             <h4 className="m-0 text-sm font-semibold text-red-950 dark:text-red-200">
+                                                Recepción descartada · Entrada anulada
+                                             </h4>
+                                             <p className="m-0 text-xs leading-relaxed text-slate-600 dark:text-slate-300">
+                                                Esta entrada fue anulada antes de su ingreso; no afectó las existencias ni generó movimientos en Kardex, y su requisición asociada quedó cancelada.
+                                             </p>
+                                          </div>
+                                       </div>
+
+                                       {annulledByName && (
+                                          <div className="flex shrink-0 items-center gap-2 self-start rounded-full border border-red-200/80 bg-white/80 px-3 py-1 text-xs text-slate-700 dark:border-red-500/25 dark:bg-black/25 dark:text-slate-200">
+                                             <UserIcon size={13} className="text-red-500 dark:text-red-300" aria-hidden />
+                                             <span className="text-slate-500 dark:text-slate-400">Anulado por:</span>
+                                             <span className="font-semibold text-slate-800 dark:text-white">
+                                                {annulledByName}
+                                             </span>
+                                          </div>
+                                       )}
+                                    </div>
+
+                                    {annulmentReason && (
+                                       <div className="rounded-lg border border-red-200/70 bg-white/85 px-3.5 py-2.5 dark:border-red-500/20 dark:bg-black/25">
+                                          <span className="block text-[11px] font-semibold tracking-wide text-red-700 uppercase dark:text-red-300">
+                                             Motivo registrado
+                                          </span>
+                                          <p className="m-0 mt-1 whitespace-pre-line text-sm leading-relaxed text-slate-800 dark:text-slate-100">
+                                             {annulmentReason}
+                                          </p>
+                                       </div>
+                                    )}
+                                 </div>
+                              </div>
                            )}
 
                            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -468,13 +511,14 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                         </SectionHeader>
                      )}
 
-                     {detail?.observations && (
-                        <SectionHeader title="Observaciones" hasBorder>
-                           <p className="m-0 w-full whitespace-pre-line text-sm leading-relaxed text-slate-700 dark:text-slate-200">
-                              {detail.observations}
-                           </p>
-                        </SectionHeader>
-                     )}
+                     {detail?.observations &&
+                        !(isCanceledEntry && detail.observations.trim() === annulmentReason) && (
+                           <SectionHeader title="Observaciones" hasBorder>
+                              <p className="m-0 w-full whitespace-pre-line text-sm leading-relaxed text-slate-700 dark:text-slate-200">
+                                 {detail.observations}
+                              </p>
+                           </SectionHeader>
+                        )}
                   </Fragment>
                )}
             </div>
