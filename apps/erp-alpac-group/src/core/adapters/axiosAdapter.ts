@@ -4,6 +4,8 @@ import type { ApiErrorResponse } from "@app/core/interfaces/ErrorResponse";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import type { CustomInternalAxiosRequestConfig } from "../interfaces/CustomInternalAxiosRequestConfig";
 import type { IAuthenticationServices } from "@app/modules/auth/application/interfaces/IAuthenticationServices";
+import type { LoginResponse } from "@app/modules/auth/domain/ApiContract/Responses/login.response";
+import { AuthenticationServices } from "@app/modules/auth/infrastructure/services/AuthenticationServices";
 import { useInactivityStore } from "@app/shared/stores/useInactivityStore";
 import { useServerErrorStore } from "@app/shared/stores/useServerErrorStore";
 import {
@@ -18,16 +20,22 @@ type ConfigType = {
   baseUrl?: string;
   apiKey?: string;
 };
+
 class AxiosHttpAdapter implements IHttpHandler {
   private instance: AxiosInstance;
-  private refreshIntervalId?: NodeJS.Timeout;
   private authenticationService?: IAuthenticationServices;
+  private static sharedAuthService?: IAuthenticationServices;
+  private static sharedRefreshPromise: Promise<LoginResponse | null> | null =
+    null;
+  private static sharedRefreshIntervalId?: ReturnType<typeof setInterval>;
 
   public setAuthenticationService(
     authenticationService: IAuthenticationServices,
   ) {
     this.authenticationService = authenticationService;
+    AxiosHttpAdapter.sharedAuthService = authenticationService;
   }
+
   constructor(config?: ConfigType) {
     const baseURL = config?.baseUrl ?? import.meta.env.VITE_API_URL;
     const apiKey = config?.apiKey ?? import.meta.env.VITE_API_KEY;
@@ -40,8 +48,10 @@ class AxiosHttpAdapter implements IHttpHandler {
       },
     });
 
-    // Inicia el refresh token cada 15 minutos
-    this.startRefreshToken(15 * 60 * 1000);
+    // Inicia un único intervalo compartido de refresh token cada 15 minutos
+    AxiosHttpAdapter.ensureSharedRefreshInterval(15 * 60 * 1000, () =>
+      this.refreshToken(),
+    );
 
     // Interceptor to request
     this.instance.interceptors.request.use((config) => {
@@ -96,10 +106,10 @@ class AxiosHttpAdapter implements IHttpHandler {
           originalRequest._retry = true;
 
           try {
-            // Intento renovar el token
+            // Intento renovar el token (compartiendo la promesa en vuelo si hay varios 401 paralelos)
             const response = await this.refreshToken();
 
-            if (response) {
+            if (response?.access_token) {
               // Actualizo el token en el header
               originalRequest.headers["Authorization"] =
                 `Bearer ${response.access_token}`;
@@ -128,10 +138,15 @@ class AxiosHttpAdapter implements IHttpHandler {
     );
   }
 
-  private startRefreshToken(miliseconds: number) {
-    if (this.refreshIntervalId) clearInterval(this.refreshIntervalId);
+  private static ensureSharedRefreshInterval(
+    miliseconds: number,
+    refreshCallback: () => Promise<LoginResponse | null>,
+  ) {
+    if (AxiosHttpAdapter.sharedRefreshIntervalId) return;
 
-    this.refreshIntervalId = setInterval(async () => {
+    AxiosHttpAdapter.sharedRefreshIntervalId = setInterval(async () => {
+      if (!CookieStorageAdapter.hasSession()) return;
+
       const { isInactive, lastActivity } = useInactivityStore.getState();
       const now = Date.now();
       const inactivityThreshold = 20 * 60 * 1000;
@@ -143,49 +158,56 @@ class AxiosHttpAdapter implements IHttpHandler {
         return;
       }
 
-      await this.refreshToken();
+      try {
+        await refreshCallback();
+      } catch (error) {
+        console.warn("No fue posible refrescar el token en segundo plano:", error);
+      }
     }, miliseconds);
   }
 
   private logout() {
-    // MUY IMPORTANTE: Detener el intervalo al cerrar sesion
-    if (this.refreshIntervalId) {
-      clearInterval(this.refreshIntervalId);
-    }
-
     clearControlVacationsSelectionStorage();
     clearPayrollSelectionStorage();
     clearSessionPersistedStores();
 
     CookieStorageAdapter.clearAuth();
-    window.location.href = "/auth";
+    if (typeof window !== "undefined" && window.location.pathname !== "/auth") {
+      window.location.href = "/auth";
+    }
   }
 
-  private async refreshToken(): Promise<any> {
-    try {
-      // Obtengo el refreshToken actual
-      const refreshToken = CookieStorageAdapter.getRefreshToken();
- 
-      // Verifico que el refreshToken y el companyAlias y el refresher no sean nulos
-      if (refreshToken && this.authenticationService) {
-        // Obtengo el nuevo token
-        const response =
-          await this.authenticationService.StartProcessToRefreshToken({
-            company_id: useUserStore.getState().companyId,
-            refresh_token: refreshToken,
-          });
+  private async refreshToken(): Promise<LoginResponse | null> {
+    if (AxiosHttpAdapter.sharedRefreshPromise) {
+      return AxiosHttpAdapter.sharedRefreshPromise;
+    }
 
-        // Actualizo los tokens en las cookies
+    const authService =
+      this.authenticationService ?? AxiosHttpAdapter.sharedAuthService;
+    const refreshToken = CookieStorageAdapter.getRefreshToken();
+    const companyId = useUserStore.getState().companyId;
+
+    if (!refreshToken || !companyId || !authService) {
+      return null;
+    }
+
+    AxiosHttpAdapter.sharedRefreshPromise = (async () => {
+      try {
+        const response = await authService.StartProcessToRefreshToken({
+          company_id: companyId,
+          refresh_token: refreshToken,
+        });
+
         CookieStorageAdapter.setToken(response.access_token);
         CookieStorageAdapter.setRefreshToken(response.refresh_token);
 
         return response;
+      } finally {
+        AxiosHttpAdapter.sharedRefreshPromise = null;
       }
-      return null;
-    } catch (refreshTokenError) {
-      // Solo propagamos el error para que el interceptor lo maneje
-      throw refreshTokenError;
-    }
+    })();
+
+    return AxiosHttpAdapter.sharedRefreshPromise;
   }
 
   async get<T>(url: string, config?: object): Promise<T> {
@@ -214,10 +236,14 @@ class AxiosHttpAdapter implements IHttpHandler {
   }
 }
 
-// Exportamos una instancia unica (Singleton)
+// Exportamos las instancias singleton con el servicio de autenticacion configurado en ambas
 export const httpHandler = new AxiosHttpAdapter();
 
 export const warehouseHttpHandler = new AxiosHttpAdapter({
   baseUrl: import.meta.env.VITE_API_URL_WAREHOUSE ?? "/api-warehouse",
   apiKey: import.meta.env.VITE_API_KEY_WAREHOUSE,
 });
+
+const defaultAuthenticationService = new AuthenticationServices(httpHandler);
+httpHandler.setAuthenticationService(defaultAuthenticationService);
+warehouseHttpHandler.setAuthenticationService(defaultAuthenticationService);

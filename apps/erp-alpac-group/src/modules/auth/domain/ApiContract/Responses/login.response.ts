@@ -100,6 +100,12 @@ interface CompanyInformation {
    image_url?: string;
 
    /**
+    * URL absoluta del logotipo neutral/blanco de la empresa para fondos oscuros.
+    * @optional Puede ser nulo si la empresa no tiene una imagen neutral configurada.
+    */
+   neutral_image_url?: string;
+
+   /**
     * Razón social o nombre comercial de la unidad de negocio.
     * @example "ALPAC Logística S.A."
     */

@@ -22,7 +22,11 @@ interface ExtendedNotificationOptions extends NotificationOptions {
   vibrate?: number[];
 }
 
-self.skipWaiting();
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    void self.skipWaiting();
+  }
+});
 clientsClaim();
 
 // Precache de assets compilados

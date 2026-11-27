@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { FormLayout } from "@app/shared/layouts";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { Alert, Button, Dropdown, InputText } from "@alpac/design-system";
 import fondoLogin from "@app/assets/login/fondoLogin.webp";
@@ -55,10 +55,8 @@ export const LoginPage = function () {
     handleSubmit,
     register,
     setError,
-    reset,
     setValue,
     control,
-    watch,
     formState: { errors, isDirty, isValid },
   } = useForm<LoginRequest>({
     mode: "onChange",
@@ -69,7 +67,10 @@ export const LoginPage = function () {
     },
   });
 
-  const selectedCompanyId = watch("company_id");
+  const selectedCompanyId = useWatch({
+    control,
+    name: "company_id",
+  });
 
   const defaultCompanyId = useMemo(
     () => resolveGrupoVasalliCompanyId(Array.isArray(data) ? data : undefined),
@@ -110,13 +111,16 @@ export const LoginPage = function () {
     const neutralLogo =
       company.neutral_image_url ?? company.image_url ?? defaultNeutralLogo;
 
-    useCompanyStore.setState({
-      urlImage: colorLogo,
-      neutralUrlImage: neutralLogo,
-    });
-
     return { color: colorLogo, neutral: neutralLogo };
   }, [data, selectedCompanyId]);
+
+  useEffect(() => {
+    if (!Array.isArray(data) || !selectedCompanyId) return;
+    useCompanyStore.setState({
+      urlImage: companyLogos.color,
+      neutralUrlImage: companyLogos.neutral,
+    });
+  }, [data, selectedCompanyId, companyLogos.color, companyLogos.neutral]);
 
   useEffect(() => {
     setDocumentFavicon(companyLogos.color, selectedCompanyId || "default");
@@ -131,7 +135,9 @@ export const LoginPage = function () {
           type: "value",
           message: "Debe seleccionar la empresa de origen",
         });
+        return;
       }
+
       await startLoginProcess.mutateAsync({
         password: state.password,
         username: state.username,
@@ -143,11 +149,9 @@ export const LoginPage = function () {
       setShowAuthError(true);
       setIsExiting(false);
       setErrorMessage(mappedError.description);
-    } finally {
-      reset({
-        password: "",
-        username: "",
-        company_id: defaultCompanyId ?? "",
+      setValue("password", "", {
+        shouldDirty: false,
+        shouldValidate: false,
       });
     }
   };
@@ -171,7 +175,7 @@ export const LoginPage = function () {
     }
   }, [showAuthError]);
 
-  if (isLoading || startLoginProcess.isPending) {
+  if (isLoading && !data) {
     return <ContentLoaded imageUrl={companyLogos.neutral} />;
   }
 
@@ -240,7 +244,7 @@ export const LoginPage = function () {
 
               <div className="w-full flex flex-col mt-5">
                 <Button
-                  disabled={!isDirty || !isValid}
+                  disabled={!isDirty || !isValid || startLoginProcess.isPending}
                   label="Iniciar sesión"
                   isLoading={startLoginProcess.isPending}
                   size="giant"

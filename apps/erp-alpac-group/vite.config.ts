@@ -23,8 +23,8 @@ export default defineConfig({
       strategies: "injectManifest",
       srcDir: "src",
       filename: "sw.ts",
-      registerType: "autoUpdate",
-      injectRegister: "auto", // Registra automáticamente el SW en el HTML
+      registerType: "prompt",
+      injectRegister: null,
       includeAssets: [
         "favicon.ico",
         "favicon.svg",

@@ -19,12 +19,19 @@ interface UseNotificationResult {
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 
 const isIOSDevice = (): boolean => {
-   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+   return (
+      typeof navigator !== 'undefined' &&
+      typeof window !== 'undefined' &&
+      /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+      !('MSStream' in window)
+   );
 };
 
 const isStandalone = (): boolean => {
+   if (typeof window === 'undefined') return false;
+   const nav = window.navigator as Navigator & { standalone?: boolean };
    return (
-      window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true
+      window.matchMedia('(display-mode: standalone)').matches || nav.standalone === true
    );
 };
 
@@ -42,10 +49,20 @@ export const useNotification = (): UseNotificationResult => {
    const { RegisterPushToken } = useNotificationConfig();
    const companyId = useUserStore((state) => state.companyId);
 
-   const [isIOS] = useState(isIOSDevice());
+   const [isIOS] = useState(isIOSDevice);
    const [isLoading, setIsLoading] = useState(false);
-   const [needsInstallOnIOS, setNeedsInstallOnIOS] = useState(false);
-   const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null);
+   const [needsInstallOnIOS, setNeedsInstallOnIOS] = useState(
+      () => isIOSDevice() && !isStandalone(),
+   );
+   const [permissionGranted, setPermissionGranted] = useState<boolean | null>(() => {
+      if (typeof window === 'undefined' || typeof Notification === 'undefined') {
+         return null;
+      }
+      if (isIOSDevice() && !isStandalone()) {
+         return null;
+      }
+      return Notification.permission === 'granted';
+   });
    const [fcmToken, setFcmToken] = useState<string | null>(null);
 
    const hasRegisteredToken = useRef(false);
@@ -131,7 +148,7 @@ export const useNotification = (): UseNotificationResult => {
       void getAndSendToken().then(() => {
          hasRegisteredToken.current = true;
       });
-   }, [companyId]);
+   }, [companyId, getAndSendToken, isIOS]);
 
    // Indica si el navegador puede levantar el popup nativo de permisos.
    // En iOS el popup nativo solo aparece si el PWA está instalado (standalone).
