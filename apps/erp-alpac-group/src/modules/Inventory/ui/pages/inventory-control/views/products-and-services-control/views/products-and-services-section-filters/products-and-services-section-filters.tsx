@@ -4,6 +4,7 @@ import { Button, Dropdown, InputText } from "@alpac/design-system"
 import { dropdownClassName, inputClassName, labelClassName } from "@app/modules/purchasing/ui/pages/supplier/utils/style"
 
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct"
+import { CategoryType } from "@app/modules/product/domain/enums/category-type.enum"
 import { useUserStore } from "@app/shared/stores/useUserStore"
 import { DEFAULT_PRODUCT_FILTERS } from "../../products-and-services-control.variant"
 
@@ -24,7 +25,8 @@ export const ProductsAndServicesSectionFilters = function(props: ProductsAndServ
    const { GetProductCategories } = useProduct({
       getProductCategoryPayload: { 
          company_id: companyId, 
-         module_code: moduleCode 
+         module_code: moduleCode,
+         category_type: CategoryType.Operational.textValue,
       },
    });
 

@@ -8,6 +8,7 @@ import { RoleEnum } from "@app/core/enums/role.enum";
 import { useAreas } from "@app/modules/admin/ui/hooks/areas/useAreas";
 import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
+import { CategoryType } from "@app/modules/product/domain/enums/category-type.enum";
 
 import { GetBranchesOptions, GetCostCenterOptions, GetProductCategoryOptions } from "@app/modules/Inventory/ui/pages/inventory-control/views/stock-control/stock-control.variants";
 import { dropdownClassName, inputClassName, labelClassName } from "@app/modules/purchasing/ui/pages/supplier/utils/style";
@@ -59,6 +60,7 @@ export const StockDailyReportFilters = function (props: {
       getProductCategoryPayload: {
          company_id: companyId,
          module_code: moduleCode,
+         category_type: CategoryType.Operational.textValue,
       },
    });
    const categoryOptions = GetProductCategoryOptions(GetProductCategories.data ?? []);
