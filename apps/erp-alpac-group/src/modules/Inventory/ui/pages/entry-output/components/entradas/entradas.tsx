@@ -182,8 +182,14 @@ export const Entradas = function () {
                       setEntryToRegister(null);
                    }
 
+                   const entryLabel = annulled.code ? ` ${annulled.code}` : "";
+                   const requestLabel = annulled.purchase_request_code
+                      ? ` (${annulled.purchase_request_code})`
+                      : "";
+
                    handleRequestSuccess(
-                      `La entrada ${annulled.code ?? ""} y su requisición asociada fueron anuladas correctamente.`.trim(),
+                      `La entrada${entryLabel} fue descartada sin afectar existencias y su requisición asociada${requestLabel} quedó cancelada con el motivo registrado.`,
+                      "Entrada de inventario anulada",
                    );
                 } catch (error) {
                    handleRequestError(error, "No se pudo anular la entrada de inventario.");
