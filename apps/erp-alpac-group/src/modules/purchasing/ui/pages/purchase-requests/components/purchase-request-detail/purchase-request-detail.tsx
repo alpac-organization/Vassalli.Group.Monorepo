@@ -580,6 +580,7 @@ export const PurchaseRequestDetail = ({
         selectionType="multiple"
         excludeProductIds={assignedProductIds}
         productUsageType={productUsageType}
+        categoryType={productUsageType}
         costCenterId={effectiveCostCenterId}
         branchId={effectiveBranchId}
       />

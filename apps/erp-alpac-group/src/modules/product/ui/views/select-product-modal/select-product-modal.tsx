@@ -54,6 +54,13 @@ export function SelectProductModal({
 	const { companyId, moduleCode } = useUserStore();
 	const normalizedCostCenterId = costCenterId?.trim() || undefined;
 	const normalizedBranchId = branchId?.trim() || undefined;
+	const effectiveCategoryType =
+		categoryType ??
+		(productUsageType === "Operational"
+			? "Operational"
+			: productUsageType === "Administrative"
+				? "Administrative"
+				: undefined);
 
 	const scopeOverrides = useMemo<Partial<GetProductRequest>>(
 		() => ({
@@ -78,6 +85,7 @@ export function SelectProductModal({
 		companyId,
 		moduleCode,
 		productUsageType,
+		effectiveCategoryType,
 		normalizedCostCenterId,
 		normalizedBranchId,
 	});
@@ -87,6 +95,7 @@ export function SelectProductModal({
 		listSession.companyId === companyId &&
 		listSession.moduleCode === moduleCode &&
 		listSession.productUsageType === productUsageType &&
+		listSession.effectiveCategoryType === effectiveCategoryType &&
 		listSession.normalizedCostCenterId === normalizedCostCenterId &&
 		listSession.normalizedBranchId === normalizedBranchId;
 
@@ -95,6 +104,7 @@ export function SelectProductModal({
 	if (!sessionMatches) {
 		const scopeChanged =
 			listSession.productUsageType !== productUsageType ||
+			listSession.effectiveCategoryType !== effectiveCategoryType ||
 			listSession.normalizedCostCenterId !== normalizedCostCenterId ||
 			listSession.normalizedBranchId !== normalizedBranchId;
 		const shouldResetQuery =
@@ -109,6 +119,7 @@ export function SelectProductModal({
 			companyId,
 			moduleCode,
 			productUsageType,
+			effectiveCategoryType,
 			normalizedCostCenterId,
 			normalizedBranchId,
 		});
@@ -143,11 +154,15 @@ export function SelectProductModal({
 
 	const { GetProductCategories, GetProducts } = useProduct({
 		getProductPayload: isOpen ? activeFilters : undefined,
-		getProductCategoryPayload: {
-			company_id:  companyId,
-			module_code: moduleCode,
-			...(categoryType ? { category_type: categoryType } : {}),
-		}
+		getProductCategoryPayload: isOpen
+			? {
+					company_id: companyId,
+					module_code: moduleCode,
+					...(effectiveCategoryType
+						? { category_type: effectiveCategoryType }
+						: {}),
+				}
+			: undefined,
 	});
 
 	const productCategories = useMemo(() => {
