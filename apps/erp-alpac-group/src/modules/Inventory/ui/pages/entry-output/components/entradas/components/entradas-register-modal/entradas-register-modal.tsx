@@ -67,7 +67,7 @@ const REGISTER_ENTRY_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
     render: (item) =>
       item.product_code ? (
         <Badges
-          label={item.product_code}
+          label={item.product_code.toUpperCase()}
           color={BADGE_COLORS.product}
           className={COMPACT_BADGE_CLASS}
         />
@@ -295,7 +295,7 @@ export const EntradasRegisterModal = function (props: EntradasRegisterModalProps
           className="flex flex-col gap-5"
         >
           <SectionHeader
-            title={detail.code ?? "Entrada de inventario"}
+            title={detail.code?.toUpperCase() ?? "Entrada de inventario"}
             subtitle={detail.supplier_name ?? undefined}
           >
             {statusVariant && (
@@ -307,7 +307,7 @@ export const EntradasRegisterModal = function (props: EntradasRegisterModalProps
             )}
             {detail.purchase_request_code && (
               <Badges
-                label={`Solicitud: ${detail.purchase_request_code}`}
+                label={`Solicitud: ${detail.purchase_request_code.toUpperCase()}`}
                 color={BADGE_COLORS.request}
                 className="whitespace-nowrap"
               />

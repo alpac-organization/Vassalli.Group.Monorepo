@@ -183,7 +183,7 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
             <div className="flex flex-col gap-5" aria-busy={isLoading}>
 
                <SectionHeader
-                  title={current.code ?? "Entrada de inventario"}
+                  title={current.code?.toUpperCase() ?? "Entrada de inventario"}
                   subtitle={headerSubtitle || undefined}
                >
                   {statusVariant && (
@@ -202,7 +202,7 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                   )}
                   {requestCode && (
                      <Badges
-                        label={`Solicitud: ${requestCode}`}
+                        label={`Solicitud: ${requestCode.toUpperCase()}`}
                         color={BADGE_COLORS.request}
                         className="whitespace-nowrap"
                      />
@@ -400,7 +400,7 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                                        value={
                                           purchaseRequest.code ? (
                                              <Badges
-                                                label={purchaseRequest.code}
+                                                label={purchaseRequest.code.toUpperCase()}
                                                 color={BADGE_COLORS.request}
                                                 className="whitespace-nowrap"
                                              />
