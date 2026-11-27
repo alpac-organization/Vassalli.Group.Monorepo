@@ -15,6 +15,7 @@ export interface GetPurchaseRequestResponse {
 	request_type: PurchaseRequestType;
 	request_status: PurchaseRequestStatusType;
 	annulment_reason: string | null;
+	creator_user_information?: UserInformation | null;
 	annulled_by_user_information: UserInformation | null;
 	created_at: string;
 }

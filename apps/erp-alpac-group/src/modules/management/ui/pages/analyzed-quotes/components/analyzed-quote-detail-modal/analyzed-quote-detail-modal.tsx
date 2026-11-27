@@ -15,6 +15,7 @@ import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purcha
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { useManagementReviewDetail } from "@app/modules/management/ui/hooks/useManagementReviewDetail";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
+import { formatBranchDisplay } from "@app/shared/utils/branch-display.utils";
 import {
   ImagePreviewGallery,
   type ImagePayload,
@@ -69,23 +70,19 @@ export const AnalyzedQuoteDetailModal = ({
     images: ImagePayload[];
   } | null>(null);
 
+  const reviewId = review?.purchase_requests_reviewed_management_id;
+
   const payloadGetRequisitionManagementReviewDetail = useMemo(() => {
-    if (!isOpen || !review?.purchase_requests_reviewed_management_id) {
+    if (!isOpen || !reviewId) {
       return undefined;
     }
 
     return {
       company_id: companyId,
       module_code: moduleCode,
-      requisition_management_review_id:
-        review.purchase_requests_reviewed_management_id,
+      requisition_management_review_id: reviewId,
     };
-  }, [
-    isOpen,
-    review?.purchase_requests_reviewed_management_id,
-    companyId,
-    moduleCode,
-  ]);
+  }, [isOpen, reviewId, companyId, moduleCode]);
 
   const { GetRequisitionManagementReviewDetails } = useManagementReviewDetail({
     payloadGetRequisitionManagementReviewDetail,
@@ -259,13 +256,19 @@ export const AnalyzedQuoteDetailModal = ({
                           undefined,
                       }}
                     />
-                    <DetailField
-                      label="Sucursal"
-                      value={
-                        purchaseRequest.branch_information?.branch_name ?? ""
-                      }
-                      icon={<BuildingIcon size={18} />}
-                    />
+                    {(() => {
+                      const branchDisplay = formatBranchDisplay(
+                        purchaseRequest.branch_information,
+                      );
+                      return (
+                        <DetailField
+                          label="Sucursal"
+                          value={branchDisplay.primary}
+                          description={branchDisplay.secondary}
+                          icon={<BuildingIcon size={18} />}
+                        />
+                      );
+                    })()}
                     <DetailField
                       label="Área solicitante"
                       value={

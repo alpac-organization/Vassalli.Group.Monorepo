@@ -17,20 +17,20 @@ import type { CostCenterInformation } from "@app/modules/Inventory/domain/api-co
 
 const MUTED_CELL_CLASS = "text-sm text-slate-400 dark:text-slate-500";
 const NUMERIC_CELL_CLASS =
-  "flex w-full justify-center whitespace-nowrap text-sm tabular-nums text-slate-700 dark:text-slate-200";
+  "inline-block whitespace-nowrap text-left text-sm tabular-nums text-slate-700 dark:text-slate-200";
 
-const EmptyCell = () => <span className={MUTED_CELL_CLASS}>{EMPTY_VALUE}</span>;
+const renderEmptyCell = () => <span className={MUTED_CELL_CLASS}>{EMPTY_VALUE}</span>;
 
-const BadgeCell = ({ label, color }: { label: string | null; color: string }) =>
+const renderBadgeCell = (label: string | null, color: string) =>
   label ? (
     <span className="inline-flex whitespace-nowrap" title={label}>
       <Badges label={label} color={color} className={COMPACT_BADGE_CLASS} />
     </span>
   ) : (
-    <EmptyCell />
+    renderEmptyCell()
   );
 
-const CostCenterCell = ({
+const renderCostCenterCell = ({
   name,
   code,
   costCenterInfo,
@@ -69,14 +69,14 @@ const CostCenterCell = ({
   );
 };
 
-const ProductNameCell = ({ name }: { name: string | null }) => (
-  <span className="block min-w-[12rem] max-w-[26rem] whitespace-normal text-sm font-medium text-slate-800 [overflow-wrap:anywhere] dark:text-slate-100">
+const renderProductNameCell = (name: string | null) => (
+  <span className="block w-max max-w-[15rem] whitespace-normal text-sm font-medium text-slate-800 [overflow-wrap:anywhere] dark:text-slate-100">
     {displayText(name)}
   </span>
 );
 
-const WrappedTextCell = ({ value }: { value: string | null }) => (
-  <span className="block min-w-[10rem] max-w-[22rem] whitespace-normal text-sm text-slate-600 [overflow-wrap:anywhere] dark:text-slate-300">
+const renderWrappedTextCell = (value: string | null) => (
+  <span className="block max-w-[18rem] whitespace-normal text-sm text-slate-600 [overflow-wrap:anywhere] dark:text-slate-300">
     {displayText(value)}
   </span>
 );
@@ -88,12 +88,12 @@ export const ORDER_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
   {
     key: "product_code",
     label: "Código",
-    render: (item) => <BadgeCell label={item.product_code} color={BADGE_COLORS.product} />,
+    render: (item) => renderBadgeCell(item.product_code, BADGE_COLORS.product),
   },
   {
     key: "product_name",
     label: "Producto",
-    render: (item) => <ProductNameCell name={item.product_name} />,
+    render: (item) => renderProductNameCell(item.product_name),
   },
   {
     key: "quantity",
@@ -113,7 +113,7 @@ export const ORDER_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
     key: "total",
     label: "Total",
     render: (item) => (
-      <span className="flex w-full justify-center whitespace-nowrap text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+      <span className="inline-block whitespace-nowrap text-left text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">
         {formatCurrency(getItemTotal(item))}
       </span>
     ),
@@ -121,25 +121,23 @@ export const ORDER_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
   {
     key: "cost_center_name",
     label: "Centro de costo destino",
-    render: (item) => (
-      <CostCenterCell
-        name={item.cost_center_name}
-        code={item.cost_center_code}
-        costCenterInfo={item.cost_center_information}
-      />
-    ),
+    render: (item) =>
+      renderCostCenterCell({
+        name: item.cost_center_name,
+        code: item.cost_center_code,
+        costCenterInfo: item.cost_center_information,
+      }),
   },
   {
     key: "supplier_name",
     label: "Proveedor",
-    render: (item) => <WrappedTextCell value={item.supplier_name} />,
+    render: (item) => renderWrappedTextCell(item.supplier_name),
   },
   {
     key: "quotation_id",
     label: "Cotización",
-    render: (item) => (
-      <BadgeCell label={item.quotation_id ? "Aprobada" : null} color={BADGE_COLORS.quotation} />
-    ),
+    render: (item) =>
+      renderBadgeCell(item.quotation_id ? "Aprobada" : null, BADGE_COLORS.quotation),
   },
 ];
 
@@ -147,12 +145,12 @@ export const REQUEST_ITEMS_COLUMNS: TableColumn<InventoryEntryPurchaseRequestIte
   {
     key: "product_code",
     label: "Código",
-    render: (item) => <BadgeCell label={item.product_code} color={BADGE_COLORS.product} />,
+    render: (item) => renderBadgeCell(item.product_code, BADGE_COLORS.product),
   },
   {
     key: "product_name",
     label: "Producto",
-    render: (item) => <ProductNameCell name={item.product_name} />,
+    render: (item) => renderProductNameCell(item.product_name),
   },
   {
     key: "quantity",
@@ -166,17 +164,16 @@ export const REQUEST_ITEMS_COLUMNS: TableColumn<InventoryEntryPurchaseRequestIte
   {
     key: "cost_center_name",
     label: "Centro de costo destino",
-    render: (item) => (
-      <CostCenterCell
-        name={item.cost_center_name}
-        code={item.cost_center_code}
-        costCenterInfo={item.cost_center_information}
-      />
-    ),
+    render: (item) =>
+      renderCostCenterCell({
+        name: item.cost_center_name,
+        code: item.cost_center_code,
+        costCenterInfo: item.cost_center_information,
+      }),
   },
   {
     key: "description",
     label: "Descripción",
-    render: (item) => <WrappedTextCell value={item.description} />,
+    render: (item) => renderWrappedTextCell(item.description),
   },
 ];

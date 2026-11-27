@@ -1,6 +1,7 @@
 import { Badges, ContextMenu } from "@alpac/design-system";
 import { EntryStatus } from "@app/core/enums/entry-status.enum";
 import { EntryTypeEnum } from "@app/core/enums/entry-type.enum";
+import { formatBranchDisplay } from "@app/shared/utils/branch-display.utils";
 import { contextMenuButton } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/warehouse-assignment/utils/styles";
 
 import type { ContextMenuItem, TableColumn } from "@alpac/design-system";
@@ -44,9 +45,21 @@ export const GetInventoryEntriesColumnsToTable = function (props: InventoryEntri
       {
          key: "branch_name",
          label: "Sucursal",
-         render: (item) => (
-            <span>{item.branch_information?.branch_name ?? ""}</span>
-         ),
+         render: (item) => {
+            const branchDisplay = formatBranchDisplay(item.branch_information);
+            return (
+               <div className="flex flex-col leading-tight">
+                  <span className="text-sm font-medium text-neutral-900 dark:text-white">
+                     {branchDisplay.primary}
+                  </span>
+                  {branchDisplay.secondary && (
+                     <span className="text-xs text-slate-500 dark:text-slate-400">
+                        {branchDisplay.secondary}
+                     </span>
+                  )}
+               </div>
+            );
+         },
       },
       {
          key: "work_area_name",

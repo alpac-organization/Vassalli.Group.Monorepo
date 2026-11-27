@@ -24,6 +24,7 @@ import {
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
+import { formatBranchDisplay } from "@app/shared/utils/branch-display.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
 import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
 import { KardexType } from "@app/core/enums/kardex-type.enum";
@@ -293,16 +294,17 @@ export const KardexDetailModal = function (props: KardexDetailModalProps) {
                   hasBorder
                >
                   <div className={SECTION_GRID_CLASS}>
-                     <DetailField
-                        label="Sucursal"
-                        value={branch?.branch_name ?? "—"}
-                        description={
-                           branch?.branch_code
-                              ? `Código: ${branch.branch_code}`
-                              : undefined
-                        }
-                        icon={<MapPinIcon size={18} className={ICON_CLASS} aria-hidden />}
-                     />
+                     {(() => {
+                        const branchDisplay = formatBranchDisplay(branch);
+                        return (
+                           <DetailField
+                              label="Sucursal"
+                              value={branchDisplay.primary}
+                              description={branchDisplay.secondary}
+                              icon={<MapPinIcon size={18} className={ICON_CLASS} aria-hidden />}
+                           />
+                        );
+                     })()}
                      <DetailField
                         label="Área de trabajo"
                         value={workArea?.work_area_name ?? "—"}

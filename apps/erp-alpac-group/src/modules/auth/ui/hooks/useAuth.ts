@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { httpHandler } from "@app/core/adapters";
+import { httpHandler, warehouseHttpHandler } from "@app/core/adapters";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter";
 import { AuthenticationServices } from "@app/modules/auth/infrastructure/services/AuthenticationServices";
@@ -16,6 +16,7 @@ import type { LogoutRequest } from "@app/modules/auth/domain/ApiContract/Request
 
 const authService = new AuthenticationServices(httpHandler);
 httpHandler.setAuthenticationService(authService);
+warehouseHttpHandler.setAuthenticationService(authService);
 
 export const useAuth = function () {
   const queryClient = useQueryClient();
@@ -51,19 +52,24 @@ export const useAuth = function () {
       });
 
       const sessionLogo = response.company_information.image_url;
-      if (sessionLogo) {
-        useCompanyStore.setState({
-          urlImage: sessionLogo,
-        });
+      const sessionNeutralLogo = response.company_information.neutral_image_url;
+      if (sessionLogo || sessionNeutralLogo) {
+        useCompanyStore.setState((prev) => ({
+          urlImage: sessionLogo ?? prev.urlImage,
+          neutralUrlImage:
+            sessionNeutralLogo ?? sessionLogo ?? prev.neutralUrlImage,
+        }));
       }
 
-      // El registro del token push se delega a PushNotificationsRegistrar,
-      // que se monta una unica vez dentro del AuthGuard tras el login.
+      // Limpiamos queries previas de sesión sin invalidar el catálogo público ["companies"]
+      // mientras LoginPage termina de desmontarse durante la navegación.
+      queryClient.removeQueries({
+        predicate: (query) => query.queryKey[0] !== "companies",
+      });
+
       navigate(`/${companyAlias}/dashboard`, {
         replace: true,
       });
-
-      queryClient.clear();
     },
   });
 
