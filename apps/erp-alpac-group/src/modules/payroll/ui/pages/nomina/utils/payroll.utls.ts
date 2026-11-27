@@ -26,4 +26,5 @@ export const DEDUCTION_KEYS = [
   "OtherDeductions",
   "UniformDeduction",
   "JudicialSeizures",
+  "ChildSupportGarnishment",
 ];

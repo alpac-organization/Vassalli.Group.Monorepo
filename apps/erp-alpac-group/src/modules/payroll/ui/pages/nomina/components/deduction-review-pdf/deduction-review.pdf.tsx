@@ -7,7 +7,10 @@ import { groupByWorkArea } from "@app/modules/payroll/ui/pages/nomina/utils/payr
 import { withSoftLineBreaks } from "@app/modules/payroll/ui/pages/nomina/components/payroll-pdf/utils/payroll-utils";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 import { formatDate } from "@app/shared/utils/string.utils";
-import { parseAdditionalDeductions } from "../payroll-table/utils/parse-additional-deductions";
+import {
+  DEDUCTION_CONCEPTS,
+  type DeductionConcept,
+} from "./constants/deduction-concepts";
 export type DeductionSummaryPdfProps = {
   data: PayrollItemResponse[];
   branchName: string;
@@ -15,104 +18,6 @@ export type DeductionSummaryPdfProps = {
   endDate?: string;
   periodCode?: string;
 };
-
-type DeductionConcept = {
-  key: string;
-  label: string;
-  render: (item: PayrollItemResponse) => string | number;
-  getValue: (item: PayrollItemResponse) => number;
-  unit?: string;
-};
-
-const DEDUCTION_CONCEPTS: DeductionConcept[] = [
-  {
-    key: "late_arrivals",
-    label: "Llegadas Tardías",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.LateArrivals ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.LateArrivals ?? 0,
-    unit: "Día",
-  },
-  {
-    key: "Purísima",
-    label: "Purísima",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.Purisima ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)?.Purisima ?? 0,
-  },
-  {
-    key: "Ausencias",
-    label: "Ausencias",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.Absences ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)?.Absences ?? 0,
-    unit: "Dia",
-  },
-  {
-    key: "Préstamos",
-    label: "Préstamos",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.Loans ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)?.Loans ?? 0,
-  },
-  {
-    key: "Otras deducciones",
-    label: "Otras deducciones",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.OtherDeductions ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.OtherDeductions ?? 0,
-  },
-  {
-    key: "Deducción por uniforme",
-    label: "Deducción por uniforme",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.UniformDeduction ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.UniformDeduction ?? 0,
-  },
-  {
-    key: "Embargos judiciales",
-    label: "Embargos judiciales",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.JudicialSeizures ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.JudicialSeizures ?? 0,
-  },
-  {
-    key: "Embargos alimenticios",
-    label: "Embargo alimenticio",
-    render: (item) => {
-      const d = parseAdditionalDeductions(item.deductions_additional_data);
-      return formatCurrency(d?.ChildSupportGarnishment ?? 0, "NIO") ?? "—";
-    },
-    getValue: (item) =>
-      parseAdditionalDeductions(item.deductions_additional_data)
-        ?.ChildSupportGarnishment ?? 0,
-  },
-];
 
 function ColumnHeaders() {
   return (
