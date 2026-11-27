@@ -5,6 +5,7 @@ import { CookieStorageAdapter } from "@app/core/adapters/cookie-storage-adapter"
 import { AuthenticationServices } from "@app/modules/auth/infrastructure/services/AuthenticationServices";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
+import { useInactivityStore } from "@app/shared/stores/useInactivityStore";
 import {
   clearControlVacationsSelectionStorage,
   clearPayrollSelectionStorage,
@@ -33,6 +34,7 @@ export const useAuth = function () {
       CookieStorageAdapter.setToken(response.access_token);
       CookieStorageAdapter.setRefreshToken(response.refresh_token);
       CookieStorageAdapter.setCompanyAlias(companyAlias);
+      useInactivityStore.getState().recordActivity();
 
       useUserStore.setState({
         fullName: response.full_name,
