@@ -23,7 +23,7 @@ export const GetInventoryEntriesColumnsToTable = function (props: InventoryEntri
       {
          key: "code",
          label: "Código de entrada",
-         render: (item) => <span>{item.code ?? "—"}</span>,
+         render: (item) => <span>{item.code?.toUpperCase() ?? "—"}</span>,
       },
       {
          key: "entry_status",
