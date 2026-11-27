@@ -17,53 +17,58 @@ export class DeductionsServicesByPayroll implements IDeductionsServicesByPayroll
   async GetDeductionsByAsync(
     payload: GetDeductionsRequest,
   ): Promise<GetDeductionsResponse> {
-    try {
-      const { companie_id, module_code, ...queryParams } = payload;
-      const url = `/companies/${companie_id}/modules/${module_code}/deductions`;
-      const response = await this.httpHandler.get<GetDeductionsResponse>(url, {
-        params: queryParams,
-      });
-      return response;
-    } catch (error) {
-      throw error;
+    const {
+      company_id,
+      module_code,
+      type,
+      status,
+      identification_number,
+      has_official_letter,
+      page_number,
+      page_size,
+    } = payload;
+
+    const params: Record<string, string | number | boolean> = {};
+    if (type !== undefined && type !== "") params.type = type;
+    if (status !== undefined && status !== "") params.status = status;
+    if (identification_number !== undefined && identification_number !== "") {
+      params.identification_number = identification_number;
     }
+    if (typeof has_official_letter === "boolean") {
+      params.has_official_letter = has_official_letter;
+    }
+    if (page_number !== undefined) params.page_number = page_number;
+    if (page_size !== undefined) params.page_size = page_size;
+
+    const url = `/companies/${company_id}/modules/${module_code}/deductions`;
+    return this.httpHandler.get<GetDeductionsResponse>(url, {
+      params,
+    });
   }
   async GetDeductionDetailsAsync(
     payload: GetDeductionDetailsRequest,
   ): Promise<DeductionDetailsDto> {
-    try {
-      const { company_id, module_code, deduction_id, identification_number } =
-        payload;
+    const { company_id, module_code, deduction_id, identification_number } =
+      payload;
 
-      const url = `/companies/${company_id}/modules/${module_code}/deductions/${deduction_id}/details`;
+    const url = `/companies/${company_id}/modules/${module_code}/deductions/${deduction_id}/details`;
 
-      const response = await this.httpHandler.get<DeductionDetailsDto>(url, {
-        params: { identification_number },
-      });
-
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return this.httpHandler.get<DeductionDetailsDto>(url, {
+      params: { identification_number },
+    });
   }
 
   async GetDeductionPaymentsAsync(
     payload: GetDeductionPaymentsRequest,
   ): Promise<GetDeductionPaymentsResponse> {
-    try {
-      const { company_id, module_code, deduction_id, ...queryParams } =
-        payload;
+    const { company_id, module_code, deduction_id, ...queryParams } =
+      payload;
 
-      const url = `/companies/${company_id}/modules/${module_code}/deductions/${deduction_id}/payments`;
+    const url = `/companies/${company_id}/modules/${module_code}/deductions/${deduction_id}/payments`;
 
-      const response = await this.httpHandler.get<GetDeductionPaymentsResponse>(
-        url,
-        { params: queryParams },
-      );
-      console.log(response);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    return this.httpHandler.get<GetDeductionPaymentsResponse>(
+      url,
+      { params: queryParams },
+    );
   }
 }

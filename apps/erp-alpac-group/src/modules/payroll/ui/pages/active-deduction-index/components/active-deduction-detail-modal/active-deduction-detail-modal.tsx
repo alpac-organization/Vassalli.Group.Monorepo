@@ -24,6 +24,7 @@ export function ActiveDeductionDetailModal({
       ].join(" ")}
     >
       <ActiveDeductionDetailContent
+        key={`${summary?.deduction_id ?? "none"}-${isOpen}`}
         summary={summary}
         detail={detail}
         isLoading={isLoading}

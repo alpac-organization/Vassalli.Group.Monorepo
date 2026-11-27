@@ -10,6 +10,7 @@ import {
   INSS_PERCENTAGE,
 } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/constants/payment-receipts.constants";
 import { TravelRouteRow } from "@app/modules/payroll/ui/pages/nomina/components/payment-receipts/payment-receipt";
+import { parseAdditionalDeductions } from "@app/modules/payroll/ui/pages/nomina/components/payroll-table/utils/parse-additional-deductions";
 import { useCompanyStore } from "@app/shared/stores/useCompanyStore";
 export function TransportistasPage({
   item,
@@ -39,6 +40,8 @@ export function TransportistasPage({
     },
   ].filter((l) => l.value > 0);
 
+  const deductions = parseAdditionalDeductions(item.deductions_additional_data);
+
   const deductionLines: { label: string; value: number }[] = [
     {
       label: "Total de deducciones legales",
@@ -47,6 +50,13 @@ export function TransportistasPage({
     { label: "Ausencias", value: item.Absences ?? 0 },
     { label: "Préstamos", value: item.Loans ?? 0 },
     { label: "Embargos judiciales", value: item.JudicialSeizures ?? 0 },
+    {
+      label: "Embargo alimenticio",
+      value:
+        item.ChildSupportGarnishment ??
+        deductions?.ChildSupportGarnishment ??
+        0,
+    },
     { label: "Llegadas tardes", value: item.LateArrivals ?? 0 },
     { label: "Purísima", value: item.Purisima ?? 0 },
     { label: "Deducción por uniforme", value: item.UniformDeduction ?? 0 },

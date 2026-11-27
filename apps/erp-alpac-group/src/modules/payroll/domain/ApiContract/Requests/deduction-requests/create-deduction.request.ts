@@ -29,6 +29,10 @@ export interface CreateSanctionDeductionRequest extends CreateDeductionBase {
    sansion_payload: SanctionPayload;
 }
 
+export interface CreateChildSupportDeductionRequest extends CreateDeductionBase {
+   child_support_payload: ChildSupportPayload;
+}
+
 /**
 
  * @description Payload enviado al API según el tipo de deducción.
@@ -40,7 +44,8 @@ export type CreateDeductionRequest =
    | CreatePurisimaDeductionRequest
    | CreateLoanDeductionRequest
    | CreateJudicialSeizureDeductionRequest
-   | CreateSanctionDeductionRequest;
+   | CreateSanctionDeductionRequest
+   | CreateChildSupportDeductionRequest;
 
 /**
 
@@ -73,6 +78,8 @@ export type AddDeductionFormValues = {
    judicial_seizure_payload?: JudicialSeizurePayload;
 
    sansion_payload?: SanctionPayload;
+
+   child_support_payload?: Partial<ChildSupportPayload>;
 };
 
 export interface LateArrivalsInformation {
@@ -140,4 +147,47 @@ export interface SanctionPayload {
    amount_days: number;
 
    identification_number: string;
+}
+
+export interface ChildSupportPayload {
+
+   identification_number: string;
+
+   is_percentage: boolean;
+
+   percentage?: number | null;
+
+   fixed_amount?: number | null;
+
+   currency: number;
+
+   deduct_from_salary: boolean;
+
+   deduct_from_overtime: boolean;
+
+   deduct_from_christmas_bonus: boolean;
+
+   deduct_from_liquidation: boolean;
+
+   seizure_act_number: string;
+
+   start_date: string;
+
+   seizure_act_file_base64?: string | null;
+
+   seizure_act_file_name?: string | null;
+
+   has_official_letter: boolean;
+
+   official_letter_number?: string | null;
+
+   official_letter_date?: string | null;
+
+   official_letter_file_base64?: string | null;
+
+   official_letter_file_name?: string | null;
+
+   beneficiary_name?: string | null;
+
+   description?: string | null;
 }

@@ -7,8 +7,11 @@ import {
   type DeductionTypeEnum as DeductionTypeEnumType,
 } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-type.enum";
 import type { BaseRequest } from "@app/shared/interfaces/base-request/base-request";
+import type { PaginateBaseRequest } from "@app/shared/interfaces/paginate-base/paginate-base-request";
 
-export interface GetDeductionsRequest extends BaseRequest {
+export interface GetDeductionsRequest
+  extends BaseRequest,
+    Partial<PaginateBaseRequest> {
   type?: keyof typeof DeductionTypeEnum | DeductionTypeEnumType | number;
   status?:
     | keyof typeof DeductionStatusEnum
@@ -16,7 +19,5 @@ export interface GetDeductionsRequest extends BaseRequest {
     | number
     | string;
   identification_number?: string;
-
-  page_number?: number;
-  page_size?: number;
+  has_official_letter?: boolean;
 }

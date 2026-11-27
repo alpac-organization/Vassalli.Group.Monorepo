@@ -1,15 +1,18 @@
 import { Alert, Badges, Button, Spinner } from "@alpac/design-system";
+import { CurrencyEnum } from "@app/core/enums/currency.enum";
 import type {
   DeductionPaymentsDto,
   GetDeductionPaymentsResponse,
 } from "@app/modules/payroll/domain/ApiContract/Responses/deduction-responses/get-deduction-payments.response";
 import { getDeductionPaymentOriginLabel } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-payment-origin.enum";
-import currencyNames from "@app/modules/payroll/constants/currency";
 import {
   getDeductionPaymentStatusBadgeColor,
   getDeductionPaymentStatusLabel,
 } from "@app/modules/payroll/domain/enums/deduction-enums/deduction-payment-status.enum";
-import { formatCurrency } from "@app/shared/utils/currency.utils";
+import {
+  formatCurrency,
+  resolveCurrencyCode,
+} from "@app/shared/utils/currency.utils";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { ArrowLeftIcon, Receipt } from "lucide-react";
 
@@ -32,6 +35,7 @@ type ActiveDeductionPaymentsProps = {
 function PaymentCard({ payment }: { payment: DeductionPaymentsDto }) {
   const periodStart = payment.deduction_details?.start_date;
   const periodEnd = payment.deduction_details?.end_date;
+  const currencyCode = resolveCurrencyCode(payment.currency);
 
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4 dark:border-neutral-700 dark:bg-[#1e2229]">
@@ -79,7 +83,7 @@ function PaymentCard({ payment }: { payment: DeductionPaymentsDto }) {
         <div>
           <p className="text-xs text-slate-400 dark:text-slate-500">Moneda</p>
           <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
-            {String(currencyNames[payment.currency])}
+            {CurrencyEnum[currencyCode].label}
           </p>
         </div>
       </div>
@@ -95,31 +99,12 @@ export function ActiveDeductionPayments({
 }: ActiveDeductionPaymentsProps) {
   const paymentItems = payments?.data ?? [];
 
-  if (isLoading) {
-    return (
-      <div className={EMPTY_STATE_CONTAINER_CLASS}>
-        <Spinner size="medium" className="text-blue-600 dark:text-blue-400" />
-        <p className={LOADING_STATE_TEXT_CLASS}>Cargando pagos...</p>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <Alert
-        type="error"
-        title="Error"
-        message="No se pudo obtener el historial de pagos."
-      />
-    );
-  }
-
   return (
     <div className="flex min-w-0 flex-col gap-5">
       <div className="flex items-center gap-2">
         <Button
           type="button"
-          icon={<ArrowLeftIcon className="w-4 h-4" />}
+          icon={<ArrowLeftIcon className="h-4 w-4" />}
           onClick={onBack}
           label="Volver"
         />
@@ -128,7 +113,21 @@ export function ActiveDeductionPayments({
         </p>
       </div>
 
-      {paymentItems.length === 0 ? (
+      {isLoading ? (
+        <div className={EMPTY_STATE_CONTAINER_CLASS}>
+          <Spinner
+            size="medium"
+            className="text-blue-600 dark:text-blue-400"
+          />
+          <p className={LOADING_STATE_TEXT_CLASS}>Cargando pagos...</p>
+        </div>
+      ) : isError ? (
+        <Alert
+          type="error"
+          title="Error"
+          message="No se pudo obtener el historial de pagos."
+        />
+      ) : paymentItems.length === 0 ? (
         <div className={EMPTY_STATE_CONTAINER_CLASS}>
           <Receipt className="mb-2 h-8 w-8 text-slate-300 dark:text-slate-600" />
           <p className={EMPTY_STATE_TEXT_CLASS}>
@@ -139,7 +138,7 @@ export function ActiveDeductionPayments({
         <div className="flex flex-col gap-3">
           {paymentItems.map((payment, index) => (
             <PaymentCard
-              key={`${payment.deduction_details?.payroll_id ?? index}`}
+              key={`${payment.deduction_details?.payroll_id ?? "p"}-${index}`}
               payment={payment}
             />
           ))}

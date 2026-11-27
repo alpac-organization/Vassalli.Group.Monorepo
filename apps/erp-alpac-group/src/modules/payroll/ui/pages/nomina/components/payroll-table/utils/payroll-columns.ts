@@ -199,20 +199,25 @@ export const payrollColumns: PayrollColumnDef[] = [
       const seizureDeduction = parseAdditionalDeductions(
         item.deductions_additional_data,
       );
-      const totalSeizure =
-        (seizureDeduction?.JudicialSeizures ?? 0) +
-        (seizureDeduction?.ChildSupportGarnishment ?? 0);
-      return formatCurrency(totalSeizure ?? 0, "NIO") ?? "—";
+      return formatCurrency(seizureDeduction?.JudicialSeizures ?? 0, "NIO") ?? "—";
     },
     getValue: (item) => {
       const seizureDeduction = parseAdditionalDeductions(
         item.deductions_additional_data,
       );
-      const totalSeizure =
-        (seizureDeduction?.JudicialSeizures ?? 0) +
-        (seizureDeduction?.ChildSupportGarnishment ?? 0);
-      return totalSeizure ?? 0;
+      return seizureDeduction?.JudicialSeizures ?? 0;
     },
+  },
+  {
+    key: "child_support_garnishment",
+    label: "Embargo Alimenticio",
+    render: (item) => {
+      const d = parseAdditionalDeductions(item.deductions_additional_data);
+      return formatCurrency(d?.ChildSupportGarnishment ?? 0, "NIO") ?? "—";
+    },
+    getValue: (item) =>
+      parseAdditionalDeductions(item.deductions_additional_data)
+        ?.ChildSupportGarnishment ?? 0,
   },
 
   {
