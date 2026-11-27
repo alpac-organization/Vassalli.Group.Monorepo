@@ -3,7 +3,7 @@ import { FormLayout } from "@app/shared/layouts";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { Alert, Button, Dropdown, InputText } from "@alpac/design-system";
-import fondoLogin from "@app/assets/login/fondoLogin.webp";
+import fondoLogin from "@app/assets/login/fondo-grupo-vassalli.jpg";
 import { ContentLoaded } from "@app/shared/components/content-loaded/content-loaded";
 import { useAuth } from "@app/modules/auth/ui/hooks/useAuth";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -154,7 +154,7 @@ export const LoginPage = function () {
       setIsUserBlockedError(isBlocked);
       setErrorTitle(
         isBlocked
-          ? "Cuenta bloqueada"
+          ? "Cuenta bloqueada definitivamente"
           : isInactive
             ? "Cuenta inactiva"
             : isInvalidPassword
@@ -181,11 +181,10 @@ export const LoginPage = function () {
   };
 
   useEffect(() => {
-    if (showAuthError) {
-      const dismissDelayMs = isUserBlockedError ? 10000 : 5000;
+    if (showAuthError && !isUserBlockedError) {
       const timer = setTimeout(() => {
         handleDismiss();
-      }, dismissDelayMs);
+      }, 5000);
 
       return () => clearTimeout(timer);
     }
@@ -201,16 +200,17 @@ export const LoginPage = function () {
         className="relative h-dvh w-full flex items-center justify-center bg-cover bg-center"
         style={{ backgroundImage: `url(${fondoLogin})` }}
       >
-        <div className="absolute inset-0 bg-black/5 backdrop-brightness-[0.30] backdrop-blur-xs z-0"></div>
+        <div className="absolute inset-0 z-0 bg-slate-950/35 backdrop-brightness-[0.62] backdrop-blur-[1.5px]"></div>
 
         <div className="relative z-10 w-full flex items-center justify-center">
           <FormLayout
+            title="Bienvenido"
             imageUrl={companyLogos.color}
             copyrightEntityName={brandingName}
           >
             <form
               onSubmit={handleSubmit(handleLogin)}
-              className="h-full flex flex-col justify-center gap-2"
+              className="flex h-full flex-col justify-center gap-4"
             >
               <Controller
                 name="company_id"
@@ -258,18 +258,19 @@ export const LoginPage = function () {
                 error={errors.password && errors.password.message}
               />
 
-              <div className="w-full flex flex-col mt-5">
+              <div className="mt-2 flex w-full flex-col">
                 <Button
                   disabled={!isDirty || !isValid || startLoginProcess.isPending}
                   label="Iniciar sesión"
                   isLoading={startLoginProcess.isPending}
                   size="giant"
+                  className="w-full! rounded-xl! font-semibold! shadow-sm! transition-all! duration-200! hover:shadow-md!"
                 />
               </div>
 
               {showAuthError && (
                 <div
-                  className={`w-full flex flex-col mt-5 animate-fade-alert ${isExiting ? "hide" : ""}`}
+                  className={`mt-2 flex w-full flex-col animate-fade-alert ${isExiting ? "hide" : ""}`}
                 >
                   <Alert
                     title={errorTitle}
