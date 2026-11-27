@@ -46,6 +46,16 @@ export type InventoryMovementReportType = {
    product_code?: string;
 };
 
+export type KardexReportType = {
+   company_id: string;
+   module_code: string;
+   from?: string;
+   to?: string;
+   branch_id?: string;
+   cost_center_id?: string;
+   product_stock_ids?: string[];
+};
+
 export interface IInventoryReportsServices {
    GetStockDailyReport(payload: StockDailyReportType): Promise<StockDailyReport>;
 
@@ -60,4 +70,6 @@ export interface IInventoryReportsServices {
    GetInventoryMovementReportPdf(payload: InventoryMovementReportType): Promise<Blob>;
 
    GetInventoryTurnoverReportPdf(payload: InventoryMovementReportType): Promise<Blob>;
+
+   GetKardexReportExcel(payload: KardexReportType): Promise<Blob>;
 }

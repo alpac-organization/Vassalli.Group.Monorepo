@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { FormProvider, useFieldArray, useForm } from "react-hook-form";
 
@@ -19,7 +19,11 @@ import { FileTextIcon, PlusIcon, SaveIcon, XIcon } from "lucide-react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { ConfirmModal } from "@app/shared/components/confirm-modal/confirm-modal";
 import { QuoteDetailAccordion } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/components/quote-detail-accordion/quote-detail-accordion";
-import { purchaseRequestTypeBadgeVariants } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
+import {
+  purchaseRequestPriorityBadgeVariants,
+  purchaseRequestTypeBadgeVariants,
+} from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
+import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
 import { usePurchaseRequestDetail } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestDetail";
 import { Loader } from "@app/shared/components/loaders/loader";
 import { QuoteProductModal } from "./components/quote-products-modal/quote-product-modal";
@@ -27,11 +31,11 @@ import type { CreateQuoteModalProps } from "@app/modules/purchasing/ui/pages/quo
 import type { PurchaseRequestProductInformation } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { RequestedProducts } from "./types/create-quote-form.types";
 import type { RegisterQuoteRequest } from "@app/modules/purchasing/domain/ApiContract/Requests/quote/register-quote-request";
+import type { DraftQuotationItem } from "./components/quote-products-modal/quote-product-modal.types";
 import {
-  MIN_SUPPLIERS_PER_PRODUCT,
-  type DraftQuotationItem,
-} from "./components/quote-products-modal/quote-product-modal.types";
-import { hasEnoughSuppliersPerProduct } from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/utils/has-enough-suppliers-per-product";
+  hasEnoughSuppliersPerProduct,
+  resolveMinSuppliersPerProduct,
+} from "@app/modules/purchasing/ui/pages/quotes/components/create-quote-modal/utils/has-enough-suppliers-per-product";
 import { useQuotes } from "@app/modules/purchasing/ui/hooks/quote/useQuote";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
@@ -66,13 +70,22 @@ export function CreateQuoteModal({
     name: "requested_products",
   });
 
-  const [openProducts, setOpenProducts] = useState<string[]>([]);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  const [closedProductIds, setClosedProductIds] = useState<string[]>([]);
   const [isQuoteProductModalOpen, setIsQuoteProductModalOpen] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<
     PurchaseRequestProductInformation[]
   >([]);
   const [quotationItems, setQuotationItems] = useState<DraftQuotationItem[]>(
     [],
+  );
+
+  const openProducts = useMemo(
+    () =>
+      fields
+        .map((field) => field.id)
+        .filter((id) => !closedProductIds.includes(id)),
+    [fields, closedProductIds],
   );
 
   const purchaseRequestId = isOpen
@@ -119,18 +132,36 @@ export function CreateQuoteModal({
       isRegisteringQuote);
 
   const hasQuotedProducts = quotationItems.length > 0;
+  const effectiveRequestType =
+    purchaseRequestDetails?.request_type ?? purchaseRequest?.request_type;
+  const effectivePriorityLevel =
+    purchaseRequestDetails?.priority_level ?? purchaseRequest?.priority_level;
+  const minSuppliersRequired = resolveMinSuppliersPerProduct(
+    effectiveRequestType,
+    effectivePriorityLevel,
+  );
 
   const resetQuoteDraft = () => {
     reset(defaultFormValues);
-    setOpenProducts([]);
+    setClosedProductIds([]);
     setSelectedProducts([]);
     setQuotationItems([]);
     setIsQuoteProductModalOpen(false);
   };
 
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (!isOpen) {
+      setClosedProductIds([]);
+      setSelectedProducts([]);
+      setQuotationItems([]);
+      setIsQuoteProductModalOpen(false);
+    }
+  }
+
   useEffect(() => {
     if (!isOpen) {
-      resetQuoteDraft();
+      reset(defaultFormValues);
       return;
     }
 
@@ -150,11 +181,6 @@ export function CreateQuoteModal({
       ),
     });
   }, [isOpen, purchaseRequestDetails, purchaseRequestProducts, reset]);
-
-  useEffect(() => {
-    if (!isOpen || fields.length === 0) return;
-    setOpenProducts(fields.map((field) => field.id));
-  }, [isOpen, fields]);
 
   const [isConfirmDiscardOpen, setIsConfirmDiscardOpen] = useState(false);
 
@@ -209,7 +235,7 @@ export function CreateQuoteModal({
     setIsQuoteProductModalOpen(true);
   };
 
-  const onSubmit = (_values: RequestedProducts) => {
+  const onSubmit = () => {
     if (!quotationItems.length) {
       onRequestError?.(
         "Debe cotizar al menos un producto con sus proveedores antes de guardar.",
@@ -217,9 +243,11 @@ export function CreateQuoteModal({
       return;
     }
 
-    if (!hasEnoughSuppliersPerProduct(quotationItems)) {
+    if (!hasEnoughSuppliersPerProduct(quotationItems, minSuppliersRequired)) {
       onRequestError?.(
-        `Cada producto debe cotizarse con al menos ${MIN_SUPPLIERS_PER_PRODUCT} proveedores distintos para competir.`,
+        minSuppliersRequired === 1
+          ? "Cada producto debe cotizarse con al menos 1 proveedor."
+          : `Cada producto debe cotizarse con al menos ${minSuppliersRequired} proveedores distintos para competir.`,
       );
       return;
     }
@@ -227,16 +255,16 @@ export function CreateQuoteModal({
     const payload: RegisterQuoteRequest = {
       company_id: companyId,
       module_code: moduleCode,
-      quotation_items: quotationItems.map(
-        ({
-          product_id: _productId,
-          supplier_legal_name: _supplierName,
-          ...item
-        }) => ({
+      quotation_items: quotationItems.map((draftItem) => {
+        const { product_id, supplier_legal_name, ...item } = draftItem;
+        void product_id;
+        void supplier_legal_name;
+
+        return {
           ...item,
           create_supplier_product_if_missing: false,
-        }),
-      ),
+        };
+      }),
     };
 
     RegisterQuote.mutate(payload, {
@@ -334,6 +362,29 @@ export function CreateQuoteModal({
                       </span>
                     </div>
 
+                    {effectivePriorityLevel ? (
+                      <div className="flex min-w-0 flex-col gap-1">
+                        <span className="whitespace-nowrap text-[12px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                          Prioridad
+                        </span>
+                        <span className="min-w-0 max-w-full overflow-hidden">
+                          <Badges
+                            label={
+                              PriorityLevelEnum[
+                                effectivePriorityLevel as keyof typeof PriorityLevelEnum
+                              ]?.label ?? effectivePriorityLevel
+                            }
+                            color={
+                              purchaseRequestPriorityBadgeVariants[
+                                effectivePriorityLevel as keyof typeof purchaseRequestPriorityBadgeVariants
+                              ]?.badgeColor ??
+                              purchaseRequestPriorityBadgeVariants.default.badgeColor
+                            }
+                          />
+                        </span>
+                      </div>
+                    ) : null}
+
                     <div className="flex min-w-0 flex-col gap-1">
                       <DetailField
                         label="Centro de costo"
@@ -422,12 +473,14 @@ export function CreateQuoteModal({
                     type="multiple"
                     value={openProducts}
                     onValueChange={(value) => {
-                      const validateValue = Array.isArray(value)
-                        ? value
-                        : value
-                          ? [value]
-                          : [];
-                      setOpenProducts(validateValue);
+                      const nextOpen = new Set(
+                        Array.isArray(value) ? value : value ? [value] : [],
+                      );
+                      setClosedProductIds(
+                        fields
+                          .map((field) => field.id)
+                          .filter((id) => !nextOpen.has(id)),
+                      );
                     }}
                     className="gap-3 pb-3"
                   >
@@ -496,6 +549,7 @@ export function CreateQuoteModal({
         onClose={handleCloseQuoteProductModal}
         products={selectedProducts}
         existingItems={quotationItems}
+        minSuppliersPerProduct={minSuppliersRequired}
         onConfirm={(items) => {
           const resolveProductId = (
             item: DraftQuotationItem,

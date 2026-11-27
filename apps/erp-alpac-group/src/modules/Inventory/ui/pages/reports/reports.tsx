@@ -17,6 +17,7 @@ import { OutputsConsolidatedByEquipmentReportModal } from "@app/modules/Inventor
 import { InventoryPeriodReportModal } from "@app/modules/Inventory/ui/pages/reports/inventory-period/inventory-period-report-modal";
 import { InventoryMovementReportModal } from "@app/modules/Inventory/ui/pages/reports/inventory-movements/inventory-movement-report-modal";
 import { InventoryTurnoverReportModal } from "@app/modules/Inventory/ui/pages/reports/inventory-turnover/inventory-turnover-report-modal";
+import { KardexReportModal } from "@app/modules/Inventory/ui/pages/reports/kardex/kardex-report-modal";
 
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
@@ -68,14 +69,12 @@ export const Reports = function () {
     useState(false);
   const [isInventoryTurnoverModalOpen, setIsInventoryTurnoverModalOpen] =
     useState(false);
+  const [isKardexModalOpen, setIsKardexModalOpen] = useState(false);
 
   const openReportBySlug: Record<string, () => void> = {
     "stock-daily": () => setIsStockDailyModalOpen(true),
     "inventory-period": () => setIsInventoryPeriodModalOpen(true),
-    kardex: () =>
-      navigate(
-        `${baseUrl}/${moduleBasePath}/inventory-control?tab=kardex-movement`,
-      ),
+    kardex: () => setIsKardexModalOpen(true),
     "inventory-movements": () => setIsInventoryMovementModalOpen(true),
     "inventory-turnover": () => setIsInventoryTurnoverModalOpen(true),
     "outputs-by-equipment": () => setIsOutputsByEquipmentModalOpen(true),
@@ -369,6 +368,11 @@ export const Reports = function () {
       <InventoryTurnoverReportModal
         isOpen={isInventoryTurnoverModalOpen}
         onClose={() => setIsInventoryTurnoverModalOpen(false)}
+      />
+
+      <KardexReportModal
+        isOpen={isKardexModalOpen}
+        onClose={() => setIsKardexModalOpen(false)}
       />
 
       {AlertComponent}
