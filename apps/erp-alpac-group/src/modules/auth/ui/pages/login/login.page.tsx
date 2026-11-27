@@ -3,7 +3,7 @@ import { FormLayout } from "@app/shared/layouts";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { Alert, Button, Dropdown, InputText } from "@alpac/design-system";
-import fondoLogin from "@app/assets/login/fondoLogin.webp";
+import fondoLogin from "@app/assets/login/fondo-grupo-vassalli.jpg";
 import { ContentLoaded } from "@app/shared/components/content-loaded/content-loaded";
 import { useAuth } from "@app/modules/auth/ui/hooks/useAuth";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
@@ -38,7 +38,9 @@ export const LoginPage = function () {
   const { startLoginProcess } = useAuth();
   const [showAuthError, setShowAuthError] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [errorTitle, setErrorTitle] = useState("Error");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isUserBlockedError, setIsUserBlockedError] = useState(false);
 
   const { data, isLoading } = GetCompaniesQuery;
 
@@ -145,7 +147,20 @@ export const LoginPage = function () {
       });
     } catch (error) {
       const mappedError = getMappedError(error as ApiErrorResponse);
+      const isBlocked = mappedError.typeError === "ERP:USER_BLOCKED";
+      const isInactive = mappedError.typeError === "ERP:USER_UNACTIVE";
+      const isInvalidPassword = mappedError.typeError === "ERP:InvalidPassword";
 
+      setIsUserBlockedError(isBlocked);
+      setErrorTitle(
+        isBlocked
+          ? "Cuenta bloqueada definitivamente"
+          : isInactive
+            ? "Cuenta inactiva"
+            : isInvalidPassword
+              ? "Credenciales incorrectas"
+              : "Error",
+      );
       setShowAuthError(true);
       setIsExiting(false);
       setErrorMessage(mappedError.description);
@@ -166,14 +181,14 @@ export const LoginPage = function () {
   };
 
   useEffect(() => {
-    if (showAuthError) {
+    if (showAuthError && !isUserBlockedError) {
       const timer = setTimeout(() => {
         handleDismiss();
       }, 5000);
 
       return () => clearTimeout(timer);
     }
-  }, [showAuthError]);
+  }, [showAuthError, isUserBlockedError]);
 
   if (isLoading && !data) {
     return <ContentLoaded imageUrl={companyLogos.neutral} />;
@@ -185,16 +200,17 @@ export const LoginPage = function () {
         className="relative h-dvh w-full flex items-center justify-center bg-cover bg-center"
         style={{ backgroundImage: `url(${fondoLogin})` }}
       >
-        <div className="absolute inset-0 bg-black/5 backdrop-brightness-[0.30] backdrop-blur-xs z-0"></div>
+        <div className="absolute inset-0 z-0 bg-slate-950/35 backdrop-brightness-[0.62] backdrop-blur-[1.5px]"></div>
 
         <div className="relative z-10 w-full flex items-center justify-center">
           <FormLayout
+            title="Bienvenido"
             imageUrl={companyLogos.color}
             copyrightEntityName={brandingName}
           >
             <form
               onSubmit={handleSubmit(handleLogin)}
-              className="h-full flex flex-col justify-center gap-2"
+              className="flex h-full flex-col justify-center gap-4"
             >
               <Controller
                 name="company_id"
@@ -242,21 +258,22 @@ export const LoginPage = function () {
                 error={errors.password && errors.password.message}
               />
 
-              <div className="w-full flex flex-col mt-5">
+              <div className="mt-2 flex w-full flex-col">
                 <Button
                   disabled={!isDirty || !isValid || startLoginProcess.isPending}
                   label="Iniciar sesión"
                   isLoading={startLoginProcess.isPending}
                   size="giant"
+                  className="w-full! rounded-xl! font-semibold! shadow-sm! transition-all! duration-200! hover:shadow-md!"
                 />
               </div>
 
               {showAuthError && (
                 <div
-                  className={`w-full flex flex-col mt-5 animate-fade-alert ${isExiting ? "hide" : ""}`}
+                  className={`mt-2 flex w-full flex-col animate-fade-alert ${isExiting ? "hide" : ""}`}
                 >
                   <Alert
-                    title="Error"
+                    title={errorTitle}
                     message={errorMessage || "Ocurrio un error inesperado"}
                     type="error"
                     onClose={handleDismiss}
