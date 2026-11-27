@@ -366,14 +366,18 @@ export function QuoteAnalysisDetail() {
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-600 sm:text-sm dark:text-slate-400">
               <Building2 className="h-4 w-4 shrink-0" />
-              <span className="min-w-0 wrap-wrap-break-words">
-                {purchase_request.branch_information?.branch_name ||
-                  "Sin sucursal"}
+              <span className="min-w-0 wrap-wrap-break-words font-medium text-slate-800 dark:text-slate-200">
+                {[
+                  purchase_request.branch_information?.branch_code?.trim(),
+                  purchase_request.branch_information?.company_alias?.trim(),
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || "Sin empresa"}
               </span>
               <span className="hidden sm:inline">·</span>
               <span className="min-w-0 wrap-wrap-break-words">
-                {purchase_request.branch_information?.company_alias ||
-                  "Sin empresa"}
+                {purchase_request.branch_information?.branch_name ||
+                  "Sin sucursal"}
               </span>
             </div>
           </div>

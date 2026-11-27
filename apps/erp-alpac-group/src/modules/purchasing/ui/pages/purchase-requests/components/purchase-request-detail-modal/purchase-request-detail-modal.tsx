@@ -5,7 +5,7 @@ import { usePurchaseRequestCommands } from "@app/modules/purchasing/ui/hooks/pur
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { formatDateToSpanishWords } from "@app/shared/utils/string.utils";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import { BanIcon, BuildingIcon, CalendarCheckIcon, CalendarIcon, CheckIcon, FileClockIcon, FileTextIcon, MailIcon, NotebookTextIcon, XIcon } from "lucide-react";
+import { BanIcon, BuildingIcon, CalendarCheckIcon, CalendarIcon, CheckIcon, FileClockIcon, FileTextIcon, NotebookTextIcon, XIcon } from "lucide-react";
 import { useMappedError } from "@app/shared/hooks/useMappedError";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import { PurchaseRequestStatusEnum } from "@app/modules/purchasing/domain/enums/purchase-request-status.enum";
@@ -17,6 +17,7 @@ import type { PurchaseRequestDetailModalProps } from "@app/modules/purchasing/ui
 import type { GetPurchaseRequestDetailResponse, PurchaseRequestAdditionalData, PurchaseRequestProductInformationList } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import type { ProcessPurchaseRequestPayload } from "@app/modules/purchasing/domain/ApiContract/Requests/purchase/process-purchase-request-payload";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
+import { formatBranchDisplay } from "@app/shared/utils/branch-display.utils";
 import { ImagePreviewGallery, type ImagePayload } from "@app/shared/components/image-preview-gallery/image-preview-gallery";
 import { purchaseRequestPriorityBadgeVariants, purchaseRequestStatusBadgeVariants, purchaseRequestTypeBadgeVariants } from "@app/modules/purchasing/ui/pages/purchase-requests/purchase-request.variants";
 import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase-request-priority-level.enum";
@@ -402,11 +403,19 @@ export const PurchaseRequestDetailModal = ({
 												}}
 											/>
 
-											<DetailField
-												label="Sucursal"
-												value={details?.branch_information?.branch_name ?? ""}
-												icon={<BuildingIcon size={18} />}
-											/>
+											{(() => {
+												const branchDisplay = formatBranchDisplay(
+													details?.branch_information,
+												);
+												return (
+													<DetailField
+														label="Sucursal"
+														value={branchDisplay.primary}
+														description={branchDisplay.secondary}
+														icon={<BuildingIcon size={18} />}
+													/>
+												);
+											})()}
 											
 											<DetailField
 												label="Centro de costo"

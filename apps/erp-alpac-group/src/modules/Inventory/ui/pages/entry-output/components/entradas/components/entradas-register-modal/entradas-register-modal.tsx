@@ -50,7 +50,8 @@ import type { ImageOutput } from "@app/shared/components/image-uploader/image-up
 import type { InventoryEntryItemDetail } from "@app/modules/Inventory/domain/api-contract/responses/inventory-entries.response";
 
 const MAX_EVIDENCE_IMAGES = 5;
-const ITEMS_TABLE_WRAPPER_CLASS = "[&>div]:h-auto [&>div]:flex-none";
+const ITEMS_TABLE_WRAPPER_CLASS =
+  "[&>div]:h-auto [&>div]:flex-none [&_th]:px-4 [&_td]:px-4 [&_th]:py-3 [&_td]:py-3 [&_th:nth-child(1)]:w-px [&_th:nth-child(2)]:w-px [&_th:nth-child(3)]:w-px";
 
 interface RegisterEntryFormValues {
   invoice_number: string;
@@ -78,7 +79,7 @@ const REGISTER_ENTRY_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
     key: "product_name",
     label: "Producto",
     render: (item) => (
-      <span className="block min-w-[12rem] max-w-[24rem] whitespace-normal text-sm font-medium text-slate-800 [overflow-wrap:anywhere] dark:text-slate-100">
+      <span className="block w-max max-w-[15rem] whitespace-normal text-sm font-medium text-slate-800 [overflow-wrap:anywhere] dark:text-slate-100">
         {item.product_name ?? item.product_code ?? "—"}
       </span>
     ),
@@ -87,7 +88,7 @@ const REGISTER_ENTRY_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
     key: "quantity",
     label: "Cantidad",
     render: (item) => (
-      <span className="flex w-full justify-center whitespace-nowrap text-sm font-medium tabular-nums text-slate-700 dark:text-slate-200">
+      <span className="inline-block whitespace-nowrap text-left text-sm font-medium tabular-nums text-slate-700 dark:text-slate-200">
         {formatQuantity(
           item.quantity,
           item.unit_measure_symbol ?? item.unit_measure_name,
@@ -99,7 +100,7 @@ const REGISTER_ENTRY_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
     key: "unit_price",
     label: "Costo unitario",
     render: (item) => (
-      <span className="flex w-full justify-center whitespace-nowrap text-sm tabular-nums text-slate-700 dark:text-slate-200">
+      <span className="inline-block whitespace-nowrap text-left text-sm tabular-nums text-slate-700 dark:text-slate-200">
         {formatCurrency(item.unit_price)}
       </span>
     ),
@@ -108,7 +109,7 @@ const REGISTER_ENTRY_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
     key: "subtotal",
     label: "Total",
     render: (item) => (
-      <span className="flex w-full justify-center whitespace-nowrap text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">
+      <span className="inline-block whitespace-nowrap text-left text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">
         {formatCurrency((Number(item.quantity) || 0) * (Number(item.unit_price) || 0))}
       </span>
     ),
@@ -266,8 +267,8 @@ export const EntradasRegisterModal = function (props: EntradasRegisterModalProps
       description="Completa los datos de la factura y adjunta la evidencia para procesar la entrada y actualizar el costo promedio ponderado en Kardex."
       variant="form"
       size="5xl"
-      panelClassName="flex max-h-[min(94dvh,58rem)] flex-col rounded-xl sm:!rounded-2xl !p-4 sm:!p-6"
-      contentClassName="flex min-h-0 flex-1 flex-col overflow-y-auto"
+      panelClassName="flex max-h-[min(calc(100dvh-2rem),58rem)] flex-col rounded-xl sm:!rounded-2xl !p-4 sm:!p-6"
+      contentClassName="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
     >
       {isLoadingDetail ? (
         <div className="py-8">
@@ -293,13 +294,14 @@ export const EntradasRegisterModal = function (props: EntradasRegisterModalProps
               <Badges
                 label={statusVariant.label}
                 color={statusVariant.badgeColor}
+                className="whitespace-nowrap"
               />
             )}
             {detail.purchase_request_code && (
               <Badges
                 label={`Solicitud: ${detail.purchase_request_code}`}
                 color={BADGE_COLORS.request}
-                className={COMPACT_BADGE_CLASS}
+                className="whitespace-nowrap"
               />
             )}
           </SectionHeader>

@@ -10,6 +10,7 @@ import {
   PackageIcon,
   ReceiptTextIcon,
   TruckIcon,
+  UserIcon,
 } from "lucide-react";
 import {
   Badges,
@@ -23,6 +24,7 @@ import {
 
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
+import { formatBranchDisplay } from "@app/shared/utils/branch-display.utils";
 import { EntryStatus } from "@app/core/enums/entry-status.enum";
 import { EntryTypeEnum } from "@app/core/enums/entry-type.enum";
 import { useInventoryEntries } from "@app/modules/Inventory/ui/hooks/useInventoryEntries";
@@ -54,7 +56,8 @@ import type { EntradasDetailModalProps } from "./entradas-detail-modal.types";
 
 const ICON_CLASS = "text-slate-500 dark:text-slate-300";
 const SECTION_GRID_CLASS = "grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4";
-const ITEMS_TABLE_WRAPPER_CLASS = "[&>div]:h-auto [&>div]:flex-none";
+const ITEMS_TABLE_WRAPPER_CLASS =
+  "[&>div]:h-auto [&>div]:flex-none [&_th]:px-4 [&_td]:px-4 [&_th]:py-3 [&_td]:py-3 [&_th:nth-child(1)]:w-px [&_th:nth-child(2)]:w-px [&_th:nth-child(3)]:w-px";
 
 const pluralize = (count: number, singular: string, plural: string) =>
   `${count} ${count === 1 ? singular : plural}`;
@@ -83,6 +86,10 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
    const branch          = current?.branch_information ?? null;
    const workArea        = current?.work_area_information ?? null;
    const purchaseRequest = detail?.purchase_request_information ?? null;
+   const requestCreator  = purchaseRequest?.creator_user_information ?? null;
+   const requesterName   = requestCreator?.fullname?.trim() || "";
+   const requesterEmail  = requestCreator?.email?.trim() || undefined;
+   const requesterAvatar = requestCreator?.picture_url?.trim() || undefined;
    const requestItems    = detail?.purchase_request_items ?? [];
    const orderItems      = detail?.items ?? [];
    const evidenceImages  = (detail?.evidence_images ?? []).filter((image) => Boolean(image.image_url));
@@ -97,8 +104,13 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
    const requestStatus = resolveBadgeVariant(purchaseRequestStatusBadgeVariants, purchaseRequest?.request_status);
    const requestType   = resolveBadgeVariant(purchaseRequestTypeBadgeVariants, purchaseRequest?.request_type);
 
-   const headerSubtitle    = [detail?.supplier_name, branch?.branch_name].filter(Boolean).join(" · ");
-   const branchDescription = [branch?.branch_code, branch?.company_alias].filter(Boolean).join(" · ");
+   const branchDisplay  = formatBranchDisplay(branch, EMPTY_VALUE);
+   const headerSubtitle = [
+      detail?.supplier_name,
+      branchDisplay.primary !== EMPTY_VALUE ? branchDisplay.primary : undefined,
+   ]
+      .filter(Boolean)
+      .join(" · ");
 
    const designatedCostCenters = (() => {
       const seen = new Map<string, { name: string; code: string | null }>();
@@ -148,7 +160,8 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
          description="Consulta la información general, la factura, la solicitud de compra y los artículos de la entrada."
          variant="default"
          size="7xl"
-         panelClassName="rounded-xl sm:!rounded-2xl !p-4 sm:!p-6"
+         panelClassName="flex h-[calc(100dvh-2rem)] max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-xl sm:!rounded-2xl !p-4 sm:!p-6 [&>div:first-of-type]:shrink-0"
+         contentClassName="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden overscroll-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
          {!current ? (
             <Banner
@@ -164,23 +177,31 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                   subtitle={headerSubtitle || undefined}
                >
                   {statusVariant && (
-                     <Badges label={statusVariant.label} color={statusVariant.badgeColor} />
+                     <Badges
+                        label={statusVariant.label}
+                        color={statusVariant.badgeColor}
+                        className="whitespace-nowrap"
+                     />
                   )}
                   {typeVariant && (
-                     <Badges label={typeVariant.label} color={typeVariant.badgeColor} />
+                     <Badges
+                        label={typeVariant.label}
+                        color={typeVariant.badgeColor}
+                        className="whitespace-nowrap"
+                     />
                   )}
                   {requestCode && (
                      <Badges
                         label={`Solicitud: ${requestCode}`}
                         color={BADGE_COLORS.request}
-                        className={COMPACT_BADGE_CLASS}
+                        className="whitespace-nowrap"
                      />
                   )}
                   {detail?.invoice_number && (
                      <Badges
                         label={`Factura: ${detail.invoice_number}`}
                         color={BADGE_COLORS.invoice}
-                        className={COMPACT_BADGE_CLASS}
+                        className="whitespace-nowrap"
                      />
                   )}
                </SectionHeader>
@@ -245,8 +266,8 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                               <div className={SECTION_GRID_CLASS}>
                                  <DetailField
                                     label="Sucursal"
-                                    value={displayText(branch?.branch_name)}
-                                    description={branchDescription || undefined}
+                                    value={branchDisplay.primary}
+                                    description={branchDisplay.secondary}
                                     icon={<MapPinIcon size={18} className={ICON_CLASS} aria-hidden />}
                                  />
                                  <DetailField
@@ -297,13 +318,31 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                               >
                                  <div className={SECTION_GRID_CLASS}>
                                     <DetailField
+                                       label="Solicitante"
+                                       value={displayText(requesterName)}
+                                       description={requesterEmail}
+                                       avatar={
+                                          requesterName
+                                             ? {
+                                                  label: requesterName,
+                                                  pictureUrl: requesterAvatar,
+                                               }
+                                             : undefined
+                                       }
+                                       icon={
+                                          requesterName ? undefined : (
+                                             <UserIcon size={18} className={ICON_CLASS} aria-hidden />
+                                          )
+                                       }
+                                    />
+                                    <DetailField
                                        label="Código"
                                        value={
                                           purchaseRequest.code ? (
                                              <Badges
                                                 label={purchaseRequest.code}
                                                 color={BADGE_COLORS.request}
-                                                className={COMPACT_BADGE_CLASS}
+                                                className="whitespace-nowrap"
                                              />
                                           ) : (
                                              EMPTY_VALUE
@@ -316,11 +355,23 @@ export const EntradasDetailModal = function (props: EntradasDetailModalProps) {
                                     />
                                     <DetailField
                                        label="Tipo de solicitud"
-                                       value={<Badges label={requestType.label} color={requestType.badgeColor} />}
+                                       value={
+                                          <Badges
+                                             label={requestType.label}
+                                             color={requestType.badgeColor}
+                                             className="whitespace-nowrap"
+                                          />
+                                       }
                                     />
                                     <DetailField
                                        label="Estado"
-                                       value={<Badges label={requestStatus.label} color={requestStatus.badgeColor} />}
+                                       value={
+                                          <Badges
+                                             label={requestStatus.label}
+                                             color={requestStatus.badgeColor}
+                                             className="whitespace-nowrap"
+                                          />
+                                       }
                                     />
                                  </div>
                               </SectionHeader>
