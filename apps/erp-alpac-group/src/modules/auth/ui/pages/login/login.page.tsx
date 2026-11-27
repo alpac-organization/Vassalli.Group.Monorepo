@@ -38,7 +38,9 @@ export const LoginPage = function () {
   const { startLoginProcess } = useAuth();
   const [showAuthError, setShowAuthError] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
+  const [errorTitle, setErrorTitle] = useState("Error");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isUserBlockedError, setIsUserBlockedError] = useState(false);
 
   const { data, isLoading } = GetCompaniesQuery;
 
@@ -145,7 +147,20 @@ export const LoginPage = function () {
       });
     } catch (error) {
       const mappedError = getMappedError(error as ApiErrorResponse);
+      const isBlocked = mappedError.typeError === "ERP:USER_BLOCKED";
+      const isInactive = mappedError.typeError === "ERP:USER_UNACTIVE";
+      const isInvalidPassword = mappedError.typeError === "ERP:InvalidPassword";
 
+      setIsUserBlockedError(isBlocked);
+      setErrorTitle(
+        isBlocked
+          ? "Cuenta bloqueada"
+          : isInactive
+            ? "Cuenta inactiva"
+            : isInvalidPassword
+              ? "Credenciales incorrectas"
+              : "Error",
+      );
       setShowAuthError(true);
       setIsExiting(false);
       setErrorMessage(mappedError.description);
@@ -167,13 +182,14 @@ export const LoginPage = function () {
 
   useEffect(() => {
     if (showAuthError) {
+      const dismissDelayMs = isUserBlockedError ? 10000 : 5000;
       const timer = setTimeout(() => {
         handleDismiss();
-      }, 5000);
+      }, dismissDelayMs);
 
       return () => clearTimeout(timer);
     }
-  }, [showAuthError]);
+  }, [showAuthError, isUserBlockedError]);
 
   if (isLoading && !data) {
     return <ContentLoaded imageUrl={companyLogos.neutral} />;
@@ -256,7 +272,7 @@ export const LoginPage = function () {
                   className={`w-full flex flex-col mt-5 animate-fade-alert ${isExiting ? "hide" : ""}`}
                 >
                   <Alert
-                    title="Error"
+                    title={errorTitle}
                     message={errorMessage || "Ocurrio un error inesperado"}
                     type="error"
                     onClose={handleDismiss}
