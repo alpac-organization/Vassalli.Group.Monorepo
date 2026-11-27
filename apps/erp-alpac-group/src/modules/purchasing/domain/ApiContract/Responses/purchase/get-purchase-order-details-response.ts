@@ -41,6 +41,7 @@ export interface GetPurchaseOrderDetailsResponse {
 	purchase_order_id: string;
 	purchase_order_code: string | null;
 	status: PurchaseOrderStatusType;
+	requires_inventory_entry?: boolean;
 	supplier_id: string | null;
 	supplier_name: string | null;
 	sent_by_user_information: UserInformation | null;
