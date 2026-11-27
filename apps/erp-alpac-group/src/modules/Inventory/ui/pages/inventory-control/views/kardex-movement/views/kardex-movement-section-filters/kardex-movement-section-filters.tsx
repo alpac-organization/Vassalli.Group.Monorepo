@@ -12,6 +12,7 @@ import {
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { RoleEnum } from "@app/core/enums/role.enum";
 import { useProduct } from "@app/modules/product/ui/hooks/useProduct";
+import { CategoryType } from "@app/modules/product/domain/enums/category-type.enum";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { useCostCenters } from "@app/modules/admin/ui/hooks/cost-centers/useCostCenters";
 import {
@@ -60,6 +61,7 @@ export const KardexMovementSectionFilters = function (
       getProductCategoryPayload: {
          company_id: companyId,
          module_code: moduleCode,
+         category_type: CategoryType.Operational.textValue,
       },
    });
 
