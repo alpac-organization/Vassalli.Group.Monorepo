@@ -60,6 +60,7 @@ export const emptyQuotationItem = (
     has_delivery: false,
     has_guarantee: false,
     inventory_available: true,
+    proforma_number: "",
     brand_product: "",
     product_quality: ProductQualityEnum.Good.textValue,
     payment_method: autoPayment,
@@ -95,6 +96,7 @@ export const mapDraftItemToForm = (
   return {
     ...rest,
     is_included: true,
+    proforma_number: item.proforma_number ?? "",
     inventory_available: item.inventory_available !== false,
     product_quality: item.product_quality ?? ProductQualityEnum.Good.textValue,
     payment_method: normalizePaymentMethodType(payment_method_type),
@@ -244,6 +246,7 @@ export const mapFormValuesToDraftItems = (
           inventory_available: isInventoryAvailable,
           supplier_selection_justification:
             item.supplier_selection_justification?.trim() || "",
+          proforma_number: item.proforma_number?.trim() || "",
           brand_product: item.brand_product?.trim() || null,
           product_quality: item.product_quality,
           ...(paymentMethod ? { payment_method_type: paymentMethod } : {}),

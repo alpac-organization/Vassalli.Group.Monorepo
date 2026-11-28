@@ -18,6 +18,7 @@ export interface QuotationItem {
 	has_guarantee: boolean;
 	inventory_available?: boolean | null;
 	supplier_selection_justification: string;
+	proforma_number: string;
 	brand_product?: string | null;
 	product_quality: ProductQualityType;
 	payment_method_type?: PaymentMethodType | null;

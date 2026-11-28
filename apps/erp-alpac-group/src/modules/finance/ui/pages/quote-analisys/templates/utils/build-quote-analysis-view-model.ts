@@ -259,6 +259,7 @@ function buildQualitative(
   currencyBySupplierId: Map<string, string | null>,
 ): QuoteAnalysisPdfQualitative {
   const qualitative: QuoteAnalysisPdfQualitative = {
+    proformaNumber: {},
     delivery: {},
     transport: {},
     warranty: {},
@@ -272,6 +273,8 @@ function buildQualitative(
       currencyBySupplierId.get(supplier.supplierId) || undefined;
 
     const quote = representativeQuotes.get(supplier.supplierId);
+    qualitative.proformaNumber[supplier.supplierId] =
+      quote?.proforma_number?.trim() || EMPTY_CELL;
     qualitative.delivery[supplier.supplierId] = quote
       ? formatPeriod(quote.delivery_time, quote.delivery_time_type)
       : EMPTY_CELL;

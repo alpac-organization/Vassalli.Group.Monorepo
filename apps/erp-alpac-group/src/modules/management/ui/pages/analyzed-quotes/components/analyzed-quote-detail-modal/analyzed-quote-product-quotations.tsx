@@ -165,6 +165,10 @@ export function AnalyzedQuoteProductQuotations({
                 }
               />
               <QuoteField
+                label="N° Proforma"
+                value={selectedQuote.proforma_number?.trim() || "—"}
+              />
+              <QuoteField
                 label="Marca"
                 value={selectedQuote.brand_product?.trim() || "—"}
               />

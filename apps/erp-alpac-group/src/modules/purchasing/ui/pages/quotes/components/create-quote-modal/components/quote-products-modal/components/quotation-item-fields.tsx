@@ -276,6 +276,22 @@ export function QuotationItemFields({
 				/>
 
 				<InputText
+					label="Número de proforma"
+					placeholder="Ej. PF-00125"
+					isRequired={isIncluded}
+					maxLength={100}
+					className={quoteFormInputClassName}
+					labelClassName={quoteFormLabelClassName}
+					{...register(`${fieldPath}.proforma_number`, {
+						validate: (value) =>
+							!isIncluded ||
+							Boolean(value?.trim()) ||
+							"El número de proforma es requerido.",
+					})}
+					error={itemErrors?.proforma_number?.message}
+				/>
+
+				<InputText
 					label="Marca"
 					placeholder="Ej. Bosch"
 					className={quoteFormInputClassName}

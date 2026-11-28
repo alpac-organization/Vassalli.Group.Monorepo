@@ -3,6 +3,7 @@ import {
   Award,
   Calendar,
   Clock,
+  FileText,
   Hash,
   NotebookText,
   Package,
@@ -56,6 +57,12 @@ export const COMPARISON_ROWS: ComparisonRow[] = [
     icon: User,
     getValue: (quote) =>
       quote.supplier_information?.suppliers_legal_name?.trim() || "—",
+  },
+  {
+    key: "proforma_number",
+    label: "N° Proforma",
+    icon: FileText,
+    getValue: (quote) => quote.proforma_number?.trim() || "—",
   },
   {
     key: "justification",
