@@ -30,6 +30,7 @@ export const TOTALS_ROWS = [
 ] as const;
 
 export const QUALITATIVE_ROWS = [
+	{ key: "proformaNumber", label: "* N° Proforma" },
 	{ key: "delivery", label: "* Plazo de entrega" },
 	{ key: "transport", label: "* Transporte" },
 	{ key: "warranty", label: "* Período de garantía" },

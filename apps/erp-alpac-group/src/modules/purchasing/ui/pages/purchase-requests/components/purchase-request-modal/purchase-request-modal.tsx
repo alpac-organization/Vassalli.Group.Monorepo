@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button, Modal } from "@alpac/design-system";
 import { PlusIcon } from "lucide-react";
 import type { PurchaseRequestEntry, PurchaseRequestModalProps } from "@app/modules/purchasing/ui/pages/purchase-requests/components/purchase-request-modal/purchase-request-modal.types";
@@ -16,7 +16,6 @@ import type {
 import type {
 	GetPurchaseRequestDetailResponse,
 	PurchaseRequestProductInformationList,
-	PurchaseRequestUnitMeasureInformation,
 } from "@app/modules/purchasing/domain/ApiContract/Responses/purchase/get-purchase-request-details-response";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { usePurchaseRequestDetail } from "@app/modules/purchasing/ui/hooks/purchase/usePurchaseRequestDetail";
@@ -30,7 +29,6 @@ import { PriorityLevelEnum } from "@app/modules/purchasing/domain/enums/purchase
 import { PurchaseRequestEnum } from "@app/modules/purchasing/domain/enums/purchase-request.enum";
 import { PurchaseRequestFormBlock } from "../purchase-request-form-block/purchase-request-form-block";
 import type { PurchaseRequestFormBlockHandle } from "../purchase-request-form-block/purchase-request-form-block.types";
-import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { toDataUrl } from "@app/shared/utils/toDataUrl";
 import { extractPurchaseRequestItemImages } from "@app/modules/purchasing/ui/pages/purchase-requests/utils/purchase-request-item-images.utils";
 
@@ -60,53 +58,6 @@ const createEntry = (defaults: CreatePurchaseRequestPayload = emptyFormValues())
 		})),
 	},
 });
-
-const normalizeUnitKey = (value: string | null | undefined): string =>
-	value?.trim().toLowerCase() ?? "";
-
-type UnitMeasureLookup = {
-	byCode: Map<string, string>;
-	bySymbol: Map<string, string>;
-};
-
-const buildUnitMeasureLookup = (
-	units: { unit_measure_id: string; code: string; symbol: string }[],
-): UnitMeasureLookup => {
-	const byCode = new Map<string, string>();
-	const bySymbol = new Map<string, string>();
-
-	for (const unit of units) {
-		const codeKey = normalizeUnitKey(unit.code);
-		const symbolKey = normalizeUnitKey(unit.symbol);
-		if (codeKey && !byCode.has(codeKey)) {
-			byCode.set(codeKey, unit.unit_measure_id);
-		}
-		if (symbolKey && !bySymbol.has(symbolKey)) {
-			bySymbol.set(symbolKey, unit.unit_measure_id);
-		}
-	}
-
-	return { byCode, bySymbol };
-};
-
-const resolveUnitMeasureId = (
-	info: PurchaseRequestUnitMeasureInformation,
-	lookup: UnitMeasureLookup,
-): string => {
-	const codeKey = normalizeUnitKey(info.code);
-	if (codeKey) {
-		const byCode = lookup.byCode.get(codeKey);
-		if (byCode) return byCode;
-	}
-
-	const symbolKey = normalizeUnitKey(info.symbol);
-	if (symbolKey) {
-		const bySymbol = lookup.bySymbol.get(symbolKey);
-		if (bySymbol) return bySymbol;
-	}
-
-	return "";
-};
 
 const selectedUnitMeasureId = (value?: string | null): string | null => {
 	const unitMeasureId = value?.trim();
@@ -218,18 +169,6 @@ export const PurchaseRequestModal = ({
 	const { CreatePurchaseRequest, UpdatePurchaseRequest } =
 		usePurchaseRequestCommands();
 
-	const { GetUnitMeasurements } = useUnitOfMeasurement({
-		payloadUnitOfMeasurement: {
-			companie_id: companyId,
-			module_code: moduleCode,
-		},
-	});
-
-	const unitsOfMeasurement = useMemo(() => {
-		const data = GetUnitMeasurements.data;
-		return Array.isArray(data) ? data : [];
-	}, [GetUnitMeasurements.data]);
-
 	const details = GetPurchaseRequestDetails.data as
 		| GetPurchaseRequestDetailResponse
 		| undefined;
@@ -244,9 +183,7 @@ export const PurchaseRequestModal = ({
 		(GetPurchaseRequestDetails.isPending ||
 			GetPurchaseRequestDetails.isFetching ||
 			GetPurchaseRequestProducts.isPending ||
-			GetPurchaseRequestProducts.isFetching ||
-			GetUnitMeasurements.isPending ||
-			GetUnitMeasurements.isFetching);
+			GetPurchaseRequestProducts.isFetching);
 
 	const isSubmitting =
 		CreatePurchaseRequest.isPending || UpdatePurchaseRequest.isPending;
@@ -276,7 +213,6 @@ export const PurchaseRequestModal = ({
 		if (!details || !productsResponse) return;
 
 		const products = productsResponse.data ?? [];
-		const unitMeasureLookup = buildUnitMeasureLookup(unitsOfMeasurement);
 
 		const editDefaults: CreatePurchaseRequestPayload = {
 			branch_id: currentBranchId,
@@ -302,10 +238,10 @@ export const PurchaseRequestModal = ({
 					product_name: product.product_details?.product_name,
 					quantity: product.quantity,
 					quantity_unit: product.quantity_unit ?? 0,
-					unit_measure_id: resolveUnitMeasureId(
-						product.unit_measure_information as PurchaseRequestUnitMeasureInformation,
-						unitMeasureLookup,
-					),
+					unit_measure_id:
+						product.unit_measure_information?.unit_measure_id ?? "",
+					unit_measure_name: product.unit_measure_information?.name ?? "",
+					unit_measure_symbol: product.unit_measure_information?.symbol ?? "",
 					description: product.description ?? "",
 					justification: product.justification ?? "",
 					images: {
@@ -324,7 +260,6 @@ export const PurchaseRequestModal = ({
 		editDefaultsReady,
 		details,
 		productsResponse,
-		unitsOfMeasurement,
 		currentBranchId,
 		costCenterId,
 		requestType.textValue,

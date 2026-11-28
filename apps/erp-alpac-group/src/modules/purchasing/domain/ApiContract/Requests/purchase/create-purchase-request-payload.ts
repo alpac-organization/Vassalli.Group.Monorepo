@@ -45,6 +45,8 @@ export interface PurchaseRequestItem {
 	purchase_request_item_id?: string;
 	product_id?: string | null;
 	unit_measure_id?: string | null;
+	unit_measure_name?: string | null;
+	unit_measure_symbol?: string | null;
 	additional_supplier_ids?: string[];
 	quantity: number;
 	quantity_unit?: number | null;

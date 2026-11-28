@@ -14,6 +14,7 @@ export interface UpdateQuoteRequest extends BaseRequest {
 	has_guarantee?: boolean | null;
 	inventory_available?: boolean | null;
 	brand_product?: string | null;
+	proforma_number?: string | null;
 	product_quality?: ProductQualityType | null;
 	payment_method_type?: PaymentMethodType | null;
 	delivery_time?: number | null;
