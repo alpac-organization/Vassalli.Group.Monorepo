@@ -15,11 +15,11 @@ export type ActiveDeductionView = "detail" | "payments";
 export type ActiveDeductionDetailBodyProps = {
   detail: DeductionDetailsDto;
   onViewPayments: () => void;
-}
+};
 
 export type ActiveDeductionDetailContentProps = {
-   summary: DeductionDto | null;
-   detail?: DeductionDetailsDto;
-   isLoading: boolean;
-   isError: boolean;
+  summary: DeductionDto | null;
+  detail?: DeductionDetailsDto;
+  isLoading: boolean;
+  isError: boolean;
 };

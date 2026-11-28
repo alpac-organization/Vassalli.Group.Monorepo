@@ -1,4 +1,4 @@
-﻿import { useEffect } from "react";
+import { useEffect } from "react";
 import {
 	Controller,
 	useFormContext,
@@ -6,12 +6,13 @@ import {
 } from "react-hook-form";
 import {
 	AccordionItem,
+	Button,
 	Checkbox,
 	Dropdown,
 	InputText,
 	Textarea,
 } from "@alpac/design-system";
-import { CircleAlert } from "lucide-react";
+import { CheckCircle2Icon, CircleAlert, XCircleIcon } from "lucide-react";
 import {
 	quoteFormInputClassName,
 	quoteFormLabelClassName,
@@ -44,6 +45,10 @@ export function QuotationItemFields({
 	supplierLegalName,
 	isLoadingPaymentMethods = false,
 	isOpen = true,
+	isIncluded = true,
+	canSelectOnlyThis = false,
+	onToggleInclude,
+	onSelectOnlyThis,
 }: QuotationItemFieldsProps) {
 	const {
 		control,
@@ -93,7 +98,10 @@ export function QuotationItemFields({
 	const preferredPaymentNormalized =
 		normalizePaymentMethodType(preferredPaymentMethod);
 	const hasNoPaymentMethods =
-		isOpen && !isLoadingPaymentMethods && activePaymentMethods.length === 0;
+		isOpen &&
+		isIncluded &&
+		!isLoadingPaymentMethods &&
+		activePaymentMethods.length === 0;
 	const lockedPaymentMethod = hasSinglePaymentMethod
 		? activePaymentMethods[0].payment_method_type
 		: undefined;
@@ -108,10 +116,17 @@ export function QuotationItemFields({
 	useEffect(() => {
 		if (!lockedPaymentMethod || hasNoPaymentMethods) return;
 		setValue(`${fieldPath}.payment_method`, lockedPaymentMethod, {
-			shouldValidate: true,
+			shouldValidate: isIncluded,
 		});
 		clearErrors(`${fieldPath}.payment_method`);
-	}, [clearErrors, fieldPath, hasNoPaymentMethods, lockedPaymentMethod, setValue]);
+	}, [
+		clearErrors,
+		fieldPath,
+		hasNoPaymentMethods,
+		isIncluded,
+		lockedPaymentMethod,
+		setValue,
+	]);
 
 	useEffect(() => {
 		if (hasNoPaymentMethods) return;
@@ -125,13 +140,14 @@ export function QuotationItemFields({
 			return;
 		}
 		setValue(`${fieldPath}.payment_method`, preferredInActiveMethods, {
-			shouldValidate: true,
+			shouldValidate: isIncluded,
 		});
 		clearErrors(`${fieldPath}.payment_method`);
 	}, [
 		clearErrors,
 		currentPaymentMethod,
 		fieldPath,
+		isIncluded,
 		lockedPaymentMethod,
 		preferredInActiveMethods,
 		setValue,
@@ -140,23 +156,91 @@ export function QuotationItemFields({
 	return (
 		<AccordionItem
 			value={accordionValue}
-			className="rounded-md! border-slate-300! dark:border-slate-600! dark:bg-[#272b34]!"
+			disabled={!isIncluded}
+			className={[
+				"rounded-md! border-slate-300! dark:border-slate-600! dark:bg-[#272b34]!",
+				!isIncluded ? "opacity-65" : "",
+			]
+				.filter(Boolean)
+				.join(" ")}
 			contentClassName="p-4"
-			title={
-				<div className="flex min-w-0 items-center gap-3">
-					<span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-alpac-primary-500 text-sm font-semibold text-white dark:bg-alpac-primary-700">
+			triggerClassName="h-auto! min-h-11! items-center!"
+			leading={
+				<div className="flex min-w-0 max-w-full flex-1 items-center gap-2.5 overflow-hidden">
+					<span
+						className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${
+							isIncluded
+								? "bg-alpac-primary-500 dark:bg-alpac-primary-700"
+								: "bg-slate-400 dark:bg-slate-600"
+						}`}
+					>
 						{itemIndex + 1}
 					</span>
-					<span className="min-w-0 truncate text-[15px] font-semibold text-slate-800 dark:text-white">
-						Cotización · {supplierLabel}
-					</span>
+					<Checkbox
+						name={`include-supplier-${productIndex}-${itemIndex}`}
+						checked={isIncluded}
+						onChange={(evt) => {
+							onToggleInclude?.(Boolean(evt.target.checked));
+						}}
+						label={`Cotización · ${supplierLabel}`}
+						className="min-w-0 flex-1 overflow-hidden"
+						labelClassName="block min-w-0 truncate text-[15px] font-semibold text-slate-800 dark:text-white"
+						aria-label={`Incluir proveedor ${supplierLabel}`}
+					/>
 				</div>
+			}
+			actions={
+				<div className="flex shrink-0 items-center gap-2">
+					{canSelectOnlyThis && onSelectOnlyThis ? (
+						<Button
+							type="button"
+							size="small"
+							label="Dejar solo esta"
+							onClick={onSelectOnlyThis}
+							className="h-8 rounded-md! border border-alpac-primary-500/40 bg-alpac-primary-500/10! px-2.5! text-[12px]! font-medium text-alpac-primary-700! hover:bg-alpac-primary-500/20! dark:text-alpac-primary-300!"
+						/>
+					) : null}
+					{onToggleInclude ? (
+						<Button
+							type="button"
+							size="small"
+							label={isIncluded ? "No cotizar" : "Incluir"}
+							icon={
+								isIncluded ? (
+									<XCircleIcon size={14} />
+								) : (
+									<CheckCircle2Icon size={14} />
+								)
+							}
+							onClick={() => onToggleInclude(!isIncluded)}
+							className={
+								isIncluded
+									? "h-8 rounded-md! bg-slate-200! px-2.5! text-[12px]! font-medium text-slate-700! hover:bg-red-500/15! hover:text-red-600! dark:bg-slate-700! dark:text-slate-200! dark:hover:bg-red-500/20! dark:hover:text-red-300!"
+									: "h-8 rounded-md! bg-emerald-600! px-2.5! text-[12px]! font-medium text-white! hover:bg-emerald-700!"
+							}
+						/>
+					) : null}
+				</div>
+			}
+			title={
+				<span
+					className={`text-[13px] font-medium ${
+						isIncluded
+							? "text-emerald-600 dark:text-emerald-400"
+							: "text-slate-400 dark:text-slate-400"
+					}`}
+				>
+					{isIncluded ? "/ Incluida" : "/ Omitida"}
+				</span>
 			}
 		>
 			<input
 				type="hidden"
 				{...register(`${fieldPath}.supplier_id`, {
-					required: "Debe seleccionar un proveedor.",
+					validate: (value) =>
+						!isIncluded ||
+						Boolean(value?.trim()) ||
+						"Debe seleccionar un proveedor.",
 				})}
 			/>
 			<input type="hidden" {...register(`${fieldPath}.supplier_legal_name`)} />
@@ -203,14 +287,17 @@ export function QuotationItemFields({
 					control={control}
 					name={`${fieldPath}.product_quality`}
 					rules={{
-						required: "La calidad del producto es requerida.",
+						validate: (value) =>
+							!isIncluded ||
+							Boolean(value) ||
+							"La calidad del producto es requerida.",
 					}}
 					render={({ field }) => (
 						<Dropdown
 							label="Calidad del producto"
 							placeholder="Seleccione"
 							appearance="dark"
-							isRequired
+							isRequired={isIncluded}
 							options={productQualityOptions}
 							value={field.value ?? ""}
 							onChange={(value) =>
@@ -290,17 +377,18 @@ export function QuotationItemFields({
 						label="Tiempo de disponibilidad"
 						type="number"
 						min="0"
-						isRequired
+						isRequired={isIncluded}
 						placeholder="Ej. 5"
 						className={quoteFormInputClassName}
 						labelClassName={quoteFormLabelClassName}
 						{...register(`${fieldPath}.availability_time`, {
 							required:
-								inventoryAvailable === false
+								isIncluded && inventoryAvailable === false
 									? "El tiempo de disponibilidad es requerido."
 									: false,
 							setValueAs: toNumberOrUndefined,
 							validate: (value) =>
+								!isIncluded ||
 								inventoryAvailable !== false ||
 								(value != null && Number(value) > 0) ||
 								"El tiempo de disponibilidad debe ser mayor a 0.",
@@ -313,6 +401,7 @@ export function QuotationItemFields({
 						name={`${fieldPath}.availability_time_type`}
 						rules={{
 							validate: (value) =>
+								!isIncluded ||
 								inventoryAvailable !== false ||
 								Boolean(value) ||
 								"Seleccione el tipo de tiempo.",
@@ -322,7 +411,7 @@ export function QuotationItemFields({
 								label="Tipo de tiempo"
 								placeholder="Seleccione"
 								appearance="dark"
-								isRequired
+								isRequired={isIncluded}
 								options={timeTypeOptions}
 								value={field.value ?? ""}
 								onChange={(value) =>
@@ -346,16 +435,18 @@ export function QuotationItemFields({
 						label="Tiempo de entrega"
 						type="number"
 						min="0"
-						isRequired
+						isRequired={isIncluded}
 						placeholder="Ej. 5"
 						className={quoteFormInputClassName}
 						labelClassName={quoteFormLabelClassName}
 						{...register(`${fieldPath}.delivery_time`, {
-							required: hasDelivery
-								? "El tiempo de entrega es requerido."
-								: false,
+							required:
+								isIncluded && hasDelivery
+									? "El tiempo de entrega es requerido."
+									: false,
 							setValueAs: toNumberOrUndefined,
 							validate: (value) =>
+								!isIncluded ||
 								!hasDelivery ||
 								(value != null && Number(value) > 0) ||
 								"El tiempo de entrega debe ser mayor a 0.",
@@ -368,6 +459,7 @@ export function QuotationItemFields({
 						name={`${fieldPath}.delivery_time_type`}
 						rules={{
 							validate: (value) =>
+								!isIncluded ||
 								!hasDelivery ||
 								Boolean(value) ||
 								"Seleccione el tipo de tiempo.",
@@ -377,7 +469,7 @@ export function QuotationItemFields({
 								label="Tipo de tiempo"
 								placeholder="Seleccione"
 								appearance="dark"
-								isRequired
+								isRequired={isIncluded}
 								options={deliveryTimeOptions}
 								value={field.value ?? ""}
 								onChange={(value) =>
@@ -401,16 +493,18 @@ export function QuotationItemFields({
 						label="Periodo de garantía"
 						type="number"
 						min="0"
-						isRequired
+						isRequired={isIncluded}
 						placeholder="Ej. 12"
 						className={quoteFormInputClassName}
 						labelClassName={quoteFormLabelClassName}
 						{...register(`${fieldPath}.warranty_period`, {
-							required: hasGuarantee
-								? "El periodo de garantía es requerido."
-								: false,
+							required:
+								isIncluded && hasGuarantee
+									? "El periodo de garantía es requerido."
+									: false,
 							setValueAs: toNumberOrUndefined,
 							validate: (value) =>
+								!isIncluded ||
 								!hasGuarantee ||
 								(value != null && Number(value) > 0) ||
 								"El periodo de garantía debe ser mayor a 0.",
@@ -423,6 +517,7 @@ export function QuotationItemFields({
 						name={`${fieldPath}.warranty_period_time_type`}
 						rules={{
 							validate: (value) =>
+								!isIncluded ||
 								!hasGuarantee ||
 								Boolean(value) ||
 								"Seleccione el tipo de tiempo.",
@@ -432,7 +527,7 @@ export function QuotationItemFields({
 								label="Tipo de tiempo"
 								placeholder="Seleccione"
 								appearance="dark"
-								isRequired
+								isRequired={isIncluded}
 								options={timeTypeOptions}
 								value={field.value ?? ""}
 								onChange={(value) =>
@@ -469,6 +564,7 @@ export function QuotationItemFields({
 					name={`${fieldPath}.payment_method`}
 					rules={{
 						validate: (value) => {
+							if (!isIncluded) return true;
 							if (hasNoPaymentMethods) {
 								return "El proveedor debe tener al menos un método de pago configurado.";
 							}
@@ -512,7 +608,7 @@ export function QuotationItemFields({
 									label="Método de pago"
 									placeholder="Seleccione"
 									appearance="dark"
-									isRequired
+									isRequired={isIncluded}
 									options={paymentMethodOptions}
 									value={field.value ?? ""}
 									onChange={(value) => {
@@ -576,8 +672,8 @@ export function QuotationItemFields({
 					control={control}
 					name={`${fieldPath}.supplier_selection_justification`}
 					rules={{
-						required: "La justificación de selección es requerida.",
 						validate: (value) => {
+							if (!isIncluded) return true;
 							const trimmed = value?.trim() ?? "";
 							if (!trimmed) {
 								return "La justificación de selección es requerida.";
@@ -591,7 +687,7 @@ export function QuotationItemFields({
 					render={({ field }) => (
 						<Textarea
 							label="Justificación de selección"
-							isRequired
+							isRequired={isIncluded}
 							placeholder="Ej. Mejor precio, tiempo de entrega y disponibilidad del producto."
 							className={quoteFormInputClassName}
 							labelClassName={quoteFormLabelClassName}

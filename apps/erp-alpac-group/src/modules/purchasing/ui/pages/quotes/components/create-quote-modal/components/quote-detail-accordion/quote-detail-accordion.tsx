@@ -31,8 +31,8 @@ export function QuoteDetailAccordion({
     requestedProduct?.product_details?.category_information?.name?.trim() ||
     null;
 
-  const hasQuotation =
-    (requestedProduct?.has_quotation ?? false) || assignedSuppliersCount > 0;
+  const isSavedQuotation = requestedProduct?.has_quotation ?? false;
+  const hasQuotation = isSavedQuotation || assignedSuppliersCount > 0;
 
   const quantity = requestedProduct?.quantity;
   const quantityUnit = requestedProduct?.quantity_unit;
@@ -66,7 +66,7 @@ export function QuoteDetailAccordion({
         leading={
           <div className="flex min-w-0 max-w-full flex-1 items-center gap-2 overflow-hidden md:gap-3">
             <span className={indexBadgeClassName}>{quoteDetailIndex + 1}</span>
-            {hasQuotation ? (
+            {isSavedQuotation ? (
               <Checkbox
                 className="min-w-0 flex-1 overflow-hidden"
                 labelClassName={productNameLabelClassName}

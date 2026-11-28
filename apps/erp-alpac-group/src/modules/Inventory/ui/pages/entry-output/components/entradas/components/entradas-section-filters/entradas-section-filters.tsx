@@ -167,7 +167,12 @@ export const EntradasSectionFilters = function (props: EntradasSectionFiltersPro
             placeholder="IE-ALP-MGA-001"
             className={inputClassName}
             labelClassName={labelClassName}
-            {...register("entry_code")}
+            {...register("entry_code", {
+              setValueAs: (value: string) => value?.toUpperCase() ?? "",
+              onChange: (event) => {
+                event.target.value = event.target.value.toUpperCase();
+              },
+            })}
           />
         </div>
 
@@ -177,7 +182,12 @@ export const EntradasSectionFilters = function (props: EntradasSectionFiltersPro
             placeholder="PR-ALP-MGA-001"
             className={inputClassName}
             labelClassName={labelClassName}
-            {...register("purchase_request_code")}
+            {...register("purchase_request_code", {
+              setValueAs: (value: string) => value?.toUpperCase() ?? "",
+              onChange: (event) => {
+                event.target.value = event.target.value.toUpperCase();
+              },
+            })}
           />
         </div>
 

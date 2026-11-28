@@ -45,6 +45,7 @@ export function StandardPage({
     { label: "Ausencias", value: deductions?.Absences ?? 0 },
     { label: "Préstamos", value: deductions?.Loans ?? 0 },
     { label: "Embargos judiciales", value: deductions?.JudicialSeizures ?? 0 },
+    { label: "Embargo alimenticio", value: deductions?.ChildSupportGarnishment ?? 0 },
     { label: "Llegadas tardes", value: deductions?.LateArrivals ?? 0 },
     { label: "Purísima", value: deductions?.Purisima ?? 0 },
     {

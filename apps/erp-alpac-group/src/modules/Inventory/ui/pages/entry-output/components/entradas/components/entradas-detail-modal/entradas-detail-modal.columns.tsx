@@ -88,7 +88,8 @@ export const ORDER_ITEMS_COLUMNS: TableColumn<InventoryEntryItemDetail>[] = [
   {
     key: "product_code",
     label: "Código",
-    render: (item) => renderBadgeCell(item.product_code, BADGE_COLORS.product),
+    render: (item) =>
+      renderBadgeCell(item.product_code?.toUpperCase() ?? null, BADGE_COLORS.product),
   },
   {
     key: "product_name",
@@ -145,7 +146,8 @@ export const REQUEST_ITEMS_COLUMNS: TableColumn<InventoryEntryPurchaseRequestIte
   {
     key: "product_code",
     label: "Código",
-    render: (item) => renderBadgeCell(item.product_code, BADGE_COLORS.product),
+    render: (item) =>
+      renderBadgeCell(item.product_code?.toUpperCase() ?? null, BADGE_COLORS.product),
   },
   {
     key: "product_name",

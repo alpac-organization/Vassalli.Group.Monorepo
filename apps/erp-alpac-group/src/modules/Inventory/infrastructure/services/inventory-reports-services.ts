@@ -7,6 +7,7 @@ import type {
    EquipmentReportType,
    PeriodInventoryReportType,
    InventoryMovementReportType,
+   KardexReportType,
 } from "@app/modules/Inventory/application/interfaces/services/IInventoryReportsServices";
 import type { StockDailyReport } from "@app/modules/Inventory/domain/api-contract/responses/stock-daily-report.response";
 import type { OutputLineEquipmentReport } from "@app/modules/Inventory/domain/api-contract/responses/output-line-equipment-report.response";
@@ -64,6 +65,19 @@ export class InventoryReportsServices implements IInventoryReportsServices {
          `/companies/${company_id}/modules/${module_code}/reports/inventory-turnover/pdf`,
          {
             params: cleanParams(rest),
+            responseType: "blob",
+         },
+      );
+   }
+
+   async GetKardexReportExcel(payload: KardexReportType): Promise<Blob> {
+      const { company_id, module_code, ...rest } = payload;
+
+      return this.httpClient.get<Blob>(
+         `/companies/${company_id}/modules/${module_code}/reports/kardex`,
+         {
+            params: cleanParams(rest),
+            paramsSerializer: { indexes: null },
             responseType: "blob",
          },
       );

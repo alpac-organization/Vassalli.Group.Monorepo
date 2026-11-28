@@ -112,23 +112,23 @@ export const REPORT_CATALOG: ReportCatalogItem[] = [
   {
     slug: "kardex",
     categoryId: "movements",
-    title: "Kardex de movimientos",
+    title: "Kardex valorizado (Excel)",
     description:
-      "Consulta cronológica e interactiva de entradas, salidas, documentos origen y saldos por producto.",
-    actionLabel: "Ir a Kardex",
+      "Libro Kardex oficial en formato Excel (.xlsx) con saldo inicial, entradas, salidas, costo promedio ponderado y saldo final.",
+    actionLabel: "Configurar reporte",
     isAvailable: true,
     icon: History,
     highlights: [
-      "Trazabilidad por transacción con documento y responsable",
-      "Detalle de cantidad entrante/saliente y costo promedio resultante",
-      "Filtros dinámicos por tipo de movimiento, sucursal y fechas",
+      "Saldo inicial, inventario inicial y costo promedio ponderado al corte",
+      "Detalle cronológico de compras (FT#) y salidas (RQ# / BL#) con fórmulas Excel",
+      "Totalizado y cierre conciliado de unidades y saldo Kardex en C$",
     ],
     availableFilters: [
       "Sucursal",
-      "Área",
       "Centro de costo",
-      "Tipo movimiento",
-      "Fechas",
+      "Línea",
+      "Producto(s)",
+      "Rango de fechas",
     ],
   },
   {

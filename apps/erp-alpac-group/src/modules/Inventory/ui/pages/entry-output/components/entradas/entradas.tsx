@@ -146,7 +146,7 @@ export const Entradas = function () {
              onClose={() => setEntryToRegister(null)}
              onRegistered={(registered) => {
                 handleRequestSuccess(
-                   `La entrada ${registered.code ?? ""} fue registrada correctamente.`.trim(),
+                   `La entrada ${registered.code?.toUpperCase() ?? ""} fue registrada correctamente.`.trim(),
                 );
                 setEntryToRegister(null);
              }}
@@ -158,7 +158,7 @@ export const Entradas = function () {
 
           <AnnulModal
              isOpen={Boolean(entryToAnnul)}
-             title={`Anular entrada ${entryToAnnul?.code ?? ""}`.trim()}
+             title={`Anular entrada ${entryToAnnul?.code?.toUpperCase() ?? ""}`.trim()}
              description="Indique el motivo por el cual no procede la recepción (por ejemplo, diferencia en cantidades o precio respecto a la factura). La entrada quedará cancelada y la requisición asociada quedará como anulada con este motivo."
              showScopeSelection={false}
              presetReasons={ENTRY_ANNUL_PRESET_REASONS}
@@ -182,9 +182,9 @@ export const Entradas = function () {
                       setEntryToRegister(null);
                    }
 
-                   const entryLabel = annulled.code ? ` ${annulled.code}` : "";
+                   const entryLabel = annulled.code ? ` ${annulled.code.toUpperCase()}` : "";
                    const requestLabel = annulled.purchase_request_code
-                      ? ` (${annulled.purchase_request_code})`
+                      ? ` (${annulled.purchase_request_code.toUpperCase()})`
                       : "";
 
                    handleRequestSuccess(
