@@ -50,6 +50,7 @@ export interface KardexMovementsData {
    inventory_entry_id?: string | null;
    inventory_entry_code?: string | null;
    invoice_number?: string | null;
+   purchase_request_code?: string | null;
    inventory_output_id?: string | null;
    inventory_output_code?: string | null;
    output_request_code?: string | null;

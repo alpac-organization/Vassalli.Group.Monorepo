@@ -1,7 +1,7 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { RoleEnum } from "@app/core/enums/role.enum";
-import { DataTable, Pagination, SectionHeader } from "@alpac/design-system";
+import { Badges, DataTable, Pagination, SectionHeader } from "@alpac/design-system";
 import { toApiDate } from "@app/shared/utils/date.utils";
 import { useKardexMovements } from "@app/modules/Inventory/ui/hooks/useKardexMovements";
 import {
@@ -64,6 +64,16 @@ export const KardexMovement = function () {
    }, []);
 
    const { data: KardexData, isLoading, isFetching } = GetKardexMovementsQuery;
+   const rows = useMemo(() => KardexData?.data ?? [], [KardexData?.data]);
+
+   const singleProductContext = useMemo(() => {
+      if (rows.length === 0) return null;
+      const uniqueIds = new Set(
+         rows.map((row) => row.product_information?.product_id).filter(Boolean),
+      );
+      if (uniqueIds.size !== 1) return null;
+      return rows[0];
+   }, [rows]);
 
    const columns = getKardexMovementsColumnsToTable({
       onViewDetail: setSelectedMovement,
@@ -82,9 +92,45 @@ export const KardexMovement = function () {
             onClear={handleClearFilters}
          />
 
+         {singleProductContext && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-xs dark:border-slate-600 dark:bg-[#272b34]">
+               <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="font-semibold text-slate-500 dark:text-slate-400">
+                     Línea:
+                  </span>
+                  <Badges
+                     color="info"
+                     className="border border-indigo-200 bg-indigo-100 text-indigo-800 dark:border-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300"
+                     label={
+                        singleProductContext.product_information
+                           ?.category_information?.name ?? "—"
+                     }
+                  />
+                  <span className="mx-1 text-slate-300 dark:text-slate-600">
+                     |
+                  </span>
+                  <span className="font-semibold text-slate-500 dark:text-slate-400">
+                     Producto:
+                  </span>
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                     {singleProductContext.product_information?.product_code?.toUpperCase()}{" "}
+                     · {singleProductContext.product_information?.product_name}
+                  </span>
+               </div>
+
+               {singleProductContext.unit_measure_information?.name && (
+                  <Badges
+                     color="info"
+                     className="border border-sky-200 bg-sky-100 text-sky-800 dark:border-sky-800 dark:bg-sky-900/30 dark:text-sky-300"
+                     label={`U/M: ${singleProductContext.unit_measure_information.name}`}
+                  />
+               )}
+            </div>
+         )}
+
          <DataTable
             title="Movimientos Kardex"
-            data={KardexData?.data ?? []}
+            data={rows}
             isLoading={isLoading || isFetching}
             columns={columns}
             pagination={

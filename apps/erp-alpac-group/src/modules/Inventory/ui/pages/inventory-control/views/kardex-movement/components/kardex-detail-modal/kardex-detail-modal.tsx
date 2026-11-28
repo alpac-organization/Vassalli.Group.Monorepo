@@ -26,7 +26,6 @@ import { Loader } from "@app/shared/components/loaders/loader";
 import { DetailField } from "@app/shared/components/detail-field/detail-field";
 import { formatBranchDisplay } from "@app/shared/utils/branch-display.utils";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
-import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
 import { KardexType } from "@app/core/enums/kardex-type.enum";
 import { KardexMovementType } from "@app/core/enums/kardex-movement-type.enum";
 import { InventoryOutputsStatus } from "@app/core/enums/inventory-output-status.enum";
@@ -37,7 +36,10 @@ import {
 import { useKardexMovements } from "@app/modules/Inventory/ui/hooks/useKardexMovements";
 import { buttonCancelClass } from "@app/modules/warehouse/ui/warehouse-managua/ui/pages/access-control/components/generate-exit-modal/utils/style.exit-modal";
 
-import { KardexMovementTypeColorBadges } from "../../kardex-movement.variants";
+import {
+   KardexMovementTypeColorBadges,
+   resolveKardexMovementDateTime,
+} from "../../kardex-movement.variants";
 import type { KardexDetailModalProps } from "./kardex-detail-modal.types";
 
 const ICON_CLASS = "text-slate-500 dark:text-slate-300";
@@ -105,7 +107,7 @@ export const KardexDetailModal = function (props: KardexDetailModalProps) {
       : (current?.total_input ?? 0);
 
    const transactionDateTime = current
-      ? formatSpanishDateTime(current.transaction_date, current.transaction_time)
+      ? resolveKardexMovementDateTime(current)
       : "";
 
    const outputStatusLabel =
@@ -368,11 +370,20 @@ export const KardexDetailModal = function (props: KardexDetailModalProps) {
                      <div className={SECTION_GRID_CLASS}>
                         <DetailField
                            label="Código de entrada"
-                           value={detail.inventory_entry_code ?? "—"}
+                           value={
+                              detail.inventory_entry_code?.toUpperCase() ?? "—"
+                           }
                            description={
-                              detail.purchase_order_code
-                                 ? `OC: ${detail.purchase_order_code}`
-                                 : undefined
+                              [
+                                 detail.purchase_request_code
+                                    ? `Requisición: ${detail.purchase_request_code.toUpperCase()}`
+                                    : null,
+                                 detail.purchase_order_code
+                                    ? `OC: ${detail.purchase_order_code.toUpperCase()}`
+                                    : null,
+                              ]
+                                 .filter(Boolean)
+                                 .join(" · ") || undefined
                            }
                            icon={<FileTextIcon size={18} className={ICON_CLASS} aria-hidden />}
                         />

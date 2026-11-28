@@ -1,5 +1,6 @@
 import { Badges, ContextMenu } from "@alpac/design-system";
 import { formatCurrency } from "@app/shared/utils/currency.utils";
+import { formatSpanishDateTime } from "@app/shared/utils/date.utils";
 
 import { KardexType } from "@app/core/enums/kardex-type.enum";
 import {
@@ -26,14 +27,91 @@ export const KardexMovementTypeColorBadges: Record<KardexMovementTypeEnum, strin
       "bg-purple-100 text-purple-800 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800",
 };
 
-const ColumnBadgeColors = {
-   category:
-      "bg-indigo-100 text-indigo-800 border border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-300 dark:border-indigo-800",
-   kardexType:
-      "bg-cyan-100 text-cyan-800 border border-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-300 dark:border-cyan-800",
-   costCenter:
-      "bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800",
-} as const;
+const NUMERIC_CELL_CLASS = "whitespace-nowrap tabular-nums";
+
+const formatKardexUnits = (value?: number | null): string => {
+   if (value === null || value === undefined) return "";
+   return value.toLocaleString("es-NI", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 3,
+   });
+};
+
+export const resolveKardexMovementDateTime = (
+   item: Pick<
+      KardexMovementsData,
+      "transaction_date" | "transaction_time" | "created_at"
+   >,
+): string => {
+   const datePart =
+      item.transaction_date?.trim() ||
+      (item.created_at ? item.created_at.slice(0, 10) : "");
+
+   const rawTransactionTime = item.transaction_time?.trim() ?? "";
+   const hasNonZeroTime =
+      Boolean(rawTransactionTime) &&
+      !/^00:00(:00(\.0+)?)?$/.test(rawTransactionTime);
+
+   const timePart = hasNonZeroTime
+      ? rawTransactionTime
+      : item.created_at && item.created_at.length >= 19
+        ? item.created_at.slice(11, 19)
+        : rawTransactionTime;
+
+   return formatSpanishDateTime(datePart, timePart) || "—";
+};
+
+const resolveDocumentTag = (item: KardexMovementsData) => {
+   const refMeta =
+      resolveReferenceTypeMeta(item.reference_type) ??
+      (item.movement_type === "Buys"
+         ? ReferenceType.FT
+         : item.output_request_type === "Fuel"
+           ? ReferenceType.BL
+           : item.output_request_type === "Supply"
+             ? ReferenceType.RQ
+             : null);
+
+   if (!refMeta) return null;
+
+   const prefix =
+      refMeta.value === ReferenceType.FT.value
+         ? "FT#"
+         : refMeta.value === ReferenceType.BL.value
+           ? "BL#"
+           : refMeta.value === ReferenceType.RQ.value
+             ? "RQ#"
+             : refMeta.shortLabel;
+
+   const rawDocCode =
+      refMeta.value === ReferenceType.FT.value
+         ? item.purchase_request_code
+         : refMeta.value === ReferenceType.BL.value ||
+             refMeta.value === ReferenceType.RQ.value
+           ? item.output_request_code
+           : null;
+
+   const normalizedCode = rawDocCode?.trim()
+      ? rawDocCode.trim().toUpperCase()
+      : null;
+
+   const codeTag = normalizedCode ? `${prefix} ${normalizedCode}` : prefix;
+
+   return {
+      codeTag,
+      title: normalizedCode ? `${refMeta.label}: ${normalizedCode}` : refMeta.label,
+      badgeColor: refMeta.badgeColor,
+   };
+};
+
+const resolveRecordNumber = (item: KardexMovementsData): string | null => {
+   const raw =
+      item.movement_type === "Buys"
+         ? item.inventory_entry_code
+         : item.inventory_output_code || item.output_request_code;
+
+   return raw?.trim() ? raw.trim().toUpperCase() : null;
+};
 
 export const getKardexMovementsColumnsToTable = function (
    props: KardexMovementsColumnsProps,
@@ -43,64 +121,29 @@ export const getKardexMovementsColumnsToTable = function (
    return [
       {
          key: "product_code",
-         label: "Código del Producto",
+         label: "Código de Producto",
          render(item) {
-            return <span>{item.product_information.product_code}</span>;
+            return (
+               <span className="whitespace-nowrap font-medium">
+                  {item.product_information?.product_code?.toUpperCase() ?? "—"}
+               </span>
+            );
          },
       },
       {
          key: "product_name",
-         label: "Nombre del Producto",
-         render(item) {
-            return <span>{item.product_information.product_name}</span>;
-         },
-      },
-      {
-         key: "category_name",
-         label: "Categoria",
+         label: "Producto",
          render(item) {
             return (
-               <Badges
-                  color="info"
-                  className={ColumnBadgeColors.category}
-                  label={item.product_information.category_information.name}
-               />
-            );
-         },
-      },
-      {
-         key: "cost_center",
-         label: "Centro de costo",
-         render(item) {
-            const name = item.cost_center_information?.cost_center_name;
-            if (!name) {
-               return <span className="text-slate-400">—</span>;
-            }
-            return (
-               <Badges
-                  color="info"
-                  className={ColumnBadgeColors.costCenter}
-                  label={name}
-               />
-            );
-         },
-      },
-      {
-         key: "kardex_type",
-         label: "Tipo",
-         render(item) {
-            return (
-               <Badges
-                  color="info"
-                  className={ColumnBadgeColors.kardexType}
-                  label={KardexType[item.kardex_type]?.label ?? item.kardex_type}
-               />
+               <span className="font-medium">
+                  {item.product_information?.product_name ?? "—"}
+               </span>
             );
          },
       },
       {
          key: "movement_type",
-         label: "Movimiento",
+         label: "Concepto",
          render(item) {
             return (
                <Badges
@@ -115,125 +158,142 @@ export const getKardexMovementsColumnsToTable = function (
          },
       },
       {
+         key: "transaction_datetime",
+         label: "Fecha",
+         render(item) {
+            return (
+               <span className="whitespace-nowrap text-sm">
+                  {resolveKardexMovementDateTime(item)}
+               </span>
+            );
+         },
+      },
+      {
+         key: "record_number",
+         label: "No. Registro",
+         render(item) {
+            const recordNumber = resolveRecordNumber(item);
+            if (!recordNumber) {
+               return <span className="text-slate-400">—</span>;
+            }
+            return (
+               <span className="whitespace-nowrap font-medium">
+                  {recordNumber}
+               </span>
+            );
+         },
+      },
+      {
          key: "reference_type",
          label: "Documento",
          render(item) {
-            const refMeta =
-               resolveReferenceTypeMeta(item.reference_type) ??
-               (item.movement_type === "Buys"
-                  ? ReferenceType.FT
-                  : item.output_request_type === "Fuel"
-                    ? ReferenceType.BL
-                    : item.output_request_type === "Supply"
-                      ? ReferenceType.RQ
-                      : null);
-
-            if (!refMeta) {
+            const doc = resolveDocumentTag(item);
+            if (!doc) {
                return <span className="text-slate-400">—</span>;
             }
             return (
-               <Badges
-                  color="info"
-                  className={refMeta.badgeColor}
-                  label={refMeta.label}
-               />
+               <span title={doc.title} className="inline-flex">
+                  <Badges
+                     color="info"
+                     className={doc.badgeColor}
+                     label={doc.codeTag}
+                  />
+               </span>
             );
          },
       },
       {
-         key: "document_number",
-         label: "N° Documento",
+         key: "entry_units",
+         label: "Entrada",
          render(item) {
-            const primaryCode =
-               item.document_number ??
-               (item.movement_type === "Buys"
-                  ? item.inventory_entry_code ?? item.invoice_number
-                  : item.output_request_code ?? item.inventory_output_code);
-            const secondaryCode =
-               item.movement_type === "Buys" || item.inventory_entry_id
-                  ? item.invoice_number && item.invoice_number !== primaryCode
-                     ? `Factura: ${item.invoice_number}`
-                     : null
-                  : item.inventory_output_code &&
-                      item.inventory_output_code !== primaryCode
-                    ? `Salida: ${item.inventory_output_code}`
-                    : null;
-
-            if (!primaryCode && !secondaryCode) {
-               return <span className="text-slate-400">—</span>;
+            if (item.movement_type === "Exit") {
+               return <span className="text-slate-400" />;
             }
-
             return (
-               <div className="flex flex-col">
-                  <span className="font-medium">{primaryCode ?? "—"}</span>
-                  {secondaryCode && (
-                     <span className="text-xs text-slate-500 dark:text-slate-400">
-                        {secondaryCode}
-                     </span>
-                  )}
-               </div>
+               <span className={NUMERIC_CELL_CLASS}>
+                  {formatKardexUnits(item.units)}
+               </span>
             );
          },
       },
       {
-         key: "units",
-         label: "Cantidad",
+         key: "exit_units",
+         label: "Salida",
          render(item) {
+            if (item.movement_type !== "Exit") {
+               return <span className="text-slate-400" />;
+            }
             return (
-               <span>
-                  {item.units.toLocaleString("es-NI", {
-                     maximumFractionDigits: 2,
-                  })}
+               <span className={NUMERIC_CELL_CLASS}>
+                  {formatKardexUnits(item.units)}
                </span>
             );
          },
       },
       {
          key: "unit_cost",
-         label: "Costo Unitario",
+         label: "Costo Unitario C$",
          render(item) {
-            return <span>{formatCurrency(item.unit_cost)}</span>;
+            return (
+               <span className={NUMERIC_CELL_CLASS}>
+                  {formatCurrency(item.unit_cost)}
+               </span>
+            );
          },
       },
       {
          key: "total_input",
-         label: "Total de entrada",
+         label: "Total Entrada C$",
          render(item) {
-            return <span>{formatCurrency(item.total_input)}</span>;
+            return (
+               <span className={NUMERIC_CELL_CLASS}>
+                  {formatCurrency(item.total_input)}
+               </span>
+            );
          },
       },
       {
          key: "total_output",
-         label: "Total de salida",
+         label: "Total Salida C$",
          render(item) {
-            return <span>{formatCurrency(item.total_output)}</span>;
-         },
-      },
-      {
-         key: "average_cost",
-         label: "Costo Promedio",
-         render(item) {
-            return <span>{formatCurrency(item.average_cost)}</span>;
+            return (
+               <span className={NUMERIC_CELL_CLASS}>
+                  {formatCurrency(item.total_output)}
+               </span>
+            );
          },
       },
       {
          key: "total_units",
-         label: "Saldo unidades",
+         label: "Saldo de Unidades",
          render(item) {
             return (
-               <span>
-                  {item.total_units.toLocaleString("es-NI", {
-                     maximumFractionDigits: 2,
-                  })}
+               <span className={NUMERIC_CELL_CLASS}>
+                  {formatKardexUnits(item.total_units)}
+               </span>
+            );
+         },
+      },
+      {
+         key: "average_cost",
+         label: "Costo Promedio C$",
+         render(item) {
+            return (
+               <span className={NUMERIC_CELL_CLASS}>
+                  {formatCurrency(item.average_cost)}
                </span>
             );
          },
       },
       {
          key: "total_kardex",
-         label: "Saldo valorizado",
+         label: "Saldo Kardex C$",
          render(item) {
-            return <span>{formatCurrency(item.total_kardex)}</span>;
+            return (
+               <span className={`${NUMERIC_CELL_CLASS} font-semibold`}>
+                  {formatCurrency(item.total_kardex)}
+               </span>
+            );
          },
       },
       {
