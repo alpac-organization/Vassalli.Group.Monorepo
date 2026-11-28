@@ -19,6 +19,7 @@ export interface PurchaseOrderItemQuotation {
 	price_unit: number;
 	price_total: number;
 	payment_method_type: PaymentMethodType;
+	proforma_number?: string | null;
 	supplier_id: string;
 	supplier_information: PurchaseOrderItemQuotationSupplier;
 }

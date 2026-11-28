@@ -3,13 +3,11 @@ import {
   AccordionGroup,
   AccordionItem,
   Button,
-  Dropdown,
   InputText,
   Textarea,
 } from "@alpac/design-system";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
-import { useUnitOfMeasurement } from "@app/modules/unit-of-measurement/hooks/useUnitOfMeasurement";
 import { useUserStore } from "@app/shared/stores/useUserStore";
 import { SelectProductModal } from "@app/modules/product/ui/views/select-product-modal/select-product-modal";
 import type { GetProductResponse } from "@app/modules/product/domain/ApiContract/Responses/product/get-product.response";
@@ -25,7 +23,6 @@ import { getProductUsageTypeByDestination } from "@app/modules/purchasing/domain
 
 const inputClassName =
   "w-full! rounded-md! text-[15px]! text-white! dark:bg-[#272b34]! dark:border-slate-600! dark:hover:border-neutral-600! dark:placeholder:text-slate-500!";
-const dropdownClassName = `${inputClassName} focus:border-blue-600! focus:ring-2! focus:ring-green-50/50!`;
 const labelClassName = "text-black! dark:text-white!";
 const addProductButtonClassName =
   "text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!";
@@ -57,6 +54,16 @@ const hasUnitsPerPackage = (label?: string, symbol?: string) => {
   );
 };
 
+const formatProductUnitDisplay = (
+  name?: string | null,
+  symbol?: string | null,
+): string => {
+  const cleanName = name?.trim() ?? "";
+  const cleanSymbol = symbol?.trim() ?? "";
+  if (cleanName && cleanSymbol) return `${cleanName} (${cleanSymbol})`;
+  return cleanName || cleanSymbol || "Asociada al producto";
+};
+
 export const PurchaseRequestDetail = ({
   isRequisition,
   disableActions,
@@ -65,8 +72,6 @@ export const PurchaseRequestDetail = ({
   hasAttemptedSubmit = false,
 }: PurchaseRequestDetailProps) => {
   const {
-    companyId,
-    moduleCode,
     costCenterId: userCostCenterId,
     branchId: userBranchId,
   } = useUserStore();
@@ -76,7 +81,6 @@ export const PurchaseRequestDetail = ({
   const {
     control,
     watch,
-    setValue,
     clearErrors,
     trigger,
     formState: { errors },
@@ -111,32 +115,6 @@ export const PurchaseRequestDetail = ({
     [fields, closedProductIds],
   );
 
-  const { GetUnitMeasurements } = useUnitOfMeasurement({
-    payloadUnitOfMeasurement: {
-      companie_id: companyId,
-      module_code: moduleCode,
-    },
-  });
-
-  const { data: unitsOfMeasurement, isLoading: isLoadingUnits } =
-    GetUnitMeasurements;
-
-  const unitsOfMeasurementOptions = useMemo(() => {
-    if (isLoadingUnits) return [];
-    if (!unitsOfMeasurement || !Array.isArray(unitsOfMeasurement)) return [];
-    return unitsOfMeasurement.map((item) => ({
-      value: item.unit_measure_id,
-      label: item.name,
-      symbol: item.symbol,
-    }));
-  }, [unitsOfMeasurement, isLoadingUnits]);
-
-  const validUnitMeasureIds = useMemo(
-    () =>
-      new Set(unitsOfMeasurementOptions.map((option) => String(option.value))),
-    [unitsOfMeasurementOptions],
-  );
-
   const handleSelectProduct = (products: GetProductResponse[]) => {
     const existingIds = new Set(fields.map((item) => item.product_id));
 
@@ -149,7 +127,12 @@ export const PurchaseRequestDetail = ({
         description: "",
         quantity: 0,
         quantity_unit: 0,
-        unit_measure_id: "",
+        unit_measure_id:
+          product.unit_measure_id ||
+          product.unit_measure_information?.unit_measure_id ||
+          "",
+        unit_measure_name: product.unit_measure_information?.name ?? "",
+        unit_measure_symbol: product.unit_measure_information?.symbol ?? "",
         justification: "",
         images: {
           images_product_to_changed: [],
@@ -177,8 +160,8 @@ export const PurchaseRequestDetail = ({
           </span>
           <small className="text-gray-500 dark:text-gray-300">
             {isEditMode
-              ? "Puede agregar productos nuevos y editar cantidad, unidad y datos de los existentes"
-              : "Seleccione los productos y complete cantidad y unidad de medida"}
+              ? "Puede agregar productos nuevos y editar la cantidad y datos de los existentes"
+              : "Seleccione los productos y complete la cantidad solicitada"}
           </small>
         </div>
 
@@ -231,15 +214,19 @@ export const PurchaseRequestDetail = ({
           className="gap-3"
         >
           {fields.map((item, index) => {
-            const selectedUnitId = watch(
-              `purchase_request_items.${index}.unit_measure_id`,
+            const unitName = watch(
+              `purchase_request_items.${index}.unit_measure_name`,
             );
-            const selectedUnit = unitsOfMeasurementOptions.find(
-              (option) => String(option.value) === String(selectedUnitId),
+            const unitSymbol = watch(
+              `purchase_request_items.${index}.unit_measure_symbol`,
             );
             const isBoxOrPackage = hasUnitsPerPackage(
-              selectedUnit?.label,
-              selectedUnit?.symbol,
+              unitName ?? item.unit_measure_name ?? undefined,
+              unitSymbol ?? item.unit_measure_symbol ?? undefined,
+            );
+            const unitDisplayValue = formatProductUnitDisplay(
+              unitName ?? item.unit_measure_name,
+              unitSymbol ?? item.unit_measure_symbol,
             );
             const isPersistedItem = Boolean(
               item.purchase_request_item_id?.trim(),
@@ -330,73 +317,13 @@ export const PurchaseRequestDetail = ({
                   </div>
 
                   <div>
-                    <Controller
-                      name={`purchase_request_items.${index}.unit_measure_id`}
-                      control={control}
-                      rules={{
-                        validate: (value) => {
-                          const unitMeasureId = String(value ?? "").trim();
-                          if (!unitMeasureId) {
-                            return "La unidad de medida es requerida";
-                          }
-                          if (!validUnitMeasureIds.has(unitMeasureId)) {
-                            return "Seleccione una unidad de medida válida";
-                          }
-                          return true;
-                        },
-                      }}
-                      render={({ field }) => (
-                        <Dropdown
-                          label="Unidad de Medida"
-                          isRequired
-                          options={unitsOfMeasurementOptions}
-                          placeholder={
-                            isLoadingUnits
-                              ? "Cargando unidades..."
-                              : "Seleccione..."
-                          }
-                          onChange={(value) => {
-                            const nextUnitId = String(value ?? "");
-                            field.onChange(nextUnitId);
-
-                            const nextUnit = unitsOfMeasurementOptions.find(
-                              (option) => String(option.value) === nextUnitId,
-                            );
-
-                            const nextIsBoxOrPackage = hasUnitsPerPackage(
-                              nextUnit?.label,
-                              nextUnit?.symbol,
-                            );
-
-                            if (!nextIsBoxOrPackage) {
-                              setValue(
-                                `purchase_request_items.${index}.quantity_unit`,
-                                0,
-                                { shouldValidate: false },
-                              );
-                              clearErrors(
-                                `purchase_request_items.${index}.quantity_unit`,
-                              );
-                            }
-
-                            if (hasAttemptedSubmit) {
-                              void trigger(
-                                `purchase_request_items.${index}.unit_measure_id`,
-                              );
-                            }
-                          }}
-                          error={
-                            errors.purchase_request_items?.[index]
-                              ?.unit_measure_id?.message
-                          }
-                          errorVariant="text"
-                          value={field.value}
-                          appearance="dark"
-                          labelClassName={labelClassName}
-                          valueClassName={labelClassName}
-                          className={dropdownClassName}
-                        />
-                      )}
+                    <InputText
+                      label="Unidad de Medida"
+                      placeholder="Unidad del producto"
+                      className={inputClassName}
+                      labelClassName={labelClassName}
+                      value={unitDisplayValue}
+                      disabled
                     />
                   </div>
 
@@ -406,15 +333,11 @@ export const PurchaseRequestDetail = ({
                       control={control}
                       rules={{
                         validate: (value, formValues) => {
-                          const unitId =
-                            formValues.purchase_request_items?.[index]
-                              ?.unit_measure_id;
-                          const unit = unitsOfMeasurementOptions.find(
-                            (option) => String(option.value) === String(unitId),
-                          );
+                          const rowItem =
+                            formValues.purchase_request_items?.[index];
                           const requiresUnitsPerPackage = hasUnitsPerPackage(
-                            unit?.label,
-                            unit?.symbol,
+                            rowItem?.unit_measure_name ?? undefined,
+                            rowItem?.unit_measure_symbol ?? undefined,
                           );
 
                           if (!requiresUnitsPerPackage) return true;

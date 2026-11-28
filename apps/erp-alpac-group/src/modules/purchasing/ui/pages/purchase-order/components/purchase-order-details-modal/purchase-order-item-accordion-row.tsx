@@ -177,6 +177,10 @@ export const PurchaseOrderItemAccordionRow = ({
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               <QuoteField label="Proveedor" value={supplierName} />
               <QuoteField
+                label="N° Proforma"
+                value={quotation?.proforma_number?.trim() || emptyCell}
+              />
+              <QuoteField
                 label="Identificación"
                 value={`${identificationNumber}${
                   identificationType !== emptyCell

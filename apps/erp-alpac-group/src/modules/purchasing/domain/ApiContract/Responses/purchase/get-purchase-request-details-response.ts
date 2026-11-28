@@ -113,6 +113,7 @@ export interface PurchaseRequestCategoryInformation {
 }
 
 export interface PurchaseRequestUnitMeasureInformation {
+	unit_measure_id?: string | null;
 	code: string | null;
 	name: string | null;
 	symbol: string | null;
@@ -143,6 +144,7 @@ export interface PurchaseRequestProductQuotation {
 	price_total: number;
 	quote_date: string;
 	brand_product: string | null;
+	proforma_number?: string | null;
 	delivery_time: number | null;
 	delivery_time_type: string | null;
 	warranty_period: number | null;

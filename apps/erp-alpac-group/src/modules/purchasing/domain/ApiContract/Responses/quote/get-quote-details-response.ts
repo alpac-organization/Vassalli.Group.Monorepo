@@ -16,6 +16,7 @@ export interface GetQuoteDetailResponse {
 	price_total: number;
 	quote_date: string;
 	brand_product: string | null;
+	proforma_number?: string | null;
 	delivery_time: number | null;
 	delivery_time_type: TimeTypeValue | number | null;
 	warranty_period: number | null;

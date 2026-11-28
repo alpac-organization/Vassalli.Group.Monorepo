@@ -31,6 +31,7 @@ export type QuoteAnalysisPdfTotals = {
 };
 
 export type QuoteAnalysisPdfQualitative = {
+  proformaNumber: Record<string, string>;
   delivery: Record<string, string>;
   transport: Record<string, string>;
   warranty: Record<string, string>;
