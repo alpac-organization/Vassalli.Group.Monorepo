@@ -12,6 +12,7 @@ export type ConfirmActionProps = {
    buttonCancelClass?: string;
    isLoading?: boolean;
    disabled?: boolean;
+   actionDisabled?: boolean;
    hasObservation?: boolean;
    observationLabel?: string,
 	isObservationRequired?: boolean,

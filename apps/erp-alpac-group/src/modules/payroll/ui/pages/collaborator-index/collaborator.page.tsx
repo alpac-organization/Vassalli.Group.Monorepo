@@ -46,9 +46,9 @@ import { CatalogEnum } from "@app/core/enums/catalog.enum";
 import { useCompanies } from "@app/modules/auth/ui/hooks/useCompanies";
 import { useAlertState } from "@app/shared/hooks/useAlertState";
 import type { CollaboratorModalType } from "./types/collaborator-modal.types";
-import { DeactivateCollaboratorModal } from "./components/deactivate-collaborator-modal/deactivate-collaborator-modal";
 import { useBaseUrl } from "@app/shared/hooks/useBaseUrl";
 import { useJobPositions } from "@app/modules/admin/ui/hooks/job-positions/useJobPositions";
+import { RoleEnum } from "@app/core/enums/role.enum";
 
 const loadFeatures = () =>
   import("framer-motion").then((res) => res.domAnimation);
@@ -78,11 +78,12 @@ export const CollaboratorPage = function () {
   const location = useLocation();
 
   const { theme } = useTheme();
-  const { companyId, moduleCode } = useUserStore();
+  const { companyId, moduleCode, role } = useUserStore();
   const { urlImage, neutralUrlImage } = useCompanyStore();
 
   const activeLogo = theme === "dark" ? neutralUrlImage : urlImage;
   const isProfileView = location.pathname.includes("collaborator-profile");
+  const isAdministrator = role === RoleEnum.ADMINISTRATOR;
 
   const {
     register,
@@ -235,8 +236,8 @@ export const CollaboratorPage = function () {
   }, []);
 
   const handleDeactivateCollaborator = useCallback(() => {
-    setActiveModal("deactivate-collaborator");
-  }, []);
+    navigate(`${baseUrl}/proceso-baja?tab=terminations-pending`);
+  }, [baseUrl, navigate]);
 
   const formatNumber = useCallback((value: string) => {
     const number = Number(value);
@@ -368,13 +369,15 @@ export const CollaboratorPage = function () {
                 className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
                 onClick={handleAddCollaborator}
               />
-              <Button
-                size="giant"
-                label="Iniciar Proceso de Baja"
-                icon={<UserMinus size={20} />}
-                className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
-                onClick={handleDeactivateCollaborator}
-              />
+              {isAdministrator && (
+                <Button
+                  size="giant"
+                  label="Iniciar Proceso de Baja"
+                  icon={<UserMinus size={20} />}
+                  className="w-full! md:w-auto! text-[15px]! rounded-md! text-white! bg-alpac-primary-500! dark:bg-alpac-primary-700!"
+                  onClick={handleDeactivateCollaborator}
+                />
+              )}
             </div>
           </div>
 
@@ -535,13 +538,6 @@ export const CollaboratorPage = function () {
             optionsJobPositions={optionsJobPositions}
             optionsBranches={optionsBranches}
             optionsBanks={optionsBanks}
-            onClose={() => setActiveModal(null)}
-            onRequestSuccess={handleRequestSuccess}
-            onRequestError={handleRequestError}
-          />
-
-          <DeactivateCollaboratorModal
-            isOpen={activeModal === "deactivate-collaborator"}
             onClose={() => setActiveModal(null)}
             onRequestSuccess={handleRequestSuccess}
             onRequestError={handleRequestError}

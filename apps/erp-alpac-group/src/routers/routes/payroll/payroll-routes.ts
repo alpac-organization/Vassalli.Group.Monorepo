@@ -48,9 +48,9 @@ export const getPayrollRoutes = () => {
    };
 
    const liquidacionSection: SidebarLink = {
-      id: "liquidacion",
-      label: "Proceso de Liquidación",
-      path: "liquidacion",
+      id: "proceso-baja",
+      label: "Proceso de baja",
+      path: "proceso-baja",
       icon: HandCoins,
    };
 
