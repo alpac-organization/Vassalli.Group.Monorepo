@@ -11,6 +11,7 @@ import { AttendanceControlPage } from "@app/modules/payroll/ui/pages/attendance-
 import { SubsidyHistoryPage } from "@app/modules/payroll/ui/pages/subsidy-history/subsidy-history.page";
 import { DisciplinaryManagementPage } from "@app/modules/payroll/ui/pages/disciplinary-management/disciplinary-management.page";
 import { PersonnelActionsPage } from "@app/modules/payroll/ui/pages/personnel-actions/personnel-actions.page";
+import { ProcesoBajaPage } from "@app/modules/payroll/ui/pages/proceso-baja/proceso-baja.page";
 
 export const PayrollRouter: RouteObject[] = [
   {
@@ -67,5 +68,9 @@ export const PayrollRouter: RouteObject[] = [
   {
     path: "personnel-actions",
     element: <PersonnelActionsPage />,
+  },
+  {
+    path: "proceso-baja",
+    element: <ProcesoBajaPage />,
   },
 ];

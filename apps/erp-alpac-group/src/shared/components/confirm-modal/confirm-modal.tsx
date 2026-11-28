@@ -26,6 +26,7 @@ export const ConfirmModal = ({
 	handleFinalAction,
 	isLoading = false,
 	disabled = false,
+	actionDisabled = false,
 }: ConfirmActionProps) => {
 
 	const {
@@ -100,7 +101,7 @@ export const ConfirmModal = ({
 						size="giant"
 						className={`${buttonActionClass}`}
 						onClick={() => handleInternalFinalAction(type)}
-						disabled={disabled}
+						disabled={disabled || actionDisabled}
 						isLoading={isLoading
 
 						}
